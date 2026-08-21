@@ -26,7 +26,12 @@ import {
 } from "@tutao/entities/sys"
 import { WebsocketConnectivityListener } from "../../../../src/platform-kit/network/WebsocketConnectivityListener"
 import { LastProcessedEventBatchProvider } from "../../../../src/platform-kit/network/LastProcessedEventBatchProvider"
-import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	CacheSyncStatus,
+	CachingStatus,
+	EntityUpdateData,
+	entityUpdateToUpdateData,
+} from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../src/entities/sys/Utils"
 import { ProgressMonitorInterface } from "../../../../src/platform-kit/network/ProgressMonitorInterface"
 
@@ -346,7 +351,7 @@ o.spec("EventBusClient", function () {
 				data: await createEntityMessage(entityData),
 			} as MessageEvent)
 			await ebc.messageQueue
-			verify(listenerMock.onSyncDone(), { times: 0 })
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone), { times: 0 })
 			await socket.onmessage?.({
 				data: "initialSyncDone",
 			} as MessageEvent)
@@ -354,7 +359,7 @@ o.spec("EventBusClient", function () {
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityUpdatesReceived(batchEvents, eventBatchId, mailGroupId, matchers.anything()))
 			verify(progressMonitor.workDone(1), { times: 1 })
-			verify(listenerMock.onSyncDone())
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone))
 		})
 
 		o.test("event batch with entity update of an unknown type is processed", async function () {
@@ -374,7 +379,7 @@ o.spec("EventBusClient", function () {
 				data: await createEntityMessage(entityData),
 			} as MessageEvent)
 			await ebc.messageQueue
-			verify(listenerMock.onSyncDone(), { times: 0 })
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone), { times: 0 })
 			await socket.onmessage?.({
 				data: "initialSyncDone",
 			} as MessageEvent)
@@ -382,7 +387,7 @@ o.spec("EventBusClient", function () {
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
-			verify(listenerMock.onSyncDone())
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone))
 		})
 
 		o.test("event batch with empty entity updates is processed", async function () {
@@ -407,7 +412,7 @@ o.spec("EventBusClient", function () {
 				data: await createEntityMessage(entityData),
 			} as MessageEvent)
 			await ebc.messageQueue
-			verify(listenerMock.onSyncDone(), { times: 0 })
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone), { times: 0 })
 			await socket.onmessage?.({
 				data: "initialSyncDone",
 			} as MessageEvent)
@@ -415,7 +420,7 @@ o.spec("EventBusClient", function () {
 			await ebc.waitForEmptyQueue()
 			verify(listenerMock.onEntityUpdatesReceived(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(progressMonitor.workDone(1), { times: 1 })
-			verify(listenerMock.onSyncDone())
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncDone))
 		})
 	})
 
@@ -478,6 +483,36 @@ o.spec("EventBusClient", function () {
 			await ebc.messageQueue
 
 			o.check(updateTotalWorkCaptor.value).equals(1230 + 5)
+		})
+
+		o.test("reports OnlineSyncOngoingFewUpdates for a work estimate below the small-work threshold", async function () {
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			await socket.onmessage?.({
+				data: "initialSyncWorkEstimate;99",
+			} as MessageEvent)
+			await ebc.messageQueue
+
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoingFewUpdates))
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoing), { times: 0 })
+			verify(cacheMock.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoingFewUpdates))
+			verify(cacheMock.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing), { times: 0 })
+		})
+
+		o.test("reports OnlineSyncOngoing for a work estimate at or above the small-work threshold", async function () {
+			await ebc.connect(ConnectMode.Initial)
+			await socket.onopen?.(new Event("open"))
+
+			await socket.onmessage?.({
+				data: "initialSyncWorkEstimate;100",
+			} as MessageEvent)
+			await ebc.messageQueue
+
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoing))
+			verify(listenerMock.onSyncStatusChanged(CacheSyncStatus.OnlineSyncOngoingFewUpdates), { times: 0 })
+			verify(cacheMock.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing))
+			verify(cacheMock.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoingFewUpdates), { times: 0 })
 		})
 	})
 

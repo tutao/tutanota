@@ -1,5 +1,5 @@
 import { elementIdPart, getElementId, isSameIdTuple, isSameSingleId, listIdPart, OperationType } from "@tutao/meta"
-import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
@@ -40,7 +40,6 @@ import { TransferId } from "../../../../entities/drive/Utils"
 import { DriveFile, DriveFileRefTypeRef, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { isOfflineError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { WebFileResolver } from "./WebFileResolver"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { DriveSearchModel } from "../../search/model/DriveSearchModel"
 import { DriveClipboard, DriveModel } from "../model/DriveModel"
@@ -48,7 +47,7 @@ import { listItemSelectionCallbacksFor } from "../../../common/misc/ListModelUti
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
+import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -105,13 +104,12 @@ export class DriveViewModel {
 	public readonly initialized: Promise<void>
 	public resolveInitialized: (value: PromiseLike<void> | void) => void = (value: void) => {}
 
-	private readonly connectionStateListener = {
+	private readonly syncListener: SyncListener = {
 		id: "DriveViewModel",
 		priority: ListenerPriority.NORMAL,
-		onConnectionStateChanged: async (connectionState: WsConnectionState) => {
-			if (connectionState === WsConnectionState.connected) {
-				await this.listModel.reload()
-			}
+		targetStatus: CacheSyncStatus.OnlineSyncOngoing,
+		onSyncStatusChange: async () => {
+			await this.listModel.reload()
 		},
 	}
 
@@ -124,7 +122,7 @@ export class DriveViewModel {
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly webFileResolver: WebFileResolver | null,
 		public readonly updateUi: () => unknown,
-		private readonly connectivityModel: WebsocketConnectivityModel,
+		private readonly syncTracker: SyncTracker,
 		private readonly searchModel: lazyAsync<DriveSearchModel>,
 		private readonly searchRouter: SearchRouter,
 		private readonly driveModel: DriveModel,
@@ -139,7 +137,8 @@ export class DriveViewModel {
 		return this.driveModel.clipboard
 	}
 	readonly init = async () => {
-		this.connectivityModel.addConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.addSyncListener(this.syncListener)
+
 		// if the roots have already been loaded the init must have been finished
 		if (this.roots) {
 			return
@@ -218,7 +217,7 @@ export class DriveViewModel {
 	)
 
 	deinit() {
-		this.connectivityModel.removeConnectionStateListener(this.connectionStateListener)
+		this.syncTracker.removeSyncListener(this.syncListener)
 	}
 
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {

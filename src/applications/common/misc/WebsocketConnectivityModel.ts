@@ -30,7 +30,6 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	private leaderStatus: boolean = false
 
 	private leaderStatusListeners = new Set<LeaderStatusListener>()
-	private connectionStateListeners = new Set<ConnectionStateListener>()
 
 	constructor(private readonly eventBus: ExposedEventBus) {}
 
@@ -61,16 +60,7 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 	}
 
 	async updateWebSocketState(wsConnectionState: WsConnectionState): Promise<void> {
-		const previousWsState = this.wsState()
 		this.wsState(wsConnectionState)
-		if (previousWsState !== wsConnectionState) {
-			const listenersByPriorities = Array.from(this.connectionStateListeners.values()).sort(
-				(listenerA, listenerB) => listenerB.priority.valueOf() - listenerA.priority.valueOf(),
-			)
-			for (const listener of listenersByPriorities) {
-				listener.onConnectionStateChanged(wsConnectionState)
-			}
-		}
 	}
 
 	addLeaderStatusListener(listener: LeaderStatusListener) {
@@ -83,19 +73,6 @@ export class WebsocketConnectivityModel implements WebsocketConnectivityListener
 		const wasRemoved = this.leaderStatusListeners.delete(listener)
 		if (!wasRemoved) {
 			console.log(TAG, `Could not remove leaderStatusListener with id ${listener.id}, possible leak?`)
-		}
-	}
-
-	addConnectionStateListener(listener: ConnectionStateListener) {
-		if (!this.connectionStateListeners.has(listener)) {
-			this.connectionStateListeners.add(listener)
-		}
-	}
-
-	removeConnectionStateListener(listener: ConnectionStateListener) {
-		const wasRemoved = this.connectionStateListeners.delete(listener)
-		if (!wasRemoved) {
-			console.log(TAG, `Could not remove connectionStateListener with id ${listener.id}, possible leak?`)
 		}
 	}
 

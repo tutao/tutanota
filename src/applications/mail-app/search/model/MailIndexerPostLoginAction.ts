@@ -2,7 +2,7 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { FULL_INDEXED_TIMESTAMP, SessionType } from "../../../../platform-kit/app-env"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction.js"
-import { ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 /**
  * The search range is tied to the offline storage settings.
@@ -16,12 +16,13 @@ export class MailIndexerPostLoginAction implements PostLoginAction {
 
 	async onPartialLoginSuccess(event: LoggedInEvent): Promise<void> {
 		if (event.sessionType === SessionType.Persistent) {
-			this.syncTracker.addSyncDoneListener({
+			this.syncTracker.addSyncListener({
 				id: "MailIndexerPostLoginAction",
-				onSyncDone: async () => {
+				priority: ListenerPriority.HIGH,
+				targetStatus: CacheSyncStatus.OnlineSyncDone,
+				onSyncStatusChange: async () => {
 					await this.indexer.extendMailIndex(FULL_INDEXED_TIMESTAMP)
 				},
-				priority: ListenerPriority.HIGH,
 			})
 		}
 	}
