@@ -1,7 +1,7 @@
 public protocol NumberBasedEnum {
-    var __tsValue: SwInt { get }
+  var __tsValue: SwInt { get }
 }
 
 public protocol StringBasedEnum {
-    var __tsValue: SwString { get }
+  var __tsValue: SwString { get }
 }
