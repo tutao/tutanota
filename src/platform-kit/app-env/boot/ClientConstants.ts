@@ -45,4 +45,6 @@ export type BrowserData = {
 	clientPlatform: ClientPlatform
 }
 
-export const companyTeamLabel = "Tuta Team"
+export class TeamLabels {
+	public static readonly companyTeamLabel: string = "Tuta Team"
+}
