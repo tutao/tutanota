@@ -15,8 +15,11 @@ import { getDisplayEventTitle, TEMPORARY_EVENT_OPACITY } from "../../../calendar
 import { EventTextTimeOption, TabIndex } from "@tutao/app-env"
 import { EventWrapperFlagKeys, FlagKeyToIcon, getDiffIn60mIntervals, getTimeTextFormatForLongEvent, getTimeZone } from "../date/CalendarUtils"
 import { Time } from "../date/Time"
-import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
+import { isAllDayEvent, findAttendeeInAddresses } from "../../api/common/utils/CommonCalendarUtils"
 import { formatEventTime, formatTimeWithZoneInfo, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
+import { getEnabledMailAddressesForGroupInfo } from "../../../../platform-kit/network/GroupUtils"
+import { locator } from "../../api/main/CommonLocator"
 
 export const MIN_ROW_SPAN = 3
 
@@ -54,26 +57,22 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const { gridInfo, eventWrapper, interactions, canReceiveFocus, baseDate, horizontalOverflowInfo, showTimeZones } = attrs
 		const calendarEvent = eventWrapper.event
 		const calendarTimeZone = getTimeZone()
-
 		const isLongNormalEvent = !isAllDayEvent(calendarEvent) && getDiffIn60mIntervals(calendarEvent.startTime, calendarEvent.endTime) >= 24
 		const timeFormat = isLongNormalEvent
 			? EventTextTimeOption.START_END_TIME
 			: getTimeTextFormatForLongEvent(calendarEvent, baseDate, baseDate, calendarTimeZone)
-
 		const eventTime = timeFormat ? formatEventTime(calendarEvent, timeFormat, false, calendarTimeZone) : ""
 		const eventTitle = isLongNormalEvent ? `${eventTime} ${getDisplayEventTitle(calendarEvent.summary)}` : getDisplayEventTitle(calendarEvent.summary)
 		const timeZoneText =
 			!isLongNormalEvent && showTimeZones && shouldShowTimeZones(calendarEvent, calendarTimeZone)
 				? formatTimeWithZoneInfo(calendarEvent, timeFormat!, calendarTimeZone)
 				: null
-
 		const resolvedStyles = this.resolveStyles(attrs)
 		const overflowIndicatorStyle = {
 			backgroundColor: resolvedStyles.backgroundColor,
 			borderRight: `1px solid ${resolvedStyles.backgroundColor}`,
 			width: px(6),
 		} satisfies Partial<CSSStyleDeclaration>
-
 		return m(
 			".flex.z2.b.darker-hover.small",
 			{
@@ -142,12 +141,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			paddingTop: "2px",
 			paddingBottom: "2px",
 		}
-
 		const featuredEventStyle = {
 			border: `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`,
 			color: eventWrapper.flags.isConflict ? theme.on_warning_container : theme.on_success_container,
 		}
-
 		const ghostStyle = {
 			color: theme.on_surface_variant,
 			border: `1px dashed ${theme.outline}`,
@@ -156,17 +153,22 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			backgroundColor: theme.surface_container_high,
 		}
 
-		let styles: Partial<CSSStyleDeclaration> = {
+		// Stateless computation: derive declined status from event data at render time
+		const ownMailAddresses = getEnabledMailAddressesForGroupInfo(locator.logins.getUserController().userGroupInfo)
+		const ownAttendee = findAttendeeInAddresses(eventWrapper.event.attendees, ownMailAddresses)
+		const isDeclined = ownAttendee?.status === CalendarAttendeeStatus.DECLINED
+
+		return {
 			...defaultStyle,
 			...(eventWrapper.flags?.isFeatured ? featuredEventStyle : {}),
-			...(eventWrapper.flags?.isGhost ? ghostStyle : {}),
+			...(eventWrapper.flags?.isGhost || isDeclined ? ghostStyle : {}),
+			...(isDeclined
+				? {
+						borderStyle: "solid",
+						textDecoration: "line-through",
+					}
+				: {}),
 		}
-		if (eventWrapper.flags.saidNo) {
-			styles = Object.assign(styles, ghostStyle)
-			styles.borderStyle = "solid"
-			styles.textDecoration = "line-through"
-		}
-		return styles
 	}
 
 	private renderFeaturedTexts(title: string, color: string, isConflict: boolean) {
@@ -212,9 +214,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
 		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN * 3 && timeZoneText
 		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
-
 		const hasEventTime = eventTime !== ""
-
 		const flagIcons = Object.entries(flags)
 			.filter(([key, value]) => value && FlagKeyToIcon[key as EventWrapperFlagKeys])
 			.map(([key]) =>
@@ -228,7 +228,6 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 					},
 				}),
 			)
-
 		return m(".flex", [
 			...flagIcons,
 			m(".flex.overflow-hidden", { class: showTimeInSecondLine ? "col" : "" }, [
