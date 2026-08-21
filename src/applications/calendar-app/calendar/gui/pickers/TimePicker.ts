@@ -83,6 +83,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						this.handleKeyPress(key.key, attrs)
 						return true
 					},
+					onblur: () => this.onConfirmInput(attrs),
 				} satisfies LegacyTextFieldAttrs),
 			)
 		} else {
@@ -100,6 +101,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					value: this.inputText,
 					oninput: (textInputValue) => this.handleTextInput(textInputValue, attrs),
 					onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
+					onblur: () => this.onConfirmInput(attrs),
 					type: TextFieldType.Text,
 				} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
 			)
@@ -172,15 +174,19 @@ export class TimePicker implements Component<TimePickerAttrs> {
 
 	private handleKeyPress(key: string, attrs: TimePickerAttrs) {
 		if (isKeyPressed(key, Keys.RETURN)) {
-			if (this.selectedTime) {
-				// This call causes the text input to be rewritten in the expected format
-				this.setValidInputTextFromTime(this.selectedTime, attrs)
-			}
-
-			// Close the dropdown and unfocus the text input
-			const active = document.activeElement as HTMLElement | null
-			active?.blur()
+			this.onConfirmInput(attrs)
 		}
+	}
+
+	onConfirmInput(attrs: TimePickerAttrs) {
+		if (this.selectedTime) {
+			// This call causes the text input to be rewritten in the expected format
+			this.setValidInputTextFromTime(this.selectedTime, attrs)
+		}
+
+		// Close the dropdown and unfocus the text input
+		const active = document.activeElement as HTMLElement | null
+		active?.blur()
 	}
 
 	private setValidInputTextFromTime(time: Time, attrs: TimePickerAttrs) {
