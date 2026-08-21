@@ -92,6 +92,14 @@ mailAddresses
 			"CREATE TABLE IF NOT EXISTS encrypted_mail_details_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
 		purgedWithCache: true,
 	},
+
+	// All successfully indexed mail details blobs archives.
+	//
+	// This is saved to prevent redownloading entire archives.
+	cached_mail_details_archives: {
+		definition: "CREATE TABLE IF NOT EXISTS cached_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+		purgedWithCache: true,
+	},
 })
 
 export interface IndexedGroupData {
@@ -407,6 +415,18 @@ VALUES (
 	}
 
 	async clearEncryptedMailDetailsBlobs(): Promise<void> {
+		// Prevent redownloading any archives we downloaded in this.
+		{
+			const { query, params } = sql`SELECT DISTINCT archiveId
+										  FROM encrypted_mail_details_blobs`
+			const rows = await this.sqlCipherFacade.all(query, params)
+			const archives = rows.map(untagSqlObject).map(({ archiveId }) => archiveId as Id)
+			for (const archive of archives) {
+				await this.markArchiveAsDownloaded(archive)
+			}
+		}
+
+		// Now delete
 		{
 			const { query, params } = sql`DELETE
 										  FROM encrypted_mail_details_blobs`
@@ -466,6 +486,21 @@ VALUES (
 		${mailImportType}
 		)`
 		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async markArchiveAsDownloaded(archiveId: Id): Promise<void> {
+		const { query, params } = sql`INSERT
+		OR REPLACE INTO cached_mail_details_archives VALUES (
+		${archiveId}
+		)`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getDownloadedArchives(): Promise<Id[]> {
+		const { query, params } = sql`SELECT archiveId
+									  FROM cached_mail_details_archives`
+		const rows = await this.sqlCipherFacade.all(query, params)
+		return rows.map(untagSqlObject).map(({ archiveId }) => archiveId as Id)
 	}
 
 	async enqueueImport(importedMails: Id, mailImportType: MailImportType) {
