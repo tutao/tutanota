@@ -15939,7 +15939,7 @@ const typeModels = {
 				"encrypted": false
 			},
 			"2828": {
-				"final": true,
+				"final": false,
 				"name": "status",
 				"id": 2828,
 				"type": "Number",
