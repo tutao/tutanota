@@ -35,8 +35,10 @@ export enum ListLoadingState {
 export type SwipeConfiguration<T> = {
 	renderLeftSpacer(): Children
 	renderRightSpacer(): Children
+	renderDownSpacer(): Children
 	swipeLeft(element: T): Promise<ListSwipeDecision>
 	swipeRight(element: T): Promise<ListSwipeDecision>
+	swipeDown(): Promise<void>
 	isDisabledForEntity(element: T): boolean
 }
 
@@ -118,6 +120,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 	private lastAttrs!: ListAttrs<T, VH>
 	private domSwipeSpacerLeft!: HTMLElement
 	private domSwipeSpacerRight!: HTMLElement
+	private domSwipeSpacerDown!: HTMLElement
 	private endOfListMessageChildDom!: HTMLElement
 	private swipeHandler!: ListSwipeHandler<T, VH>
 	private width = 0
@@ -203,9 +206,15 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			width: () => this.width,
 			domSwipeSpacerLeft: () => this.domSwipeSpacerLeft,
 			domSwipeSpacerRight: () => this.domSwipeSpacerRight,
+			domSwipeSpacerDown: () => this.domSwipeSpacerDown,
+			listElement: () => this.innerDom,
 			getRowForPosition: (coord) => this.getRowForPosition(coord),
 			onSwipeLeft: async (el) => this.lastAttrs.renderConfig.swipe?.swipeLeft(el) ?? ListSwipeDecision.Cancel,
 			onSwipeRight: async (el) => this.lastAttrs.renderConfig.swipe?.swipeRight(el) ?? ListSwipeDecision.Cancel,
+			canSwipeDown: () => this.containerDom!.scrollTop === 0,
+			onSwipeDown: async () => {
+				await this.lastAttrs.renderConfig.swipe?.swipeDown()
+			},
 			isSwipeDisabledForEntity: (el) => this.lastAttrs.renderConfig.swipe?.isDisabledForEntity(el) ?? false,
 		})
 	}
@@ -566,6 +575,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		if (attrs.renderConfig.swipe == null) {
 			return null
 		}
+		const shouldDisplaySwipeDownSpacer = attrs.state.loadingStatus !== ListLoadingState.Loading
 		return [
 			m(
 				".swipe-spacer.flex.items-center.justify-end.pr-24.blue",
@@ -599,6 +609,26 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 				},
 				attrs.renderConfig.swipe.renderRightSpacer(),
 			),
+			shouldDisplaySwipeDownSpacer
+				? m(
+						".swipe-spacer.flex.items-center.justify-center",
+						{
+							oncreate: (vnode) => (this.domSwipeSpacerDown = vnode.dom as HTMLElement),
+							tabindex: TabIndex.Programmatic,
+							"aria-hidden": "true",
+							style: {
+								height: px(attrs.renderConfig.itemHeight),
+								transform: `translateY(-${attrs.renderConfig.itemHeight}px)`,
+								position: "absolute",
+								"z-index": 1,
+								width: "100%",
+								left: 0,
+								top: 0,
+							},
+						},
+						attrs.renderConfig.swipe.renderDownSpacer(),
+					)
+				: null,
 		]
 	}
 
@@ -607,6 +637,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		if (containerDom && this.domSwipeSpacerLeft && this.domSwipeSpacerRight) {
 			this.domSwipeSpacerLeft.style.opacity = "0"
 			this.domSwipeSpacerRight.style.opacity = "0"
+			if (this.domSwipeSpacerDown) this.domSwipeSpacerDown.style.opacity = "0"
 			this.doUpdateWidth(containerDom)
 		}
 	}
@@ -629,6 +660,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 
 			this.domSwipeSpacerLeft.style.opacity = "1"
 			this.domSwipeSpacerRight.style.opacity = "1"
+			if (this.domSwipeSpacerDown) this.domSwipeSpacerDown.style.opacity = "1"
 		}
 	})
 }

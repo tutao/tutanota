@@ -143,7 +143,13 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					const folder = this.mailViewModel.getMailSet()
 					return m(BackgroundColumnLayout, {
 						backgroundColor: theme.surface_container,
-						desktopToolbar: () => m(DesktopListToolbar, m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)), this.renderFilterButton()),
+						desktopToolbar: () =>
+							m(
+								DesktopListToolbar,
+								m(SelectAllCheckbox, selectionAttrsForList(this.mailViewModel)),
+								this.renderFilterButton(),
+								this.renderSyncButton(folder),
+							),
 						columnLayout: folder
 							? m(
 									"",
@@ -297,6 +303,18 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			filter: this.mailViewModel.filterType,
 			setFilter: (filter: MailFilterType | null) => this.mailViewModel.setFilter(filter == null ? new Set() : new Set([filter])),
 		})
+	}
+
+	private renderSyncButton(mailSet: MailSet | null) {
+		return mailSet
+			? m(IconButton, {
+					icon: Icons.Refresh,
+					title: "refresh_action",
+					click: async () => {
+						await this.mailViewModel.deleteMailSetEntryRangeFolder(mailSet, true)
+					},
+				})
+			: null
 	}
 
 	private mailViewerSingleActions(viewModel: ConversationViewModel) {
