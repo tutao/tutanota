@@ -25,9 +25,9 @@ import {
 	createCalendarEventRefTransferAggregatedType,
 	createDateWrapper,
 	createDateWrapperTransferAggregatedType,
+	createMissedNotificationTransferAggregatedType,
 	createNotificationSessionKey,
 	createNotificationSessionKeyTransferAggregatedType,
-	createNotificationTransferAggregatedType,
 	createRepeatRule,
 	createRepeatRuleTransferAggregatedType,
 	createUserAlarmInfoTransferAggregatedType,
@@ -97,10 +97,10 @@ export class AlarmFacade {
 		pushIdentifiers: PushIdentifier[],
 		notificationSessionKey: AesKey,
 	): Promise<AlarmServicePost> {
-		const notification = createNotificationTransferAggregatedType({
-			alarms: [],
+		const missedNotification = createMissedNotificationTransferAggregatedType({
+			alarmNotifications: [],
 		})
-		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo: [] })
+		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], missedNotification, userAlarmInfoData: [], userAlarmInfo: [] })
 
 		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
 			const eventRef = createCalendarEventRef({
@@ -153,11 +153,11 @@ export class AlarmFacade {
 					eventEnd: event.endTime,
 					user: userId,
 				})
-				notification.alarms.push(alarmNotification)
+				missedNotification.alarmNotifications.push(alarmNotification)
 			}
 		}
 
-		await this.encryptNotificationKeyTransferAggregateForDevices(notificationSessionKey, notification.alarms, pushIdentifiers)
+		await this.encryptNotificationKeyTransferAggregateForDevices(notificationSessionKey, missedNotification.alarmNotifications, pushIdentifiers)
 
 		return alarmServicePost
 	}

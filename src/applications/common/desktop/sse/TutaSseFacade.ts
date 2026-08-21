@@ -181,11 +181,11 @@ export class TutaSseFacade implements SseEventHandler {
 					}
 					const instanceTypeId: InstanceTypeId = {
 						app: AppNameEnum.Sys,
-						name: "Notification",
-						id: 1706,
+						name: "MissedNotification",
+						id: 1693,
 					}
 					const instancePath: InstancePath = new RootPath(instanceTypeId.app)
-						.addAssociationId({ transferredAttributeId: null, id: 1714 } as ModelAssociation)
+						.addAssociationId({ transferredAttributeId: null, id: 1703 } as ModelAssociation)
 						.addAggregateId(encryptedAlarmNotification.getId())
 					const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 						alarmNotificationUntyped,

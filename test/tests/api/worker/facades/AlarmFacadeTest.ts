@@ -22,7 +22,7 @@ import {
 	createAlarmNotificationTransferAggregatedType,
 	createAlarmServicePost,
 	createCalendarEventRefTransferAggregatedType,
-	createNotificationTransferAggregatedType,
+	createMissedNotificationTransferAggregatedType,
 	createUserAlarmInfoTransferAggregatedType,
 	GroupMembership,
 	GroupMembershipTypeRef,
@@ -113,8 +113,8 @@ o.spec("AlarmFacadeTest", function () {
 				}),
 				trigger: personalAlarmInfoTemplate.trigger,
 			})
-			const notification = createNotificationTransferAggregatedType({
-				alarms: [
+			const missedNotification = createMissedNotificationTransferAggregatedType({
+				alarmNotifications: [
 					createAlarmNotificationTransferAggregatedType({
 						alarmInfo,
 						repeatRule: null,
@@ -131,7 +131,7 @@ o.spec("AlarmFacadeTest", function () {
 			userAlarmInfo[0]._ownerGroup = userGroupMembership.group
 			userAlarmInfo[0]._ownerEncSessionKey = ownerEncSessionKey
 			userAlarmInfo[0]._ownerKeyVersion = userGroupKey.version.toString()
-			const alarmServicePostData = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo })
+			const alarmServicePostData = createAlarmServicePost({ alarmNotifications: [], missedNotification, userAlarmInfoData: [], userAlarmInfo })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {
 				event: personalCalendarEvent,
