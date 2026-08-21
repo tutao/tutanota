@@ -277,12 +277,19 @@ export class ClientDetector {
 	getClientPlatform(): ClientPlatform {
 		if (EnvProvider.get().isDesktop()) {
 			const platformId = EnvProvider.get().getPlatformId()
-			if (platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
-			else if (platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
-			else if (platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS
-			else return ClientPlatform.DESKTOP_UNKNOWN
-		} else if (!EnvProvider.get().isApp()) return ClientPlatform.WEB
-		else if (EnvProvider.get().isAndroidApp()) {
+			switch (platformId) {
+				case PlatformId.Darwin:
+					return ClientPlatform.DESKTOP_MAC
+				case PlatformId.Linux:
+					return ClientPlatform.DESKTOP_LINUX
+				case PlatformId.Win32:
+					return ClientPlatform.DESKTOP_WINDOWS
+				default:
+					return ClientPlatform.DESKTOP_UNKNOWN
+			}
+		} else if (!EnvProvider.get().isApp()) {
+			return ClientPlatform.WEB
+		} else if (EnvProvider.get().isAndroidApp()) {
 			return this.appType === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
 		} else if (EnvProvider.get().isIOSApp()) {
 			return this.appType === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
