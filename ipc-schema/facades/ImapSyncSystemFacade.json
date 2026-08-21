@@ -24,7 +24,7 @@
 					"imapCredentials": "ImapCredentials"
 				}
 			],
-			"ret": "ImapGetMailboxResult"
+			"ret": "List<ImapMailbox>"
 		},
 		"stopSync": {
 			"doc": "Stop a specific running IMAP sync.",

@@ -1,7 +1,0 @@
-{
-	"name": "ImapGetMailboxResult",
-	"type": "typeref",
-	"location": {
-		"typescript": "@tutao/entities/tutanota"
-	}
-}

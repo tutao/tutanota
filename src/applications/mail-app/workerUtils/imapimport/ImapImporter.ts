@@ -7,7 +7,6 @@ import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8Ar
 import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
-import { ImapGetMailboxResult } from "../../../common/api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapImportSession, newImapImportSession } from "./ImapImportSession"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import {
@@ -220,7 +219,7 @@ export class ImapImporter implements ImapSyncFacade {
 		this.imapImportSessions.delete(this.getImapImportSessionsMapKey(imapAccountSyncStateId))
 	}
 
-	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapGetMailboxResult> {
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
 		return await this.imapSyncSystemFacade.getImapMailboxesFromServer(imapCredentials)
 	}
 

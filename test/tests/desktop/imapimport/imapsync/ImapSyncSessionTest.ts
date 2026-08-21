@@ -76,7 +76,7 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.connect()).thenReject(error)
 
 		const e = await assertThrows(ImapError, async () => await session.startSyncSession(imapSyncContext))
-		o.check(e!.data).equals(ImapErrorCause.AUTH_FAILED)
+		o.check(e!.data.cause).equals(ImapErrorCause.AUTH_FAILED)
 	})
 
 	o.test("startSyncSession - returns ImapError with UNKNOWN when unknown error happens", async () => {
@@ -84,7 +84,7 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.connect()).thenReject(error)
 
 		const e = await assertThrows(ImapError, async () => await session.startSyncSession(imapSyncContext))
-		o.check(e!.data).equals(ImapErrorCause.UNKNOWN)
+		o.check(e!.data.cause).equals(ImapErrorCause.UNKNOWN)
 		o.check(session!.state).equals(SyncSessionState.POSTPONED)
 	})
 

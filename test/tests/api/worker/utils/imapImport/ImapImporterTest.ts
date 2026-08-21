@@ -10,7 +10,6 @@ import { ImapProvider } from "../../../../../../src/applications/common/api/comm
 import { imapMailToImportMailParams } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { newImapImportSession } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
 import { ImapError, ImapErrorCause } from "../../../../../../src/applications/common/api/common/error/ImapError"
-import { ImapGetMailboxResult } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../../src/entities/tutanota/Utils"
 import { ImapSyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { ImapImportTutaFileId, ImportMailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
@@ -502,7 +501,7 @@ o.spec("ImapImporter", () => {
 	})
 
 	o.test("getImapMailboxesFromServer - delegates to system facade", async () => {
-		const resultMock: ImapGetMailboxResult = { result: [] }
+		const resultMock: ImapMailbox[] = []
 		when(imapSyncSystemFacadeMock.getImapMailboxesFromServer(imapCredentials)).thenResolve(resultMock)
 
 		const result = await importer.getImapMailboxesFromServer(imapCredentials)

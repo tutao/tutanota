@@ -20,8 +20,6 @@ import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/Upd
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
-import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
 
 EnvProvider.assertMainOrNode()
 
@@ -309,24 +307,23 @@ export class ImapMailImportController {
 
 	async doInitialConnectAndGetImapMailboxes(imapCredentials: ImapCredentials): Promise<ImapImportUiGetMailboxResult> {
 		const imapImportUiGetMailboxResult: ImapImportUiGetMailboxResult = {}
-		const imapGetMailboxResult = await this.imapImporter.getImapMailboxesFromServer(imapCredentials)
-		if (imapGetMailboxResult.result) {
+		try {
+			const imapMailboxes = await this.imapImporter.getImapMailboxesFromServer(imapCredentials)
 			imapImportUiGetMailboxResult.result = {
-				imapMailboxes: imapGetMailboxResult.result,
-				imapCredentials: imapCredentials,
+				imapMailboxes,
+				imapCredentials,
 			}
-		} else if (imapGetMailboxResult.error) {
-			const imapErrorHandlerResult = await this.imapErrorHandler.handleImapError(imapGetMailboxResult.error, imapCredentials)
+		} catch (e) {
+			const isImapError = !Number.isNaN(e.data?.cause) && e.data?.code
+			if (!isImapError) {
+				throw e
+			}
+			const imapErrorHandlerResult = await this.imapErrorHandler.handleImapError(e, imapCredentials)
 			if (imapErrorHandlerResult.shouldRetry) {
 				const updatedImapCredentials = imapErrorHandlerResult.updatedImapCredentials ?? imapCredentials
 				return await this.doInitialConnectAndGetImapMailboxes(updatedImapCredentials)
 			}
 			imapImportUiGetMailboxResult.error = imapErrorHandlerResult.readableImapError
-		} else {
-			imapImportUiGetMailboxResult.error = {
-				cause: ImapErrorCause.UNKNOWN,
-				errorMessage: lang.getTranslationText("migrationAccountConnectionFailure_msg"),
-			}
 		}
 		return imapImportUiGetMailboxResult
 	}

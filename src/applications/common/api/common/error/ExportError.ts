@@ -7,7 +7,7 @@ export const enum ExportErrorReason {
 	RunningForUser = "RunningForUser",
 }
 
-export class ExportError extends TutanotaError {
+export class ExportError extends TutanotaError<ExportErrorReason> {
 	// data field is respected by the WorkerProtocol. Other fields might not be passed
 	constructor(
 		msg: string,
