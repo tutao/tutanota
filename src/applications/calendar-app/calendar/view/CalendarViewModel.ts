@@ -104,6 +104,8 @@ export interface EventWrapperFlags {
 	 */
 	isGhost?: boolean
 
+	saidNo?: boolean
+
 	/**
 	 * Emphasized event to draw attention.
 	 * Styled with icon, borders, and a success semantic color (ignores calendar color).
