@@ -503,11 +503,9 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 
 		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
-		console.time("Posting multiple with retry")
 		const mapResult = await promiseMap(instanceChunks, (chunk) =>
 			this.postMultipleHandlerWithRetry(listId as Id, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel),
 		)
-		console.time("Posting multiple with retry")
 
 		const createdIds = mapResult.flatMap((res) => res.createdIds)
 		const errors = mapResult.flatMap((res) => res.errors ?? [])
