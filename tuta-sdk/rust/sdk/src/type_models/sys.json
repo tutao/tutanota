@@ -11383,6 +11383,106 @@
 			}
 		}
 	},
+	"1706": {
+		"name": "Notification",
+		"app": "sys",
+		"version": 155,
+		"since": 55,
+		"type": "LIST_ELEMENT_TYPE",
+		"id": 1706,
+		"rootId": "A3N5cwAGqg",
+		"versioned": false,
+		"encrypted": true,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"1708": {
+				"final": true,
+				"name": "_id",
+				"id": 1708,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"1709": {
+				"final": true,
+				"name": "_permissions",
+				"id": 1709,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"1710": {
+				"final": false,
+				"name": "_format",
+				"id": 1710,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"1711": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 1711,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"1712": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 1712,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2237": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2237,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2715": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2715,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"1713": {
+				"final": false,
+				"name": "mails",
+				"id": 1713,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1364,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"1714": {
+				"final": false,
+				"name": "alarms",
+				"id": 1714,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1564,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
 	"1723": {
 		"name": "BrandingDomainGetReturn",
 		"app": "sys",
