@@ -62,6 +62,7 @@ import { IncomingServerJson, OutgoingServerJson } from "../../../src/platform-ki
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { InstanceKeyProviderMaker } from "../../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 
 const { anything, argThat } = matchers
 
@@ -120,6 +121,7 @@ o.spec("EntityRestClient", function () {
 	let cryptoWrapper: CryptoWrapper
 	let loggedInUserProvider: TestLoggedInUserProvider
 	let serviceExecutor: ServiceExecutor
+	let instanceKeyProviderMaker: InstanceKeyProviderMaker
 
 	async function typeRefToRestPath(typeRef: TypeRef<Entity>): Promise<string> {
 		return EntityUtils.typeModelToRestPath(await typeModelResolver.resolveClientTypeReference(typeRef))
@@ -134,6 +136,7 @@ o.spec("EntityRestClient", function () {
 		cryptoWrapper = new CryptoWrapper()
 
 		restClient = object()
+		instanceKeyProviderMaker = object()
 
 		sk = aes256RandomKey()
 		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
@@ -159,6 +162,7 @@ o.spec("EntityRestClient", function () {
 			async () => {
 				noOp()
 			},
+			instanceKeyProviderMaker,
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk

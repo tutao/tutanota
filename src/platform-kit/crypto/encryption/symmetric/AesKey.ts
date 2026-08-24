@@ -1,4 +1,5 @@
 import { CryptoError } from "@tutao/crypto/error"
+import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 
 export type BitArray = number[]
 
@@ -51,4 +52,8 @@ export function assert256BitKey(key: AesKey): Aes256Key {
 		const length = key.bits.length * 4 * 8
 		throw new CryptoError(`Illegal key length: ${length} (expected: 256)`)
 	}
+}
+
+export function assert256BitVersionedKey(key: VersionedKey): VersionedAes256Key {
+	return { version: key.version, object: assert256BitKey(key.object) }
 }
