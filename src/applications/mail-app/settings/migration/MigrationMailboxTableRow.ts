@@ -9,12 +9,15 @@ import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
+import { imapErrorCauseToReadableImapError } from "../imapimport/ImapErrorHandler"
 
 export type MigrationMailboxRowView = {
 	name: string
 	mailAddress: string
 	status: CustomerMigrationMailboxInfoStatus
 	initialPassword: string | null
+	errorCode: string | null
 }
 
 export function migrationMailboxStatusLabel(status: CustomerMigrationMailboxInfoStatus): TranslationKey {
@@ -52,14 +55,23 @@ function migrationMailboxStatusIcon(status: CustomerMigrationMailboxInfoStatus) 
 	switch (status) {
 		case CustomerMigrationMailboxInfoStatus.COMPLETED_SUCCESSFULLY:
 			return Icons.Checkmark
+		case CustomerMigrationMailboxInfoStatus.FINISHED_SYNC:
+			return Icons.CircleCheckOutline
 		case CustomerMigrationMailboxInfoStatus.ERROR:
-		case CustomerMigrationMailboxInfoStatus.CANCELLED:
 			return Icons.FailureFilled
+		case CustomerMigrationMailboxInfoStatus.CANCELLED:
+			return Icons.StopOutline
 		case CustomerMigrationMailboxInfoStatus.RUNNING:
 			return Icons.Sync
 		default:
 			return Icons.ClockOutlines
 	}
+}
+
+/** Readable IMAP error for an ERROR-status row, derived from its stored `errorCode` (an `ImapErrorCause`), or null if not applicable. */
+function migrationMailboxErrorMessage(row: MigrationMailboxRowView): string | null {
+	if (row.status !== CustomerMigrationMailboxInfoStatus.ERROR || row.errorCode == null) return null
+	return imapErrorCauseToReadableImapError(parseInt(row.errorCode) as ImapErrorCause).errorMessage
 }
 
 export interface MigrationMailboxTableRowAttrs {
@@ -75,15 +87,11 @@ export class MigrationMailboxTableRow implements Component<MigrationMailboxTable
 	view({ attrs }: Vnode<MigrationMailboxTableRowAttrs>): Children {
 		const { row, selected, onToggleSelected, revealed, onToggleRevealed } = attrs
 		return m(
-			".items-center",
+			".items-center.grid.fill-grid-row.pt-8.pb-8.plr-12.border-radius-8",
 			{
 				style: {
-					display: "grid",
 					"grid-template-columns": "subgrid",
-					"grid-column": "1 / 6",
-					padding: "8px 12px",
-					"border-radius": "10px",
-					background: theme.surface,
+					background: row.status === CustomerMigrationMailboxInfoStatus.COMPLETED_SUCCESSFULLY ? theme.success_container : theme.surface,
 				},
 			},
 			[
@@ -97,17 +105,13 @@ export class MigrationMailboxTableRow implements Component<MigrationMailboxTable
 				),
 				m("div.text-ellipsis", row.name),
 				m("div.text-ellipsis", row.mailAddress),
-				m(".flex.items-center.gap-8", [
+				m(".flex.items-center.gap-8", { title: migrationMailboxErrorMessage(row) ?? undefined }, [
 					m(Icon, { icon: migrationMailboxStatusIcon(row.status), size: IconSize.PX20, style: { fill: migrationMailboxStatusColor(row.status) } }),
-					m(
-						"div.small",
-						{ style: { color: migrationMailboxStatusColor(row.status) } },
-						lang.getTranslationText(migrationMailboxStatusLabel(row.status)),
-					),
+					m("div", { style: { color: migrationMailboxStatusColor(row.status) } }, lang.getTranslationText(migrationMailboxStatusLabel(row.status))),
 				]),
 				row.initialPassword
 					? m(".flex.items-center.gap-4", [
-							m("div.small", revealed ? row.initialPassword : "***"),
+							m("div", revealed ? row.initialPassword : "***"),
 							m(ToggleButton, {
 								title: revealed ? "concealPassword_action" : "revealPassword_action",
 								toggled: revealed,
@@ -128,7 +132,7 @@ export class MigrationMailboxTableRow implements Component<MigrationMailboxTable
 								},
 							}),
 						])
-					: m("div.small", "-"),
+					: m("div", "-"),
 			],
 		)
 	}

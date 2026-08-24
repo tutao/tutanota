@@ -1,7 +1,6 @@
 import m, { Component, Vnode } from "mithril"
 import { WizardLayoutAttrs } from "../../../../ui/base/wizard/Wizard"
 import { WizardProgress } from "../../../../ui/base/wizard/WizardProgress"
-import { px, size } from "../../../../ui/size"
 
 /**
  * A wizard layout that stretches to fill its container instead of the default signup-style
@@ -13,8 +12,8 @@ import { px, size } from "../../../../ui/size"
 export class MigrationWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
 	view(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
 		const { progressState, showProgress, backButton } = vnode.attrs
-		return m(".full-width.flex.row.gap-32", { style: { padding: `${px(size.spacing_24)} 0` } }, [
-			m(".flex.col.flex-space-between.gap-16", { style: { width: "220px", flex: "none" } }, [
+		return m(".full-width.flex.row.gap-32.height-100p.pt-24.pb-24", [
+			m(".flex.col.flex-space-between.gap-16.flex-fixed", { style: { width: "220px" } }, [
 				showProgress ? m(WizardProgress, { progressState, labelMaxLength: 24 }) : null,
 				backButton,
 			]),

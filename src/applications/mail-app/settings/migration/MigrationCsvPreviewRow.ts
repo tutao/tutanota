@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../../../ui/theme"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { MailboxType, MigrationMailboxRow } from "./MigrationCsvParser"
 
@@ -14,15 +13,11 @@ export class MigrationCsvPreviewRow implements Component<MigrationCsvPreviewRowA
 	view({ attrs }: Vnode<MigrationCsvPreviewRowAttrs>): Children {
 		const { row, selected, onToggleSelected } = attrs
 		return m(
-			".items-center",
+			".items-center.grid.fill-grid-row.pt-8.pb-8.plr-12.content-bg",
 			{
 				style: {
-					display: "grid",
 					"grid-template-columns": "subgrid",
-					"grid-column": "1 / 6",
-					padding: "8px 12px",
 					"border-radius": "10px",
-					background: theme.surface,
 				},
 			},
 			[

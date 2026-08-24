@@ -1,5 +1,4 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../../../ui/theme"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { MigrationMailboxRow } from "./MigrationCsvParser"
 import { MigrationCsvPreviewRow } from "./MigrationCsvPreviewRow"
@@ -26,8 +25,8 @@ export class MigrationCsvPreviewTable implements Component<MigrationCsvPreviewTa
 
 		return m(".mt-16", [
 			m(".small.mb-8", lang.getTranslation("migrationCsvRowsFound_msg", { "{count}": rows.length }).text),
-			m(".mt-8", { style: { display: "grid", "grid-template-columns": GRID_COLUMNS } }, [
-				m(".small.pb-8", { style: { display: "grid", "grid-template-columns": "subgrid", "grid-column": "1 / 6", color: theme.on_surface_variant } }, [
+			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS } }, [
+				m(".small.pb-8.grid.fill-grid-row.text-fade", { style: { "grid-template-columns": "subgrid" } }, [
 					m(
 						"div",
 						m("input.checkbox", {

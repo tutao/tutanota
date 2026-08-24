@@ -26,56 +26,60 @@ export type ImapErrorHandlerResult = {
 
 type HandleCertificateErrorResult = { result?: { ignoreCertificateErrors: boolean; customCertificateData: Uint8Array<ArrayBuffer> | null } }
 
-function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
-	switch (imapError.data) {
+export function imapErrorCauseToReadableImapError(cause: ImapErrorCause): ReadableImapError {
+	switch (cause) {
 		case ImapErrorCause.INITIAL_CONNECT_FAILED:
 			return {
-				cause: imapError.data,
-				errorMessage: lang.getTranslation("migrationAccountConnectionFailure_msg", { "{errorCode}": imapError.data }).text,
+				cause,
+				errorMessage: lang.getTranslation("migrationAccountConnectionFailure_msg", { "{errorCode}": cause }).text,
 			}
 		case ImapErrorCause.AUTH_FAILED:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationAuthFailed_msg"),
 			}
 		case ImapErrorCause.HOST_NOT_FOUND:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationHostNotFoundError_msg"),
 			}
 		case ImapErrorCause.HOST_NOT_REACHABLE:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationHostNotReachableError_msg"),
 			}
 		case ImapErrorCause.CERT_ERROR:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationConnectionCertError_msg"),
 			}
 		case ImapErrorCause.PERMANENT_ERROR:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationSyncFailure_msg"),
 			}
 		case ImapErrorCause.GREETING_TIMEOUT:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationGreetingTimeout_msg"),
 			}
 		case ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED:
 			return {
-				cause: imapError.data,
+				cause,
 				errorMessage: lang.getTranslationText("migrationGmailAllMailsDisabledImapError_msg"),
 			}
 		case ImapErrorCause.UNKNOWN:
 		case ImapErrorCause.POSTPONE:
 		default:
 			return {
-				cause: imapError.data,
-				errorMessage: lang.getTranslation("migrationGenericError_msg", { "{errorCode}": imapError.data }).text,
+				cause,
+				errorMessage: lang.getTranslation("migrationGenericError_msg", { "{errorCode}": cause }).text,
 			}
 	}
+}
+
+function imapErrorToReadableImapError(imapError: ImapError): ReadableImapError {
+	return imapErrorCauseToReadableImapError(imapError.data)
 }
 
 export class ImapErrorHandler {

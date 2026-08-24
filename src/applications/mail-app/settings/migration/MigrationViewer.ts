@@ -10,8 +10,6 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { BannerType, InfoBanner } from "../../../../ui/base/InfoBanner"
 import { PrimaryButton, TertiaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
-import { theme } from "../../../../ui/theme"
-import { formatDate } from "../../../../ui/utils/Formatter"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { renderCsv, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
@@ -30,6 +28,8 @@ import { CustomerMigrationInfoStatus, CustomerMigrationMailboxInfoStatus } from 
 import { MigrationMailboxTable } from "./MigrationMailboxTable"
 import { MigrationMailboxRowView } from "./MigrationMailboxTableRow"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
+import { imapErrorCauseToReadableImapError } from "../imapimport/ImapErrorHandler"
 
 assertMainOrNode()
 
@@ -72,23 +72,12 @@ class MigrationViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		return m(
-			".fill-absolute.scroll.plr-24.pb-48.gap-16",
-			{
-				style: {
-					backgroundColor: theme.surface_container,
-					display: "flex",
-					flexDirection: "column",
-				},
-			},
-			this.showWizard ? this.renderWizard() : this.renderOverview(),
-		)
+		return m(".fill-absolute.scroll.plr-24.pb-48.gap-16.flex.flex-column.nav-bg", this.showWizard ? this.renderWizard() : this.renderOverview())
 	}
 
 	private renderOverview(): Children {
 		const activeBatch = this.batches.find((batch) => ACTIVE_MIGRATION_STATUSES.has(batch.status))
 		const pastBatches = this.batches.filter((batch) => !ACTIVE_MIGRATION_STATUSES.has(batch.status))
-
 		return [
 			m(TitleSection, {
 				icon: Icons.SimpleArrowRight,
@@ -197,7 +186,6 @@ class MigrationViewer implements UpdatableSettingsViewer {
 
 		return m(".mt-16", [
 			m(".flex.items-center.justify-between", [
-				m(".b", formatDate(new Date(batch.startedAt))),
 				hasCredentials
 					? m(TertiaryButton, {
 							label: "migrationDownloadCredentials_action",
@@ -266,33 +254,46 @@ async function loadMigrationBatches(): Promise<MigrationBatchView[]> {
 	if (customerInfo.migrationInfos == null) return []
 
 	const batches: CustomerMigrationInformation[] = await mailLocator.entityClient.loadAll(CustomerMigrationInformationTypeRef, customerInfo.migrationInfos)
-	return await promiseMap(batches, async (batch) => {
-		const mailboxInfos: MailboxMigrationInformation[] = await mailLocator.entityClient.loadAll(
-			MailboxMigrationInformationTypeRef,
-			batch.mailboxMigrationInformation,
-		)
-		return {
-			id: batch._id,
-			status: batch.status as CustomerMigrationInfoStatus,
-			startedAt: generatedIdToTimestamp(batch._id[1]),
-			rows: mailboxInfos.map((info) => ({
-				name: info.name,
-				mailAddress: info.mailAddress,
-				status: info.status as CustomerMigrationMailboxInfoStatus,
-				initialPassword: info.initialPassword,
-			})),
-		}
-	})
+	return await promiseMap(batches,async (batch) => {
+			const mailboxInfos: MailboxMigrationInformation[] = await mailLocator.entityClient.loadAll(
+				MailboxMigrationInformationTypeRef,
+				batch.mailboxMigrationInformation,
+			)
+			return {
+				id: batch._id,
+				status: batch.status as CustomerMigrationInfoStatus,
+				startedAt: generatedIdToTimestamp(batch._id[1]),
+				rows: mailboxInfos.map((info) => ({
+					name: info.name,
+					mailAddress: info.mailAddress,
+					status: info.status as CustomerMigrationMailboxInfoStatus,
+					initialPassword: info.initialPassword,
+					errorCode: info.errorCode,
+				})),
+			}
+		})
 }
 
 async function downloadCredentials(rows: ReadonlyArray<MigrationMailboxRowView>, startedAt: number): Promise<void> {
-	const csv = renderCsv(
-		["username", "tutaEmail", "password"],
-		rows.filter((row) => row.initialPassword).map((row) => [row.name, row.mailAddress, row.initialPassword ?? ""]),
-		",",
-	)
+	const exportedRows = rows.filter((row) => row.initialPassword || row.status === CustomerMigrationMailboxInfoStatus.ERROR)
+	const hasErrors = exportedRows.some((row) => row.status === CustomerMigrationMailboxInfoStatus.ERROR)
+
+	const header = hasErrors ? ["username", "tutaEmail", "password", "error"] : ["username", "tutaEmail", "password"]
+	const body = exportedRows.map((row) => {
+		const line = [row.name, row.mailAddress, row.initialPassword ?? ""]
+		if (hasErrors) {
+			line.push(row.status === CustomerMigrationMailboxInfoStatus.ERROR && row.errorCode != null ? errorCodeToMessage(row.errorCode) : "")
+		}
+		return line
+	})
+
+	const csv = renderCsv(header, body, ",")
 	const dataFile = createDataFile(`migration-credentials-${startedAt}.csv`, "text/csv", stringToUtf8Uint8Array(csv))
 	await mailLocator.fileController.saveDataFile(dataFile)
+}
+
+function errorCodeToMessage(errorCode: string): string {
+	return imapErrorCauseToReadableImapError(parseInt(errorCode) as ImapErrorCause).errorMessage
 }
 
 export default MigrationViewer

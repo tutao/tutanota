@@ -1,12 +1,10 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { theme } from "../../../../ui/theme"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { Icon, IconSize } from "../../../../ui/base/Icon"
-import { Icons } from "../../../../ui/base/icons/Icons"
 import { TertiaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { MigrationMailboxRowView, MigrationMailboxTableRow } from "./MigrationMailboxTableRow"
+import { MigrationSortArrow } from "./MigrationSortArrow"
 
-const GRID_COLUMNS = "32px minmax(160px, 1fr) minmax(200px, 1.5fr) 140px 180px"
+const GRID_COLUMNS = "32px minmax(160px, 1fr) minmax(200px, 1.5fr) 170px 180px"
 
 function compareString(s1: string, s2: string): number {
 	return s1.toLowerCase().localeCompare(s2.toLowerCase())
@@ -17,6 +15,7 @@ const enum MigrationSortColumn {
 	name = "name",
 	mailAddress = "mailAddress",
 	status = "status",
+	password = "password",
 }
 type SortOrder = "asc" | "desc"
 interface MigrationSortingPreference {
@@ -28,6 +27,7 @@ const SORT_COMPARATORS: Record<MigrationSortColumn, (a: MigrationMailboxRowView,
 	[MigrationSortColumn.name]: (a, b) => compareString(a.name, b.name),
 	[MigrationSortColumn.mailAddress]: (a, b) => compareString(a.mailAddress, b.mailAddress),
 	[MigrationSortColumn.status]: (a, b) => parseInt(a.status) - parseInt(b.status),
+	[MigrationSortColumn.password]: (a, b) => compareString(a.initialPassword ?? "", b.initialPassword ?? ""),
 }
 
 export interface MigrationMailboxTableAttrs {
@@ -52,7 +52,7 @@ export class MigrationMailboxTable implements Component<MigrationMailboxTableAtt
 
 		return m(".mt-8", [
 			selectedRows.length > 0 ? this.renderSelectionBar(selectedRows, attrs) : null,
-			m(".mt-8", { style: { display: "grid", "grid-template-columns": GRID_COLUMNS } }, [
+			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS } }, [
 				this.renderHeader(rows),
 				rows.map((row) =>
 					m(MigrationMailboxTableRow, {
@@ -69,7 +69,7 @@ export class MigrationMailboxTable implements Component<MigrationMailboxTableAtt
 	}
 
 	private renderHeader(rows: ReadonlyArray<MigrationMailboxRowView>): Children {
-		return m(".small.pb-8", { style: { display: "grid", "grid-template-columns": "subgrid", "grid-column": "1 / 6", color: theme.on_surface_variant } }, [
+		return m(".pb-8.grid.fill-grid-row.text-fade", { style: { "grid-template-columns": "subgrid" } }, [
 			m(
 				"div",
 				m("input.checkbox", {
@@ -81,28 +81,23 @@ export class MigrationMailboxTable implements Component<MigrationMailboxTableAtt
 			this.renderHeaderCell("migrationColumnUser_label", MigrationSortColumn.name),
 			this.renderHeaderCell("migrationColumnTutaAddress_label", MigrationSortColumn.mailAddress),
 			this.renderHeaderCell("migrationColumnStatus_label", MigrationSortColumn.status),
-			m("div", lang.getTranslationText("migrationColumnPassword_label")),
+			this.renderHeaderCell("migrationColumnPassword_label", MigrationSortColumn.password),
 		])
 	}
 
 	private renderHeaderCell(label: Parameters<typeof lang.getTranslationText>[0], column: MigrationSortColumn): Children {
-		const isSorted = this.sortingPreference.column === column
-		return m("button.flex.items-center.gap-4.b", { style: { color: theme.on_surface_variant, cursor: "pointer" }, onclick: () => this.sort(column) }, [
+		return m("button.flex.items-center.gap-4.b.text-fade.click", { onclick: () => this.sort(column) }, [
 			lang.getTranslationText(label),
-			isSorted
-				? m(Icon, {
-						icon: Icons.ArrowRight,
-						size: IconSize.PX20,
-						style: { fill: theme.on_surface_variant, transform: `rotate(${this.sortingPreference.order === "asc" ? "270deg" : "90deg"})` },
-					})
-				: null,
+			m(MigrationSortArrow, {
+				sortOrder: column === this.sortingPreference.column ? this.sortingPreference.order : null,
+			}),
 		])
 	}
 
 	private renderSelectionBar(selectedRows: ReadonlyArray<MigrationMailboxRowView>, attrs: MigrationMailboxTableAttrs): Children {
 		return m(".flex.items-center.justify-between.pb-8", [
-			m(".small.b", lang.getTranslation("itemsSelected_label", { "{number}": selectedRows.length }).text),
-			attrs.onDownloadSelectedCredentials && selectedRows.some((row) => row.initialPassword)
+			m(".b", lang.getTranslation("itemsSelected_label", { "{number}": selectedRows.length }).text),
+			attrs.onDownloadSelectedCredentials
 				? m(TertiaryButton, {
 						label: "migrationDownloadCredentials_action",
 						onclick: () => attrs.onDownloadSelectedCredentials!(selectedRows),
