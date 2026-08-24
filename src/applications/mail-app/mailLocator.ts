@@ -1436,7 +1436,15 @@ class MailLocator implements CommonLocator {
 	})
 	readonly driveOperations: lazyAsync<DriveModel> = lazyMemoized(async () => {
 		const { DriveModel } = await import("../drive-app/drive/model/DriveModel.js")
-		return new DriveModel(await this.driveTransferController(), this.driveFacade, this.entityClient, this.eventController, this.transferProgressDispatcher)
+		return new DriveModel(
+			await this.driveTransferController(),
+			this.driveFacade,
+			this.entityClient,
+			this.eventController,
+			this.transferProgressDispatcher,
+			windowFacade,
+			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
+		)
 	})
 
 	readonly driveSearchModel: lazyAsync<DriveSearchModel> = lazyMemoized(async () => {
@@ -1556,8 +1564,6 @@ class MailLocator implements CommonLocator {
 				redraw,
 				this.transferProgressDispatcher,
 				driveOperations,
-				windowFacade,
-				() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 			)
 	}
 

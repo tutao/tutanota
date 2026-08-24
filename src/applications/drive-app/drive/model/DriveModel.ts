@@ -20,7 +20,7 @@ import {
 } from "../view/DriveUtils"
 import { DriveTransferController, DriveTransfers, DriveTransferState } from "../view/DriveTransferController"
 import { DownloadProgressInfo, TransferId, UploadProgressInfo } from "../../../../entities/drive/Utils"
-import { OperationStatus } from "@tutao/app-env"
+import { EnvProvider, OperationStatus } from "@tutao/app-env"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { UserError } from "../../../common/api/main/UserError"
@@ -35,6 +35,7 @@ import { TransferProgressDispatcher } from "../../../common/api/main/TransferPro
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { DuplicateFilesDialogDecision } from "../view/DriveGuiUtils"
+import { WindowFacade } from "../../../common/misc/WindowFacade"
 
 export const enum ClipboardAction {
 	Cut,
@@ -62,6 +63,7 @@ export class DriveModel {
 	private readonly downloadListener = (info: DownloadProgressInfo) => {
 		this.transferController.onChunkDownloaded(info.transferId, info.downloadedBytes)
 	}
+	private deleteWindowCloseListener: (() => unknown) | null = null
 
 	constructor(
 		private readonly transferController: DriveTransferController,
@@ -69,7 +71,30 @@ export class DriveModel {
 		private readonly entityClient: EntityClient,
 		private readonly eventController: EventController,
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
-	) {}
+		private readonly windowFacade: WindowFacade,
+		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
+	) {
+		this.transferController.setAllTransfersDoneListener(() => {
+			if (this.deleteWindowCloseListener != null) {
+				this.deleteWindowCloseListener()
+				this.deleteWindowCloseListener = null
+			}
+		})
+	}
+	ensureWindowCloseListener() {
+		if (this.deleteWindowCloseListener == null) {
+			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
+				if (EnvProvider.get().isDesktop()) {
+					const cancelAndClose: boolean = await this.showWindowCloseConfirmation()
+
+					if (cancelAndClose) {
+						this.deleteWindowCloseListener?.()
+						this.windowFacade.closeWindow()
+					}
+				}
+			})
+		}
+	}
 
 	readonly init = lazyMemoized(async () => {
 		this.eventController.addOperationStatusUpdateListener(async (update) => {
@@ -326,9 +351,5 @@ export class DriveModel {
 	}
 	rename(item: FolderItem, newName: string) {
 		this.driveFacade.rename(folderItemEntity(item), newName)
-	}
-
-	setAllTransfersDoneListener(listener: () => unknown) {
-		this.transferController.setAllTransfersDoneListener(listener)
 	}
 }

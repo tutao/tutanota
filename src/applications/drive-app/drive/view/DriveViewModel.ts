@@ -136,12 +136,6 @@ export class DriveViewModel {
 		this.initialized = new Promise((resolve, reject) => {
 			this.resolveInitialized = resolve
 		})
-		this.driveModel.setAllTransfersDoneListener(() => {
-			if (this.deleteWindowCloseListener != null) {
-				this.deleteWindowCloseListener()
-				this.deleteWindowCloseListener = null
-			}
-		})
 	}
 
 	get clipboard(): DriveClipboard | null {
@@ -397,23 +391,6 @@ export class DriveViewModel {
 		}
 	}
 
-	private deleteWindowCloseListener: (() => unknown) | null = null
-
-	private ensureWindowCloseListener() {
-		if (this.deleteWindowCloseListener == null) {
-			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
-				if (EnvProvider.get().isDesktop()) {
-					const cancelAndClose: boolean = await this.showWindowCloseConfirmation()
-
-					if (cancelAndClose) {
-						this.deleteWindowCloseListener?.()
-						this.windowFacade.closeWindow()
-					}
-				}
-			})
-		}
-	}
-
 	async uploadFiles(
 		files: (WebFile | FileReference)[],
 		showDuplicateFilesChoiceDialog: (fileName: string, fileCount: number) => Promise<DuplicateFilesDialogDecision>,
@@ -433,7 +410,7 @@ export class DriveViewModel {
 		await this.listModel.waitLoad()
 		const uploading = await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
 		if (uploading) {
-			this.ensureWindowCloseListener()
+			this.driveModel.ensureWindowCloseListener()
 		}
 	}
 
@@ -460,12 +437,12 @@ export class DriveViewModel {
 	}
 
 	async openFile(file: DriveFile): Promise<void> {
-		this.ensureWindowCloseListener()
+		this.driveModel.ensureWindowCloseListener()
 		await this.driveModel.openFile(file)
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		this.ensureWindowCloseListener()
+		this.driveModel.ensureWindowCloseListener()
 		await this.driveModel.downloadFile(file)
 	}
 

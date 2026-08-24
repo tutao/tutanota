@@ -236,7 +236,15 @@ class DriveLocator implements CommonLocator {
 		const { DriveModel } = await import("./drive/model/DriveModel.js")
 		const redraw = await this.redraw()
 		const transferController = new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
-		return new DriveModel(transferController, this.driveFacade, this.entityClient, this.eventController, this.transferProgressDispatcher)
+		return new DriveModel(
+			transferController,
+			this.driveFacade,
+			this.entityClient,
+			this.eventController,
+			this.transferProgressDispatcher,
+			windowFacade,
+			() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
+		)
 	})
 
 	readonly searchModel: lazyAsync<DriveSearchModel> = lazyMemoized(async () => {
@@ -1062,8 +1070,6 @@ class DriveLocator implements CommonLocator {
 				redraw,
 				this.transferProgressDispatcher,
 				driveOperations,
-				windowFacade,
-				() => showWindowCloseConfirmation("closeWindowWithActiveTransfers_msg"),
 			)
 	}
 }
