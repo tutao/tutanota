@@ -5,13 +5,19 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
+import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.WidgetUpdateTrigger.WORKER
 import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
 import java.util.Date
 
 class WidgetWorkerRepository : WidgetRepository() {
-	override suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
+	override suspend fun storeLastSyncInBatch(
+		context: Context,
+		widgetIds: IntArray,
+		now: Date,
+		trigger: WidgetUpdateTrigger
+	) {
 		val nowTimestamp = now.time
 
 		var widgetMapToUpdate: Map<Preferences.Key<String>, LastSyncDao> = mapOf()
