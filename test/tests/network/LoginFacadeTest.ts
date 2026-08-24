@@ -19,7 +19,7 @@ import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade"
 import { defer, DeferredObject, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
-import { Const, RolloutType } from "../../../src/platform-kit/app-env"
+import { RolloutType, TutanotaConstants } from "../../../src/platform-kit/app-env"
 import { SessionType } from "../../../src/platform-kit/app-env/SessionType"
 import { EventBusClient } from "../../../src/app-kit/local-store/event/EventBusClient.js"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
@@ -923,7 +923,7 @@ o.spec("LoginFacadeTest", function () {
 			user.salt = SALT
 
 			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: new Aes128Key([1, 2, 3, 4]), version: 0 })
-			Const.EXECUTE_KDF_MIGRATION = true
+			TutanotaConstants.Const.EXECUTE_KDF_MIGRATION = true
 			await facade.migrateKdfType(KdfType.Argon2id, "hunter2", user)
 
 			verify(
@@ -946,7 +946,7 @@ o.spec("LoginFacadeTest", function () {
 			verify(cacheManagmentFacadeMock.reloadUser())
 		})
 		o.afterEach(() => {
-			Const.EXECUTE_KDF_MIGRATION = false
+			TutanotaConstants.Const.EXECUTE_KDF_MIGRATION = false
 		})
 	})
 })

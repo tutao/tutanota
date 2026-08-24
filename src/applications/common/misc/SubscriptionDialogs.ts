@@ -5,7 +5,7 @@ import type { ClickHandler } from "../../../ui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID } from "@tutao/meta"
-import { Const, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { ProgrammingError, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
 import { BookingTypeRef } from "@tutao/entities/sys"
 import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../../../entities/sys/Utils"
 
@@ -84,7 +84,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			const { getAvailableMatchingPlans } = await import("../subscription/utils/SubscriptionUtils.js")
 			const plansWithMoreStorage = await getAvailableMatchingPlans(
 				locator.serviceExecutor,
-				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
+				(config) => Number(config.storageGb) * TutanotaConstants.Const.MEMORY_GB_FACTOR > usedStorage,
 			)
 			if (isEmpty(plansWithMoreStorage)) {
 				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")

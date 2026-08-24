@@ -7,7 +7,7 @@ import { InfoMessageHandler } from "../../../../../src/applications/common/gui/I
 import { ContactIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/ContactIndexer"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { GENERATED_MAX_ID } from "../../../../../src/platform-kit/meta"
@@ -101,7 +101,7 @@ o.spec("OfflineStorageIndexer", () => {
 			when(userFacade.getMembership(addedGroupId)).thenReturn(addedGroupMembership)
 
 			await indexer.fullLoginInit()
-			verify(persistence.addIndexedGroup(addedGroupId, GroupType.Mail, NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID]))
+			verify(persistence.addIndexedGroup(addedGroupId, GroupType.Mail, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID]))
 			verify(persistence.addIndexedGroup(matchers.not(addedGroupId), matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 			verify(persistence.removeIndexedGroup(matchers.anything()), { times: 0 })
 			verify(contactIndexer.indexFullContactList())

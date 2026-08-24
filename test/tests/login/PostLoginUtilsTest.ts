@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import { reminderCutoffDate, shouldShowUpgradeReminder } from "../../../src/applications/common/login/PostLoginUtils.js"
 import { object, when } from "testdouble"
-import { Const } from "../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../src/platform-kit/app-env"
 import { createTestEntity } from "../TestUtils.js"
 
 import { Customer, CustomerInfo, CustomerInfoTypeRef, CustomerProperties, CustomerPropertiesTypeRef, CustomerTypeRef } from "@tutao/entities/sys"
@@ -28,7 +28,7 @@ o.spec("PostLoginUtils", () => {
 		})
 
 		o("should show for free accounts for the first time if they are old enough", async () => {
-			customerInfo.creationTime = new Date(date.getTime() - Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerInfo.creationTime = new Date(date.getTime() - TutanotaConstants.Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS - 10)
 			when(userController.isFreeAccount()).thenReturn(true)
 			when(userController.isGlobalAdmin()).thenReturn(true)
 			customerProperties.lastUpgradeReminder = null
@@ -36,7 +36,7 @@ o.spec("PostLoginUtils", () => {
 		})
 
 		o("should not show for free accounts for the first time if they are not old enough", async () => {
-			customerInfo.creationTime = new Date(date.getTime() - Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS + 10)
+			customerInfo.creationTime = new Date(date.getTime() - TutanotaConstants.Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS + 10)
 			when(userController.isFreeAccount()).thenReturn(true)
 			when(userController.isGlobalAdmin()).thenReturn(true)
 			customerProperties.lastUpgradeReminder = null
@@ -49,7 +49,7 @@ o.spec("PostLoginUtils", () => {
 			when(userController.isPaidAccount()).thenReturn(true)
 			when(userController.isNewPaidPlan()).thenResolve(false)
 
-			customerInfo.creationTime = new Date(date.getTime() - Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerInfo.creationTime = new Date(date.getTime() - TutanotaConstants.Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS - 10)
 			customerProperties.lastUpgradeReminder = null
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(true)
@@ -61,7 +61,7 @@ o.spec("PostLoginUtils", () => {
 			when(userController.isPaidAccount()).thenReturn(true)
 			when(userController.isNewPaidPlan()).thenResolve(false)
 
-			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerProperties.lastUpgradeReminder = new Date(date.getTime() - TutanotaConstants.Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(true)
 		})
@@ -73,7 +73,7 @@ o.spec("PostLoginUtils", () => {
 			when(userController.isNewPaidPlan()).thenResolve(false)
 			customer.businessUse = true
 
-			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerProperties.lastUpgradeReminder = new Date(date.getTime() - TutanotaConstants.Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(false)
 		})
@@ -95,7 +95,7 @@ o.spec("PostLoginUtils", () => {
 			when(userController.isPaidAccount()).thenReturn(true)
 			when(userController.isNewPaidPlan()).thenResolve(true)
 
-			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerProperties.lastUpgradeReminder = new Date(date.getTime() - TutanotaConstants.Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(false)
 		})
@@ -106,7 +106,7 @@ o.spec("PostLoginUtils", () => {
 			when(userController.isPaidAccount()).thenReturn(true)
 			when(userController.isNewPaidPlan()).thenResolve(false)
 
-			customerProperties.lastUpgradeReminder = new Date(date.getTime() - Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
+			customerProperties.lastUpgradeReminder = new Date(date.getTime() - TutanotaConstants.Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS - 10)
 
 			o(await shouldShowUpgradeReminder(userController, date)).equals(false)
 		})

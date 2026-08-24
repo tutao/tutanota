@@ -1,4 +1,4 @@
-import { CancelledError, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { CancelledError, TimeConstants, TutanotaConstants } from "@tutao/app-env"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -449,7 +449,7 @@ export class IndexedDbIndexer implements Indexer {
 				groupId: membership.group,
 				groupData: {
 					lastBatchIds: [lastProcessedBatchId],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+					indexTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 					groupType: getMembershipGroupType(membership),
 				} as GroupData,
 			}
@@ -590,7 +590,7 @@ export class IndexedDbIndexer implements Indexer {
 
 			const timeSinceLastIndex = now - lastIndexTimeMs
 
-			if (timeSinceLastIndex >= TimeConstants.daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS)) {
+			if (timeSinceLastIndex >= TimeConstants.daysToMillis(TutanotaConstants.ENTITY_EVENT_BATCH_TTL_DAYS)) {
 				throw new OutOfSyncError(
 					`we haven't updated the index in ${millisToDays(timeSinceLastIndex)} days. last update was ${new Date(
 						neverNull(lastIndexTimeMs),

@@ -19,15 +19,7 @@ import {
 import { elementIdPart, elementIdToId } from "../../../../platform-kit/meta"
 import { Group, GroupInfo, User } from "@tutao/entities/sys"
 import { GroupType, hasCapabilityOnGroup, NewPaidPlans } from "../../../../entities/sys/Utils"
-import {
-	DEFAULT_CALENDAR_COLOR,
-	EnvProvider,
-	ProgrammingError,
-	ShareCapability,
-	TimeFormat,
-	UpgradePromptType,
-	WeekStart,
-} from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError, ShareCapability, TimeFormat, TutanotaConstants, UpgradePromptType, WeekStart } from "../../../../platform-kit/app-env"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
 	birthdayCalendarEventContactId,
@@ -982,7 +974,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 				calendarInfo = {
 					id: calendarGroupId,
 					name: "",
-					color: DEFAULT_CALENDAR_COLOR,
+					color: TutanotaConstants.DEFAULT_CALENDAR_COLOR,
 					type: CalendarType.External,
 				}
 			}

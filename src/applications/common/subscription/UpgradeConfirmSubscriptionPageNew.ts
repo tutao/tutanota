@@ -3,7 +3,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const, EnvProvider, SessionType } from "@tutao/app-env"
+import { EnvProvider, SessionType, TutanotaConstants } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
@@ -248,7 +248,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: ctx.viewModel.targetPlanType,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			referralCode: ctx.viewModel.referralData?.code ?? null,
 			specialPriceUserSingle: null,
 			surveyData: null,

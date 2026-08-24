@@ -1,4 +1,4 @@
-import { DEFAULT_VECTOR_MAX_LENGTH, MAX_WORD_FREQUENCY } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 
 /**
  * Example:
@@ -21,7 +21,7 @@ export type CompressedSparseVector = {
  * sparse data by reducing unnecessary memory usage.
  */
 export class SparseVectorCompressor {
-	constructor(public readonly dimension: number = DEFAULT_VECTOR_MAX_LENGTH) {}
+	constructor(public readonly dimension: number = TutanotaConstants.DEFAULT_VECTOR_MAX_LENGTH) {}
 
 	public compress(vector: number[]): Uint8Array<ArrayBuffer> {
 		const compressedSparseVector = this.compressToCompressedSparseVector(vector)
@@ -72,7 +72,7 @@ export class SparseVectorCompressor {
 			const val = vector[i]
 			if (val !== 0) {
 				indices.push(i)
-				values.push(Math.min(val, MAX_WORD_FREQUENCY))
+				values.push(Math.min(val, TutanotaConstants.MAX_WORD_FREQUENCY))
 			}
 		}
 		return { indices, values }

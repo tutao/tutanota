@@ -4,7 +4,16 @@ import { assertNotNull, DateProvider, isEmpty, LazyLoaded, neverNull, newPromise
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
-import { Const, CredentialEncryptionMode, EnvProvider, FeatureType, LOGIN_TITLE, SecondFactorType, SessionType, UpgradePromptType } from "@tutao/app-env"
+import {
+	CredentialEncryptionMode,
+	EnvProvider,
+	FeatureType,
+	LOGIN_TITLE,
+	SecondFactorType,
+	SessionType,
+	TutanotaConstants,
+	UpgradePromptType,
+} from "@tutao/app-env"
 import { showMoreStorageNeededOrderDialog } from "../misc/SubscriptionDialogs.js"
 import { notifications } from "../../../ui/Notifications"
 import { LockedError, NotAuthorizedError } from "@tutao/rest-client/error"
@@ -249,12 +258,12 @@ export class PostLoginActions implements PostLoginAction {
 			await showChangeOwnPasswordDialog(false)
 		}
 
-		if (location.hostname === Const.DEFAULT_APP_DOMAIN) {
+		if (location.hostname === TutanotaConstants.Const.DEFAULT_APP_DOMAIN) {
 			const user = this.logins.getUserController().user
 			const secondFactors = await this.entityClient.loadAll(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors)
 			const webauthnFactors = secondFactors.filter((f) => f.type === SecondFactorType.webauthn || f.type === SecondFactorType.u2f)
 			// If there are webauthn factors but none of them are for the default domain, show a message
-			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === Const.WEBAUTHN_RP_ID)) {
+			if (webauthnFactors.length > 0 && !webauthnFactors.some((f) => f.u2f && f.u2f?.appId === TutanotaConstants.Const.WEBAUTHN_RP_ID)) {
 				const dialog = Dialog.confirmMultiple("noKeysForThisDomain_msg", [
 					{
 						label: "skip_action",

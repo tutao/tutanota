@@ -15,7 +15,7 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "./DialogHeaderBar"
 import { LegacyTextField, LegacyTextFieldType } from "./LegacyTextField.js"
 import type { DropDownSelectorAttrs, SelectorItemList } from "./DropDownSelector.js"
 import { DropDownSelector } from "./DropDownSelector.js"
-import { DEFAULT_ERROR, EnvProvider, TabIndex } from "../../platform-kit/app-env"
+import { EnvProvider, TabIndex, TutanotaConstants } from "../../platform-kit/app-env"
 import { AriaWindow } from "../AriaUtils"
 import { Styles } from "../styles"
 import { assertNotNull, identity, lazy, newPromise, noOp, Thunk } from "../../platform-kit/utils"
@@ -934,7 +934,7 @@ export class Dialog implements ModalComponent {
 				okActionTextId: "ok_action",
 				cancelActionTextId: "cancel_action",
 				type: DialogType.EditSmall,
-				errorMessageStream: Stream(DEFAULT_ERROR), // No error = errorMessageStream value is an empty string ""
+				errorMessageStream: Stream(TutanotaConstants.DEFAULT_ERROR), // No error = errorMessageStream value is an empty string ""
 			},
 			props,
 		)

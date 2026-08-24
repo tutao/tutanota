@@ -1,4 +1,4 @@
-import { AppType, Const, EnvProvider, FeatureType, Mode, ProgrammingError } from "@tutao/app-env"
+import { AppType, EnvProvider, FeatureType, Mode, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../common/contactsFunctionality/ContactModel.js"
@@ -651,7 +651,7 @@ class CalendarLocator implements CommonLocator {
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 
-		this.Const = Const
+		this.Const = TutanotaConstants.Const
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
 			const { WebMobileFacade } = await import("../common/native/WebMobileFacade.js")

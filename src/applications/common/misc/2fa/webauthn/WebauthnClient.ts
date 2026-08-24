@@ -1,7 +1,7 @@
 import { decode } from "cborg"
 import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebAuthnFacade, WebauthnKeyDescriptor } from "@tutao/native-bridge/generatedIpc/types"
-import { Const, DomainConfig, EnvProvider } from "@tutao/app-env"
+import { DomainConfig, EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fChallenge, U2fKey, U2fRegisteredDevice, WebauthnResponseData } from "@tutao/entities/sys"
 
@@ -98,10 +98,10 @@ export class WebauthnClient {
 		// domains as well as for whitelabel domains.
 
 		const domainConfig = this.domainConfigProvider.getCurrentDomainConfig()
-		if (challenge.keys.some((k) => k.appId === Const.WEBAUTHN_RP_ID)) {
+		if (challenge.keys.some((k) => k.appId === TutanotaConstants.Const.WEBAUTHN_RP_ID)) {
 			// This function is not needed for the webapp! We can safely assume that our clientWebRoot is a new domain.
 			return this.getWebauthnUrl(domainConfig, "new")
-		} else if (challenge.keys.some((k) => k.appId === Const.LEGACY_WEBAUTHN_RP_ID)) {
+		} else if (challenge.keys.some((k) => k.appId === TutanotaConstants.Const.LEGACY_WEBAUTHN_RP_ID)) {
 			// If there's a Webauthn key for our old domain we need to open the webapp on the old domain.
 			return this.getWebauthnUrl(domainConfig, "legacy")
 		} else {
@@ -110,7 +110,7 @@ export class WebauthnClient {
 			if (webauthnKey) {
 				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(webauthnKey.appId, "https:")
 				return this.getWebauthnUrl(domainConfigForHostname, "new")
-			} else if (challenge.keys.some((k) => k.appId === Const.U2F_LEGACY_APPID)) {
+			} else if (challenge.keys.some((k) => k.appId === TutanotaConstants.Const.U2F_LEGACY_APPID)) {
 				// There are only legacy U2F keys but there is one for our domain, take it
 				return this.getWebauthnUrl(domainConfig, "legacy")
 			} else {
@@ -132,7 +132,7 @@ export class WebauthnClient {
 	}
 
 	private isLegacyU2fKey(key: U2fKey): boolean {
-		return key.appId.endsWith(Const.U2f_APPID_SUFFIX)
+		return key.appId.endsWith(TutanotaConstants.Const.U2f_APPID_SUFFIX)
 	}
 
 	private getChallenge(): Uint8Array<ArrayBuffer> {

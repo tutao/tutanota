@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "../../../../../src/platform-kit/app-env"
+import { TimeConstants, TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 import {
 	constructMailSetEntryId,
 	idToElementId,
@@ -313,7 +313,7 @@ o.spec("WebMailIndexer", () => {
 
 			o.test("fully indexed", async function () {
 				await initWithEnabled(true)
-				const timestamps: Map<Id, number> = new Map([[mailGroup, FULL_INDEXED_TIMESTAMP]])
+				const timestamps: Map<Id, number> = new Map([[mailGroup, TutanotaConstants.FULL_INDEXED_TIMESTAMP]])
 				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
 				// dirty partial mock
 				indexer._indexMailListsInTimeBatches = func<WebMailIndexer["_indexMailListsInTimeBatches"]>()
@@ -335,7 +335,7 @@ o.spec("WebMailIndexer", () => {
 
 			o.test("one mailbox until certain point", async function () {
 				await initWithEnabled(true)
-				const timestamps: Map<Id, number> = new Map([[mailGroup, NOTHING_INDEXED_TIMESTAMP]])
+				const timestamps: Map<Id, number> = new Map([[mailGroup, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP]])
 				when(backend.getCurrentIndexTimestamps([mailGroup])).thenResolve(timestamps)
 
 				// initial indexing - first time range
@@ -385,7 +385,7 @@ o.spec("WebMailIndexer", () => {
 				const rangeEnd3 = getDayShifted(new Date(rangeEnd2), -1).getTime()
 				await indexer.indexMailboxes(user, rangeEnd3)
 
-				checkMailsIndexed(new Map([[mailGroup, FULL_INDEXED_TIMESTAMP]]), [
+				checkMailsIndexed(new Map([[mailGroup, TutanotaConstants.FULL_INDEXED_TIMESTAMP]]), [
 					{
 						mail: mail0,
 						mailDetails: details0.details,
@@ -403,7 +403,7 @@ o.spec("WebMailIndexer", () => {
 
 			o.test("initial indexing", async function () {
 				await indexMailboxTest({
-					startIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+					startIndexTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 					endIndexTimestamp: point1.getTime(),
 					expectedNewestTimestampForIndexMailListCall: new Date("2019-04-09T00:00:00.000Z").getTime(),
 				})
@@ -419,7 +419,7 @@ o.spec("WebMailIndexer", () => {
 
 			o.test("fully indexed", async function () {
 				await indexMailboxTest({
-					startIndexTimestamp: FULL_INDEXED_TIMESTAMP,
+					startIndexTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 					endIndexTimestamp: point1.getTime(),
 					expectedNewestTimestampForIndexMailListCall: null,
 				})
@@ -751,31 +751,35 @@ o.spec("WebMailIndexer", () => {
 	})
 
 	o.test("_getCurrentIndexTimestamp", () => {
-		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
-		o.check(NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP]))
-		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP]))
+		o.check(TutanotaConstants.NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([]))
+		o.check(TutanotaConstants.NOTHING_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([TutanotaConstants.NOTHING_INDEXED_TIMESTAMP]))
+		o.check(TutanotaConstants.FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([TutanotaConstants.FULL_INDEXED_TIMESTAMP]))
 		let now = new Date().getTime()
 		let past = now - 1000
 		o.check(now).equals(_getCurrentIndexTimestamp([now]))
 		o.check(past).equals(_getCurrentIndexTimestamp([now, past]))
 		o.check(past).equals(_getCurrentIndexTimestamp([past, now]))
 		o.check(now).equals(_getCurrentIndexTimestamp([now, now]))
-		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now]))
-		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP]))
-		o.check(now).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, now]))
-		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP]))
-		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
-		o.check(FULL_INDEXED_TIMESTAMP).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, FULL_INDEXED_TIMESTAMP]))
-		o.check(now).equals(_getCurrentIndexTimestamp([NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP, now]))
-		o.check(now).equals(_getCurrentIndexTimestamp([now, NOTHING_INDEXED_TIMESTAMP, now, FULL_INDEXED_TIMESTAMP]))
-		o.check(now).equals(_getCurrentIndexTimestamp([now, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([TutanotaConstants.FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, TutanotaConstants.FULL_INDEXED_TIMESTAMP]))
+		o.check(TutanotaConstants.FULL_INDEXED_TIMESTAMP).equals(
+			_getCurrentIndexTimestamp([TutanotaConstants.FULL_INDEXED_TIMESTAMP, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP]),
+		)
+		o.check(TutanotaConstants.FULL_INDEXED_TIMESTAMP).equals(
+			_getCurrentIndexTimestamp([TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, TutanotaConstants.FULL_INDEXED_TIMESTAMP]),
+		)
+		o.check(now).equals(_getCurrentIndexTimestamp([TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, now, TutanotaConstants.FULL_INDEXED_TIMESTAMP, now]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, now, TutanotaConstants.FULL_INDEXED_TIMESTAMP]))
+		o.check(now).equals(_getCurrentIndexTimestamp([now, TutanotaConstants.FULL_INDEXED_TIMESTAMP, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP]))
 	})
 
 	o.spec("extendIndexIfNeeded", function () {
 		o.test("not extends if fully indexed", async function () {
 			// shouldn't be used by anything
 			bulkMailLoader = object()
-			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, FULL_INDEXED_TIMESTAMP]]))
+			when(backend.getCurrentIndexTimestamps([mailGroup1])).thenResolve(new Map([[mailGroup1, TutanotaConstants.FULL_INDEXED_TIMESTAMP]]))
 			await initWithEnabled(true)
 			await indexer.extendIndexIfNeeded(user, 1000)
 			verify(infoMessageHandler.onSearchIndexStateUpdate(matchers.anything()), { times: 0 })

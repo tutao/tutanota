@@ -6,7 +6,7 @@ import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
 import { assertNotNull, first, isEmpty, last, splitArrayAt } from "../../../../platform-kit/utils"
 import { getTypeString, isSameId } from "../../../../platform-kit/meta"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { ContactIndexer } from "./ContactIndexer"
 import { untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { SearchToken, splitQuery } from "../../../../ui/utils/QueryTokenUtils"
@@ -180,7 +180,9 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	}
 
 	private async searchContacts(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
-		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
+		const indexTimestamp = (await this.contactIndexer.areContactsIndexed())
+			? TutanotaConstants.FULL_INDEXED_TIMESTAMP
+			: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP
 
 		if (isEmpty(tokens)) {
 			return this.emptySearchResult(originalQuery, restriction, getMailIndexTimestampForSearch(indexTimestamp))

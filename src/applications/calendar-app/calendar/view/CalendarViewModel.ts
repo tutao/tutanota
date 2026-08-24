@@ -31,15 +31,7 @@ import {
 	millisToDays,
 	noOp,
 } from "../../../../platform-kit/utils"
-import {
-	DEFAULT_CALENDAR_COLOR,
-	EndType,
-	EXTERNAL_CALENDAR_SYNC_INTERVAL,
-	ProgrammingError,
-	TimeFormat,
-	UpgradePromptType,
-	WeekStart,
-} from "../../../../platform-kit/app-env"
+import { EndType, ProgrammingError, TimeFormat, TutanotaConstants, UpgradePromptType, WeekStart } from "../../../../platform-kit/app-env"
 import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { LoginController } from "../../../common/api/main/LoginController"
 import stream from "mithril/stream"
@@ -744,7 +736,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			}
 			const occurrencesPerDay = new Map()
 
-			const color = this.calendarColors.get(progenitor._ownerGroup!) ?? DEFAULT_CALENDAR_COLOR
+			const color = this.calendarColors.get(progenitor._ownerGroup!) ?? TutanotaConstants.DEFAULT_CALENDAR_COLOR
 			const hasAlarms = hasAlarmsForTheUser(this.logins.getUserController().user, progenitor)
 			const progenitorWrapper: EventWrapper = {
 				event: progenitor,
@@ -931,7 +923,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			return
 		}
 
-		return this.calendarModel.syncExternalCalendars([groupSettings], EXTERNAL_CALENDAR_SYNC_INTERVAL, longErrorMessage, true)
+		return this.calendarModel.syncExternalCalendars([groupSettings], TutanotaConstants.EXTERNAL_CALENDAR_SYNC_INTERVAL, longErrorMessage, true)
 	}
 
 	public getCalendarModel() {

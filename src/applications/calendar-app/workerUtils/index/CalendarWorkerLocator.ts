@@ -5,7 +5,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import { Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
@@ -395,7 +395,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
 
-	locator.Const = Const
+	locator.Const = TutanotaConstants.Const
 
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")

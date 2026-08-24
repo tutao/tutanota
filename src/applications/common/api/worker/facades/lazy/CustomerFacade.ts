@@ -1,4 +1,4 @@
-import { Const, CryptoProtocolVersion, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { CryptoProtocolVersion, EnvProvider, FeatureType, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { assertNotNull, lazyAsync, neverNull, noOp, Nullable, ofClass, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import type { UserManagementFacade } from "./UserManagementFacade.js"
@@ -202,10 +202,10 @@ export class CustomerFacade {
 						}
 
 						availableStorage = Math.max(bookedStorage, availableStorage)
-						return availableStorage * Const.MEMORY_GB_FACTOR
+						return availableStorage * TutanotaConstants.Const.MEMORY_GB_FACTOR
 					})
 				} else {
-					return availableStorage * Const.MEMORY_GB_FACTOR
+					return availableStorage * TutanotaConstants.Const.MEMORY_GB_FACTOR
 				}
 			})
 		})
@@ -344,7 +344,7 @@ export class CustomerFacade {
 
 		const data = createCustomerAccountCreateData({
 			authToken,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			lang: currentLanguage,
 			code: registrationCode,
 			userData: await this.userManagement.generateUserAccountData(

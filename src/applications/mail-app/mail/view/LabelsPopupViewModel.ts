@@ -1,5 +1,5 @@
 import { LabelState } from "../model/MailModel"
-import { MAX_LABELS_PER_MAIL } from "../../../../platform-kit/app-env"
+import { TutanotaConstants } from "../../../../platform-kit/app-env"
 import { MailSet } from "@tutao/entities/tutanota"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { getIndentedFolderNameForDropdown } from "../model/MailUtils"
@@ -79,7 +79,7 @@ export class LabelsPopupViewModel {
 
 	private updateLabelLimitReached(): void {
 		const { addedLabels, removedLabels } = this.getLabelStateChange()
-		if (addedLabels.length >= MAX_LABELS_PER_MAIL) {
+		if (addedLabels.length >= TutanotaConstants.MAX_LABELS_PER_MAIL) {
 			this.labelLimitReached = true
 			return
 		}
@@ -88,7 +88,7 @@ export class LabelsPopupViewModel {
 			// creating a set removes duplicates in the case of a label getting added to all that was previously only on some
 			const labelsOnMail = new Set([...addedLabels, ...labels])
 
-			if (labelsOnMail.size - removedLabels.length >= MAX_LABELS_PER_MAIL) {
+			if (labelsOnMail.size - removedLabels.length >= TutanotaConstants.MAX_LABELS_PER_MAIL) {
 				this.labelLimitReached = true
 				return
 			}

@@ -2,7 +2,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { assertNotNull, contains, downcast, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { ALLOWED_IMAGE_FORMATS, MAX_LOGO_SIZE } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import m, { Children, Component, Vnode } from "mithril"
 import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
 import * as EditCustomColorsDialog from "./EditCustomColorsDialog"
@@ -114,7 +114,7 @@ export class WhitelabelThemeSettings implements Component<WhitelabelThemeSetting
 
 		let extension = file.name.toLowerCase().substring(file.name.lastIndexOf(".") + 1)
 
-		if (file.size > MAX_LOGO_SIZE || !contains(ALLOWED_IMAGE_FORMATS, extension)) {
+		if (file.size > TutanotaConstants.MAX_LOGO_SIZE || !contains(TutanotaConstants.ALLOWED_IMAGE_FORMATS, extension)) {
 			Dialog.message("customLogoInfo_msg")
 		} else {
 			let imageData: string

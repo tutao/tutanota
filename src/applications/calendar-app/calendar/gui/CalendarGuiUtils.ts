@@ -39,7 +39,7 @@ import {
 	getWeekNumber,
 	StandardAlarmInterval,
 } from "../../../common/calendar/date/CalendarUtils.js"
-import { DEFAULT_CALENDAR_COLOR, EndType, EnvProvider, RepeatPeriod, ShareCapability, TimeConstants, Weekday, WeekStart } from "@tutao/app-env"
+import { EndType, EnvProvider, RepeatPeriod, ShareCapability, TimeConstants, TutanotaConstants, Weekday, WeekStart } from "@tutao/app-env"
 import { AllIcons } from "../../../../ui/base/Icon.js"
 import { SelectorItemList } from "../../../../ui/base/DropDownSelector.js"
 import { Duration } from "luxon"
@@ -774,7 +774,7 @@ function visuallyOverlaps(firstEventStart: Date, firstEventEnd: Date, secondEven
 }
 
 export function getEventColor(event: CalendarEvent, groupColors: GroupColors, isGhost: boolean = false): string {
-	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? DEFAULT_CALENDAR_COLOR
+	const color = (event._ownerGroup && groupColors.get(event._ownerGroup)) ?? TutanotaConstants.DEFAULT_CALENDAR_COLOR
 	const alpha = isGhost ? (isLightTheme() ? "AA" : "7F") : "FF"
 	return `${color}${alpha}`
 }
@@ -973,7 +973,7 @@ export function generateRandomColor(): ColorString {
 }
 
 export function renderCalendarColor(selectedCalendar: CalendarInfo | null, groupColors: Map<Id, string>) {
-	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? DEFAULT_CALENDAR_COLOR) : null
+	const color = selectedCalendar ? (groupColors.get(selectedCalendar.groupInfo.group) ?? TutanotaConstants.DEFAULT_CALENDAR_COLOR) : null
 	return m(".mt-4", {
 		style: {
 			width: "100px",

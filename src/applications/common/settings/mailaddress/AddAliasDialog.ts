@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_DOMAINS, UpgradePromptType } from "@tutao/app-env"
+import { TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../../../ui/base/Expander.js"
@@ -17,7 +17,7 @@ const FAILURE_USER_DISABLED = "mailaddressaliasservice.group_disabled"
 
 export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: boolean) {
 	model.getAvailableDomains().then((domains) => {
-		const hasCustomDomains = domains.some((domain) => !TUTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
+		const hasCustomDomains = domains.some((domain) => !TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS.includes(domain.domain))
 		if (model.aliasCount && filterInt(model.aliasCount.usedAliases) >= filterInt(model.aliasCount.totalAliases)) {
 			if (!(isNewPaidPlan && hasCustomDomains)) {
 				model.handleTooManyAliases().catch(
@@ -37,7 +37,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 		let formDomain = getFirstOrThrow(domains)
 		if (!isNewPaidPlan && !hasCustomDomains) {
-			formDomain = domains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? formDomain
+			formDomain = domains.find((domain) => domain.domain === TutanotaConstants.DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? formDomain
 		}
 		let senderName = model.defaultSenderName()
 
@@ -91,7 +91,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 						m(
 							ExpanderPanel,
 							{
-								expanded: TUTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
+								expanded: TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS.includes(formDomain.domain),
 							},
 							m(".pt-16", lang.get("permanentAliasWarning_msg")),
 						),

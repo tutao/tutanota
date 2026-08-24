@@ -3,7 +3,7 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { TUTA_CALENDAR_APP_STORE_URL, TUTA_CALENDAR_GOOGLE_PLAY_URL, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { Card } from "../../../../ui/base/Card"
@@ -50,13 +50,13 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 		if (ClientDetector.get().isCalendarApp()) {
 			return m.fragment({}, [
-				this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL, closeDialog),
-				this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
+				this.renderAppStoreLink(TutanotaConstants.TUTA_CALENDAR_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TutanotaConstants.TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
 			])
 		} else {
 			return m.fragment({}, [
-				this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL, closeDialog),
-				this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
+				this.renderAppStoreLink(TutanotaConstants.TUTA_MAIL_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
 			])
 		}
 	}

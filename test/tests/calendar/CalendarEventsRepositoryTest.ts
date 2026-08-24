@@ -7,7 +7,7 @@ import { UserController } from "../../../src/applications/common/api/main/UserCo
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { CalendarInfo, CalendarInfoBase, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel"
 import Stream from "mithril/stream"
-import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../src/platform-kit/app-env"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
@@ -18,7 +18,7 @@ import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSett
 import { OperationType } from "../../../src/platform-kit/meta"
 
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("entityEventsReceived", function () {
@@ -265,7 +265,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
 				const [day, events] = getFirstOrThrow(Array.from(daysToEvents.entries()))
-				o.check(getFirstOrThrow(events).color).equals(DEFAULT_CALENDAR_COLOR)
+				o.check(getFirstOrThrow(events).color).equals(TutanotaConstants.DEFAULT_CALENDAR_COLOR)
 			})
 
 			o.test("update event - apply color from settings", async function () {
@@ -295,7 +295,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				// test case for calendar with one simple event
 
 				const birthdayCalendarInfoMock: CalendarInfoBase = object()
-				birthdayCalendarInfoMock.color = DEFAULT_BIRTHDAY_CALENDAR_COLOR
+				birthdayCalendarInfoMock.color = TutanotaConstants.DEFAULT_BIRTHDAY_CALENDAR_COLOR
 
 				when(calendarModelMock.getBirthdayCalendarInfo()).thenReturn(birthdayCalendarInfoMock)
 
@@ -314,7 +314,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
 				const [day, events] = getFirstOrThrow(Array.from(daysToEvents.entries()))
-				o.check(getFirstOrThrow(events).color).equals(DEFAULT_BIRTHDAY_CALENDAR_COLOR)
+				o.check(getFirstOrThrow(events).color).equals(TutanotaConstants.DEFAULT_BIRTHDAY_CALENDAR_COLOR)
 			})
 
 			// test case for calendar with multiple events

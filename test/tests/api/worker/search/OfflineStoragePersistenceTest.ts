@@ -25,7 +25,7 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -507,7 +507,7 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(indexedGroupsAfterReset).deepEquals([
 			{
 				...mailGroupData,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 				lastIndexedEntityListId: GENERATED_MAX_ID,
 			},

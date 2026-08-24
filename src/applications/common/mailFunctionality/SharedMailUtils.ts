@@ -1,4 +1,4 @@
-import { ALLOWED_IMAGE_FORMATS, EncryptionAuthStatus, EnvProvider, MAX_BASE64_IMAGE_SIZE, TUTA_MAIL_ADDRESS_DOMAINS } from "@tutao/app-env"
+import { EncryptionAuthStatus, EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { fullNameToFirstAndLastName, mailAddressToFirstAndLastName } from "../misc/parsing/MailAddressParser.js"
 import { assertNotNull, endsWith, neverNull, uint8ArrayToBase64 } from "@tutao/utils"
 import { UserController } from "../api/main/UserController.js"
@@ -220,7 +220,7 @@ export enum RecipientField {
 }
 
 export function isTutaMailAddress(mailAddress: string): boolean {
-	return TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
+	return TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS.some((tutaDomain) => mailAddress.endsWith("@" + tutaDomain))
 }
 
 export function hasValidEncryptionAuthForTeamOrSystemMail({ encryptionAuthStatus }: Mail): boolean {
@@ -282,11 +282,11 @@ export function isNoReplyTeamAddress(address: string): boolean {
 }
 
 export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandler) {
-	showFileChooser(FileChooserMultiMode.Multi, ALLOWED_IMAGE_FORMATS).then((files) => {
+	showFileChooser(FileChooserMultiMode.Multi, TutanotaConstants.ALLOWED_IMAGE_FORMATS).then((files) => {
 		const tooBig: DataFile[] = []
 
 		for (let file of files) {
-			if (file.size > MAX_BASE64_IMAGE_SIZE) {
+			if (file.size > TutanotaConstants.MAX_BASE64_IMAGE_SIZE) {
 				tooBig.push(file)
 			} else {
 				const b64 = uint8ArrayToBase64(file.data)
@@ -300,7 +300,7 @@ export function insertInlineImageB64ClickHandler(ev: Event, handler: ImageHandle
 		if (tooBig.length > 0) {
 			Dialog.message(
 				lang.getTranslation("tooBigInlineImages_msg", {
-					"{size}": MAX_BASE64_IMAGE_SIZE / 1024,
+					"{size}": TutanotaConstants.MAX_BASE64_IMAGE_SIZE / 1024,
 				}),
 			)
 		}

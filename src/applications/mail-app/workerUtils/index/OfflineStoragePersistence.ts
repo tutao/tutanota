@@ -1,7 +1,7 @@
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../../app-kit/local-store/Sql"
 import { untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
-import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
 	CUSTOM_MIN_ID,
@@ -377,7 +377,7 @@ VALUES (
 	async resetMailIndex() {
 		{
 			const { query, params } = sql`UPDATE search_group_data
-										  SET indexedTimestamp           = ${NOTHING_INDEXED_TIMESTAMP},
+										  SET indexedTimestamp           = ${TutanotaConstants.NOTHING_INDEXED_TIMESTAMP},
 											  lastIndexedEntityListId    = ${GENERATED_MAX_ID},
 											  lastIndexedEntityElementId = ${GENERATED_MAX_ID}
 										  WHERE groupType = ${GroupType.Mail}`

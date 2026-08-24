@@ -36,13 +36,12 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { checkApprovalStatus } from "../../../common/misc/LoginUtils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import {
-	ALLOWED_IMAGE_FORMATS,
 	CancelledError,
 	EnvProvider,
 	FeatureType,
 	MailAuthenticationStatus,
 	TimeConstants,
-	UNDO_SEND_TIMEOUT_SECONDS,
+	TutanotaConstants,
 	UpgradePromptType,
 } from "../../../../platform-kit/app-env"
 import { isOfflineError, TooManyRequestsError } from "../../../../platform-kit/rest-client/error"
@@ -140,7 +139,7 @@ const AUTOSAVE_LOCAL_TIMEOUT: number = TimeConstants.secondsToMillis(5)
 const AUTOSAVE_REMOTE_TIMEOUT: number = TimeConstants.minutesToMillis(5)
 
 // Maximum allowed time before the undo button hides.
-const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(UNDO_SEND_TIMEOUT_SECONDS)
+const UNDO_SEND_TIMEOUT: number = TimeConstants.secondsToMillis(TutanotaConstants.UNDO_SEND_TIMEOUT_SECONDS)
 
 export type MailEditorAttrs = {
 	model: SendMailModel
@@ -939,7 +938,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	}
 
 	private async imageButtonClickHandler(model: SendMailModel, rect: DOMRect): Promise<void> {
-		const files = await chooseAndAttachFile(model, rect, ALLOWED_IMAGE_FORMATS)
+		const files = await chooseAndAttachFile(model, rect, TutanotaConstants.ALLOWED_IMAGE_FORMATS)
 		if (!files || files.length === 0) return
 		return await this.insertInlineImages(model, files)
 	}

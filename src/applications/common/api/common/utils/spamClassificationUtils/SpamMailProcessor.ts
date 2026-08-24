@@ -21,7 +21,7 @@ import {
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/utils"
 import { getMailBodyText } from "../../CommonMailUtils"
-import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus } from "@tutao/app-env"
+import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus, TutanotaConstants } from "@tutao/app-env"
 import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails } from "@tutao/entities/tutanota"
 
 export type PreprocessConfiguration = {
@@ -185,7 +185,7 @@ export class SpamMailProcessor {
 	 */
 	public async processClientSpamTrainingDatum(
 		datum: ClientSpamTrainingDatum,
-		clientVectorSize: number = DEFAULT_VECTOR_MAX_LENGTH,
+		clientVectorSize: number = TutanotaConstants.DEFAULT_VECTOR_MAX_LENGTH,
 		serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 	): Promise<number[]> {
 		if (datum.vectorWithServerClassifiers) {
