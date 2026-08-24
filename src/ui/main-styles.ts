@@ -1173,6 +1173,10 @@ export class MainStyles {
 				".fill-grid-column": {
 					"grid-row": "1 / -1",
 				},
+				".subgrid-columns": {
+					display: "grid",
+					"grid-template-columns": "subgrid",
+				},
 				".gap-1": {
 					gap: px(1),
 				},

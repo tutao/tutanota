@@ -69,7 +69,7 @@ export class MigrationMailboxTable implements Component<MigrationMailboxTableAtt
 	}
 
 	private renderHeader(rows: ReadonlyArray<MigrationMailboxRowView>): Children {
-		return m(".pb-8.grid.fill-grid-row.text-fade", { style: { "grid-template-columns": "subgrid" } }, [
+		return m(".pb-8.subgrid-columns.fill-grid-row.text-fade", [
 			m(
 				"div",
 				m("input.checkbox", {

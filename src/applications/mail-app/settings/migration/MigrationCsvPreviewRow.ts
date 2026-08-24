@@ -12,33 +12,24 @@ export interface MigrationCsvPreviewRowAttrs {
 export class MigrationCsvPreviewRow implements Component<MigrationCsvPreviewRowAttrs> {
 	view({ attrs }: Vnode<MigrationCsvPreviewRowAttrs>): Children {
 		const { row, selected, onToggleSelected } = attrs
-		return m(
-			".items-center.grid.fill-grid-row.pt-8.pb-8.plr-12.content-bg",
-			{
-				style: {
-					"grid-template-columns": "subgrid",
-					"border-radius": "10px",
-				},
-			},
-			[
-				m(
-					"div",
-					m("input.checkbox", {
-						type: "checkbox",
-						checked: selected,
-						onchange: onToggleSelected,
-					}),
-				),
-				m("div.text-ellipsis", row.sourceEmail),
-				m("div.text-ellipsis", row.tutaEmail),
-				m(
-					"div.text-ellipsis",
-					row.mailboxType === MailboxType.User
-						? lang.getTranslationText("migrationMailboxTypeUser_label")
-						: lang.getTranslationText("migrationMailboxTypeShared_label"),
-				),
-				m("div.text-ellipsis", row.aliases.join(", ") || "-"),
-			],
-		)
+		return m(".items-center.subgrid-columns.fill-grid-row.pt-8.pb-8.plr-12.content-bg.border-radius-8", [
+			m(
+				"div",
+				m("input.checkbox", {
+					type: "checkbox",
+					checked: selected,
+					onchange: onToggleSelected,
+				}),
+			),
+			m("div.text-ellipsis", row.sourceEmail),
+			m("div.text-ellipsis", row.tutaEmail),
+			m(
+				"div.text-ellipsis",
+				row.mailboxType === MailboxType.User
+					? lang.getTranslationText("migrationMailboxTypeUser_label")
+					: lang.getTranslationText("migrationMailboxTypeShared_label"),
+			),
+			m("div.text-ellipsis", row.aliases.join(", ") || "-"),
+		])
 	}
 }

@@ -26,7 +26,7 @@ export class MigrationCsvPreviewTable implements Component<MigrationCsvPreviewTa
 		return m(".mt-16", [
 			m(".small.mb-8", lang.getTranslation("migrationCsvRowsFound_msg", { "{count}": rows.length }).text),
 			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS } }, [
-				m(".small.pb-8.grid.fill-grid-row.text-fade", { style: { "grid-template-columns": "subgrid" } }, [
+				m(".small.pb-8.subgrid-columns.fill-grid-row.text-fade", [
 					m(
 						"div",
 						m("input.checkbox", {

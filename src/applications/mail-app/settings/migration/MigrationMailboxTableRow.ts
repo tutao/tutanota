@@ -87,10 +87,9 @@ export class MigrationMailboxTableRow implements Component<MigrationMailboxTable
 	view({ attrs }: Vnode<MigrationMailboxTableRowAttrs>): Children {
 		const { row, selected, onToggleSelected, revealed, onToggleRevealed } = attrs
 		return m(
-			".items-center.grid.fill-grid-row.pt-8.pb-8.plr-12.border-radius-8",
+			".items-center.subgrid-columns.fill-grid-row.pt-8.pb-8.plr-12.border-radius-8",
 			{
 				style: {
-					"grid-template-columns": "subgrid",
 					background: row.status === CustomerMigrationMailboxInfoStatus.COMPLETED_SUCCESSFULLY ? theme.success_container : theme.surface,
 				},
 			},
