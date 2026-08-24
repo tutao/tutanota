@@ -11,6 +11,7 @@ import androidx.glance.appwidget.state.updateAppWidgetState
 import de.tutao.calendar.widget.WIDGET_CACHE_DATE_PREFIX
 import de.tutao.calendar.widget.WIDGET_LAST_SYNC_PREFIX
 import de.tutao.calendar.widget.WIDGET_SETTINGS_PREFIX
+import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoggedInSdk
@@ -31,7 +32,12 @@ abstract class WidgetRepository() {
 		private const val TAG = "WidgetRepository"
 	}
 
-	open suspend fun storeLastSyncInBatch(context: Context, widgetIds: IntArray, now: Date) {
+	open suspend fun storeLastSyncInBatch(
+		context: Context,
+		widgetIds: IntArray,
+		now: Date,
+		trigger: WidgetUpdateTrigger = WidgetUpdateTrigger.APP
+	) {
 		throw NotImplementedError()
 	}
 
