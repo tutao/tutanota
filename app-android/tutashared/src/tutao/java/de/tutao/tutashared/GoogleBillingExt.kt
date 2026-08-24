@@ -10,7 +10,12 @@ import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.MobilePaymentResult
 import de.tutao.tutashared.ipc.MobilePaymentResultType
 import de.tutao.tutashared.ipc.MobilePlanPrice
-import java.security.MessageDigest
+import java.lang.Long
+import java.util.UUID
+import kotlin.ByteArray
+import kotlin.IllegalStateException
+import kotlin.String
+
 
 //this file contains some extension functions for google billing types that bridge them to our types.
 
@@ -74,10 +79,36 @@ fun Purchase.toMobilePaymentResult(): MobilePaymentResult {
  * ergo, the result of this needs to be reversible.
  */
 fun DataWrapper.toObfuscatedAccountId(): String {
-	val digest = MessageDigest.getInstance("SHA-256").digest(this.data)
-	return digest.joinToString(separator = "") { byte ->
-		"%02x".format(byte.toInt() and 0xff)
+	return generatedIdToUUID(this).toString()
+}
+
+/**
+ * Convert a Byte array of 9 bytes into a UUID to send to the app store. this function is also implemented in the swift code
+ * of the app in IosMobilePaymentsFacade.customerIdToUUID() and also in the server.
+ *
+ * @param id id to convert
+ * @return UUID
+ */
+fun generatedIdToUUID(id: DataWrapper): UUID {
+	val bytes = ByteArray(16)
+
+	System.arraycopy(id.data, 0, bytes, 0, 6)
+	System.arraycopy(id.data, 6, bytes, 9, 3)
+
+	// version/type: name-based (3)
+	bytes[6] = (3 shl 4).toByte()
+
+	// variant: ietf (2)
+	bytes[8] = (2 shl 6).toByte()
+
+	var high = 0L
+	var low = 0L
+	for (i in 0..<Long.BYTES) {
+		high = (high shl 8) or (bytes[i].toLong() and 0xFFL)
+		low = (low shl 8) or (bytes[i + Long.BYTES].toLong() and 0xFFL)
 	}
+
+	return UUID(high, low)
 }
 
 /**
