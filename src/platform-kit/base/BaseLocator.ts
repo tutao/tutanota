@@ -293,7 +293,7 @@ export async function createBaseLocator({
 	})
 	const share = lazyMemoized(async () => {
 		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader)
+		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader, cryptoWrapper)
 	})
 	const counters = lazyMemoized(async () => {
 		const { CounterFacade } = await import("../network/CounterFacade.js")
