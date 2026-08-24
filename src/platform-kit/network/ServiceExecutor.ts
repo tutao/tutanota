@@ -4,7 +4,7 @@ import { HttpMethod, MediaType, RestTextBody, validateHttpMethod } from "@tutao/
 import { IServiceExecutor } from "./ServiceRequest.js"
 import { assert, assertNotNull, downcast, isNotNull, lazy, Nullable } from "@tutao/utils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionAndInstanceKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
@@ -17,7 +17,7 @@ export class ServiceExecutor implements IServiceExecutor {
 		private readonly restClient: RestClient,
 		private readonly authDataProvider: LoggedInUserProvider,
 		private readonly instancePipeline: InstancePipeline,
-		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
+		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
 

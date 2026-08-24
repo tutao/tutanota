@@ -474,6 +474,8 @@ export enum GroupKeyRotationType {
 	Customer = "4",
 	AdminGroupKeyRotationMultipleUserAccount = "5", // scheduled for accounts that have multiple users but only a single admin user
 	AdminGroupKeyRotationMultipleAdminAccount = "6", // scheduled for accounts that have multiple admin users
+	InstanceKeySharingAfterCustomerGroupRotation = "7",
+	InstanceKeySharingAfterInternalMailGroupRotation = "8",
 }
 
 export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
@@ -496,6 +498,7 @@ export enum RolloutType {
 	OtherGroupKeyRotation = "3",
 	GroupKeyUpdatePending = "4",
 	EncryptionOfAttributesViaAead = "5",
+	InstanceKeySharing = "6",
 }
 
 export enum DeactivationReason {
