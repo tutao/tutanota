@@ -51,6 +51,7 @@ import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/instance-pipeline"
+import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -64,6 +65,7 @@ o.spec("MailFacade test", function () {
 	let loginFacade: LoginFacade
 	let keyLoaderFacade: KeyLoaderFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	let instanceKeyFacade: InstanceKeyFacade
 	let cacheStorage: CacheStorage
 	let spamClassifier: SpamClassifier
 
@@ -78,6 +80,7 @@ o.spec("MailFacade test", function () {
 		loginFacade = object()
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
+		instanceKeyFacade = object()
 		facade = new MailFacade(
 			userFacade,
 			entityClient,
@@ -89,6 +92,7 @@ o.spec("MailFacade test", function () {
 			loginFacade,
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
+			instanceKeyFacade,
 		)
 	})
 
@@ -644,7 +648,7 @@ o.spec("MailFacade test", function () {
 
 			const captor = matchers.captor()
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					notFoundRecipient1.address,
@@ -657,7 +661,7 @@ o.spec("MailFacade test", function () {
 			})
 
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					notFoundRecipient2.address,
@@ -696,7 +700,7 @@ o.spec("MailFacade test", function () {
 
 			const captor = matchers.captor()
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					unverifiedRecipient1.address,
@@ -709,7 +713,7 @@ o.spec("MailFacade test", function () {
 			})
 
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					unverifiedRecipient2.address,

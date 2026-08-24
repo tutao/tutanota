@@ -308,6 +308,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.login,
 			locator.base.keyLoader,
 			locator.base.publicEncryptionKeyProvider,
+			locator.base.instanceKey,
 		)
 	})
 

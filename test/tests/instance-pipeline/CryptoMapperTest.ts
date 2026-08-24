@@ -6,6 +6,7 @@ import {
 	AssociatedData,
 	encryptKey,
 	generateKdfNonce,
+	InstanceKeyProvider,
 	KdfNonce,
 	random,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
@@ -381,6 +382,9 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, Cardinality.One)
 			const value = random.generateRandomData(5)
 			const instanceKey: VersionedAes256Key = { object: aes256RandomKey(), version: 0 }
+			const instanceKeyProvider: InstanceKeyProvider = async (groupKeyVersion) => {
+				return instanceKey
+			}
 			const subKeyInfo = new SubKeyInfoAeadWithInstanceKeyFromInstanceKey(instanceKey)
 			const clientTypeModel: ClientTypeModel = object()
 			clientTypeModel.app = AppNameEnum.Tutanota
@@ -395,7 +399,13 @@ o.spec("CryptoMapperTest", () => {
 				id: clientTypeModel.id,
 				name: "name",
 			}
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), null, null, null, instanceKey)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
+				makeKeyDerivationContext(instanceTypeId),
+				null,
+				null,
+				null,
+				instanceKeyProvider,
+			)
 			const decryptedValue = await cryptoMapper.decryptValue(
 				valueType,
 				encryptedValue,
@@ -410,7 +420,7 @@ o.spec("CryptoMapperTest", () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk)
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("encrypted string")
 		o.check(decryptedInstance.getAttributeById(5).asDate().toISOString()).equals("2025-01-01T13:00:00.000Z")
@@ -488,7 +498,7 @@ o.spec("CryptoMapperTest", () => {
 			ParsedValue.fromString("AV1kmZZfCms1pNvUtGrdhOlnDAr3zb2JWpmlpWEhgG5zqYK3g7PfRsi0vQAKLxXmrNRGp16SBKBa0gqXeFw9F6l7nbGs3U8uNLvs6Fi+9IWj"),
 		)
 
-		const instance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, null, null, ownerKeyProvider)
+		const instance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, null, null, ownerKeyProvider, null)
 		o.check(instance.getAttributeById(1).asString()).equals("") // default value is assigned in case of crypto errors
 		o.check(instance.getErrors()[14]).equals("Probably temporary SessionKeyNotFound")
 	})
@@ -505,7 +515,7 @@ o.spec("CryptoMapperTest", () => {
 			.addAttributeById(2, ParsedValue.fromString(""))
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("")
 		o.check(decryptedInstance.getAttributeById(2).getNullWhenNull()).equals(null)
@@ -522,7 +532,7 @@ o.spec("CryptoMapperTest", () => {
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => aes256RandomKey()
 		const consoleError = console.error
 		console.error = noOp
-		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider)
+		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
 		console.error = consoleError
 		o.check(typeof instanceWithErrors.getErrors()[1]).equals("string")
 	})
@@ -588,7 +598,7 @@ o.spec("CryptoMapperTest", () => {
 			replace(cryptoMapper, "symmetricCipherFacade", symmetricCipherFacade)
 			const sessionKey = aes256RandomKey()
 			const encryptedInstance = sampleEncryptedParsedInstance(sessionKey)
-			await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, null)
+			await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, null, null)
 			verify(
 				instanceDecryptor.getValueDecryptor(
 					matchers.anything(),

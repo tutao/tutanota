@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
+import { CryptoFacade, toInternalRecipientKeyData } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	containsId,
 	elementIdPart,
@@ -22,6 +22,7 @@ import {
 	CryptoWrapper,
 	decryptKey,
 	encryptKey,
+	generateKdfNonce,
 	generateRandomSalt,
 	keyToUint8Array,
 	murmurHash,
@@ -190,6 +191,7 @@ import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipel
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { InstanceKeyFacade } from "../../../../../../platform-kit/base/base-crypto/InstanceKeyFacade"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -240,6 +242,7 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+		private readonly instanceKeyFacade: InstanceKeyFacade,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
@@ -960,7 +963,7 @@ export class MailFacade {
 				data.ownerKeyVersion = ownerEncBucketKey.encryptingKeyVersion.toString()
 				sendDraftParameters.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipientMailAddress(
 					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
 					bucketKey,
 					recipient.address,
@@ -973,7 +976,9 @@ export class MailFacade {
 				} else if (keyData.symEncRecipientKeyData != null) {
 					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData.symEncRecipientKeyData)
 				} else if (keyData.pubEncRecipientKeyData != null) {
-					sendDraftParameters.internalRecipientKeyData.push(keyData.pubEncRecipientKeyData)
+					const pubEncKeyData = keyData.pubEncRecipientKeyData
+					const internalRecipientKeyData = toInternalRecipientKeyData(pubEncKeyData)
+					sendDraftParameters.internalRecipientKeyData.push(internalRecipientKeyData)
 				}
 			}
 		}
@@ -1041,31 +1046,7 @@ export class MailFacade {
 			externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 			"no mail group membership on external user",
 		).group
-
-		const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
-		const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
-		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
-		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
-		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
-		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
-		const requiredInternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
-		const currentExternalUserGroupKey = {
-			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
-			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
-		}
-		const requiredExternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
-			externalUserGroupId,
-			requiredExternalUserGroupKeyVersion,
-			currentExternalUserGroupKey,
-		)
-		const currentExternalMailGroupKey = {
-			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
-			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
-		}
-		return {
-			currentExternalUserGroupKey,
-			currentExternalMailGroupKey,
-		}
+		return await this.keyLoaderFacade.getCurrentExternalGroupKeys(externalMailGroupId, externalUserGroupId)
 	}
 
 	getRecipientKeyData(mailAddress: string): Promise<VerifiedPublicEncryptionKey | null> {
@@ -1156,6 +1137,21 @@ export class MailFacade {
 		const internalMailEncUserGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
 		const internalMailEncMailGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
+		// the internal mail group is the owner group of the external [user|mail] group info instances
+		const externalUserGroupInfoKdfNonce = generateKdfNonce()
+		const currentExternalUserGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalUserGroupInfoKdfNonce)
+		const externalUserEncUserGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
+			currentExternalUserGroupKey,
+			currentExternalUserGroupInfoInstanceKey.object,
+		)
+
+		const externalMailGroupInfoKdfNonce = generateKdfNonce()
+		const currentExternalMailGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalMailGroupInfoKdfNonce)
+		const externalMailEncMailGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
+			currentExternalMailGroupKey,
+			currentExternalMailGroupInfoInstanceKey.object,
+		)
+
 		const externalUserData = createExternalUserData({
 			verifier,
 			userGroupData,
@@ -1172,11 +1168,12 @@ export class MailFacade {
 			internalMailEncUserGroupInfoSessionKey: internalMailEncUserGroupInfoSessionKey.key,
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
-			//TODO
-			externalMailEncMailGroupInfoInstanceKey: null,
-			externalMailGroupInfoInstanceKeyVersion: null,
-			externalUserEncUserGroupInfoInstanceKey: null,
-			externalUserGroupInfoInstanceKeyVersion: null,
+			externalMailEncMailGroupInfoInstanceKey: externalMailEncMailGroupInfoInstanceKey.key,
+			externalMailGroupInfoInstanceKeyVersion: currentExternalMailGroupInfoInstanceKey.version.toString(),
+			externalUserEncUserGroupInfoInstanceKey: externalUserEncUserGroupInfoInstanceKey.key,
+			externalUserGroupInfoInstanceKeyVersion: currentExternalUserGroupInfoInstanceKey.version.toString(),
+			externalUserGroupInfoKdfNonce,
+			externalMailGroupInfoKdfNonce,
 		})
 		await this.serviceExecutor.post(ExternalUserService, externalUserData, null)
 		return {

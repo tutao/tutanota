@@ -42,6 +42,7 @@ import { encryptKey, encryptRsaKey, encryptX25519Key } from "../../../../../src/
 import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
+import { FormerKeyResolver } from "../../../../../src/platform-kit/base/base-crypto/FormerKeyResolver"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let keyCache: KeyCache
@@ -64,6 +65,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let currentKeyPair: PQKeyPairs
 	let membership: GroupMembership
 	let cryptoWrapper: CryptoWrapper
+	let realFormerKeyResolver: FormerKeyResolver
 
 	o.beforeEach(async () => {
 		keyCache = new KeyCache()
@@ -72,7 +74,8 @@ o.spec("KeyLoaderFacadeTest", function () {
 		cacheManagementFacade = object()
 		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
 		cryptoWrapper = object()
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
+		realFormerKeyResolver = new FormerKeyResolver(entityClient)
+		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
@@ -245,7 +248,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 
@@ -265,7 +268,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 
@@ -295,7 +298,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
+			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 

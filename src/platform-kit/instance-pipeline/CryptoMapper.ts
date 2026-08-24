@@ -13,6 +13,7 @@ import {
 	IdType,
 	isSameTypeRef,
 	ModelValue,
+	PersistentEntity,
 	ServerTypeModel,
 	TypeModel,
 	TypeRef,
@@ -41,6 +42,7 @@ import {
 	AsymmetricKeyPair,
 	decryptKey,
 	InstanceDecryptor,
+	InstanceKeyProvider,
 	KdfNonce,
 	OwnerKeyProvider,
 	SubKeyFactory,
@@ -68,6 +70,10 @@ export interface SymmetricGroupKeyLoader {
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
 	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
+}
+
+export interface InstanceKeyProviderMakerInterface {
+	makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>>
 }
 
 export abstract class LoggedInUserProvider {
@@ -113,11 +119,18 @@ export class CryptoMapper {
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
+		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		instanceTypeId: InstanceTypeId = encryptedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<DecryptedParsedInstance> {
 		const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
-		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, sessionKey, kdfNonce, ownerKeyProvider, null)
+		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
+			keyDerivationContext,
+			sessionKey,
+			kdfNonce,
+			ownerKeyProvider,
+			instanceKeyProvider,
+		)
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}
 

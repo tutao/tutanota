@@ -151,18 +151,21 @@ export class UserFacade extends LoggedInUserProvider {
 		}
 	}
 
-	getGroupId(groupType: GroupType): Id {
+	getGroupMembershipByType(groupType: GroupType): GroupMembership {
 		if (groupType === GroupType.User) {
-			return this.getUserGroupId()
+			return this.getLoggedInUser().userGroup
 		} else {
 			let membership = this.getLoggedInUser().memberships.find((m) => m.groupType === groupType)
 
 			if (!membership) {
 				throw new Error("could not find groupType " + groupType + " for user " + this.getLoggedInUser()._id)
 			}
-
-			return membership.group
+			return membership
 		}
+	}
+
+	getGroupId(groupType: GroupType): Id {
+		return this.getGroupMembershipByType(groupType).group
 	}
 
 	getGroupIds(groupType: GroupType): Id[] {

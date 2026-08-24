@@ -12,7 +12,14 @@ import {
 } from "@tutao/rest-client/error"
 import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
-import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
+import {
+	DecryptedParsedInstance,
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	SessionAndInstanceKeyResolver,
+	TypeModelResolver,
+} from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ProgressMonitorInterface } from "../../../platform-kit/network/ProgressMonitorInterface.js"
@@ -160,7 +167,7 @@ export class EventBusClient {
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: ISleepDetector,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: SessionKeyResolver,
+		private readonly sessionKeyResolver: SessionAndInstanceKeyResolver,
 		private readonly entityMigrator: EntityMigrator,
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 		private readonly serverDateProvider: DateProvider,
@@ -446,18 +453,21 @@ export class EventBusClient {
 			try {
 				const serverJson = IncomingServerJson.expectSingleInstance(event.instance, typeModel)
 				const encryptedParsedInstance = await this.instancePipeline.typeMapper.parseServerJson(serverJson)
-				const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
-					encryptedParsedInstance,
-					this.instancePipeline.modelMapper,
-					this.instancePipeline.cryptoMapper,
+				const migratedEntity = await this.entityMigrator.applyMigrations(
+					typeRef,
+					await EntityAdapter.fromEncryptedParsedInstance(
+						encryptedParsedInstance,
+						this.instancePipeline.modelMapper,
+						this.instancePipeline.cryptoMapper,
+					),
 				)
-				const migratedEntity = await this.entityMigrator.applyMigrations(typeRef, entityAdapter)
 				const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
 				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 					encryptedParsedInstance,
 					sessionKey,
-					validateKdfNonceLength(entityAdapter._kdfNonce),
-					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+					validateKdfNonceLength(migratedEntity._kdfNonce),
+					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
+					await this.sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),
 				)
 
 				// we do not want to process the instance if there are _errors (when decrypting)
@@ -471,8 +481,9 @@ export class EventBusClient {
 						const parsedBlobInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 							mailDetailsBlobEncryptedParsedInstance,
 							sessionKey,
-							validateKdfNonceLength(entityAdapter._kdfNonce),
-							this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+							validateKdfNonceLength(migratedEntity._kdfNonce),
+							this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
+							await this.sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),
 						)
 						return { parsedInstance, parsedBlobInstance }
 					}

@@ -12,7 +12,7 @@ import {
 	uint8ArrayToBase64,
 	Versioned,
 } from "@tutao/utils"
-import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState } from "@tutao/app-env"
+import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
 import { assertEnumValue, AttributeModel, ClientTypeModel, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, stringifyId } from "../../meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -24,11 +24,13 @@ import {
 	CryptoWrapper,
 	decryptKey,
 	encryptKey,
+	InstanceKeyProvider,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
 	keyToUint8Array,
 	OwnerKeyProvider,
 	PublicKey,
+	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
 	sha256Hash,
 	validateKdfNonceLength,
@@ -39,7 +41,7 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import { EntityAdapter, InstancePipeline, PatchOperationType, SessionKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, PatchOperationType, SessionAndInstanceKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
@@ -52,6 +54,7 @@ import {
 	createInstanceSessionKey,
 	createPatch,
 	createPatchList,
+	createPubEncKeyData,
 	createUpdateKdfNoncePostIn,
 	createUpdatePermissionKeyData,
 	createUpdateSessionKeysPostIn,
@@ -61,6 +64,7 @@ import {
 	PatchListTypeRef,
 	Permission,
 	PermissionTypeRef,
+	PubEncKeyData,
 	UpdateKdfNoncePostOut,
 	UpdateKdfNonceService,
 	UpdatePermissionKeyService,
@@ -75,7 +79,6 @@ import {
 	createSymEncInternalRecipientKeyData,
 	File,
 	FileTypeRef,
-	InternalRecipientKeyData,
 	Mail,
 	MailTypeRef,
 	SymEncInternalRecipientKeyData,
@@ -86,6 +89,7 @@ import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
+import { InstanceKeyProviderMaker } from "./InstanceKeyProviderMaker"
 
 assertWorkerOrNode()
 
@@ -96,12 +100,12 @@ type ResolvedSessionKeys = {
 
 export class RecipientKeyData {
 	constructor(
-		readonly pubEncRecipientKeyData: Nullable<InternalRecipientKeyData>,
+		readonly pubEncRecipientKeyData: Nullable<PubEncKeyData>,
 		readonly symEncRecipientKeyData: Nullable<SymEncInternalRecipientKeyData>,
 	) {}
 }
 
-export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
+export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetworkHelper {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -117,7 +121,12 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly instanceKeyProviderMaker: InstanceKeyProviderMaker,
 	) {}
+
+	async makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>> {
+		return this.instanceKeyProviderMaker.makeInstanceKeyProvider(instance)
+	}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
 	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>, ownerKey: AesKey): AesKey {
@@ -404,7 +413,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
-		instance: Entity,
+		instance: PersistentEntity,
 		resolvedSessionKeyForInstance: AesKey,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
@@ -448,7 +457,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		}
 	}
 
-	private async getDecryptedMailFromAdapter(instance: Entity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
+	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
 		if (instance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
@@ -456,6 +465,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				resolvedSessionKeyForInstance,
 				validateKdfNonceLength(instance._kdfNonce ?? null),
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(instance._ownerGroup ?? null),
+				await this.makeInstanceKeyProvider(instance),
 			)
 			return await this.instancePipeline.modelMapper.mapToInstance<Mail>(parsedInstance)
 		} else {
@@ -613,18 +623,35 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		return null
 	}
 
-	async encryptBucketKeyForInternalRecipient(
-		senderUserGroupId: Id,
+	async encryptBucketKeyForInternalRecipientMailAddress(
+		senderGroupId: Id,
 		bucketKey: AesKey,
 		recipientMailAddress: string,
 		notFoundRecipients: Array<string>,
 		keyVerificationMismatchRecipients: Array<string>,
 	): Promise<RecipientKeyData | null> {
+		const recipientPubKeyIdentifier = {
+			identifier: recipientMailAddress,
+			identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
+		}
+		return this.encryptBucketKeyForInternalRecipient(
+			senderGroupId,
+			bucketKey,
+			recipientPubKeyIdentifier,
+			notFoundRecipients,
+			keyVerificationMismatchRecipients,
+		)
+	}
+
+	async encryptBucketKeyForInternalRecipient(
+		senderGroupId: Id,
+		bucketKey: AesKey,
+		recipientPubKeyIdentifier: PublicKeyIdentifier,
+		notFoundRecipients: Array<string>,
+		keyVerificationMismatchRecipients: Array<string>,
+	): Promise<RecipientKeyData | null> {
 		try {
-			const publicKey = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
-				identifier: recipientMailAddress,
-				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-			})
+			const publicKey = await this.publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey(recipientPubKeyIdentifier)
 
 			// We do not create any key data in case there is one not found recipient or not verified, but we want to
 			// collect ALL failed recipients when iterating a recipient list.
@@ -635,26 +662,26 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			const isExternalSender = this.userFacade.getUser()?.accountType === AccountType.EXTERNAL
 			// we only encrypt symmetric as external sender if the recipient supports tuta-crypt.
 			// Clients need to support symmetric decryption from external users. We can always encrypt symmetrically when old clients are deactivated that don't support tuta-crypt.
-			let pubEncRecipientKeyData: Nullable<InternalRecipientKeyData> = null
+			let pubEncRecipientKeyData: Nullable<PubEncKeyData> = null
 			let symEncRecipientKeyData: Nullable<SymEncInternalRecipientKeyData> = null
 			if (isVersionedPqPublicKey(publicKey.publicEncryptionKey) && isExternalSender) {
-				symEncRecipientKeyData = await this.createSymEncInternalRecipientKeyData(recipientMailAddress, bucketKey)
+				symEncRecipientKeyData = await this.createSymEncInternalRecipientKeyData(recipientPubKeyIdentifier, bucketKey)
 			} else {
 				pubEncRecipientKeyData = await this.createPubEncInternalRecipientKeyData(
 					bucketKey,
-					recipientMailAddress,
+					recipientPubKeyIdentifier,
 					publicKey.publicEncryptionKey,
-					senderUserGroupId,
+					senderGroupId,
 				)
 			}
 			return new RecipientKeyData(pubEncRecipientKeyData, symEncRecipientKeyData)
 		} catch (e) {
 			if (e instanceof NotFoundError) {
-				notFoundRecipients.push(recipientMailAddress)
+				notFoundRecipients.push(recipientPubKeyIdentifier.identifier)
 				return null
 			}
 			if (e instanceof KeyVerificationMismatchError) {
-				keyVerificationMismatchRecipients.push(recipientMailAddress)
+				keyVerificationMismatchRecipients.push(recipientPubKeyIdentifier.identifier)
 				return null
 			} else if (e instanceof TooManyRequestsError) {
 				throw new RecipientNotResolvedError("")
@@ -666,25 +693,32 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 
 	private async createPubEncInternalRecipientKeyData(
 		bucketKey: AesKey,
-		recipientMailAddress: string,
+		recipientIdentifier: PublicKeyIdentifier,
 		recipientPublicKeys: Versioned<PublicKey>,
 		senderGroupId: Id,
-	) {
+	): Promise<PubEncKeyData> {
 		const pubEncBucketKey = await this.asymmetricCryptoFacade.asymEncryptSymKey(bucketKey, recipientPublicKeys, senderGroupId)
-		return createInternalRecipientKeyData({
-			mailAddress: recipientMailAddress,
-			pubEncBucketKey: pubEncBucketKey.pubEncSymKeyBytes,
-			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion.toString(),
-			senderKeyVersion: pubEncBucketKey.senderKeyVersion != null ? pubEncBucketKey.senderKeyVersion.toString() : null,
+		return createPubEncKeyData({
 			protocolVersion: pubEncBucketKey.cryptoProtocolVersion,
+			recipientIdentifier: recipientIdentifier.identifier,
+			recipientIdentifierType: recipientIdentifier.identifierType,
+			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion.toString(),
+			senderIdentifier: senderGroupId,
+			senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
+			senderKeyVersion: pubEncBucketKey.senderKeyVersion != null ? pubEncBucketKey.senderKeyVersion.toString() : null,
+			pubEncSymKey: pubEncBucketKey.pubEncSymKeyBytes,
+			symKeyMac: null,
 		})
 	}
 
-	private async createSymEncInternalRecipientKeyData(recipientMailAddress: string, bucketKey: AesKey) {
+	private async createSymEncInternalRecipientKeyData(recipientIdentifier: PublicKeyIdentifier, bucketKey: AesKey) {
+		if (recipientIdentifier.identifierType !== PublicKeyIdentifierType.MAIL_ADDRESS) {
+			throw new ProgrammingError("identifier must be mail address")
+		}
 		const keyGroup = this.userFacade.getGroupId(GroupType.Mail)
 		const externalMailGroupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(keyGroup)
 		return createSymEncInternalRecipientKeyData({
-			mailAddress: recipientMailAddress,
+			mailAddress: recipientIdentifier.identifier,
 			symEncBucketKey: encryptKey(externalMailGroupKey.object, bucketKey),
 			keyGroup,
 			symKeyVersion: String(externalMailGroupKey.version),
@@ -720,9 +754,6 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			let updateService = createUpdatePermissionKeyData({
 				permission: permission._id,
 				bucketPermission: bucketPermission._id,
-				//TODO
-				instanceKeyVersion: null,
-				ownerEncInstanceKey: null,
 			})
 			updateService.ownerKeyVersion = String(encryptedKey.encryptingKeyVersion)
 			updateService.ownerEncSessionKey = encryptedKey.key
@@ -879,5 +910,18 @@ if (!("toJSON" in Error.prototype)) {
 		},
 		configurable: true,
 		writable: true,
+	})
+}
+
+export function toInternalRecipientKeyData(pubEncKeyData: PubEncKeyData) {
+	if (pubEncKeyData.recipientIdentifierType !== PublicKeyIdentifierType.MAIL_ADDRESS) {
+		throw new ProgrammingError("only supports mail address")
+	}
+	return createInternalRecipientKeyData({
+		recipientKeyVersion: pubEncKeyData.recipientKeyVersion,
+		pubEncBucketKey: pubEncKeyData.pubEncSymKey,
+		senderKeyVersion: pubEncKeyData.senderKeyVersion,
+		mailAddress: pubEncKeyData.recipientIdentifier,
+		protocolVersion: pubEncKeyData.protocolVersion,
 	})
 }

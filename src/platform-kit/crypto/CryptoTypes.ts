@@ -65,3 +65,16 @@ export type VersionedEncryptedKey = {
 	encryptingKeyVersion: KeyVersion // the version of the encryption key NOT the encrypted key
 	key: Uint8Array<ArrayBuffer> // encrypted key
 }
+
+/**
+ * An encrypted key and the versions of the encrypted key and the encrypting key.
+ *
+ * @param bytes                encrypted key bytes
+ * @param encryptingKeyVersion version of the key used to encrypt the bytes
+ * @param encryptedKeyVersion  version of the encrypted key
+ */
+export type EncryptedKeyWithVersions = {
+	bytes: Uint8Array<ArrayBuffer>
+	encryptingKeyVersion: KeyVersion
+	encryptedKeyVersion: KeyVersion
+}

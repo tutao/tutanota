@@ -48,6 +48,7 @@ import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { ProgrammingError } from "../../src/platform-kit/app-env"
+import { InstanceKeyProviderMaker } from "../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -416,8 +417,15 @@ export function instancePipelineFromTypeModelResolver(
 	typeModelResolver: TypeModelResolver,
 	keyLoaderFacade: KeyLoaderFacade = object(),
 	symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE,
+	instanceKeyProviderMaker: InstanceKeyProviderMaker = object(),
 ): InstancePipeline {
-	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade, null)
+	return new InstancePipeline(
+		typeModelResolver,
+		() => keyLoaderFacade,
+		symmetricCipherFacade,
+		null,
+		() => instanceKeyProviderMaker,
+	)
 }
 
 export function base64Decode(base64: Base64): string {

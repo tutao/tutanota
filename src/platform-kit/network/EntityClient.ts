@@ -50,7 +50,12 @@ export class EntityClient {
 		return this._target.load(typeRef, id, opts)
 	}
 
-	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start?: Id): Promise<T[]> {
+	async loadAll<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start?: Id,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<T[]> {
 		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		if (!start) {
@@ -62,10 +67,10 @@ export class EntityClient {
 			}
 		}
 
-		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)
+		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false, opts)
 		if (elements.length === RANGE_ITEM_LIMIT) {
 			let lastElementId = getLetId(elements[elements.length - 1])[1]
-			const nextElements = await this.loadAll<T>(typeRef, listId, lastElementId)
+			const nextElements = await this.loadAll<T>(typeRef, listId, lastElementId, opts)
 			return elements.concat(nextElements)
 		} else {
 			return elements

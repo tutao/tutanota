@@ -60,7 +60,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/b
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
-import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
+import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 import {
 	AdminGroupKeyRotationGetOutTypeRef,
 	AdminGroupKeyRotationPostIn,
@@ -89,6 +89,7 @@ import {
 	KeyRotationsRefTypeRef,
 	KeyRotationTypeRef,
 	PubDistributionKeyTypeRef,
+	PubEncKeyDataTypeRef,
 	PublicKeySignatureTypeRef,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
@@ -107,6 +108,8 @@ import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-p
 import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encryption/EncryptedKeyPairs"
 import { _aes128RandomKey } from "../../../crypto/AesTest"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
+import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { CacheManager } from "../../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 
 const { anything } = matchers
 
@@ -426,7 +429,7 @@ function prepareMultiAdminUserKeyRotation(
 }
 
 o.spec("KeyRotationFacade", function () {
-	let entityClientMock: EntityClient
+	let entityClient: EntityClient
 	let keyRotationFacade: KeyRotationFacade
 	let keyLoaderFacadeMock: KeyLoaderFacade
 	let pqFacadeMock: PQFacade
@@ -441,6 +444,8 @@ o.spec("KeyRotationFacade", function () {
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	let publicKeySignatureFacade: PublicKeySignatureFacade
 	let adminKeyLoader: AdminKeyLoaderFacade
+	let instanceKeyFacade: InstanceKeyFacade
+	let cacheManager: CacheManager
 
 	let user: User
 	let cryptoWrapperMock: CryptoWrapper
@@ -452,7 +457,7 @@ o.spec("KeyRotationFacade", function () {
 	let customer: Customer
 
 	o.beforeEach(async () => {
-		entityClientMock = instance(EntityClient)
+		entityClient = instance(EntityClient)
 		keyLoaderFacadeMock = object()
 		pqFacadeMock = object()
 		serviceExecutorMock = instance(ServiceExecutor)
@@ -470,8 +475,10 @@ o.spec("KeyRotationFacade", function () {
 		groupKeyVersion0 = new Aes256Key(new Array(8).fill(12))
 		publicKeySignatureFacade = object()
 		adminKeyLoader = object()
+		instanceKeyFacade = object()
+		cacheManager = object()
 		keyRotationFacade = new KeyRotationFacade(
-			entityClientMock,
+			entityClient,
 			keyLoaderFacadeMock,
 			pqFacadeMock,
 			serviceExecutorMock,
@@ -486,33 +493,36 @@ o.spec("KeyRotationFacade", function () {
 			publicEncryptionKeyProvider,
 			publicKeySignatureFacade,
 			adminKeyLoader,
+			instanceKeyFacade,
+			async () => cacheManager,
 		)
 		user = await makeUser(userId, { key: userEncAdminKey, encryptingKeyVersion: 0 })
 		const customerId = "customerId"
-		customer = createTestEntity(CustomerTypeRef, { _id: idToElementId(customerId), userGroups: "userGroupsList" })
+		customer = createTestEntity(CustomerTypeRef, {
+			_id: idToElementId(customerId),
+			userGroups: "userGroupsList",
+		})
 		const groupData = makeGroupWithMembership(groupId, user)
 		group = groupData.group
 		groupInfo = groupData.groupInfo
 
 		when(userFacade.getUser()).thenReturn(user)
 		when(userFacade.getUserGroupId()).thenReturn(userGroupId)
-		when(entityClientMock.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
+		when(entityClient.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({ version: 0, object: groupKeyVersion0 })
-		when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenResolve(
+		when(entityClient.load(UserGroupRootTypeRef, anything())).thenResolve(
 			await makeUserGroupRoot(keyRotationsListId, invitationsListId, groupKeyUpdatesListId),
 		)
 		when(keyLoaderFacadeMock.getCurrentSymUserGroupKey()).thenReturn(CURRENT_USER_GROUP_KEY)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(adminGroupId)).thenResolve(CURRENT_ADMIN_GROUP_KEY)
 		when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve(CURRENT_USER_AREA_GROUP_KEY)
-		when(entityClientMock.load(CustomerTypeRef, idToElementId(customerId))).thenResolve(customer)
-		when(entityClientMock.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([])
+		when(entityClient.load(CustomerTypeRef, idToElementId(customerId))).thenResolve(customer)
+		when(entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([])
 	})
 
 	o.spec("loadPendingKeyRotations", function () {
 		o("When a key rotation for a user area group exists on the server, the pending key rotation is saved in the facade.", async function () {
-			when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-				makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId),
-			)
+			when(entityClient.loadAll(KeyRotationTypeRef, anything())).thenResolve(makeKeyRotation(keyRotationsListId, GroupKeyRotationType.UserArea, groupId))
 
 			const pendingKeyRotations = await keyRotationFacade.loadPendingKeyRotations(user)
 
@@ -522,9 +532,7 @@ o.spec("KeyRotationFacade", function () {
 
 		o.spec("When a key rotation for a group that is not yet supported exists on the server, nothing is saved in the facade", function () {
 			o("Team", async function () {
-				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
-					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Team, groupId),
-				)
+				when(entityClient.loadAll(KeyRotationTypeRef, anything())).thenResolve(makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Team, groupId))
 
 				const pendingKeyRotations = await keyRotationFacade.loadPendingKeyRotations(user)
 
@@ -533,7 +541,7 @@ o.spec("KeyRotationFacade", function () {
 			})
 
 			o("Customer", async function () {
-				when(entityClientMock.loadAll(KeyRotationTypeRef, anything())).thenResolve(
+				when(entityClient.loadAll(KeyRotationTypeRef, anything())).thenResolve(
 					makeKeyRotation(keyRotationsListId, GroupKeyRotationType.Customer, groupId),
 				)
 
@@ -666,7 +674,7 @@ o.spec("KeyRotationFacade", function () {
 					const invitationId: IdTuple = [invitationsListId, "invitationElementId"]
 					const inviteeMailAddress = "inviteeMailAddress"
 					const capability = ShareCapability.Invite
-					when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
+					when(entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
 						createTestEntity(SentGroupInvitationTypeRef, {
 							receivedInvitation: invitationId,
 							inviteeMailAddress: inviteeMailAddress,
@@ -702,7 +710,7 @@ o.spec("KeyRotationFacade", function () {
 					const invitationId: IdTuple = [invitationsListId, "invitationElementId"]
 					const inviteeMailAddress = "inviteeMailAddress"
 					const capability = ShareCapability.Invite
-					when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
+					when(entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
 						createTestEntity(SentGroupInvitationTypeRef, {
 							receivedInvitation: invitationId,
 							inviteeMailAddress: inviteeMailAddress,
@@ -738,7 +746,7 @@ o.spec("KeyRotationFacade", function () {
 					const invitationId: IdTuple = [invitationsListId, "invitationElementId"]
 					const inviteeMailAddress = "inviteeMailAddress"
 					const capability = ShareCapability.Invite
-					when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
+					when(entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([
 						createTestEntity(SentGroupInvitationTypeRef, {
 							receivedInvitation: invitationId,
 							inviteeMailAddress: inviteeMailAddress,
@@ -776,7 +784,7 @@ o.spec("KeyRotationFacade", function () {
 					const memberUserGroupInfoId: IdTuple = ["memberUGIListId", "memberUGIElementId"]
 					const memberMailAddress = "member@tuta.com"
 
-					when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([
+					when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve([
 						createTestEntity(GroupMemberTypeRef, {
 							group: groupId,
 							user: userId,
@@ -787,7 +795,7 @@ o.spec("KeyRotationFacade", function () {
 							userGroupInfo: memberUserGroupInfoId,
 						}),
 					])
-					when(entityClientMock.loadMultiple(GroupInfoTypeRef, memberUserGroupInfoId[0], [memberUserGroupInfoId[1]])).thenResolve([
+					when(entityClient.loadMultiple(GroupInfoTypeRef, memberUserGroupInfoId[0], [memberUserGroupInfoId[1]])).thenResolve([
 						createTestEntity(GroupInfoTypeRef, {
 							_id: memberUserGroupInfoId,
 							mailAddress: memberMailAddress,
@@ -796,14 +804,18 @@ o.spec("KeyRotationFacade", function () {
 					const recipientKeyVersion = "0"
 					const pubEncBucketKeyMock = object<Uint8Array<ArrayBuffer>>()
 					const protocolVersion = CryptoProtocolVersion.TUTA_CRYPT
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
 						new RecipientKeyData(
-							createTestEntity(InternalRecipientKeyDataTypeRef, {
+							createTestEntity(PubEncKeyDataTypeRef, {
 								protocolVersion,
 								senderKeyVersion: user.userGroup.groupKeyVersion,
-								mailAddress: memberMailAddress,
+								recipientIdentifier: memberMailAddress,
+								recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 								recipientKeyVersion,
-								pubEncBucketKey: pubEncBucketKeyMock,
+								pubEncSymKey: pubEncBucketKeyMock,
+								senderIdentifier: userGroupId,
+								senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
+								symKeyMac: null,
 							}),
 							null,
 						),
@@ -856,7 +868,7 @@ o.spec("KeyRotationFacade", function () {
 						group: groupId,
 						user: userId,
 					})
-					when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve(
+					when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve(
 						[
 							sameUserMember,
 							createTestEntity(GroupMemberTypeRef, {
@@ -867,13 +879,13 @@ o.spec("KeyRotationFacade", function () {
 						],
 						[sameUserMember], // second call after removing a member that we cannot udapte the keys for
 					)
-					when(entityClientMock.loadMultiple(GroupInfoTypeRef, memberUserGroupInfoId[0], [memberUserGroupInfoId[1]])).thenResolve([
+					when(entityClient.loadMultiple(GroupInfoTypeRef, memberUserGroupInfoId[0], [memberUserGroupInfoId[1]])).thenResolve([
 						createTestEntity(GroupInfoTypeRef, {
 							_id: memberUserGroupInfoId,
 							mailAddress: memberMailAddress,
 						}),
 					])
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenDo(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(userGroupId, anything(), memberMailAddress, [], [])).thenDo(
 						(senderUserGroupId: Id, bucketKey: AesKey, recipientMailAddress: string, notFoundRecipients: Array<string>) => {
 							notFoundRecipients.push(memberMailAddress)
 							return null
@@ -1108,7 +1120,7 @@ o.spec("KeyRotationFacade", function () {
 				const adminUserGroupInfo = createTestEntity(GroupInfoTypeRef, { group: userGroupId })
 				const additionalUserGroupId = "additionalUserGroupId"
 				const additionalUserGroupInfo = createTestEntity(GroupInfoTypeRef, { group: additionalUserGroupId })
-				when(entityClientMock.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([adminUserGroupInfo, additionalUserGroupInfo])
+				when(entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)).thenResolve([adminUserGroupInfo, additionalUserGroupInfo])
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenResolve({
 					version: 0,
 					object: groupKeyVersion0,
@@ -1529,7 +1541,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1604,7 +1616,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1651,7 +1663,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1685,7 +1697,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1703,7 +1715,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1733,7 +1745,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyAuthenticationFacade: keyAuthenticationFacade,
 						publicEncryptionKeyProvider: publicEncryptionKeyProvider,
@@ -1798,7 +1810,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyLoaderFacade: keyLoaderFacadeMock,
 					},
@@ -1860,7 +1872,7 @@ o.spec("KeyRotationFacade", function () {
 					{
 						serviceExecutor: serviceExecutorMock,
 						cryptoWrapper: cryptoWrapperMock,
-						entityClient: entityClientMock,
+						entityClient: entityClient,
 						asymmetricCryptoFacade: asymmetricCryptoFacade,
 						keyLoaderFacade: keyLoaderFacadeMock,
 					},
@@ -2002,8 +2014,8 @@ o.spec("KeyRotationFacade", function () {
 						groupKeyVersion: "0",
 					}),
 				})
-				when(entityClientMock.load(UserTypeRef, idToElementId(memberUserId))).thenResolve(memberUser)
-				when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([
+				when(entityClient.load(UserTypeRef, idToElementId(memberUserId))).thenResolve(memberUser)
+				when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve([
 					createTestEntity(GroupMemberTypeRef, {
 						group: groupId,
 						user: userId,
@@ -2082,7 +2094,7 @@ o.spec("KeyRotationFacade", function () {
 				}
 
 				//no group membership
-				when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([])
+				when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve([])
 
 				//we cannot resolve the group key via the membership
 				when(keyLoaderFacadeMock.getCurrentSymGroupKey(groupId)).thenReject(Error(`No group with groupId ${groupId} found!`))
@@ -2128,7 +2140,7 @@ o.spec("KeyRotationFacade", function () {
 				group.currentKeys = createTestEntity(KeyPairTypeRef)
 
 				//no group membership
-				when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([])
+				when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve([])
 
 				const { newKey } = prepareKeyMocks(cryptoWrapperMock)
 				mockGenerateKeyPairs(pqFacadeMock, cryptoWrapperMock, newKey.object)
@@ -2157,7 +2169,7 @@ o.spec("KeyRotationFacade", function () {
 		o.spec("processPendingKeyRotationsAndUpdates error handling", function () {
 			o("loadPendingKeyRotations LockedError is caught", async function () {
 				const terror = new restError.LockedError("test error")
-				when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenReject(terror)
+				when(entityClient.load(UserGroupRootTypeRef, anything())).thenReject(terror)
 				const log = (console.log = spy(console.log))
 				await keyRotationFacade.loadAndProcessPendingKeyRotations(object(), null)
 				//make sure we do not throw
@@ -2167,7 +2179,7 @@ o.spec("KeyRotationFacade", function () {
 			})
 			o("loadPendingKeyRotations other Errors are thrown", async function () {
 				const terror = new Error("test error")
-				when(entityClientMock.load(UserGroupRootTypeRef, anything())).thenReject(terror)
+				when(entityClient.load(UserGroupRootTypeRef, anything())).thenReject(terror)
 				await assertThrows(Error, async () => keyRotationFacade.loadAndProcessPendingKeyRotations(object(), null))
 			})
 
@@ -2327,9 +2339,9 @@ o.spec("KeyRotationFacade", function () {
 		})
 
 		when(adminKeyLoader.hasAdminEncGKey(group)).thenReturn(true)
-		when(entityClientMock.load(GroupInfoTypeRef, group.groupInfo)).thenResolve(groupInfo)
-		when(entityClientMock.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
-		when(entityClientMock.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([])
+		when(entityClient.load(GroupInfoTypeRef, group.groupInfo)).thenResolve(groupInfo)
+		when(entityClient.load(GroupTypeRef, idToElementId(groupId))).thenResolve(group)
+		when(entityClient.loadAll(SentGroupInvitationTypeRef, group.invitations)).thenResolve([])
 		const member = createTestEntity(GroupMemberTypeRef, {
 			group: groupId,
 			user: elementIdToId(user._id),
@@ -2340,7 +2352,7 @@ o.spec("KeyRotationFacade", function () {
 				groupKeyVersion: "0",
 			}),
 		)
-		when(entityClientMock.loadAll(GroupMemberTypeRef, group.members)).thenResolve([member])
+		when(entityClient.loadAll(GroupMemberTypeRef, group.members)).thenResolve([member])
 		return { group, groupInfo }
 	}
 })

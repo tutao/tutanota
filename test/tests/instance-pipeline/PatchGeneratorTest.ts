@@ -27,7 +27,7 @@ o.spec("computePatches", function () {
 	o.before(() => {
 		typeModelResolver.resolveClientTypeReference = dummyResolver as any
 	})
-	const dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), SYMMETRIC_CIPHER_FACADE, null)
+	const dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), SYMMETRIC_CIPHER_FACADE, null, () => object())
 	const patchGenerator = new PatchGenerator(dummyInstancePipeline)
 
 	o("computePatches returns empty list for equal objects", async function () {

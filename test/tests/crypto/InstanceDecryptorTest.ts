@@ -12,7 +12,7 @@ import { concat, KeyVersion } from "../../../src/platform-kit/utils"
 import { AeadWithInstanceKeySubKeys, AeadWithSessionKeySubKeys, AesCbcThenHmacSubKeys, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
-import { Aes256Key, AssociatedData, MacTag, OwnerKeyProvider, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { Aes256Key, AssociatedData, InstanceKeyProvider, MacTag, OwnerKeyProvider, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { InstanceTypeId, makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
@@ -142,9 +142,13 @@ o.spec("InstanceDecryptorTest", function () {
 
 	o.test("Assembles correct associated data for AEAD with instance key from instance key", async function () {
 		const groupKeyVersion = 42 as KeyVersion
-		const instanceKey = { object: aes256RandomKey(), version: groupKeyVersion }
-		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, matchers.anything())).thenReturn(aeadGroupKey256SubKeys)
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), null, null, null, instanceKey)
+		const instanceKeyProvider: InstanceKeyProvider = async (groupKeyVersion) => {
+			return { object: aes256RandomKey(), version: groupKeyVersion }
+		}
+		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(await instanceKeyProvider(groupKeyVersion), matchers.anything())).thenReturn(
+			aeadGroupKey256SubKeys,
+		)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), null, null, null, instanceKeyProvider)
 		const keyVersionLengthByte = 0
 		const cipherVersion = SymmetricCipherVersion.AeadWithInstanceKey
 		const ciphertext = new Uint8Array()

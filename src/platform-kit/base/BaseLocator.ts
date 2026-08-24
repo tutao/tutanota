@@ -56,6 +56,8 @@ import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyT
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
 import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
+import { InstanceKeyProviderMaker } from "./base-crypto/InstanceKeyProviderMaker"
+import { FormerKeyResolver } from "./base-crypto/FormerKeyResolver"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper
@@ -80,6 +82,7 @@ export type BaseLocator = {
 	login: LoginFacade
 	entropyFacade: EntropyFacade
 	rolloutFacade: RolloutFacade
+	instanceKeyProviderMaker: InstanceKeyProviderMaker
 	crypto: CryptoFacade
 	instanceKey: InstanceKeyFacade
 
@@ -183,7 +186,14 @@ export async function createBaseLocator({
 
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
-	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE, user)
+	let instanceKeyProviderMaker: InstanceKeyProviderMaker
+	const instancePipeline = new InstancePipeline(
+		typeModelResolver,
+		() => keyLoader,
+		SYMMETRIC_CIPHER_FACADE,
+		user,
+		() => instanceKeyProviderMaker,
+	)
 	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),
 	)
@@ -231,7 +241,8 @@ export async function createBaseLocator({
 	const pqFacade = new PQFacade(kyberFacade)
 	const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
-	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper)
+	const formerKeyResolver = new FormerKeyResolver(cachingEntityClient)
+	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper, formerKeyResolver)
 
 	const publicIdentityKeyProvider = new PublicIdentityKeyProvider(
 		serviceExecutor,
@@ -264,6 +275,7 @@ export async function createBaseLocator({
 
 	// Declared before crypto because it's captured by the lazy callback inside CryptoFacade
 	let keyRotation: KeyRotationFacade
+	instanceKeyProviderMaker = new InstanceKeyProviderMaker(user, cachingEntityClient, keyLoader, typeModelResolver, formerKeyResolver)
 	crypto = new CryptoFacade(
 		user,
 		cachingEntityClient,
@@ -281,9 +293,10 @@ export async function createBaseLocator({
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+		instanceKeyProviderMaker,
 	)
 
-	const instanceKey = new InstanceKeyFacade(keyLoader, crypto, typeModelResolver)
+	const instanceKey = new InstanceKeyFacade(adminKeyLoader, keyLoader, crypto, typeModelResolver, cachingEntityClient, cryptoWrapper, serviceExecutor)
 
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade
@@ -293,7 +306,7 @@ export async function createBaseLocator({
 	})
 	const share = lazyMemoized(async () => {
 		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader)
+		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader, cryptoWrapper, instanceKey)
 	})
 	const counters = lazyMemoized(async () => {
 		const { CounterFacade } = await import("../network/CounterFacade.js")
@@ -347,6 +360,8 @@ export async function createBaseLocator({
 		publicEncryptionKeyProvider,
 		publicKeySignatureFacade,
 		adminKeyLoader,
+		instanceKey,
+		cacheManagement,
 	)
 
 	const rolloutFacade = new RolloutFacade(serviceExecutor, async (error: Error) => {
@@ -384,6 +399,7 @@ export async function createBaseLocator({
 		instancePipeline,
 		crypto,
 		keyRotation,
+		instanceKey,
 		maybeUninitializedStorage,
 		serviceExecutor,
 		user,
@@ -422,6 +438,7 @@ export async function createBaseLocator({
 		login,
 		entropyFacade,
 		rolloutFacade,
+		instanceKeyProviderMaker,
 		crypto,
 		instanceKey,
 		counters,
