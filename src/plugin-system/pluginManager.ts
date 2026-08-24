@@ -1,6 +1,7 @@
-import { RpcTarget, RpcStub, newMessagePortRpcSession } from "capnweb"
-import { IWorkerApi, PluginMetadata } from "./IWorkerApi.js"
+import { RpcStub, newMessagePortRpcSession } from "capnweb"
+import { IWorkerApi } from "./IWorkerApi.js"
 import { HostApi } from "./hostPluginAdapter.js"
+import { getPackagePaths } from "./getPluginModules.js"
 
 export async function initPluginSystem() {
 	console.log("Initializing plugin system")
@@ -15,11 +16,12 @@ export async function initPluginSystem() {
 }
 
 class PluginManager {
-	private registeredPlugins: Map<number, Plugin> = new Map()
+	private registeredPlugins: Map<number, RunningPlugin> = new Map()
 
 	async registerPlugins(): Promise<void> {
-		// TODO() somehow load individual plugin
-		const tempPlugins = await Plugin.create(0)
+		const packagePaths = await getPackagePaths("../plugins")
+
+		const tempPlugins = await RunningPlugin.create(0, packagePaths[0])
 		this.registeredPlugins.set(0, tempPlugins)
 	}
 
@@ -54,33 +56,32 @@ class PluginManager {
 	}
 }
 
-class Plugin {
+class RunningPlugin {
 	id: number
-	metadata: PluginMetadata
 	worker: Worker
 	channel: MessageChannel
 	workerStub: RpcStub<IWorkerApi>
 
-	private constructor(id: number, worker: Worker, channel: MessageChannel, workerStub: RpcStub<IWorkerApi>, metadata: PluginMetadata) {
+	private constructor(id: number, worker: Worker, channel: MessageChannel, workerStub: RpcStub<IWorkerApi>) {
 		this.id = id
 		this.worker = worker
 		this.channel = channel
 		this.workerStub = workerStub
-		this.metadata = metadata
 	}
 
-	static async create(id: number): Promise<Plugin> {
+	static async create(id: number, packageLocation: string): Promise<RunningPlugin> {
 		const channel = new MessageChannel()
-		const worker = new Worker("/plugin-worker.js", { type: "module" })
+		const worker = new Worker("/plugin-worker.js", { type: "module", name: `plugin-worker:${id}` }) //TODO() maybe give plugin name
 		worker.onerror = (err: ErrorEvent) => {
 			console.error("Plugin worker error:", err.message)
 		}
 		worker.postMessage(channel.port2, [channel.port2])
 
 		const workerStub: RpcStub<IWorkerApi> = newMessagePortRpcSession(channel.port1, new HostApi())
-		const metadata = await workerStub.getMetadata()
 
-		return new Plugin(id, worker, channel, workerStub, metadata)
+		await workerStub.init(packageLocation)
+
+		return new RunningPlugin(id, worker, channel, workerStub)
 	}
 
 	async load(): Promise<void> {

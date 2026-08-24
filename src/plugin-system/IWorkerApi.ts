@@ -1,5 +1,5 @@
 export interface IWorkerApi {
-	getMetadata(): PluginMetadata
+	init(packageLocation: string): Promise<void>
 	load(): Promise<void>
 	unload(): Promise<void>
 }

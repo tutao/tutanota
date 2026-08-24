@@ -1,27 +1,20 @@
 import { newMessagePortRpcSession, RpcStub, RpcTarget } from "capnweb"
 import { IHostApi } from "./IHostApi.js"
-import { IWorkerApi, PluginCapabilities } from "./IWorkerApi.js"
+import { IWorkerApi } from "./IWorkerApi.js"
+import { createTutaoPlugin, TutaoPlugin } from "./getPluginModules.js"
 
 class WorkerApi extends RpcTarget implements IWorkerApi {
 	hostStub!: RpcStub<IHostApi>
+	plugin!: TutaoPlugin
 
+	async init(packageLocation: string): Promise<void> {
+		const plugin = await createTutaoPlugin(packageLocation)
+	}
 	async load(): Promise<void> {
-		console.log("Plugin loaded")
-		const mail = await this.hostStub.getMail("id")
-		console.log(mail)
-		return Promise.resolve()
+		this.plugin.module.load("context todo")
 	}
 	async unload(): Promise<void> {
-		console.log("Plugin unload")
-		return Promise.resolve()
-	}
-	getMetadata(): { name: string; description: string; version: string; pluginCapabilities: PluginCapabilities } {
-		return {
-			name: "Test",
-			description: "Plugin for testing capabilities",
-			version: "0.0.1",
-			pluginCapabilities: PluginCapabilities.None,
-		}
+		this.plugin.module.unload()
 	}
 }
 
