@@ -11,5 +11,9 @@
     <string name="archive_action">보관함</string>
     <string name="sendLogs_action">로그 보내기</string>
     <string name="account_label">사용자</string>
+    <string name="widgetUnexpectedError_msg">이런! 무언가 잘못되었습니다.</string>
+    <string name="widgetCredentialsError_msg">칼린더 앱에 로그인 해주세요</string>
+    <string name="widgetOpenApp_action">앱 열기</string>
+    <string name="widgetDescription_msg">오늘 일정 보이기</string>
     <string name="birthdayCalendar_label">생일</string>
 </resources>
