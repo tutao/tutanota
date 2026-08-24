@@ -1037,31 +1037,7 @@ export class MailFacade {
 			externalUser.memberships.find((m) => m.groupType === GroupType.Mail),
 			"no mail group membership on external user",
 		).group
-
-		const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
-		const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
-		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
-		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
-		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
-		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
-		const requiredInternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
-		const currentExternalUserGroupKey = {
-			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
-			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
-		}
-		const requiredExternalUserGroupKey = await this.keyLoaderFacade.loadSymGroupKey(
-			externalUserGroupId,
-			requiredExternalUserGroupKeyVersion,
-			currentExternalUserGroupKey,
-		)
-		const currentExternalMailGroupKey = {
-			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
-			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
-		}
-		return {
-			currentExternalUserGroupKey,
-			currentExternalMailGroupKey,
-		}
+		return await this.keyLoaderFacade.getCurrentExternalGroupKeys(externalMailGroupId, externalUserGroupId)
 	}
 
 	getRecipientKeyData(mailAddress: string): Promise<VerifiedPublicEncryptionKey | null> {
