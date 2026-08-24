@@ -60,7 +60,7 @@ import { PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/b
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { VerifiedPublicEncryptionKey } from "../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
-import { GroupInvitationPostData, InternalRecipientKeyDataTypeRef } from "@tutao/entities/tutanota"
+import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 import {
 	AdminGroupKeyRotationGetOutTypeRef,
 	AdminGroupKeyRotationPostIn,
@@ -89,6 +89,7 @@ import {
 	KeyRotationsRefTypeRef,
 	KeyRotationTypeRef,
 	PubDistributionKeyTypeRef,
+	PubEncKeyDataTypeRef,
 	PublicKeySignatureTypeRef,
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
@@ -796,14 +797,18 @@ o.spec("KeyRotationFacade", function () {
 					const recipientKeyVersion = "0"
 					const pubEncBucketKeyMock = object<Uint8Array<ArrayBuffer>>()
 					const protocolVersion = CryptoProtocolVersion.TUTA_CRYPT
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(userGroupId, anything(), memberMailAddress, [], [])).thenResolve(
 						new RecipientKeyData(
-							createTestEntity(InternalRecipientKeyDataTypeRef, {
+							createTestEntity(PubEncKeyDataTypeRef, {
 								protocolVersion,
 								senderKeyVersion: user.userGroup.groupKeyVersion,
-								mailAddress: memberMailAddress,
+								recipientIdentifier: memberMailAddress,
+								recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 								recipientKeyVersion,
-								pubEncBucketKey: pubEncBucketKeyMock,
+								pubEncSymKey: pubEncBucketKeyMock,
+								senderIdentifier: userGroupId,
+								senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
+								symKeyMac: null,
 							}),
 							null,
 						),
@@ -873,7 +878,7 @@ o.spec("KeyRotationFacade", function () {
 							mailAddress: memberMailAddress,
 						}),
 					])
-					when(cryptoFacade.encryptBucketKeyForInternalRecipient(userGroupId, anything(), memberMailAddress, [], [])).thenDo(
+					when(cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(userGroupId, anything(), memberMailAddress, [], [])).thenDo(
 						(senderUserGroupId: Id, bucketKey: AesKey, recipientMailAddress: string, notFoundRecipients: Array<string>) => {
 							notFoundRecipients.push(memberMailAddress)
 							return null

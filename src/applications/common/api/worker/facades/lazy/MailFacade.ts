@@ -1,4 +1,4 @@
-import type { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
+import { CryptoFacade, toInternalRecipientKeyData } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	containsId,
 	elementIdPart,
@@ -960,7 +960,7 @@ export class MailFacade {
 				data.ownerKeyVersion = ownerEncBucketKey.encryptingKeyVersion.toString()
 				sendDraftParameters.secureExternalRecipientKeyData.push(data)
 			} else {
-				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
+				const keyData = await this.crypto.encryptBucketKeyForInternalRecipientMailAddress(
 					isSharedMailboxSender ? senderMailGroupId : this.userFacade.getLoggedInUser().userGroup.group,
 					bucketKey,
 					recipient.address,
@@ -973,7 +973,9 @@ export class MailFacade {
 				} else if (keyData.symEncRecipientKeyData != null) {
 					sendDraftParameters.symEncInternalRecipientKeyData.push(keyData.symEncRecipientKeyData)
 				} else if (keyData.pubEncRecipientKeyData != null) {
-					sendDraftParameters.internalRecipientKeyData.push(keyData.pubEncRecipientKeyData)
+					const pubEncKeyData = keyData.pubEncRecipientKeyData
+					const internalRecipientKeyData = toInternalRecipientKeyData(pubEncKeyData)
+					sendDraftParameters.internalRecipientKeyData.push(internalRecipientKeyData)
 				}
 			}
 		}

@@ -701,7 +701,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const pubEncRecipientKeyData = assertNotNull(
-			await crypto.encryptBucketKeyForInternalRecipient(
+			await crypto.encryptBucketKeyForInternalRecipientMailAddress(
 				elementIdToId(senderUserGroup._id),
 				bk,
 				recipientMailAddress,
@@ -712,12 +712,125 @@ o.spec("CryptoFacadeTest", function () {
 
 		o(pubEncRecipientKeyData.recipientKeyVersion).equals("0")
 		o(pubEncRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
-		o(pubEncRecipientKeyData.mailAddress).equals(recipientMailAddress)
-		o(pubEncRecipientKeyData.pubEncBucketKey).deepEquals(encodedPqMessage)
+		o(pubEncRecipientKeyData.recipientIdentifier).equals(recipientMailAddress)
+		o(pubEncRecipientKeyData.recipientIdentifierType).equals(PublicKeyIdentifierType.MAIL_ADDRESS)
+		o(pubEncRecipientKeyData.pubEncSymKey).deepEquals(encodedPqMessage)
 		verify(
 			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
 				identifier: recipientMailAddress,
+			}),
+			{ times: 1 },
+		)
+	})
+
+	o("encryptBucketKeyForInternalRecipient with recipient group identifier", async function () {
+		const recipientGroupId = "someRecipientGroupid"
+		const recipientPubKeyIdentifier = { identifier: recipientGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID }
+		const senderGroupKey = aes256RandomKey()
+		const bk = aes256RandomKey()
+
+		const recipientKeyPairs = await pqFacade.generateKeyPairs()
+
+		const recipientKeyPair = createTestEntity(KeyPairTypeRef, {
+			_id: "recipientKeyPairId",
+			pubEccKey: recipientKeyPairs.x25519KeyPair.publicKey,
+			symEncPrivEccKey: null,
+			pubKyberKey: kyberPublicKeyToBytes(recipientKeyPairs.kyberKeyPair.publicKey),
+			symEncPrivKyberKey: null,
+			pubRsaKey: null,
+			symEncPrivRsaKey: null,
+			signature: null,
+		})
+
+		const senderKeyPairs = await pqFacade.generateKeyPairs()
+
+		const senderKeyPair = createTestEntity(KeyPairTypeRef, {
+			_id: "senderKeyPairId",
+			pubRsaKey: null,
+			symEncPrivRsaKey: null,
+			pubEccKey: senderKeyPairs.x25519KeyPair.publicKey,
+			symEncPrivEccKey: aesEncrypt(senderGroupKey, senderKeyPairs.x25519KeyPair.privateKey),
+			pubKyberKey: kyberPublicKeyToBytes(senderKeyPairs.kyberKeyPair.publicKey),
+			symEncPrivKyberKey: aesEncrypt(senderGroupKey, kyberPrivateKeyToBytes(senderKeyPairs.kyberKeyPair.privateKey)),
+			signature: null,
+		})
+
+		const senderUserGroup = createTestEntity(GroupTypeRef, {
+			_format: "",
+			_ownerGroup: "",
+			_permissions: "",
+			admin: "admin1",
+			adminGroupEncGKey: null,
+			adminGroupKeyVersion: null,
+			archives: [],
+			customer: "customer1",
+			enabled: false,
+			external: false,
+			groupInfo: ["", ""],
+			invitations: "",
+			members: "",
+			storageCounter: "counter1",
+			type: "",
+			user: "user1",
+			_id: idToElementId("userGroupId"),
+			currentKeys: senderKeyPair,
+			groupKeyVersion: "0",
+			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef),
+			pubAdminGroupEncGKey: null,
+			identityKeyPair: null,
+		})
+
+		const notFoundRecipients = []
+		const keyVerificationMismatchRecipients = []
+		const pqEncapsulation: PQBucketKeyEncapsulation = {
+			kyberCipherText: new Uint8Array([1]),
+			kekEncBucketKey: new Uint8Array([2]),
+		}
+
+		const encodedPqMessage: Uint8Array<ArrayBuffer> = encodePQMessage({
+			senderIdentityPubKey: senderKeyPair.pubEccKey!,
+			ephemeralPubKey: senderKeyPair.pubEccKey!,
+			encapsulation: pqEncapsulation,
+		})
+
+		const recipientPublicKeys: Versioned<PQPublicKeys> = {
+			version: 0,
+			object: new PQPublicKeys(recipientKeyPair.pubEccKey!, {
+				raw: recipientKeyPair.pubKyberKey!,
+			}),
+		}
+		const loadedPublicKey: VerifiedPublicEncryptionKey = {
+			publicEncryptionKey: recipientPublicKeys,
+			verificationState: EncryptionKeyVerificationState.NO_ENTRY,
+		}
+		when(publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey(anything())).thenResolve(loadedPublicKey)
+		when(asymmetricCryptoFacade.asymEncryptSymKey(bk, recipientPublicKeys, elementIdToId(senderUserGroup._id))).thenResolve({
+			recipientKeyVersion: recipientPublicKeys.version,
+			senderKeyVersion: cryptoUtils.parseKeyVersion(senderUserGroup.groupKeyVersion),
+			pubEncSymKeyBytes: encodedPqMessage,
+			cryptoProtocolVersion: CryptoProtocolVersion.TUTA_CRYPT,
+		})
+
+		const pubEncRecipientKeyData = assertNotNull(
+			await crypto.encryptBucketKeyForInternalRecipient(
+				elementIdToId(senderUserGroup._id),
+				bk,
+				recipientPubKeyIdentifier,
+				notFoundRecipients,
+				keyVerificationMismatchRecipients,
+			),
+		).pubEncRecipientKeyData!
+
+		o(pubEncRecipientKeyData.recipientKeyVersion).equals("0")
+		o(pubEncRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.TUTA_CRYPT)
+		o(pubEncRecipientKeyData.recipientIdentifier).equals(recipientPubKeyIdentifier.identifier)
+		o(pubEncRecipientKeyData.recipientIdentifierType).equals(recipientPubKeyIdentifier.identifierType)
+		o(pubEncRecipientKeyData.pubEncSymKey).deepEquals(encodedPqMessage)
+		verify(
+			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
+				identifierType: PublicKeyIdentifierType.GROUP_ID,
+				identifier: recipientGroupId,
 			}),
 			{ times: 1 },
 		)
@@ -792,7 +905,7 @@ o.spec("CryptoFacadeTest", function () {
 		})
 
 		const pubEncRecipientKeyData = assertNotNull(
-			await crypto.encryptBucketKeyForInternalRecipient(
+			await crypto.encryptBucketKeyForInternalRecipientMailAddress(
 				elementIdToId(senderUserGroup._id),
 				bk,
 				recipientMailAddress,
@@ -802,9 +915,10 @@ o.spec("CryptoFacadeTest", function () {
 		).pubEncRecipientKeyData!
 
 		o(pubEncRecipientKeyData.recipientKeyVersion).equals("0")
-		o(pubEncRecipientKeyData.mailAddress).equals(recipientMailAddress)
 		o(pubEncRecipientKeyData.protocolVersion).equals(CryptoProtocolVersion.RSA)
-		o(pubEncRecipientKeyData.pubEncBucketKey).deepEquals(pubEncBucketKey)
+		o(pubEncRecipientKeyData.recipientIdentifier).equals(recipientMailAddress)
+		o(pubEncRecipientKeyData.recipientIdentifierType).equals(PublicKeyIdentifierType.MAIL_ADDRESS)
+		o(pubEncRecipientKeyData.pubEncSymKey).deepEquals(pubEncBucketKey)
 		verify(
 			publicEncryptionKeyProvider.loadCurrentPublicEncryptionKey({
 				identifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
@@ -828,7 +942,7 @@ o.spec("CryptoFacadeTest", function () {
 			}),
 		).thenReject(new restError.NotFoundError(""))
 
-		await crypto.encryptBucketKeyForInternalRecipient(
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress(
 			"senderGroupId",
 			bk,
 			notFoundRecipientMailAddress,
@@ -879,11 +993,11 @@ o.spec("CryptoFacadeTest", function () {
 			}),
 		).thenReject(new restError.NotFoundError(""))
 
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, notFoundRecipient1MailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, notFoundRecipient1MailAddress, notFoundRecipients, mismatchRecipients)
 
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, validRecipientMailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, validRecipientMailAddress, notFoundRecipients, mismatchRecipients)
 
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, notFoundRecipient2MailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, notFoundRecipient2MailAddress, notFoundRecipients, mismatchRecipients)
 
 		o(notFoundRecipients).deepEquals([notFoundRecipient1MailAddress, notFoundRecipient2MailAddress])
 		o(mismatchRecipients).deepEquals([])
@@ -929,9 +1043,9 @@ o.spec("CryptoFacadeTest", function () {
 			}),
 		).thenReject(new KeyVerificationMismatchError(""))
 
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, mismatchRecipient1MailAddress, notFoundRecipients, mismatchRecipients)
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, validRecipientMailAddress, notFoundRecipients, mismatchRecipients)
-		await crypto.encryptBucketKeyForInternalRecipient("senderGroupId", bk, mismatchRecipient2MailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, mismatchRecipient1MailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, validRecipientMailAddress, notFoundRecipients, mismatchRecipients)
+		await crypto.encryptBucketKeyForInternalRecipientMailAddress("senderGroupId", bk, mismatchRecipient2MailAddress, notFoundRecipients, mismatchRecipients)
 
 		o(notFoundRecipients).deepEquals([])
 		o(mismatchRecipients).deepEquals([mismatchRecipient1MailAddress, mismatchRecipient2MailAddress])
