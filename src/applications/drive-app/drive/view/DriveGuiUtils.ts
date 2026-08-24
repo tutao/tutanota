@@ -20,6 +20,10 @@ import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 import { DriveTransferState } from "./DriveTransferController"
 import { Shortcut } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { createReferencingInstance } from "../../../../entities/storage/BlobUtils"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 
 export function newItemActions({
 	onUploadFiles,
@@ -196,6 +200,21 @@ export function getFileContextActions(item: FileFolderItem | FolderFolderItem, f
 				icon: Icons.DownloadFilled,
 				click: () => {
 					onDownload(item)
+				},
+			})
+			actions.push({
+				label: lang.makeTranslation("whatever", "Shove into mail"),
+				icon: Icons.MailFilled,
+				click: async () => {
+					await showProgressDialog(
+						lang.makeTranslation("test", "Doing cursed things…"),
+						locator.blobFacade.copyBlobsToGroup(
+							createReferencingInstance(item.file),
+							locator.logins.getUserController().getUserMailGroupMembership().group,
+							ArchiveDataType.Attachments,
+						),
+					)
+					Dialog.message(lang.makeTranslation("please", "Blobs were successfully showed into the mail group!"))
 				},
 			})
 		}

@@ -1,5 +1,7 @@
 import { BlobAccessTokenPostIn, BlobAccessTokenPostInTypeRef } from "./TypeRefs.js"
 import { BlobAccessTokenPostOut, BlobAccessTokenPostOutTypeRef } from "./TypeRefs.js"
+import { BlobCopyServicePostIn, BlobCopyServicePostInTypeRef } from "./TypeRefs.js"
+import { BlobCopyServicePostOut, BlobCopyServicePostOutTypeRef } from "./TypeRefs.js"
 import { BlobReferencePutIn, BlobReferencePutInTypeRef } from "./TypeRefs.js"
 import { BlobReferenceDeleteIn, BlobReferenceDeleteInTypeRef } from "./TypeRefs.js"
 import { BlobGetIn, BlobGetInTypeRef } from "./TypeRefs.js"
@@ -11,6 +13,13 @@ export const BlobAccessTokenService_POST = new PostService<BlobAccessTokenPostIn
 	"BlobAccessTokenService",
 	BlobAccessTokenPostInTypeRef,
 	BlobAccessTokenPostOutTypeRef,
+)
+
+export const BlobCopyService_POST = new PostService<BlobCopyServicePostIn, BlobCopyServicePostOut>(
+	"storage",
+	"BlobCopyService",
+	BlobCopyServicePostInTypeRef,
+	BlobCopyServicePostOutTypeRef,
 )
 
 export const BlobReferenceService_PUT = new PutService<BlobReferencePutIn, NullEntity>(

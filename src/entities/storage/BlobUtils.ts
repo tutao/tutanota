@@ -27,11 +27,11 @@ export interface DownloadableFileEntity extends ListElementEntity {
 	blobs: readonly Blob[]
 }
 
-export function createReferencingInstance(tutanotaFile: DownloadableFileEntity): BlobReferencingInstance {
+export function createReferencingInstance(downloadableFileEntity: DownloadableFileEntity): BlobReferencingInstance {
 	return {
-		blobs: tutanotaFile.blobs,
-		elementId: elementIdPart(tutanotaFile._id),
-		listId: listIdPart(tutanotaFile._id),
-		entity: tutanotaFile,
+		blobs: downloadableFileEntity.blobs,
+		elementId: elementIdPart(downloadableFileEntity._id),
+		listId: listIdPart(downloadableFileEntity._id),
+		entity: downloadableFileEntity,
 	}
 }

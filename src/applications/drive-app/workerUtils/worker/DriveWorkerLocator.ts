@@ -275,6 +275,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.base.blobAccessToken,
 			mainInterface.uploadProgressListener,
 			locator.base.typeModelResolver,
+			locator.base.serviceExecutor,
 		)
 	})
 

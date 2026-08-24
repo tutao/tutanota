@@ -35,19 +35,23 @@ import { TransferProgressDispatcher } from "../../../main/TransferProgressDispat
 import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-kit/network/EntityRestClient"
 import { TransferId, UploadProgressInfo } from "../../../../../../entities/drive/Utils"
 import {
+	BlobCopyService_POST,
 	BlobGetInTypeRef,
 	BlobPostOut,
 	BlobPostOutTypeRef,
 	BlobServerAccessInfo,
 	BlobService_GET,
+	createBlobCopyServicePostIn,
 	createBlobGetIn,
 	createBlobId,
+	createBlobWriteData,
 	storageTypeModels,
 } from "@tutao/entities/storage"
 import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
+import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -218,6 +222,7 @@ export class BlobFacade {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly progressDispatcher: TransferProgressDispatcher,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly serviceExecutor: IServiceExecutor,
 	) {}
 
 	/**
@@ -1133,6 +1138,25 @@ export class BlobFacade {
 			uploadedBytes,
 			totalBytes: state.totalSize,
 		})
+	}
+
+	async copyBlobsToGroup(
+		instance: BlobReferencingInstance,
+		destinationGroup: Id,
+		destinationArchiveType: ArchiveDataType,
+	): Promise<readonly BlobReferenceTokenWrapper[]> {
+		const response = await this.serviceExecutor.execute(
+			BlobCopyService_POST,
+			createBlobCopyServicePostIn({
+				blobs: instance.blobs.slice(),
+				archiveDataType: destinationArchiveType,
+				write: createBlobWriteData({
+					archiveOwnerGroup: destinationGroup,
+				}),
+			}),
+			null,
+		)
+		return response.blobReferenceTokens
 	}
 }
 

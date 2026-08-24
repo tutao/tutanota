@@ -275,3 +275,43 @@ impl Entity for BlobReadData {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct BlobCopyServicePostIn {
+	#[serde(rename = "212")]
+	pub _format: i64,
+	#[serde(rename = "213")]
+	pub archiveDataType: i64,
+	#[serde(rename = "214")]
+	pub blobs: Vec<super::sys::Blob>,
+	#[serde(rename = "215")]
+	pub write: Option<BlobWriteData>,
+}
+
+impl Entity for BlobCopyServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Storage,
+			type_id: TypeId::from(211),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct BlobCopyServicePostOut {
+	#[serde(rename = "217")]
+	pub _format: i64,
+	#[serde(rename = "218")]
+	pub blobReferenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
+}
+
+impl Entity for BlobCopyServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Storage,
+			type_id: TypeId::from(216),
+		}
+	}
+}

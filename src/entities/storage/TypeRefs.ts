@@ -504,3 +504,82 @@ export type BlobReadData = {
 	_original: Nullable<BlobReadData>
 	isAdapter: false
 }
+export const BlobCopyServicePostInTypeRef: TypeRef<BlobCopyServicePostIn> = new TypeRef("storage", 211)
+
+export function createBlobCopyServicePostIn(values: BlobCopyServicePostInParams): BlobCopyServicePostIn {
+	return Object.assign(create(typeModels[BlobCopyServicePostInTypeRef.typeId], BlobCopyServicePostInTypeRef), values)
+}
+
+export type BlobCopyServicePostInParams = {
+	archiveDataType: NumberString
+
+	blobs: Blob[]
+	write: null | BlobWriteData
+}
+
+export type BlobCopyServicePostIn = {
+	// == values
+
+	_format: NumberString
+	archiveDataType: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	blobs: Blob[]
+	write: null | BlobWriteData
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobCopyServicePostIn>
+	_original: Nullable<BlobCopyServicePostIn>
+	isAdapter: false
+}
+export const BlobCopyServicePostOutTypeRef: TypeRef<BlobCopyServicePostOut> = new TypeRef("storage", 216)
+
+export function createBlobCopyServicePostOut(values: BlobCopyServicePostOutParams): BlobCopyServicePostOut {
+	return Object.assign(create(typeModels[BlobCopyServicePostOutTypeRef.typeId], BlobCopyServicePostOutTypeRef), values)
+}
+
+export type BlobCopyServicePostOutParams = {
+	blobReferenceTokens: BlobReferenceTokenWrapper[]
+}
+
+export type BlobCopyServicePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	blobReferenceTokens: BlobReferenceTokenWrapper[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobCopyServicePostOut>
+	_original: Nullable<BlobCopyServicePostOut>
+	isAdapter: false
+}

@@ -7,25 +7,33 @@ use crate::bindings::rest_client::HttpMethod;
 use crate::services::hidden::Nothing;
 use crate::entities::generated::storage::BlobAccessTokenPostIn;
 use crate::entities::generated::storage::BlobAccessTokenPostOut;
+use crate::entities::generated::storage::BlobCopyServicePostIn;
+use crate::entities::generated::storage::BlobCopyServicePostOut;
 use crate::entities::generated::storage::BlobReferencePutIn;
 use crate::entities::generated::storage::BlobReferenceDeleteIn;
 use crate::entities::generated::storage::BlobPostOut;
 use crate::entities::generated::storage::BlobGetIn;
 pub struct BlobAccessTokenService;
 
-crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 14);
+crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 15);
 crate::service_impl!(POST, BlobAccessTokenService, BlobAccessTokenPostIn, BlobAccessTokenPostOut);
+
+
+pub struct BlobCopyService;
+
+crate::service_impl!(declare, BlobCopyService, "storage/blobcopyservice", 15);
+crate::service_impl!(POST, BlobCopyService, BlobCopyServicePostIn, BlobCopyServicePostOut);
 
 
 pub struct BlobReferenceService;
 
-crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 14);
+crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 15);
 crate::service_impl!(PUT, BlobReferenceService, BlobReferencePutIn, ());
 crate::service_impl!(DELETE, BlobReferenceService, BlobReferenceDeleteIn, ());
 
 
 pub struct BlobService;
 
-crate::service_impl!(declare, BlobService, "storage/blobservice", 14);
+crate::service_impl!(declare, BlobService, "storage/blobservice", 15);
 crate::service_impl!(POST, BlobService, (), BlobPostOut);
 crate::service_impl!(GET, BlobService, BlobGetIn, ());
