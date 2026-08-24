@@ -4142,6 +4142,43 @@ impl Entity for MissedNotification {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct Notification {
+	#[serde(rename = "1708")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "1709")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "1710")]
+	pub _format: i64,
+	#[serde(rename = "1711")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "1712")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2237")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2715")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "1713")]
+	pub mails: Vec<NotificationInfo>,
+	#[serde(rename = "1714")]
+	pub alarms: Vec<AlarmNotification>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for Notification {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(1706),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BrandingDomainGetReturn {
 	#[serde(rename = "1724")]
 	pub _format: i64,

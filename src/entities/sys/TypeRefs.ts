@@ -4183,6 +4183,36 @@ export type MissedNotification = {
 	notificationInfos: NotificationInfo[];
 	alarmNotifications: AlarmNotification[];
 }
+export const NotificationTypeRef: TypeRef<Notification> = new TypeRef("sys", 1706)
+
+export function createNotification(values: NotificationParams): Notification {
+    return Object.assign(create(typeModels[NotificationTypeRef.typeId], NotificationTypeRef), values)
+}
+
+export type NotificationParams = {
+
+
+
+	mails: NotificationInfo[];
+	alarms: AlarmNotification[];
+}
+
+export type Notification = {
+	_type: TypeRef<Notification>;
+	_errors: Object;
+	_original?: Notification
+
+	_id: ListElementId;
+	_permissions: Id;
+	_format: NumberString;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+
+	mails: NotificationInfo[];
+	alarms: AlarmNotification[];
+}
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", 1723)
 
 export function createBrandingDomainGetReturn(values: BrandingDomainGetReturnParams): BrandingDomainGetReturn {
