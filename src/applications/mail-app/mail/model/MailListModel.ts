@@ -363,7 +363,14 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	private async applyInboxRulesAndSpamPrediction(entries: LoadedMail[]): Promise<LoadedMail[]> {
-		return applyInboxRulesAndSpamPrediction(entries, this.mailSet, this.mailModel, this.processInboxHandler, this.connectivityModel.isLeader())
+		return applyInboxRulesAndSpamPrediction(
+			entries,
+			this.mailSet,
+			this.mailModel,
+			this.processInboxHandler,
+			this.entityClient,
+			this.connectivityModel.isLeader(),
+		)
 	}
 
 	private async loadSingleMail(id: IdTuple): Promise<LoadedMail | null> {

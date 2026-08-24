@@ -2,12 +2,14 @@ import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
-import { assertNotNull, groupByAndMap, isEmpty, promiseFilter } from "../../../../platform-kit/utils"
+import { groupByAndMap, isEmpty, promiseFilter, promiseMap } from "../../../../platform-kit/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Mail, MailSet, MailSetEntry } from "@tutao/entities/tutanota"
+import { Mail, MailSet, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, elementIdToId, getElementId, listIdPart } from "../../../../platform-kit/meta"
+import { CUSTOM_MAX_ID, elementIdPart, elementIdToId, getElementId, getLetId, listIdPart } from "../../../../platform-kit/meta"
+import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
+import { PageSize } from "../../../../ui/base/ListUtils"
 
 /**
  * Interface for retrieving and listing mails
@@ -286,6 +288,7 @@ export async function applyInboxRulesAndSpamPrediction(
 	sourceFolder: MailSet,
 	mailModel: MailModel,
 	processInboxHandler: ProcessInboxHandler,
+	entityClient: EntityClient,
 	isLeaderClient: boolean,
 ): Promise<LoadedMail[]> {
 	if (isEmpty(entries)) {
@@ -302,8 +305,47 @@ export async function applyInboxRulesAndSpamPrediction(
 	if (!folderSystem) {
 		return entries
 	}
-	return await promiseFilter(entries, async (entry) => {
+	const loadedMails = await promiseFilter(entries, async (entry) => {
 		const targetFolder = await processInboxHandler.handleIncomingMail(entry.mail, sourceFolder, mailboxDetail, folderSystem, isLeaderClient)
 		return sourceFolder.folderType === targetFolder.folderType
 	})
+
+	// Load spam mails when in the inbox folder, to do inbox rule and spam filter handling on them.
+	// otherwise, it is only done when the user clicks on the spam folder on the webapp.
+	// This is mostly only necessary for the webapp, but we also do it in the apps
+	// to make sure mails are processed more quickly without waiting for the entity update processing.
+	if (sourceFolder.folderType === MailSetKind.INBOX) {
+		const spamFolder = folderSystem.getSystemFolderByType(MailSetKind.SPAM)
+
+		if (spamFolder) {
+			let unprocessedMails: Mail[] = []
+			if (!mailboxDetail || !folderSystem) {
+				return []
+			}
+			let unprocessedMailsLengthForIteration = 0
+			let lastElementId: Id = CUSTOM_MAX_ID
+			do {
+				const mailSetEntries = await entityClient.loadRange(MailSetEntryTypeRef, spamFolder.entries, lastElementId, PageSize, true)
+				const mails = await loadMultipleFromLists(
+					MailTypeRef,
+					entityClient,
+					mailSetEntries.map((mailSetEntry) => mailSetEntry.mail),
+				)
+
+				const unprocessedMailsInChunk = mails.filter((mail) => mail.processNeeded)
+				unprocessedMailsLengthForIteration = unprocessedMails.length
+				if (unprocessedMailsLengthForIteration === 0) {
+					break
+				}
+
+				unprocessedMails = unprocessedMails.concat(unprocessedMailsInChunk)
+				lastElementId = getLetId(mailSetEntries[mailSetEntries.length - 1])[1]
+			} while (unprocessedMailsLengthForIteration === PageSize)
+
+			await promiseMap(unprocessedMails, async (mail) => {
+				await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, isLeaderClient)
+			})
+		}
+	}
+	return loadedMails
 }
