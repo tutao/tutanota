@@ -6,7 +6,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { SuggestionFacade } from "./SuggestionFacade"
 import { assertNotNull, neverNull, tokenize } from "../../../../platform-kit/utils"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../common/api/common/utils/IndexUtils"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../platform-kit/app-env"
+import { TutanotaConstants } from "../../../../platform-kit/app-env"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Contact, ContactList, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
@@ -49,7 +49,7 @@ export class IndexedDbContactIndexerBackend implements ContactIndexerBackend {
 					[
 						{
 							groupId,
-							indexTimestamp: FULL_INDEXED_TIMESTAMP,
+							indexTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 						},
 					],
 					indexUpdate,

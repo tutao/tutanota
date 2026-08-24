@@ -2,7 +2,7 @@ import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
 import { assertNotNull, difference } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
-import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { Indexer } from "./Indexer"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
@@ -38,7 +38,7 @@ export class OfflineStorageIndexer implements Indexer {
 		for (const addedGroup of addedGroups) {
 			const membership = this.userFacade.getMembership(addedGroup)
 			const groupType = assertNotNull(membership.groupType) as GroupType
-			await this.persistence.addIndexedGroup(addedGroup, groupType, NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID])
+			await this.persistence.addIndexedGroup(addedGroup, groupType, TutanotaConstants.NOTHING_INDEXED_TIMESTAMP, [GENERATED_MAX_ID, GENERATED_MAX_ID])
 		}
 
 		await this.contactIndexer.indexFullContactList()

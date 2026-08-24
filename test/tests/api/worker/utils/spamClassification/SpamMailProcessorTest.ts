@@ -10,7 +10,7 @@ import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
 import { splitArrayAt, splitUint8Array } from "../../../../../../src/platform-kit/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
-import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../../src/platform-kit/app-env"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("SpamMailProcessor Tests", () => {
@@ -48,7 +48,7 @@ o.spec("SpamMailProcessor Tests", () => {
 		})
 
 		const modelInputFromUploadedLegacyVector = await spamMailProcessor.processClientSpamTrainingDatum(clientSpamTrainingDatum)
-		const legacyVectorDecompressed = sparseVectorCompressor.decompress(uploadableVectorLegacy, DEFAULT_VECTOR_MAX_LENGTH)
+		const legacyVectorDecompressed = sparseVectorCompressor.decompress(uploadableVectorLegacy, TutanotaConstants.DEFAULT_VECTOR_MAX_LENGTH)
 		const modelInputFromLegacyVector = legacyVectorDecompressed.concat(new Array<number>(BYTES_FOR_SERVER_CLASSIFICATION_DATA).fill(0))
 
 		o(modelInputFromUploadedLegacyVector).deepEquals(modelInputFromLegacyVector)
@@ -68,13 +68,16 @@ o.spec("SpamMailProcessor Tests", () => {
 		const [lengthBytes, rest] = splitUint8Array(clientSpamTrainingDatum.vectorWithServerClassifiers!, BYTES_COMPRESSED_MAIL_VECTOR_LENGTH)
 		const length = sparseVectorCompressor.decodeCompressedVectorLength(lengthBytes)
 		const [compressedVector, compressedServerClassificationData] = splitUint8Array(rest, length)
-		const vectorizedMailFromDatum = sparseVectorCompressor.decompress(compressedVector, DEFAULT_VECTOR_MAX_LENGTH)
+		const vectorizedMailFromDatum = sparseVectorCompressor.decompress(compressedVector, TutanotaConstants.DEFAULT_VECTOR_MAX_LENGTH)
 		const serverClassificationDataFromUploadedVector = sparseVectorCompressor.decompress(
 			compressedServerClassificationData,
 			BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 		)
 
-		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(expectedModelInput, DEFAULT_VECTOR_MAX_LENGTH)
+		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(
+			expectedModelInput,
+			TutanotaConstants.DEFAULT_VECTOR_MAX_LENGTH,
+		)
 
 		const classifiers = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 1)
 		const decisions = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 0)

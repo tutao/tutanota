@@ -22,7 +22,7 @@ import { SupportDialogState } from "../support/SupportDialog.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
-import { EnvProvider, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { isEmpty, noOp } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
@@ -159,7 +159,10 @@ function onSupportRequestSend(dialog: Dialog) {
 		button: ClientDetector.get().isCalendarApp()
 			? {
 					label: lang.makeTranslation("", "Get Tuta Mail"),
-					click: () => windowFacade.openLink(EnvProvider.get().isIOSApp() ? TUTA_MAIL_APP_STORE_URL : TUTA_MAIL_GOOGLE_PLAY_URL),
+					click: () =>
+						windowFacade.openLink(
+							EnvProvider.get().isIOSApp() ? TutanotaConstants.TUTA_MAIL_APP_STORE_URL : TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL,
+						),
 				}
 			: {
 					label: "ok_action",

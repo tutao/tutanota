@@ -1,4 +1,4 @@
-import { Const, EnvProvider } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { createPriceRequestData, createPriceServiceData, PriceData, PriceItemData, PriceService_GET, PriceServiceReturn } from "@tutao/entities/sys"
@@ -26,7 +26,7 @@ export class BookingFacade {
 			business: null,
 		})
 		const serviceData = createPriceServiceData({
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			priceRequest: priceRequestData,
 		})
 		return this.serviceExecutor.execute(PriceService_GET, serviceData, null)

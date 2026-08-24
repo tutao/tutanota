@@ -1,7 +1,7 @@
 import m, { Component, Vnode } from "mithril"
 import { px, size } from "../../../../ui/size"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { PriceAndConfigProvider } from "../utils/PriceUtils"
 import { theme } from "../../../../ui/theme.js"
 import { ReplacementKey } from "../FeatureListProvider.js"
@@ -29,7 +29,7 @@ type FreePlanBoxAttrs = {
 export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 	view({ attrs: { isSelected, isDisabled, isCurrentPlan, onclick, priceAndConfigProvider, discountDetail } }: Vnode<FreePlanBoxAttrs>) {
 		const hasGlobalCampaign = discountDetail?.discountType === "GlobalFirstYear"
-		const scale = isSelected && !Styles.get().isMobileLayout() ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
+		const scale = isSelected && !Styles.get().isMobileLayout() ? TutanotaConstants.PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const renderFeature = this.generateRenderFeature(priceAndConfigProvider)
 
 		return m(

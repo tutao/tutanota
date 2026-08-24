@@ -67,7 +67,7 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { CancelledError, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
 	appendBinaryBlocks,
@@ -896,7 +896,7 @@ export class IndexerCore {
 				return Promise.all(
 					groupIds.map((groupId) => {
 						return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
-							const timestamp = !groupData ? NOTHING_INDEXED_TIMESTAMP : groupData.indexTimestamp
+							const timestamp = !groupData ? TutanotaConstants.NOTHING_INDEXED_TIMESTAMP : groupData.indexTimestamp
 							return [groupId, timestamp] satisfies [Id, number]
 						})
 					}),
@@ -945,6 +945,6 @@ export class IndexerCore {
 		const t = await this.db.dbFacade.createTransaction(true, [MetaDataOS, GroupDataOS])
 		const groupId = neverNull(contactList._ownerGroup)
 		const groupData = await t.get<GroupData>(GroupDataOS, groupId)
-		return groupData != null && groupData.indexTimestamp === FULL_INDEXED_TIMESTAMP
+		return groupData != null && groupData.indexTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP
 	}
 }

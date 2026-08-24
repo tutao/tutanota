@@ -21,7 +21,7 @@ import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, RepeatPeriod } from "@tutao/app-env"
+import { RepeatPeriod, TutanotaConstants } from "@tutao/app-env"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
 
@@ -366,7 +366,7 @@ export class CalendarEventsRepository {
 	}
 
 	private updateEventWrapperColor(eventWrapper: EventWrapper, userSettingsGroupRoot: UserSettingsGroupRoot) {
-		let updatedCalendarColor = DEFAULT_CALENDAR_COLOR
+		let updatedCalendarColor = TutanotaConstants.DEFAULT_CALENDAR_COLOR
 		if (eventWrapper.event._ownerGroup) {
 			if (eventWrapper.flags.isBirthdayEvent) {
 				updatedCalendarColor = this.calendarModel.getBirthdayCalendarInfo().color
@@ -396,7 +396,7 @@ export class CalendarEventsRepository {
 						hasAlarms: isNotEmpty(event.alarmInfos),
 						isAlteredInstance: Boolean(event.recurrenceId),
 					},
-					color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
+					color: calendarInfos.get(eventOwnerGroupId)?.color ?? TutanotaConstants.DEFAULT_CALENDAR_COLOR,
 				}
 				await this.addOrUpdateEvent(calendarInfos.get(eventOwnerGroupId) ?? null, wrapper)
 			} catch (e) {
@@ -444,7 +444,7 @@ export class CalendarEventsRepository {
 		}
 
 		const encodedContactId = stringToBase64(contact._id.join("/"))
-		const calendarId = `${userId}#${BIRTHDAY_CALENDAR_BASE_ID}`
+		const calendarId = `${userId}#${TutanotaConstants.BIRTHDAY_CALENDAR_BASE_ID}`
 		const uid = generateUid(calendarId, Date.now())
 
 		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
@@ -579,7 +579,7 @@ export class CalendarEventsRepository {
 							...calendarEvent.event,
 							summary: `${calendarEvent.event.summary} ${ageString}`,
 						},
-						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? TutanotaConstants.DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 						flags: {
 							isBirthdayEvent: true,
 							isAlteredInstance: false,

@@ -1,4 +1,4 @@
-import { Const, EnvProvider, PaymentSetup, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { assertTranslation, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { UpgradePriceType, WebsitePlanPrices } from "../FeatureListProvider"
@@ -161,7 +161,7 @@ export class PriceAndConfigProvider {
 
 	private async init(registrationDataId: string | null, serviceExecutor: IServiceExecutor, referralCode: string | null): Promise<void> {
 		const data = createUpgradePriceServiceData({
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			campaign: registrationDataId,
 			referralCode: referralCode,
 		})

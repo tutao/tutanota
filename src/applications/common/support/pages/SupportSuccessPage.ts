@@ -50,13 +50,13 @@ export class SupportSuccessPage implements Component<SupportSuccessPageAttrs> {
 
 		if (ClientDetector.get().isCalendarApp()) {
 			return m.fragment({}, [
-				this.renderAppStoreLink(TUTA_CALENDAR_APP_STORE_URL, closeDialog),
-				this.renderGooglePlayLink(TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
+				this.renderAppStoreLink(TutanotaConstants.TUTA_CALENDAR_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TutanotaConstants.TUTA_CALENDAR_GOOGLE_PLAY_URL, closeDialog),
 			])
 		} else {
 			return m.fragment({}, [
-				this.renderAppStoreLink(TUTA_MAIL_APP_STORE_URL, closeDialog),
-				this.renderGooglePlayLink(TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
+				this.renderAppStoreLink(TutanotaConstants.TUTA_MAIL_APP_STORE_URL, closeDialog),
+				this.renderGooglePlayLink(TutanotaConstants.TUTA_MAIL_GOOGLE_PLAY_URL, closeDialog),
 			])
 		}
 	}

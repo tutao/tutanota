@@ -2,7 +2,7 @@ import m from "mithril"
 import type { TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { isDomainOrTopLevelDomain, isMailAddress } from "../../../platform-kit/utils/FormatUtils"
-import { EnvProvider, TUTA_MAIL_ADDRESS_DOMAINS } from "../../../platform-kit/app-env"
+import { EnvProvider, TutanotaConstants } from "../../../platform-kit/app-env"
 import { contains } from "../../../platform-kit/utils"
 import { Dialog } from "../../../ui/base/Dialog"
 import stream from "mithril/stream"
@@ -141,7 +141,7 @@ function validate(
 function isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainOrTopLevelDomain(value)) {
-			return value === "tutao.de" || contains(TUTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
+			return value === "tutao.de" || contains(TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {
 			let domain = value.split("@")[1]
 			return domain === "tutao.de" || contains(customDomains, domain)

@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, Const, EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, EnvProvider, PaymentSetup, TutanotaConstants, UpgradePromptType } from "@tutao/app-env"
 import { elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, getDayShifted, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -811,7 +811,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	private async updateStorageField(customer: Customer, customerInfo: CustomerInfo): Promise<void> {
 		const usedStorage = await locator.customerFacade.readUsedCustomerStorage(getEtId(customer))
 		const usedStorageFormatted = formatStorageSize(Number(usedStorage))
-		const totalStorageFormatted = formatStorageSize(getTotalStorageCapacityPerCustomer(customer, customerInfo, this._lastBooking) * Const.MEMORY_GB_FACTOR)
+		const totalStorageFormatted = formatStorageSize(
+			getTotalStorageCapacityPerCustomer(customer, customerInfo, this._lastBooking) * TutanotaConstants.Const.MEMORY_GB_FACTOR,
+		)
 
 		this._storageFieldValue(
 			lang.get("amountUsedOf_label", {

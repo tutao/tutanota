@@ -5,6 +5,7 @@ import {
 	FULL_INDEXED_TIMESTAMP,
 	NOTHING_INDEXED_TIMESTAMP,
 	TimeConstants,
+	TutanotaConstants
 } from "@tutao/app-env"
 import {
 	assertNotNull,
@@ -129,7 +130,7 @@ export class WebMailIndexer implements MailIndexer {
 		private readonly backendFactory: (user: Id) => MailIndexerBackend,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 	) {
-		this._currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
+		this._currentIndexTimestamp = TutanotaConstants.NOTHING_INDEXED_TIMESTAMP
 		this._mailIndexingEnabled = false
 		this._mailboxIndexingPromise = defer()
 		this._mailboxIndexingPromise.resolve()
@@ -155,7 +156,8 @@ export class WebMailIndexer implements MailIndexer {
 				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 				// if nothing was indexed set highest (read: later) end to be the beginning of tomorrow so that
 				// the entirety of today is included.
-				const newestTimestamp = groupTimestamp === NOTHING_INDEXED_TIMESTAMP ? this._dateProvider.getStartOfDayShiftedBy(1).getTime() : groupTimestamp
+				const newestTimestamp =
+					groupTimestamp === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP ? this._dateProvider.getStartOfDayShiftedBy(1).getTime() : groupTimestamp
 
 				if (newestTimestamp > oldestTimestamp) {
 					mailBoxes.push({
@@ -285,7 +287,7 @@ export class WebMailIndexer implements MailIndexer {
 	 * newOldestTimestamp should be aligned to the start of the day up until which you want to index, we don't do rounding inside here.
 	 */
 	async extendIndexIfNeeded(user: User, newOldestTimestamp: number): Promise<void> {
-		if (this.currentIndexTimestamp > FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
+		if (this.currentIndexTimestamp > TutanotaConstants.FULL_INDEXED_TIMESTAMP && this.currentIndexTimestamp > newOldestTimestamp) {
 			await this._mailboxIndexingPromise.promise.then(() => this.indexMailboxes(user, newOldestTimestamp))
 		}
 	}
@@ -418,7 +420,10 @@ export class WebMailIndexer implements MailIndexer {
 
 				// only write to database if we have collected enough entities, or it's the last iteration
 				const indexTimestampPerGroup = new Map(
-					mailboxesToWrite.map((data) => [data.ownerGroup, this.isMailboxLoadedCompletely(data) ? FULL_INDEXED_TIMESTAMP : batchEnd]),
+					mailboxesToWrite.map((data) => [
+						data.ownerGroup,
+						this.isMailboxLoadedCompletely(data) ? TutanotaConstants.FULL_INDEXED_TIMESTAMP : batchEnd,
+					]),
 				)
 				await this.backend.indexMails(indexTimestampPerGroup, mailData)
 				await this.updateCurrentIndexTimestamp(user)
@@ -683,15 +688,19 @@ export class WebMailIndexer implements MailIndexer {
 // It finds the oldest timestamp among all groups (roughly).
 // visibleForTesting
 export function _getCurrentIndexTimestamp(groupIndexTimestamps: number[]): number {
-	let currentIndexTimestamp = NOTHING_INDEXED_TIMESTAMP
+	let currentIndexTimestamp = TutanotaConstants.NOTHING_INDEXED_TIMESTAMP
 	for (const [index, t] of groupIndexTimestamps.entries()) {
 		if (index === 0) {
 			currentIndexTimestamp = t
-		} else if (t === NOTHING_INDEXED_TIMESTAMP) {
+		} else if (t === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP) {
 			// skip new group memberships
-		} else if (t === FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== FULL_INDEXED_TIMESTAMP && currentIndexTimestamp !== NOTHING_INDEXED_TIMESTAMP) {
+		} else if (
+			t === TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
+			currentIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
+			currentIndexTimestamp !== TutanotaConstants.NOTHING_INDEXED_TIMESTAMP
+		) {
 			// skip full index timestamp if this is not the first mail group
-		} else if (currentIndexTimestamp === FULL_INDEXED_TIMESTAMP && t !== currentIndexTimestamp) {
+		} else if (currentIndexTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP && t !== currentIndexTimestamp) {
 			// find the oldest timestamp
 			// mail index ist not fully indexed if one of the mailboxes is not fully indexed
 			currentIndexTimestamp = t
