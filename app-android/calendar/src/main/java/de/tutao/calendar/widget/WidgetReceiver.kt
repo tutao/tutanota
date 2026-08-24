@@ -1,6 +1,8 @@
 package de.tutao.calendar.widget
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.util.Log
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
@@ -28,19 +30,22 @@ val Context.widgetDataRepository: WidgetDataRepository
 
 enum class WidgetUpdateTrigger {
 	WORKER,
-	APP
+	APP,
+	SETTINGS
 }
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
 	companion object {
-		const val WIDGET_WORKER_TAG = "agenda_widget_worker"
-		const val TAG = "WidgetReceiver"
+		private const val WIDGET_WORKER_TAG = "agenda_widget_worker"
+		private const val TAG = "WidgetReceiver"
 	}
 
 	override val glanceAppWidget: GlanceAppWidget = Agenda()
 
 	override fun onEnabled(context: Context) {
 		super.onEnabled(context)
+
+		Log.d(TAG, "onEnabled called")
 
 		WorkManager.getInstance(context).enqueueUniquePeriodicWork(
 			WIDGET_WORKER_TAG,
@@ -49,6 +54,12 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 				.addTag(WIDGET_WORKER_TAG).setInitialDelay(Duration.ofMinutes(1))
 				.build()
 		)
+	}
+
+	override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+		super.onUpdate(context, appWidgetManager, appWidgetIds)
+
+		Log.d(TAG, "onUpdate called")
 	}
 
 	override fun onDisabled(context: Context) {
