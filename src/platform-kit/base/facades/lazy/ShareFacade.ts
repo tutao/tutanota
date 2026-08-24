@@ -1,5 +1,4 @@
-import type { ShareCapability } from "@tutao/app-env"
-import { assertWorkerOrNode } from "@tutao/app-env"
+import { assertWorkerOrNode, ProgrammingError, ShareCapability } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
 import { aes256RandomKey, cryptoUtils, CryptoWrapper, encryptKey, keyToUint8Array, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
@@ -19,6 +18,7 @@ import {
 	GroupInvitationService,
 } from "@tutao/entities/tutanota"
 import { GroupInfo, GroupInfoTypeRef, ReceivedGroupInvitation } from "@tutao/entities/sys"
+import { InstanceKeyFacade } from "../../base-crypto/InstanceKeyFacade"
 
 assertWorkerOrNode()
 
@@ -30,6 +30,7 @@ export class ShareFacade {
 		private readonly entityClient: EntityClient,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly instanceKeyFacade: InstanceKeyFacade,
 	) {}
 
 	async sendGroupInvitation(
@@ -59,6 +60,18 @@ export class ShareFacade {
 		const invitationSessionKey = aes256RandomKey()
 		const sharedGroupEncInviterGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const sharedGroupEncSharedGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
+		const inviterUserGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(userGroupInfo)
+		const sharedGroupEncInviterGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
+			sharedGroupKey,
+			inviterUserGroupInfoCurrentInstanceKey.object,
+		)
+		const sharedGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(sharedGroupInfo)
+		const sharedGroupEncSharedGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, sharedGroupInfoCurrentInstanceKey.object)
+
+		if (userGroupInfo._formerInstanceKeys == null || sharedGroupInfo._formerInstanceKeys == null) {
+			// TODO trigger migration if former instance keys do not exist yet
+			throw new ProgrammingError("must run migration on group info instance before sharing it")
+		}
 
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: this.cryptoWrapper.encryptString(invitationSessionKey, userGroupInfo.name),
@@ -70,11 +83,10 @@ export class ShareFacade {
 			sharedGroupEncInviterGroupInfoSessionKey: sharedGroupEncInviterGroupInfoSessionKey.key,
 			sharedGroupEncSharedGroupInfoSessionKey: sharedGroupEncSharedGroupInfoSessionKey.key,
 			sharedGroupKeyVersion: String(sharedGroupKey.version),
-			// TODO
-			sharedGroupEncInviterGroupInfoInstanceKey: null,
-			inviterGroupInfoInstanceKeyVersion: null,
-			sharedGroupEncSharedGroupInfoInstanceKey: null,
-			sharedGroupInfoInstanceKeyVersion: null,
+			sharedGroupEncInviterGroupInfoInstanceKey: sharedGroupEncInviterGroupInfoInstanceKey.key,
+			inviterGroupInfoInstanceKeyVersion: String(inviterUserGroupInfoCurrentInstanceKey.version),
+			sharedGroupEncSharedGroupInfoInstanceKey: sharedGroupEncSharedGroupInfoInstanceKey.key,
+			sharedGroupInfoInstanceKeyVersion: String(sharedGroupInfoCurrentInstanceKey.version),
 		})
 		const invitationData = createGroupInvitationPostData({
 			sharedGroupData,
@@ -117,15 +129,17 @@ export class ShareFacade {
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const userGroupEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, sharedGroupKey.object)
 		const sharedGroupEncInviteeGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
+		const userGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(userGroupInfo)
+		const sharedGroupEncInviteeGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, userGroupInfoCurrentInstanceKey.object)
+
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: userGroupEncGroupKey.key,
 			sharedGroupEncInviteeGroupInfoSessionKey: sharedGroupEncInviteeGroupInfoSessionKey.key,
-			userGroupKeyVersion: userGroupEncGroupKey.encryptingKeyVersion.toString(),
-			sharedGroupKeyVersion: sharedGroupEncInviteeGroupInfoSessionKey.encryptingKeyVersion.toString(),
-			// TODO
-			sharedGroupEncInviteeGroupInfoInstanceKey: null,
-			inviteeGroupInfoInstanceKeyVersion: null,
+			userGroupKeyVersion: String(userGroupEncGroupKey.encryptingKeyVersion),
+			sharedGroupKeyVersion: String(sharedGroupEncInviteeGroupInfoSessionKey.encryptingKeyVersion),
+			sharedGroupEncInviteeGroupInfoInstanceKey: sharedGroupEncInviteeGroupInfoInstanceKey.key,
+			inviteeGroupInfoInstanceKeyVersion: String(userGroupInfoCurrentInstanceKey.version),
 		})
 		await this.serviceExecutor.put(GroupInvitationService, serviceData, null)
 	}
