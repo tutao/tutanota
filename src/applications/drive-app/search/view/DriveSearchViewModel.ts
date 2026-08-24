@@ -37,7 +37,7 @@ import { DriveTransfers, DriveTransferState } from "../../drive/view/DriveTransf
 import { TransferId } from "../../../../entities/drive/Utils"
 import { elementIdPart, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { DriveFacade, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { CancelledError, EnvProvider } from "@tutao/app-env"
+import { CancelledError } from "@tutao/app-env"
 import Stream from "mithril/stream"
 import { DriveFile } from "@tutao/entities/drive"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
@@ -54,7 +54,6 @@ import { createDriveRestriction, getDriveRestriction } from "../model/DriveSearc
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { DuplicateFilesDialogDecision } from "../../drive/view/DriveGuiUtils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
-import { WindowFacade } from "../../../common/misc/WindowFacade"
 import { FileType, getDisplayType } from "../../drive/model/DriveMimeUtils"
 
 const SEARCH_PAGE_SIZE = 100
@@ -120,9 +119,7 @@ export class DriveSearchViewModel {
 		private readonly driveFacade: DriveFacade,
 		private readonly updateUi: () => unknown,
 		public readonly transferProgressDispatcher: TransferProgressDispatcher,
-		private readonly driveOperations: DriveModel,
-		private readonly windowFacade: WindowFacade,
-		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
+		private readonly driveModel: DriveModel,
 	) {}
 
 	readonly init = async () => {
@@ -130,11 +127,11 @@ export class DriveSearchViewModel {
 			return
 		}
 		this.roots = await this.driveFacade.loadRootFolders("withNetwork")
-		await this.driveOperations.init()
+		await this.driveModel.init()
 	}
 
 	get clipboard(): DriveClipboard | null {
-		return this.driveOperations.clipboard
+		return this.driveModel.clipboard
 	}
 
 	getUrlFromSearchCategory(category: SearchCategoryType): string {
@@ -221,23 +218,23 @@ export class DriveSearchViewModel {
 	}
 
 	transfers(): DriveTransfers {
-		return this.driveOperations.transfers()
+		return this.driveModel.transfers()
 	}
 
 	cancelTransfer(transferId: TransferId) {
-		this.driveOperations.cancelTransfer(transferId)
+		this.driveModel.cancelTransfer(transferId)
 	}
 
 	retryTransfer(transferId: TransferId) {
-		this.driveOperations.retryTransfer(transferId)
+		this.driveModel.retryTransfer(transferId)
 	}
 
 	retryFailedTransfers() {
-		this.driveOperations.retryFailedTransfers()
+		this.driveModel.retryFailedTransfers()
 	}
 
 	async cancelAllTransfers(confirmationDialog: (activeTransfers: DriveTransferState[]) => Promise<boolean>) {
-		await this.driveOperations.cancelAllTransfers(confirmationDialog)
+		await this.driveModel.cancelAllTransfers(confirmationDialog)
 	}
 
 	anySelectedItemInTrash(): boolean {
@@ -266,41 +263,42 @@ export class DriveSearchViewModel {
 		}
 		const trashId = this.roots.trash
 		const itemsToTrash = items.filter((item) => !isSameId(folderItemParentId(item), trashId))
-		await this.driveOperations.moveToTrash(itemsToTrash.map(folderItemToId))
+		await this.driveModel.moveToTrash(itemsToTrash.map(folderItemToId))
 		this.listModel.selectNone()
 	}
 
 	async deleteFromTrash(items: readonly (FileFolderItem | FolderFolderItem)[]) {
-		await this.driveOperations.deleteFromTrash(items)
+		await this.driveModel.deleteFromTrash(items)
 		this.#listModel.selectNone()
 	}
 
 	async restoreFromTrash(items: readonly FolderItem[]) {
-		await this.driveOperations.restoreFromTrash(items)
+		await this.driveModel.restoreFromTrash(items)
 		this.#listModel.selectNone()
 	}
 
 	cut(selectedItems: readonly FolderItem[]) {
-		this.driveOperations.cut(selectedItems)
+		this.driveModel.cut(selectedItems)
 		this.listModel.selectNone()
 	}
 
 	copy(items: readonly FolderItem[]) {
-		this.driveOperations.copy(items)
+		this.driveModel.copy(items)
 		this.listModel.selectNone()
 	}
 
 	async moveItems(items: readonly FolderItemId[], destinationId: IdTuple): Promise<void> {
-		await this.driveOperations.moveItems(items, destinationId)
+		await this.driveModel.moveItems(items, destinationId)
 		this.#listModel.selectNone()
 	}
 
 	isDownloadPermitted(items: readonly FolderItem[]): items is FileFolderItem[] {
-		return this.driveOperations.isDownloadPermitted(items)
+		return this.driveModel.isDownloadPermitted(items)
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		this.driveOperations.downloadFile(file)
+		this.driveModel.ensureWindowCloseListener()
+		this.driveModel.downloadFile(file)
 	}
 
 	getCurrentColumnSortOrder(): Readonly<SortingPreference> {
@@ -321,7 +319,7 @@ export class DriveSearchViewModel {
 	}
 
 	operationUpdates() {
-		return this.driveOperations.operationUpdates
+		return this.driveModel.operationUpdates
 	}
 
 	onNewUrl(args: Record<string, any>, _requestedPath: string) {
@@ -510,11 +508,12 @@ export class DriveSearchViewModel {
 		})
 	}
 	async openFile(file: DriveFile): Promise<void> {
-		await this.driveOperations.openFile(file)
+		this.driveModel.ensureWindowCloseListener()
+		await this.driveModel.openFile(file)
 	}
 
 	rename(item: FolderItem, newName: string) {
-		this.driveOperations.rename(item, newName)
+		this.driveModel.rename(item, newName)
 	}
 
 	get selectionEvents(): ListItemSelectionCallbacks<FolderItem> {
@@ -538,23 +537,6 @@ export class DriveSearchViewModel {
 		this.searchResult?.dispose()
 	}
 
-	private deleteWindowCloseListener: (() => unknown) | null = null
-
-	private ensureWindowCloseListener() {
-		if (this.deleteWindowCloseListener == null) {
-			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
-				if (EnvProvider.get().isDesktop()) {
-					const cancelAndClose: boolean = await this.showWindowCloseConfirmation()
-
-					if (cancelAndClose) {
-						this.deleteWindowCloseListener?.()
-						this.windowFacade.closeWindow()
-					}
-				}
-			})
-		}
-	}
-
 	async uploadFiles(
 		files: FileReference[] | WebFile[],
 		showDuplicateFilesChoiceDialog: (fileName: string, fileCount: number) => Promise<DuplicateFilesDialogDecision>,
@@ -566,9 +548,9 @@ export class DriveSearchViewModel {
 		}
 		const targetFolderId: IdTuple = this.roots?.root
 		await this.listModel.waitLoad()
-		const uploading = await this.driveOperations.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
+		const uploading = await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
 		if (uploading) {
-			this.ensureWindowCloseListener()
+			this.driveModel.ensureWindowCloseListener()
 		}
 	}
 }
