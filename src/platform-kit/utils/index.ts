@@ -8,6 +8,7 @@ export {
 	arrayHashUnsigned,
 	remove,
 	clear,
+	arrayUnzip,
 	findAll,
 	findAndRemove,
 	findAllAndRemove,
