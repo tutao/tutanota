@@ -6339,6 +6339,46 @@ export type MissedNotification = {
 	_original: Nullable<MissedNotification>
 	isAdapter: false
 }
+export const NotificationTypeRef: TypeRef<Notification> = new TypeRef("sys", 1706)
+
+export function createNotification(values: NotificationParams): Notification {
+	return Object.assign(create(typeModels[NotificationTypeRef.typeId], NotificationTypeRef), values)
+}
+
+export type NotificationParams = {
+	mails: NotificationInfo[]
+	alarms: AlarmNotification[]
+}
+
+export type Notification = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+
+	// == associations
+
+	mails: NotificationInfo[]
+	alarms: AlarmNotification[]
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<Notification>
+	_errors: Object
+	_original: Nullable<Notification>
+	isAdapter: false
+}
 export const BrandingDomainGetReturnTypeRef: TypeRef<BrandingDomainGetReturn> = new TypeRef("sys", 1723)
 
 export function createBrandingDomainGetReturn(values: BrandingDomainGetReturnParams): BrandingDomainGetReturn {
