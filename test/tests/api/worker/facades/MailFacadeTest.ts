@@ -644,7 +644,7 @@ o.spec("MailFacade test", function () {
 
 			const captor = matchers.captor()
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					notFoundRecipient1.address,
@@ -657,7 +657,7 @@ o.spec("MailFacade test", function () {
 			})
 
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					notFoundRecipient2.address,
@@ -696,7 +696,7 @@ o.spec("MailFacade test", function () {
 
 			const captor = matchers.captor()
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					unverifiedRecipient1.address,
@@ -709,7 +709,7 @@ o.spec("MailFacade test", function () {
 			})
 
 			when(
-				cryptoFacade.encryptBucketKeyForInternalRecipient(
+				cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					matchers.anything(),
 					matchers.anything(),
 					unverifiedRecipient2.address,

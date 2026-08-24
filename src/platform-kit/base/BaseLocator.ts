@@ -283,7 +283,7 @@ export async function createBaseLocator({
 		},
 	)
 
-	const instanceKey = new InstanceKeyFacade(keyLoader, crypto, typeModelResolver)
+	const instanceKey = new InstanceKeyFacade(adminKeyLoader, keyLoader, crypto, typeModelResolver, cachingEntityClient, cryptoWrapper, serviceExecutor)
 
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade

@@ -1,4 +1,4 @@
-import { assertWorkerOrNode, ProgrammingError, ShareCapability } from "@tutao/app-env"
+import { assertWorkerOrNode, ShareCapability } from "@tutao/app-env"
 import { neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
 import { aes256RandomKey, cryptoUtils, CryptoWrapper, encryptKey, keyToUint8Array, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
@@ -6,7 +6,7 @@ import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
-import { CryptoFacade } from "../../base-crypto/CryptoFacade"
+import { CryptoFacade, toInternalRecipientKeyData } from "../../base-crypto/CryptoFacade"
 import { EntityClient } from "../../../network/EntityClient"
 import {
 	createGroupInvitationDeleteData,
@@ -68,9 +68,12 @@ export class ShareFacade {
 		const sharedGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(sharedGroupInfo)
 		const sharedGroupEncSharedGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, sharedGroupInfoCurrentInstanceKey.object)
 
-		if (userGroupInfo._formerInstanceKeys == null || sharedGroupInfo._formerInstanceKeys == null) {
-			// TODO trigger migration if former instance keys do not exist yet
-			throw new ProgrammingError("must run migration on group info instance before sharing it")
+		// make sure the migration was run or do it now
+		if (userGroupInfo._formerInstanceKeys == null) {
+			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(userGroupInfo)
+		}
+		if (sharedGroupInfo._formerInstanceKeys == null) {
+			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(sharedGroupInfo)
 		}
 
 		const sharedGroupData = createSharedGroupData({
@@ -96,7 +99,7 @@ export class ShareFacade {
 		const keyVerificationMismatchRecipients: Array<string> = []
 
 		for (let mailAddress of recipientMailAddresses) {
-			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
+			const keyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 				userGroupInfo.group,
 				bucketKey,
 				mailAddress,
@@ -104,7 +107,7 @@ export class ShareFacade {
 				keyVerificationMismatchRecipients,
 			)
 			if (keyData && keyData.pubEncRecipientKeyData != null) {
-				invitationData.internalKeyData.push(keyData.pubEncRecipientKeyData)
+				invitationData.internalKeyData.push(toInternalRecipientKeyData(keyData.pubEncRecipientKeyData))
 			}
 		}
 
@@ -121,6 +124,10 @@ export class ShareFacade {
 
 	async acceptGroupInvitation(invitation: ReceivedGroupInvitation): Promise<void> {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
+		// make sure the migration was run or do it now
+		if (userGroupInfo._formerInstanceKeys == null) {
+			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(userGroupInfo)
+		}
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupKey = {
 			object: uint8ArrayToKey(invitation.sharedGroupKey),

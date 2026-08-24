@@ -715,7 +715,7 @@ export class KeyRotationFacade {
 				const keyVerificationMismatchRecipients: Array<string> = []
 
 				const senderGroupId = this.userFacade.getUserGroupId()
-				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
+				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					senderGroupId,
 					bucketKey,
 					memberMailAddress,
@@ -723,23 +723,11 @@ export class KeyRotationFacade {
 					keyVerificationMismatchRecipients,
 				)
 				if (recipientKeyData != null && recipientKeyData.pubEncRecipientKeyData != null) {
-					const keyData = recipientKeyData.pubEncRecipientKeyData
-					const pubEncKeyData = createPubEncKeyData({
-						recipientIdentifier: keyData.mailAddress,
-						recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-						pubEncSymKey: keyData.pubEncBucketKey,
-						recipientKeyVersion: keyData.recipientKeyVersion,
-						senderKeyVersion: keyData.senderKeyVersion,
-						protocolVersion: keyData.protocolVersion,
-						senderIdentifier: senderGroupId,
-						senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
-						symKeyMac: null,
-					})
 					const groupKeyUpdateData = createGroupKeyUpdateData({
 						sessionKeyEncGroupKey: this.cryptoWrapper.encryptBytes(sessionKey, keyToUint8Array(newGroupKey.object)),
 						sessionKeyEncGroupKeyVersion: String(newGroupKey.version),
 						bucketKeyEncSessionKey: this.cryptoWrapper.encryptKey(bucketKey, sessionKey),
-						pubEncBucketKeyData: pubEncKeyData,
+						pubEncBucketKeyData: recipientKeyData.pubEncRecipientKeyData,
 					})
 					groupKeyUpdates.push(groupKeyUpdateData)
 				} else {
