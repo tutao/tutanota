@@ -49,7 +49,6 @@ import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
-import { WindowFacade } from "../../../common/misc/WindowFacade"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -124,9 +123,7 @@ export class DriveViewModel {
 		public readonly loginController: LoginController,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly webFileResolver: WebFileResolver | null,
-		private readonly windowFacade: WindowFacade,
 		public readonly updateUi: () => unknown,
-		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
 		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly searchModel: lazyAsync<DriveSearchModel>,
 		private readonly searchRouter: SearchRouter,
@@ -408,10 +405,7 @@ export class DriveViewModel {
 				: this.currentFolder.folder._id
 
 		await this.listModel.waitLoad()
-		const uploading = await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
-		if (uploading) {
-			this.driveModel.ensureWindowCloseListener()
-		}
+		await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
 	}
 
 	async createNewFolder(folderName: string, parentFolderId?: IdTuple): Promise<DriveFolder> {
@@ -437,12 +431,10 @@ export class DriveViewModel {
 	}
 
 	async openFile(file: DriveFile): Promise<void> {
-		this.driveModel.ensureWindowCloseListener()
 		await this.driveModel.openFile(file)
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		this.driveModel.ensureWindowCloseListener()
 		await this.driveModel.downloadFile(file)
 	}
 
