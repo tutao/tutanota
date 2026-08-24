@@ -14,10 +14,20 @@ import {
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { base64UrlCustomIdToString, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
+import {
+	assertNotNull,
+	base64UrlCustomIdToString,
+	downcast,
+	KeyVersion,
+	lazyAsync,
+	Nullable,
+	promiseMap,
+	stringToBase64UrlCustomId,
+	Versioned,
+} from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId } from "../../meta"
+import { elementIdToId, getElementId, idToElementId, isSameSingleId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
@@ -313,6 +323,44 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}
 		return decryptedKeyPair
+	}
+
+	async getCurrentExternalGroupKeys(
+		externalMailGroupId: Id,
+		externalUserGroupId: Id,
+	): Promise<{ currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }> {
+		const currentExternalUserGroupKey = await this.getCurrentExternalUserGroupKey(externalUserGroupId)
+		const currentExternalMailGroupKey = await this.getCurrentExternalMailGroupKey(externalMailGroupId, externalUserGroupId, currentExternalUserGroupKey)
+		return {
+			currentExternalUserGroupKey,
+			currentExternalMailGroupKey,
+		}
+	}
+
+	async getCurrentExternalUserGroupKey(externalUserGroupId: Id): Promise<VersionedKey> {
+		const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
+		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
+		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
+		const requiredInternalUserGroupKey = await this.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
+		return {
+			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
+			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
+		}
+	}
+
+	private async getCurrentExternalMailGroupKey(
+		externalMailGroupId: Id,
+		externalUserGroupId: Id,
+		currentExternalUserGroupKey: VersionedKey,
+	): Promise<VersionedKey> {
+		const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
+		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
+		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
+		const requiredExternalUserGroupKey = await this.loadSymGroupKey(externalUserGroupId, requiredExternalUserGroupKeyVersion, currentExternalUserGroupKey)
+		return {
+			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
+			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
+		}
 	}
 }
 
