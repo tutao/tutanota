@@ -1,4 +1,4 @@
-import { isNotNull, ProgrammingError, RuntimeInfo, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, ProgrammingError, RuntimeInfo, TMutableStaticSafety, TMutableStaticSafetyKind, TsRecord, TsString, TTranspileIgnore } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -99,15 +99,21 @@ export const enum Mode {
  * Rolldown doesn't inline const enums at the moment, so we can't assert the loading order.
  * If not set defaults to true
  */
-const assertionsEnabled = false
+const assertionsEnabled: boolean = false
 
 export class EnvProvider {
+	@TTranspileIgnore({
+		reason: `
+			This is all method that uses this field is @TranspileIgnore
+		`,
+	})
 	private static boot: boolean =
 		RuntimeInfo._isNode &&
 		!RuntimeInfo._isWorker &&
 		EnvProvider.tryInitWithGlobalEnv() != null &&
 		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
+	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
 	private static singleton: EnvProvider | null = null
 
 	public static get(): EnvProvider {
@@ -117,6 +123,8 @@ export class EnvProvider {
 		}
 		return singleton
 	}
+
+	private constructor(private readonly env: EnvType) {}
 
 	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
@@ -139,8 +147,6 @@ export class EnvProvider {
 	public getTimeOutValue(): number {
 		return this.env.timeout
 	}
-
-	private constructor(private readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -244,12 +250,24 @@ export class EnvProvider {
 		return this.isOfflineStorageAvailable() && this.isDesktop()
 	}
 
+	@TTranspileIgnore({
+		reason: `
+		This method is only called from entryPoint of app which is not
+		used from transpiled code
+	`,
+	})
 	public static bootFinished(): void {
 		this.boot = false
 	}
 
+	@TTranspileIgnore({
+		reason: `
+		This method is only called from entryPoint of app which is not
+		used from transpiled code
+	`,
+	})
 	public static isBootFinished(): boolean {
-		return this.boot
+		return EnvProvider.boot
 	}
 
 	public getWebsocketBaseUrl(domainConfig: DomainConfig): TsString {
@@ -270,7 +288,7 @@ export class EnvProvider {
 		return url
 	}
 
-	static assertMainOrNode(): void {
+	public static assertMainOrNode(): void {
 		if (!assertionsEnabled) {
 			return
 		}
