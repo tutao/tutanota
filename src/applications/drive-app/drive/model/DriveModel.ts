@@ -74,14 +74,9 @@ export class DriveModel {
 		private readonly windowFacade: WindowFacade,
 		private readonly showWindowCloseConfirmation: () => Promise<boolean>,
 	) {
-		this.transferController.setAllTransfersDoneListener(() => {
-			if (this.deleteWindowCloseListener != null) {
-				this.deleteWindowCloseListener()
-				this.deleteWindowCloseListener = null
-			}
-		})
+		this.setAllTransfersDoneListener()
 	}
-	ensureWindowCloseListener() {
+	private ensureWindowCloseListener() {
 		if (this.deleteWindowCloseListener == null) {
 			this.deleteWindowCloseListener = this.windowFacade.addWindowCloseListener(async () => {
 				if (EnvProvider.get().isDesktop()) {
@@ -179,8 +174,7 @@ export class DriveModel {
 		targetFolderId: IdTuple,
 		showDuplicateFilesChoiceDialog: (fileName: string, fileCount: number) => Promise<DuplicateFilesDialogDecision>,
 		folders?: readonly DiskFolder<WebFile | FileReference>[],
-	): Promise<boolean> {
-		let somethingIsGettingUploaded = false
+	): Promise<void> {
 		let choice: DuplicateFilesDialogDecision["choice"] | null = "keepBoth"
 		let applyToAll: boolean = false
 
@@ -211,7 +205,7 @@ export class DriveModel {
 				}
 				takenFileNames.add(fileName)
 
-				somethingIsGettingUploaded = true
+				this.ensureWindowCloseListener()
 				await this.transferController.upload(file, fileName, targetFolderId)
 			}
 		}
@@ -223,14 +217,12 @@ export class DriveModel {
 				for (const childFile of currentFolder.files) {
 					const fileName = isWebFile(childFile) ? childFile.file.name : childFile.name
 
-					somethingIsGettingUploaded = true
+					this.ensureWindowCloseListener()
 					await this.transferController.upload(childFile, fileName, createdFolder._id)
 				}
 				return currentFolder.folders.map((f) => ({ folder: f, parent: createdFolder._id }))
 			})
 		}
-
-		return somethingIsGettingUploaded
 	}
 
 	clearClipboard() {
@@ -344,12 +336,22 @@ export class DriveModel {
 		return !items.some((item) => item.type === "folder")
 	}
 	async downloadFile(file: DriveFile): Promise<void> {
+		this.ensureWindowCloseListener()
 		this.transferController.download(file, "download")
 	}
 	async openFile(file: DriveFile): Promise<void> {
+		this.ensureWindowCloseListener()
 		this.transferController.download(file, "open")
 	}
 	rename(item: FolderItem, newName: string) {
 		this.driveFacade.rename(folderItemEntity(item), newName)
+	}
+	setAllTransfersDoneListener() {
+		this.transferController.setAllTransfersDoneListener(() => {
+			if (this.deleteWindowCloseListener != null) {
+				this.deleteWindowCloseListener()
+				this.deleteWindowCloseListener = null
+			}
+		})
 	}
 }

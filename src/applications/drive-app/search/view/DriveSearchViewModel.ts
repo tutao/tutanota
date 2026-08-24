@@ -297,7 +297,6 @@ export class DriveSearchViewModel {
 	}
 
 	async downloadFile(file: DriveFile): Promise<void> {
-		this.driveModel.ensureWindowCloseListener()
 		this.driveModel.downloadFile(file)
 	}
 
@@ -508,7 +507,6 @@ export class DriveSearchViewModel {
 		})
 	}
 	async openFile(file: DriveFile): Promise<void> {
-		this.driveModel.ensureWindowCloseListener()
 		await this.driveModel.openFile(file)
 	}
 
@@ -548,9 +546,6 @@ export class DriveSearchViewModel {
 		}
 		const targetFolderId: IdTuple = this.roots?.root
 		await this.listModel.waitLoad()
-		const uploading = await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
-		if (uploading) {
-			this.driveModel.ensureWindowCloseListener()
-		}
+		await this.driveModel.uploadFiles(files, targetFolderId, showDuplicateFilesChoiceDialog, folders)
 	}
 }

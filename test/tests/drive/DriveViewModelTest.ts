@@ -8,14 +8,12 @@ import { UserManagementFacade } from "../../../src/applications/common/api/worke
 import { DriveViewModel } from "../../../src/applications/drive-app/drive/view/DriveViewModel"
 import { func, matchers, object, when } from "testdouble"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
-import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
 import { TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { DriveFileTypeRef, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { DriveFolderTypeRef } from "@tutao/entities/drive"
 import { CustomerInfoTypeRef, GroupInfoTypeRef, PlanConfigurationTypeRef } from "@tutao/entities/sys"
-import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
-import { Mode } from "../../../src/platform-kit/app-env"
 import { DriveModel } from "../../../src/applications/drive-app/drive/model/DriveModel"
 
 o.spec("DriveViewModel", function () {
@@ -29,9 +27,7 @@ o.spec("DriveViewModel", function () {
 	let loginController: LoginController
 	let userController: UserController
 	let userManagementFacade: UserManagementFacade
-	let windowFacade: WindowFacade
 	let windowCloseConfirmation: () => Promise<boolean>
-	let allTransfersDoneNotification = func() as () => void
 	let driveModel: DriveModel
 
 	const rootIds: Readonly<DriveRootFolders> = {
@@ -69,7 +65,6 @@ o.spec("DriveViewModel", function () {
 		router = object()
 		eventController = object()
 		loginController = object()
-		windowFacade = object()
 		driveModel = object()
 		windowCloseConfirmation = func() as () => Promise<boolean>
 
@@ -95,10 +90,6 @@ o.spec("DriveViewModel", function () {
 
 		entityRestClientMock.addListInstances(rootFolders.root)
 
-		when(driveModel.setAllTransfersDoneListener(matchers.anything())).thenDo((listener: () => void) => {
-			allTransfersDoneNotification = listener
-		})
-
 		driveViewModel = new DriveViewModel(
 			entityClient,
 			driveFacade,
@@ -107,9 +98,7 @@ o.spec("DriveViewModel", function () {
 			loginController,
 			userManagementFacade,
 			null,
-			windowFacade,
 			() => {},
-			windowCloseConfirmation,
 			object(),
 			object(),
 			object(),
@@ -164,138 +153,6 @@ o.spec("DriveViewModel", function () {
 				await driveViewModel.uploadFiles(webFiles, showDuplicateFilesChoiceDialog, [], customFolderTarget)
 
 				verify(driveModel.uploadFiles(webFiles, customFolderTarget, showDuplicateFilesChoiceDialog, []))
-			})
-		})
-
-		o.spec("windows close listener", function () {
-			o.beforeEach(function () {
-				when(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenResolve(true)
-			})
-
-			o.test("should set up a close listener when uploading and remove it and close the window on user request", async function () {
-				const deleteListenerFunction = func() as () => void
-				let windowCloseRequest: () => void
-				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-					windowCloseRequest = listener
-					return deleteListenerFunction
-				})
-				await driveViewModel.displayFolder(rootIds.root)
-
-				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
-
-				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-					await windowCloseRequest!()
-
-					verify(deleteListenerFunction())
-					verify(windowFacade.closeWindow())
-				})
-			})
-
-			o.test("does not set up a close listener if nothing is uploaded", async function () {
-				const deleteListenerFunction = func() as () => void
-				let windowCloseRequest: (() => void) | null = null
-				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-					windowCloseRequest = listener
-					return deleteListenerFunction
-				})
-				await driveViewModel.displayFolder(rootIds.root)
-				when(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true }).thenResolve(false)
-
-				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
-
-				o.check(windowCloseRequest).equals(null)
-			})
-
-			o.test("should set up a close listener when uploading and remove it once all uploads are done", async function () {
-				const deleteListenerFunction = func() as () => void
-				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-					return deleteListenerFunction
-				})
-
-				await driveViewModel.displayFolder(rootIds.root)
-				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
-
-				allTransfersDoneNotification()
-
-				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
-				verify(deleteListenerFunction())
-			})
-
-			o.test("should set up a close listener when uploading and do not remove it before the upload is done", async function () {
-				const deleteListenerFunction = func() as () => void
-				let windowCloseListenerRan = false
-				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-					windowCloseListenerRan = true
-					return deleteListenerFunction
-				})
-
-				await driveViewModel.displayFolder(rootIds.root)
-				await driveViewModel.uploadFiles(webFiles, () => Promise.reject(new Error()))
-
-				verify(driveModel.uploadFiles(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-					o.check(windowCloseListenerRan).equals(true)
-					verify(deleteListenerFunction(), { times: 0 })
-				})
-			})
-		})
-	})
-
-	o.spec("download", function () {
-		o.test("should set up a close listener when downloading and remove it and close the window on user request", async function () {
-			const fileToDownload = createTestEntity(DriveFileTypeRef)
-
-			const deleteListenerFunction = func() as () => void
-			let windowCloseRequest: () => void
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseRequest = listener
-				return deleteListenerFunction
-			})
-
-			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
-
-			verify(driveModel.downloadFile(fileToDownload))
-			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-				await windowCloseRequest!()
-
-				verify(deleteListenerFunction())
-				verify(windowFacade.closeWindow())
-			})
-		})
-
-		o.test("should set up a close listener when downloading and remove it once all downloads are done", async function () {
-			const fileToDownload = createTestEntity(DriveFileTypeRef)
-
-			const deleteListenerFunction = func() as () => void
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				return deleteListenerFunction
-			})
-
-			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
-
-			allTransfersDoneNotification()
-
-			verify(driveModel.downloadFile(fileToDownload))
-			verify(deleteListenerFunction())
-		})
-
-		o.test("should set up a close listener when downloading and do not remove it before the download is done", async function () {
-			const fileToDownload = createTestEntity(DriveFileTypeRef)
-
-			const deleteListenerFunction = func() as () => void
-			let windowCloseListenerRan = false
-			when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
-				windowCloseListenerRan = true
-				return deleteListenerFunction
-			})
-
-			await driveViewModel.downloadFile(createTestEntity(DriveFileTypeRef))
-
-			verify(driveModel.downloadFile(fileToDownload))
-			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-				o.check(windowCloseListenerRan).equals(true)
-				verify(deleteListenerFunction(), { times: 0 })
 			})
 		})
 	})

@@ -5,13 +5,15 @@ import { DriveFacade, DriveFolderType, DriveRootFolders } from "../../../src/app
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { EventController } from "../../../src/applications/common/api/main/EventController"
 import { TransferProgressDispatcher } from "../../../src/applications/common/api/main/TransferProgressDispatcher"
-import { matchers, object, when } from "testdouble"
+import { func, matchers, object, when } from "testdouble"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv } from "../TestUtils"
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, toFolderItem } from "../../../src/applications/drive-app/drive/view/DriveUtils"
 import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
 import { WebFile } from "../../../src/entities/tutanota/Utils"
+import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
+import { Mode } from "../../../src/platform-kit/app-env"
 
 o.spec("DriveModel", function () {
 	let transferController: DriveTransferController
@@ -19,7 +21,10 @@ o.spec("DriveModel", function () {
 	let entityRestClientMock: EntityRestClientMock
 	let entityClient: EntityClient
 	let eventController: EventController
+	let windowFacade: WindowFacade
 	let transferProgressDispatcher: TransferProgressDispatcher
+	let windowCloseConfirmation: () => Promise<boolean>
+	let allTransfersDoneNotification = func() as () => void
 
 	let driveModel: DriveModel
 
@@ -58,10 +63,24 @@ o.spec("DriveModel", function () {
 		entityClient = new EntityClient(entityRestClientMock, clientInitializedTypeModelResolver())
 		eventController = object()
 		transferProgressDispatcher = object()
-		driveModel = new DriveModel(transferController, driveFacade, entityClient, eventController, transferProgressDispatcher)
+		windowFacade = object()
+		windowCloseConfirmation = func() as () => Promise<boolean>
+
+		when(transferController.setAllTransfersDoneListener(matchers.anything())).thenDo((listener: () => void) => {
+			allTransfersDoneNotification = listener
+		})
+
+		driveModel = new DriveModel(
+			transferController,
+			driveFacade,
+			entityClient,
+			eventController,
+			transferProgressDispatcher,
+			windowFacade,
+			windowCloseConfirmation,
+		)
 
 		when(driveFacade.loadRootFolders(matchers.anything())).thenResolve(rootIds)
-
 		await driveModel.init()
 	})
 
@@ -275,8 +294,7 @@ o.spec("DriveModel", function () {
 				},
 			]
 			when(driveFacade.getFolderContents(rootIds.root)).thenResolve({ files: [], folders: [] })
-			const result = await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
-			o.check(result).equals(true)("Upload result")
+			await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
 
 			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 		})
@@ -300,10 +318,9 @@ o.spec("DriveModel", function () {
 			]
 			when(driveFacade.getFolderContents(rootIds.root)).thenResolve({ files: [], folders: [] })
 
-			const result = await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
+			await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
 				return { choice: "keepBoth", applyToAll: true }
 			})
-			o.check(result).equals(true)("Upload result")
 
 			verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 			verify(transferController.upload(webFiles[1], "meow (copy)", rootIds.root))
@@ -337,10 +354,9 @@ o.spec("DriveModel", function () {
 				]
 
 				when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
-				const result = await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
+				await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
 					return { choice: "keepBoth", applyToAll: true }
 				})
-				o.check(result).equals(true)("Upload result")
 
 				verify(transferController.upload(webFiles[0], "meow", rootIds.root))
 				verify(transferController.upload(webFiles[1], "meow (copy) (copy)", rootIds.root))
@@ -366,10 +382,9 @@ o.spec("DriveModel", function () {
 			]
 
 			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
-			const result = await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
+			await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
 				return { choice: "cancel", applyToAll: true }
 			})
-			o.check(result).equals(false)("Upload result")
 			verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		})
 		o.test("when duplicate file name decision 'replace', the file is not renamed", async function () {
@@ -391,10 +406,9 @@ o.spec("DriveModel", function () {
 			]
 
 			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
-			const result = await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
+			await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
 				return { choice: "replace", applyToAll: true }
 			})
-			o.check(result).equals(true)("Upload result")
 			verify(driveFacade.moveToTrash([], [existingFolders[0]._id]))
 			verify(transferController.upload(webFiles[0], "meow", rootFolders.root._id))
 		})
@@ -446,6 +460,162 @@ o.spec("DriveModel", function () {
 			verify(
 				driveFacade.move([driveFiles[0], driveFiles[1]], [], rootFolders.root._id, new Map([[elementIdPart(files[1].id), `same name (copy) (copy)`]])),
 			)
+		})
+	})
+	o.spec("windows close listener", function () {
+		o.spec("uploads", function () {
+			o.test("should set up a close listener when uploading and remove it and close the window on user request", async function () {
+				const webFiles: WebFile[] = [
+					{
+						_type: "WebFile",
+						file: {
+							name: "meow",
+							size: 1024,
+						} as File,
+					},
+				]
+				const deleteListenerFunction = func() as () => void
+				let windowCloseRequest: () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseRequest = listener
+					return deleteListenerFunction
+				})
+				when(windowCloseConfirmation()).thenResolve(true)
+				when(driveFacade.getFolderContents(matchers.anything())).thenResolve({ files: [], folders: [] })
+
+				await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
+
+				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
+
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					await windowCloseRequest!()
+
+					verify(deleteListenerFunction())
+					verify(windowFacade.closeWindow())
+				})
+			})
+
+			o.test("does not set up a close listener if nothing is uploaded", async function () {
+				const deleteListenerFunction = func() as () => void
+				let windowCloseRequest: (() => void) | null = null
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseRequest = listener
+					return deleteListenerFunction
+				})
+				when(driveFacade.getFolderContents(matchers.anything())).thenResolve({ files: [], folders: [] })
+
+				o.check(windowCloseRequest).equals(null)
+			})
+
+			o.test("should set up a close listener when uploading and remove it once all uploads are done", async function () {
+				const webFiles: WebFile[] = [
+					{
+						_type: "WebFile",
+						file: {
+							name: "meow",
+							size: 1024,
+						} as File,
+					},
+				]
+				const deleteListenerFunction = func() as () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					return deleteListenerFunction
+				})
+				when(driveFacade.getFolderContents(matchers.anything())).thenResolve({ files: [], folders: [] })
+
+				await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
+				when(windowCloseConfirmation()).thenResolve(false)
+
+				allTransfersDoneNotification()
+
+				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()))
+				verify(deleteListenerFunction())
+			})
+
+			o.test("should set up a close listener when uploading and do not remove it before the upload is done", async function () {
+				const webFiles: WebFile[] = [
+					{
+						_type: "WebFile",
+						file: {
+							name: "meow",
+							size: 1024,
+						} as File,
+					},
+				]
+				const deleteListenerFunction = func() as () => void
+				let windowCloseListenerRan = false
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseListenerRan = true
+					return deleteListenerFunction
+				})
+				when(driveFacade.getFolderContents(matchers.anything())).thenResolve({ files: [], folders: [] })
+
+				await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
+
+				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()))
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					o.check(windowCloseListenerRan).equals(true)
+					verify(deleteListenerFunction(), { times: 0 })
+				})
+			})
+		})
+		o.spec("download", function () {
+			o.test("should set up a close listener when downloading and remove it and close the window on user request", async function () {
+				const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+				const deleteListenerFunction = func() as () => void
+				let windowCloseRequest: () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseRequest = listener
+					return deleteListenerFunction
+				})
+				when(windowCloseConfirmation()).thenResolve(true)
+
+				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+				verify(transferController.download(fileToDownload, "download"))
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					await windowCloseRequest!()
+
+					verify(deleteListenerFunction())
+					verify(windowFacade.closeWindow())
+				})
+			})
+
+			o.test("should set up a close listener when downloading and remove it once all downloads are done", async function () {
+				const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+				const deleteListenerFunction = func() as () => void
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					deleteListenerFunction()
+				})
+
+				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+				allTransfersDoneNotification()
+
+				verify(transferController.download(fileToDownload, "download"))
+				verify(deleteListenerFunction())
+			})
+
+			o.test("should set up a close listener when downloading and do not remove it before the download is done", async function () {
+				const fileToDownload = createTestEntity(DriveFileTypeRef)
+
+				const deleteListenerFunction = func() as () => void
+				let windowCloseListenerRan = false
+				when(windowFacade.addWindowCloseListener(matchers.anything())).thenDo((listener: () => void) => {
+					windowCloseListenerRan = true
+					return deleteListenerFunction
+				})
+
+				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
+
+				verify(transferController.download(fileToDownload, "download"))
+				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+					o.check(windowCloseListenerRan).equals(true)
+					verify(deleteListenerFunction(), { times: 0 })
+				})
+			})
 		})
 	})
 })
