@@ -51,6 +51,7 @@ import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instan
 import { changeInstanceDirection } from "./InstancePipelineTestUtils"
 import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
+import { InstanceKeyProviderMaker } from "../../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -66,9 +67,11 @@ o.spec("PatchMergerTest", () => {
 	let customCacheHandlerMap: CustomCacheHandlerMap
 	let cryptoWrapper: CryptoWrapper
 	let app: AppName
+	let instanceKeyProviderMaker: InstanceKeyProviderMaker
 
 	o.beforeEach(async () => {
 		cryptoWrapper = new CryptoWrapper()
+		instanceKeyProviderMaker = object()
 		cryptoFacadePartialStub = new CryptoFacade(
 			instance(UserFacade),
 			instance(EntityClient),
@@ -86,6 +89,7 @@ o.spec("PatchMergerTest", () => {
 			async () => {
 				noOp()
 			},
+			instanceKeyProviderMaker,
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk

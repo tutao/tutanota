@@ -674,6 +674,8 @@ export type ExternalUserDataParams = {
 	externalMailGroupInfoInstanceKeyVersion: null | NumberString
 	externalUserEncUserGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
 	externalUserGroupInfoInstanceKeyVersion: null | NumberString
+	externalUserGroupInfoKdfNonce: null | Uint8Array<ArrayBuffer>
+	externalMailGroupInfoKdfNonce: null | Uint8Array<ArrayBuffer>
 
 	userGroupData: CreateExternalUserGroupData
 }
@@ -697,6 +699,8 @@ export type ExternalUserData = {
 	externalMailGroupInfoInstanceKeyVersion: null | NumberString
 	externalUserEncUserGroupInfoInstanceKey: null | Uint8Array<ArrayBuffer>
 	externalUserGroupInfoInstanceKeyVersion: null | NumberString
+	externalUserGroupInfoKdfNonce: null | Uint8Array<ArrayBuffer>
+	externalMailGroupInfoKdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -7852,7 +7856,7 @@ export type LabelPostTransferAggregatedType = {
 	_original: Nullable<LabelPostTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2097)
+export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2099)
 
 export function createImapFolderSyncStateTransferAggregatedType(
 	values: ImapFolderSyncStateTransferAggregatedTypeParams,
@@ -7894,7 +7898,7 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	_original: Nullable<ImapFolderSyncStateTransferAggregatedType>
 	isAdapter: false
 }
-export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2106)
+export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2108)
 
 export function createOAuthTokenEndpointResponseTransferAggregatedType(
 	values: OAuthTokenEndpointResponseTransferAggregatedTypeParams,
@@ -7938,7 +7942,7 @@ export type OAuthTokenEndpointResponseTransferAggregatedType = {
 	_original: Nullable<OAuthTokenEndpointResponseTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2112)
+export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2114)
 
 export function createImapAccountTransferAggregatedType(values: ImapAccountTransferAggregatedTypeParams): ImapAccountTransferAggregatedType {
 	return Object.assign(create(typeModels[ImapAccountTransferAggregatedTypeTypeRef.typeId], ImapAccountTransferAggregatedTypeTypeRef), values)
@@ -7987,7 +7991,7 @@ export type ImapAccountTransferAggregatedType = {
 	_original: Nullable<ImapAccountTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2122)
+export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2124)
 
 export function createImapAccountSyncStateTransferAggregatedType(
 	values: ImapAccountSyncStateTransferAggregatedTypeParams,
@@ -8038,7 +8042,7 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	_original: Nullable<ImapAccountSyncStateTransferAggregatedType>
 	isAdapter: false
 }
-export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2134)
+export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2136)
 
 export function createImportedMailAddress(values: ImportedMailAddressParams): ImportedMailAddress {
 	return Object.assign(create(typeModels[ImportedMailAddressTypeRef.typeId], ImportedMailAddressTypeRef), values)
@@ -8073,7 +8077,7 @@ export type ImportedMailAddress = {
 	_original: Nullable<ImportedMailAddress>
 	isAdapter: false
 }
-export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2138)
+export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2140)
 
 export function createImportedRecipients(values: ImportedRecipientsParams): ImportedRecipients {
 	return Object.assign(create(typeModels[ImportedRecipientsTypeRef.typeId], ImportedRecipientsTypeRef), values)
@@ -8111,7 +8115,7 @@ export type ImportedRecipients = {
 	_original: Nullable<ImportedRecipients>
 	isAdapter: false
 }
-export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2143)
+export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2145)
 
 export function createImportedHeader(values: ImportedHeaderParams): ImportedHeader {
 	return Object.assign(create(typeModels[ImportedHeaderTypeRef.typeId], ImportedHeaderTypeRef), values)
@@ -8144,7 +8148,7 @@ export type ImportedHeader = {
 	_original: Nullable<ImportedHeader>
 	isAdapter: false
 }
-export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2146)
+export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2148)
 
 export function createImportedBody(values: ImportedBodyParams): ImportedBody {
 	return Object.assign(create(typeModels[ImportedBodyTypeRef.typeId], ImportedBodyTypeRef), values)
@@ -8177,7 +8181,7 @@ export type ImportedBody = {
 	_original: Nullable<ImportedBody>
 	isAdapter: false
 }
-export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2149)
+export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2151)
 
 export function createImportedMailDetails(values: ImportedMailDetailsParams): ImportedMailDetails {
 	return Object.assign(create(typeModels[ImportedMailDetailsTypeRef.typeId], ImportedMailDetailsTypeRef), values)
@@ -8220,7 +8224,7 @@ export type ImportedMailDetails = {
 	_original: Nullable<ImportedMailDetails>
 	isAdapter: false
 }
-export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2156)
+export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2158)
 
 export function createImportedMailDetailsBlob(values: ImportedMailDetailsBlobParams): ImportedMailDetailsBlob {
 	return Object.assign(create(typeModels[ImportedMailDetailsBlobTypeRef.typeId], ImportedMailDetailsBlobTypeRef), values)
@@ -8254,7 +8258,7 @@ export type ImportedMailDetailsBlob = {
 	_original: Nullable<ImportedMailDetailsBlob>
 	isAdapter: false
 }
-export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2159)
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2161)
 
 export function createImportedMail(values: ImportedMailParams): ImportedMail {
 	return Object.assign(create(typeModels[ImportedMailTypeRef.typeId], ImportedMailTypeRef), values)
@@ -8310,7 +8314,7 @@ export type ImportedMail = {
 	_original: Nullable<ImportedMail>
 	isAdapter: false
 }
-export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2174)
+export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2176)
 
 export function createImportedImportedImapMail(values: ImportedImportedImapMailParams): ImportedImportedImapMail {
 	return Object.assign(create(typeModels[ImportedImportedImapMailTypeRef.typeId], ImportedImportedImapMailTypeRef), values)
@@ -8345,7 +8349,7 @@ export type ImportedImportedImapMail = {
 	_original: Nullable<ImportedImportedImapMail>
 	isAdapter: false
 }
-export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2178)
+export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2180)
 
 export function createImportedDeduplicatedImportedAttachment(values: ImportedDeduplicatedImportedAttachmentParams): ImportedDeduplicatedImportedAttachment {
 	return Object.assign(create(typeModels[ImportedDeduplicatedImportedAttachmentTypeRef.typeId], ImportedDeduplicatedImportedAttachmentTypeRef), values)
@@ -8379,7 +8383,7 @@ export type ImportedDeduplicatedImportedAttachment = {
 	_original: Nullable<ImportedDeduplicatedImportedAttachment>
 	isAdapter: false
 }
-export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2185)
+export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2187)
 
 export function createImportMailData2(values: ImportMailData2Params): ImportMailData2 {
 	return Object.assign(create(typeModels[ImportMailData2TypeRef.typeId], ImportMailData2TypeRef), values)

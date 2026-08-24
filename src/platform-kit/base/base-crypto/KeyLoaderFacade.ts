@@ -14,7 +14,7 @@ import {
 	isRsaOrRsaX25519KeyPair,
 	VersionedKey,
 } from "@tutao/crypto"
-import { base64UrlCustomIdToString, downcast, isNotNull, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
+import { assertNotNull, downcast, isNotNull, KeyVersion, lazyAsync, Nullable, promiseMap, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { elementIdToId, getElementId, idToElementId, isSameSingleId } from "../../meta"
@@ -26,15 +26,9 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
 import { TypeId } from "../../meta/EntityConstants"
-import { isNull } from "../../utils/Utils"
+import { convertCustomIdToKeyVersion, convertKeyVersionToCustomId, FormerKeyResolver } from "./FormerKeyResolver"
 
-function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
-	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
-}
-
-function convertKeyVersionToCustomId(version: KeyVersion): Id {
-	return stringToBase64UrlCustomId(String(version))
-}
+export type ExternalGroupKeys = { currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }
 
 /**
  * Load symmetric and asymmetric keys and decrypt them.
@@ -47,6 +41,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		private readonly entityClient: EntityClient,
 		private readonly cacheManagementFacade: lazyAsync<CacheManager>,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly formerKeyResolver: FormerKeyResolver,
 	) {}
 
 	/**
@@ -77,8 +72,8 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		} else {
 			// we load a former key as the cached one is newer: groupKey.version > requestedVersion
 			const group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
-			const { symmetricGroupKey } = await this.findFormerGroupKey(group, groupKey, requestedVersion)
-			return symmetricGroupKey
+			const { versionedKey } = await this.formerKeyResolver.findFormerGroupKey(group.formerGroupKeys.list, groupKey, requestedVersion)
+			return versionedKey.object
 		}
 	}
 
@@ -167,9 +162,9 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			}
 		} else {
 			// load a former key pair: groupKeyVersion < groupKey.version
-			const { symmetricGroupKey, groupKeyInstance } = await this.findFormerGroupKey(group, currentGroupKey, requestedVersion)
-			keyPair = groupKeyInstance.keyPair
-			symGroupKey = { object: symmetricGroupKey, version: requestedVersion }
+			const { versionedKey, keyInstance } = await this.formerKeyResolver.findFormerGroupKey(group.formerGroupKeys.list, currentGroupKey, requestedVersion)
+			keyPair = keyInstance.keyPair
+			symGroupKey = versionedKey
 		}
 		return this.validateAndDecryptKeyPair(keyPair, keyPairGroupId, symGroupKey)
 	}
@@ -222,7 +217,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	 * @param groupId MUST NOT be the user group id!
 	 * @private
 	 */
-	private async loadAndDecryptCurrentSymGroupKey(groupId: Id): Promise<SymGroupKey> {
+	private async loadAndDecryptCurrentSymGroupKey(groupId: Id): Promise<VersionedKey> {
 		if (isSameSingleId(groupId, this.userFacade.getUserGroupId())) {
 			throw new ProgrammingError("Must not add the user group to the regular group key cache")
 		}
@@ -232,72 +227,6 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			version: cryptoUtils.parseKeyVersion(groupMembership.groupKeyVersion),
 			object: decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
 		}
-	}
-
-	private async findFormerGroupKey(group: Group, currentGroupKey: VersionedKey, targetKeyVersion: KeyVersion): Promise<GroupKeyAndGroupKeyInstance> {
-		const formerKeysList = group.formerGroupKeys.list
-		// start id is not included in the result of the range request, so we need to start at current version.
-		const startId = convertKeyVersionToCustomId(currentGroupKey.version)
-		const amountOfKeysIncludingTarget = currentGroupKey.version - targetKeyVersion
-
-		let formerKeys: GroupKey[] = await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
-		if (amountOfKeysIncludingTarget > formerKeys.length) {
-			formerKeys = await this.fixOutdatedCache(amountOfKeysIncludingTarget, formerKeys, currentGroupKey, formerKeysList, startId)
-		}
-
-		let lastVersion = currentGroupKey.version
-		let lastGroupKey = currentGroupKey.object
-		let lastGroupKeyInstance: GroupKey | null = null
-
-		for (const formerKey of formerKeys) {
-			const version = this.decodeGroupKeyVersion(getElementId(formerKey))
-			if (version + 1 > lastVersion) {
-				continue
-			} else if (version + 1 === lastVersion) {
-				lastGroupKey = decryptKey(lastGroupKey, formerKey.ownerEncGKey)
-				lastVersion = version
-				lastGroupKeyInstance = formerKey
-				if (lastVersion <= targetKeyVersion) {
-					break
-				}
-			} else {
-				throw new Error(`unexpected version ${version}; expected ${lastVersion}`)
-			}
-		}
-
-		if (lastVersion !== targetKeyVersion || isNull(lastGroupKeyInstance)) {
-			throw new Error(`could not get version (last version is ${lastVersion} of ${formerKeys.length} key(s) loaded from list ${formerKeysList})`)
-		}
-
-		return { symmetricGroupKey: lastGroupKey, groupKeyInstance: lastGroupKeyInstance }
-	}
-
-	/**
-	 * Try reloading missing GroupKey instances in a cached range.
-	 *
-	 * This can be necessary due to a race condition when processing entity event updates after a key rotation,
-	 * when the cache is not yet up to date.
-	 */
-	private async fixOutdatedCache(
-		amountOfKeysIncludingTarget: number,
-		formerKeys: GroupKey[],
-		currentGroupKey: VersionedKey,
-		formerKeysList: string,
-		startId: string,
-	): Promise<GroupKey[]> {
-		const missingGroupKeyIds: Id[] = []
-		for (let i = 1; i <= amountOfKeysIncludingTarget; i++) {
-			const versionToCheck = convertKeyVersionToCustomId(cryptoUtils.checkKeyVersionConstraints(currentGroupKey.version - i))
-			if (!formerKeys.some((formerKey) => isSameSingleId(getElementId(formerKey), versionToCheck))) {
-				missingGroupKeyIds.push(versionToCheck)
-			}
-		}
-		await this.entityClient.loadMultiple(GroupKeyTypeRef, formerKeysList, missingGroupKeyIds)
-		return await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
-	}
-
-	private decodeGroupKeyVersion(id: Id): KeyVersion {
-		return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(id))
 	}
 
 	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey): AsymmetricKeyPair {
@@ -310,6 +239,41 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}
 		return decryptedKeyPair
+	}
+
+	async getCurrentExternalGroupKeys(externalMailGroupId: Id, externalUserGroupId: Id): Promise<ExternalGroupKeys> {
+		const currentExternalUserGroupKey = await this.getCurrentExternalUserGroupKey(externalUserGroupId)
+		const currentExternalMailGroupKey = await this.getCurrentExternalMailGroupKey(externalMailGroupId, externalUserGroupId, currentExternalUserGroupKey)
+		return {
+			currentExternalUserGroupKey,
+			currentExternalMailGroupKey,
+		}
+	}
+
+	async getCurrentExternalUserGroupKey(externalUserGroupId: Id): Promise<VersionedKey> {
+		const externalUserGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalUserGroupId))
+		const requiredInternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
+		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
+		const requiredInternalUserGroupKey = await this.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
+		return {
+			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
+			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
+		}
+	}
+
+	private async getCurrentExternalMailGroupKey(
+		externalMailGroupId: Id,
+		externalUserGroupId: Id,
+		currentExternalUserGroupKey: VersionedKey,
+	): Promise<VersionedKey> {
+		const externalMailGroup = await this.entityClient.load(GroupTypeRef, idToElementId(externalMailGroupId))
+		const requiredExternalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalMailGroup.adminGroupKeyVersion ?? "0")
+		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
+		const requiredExternalUserGroupKey = await this.loadSymGroupKey(externalUserGroupId, requiredExternalUserGroupKeyVersion, currentExternalUserGroupKey)
+		return {
+			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
+			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
+		}
 	}
 }
 
@@ -365,11 +329,6 @@ export function toKeyPair(keyPair: EncryptedKeyPairs): KeyPair {
 	throw new CryptoError("Invalid key pair")
 }
 
-type GroupKeyAndGroupKeyInstance = {
-	symmetricGroupKey: AesKey
-	groupKeyInstance: GroupKey
-}
-
 export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
 	return (
 		keyPair.pubEccKey != null &&
@@ -380,5 +339,3 @@ export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
 		keyPair.symEncPrivRsaKey == null
 	)
 }
-
-type SymGroupKey = { version: KeyVersion; object: AesKey }

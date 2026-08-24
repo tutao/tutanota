@@ -37,7 +37,7 @@ import {
 	LoggedInUserProvider,
 	OwnerEncSessionKeyProvider,
 	PatchGenerator,
-	SessionKeyResolver,
+	SessionAndInstanceKeyResolver,
 	TypeModelResolver,
 } from "@tutao/instance-pipeline"
 import { CryptoNetworkHelper } from "./CryptoNetworkHelper"
@@ -61,6 +61,7 @@ import {
 	AesKey,
 	cryptoUtils,
 	generateKdfNonce,
+	InstanceKeyProvider,
 	KdfNonce,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
 	OwnerKeyProvider,
@@ -135,7 +136,7 @@ export class EntityRestClient implements EntityRestInterface {
 		public readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
+		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly entityMigrator: lazy<EntityMigrator>,
 	) {
 		this.patchGenerator = new PatchGenerator(instancePipeline)
@@ -174,12 +175,14 @@ export class EntityRestClient implements EntityRestInterface {
 			this.instancePipeline.cryptoMapper,
 		)
 		const migratedEntity = await this.entityMigrator().applyMigrations(typeRef, entityAdapter)
-		const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
+		const sessionKeyResolver = this.sessionKeyResolver()
+		const sessionKey = await sessionKeyResolver.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			migratedEntity.getWrappedEncryptedInstance(),
 			sessionKey,
 			validateKdfNonceLength(migratedEntity._kdfNonce),
 			opts.ownerKeyProvider ?? this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
+			await sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),
 		)
 		tm?.endMeasurement()
 		return decrypted
@@ -389,6 +392,8 @@ export class EntityRestClient implements EntityRestInterface {
 					serverTypeModel,
 					entityAdapter,
 					ownerKeyProvider ?? this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+					// if we already have a custom working ownerKeyProvider from EntityRestClientOptions we do not need an instanceKeyProvider
+					ownerKeyProvider == null ? await this.sessionKeyResolver().makeInstanceKeyProvider(entityAdapter) : null,
 					ownerEncSessionKeyProvider,
 				)
 			},
@@ -402,6 +407,7 @@ export class EntityRestClient implements EntityRestInterface {
 		serverTypeModel: ServerTypeModel,
 		entityAdapter: EntityAdapter,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
+		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
 		let sessionKey: AesKey | null
@@ -429,6 +435,7 @@ export class EntityRestClient implements EntityRestInterface {
 			sessionKey,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			ownerKeyProvider,
+			instanceKeyProvider,
 		)
 	}
 
