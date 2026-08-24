@@ -118,6 +118,8 @@ import {
 } from "@tutao/meta"
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
+import { InstanceKeyFacade } from "./InstanceKeyFacade"
+import { CacheManager } from "./persistence/CacheManager"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -197,6 +199,8 @@ export class KeyRotationFacade {
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
+		private readonly instanceKeyFacade: InstanceKeyFacade,
+		private readonly cacheManager: lazyAsync<CacheManager>,
 	) {
 		this.groupIdsThatPerformedKeyRotations = new Set<Id>()
 	}
@@ -274,19 +278,28 @@ export class KeyRotationFacade {
 
 		//user area, team and customer key rotations are send in a single request, so that they can be processed in parallel
 		const serviceData = createGroupKeyRotationPostIn({ groupKeyUpdates: [] })
+		let customerGroupKeyRotationWasExecuted = false
 		if (!isEmpty(pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
 			const groupKeyRotationData = await this.rotateCustomerOrTeamGroupKeys(user, pendingKeyRotations)
 			if (groupKeyRotationData != null) {
 				serviceData.groupKeyUpdates = groupKeyRotationData
+				customerGroupKeyRotationWasExecuted = pendingKeyRotations.teamOrCustomerGroupKeyRotations.some(
+					(r) => r.groupKeyRotationType === GroupKeyRotationType.Customer,
+				)
 			}
 			pendingKeyRotations.teamOrCustomerGroupKeyRotations = []
 		}
 
 		let invitationData: GroupInvitationPostData[] = []
+		let internalMailGroupWasRotated = false
 		if (!isEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
 			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user, pendingKeyRotations)
 			invitationData = preparedReInvites
 			if (groupKeyRotationData != null) {
+				const internalMailGroupId = this.userFacade.getGroupId(GroupType.Mail)
+				internalMailGroupWasRotated = pendingKeyRotations.userAreaGroupsKeyRotations.some((keyRotation) =>
+					isSameSingleId(keyRotation._id[1], internalMailGroupId),
+				)
 				serviceData.groupKeyUpdates = serviceData.groupKeyUpdates.concat(groupKeyRotationData)
 			}
 			pendingKeyRotations.userAreaGroupsKeyRotations = []
@@ -295,6 +308,19 @@ export class KeyRotationFacade {
 			return
 		}
 		await this.serviceExecutor.execute(GroupKeyRotationService_POST, serviceData, null)
+
+		if (customerGroupKeyRotationWasExecuted) {
+			// we reload the customer group as we will otherwise end up in an inconsistent state when sharing instance keys due to a race condition
+			const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
+			await (await this.cacheManager()).reloadGroup(customerGroupId)
+			await this.instanceKeyFacade.executeInstanceKeySharing(GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation)
+		}
+		if (internalMailGroupWasRotated) {
+			// we reload the internal mail group as we will otherwise end up in an inconsistent state when sharing instance keys due to a race condition
+			const internalMailGroupId = this.userFacade.getGroupId(GroupType.Mail)
+			await (await this.cacheManager()).reloadGroup(internalMailGroupId)
+			await this.instanceKeyFacade.executeInstanceKeySharing(GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation)
+		}
 
 		for (const groupKeyUpdate of serviceData.groupKeyUpdates) {
 			this.groupIdsThatPerformedKeyRotations.add(groupKeyUpdate.group)
@@ -739,7 +765,7 @@ export class KeyRotationFacade {
 				const keyVerificationMismatchRecipients: Array<string> = []
 
 				const senderGroupId = this.userFacade.getUserGroupId()
-				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
+				const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipientMailAddress(
 					senderGroupId,
 					bucketKey,
 					memberMailAddress,
@@ -747,23 +773,11 @@ export class KeyRotationFacade {
 					keyVerificationMismatchRecipients,
 				)
 				if (recipientKeyData != null && recipientKeyData.pubEncRecipientKeyData != null) {
-					const keyData = recipientKeyData.pubEncRecipientKeyData
-					const pubEncKeyData = createPubEncKeyData({
-						recipientIdentifier: keyData.mailAddress,
-						recipientIdentifierType: PublicKeyIdentifierType.MAIL_ADDRESS,
-						pubEncSymKey: keyData.pubEncBucketKey,
-						recipientKeyVersion: keyData.recipientKeyVersion,
-						senderKeyVersion: keyData.senderKeyVersion,
-						protocolVersion: keyData.protocolVersion,
-						senderIdentifier: senderGroupId,
-						senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
-						symKeyMac: null,
-					})
 					const groupKeyUpdateData = createGroupKeyUpdateData({
 						sessionKeyEncGroupKey: this.cryptoWrapper.encryptBytes(sessionKey, keyToUint8Array(newGroupKey.object)),
 						sessionKeyEncGroupKeyVersion: String(newGroupKey.version),
 						bucketKeyEncSessionKey: this.cryptoWrapper.encryptKey(bucketKey, sessionKey),
-						pubEncBucketKeyData: pubEncKeyData,
+						pubEncBucketKeyData: recipientKeyData.pubEncRecipientKeyData,
 					})
 					groupKeyUpdates.push(groupKeyUpdateData)
 				} else {

@@ -568,6 +568,12 @@ pub struct ExternalUserData {
 	pub externalUserEncUserGroupInfoInstanceKey: Option<Vec<u8>>,
 	#[serde(rename = "2096")]
 	pub externalUserGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2097")]
+	#[serde(with = "serde_bytes")]
+	pub externalUserGroupInfoKdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2098")]
+	#[serde(with = "serde_bytes")]
+	pub externalMailGroupInfoKdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "151")]
 	pub userGroupData: CreateExternalUserGroupData,
 }
@@ -3638,9 +3644,9 @@ pub struct NewImportAttachment {
 	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1523")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
-	#[serde(rename = "2183")]
+	#[serde(rename = "2185")]
 	pub deduplicatedImportedAttachment: Option<ImportedDeduplicatedImportedAttachment>,
-	#[serde(rename = "2184")]
+	#[serde(rename = "2186")]
 	pub file: Option<FileTransferAggregatedType>,
 }
 
@@ -3813,7 +3819,7 @@ pub struct ImportMailPostIn {
 	pub encImports: Vec<super::sys::StringWrapper>,
 	#[serde(rename = "1964")]
 	pub imapFolderSyncState: Option<IdTupleGenerated>,
-	#[serde(rename = "2195")]
+	#[serde(rename = "2197")]
 	pub encImports2: Vec<super::sys::StringWrapper>,
 }
 
@@ -4717,7 +4723,7 @@ pub struct ImapFolderPostIn {
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
 	pub mailSet: Option<IdTupleGenerated>,
-	#[serde(rename = "2105")]
+	#[serde(rename = "2107")]
 	pub imapFolderSyncState: Option<ImapFolderSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
@@ -4793,7 +4799,7 @@ pub struct ImapPostIn {
 	pub rootImportMailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1967")]
 	pub syncLabel: Option<IdTupleGenerated>,
-	#[serde(rename = "2133")]
+	#[serde(rename = "2135")]
 	pub imapAccountSyncState: Option<ImapAccountSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
@@ -5295,20 +5301,20 @@ impl Entity for LabelPostTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapFolderSyncStateTransferAggregatedType {
-	#[serde(rename = "2098")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2099")]
-	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "2100")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2101")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2102")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2101")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2102")]
-	pub path: String,
 	#[serde(rename = "2103")]
-	pub imapSpecialUse: Option<String>,
+	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2104")]
+	pub path: String,
+	#[serde(rename = "2105")]
+	pub imapSpecialUse: Option<String>,
+	#[serde(rename = "2106")]
 	pub mailSet: Option<IdTupleGenerated>,
 
 	#[serde(default)]
@@ -5319,7 +5325,7 @@ impl Entity for ImapFolderSyncStateTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2097),
+			type_id: TypeId::from(2099),
 		}
 	}
 }
@@ -5327,15 +5333,15 @@ impl Entity for ImapFolderSyncStateTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct OAuthTokenEndpointResponseTransferAggregatedType {
-	#[serde(rename = "2107")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2108")]
-	pub accessToken: String,
 	#[serde(rename = "2109")]
-	pub refreshToken: Option<String>,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2110")]
-	pub expiresIn: Option<i64>,
+	pub accessToken: String,
 	#[serde(rename = "2111")]
+	pub refreshToken: Option<String>,
+	#[serde(rename = "2112")]
+	pub expiresIn: Option<i64>,
+	#[serde(rename = "2113")]
 	pub tokenType: String,
 
 	#[serde(default)]
@@ -5346,7 +5352,7 @@ impl Entity for OAuthTokenEndpointResponseTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2106),
+			type_id: TypeId::from(2108),
 		}
 	}
 }
@@ -5354,24 +5360,24 @@ impl Entity for OAuthTokenEndpointResponseTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapAccountTransferAggregatedType {
-	#[serde(rename = "2113")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2114")]
-	pub host: String,
 	#[serde(rename = "2115")]
-	pub port: i64,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2116")]
-	pub username: String,
+	pub host: String,
 	#[serde(rename = "2117")]
-	pub password: Option<String>,
+	pub port: i64,
 	#[serde(rename = "2118")]
-	pub ignoreCertificateErrors: bool,
+	pub username: String,
 	#[serde(rename = "2119")]
+	pub password: Option<String>,
+	#[serde(rename = "2120")]
+	pub ignoreCertificateErrors: bool,
+	#[serde(rename = "2121")]
 	#[serde(with = "serde_bytes")]
 	pub customCertificateData: Option<Vec<u8>>,
-	#[serde(rename = "2120")]
+	#[serde(rename = "2122")]
 	pub useSSL: Option<bool>,
-	#[serde(rename = "2121")]
+	#[serde(rename = "2123")]
 	pub oAuthTokenEndpointResponse: Option<OAuthTokenEndpointResponseTransferAggregatedType>,
 
 	#[serde(default)]
@@ -5382,7 +5388,7 @@ impl Entity for ImapAccountTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2112),
+			type_id: TypeId::from(2114),
 		}
 	}
 }
@@ -5390,26 +5396,26 @@ impl Entity for ImapAccountTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImapAccountSyncStateTransferAggregatedType {
-	#[serde(rename = "2123")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2124")]
-	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "2125")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2126")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2127")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2126")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2127")]
-	pub maxQuota: i64,
 	#[serde(rename = "2128")]
-	pub postponedUntil: i64,
+	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2129")]
-	pub provider: i64,
+	pub maxQuota: i64,
 	#[serde(rename = "2130")]
-	pub imapAccount: ImapAccountTransferAggregatedType,
+	pub postponedUntil: i64,
 	#[serde(rename = "2131")]
-	pub rootImportMailSet: Option<IdTupleGenerated>,
+	pub provider: i64,
 	#[serde(rename = "2132")]
+	pub imapAccount: ImapAccountTransferAggregatedType,
+	#[serde(rename = "2133")]
+	pub rootImportMailSet: Option<IdTupleGenerated>,
+	#[serde(rename = "2134")]
 	pub imapSyncLabel: Option<IdTupleGenerated>,
 
 	#[serde(default)]
@@ -5420,7 +5426,7 @@ impl Entity for ImapAccountSyncStateTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2122),
+			type_id: TypeId::from(2124),
 		}
 	}
 }
@@ -5428,11 +5434,11 @@ impl Entity for ImapAccountSyncStateTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedMailAddress {
-	#[serde(rename = "2135")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2136")]
-	pub name: String,
 	#[serde(rename = "2137")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2138")]
+	pub name: String,
+	#[serde(rename = "2139")]
 	pub address: String,
 
 	#[serde(default)]
@@ -5443,7 +5449,7 @@ impl Entity for ImportedMailAddress {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2134),
+			type_id: TypeId::from(2136),
 		}
 	}
 }
@@ -5451,13 +5457,13 @@ impl Entity for ImportedMailAddress {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedRecipients {
-	#[serde(rename = "2139")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2140")]
-	pub toRecipients: Vec<ImportedMailAddress>,
 	#[serde(rename = "2141")]
-	pub ccRecipients: Vec<ImportedMailAddress>,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2142")]
+	pub toRecipients: Vec<ImportedMailAddress>,
+	#[serde(rename = "2143")]
+	pub ccRecipients: Vec<ImportedMailAddress>,
+	#[serde(rename = "2144")]
 	pub bccRecipients: Vec<ImportedMailAddress>,
 }
 
@@ -5465,7 +5471,7 @@ impl Entity for ImportedRecipients {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2138),
+			type_id: TypeId::from(2140),
 		}
 	}
 }
@@ -5473,9 +5479,9 @@ impl Entity for ImportedRecipients {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedHeader {
-	#[serde(rename = "2144")]
+	#[serde(rename = "2146")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2145")]
+	#[serde(rename = "2147")]
 	pub compressedHeaders: Option<String>,
 
 	#[serde(default)]
@@ -5486,7 +5492,7 @@ impl Entity for ImportedHeader {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2143),
+			type_id: TypeId::from(2145),
 		}
 	}
 }
@@ -5494,9 +5500,9 @@ impl Entity for ImportedHeader {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedBody {
-	#[serde(rename = "2147")]
+	#[serde(rename = "2149")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2148")]
+	#[serde(rename = "2150")]
 	pub compressedText: Option<String>,
 
 	#[serde(default)]
@@ -5507,7 +5513,7 @@ impl Entity for ImportedBody {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2146),
+			type_id: TypeId::from(2148),
 		}
 	}
 }
@@ -5515,17 +5521,17 @@ impl Entity for ImportedBody {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedMailDetails {
-	#[serde(rename = "2150")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2151")]
-	pub sentDate: DateTime,
 	#[serde(rename = "2152")]
-	pub replyTos: Vec<EncryptedMailAddress>,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2153")]
-	pub recipients: ImportedRecipients,
+	pub sentDate: DateTime,
 	#[serde(rename = "2154")]
-	pub headers: Option<ImportedHeader>,
+	pub replyTos: Vec<EncryptedMailAddress>,
 	#[serde(rename = "2155")]
+	pub recipients: ImportedRecipients,
+	#[serde(rename = "2156")]
+	pub headers: Option<ImportedHeader>,
+	#[serde(rename = "2157")]
 	pub body: ImportedBody,
 }
 
@@ -5533,7 +5539,7 @@ impl Entity for ImportedMailDetails {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2149),
+			type_id: TypeId::from(2151),
 		}
 	}
 }
@@ -5541,9 +5547,9 @@ impl Entity for ImportedMailDetails {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedMailDetailsBlob {
-	#[serde(rename = "2157")]
+	#[serde(rename = "2159")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2158")]
+	#[serde(rename = "2160")]
 	pub details: ImportedMailDetails,
 }
 
@@ -5551,7 +5557,7 @@ impl Entity for ImportedMailDetailsBlob {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2156),
+			type_id: TypeId::from(2158),
 		}
 	}
 }
@@ -5559,34 +5565,34 @@ impl Entity for ImportedMailDetailsBlob {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedMail {
-	#[serde(rename = "2160")]
+	#[serde(rename = "2162")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2161")]
+	#[serde(rename = "2163")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2162")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2163")]
-	pub subject: String,
 	#[serde(rename = "2164")]
-	pub receivedDate: DateTime,
+	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "2165")]
-	pub state: i64,
+	pub subject: String,
 	#[serde(rename = "2166")]
-	pub unread: bool,
+	pub receivedDate: DateTime,
 	#[serde(rename = "2167")]
-	pub confidential: bool,
+	pub state: i64,
 	#[serde(rename = "2168")]
-	pub replyType: i64,
+	pub unread: bool,
 	#[serde(rename = "2169")]
-	pub differentEnvelopeSender: Option<String>,
+	pub confidential: bool,
 	#[serde(rename = "2170")]
-	pub phishingStatus: i64,
+	pub replyType: i64,
 	#[serde(rename = "2171")]
-	pub method: i64,
+	pub differentEnvelopeSender: Option<String>,
 	#[serde(rename = "2172")]
-	pub sender: ImportedMailAddress,
+	pub phishingStatus: i64,
 	#[serde(rename = "2173")]
+	pub method: i64,
+	#[serde(rename = "2174")]
+	pub sender: ImportedMailAddress,
+	#[serde(rename = "2175")]
 	pub firstRecipient: Option<ImportedMailAddress>,
 
 	#[serde(default)]
@@ -5597,7 +5603,7 @@ impl Entity for ImportedMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2159),
+			type_id: TypeId::from(2161),
 		}
 	}
 }
@@ -5605,11 +5611,11 @@ impl Entity for ImportedMail {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedImportedImapMail {
-	#[serde(rename = "2175")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2176")]
-	pub imapUid: i64,
 	#[serde(rename = "2177")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2178")]
+	pub imapUid: i64,
+	#[serde(rename = "2179")]
 	pub imapModSeq: Option<i64>,
 }
 
@@ -5617,7 +5623,7 @@ impl Entity for ImportedImportedImapMail {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2174),
+			type_id: TypeId::from(2176),
 		}
 	}
 }
@@ -5625,14 +5631,14 @@ impl Entity for ImportedImportedImapMail {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportedDeduplicatedImportedAttachment {
-	#[serde(rename = "2179")]
+	#[serde(rename = "2181")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2180")]
+	#[serde(rename = "2182")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2181")]
+	#[serde(rename = "2183")]
 	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2182")]
+	#[serde(rename = "2184")]
 	pub attachmentHash: String,
 
 	#[serde(default)]
@@ -5643,7 +5649,7 @@ impl Entity for ImportedDeduplicatedImportedAttachment {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2178),
+			type_id: TypeId::from(2180),
 		}
 	}
 }
@@ -5651,23 +5657,23 @@ impl Entity for ImportedDeduplicatedImportedAttachment {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct ImportMailData2 {
-	#[serde(rename = "2186")]
-	pub _format: i64,
-	#[serde(rename = "2187")]
-	pub messageId: Option<String>,
 	#[serde(rename = "2188")]
-	pub inReplyTo: Option<String>,
+	pub _format: i64,
 	#[serde(rename = "2189")]
-	pub labels: Vec<IdTupleGenerated>,
+	pub messageId: Option<String>,
 	#[serde(rename = "2190")]
-	pub references: Vec<ImportMailDataMailReference>,
+	pub inReplyTo: Option<String>,
 	#[serde(rename = "2191")]
-	pub mail: ImportedMail,
+	pub labels: Vec<IdTupleGenerated>,
 	#[serde(rename = "2192")]
-	pub mailDetailsBlob: ImportedMailDetailsBlob,
+	pub references: Vec<ImportMailDataMailReference>,
 	#[serde(rename = "2193")]
-	pub importAttachments: Vec<ImportAttachment>,
+	pub mail: ImportedMail,
 	#[serde(rename = "2194")]
+	pub mailDetailsBlob: ImportedMailDetailsBlob,
+	#[serde(rename = "2195")]
+	pub importAttachments: Vec<ImportAttachment>,
+	#[serde(rename = "2196")]
 	pub importedImapMail: Option<ImportedImportedImapMail>,
 }
 
@@ -5675,7 +5681,7 @@ impl Entity for ImportMailData2 {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2185),
+			type_id: TypeId::from(2187),
 		}
 	}
 }

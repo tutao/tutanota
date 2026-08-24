@@ -116,6 +116,8 @@ import {
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
 import { isNull } from "../../utils/Utils"
+import { InstanceKeyFacade } from "../base-crypto/InstanceKeyFacade"
+import { InstanceKeySharingRolloutAction } from "../base-crypto/InstanceKeySharingRolloutAction"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -236,6 +238,7 @@ export class LoginFacade implements SessionTypeProvider {
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyRotationFacade: KeyRotationFacade,
+		private readonly instanceKeyFacade: InstanceKeyFacade,
 		/**
 		 *  Only needed so that we can initialize the offline storage after login.
 		 *  This is necessary because we don't know if we'll be persistent or not until the user tries to log in
@@ -893,6 +896,12 @@ export class LoginFacade implements SessionTypeProvider {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
 					new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey, modernKdfType, sessionType),
+				)
+			}
+			if (rolloutType === RolloutType.InstanceKeySharing) {
+				await this.rolloutFacade.configureRollout(
+					rolloutType,
+					new InstanceKeySharingRolloutAction(this.instanceKeyFacade, this.userFacade, sessionType),
 				)
 			}
 		}
