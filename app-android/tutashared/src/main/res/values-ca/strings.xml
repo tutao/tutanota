@@ -17,6 +17,7 @@
     <string name="widgetCredentialsError_msg">Si us plau, inicia la sessió a l\'aplicació Calendari</string>
     <string name="widgetOpenApp_action">Obre l\'aplicació</string>
     <string name="widgetNoEvents_msg">Sense esdeveniments</string>
+    <string name="widgetNoEventsToday_msg">Avui no tens cap esdeveniment.</string>
     <string name="widgetDescription_msg">Mostra els propers esdeveniments d\'avui</string>
     <string name="birthdayCalendar_label">Aniversaris</string>
     <string name="birthdayEvent_title">L\'aniversari de {name}</string>

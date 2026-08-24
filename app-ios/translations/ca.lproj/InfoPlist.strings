@@ -20,6 +20,7 @@ TutaoWidgetOpenAppAction = "Obre l'aplicació";
 TutaoWidgetUnexpectedErrorMsg = "Ups! S'ha produït un error.";
 TutaoWidgetSendLogsAction = "Envia els registres";
 TutaoWidgetNoEventsMsg = "Sense esdeveniments";
+TutaoWidgetNoEventsTodayMsg = "Avui no tens cap esdeveniment.";
 TutaoWidgetCredentialsErrorMsg = "No hi ha credencials disponibles";
 TutaoAccountLabel = "Usuari";
 TutaoCalendarsLabel = "Calendaris";
