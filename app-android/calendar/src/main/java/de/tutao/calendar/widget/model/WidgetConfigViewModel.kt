@@ -10,6 +10,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.error.WidgetError
@@ -115,6 +116,7 @@ class WidgetConfigViewModel(
 	fun loadWidgetSettings(context: Context, widgetId: Int) {
 		viewModelScope.launch {
 			try {
+				Log.i(TAG, "Loading previous settings.")
 				val settings = repository.loadSettings(context.widgetDataStore, widgetId) ?: return@launch
 
 				_isLoading.value = true
@@ -165,7 +167,7 @@ class WidgetConfigViewModel(
 
 		return viewModelScope.launch {
 			try {
-				repository.storeLastSyncInBatch(context, intArrayOf(widgetId), Date())
+				repository.storeLastSyncInBatch(context, intArrayOf(widgetId), Date(), WidgetUpdateTrigger.SETTINGS)
 				repository.storeSettings(
 					context.widgetDataStore,
 					widgetId,
