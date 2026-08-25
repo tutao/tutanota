@@ -6,7 +6,7 @@ import { assertNotNull, filterInt } from "../../../../platform-kit/utils"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
 import { attachDropdown } from "../../../../ui/base/Dropdown"
 import { theme } from "../../../../ui/theme"
-import { FolderItem } from "./DriveUtils"
+import { FileFolderItem, FolderItem } from "./DriveUtils"
 import { TabIndex } from "../../../../platform-kit/app-env"
 import { driveFolderName, getFileContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
@@ -23,6 +23,7 @@ export interface FileActions {
 	onRestore: (f: FolderItem) => unknown
 	onDelete: (f: FolderItem) => unknown
 	onStartMove: (f: FolderItem) => unknown
+	onSendAsEmail: ((f: FileFolderItem) => unknown) | null
 }
 
 export interface DriveFolderContentEntryAttrs {

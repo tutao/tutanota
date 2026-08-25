@@ -38,8 +38,8 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { DriveSearchView, DriveSearchViewAttrs } from "./search/view/DriveSearchView"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { FolderItem } from "./drive/view/DriveUtils"
-import { MoveItems } from "./drive/view/DriveMoveItemDialog"
 import { KeyManager } from "../../ui/utils/KeyManager"
+import { PickedDestinationAction } from "./drive/view/DriveItemPicker"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -220,6 +220,7 @@ import("../../ui/translations/en.js")
 						showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						bottomNav,
+						sendFileViaMail: null,
 					}),
 				},
 				driveLocator.logins,
@@ -231,7 +232,7 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					makeViewModel: () => DriveSearchViewModel
-					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 					filePicker: DriveFilePicker
 				}
 			>(
@@ -259,6 +260,7 @@ import("../../ui/translations/en.js")
 							makeViewModel: cache.makeViewModel,
 							showMoveItemDialog: cache.showMoveItemDialog,
 							filePicker: cache.filePicker,
+							sendFileViaMail: null,
 						}
 					},
 				},

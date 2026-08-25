@@ -19,10 +19,9 @@ import { px, size } from "../../../../ui/size.js"
 import { chooseAndAttachFile } from "../../../mail-app/mail/editor/MailEditorViewModel.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { theme } from "../../../../ui/theme"
-import { MailMethod } from "../../../../entities/tutanota/Utils"
+import { DataFile, MailMethod } from "../../../../entities/tutanota/Utils"
 import { PlanTypeToName } from "../../subscription/utils/SubscriptionUtils"
 
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import type { HtmlEditor } from "../../../../ui/editor/HtmlEditor"
 
 type Props = {

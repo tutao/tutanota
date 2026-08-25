@@ -1,15 +1,15 @@
 import { DomRectReadOnlyPolyfilled, Dropdown, DropdownButtonAttrs, DropdownChildAttrs } from "../../../../ui/base/Dropdown"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { DriveOperationType, FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, OperationUpdate } from "./DriveUtils"
+import { DriveFacade, DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { DriveOperationType, FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, folderItemParentId, OperationUpdate } from "./DriveUtils"
 import { DropType } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Styles } from "../../../../ui/styles"
 import { DriveFolder } from "@tutao/entities/drive"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
 import { EnvProvider, OperationStatus } from "@tutao/app-env"
-import { assertNotNull, isNotNull } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isNotNull } from "@tutao/utils"
 import { FileActions } from "./DriveFolderContentEntry"
 import { DriveSelectedItemsActions } from "./DriveFolderNav"
 import { modal } from "../../../../ui/base/Modal"
@@ -20,6 +20,8 @@ import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 import { DriveTransferState } from "./DriveTransferController"
 import { Shortcut } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction, PickedItemAction, showItemPicker } from "./DriveItemPicker"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 
 export function newItemActions({
 	onUploadFiles,
@@ -183,7 +185,7 @@ export function driveFolderName(folder: DriveFolder): Translation {
 
 // NOTE: Keep the order roughly in sync with getSelectionContextActions.
 export function getFileContextActions(item: FileFolderItem | FolderFolderItem, fileActions: FileActions): DropdownChildAttrs[] {
-	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload } = fileActions
+	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload, onSendAsEmail } = fileActions
 
 	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 
@@ -198,6 +200,15 @@ export function getFileContextActions(item: FileFolderItem | FolderFolderItem, f
 					onDownload(item)
 				},
 			})
+			if (onSendAsEmail) {
+				actions.push({
+					label: lang.getTranslation("sendDriveFileWithMail_action"),
+					icon: Icons.MailFilled,
+					click: () => {
+						onSendAsEmail(item)
+					},
+				})
+			}
 		}
 		actions.push(
 			{
@@ -522,4 +533,62 @@ export function driveKeyboardShortcuts(actions: DriveKeyboardShortcutActions): S
 	}
 
 	return shortcuts
+}
+
+export function showMoveItemDialog(entityClient: EntityClient, driveFacade: DriveFacade, items: FolderItem[], moveItems: PickedDestinationAction) {
+	let itemLabel: string
+	const firstItem = getFirstOrThrow(items)
+	if (items.length === 1) {
+		itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
+	} else {
+		itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": items.length }).text
+	}
+	const parentFolderId = assertNotNull(folderItemParentId(firstItem))
+	const pickerAttrs: DriveItemPickerAttrs = {
+		files: items,
+		mode: DriveItemPickerBehavior.PickDestination,
+		action: moveItems,
+		canCreateFolders: true,
+		title: "move_action",
+		actionLabel: "moveItemHere_action",
+		descriptionLabel: itemLabel,
+		descriptionTestId: "dialog:movingItem_title",
+		startFolderId: parentFolderId,
+		icon: Icons.Move,
+	}
+	showItemPicker(entityClient, driveFacade, pickerAttrs)
+}
+
+export function showDriveFilePickerDialog(entityClient: EntityClient, driveFacade: DriveFacade, startFolderId: IdTuple, action: PickedItemAction) {
+	const pickerAttrs: DriveItemPickerAttrs = {
+		action: (items) => {
+			action(items)
+			return Promise.resolve()
+		},
+		actionLabel: "attachDriveFiles_action",
+		canCreateFolders: false,
+		descriptionLabel: lang.getTranslation("attachDriveFiles_label").text,
+		descriptionTestId: "dialog:attachingDriveFile_title",
+		icon: Icons.Paperclip,
+		startFolderId,
+		title: "attachment_label",
+		mode: DriveItemPickerBehavior.PickItems,
+	}
+	showItemPicker(entityClient, driveFacade, pickerAttrs)
+}
+
+export async function showDriveDestinationPickerDialog(entityClient: EntityClient, driveFacade: DriveFacade, action: PickedDestinationAction) {
+	const rootFolders = await driveFacade.loadRootFolders("withNetwork")
+	const pickerAttrs: DriveItemPickerAttrs = {
+		action,
+		actionLabel: "pickDriveFileDestination_action",
+		canCreateFolders: true,
+		descriptionLabel: lang.getTranslation("pickDriveFileDestination_label").text,
+		descriptionTestId: "dialog:pickADestination_title",
+		icon: Icons.FolderFilled,
+		startFolderId: rootFolders.root,
+		title: "saveToDriveDialog_label",
+		mode: DriveItemPickerBehavior.PickDestination,
+	}
+	showItemPicker(entityClient, driveFacade, pickerAttrs)
 }

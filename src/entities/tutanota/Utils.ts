@@ -2,7 +2,6 @@ import { PresentableKeyVerificationState, ProgrammingError, TimeFormat } from ".
 import { isSameTypeRef } from "../../platform-kit/meta"
 import { downcast } from "../../platform-kit/utils"
 import { Contact, File, FileTypeRef, UserSettingsGroupRoot } from "./TypeRefs"
-import { DataFile } from "./MailBundle"
 
 export const MAX_NBR_OF_MAILS_SYNC_OPERATION = 50
 export const MAX_NBR_OF_CONVERSATIONS = 50
@@ -395,6 +394,19 @@ export interface FileReference {
 	cid?: string
 }
 
+/**
+ * a structure containing file content and metadata
+ */
+export interface DataFile {
+	readonly _type: "DataFile"
+	name: string
+	mimeType: string
+	data: Uint8Array<ArrayBuffer>
+	size: number
+	id?: IdTuple
+	cid?: string
+}
+
 export type Attachment = File | DataFile | FileReference
 
 export const enum RecipientType {
@@ -450,7 +462,7 @@ export function isDataFile(file: Attachment): file is DataFile {
 	return file._type === "DataFile"
 }
 
-export function assertOnlyDataFiles(files: Array<Attachment>): asserts files is Array<DataFile> {
+export function assertOnlyDataFiles(files: readonly Attachment[]): asserts files is readonly DataFile[] {
 	if (files.some((f) => !isDataFile(f))) throw new TypeError("not only DataFiles")
 }
 
@@ -458,7 +470,7 @@ export function isFileReference(file: Attachment | WebFile): file is FileReferen
 	return file._type === "FileReference"
 }
 
-export function assertOnlyFileReferences(files: Array<Attachment>): asserts files is Array<FileReference> {
+export function assertOnlyFileReferences(files: readonly Attachment[]): asserts files is readonly FileReference[] {
 	if (files.some((f) => !isFileReference(f))) throw new TypeError("not only FileReference")
 }
 

@@ -696,6 +696,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 								viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginId, viewModel.attachmentAsPluginDataFile(attachment)),
 						} as AttachmentExtensionButton
 					}),
+				saveToDrive: viewModel.isDriveEnabled() ? () => viewModel.saveToDrive(attachment) : null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})

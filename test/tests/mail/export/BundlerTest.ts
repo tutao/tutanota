@@ -20,8 +20,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { MailState } from "../../../../src/entities/tutanota/Utils"
-import { DataFile } from "../../../../src/entities/tutanota/MailBundle"
+import { DataFile, MailState } from "../../../../src/entities/tutanota/Utils"
 
 o.spec("Bundler", function () {
 	let entityClientMock: EntityClient

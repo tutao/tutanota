@@ -15,7 +15,7 @@ import { MoveCycleError } from "../../../common/error/MoveCycleError"
 import { MoveToTrashError } from "../../../common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/error/MoveDestinationIsSourceError"
 import { isWebFile } from "../../../../../../ui/utils/FileUtils"
-import { FileReference, WebFile } from "../../../../../../entities/tutanota/Utils"
+import { DataFile, FileReference, isDataFile, isFileReference, WebFile } from "../../../../../../entities/tutanota/Utils"
 import {
 	createDriveCopyServicePostIn,
 	createDriveFolderServiceDeleteIn,
@@ -185,7 +185,7 @@ export class DriveFacade {
 	/**
 	 * @param to this is the folder where the file will be uploaded
 	 */
-	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
+	public async uploadFile(file: WebFile | FileReference | DataFile, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
 		const sessionKey = aes256RandomKey()
@@ -202,7 +202,7 @@ export class DriveFacade {
 			)) {
 				blobRefTokens.push(referenceTokenWrapper)
 			}
-		} else {
+		} else if (isFileReference(file)) {
 			const tokens = await this.blobFacade.encryptAndUploadNative(
 				ArchiveDataType.DriveFile,
 				file.location,
@@ -210,6 +210,9 @@ export class DriveFacade {
 				sessionKey,
 				fileId,
 			)
+			blobRefTokens.push(...tokens)
+		} else if (isDataFile(file)) {
+			const tokens = await this.blobFacade.encryptAndUpload(ArchiveDataType.DriveFile, file.data, assertNotNull(fileGroupId), sessionKey, fileId)
 			blobRefTokens.push(...tokens)
 		}
 

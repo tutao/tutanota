@@ -1,5 +1,5 @@
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { MailboxExportState } from "../../../../entities/tutanota/Utils"
+import { DataFile, MailboxExportState } from "../../../../entities/tutanota/Utils"
 import { fileExists } from "../PathUtils.js"
 import path from "node:path"
 import { CancelledError, DesktopConfigKey, ProgrammingError } from "@tutao/app-env"
@@ -21,7 +21,6 @@ import { ExportError, ExportErrorReason } from "../../api/common/error/ExportErr
 import { DesktopExportLock, LockResult } from "./DesktopExportLock"
 import { createDataFile } from "../../api/worker/utils/DataFile"
 import { elementIdPart } from "@tutao/meta"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 
 const EXPORT_DIR = "export"
 
