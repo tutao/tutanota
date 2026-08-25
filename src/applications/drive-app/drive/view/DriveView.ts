@@ -64,6 +64,8 @@ import { wholeListSelected } from "../../../common/misc/ListModel"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
+export type MailFileSender = (item: DriveFile) => unknown
+
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
