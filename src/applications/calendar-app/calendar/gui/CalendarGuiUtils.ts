@@ -5,7 +5,7 @@ import { ButtonType } from "../../../../ui/base/Button.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import type { MousePosAndBounds } from "../../../../ui/base/GuiUtils.js"
-import { Time } from "../../../common/calendar/date/Time.js"
+import { Time } from "../../../common/calendar/Time.js"
 import {
 	assert,
 	assertNotNull,
