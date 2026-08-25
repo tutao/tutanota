@@ -2493,7 +2493,6 @@ export type TranslationKeyType =
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "importFileFailuresError_msg"
 	| "fromAfterToError_msg"
-	| "emptyString_msg"
 	| "duplicateFileName_msg"
 	| "keepBothFiles_action"
 	| "replaceFile_action"
@@ -2517,3 +2516,4 @@ export type TranslationKeyType =
 	| "driveFileTypeFilter_label"
 	| "driveAllFileTypes_label"
 	| "retryFailedTransfers_action"
+	| "emptyString_msg"
