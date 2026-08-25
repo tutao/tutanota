@@ -5,11 +5,10 @@ import type { NativeFileApp } from "../../../app-kit/native-bridge/common/FileAp
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
 import { ArchiveDataType } from "../../../entities/sys/Utils"
-import { File } from "@tutao/entities/tutanota"
 import { assertOnlyFileReferences, FileReference } from "../../../entities/tutanota/Utils"
 import { TransferId } from "../../../entities/drive/Utils"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
-import { createReferencingInstance } from "../../../entities/storage/BlobUtils"
+import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -66,7 +65,7 @@ export class FileControllerNative extends FileController {
 	}
 
 	/** Public for testing */
-	async downloadAndDecrypt(tutanotaFile: File, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
+	async downloadAndDecrypt(tutanotaFile: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(
 			archiveType,
 			createReferencingInstance(tutanotaFile),
@@ -76,7 +75,8 @@ export class FileControllerNative extends FileController {
 		)
 	}
 
-	async writeDownloadedFiles(downloadedFiles: FileReference[]): Promise<void> {
+	async writeDownloadedFiles(downloadedFiles: readonly (DataFile | FileReference)[]): Promise<void> {
+		assertOnlyFileReferences(downloadedFiles)
 		if (EnvProvider.get().isIOSApp()) {
 			await this.processDownloadedFilesIOS(downloadedFiles)
 		} else if (EnvProvider.get().isDesktop()) {
@@ -88,8 +88,9 @@ export class FileControllerNative extends FileController {
 		}
 	}
 
-	async openDownloadedFiles(downloadedFiles: FileReference[]): Promise<void> {
+	async openDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void> {
 		if (EnvProvider.get().isDesktop() || EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {
+			assertOnlyFileReferences(downloadedFiles)
 			await this.openFiles(downloadedFiles)
 		} else {
 			throw new ProgrammingError("in filecontroller native but not in ios, android or desktop? - tried to open")
@@ -103,7 +104,7 @@ export class FileControllerNative extends FileController {
 	 * if the user doesn't have a default dl path selected on desktop,
 	 * the client will ask for a location for each file separately, so we zip them for now.
 	 */
-	private async processDownloadedFilesDesktop(downloadedFiles: FileReference[]): Promise<void> {
+	private async processDownloadedFilesDesktop(downloadedFiles: readonly FileReference[]): Promise<void> {
 		if (downloadedFiles.length < 1) {
 			return
 		}
@@ -122,20 +123,18 @@ export class FileControllerNative extends FileController {
 		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name)
 	}
 
-	// on iOS, we don't actually show downloadAll and open the attachment immediately
-	// the user is presented with an option to save the file to their file system by the OS
-	private async processDownloadedFilesIOS(downloadedFiles: FileReference[]): Promise<void> {
-		await promiseMap(downloadedFiles, async (file) => {
+	private async processDownloadedFilesIOS(downloadedFiles: readonly FileReference[]): Promise<void> {
+		for (const file of downloadedFiles) {
 			try {
 				await this.fileApp.putFileIntoDownloadsFolder(file.location, file.name)
 			} finally {
 				await this.fileApp.deleteFile(file.location).catch((e: any) => console.log("failed to delete file", file.location, e))
 			}
-		})
+		}
 	}
 
-	private async openFiles(downloadedFiles: FileReference[]): Promise<void[]> {
-		return promiseMap(downloadedFiles, async (file) => {
+	private async openFiles(downloadedFiles: readonly FileReference[]): Promise<void> {
+		for (const file of downloadedFiles) {
 			try {
 				await this.fileApp.open(file)
 			} finally {
@@ -143,6 +142,6 @@ export class FileControllerNative extends FileController {
 				if (EnvProvider.get().isApp())
 					await this.fileApp.deleteFile(file.location).catch((e: any) => console.log("failed to delete file", file.location, e))
 			}
-		})
+		}
 	}
 }

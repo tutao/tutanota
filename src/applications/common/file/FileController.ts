@@ -45,7 +45,7 @@ export abstract class FileController {
 	protected constructor(protected readonly blobFacade: BlobFacade) {}
 
 	private async doDownload(
-		tutanotaFiles: readonly DownloadParam[],
+		entitiesToDownload: readonly DownloadParam[],
 		action: DownloadPostProcessing,
 		options: {
 			archiveType: ArchiveDataType
@@ -59,7 +59,7 @@ export abstract class FileController {
 		try {
 			let isOffline = false
 			let downloadFilesBytes = 0
-			for (const { file, transferId } of tutanotaFiles) {
+			for (const { file, transferId } of entitiesToDownload) {
 				try {
 					const downloadedFile = await this.downloadAndDecrypt(file, transferId, archiveType)
 					downloadedFiles.push(downloadedFile)
@@ -134,11 +134,11 @@ export abstract class FileController {
 		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Open, { archiveType }) }
 	}
 
-	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract writeDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
-	protected abstract openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract openDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
-	protected abstract cleanUp(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract cleanUp(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
 	/**
 	 * Get a file from the server and decrypt it
@@ -298,7 +298,7 @@ export function buildDirectoryStructure(filesWithRelativePaths: readonly File[])
  * @param dataFiles Promise resolving to an array of DataFiles
  * @param name the name of the new zip file
  */
-export async function zipDataFiles(dataFiles: Array<DataFile>, name: string): Promise<DataFile> {
+export async function zipDataFiles(dataFiles: readonly DataFile[], name: string): Promise<DataFile> {
 	const jsZip = await import("jszip")
 	const zip = jsZip.default()
 	const deduplicatedMap = deduplicateFilenames(dataFiles.map((df) => sanitizeFilename(df.name)))

@@ -23,20 +23,23 @@ export class FileControllerBrowser extends FileController {
 		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType, transferId)
 	}
 
-	async writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {
+	async writeDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void> {
+		assertOnlyDataFiles(downloadedFiles)
+
 		if (downloadedFiles.length < 1) {
 			return
 		}
-		assertOnlyDataFiles(downloadedFiles)
 		const fileToSave = downloadedFiles.length > 1 ? await zipDataFiles(downloadedFiles, `${sortableTimestamp()}-attachments.zip`) : downloadedFiles[0]
 		return await openDataFileInBrowser(fileToSave)
 	}
 
-	async cleanUp(downloadedFiles: DataFile[]): Promise<void> {
+	async cleanUp(_downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void> {
 		// there is nothing to do since nothing gets saved until the browser puts it into the final location
 	}
 
-	protected async openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void> {
+	protected async openDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void> {
+		assertOnlyDataFiles(downloadedFiles)
+
 		// opening and downloading a file is the same thing in browser environment
 		return await this.writeDownloadedFiles(downloadedFiles)
 	}

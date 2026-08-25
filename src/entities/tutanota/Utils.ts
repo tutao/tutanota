@@ -450,7 +450,7 @@ export function isDataFile(file: Attachment): file is DataFile {
 	return file._type === "DataFile"
 }
 
-export function assertOnlyDataFiles(files: Array<Attachment>): asserts files is Array<DataFile> {
+export function assertOnlyDataFiles(files: readonly Attachment[]): asserts files is readonly DataFile[] {
 	if (files.some((f) => !isDataFile(f))) throw new TypeError("not only DataFiles")
 }
 
@@ -458,7 +458,7 @@ export function isFileReference(file: Attachment | WebFile): file is FileReferen
 	return file._type === "FileReference"
 }
 
-export function assertOnlyFileReferences(files: Array<Attachment>): asserts files is Array<FileReference> {
+export function assertOnlyFileReferences(files: readonly Attachment[]): asserts files is readonly FileReference[] {
 	if (files.some((f) => !isFileReference(f))) throw new TypeError("not only FileReference")
 }
 
