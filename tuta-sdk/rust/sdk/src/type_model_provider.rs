@@ -171,6 +171,7 @@ impl TypeModelProvider {
 		self: Arc<Self>,
 		hash_from_response: &str,
 	) -> Result<(), ApiCallError> {
+		log::debug!("ensure_latest_server_model");
 		self.server_app_models.clear_poison();
 
 		let is_same_hash = self
@@ -207,7 +208,7 @@ impl TypeModelProvider {
 		let service_path = ApplicationTypesService::PATH;
 		let url = format!("{}/rest/{}", self.base_url, service_path);
 
-		println!(
+		log::debug!(
 			"Attempting to get base model version?  {}",
 			CLIENT_TYPE_MODEL
 				.apps
