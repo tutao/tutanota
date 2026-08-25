@@ -66,7 +66,7 @@ import type { CalendarInfo, CalendarModel } from "../calendar-app/calendar/model
 import type { CalendarInviteHandler } from "../calendar-app/calendar/view/CalendarInvites"
 import type { CalendarEventPreviewViewModel } from "../calendar-app/calendar/gui/eventpopup/CalendarEventPreviewViewModel"
 import { FolderItem } from "./drive/view/DriveUtils"
-import { MoveItems } from "./drive/view/DriveMoveItemDialog"
+import { PickedDestinationAction } from "./drive/view/DriveItemPicker"
 import { DriveFilePicker } from "./drive/view/DriveFilePicker"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain"
 import { NativeFileApp } from "../../app-kit/native-bridge/common/FileApp"
@@ -275,9 +275,9 @@ class DriveLocator implements CommonLocator {
 		)
 	})
 
-	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {
-		const { showMoveDialog } = await import("./drive/view/DriveMoveItemDialog.js")
-		showMoveDialog(this.entityClient, this.driveFacade, items, moveItems)
+	async showMoveItemDialog(items: FolderItem[], moveItems: PickedDestinationAction) {
+		const { showMoveItemDialog } = await import("./drive/view/DriveGuiUtils.js")
+		showMoveItemDialog(this.entityClient, this.driveFacade, items, moveItems)
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {

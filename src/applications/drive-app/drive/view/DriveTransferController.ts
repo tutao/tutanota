@@ -4,7 +4,7 @@ import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError, ProgrammingError } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { FileController } from "../../../common/file/FileController"
-import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
+import { DataFile, FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isOfflineError } from "@tutao/rest-client/error"
 import { DriveFile } from "@tutao/entities/drive"
 import { TransferId } from "../../../../entities/drive/Utils"
@@ -39,7 +39,7 @@ type QueuedTransfer =
 	| {
 			id: TransferId
 			state: "waiting" | "active" | "finished" | "failed"
-			file: WebFile | FileReference
+			file: WebFile | FileReference | DataFile
 			type: "upload"
 			transferredBytes: number
 			startTime: Date | null
@@ -108,7 +108,7 @@ export class DriveTransferController {
 		this.allTransfersDoneListener = listener
 	}
 
-	async upload(file: WebFile | FileReference, filename: string, targetFolderId: IdTuple) {
+	async upload(file: WebFile | FileReference | DataFile, filename: string, targetFolderId: IdTuple): Promise<void> {
 		const transferId = await this.blobFacade.generateTransferId()
 		this.queue.push({
 			id: transferId,
@@ -340,7 +340,7 @@ export class DriveTransferController {
 function transferSize(transfer: QueuedTransfer): number {
 	if (transfer.file._type === "WebFile") {
 		return transfer.file.file.size
-	} else if (transfer.file._type === "FileReference") {
+	} else if (transfer.file._type === "FileReference" || transfer.file._type === "DataFile") {
 		return transfer.file.size
 	} else {
 		let file: DriveFile = transfer.file // assert that this is a DriveFile
