@@ -8,7 +8,7 @@ import {
 	TimeRange,
 	TimeScale,
 } from "../../../src/applications/common/calendar/gui/CalendarTimeGrid"
-import { Time } from "../../../src/applications/common/calendar/date/Time"
+import { Time } from "../../../src/applications/common/calendar/Time"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 import { MIN_ROW_SPAN } from "../../../src/applications/common/calendar/gui/CalendarEventBubble"
 import { incrementDate } from "../../../src/platform-kit/utils"
