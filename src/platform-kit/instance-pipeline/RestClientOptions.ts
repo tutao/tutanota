@@ -50,7 +50,7 @@ export const enum CacheMode {
 	ReadOnly,
 }
 
-type CacheBehavior = {
+export type CacheBehavior = {
 	readsFromCache: boolean
 	writesToCache: boolean
 }

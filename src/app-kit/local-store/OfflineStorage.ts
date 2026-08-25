@@ -966,6 +966,10 @@ export class OfflineStorage implements CacheStorage {
 		// no-op
 	}
 
+	async runRangeOperation<T>(op: () => Promise<T>): Promise<T> {
+		return await op()
+	}
+
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const isCustomId = isCustomIdType(typeModel)

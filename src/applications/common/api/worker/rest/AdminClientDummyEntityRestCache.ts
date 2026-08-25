@@ -38,6 +38,10 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 		throw new ProgrammingError("loadRange not implemented")
 	}
 
+	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
+		throw new ProgrammingError("loadAll not implemented")
+	}
+
 	async purgeStorage(): Promise<void> {
 		return
 	}

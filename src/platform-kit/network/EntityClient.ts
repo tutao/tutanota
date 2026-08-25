@@ -6,7 +6,6 @@ import {
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getElementId,
-	getLetId,
 	getServerIdEncodingForType,
 	idToElementId,
 	ListElementId,
@@ -54,9 +53,8 @@ export class EntityClient {
 	}
 
 	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Nullable<Id> = null): Promise<T[]> {
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-
 		if (isNull(start)) {
+			const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 			const attributeIdFor_id = assertNotNull(
 				AttributeModel.getAttributeId(typeModel, "_id"),
 				`_id attribute not defined in ${typeModel.app}/${typeModel.name}`,
@@ -64,14 +62,10 @@ export class EntityClient {
 			start = typeModel.values[attributeIdFor_id].type === ValueTypeEnum.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
 
-		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false)
-		if (elements.length === RANGE_ITEM_LIMIT) {
-			let lastElementId = getLetId(elements[elements.length - 1])[1]
-			const nextElements = await this.loadAll<T>(typeRef, listId, lastElementId)
-			return elements.concat(nextElements)
-		} else {
-			return elements
-		}
+		// The paging loop lives on the other side of _target (in the worker, next to cacheStorage) so that when
+		// _target is a remote proxy, the whole list is paged through in one call instead of one round trip (and
+		// one separate cache lock acquisition, see CacheStorage.runRangeOperation) per page.
+		return await this._target.loadAll<T>(typeRef, listId, start)
 	}
 
 	async loadReverseRangeBetween<T extends ListElementEntity>(

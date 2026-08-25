@@ -10,6 +10,7 @@ import {
 	GENERATED_MAX_ID,
 	GENERATED_MIN_ID,
 	get_IdValue,
+	getLetId,
 	getServerIdEncodingForType,
 	getTypeString,
 	isCustomIdType,
@@ -19,6 +20,7 @@ import {
 	OperationType,
 	parseTypeString,
 	PersistentEntity,
+	RANGE_ITEM_LIMIT,
 	TypeModel,
 	TypeRef,
 	ValueTypeEnum,
@@ -64,6 +66,7 @@ import {
 } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { isExpectedErrorForSynchronization } from "@tutao/rest-client/error"
 import {
+	CacheBehavior,
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	EntityRestClientEraseOptions,
 	EntityRestClientLoadOptions,
@@ -308,6 +311,28 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			throw new ProgrammingError("cannot write to cache without reading with range requests")
 		}
 
+		// The whole cache-backed range operation below must observe a single, consistent choice of backing
+		// store (fastCache vs. delegate) for its entire duration. Without this, a concurrent setCacheSyncStatus
+		// call could flip that choice partway through, e.g. between deciding the range from one store and
+		// providing entities from the other, leaving them looking inconsistent to the caller.
+		return await this.cacheStorage.runRangeOperation(() => this.loadRangeFromCache(typeRef, listId, start, count, reverse, opts, typeModel, behavior))
+	}
+
+	/**
+	 * Core range-read/extend logic shared by loadRange and loadAll. Must only be called while holding
+	 * cacheStorage's range-operation lock (see CacheStorage.runRangeOperation), since it makes several
+	 * separate cacheStorage calls that all need to agree on the same backing store.
+	 */
+	private async loadRangeFromCache<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions,
+		typeModel: TypeModel,
+		behavior: CacheBehavior,
+	): Promise<T[]> {
 		const range = await this.cacheStorage.getRangeForList(typeRef, listId)
 
 		if (behavior.writesToCache) {
@@ -335,6 +360,46 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// this is fine.
 				return await this.entityRestClient.loadRange(typeRef, listId, start, count, reverse, opts)
 			}
+		}
+	}
+
+	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]> {
+		const customHandler = this.cacheStorage.getCustomCacheHandlerMap().get(typeRef)
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+		const useCache =
+			customHandler?.loadRange == null && this.shouldUseCache(typeRef, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS) && isCachedRangeType(typeModel, typeRef)
+
+		if (!useCache) {
+			// Neither the custom handler nor the plain server fetch touch cacheStorage's range bookkeeping,
+			// so there is no cross-page consistency to protect here; each page can go through loadRange as-is.
+			return await this.loadAllPages(typeRef, listId, start, (pageStart) => this.loadRange(typeRef, listId, pageStart, RANGE_ITEM_LIMIT, false))
+		}
+
+		const behavior = getCacheModeBehavior(DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS.cacheMode)
+		if (!behavior.readsFromCache) {
+			throw new ProgrammingError("cannot write to cache without reading with range requests")
+		}
+
+		// Unlike loadRange, this paging loop can make many sequential range calls to fetch a whole list. All of
+		// them must run under the *same* lock acquisition, not one lock per page: acquiring and releasing the
+		// lock separately per page would let setCacheSyncStatus interleave between pages, so one page could be
+		// served from fastCache and the next from delegate, leaving the two stores' range bookkeeping for this
+		// list inconsistent with each other even though each individual page was internally consistent.
+		return await this.cacheStorage.runRangeOperation(() =>
+			this.loadAllPages(typeRef, listId, start, (pageStart) =>
+				this.loadRangeFromCache(typeRef, listId, pageStart, RANGE_ITEM_LIMIT, false, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, typeModel, behavior),
+			),
+		)
+	}
+
+	private async loadAllPages<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, loadPage: (start: Id) => Promise<T[]>): Promise<T[]> {
+		const elements = await loadPage(start)
+		if (elements.length === RANGE_ITEM_LIMIT) {
+			const lastElementId = getLetId(elements[elements.length - 1])[1]
+			const nextElements = await this.loadAllPages(typeRef, listId, lastElementId, loadPage)
+			return elements.concat(nextElements)
+		} else {
+			return elements
 		}
 	}
 

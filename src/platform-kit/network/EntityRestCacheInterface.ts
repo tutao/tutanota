@@ -34,6 +34,16 @@ export interface EntityRestInterface {
 	): Promise<T[]>
 
 	/**
+	 * Reads a whole list, paging through with successive range reads starting at {@param start} (or the
+	 * beginning of the list if null) until it is exhausted. Entities are decrypted before they are returned.
+	 *
+	 * Implementations that read from a cache must run the whole paging operation as a single logical unit
+	 * (e.g. under {@link CacheStorage.runRangeOperation}) so that every page observes the same backing store,
+	 * even if the cache sync status changes while paging through a large list.
+	 */
+	loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id): Promise<T[]>
+
+	/**
 	 * Reads multiple elements from the server (or cache). Entities are decrypted before they are returned.
 	 * @param typeRef
 	 * @param listId
