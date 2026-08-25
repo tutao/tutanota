@@ -257,18 +257,24 @@ export class EphemeralCacheStorage implements CacheStorage {
 	}
 
 	async deleteAllRanges(): Promise<void> {
-		Array.from(this.listElementEntities.entries()).map(async ([typeIdentifier, cache]) => {
-			const typeModel = await this.typeModelResolver.resolveServerTypeReference(parseTypeString(typeIdentifier))
-			Array.from(cache.values()).map((listCache) => {
-				listCache.allRange = []
-				listCache.lowerRangeId = isCustomIdType(typeModel) ? CUSTOM_MIN_ID : GENERATED_MIN_ID
-				listCache.upperRangeId = isCustomIdType(typeModel) ? CUSTOM_MIN_ID : GENERATED_MIN_ID
-			})
-		})
+		await Promise.all(
+			Array.from(this.listElementEntities.entries()).map(async ([typeIdentifier, cache]) => {
+				const typeModel = await this.typeModelResolver.resolveServerTypeReference(parseTypeString(typeIdentifier))
+				for (const listCache of cache.values()) {
+					listCache.allRange = []
+					listCache.lowerRangeId = isCustomIdType(typeModel) ? CUSTOM_MIN_ID : GENERATED_MIN_ID
+					listCache.upperRangeId = isCustomIdType(typeModel) ? CUSTOM_MIN_ID : GENERATED_MIN_ID
+				}
+			}),
+		)
 	}
 
 	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
 		// no-op
+	}
+
+	async runRangeOperation<T>(op: () => Promise<T>): Promise<T> {
+		return await op()
 	}
 
 	private putElementEntity(typeRef: TypeRef<PersistentEntity>, id: Id, entity: DecryptedParsedInstance) {

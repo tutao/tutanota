@@ -6,7 +6,6 @@ import {
 	firstBiggerThanSecond,
 	GENERATED_MIN_ID,
 	getElementId,
-	getLetId,
 	getServerIdEncodingForType,
 	idToElementId,
 	ListElementId,
@@ -70,14 +69,7 @@ export class EntityClient {
 			start = typeModel.values[attributeIdFor_id].type === ValueTypeEnum.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
 		}
 
-		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false, opts)
-		if (elements.length === RANGE_ITEM_LIMIT) {
-			let lastElementId = getLetId(elements[elements.length - 1])[1]
-			const nextElements = await this.loadAll<T>(typeRef, listId, lastElementId, opts)
-			return elements.concat(nextElements)
-		} else {
-			return elements
-		}
+		return await this._target.loadAll<T>(typeRef, listId, start, opts)
 	}
 
 	async loadReverseRangeBetween<T extends ListElementEntity>(

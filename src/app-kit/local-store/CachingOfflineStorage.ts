@@ -5,11 +5,15 @@ import { BlobElementEntity, getTypeString, ListElementEntity, PersistentEntity, 
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { isNotEmpty } from "@tutao/utils"
+import { isNotEmpty, ReadWriteLock } from "@tutao/utils"
 import { DecryptedParsedInstance, ModelMapper } from "@tutao/instance-pipeline"
 
 export class CachingOfflineStorage implements CacheStorage {
 	private cacheSyncStatus: CacheSyncStatus = CacheSyncStatus.Offline
+
+	// Guards range-related reads/writes against setCacheSyncStatus changing the backing store mid-operation.
+	// See CacheStorage.runRangeOperation.
+	private readonly rangeLock = new ReadWriteLock()
 
 	constructor(
 		private readonly delegate: OfflineStorage,
@@ -26,12 +30,18 @@ export class CachingOfflineStorage implements CacheStorage {
 	}
 
 	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
-		this.cacheSyncStatus = cacheSyncStatus
-		if (cacheSyncStatus === CacheSyncStatus.OnlineSyncDone) {
-			await this.fastCache.deleteAllRanges()
-		} else if (cacheSyncStatus === CacheSyncStatus.Offline) {
-			await this.fastCache.purgeStorage()
-		}
+		await this.rangeLock.withWriteLock(async () => {
+			this.cacheSyncStatus = cacheSyncStatus
+			if (cacheSyncStatus === CacheSyncStatus.OnlineSyncDone) {
+				await this.fastCache.deleteAllRanges()
+			} else if (cacheSyncStatus === CacheSyncStatus.Offline) {
+				await this.fastCache.purgeStorage()
+			}
+		})
+	}
+
+	async runRangeOperation<T>(op: () => Promise<T>): Promise<T> {
+		return await this.rangeLock.withReadLock(op)
 	}
 
 	async init(args: OfflineStorageArgs): Promise<boolean> {

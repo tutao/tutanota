@@ -160,6 +160,8 @@ export { callWebAssemblyFunctionWithArguments, allocateBuffer, type Ptr, type Co
 
 export { mod, clamp } from "./MathUtils.js"
 
+export { ReadWriteLock } from "./ReadWriteLock.js"
+
 export { renderCsv, renderCsvBody, renderCsvHeader } from "./Csv.js"
 
 export { tokenize } from "./Tokenizer.js"

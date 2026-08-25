@@ -152,4 +152,13 @@ export interface CacheStorage extends ExposedCacheStorage {
 	isInitialized(): boolean
 
 	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
+
+	/**
+	 * Runs a range-related operation (reading and/or writing list ranges) such that it observes a single,
+	 * consistent choice of backing store for its whole duration, even if {@link setCacheSyncStatus} is called
+	 * concurrently. Without this, a single logical range operation could end up making its store decision
+	 * (fastCache vs. delegate) based on one sync status, then acting on a different one once the status changes
+	 * mid-operation, leaving the two stores' range bookkeeping inconsistent with each other.
+	 */
+	runRangeOperation<T>(op: () => Promise<T>): Promise<T>
 }

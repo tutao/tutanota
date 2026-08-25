@@ -5,9 +5,11 @@ import {
 	EntityTypeEnum,
 	expandId,
 	isCustomIdType,
+	getLetId,
 	LOAD_MULTIPLE_LIMIT,
 	POST_MULTIPLE_INDIVIDUAL_POST_FALLBACK_THRESHOLD,
 	POST_MULTIPLE_LIMIT,
+	RANGE_ITEM_LIMIT,
 	TypeRef,
 } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -261,6 +263,17 @@ export class EntityRestClient implements EntityRestInterface {
 	): Promise<T[]> {
 		const parsedInstances = await this.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
 		return this.mapInstancesToEntity(typeRef, parsedInstances)
+	}
+
+	async loadAll<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, start: Id, opts: EntityRestClientLoadOptions): Promise<T[]> {
+		const elements = await this.loadRange<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false, opts)
+		if (elements.length === RANGE_ITEM_LIMIT) {
+			const lastElementId = getLetId(elements[elements.length - 1])[1]
+			const nextElements = await this.loadAll<T>(typeRef, listId, lastElementId, opts)
+			return elements.concat(nextElements)
+		} else {
+			return elements
+		}
 	}
 
 	async loadMultipleParsedInstances<T extends PersistentEntity>(
