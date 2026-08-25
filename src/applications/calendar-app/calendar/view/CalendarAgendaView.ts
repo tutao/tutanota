@@ -17,7 +17,7 @@ import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPr
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "@tutao/meta"
 import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Time } from "../../../common/calendar/date/Time.js"
+import { Time } from "../../../common/calendar/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
 import { getEventColor, shouldDisplayEvent } from "../gui/CalendarGuiUtils.js"

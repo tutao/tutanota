@@ -3,7 +3,7 @@ import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../../../ui/base/GuiUtils"
 import { CalendarTimeColumnData, CalendarTimeGrid, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 import { CalendarTimeCell, CalendarTimeCellAttrs, CellActionHandler } from "./CalendarTimeCell"
 import { CalendarEventBubble, CalendarEventBubbleAttrs, CalendarEventBubbleDragProperties, EventBubbleInteractions } from "./CalendarEventBubble"
 import { DateTime } from "luxon"

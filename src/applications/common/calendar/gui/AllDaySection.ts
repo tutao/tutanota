@@ -13,7 +13,7 @@ import { eventEndsAfterDay, eventStartsBeforeDay, getEventEnd, getEventStart, ge
 import { getRowDateFromMousePos, getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../../../ui/base/GuiUtils"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import { layout_size, px, size } from "../../../../ui/size"
 import { CalendarEvent } from "@tutao/entities/tutanota"

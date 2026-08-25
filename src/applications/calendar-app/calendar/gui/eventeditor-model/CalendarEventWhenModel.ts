@@ -7,7 +7,7 @@ import {
 	isAllDayEvent,
 	normalizeTime,
 } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { Time } from "../../../../common/calendar/date/Time.js"
+import { Time } from "../../../../common/calendar/Time.js"
 import { DateTime, DurationLikeObject } from "luxon"
 import {
 	areAllAdvancedRepeatRulesValid,
