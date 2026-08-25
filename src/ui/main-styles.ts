@@ -723,6 +723,9 @@ export class MainStyles {
 				".min-width-full": {
 					"min-width": "100%",
 				},
+				".min-width-migration-button": {
+					"min-width": px(300),
+				},
 				// used to enable text ellipsis in flex child elements see https://css-tricks.com/flexbox-truncated-text/
 				".text-break": {
 					overflow: "hidden",

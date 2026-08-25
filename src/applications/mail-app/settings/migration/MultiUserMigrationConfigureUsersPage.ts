@@ -8,9 +8,9 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
-import { PrimaryButton, TertiaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { showFileChooser, FileChooserMultiMode } from "../../../common/file/FileController"
+import { FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController"
 import { renderCsv, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "../../../../platform-kit/utils"
 import { MailboxType, parseMigrationCsv } from "./MigrationCsvParser"
 import { ParserError } from "../../../common/misc/parsing/ParserCombinator"
@@ -50,17 +50,20 @@ export class MultiUserMigrationConfigureUsersPage implements Component<WizardSte
 					borderRadius: px(size.radius_16),
 				},
 			} as TitleSectionAttrs),
-			m(".mt-16", [
-				m(PrimaryButton, {
-					label: "migrationUploadCsvFile_action",
-					onclick: () => this.uploadCsv(data),
-					disabled: this.isParsing,
-				}),
+			m(".mt-16.flex.wrap.gap-8", [
 				m(
-					".mt-8",
-					m(TertiaryButton, {
+					".min-width-migration-button.flex-grow",
+					m(SecondaryButton, {
 						label: "migrationDownloadExampleCsv_action",
 						onclick: () => downloadExampleCsv(),
+					}),
+				),
+				m(
+					".min-width-migration-button.flex-grow",
+					m(PrimaryButton, {
+						label: "migrationUploadCsvFile_action",
+						onclick: () => this.uploadCsv(data),
+						disabled: this.isParsing,
 					}),
 				),
 			]),
@@ -79,7 +82,7 @@ export class MultiUserMigrationConfigureUsersPage implements Component<WizardSte
 							if (data.rows.every((row) => data.selectedSourceEmails.has(row.sourceEmail))) {
 								data.selectedSourceEmails.clear()
 							} else {
-								data.rows.forEach((row) => data.selectedSourceEmails.add(row.sourceEmail))
+								for (const row of data.rows) data.selectedSourceEmails.add(row.sourceEmail)
 							}
 						},
 					})
