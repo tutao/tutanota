@@ -364,9 +364,21 @@ export class ClientDetector {
 			else return ClientPlatform.DESKTOP_UNKNOWN
 		} else if (!EnvProvider.get().isApp()) return ClientPlatform.WEB
 		else if (EnvProvider.get().isAndroidApp()) {
-			return this.appType === AppType.Calendar ? ClientPlatform.ANDROID_CALENDAR_APP : ClientPlatform.ANDROID_MAIL_APP
+			if (this.appType === AppType.Calendar) {
+				return ClientPlatform.ANDROID_CALENDAR_APP
+			} else if (this.appType === AppType.Mail) {
+				return ClientPlatform.ANDROID_MAIL_APP
+			} else {
+				return ClientPlatform.ANDROID_DRIVE_APP
+			}
 		} else if (EnvProvider.get().isIOSApp()) {
-			return this.appType === AppType.Calendar ? ClientPlatform.IOS_CALENDAR_APP : ClientPlatform.IOS_MAIL_APP
+			if (this.appType === AppType.Calendar) {
+				return ClientPlatform.IOS_CALENDAR_APP
+			} else if (this.appType === AppType.Mail) {
+				return ClientPlatform.IOS_MAIL_APP
+			} else {
+				return ClientPlatform.IOS_DRIVE_APP
+			}
 		} else {
 			// Fallback
 			return ClientPlatform.UNKNOWN
@@ -382,6 +394,8 @@ export enum ClientPlatform {
 	ANDROID_MAIL_APP,
 	IOS_CALENDAR_APP,
 	ANDROID_CALENDAR_APP,
+	IOS_DRIVE_APP,
+	ANDROID_DRIVE_APP,
 	WEB,
 	DESKTOP_UNKNOWN,
 	DESKTOP_MAC,
