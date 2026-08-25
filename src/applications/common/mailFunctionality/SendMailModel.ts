@@ -96,7 +96,7 @@ import { KeyVerificationMismatchError } from "../../../platform-kit/network/erro
 import { EventInviteEmailType } from "../../calendar-app/calendar/view/CalendarNotificationSender"
 import { SyncTracker } from "../api/main/SyncTracker"
 import { AutosaveFacade } from "../api/worker/facades/lazy/AutosaveFacade"
-import { Time } from "../calendar/date/Time"
+import { Time } from "../calendar/Time"
 import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"

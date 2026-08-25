@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { TimeOverview } from "../../../../../src/applications/mail-app/gui/date/TimeOverview"
-import { Time } from "../../../../../src/applications/common/calendar/date/Time"
+import { Time } from "../../../../../src/applications/common/calendar/Time"
 import { makeEvent } from "../../../calendar/CalendarTestUtils"
 import { incrementDate } from "../../../../../src/platform-kit/utils"
 

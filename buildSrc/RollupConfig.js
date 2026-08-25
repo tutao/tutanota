@@ -64,7 +64,7 @@ export const allowedImports = {
 	"date-gui": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "sharing", "date", "contacts", "ui-extra", "calendar-importer"],
 	"calendar-importer": ["polyfill-helpers", "common-min", "common", "boot", "date", "date-gui"],
 	"mail-view": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "ui-extra"],
-	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "date", "date-gui"],
+	"mail-editor": ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "main", "mail-view", "sanitizer", "sharing", "date-gui"],
 	search: [
 		"polyfill-helpers",
 		"common-min",

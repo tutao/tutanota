@@ -29,7 +29,7 @@ import { CalendarEvent } from "@tutao/entities/tutanota"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { clone } from "@tutao/meta"
 import { DateTime } from "luxon"
-import { Time } from "../../../common/calendar/date/Time"
+import { Time } from "../../../common/calendar/Time"
 import { getCalendarEventDurationInMinutes } from "../../../common/calendar/date/CalendarUtils"
 import { Styles } from "../../../../ui/styles"
 
