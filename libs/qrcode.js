@@ -401,22 +401,23 @@ QRCode.prototype.svg = function(opt) {
   return svg;
 };
 
-/** Writes QR Code image to a file */
-QRCode.prototype.save = function(file, callback) {
-  var data = this.svg();
-  if (typeof callback != "function") {
-    callback = function(error, result) { };
-  }
-  try {
-    //Package 'fs' is available in node.js but not in a web browser
-    var fs = require('fs');
-    fs.writeFile(file, data, callback);
-  }
-  catch (e) {
-    //Sorry, 'fs' is not available
-    callback(e);
-  }
-};
+/// tutao: removed
+// /** Writes QR Code image to a file */
+// QRCode.prototype.save = function(file, callback) {
+//   var data = this.svg();
+//   if (typeof callback != "function") {
+//     callback = function(error, result) { };
+//   }
+//   try {
+//     //Package 'fs' is available in node.js but not in a web browser
+//     var fs = require('fs');
+//     fs.writeFile(file, data, callback);
+//   }
+//   catch (e) {
+//     //Sorry, 'fs' is not available
+//     callback(e);
+//   }
+// };
 
 if (typeof module != "undefined") {
   module.exports = QRCode;

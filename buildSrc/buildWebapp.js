@@ -238,7 +238,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
  *  - Print out each chunk size and contents
  *  - Create a graph file with chunk dependencies.
  */
-function analyzer(projectDir, buildDir) {
+export function analyzer(projectDir, buildDir) {
 	return {
 		name: "analyze",
 		async generateBundle(outOpts, bundle) {

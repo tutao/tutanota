@@ -9,11 +9,12 @@ import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
 import { domainConfigs } from "./DomainConfigs.js"
 import { rolldown } from "rolldown"
-import { resolveLibs, tsImportAliases } from "./RollupConfig.js"
+import { bundleDependencyCheckPlugin, getChunkName, resolveLibs, tsImportAliases } from "./RollupConfig.js"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import { execSync } from "node:child_process"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
+import { analyzer } from "./buildWebapp.js"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -39,7 +40,8 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 			fs.rmSync(buildDir, { recursive: true, force: true })
 			fs.rmSync(liboqsIncludeDir, { recursive: true, force: true })
 			fs.rmSync("src/app-kit/mimimi/napi-out", { recursive: true, force: true })
-			execSync("cargo clean")
+			// FIXME
+			// execSync("cargo clean")
 			execSync("npx tsc --build --clean")
 		})
 	}
@@ -138,9 +140,18 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 					LOAD_ASSERTIONS: "false",
 					APP_TYPE: appTypeForApp(app),
 				},
+				typescript: {
+					optimizeConstEnums: true,
+					onlyRemoveTypeImports: false,
+					verbatimModuleSyntax: false,
+				},
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
-			plugins: [resolveLibs()],
+			plugins: [resolveLibs(), bundleDependencyCheckPlugin(), analyzer(".", "build")],
+			treeshake: {
+				moduleSideEffects: false,
+			},
+			preserveEntrySignatures: false,
 		})
 		await bundle.write({
 			dir: `./${buildDir}/`,
@@ -150,6 +161,22 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 			sourcemap: "inline",
 			// overwrite the files rather than keeping all versions in the build folder
 			chunkFileNames: "[name]-chunk.js",
+			codeSplitting: {
+				includeDependenciesRecursively: false,
+				groups: [
+					{
+						name(id, ctx) {
+							const chunk = getChunkName(id, {
+								getModuleInfo:
+									// @ts-ignore
+									(...args) => ctx.getModuleInfo(...args),
+							})
+							console.log(id, "->", chunk)
+							return chunk
+						},
+					},
+				],
+			},
 		})
 	})
 
