@@ -1,6 +1,6 @@
 import m from "mithril"
 import { getAllDayDateUTC, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
-import { Time } from "../../../common/calendar/date/Time.js"
+import { Time } from "../../../common/calendar/Time.js"
 import { showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { CalendarOperation } from "../gui/eventeditor-model/CalendarEventModel.js"
 import { newPromise } from "../../../../platform-kit/utils"
