@@ -13,9 +13,9 @@ import { File, Mail } from "@tutao/entities/tutanota"
 import { BlobServerUrl } from "@tutao/entities/storage"
 import { elementIdPart, elementIdToId } from "@tutao/meta"
 import { convertToDataFile } from "../../utils/DataFile"
-import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { DataFile } from "../../../../../../entities/tutanota/Utils"
 
 EnvProvider.assertWorkerOrNode()
 

@@ -6,7 +6,7 @@ import {
 	EncryptedMailAddress,
 	EncryptedMailAddressParams,
 } from "@tutao/entities/tutanota"
-import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
+import { CalendarAttendeeStatus, CalendarMethod, DataFile } from "../../../../entities/tutanota/Utils"
 import {
 	CalendarAdvancedRepeatRule,
 	createCalendarAdvancedRepeatRule,
@@ -37,7 +37,6 @@ import { reverse } from "../../../common/misc/EnumUtils"
 import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
 
 const TAG = "[CalendarParser]"

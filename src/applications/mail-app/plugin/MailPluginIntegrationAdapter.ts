@@ -1,8 +1,7 @@
 import { MailIntegrationAdapter } from "../../../plugin-kit/plugin-manager/hostApi/PluginHost"
 import { PluginDataFile } from "../../../plugin-kit/sdk/PluginDataFile"
 import { MailboxModel } from "../../common/mailFunctionality/MailboxModel.js"
-import { DataFile } from "../../../entities/tutanota/MailBundle"
-import { VerificationRecipients } from "../../../entities/tutanota/Utils"
+import { DataFile, VerificationRecipients } from "../../../entities/tutanota/Utils"
 
 export class MailPluginIntegrationAdapter implements MailIntegrationAdapter {
 	constructor(private readonly mailboxModel: MailboxModel) {}

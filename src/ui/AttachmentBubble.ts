@@ -19,6 +19,7 @@ import { PosRect } from "./utils/PosRect"
 import { Attachment, isTutanotaFile } from "../entities/tutanota/Utils"
 import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../platform-kit/utils/FileConstants"
 import { Keys } from "./utils/KeyboardKeys"
+import { EnvProvider } from "@tutao/app-env"
 
 export enum AttachmentType {
 	GENERIC,
@@ -32,6 +33,7 @@ export type AttachmentBubbleAttrs = {
 	download: Thunk | null
 	open: Thunk | null
 	attachmentExtensionButton: Array<AttachmentExtensionButton>
+	saveToDrive: Thunk | null
 	remove: Thunk | null
 	fileImport: Thunk | null
 	type: AttachmentType
@@ -191,7 +193,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, fileImport, type, attachmentExtensionButton } = this.attrs
+		const { remove, open, download, attachment, fileImport, type, saveToDrive, attachmentExtensionButton } = this.attrs
 		return m(
 			".flex.mb-8.pr-12",
 			{
@@ -261,6 +263,13 @@ export class AttachmentDetailsPopup implements ModalComponent {
 									click: () => this.thenClose(attachmentExtensionButton.attachmentButtonClicked),
 								})
 							}),
+							saveToDrive != null && !EnvProvider.get().isApp()
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: lang.getTranslation("saveToDriveDialog_label"),
+										click: () => this.thenClose(saveToDrive),
+									})
+								: null,
 						]),
 					]),
 				),

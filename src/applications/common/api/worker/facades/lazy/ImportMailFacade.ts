@@ -1,5 +1,4 @@
-import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
-import { MailMethod, MailPhishingStatus, MailState, RecipientList, ReplyType } from "../../../../../../entities/tutanota/Utils"
+import { DataFile, MailMethod, MailPhishingStatus, MailState, RecipientList, ReplyType } from "../../../../../../entities/tutanota/Utils"
 import { MailFacade, recipientToEncryptedMailAddress } from "./MailFacade"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"

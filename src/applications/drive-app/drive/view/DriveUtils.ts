@@ -55,7 +55,7 @@ export function folderItemId(item: FolderItem): IdTuple {
 	return folderItemEntity(item)._id
 }
 
-function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
+export function isFolderFolderItem(item: FolderItem): item is FolderFolderItem {
 	return item.type === "folder"
 }
 

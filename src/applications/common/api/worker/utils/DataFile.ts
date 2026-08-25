@@ -1,5 +1,5 @@
-import { DataFile } from "../../../../../entities/tutanota/MailBundle"
 import { DownloadableFileEntity } from "../../../../../entities/storage/BlobUtils"
+import { DataFile } from "../../../../../entities/tutanota/Utils"
 
 export function createDataFile(name: string, mimeType: string, data: Uint8Array<ArrayBuffer>, cid?: string): DataFile {
 	return {

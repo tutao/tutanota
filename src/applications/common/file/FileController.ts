@@ -10,12 +10,11 @@ import { locator } from "../api/main/CommonLocator.js"
 import { PermissionError } from "../api/common/error/PermissionError.js"
 import { FileNotFoundError } from "../api/common/error/FileNotFoundError.js"
 import { ArchiveDataType } from "../../../entities/sys/Utils"
-import { FileReference, WebFile } from "../../../entities/tutanota/Utils"
+import { DataFile, FileReference, WebFile } from "../../../entities/tutanota/Utils"
 import { TransferId } from "../../../entities/drive/Utils"
 import { convertToDataFile, createDataFile } from "../api/worker/utils/DataFile.js"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
-import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { createReferencingInstance, DownloadableFileEntity } from "../../../entities/storage/BlobUtils"
 import { DiskFolder } from "../../drive-app/drive/view/DriveUtils"
 
@@ -30,7 +29,7 @@ export interface DownloadReturn {
 	/** Transfer IDs for all the files */
 	transferIds: readonly TransferId[]
 	/** Will be resolved once download finishes or fails */
-	promise: Promise<void>
+	promise: Promise<unknown>
 }
 
 export interface DownloadParam {
@@ -45,7 +44,7 @@ export abstract class FileController {
 	protected constructor(protected readonly blobFacade: BlobFacade) {}
 
 	private async doDownload(
-		tutanotaFiles: readonly DownloadParam[],
+		entitiesToDownload: readonly DownloadParam[],
 		action: DownloadPostProcessing,
 		options: {
 			archiveType: ArchiveDataType
@@ -59,7 +58,7 @@ export abstract class FileController {
 		try {
 			let isOffline = false
 			let downloadFilesBytes = 0
-			for (const { file, transferId } of tutanotaFiles) {
+			for (const { file, transferId } of entitiesToDownload) {
 				try {
 					const downloadedFile = await this.downloadAndDecrypt(file, transferId, archiveType)
 					downloadedFiles.push(downloadedFile)
@@ -93,11 +92,17 @@ export abstract class FileController {
 	}
 
 	/**
-	 * get the referenced TutanotaFile as a DataFile without writing anything to disk
+	 * Download the entity as a DataFile without writing anything to disk
 	 */
 	async getAsDataFile(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments): Promise<DataFile> {
 		// using the browser's built-in download since we don't want to write anything to disk here
 		return downloadAndDecryptFromArchive(file, this.blobFacade, archiveType, await this.blobFacade.generateTransferId())
+	}
+
+	async abortDownload(downloadReturn: DownloadReturn) {
+		for (const transferId of downloadReturn.transferIds) {
+			await this.blobFacade.abortDownload(transferId)
+		}
 	}
 
 	/**
@@ -106,7 +111,7 @@ export abstract class FileController {
 	abstract saveDataFile(file: DataFile): Promise<void>
 
 	/**
-	 * Download a file from the server to the filesystem
+	 * Download a file from the server to the Downloads folder.
 	 */
 	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments, transferId?: TransferId): Promise<DownloadReturn> {
 		transferId ??= await this.blobFacade.generateTransferId()
@@ -114,9 +119,9 @@ export abstract class FileController {
 	}
 
 	/**
-	 * Download all provided files
+	 * Download all provided files to the download folder
 	 *
-	 * Temporary files are deleted afterwards in apps.
+	 * Temporary files are deleted afterward in apps.
 	 */
 	async downloadAll(files: readonly DownloadableFileEntity[], archiveType: ArchiveDataType): Promise<DownloadReturn> {
 		const preparedParams = await promiseMap(files, async (file) => {
@@ -127,21 +132,35 @@ export abstract class FileController {
 
 	/**
 	 * Open a file in the host system
-	 * Temporary files are deleted afterwards in apps.
+	 * Temporary files are deleted afterward in apps.
 	 */
 	async open(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments, transferId?: TransferId): Promise<DownloadReturn> {
 		transferId ??= await this.blobFacade.generateTransferId()
 		return { transferIds: [transferId], promise: this.doDownload([{ file, transferId }], DownloadPostProcessing.Open, { archiveType }) }
 	}
 
-	protected abstract writeDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract writeDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
-	protected abstract openDownloadedFiles(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract openDownloadedFiles(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
-	protected abstract cleanUp(downloadedFiles: Array<FileReference | DataFile>): Promise<void>
+	protected abstract cleanUp(downloadedFiles: readonly (FileReference | DataFile)[]): Promise<void>
 
 	/**
-	 * Get a file from the server and decrypt it
+	 * Download a file from the server, decrypt and save it to the directory inside app files.
+	 */
+	public async downloadToAppDirectory(
+		file: DownloadableFileEntity,
+		archiveType: ArchiveDataType,
+	): Promise<{ transferIds: readonly TransferId[]; promise: Promise<FileReference | DataFile> }> {
+		const transferId = await this.blobFacade.generateTransferId()
+
+		return {
+			transferIds: [transferId],
+			promise: this.downloadAndDecrypt(file, transferId, archiveType),
+		}
+	}
+	/**
+	 * Download a file from the server, decrypt and save it to the directory inside app files.
 	 */
 	protected abstract downloadAndDecrypt(file: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference | DataFile>
 }
@@ -298,7 +317,7 @@ export function buildDirectoryStructure(filesWithRelativePaths: readonly File[])
  * @param dataFiles Promise resolving to an array of DataFiles
  * @param name the name of the new zip file
  */
-export async function zipDataFiles(dataFiles: Array<DataFile>, name: string): Promise<DataFile> {
+export async function zipDataFiles(dataFiles: readonly DataFile[], name: string): Promise<DataFile> {
 	const jsZip = await import("jszip")
 	const zip = jsZip.default()
 	const deduplicatedMap = deduplicateFilenames(dataFiles.map((df) => sanitizeFilename(df.name)))

@@ -21,11 +21,11 @@ import { Thunk } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { size } from "../../../ui/size"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
-import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
+import { DataFile } from "../../../entities/tutanota/Utils"
 
 EnvProvider.assertMainOrNode()
 
