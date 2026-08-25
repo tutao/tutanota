@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { Time } from "../../../../src/applications/common/calendar/date/Time"
+import { Time } from "../../../../src/applications/common/calendar/Time"
 
 o.spec("Time Class", function () {
 	o.spec("parseFromString", function () {

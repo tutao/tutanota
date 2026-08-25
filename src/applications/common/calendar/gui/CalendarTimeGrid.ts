@@ -1,5 +1,5 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/utils"
 import { elementIdPart } from "@tutao/meta"
 import { DateTime } from "luxon"
