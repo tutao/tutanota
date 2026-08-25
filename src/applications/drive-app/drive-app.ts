@@ -218,6 +218,7 @@ import("../../ui/translations/en.js")
 						showMoveItemDialog: (items, moveItems) => driveLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						bottomNav,
+						sendFileViaMail: null,
 					}),
 				},
 				driveLocator.logins,
@@ -257,6 +258,7 @@ import("../../ui/translations/en.js")
 							makeViewModel: cache.makeViewModel,
 							showMoveItemDialog: cache.showMoveItemDialog,
 							filePicker: cache.filePicker,
+							sendFileViaMail: null,
 						}
 					},
 				},

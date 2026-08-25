@@ -183,7 +183,7 @@ export function driveFolderName(folder: DriveFolder): Translation {
 
 // NOTE: Keep the order roughly in sync with getSelectionContextActions.
 export function getFileContextActions(item: FileFolderItem | FolderFolderItem, fileActions: FileActions): DropdownChildAttrs[] {
-	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload } = fileActions
+	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload, onSendAsEmail } = fileActions
 
 	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 
@@ -198,6 +198,16 @@ export function getFileContextActions(item: FileFolderItem | FolderFolderItem, f
 					onDownload(item)
 				},
 			})
+			if (onSendAsEmail) {
+				actions.push({
+					// FIXME: translate
+					label: lang.makeTranslation("whatever", "Shove into mail"),
+					icon: Icons.MailFilled,
+					click: () => {
+						onSendAsEmail(item)
+					},
+				})
+			}
 		}
 		actions.push(
 			{

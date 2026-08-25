@@ -29,7 +29,7 @@ import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
 import { ListLoadingState, ListState, MultiselectMode } from "../../../../ui/base/List"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
-import { DriveViewAttrs } from "../../drive/view/DriveView"
+import { DriveViewAttrs, MailFileSender } from "../../drive/view/DriveView"
 import { DriveSelectedItemsActions } from "../../drive/view/DriveFolderNav"
 import { DriveFolderContent } from "../../drive/view/DriveFolderContent"
 import { DriveFolder } from "@tutao/entities/drive"
@@ -68,6 +68,7 @@ export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 	filePicker: DriveFilePicker
 	bottomNav?: () => Children
+	sendFileViaMail: MailFileSender | null
 }
 
 /**
@@ -135,7 +136,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () => [],
 						columnLayout: [
-							this.renderFolderView(listState, vnode.attrs.showMoveItemDialog),
+							this.renderFolderView(listState, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail),
 							m(DriveTransferStack, {
 								driveTransfers: this.searchViewModel.transfers(),
 								cancelTransfer: (transferId) => this.searchViewModel.cancelTransfer(transferId),
@@ -512,7 +513,11 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		this.searchViewModel.selectEndDate(end)
 	}
 
-	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown) {
+	private renderFolderView(
+		listState: ListState<FolderItem>,
+		showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown,
+		sendFileViaMail: MailFileSender | null,
+	) {
 		const selectionEvents = this.searchViewModel.selectionEvents
 		const fileActions: FileActions = {
 			onCut: (item) => this.searchViewModel.cut([item]),
@@ -537,6 +542,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 				showMoveItemDialog([item], (items: readonly FolderItemId[], destinationFolder: DriveFolder) =>
 					this.searchViewModel.moveItems(items, destinationFolder._id),
 				),
+			onSendAsEmail: sendFileViaMail ? (item) => sendFileViaMail(item.file) : null,
 		}
 		return m(
 			"div.col.flex.plr-8.fill-absolute..overflow-y-scroll",

@@ -42,7 +42,7 @@ import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
-import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { DriveFile, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
@@ -52,7 +52,6 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
-import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
 import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
@@ -393,6 +392,16 @@ import("../../ui/translations/en.js")
 		)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
+
+		const sendDriveFileViaMail =
+			EnvProvider.get().isDesktop() || EnvProvider.get().isWebClient()
+				? async (file: DriveFile) => {
+						const { newMailEditorForDriveFiles } = await import("./mail/editor/MailEditor.js")
+						const editor = await newMailEditorForDriveFiles(mailLocator.mailboxModel, mailLocator.fileController, file)
+						editor?.show()
+					}
+				: null
+
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -704,6 +713,7 @@ import("../../ui/translations/en.js")
 							showMoveItemDialog: cache.showMoveItemDialog,
 							bottomNav: cache.bottomNav,
 							filePicker: cache.filePicker,
+							sendFileViaMail: sendDriveFileViaMail,
 						}
 					},
 				},
@@ -776,6 +786,7 @@ import("../../ui/translations/en.js")
 						bottomNav,
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
+						sendFileViaMail: sendDriveFileViaMail,
 					}),
 				},
 				mailLocator.logins,

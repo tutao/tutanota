@@ -87,7 +87,7 @@ import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextF
 import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 import { animateToolbar, RichTextToolbar } from "../../../../ui/base/RichTextToolbar.js"
-import { readLocalFiles } from "../../../common/file/FileController"
+import { FileController, readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { ToggleButton, ToggleButtonAttrs } from "../../../../ui/base/buttons/ToggleButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
@@ -129,6 +129,8 @@ import { createDataFile } from "../../../common/api/worker/utils/DataFile"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { DriveFile } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
 
 // Interval where we save drafts locally.
 //
@@ -1813,4 +1815,13 @@ async function getMailboxDetailsAndProperties(
 	mailboxDetails = mailboxDetails ?? (await locator.mailboxModel.getUserMailboxDetails())
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return { mailboxDetails, mailboxProperties }
+}
+
+export async function newMailEditorForDriveFiles(mailboxModel: MailboxModel, fileController: FileController, file: DriveFile): Promise<Dialog | null> {
+	const fileData = await showProgressDialog(
+		// FIXME: text
+		lang.makeTranslation("test", "Doing cursed things…"),
+		fileController.downloadToAppDirectory(file, ArchiveDataType.DriveFile),
+	)
+	return await newMailEditorFromTemplate(await mailboxModel.getUserMailboxDetails(), {}, "", "", [fileData])
 }

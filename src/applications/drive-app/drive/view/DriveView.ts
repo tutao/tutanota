@@ -54,12 +54,14 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../../ui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
-import { DriveFolder } from "@tutao/entities/drive"
+import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+
+export type MailFileSender = (item: DriveFile) => unknown
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -68,6 +70,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
 	bottomNav?: () => Children
 	filePicker: DriveFilePicker
+	sendFileViaMail: MailFileSender | null
 }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
@@ -133,7 +136,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			this.driveViewModel.moveItems(items, destinationId)
 		}
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
+		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail) // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn], windowFacade)
 
 		this.shortcuts = [
@@ -385,7 +388,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]) {
+	private createCurrentFolderColumn(
+		headerAttrs: AppHeaderAttrs,
+		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
+		sendFileAsMail: MailFileSender | null,
+	) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -398,7 +405,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						},
 						desktopToolbar: () => [],
 						columnLayout: [
-							this.renderFolderView(listState, showMoveItemDialog),
+							this.renderFolderView(listState, showMoveItemDialog, sendFileAsMail),
 							m(DriveTransferStack, {
 								driveTransfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
@@ -494,7 +501,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 	}
 
-	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+	private renderFolderView(
+		listState: ListState<FolderItem>,
+		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
+		sendFileAsMail: MailFileSender | null,
+	): Children {
 		return m(DriveFolderView, {
 			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
 			onDropFiles: async (files, folderTransferItems) => {
@@ -544,6 +555,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				onStartMove: (item) => {
 					showMoveItemDialog([item], (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
 				},
+				onSendAsEmail: sendFileAsMail ? (item) => sendFileAsMail(item.file) : null,
 			},
 			onMove: (items: FolderItemId[], into: FolderFolderItem) => {
 				this.driveViewModel.moveItems(items, into.folder._id)
