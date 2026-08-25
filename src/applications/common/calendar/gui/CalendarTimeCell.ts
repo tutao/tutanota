@@ -2,7 +2,7 @@ import { noOp } from "@tutao/utils"
 import m, { ClassComponent, Vnode } from "mithril"
 import { getTimeFromClickInteraction } from "../date/CalendarUtils"
 import { RowBounds } from "./CalendarTimeGrid"
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 import { CalendarTimeColumn } from "./CalendarTimeColumn"
 
 /**
