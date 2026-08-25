@@ -117,7 +117,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/ap
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
-import { Time } from "../../../common/calendar/date/Time"
+import { Time } from "../../../common/calendar/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"

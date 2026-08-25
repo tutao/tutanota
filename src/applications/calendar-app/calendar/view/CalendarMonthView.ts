@@ -34,7 +34,7 @@ import {
 	TEMPORARY_EVENT_OPACITY,
 } from "../gui/CalendarGuiUtils.js"
 import type { CalendarEventBubbleClickHandler, CalendarEventBubbleKeyDownHandler, EventsOnDays, EventWrapper } from "./CalendarViewModel"
-import { Time } from "../../../common/calendar/date/Time.js"
+import { Time } from "../../../common/calendar/Time.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PageView } from "../../../../ui/base/PageView.js"
