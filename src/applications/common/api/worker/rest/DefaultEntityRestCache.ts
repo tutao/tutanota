@@ -311,13 +311,31 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const range = await this.cacheStorage.getRangeForList(typeRef, listId)
 
 		if (behavior.writesToCache) {
+			if (typeRef.typeId === 97) {
+				console.log("[Offline] writing to cache")
+			}
 			if (range == null) {
+				if (typeRef.typeId === 97) {
+					console.log(`[Offline] new list for ${typeRef} ${listId}, count: ${count}`)
+				}
 				await this.populateNewListWithRange(typeRef, listId, start, count, reverse, opts)
 			} else if (isStartIdWithinRange(range, start, typeModel)) {
+				if (typeRef.typeId === 97) {
+					console.log(`[Offline] extend from within for ${typeRef} ${listId}, count: ${count}`)
+				}
+
 				await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
 			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
+				if (typeRef.typeId === 97) {
+					console.log(`[Offline] extend away from range for ${typeRef} ${listId}, count: ${count}`)
+				}
+
 				await this.extendAwayFromRange(typeRef, listId, start, count, reverse, opts)
 			} else {
+				if (typeRef.typeId === 97) {
+					console.log(`[Offline] extend towards range for ${typeRef} ${listId}, count: ${count}`)
+				}
+
 				await this.extendTowardsRange(typeRef, listId, start, count, reverse, opts)
 			}
 			return await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
@@ -500,6 +518,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		const instancesWithoutErrors = errorRangeBound !== -1 ? allInstances.slice(0, errorRangeBound) : allInstances
 
 		await this.cacheStorage.putMultiple(typeRef, instancesWithoutErrors)
+
+		if (typeRef.typeId === 97) {
+			console.log(`List ID: ${listId} ErrorRangeBound: ${errorRangeBound}, InstancesWithoutErrorsCounts: ${instancesWithoutErrors.length}`)
+		}
 
 		const isCustomId = isCustomIdType(await this.typeModelResolver.resolveClientTypeReference(typeRef))
 

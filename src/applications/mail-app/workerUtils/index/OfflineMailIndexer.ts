@@ -311,6 +311,10 @@ export class OfflineMailIndexer implements MailIndexer {
 			}
 
 			const lastMail = lastThrow(mails)
+
+			// FIXME: remove
+			console.log(TAG, `Loading ${mails.length} mails, ${currentId} - ${getElementId(lastMail)}`)
+
 			currentId = getElementId(lastMail)
 			await this.indexNonRecentMails(mails, archiveDownloadPromises, async () => {
 				await updateStorageProgress(1, totalMailsDownloaded++)
