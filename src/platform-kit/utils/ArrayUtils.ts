@@ -1,4 +1,4 @@
-import { downcast, identity, neverNull } from "./Utils.js"
+import { identity, isNotNull, neverNull } from "./Utils.js"
 import { getFromMap } from "./MapUtils.js"
 
 export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
@@ -191,7 +191,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 }
 
 export function filterNull<T>(array: ReadonlyArray<T | null>): Array<NonNullable<T>> {
-	return downcast(array.filter((item) => item != null))
+	return array.filter(isNotNull)
 }
 
 /**
@@ -441,6 +441,18 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 	}
 
 	return zipped
+}
+
+export function arrayUnzip<A, B>(zippedArray: Array<[A, B]>): [Array<A>, Array<B>] {
+	const allA = new Array<A>()
+	const allB = new Array<B>()
+
+	for (const [a, b] of zippedArray) {
+		allA.push(a)
+		allB.push(b)
+	}
+
+	return [allA, allB]
 }
 
 export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {

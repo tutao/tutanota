@@ -1,4 +1,4 @@
-import { isNotNull, ProgrammingError, RuntimeInfo, TTranspileIgnore, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, ProgrammingError, RuntimeInfo, TMutableStaticSafety, TMutableStaticSafetyKind, TsRecord, TsString, TTranspileIgnore } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -91,6 +91,7 @@ export class EnvProvider {
 		EnvProvider.tryInitWithGlobalEnv() != null &&
 		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
+	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
 	private static singleton: EnvProvider | null = null
 
 	public static get(): EnvProvider {
