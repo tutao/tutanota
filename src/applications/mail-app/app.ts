@@ -42,7 +42,7 @@ import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
-import { driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { DriveFile, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
@@ -52,7 +52,6 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
-import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
 import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
@@ -62,7 +61,7 @@ import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/Ca
 import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
-import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -328,10 +327,13 @@ import("../../ui/translations/en.js")
 			const { createEditDraftDialog } = await import("./mail/view/MailViewerUtils.js")
 			const { AttachmentDownloader } = await import("./mail/view/MailGuiUtils.js")
 			const fileApp = EnvProvider.get().isBrowser() ? null : mailLocator.fileApp
+			const driveModel = await mailLocator.driveModel()
 			return new OpenLocallySavedDraftAction(
 				mailLocator.autosaveFacade,
 				mailLocator.mailboxModel,
-				new AttachmentDownloader(mailLocator.fileController, fileApp, mailLocator.transferProgressDispatcher),
+				new AttachmentDownloader(mailLocator.fileController, fileApp, mailLocator.transferProgressDispatcher, driveModel, (action) =>
+					mailLocator.showDriveDestinationPickerDialog(action),
+				),
 				mailLocator.entityClient,
 				{
 					newMailEditorFromLocalDraftData,
@@ -393,6 +395,21 @@ import("../../ui/translations/en.js")
 		)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
+
+		const sendDriveFileViaMail =
+			EnvProvider.get().isDesktop() || EnvProvider.get().isWebClient()
+				? async (file: DriveFile) => {
+						const { newMailEditorForDriveFiles } = await import("./mail/editor/MailEditor.js")
+						const editor = await newMailEditorForDriveFiles(
+							mailLocator.mailboxModel,
+							mailLocator.fileController,
+							mailLocator.transferProgressDispatcher,
+							file,
+						)
+						editor?.show()
+					}
+				: null
+
 		const paths = applicationPaths({
 			login: makeViewResolver<LoginViewAttrs, LoginView, { makeViewModel: () => LoginViewModel }>(
 				{
@@ -673,7 +690,7 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					makeViewModel: () => DriveSearchViewModel
-					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 					filePicker: DriveFilePicker
 					bottomNav: () => Children
 				}
@@ -704,6 +721,7 @@ import("../../ui/translations/en.js")
 							showMoveItemDialog: cache.showMoveItemDialog,
 							bottomNav: cache.bottomNav,
 							filePicker: cache.filePicker,
+							sendFileViaMail: sendDriveFileViaMail,
 						}
 					},
 				},
@@ -776,6 +794,7 @@ import("../../ui/translations/en.js")
 						bottomNav,
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
+						sendFileViaMail: sendDriveFileViaMail,
 					}),
 				},
 				mailLocator.logins,

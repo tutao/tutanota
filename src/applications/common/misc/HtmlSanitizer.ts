@@ -19,8 +19,8 @@ import {
 	stringParser,
 } from "./parsing/ParserCombinator"
 import { Link, SanitizeConfig, SanitizeConfigExtra, SanitizedFragment, SanitizedHTML } from "../../../ui/utils/HtmlSanitizerInterface"
-import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { splitTextForHighlighting } from "../../../ui/utils/QueryTokenUtils"
+import { DataFile } from "../../../entities/tutanota/Utils"
 
 // background attribute is deprecated but still used in common browsers
 const EXTERNAL_CONTENT_ATTRS = Object.freeze([

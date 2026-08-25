@@ -11,7 +11,8 @@ import { MailBundle, MailExportMode } from "../../../common/mailFunctionality/Sh
 import { generateExportFileName, mailToEmlFile } from "./emlUtils.js"
 import { Mail } from "@tutao/entities/tutanota"
 import { elementIdPart } from "../../../../platform-kit/meta"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
+
+import { DataFile } from "../../../../entities/tutanota/Utils"
 
 const EXPORT_CHUNK_SIZE = 10000
 

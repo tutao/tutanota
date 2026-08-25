@@ -1,5 +1,5 @@
 import { CalendarEvent, CalendarRepeatRule, createFile } from "@tutao/entities/tutanota"
-import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
+import { CalendarAttendeeStatus, CalendarMethod, DataFile } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
 import { EndType, RepeatPeriod, TimeConstants } from "../../../../platform-kit/app-env"
 import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
@@ -10,7 +10,6 @@ import { DateTime } from "luxon"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { convertToDataFile } from "../../../common/api/worker/utils/DataFile"
 import { assertEnumValue, getLetId } from "../../../../platform-kit/meta"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { reverse } from "../../../common/misc/EnumUtils"
 
 /** create an ical data file that can be attached to an invitation/update/cancellation/response mail */

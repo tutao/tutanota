@@ -9,11 +9,32 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { DownloadPostProcessing, FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController.js"
-import { EnvProvider, Mode } from "@tutao/app-env"
+import { EnvProvider, Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
-import { Attachment, FileReference } from "../../../../entities/tutanota/Utils"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
-import { AttachmentDownloader } from "../view/MailGuiUtils"
+import { Attachment, DataFile, FileReference } from "../../../../entities/tutanota/Utils"
+import { AttachmentDownloader, showDownloadProgressDialog } from "../view/MailGuiUtils"
+import { mailLocator } from "../../mailLocator"
+import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
+import { DriveFileTypeRef } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+
+export async function attachDriveFile(model: SendMailModel): Promise<void> {
+	const roots = await mailLocator.driveFacade.loadRootFolders("withNetwork")
+	mailLocator.showDriveFilePickerDialog(roots.root, async (pickedItems: readonly FolderItemId[]) => {
+		for (const pickedItem of pickedItems) {
+			if (pickedItem.type === "folder") {
+				throw new ProgrammingError("DriveFilePickerDialog returned folder")
+			}
+			const driveFile = await mailLocator.entityClient.load(DriveFileTypeRef, pickedItem.id)
+
+			const downloadReturn = await mailLocator.fileController.downloadToAppDirectory(driveFile, ArchiveDataType.DriveFile)
+			await showDownloadProgressDialog(mailLocator.transferProgressDispatcher, [driveFile], downloadReturn, () =>
+				mailLocator.fileController.abortDownload(downloadReturn),
+			)
+			model.attachFiles([await downloadReturn.promise])
+		}
+	})
+}
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,
@@ -77,6 +98,7 @@ export function createAttachmentBubbleAttrs(
 	model: SendMailModel,
 	fileDownloader: AttachmentDownloader,
 	getDomElement: () => HTMLElement,
+	isDriveEnabled: boolean,
 ): Array<AttachmentBubbleAttrs> {
 	return model.getAttachments().map((attachment) => ({
 		attachment,
@@ -84,6 +106,7 @@ export function createAttachmentBubbleAttrs(
 		download: fileDownloader.canDownloadAttachment(attachment)
 			? () => fileDownloader.openOrDownloadAttachment(attachment, DownloadPostProcessing.Write)
 			: null,
+		saveToDrive: isDriveEnabled ? () => fileDownloader.saveToDrive(attachment) : null,
 		remove: () => {
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {

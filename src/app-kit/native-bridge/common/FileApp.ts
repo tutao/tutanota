@@ -4,8 +4,8 @@ import { UploadTaskResponse } from "./generatedipc/types/UploadTaskResponse.js"
 import { DownloadTaskResponse } from "./generatedipc/types/DownloadTaskResponse.js"
 import { FileFacade } from "./generatedipc/types/FileFacade.js"
 import { ExportFacade } from "./generatedipc/types/ExportFacade.js"
-import { FileReference } from "../../../entities/tutanota/Utils"
-import { DataFile, MailBundle } from "../../../entities/tutanota/MailBundle"
+import { DataFile, FileReference } from "../../../entities/tutanota/Utils"
+import { MailBundle } from "../../../entities/tutanota/MailBundle"
 import { DirectoryContents } from "@tutao/native-bridge/generatedIpc/types"
 
 export type FileUri = string

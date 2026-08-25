@@ -33,7 +33,7 @@ import {
 } from "@tutao/crypto"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService_POST } from "@tutao/entities/tutanota"
-import { SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
+import { DataFile, SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
@@ -64,7 +64,6 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
-import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
 import {
 	CacheMode,

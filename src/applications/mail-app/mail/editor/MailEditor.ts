@@ -15,6 +15,7 @@ import {
 import {
 	Attachment,
 	ConversationType,
+	DataFile,
 	ExternalImageRule,
 	FileReference,
 	isTutanotaFile,
@@ -53,7 +54,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../../ui/animation/Animations"
 import type { LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
 import { Autocomplete, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
-import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
+import { attachDriveFile, chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
 import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
@@ -87,7 +88,7 @@ import { MailRecipientsTextField } from "../../../common/gui/MailRecipientsTextF
 import { getContactDisplayName } from "../../../common/contactsFunctionality/ContactUtils.js"
 import { ResolvableRecipient } from "../../../common/api/main/RecipientsModel"
 import { animateToolbar, RichTextToolbar } from "../../../../ui/base/RichTextToolbar.js"
-import { readLocalFiles } from "../../../common/file/FileController"
+import { FileController, readLocalFiles } from "../../../common/file/FileController"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton.js"
 import { ToggleButton, ToggleButtonAttrs } from "../../../../ui/base/buttons/ToggleButton.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
@@ -127,8 +128,10 @@ import { loadMailDetails } from "../view/MailViewerUtils"
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { DriveFile } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 
 // Interval where we save drafts locally.
 //
@@ -497,9 +500,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		const inlineAttachment = tutanotaFiles.find((attachment) => attachment.cid === cid)
 
 		if (inlineAttachment && isTutanotaFile(inlineAttachment)) {
-			showDownloadProgressDialog(locator.transferProgressDispatcher, [inlineAttachment], await locator.fileController.open(inlineAttachment)).catch(
-				ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")),
-			)
+			const downloadReturn = await locator.fileController.open(inlineAttachment)
+			showDownloadProgressDialog(locator.transferProgressDispatcher, [inlineAttachment], downloadReturn, () =>
+				locator.fileController.abortDownload(downloadReturn),
+			).catch(ofClass(FileOpenError, () => Dialog.message("canNotOpenFileOnDevice_msg")))
 		}
 	}
 
@@ -528,6 +532,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			label: "attachFiles_action",
 			click: (ev, dom) => chooseAndAttachFile(model, dom.getBoundingClientRect()).then(() => m.redraw()),
 			icon: Icons.Paperclip,
+			size: ButtonSize.Compact,
+		}
+		const attachDriveFilesButtonAttrs: IconButtonAttrs = {
+			label: "openDriveDestinationPickerForAttachment_action",
+			click: (ev, dom) => attachDriveFile(model).then(() => m.redraw()),
+			icon: Icons.DriveFilled,
 			size: ButtonSize.Compact,
 		}
 		const templatePopupButtonAttrs: IconButtonAttrs = {
@@ -571,9 +581,14 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			oninput: (val) => model.setSubject(val),
 		}
 
-		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(model, attachmentDownloader, () => {
-			return this.editor.getDOM()
-		})
+		const attachmentBubbleAttrs = createAttachmentBubbleAttrs(
+			model,
+			attachmentDownloader,
+			() => {
+				return this.editor.getDOM()
+			},
+			this.sendMailModel.isDriveEnabled(),
+		)
 
 		let editCustomNotificationMailAttrs: IconButtonAttrs | null = null
 
@@ -824,6 +839,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					this.templateModel ? m(IconButton, templatePopupButtonAttrs) : null,
 					toolbarButton(),
 					m(IconButton, attachFilesButtonAttrs),
+					this.sendMailModel.isDriveEnabled() && !EnvProvider.get().isApp() ? m(IconButton, attachDriveFilesButtonAttrs) : null,
 				]),
 				m("hr.hr"),
 				m(
@@ -1737,9 +1753,16 @@ export async function newMailEditorFromTemplate(
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	const model = await locator.sendMailModel(mailboxDetails, mailboxProperties)
 	await model.initWithTemplate(recipients, subject, bodyText, attachments, confidential, senderMailAddress, initialChangedState)
+	const driveModel = await mailLocator.driveModel()
 	return await createMailEditorDialog(
 		model,
-		new AttachmentDownloader(locator.fileController, EnvProvider.get().isBrowser() ? null : mailLocator.fileApp, locator.transferProgressDispatcher),
+		new AttachmentDownloader(
+			locator.fileController,
+			EnvProvider.get().isBrowser() ? null : mailLocator.fileApp,
+			locator.transferProgressDispatcher,
+			driveModel,
+			(action) => mailLocator.showDriveDestinationPickerDialog(action),
+		),
 	)
 }
 
@@ -1803,13 +1826,20 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 		.split("\n")
 		.join("<br />")
 	const { giftCardSubject } = await locator.serviceExecutor.execute(TranslationService_GET, createTranslationGetIn({ lang: lang.code }), null)
+	const driveModel = await mailLocator.driveModel()
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
 		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
 		.then((model) =>
 			createMailEditorDialog(
 				model,
-				new AttachmentDownloader(locator.fileController, EnvProvider.get().isBrowser() ? null : locator.fileApp, locator.transferProgressDispatcher),
+				new AttachmentDownloader(
+					locator.fileController,
+					EnvProvider.get().isBrowser() ? null : locator.fileApp,
+					locator.transferProgressDispatcher,
+					driveModel,
+					(action) => mailLocator.showDriveDestinationPickerDialog(action),
+				),
 				false,
 			),
 		)
@@ -1822,4 +1852,16 @@ async function getMailboxDetailsAndProperties(
 	mailboxDetails = mailboxDetails ?? (await locator.mailboxModel.getUserMailboxDetails())
 	const mailboxProperties = await locator.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 	return { mailboxDetails, mailboxProperties }
+}
+
+export async function newMailEditorForDriveFiles(
+	mailboxModel: MailboxModel,
+	fileController: FileController,
+	transferProgressDispatcher: TransferProgressDispatcher,
+	file: DriveFile,
+): Promise<Dialog | null> {
+	const downloadReturn = await fileController.downloadToAppDirectory(file, ArchiveDataType.DriveFile)
+	await showDownloadProgressDialog(transferProgressDispatcher, [file], downloadReturn, () => fileController.abortDownload(downloadReturn))
+	const fileData = await downloadReturn.promise
+	return await newMailEditorFromTemplate(await mailboxModel.getUserMailboxDetails(), {}, "", "", [fileData])
 }

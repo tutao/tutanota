@@ -100,6 +100,7 @@ import { Time } from "../calendar/date/Time"
 import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
+import { isDriveEnabled } from "../misc/DriveUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -249,6 +250,9 @@ export class SendMailModel {
 				getSubstitutedLanguageCode(this.logins.getUserController().props.notificationMailLanguage || lang.code, languageCodes) || languageCodes[0]
 			this.availableNotificationTemplateLanguages = filteredLanguages
 		}
+	}
+	isDriveEnabled(): boolean {
+		return isDriveEnabled(this.logins)
 	}
 
 	user(): UserController {

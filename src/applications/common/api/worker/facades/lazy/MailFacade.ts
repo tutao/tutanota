@@ -159,6 +159,7 @@ import {
 } from "@tutao/entities/tutanota"
 import {
 	ConversationType,
+	DataFile,
 	FileReference,
 	isDataFile,
 	isFileReference,
@@ -177,7 +178,6 @@ import {
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../../platform-kit/base/base-crypto/Constants.js"
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { DataFile } from "../../../../../../entities/tutanota/MailBundle"
 import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"

@@ -10,7 +10,8 @@ import { MailBundle } from "../../../common/mailFunctionality/SharedMailUtils.js
 import { isDraft } from "../model/MailChecks.js"
 import { FileTypeRef, Mail, MailDetails } from "@tutao/entities/tutanota"
 import { getLetId } from "../../../../platform-kit/meta"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
+
+import { DataFile } from "../../../../entities/tutanota/Utils"
 
 export function makeMailBundle(sanitizer: HtmlSanitizer, mail: Mail, mailDetails: MailDetails, attachments: Array<DataFile>): MailBundle {
 	const recipientMapper = ({ address, name }: MailAddressAndName) => ({ address, name })

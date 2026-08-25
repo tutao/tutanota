@@ -28,9 +28,9 @@ import { HttpMethod } from "@tutao/rest-client/types"
 import { FetchImpl, toGlobalResponse } from "../net/NetAgent"
 import { OpenDialogOptions } from "electron"
 import { CommandExecutor } from "../CommandExecutor"
-import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { createHash } from "node:crypto"
 import { fileUrlFromString } from "./fileUtils"
+import { DataFile } from "../../../../entities/tutanota/Utils"
 
 const TAG = "[DesktopFileFacade]"
 

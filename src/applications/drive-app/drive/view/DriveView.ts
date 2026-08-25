@@ -42,7 +42,7 @@ import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId, OperationUp
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import Stream from "mithril/stream"
 import { isNotEmpty, isNotNull } from "@tutao/utils"
-import { MoveItems } from "./DriveMoveItemDialog"
+import { PickedDestinationAction } from "./DriveItemPicker"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -54,20 +54,23 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { FabMenu, FabMenuAttrs } from "../../../../ui/FabMenu"
 import { DriveFilePicker } from "./DriveFilePicker"
 import { NewPaidPlans } from "../../../../entities/sys/Utils"
-import { DriveFolder } from "@tutao/entities/drive"
+import { DriveFile, DriveFolder } from "@tutao/entities/drive"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
+export type MailFileSender = (item: DriveFile) => unknown
+
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	driveViewModel: DriveViewModel
-	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+	showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 	bottomNav?: () => Children
 	filePicker: DriveFilePicker
+	sendFileViaMail: MailFileSender | null
 }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
@@ -133,7 +136,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			this.driveViewModel.moveItems(items, destinationId)
 		}
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog) // this where we see the files of the selected folder being listed
+		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail) // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn], windowFacade)
 
 		this.shortcuts = [
@@ -163,7 +166,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				move: () => {
 					const selectedItems = this.driveViewModel.listState().selectedItems
 
-					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (items: readonly FolderItemId[], destination: DriveFolder) =>
+					vnode.attrs.showMoveItemDialog(Array.from(selectedItems), (destination: DriveFolder, items: readonly FolderItemId[]) =>
 						this.driveViewModel.moveItems(items, destination._id),
 					)
 				},
@@ -385,7 +388,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		return m(".mlr-8.mt-8.mb-8.flex.col", [m(DriveProgressBar, { percentage: usedPercentage }), m(".small.mt-4", [usedStorage, " / ", totalStorage])])
 	}
 
-	private createCurrentFolderColumn(headerAttrs: AppHeaderAttrs, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]) {
+	private createCurrentFolderColumn(
+		headerAttrs: AppHeaderAttrs,
+		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
+		sendFileAsMail: MailFileSender | null,
+	) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -398,7 +405,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						},
 						desktopToolbar: () => [],
 						columnLayout: [
-							this.renderFolderView(listState, showMoveItemDialog),
+							this.renderFolderView(listState, showMoveItemDialog, sendFileAsMail),
 							m(DriveTransferStack, {
 								driveTransfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
@@ -494,7 +501,11 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		}
 	}
 
-	private renderFolderView(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): Children {
+	private renderFolderView(
+		listState: ListState<FolderItem>,
+		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
+		sendFileAsMail: MailFileSender | null,
+	): Children {
 		return m(DriveFolderView, {
 			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
 			onDropFiles: async (files, folderTransferItems) => {
@@ -542,8 +553,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				},
 				onRename: (item) => this.onRename(item),
 				onStartMove: (item) => {
-					showMoveItemDialog([item], (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
+					showMoveItemDialog([item], async (destinationFolder, items) => {
+						if (items) {
+							this.driveViewModel.moveItems(items, destinationFolder._id)
+						}
+					})
 				},
+				onSendAsEmail: sendFileAsMail ? (item) => sendFileAsMail(item.file) : null,
 			},
 			onMove: (items: FolderItemId[], into: FolderFolderItem) => {
 				this.driveViewModel.moveItems(items, into.folder._id)
@@ -574,7 +590,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			onPaste: !isListingTrash && this.driveViewModel.clipboard ? () => this.onPaste() : null,
 			onMove:
 				!isListingTrash && hasSelectedItems
-					? () => showMoveItemDialog(selectedItems, (items, destinationFolder) => this.driveViewModel.moveItems(items, destinationFolder._id))
+					? () =>
+							showMoveItemDialog(selectedItems, (destinationFolder, items) => {
+								if (items) {
+									this.driveViewModel.moveItems(items, destinationFolder._id)
+								}
+							})
 					: null,
 			onDownload:
 				!isListingTrash && hasSelectedItems && this.driveViewModel.isDownloadPermitted(selectedItems)

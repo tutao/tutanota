@@ -94,6 +94,7 @@ import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatu
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
+import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -271,6 +272,9 @@ export class MailViewerViewModel {
 				m.redraw()
 			})
 		}
+	}
+	isDriveEnabled(): boolean {
+		return isDriveEnabled(this.logins)
 	}
 
 	deinit() {
@@ -1301,10 +1305,9 @@ export class MailViewerViewModel {
 	async downloadAll(): Promise<void> {
 		const nonInlineAttachments = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, this.getNonInlineAttachments())
 		try {
-			await showDownloadProgressDialog(
-				this.transferProgressDispatcher,
-				nonInlineAttachments,
-				await this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments),
+			const downloadReturn = await this.fileController.downloadAll(nonInlineAttachments, ArchiveDataType.Attachments)
+			await showDownloadProgressDialog(this.transferProgressDispatcher, nonInlineAttachments, downloadReturn, () =>
+				this.fileController.abortDownload(downloadReturn),
 			)
 		} catch (e) {
 			if (e instanceof FileOpenError) {
@@ -1321,6 +1324,9 @@ export class MailViewerViewModel {
 		file = (await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, [file]))[0]
 		// When downloading from email, we know it will be a Tutanota file and so do not have to pass a NativeFileApp
 		await this.attachmentDownloader.openOrDownloadAttachment(file, postDownload)
+	}
+	async saveToDrive(file: File) {
+		await this.attachmentDownloader.saveToDrive(file)
 	}
 
 	async importAttachment(file: File) {

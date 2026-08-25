@@ -47,9 +47,8 @@ import {
 	UserTypeRef,
 } from "@tutao/entities/sys"
 import { elementIdPart, getElementId } from "../../../../../src/platform-kit/meta"
-import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } from "../../../../../src/entities/tutanota/Utils"
+import { DataFile, MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } from "../../../../../src/entities/tutanota/Utils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("MailFacade test", function () {

@@ -32,7 +32,7 @@ import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@t
 import { handleRestError } from "@tutao/rest-client/error"
 import { EventController } from "../../../common/api/main/EventController"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
-import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
+import { DataFile, FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { DuplicateFilesDialogDecision } from "../view/DriveGuiUtils"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
@@ -170,7 +170,7 @@ export class DriveModel {
 	 * @return true if anything is getting uploaded, false otherwise
 	 */
 	async uploadFiles(
-		files: readonly (WebFile | FileReference)[],
+		files: readonly (WebFile | FileReference | DataFile)[],
 		targetFolderId: IdTuple,
 		showDuplicateFilesChoiceDialog: (fileName: string, fileCount: number) => Promise<DuplicateFilesDialogDecision>,
 		folders?: readonly DiskFolder<WebFile | FileReference>[],

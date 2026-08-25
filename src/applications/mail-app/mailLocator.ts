@@ -141,7 +141,7 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { PickedDestinationAction, PickedItemAction } from "../drive-app/drive/view/DriveItemPicker"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
@@ -573,7 +573,10 @@ class MailLocator implements CommonLocator {
 		const eventRepository = await this.calendarEventsRepository()
 		const undoModel = await this.undoModel()
 		const fileApp = EnvProvider.get().isBrowser() ? null : this.fileApp
-		const fileDownloader = new AttachmentDownloader(this.fileController, fileApp, this.transferProgressDispatcher)
+		const driveModel = await this.driveModel()
+		const fileDownloader = new AttachmentDownloader(this.fileController, fileApp, this.transferProgressDispatcher, driveModel, (action) =>
+			mailLocator.showDriveDestinationPickerDialog(action),
+		)
 
 		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
@@ -1455,7 +1458,7 @@ class MailLocator implements CommonLocator {
 		const redraw = await this.redraw()
 		return new DriveTransferController(this.driveFacade, this.blobFacade, redraw, this.fileController)
 	})
-	readonly driveOperations: lazyAsync<DriveModel> = lazyMemoized(async () => {
+	readonly driveModel: lazyAsync<DriveModel> = lazyMemoized(async () => {
 		const { DriveModel } = await import("../drive-app/drive/model/DriveModel.js")
 		return new DriveModel(
 			await this.driveTransferController(),
@@ -1492,16 +1495,27 @@ class MailLocator implements CommonLocator {
 			this.syncTracker,
 			this.driveSearchModel,
 			await this.unscopedSearchRouter(),
-			await this.driveOperations(),
+			await this.driveModel(),
 		)
 		await model.init()
 
 		return model
 	})
 
-	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {
-		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
-		showMoveDialog(this.entityClient, this.driveFacade, items, moveItems)
+	async showMoveItemDialog(items: FolderItem[], moveItems: PickedDestinationAction) {
+		const { showMoveItemDialog } = await import("../drive-app/drive/view/DriveGuiUtils.js")
+		showMoveItemDialog(this.entityClient, this.driveFacade, items, moveItems)
+	}
+
+	// For the internal drive file picker, not the system one
+	async showDriveFilePickerDialog(startFolderId: IdTuple, action: PickedItemAction) {
+		const { showDriveFilePickerDialog } = await import("../drive-app/drive/view/DriveGuiUtils.js")
+		showDriveFilePickerDialog(this.entityClient, this.driveFacade, startFolderId, action)
+	}
+
+	async showDriveDestinationPickerDialog(action: PickedDestinationAction) {
+		const { showDriveDestinationPickerDialog } = await import("../drive-app/drive/view/DriveGuiUtils.js")
+		showDriveDestinationPickerDialog(this.entityClient, this.driveFacade, action)
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {
@@ -1571,7 +1585,7 @@ class MailLocator implements CommonLocator {
 		const driveSearchModel = await this.driveSearchModel()
 		const router = await this.throttledRouter()
 		const dateProvider = await this.noZoneDateProvider()
-		const driveOperations = await this.driveOperations()
+		const driveModel = await this.driveModel()
 		return () =>
 			new DriveSearchViewModel(
 				searchRouter,
@@ -1582,7 +1596,7 @@ class MailLocator implements CommonLocator {
 				this.driveFacade,
 				redraw,
 				this.transferProgressDispatcher,
-				driveOperations,
+				driveModel,
 			)
 	}
 

@@ -2521,6 +2521,15 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"attachDriveFiles_action" : "Attach",
+		"attachDriveFiles_label": "Select files",
+		"pickDriveFileDestination_action":"Save here",
+		"pickDriveFileDestination_label":"Pick a destination",
+		"saveToDriveDialog_label":"Save to Drive",
+		"attachingDriveFile_label" : "Attaching file to email",
+		"savingAttachmentToDrive_Label": "Saving file to Drive",
+		"sendDriveFileWithMail_action": "Send via email",
+		"openDriveDestinationPickerForAttachment_action": "Attach drive files"
 	}
 }
