@@ -1,11 +1,14 @@
 import o, { verify } from "@tutao/otest"
-import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/applications/common/desktop/sse/SseClient.js"
-import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/applications/common/desktop/net/DesktopNetworkClient.js"
+import { SseClient } from "../../../../src/applications/common/desktop/sse/SseClient.js"
+import type { SseConnectOptions, SseDelay, SseEventHandler } from "../../../../src/applications/common/desktop/sse/SseClient.js"
+import type { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/applications/common/desktop/net/DesktopNetworkClient.js"
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
 import { assertNotNull, defer, getFirstOrThrow } from "../../../../src/platform-kit/utils"
 import { SchedulerMock } from "../../TestUtils.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
+import { CONNECTION_TIMEOUT_MS } from "../../../../src/applications/common/desktop/net/HappyEyeballsConnector.js"
+import { DesktopSseDelay } from "../../../../src/applications/common/desktop/sse/reconnectDelay.js"
 
 o.spec("SseClient", function () {
 	const defaultOptions: SseConnectOptions = Object.freeze({
@@ -24,6 +27,8 @@ o.spec("SseClient", function () {
 		delay = object()
 		listener = object()
 		scheduler = new SchedulerMock()
+		when(delay.connectionFailureDelay(matchers.anything())).thenReturn(10)
+		when(delay.connectionLostDelay()).thenReturn(CONNECTION_TIMEOUT_MS)
 
 		sseClient = new SseClient(net as unknown as DesktopNetworkClient, delay, scheduler)
 
@@ -109,7 +114,7 @@ o.spec("SseClient", function () {
 	o.spec("reconnect", () => {
 		o.test("reconnects if response is closed", async () => {
 			const response = new ResponseStub()
-			when(delay.initialConnectionDelay()).thenReturn(10)
+			when(delay.connectionLostDelay()).thenReturn(10)
 
 			await sseClient.connect(defaultOptions)
 
@@ -131,7 +136,7 @@ o.spec("SseClient", function () {
 
 			const request = await net.waitForRequest()
 			await request.sendResponse(response)
-			when(delay.initialConnectionDelay()).thenReturn(10)
+			when(delay.connectionLostDelay()).thenReturn(10)
 
 			net.prepareForAnotherRequest()
 			response.sendError(new Error("test"))
@@ -144,7 +149,7 @@ o.spec("SseClient", function () {
 
 	o.spec("failing to connect", () => {
 		o.test("on failing to connect the first time it reschedules with attempts=1", async () => {
-			when(delay.reconnectDelay(1)).thenReturn(1)
+			when(delay.connectionFailureDelay(1)).thenReturn(1)
 			await sseClient.connect(defaultOptions)
 
 			const request = await net.waitForRequest()
@@ -155,8 +160,8 @@ o.spec("SseClient", function () {
 		})
 
 		o.test("on failing to connect the second time it reschedules with attempts=2", async () => {
-			when(delay.reconnectDelay(1)).thenReturn(1)
-			when(delay.reconnectDelay(2)).thenReturn(2)
+			when(delay.connectionFailureDelay(1)).thenReturn(1)
+			when(delay.connectionFailureDelay(2)).thenReturn(2)
 			await sseClient.connect(defaultOptions)
 
 			const request1 = await net.waitForRequest()
@@ -169,6 +174,82 @@ o.spec("SseClient", function () {
 			await request2.sendError(new Error("error2"))
 			scheduler.getThunkAfter(2)()
 			await net.waitForRequest()
+		})
+
+		o.test("waits for the failure delay after the establishment deadline", async () => {
+			await sseClient.connect(defaultOptions)
+
+			const request = await net.waitForRequest()
+			net.prepareForAnotherRequest()
+			const establishmentTimeoutThunk = scheduler.getThunkAfter(CONNECTION_TIMEOUT_MS)
+			establishmentTimeoutThunk()
+
+			o(request.state).equals("destroyed")
+			o(net.requests.length).equals(1)
+			scheduler.getThunkAfter(10)()
+			await net.waitForRequest()
+		})
+
+		o.test("schedules the full failure delay after a slow failure", async () => {
+			when(delay.connectionFailureDelay(1)).thenReturn(5_000)
+			await sseClient.connect(defaultOptions)
+
+			const request = await net.waitForRequest()
+			await request.sendError(new Error("error"))
+
+			o(scheduler.scheduledAfter.has(5_000)).equals(true)
+			o(scheduler.scheduledAt.size).equals(0)
+			verify(delay.connectionFailureDelay(1), { times: 1 })
+		})
+
+		o.test("reconnects if the request closes before receiving a response", async () => {
+			await sseClient.connect(defaultOptions)
+
+			const request = await net.waitForRequest()
+			net.prepareForAnotherRequest()
+			request.close()
+
+			o(net.requests.length).equals(1)
+			scheduler.getThunkAfter(10)()
+			await net.waitForRequest()
+		})
+
+		o.test("schedules only one retry for duplicate request failure events", async () => {
+			await sseClient.connect(defaultOptions)
+
+			const request = await net.waitForRequest()
+			await request.sendError(new Error("error"))
+			request.close()
+
+			verify(delay.connectionFailureDelay(1), { times: 1 })
+			o(scheduler.alarmId).equals(2)
+		})
+
+		o.test("destroys a response from a stale request", async () => {
+			await sseClient.connect(defaultOptions)
+
+			const firstRequest = await net.waitForRequest()
+			await firstRequest.sendError(new Error("error"))
+			net.prepareForAnotherRequest()
+			scheduler.getThunkAfter(10)()
+			await net.waitForRequest()
+
+			const staleResponse = new ResponseStub()
+			await firstRequest.sendResponse(staleResponse)
+			o(staleResponse.state).equals("destroyed")
+		})
+
+		o.test("cancels the establishment deadline after receiving a response", async () => {
+			await sseClient.connect(defaultOptions)
+			const establishmentTimeout = assertNotNull(scheduler.scheduledAfter.get(CONNECTION_TIMEOUT_MS)).id
+			const establishmentTimeoutThunk = scheduler.getThunkAfter(CONNECTION_TIMEOUT_MS)
+
+			const request = await net.waitForRequest()
+			await request.sendResponse(new ResponseStub())
+			establishmentTimeoutThunk()
+
+			o(scheduler.cancelledAt.has(establishmentTimeout)).equals(true)
+			o(request.state).equals("created")
 		})
 	})
 
@@ -231,7 +312,7 @@ o.spec("SseClient", function () {
 			await request.sendError(new Error("test"))
 
 			await sseClient.disconnect()
-			o(scheduler.cancelledAt.size).equals(1)
+			o(scheduler.cancelledAt.size).equals(2)
 		})
 
 		o.test("should disconnect and use new options if connect() is called while connected", async () => {
@@ -261,6 +342,38 @@ o.spec("SseClient", function () {
 				method: "GET",
 			})
 		})
+	})
+})
+
+o.spec("DesktopSseDelay", () => {
+	o.test("uses crypto-compatible equal-jitter bounds with 20, 40, 80 and 120 second ceilings", () => {
+		const requestedBounds: Array<[number, number]> = []
+		const minimumDelay = new DesktopSseDelay((minimum, maximum) => {
+			requestedBounds.push([minimum, maximum])
+			return minimum
+		})
+		const maximumDelay = new DesktopSseDelay((_minimum, maximum) => maximum - 1)
+
+		o(minimumDelay.connectionLostDelay()).equals(10_000)
+		o(maximumDelay.connectionLostDelay()).equals(20_000)
+		o(minimumDelay.connectionFailureDelay(1)).equals(10_000)
+		o(maximumDelay.connectionFailureDelay(1)).equals(20_000)
+		o(minimumDelay.connectionFailureDelay(2)).equals(20_000)
+		o(maximumDelay.connectionFailureDelay(2)).equals(40_000)
+		o(minimumDelay.connectionFailureDelay(3)).equals(40_000)
+		o(maximumDelay.connectionFailureDelay(3)).equals(80_000)
+		o(minimumDelay.connectionFailureDelay(4)).equals(60_000)
+		o(maximumDelay.connectionFailureDelay(4)).equals(120_000)
+		o(minimumDelay.connectionFailureDelay(10)).equals(60_000)
+		o(maximumDelay.connectionFailureDelay(10)).equals(120_000)
+		o(requestedBounds).deepEquals([
+			[10_000, 20_001],
+			[10_000, 20_001],
+			[20_000, 40_001],
+			[40_000, 80_001],
+			[60_000, 120_001],
+			[60_000, 120_001],
+		])
 	})
 })
 
@@ -313,6 +426,10 @@ class RequestStub implements Partial<http.ClientRequest> {
 		await this.eventListeners.get("error")!(error)
 	}
 
+	close() {
+		this.eventListeners.get("close")?.()
+	}
+
 	waitForDestroy() {
 		return this.destroyedDefer.promise
 	}
@@ -338,6 +455,7 @@ class RequestStub implements Partial<http.ClientRequest> {
 
 class ResponseStub implements Partial<http.IncomingMessage> {
 	statusCode: number = 200
+	state: "created" | "destroyed" = "created"
 	eventListeners = new Map<string, (...args: any[]) => unknown>()
 
 	on(event, listener) {
@@ -359,5 +477,10 @@ class ResponseStub implements Partial<http.IncomingMessage> {
 
 	sendError(e: Error) {
 		this.eventListeners.get("error")?.()
+	}
+
+	destroy() {
+		this.state = "destroyed"
+		return this as unknown as http.IncomingMessage
 	}
 }
