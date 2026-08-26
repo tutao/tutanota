@@ -18,6 +18,8 @@ import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import java.time.LocalDate
@@ -160,30 +162,43 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 
 		val end = systemCalendar.timeInMillis.toULong()
 
-		// Map calendars to their respective event DAOs while filtering out any that throw membership exceptions
-		val calendarEventListMap = calendars.associateWith { calendarId ->
-			try {
-				Log.i(TAG, "Fetching events for calendarId: $calendarId")
-				val events = calendarFacade.getCalendarEvents(calendarId, start, end)
-				Log.i(
-					TAG,
-					"Calendar $calendarId loaded. Found ${events.shortEvents.size} short events. Found ${events.longEvents.size} long events"
-				)
-				CalendarEventListDao(
-					events.shortEvents.toDao(),
-					events.longEvents.toDao(),
-					events.birthdayEvents.asDao()
-				)
-			} catch (e: ApiCallException.InternalSdkException) {
-				if (e.message?.contains("Missing membership") == true) {
-					Log.e(TAG, "InternalSdkException occurred", e)
-					Log.w(TAG, "Missing membership for $calendarId. Calendar will be removed from local cache.")
-					null
-				} else {
-					throw e
+		val calendarEventListMap = calendars
+			.map { calendarId ->
+				async {
+					try {
+						Log.i(TAG, "Fetching events for calendarId: $calendarId")
+
+						val events = calendarFacade.getCalendarEvents(calendarId, start, end)
+
+						Log.i(
+							TAG,
+							"Calendar $calendarId loaded. " +
+									"Found ${events.shortEvents.size} short events. " +
+									"Found ${events.longEvents.size} long events"
+						)
+
+						calendarId to CalendarEventListDao(
+							events.shortEvents.toDao(),
+							events.longEvents.toDao(),
+							events.birthdayEvents.asDao()
+						)
+					} catch (e: ApiCallException.InternalSdkException) {
+						if (e.message?.contains("Missing membership") == true) {
+							Log.w(
+								TAG,
+								"Missing membership for $calendarId. " +
+										"Calendar will be removed from local cache."
+							)
+							null
+						} else {
+							throw e
+						}
+					}
 				}
 			}
-		}.filterValues { it != null }.mapValues { it.value!! }
+			.awaitAll()
+			.filterNotNull()
+			.toMap()
 
 		storeCache(cacheDataStore, widgetId, calendarEventListMap, cryptoFacade, credentials)
 
