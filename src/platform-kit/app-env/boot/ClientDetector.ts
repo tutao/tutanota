@@ -1,7 +1,19 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, getStringEnumValue, ProgrammingError, RuntimeInfo, TsDouble, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import {
+	console,
+	getStringEnumValue,
+	ProgrammingError,
+	RuntimeInfo,
+	TMutableStaticSafety,
+	TMutableStaticSafetyKind,
+	TsDouble,
+	TsInt,
+	TsString,
+	TutanotaError,
+	TypeChecks,
+} from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -15,6 +27,7 @@ export class ClientDetector {
 	browser: BrowserType = BrowserType.OTHER
 	device: DeviceType = DeviceType.DESKTOP
 
+	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
 	private static singleton: ClientDetector | null = null
 
 	public static get(): ClientDetector {
