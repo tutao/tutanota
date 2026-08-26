@@ -1,5 +1,8 @@
 import type { HeadersInit, RequestInit, Response } from "undici"
-import { Agent, fetch as undiciFetch, Headers } from "undici"
+import { Agent, buildConnector, fetch as undiciFetch, Headers, setGlobalDispatcher } from "undici"
+import net from "node:net"
+import tls from "node:tls"
+import { CONNECTION_TIMEOUT_MS, connectWithHappyEyeballs } from "./HappyEyeballsConnector.js"
 
 export type UndiciResponse = Response
 export type UndiciRequestInit = RequestInit
@@ -11,6 +14,59 @@ export type FetchImpl = (target: string | URL, init?: UndiciRequestInit) => Prom
 const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 /** Timeout between reading data. */
 const READ_TIMEOUT_MS = 20_000
+const MAX_CACHED_TLS_SESSIONS = 100
+
+const defaultConnector = buildConnector({ allowH2: false, timeout: CONNECTION_TIMEOUT_MS })
+const tlsSessions = new Map<string, Buffer>()
+
+const happyEyeballsConnector: NonNullable<Agent.Options["connect"]> = (options, callback) => {
+	if (options.socketPath != null) {
+		callback(new Error("Unix socket connections are not supported by the desktop network agent"), null)
+		return
+	}
+	if (options.httpSocket != null || (options.protocol !== "http:" && options.protocol !== "https:")) {
+		defaultConnector(options, callback)
+		return
+	}
+
+	const secure = options.protocol === "https:"
+	const port = Number(options.port || (secure ? 443 : 80))
+	const servername = options.servername ?? (net.isIP(options.hostname) === 0 ? options.hostname : undefined)
+	const sessionKey = `${servername ?? options.hostname}:${port}`
+
+	void connectWithHappyEyeballs({
+		hostname: options.hostname,
+		port,
+		localAddress: options.localAddress ?? undefined,
+		readyEvent: secure ? "secureConnect" : "connect",
+		createConnection: (candidate) => {
+			const tcpSocket = net.connect({
+				host: candidate.address,
+				port,
+				family: candidate.family,
+				localAddress: options.localAddress ?? undefined,
+			})
+			const socket = secure
+				? tls.connect({
+						socket: tcpSocket,
+						servername,
+						ALPNProtocols: ["http/1.1"],
+						session: tlsSessions.get(sessionKey),
+					})
+				: tcpSocket
+
+			socket.setKeepAlive(true, 60_000)
+			socket.setNoDelay(true)
+			if (socket instanceof tls.TLSSocket) {
+				socket.on("session", (session) => cacheTlsSession(sessionKey, session))
+			}
+			return socket
+		},
+	}).then(
+		(socket) => callback(null, socket),
+		(error) => callback(error, null),
+	)
+}
 
 // We do not enable HTTP2 yet because it is still experimental (and buggy).
 const agent = new Agent({
@@ -18,20 +74,20 @@ const agent = new Agent({
 	keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
 	bodyTimeout: READ_TIMEOUT_MS,
 	headersTimeout: READ_TIMEOUT_MS,
-	connectTimeout: READ_TIMEOUT_MS,
-	// this is needed to address issues in some cases where IPv6 does not really work
-	autoSelectFamily: true,
+	connect: happyEyeballsConnector,
 })
+
+// Node's built-in fetch uses Undici's global dispatcher. Install the same
+// bounded agent used by customFetch so every main-process fetch follows the
+// same connection race and per-origin connection limit.
+setGlobalDispatcher(agent)
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {
 	if (init?.body != null) {
 		// undici throws an error if this is not taken care of.
 		init.duplex = "half"
 	}
-	return await undiciFetch(target, {
-		...(init ?? {}),
-		dispatcher: agent,
-	})
+	return await undiciFetch(target, init)
 }
 
 /**
@@ -57,4 +113,13 @@ export function convertHeaders(headers: globalThis.Headers): UndiciHeadersInit {
  */
 export function toGlobalResponse(response: FetchResult): globalThis.Response {
 	return response as unknown as globalThis.Response
+}
+
+function cacheTlsSession(key: string, session: Buffer) {
+	tlsSessions.delete(key)
+	tlsSessions.set(key, session)
+	if (tlsSessions.size > MAX_CACHED_TLS_SESSIONS) {
+		const oldestKey = tlsSessions.keys().next().value
+		if (oldestKey != null) tlsSessions.delete(oldestKey)
+	}
 }
