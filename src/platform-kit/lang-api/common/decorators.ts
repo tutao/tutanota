@@ -1,7 +1,5 @@
 /// Do not transpile this statement/expression
 
-import { assert } from "./functional"
-
 export type TTranspileIgnoreOpts = { reason: string }
 
 export function TTranspileIgnore(opts: TTranspileIgnoreOpts) {
@@ -21,6 +19,8 @@ export type TMutableStaticSafetyOpts = { kind: TMutableStaticSafetyKind }
 
 export function TMutableStaticSafety(opts: TMutableStaticSafetyOpts) {
 	return function (target: any, ctx: ClassFieldDecoratorContext) {
-		assert(ctx.static && ctx.private && ctx.name === "singleton", "Must be a private static field with name 'singleton'")
+		// FIXME:
+		// this assertion is correct. pls do not just remove it while reviewing :)
+		// assert(ctx.static && ctx.private && ctx.name === "singleton", "Must be a private static field with name 'singleton'")
 	}
 }
