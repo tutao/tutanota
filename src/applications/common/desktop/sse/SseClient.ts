@@ -1,11 +1,13 @@
 import http from "node:http"
 import type { DesktopNetworkClient } from "../net/DesktopNetworkClient"
 import { makeTaggedLogger } from "../DesktopLog"
-import { Scheduler } from "../../api/common/utils/Scheduler.js"
+import type { ScheduledTimeoutId, Scheduler } from "../../api/common/utils/Scheduler.js"
 import { ProgrammingError } from "../../../../platform-kit/app-env"
 
 import { newPromise } from "../../../../platform-kit/utils"
 import { reverse } from "../../misc/EnumUtils"
+import { ConnectionError } from "@tutao/rest-client/error"
+import { CONNECTION_TIMEOUT_MS } from "../net/HappyEyeballsConnector.js"
 
 const log = makeTaggedLogger("[SSE]")
 
@@ -13,9 +15,9 @@ const log = makeTaggedLogger("[SSE]")
  * Provides computed delays for SSE (in ms)
  */
 export interface SseDelay {
-	reconnectDelay(attempt: number): number
+	connectionFailureDelay(attempt: number): number
 
-	initialConnectionDelay(): number
+	connectionLostDelay(): number
 }
 
 export interface SseEventHandler {
@@ -54,8 +56,14 @@ export enum ConnectionState {
  */
 type State =
 	| { state: ConnectionState.disconnected }
-	| { state: ConnectionState.connecting; options: SseConnectOptions; attempt: number; connection: http.ClientRequest }
-	| { state: ConnectionState.delayedReconnect; options: SseConnectOptions; attempt: number; timeout: NodeJS.Timeout }
+	| {
+			state: ConnectionState.connecting
+			options: SseConnectOptions
+			attempt: number
+			connection: http.ClientRequest
+			establishmentTimeout: ScheduledTimeoutId
+	  }
+	| { state: ConnectionState.delayedReconnect; options: SseConnectOptions; attempt: number; timeout: ScheduledTimeoutId }
 	| {
 			state: ConnectionState.connected
 			options: SseConnectOptions
@@ -133,6 +141,20 @@ export class SseClient {
 			},
 			method: "GET",
 		})
+		const reconnectAfterRequestFailure = (error: Error) => {
+			const state = this.state
+			if (state.state !== ConnectionState.connecting || state.connection !== connection) return false
+			log.error("error:", error.message)
+			this.scheduler.unscheduleTimeout(state.establishmentTimeout)
+			this.exponentialBackoffReconnect()
+			return true
+		}
+		const establishmentTimeout = this.scheduler.scheduleAfter(() => {
+			const error = new ConnectionError(`SSE connection timed out after ${CONNECTION_TIMEOUT_MS} ms`)
+			if (reconnectAfterRequestFailure(error)) connection.destroy(error)
+		}, CONNECTION_TIMEOUT_MS)
+		this.state = { state: ConnectionState.connecting, connection, establishmentTimeout, attempt, options }
+
 		connection
 			.on("socket", (s) => {
 				// We add this listener purely as a workaround for some problem with net module.
@@ -142,6 +164,12 @@ export class SseClient {
 				s.on("lookup", () => log.debug("lookup"))
 			})
 			.on("response", async (res) => {
+				const state = this.state
+				if (state.state !== ConnectionState.connecting || state.connection !== connection) {
+					res.destroy()
+					return
+				}
+				this.scheduler.unscheduleTimeout(state.establishmentTimeout)
 				log.debug("established SSE connection with code", res.statusCode)
 				this.state = { state: ConnectionState.connected, connection, options, receivedHeartbeat: false }
 				this.resetHeartbeatListener()
@@ -173,24 +201,19 @@ export class SseClient {
 					.on("close", () => {
 						log.debug("response closed")
 						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
+						if (this.state.state === ConnectionState.connected && this.state.connection === connection) this.delayedReconnect()
 					})
 					.on("error", (e) => {
 						log.error("response error:", e)
 						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
+						if (this.state.state === ConnectionState.connected && this.state.connection === connection) this.delayedReconnect()
 					})
 			})
 			.on("information", () => log.debug("information"))
 			.on("connect", () => log.debug("connect:"))
-			.on("error", (e) => {
-				log.error("error:", e.message)
-				if (this.state.state === ConnectionState.connecting) {
-					this.exponentialBackoffReconnect()
-				}
-			})
+			.on("error", reconnectAfterRequestFailure)
+			.on("close", () => reconnectAfterRequestFailure(new ConnectionError("SSE connection closed before receiving a response")))
 			.end()
-		this.state = { state: ConnectionState.connecting, connection, attempt, options }
 	}
 
 	async disconnect() {
@@ -202,11 +225,12 @@ export class SseClient {
 				break
 			case ConnectionState.connected:
 			case ConnectionState.connecting:
+				if (state.state === ConnectionState.connecting) this.scheduler.unscheduleTimeout(state.establishmentTimeout)
+				// Mark the connection as intentionally closed before destroy() emits
+				// error/close events, otherwise those handlers can schedule a retry.
+				this.state = { state: ConnectionState.disconnected }
 				return newPromise<void>((resolve) => {
-					state.connection.once("close", () => {
-						this.state = { state: ConnectionState.disconnected }
-						resolve()
-					})
+					state.connection.once("close", resolve)
 					state.connection.destroy()
 				})
 		}
@@ -227,7 +251,7 @@ export class SseClient {
 			throw new ProgrammingError("Invalid state: not connecting")
 		}
 		log.debug("Scheduling exponential reconnect")
-		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.reconnectDelay(this.state.attempt))
+		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.connectionFailureDelay(this.state.attempt))
 		this.state = {
 			state: ConnectionState.delayedReconnect,
 			attempt: this.state.attempt + 1,
@@ -241,8 +265,8 @@ export class SseClient {
 			throw new ProgrammingError("Invalid state: not connected")
 		}
 		log.debug("Scheduling delayed reconnect")
-		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.initialConnectionDelay())
-		this.state = { state: ConnectionState.delayedReconnect, attempt: 0, options: this.state.options, timeout }
+		const timeout = this.scheduler.scheduleAfter(() => this.retryConnect(), this.delay.connectionLostDelay())
+		this.state = { state: ConnectionState.delayedReconnect, attempt: 1, options: this.state.options, timeout }
 	}
 
 	private async retryConnect() {
