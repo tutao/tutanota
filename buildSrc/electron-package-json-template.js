@@ -101,6 +101,8 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			extendInfo: {
 				LSUIElement: 1, //hide dock icon on startup
 			},
+			// Important: keep this "Tuta Mail" for macOS. Otherwise, the dock entry will break after an app update.
+			executableName: nameSuffix.length > 0 ? nameSuffix.slice(1) + " Tuta Mail" : "Tuta Mail",
 			// The build process is somewhat silly as we build two apps for each arch (x64 and arm64).
 			// We do not pre-lipo the NAPI binaries so each of these apps will have libraries for both architectures.
 			// But it doesn't matter because in the end both apps are smashed together into a single package.
