@@ -236,7 +236,10 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
-		if (ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore) {
+		if (
+			ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore ||
+			ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.GooglePlay
+		) {
 			return this.upgradeWithAppStore(ctx)
 		} else {
 			return this.upgradeWithTuta(ctx)

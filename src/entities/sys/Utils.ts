@@ -168,6 +168,7 @@ export enum PaymentMethodType {
 	Paypal = "3",
 	AccountBalance = "4",
 	AppStore = "5",
+	GooglePlay = "6",
 }
 
 /**
