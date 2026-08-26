@@ -47,6 +47,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
+import kotlin.time.measureTimedValue
 
 class WidgetUIViewModel(
 	private val repository: WidgetRepository,
@@ -289,15 +290,19 @@ class WidgetUIViewModel(
 			try {
 				val loggedInSdk = sdk.login(credentials.toSdkCredentials())
 
-				val events = repository.loadEvents(
-					widgetCacheDataStore,
-					widgetId,
-					settings.userId,
-					calendars,
-					credentials,
-					loggedInSdk,
-					cryptoFacade
-				)
+				var events: Map<GeneratedId, CalendarEventListDao>
+				val time = measureTimedValue {
+					events = repository.loadEvents(
+						widgetCacheDataStore,
+						widgetId,
+						settings.userId,
+						calendars,
+						credentials,
+						loggedInSdk,
+						cryptoFacade
+					)
+				}
+				Log.d(TAG, "LoadEvents time: $time")
 
 				return events
 			} catch (e: LoginException) {
