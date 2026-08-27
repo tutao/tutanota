@@ -61,7 +61,7 @@ import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/Ca
 import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
-import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -682,7 +682,7 @@ import("../../ui/translations/en.js")
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
 					makeViewModel: () => DriveSearchViewModel
-					showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+					showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 					filePicker: DriveFilePicker
 					bottomNav: () => Children
 				}

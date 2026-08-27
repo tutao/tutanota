@@ -19,6 +19,7 @@ import { TextField } from "../../../../ui/base/TextField"
 import { Styles } from "../../../../ui/styles"
 import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
+import { ProgrammingError } from "@tutao/app-env"
 
 interface State {
 	currentFolder: FolderFolderItem
@@ -27,24 +28,53 @@ interface State {
 	newFolderName: string | null
 }
 
-export type MoveItems = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
+export type PickedDestinationAction = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
+export type PickedItemAction = (item: readonly FolderItemId[]) => Promise<void>
+
+export enum DriveItemPickerBehavior {
+	PickDestination,
+	PickItems,
+}
+
+export type DriveItemPickerAttrs =
+	// attributes for picking a destination for a set of files
+	| {
+			mode: DriveItemPickerBehavior.PickDestination
+			canCreateFolders: true
+			files: FolderItem[]
+			action: PickedDestinationAction
+	  }
+	// attributes for picking a file
+	| {
+			mode: DriveItemPickerBehavior.PickItems
+			canCreateFolders: false
+			action: PickedItemAction
+	  }
 
 /**
- * Shows a dialog for interactively choosing a destination to move an item to.
- * It also enables the user to create a new destination folder.
+ * Shows a dialog for interactively choosing a destination for a user action.
+ * It also enables the user to create new folders.
  */
-export async function showMoveDialog(entityClient: EntityClient, driveFacade: DriveFacade, itemsToMove: FolderItem[], moveItems: MoveItems) {
-	const firstItem = assertNotNull(itemsToMove.at(0))
+export async function showItemPicker(entityClient: EntityClient, driveFacade: DriveFacade, attrs: DriveItemPickerAttrs) {
+	const pickerMode = attrs.mode
+	if (pickerMode !== DriveItemPickerBehavior.PickDestination) {
+		throw new ProgrammingError("Not implemented yet")
+	}
+
+	const files = attrs.files
+	const pickedDestination = attrs.action
+
+	const firstItem = assertNotNull(files.at(0))
 	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
 	//We do not need a parent here so we don't provide it
 	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder.folder._id).then((parents) => parents.map((p) => toFolderItem(p, null)))
 	let itemLabel: string
-	if (itemsToMove.length === 1) {
+	if (files.length === 1) {
 		itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
 	} else {
-		itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": itemsToMove.length }).text
+		itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": files.length }).text
 	}
 
 	async function loadFolder(folderId: IdTuple): Promise<State> {
@@ -58,22 +88,22 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 
 	let folderBrowserDom: HTMLElement | null = null
 
-	const moveDialog = new Dialog(
+	const pickerDialog = new Dialog(
 		DialogType.EditLarger,
-		class DriveMoveDialog implements Component {
+		class DriveItemPicker implements Component {
 			view(): Children {
 				const { currentFolder, parents, items: currentFolderItems, newFolderName } = state
-				const disabledTargetIds = new Set(itemsToMove.map(folderItemEntity).map(getElementId))
+				const disabledTargetIds = new Set(files.map(folderItemEntity).map(getElementId))
 				return [
 					m(DialogHeaderBar, {
-						left: [{ label: `close_alt`, click: () => moveDialog.close(), type: ButtonType.Secondary }],
+						left: [{ label: `close_alt`, click: () => pickerDialog.close(), type: ButtonType.Secondary }],
 						middle: "move_action",
 						right: [
 							{
 								label: "moveItemHere_action",
 								click: () => {
-									moveItems(itemsToMove.map(folderItemToId), state.currentFolder.folder)
-									moveDialog.close()
+									pickedDestination(files.map(folderItemToId), state.currentFolder.folder)
+									pickerDialog.close()
 								},
 								type: ButtonType.Secondary,
 							},
@@ -131,7 +161,7 @@ export async function showMoveDialog(entityClient: EntityClient, driveFacade: Dr
 										onItemClicked: (item: FolderItem) => {
 											if (
 												item.type === "folder" &&
-												!itemsToMove.some((itemToMove) => isSameId(item.folder._id, folderItemEntity(itemToMove)._id))
+												!files.some((itemToMove) => isSameId(item.folder._id, folderItemEntity(itemToMove)._id))
 											) {
 												this.onOpenFolder(item.folder)
 											}

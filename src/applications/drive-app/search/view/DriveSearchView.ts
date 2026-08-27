@@ -25,7 +25,7 @@ import { theme } from "../../../../ui/theme"
 import { DriveTransferStack, DriveTransferStackAttrs } from "../../drive/view/DriveTransferStack"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FolderItem, FolderItemId, OperationUpdate, SortColumn } from "../../drive/view/DriveUtils"
-import { MoveItems } from "../../drive/view/DriveMoveItemDialog"
+import { PickedDestinationAction } from "../../drive/view/DriveItemPicker"
 import { ListLoadingState, ListState, MultiselectMode } from "../../../../ui/base/List"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconButton"
@@ -65,7 +65,7 @@ export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
 	makeViewModel: () => DriveSearchViewModel
 	drawerAttrs: DrawerMenuAttrs
-	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+	showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 	filePicker: DriveFilePicker
 	bottomNav?: () => Children
 	sendFileViaMail: MailFileSender | null
@@ -515,7 +515,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 
 	private renderFolderView(
 		listState: ListState<FolderItem>,
-		showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown,
+		showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown,
 		sendFileViaMail: MailFileSender | null,
 	) {
 		const selectionEvents = this.searchViewModel.selectionEvents
@@ -580,7 +580,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		showRenameDialog(item, (newName) => this.searchViewModel.rename(item, newName))
 	}
 
-	private renderActionBar(showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown): Children {
+	private renderActionBar(showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown): Children {
 		const actions = this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog)
 		return m(DriveActionBar, actions)
 	}

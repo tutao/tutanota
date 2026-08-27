@@ -42,7 +42,7 @@ import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId, OperationUp
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import Stream from "mithril/stream"
 import { isNotEmpty, isNotNull } from "@tutao/utils"
-import { MoveItems } from "./DriveMoveItemDialog"
+import { PickedDestinationAction } from "./DriveItemPicker"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -67,7 +67,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	driveViewModel: DriveViewModel
-	showMoveItemDialog: (items: FolderItem[], moveItems: MoveItems) => unknown
+	showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown
 	bottomNav?: () => Children
 	filePicker: DriveFilePicker
 	sendFileViaMail: MailFileSender | null

@@ -140,7 +140,7 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
@@ -1472,9 +1472,15 @@ class MailLocator implements CommonLocator {
 		return model
 	})
 
-	async showMoveItemDialog(items: FolderItem[], moveItems: MoveItems) {
-		const { showMoveDialog } = await import("../drive-app/drive/view/DriveMoveItemDialog.js")
-		showMoveDialog(this.entityClient, this.driveFacade, items, moveItems)
+	async showMoveItemDialog(items: FolderItem[], moveItems: PickedDestinationAction) {
+		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
+		const pickerAttrs: DriveItemPickerAttrs = {
+			files: items,
+			mode: DriveItemPickerBehavior.PickDestination,
+			action: moveItems,
+			canCreateFolders: true,
+		}
+		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {
