@@ -64,7 +64,6 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 		const isInEditMode = this.enableParentFolderEdit || this.enableFolderMappingEdit
 		const isGmail = data.imapProvider === ImapProvider.Gmail
 		const shouldAllowContinuing = (isGmail || isLabelCorrectlySet) && isParentFolderCorrectlySet && !isInEditMode
-
 		return m(
 			".flex-end.full-width.pt-32.mb-32",
 			m(
@@ -75,12 +74,16 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 					},
 				},
 				m(PrimaryButton, {
-					label: "startMigration_action",
+					label: this.enableFolderMappingEdit ? "migrationFolderMappingEditConfirmButton_label" : "startMigration_action",
 					class: "wizard-next-button",
 					onclick: (_, dom) => {
-						emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+						if (this.enableFolderMappingEdit) {
+							this.enableFolderMappingEdit = false
+						} else {
+							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+						}
 					},
-					disabled: !shouldAllowContinuing,
+					disabled: this.enableFolderMappingEdit ? false : !shouldAllowContinuing,
 				}),
 			),
 		)
@@ -97,20 +100,7 @@ class ImapImportSummaryPage implements WizardPageN<ImapImportData> {
 			m(".flex.justify-between.items-center", [
 				m(MenuTitle, { content: lang.getTranslationText("migrationFolderMapping_title") }),
 				this.enableFolderMappingEdit
-					? m(
-							"",
-							{
-								style: {
-									minWidth: "100px",
-								},
-							},
-							m(PrimaryButton, {
-								label: "migrationFolderMappingEditConfirmButton_label",
-								onclick: () => {
-									this.enableFolderMappingEdit = false
-								},
-							}),
-						)
+					? null
 					: m(IconButton, {
 							title: "migrationFolderMapping_title",
 							icon: Icons.PenFilled,

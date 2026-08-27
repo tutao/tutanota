@@ -191,11 +191,10 @@ class WizardDialog<T> implements Component<WizardDialogAttrs<T>> {
 		lastIndex: number,
 	) {
 		return m(
-			"nav#wizard-paging.flex-space-around.center-vertically.mb-8.plr-48.gap-16",
+			"nav#wizard-paging.flex-space-around.center-vertically.mb-8.gap-16",
 			{
 				"aria-label": "Breadcrumb",
 			},
-			//16px;
 			visiblePages.map((p, index) => {
 				return m(".flex.flex-column.flex-grow", [
 					m(WizardPagingButton, {
