@@ -26,7 +26,7 @@ import {
 	hasAppleIntroOffer,
 	PlanTypeToName,
 	shouldHideBusinessPlans,
-	shouldShowApplePrices,
+	shouldShowExternalStorePrices,
 	UpgradeType,
 } from "./utils/SubscriptionUtils.js"
 import { AccountingInfo } from "@tutao/entities/sys"
@@ -151,7 +151,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		// Show the business segmentControl for signup, if both personal & business plans are allowed
 		const showBusinessSelector = !onlyBusinessPlansAccepted && !onlyPersonalPlansAccepted && !shouldHideBusinessPlans()
 
-		const isApplePrice = shouldShowApplePrices(accountingInfo)
+		const isApplePrice = shouldShowExternalStorePrices(accountingInfo)
 		const hasCampaign = isApplePrice
 			? priceAndConfigProvider.getIosIntroOfferEligibility() && hasAppleIntroOffer(priceAndConfigProvider)
 			: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
@@ -224,7 +224,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 				const isPersonalPaidPlan = personalPlan === PlanType.Legend || personalPlan === PlanType.Revolutionary
 
 				const hasFirstYearDiscount = (() => {
-					if (shouldShowApplePrices(accountingInfo)) {
+					if (shouldShowExternalStorePrices(accountingInfo)) {
 						const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[personalPlan].toLowerCase())
 						return isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 					} else {
@@ -298,7 +298,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		priceAndConfigProvider: PriceAndConfigProvider
 		accountingInfo: AccountingInfo | null
 	}): { revoPrice: string; legendPrice: string } {
-		if (shouldShowApplePrices(accountingInfo)) {
+		if (shouldShowExternalStorePrices(accountingInfo)) {
 			const prices = priceAndConfigProvider.getMobilePrices()
 
 			return {
@@ -446,7 +446,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 			targetSubscription,
 			hasFirstYearDiscount: hasFirstYearDiscount,
 			isFirstMonthForFree: appliesFirstMonthForFree,
-			isApplePrice: shouldShowApplePrices(selectorAttrs.accountingInfo),
+			isApplePrice: shouldShowExternalStorePrices(selectorAttrs.accountingInfo),
 		}
 	}
 

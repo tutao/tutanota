@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, Const, EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
+import { ApprovalStatus, Const, EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
+import { elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -14,10 +14,8 @@ import * as SignOrderAgreementDialog from "../../subscription/SignOrderProcessin
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
-	AppStoreSubscriptionService_GET,
 	Booking,
 	BookingTypeRef,
-	createAppStoreSubscriptionGetIn,
 	createRenewalPreferenceServicePostIn,
 	Customer,
 	CustomerInfo,
@@ -36,23 +34,24 @@ import {
 	AvailablePlans,
 	AvailablePlanType,
 	BookingItemFeatureType,
+	isExternalPaymentMethod,
 	LegacyPlans,
 	NewPaidPlans,
-	PaymentMethodType,
 	PlanType,
 } from "../../../../entities/sys/Utils"
 import {
-	appStorePlanName,
+	externalStorePlanName,
 	getCurrentCount,
 	getPaymentMethodType,
 	getTotalStorageCapacityPerCustomer,
+	hasMatchingExternalPaymentSetup,
 	isAppStorePayment,
 	isAutoResponderActive,
 	isEventInvitesActive,
 	isSharingActive,
 	isWhitelabelActive,
 	PlanTypeToName,
-	queryAppStoreSubscriptionOwnership,
+	queryExternalSubscriptionOwnership,
 	SubscriptionApp,
 } from "../../subscription/utils/SubscriptionUtils"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
@@ -64,7 +63,6 @@ import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { openAppleSubscriptionPage } from "../../subscription/PaymentViewer.js"
 import { theme } from "../../../../ui/theme"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { px } from "../../../../ui/size"
@@ -84,6 +82,7 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { shouldOfferSubscriptionRevocation } from "./RevocationEligibility"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { UpdatableSettingsViewer } from "../Interfaces"
+import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -250,7 +249,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const currentStateSubscription = this.getCurrentStateOfSubscription(booking)
 		//Accounting interval can be changed by customer
 		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
-		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore
+		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
+		const isExternalSubscription = isExternalPaymentMethod(getPaymentMethodType(accountingInfo))
 		//Make copy of booking end date to alter it
 		const nextEndDate = new Date(assertNotNull(booking.endDate))
 		nextEndDate.setMonth(nextEndDate.getMonth() + paymentInterval)
@@ -269,15 +269,17 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						cells: [
 							this.getPlanCellAttrs(planType),
 							this.getStatusCellAttrs(currentStateSubscription),
-							!isAppleSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
+							!isExternalSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
 							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
 					} satisfies SubscriptionStateCardAttrs),
-					(!isNewSubscriptionVisible || isAppleSubscription) && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+					(!isNewSubscriptionVisible || isExternalSubscription) &&
+						isNewPlan &&
+						this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
 				),
 				//Next Subscription period
 				isNewSubscriptionVisible &&
-					!isAppleSubscription &&
+					!isExternalSubscription &&
 					m(
 						".flex.col.gap-8",
 						m(SubscriptionStateCard, {
@@ -286,7 +288,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 								this.getPlanCellAttrs(
 									planType,
 									//Don't show edit button next to plan for apple users -> managed by os
-									!isAppleSubscription
+									!isExternalSubscription
 										? {
 												icon: Icons.PenFilled,
 												label: "changePlan_action",
@@ -298,13 +300,13 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 										: undefined,
 								),
 								//Don't show interval edit button for apple users -> managed by os
-								!isAppleSubscription ? this.getPaymentPeriodAttrs(accountingInfo.paymentInterval) : null,
-								!isAppleSubscription ? this.getPriceCellAttrs(this._nextPriceFieldValue()) : null,
+								!isExternalSubscription ? this.getPaymentPeriodAttrs(accountingInfo.paymentInterval) : null,
+								!isExternalSubscription ? this.getPriceCellAttrs(this._nextPriceFieldValue()) : null,
 								this.getEndDateAttrs("planned", booking.endDate),
 							],
 						} satisfies SubscriptionStateCardAttrs),
 						//Render Buttons
-						this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+						isNewPlan && this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
 					),
 			),
 
@@ -358,20 +360,40 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	//Render needed buttons
-	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus, isAppleSubscription: boolean): Children {
+	private renderButtons(booking: Booking, currentSubscriptionState: SubscriptionStatus, isExternalSubscription: boolean): Children {
 		//Show no buttons if subscription is in revocation process
 		const isRevoked = this._customerInfo?.revocationRequest != null
 		if (isRevoked) {
 			return undefined
 		}
-		//Render buttons for apple
-		if (isAppleSubscription) {
-			return EnvProvider.get().isIOSApp()
+		//Show downgrade and resubscribe button if expired
+		if (currentSubscriptionState === "expired") {
+			return m(
+				".flex.justify-end.gap-8",
+				m(SecondaryButton, {
+					label: "subscriptionSettingDowngrade_action",
+					width: "flex",
+					onclick: () => showConfirmDowngradingToFreeDialog(),
+				}),
+				m(PrimaryButton, {
+					label: "subscriptionStateCardResubscribe_action",
+					width: "flex",
+					onclick: () => this.onSubscriptionClick(),
+				}),
+			)
+		}
+		// Render external-store controls only when this client matches the subscription's store.
+		if (isExternalSubscription) {
+			const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
+			return hasMatchingExternalPaymentSetup(paymentMethod)
 				? m(
 						".flex.justify-end.gap-8",
 
 						m(SecondaryButton, {
-							label: "subscriptionSettingManageSubscription_action",
+							label:
+								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+									? "subscriptionSettingManageSubscription_action"
+									: "subscriptionSettingManageSubscriptionGoogle_action",
 							width: "flex",
 							icon: Icons.OpenOutline,
 							onclick: async () => {
@@ -390,29 +412,17 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				: m(
 						".flex.justify-end.gap-8",
 						m(PrimaryButton, {
-							label: "subscriptionSettingAppleWebsite_action",
+							label:
+								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+									? "subscriptionSettingAppleWebsite_action"
+									: "subscriptionSettingGoogleWebsite_action",
 							width: "flex",
+							icon: Icons.OpenOutline,
 							onclick: () => {
 								this.onSubscriptionClick()
 							},
 						}),
 					)
-		}
-		//Show downgrade and resubscribe button if expired
-		if (currentSubscriptionState === "expired") {
-			return m(
-				".flex.justify-end.gap-8",
-				m(SecondaryButton, {
-					label: "subscriptionSettingDowngrade_action",
-					width: "flex",
-					onclick: () => showConfirmDowngradingToFreeDialog(),
-				}),
-				m(PrimaryButton, {
-					label: "subscriptionStateCardResubscribe_action",
-					width: "flex",
-					onclick: () => this.onSubscriptionClick(),
-				}),
-			)
 		}
 
 		//Show cancel button if renewal is enabled
@@ -483,18 +493,18 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	private async onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
-		if (EnvProvider.get().isIOSApp() && (paymentMethod == null || paymentMethod === PaymentMethodType.AppStore)) {
-			// case 1: we are in iOS app and we either are not paying or are already on AppStore
-			void this.handleAppStoreSubscriptionChange()
-		} else if (paymentMethod === PaymentMethodType.AppStore /*&& this._accountingInfo?.appStoreSubscription*/) {
-			// case 2: we have a running AppStore subscription but this is not an iOS app
-
+		if (hasMatchingExternalPaymentSetup(paymentMethod)) {
+			// case 1: we are in iOS/ Android with apple/google payment method app and have an active or expired subscription
+			void this.handleExternalSubscriptionChange()
+		} else if (isExternalPaymentMethod(paymentMethod)) {
+			// case 2: we have a running AppStore/Google subscription but this is not the matching app
 			// If there's a running App Store subscription it must be managed through Apple.
+			// If there's a running Play Store subscription it must be managed through Google.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
-			// Running subscription cannot be changed from other client, but it can still be managed through iOS app or when subscription expires.
-			void openAppleSubscriptionPage()
+			// Running subscription cannot be changed from other client, but it can still be managed through OS or when subscription expires.
+			void openExternalSubscriptionPage(paymentMethod)
 		} else {
-			// other cases (not iOS app, not app store payment method, no running AppStore subscription, iOS but another payment method)
+			// other cases (not mobile app, not external payment method, no running external subscription, iOS/Android but another payment method)
 			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {
 				void showSwitchDialog({
 					customer: this._customer,
@@ -508,11 +518,11 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
-		if (EnvProvider.get().isIOSApp()) {
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			// We pass `null` because we expect no subscription when upgrading
-			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
+			const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
 
-			if (appStoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+			if (externalSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				return Dialog.message(
 					lang.getTranslation("storeMultiSubscriptionError_msg", {
 						"{AppStorePayment}": InfoLink.AppStorePayment,
@@ -524,87 +534,80 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		await showUpgradeWizard({ upgradePromptType: UpgradePromptType.SUBSCRIPTION_VIEWER, logins: locator.logins })
 	}
 
-	private async handleAppStoreSubscriptionChange() {
+	private async handleExternalSubscriptionChange() {
+		//Payment method and payment setup are matching here because we check before calling this method
+		//Google Payment & Android or App Store Payment & iOS App
 		if (!this.mobilePaymentsFacade) {
-			throw Error("Not allowed to change AppStore subscription from web client")
+			throw Error("Not allowed to change external subscription from web client")
 		}
 
 		let customer
 		let accountingInfo
-		if (this._customer && this._accountingInfo) {
+		let lastBooking
+		if (this._customer && this._accountingInfo && this._lastBooking) {
 			customer = this._customer
 			accountingInfo = this._accountingInfo
+			lastBooking = this._lastBooking
 		} else {
 			return
 		}
 
-		const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
-		const isAppStorePayment = getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore
+		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
 		const userStatus = customer.approvalStatus
-		const hasAnActiveSubscription = isAppStorePayment && accountingInfo.appStoreSubscription != null
+		const isActiveSubscription = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
 
-		if (hasAnActiveSubscription && !(await this.canManageAppStoreSubscriptionInApp(accountingInfo, appStoreSubscriptionOwnership))) {
+		if (isActiveSubscription && !(await this.canManageExternalSubscriptionInApp(externalSubscriptionOwnership))) {
 			return
 		}
 
-		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
-		//
+		// Show a dialog only if the user's Apple or Google account's last transaction was with this customer ID
 		// This prevents the user from accidentally changing a subscription that they don't own
-		if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NotOwner) {
-			// There's a subscription with this apple account that doesn't belong to this user
+		if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NotOwner) {
+			// There's a subscription with an external account that doesn't belong to this user
 			return Dialog.message(
 				lang.getTranslation("storeMultiSubscriptionError_msg", {
 					"{AppStorePayment}": InfoLink.AppStorePayment,
 				}),
 			)
 		} else if (
-			isAppStorePayment &&
-			appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription &&
+			isActiveSubscription &&
+			externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription &&
 			userStatus === ApprovalStatus.REGISTRATION_APPROVED
 		) {
-			// User has an ongoing subscriptions but not on the current Apple Account, so we shouldn't allow them to change their plan with this account
-			// instead of the account owner of the subscriptions
+			// User has an ongoing subscriptions in our database but not on the current Apple/Google Account,
+			// We shouldn't allow them to change their plan with this account
 			return Dialog.message(lang.getTranslation("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
-		} else if (appStoreSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
-			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
-			// restart an Apple Subscription flow
-			const isResubscribe = await Dialog.choice(
-				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
-				[
-					{
-						text: "subscriptionSettingDowngrade_action",
-						value: false,
-					},
-					{
-						text: "resubscribe_action",
-						value: true,
-					},
-				],
-			)
-
+		} else if (!isActiveSubscription && externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
+			// User has no ongoing subscription, the old subscription is expired.
+			// We should allow them to downgrade their accounts or resubscribe and
+			// restart an Apple/Google subscription flow
+			const isResubscribe = await showDowngradeOrResubscribeDialog("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStorePayment })
+			// User decided to resubscribe to the old plan
 			if (isResubscribe) {
 				const planType = await locator.logins.getUserController().getPlanType()
 				const customerId = locator.logins.getUserController().user.customer!
 				const customerIdBytes = base64ToUint8Array(base64ExtToBase64(customerId))
 				try {
 					await this.mobilePaymentsFacade.requestSubscriptionToPlan(
-						appStorePlanName(planType),
+						externalStorePlanName(planType),
 						asPaymentInterval(accountingInfo.paymentInterval),
 						customerIdBytes,
 						null,
 					)
 				} catch (e) {
 					if (e instanceof MobilePaymentError) {
-						console.error("AppStore subscription failed", e)
+						console.error("external subscription failed", e)
 						void Dialog.message("appStoreSubscriptionError_msg", e.message)
 					} else {
 						throw e
 					}
 				}
 			} else {
+				// User decided to downgrade to free
 				return showConfirmDowngradingToFreeDialog()
 			}
 		} else {
+			// Show normal switch to another plan dialog
 			if (this._customerInfo && this._lastBooking) {
 				return showSwitchDialog({
 					customer,
@@ -617,22 +620,15 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async canManageAppStoreSubscriptionInApp(accountingInfo: AccountingInfo, ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
+	private async canManageExternalSubscriptionInApp(ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
 		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
-			return true
+			// we have a subscription with the external provider for this app (calendar / mail / drive), but it's for another tuta account.
+			// we could technically manage it from this tuta account, but we should not allow it because it's too easy to
+			// confuse which subscription belongs to which tuta account.
+			return false
 		}
 
-		const appStoreSubscriptionData = await locator.serviceExecutor.execute(
-			AppStoreSubscriptionService_GET,
-			createAppStoreSubscriptionGetIn({ subscriptionId: elementIdPart(assertNotNull(accountingInfo.appStoreSubscription)) }),
-			null,
-		)
-
-		if (!appStoreSubscriptionData || appStoreSubscriptionData.app == null) {
-			throw new ProgrammingError("Failed to determine subscription origin")
-		}
-
-		const isMailSubscription = appStoreSubscriptionData.app === SubscriptionApp.Mail
+		const isMailSubscription = this._lastBooking?.subscriptionReference.subscriptionApp === SubscriptionApp.Mail
 
 		if (ClientDetector.get().isCalendarApp() && isMailSubscription) {
 			return await this.handleAppOpen(SubscriptionApp.Mail)

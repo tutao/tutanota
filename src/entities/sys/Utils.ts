@@ -171,6 +171,22 @@ export enum PaymentMethodType {
 	GooglePlay = "6",
 }
 
+export type ExternalPaymentMethodType = Exclude<
+	PaymentMethodType,
+	PaymentMethodType.Invoice | PaymentMethodType.CreditCard | PaymentMethodType.Sepa | PaymentMethodType.Paypal | PaymentMethodType.AccountBalance
+>
+
+export function isExternalPaymentMethod(paymentMethod: PaymentMethodType | null) {
+	if (!paymentMethod) return false
+	return [PaymentMethodType.GooglePlay, PaymentMethodType.AppStore].includes(paymentMethod)
+}
+
+export enum SubscriptionProvider {
+	Google = "0",
+	Apple = "1",
+	Tutao = "2",
+}
+
 /**
  * Whether or not a user has a given capability for a shared group. If the group type is not shareable, this will always return false
  * @param user

@@ -1,5 +1,5 @@
-import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
+import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { assertNotNull, downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
@@ -27,12 +27,14 @@ import {
 	BookingItemFeatureType,
 	CustomDomainType,
 	CustomDomainTypeCount,
+	isExternalPaymentMethod,
 	LegacyBusinessPlans,
 	NewBusinessPlans,
 	NewPaidPlans,
 	PaymentMethodType,
 	PlanName,
 	PlanType,
+	SubscriptionProvider,
 } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
@@ -302,26 +304,66 @@ export async function getAvailablePlansWithCalendarInvites(): Promise<Array<Avai
 
 export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
 
-/** name of the plan/product how it is expected by iOS AppStore */
-export function appStorePlanName(planType: PlanType): string {
+/** name of the plan/product how it is expected by the external stores */
+export function externalStorePlanName(planType: PlanType): string {
 	return PlanTypeToName[planType].toLowerCase()
 }
 
-export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
+export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType | null =>
+	downcast<PaymentMethodType | null>(accountingInfo.paymentMethod)
 
-/** does current user has an active (non-expired) AppStore subscription? */
-export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): boolean {
-	return getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore && accountingInfo.appStoreSubscription != null
+export function hasMatchingExternalPaymentSetup(paymentMethod: PaymentMethodType | null): boolean {
+	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	return (
+		(paymentMethod === PaymentMethodType.AppStore && paymentSetup === PaymentSetup.Appstore) ||
+		(paymentMethod === PaymentMethodType.GooglePlay && paymentSetup === PaymentSetup.Playstore)
+	)
+}
+
+/**
+ * Does the current user have an active or expired subscription belonging to this client's store?
+ * NOTE: in the apps, a tutao subscription is also considered matching since we want to allow customers to
+ *       manage an existing subscription just like in web/desktop
+ */
+export function hasMatchingSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
+	if (lastBooking == null) {
+		return false
+	} else {
+		const paymentMethodType = getPaymentMethodType(accountingInfo)
+		if (!isExternalPaymentMethod(paymentMethodType)) {
+			// we can manage our own subscriptions anywhere
+			return true
+		} else if (paymentMethodType === PaymentMethodType.AppStore && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore) {
+			return true
+		} else if (paymentMethodType === PaymentMethodType.GooglePlay && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore) {
+			return true
+		} else {
+			return false
+		}
+	}
+}
+
+function hasMatchingExternalSubscription(lastBooking: Booking | null): boolean {
+	if (lastBooking != null) {
+		const isExpired = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
+		const provider = lastBooking.subscriptionReference.subscriptionProvider
+		const paymentSetup = EnvProvider.get().getPaymentSetup()
+		const isMatching =
+			(provider === SubscriptionProvider.Google && paymentSetup === PaymentSetup.Playstore) ||
+			(provider === SubscriptionProvider.Apple && paymentSetup === PaymentSetup.Appstore)
+		return isMatching && !isExpired
+	}
+	return false
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */
-export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
+export async function queryExternalSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
 	return await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(userIdBytes)
 }
 
-// we can't do the upgrade from the client because apple is supposed to contact us.
+// we can't do the upgrade from the client because apple or google is supposed to contact us.
 // we can proceed with the flow once we see that the plan on customerInfo is what we
-// ordered.
+// ordered. This function returns true if we got a message from an external store and false otherwise
 export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
 	const customer = await locator.entityClient.load(CustomerTypeRef, idToElementId(customerId), {
@@ -355,7 +397,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 								})
 								if (expectedPlan === newCustomerInfo.plan) {
 									// plan is now correct!
-									console.log("app store upgrade listener succeeded for", customer.customerInfo)
+									console.log("external store upgrade listener succeeded for", customer.customerInfo)
 									resolve(true)
 									locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
 								}
@@ -367,11 +409,11 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 				locator.eventController.addEntityUpdatesListener(entityUpdatesListener)
 				setTimeout(() => {
 					locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
-					console.warn("app store upgrade listener timed out for", customer.customerInfo)
+					console.warn("external store  upgrade listener timed out for", customer.customerInfo)
 					resolve(false)
 				}, timeout_ms)
 			} catch (e) {
-				console.error("failed to receive app store upgrade notification for", customer.customerInfo, e)
+				console.error("failed to receive external store upgrade notification for", customer.customerInfo, e)
 				resolve(false)
 			}
 		})
@@ -489,11 +531,13 @@ export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolea
 /**
  * Returns whether the apple prices should be displayed when upgrading or switching a subscription.
  */
-export function shouldShowApplePrices(accountingInfo: AccountingInfo | null): boolean {
+export function shouldShowExternalStorePrices(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
-	return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
+	return (
+		EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default &&
+		(!paymentMethod || paymentMethod === PaymentMethodType.AppStore || paymentMethod === PaymentMethodType.GooglePlay)
+	)
 }
-
 /**
  * Returns whether the apple price has an introductory offer. This should be used to check whether any campaign is running.
  * Before calling this function, it has to be checked if it is OK to display the Apple prices. Use `shouldShowApplePrices` for that matter.
@@ -548,8 +592,8 @@ export function isBusinessPlan(plan: AvailablePlanType): boolean {
  * @return true if the current platform should hide business plans from view
  */
 export function shouldHideBusinessPlans(): boolean {
-	// we cannot currently subscribe iOS users to business plans
-	return EnvProvider.get().isIOSApp()
+	// we cannot currently subscribe iOS/Android users to business plans
+	return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default
 }
 
 /**
@@ -570,10 +614,14 @@ export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null)
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 export function getDefaultPaymentMethod(): PaymentMethodType {
-	if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
-		return PaymentMethodType.AppStore
+	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	if (paymentSetup !== PaymentSetup.Default) {
+		if (paymentSetup === PaymentSetup.Appstore) {
+			return PaymentMethodType.AppStore
+		} else {
+			return PaymentMethodType.GooglePlay
+		}
 	}
-
 	return PaymentMethodType.CreditCard
 }
 

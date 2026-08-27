@@ -17,7 +17,16 @@ import {
 	SwitchAccountTypeService_POST,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
+import {
+	AccountType,
+	AvailablePlanType,
+	GroupType,
+	isExternalPaymentMethod,
+	LegacyPlans,
+	NewBusinessPlans,
+	PaymentMethodType,
+	PlanType,
+} from "../../../entities/sys/Utils"
 import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
@@ -32,14 +41,13 @@ import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoice
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
 import {
-	appStorePlanName,
+	externalStorePlanName,
 	getCurrentPaymentInterval,
 	getPaymentMethodType,
-	hasRunningAppStoreSubscription,
+	hasMatchingExternalPaymentSetup,
 	PlanTypeToName,
-	shouldShowApplePrices,
+	shouldShowExternalStorePrices,
 	SubscriptionApp,
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
@@ -57,6 +65,7 @@ import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 import { InvoiceData } from "./utils/PaymentUtils"
+import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -75,8 +84,9 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	if (hasRunningAppStoreSubscription(accountingInfo) && !EnvProvider.get().isIOSApp()) {
-		await showManageThroughAppStoreDialog()
+	const paymentMethod = assertNotNull(getPaymentMethodType(accountingInfo))
+	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
+		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return
 	}
 
@@ -96,8 +106,8 @@ export async function showSwitchDialog({
 	const paymentInterval = stream(parseInt(accountingInfo.paymentInterval)) // always default to yearly
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
-	const isApplePrice = shouldShowApplePrices(accountingInfo)
-	const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
+	const isExternalStorePrice = shouldShowExternalStorePrices(accountingInfo)
+	const discountDetails = getDiscountDetails(isExternalStorePrice, priceAndConfigProvider)
 
 	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {
 		reason = "currentPlanDiscontinued_msg"
@@ -111,13 +121,13 @@ export async function showSwitchDialog({
 				type: ButtonType.Secondary,
 			},
 		],
-		right: isApplePrice ? [] : [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)],
+		right: isExternalStorePrice ? [] : [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)],
 		middle: "subscription_label",
 	}
 
 	const renderPlanSelector = () => {
 		// Reassigning the right button for header to update the label
-		if (!isApplePrice) {
+		if (!isExternalStorePrice) {
 			newPlanSelectorHeaderBarAttrs.right = [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)]
 		}
 
@@ -138,11 +148,11 @@ export async function showSwitchDialog({
 					actionButtons: subscriptionActionButtons,
 					priceAndConfigProvider,
 					availablePlans: acceptedPlans,
-					isApplePrice,
+					isExternalStorePrice: isExternalStorePrice,
 					currentPlan: currentPlanInfo.planType,
 					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 					// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
-					allowSwitchingPaymentInterval: isApplePrice || !!currentPlanInfo.paymentInterval,
+					allowSwitchingPaymentInterval: isExternalStorePrice || !!currentPlanInfo.paymentInterval,
 					showMultiUser: multipleUsersAllowed,
 					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 					discountDetails,
@@ -181,7 +191,7 @@ export async function showSwitchDialog({
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
+				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo, paymentMethod),
 			}) satisfies PrimaryButtonAttrs,
 		[PlanType.Revolutionary]: createPlanButton(
 			dialog,
@@ -200,9 +210,9 @@ export async function showSwitchDialog({
 	return deferred.promise
 }
 
-async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
-	if (EnvProvider.get().isIOSApp()) {
-		// We want the user to disable renewal in AppStore before they try to downgrade on our side
+async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo, paymentMethod: PaymentMethodType) {
+	if (isExternalPaymentMethod(paymentMethod)) {
+		// We want the user to disable renewal in the external store before they try to downgrade on our side
 		const ownership = await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(
 			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
 		)
@@ -212,7 +222,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 			await showProgressDialog("pleaseWait_msg", waitUntilRenewalDisabled())
 
 			if (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled()) {
-				console.log("AppStore renewal is still enabled, canceling downgrade")
+				console.log("external store renewal is still enabled, canceling downgrade")
 				// User probably did not disable the renewal still, cancel
 				return
 			}
@@ -246,14 +256,19 @@ async function doSwitchToPaidPlan(
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
 ) {
-	if (EnvProvider.get().isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
+	if (hasMatchingExternalPaymentSetup(getPaymentMethodType(accountingInfo))) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		dialog.close()
 		try {
-			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes, null)
+			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+				externalStorePlanName(targetSubscription),
+				newPaymentInterval,
+				customerIdBytes,
+				currentPlanInfo.paymentInterval,
+			)
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {
-				console.error("AppStore subscription failed", e)
+				console.error("external subscription failed", e)
 				void Dialog.message("appStoreSubscriptionError_msg", e.message)
 			} else {
 				throw e
@@ -413,7 +428,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 					return false
 				} else {
 					// we have an app store subscription, but the down/upgrade is attempted on another platform
-					await showManageThroughAppStoreDialog()
+					await showManageSubscriptionThroughExternalStoreDialog(PaymentMethodType.AppStore)
 					return false
 				}
 

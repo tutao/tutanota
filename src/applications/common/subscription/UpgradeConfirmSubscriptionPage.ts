@@ -7,7 +7,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
-	appStorePlanName,
+	externalStorePlanName,
 	getPreconditionFailedPaymentMsg,
 	SubscriptionApp,
 	UpgradePromptTypeByName,
@@ -47,7 +47,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 
 	private async upgrade(data: UpgradeSubscriptionData) {
 		// We return early because we do the upgrade after the user has submitted payment which is on the confirmation page
-		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore) {
+		if (data.paymentData.paymentMethod === PaymentMethodType.AppStore || data.paymentData.paymentMethod === PaymentMethodType.GooglePlay) {
 			const success = await this.handleAppStorePayment(data)
 			if (!success) {
 				return
@@ -120,7 +120,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			const result = await showProgressDialog(
 				"pleaseWait_msg",
 				locator.mobilePaymentsFacade.requestSubscriptionToPlan(
-					appStorePlanName(data.targetPlanType),
+					externalStorePlanName(data.targetPlanType),
 					data.options.paymentInterval(),
 					customerIdBytes,
 					null,

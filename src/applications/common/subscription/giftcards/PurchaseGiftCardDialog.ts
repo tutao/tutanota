@@ -9,7 +9,7 @@ import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCa
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
@@ -211,7 +211,7 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
  */
 
 export async function showPurchaseGiftCardDialog() {
-	if (EnvProvider.get().isIOSApp()) {
+	if (EnvProvider.get().env.paymentSetup !== PaymentSetup.Default) {
 		return Dialog.message("notAvailableInApp_msg")
 	}
 

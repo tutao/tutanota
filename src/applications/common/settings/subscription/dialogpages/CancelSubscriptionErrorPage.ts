@@ -1,4 +1,3 @@
-import { Thunk } from "@tutao/utils"
 import m, { Children, Component, Vnode } from "mithril"
 import { TitleSection } from "../../../../../ui/TitleSection"
 import { InfoLink, lang } from "../../../../../ui/utils/LanguageViewModel"
@@ -37,7 +36,7 @@ export class CancelSubscriptionErrorPage implements Component<CancelSubscription
 			case "noActiveSubscription":
 				return lang.getTranslationText("terminationNoActiveSubscription_msg") // message is generic enough to work for both termination and revocation requests
 			case "hasAppStoreSubscription":
-				return lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }).text
+				return lang.getTranslation("revokeSubscriptionWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }).text
 			case "olderThanTwoWeeks":
 				return lang.getTranslationText("revocationPeriodEnded_msg")
 			case "noPersonalPlan":

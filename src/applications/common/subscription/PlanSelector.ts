@@ -16,7 +16,7 @@ import { BusinessPlanContainer } from "./components/BusinessPlanContainer.js"
 import { getSafeAreaInsetBottom } from "../../../ui/HtmlUtils.js"
 import { DiscountDetails, hasRelevantGlobalFirstYearCampaign, isPersonalPlanAvailable, shouldFixButtonPosition } from "./utils/PlanSelectorUtils.js"
 import { Styles } from "../../../ui/styles"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { AvailablePlanType, NewBusinessPlans, NewPersonalPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 export type PlanSelectorAttr = {
@@ -24,7 +24,7 @@ export type PlanSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
 	availablePlans: readonly AvailablePlanType[]
-	isApplePrice: boolean
+	isExternalStorePrice: boolean
 	currentPlan?: PlanType
 	currentPaymentInterval?: PaymentInterval
 	allowSwitchingPaymentInterval: boolean
@@ -59,7 +59,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			priceAndConfigProvider,
 			actionButtons,
 			availablePlans,
-			isApplePrice,
+			isExternalStorePrice,
 			currentPlan,
 			currentPaymentInterval,
 			allowSwitchingPaymentInterval,
@@ -155,7 +155,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					availablePlans,
 					currentPaymentInterval,
 					currentPlan,
-					isApplePrice,
+					isApplePrice: isExternalStorePrice,
 					priceAndConfigProvider,
 					selectedPlan: this.selectedPlan,
 					selectedSubscriptionOptions: options,
@@ -215,7 +215,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 	}
 
 	private renderAdditionalButton(newSignupFlow: undefined | boolean, options: SelectedSubscriptionOptions) {
-		if (!newSignupFlow || EnvProvider.get().isIOSApp()) {
+		if (!newSignupFlow || EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			return null
 		}
 		if (options.businessUse()) {
