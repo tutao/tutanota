@@ -4,7 +4,7 @@ import { MigrationMailboxRow } from "./MigrationCsvParser"
 import { MigrationCsvPreviewRow } from "./MigrationCsvPreviewRow"
 import { MigrationSortArrow } from "./MigrationSortArrow"
 
-const GRID_COLUMNS = "32px minmax(160px, 1fr) minmax(160px, 1fr) 120px minmax(120px, 1fr)"
+const GRID_COLUMNS = "32px minmax(160px, 2fr) minmax(160px, 2fr) minmax(120px, 1fr) minmax(120px, 2fr)"
 
 function compareString(s1: string, s2: string): number {
 	return s1.toLowerCase().localeCompare(s2.toLowerCase())
@@ -53,7 +53,7 @@ export class MigrationCsvPreviewTable implements Component<MigrationCsvPreviewTa
 
 		return m(".mt-16", [
 			m(".small.mb-8", lang.getTranslation("migrationCsvRowsFound_msg", { "{count}": rows.length }).text),
-			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS } }, [
+			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS, "grid-gap": "4px" } }, [
 				m(".items-center.pb-8.subgrid-columns.fill-grid-row.text-fade", [
 					m(
 						"div",
