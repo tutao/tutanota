@@ -50,6 +50,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		subTitle: lang.getTranslationText("migrationConfigInfo_msg"),
 	}
 	private successfullyLoadedMailboxes: boolean = false
+	private isFadingHoverOut: boolean = false
 
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
@@ -465,6 +466,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 			const isDisplayingHoverForPressedButton = this.shouldDisplayInfoHover && this.hoverInfo === textMessage
 			if (isDisplayingHoverForPressedButton) {
 				this.shouldDisplayInfoHover = false
+				this.isFadingHoverOut = false
 				return
 			}
 			const target = event.target as Element
@@ -487,18 +489,40 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				}
 
 				this.shouldDisplayInfoHover = true
+				setTimeout(() => {
+					this.isFadingHoverOut = true
+					m.redraw()
+				}, 2000)
 			}
 		}
 	}
 
 	private renderHoverInfo(left: number, top: number, message: string): Children {
 		return m(
-			".hover-panel.border.border-radius",
+			`.hover-panel.border.border-radius ${this.isFadingHoverOut ? ".blur-out" : ""}`,
 			{
 				style: {
 					left: px(left),
 					top: px(top),
 				},
+				onmouseenter: () => {
+					console.log("mouse entered the trap")
+					this.isFadingHoverOut = false
+				},
+				onmouseleave: () => {
+					console.log("mouse left the trap")
+					this.isFadingHoverOut = true
+					m.redraw()
+				},
+
+				// animationend: () => {
+				// 	console.log("animation ended...", this.isFadingHoverOut)
+				// 	if (this.isFadingHoverOut) {
+				// 		console.log("the end replaces tnhings with? false?")
+				// 		this.shouldDisplayInfoHover = false
+				// 		this.isFadingHoverOut = false
+				// 	}
+				// },
 			},
 			[
 				m(Card, {}, [

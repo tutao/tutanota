@@ -3452,6 +3452,29 @@ export class MainStyles {
 				".mr-auto": {
 					"margin-left": "auto",
 				},
+				".blur-out": {
+					animation: "blur-out 2s ease-in forwards",
+				},
+				//".icon-progress > svg": {
+				// 					"animation-name": "rotate-icon",
+				// 					"animation-duration": "2s",
+				// 					"animation-iteration-count": "infinite",
+				// 					"animation-timing-function": "calculatePosition",
+				// 					"transform-origin": "50% 50%",
+				// 					display: "inline-block",
+				// 				},
+				"@keyframes blur-out": {
+					"0%": {
+						//filter: "blur(0)",
+						opacity: 1,
+						visibility: "visible",
+					},
+					"100%": {
+						//filter: `blur(${px(15)})`,
+						opacity: 0,
+						visibility: "hidden",
+					},
+				},
 			}
 		})
 	}
