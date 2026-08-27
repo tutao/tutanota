@@ -1,1 +1,3 @@
-public class SwRegex {}
+public class SwRegex {
+    public init() {}
+}
