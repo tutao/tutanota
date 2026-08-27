@@ -2520,3 +2520,5 @@ export type TranslationKeyType =
 	| "migrationGreetingTimeout_msg"
 	| "labelNameInvalidExisting_msg"
 	| "emptyString_msg"
+	| "storeSubscriptionGoogle_msg"
+	| "storePaymentMethodChangeGoogle_msg"

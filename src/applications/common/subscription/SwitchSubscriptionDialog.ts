@@ -32,12 +32,12 @@ import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoice
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { showManageThroughAppStoreDialog } from "./PaymentViewer.js"
+import { showManageSubscriptionThroughExternalStoreDialog } from "./PaymentViewer.js"
 import {
-	appStorePlanName,
+	externalStorePlanName,
 	getCurrentPaymentInterval,
 	getPaymentMethodType,
-	hasRunningAppStoreSubscription,
+	hasMatchingExternalStoreSubscription,
 	PlanTypeToName,
 	shouldShowApplePrices,
 	SubscriptionApp,
@@ -75,8 +75,8 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	if (hasRunningAppStoreSubscription(accountingInfo) && !EnvProvider.get().isIOSApp()) {
-		await showManageThroughAppStoreDialog()
+	if (!hasMatchingExternalStoreSubscription(accountingInfo, lastBooking)) {
+		await showManageSubscriptionThroughExternalStoreDialog()
 		return
 	}
 
@@ -250,7 +250,7 @@ async function doSwitchToPaidPlan(
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		dialog.close()
 		try {
-			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
+			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(externalStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {
 				console.error("AppStore subscription failed", e)
@@ -413,7 +413,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 					return false
 				} else {
 					// we have an app store subscription, but the down/upgrade is attempted on another platform
-					await showManageThroughAppStoreDialog()
+					await showManageSubscriptionThroughExternalStoreDialog()
 					return false
 				}
 
