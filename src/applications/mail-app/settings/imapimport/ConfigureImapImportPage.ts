@@ -25,13 +25,13 @@ import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
-import { Card } from "../../../../ui/base/Card"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { HoverInfoPanel } from "./HoverInfoPanel"
 
 assertMainOrNode()
 
@@ -50,7 +50,6 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		subTitle: lang.getTranslationText("migrationConfigInfo_msg"),
 	}
 	private successfullyLoadedMailboxes: boolean = false
-	private isFadingHoverOut: boolean = false
 
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
@@ -119,7 +118,15 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			this.shouldDisplayInfoHover
-				? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text)
+				? m(HoverInfoPanel, {
+						left: this.hoverPosition.left,
+						top: this.hoverPosition.top,
+						message: lang.getTranslation(this.hoverInfo).text,
+						onDismiss: () => {
+							this.shouldDisplayInfoHover = false
+							m.redraw()
+						},
+					})
 				: null,
 			m(
 				".mt-16",
@@ -466,7 +473,6 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 			const isDisplayingHoverForPressedButton = this.shouldDisplayInfoHover && this.hoverInfo === textMessage
 			if (isDisplayingHoverForPressedButton) {
 				this.shouldDisplayInfoHover = false
-				this.isFadingHoverOut = false
 				return
 			}
 			const target = event.target as Element
@@ -489,57 +495,8 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 				}
 
 				this.shouldDisplayInfoHover = true
-				setTimeout(() => {
-					this.isFadingHoverOut = true
-					m.redraw()
-				}, 2000)
 			}
 		}
-	}
-
-	private renderHoverInfo(left: number, top: number, message: string): Children {
-		return m(
-			`.hover-panel.border.border-radius ${this.isFadingHoverOut ? ".blur-out" : ""}`,
-			{
-				style: {
-					left: px(left),
-					top: px(top),
-				},
-				onmouseenter: () => {
-					console.log("mouse entered the trap")
-					this.isFadingHoverOut = false
-				},
-				onmouseleave: () => {
-					console.log("mouse left the trap")
-					this.isFadingHoverOut = true
-					m.redraw()
-				},
-
-				// animationend: () => {
-				// 	console.log("animation ended...", this.isFadingHoverOut)
-				// 	if (this.isFadingHoverOut) {
-				// 		console.log("the end replaces tnhings with? false?")
-				// 		this.shouldDisplayInfoHover = false
-				// 		this.isFadingHoverOut = false
-				// 	}
-				// },
-			},
-			[
-				m(Card, {}, [
-					m(
-						".flex.items-center.justify-center",
-						m(Icon, {
-							icon: Icons.InfoFilled,
-							size: IconSize.PX32,
-							style: {
-								fill: theme.on_surface_variant,
-							},
-						}),
-					),
-					m("", message),
-				]),
-			],
-		)
 	}
 
 	private renderCreateAllMissingFoldersButton(data: ImapImportData) {
