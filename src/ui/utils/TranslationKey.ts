@@ -2494,3 +2494,5 @@ export type TranslationKeyType =
 	| "subscriptionSettingAppleWebsite_action"
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "emptyString_msg"
+	| "storeSubscriptionGoogle_msg"
+	| "storePaymentMethodChangeGoogle_msg"

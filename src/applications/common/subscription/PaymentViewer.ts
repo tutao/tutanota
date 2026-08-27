@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { EnvProvider, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, PostingType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { assertNotNull, neverNull, newPromise, ofClass } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor"
@@ -12,7 +12,7 @@ import { formatDate } from "../../../ui/utils/Formatter"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import * as PaymentDataDialog from "./PaymentDataDialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import { getDefaultPaymentMethod, getPaymentMethodType, getPreconditionFailedPaymentMsg, hasRunningAppStoreSubscription } from "./utils/SubscriptionUtils"
+import { getDefaultPaymentMethod, getPaymentMethodType, getPreconditionFailedPaymentMsg, hasMatchingExternalStoreSubscription } from "./utils/SubscriptionUtils"
 import type { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import { DialogHeaderBar } from "../../../ui/base/DialogHeaderBar"
 import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
@@ -32,6 +32,8 @@ import { attachDropdown, createDropdown } from "../../../ui/base/Dropdown.js"
 import {
 	AccountingInfo,
 	AccountingInfoTypeRef,
+	Booking,
+	BookingTypeRef,
 	createDebitServicePutData,
 	Customer,
 	CustomerTypeRef,
@@ -41,8 +43,8 @@ import {
 	InvoiceInfo,
 	InvoiceInfoTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
-import { elementIdPart, idToElementId, NULL_ENTITY, NullEntity, OperationType } from "@tutao/meta"
+import { AccountType, isExternalPaymentMethod, NewPaidPlans, PaymentMethodType } from "../../../entities/sys/Utils"
+import { elementIdPart, GENERATED_MAX_ID, idToElementId, NULL_ENTITY, NullEntity, OperationType } from "@tutao/meta"
 import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting, CustomerAccountService_GET } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
@@ -65,6 +67,7 @@ EnvProvider.assertMainOrNode()
 export class PaymentViewer implements UpdatableSettingsViewer {
 	private readonly invoiceAddressField: HtmlEditor
 	private customer: Customer | null = null
+	private lastBooking: Booking | null = null
 	private accountingInfo: AccountingInfo | null = null
 	private postings: readonly CustomerAccountPosting[] = []
 	private outstandingBookingsPrice: number | null = null
@@ -125,6 +128,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		this.customer = await locator.logins.getUserController().reloadCustomer()
 		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 
+		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		this.lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
+
 		const accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 		this.updateAccountingInfoData(accountingInfo)
 		this.invoiceInfo = await locator.entityClient.load(InvoiceInfoTypeRef, idToElementId(neverNull(accountingInfo.invoiceInfo)))
@@ -161,9 +167,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private getIconForPaymentMethodSetting(accountingInfo: AccountingInfo | null) {
-		if (this.customer?.type === AccountType.PAID && EnvProvider.get().isIOSApp()) {
+		if (this.customer?.type === AccountType.PAID && EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			return Icons.InfoFilled
-		} else if (accountingInfo != null && hasRunningAppStoreSubscription(accountingInfo)) {
+		} else if (accountingInfo != null && hasMatchingExternalStoreSubscription(accountingInfo, this.lastBooking)) {
 			return Icons.InfoFilled
 		}
 		return Icons.PenFilled
@@ -174,20 +180,21 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			return
 		}
 		const currentPaymentMethod: PaymentMethodType | null = getPaymentMethodType(this.accountingInfo)
-		if (EnvProvider.get().isIOSApp()) {
-			if (currentPaymentMethod === PaymentMethodType.AppStore) {
-				// Paid users trying to change payment method on iOS with an active subscription
-				return Dialog.message(lang.getTranslation("storePaymentMethodChange_msg", { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+			if (isExternalPaymentMethod(currentPaymentMethod)) {
+				// non-external paid users trying to change payment method on mobile with an active subscription
+				const term = currentPaymentMethod === PaymentMethodType.AppStore ? "storePaymentMethodChange_msg" : "storePaymentMethodChangeGoogle_msg"
+				return Dialog.message(lang.getTranslation(term, { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
 			} else if (this.customer?.type === AccountType.PAID) {
-				// Paid users trying to change payment method on iOS without an active subscription.
+				// non-external paid users trying to change payment method on mobile without an active subscription.
 				return Dialog.message(lang.getTranslation("settingNotApplicableInIos_msg"))
 			}
 
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
-		} else if (hasRunningAppStoreSubscription(this.accountingInfo)) {
-			return showManageThroughAppStoreDialog()
-		} else if (currentPaymentMethod === PaymentMethodType.AppStore && this.customer?.type === AccountType.PAID) {
-			// For now we do not allow changing payment method for Paid accounts that use AppStore,
+		} else if (hasMatchingExternalStoreSubscription(this.accountingInfo, this.lastBooking)) {
+			return showManageSubscriptionThroughExternalStoreDialog()
+		} else if (isExternalPaymentMethod(currentPaymentMethod) && this.customer?.type === AccountType.PAID) {
+			// For now we do not allow changing payment method for Paid accounts that use external subscriptions,
 			// they must downgrade to Free first.
 
 			const isResubscribe = await Dialog.choice(
@@ -204,7 +211,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				],
 			)
 			if (isResubscribe) {
-				return showManageThroughAppStoreDialog()
+				return showManageSubscriptionThroughExternalStoreDialog()
 			} else {
 				return showConfirmDowngradingToFreeDialog()
 			}
@@ -238,8 +245,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 	}
 
 	private changePaymentMethod() {
-		if (this.accountingInfo && hasRunningAppStoreSubscription(this.accountingInfo)) {
-			throw new ProgrammingError("Active AppStore subscription")
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+			throw new ProgrammingError("can't change payment methods in mobile apps without default payment setup")
 		}
 
 		let nextPayment = this.amountOwed() * -1
@@ -622,17 +629,6 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			m(".small", renderTermsAndConditionsButton(TermsSection.GiftCards, CURRENT_GIFT_CARD_TERMS_VERSION)),
 		]
 	}
-
-	private renderGiftCardEntries(): Children {
-		return [
-			m(SettingsExpander, {
-				id: "giftcards",
-				title: "giftCards_label",
-				infoMsg: "giftCardSection_label",
-				expanded: this._giftCardsExpanded,
-			}),
-		]
-	}
 }
 
 function showPayConfirmDialog(price: number): Promise<boolean> {
@@ -708,17 +704,22 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 	}
 }
 
-export async function showManageThroughAppStoreDialog(): Promise<void> {
+export async function showManageSubscriptionThroughExternalStoreDialog(): Promise<void> {
+	const term = EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore ? "storeSubscription_msg" : "storeSubscriptionGoogle_msg"
 	const confirmed = await Dialog.confirm(
-		lang.getTranslation("storeSubscription_msg", {
+		lang.getTranslation(term, {
 			"{AppStorePayment}": InfoLink.AppStorePayment,
 		}),
 	)
 	if (confirmed) {
-		openAppleSubscriptionPage()
+		openExternalSubscriptionPage()
 	}
 }
 
-export function openAppleSubscriptionPage() {
-	window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+export function openExternalSubscriptionPage() {
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore) {
+		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+	} else if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore) {
+		window.open("https://play.google.com/store/account/subscriptions", "_blank", "noopener,noreferrer")
+	}
 }

@@ -7,7 +7,7 @@ import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
-	appStorePlanName,
+	externalStorePlanName,
 	getPreconditionFailedPaymentMsg,
 	SubscriptionApp,
 	UpgradePromptTypeByName,
@@ -119,7 +119,11 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 		try {
 			const result = await showProgressDialog(
 				"pleaseWait_msg",
-				locator.mobilePaymentsFacade.requestSubscriptionToPlan(appStorePlanName(data.targetPlanType), data.options.paymentInterval(), customerIdBytes),
+				locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+					externalStorePlanName(data.targetPlanType),
+					data.options.paymentInterval(),
+					customerIdBytes,
+				),
 			)
 			if (result.result !== MobilePaymentResultType.Success) {
 				return false

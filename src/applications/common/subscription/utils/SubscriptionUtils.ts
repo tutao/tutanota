@@ -1,4 +1,4 @@
-import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
@@ -33,6 +33,7 @@ import {
 	PaymentMethodType,
 	PlanName,
 	PlanType,
+	SubscriptionProvider,
 } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
@@ -302,16 +303,43 @@ export async function getAvailablePlansWithCalendarInvites(): Promise<Array<Avai
 
 export const PlanTypeToName: Record<PlanType, PlanName> = Object.freeze(reverse(PlanType))
 
-/** name of the plan/product how it is expected by iOS AppStore */
-export function appStorePlanName(planType: PlanType): string {
+/** name of the plan/product how it is expected by the external stores */
+export function externalStorePlanName(planType: PlanType): string {
 	return PlanTypeToName[planType].toLowerCase()
 }
 
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
 
 /** does current user has an active (non-expired) AppStore subscription? */
-export function hasRunningAppStoreSubscription(accountingInfo: AccountingInfo): boolean {
-	return getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore && accountingInfo.appStoreSubscription != null
+export function hasMatchingExternalStoreSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
+	if (
+		getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore &&
+		accountingInfo.appStoreSubscription != null &&
+		EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+	) {
+		return true
+	} else if (
+		getPaymentMethodType(accountingInfo) === PaymentMethodType.GooglePlay &&
+		EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore &&
+		hasMatchingSubscription(lastBooking)
+	) {
+		return true
+	} else {
+		return false
+	}
+}
+
+function hasMatchingSubscription(lastBooking: Booking | null): boolean {
+	if (lastBooking != null) {
+		const isExpired = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
+		const provider = lastBooking.subscriptionReference.subscriptionProvider
+		const paymentSetup = EnvProvider.get().getPaymentSetup()
+		const isMatching =
+			(provider === SubscriptionProvider.Google && paymentSetup === PaymentSetup.Playstore) ||
+			(provider === SubscriptionProvider.Apple && paymentSetup === PaymentSetup.Appstore)
+		return isMatching && !isExpired
+	}
+	return false
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */

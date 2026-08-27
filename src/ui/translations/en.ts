@@ -1984,7 +1984,6 @@ export default {
 		"setDnsRecords_msg": "Please set the following DNS records:",
 		"setPrimaryMailAddress_label": "Set as primary address",
 		"setSenderName_action": "Set sender name",
-		"settingNotApplicableInIos_msg": "This setting does not apply to the iOS app and cannot be changed here. Please log into the web app to change it.",
 		"settings_label": "Settings",
 		"settingsForDevice_label": "Settings for this device",
 		"settingsView_action": "Switch to the settings view",
@@ -2084,11 +2083,9 @@ export default {
 		"storedDataDate_label": "Store emails since {date}",
 		"storedDataTimeRange_label": "Keep emails from the last {numDays} days",
 		"storedDataTimeRangeHelpText_msg": "Stored emails that are older than what you configure here will be automatically removed from your device.",
-		"storeDowngradeOrResubscribe_msg": "Your current App Store subscription is expired. Would you like to downgrade your account or resubscribe to keep the paid features?\nSee {AppStoreDowngrade}",
 		"storeMultiSubscriptionError_msg": "It's not possible to manage multiple subscriptions with the same Apple ID.\nSee {AppStorePayment}",
 		"storeNoSubscription_msg": "There is an existing subscription for your account through another Apple ID.\nSee {AppStorePayment}",
 		"storePassword_action": "Store password",
-		"storePaymentMethodChange_msg": "It's not possible to change your payment method while subscribed through the App Store.\nSee {AppStorePaymentChange}",
 		"storeSubscription_msg": "Please manage subscriptions made in the App Store directly in there.\nSee {AppStorePayment}",
 		"subject_label": "Subject",
 		"submit_action": "Submit",
@@ -2495,6 +2492,12 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"settingNotApplicableInIos_msg": "This setting does not apply to the mobile app and cannot be changed here. Please log into the web app to change it.",
+		"storePaymentMethodChangeGoogle_msg": "It's not possible to change your payment method while subscribed through the Google Play Store.\nSee {AppStorePaymentChange}",
+		"storePaymentMethodChange_msg": "It's not possible to change your payment method while subscribed through the Apple App Store.\nSee {AppStorePaymentChange}",
+		"storeSubscriptionGoogle_msg": "Please manage subscriptions made in the Google Play Store directly in there.\nSee {AppStorePayment}",
+		"storeDowngradeOrResubscribe_msg": "Your current subscription is expired. Would you like to downgrade your account or resubscribe to keep the paid features?\nSee {AppStoreDowngrade}",
+		"storeNoSubscriptionGoogle_msg": "There is an existing subscription for your account through another Google Account.\nSee {AppStorePayment}",
 	}
 }
