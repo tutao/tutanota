@@ -111,7 +111,7 @@ o.spec("ImportMailFacade", () => {
 		)
 		const typeModelResolver = clientInitializedTypeModelResolver()
 		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailDataTypeRef)
-		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encypted subject" }, typeModel)
+		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encrypted subject" }, typeModel)
 
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve(mailGroupKeyMock)
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: new Uint8Array([1, 2, 3]), encryptingKeyVersion: 0 })
