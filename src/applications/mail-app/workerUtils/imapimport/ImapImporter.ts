@@ -6,7 +6,6 @@ import { ImapError } from "../../../common/api/common/error/ImapError.js"
 import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
-import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { ImapGetMailboxResult } from "../../../common/api/common/utils/imapImportUtils/ImapGetMailboxResult"
 import { ImapImportSession, newImapImportSession } from "./ImapImportSession"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
@@ -383,7 +382,7 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = assertNotNull(this.getImapImportSessionOrNull(accountSyncStateId))
 		const folderSyncState = getFolderSyncStateForMailboxPath(imapMailboxStatus.path, session.imapFolderSyncStates)
 		if (folderSyncState !== null && folderSyncState.status !== ImapFolderSyncStatus.NO_SYNC) {
-			// If the uidvalidity of a folder has changed, it means all IMAP uids are invalidated, and we cannot continue with the sync.
+			// If the UID validity of a folder has changed, it means all IMAP UIDs are invalidated, and we cannot continue with the sync.
 			// This should usually never happen, only with bad IMAP server implementations.
 			if (folderSyncState.uidvalidity && !(folderSyncState.uidvalidity === imapMailboxStatus.uidValidity.toString())) {
 				await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
@@ -393,7 +392,7 @@ export class ImapImporter implements ImapSyncFacade {
 					undefined,
 				)
 				console.error(
-					`uidvalidity of a folder has changed for the account sync state ${accountSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
+					`UID validity of a folder has changed for the account sync state ${accountSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
 				)
 			}
 			await this.imapFacade.updateImapFolderSyncState(imapMailboxStatus, folderSyncState)
@@ -429,25 +428,25 @@ export class ImapImporter implements ImapSyncFacade {
 				} catch (error) {
 					// we need to check the name instead of instanceof
 					if (error.name === "SuspensionError") {
-						console.log("SuspensionError while importing using imap importer ... ", error)
+						console.log("SuspensionError while importing using IMAP importer ... ", error)
 						await this.postponeImport(
 							accountSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME)),
 						)
 					} else if (error.name === "InsufficientStorageError") {
-						console.error("There was a storage error while importing using imap importer, postponing for a day ... ", error)
+						console.error("There was a storage error while importing using IMAP importer, postponing for a day ... ", error)
 						await this.postponeImport(
 							accountSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME)),
 						)
 					} else if (error.name === "LockedError") {
 						console.error(
-							"There was a locked error while importing using imap importer, caused by two clients importing simultaneously. Stopping sync on this client ... ",
+							"There was a locked error while importing using IMAP importer, caused by two clients importing simultaneously. Stopping sync on this client ... ",
 							error,
 						)
 						await this.imapSyncSystemFacade.stopSync(accountSyncStateId)
 					} else {
-						console.error("There was some unknown error while importing using imap importer ... ", error)
+						console.error("There was some unknown error while importing using IMAP importer ... ", error)
 						await this.postponeImport(
 							accountSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_ERROR_POSTPONE_TIME)),
