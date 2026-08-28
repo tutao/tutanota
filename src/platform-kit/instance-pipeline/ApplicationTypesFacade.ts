@@ -1,5 +1,5 @@
 import { EnvProvider } from "@tutao/app-env"
-import { defer, DeferredObject, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
+import { defer, DeferredObject, isNotNull, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToString } from "@tutao/utils"
 import { ApplicationTypesService_GET, baseModelInfo } from "../../entities/base"
 import { HttpMethod, MediaType, RestClientInterface } from "../rest-client/types"
 import { sha256Hash } from "@tutao/crypto"
@@ -7,6 +7,7 @@ import { ServerModelsUnavailableError } from "./ServerModelsUnavailableError.js"
 import { ApplicationTypesHash, ServerModelInfo } from "./EntityFunctions"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
 import { EntityUtils } from "./EntityUtils"
+import { isNull } from "../utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -88,7 +89,7 @@ export class ApplicationTypesFacade {
 		this.deferredRequests.push(deferredObject)
 		const fileSystemModels = await this.loadStoredTypeModels()
 
-		if (fileSystemModels != null && (expectedHash == null || fileSystemModels.applicationTypesHash === expectedHash)) {
+		if (isNotNull(fileSystemModels) && (isNull(expectedHash) || fileSystemModels.applicationTypesHash === expectedHash)) {
 			// we only return the stored models if we're in the in initial fetch.
 			// the serverModelInfo will get a new hash at some point and re-request the type models,
 			// we don't want to use the stored one if it doesn't match the new hash.

@@ -68,14 +68,14 @@ class PublicEncryptionKeyProvider {
 
 	private async fetchAndValidatePublicEncryptionKey(version: Nullable<KeyVersion>, pubKeyIdentifier: PublicKeyIdentifier): Promise<MaybeSignedPublicKey> {
 		const requestData = createPublicKeyGetIn({
-			version: version != null ? String(version) : null,
+			version: isNotNull(version) ? String(version) : null,
 			identifier: pubKeyIdentifier.identifier,
 			identifierType: pubKeyIdentifier.identifierType,
 		})
 		const publicKeyGetOut = await this.serviceExecutor.execute(PublicKeyService_GET, requestData, null)
 		const publicEncryptionKey = this.convertFromPublicKeyGetOut(publicKeyGetOut)
 		this.enforceRsaKeyVersionConstraint(publicEncryptionKey.publicKey)
-		if (version != null && publicEncryptionKey.publicKey.version !== version) {
+		if (isNotNull(version) && publicEncryptionKey.publicKey.version !== version) {
 			throw new InvalidDataError("the server returned a key version that was not requested")
 		}
 		return publicEncryptionKey

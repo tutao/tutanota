@@ -46,10 +46,10 @@ export class MicrotaskBouncer {
 	bounce(): Promise<void> {
 		const now = this.dateProvider()
 
-		if (this.evictTimestamp == null) {
+		if (isNull(this.evictTimestamp)) {
 			this.evictTimestamp = now + this.maxTimeMillis
 		} else if (now > this.evictTimestamp) {
-			if (this.nextMacrotaskPromise == null) {
+			if (isNull(this.nextMacrotaskPromise)) {
 				// this enqueues a macrotask, forcing anything resolving this to wait until this macrotask is handled
 				// rather than create a new microtask
 				this.nextMacrotaskPromise = new Promise((resolve) => {

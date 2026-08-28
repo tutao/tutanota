@@ -20,7 +20,7 @@ export class AttributeModel {
 
 	private static getResolvedAttributeId(typeModel: TypeModel, attrName: AttributeName): AttributeId | null {
 		const typeIdMap = AttributeModel.typeIdToAttributeNameMap[typeModel.app].get(typeModel.id)
-		if (typeIdMap == null) {
+		if (isNull(typeIdMap)) {
 			throw new ProgrammingError(`Unknown type: ${typeModel.app}/${typeModel.name}`)
 		}
 
@@ -77,7 +77,7 @@ export function deepMapKeys(obj: Record<string, any>, keyMapper: (rawKey: string
 	for (const [unmappedKey, value] of Object.entries(obj)) {
 		const mappedKey = keyMapper(unmappedKey)
 
-		if (value == null) {
+		if (isNull(value)) {
 			mappedObject[mappedKey] = null
 		} else if (Array.isArray(value)) {
 			mappedObject[mappedKey] = value.map((item) => {

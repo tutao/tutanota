@@ -95,7 +95,7 @@ export class ShareFacade {
 				notFoundRecipients,
 				keyVerificationMismatchRecipients,
 			)
-			if (isNotNull(keyData) && keyData.pubEncRecipientKeyData != null) {
+			if (isNotNull(keyData) && isNotNull(keyData.pubEncRecipientKeyData)) {
 				invitationData.internalKeyData.push(keyData.pubEncRecipientKeyData)
 			}
 		}

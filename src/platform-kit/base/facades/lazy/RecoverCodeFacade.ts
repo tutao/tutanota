@@ -20,6 +20,7 @@ import { createRecoverCode, RecoverCodeTypeRef, User } from "@tutao/entities/sys
 import { asKdfType } from "../../base-crypto/Constants"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -70,7 +71,7 @@ export class RecoverCodeFacade {
 	async getRawRecoverCode(passphraseKey: AesKey): Promise<Aes256Key> {
 		const user = this.userFacade.getLoggedInUser()
 		const recoverCodeId = user.auth?.recoverCode
-		if (recoverCodeId == null) {
+		if (isNull(recoverCodeId)) {
 			throw new Error("Auth is missing")
 		}
 
@@ -98,7 +99,7 @@ export class RecoverCodeFacade {
 	async createRecoveryCode(passphrase: string): Promise<string> {
 		const user = this.userFacade.getUser()
 
-		if (user == null || user.auth == null) {
+		if (isNull(user) || isNull(user.auth)) {
 			throw new Error("Invalid state: no user or no user.auth")
 		}
 

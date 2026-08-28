@@ -30,7 +30,7 @@ import {
 } from "@tutao/crypto"
 import { PQFacade } from "./PQFacade.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { arrayEquals, assertNotNull, KeyVersion, lazy, Nullable, Versioned } from "@tutao/utils"
+import { arrayEquals, assertNotNull, isNotNull, KeyVersion, lazy, Nullable, Versioned } from "@tutao/utils"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
@@ -104,7 +104,7 @@ export class AsymmetricCryptoFacade {
 		try {
 			const publicKey = await this.publicKeyProvider.loadPublicEncryptionKey(identifier, senderKeyVersion)
 			const publicEccKey = this.getSenderEccKey(publicKey.publicEncryptionKey)
-			if (publicEccKey != null && arrayEquals(publicEccKey, senderIdentityPubKey)) {
+			if (isNotNull(publicEccKey) && arrayEquals(publicEccKey, senderIdentityPubKey)) {
 				authenticated = true
 
 				if (publicKey.verificationState === EncryptionKeyVerificationState.VERIFIED_MANUAL) {

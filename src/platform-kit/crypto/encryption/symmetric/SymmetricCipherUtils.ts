@@ -1,6 +1,6 @@
 import { random } from "../../random/Randomizer.js"
 import { CryptoError } from "@tutao/crypto/error"
-import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
+import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, isNotNull, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import sjcl from "../../internal/sjcl.js"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, BitArray, getKeyLengthInBytes } from "./AesKey.js"
@@ -92,7 +92,7 @@ export function uint8ArrayToKey(array: Uint8Array<ArrayBuffer>, acceptedBitLengt
 	let key = uint8ArrayToBitArray(array)
 	// AesKey is an array of 4 byte numbers. therefore converting the length to bits means 4*8
 	const keyLength: number = key.length * 4 * 8
-	if (acceptedBitLength != null && acceptedBitLength !== keyLength) {
+	if (isNotNull(acceptedBitLength) && acceptedBitLength !== keyLength) {
 		throw new CryptoError(`Illegal key length: ${keyLength} (expected: ${acceptedBitLength})`)
 	}
 	switch (keyLength) {

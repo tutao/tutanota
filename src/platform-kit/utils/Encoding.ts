@@ -164,7 +164,7 @@ export function _stringToUtf8Uint8ArrayLegacy(str: string): Uint8Array<ArrayBuff
 const REPLACEMENT_CHAR = "\uFFFD"
 
 export function _replaceLoneSurrogates(s: string | null): string {
-	if (s == null) {
+	if (isNull(s)) {
 		return ""
 	}
 

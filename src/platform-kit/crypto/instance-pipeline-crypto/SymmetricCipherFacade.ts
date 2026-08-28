@@ -8,7 +8,7 @@ import {
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
-import { Nullable } from "@tutao/utils"
+import { isNotNull, Nullable } from "@tutao/utils"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
 import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, InstanceTypeId, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
@@ -38,7 +38,7 @@ export class SymmetricCipherFacade {
 		readonly aeadFacade: AeadFacade,
 		readonly symmetricKeyDeriver: SymmetricKeyDeriver,
 	) {
-		this.subtleCryptoAvailable = crypto.subtle != null
+		this.subtleCryptoAvailable = isNotNull(crypto.subtle)
 		if (!this.subtleCryptoAvailable) {
 			console.log("SubtleCrypto is not available, falling back to JS AES impl of decryption")
 		}

@@ -8,6 +8,7 @@ import { CryptoError } from "@tutao/crypto/error"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { AesKey } from "@tutao/crypto"
+import { isNull } from "@tutao/lang-api"
 
 /**`
  * Decrypts one attribute of one given instance.
@@ -33,7 +34,7 @@ export class AesCbcDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAesSubKeyCache.get(instanceAesSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.sessionKey, cipherVersion)
 			this.instanceAesSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
@@ -56,7 +57,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 	}
 
 	getValue(key: Nullable<AesKey>): Uint8Array<ArrayBuffer> {
-		if (key == null) {
+		if (isNull(key)) {
 			throw new CryptoError("AEAD decryption of a value failed because of a missing group key.")
 		}
 		const instanceAeadSubKeyCacheKey = {
@@ -64,7 +65,7 @@ export class AeadWithGroupKeyDecryptor implements ValueDecryptor {
 			aesKey: key,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(
 				{ object: key, version: this.parsedCiphertext.groupKeyVersion },
 				this.kdfNonce,
@@ -93,7 +94,7 @@ export class AeadWithSessionKeyDecryptor implements ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceAeadSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(this.sessionKey, this.instanceTypeId)
 			this.instanceAeadSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}

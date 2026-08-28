@@ -199,10 +199,10 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
  * If val is non null, returns the result of val passed to action, else null
  */
 export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) => U | null): U | null {
-	if (val != null) {
+	if (isNotNull(val)) {
 		const result = action(val)
 
-		if (result != null) {
+		if (isNotNull(result)) {
 			return result
 		}
 	}
@@ -263,7 +263,7 @@ export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver
 	let afRequestId: number | null = null
 
 	return new ResizeObserver((entries, observer) => {
-		if (afRequestId != null) {
+		if (isNotNull(afRequestId)) {
 			cancelAnimationFrame(afRequestId)
 		}
 		afRequestId = requestAnimationFrame(() => {

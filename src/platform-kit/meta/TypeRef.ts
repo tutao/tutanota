@@ -1,4 +1,5 @@
 import { Entity } from "./EntityTypes"
+import { isNull } from "../utils/Utils"
 
 export type AppName = string
 
@@ -46,7 +47,7 @@ export function getTypeString(typeRef: TypeRef<Entity>): string {
 export function parseTypeString<T extends Entity>(s: string): TypeRef<T> {
 	const parts = s.split("/")
 	const [app, versionString] = parts
-	if (app == null || versionString == null) {
+	if (isNull(app) || isNull(versionString)) {
 		throw new TypeError(`invalid type string: ${s}`)
 	}
 	return new TypeRef<T>(app as AppName, parseInt(parts[1], 10))

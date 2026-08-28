@@ -182,7 +182,7 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	for (const item of array) {
 		const resultItem = mapper(item)
 
-		if (resultItem != null) {
+		if (isNotNull(resultItem)) {
 			resultList.push(resultItem)
 		}
 	}
