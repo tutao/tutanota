@@ -47,7 +47,7 @@ import {
 } from "@tutao/entities/tutanota"
 import { func, matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { ArchiveDataType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { assert, assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
@@ -55,6 +55,8 @@ import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/C
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
+import { ArchiveEnumerationService_GET, createArchiveEnumerationGetIn, createArchiveEnumerationGetOut } from "@tutao/entities/storage"
 
 const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
@@ -98,6 +100,7 @@ o.spec("OfflineMailIndexer", () => {
 	let mail: Mail
 	let mailSetEntry: MailSetEntry
 	let mailDetailsBlobModel: ServerTypeModel
+	let serviceExecutor: IServiceExecutor
 
 	o.beforeEach(async () => {
 		typeModelResolver = clientInitializedTypeModelResolver()
@@ -109,6 +112,7 @@ o.spec("OfflineMailIndexer", () => {
 		crypto = object()
 		infoMessageHandler = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
+		serviceExecutor = object()
 		mailDetailsBlobModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
 
 		mailIndexer = new OfflineMailIndexer(
@@ -121,6 +125,7 @@ o.spec("OfflineMailIndexer", () => {
 			infoMessageHandler,
 			newMailDownloader,
 			realInstancePipeline,
+			serviceExecutor,
 			TEST_INDEX_CHUNK_SIZE,
 		)
 		user = createTestEntity(UserTypeRef, {
@@ -153,6 +158,8 @@ o.spec("OfflineMailIndexer", () => {
 				storedBlobs.set(elementIdPart(b.getValueByName("_id").asIdTuple()), b)
 			}
 		})
+
+		when(persistence.getEncryptedMailDetailsBlobsArchives()).thenResolve([])
 
 		entityRestClientMock.addElementInstances(mailBox, mailboxGroupRoot)
 		entityRestClientMock.addListInstances(importedMailSet)
@@ -242,6 +249,21 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		]
 
+		when(
+			serviceExecutor.execute(
+				ArchiveEnumerationService_GET,
+				createArchiveEnumerationGetIn({
+					group: mailGroupId,
+					archiveType: ArchiveDataType.MailDetails,
+				}),
+				null,
+			),
+		).thenResolve(
+			createArchiveEnumerationGetOut({
+				archives: [listIdPart(mail.mailDetails)],
+			}),
+		)
+
 		await mailIndexer.extendMailIndex(user)
 
 		const storedMailData = matchers.captor()
@@ -266,6 +288,21 @@ o.spec("OfflineMailIndexer", () => {
 		const detailBlobs: MailDetailsBlob[] = []
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
+
+		when(
+			serviceExecutor.execute(
+				ArchiveEnumerationService_GET,
+				createArchiveEnumerationGetIn({
+					group: mailGroupId,
+					archiveType: ArchiveDataType.MailDetails,
+				}),
+				null,
+			),
+		).thenResolve(
+			createArchiveEnumerationGetOut({
+				archives: [archiveId],
+			}),
+		)
 
 		for (let i = 0; i < mailCount; i++) {
 			const mailDetails = createTestEntity(

@@ -201,6 +201,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				mainInterface.infoMessageHandler,
 				newMailDownloader,
 				locator.base.instancePipeline,
+				locator.base.serviceExecutor,
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()
