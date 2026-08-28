@@ -826,12 +826,13 @@ export class LoginFacade implements SessionTypeProvider {
 		})
 	}
 
-	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex | null, targetAccountMailAddress: string): Promise<void> {
+	takeOverDeletedAddress(mailAddress: string, password: string, recoverCode: Hex, targetAccountMailAddress: string): Promise<void> {
 		return this.loadUserPassphraseKey(mailAddress, password).then((passphraseReturn) => {
 			const authVerifier = createAuthVerifierAsBase64Url(passphraseReturn.userPassphraseKey)
 			let recoverCodeVerifier: Base64 | null = null
 
-			if (isNotNull(recoverCode)) {
+			if (recoverCode !== "") {
+				// The recovery code only needs to be entered if the account had 2FA on it, so it is often empty
 				const recoverCodeKey = uint8ArrayToKey(hexToUint8Array(recoverCode))
 				recoverCodeVerifier = createAuthVerifierAsBase64Url(recoverCodeKey)
 			}
