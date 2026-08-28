@@ -15,7 +15,7 @@ import {
 } from "@tutao/meta"
 import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
-import { TypeChecks } from "@tutao/lang-api"
+import { isNull, TypeChecks } from "@tutao/lang-api"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
@@ -85,11 +85,11 @@ export class ClientModelInfo {
 	 */
 	public async resolveClientTypeReference(typeRef: TypeRef<any>): Promise<ClientTypeModel> {
 		const typeModel = this.typeModels[typeRef.app][typeRef.typeId]
-		if (typeModel == null) {
+		if (isNull(typeModel)) {
 			throw new Error("Cannot find TypeRef: " + typeRef.toString())
 		} else {
 			for (const association of Object.values(typeModel.associations)) {
-				if (association.dependency != null) {
+				if (isNotNull(association.dependency)) {
 					typeModel.dependsOnVersion = this.resolveDependsOnVersion(association.dependency)
 					return typeModel
 				}
@@ -99,10 +99,10 @@ export class ClientModelInfo {
 	}
 
 	public async isKnownClientTypeReference(application: string, typeId: number): Promise<boolean> {
-		if (this.typeModels[application as AppName] == null) {
+		if (isNull(this.typeModels[application as AppName])) {
 			return false
 		}
-		return this.typeModels[application as AppName][typeId] != null
+		return isNotNull(this.typeModels[application as AppName][typeId])
 	}
 
 	private resolveDependsOnVersion(dependency: AppName): ApplicationVersion {
@@ -130,7 +130,7 @@ export class ServerModelInfo {
 	 *  AVOID using it, you should inject this instead.
 	 */
 	public static getPossiblyUninitializedInstance(clientModelInfo: ClientModelInfo, fetcher: ServerTypeFetcher): ServerModelInfo {
-		if (ServerModelInfo.instance == null) {
+		if (isNull(ServerModelInfo.instance)) {
 			ServerModelInfo.instance = new ServerModelInfo(clientModelInfo, fetcher)
 		}
 		return ServerModelInfo.instance
@@ -170,12 +170,12 @@ export class ServerModelInfo {
 	}
 
 	public async resolveServerTypeReference(typeRef: TypeRef<any>): Promise<ServerTypeModel> {
-		if (this.typeModels == null || Object.keys(this.typeModels).length === 0) {
+		if (isNull(this.typeModels) || Object.keys(this.typeModels).length === 0) {
 			const getOut = await this.fetcher(this.applicationTypesHash)
 			this.init(getOut)
 		}
 		const typeModel = assertNotNull(this.typeModels)[typeRef.app].types[typeRef.typeId]
-		if (typeModel == null) {
+		if (isNull(typeModel)) {
 			throw new Error("Cannot find TypeRef: " + JSON.stringify(typeRef))
 		} else {
 			return typeModel
@@ -347,12 +347,12 @@ export class ServerModelInfo {
 	}
 
 	private asString(value: any): string {
-		if (value != null && !TypeChecks.isObject(value)) return value.toString()
+		if (isNotNull(value) && !TypeChecks.isObject(value)) return value.toString()
 		else throw new Error(`value ${value} is not string compatible`)
 	}
 
 	private asNumber(value: any): number {
-		if (value != null && (TypeChecks.isString(value) || TypeChecks.isNumber(value))) return parseInt(value.toString())
+		if (isNotNull(value) && (TypeChecks.isString(value) || TypeChecks.isNumber(value))) return parseInt(value.toString())
 		else throw new Error(`value ${value} is not number compatible`)
 	}
 

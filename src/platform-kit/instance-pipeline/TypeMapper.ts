@@ -158,7 +158,7 @@ export class IncomingServerJson implements DeepEquals {
 					return ParsedValue.fromIdTuple(rawValue)
 			}
 		}
-		if (rawValue == null) {
+		if (isNull(rawValue)) {
 			return ParsedValue.fromNull()
 		} else {
 			return ParsedValue.fromString(rawValue)

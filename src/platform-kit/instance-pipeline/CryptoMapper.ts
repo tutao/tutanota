@@ -58,6 +58,7 @@ import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { isNull } from "@tutao/lang-api"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
@@ -104,7 +105,7 @@ export class CryptoMapper {
 		if (requiredGroupKeyVersion === null) {
 			return null
 		}
-		if (ownerKeyProvider == null) {
+		if (isNull(ownerKeyProvider)) {
 			throw new CryptoError("Cannot load group key. Missing owner key provider.")
 		}
 		return await ownerKeyProvider(requiredGroupKeyVersion)
@@ -326,7 +327,7 @@ export class CryptoMapper {
 			return subKeyFactory
 		} else if (subKeyFactory instanceof SubKeyInfo) {
 			return this.symmetricCipherFacade.getSubKeyProvider(subKeyFactory, clientTypeModel)
-		} else if (subKeyFactory == null) {
+		} else if (isNull(subKeyFactory)) {
 			return null
 		} else {
 			throw new ProgrammingError("unknown SubKeyFactory")
@@ -402,7 +403,7 @@ export class CryptoMapper {
 		}
 		// we want to throw the error late in case we cannot derive the subkeys to handle types gracefully
 		// that do not have any actual encrypted values set
-		if (subKeyProvider == null) {
+		if (isNull(subKeyProvider)) {
 			throw new CryptoError(`Encrypting ${valueType.name} requires keys!`)
 		}
 		const subKeys = subKeyProvider.getSubKeys()
@@ -634,7 +635,7 @@ export class DecryptedParsedInstance implements DeepEquals {
 	}
 
 	public hasError(attributeName: AttributeName | null = null): boolean {
-		if (attributeName == null) {
+		if (isNull(attributeName)) {
 			return Object.keys(this._errors).length > 0
 		} else {
 			const attributeId = AttributeModel.getAttributeId(this.typeModel, attributeName)

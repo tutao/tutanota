@@ -1,4 +1,4 @@
-import { Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
+import { isNotNull, Nullable, stringToUtf8Uint8Array } from "@tutao/utils"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
@@ -14,6 +14,7 @@ import {
 import { AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN, AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { AesKey } from "../../encryption/symmetric/AesKey"
+import { isNull } from "@tutao/lang-api"
 
 export class InstanceDecryptor {
 	private readonly instanceAesSubKeyCache = new InstanceSubKeyCache<AesCbcSubKeys>()
@@ -31,12 +32,12 @@ export class InstanceDecryptor {
 	getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, fieldPath: string): ValueDecryptor {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
-			if (this.sessionKey == null) {
+			if (isNull(this.sessionKey)) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AesCbcDecryptor(parsedCiphertext, this.aesCbcFacade, this.sessionKey, this.instanceAesSubKeyCache, this.symmetricKeyDeriver)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithGroupKey) {
-			if (this.kdfNonce == null) {
+			if (isNull(this.kdfNonce)) {
 				throw new CryptoError("no kdf nonce for group key encrypted value")
 			}
 			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath)
@@ -50,7 +51,7 @@ export class InstanceDecryptor {
 				this.instanceAeadSubKeyCache,
 			)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithSessionKey) {
-			if (this.sessionKey == null) {
+			if (isNull(this.sessionKey)) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			const associatedData = stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath)
@@ -68,6 +69,6 @@ export class InstanceDecryptor {
 	}
 
 	canAttemptDecryption(): boolean {
-		return this.sessionKey != null || this.kdfNonce != null
+		return isNotNull(this.sessionKey) || isNotNull(this.kdfNonce)
 	}
 }

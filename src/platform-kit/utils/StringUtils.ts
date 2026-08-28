@@ -90,7 +90,7 @@ export function localeCompare(a: string, b: string): number {
 }
 
 export function byteLength(str: string | null): number {
-	if (str == null) return 0
+	if (isNull(str)) return 0
 	// returns the byte length of an utf8 string
 	let s = str.length
 

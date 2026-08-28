@@ -83,12 +83,12 @@ export class ServiceExecutor implements IServiceExecutor {
 	): Promise<Nullable<OutgoingServerJson>> {
 		const requestTypeRef = service.requestTypeRef
 		if (isNotNull(requestTypeRef)) {
-			if (requestEntity == null || !isSameTypeRef(requestTypeRef, requestEntity._type)) {
+			if (isNull(requestEntity) || !isSameTypeRef(requestTypeRef, requestEntity._type)) {
 				throw new ProgrammingError(`Invalid service data! ${service.fullServiceName}`)
 			}
 
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)
-			if (requestTypeModel.encrypted && params?.sessionKey == null) {
+			if (requestTypeModel.encrypted && isNull(params?.sessionKey)) {
 				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.fullServiceName}`)
 			}
 

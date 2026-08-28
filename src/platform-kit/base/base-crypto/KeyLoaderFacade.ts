@@ -118,7 +118,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 
 	async loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey> = null): Promise<Versioned<AsymmetricKeyPair>> {
 		let group = await this.entityClient.load(GroupTypeRef, idToElementId(groupId))
-		if (currentGroupKey == null) {
+		if (isNull(currentGroupKey)) {
 			currentGroupKey = await this.getCurrentSymGroupKey(groupId)
 		}
 		if (cryptoUtils.parseKeyVersion(group.groupKeyVersion) !== currentGroupKey.version) {
@@ -175,15 +175,15 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	}
 
 	async decryptPrivateIdentityKey(group: Group): Promise<Versioned<Ed25519PrivateKey>> {
-		if (group.identityKeyPair == null) {
+		if (isNull(group.identityKeyPair)) {
 			throw new Error(`Group ${group._id} does not have identity key pair`)
 		}
 		let encryptingGroupId: Id
 		if (group.type === GroupType.User) {
 			encryptingGroupId = elementIdToId(group._id)
-		} else if (group.type === GroupType.Mail && group.user == null) {
+		} else if (group.type === GroupType.Mail && isNull(group.user)) {
 			//shared mail group
-			if (group.admin == null) {
+			if (isNull(group.admin)) {
 				throw new Error("Admin group not set on shared mail group")
 			}
 			encryptingGroupId = group.admin
@@ -301,7 +301,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 	}
 
 	private validateAndDecryptKeyPair(keyPair: KeyPair | null, groupId: Id, groupKey: VersionedKey): AsymmetricKeyPair {
-		if (keyPair == null) {
+		if (isNull(keyPair)) {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
@@ -314,14 +314,14 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 }
 
 export function toEncryptedKeyPairs(keyPair: KeyPair): EncryptedKeyPairs {
-	if (keyPair.pubRsaKey != null) {
-		if (keyPair.pubEccKey != null && keyPair.symEncPrivEccKey != null && keyPair.symEncPrivRsaKey != null) {
+	if (isNotNull(keyPair.pubRsaKey)) {
+		if (isNotNull(keyPair.pubEccKey) && isNotNull(keyPair.symEncPrivEccKey) && isNotNull(keyPair.symEncPrivRsaKey)) {
 			return new EncryptedRsaX25519KeyPairs(keyPair.pubEccKey, keyPair.pubRsaKey, keyPair.symEncPrivEccKey, keyPair.symEncPrivRsaKey, keyPair.signature)
-		} else if (keyPair.symEncPrivRsaKey != null) {
+		} else if (isNotNull(keyPair.symEncPrivRsaKey)) {
 			return new EncryptedRsaKeyPairs(keyPair.pubRsaKey, keyPair.symEncPrivRsaKey, keyPair.signature)
 		}
 	}
-	if (keyPair.pubKyberKey != null && keyPair.symEncPrivKyberKey != null && keyPair.pubEccKey != null && keyPair.symEncPrivEccKey != null) {
+	if (isNotNull(keyPair.pubKyberKey) && isNotNull(keyPair.symEncPrivKyberKey) && isNotNull(keyPair.pubEccKey) && isNotNull(keyPair.symEncPrivEccKey)) {
 		return new EncryptedPqKeyPairs(keyPair.pubEccKey, keyPair.pubKyberKey, keyPair.symEncPrivEccKey, keyPair.symEncPrivKyberKey, keyPair.signature)
 	}
 	throw new CryptoError("Invalid key pair")
@@ -372,12 +372,12 @@ type GroupKeyAndGroupKeyInstance = {
 
 export function isEncryptedPqKeyPairs(keyPair: KeyPair): boolean {
 	return (
-		keyPair.pubEccKey != null &&
-		keyPair.pubKyberKey != null &&
-		keyPair.symEncPrivEccKey != null &&
-		keyPair.symEncPrivKyberKey != null &&
-		keyPair.pubRsaKey == null &&
-		keyPair.symEncPrivRsaKey == null
+		isNotNull(keyPair.pubEccKey) &&
+		isNotNull(keyPair.pubKyberKey) &&
+		isNotNull(keyPair.symEncPrivEccKey) &&
+		isNotNull(keyPair.symEncPrivKyberKey) &&
+		isNull(keyPair.pubRsaKey) &&
+		isNull(keyPair.symEncPrivRsaKey)
 	)
 }
 
