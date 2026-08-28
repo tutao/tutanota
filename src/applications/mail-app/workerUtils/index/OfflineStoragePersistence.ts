@@ -100,6 +100,9 @@ export interface IndexedGroupData {
 	indexedTimestamp: number
 	lastIndexedEntityListId: string
 	lastIndexedEntityElementId: string
+	// FIXME
+	// lastDownloadedEntityListId: string
+	// lastDownloadedEntityElementId: string
 }
 
 /**
