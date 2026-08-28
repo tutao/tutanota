@@ -250,7 +250,6 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const currentStateSubscription = this.getCurrentStateOfSubscription(booking)
 		//Accounting interval can be changed by customer
 		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
-		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
 		const isAppleSubscription = accountingInfo.paymentMethod === PaymentMethodType.AppStore
 		//Make copy of booking end date to alter it
 		const nextEndDate = new Date(assertNotNull(booking.endDate))
@@ -274,9 +273,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
 					} satisfies SubscriptionStateCardAttrs),
-					(!isNewSubscriptionVisible || isAppleSubscription) &&
-						isNewPlan &&
-						this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+					(!isNewSubscriptionVisible || isAppleSubscription) && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 				),
 				//Next Subscription period
 				isNewSubscriptionVisible &&
@@ -333,7 +330,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							],
 						} satisfies SubscriptionStateCardAttrs),
 						//Render Buttons
-						isNewPlan && this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
+						this.renderButtons(booking, currentStateSubscription, isAppleSubscription),
 					),
 			),
 
@@ -529,7 +526,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					customer: this._customer,
 					accountingInfo: this._accountingInfo,
 					lastBooking: this._lastBooking,
-					acceptedPlans: (await locator.logins.getUserController().isNewPaidPlan()) ? NewPaidPlans : AvailablePlans,
+					acceptedPlans: NewPaidPlans,
 					reason: null,
 				})
 			}
