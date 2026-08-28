@@ -242,8 +242,8 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 			return
 		}
 
-		// FIXME
-		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
+		// FIXME can't access url created from this (forbidden), something something url.startAccessingSecurityScopedResource when trying to read file?
+		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.absoluteString }, info.text, [], "", "") } catch {
 			printLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
