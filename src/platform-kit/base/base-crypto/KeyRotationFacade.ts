@@ -120,6 +120,7 @@ import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 import { InstanceKeyFacade } from "./InstanceKeyFacade"
 import { CacheManager } from "./persistence/CacheManager"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -282,7 +283,7 @@ export class KeyRotationFacade {
 		let customerGroupKeyRotationWasExecuted = false
 		if (!isEmpty(pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
 			const groupKeyRotationData = await this.rotateCustomerOrTeamGroupKeys(user, pendingKeyRotations)
-			if (groupKeyRotationData != null) {
+			if (isNotNull(groupKeyRotationData)) {
 				serviceData.groupKeyUpdates = groupKeyRotationData
 				customerGroupKeyRotationWasExecuted = pendingKeyRotations.teamOrCustomerGroupKeyRotations.some(
 					(r) => r.groupKeyRotationType === GroupKeyRotationType.Customer,
@@ -296,7 +297,7 @@ export class KeyRotationFacade {
 		if (!isEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
 			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user, pendingKeyRotations)
 			invitationData = preparedReInvites
-			if (groupKeyRotationData != null) {
+			if (isNotNull(groupKeyRotationData)) {
 				const internalMailGroupId = this.userFacade.getGroupId(GroupType.Mail)
 				internalMailGroupWasRotated = pendingKeyRotations.userAreaGroupsKeyRotations.some((keyRotation) =>
 					isSameSingleId(keyRotation._id[1], internalMailGroupId),
@@ -380,7 +381,7 @@ export class KeyRotationFacade {
 		//group key rotation is skipped if
 		// * user is not an admin user
 		const adminGroupMembership = user.memberships.find((m) => m.groupType === GroupType.Admin)
-		if (adminGroupMembership == null) {
+		if (isNull(adminGroupMembership)) {
 			console.log("Only admin user can rotate the group")
 			return null
 		}
@@ -666,7 +667,7 @@ export class KeyRotationFacade {
 
 	private async reencryptRecoverCodeIfExists(user: User, passphraseKey: AesKey, newUserGroupKeys: GeneratedGroupKeys): Promise<RecoverCodeData | null> {
 		let recoverCodeData: RecoverCodeData | null = null
-		if (user.auth?.recoverCode != null) {
+		if (isNotNull(user.auth?.recoverCode)) {
 			const recoverCodeFacade = await this.recoverCodeFacade()
 			const recoverCode = await recoverCodeFacade.getRawRecoverCode(passphraseKey)
 			const recoverData = recoverCodeFacade.encryptRecoveryCode(recoverCode, newUserGroupKeys.symGroupKey)
@@ -776,7 +777,7 @@ export class KeyRotationFacade {
 					notFoundRecipients,
 					keyVerificationMismatchRecipients,
 				)
-				if (recipientKeyData != null && recipientKeyData.pubEncRecipientKeyData != null) {
+				if (isNotNull(recipientKeyData) && isNotNull(recipientKeyData.pubEncRecipientKeyData)) {
 					const groupKeyUpdateData = createGroupKeyUpdateData({
 						sessionKeyEncGroupKey: this.cryptoWrapper.encryptBytes(sessionKey, keyToUint8Array(newGroupKey.object)),
 						sessionKeyEncGroupKeyVersion: String(newGroupKey.version),
@@ -852,7 +853,7 @@ export class KeyRotationFacade {
 		const identityKeyPair = group.identityKeyPair
 
 		const newGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints(cryptoUtils.parseKeyVersion(group.groupKeyVersion) + 1)
-		if (identityKeyPair != null && maybeKeyPair != null) {
+		if (isNotNull(identityKeyPair) && isNotNull(maybeKeyPair)) {
 			const { encryptedKeyPair, plaintextKeyPair } = maybeKeyPair
 			encryptedKeyPair.signature = await this.publicKeySignatureFacade.signPublicKey(
 				{ object: plaintextKeyPair, version: newGroupKeyVersion },
@@ -864,7 +865,7 @@ export class KeyRotationFacade {
 				object: symGroupKeyBytes,
 				version: newGroupKeyVersion,
 			},
-			encryptedKeyPair: maybeKeyPair != null ? maybeKeyPair.encryptedKeyPair : null,
+			encryptedKeyPair: isNotNull(maybeKeyPair) ? maybeKeyPair.encryptedKeyPair : null,
 		}
 	}
 
@@ -962,7 +963,7 @@ export class KeyRotationFacade {
 		let userGroupEncAdminGroupKey: null | Uint8Array<ArrayBuffer> = null
 		let adminGroupKeyVersion: NumberString
 		//optionally decrypt new admin group key
-		if (userGroupKeyRotation.distEncAdminGroupSymKey != null) {
+		if (isNotNull(userGroupKeyRotation.distEncAdminGroupSymKey)) {
 			const encryptedKeysForAdmin = await this.handleUserGroupKeyRotationAsAdmin(
 				userGroupKeyRotation,
 				adminGroupId,
@@ -1019,7 +1020,7 @@ export class KeyRotationFacade {
 		adminGroupId: Id,
 		newUserGroupKeys: GeneratedGroupKeys,
 	): Promise<EncryptedKeysForUser> {
-		if (userGroupKeyRotation.adminPubKeyMac == null) {
+		if (isNull(userGroupKeyRotation.adminPubKeyMac)) {
 			throw new Error("The hash encrypted by admin is not present in the user group key rotation !")
 		}
 
@@ -1079,7 +1080,7 @@ export class KeyRotationFacade {
 	): Promise<EncryptedKeysForAdmin> {
 		const distEncAdminGroupSymKey = assertNotNull(userGroupKeyRotation.distEncAdminGroupSymKey, "missing new admin group key")
 		const pubAdminEncGKeyAuthHash = brandKeyMac(assertNotNull(distEncAdminGroupSymKey.symKeyMac, "missing new admin group key encrypted hash"))
-		if (userGroupKeyRotation.adminDistKeyPair == null || !isEncryptedPqKeyPairs(userGroupKeyRotation.adminDistKeyPair)) {
+		if (isNull(userGroupKeyRotation.adminDistKeyPair) || !isEncryptedPqKeyPairs(userGroupKeyRotation.adminDistKeyPair)) {
 			throw new Error("missing some required parameters for a user group key rotation as admin")
 		}
 		//derive adminDistKeyPairDistributionKey
@@ -1177,7 +1178,7 @@ export class KeyRotationFacade {
 			recipientIdentifierType: PublicKeyIdentifierType.GROUP_ID,
 			pubEncSymKey: pubEncSymKey.pubEncSymKeyBytes,
 			protocolVersion: pubEncSymKey.cryptoProtocolVersion,
-			senderKeyVersion: pubEncSymKey.senderKeyVersion != null ? pubEncSymKey.senderKeyVersion.toString() : null,
+			senderKeyVersion: isNotNull(pubEncSymKey.senderKeyVersion) ? pubEncSymKey.senderKeyVersion.toString() : null,
 			recipientKeyVersion: pubEncSymKey.recipientKeyVersion.toString(),
 			senderIdentifier: userGroupId,
 			senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
@@ -1421,7 +1422,7 @@ function hasNonQuantumSafeKeys(...keys: AesKey[]): boolean {
 }
 
 function makeKeyPair(keyPair: EncryptedPqKeyPairs | null): KeyPair | null {
-	if (keyPair == null) {
+	if (isNull(keyPair)) {
 		return null
 	} else {
 		const signature = keyPair.signature

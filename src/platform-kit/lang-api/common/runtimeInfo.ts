@@ -1,3 +1,4 @@
+import { isNotNull } from "./functional"
 import { Nullable } from "./types"
 
 export class RuntimeInfo {
@@ -7,14 +8,14 @@ export class RuntimeInfo {
 
 	public static indexedDbIsSupported(): boolean {
 		try {
-			return window.indexedDB != null
+			return isNotNull(window.indexedDB)
 		} catch (e) {
 			return false
 		}
 	}
 
 	public static hasTouchEvent(): boolean {
-		return window.TouchEvent != null
+		return isNotNull(window.TouchEvent)
 	}
 
 	public static globallyDefinedEnv<E>(): Nullable<E> {

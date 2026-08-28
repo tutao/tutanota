@@ -4,6 +4,8 @@ import { AppType } from "../AppType"
 import {
 	console,
 	getStringEnumValue,
+	isNotNull,
+	isNull,
 	ProgrammingError,
 	RuntimeInfo,
 	TMutableStaticSafety,
@@ -31,7 +33,7 @@ export class ClientDetector {
 	private static singleton: ClientDetector | null = null
 
 	public static get(): ClientDetector {
-		if (ClientDetector.singleton != null) {
+		if (isNotNull(ClientDetector.singleton)) {
 			return ClientDetector.singleton
 		}
 
@@ -59,7 +61,7 @@ export class ClientDetector {
 	}
 
 	getUserAgent(): NonNullable<TsString> {
-		if (this.userAgent == null) {
+		if (isNull(this.userAgent)) {
 			throw new ProgrammingError("Client detector is not yet initialized!")
 		}
 		return this.userAgent
@@ -136,7 +138,7 @@ export class ClientDetector {
 				this.extractIosVersion()
 				return
 			}
-		} else if (userAgent.match(/iPad.*AppleWebKit/) != null || userAgent.match(/iPhone.*AppleWebKit/) != null) {
+		} else if (isNotNull(userAgent.match(/iPad.*AppleWebKit/)) || isNotNull(userAgent.match(/iPhone.*AppleWebKit/))) {
 			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
 			// after "OS" the iOS version is sent, so use that one
 			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
@@ -201,24 +203,24 @@ export class ClientDetector {
 
 		const userAgent = this.getUserAgent()
 		if (
-			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
+			isNotNull(userAgent.match(/iPad.*AppleWebKit/)) || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
 			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent.asString()) &&
 				RuntimeInfo.hasTouchEvent() &&
 				/.*Chrome.*/.test(userAgent.asString()) === false)
 		) {
 			this.device = DeviceType.IPAD
-		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
+		} else if (isNotNull(userAgent.match(/iPhone.*AppleWebKit/))) {
 			this.device = DeviceType.IPHONE
-		} else if (userAgent.match(/Android/) != null) {
-			if (userAgent.match(/Ubuntu/) != null) {
+		} else if (isNotNull(userAgent.match(/Android/))) {
+			if (isNotNull(userAgent.match(/Ubuntu/))) {
 				this.device = DeviceType.OTHER_MOBILE
 			} else {
 				this.device = DeviceType.ANDROID
 			}
-		} else if (userAgent.match(/Windows NT/) != null) {
+		} else if (isNotNull(userAgent.match(/Windows NT/))) {
 			this.device = DeviceType.DESKTOP
-		} else if (userAgent.match(/Mobile/) != null || userAgent.match(/Tablet/) != null) {
+		} else if (isNotNull(userAgent.match(/Mobile/)) || isNotNull(userAgent.match(/Tablet/))) {
 			this.device = DeviceType.OTHER_MOBILE
 		}
 	}

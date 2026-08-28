@@ -11,6 +11,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
+import { isNull } from "@tutao/lang-api"
 import { AesKey, KeyDerivationContext, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { ProgrammingError } from "@tutao/app-env"
 import { AssociatedData } from "../../encryption/symmetric/AssociatedData"
@@ -59,7 +60,7 @@ export class AesCbcDecryptor extends ValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAesSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAesCbc(this.sessionKey, cipherVersion)
 			this.instanceSubKeyCache.set(instanceAesSubKeyCacheKey, subKeys)
 		}
@@ -90,7 +91,7 @@ export class AeadWithInstanceKeyFromGroupKeyDecryptor extends AeadValueDecryptor
 			aesKey: this.groupKey.object,
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(this.groupKey, this.kdfNonce, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
@@ -117,7 +118,7 @@ export class AeadWithInstanceKeyFromInstanceKeyDecryptor extends AeadValueDecryp
 			aesKey: this.instanceKey.object,
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(this.instanceKey, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
@@ -143,7 +144,7 @@ export class AeadWithSessionKeyDecryptor extends AeadValueDecryptor {
 			aesKey: this.sessionKey,
 		}
 		let subKeys = this.instanceSubKeyCache.get(instanceAeadSubKeyCacheKey)
-		if (subKeys == null) {
+		if (isNull(subKeys)) {
 			subKeys = this.symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(this.sessionKey, this.keyDerivationContext)
 			this.instanceSubKeyCache.set(instanceAeadSubKeyCacheKey, subKeys)
 		}
