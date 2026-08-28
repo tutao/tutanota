@@ -53,6 +53,7 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.room.util.query
 import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
@@ -913,7 +914,13 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	}
 
 	override fun reload(parameters: Map<String, String>) {
-		runOnUiThread { startWebApp(parameters.toMutableMap()) }
+
+		val queryParameters = parameters.toMutableMap()
+		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.MAIL)
+		if (paymentsFacade.hasPlaystorePayment()) {
+			queryParameters["paymentSetup"] = "playstore"
+		}
+		runOnUiThread { startWebApp(queryParameters) }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
