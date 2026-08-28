@@ -5,7 +5,9 @@ import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.ProductDetails
+import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import com.android.billingclient.api.queryProductDetails
 import de.tutao.tutashared.ipc.MobilePaymentResult
 import de.tutao.tutashared.ipc.MobilePlanPrice
@@ -64,6 +66,14 @@ class TutaoBillingClient(val activity: Activity) {
 		return (result.productDetailsList as Iterable<ProductDetails>).map { product ->
 			product.toMobilePlanPrice()
 		}
+	}
+
+	suspend fun queryPurchasesAsync(params: QueryPurchasesParams, listener: TutaoPurchasesResponseListener){
+
+		withTimeout(INIT_TIMEOUT) {
+			initialized.await()
+		}
+		googleBillingClient.queryPurchasesAsync(params, listener)
 	}
 
 	suspend fun queryProduct(productId: String): ProductDetails {
