@@ -30,7 +30,13 @@ export function getUserGroupMemberships(user: User, groupType: GroupType): Group
  * Provides the name if available, otherwise the email address if available, otherwise an empty string.
  */
 export function getGroupInfoDisplayName(groupInfo: GroupInfo): string {
-	return groupInfo.name ?? groupInfo.mailAddress ?? ""
+	if (groupInfo.name != null && groupInfo.name !== "") {
+		return groupInfo.name
+	} else if (groupInfo.mailAddress != null && groupInfo.mailAddress !== "") {
+		return groupInfo.mailAddress
+	} else {
+		return ""
+	}
 }
 
 export function compareGroupInfos(a: GroupInfo, b: GroupInfo): number {
