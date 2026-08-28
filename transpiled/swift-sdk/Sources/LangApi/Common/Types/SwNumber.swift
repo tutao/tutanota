@@ -1,5 +1,5 @@
 public typealias TsInt = SwInt
-public final class SwInt: Sendable {
+public final class SwInt: Sendable, EquitableIsStructural, Hashable {
   private let inner: Int32
 
   public init(_ value: Int32) {
@@ -16,10 +16,18 @@ public final class SwInt: Sendable {
   public func asPrimitive() -> Int32 {
     return self.inner
   }
+
+  public static func == (lhs: SwInt, rhs: SwInt) -> Bool {
+    return lhs.inner == rhs.inner
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.inner)
+  }
 }
 
 public typealias TsDouble = SwDouble
-public final class SwDouble: Sendable {
+public final class SwDouble: Sendable, EquitableIsStructural, Hashable {
   private let inner: Double
 
   public init(_ value: Double) {
@@ -28,5 +36,13 @@ public final class SwDouble: Sendable {
 
   public static func from(_ value: SwInt) -> TsDouble {
     return SwDouble(Double(value.asPrimitive()))
+  }
+
+  public static func == (lhs: SwDouble, rhs: SwDouble) -> Bool {
+    return lhs.inner == rhs.inner
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(self.inner)
   }
 }
