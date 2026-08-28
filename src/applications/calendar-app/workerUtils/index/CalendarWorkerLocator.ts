@@ -285,6 +285,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.blobAccessToken,
 			mainInterface.uploadProgressListener,
 			locator.base.typeModelResolver,
+			locator.base.serviceExecutor,
 		)
 	})
 
