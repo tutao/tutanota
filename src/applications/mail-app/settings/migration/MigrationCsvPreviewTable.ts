@@ -3,6 +3,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { MigrationMailboxRow } from "./MigrationCsvParser"
 import { MigrationCsvPreviewRow } from "./MigrationCsvPreviewRow"
 import { MigrationSortArrow } from "./MigrationSortArrow"
+import { px } from "../../../../ui/size"
 
 const GRID_COLUMNS = "32px minmax(160px, 2fr) minmax(160px, 2fr) minmax(120px, 1fr) minmax(120px, 2fr)"
 
@@ -51,7 +52,7 @@ export class MigrationCsvPreviewTable implements Component<MigrationCsvPreviewTa
 		const rows = this.sortedRows(attrs.rows)
 		const allSelected = rows.length > 0 && rows.every((row) => selectedSourceEmails.has(row.sourceEmail))
 
-		return m(".mt-16", [
+		return m(".mt-16.overflow-y-scroll", { style: { height: px(400) } }, [
 			m(".small.mb-8", lang.getTranslation("migrationCsvRowsFound_msg", { "{count}": rows.length }).text),
 			m(".mt-8.grid", { style: { "grid-template-columns": GRID_COLUMNS, "grid-gap": "4px" } }, [
 				m(".items-center.pb-8.subgrid-columns.fill-grid-row.text-fade", [
