@@ -14,7 +14,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param message optional error message
  */
 export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
-	if (value == null) {
+	if (isNull(value)) {
 		throw new Error("AssertNotNull failed: " + message)
 	}
 
@@ -34,7 +34,7 @@ export function assertNotNaN(number: number, message: string = "Found NaN when v
  * @param message optional error message
  */
 export function assertNull<T>(value: T | null, message: string = "not null"): void {
-	if (value != null) {
+	if (isNotNull(value)) {
 		throw new Error("AssertNull failed : " + message)
 	}
 }
@@ -46,7 +46,7 @@ export function assertNull<T>(value: T | null, message: string = "not null"): vo
  * @param message optional error message
  */
 export function assertNonNull<T>(value: T | null, message: string = "null"): asserts value is T {
-	if (value == null) {
+	if (isNull(value)) {
 		throw new Error("AssertNonNull failed: " + message)
 	}
 }
@@ -78,7 +78,7 @@ export function ifNotNull<T, R>(item: Nullable<T>, whenNotNull: (_: NonNullable<
 }
 
 export function checkNullAnd<T, R>(item: Nullable<T>, whenNull: () => R, whenNotNull: (_: NonNullable<T>) => R): R {
-	return item != null ? whenNotNull(item) : whenNull()
+	return isNotNull(item) ? whenNotNull(item) : whenNull()
 }
 
 export function checkNotNullAnd<T, R>(item: Nullable<T>, whenNotNull: (_: NonNullable<T>) => R, whenNull: () => R): R {

@@ -8,7 +8,7 @@ import { assertNotNaN } from "../utils/Utils"
 export class EntityUtils {
 	public static getValue<NestedObj extends DeepEquals>(valueModel: ModelValue, value: Nullable<any>): ParsedValue<NestedObj> {
 		assert(valueModel.name !== "_id", "Do not use this method for _id. Check if it's Id or IdTuple outside")
-		if (value == null) {
+		if (isNull(value)) {
 			return ParsedValue.fromNull()
 		}
 		switch (valueModel.type) {

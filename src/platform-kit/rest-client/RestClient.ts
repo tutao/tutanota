@@ -168,7 +168,7 @@ export class RestClient implements RestClientInterface {
 		// are obsolete and accepted only for backwards compatibility.
 		const serverTimestamp = response.getResponseHeader("Date")
 
-		if (serverTimestamp != null) {
+		if (isNotNull(serverTimestamp)) {
 			// check that serverTimestamp has been returned
 			const serverTime = new TsDate(serverTimestamp).getTime()
 
@@ -207,7 +207,7 @@ export class RestClient implements RestClientInterface {
 	}
 
 	private createHeaders(options: RestClientOptions): Dict {
-		if (options.headers == null) {
+		if (isNull(options.headers)) {
 			options.headers = {}
 		}
 		const { headers, body, responseType } = options
@@ -261,7 +261,7 @@ export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
 
 function logFailedRequest(method: HttpMethod, url: string, response: HttpResponse, options: RestClientOptions): void {
 	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), response.status, response.statusText]
-	if (options.headers != null) {
+	if (isNotNull(options.headers)) {
 		args.push(Object.keys(options.headers))
 	}
 	const body = options.body

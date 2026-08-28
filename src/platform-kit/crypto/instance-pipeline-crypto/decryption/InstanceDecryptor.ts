@@ -1,4 +1,4 @@
-import { KeyVersion, Nullable } from "@tutao/utils"
+import { KeyVersion } from "@tutao/utils"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
 import { AesCbcFacade } from "../../encryption/symmetric/AesCbcFacade"
 import { AeadFacade } from "../../encryption/symmetric/AeadFacade"
@@ -11,6 +11,7 @@ import {
 	AesCbcDecryptor,
 	ValueDecryptor,
 } from "./ValueDecryptor"
+import { isNull, isNotNull, Nullable } from "@tutao/lang-api"
 import {
 	ParsedCiphertextAeadWithInstanceKey,
 	ParsedCiphertextAeadWithSessionKey,
@@ -48,12 +49,12 @@ export class InstanceDecryptor {
 	async getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, associatedData: AssociatedData): Promise<ValueDecryptor> {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
-			if (this.sessionKey == null) {
+			if (isNull(this.sessionKey)) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AesCbcDecryptor(parsedCiphertext, this.symmetricKeyDeriver, this.instanceAesSubKeyCache, this.aesCbcFacade, this.sessionKey)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithInstanceKey) {
-			if (this.instanceKeyProvider != null) {
+			if (isNotNull(this.instanceKeyProvider)) {
 				const instanceKey = await this.getInstanceKey(parsedCiphertext.groupKeyVersion, this.instanceKeyProvider)
 				return new AeadWithInstanceKeyFromInstanceKeyDecryptor(
 					parsedCiphertext,
@@ -64,7 +65,7 @@ export class InstanceDecryptor {
 					associatedData,
 					instanceKey,
 				)
-			} else if (this.kdfNonce != null) {
+			} else if (isNotNull(this.kdfNonce)) {
 				const groupKey = await this.getOwnerKey(parsedCiphertext.groupKeyVersion, this.ownerKeyProvider)
 				return new AeadWithInstanceKeyFromGroupKeyDecryptor(
 					parsedCiphertext,
@@ -80,7 +81,7 @@ export class InstanceDecryptor {
 				throw new CryptoError("no kdf nonce or instance key for Aead with instance key encrypted value")
 			}
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithSessionKey) {
-			if (this.sessionKey == null) {
+			if (isNull(this.sessionKey)) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AeadWithSessionKeyDecryptor(
@@ -97,11 +98,11 @@ export class InstanceDecryptor {
 	}
 
 	canAttemptDecryption(): boolean {
-		return this.sessionKey != null || (this.kdfNonce != null && this.ownerKeyProvider != null) || this.instanceKeyProvider != null
+		return isNotNull(this.sessionKey) || (isNotNull(this.kdfNonce) && isNotNull(this.ownerKeyProvider)) || isNotNull(this.instanceKeyProvider)
 	}
 
 	private async getOwnerKey(requiredOwnerKeyVersion: KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<VersionedKey> {
-		if (ownerKeyProvider == null) {
+		if (isNull(ownerKeyProvider)) {
 			throw new CryptoError("Cannot load owner key. Missing owner key provider.")
 		}
 		const ownerKey = await ownerKeyProvider(requiredOwnerKeyVersion)

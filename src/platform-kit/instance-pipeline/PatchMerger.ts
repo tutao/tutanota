@@ -107,7 +107,7 @@ export class PatchMerger {
 		patches: Array<Patch>,
 	): Promise<DecryptedParsedInstance | null> {
 		const parsedInstance = await this.cacheStorage.getParsed(instanceType, listId, elementId)
-		if (parsedInstance != null) {
+		if (isNotNull(parsedInstance)) {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 
 			const instance = await this.instancePipeline.modelMapper.mapToInstance(parsedInstance)
@@ -140,7 +140,7 @@ export class PatchMerger {
 
 		try {
 			const patchAppliedInstance = await this.getPatchedInstanceParsed(typeRef, instanceListId, instanceId, assertNotNull(patches))
-			if (patchAppliedInstance == null || patchAppliedInstance.hasError()) {
+			if (isNull(patchAppliedInstance) || patchAppliedInstance.hasError()) {
 				return null
 			}
 			await this.cacheStorage.put(typeRef, patchAppliedInstance)
@@ -160,7 +160,7 @@ export class PatchMerger {
 		try {
 			const pathList: Array<string> = patch.attributePath.split("/")
 			const pathResult: PathResult | null = await this.traversePath(parsedInstance, typeModel, pathList)
-			if (pathResult == null) {
+			if (isNull(pathResult)) {
 				return false
 			}
 

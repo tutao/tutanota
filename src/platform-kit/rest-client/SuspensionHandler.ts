@@ -79,6 +79,6 @@ export class SuspensionHandler {
 }
 
 export function isSuspensionResponse(statusCode: number, suspensionTimeNumberString: string | null): boolean {
-	const suspensionTimeNumber = suspensionTimeNumberString == null ? 0 : parseInt(suspensionTimeNumberString)
+	const suspensionTimeNumber = isNull(suspensionTimeNumberString) ? 0 : parseInt(suspensionTimeNumberString)
 	return suspensionTimeNumber > 0 && (statusCode === TooManyRequestsError.CODE || statusCode === ServiceUnavailableError.CODE)
 }
