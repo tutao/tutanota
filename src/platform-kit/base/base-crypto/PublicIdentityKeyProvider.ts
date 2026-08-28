@@ -1,7 +1,7 @@
 import { IServiceExecutor } from "../../network/ServiceRequest.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { bytesToEd25519PublicKey, cryptoUtils, PublicKeyIdentifier, PublicKeyIdentifierType, SigningKeyPairType, SigningPublicKey } from "@tutao/crypto"
-import { Versioned } from "@tutao/utils"
+import { isNotNull, Versioned } from "@tutao/utils"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade"
@@ -98,7 +98,7 @@ export class PublicIdentityKeyProvider {
 		}
 		if (await this.identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported()) {
 			const trustedIdentity = await this.identityKeyTrustDatabase.getTrustedEntry(pubKeyIdentifier.identifier)
-			if (trustedIdentity != null) {
+			if (isNotNull(trustedIdentity)) {
 				return trustedIdentity
 			}
 		}

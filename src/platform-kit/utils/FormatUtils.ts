@@ -19,7 +19,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
 	/* KEEP IN SYNC WITH JAVA VERSION IN PhoneNumberUtils.js (except uppercase) */
 	// check trailing whitespaces because they are not covered by the following regexp
 	// allow uppercase addresses in input check, convert them before sending to server.
-	if (string == null || string !== string.trim()) {
+	if (isNull(string) || string !== string.trim()) {
 		return false
 	}
 
@@ -67,7 +67,7 @@ export function isMailAddress(string: string, strictUserName: boolean): boolean 
  * @return {boolean} If the string is a domain name.
  */
 export function isDomainName(domainName: string): boolean {
-	if (domainName == null || domainName !== domainName.trim()) {
+	if (isNull(domainName) || domainName !== domainName.trim()) {
 		return false
 	}
 
