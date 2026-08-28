@@ -24,7 +24,7 @@ import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, splitInChunks } from "@tutao/utils"
+import { deduplicate, delay, isEmpty, splitInChunks } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -281,6 +281,31 @@ VALUES (
 		${indexed ? 1 : 0}
 		)`
 		await this.sqlCipherFacade.run(query, params)
+	}
+
+	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
+		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM encrypted_mail_details_blobs", [])
+		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
+	}
+
+	async countEncryptedMailDetailsBlobsInArchives(archivesNeeded: readonly Id[]): Promise<number> {
+		const archivesNeededDeduped = deduplicate(archivesNeeded)
+		if (isEmpty(archivesNeededDeduped)) {
+			return 0
+		}
+
+		const query = `SELECT COUNT(*) as total
+					   FROM encrypted_mail_details_blobs
+					   WHERE ${archivesNeededDeduped.map(() => "archiveId = ?").join(" OR ")}`
+
+		const params = archivesNeededDeduped.map(tagSqlValue)
+
+		const result = await this.sqlCipherFacade.get(query, params)
+		if (result == null) {
+			return 0
+		}
+
+		return untagSqlValue(result["total"]) as number
 	}
 
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
