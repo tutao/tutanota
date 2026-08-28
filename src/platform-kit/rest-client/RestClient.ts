@@ -124,14 +124,14 @@ export class RestClient implements RestClientInterface {
 						return
 					}
 
-					if (requestTimeoutTimeoutID != null) {
+					if (isNotNull(requestTimeoutTimeoutID)) {
 						clearTimeout(requestTimeoutTimeoutID)
 					}
 					const isBlobRequest = options.body instanceof RestBinaryBody
 					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue())
 				}
 				const cancelTimeoutTimer = (): void => {
-					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
+					if (isNotNull(requestTimeoutTimeoutID)) clearTimeout(requestTimeoutTimeoutID)
 				}
 
 				restartTimeoutTimer()
@@ -230,7 +230,7 @@ export class RestClient implements RestClientInterface {
 							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 						}
 
-						if (options.progressListener != null && pe.lengthComputable) {
+						if (isNotNull(options.progressListener) && pe.lengthComputable) {
 							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
 							options.progressListener.upload((1 / pe.total) * pe.loaded, pe.loaded)
 						}
@@ -274,7 +274,7 @@ export class RestClient implements RestClientInterface {
 						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
 					}
 
-					if (options.progressListener != null && pe.lengthComputable) {
+					if (isNotNull(options.progressListener) && pe.lengthComputable) {
 						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
 						options.progressListener.download((1 / pe.total) * pe.loaded, pe.loaded)
 					}
@@ -310,7 +310,7 @@ export class RestClient implements RestClientInterface {
 		// are obsolete and accepted only for backwards compatibility.
 		const serverTimestamp = xhr.getResponseHeader("Date")
 
-		if (serverTimestamp != null) {
+		if (isNotNull(serverTimestamp)) {
 			// check that serverTimestamp has been returned
 			const serverTime = new TsDate(serverTimestamp).getTime()
 
@@ -349,7 +349,7 @@ export class RestClient implements RestClientInterface {
 	}
 
 	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions): void {
-		if (options.headers == null) {
+		if (isNull(options.headers)) {
 			options.headers = {}
 		}
 		const { headers, body, responseType } = options
@@ -400,7 +400,7 @@ export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
 
 function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, options: RestClientOptions): void {
 	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), xhr.status, xhr.statusText]
-	if (options.headers != null) {
+	if (isNotNull(options.headers)) {
 		args.push(Object.keys(options.headers))
 	}
 	const body = options.body

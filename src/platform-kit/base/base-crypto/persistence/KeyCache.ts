@@ -1,4 +1,4 @@
-import { getFromMap, neverNull } from "@tutao/utils"
+import { getFromMap, isNotNull, neverNull } from "@tutao/utils"
 import { Aes256Key, cryptoUtils, VersionedKey } from "@tutao/crypto"
 import { User } from "@tutao/entities/sys"
 
@@ -16,7 +16,7 @@ export class KeyCache {
 	private legacyUserDistKey: Aes256Key | null = null
 
 	setCurrentUserGroupKey(newUserGroupKey: VersionedKey): void {
-		if (this.currentUserGroupKey != null && this.currentUserGroupKey.version > newUserGroupKey.version) {
+		if (isNotNull(this.currentUserGroupKey) && this.currentUserGroupKey.version > newUserGroupKey.version) {
 			console.log("Tried to set an outdated user group key")
 			return
 		}
@@ -81,7 +81,7 @@ export class KeyCache {
 		const newCurrentGroupKeyCache = new Map<Id, Promise<VersionedKey>>()
 		for (const membership of user.memberships) {
 			const cachedGroupKey = this.currentGroupKeys.get(membership.group)
-			if (cachedGroupKey != null && cryptoUtils.parseKeyVersion(membership.groupKeyVersion) === (await cachedGroupKey).version) {
+			if (isNotNull(cachedGroupKey) && cryptoUtils.parseKeyVersion(membership.groupKeyVersion) === (await cachedGroupKey).version) {
 				await getFromMap(newCurrentGroupKeyCache, membership.group, () => cachedGroupKey)
 			}
 		}

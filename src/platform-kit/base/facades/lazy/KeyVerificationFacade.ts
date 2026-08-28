@@ -14,6 +14,7 @@ import { PublicKeySignatureFacade } from "../../base-crypto/PublicKeySignatureFa
 import { PublicIdentityKeyProvider } from "../../base-crypto/PublicIdentityKeyProvider"
 import { IdentityKeyTrustDatabase, TrustDBEntry } from "../../base-crypto/persistence/IdentityKeyTrustDatabase"
 import { MaybeSignedPublicKey } from "../../base-crypto/MaybeSignedPublicKey"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -72,7 +73,7 @@ export class KeyVerificationFacade {
 		const trustedIdentity = await this.publicIdentityKeyProvider.loadPublicIdentityKey(publicKeyIdentifier)
 
 		// there is no identity key for the mailAddress (a legitimate case for now)
-		if (trustedIdentity == null) {
+		if (isNull(trustedIdentity)) {
 			if (isNotNull(publicKeySignature)) {
 				throw new KeyVerificationMismatchError("signature but no identity key for: " + mailAddress)
 			}
@@ -84,7 +85,7 @@ export class KeyVerificationFacade {
 		// there is an identity key for the mail address
 
 		// Raise an error if an identity key exists but no signature has been loaded from the public key service.
-		if (publicKeySignature == null) {
+		if (isNull(publicKeySignature)) {
 			throw new KeyVerificationMismatchError("missing signature for identity: " + mailAddress)
 		}
 

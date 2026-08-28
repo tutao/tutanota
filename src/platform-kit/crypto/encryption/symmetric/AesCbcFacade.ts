@@ -1,7 +1,7 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { bitArrayToUint8Array, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { concat } from "@tutao/utils"
+import { concat, isNotNull } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
 import { AesCbcSubKeys, AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
@@ -160,7 +160,7 @@ export class AesCbcFacade {
 			} else {
 				// we must enforce authentication but for legacy 128-bit keys we cannot (backward compatibility)
 				const keyLength = subKeys.encryptionKey.keyLength
-				if (subKeys.authenticationKey != null) {
+				if (isNotNull(subKeys.authenticationKey)) {
 					if (subKeys.authenticationKey.keyLength !== keyLength) {
 						throw new CryptoError("invalid sub-keys")
 					}

@@ -38,7 +38,7 @@ import {
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../instance-pipeline"
-import { lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
+import { isNotNull, lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
@@ -231,7 +231,7 @@ export async function createBaseLocator({
 
 	let kyberFacade: KyberFacade
 	let ed25519Facade: Ed25519Facade
-	if (nativeCryptoFacade != null && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
+	if (isNotNull(nativeCryptoFacade) && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
 		kyberFacade = new NativeKyberFacade(nativeCryptoFacade)
 		ed25519Facade = new NativeEd25519Facade(nativeCryptoFacade)
 	} else {
@@ -363,9 +363,9 @@ export async function createBaseLocator({
 	})
 
 	let argon2idFacade: Argon2idFacade
-	if (argon2idFacadeOverride != null) {
+	if (isNotNull(argon2idFacadeOverride)) {
 		argon2idFacade = argon2idFacadeOverride
-	} else if (nativeCryptoFacade != null && !EnvProvider.get().isBrowser()) {
+	} else if (isNotNull(nativeCryptoFacade) && !EnvProvider.get().isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacade)
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()

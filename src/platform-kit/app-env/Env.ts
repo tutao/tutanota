@@ -1,4 +1,14 @@
-import { isNotNull, ProgrammingError, RuntimeInfo, TMutableStaticSafety, TMutableStaticSafetyKind, TsRecord, TsString, TTranspileIgnore } from "@tutao/lang-api"
+import {
+	isNotNull,
+	isNull,
+	ProgrammingError,
+	RuntimeInfo,
+	TMutableStaticSafety,
+	TMutableStaticSafetyKind,
+	TsRecord,
+	TsString,
+	TTranspileIgnore,
+} from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -88,7 +98,7 @@ export class EnvProvider {
 	private static boot: boolean =
 		RuntimeInfo._isNode &&
 		!RuntimeInfo._isWorker &&
-		EnvProvider.tryInitWithGlobalEnv() != null &&
+		isNotNull(EnvProvider.tryInitWithGlobalEnv()) &&
 		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
@@ -96,7 +106,7 @@ export class EnvProvider {
 
 	public static get(): EnvProvider {
 		const singleton = EnvProvider.tryInitWithGlobalEnv()
-		if (singleton == null) {
+		if (isNull(singleton)) {
 			throw new ProgrammingError("global var env is not defined yet")
 		}
 		return singleton
@@ -109,7 +119,7 @@ export class EnvProvider {
 	}
 
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null) {
+		if (isNull(EnvProvider.singleton)) {
 			const env = RuntimeInfo.globallyDefinedEnv<EnvType>()
 			if (isNotNull(env)) {
 				EnvProvider.singleton = new EnvProvider(env)
@@ -139,7 +149,7 @@ export class EnvProvider {
 	}
 
 	public isIOSApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
+		if (this.isApp() && isNull(this.env.platformId)) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 		return this.isApp() && this.env.platformId === PlatformId.Ios
@@ -153,7 +163,7 @@ export class EnvProvider {
 	}
 
 	public isAndroidApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
+		if (this.isApp() && isNull(this.env.platformId)) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 
@@ -202,7 +212,7 @@ export class EnvProvider {
 
 	public static isTest(): boolean {
 		EnvProvider.tryInitWithGlobalEnv()
-		return EnvProvider.singleton?.env.mode === Mode.Test
+		return isNotNull(EnvProvider.singleton) && EnvProvider.singleton.env.mode === Mode.Test
 	}
 
 	/**

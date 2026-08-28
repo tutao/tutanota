@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { ProgrammingError, TsDouble, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
+import { isNull, ProgrammingError, TsDouble, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	public static readonly Const: ConstType = {
@@ -77,7 +77,7 @@ export class TutanotaConstants {
 				.map((k) => k.asString())
 				.find((k) => e[k] === value) ?? null
 
-		if (key == null) {
+		if (isNull(key)) {
 			throw new ProgrammingError(`Unknown enum value: ${value}`)
 		}
 

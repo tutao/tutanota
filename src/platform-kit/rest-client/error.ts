@@ -280,7 +280,7 @@ export class SuspensionError extends TutanotaError {
 	constructor(message: string, suspensionTime: string | null) {
 		super("SuspensionError", message)
 
-		if (suspensionTime != null && TsNumber.isNaN(filterInt(suspensionTime))) {
+		if (isNotNull(suspensionTime) && TsInt.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 

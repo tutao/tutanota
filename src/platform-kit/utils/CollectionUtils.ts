@@ -39,7 +39,7 @@ export function minBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 	let min: MinByResult<E> | null = null
 	for (const item of collection) {
 		const value = selector(item)
-		if (min == null || value < min.value) {
+		if (isNull(min) || value < min.value) {
 			min = { item, value }
 		}
 	}
@@ -54,7 +54,7 @@ export function maxBy<E, T extends Iterable<E>>(collection: T, selector: (item: 
 	let max: MaxByResult<E> | null = null
 	for (const item of collection) {
 		const value = selector(item)
-		if (max == null || value > max.value) {
+		if (isNull(max) || value > max.value) {
 			max = { item, value }
 		}
 	}

@@ -91,8 +91,8 @@ export interface RestClientOptions {
 }
 
 export const enum SuspensionBehavior {
-	Suspend,
-	Throw,
+	Suspend = 0,
+	Throw = 1,
 }
 export interface RestClientInterface {
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null>

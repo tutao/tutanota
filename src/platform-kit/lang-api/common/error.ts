@@ -8,6 +8,7 @@
  * (needed for e instanceof CustomError to work), the error class needs to be
  * added to the ErrorNameToType map in Utils.js.
  */
+import { isNotNull, isNull } from "./functional"
 import { TypeChecks } from "./types.js"
 
 export class TutanotaError extends Error {
@@ -22,7 +23,7 @@ export class TutanotaError extends Error {
 		} else {
 			let error = new Error()
 
-			if (error.stack == null) {
+			if (isNull(error.stack)) {
 				// fill the stack trace on ios devices
 				try {
 					throw error
@@ -33,11 +34,11 @@ export class TutanotaError extends Error {
 
 			this.stack = this.name + ". " + this.message
 
-			if (error.stack != null) {
+			if (isNotNull(error.stack)) {
 				// not existing in IE9
 				let stackLines = error.stack.split("\n")
 
-				while (stackLines[0] != null && stackLines[0].match(this.name) == null) {
+				while (isNotNull(stackLines[0]) && isNull(stackLines[0].match(this.name))) {
 					stackLines = stackLines.slice(1) // removes line from stack
 				}
 

@@ -1,4 +1,4 @@
-import { lazyMemoized, Nullable } from "@tutao/utils"
+import { isNotNull, lazyMemoized, Nullable } from "@tutao/utils"
 import { InstanceTypeId, SymmetricKeyDeriver, SymmetricSubKeys } from "../../encryption/symmetric/SymmetricKeyDeriver"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
 import { KdfNonce } from "../../encryption/symmetric/SymmetricCipherUtils"
@@ -85,7 +85,7 @@ export class SubKeyProvider extends SubKeyFactory {
 }
 
 export function makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey: AesKey | null): Nullable<SubKeyInfoWithSessionKeyCbcThenHmac> {
-	if (sessionKey != null) {
+	if (isNotNull(sessionKey)) {
 		return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 	} else {
 		return null

@@ -1,5 +1,5 @@
 import { EnvProvider, ProgrammingError, TutanotaError } from "@tutao/app-env"
-import { assertNotNull, KeyVersion, lazyAsync } from "@tutao/utils"
+import { assertNotNull, isNotNull, KeyVersion, lazyAsync } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
@@ -38,7 +38,7 @@ export class AdminKeyLoaderFacade {
 	async getCurrentGroupKeyViaUser(groupId: Id, viaUser: Id): Promise<VersionedKey> {
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(viaUser))
 		const membership = user.memberships.find((m) => m.group === groupId)
-		if (membership == null) {
+		if (isNull(membership)) {
 			throw new Error(`User doesn't have this group membership! User: ${viaUser} groupId: ${groupId}`)
 		}
 		const requiredUserGroupKeyVersion = membership.symKeyVersion
@@ -64,7 +64,7 @@ export class AdminKeyLoaderFacade {
 	 * @returns true if the group currently has an adminEncGKey. This may be an asymmetrically encrypted one.
 	 */
 	hasAdminEncGKey(group: Group): boolean {
-		return (group.adminGroupEncGKey != null && group.adminGroupEncGKey.length !== 0) || group.pubAdminGroupEncGKey != null
+		return (isNotNull(group.adminGroupEncGKey) && group.adminGroupEncGKey.length !== 0) || isNotNull(group.pubAdminGroupEncGKey)
 	}
 
 	/**
@@ -89,7 +89,7 @@ export class AdminKeyLoaderFacade {
 
 			// e.g. I am a member of the group that administrates group G and want to add a new member to G
 			const requiredAdminKeyVersion = cryptoUtils.parseKeyVersion(group.adminGroupKeyVersion ?? "0")
-			if (group.adminGroupEncGKey != null) {
+			if (isNotNull(group.adminGroupEncGKey)) {
 				return await this.decryptViaSymmetricAdminGKey(
 					group,
 					{
@@ -149,7 +149,7 @@ export class AdminKeyLoaderFacade {
 		// get previous user group key: ag1 -> ag0 -> ug0
 		const formerGroupKey = await this.keyLoaderFacade.loadFormerGroupKeyInstance(userGroup, previousUserGroupKeyVersion)
 		let previousUserGroupKey: VersionedKey
-		if (formerGroupKey.adminGroupEncGKey != null) {
+		if (isNotNull(formerGroupKey.adminGroupEncGKey)) {
 			previousUserGroupKey = await this.decryptViaSymmetricAdminGKey(
 				userGroup,
 				{
@@ -158,7 +158,7 @@ export class AdminKeyLoaderFacade {
 				},
 				previousUserGroupKeyVersion,
 			)
-		} else if (formerGroupKey.pubAdminGroupEncGKey != null) {
+		} else if (isNotNull(formerGroupKey.pubAdminGroupEncGKey)) {
 			const userGroupKeyMac = assertNotNull(formerGroupKey.pubAdminGroupEncGKey.symKeyMac)
 			// recurse, but expect to hit the end _before_ version 0, which should always be symmetrically encrypted
 			if (userGroupKeyMac.taggedKeyVersion === "0") {

@@ -13,7 +13,7 @@ export function hkdf(
 	info: Uint8Array<ArrayBuffer>,
 	lengthInBytes: number,
 ): Uint8Array<ArrayBuffer> {
-	if (salt == null) {
+	if (isNull(salt)) {
 		salt = new Uint8Array(SHA256_HASH_LENGTH_BYTES).fill(0)
 	}
 	const saltHmac = new sjcl.misc.hmac(uint8ArrayToBitArray(salt), sjcl.hash.sha256)

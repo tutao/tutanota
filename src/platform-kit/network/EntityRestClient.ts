@@ -325,7 +325,7 @@ export class EntityRestClient implements EntityRestInterface {
 		typeRef: TypeRef<any>,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<string> {
-		if (archiveId == null) {
+		if (isNull(archiveId)) {
 			throw new Error("archiveId must be set to load BlobElementTypes")
 		}
 		const doBlobRequest = async (): Promise<any> => {
@@ -716,13 +716,13 @@ export class EntityRestClient implements EntityRestInterface {
 			const sessionKey: Nullable<AesKey> = await this._crypto.setNewOwnerEncSessionKey(clientTypeModel, instance, ownerKey)
 			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
-			if (ownerKey == null) {
-				if (instance._ownerGroup == null) {
+			if (isNull(ownerKey)) {
+				if (isNull(instance._ownerGroup)) {
 					throw new ProgrammingError("This instance has no owner group")
 				}
 				ownerKey = await this._crypto.getCurrentSymGroupKey(instance._ownerGroup)
 			}
-			if (instance._kdfNonce != null) {
+			if (isNotNull(instance._kdfNonce)) {
 				// why do you have a KDF nonce at this point? is the instance a deep copy?
 				console.log(`overwriting KDF nonce previously found on instance of type ${instance._type} with ID ${instance._id}`)
 			}
@@ -736,19 +736,19 @@ export class EntityRestClient implements EntityRestInterface {
 	private async getSubKeyInfoOnUpdate<T extends PersistentEntity>(ownerKey: VersionedKey | null, instance: T): Promise<Nullable<SubKeyInfo>> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
 			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
-				ownerKey != null ? ownerKey.object : null,
+				isNotNull(ownerKey) ? ownerKey.object : null,
 				instance,
 			)
 			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
 			if (isNull(ownerKey)) {
-				if (instance._ownerGroup == null) {
+				if (isNull(instance._ownerGroup)) {
 					throw new ProgrammingError("This instance has no owner group")
 				}
 				ownerKey = await this._crypto.getCurrentSymGroupKey(instance._ownerGroup)
 			}
 			let kdfNonce: KdfNonce
-			if (instance._kdfNonce == null) {
+			if (isNull(instance._kdfNonce)) {
 				const [instanceList, instanceId] = instance._id
 				const application = instance._type.app
 				const typeId = instance._type.typeId.toString()
@@ -825,7 +825,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		ensureIsPersistentType(clientTypeModel)
 
-		if (ownerKeyProvider == null && ownerKey == null && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
+		if (isNull(ownerKeyProvider) && isNull(ownerKey) && !this.authDataProvider.isFullyLoggedIn() && clientTypeModel.encrypted) {
 			// Short-circuit before we do an actual request which we can't decrypt
 			throw new LoginIncompleteError(`Trying to do a network request with encrypted entity but is not fully logged in yet, type: ${clientTypeModel.name}`)
 		}

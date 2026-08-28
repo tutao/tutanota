@@ -493,7 +493,7 @@ export function localToServerIdEncoding(typeModel: TypeModel, elementId: Id): Id
  * @returns {boolean} true if error was found (for the given key).
  */
 export function hasError<K>(instance: Nullable<Entity>, key: Nullable<K> = null): boolean {
-	if (instance == null) {
+	if (isNull(instance)) {
 		return true
 	}
 	const downCastedInstance = downcast(instance)

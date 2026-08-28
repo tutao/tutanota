@@ -306,7 +306,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const createSessionReturn = await this.serviceExecutor.execute(SessionService_POST, createSessionData, null)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		const forceNewDatabase = sessionType === SessionType.Persistent && databaseKey == null
+		const forceNewDatabase = sessionType === SessionType.Persistent && isNull(databaseKey)
 		if (forceNewDatabase) {
 			console.log("generating new database key for persistent session")
 			databaseKey = await this.databaseKeyFactory.generateKey()
@@ -524,7 +524,7 @@ export class LoginFacade implements SessionTypeProvider {
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
 		databaseKey: Uint8Array<ArrayBuffer> | null,
 	): Promise<ResumeSessionResult> {
-		if (this.userFacade.getUser() != null) {
+		if (isNotNull(this.userFacade.getUser())) {
 			throw new ProgrammingError(
 				`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`,
 			)
@@ -617,7 +617,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessToken: neverNull(accessToken),
 			v: String(sessionTypeModel.version),
 		}
-		const queryParams: Dict = pushIdentifier == null ? {} : { pushIdentifier }
+		const queryParams: Dict = isNull(pushIdentifier) ? {} : { pushIdentifier }
 		return this.restClient
 			.request(path, HttpMethod.DELETE, {
 				...DEFAULT_REST_CLIENT_OPTIONS,
@@ -669,7 +669,7 @@ export class LoginFacade implements SessionTypeProvider {
 		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
 		const sessionData = await this.loadSessionData(accessToken)
-		if (sessionData.accessKey != null) {
+		if (isNotNull(sessionData.accessKey)) {
 			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
 			const newEncryptedPassphrase = uint8ArrayToBase64(_encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
 			const newEncryptedPassphraseKey = encryptKey(sessionData.accessKey, newUserPassphraseKey)
@@ -770,7 +770,7 @@ export class LoginFacade implements SessionTypeProvider {
 				accessToken,
 			},
 		})
-		if (user.auth == null || user.auth.recoverCode == null) {
+		if (isNull(user.auth) || isNull(user.auth.recoverCode)) {
 			throw new Error("missing recover code")
 		}
 		const recoverCodeExtraHeaders = {
@@ -1000,7 +1000,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 
 		const accessKey = assertNotNull(sessionData.accessKey, "no access key on session data!")
-		const isExternalUser = externalUserKeyDeriver != null
+		const isExternalUser = isNotNull(externalUserKeyDeriver)
 
 		let userPassphraseKey: AesKey
 		let credentialsWithPassphraseKey: Credentials
@@ -1026,7 +1026,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey)
 
 		let partialLoginPromise: Promise<void>
-		if (previousUser == null) {
+		if (isNull(previousUser)) {
 			// user was not set which means partial login could not have been called earlier, call it here
 			partialLoginPromise = this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
 		} else {
@@ -1044,7 +1044,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		const modernKdfType = this.isModernKdfType(asKdfType(user.kdfVersion))
-		if (!isExternalUser && credentials.encryptedPassword != null && !modernKdfType) {
+		if (!isExternalUser && isNotNull(credentials.encryptedPassword) && !modernKdfType) {
 			const passphrase = utf8Uint8ArrayToString(aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
@@ -1102,7 +1102,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @private
 	 */
 	private async initCache({ userId, databaseKey, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
-		if (databaseKey != null) {
+		if (isNotNull(databaseKey)) {
 			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(new OfflineStorageArgs(userId, databaseKey, forceNewDatabase))
 			return {
 				isPersistent,
