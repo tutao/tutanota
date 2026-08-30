@@ -51,6 +51,8 @@
 				<action android:name="android.intent.action.MAIN"/>
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
+			<!--Shortcuts for home screen icons-->
+			<meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
 			<!-- handler for custom tutacalendar://app uri, used for redirecting back from other apps (ie. the browser when
 			obtaining user payment info) -->
 			<intent-filter>
