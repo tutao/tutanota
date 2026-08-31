@@ -6912,22 +6912,23 @@ export function createImapFolderPostIn(values: ImapFolderPostInParams): ImapFold
 }
 
 export type ImapFolderPostInParams = {
-	path: string
+	path: null | string
 	shouldSync: boolean
 	imapSpecialUse: null | string
 
 	imapAccountSyncState: IdTuple
 	mailSet: null | IdTuple
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType
 }
 
 export type ImapFolderPostIn = {
 	// == values
 
 	_format: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
-	ownerGroup: Id
-	path: string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
+	path: null | string
 	shouldSync: boolean
 	imapSpecialUse: null | string
 
@@ -6938,6 +6939,7 @@ export type ImapFolderPostIn = {
 
 	imapAccountSyncState: IdTuple
 	mailSet: null | IdTuple
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7840,5 +7842,47 @@ export type LabelPostTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<LabelPostTransferAggregatedType>
 	_original: Nullable<LabelPostTransferAggregatedType>
+	isAdapter: false
+}
+export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2097)
+
+export function createImapFolderSyncStateTransferAggregatedType(
+	values: ImapFolderSyncStateTransferAggregatedTypeParams,
+): ImapFolderSyncStateTransferAggregatedType {
+	return Object.assign(create(typeModels[ImapFolderSyncStateTransferAggregatedTypeTypeRef.typeId], ImapFolderSyncStateTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapFolderSyncStateTransferAggregatedTypeParams = {
+	path: string
+	imapSpecialUse: null | string
+
+	mailSet: null | IdTuple
+}
+
+export type ImapFolderSyncStateTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	path: string
+	imapSpecialUse: null | string
+
+	// == associations
+
+	mailSet: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImapFolderSyncStateTransferAggregatedType>
+	_original: Nullable<ImapFolderSyncStateTransferAggregatedType>
 	isAdapter: false
 }

@@ -4696,13 +4696,13 @@ pub struct ImapFolderPostIn {
 	pub _format: i64,
 	#[serde(rename = "1931")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1932")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1933")]
-	pub ownerGroup: GeneratedId,
+	pub ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1934")]
-	pub path: String,
+	pub path: Option<String>,
 	#[serde(rename = "1991")]
 	pub shouldSync: bool,
 	#[serde(rename = "1992")]
@@ -4711,6 +4711,8 @@ pub struct ImapFolderPostIn {
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "1936")]
 	pub mailSet: Option<IdTupleGenerated>,
+	#[serde(rename = "2105")]
+	pub imapFolderSyncState: Option<ImapFolderSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5278,6 +5280,38 @@ impl Entity for LabelPostTransferAggregatedType {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2077),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapFolderSyncStateTransferAggregatedType {
+	#[serde(rename = "2098")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2099")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2100")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2101")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2102")]
+	pub path: String,
+	#[serde(rename = "2103")]
+	pub imapSpecialUse: Option<String>,
+	#[serde(rename = "2104")]
+	pub mailSet: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImapFolderSyncStateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2097),
 		}
 	}
 }
