@@ -4,6 +4,10 @@ public final class SwString: Sendable {
   public required init(_ val: String) {
     self.inner = val
   }
+
+  public func asPrimitiveString() -> String {
+    return self.inner
+  }
 }
 
 public typealias TsString = SwString
