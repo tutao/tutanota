@@ -2,19 +2,7 @@ import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePer
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import {
-	assertNotNull,
-	collectToMap,
-	difference,
-	groupBy,
-	isEmpty,
-	isNotEmpty,
-	lastThrow,
-	LazyLoaded,
-	partition,
-	promiseMap,
-	splitInChunks,
-} from "@tutao/utils"
+import { assertNotNull, collectToMap, difference, isEmpty, isNotEmpty, lastThrow, LazyLoaded, partition, promiseMap, splitInChunks } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
@@ -33,16 +21,7 @@ import {
 	listIdPart,
 	ServerTypeModel,
 } from "@tutao/meta"
-import {
-	FileTypeRef,
-	Mail,
-	MailBox,
-	MailboxGroupRootTypeRef,
-	MailBoxTypeRef,
-	MailDetailsBlob,
-	MailDetailsBlobTypeRef,
-	MailTypeRef,
-} from "@tutao/entities/tutanota"
+import { Mail, MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef, MailDetailsBlob, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -353,7 +332,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			indexedMailbags += 1
 		}
 
-		await this.loadMailDetailsArchivesForUser()
+		// await this.loadMailDetailsArchivesForUser()
 
 		// for (const mailList of allMailBags) {
 		// 	if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
@@ -438,19 +417,19 @@ export class OfflineMailIndexer implements MailIndexer {
 				return
 			}
 
-			const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
-			const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
-
-			// load all files into cache (we should be able to retrieve these later if we are successful)
-			for (const [list, ids] of attachmentsByList.entries()) {
-				await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
-			}
-
-			await this.loadNonRecentMails(mails)
+			// const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
+			// const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
+			//
+			// // load all files into cache (we should be able to retrieve these later if we are successful)
+			// for (const [list, ids] of attachmentsByList.entries()) {
+			// 	await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
+			// }
+			//
+			// await this.loadNonRecentMails(mails)
 			const lastMail = lastThrow(mails)
 			currentId = getElementId(lastMail)
 			// FIXME store lastMail id as last downloaded
-			await this.offlineStoragePersistence.updateIndexingElement(mailGroup, lastMail._id)
+			// await this.offlineStoragePersistence.updateIndexingElement(mailGroup, lastMail._id)
 		}
 
 		// abort signal reached; rethrow cancellation error
