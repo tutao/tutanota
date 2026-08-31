@@ -12263,7 +12263,7 @@
 				"name": "ownerEncSessionKey",
 				"id": 1931,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12272,7 +12272,7 @@
 				"name": "ownerKeyVersion",
 				"id": 1932,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12281,7 +12281,7 @@
 				"name": "ownerGroup",
 				"id": 1933,
 				"type": "GeneratedId",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12290,7 +12290,7 @@
 				"name": "path",
 				"id": 1934,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -12331,6 +12331,16 @@
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2105": {
+				"final": true,
+				"name": "imapFolderSyncState",
+				"id": 2105,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2097,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13598,6 +13608,87 @@
 				"refTypeId": 429,
 				"dependency": null,
 				"transferredAttributeId": 439
+			}
+		}
+	},
+	"2097": {
+		"name": "ImapFolderSyncStateTransferAggregatedType",
+		"app": "tutanota",
+		"version": 116,
+		"since": 116,
+		"type": "AGGREGATED_TYPE",
+		"id": 2097,
+		"rootId": "CHR1dGFub3RhAAgx",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1895,
+		"values": {
+			"2098": {
+				"final": true,
+				"name": "_id",
+				"id": 2098,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2099": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2099,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1900
+			},
+			"2100": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2100,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1901
+			},
+			"2101": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2101,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1902
+			},
+			"2102": {
+				"final": false,
+				"name": "path",
+				"id": 2102,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1904
+			},
+			"2103": {
+				"final": true,
+				"name": "imapSpecialUse",
+				"id": 2103,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1990
+			}
+		},
+		"associations": {
+			"2104": {
+				"final": true,
+				"name": "mailSet",
+				"id": 2104,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 1910
 			}
 		}
 	}
