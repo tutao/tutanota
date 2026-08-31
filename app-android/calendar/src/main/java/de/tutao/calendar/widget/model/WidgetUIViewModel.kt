@@ -54,7 +54,7 @@ class WidgetUIViewModel(
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
-	private val sdk: Sdk?,
+	private var sdk: Sdk?,
 	private val calendar: Calendar,
 	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
@@ -64,6 +64,34 @@ class WidgetUIViewModel(
 
 	companion object {
 		private const val TAG = "WidgetUIViewModel"
+
+		suspend fun initWithData(
+			repository: WidgetRepository,
+			widgetId: Int,
+			credentialsFacade: NativeCredentialsFacade,
+			cryptoFacade: AndroidNativeCryptoFacade,
+			sdk: Sdk?,
+			calendar: Calendar,
+			birthdayStrings: BirthdayStrings,
+			widgetDataStore: DataStore<Preferences>,
+			widgetCacheDataStore: DataStore<Preferences>
+		): WidgetUIViewModel {
+
+			Log.i(TAG, "[$widgetId] Init UIModel with data")
+			val model = WidgetUIViewModel(
+				repository,
+				widgetId,
+				credentialsFacade,
+				cryptoFacade,
+				sdk,
+				calendar,
+				birthdayStrings,
+			)
+
+			model.loadUIState(widgetDataStore, widgetCacheDataStore, LocalDateTime.now())
+
+			return model
+		}
 	}
 
 	suspend fun loadUIState(
@@ -71,27 +99,27 @@ class WidgetUIViewModel(
 		widgetCacheDataStore: DataStore<Preferences>,
 		now: LocalDateTime
 	): WidgetUIState {
-		Log.i(TAG, "Init loadUIState")
+		Log.i(TAG, "[$widgetId] Init loadUIState")
 		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
 		if (widgetStoredState == null) {
-			Log.w(TAG, "No previous stored settings state found, probably missing configuration!")
-			Log.d(TAG, "Current WidgetUIViewModel value is: ${uiState.value}")
+			Log.w(TAG, "[$widgetId] No previous stored settings state found, probably missing configuration!")
+			Log.d(TAG, "[$widgetId] Current WidgetUIViewModel value is: ${uiState.value}")
 			_uiState.value = WidgetUIState.Loading
 			return uiState.value
 		}
 
 		val (settings, calendars, credentials, lastSync) = widgetStoredState
-		Log.i(TAG, "Loaded stored widget state. Last sync info $lastSync")
+		Log.i(TAG, "[$widgetId] Loaded stored widget $widgetId state. Last sync info $lastSync")
 
 		_uiState.value = WidgetUIState.Loading
 		// Force is set as True when worker detects that it's a new day
 		val forceRemoteEventsFetch = lastSync?.force ?: false
 
-		Log.d(TAG, "Starting to fetch calendar events...")
+		Log.d(TAG, "[$widgetId] Starting to fetch calendar events")
 		val calendarToEventsListMap = this.getCalendarEvents(
 			(lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || lastSync.trigger == WidgetUpdateTrigger.SETTINGS || forceRemoteEventsFetch) && this.sdk != null,
 			this.sdk,
@@ -112,7 +140,7 @@ class WidgetUIViewModel(
 			.toInstant()
 
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
-			Log.d(TAG, "Creating UIEvents from calendar $calendarId")
+			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
 
 			val shortAndLongEvents = eventList.shortEvents.plus(eventList.longEvents)
 
@@ -148,11 +176,11 @@ class WidgetUIViewModel(
 				}
 			}
 
-			Log.d(TAG, "EventsList after processing short and long events for calendar $calendarId:")
+			Log.d(TAG, "[$widgetId] EventsList after processing short and long events for calendar $calendarId:")
 			normalEvents.entries.forEach { (day, events) ->
 				Log.d(
 					TAG,
-					"Day: $day has ${events.size} normal events and ${allDayEvents[day]?.size ?: 0} All-day events"
+					"[$widgetId] Day: $day has ${events.size} normal events and ${allDayEvents[day]?.size ?: 0} All-day events"
 				)
 			}
 
@@ -185,7 +213,7 @@ class WidgetUIViewModel(
 			}
 		}
 
-		Log.d(TAG, "Sorting events by start time")
+		Log.d(TAG, "[$widgetId] Sorting events by start time")
 		normalEvents.forEach() { (startOfDay, events) ->
 			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
 				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
@@ -194,7 +222,7 @@ class WidgetUIViewModel(
 			normalEvents[startOfDay] = sorted
 		}
 
-		Log.d(TAG, "Assigning sorted events to uiState")
+		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
 		_uiState.value = WidgetUIState.Available(normalEvents, allDayEvents)
 
 		return uiState.value
@@ -208,18 +236,18 @@ class WidgetUIViewModel(
 			val preferences = widgetDataStore.data.first().toPreferences()
 
 			settings = repository.decodeSettingsFromPreferences(preferences, widgetId) ?: return null
-			Log.i(TAG, "Widget settings has ${settings.calendars.values.size} calendars")
+			Log.i(TAG, "[$widgetId] Widget settings has ${settings.calendars.values.size} calendars")
 			settings.calendars.entries.forEach { (calendarId, calendar) ->
-				Log.d(TAG, "$calendarId - ${calendar.name}")
+				Log.d(TAG, "[$widgetId] $calendarId - ${calendar.name}")
 			}
 
 			lastSync = repository.decodeLastSyncFromPreferences(preferences, widgetId)
-			Log.i(TAG, "Widget last sync at $lastSync")
+			Log.i(TAG, "[$widgetId] Widget last sync at $lastSync")
 
 			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
-			Log.e(TAG, "Error when loading initial UI State", e)
+			Log.e(TAG, "[$widgetId] Error when loading initial UI State", e)
 			// We couldn't load widget settings, so we must show an error to User
 			_uiState.value =
 				WidgetUIState.Error(
@@ -243,7 +271,7 @@ class WidgetUIViewModel(
 					WidgetErrorType.CREDENTIALS
 				)
 			)
-			Log.w(TAG, "Missing credentials for user ${userId} during widget setup")
+			Log.w(TAG, "[$widgetId] Missing credentials for user ${userId} during widget setup")
 			return null
 		} else {
 			return WidgetSetupData(settings, calendars, credentials, lastSync)
@@ -306,7 +334,7 @@ class WidgetUIViewModel(
 						cryptoFacade
 					)
 				}
-				Log.d(TAG, "LoadEvents time: $time")
+				Log.d(TAG, "[$widgetId] LoadEvents time: $time")
 
 				return events
 			} catch (e: LoginException) {
@@ -314,7 +342,7 @@ class WidgetUIViewModel(
 				// to the user.
 				Log.e(
 					TAG,
-					"Missing credentials for user ${settings.userId} when trying to load widget content}", e
+					"[$widgetId] Missing credentials for user ${settings.userId} when trying to load widget content}", e
 				)
 				return repository.loadEventsFromCache(
 					widgetCacheDataStore,
@@ -324,7 +352,7 @@ class WidgetUIViewModel(
 					cryptoFacade
 				)
 			} catch (e: Exception) {
-				Log.e(TAG, "Unknown exception occurred", e)
+				Log.e(TAG, "[$widgetId] Unknown exception occurred", e)
 
 				return repository.loadEventsFromCache(
 					widgetCacheDataStore,
@@ -354,24 +382,28 @@ class WidgetUIViewModel(
 
 	private suspend fun loadCalendars(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
 		try {
-			Log.i(TAG, "Fetching new calendar data from server")
+			Log.i(TAG, "[$widgetId] Fetching new calendar data from server")
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
-			Log.i(TAG, "Successfully fetched ${loadedCalendars.size} calendars")
+			Log.i(TAG, "[$widgetId] Successfully fetched ${loadedCalendars.size} calendars")
 			for (key in loadedCalendars.keys) {
 				// FIXME: Seems to only be updating colors but maybe not handling renames/deletions
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
 			repository.storeSettings(widgetDataStore, widgetId, settings)
-			Log.i(TAG, "Cached calendar data updated successfully!")
+			Log.i(TAG, "[$widgetId] Cached calendar data updated successfully!")
 		} catch (e: LoginException.ApiCall) {
 			// Failed to login into SDK, probably because of connection issues
-			Log.e(TAG, "Calendar colors could not be loaded due credential issues. Falling back to cached values.", e)
+			Log.e(
+				TAG,
+				"[$widgetId] Calendar colors could not be loaded due credential issues. Falling back to cached values.",
+				e
+			)
 		} catch (e: IOException) {
 			// We couldn't store widget settings, so calendar colors will stay cached
-			Log.e(TAG, "Failed to store calendar colors. Falling back to cached values.", e)
+			Log.e(TAG, "[$widgetId] Failed to store calendar colors. Falling back to cached values.", e)
 		} catch (e: Exception) {
 			// Something else happened, we catch here to continue loading events with cached calendar values
-			Log.e(TAG, "Failed to retrieve calendar colors. Falling back to cached values.", e)
+			Log.e(TAG, "[$widgetId] Failed to retrieve calendar colors. Falling back to cached values.", e)
 		}
 	}
 
@@ -390,13 +422,13 @@ class WidgetUIViewModel(
 
 	suspend fun getLoggedInUser(context: Context): String? {
 		try {
-			Log.i(TAG, "Loading logged in user.")
+			Log.i(TAG, "[$widgetId] Loading logged in user.")
 			return repository.loadSettings(context.widgetDataStore, widgetId)?.userId
 		} catch (e: IOException) {
 			WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
 			Log.e(
 				WidgetConfigViewModel.TAG,
-				"Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
+				"[$widgetId] Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		} catch (e: Exception) {
 			_uiState.value = WidgetUIState.Error(
@@ -404,7 +436,7 @@ class WidgetUIViewModel(
 			)
 			Log.e(
 				WidgetConfigViewModel.TAG,
-				"Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
+				"[$widgetId] Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		}
 
