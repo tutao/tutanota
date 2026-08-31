@@ -4,6 +4,6 @@ import { DbError } from "./DbError"
 
 export class IndexingNotSupportedError extends DbError {
 	constructor(message: string, error?: Error) {
-		super(message, error, "IndexingNotSupportedError")
+		super("IndexingNotSupportedError", message, error)
 	}
 }
