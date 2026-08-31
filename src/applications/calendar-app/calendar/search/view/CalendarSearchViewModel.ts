@@ -50,6 +50,7 @@ import { CalendarEventModel, CalendarEventModelFactory, CalendarOperation } from
 import { MailboxModel } from "../../../../common/mailFunctionality/MailboxModel"
 import { ListState } from "../../../../../ui/base/List"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel"
+import { isDriveEnabled } from "../../../../common/misc/DriveUtils"
 
 type EventPreviewData =
 	| {
@@ -145,6 +146,10 @@ export class CalendarSearchViewModel {
 	readonly init = onceAsync(async () => {
 		this.eventController.addEntityUpdatesListener(this.entityEventsListener)
 	})
+
+	isDriveEnabled(): boolean {
+		return isDriveEnabled(this.logins)
+	}
 
 	getStartOfTheWeekOffset(): number {
 		return getStartOfTheWeekOffsetForUser(this.logins.getUserController().userSettingsGroupRoot)

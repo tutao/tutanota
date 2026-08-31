@@ -14,6 +14,7 @@ import Stream from "mithril/stream"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { compareContacts } from "../../contacts/ContactUtils"
+import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 
 export class ContactSearchViewModel {
 	#listModel: ListModel<Contact, Id> = emptyListModel()
@@ -35,6 +36,10 @@ export class ContactSearchViewModel {
 		private readonly search: ContactSearchModel,
 		private readonly updateUi: () => unknown,
 	) {}
+
+	isDriveEnabled(): boolean {
+		return isDriveEnabled(this.logins)
+	}
 
 	getUrlFromSearchCategory(category: SearchCategoryType) {
 		return getSearchUrl(this.currentQuery, createEmptyRestriction(category))
