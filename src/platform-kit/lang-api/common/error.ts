@@ -10,16 +10,16 @@
  */
 import { isNotNull, isNull } from "./functional"
 import { TypeChecks } from "./types.js"
+import { TSwUncheckedSendable } from "./decorators"
 
+@TSwUncheckedSendable({ reasoning: "All fields in TutanotaError are readonly and we dont mutate anything once an error is created" })
 export class TutanotaError<T = never> extends Error {
 	data: T | null = null
-	name: string
-	message: string
-
-	constructor(name: string, message: string) {
+	constructor(
+		public override readonly name: string,
+		public override readonly message: string,
+	) {
 		super(message)
-		this.name = name
-		this.message = message
 
 		if (TypeChecks.isFunction(Error.captureStackTrace)) {
 			Error.captureStackTrace(this, this.constructor)
@@ -55,6 +55,7 @@ export class TutanotaError<T = never> extends Error {
 	}
 }
 
+@TSwUncheckedSendable({ reasoning: "TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields" })
 export class ProgrammingError extends TutanotaError {
 	constructor(m: string | null = null) {
 		super("ProgrammingError", m ?? "Unknown programming error")
