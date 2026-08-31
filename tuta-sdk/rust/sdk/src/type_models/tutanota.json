@@ -12445,7 +12445,7 @@
 				"name": "ownerEncSessionKey",
 				"id": 1946,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12454,7 +12454,7 @@
 				"name": "ownerKeyVersion",
 				"id": 1947,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12463,7 +12463,7 @@
 				"name": "ownerGroup",
 				"id": 1948,
 				"type": "GeneratedId",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -12472,7 +12472,7 @@
 				"name": "maxQuota",
 				"id": 1949,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -12481,7 +12481,7 @@
 				"name": "postponedUntil",
 				"id": 1950,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -12490,7 +12490,7 @@
 				"name": "provider",
 				"id": 1951,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			}
@@ -12501,7 +12501,7 @@
 				"name": "imapAccount",
 				"id": 1952,
 				"type": "AGGREGATION",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"refTypeId": 1866,
 				"dependency": null,
 				"transferredAttributeId": null
@@ -12523,6 +12523,16 @@
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2133": {
+				"final": true,
+				"name": "imapAccountSyncState",
+				"id": 2133,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2122,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13689,6 +13699,276 @@
 				"refTypeId": 429,
 				"dependency": null,
 				"transferredAttributeId": 1910
+			}
+		}
+	},
+	"2106": {
+		"name": "OAuthTokenEndpointResponseTransferAggregatedType",
+		"app": "tutanota",
+		"version": 116,
+		"since": 116,
+		"type": "AGGREGATED_TYPE",
+		"id": 2106,
+		"rootId": "CHR1dGFub3RhAAg6",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1860,
+		"values": {
+			"2107": {
+				"final": true,
+				"name": "_id",
+				"id": 2107,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2108": {
+				"final": false,
+				"name": "accessToken",
+				"id": 2108,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1862
+			},
+			"2109": {
+				"final": false,
+				"name": "refreshToken",
+				"id": 2109,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1863
+			},
+			"2110": {
+				"final": false,
+				"name": "expiresIn",
+				"id": 2110,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1864
+			},
+			"2111": {
+				"final": false,
+				"name": "tokenType",
+				"id": 2111,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1865
+			}
+		},
+		"associations": {}
+	},
+	"2112": {
+		"name": "ImapAccountTransferAggregatedType",
+		"app": "tutanota",
+		"version": 116,
+		"since": 116,
+		"type": "AGGREGATED_TYPE",
+		"id": 2112,
+		"rootId": "CHR1dGFub3RhAAhA",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1866,
+		"values": {
+			"2113": {
+				"final": true,
+				"name": "_id",
+				"id": 2113,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2114": {
+				"final": false,
+				"name": "host",
+				"id": 2114,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1868
+			},
+			"2115": {
+				"final": false,
+				"name": "port",
+				"id": 2115,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1869
+			},
+			"2116": {
+				"final": true,
+				"name": "username",
+				"id": 2116,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1870
+			},
+			"2117": {
+				"final": false,
+				"name": "password",
+				"id": 2117,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1871
+			},
+			"2118": {
+				"final": false,
+				"name": "ignoreCertificateErrors",
+				"id": 2118,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1987
+			},
+			"2119": {
+				"final": false,
+				"name": "customCertificateData",
+				"id": 2119,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1988
+			},
+			"2120": {
+				"final": false,
+				"name": "useSSL",
+				"id": 2120,
+				"type": "Boolean",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1994
+			}
+		},
+		"associations": {
+			"2121": {
+				"final": false,
+				"name": "oAuthTokenEndpointResponse",
+				"id": 2121,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2106,
+				"dependency": null,
+				"transferredAttributeId": 1872
+			}
+		}
+	},
+	"2122": {
+		"name": "ImapAccountSyncStateTransferAggregatedType",
+		"app": "tutanota",
+		"version": 116,
+		"since": 116,
+		"type": "AGGREGATED_TYPE",
+		"id": 2122,
+		"rootId": "CHR1dGFub3RhAAhK",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1911,
+		"values": {
+			"2123": {
+				"final": true,
+				"name": "_id",
+				"id": 2123,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2124": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 2124,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1916
+			},
+			"2125": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2125,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1917
+			},
+			"2126": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2126,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1918
+			},
+			"2127": {
+				"final": false,
+				"name": "maxQuota",
+				"id": 2127,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1920
+			},
+			"2128": {
+				"final": false,
+				"name": "postponedUntil",
+				"id": 2128,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1921
+			},
+			"2129": {
+				"final": true,
+				"name": "provider",
+				"id": 2129,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1922
+			}
+		},
+		"associations": {
+			"2130": {
+				"final": false,
+				"name": "imapAccount",
+				"id": 2130,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2112,
+				"dependency": null,
+				"transferredAttributeId": 1925
+			},
+			"2131": {
+				"final": true,
+				"name": "rootImportMailSet",
+				"id": 2131,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 1926
+			},
+			"2132": {
+				"final": true,
+				"name": "imapSyncLabel",
+				"id": 2132,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": 1927
 			}
 		}
 	}
