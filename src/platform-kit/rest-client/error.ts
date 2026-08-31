@@ -3,6 +3,18 @@
 import { TutanotaError } from "@tutao/app-env"
 import { filterInt, isNotNull, Nullable } from "@tutao/utils"
 import { TsNumber } from "../app-env/TranspileCompatibility"
+import { HttpMethod } from "@tutao/rest-client/types"
+import { HttpResponse } from "./HttpClientJavascript"
+
+export class XhrError extends TutanotaError {
+	constructor(
+		public readonly method: HttpMethod,
+		public readonly url: string,
+		public readonly response: HttpResponse,
+	) {
+		super("XhrError", "Xhr.onError")
+	}
+}
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0

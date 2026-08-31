@@ -84,7 +84,8 @@ export interface EntityRestClientLoadOptions {
 export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
 	body: null,
 	responseType: null,
-	progressListener: null,
+	uploadProgressListener: null,
+	downloadProgressListener: null,
 	baseUrl: null,
 	headers: null,
 	queryParams: null,

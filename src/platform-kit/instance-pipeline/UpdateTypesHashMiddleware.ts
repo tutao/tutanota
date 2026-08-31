@@ -1,4 +1,4 @@
-import { HttpMethod, RestClientMiddleware } from "../rest-client/types"
+import { HttpMethod, InterceptedResponse, RestClientMiddleware } from "../rest-client/types"
 import { isNotNull } from "@tutao/utils"
 import { ServerModelInfo } from "./EntityFunctions"
 import { ApplicationTypesService_GET } from "@tutao/entities/base"
@@ -11,9 +11,9 @@ export const APPLICATION_TYPES_HASH_HEADER = "app-types-hash"
 export class UpdateAppTypesHashMiddleware implements RestClientMiddleware {
 	constructor(private readonly serverModelInfo: ServerModelInfo) {}
 
-	async interceptResponse(sentRequest: XMLHttpRequest, method: HttpMethod): Promise<void> {
-		const path = sentRequest.responseURL
-		const applicationTypesHashResponseHeader = sentRequest.getResponseHeader(APPLICATION_TYPES_HASH_HEADER)
+	async interceptResponse(sentResponse: InterceptedResponse, method: HttpMethod): Promise<void> {
+		const path = sentResponse.url
+		const applicationTypesHashResponseHeader = sentResponse.getHeader(APPLICATION_TYPES_HASH_HEADER)
 		if (isNotNull(applicationTypesHashResponseHeader)) {
 			this.serverModelInfo.setCurrentHash(applicationTypesHashResponseHeader)
 		} else if (!(path === ApplicationTypesService_GET.serviceRestPath && method === HttpMethod.GET)) {

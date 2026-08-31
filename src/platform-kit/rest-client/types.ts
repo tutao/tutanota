@@ -1,27 +1,26 @@
 import { ProgrammingError } from "@tutao/app-env"
 
+/** A read-only view of a completed response, abstracted over the underlying transport (XMLHttpRequest or fetch's Response). */
+export interface InterceptedResponse {
+	url: string
+	getHeader(name: string): string | null
+}
+
 /**
  * Middlewares that are invoked after the request have been made
  * Hence the implementation should only read/modify response
  */
 export interface RestClientMiddleware {
-	interceptResponse(sentRequest: XMLHttpRequest, method: HttpMethod): Promise<void>
+	interceptResponse(sentResponse: InterceptedResponse, method: HttpMethod): Promise<void>
 }
 
-interface ProgressListener {
+export interface ProgressListener {
 	/**
-	 * Called when data is sent with HTTP request.
+	 * Called when data is sent / received with HTTP request.
 	 * @param percent of the overall data to be sent
 	 * @param bytes sent so far
 	 */
-	upload(percent: number, bytes: number): void
-
-	/**
-	 * Called when data is downloaded with HTTP request.
-	 * @param percent of the overall data to be downloded
-	 * @param bytes downloaded so far
-	 */
-	download(percent: number, bytes: number): void
+	update(percent: number, bytes: number): void
 }
 
 export const enum MediaType {
@@ -80,7 +79,8 @@ export class RestBinaryBody extends RestBody {
 export interface RestClientOptions {
 	body: RestBody | null
 	responseType: MediaType | null
-	progressListener: ProgressListener | null
+	uploadProgressListener: ProgressListener | null
+	downloadProgressListener: ProgressListener | null
 	baseUrl: string | null
 	headers: Dict | null
 	queryParams: Dict | null
@@ -96,6 +96,4 @@ export const enum SuspensionBehavior {
 }
 export interface RestClientInterface {
 	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null>
-
-	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions): void
 }

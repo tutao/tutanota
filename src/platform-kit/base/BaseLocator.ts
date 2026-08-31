@@ -54,6 +54,7 @@ import { CacheManager } from "./base-crypto/persistence/CacheManager.js"
 import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyTrustDatabase"
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
+import { HttpClientJavascript } from "../rest-client/HttpClientJavascript"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper
@@ -195,7 +196,7 @@ export async function createBaseLocator({
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
 	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE)
-	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
+	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform), new HttpClientJavascript()).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),
 	)
 
