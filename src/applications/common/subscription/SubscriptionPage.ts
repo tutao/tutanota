@@ -5,7 +5,7 @@ import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { SubscriptionParameters, UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import { Button, ButtonAttrs, ButtonType } from "../../../ui/base/Button.js"
-import { getCurrentPaymentInterval, shouldHideBusinessPlans, shouldShowApplePrices, UpgradeType } from "./utils/SubscriptionUtils"
+import { getCurrentPaymentInterval, shouldHideBusinessPlans, shouldShowExternalStorePrices, UpgradeType } from "./utils/SubscriptionUtils"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import type { WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType } from "../../../ui/base/WizardDialog.js"
@@ -81,7 +81,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 	view({ attrs: { data } }: Vnode<WizardPageAttrs<UpgradeSubscriptionData>>): Children {
 		const { planPrices, acceptedPlans, accountingInfo } = data
 		let availablePlans = acceptedPlans
-		const isApplePrice = shouldShowApplePrices(accountingInfo)
+		const isApplePrice = shouldShowExternalStorePrices(accountingInfo)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices)
 		const promotionMessage = planPrices.getRawPricingData().messageTextId as TranslationKeyType
 
@@ -129,7 +129,7 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 					actionButtons,
 					priceAndConfigProvider: planPrices,
 					availablePlans,
-					isApplePrice,
+					isExternalStorePrice: isApplePrice,
 					currentPlan: data.currentPlan ?? undefined,
 					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 					allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,

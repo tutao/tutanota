@@ -2502,6 +2502,7 @@ export default {
 		"waitingForGooglePlayConfirmation_msg": "Waiting for Google to confirm subscription …",
 		"googlePlayConfirmationTimeout_msg": "Google has not confirmed your subscription yet. Your account should be upgraded within the next 72 hours. If it is not, request a refund from Google in the Google Play subscription settings.",
 		"checkoutWithGooglePlay_action": "Checkout with Google Play",
+		"subscriptionSettingManageSubscriptionGoogle_action": "Google settings",
 		"subscriptionSettingGoogleWebsite_action": "Google website"
 		}
 }

@@ -2499,4 +2499,5 @@ export type TranslationKeyType =
 	| "waitingForGooglePlayConfirmation_msg"
 	| "googlePlayConfirmationTimeout_msg"
 	| "checkoutWithGooglePlay_action"
+	| "subscriptionSettingManageSubscriptionGoogle_action"
 	| "subscriptionSettingGoogleWebsite_action"

@@ -526,9 +526,12 @@ export function isAppStorePayment(accountingInfo: AccountingInfo | null): boolea
 /**
  * Returns whether the apple prices should be displayed when upgrading or switching a subscription.
  */
-export function shouldShowApplePrices(accountingInfo: AccountingInfo | null): boolean {
+export function shouldShowExternalStorePrices(accountingInfo: AccountingInfo | null): boolean {
 	const paymentMethod = downcast<PaymentMethodType | undefined>(accountingInfo?.paymentMethod)
-	return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)
+	return (
+		EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default &&
+		(!paymentMethod || paymentMethod === PaymentMethodType.AppStore || paymentMethod === PaymentMethodType.GooglePlay)
+	)
 }
 
 /**

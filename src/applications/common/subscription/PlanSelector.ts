@@ -24,7 +24,7 @@ export type PlanSelectorAttr = {
 	actionButtons: SubscriptionActionButtons
 	priceAndConfigProvider: PriceAndConfigProvider
 	availablePlans: readonly AvailablePlanType[]
-	isApplePrice: boolean
+	isExternalStorePrice: boolean
 	currentPlan?: PlanType
 	currentPaymentInterval?: PaymentInterval
 	allowSwitchingPaymentInterval: boolean
@@ -59,7 +59,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			priceAndConfigProvider,
 			actionButtons,
 			availablePlans,
-			isApplePrice,
+			isExternalStorePrice,
 			currentPlan,
 			currentPaymentInterval,
 			allowSwitchingPaymentInterval,
@@ -155,7 +155,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					availablePlans,
 					currentPaymentInterval,
 					currentPlan,
-					isApplePrice,
+					isApplePrice: isExternalStorePrice,
 					priceAndConfigProvider,
 					selectedPlan: this.selectedPlan,
 					selectedSubscriptionOptions: options,

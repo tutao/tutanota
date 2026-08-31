@@ -2499,6 +2499,7 @@ export default {
 		"waitingForGooglePlayConfirmation_msg": "Warte auf Bestätigung des Abonnements von Google …",
 		"googlePlayConfirmationTimeout_msg": "Google hat dein Abonnement noch nicht bestätigt. Dein Konto sollte innerhalb der nächsten 72 Stunden aktualisiert werden. Falls dies nicht geschieht, beantrage in den Abonnementeinstellungen des Google Play Stores eine Rückerstattung bei Google.",
 		"checkoutWithGooglePlay_action": "Im Google Play Store bezahlen",
+		"subscriptionSettingManageSubscriptionGoogle_action": "Google Einstellungen",
 		"subscriptionSettingGoogleWebsite_action": "Google-Webseite"
 	}
 }

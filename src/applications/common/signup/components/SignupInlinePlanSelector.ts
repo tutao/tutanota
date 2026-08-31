@@ -3,7 +3,7 @@ import { SignupViewModel } from "../SignupView"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BusinessPlanBox } from "../../subscription/components/BusinessPlanBox"
 import { PlanConfig } from "../../subscription/components/BusinessPlanContainer"
-import { getApplePriceStr, getPriceStr, shouldShowApplePrices } from "../../subscription/utils/SubscriptionUtils"
+import { getApplePriceStr, getPriceStr, shouldShowExternalStorePrices } from "../../subscription/utils/SubscriptionUtils"
 import { getDiscountDetails, getHasCampaign } from "../../subscription/utils/PlanSelectorUtils"
 import { PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { px, size } from "../../../../ui/size"
@@ -105,7 +105,7 @@ export class SignupInlinePlanSelector implements Component<SignupInlinePlanSelec
 		if (!priceAndConfigProvider) return null
 
 		const availablePlans = viewModel.acceptedPlans.filter((plan) => NewPersonalPlans.includes(plan))
-		const isApplePrice = shouldShowApplePrices(viewModel.accountingInfo ?? null)
+		const isApplePrice = shouldShowExternalStorePrices(viewModel.accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
 		const isYearly = viewModel.options.paymentInterval() === PaymentInterval.Yearly
 		const anyPaidPlanHasCampaign =
