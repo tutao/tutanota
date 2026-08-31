@@ -7038,34 +7038,36 @@ export function createImapPostIn(values: ImapPostInParams): ImapPostIn {
 }
 
 export type ImapPostInParams = {
-	maxQuota: NumberString
-	postponedUntil: NumberString
-	provider: NumberString
+	maxQuota: null | NumberString
+	postponedUntil: null | NumberString
+	provider: null | NumberString
 
-	imapAccount: ImapAccount
+	imapAccount: null | ImapAccount
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	imapAccountSyncState: null | ImapAccountSyncStateTransferAggregatedType
 }
 
 export type ImapPostIn = {
 	// == values
 
 	_format: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
-	ownerGroup: Id
-	maxQuota: NumberString
-	postponedUntil: NumberString
-	provider: NumberString
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
+	maxQuota: null | NumberString
+	postponedUntil: null | NumberString
+	provider: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
 
-	imapAccount: ImapAccount
+	imapAccount: null | ImapAccount
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	imapAccountSyncState: null | ImapAccountSyncStateTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7884,5 +7886,149 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<ImapFolderSyncStateTransferAggregatedType>
 	_original: Nullable<ImapFolderSyncStateTransferAggregatedType>
+	isAdapter: false
+}
+export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2106)
+
+export function createOAuthTokenEndpointResponseTransferAggregatedType(
+	values: OAuthTokenEndpointResponseTransferAggregatedTypeParams,
+): OAuthTokenEndpointResponseTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef.typeId], OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type OAuthTokenEndpointResponseTransferAggregatedTypeParams = {
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+}
+
+export type OAuthTokenEndpointResponseTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType>
+	_original: Nullable<OAuthTokenEndpointResponseTransferAggregatedType>
+	isAdapter: false
+}
+export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2112)
+
+export function createImapAccountTransferAggregatedType(values: ImapAccountTransferAggregatedTypeParams): ImapAccountTransferAggregatedType {
+	return Object.assign(create(typeModels[ImapAccountTransferAggregatedTypeTypeRef.typeId], ImapAccountTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapAccountTransferAggregatedTypeParams = {
+	host: string
+	port: NumberString
+	username: string
+	password: null | string
+	ignoreCertificateErrors: boolean
+	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: null | boolean
+
+	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponseTransferAggregatedType
+}
+
+export type ImapAccountTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	host: string
+	port: NumberString
+	username: string
+	password: null | string
+	ignoreCertificateErrors: boolean
+	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: null | boolean
+
+	// == associations
+
+	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponseTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImapAccountTransferAggregatedType>
+	_original: Nullable<ImapAccountTransferAggregatedType>
+	isAdapter: false
+}
+export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2122)
+
+export function createImapAccountSyncStateTransferAggregatedType(
+	values: ImapAccountSyncStateTransferAggregatedTypeParams,
+): ImapAccountSyncStateTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[ImapAccountSyncStateTransferAggregatedTypeTypeRef.typeId], ImapAccountSyncStateTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type ImapAccountSyncStateTransferAggregatedTypeParams = {
+	maxQuota: NumberString
+	postponedUntil: NumberString
+	provider: NumberString
+
+	imapAccount: ImapAccountTransferAggregatedType
+	rootImportMailSet: null | IdTuple
+	imapSyncLabel: null | IdTuple
+}
+
+export type ImapAccountSyncStateTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	maxQuota: NumberString
+	postponedUntil: NumberString
+	provider: NumberString
+
+	// == associations
+
+	imapAccount: ImapAccountTransferAggregatedType
+	rootImportMailSet: null | IdTuple
+	imapSyncLabel: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImapAccountSyncStateTransferAggregatedType>
+	_original: Nullable<ImapAccountSyncStateTransferAggregatedType>
 	isAdapter: false
 }

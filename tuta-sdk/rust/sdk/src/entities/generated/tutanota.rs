@@ -4770,23 +4770,25 @@ pub struct ImapPostIn {
 	pub _format: i64,
 	#[serde(rename = "1946")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1947")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "1948")]
-	pub ownerGroup: GeneratedId,
+	pub ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1949")]
-	pub maxQuota: i64,
+	pub maxQuota: Option<i64>,
 	#[serde(rename = "1950")]
-	pub postponedUntil: i64,
+	pub postponedUntil: Option<i64>,
 	#[serde(rename = "1951")]
-	pub provider: i64,
+	pub provider: Option<i64>,
 	#[serde(rename = "1952")]
-	pub imapAccount: ImapAccount,
+	pub imapAccount: Option<ImapAccount>,
 	#[serde(rename = "1954")]
 	pub rootImportMailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1967")]
 	pub syncLabel: Option<IdTupleGenerated>,
+	#[serde(rename = "2133")]
+	pub imapAccountSyncState: Option<ImapAccountSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5312,6 +5314,107 @@ impl Entity for ImapFolderSyncStateTransferAggregatedType {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2097),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OAuthTokenEndpointResponseTransferAggregatedType {
+	#[serde(rename = "2107")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2108")]
+	pub accessToken: String,
+	#[serde(rename = "2109")]
+	pub refreshToken: Option<String>,
+	#[serde(rename = "2110")]
+	pub expiresIn: Option<i64>,
+	#[serde(rename = "2111")]
+	pub tokenType: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for OAuthTokenEndpointResponseTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2106),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapAccountTransferAggregatedType {
+	#[serde(rename = "2113")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2114")]
+	pub host: String,
+	#[serde(rename = "2115")]
+	pub port: i64,
+	#[serde(rename = "2116")]
+	pub username: String,
+	#[serde(rename = "2117")]
+	pub password: Option<String>,
+	#[serde(rename = "2118")]
+	pub ignoreCertificateErrors: bool,
+	#[serde(rename = "2119")]
+	#[serde(with = "serde_bytes")]
+	pub customCertificateData: Option<Vec<u8>>,
+	#[serde(rename = "2120")]
+	pub useSSL: Option<bool>,
+	#[serde(rename = "2121")]
+	pub oAuthTokenEndpointResponse: Option<OAuthTokenEndpointResponseTransferAggregatedType>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImapAccountTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2112),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ImapAccountSyncStateTransferAggregatedType {
+	#[serde(rename = "2123")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2124")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2125")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2126")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2127")]
+	pub maxQuota: i64,
+	#[serde(rename = "2128")]
+	pub postponedUntil: i64,
+	#[serde(rename = "2129")]
+	pub provider: i64,
+	#[serde(rename = "2130")]
+	pub imapAccount: ImapAccountTransferAggregatedType,
+	#[serde(rename = "2131")]
+	pub rootImportMailSet: Option<IdTupleGenerated>,
+	#[serde(rename = "2132")]
+	pub imapSyncLabel: Option<IdTupleGenerated>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for ImapAccountSyncStateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2122),
 		}
 	}
 }

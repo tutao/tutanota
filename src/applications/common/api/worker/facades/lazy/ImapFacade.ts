@@ -94,6 +94,7 @@ export class ImapFacade {
 			rootImportMailSet: rootImportMailSetId,
 			syncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
+			imapAccountSyncState: null,
 		})
 		imapPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 		imapPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
