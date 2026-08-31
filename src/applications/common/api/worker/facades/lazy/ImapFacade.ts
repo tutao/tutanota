@@ -9,12 +9,15 @@ import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { assertNotNull } from "@tutao/utils"
 import {
+	createImapAccountSyncStateTransferAggregatedType,
+	createImapAccountTransferAggregatedType,
 	createImapDeleteIn,
 	createImapFolderDeleteIn,
 	createImapFolderPostIn,
 	createImapFolderSyncStateTransferAggregatedType,
 	createImapPostIn,
 	createImapPutIn,
+	createOAuthTokenEndpointResponseTransferAggregatedType,
 	DeduplicatedImportedAttachment,
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccountSyncState,
@@ -87,25 +90,60 @@ export class ImapFacade {
 		const sk = this.cryptoWrapper.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
-		const imapPostIn = createImapPostIn({
-			imapAccount: initializeParams.imapAccount,
+		const token = initializeParams.imapAccount.oAuthTokenEndpointResponse
+		const oAuthTokenEndpointResponse =
+			token &&
+			createOAuthTokenEndpointResponseTransferAggregatedType({
+				accessToken: token.accessToken,
+				refreshToken: token.refreshToken,
+				tokenType: token.tokenType,
+				expiresIn: token.expiresIn,
+			})
+
+		const imapAccountSyncState = createImapAccountSyncStateTransferAggregatedType({
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
 			rootImportMailSet: rootImportMailSetId,
-			syncLabel: syncLabelId,
+			imapSyncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
-			imapAccountSyncState: null,
+			imapAccount: createImapAccountTransferAggregatedType({
+				host: initializeParams.imapAccount.host,
+				port: initializeParams.imapAccount.port,
+				username: initializeParams.imapAccount.username,
+				password: initializeParams.imapAccount.password,
+				ignoreCertificateErrors: initializeParams.imapAccount.ignoreCertificateErrors,
+				customCertificateData: initializeParams.imapAccount.customCertificateData,
+				useSSL: null,
+				oAuthTokenEndpointResponse,
+			}),
 		})
-		imapPostIn.ownerEncSessionKey = ownerEncSessionKey.key
-		imapPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		imapPostIn.ownerGroup = mailGroupId
+		imapAccountSyncState._ownerEncSessionKey = ownerEncSessionKey.key
+		imapAccountSyncState._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
+		imapAccountSyncState._ownerGroup = mailGroupId
 
-		const imapPostOut = await this.serviceExecutor.execute(ImapService_POST, imapPostIn, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk })
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
+		const imapPostIn = createImapPostIn({
+			imapAccount: initializeParams.imapAccount,
+			imapAccountSyncState,
+
+			// These are now contained in the imapAccountSyncState
+
+			maxQuota: null,
+			postponedUntil: null,
+			rootImportMailSet: null,
+			syncLabel: null,
+			provider: null,
+		})
+
+		const imapPostOut = await this.serviceExecutor.execute(ImapService_POST, imapPostIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey: sk,
+			ownerKey: mailGroupKey,
+		})
+		const loadedImapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
 
 		let initialFolderSyncStates: ImapFolderSyncState[] = []
 		if (initializeParams.imapMailboxesToTutaMailSets) {
-			initialFolderSyncStates = await this.createInitialImportMailFolders(imapAccountSyncState, initializeParams.imapMailboxesToTutaMailSets)
+			initialFolderSyncStates = await this.createInitialImportMailFolders(loadedImapAccountSyncState, initializeParams.imapMailboxesToTutaMailSets)
 		} else if (
 			initializeParams.spamFolderMigrationInformation.shouldMigrateSpamFolder &&
 			initializeParams.spamFolderMigrationInformation.spamMailbox !== null
@@ -120,10 +158,10 @@ export class ImapFacade {
 					{ mailSetElementId: getElementId(spamMailSet), shouldSync: true, specialUse: ImapMailboxSpecialUse.JUNK },
 				],
 			])
-			initialFolderSyncStates = await this.createInitialImportMailFolders(imapAccountSyncState, mailSetMapping)
+			initialFolderSyncStates = await this.createInitialImportMailFolders(loadedImapAccountSyncState, mailSetMapping)
 		}
 
-		return { imapAccountSyncState, initialFolderSyncStates }
+		return { imapAccountSyncState: loadedImapAccountSyncState, initialFolderSyncStates }
 	}
 
 	async updateAccountSyncStateAndAllFolderSyncStates(
