@@ -97,6 +97,9 @@ import { CertificateProvider } from "./CertificateProvider"
 mp()
 
 dns.setDefaultResultOrder("ipv4first")
+// Node's 250 ms default can abort viable connections on high-latency or lossy routes.
+// Apply the larger timeout to every Node network client used by the desktop app.
+net.setDefaultAutoSelectFamilyAttemptTimeout(20_000)
 
 setupAssetProtocol(electron)
 
