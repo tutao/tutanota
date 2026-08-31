@@ -12,6 +12,7 @@ import {
 	createImapDeleteIn,
 	createImapFolderDeleteIn,
 	createImapFolderPostIn,
+	createImapFolderSyncState,
 	createImapPostIn,
 	createImapPutIn,
 	DeduplicatedImportedAttachment,
@@ -26,7 +27,6 @@ import {
 	ImportedImapMailTypeRef,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailSet,
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
@@ -167,6 +167,7 @@ export class ImapFacade {
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				shouldSync,
 				imapSpecialUse: specialUse,
+				imapFolderSyncState: null,
 			})
 			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
@@ -213,12 +214,15 @@ export class ImapFacade {
 			const sk = this.cryptoWrapper.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
+			const imapFolderSyncState = createImapFolderSyncState({})
+
 			const imapFolderPostIn = createImapFolderPostIn({
 				path: imapMailbox.path,
 				imapAccountSyncState: imapAccountSyncState._id,
 				mailSet: mailSetId,
 				shouldSync: mailSetId !== null && !shouldCreateLabels,
 				imapSpecialUse: imapMailbox.specialUse ?? null,
+				imapFolderSyncState,
 			})
 			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()

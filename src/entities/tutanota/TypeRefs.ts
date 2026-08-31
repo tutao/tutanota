@@ -1,15 +1,17 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import { Blob } from '../sys/TypeRefs.js'
-import { BucketKey } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
-import { DateWrapper } from '../sys/TypeRefs.js'
-import { StringWrapper } from '../sys/TypeRefs.js'
-import { GeneratedIdWrapper } from '../sys/TypeRefs.js'
-import { IdTupleWrapper } from '../sys/TypeRefs.js'
-import { InstanceSessionKey } from '../sys/TypeRefs.js'
+import {
+	Blob,
+	BlobReferenceTokenWrapper,
+	BucketKey,
+	DateWrapper,
+	GeneratedIdWrapper,
+	IdTupleWrapper,
+	InstanceSessionKey,
+	StringWrapper
+} from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -4585,12 +4587,13 @@ export function createImapFolderPostIn(values: ImapFolderPostInParams): ImapFold
 export type ImapFolderPostInParams = {
 
 
-	path: string;
+	path: null | string;
 	shouldSync: boolean;
 	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
 	mailSet: null | IdTuple;
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType;
 }
 
 export type ImapFolderPostIn = {
@@ -4599,15 +4602,16 @@ export type ImapFolderPostIn = {
 	_original?: ImapFolderPostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
-	ownerGroup: Id;
-	path: string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
+	ownerGroup: null | Id;
+	path: null | string;
 	shouldSync: boolean;
 	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
 	mailSet: null | IdTuple;
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -5063,4 +5067,32 @@ export type LabelPostTransferAggregatedType = {
 	color: null | string;
 
 	parentFolder: null | IdTuple;
+}
+export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2070)
+
+export function createImapFolderSyncStateTransferAggregatedType(values: ImapFolderSyncStateTransferAggregatedTypeParams): ImapFolderSyncStateTransferAggregatedType {
+    return Object.assign(create(typeModels[ImapFolderSyncStateTransferAggregatedTypeTypeRef.typeId], ImapFolderSyncStateTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapFolderSyncStateTransferAggregatedTypeParams = {
+
+
+	path: string;
+	imapSpecialUse: null | string;
+
+	mailSet: null | IdTuple;
+}
+
+export type ImapFolderSyncStateTransferAggregatedType = {
+	_type: TypeRef<ImapFolderSyncStateTransferAggregatedType>;
+	_original?: ImapFolderSyncStateTransferAggregatedType
+
+	_id: Id;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	path: string;
+	imapSpecialUse: null | string;
+
+	mailSet: null | IdTuple;
 }
