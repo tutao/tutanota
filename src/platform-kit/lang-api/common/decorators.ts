@@ -24,3 +24,8 @@ export function TMutableStaticSafety(opts: TMutableStaticSafetyOpts) {
 		// assert(ctx.static && ctx.private && ctx.name === "singleton", "Must be a private static field with name 'singleton'")
 	}
 }
+
+export type TSwUncheckedSendableOpts = { reasoning: string }
+export function TSwUncheckedSendable(opts: TSwUncheckedSendableOpts) {
+	return function (target: any, ctx: ClassDecoratorContext) {}
+}
