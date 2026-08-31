@@ -9,11 +9,31 @@ import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { DownloadPostProcessing, FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController.js"
-import { EnvProvider, Mode } from "@tutao/app-env"
+import { EnvProvider, Mode, ProgrammingError } from "@tutao/app-env"
 import { AttachmentBubbleAttrs, AttachmentType } from "../../../../ui/AttachmentBubble.js"
 import { Attachment, FileReference } from "../../../../entities/tutanota/Utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { AttachmentDownloader } from "../view/MailGuiUtils"
+import { mailLocator } from "../../mailLocator"
+import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
+import { DriveFileTypeRef } from "@tutao/entities/drive"
+import { ArchiveDataType } from "../../../../entities/sys/Utils"
+
+export async function attachDriveFile(model: SendMailModel): Promise<void> {
+	const roots = await mailLocator.driveFacade.loadRootFolders("withNetwork")
+	mailLocator.showDriveFilePickerDialog(roots.root, async (pickedItems: readonly FolderItemId[]) => {
+		for (const pickedItem of pickedItems) {
+			if (pickedItem.type === "folder") {
+				throw new ProgrammingError("DriveFilePickerDialog returned folder")
+			}
+
+			const driveFile = await mailLocator.entityClient.load(DriveFileTypeRef, pickedItem.id)
+			const dataFile = await mailLocator.fileController.getAsDataFile(driveFile, ArchiveDataType.DriveFile)
+
+			model.attachFiles([dataFile])
+		}
+	})
+}
 
 export async function chooseAndAttachFile(
 	model: SendMailModel,

@@ -53,7 +53,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { AnimationPromise, animations, height, opacity } from "../../../../ui/animation/Animations"
 import type { LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
 import { Autocomplete, LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
-import { chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
+import { attachDriveFile, chooseAndAttachFile, cleanupInlineAttachments, createAttachmentBubbleAttrs, getConfidentialStateMessage } from "./MailEditorViewModel"
 import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { UserError } from "../../../common/api/main/UserError"
@@ -523,6 +523,12 @@ export class MailEditor implements Component<MailEditorAttrs> {
 			icon: Icons.Paperclip,
 			size: ButtonSize.Compact,
 		}
+		const attachDriveFilesButtonAttrs: IconButtonAttrs = {
+			title: "attachFiles_action", // FIXME
+			click: (ev, dom) => attachDriveFile(model).then(() => m.redraw()),
+			icon: Icons.DriveFilled,
+			size: ButtonSize.Compact,
+		}
 		const templatePopupButtonAttrs: IconButtonAttrs = {
 			title: "openTemplatePopup_msg",
 			click: () => {
@@ -817,6 +823,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					this.templateModel ? m(IconButton, templatePopupButtonAttrs) : null,
 					toolbarButton(),
 					m(IconButton, attachFilesButtonAttrs),
+					m(IconButton, attachDriveFilesButtonAttrs),
 				]),
 				m("hr.hr"),
 				m(
