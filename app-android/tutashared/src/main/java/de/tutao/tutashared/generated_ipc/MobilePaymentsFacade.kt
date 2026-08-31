@@ -17,6 +17,7 @@ interface MobilePaymentsFacade {
 		plan: String,
 		interval: Long,
 		customerIdBytes: DataWrapper,
+		currentInterval: Long?,
 	): MobilePaymentResult
 	/**
 	 * Returns displayable prices for all plans

@@ -18,10 +18,12 @@ class MobilePaymentsFacadeReceiveDispatcher(
 				val plan: String = json.decodeFromString(arg[0])
 				val interval: Long = json.decodeFromString(arg[1])
 				val customerIdBytes: DataWrapper = json.decodeFromString(arg[2])
+				val currentInterval: Long? = json.decodeFromString(arg[3])
 				val result: MobilePaymentResult = this.facade.requestSubscriptionToPlan(
 					plan,
 					interval,
 					customerIdBytes,
+					currentInterval,
 				)
 				return json.encodeToString(result)
 			}
