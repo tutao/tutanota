@@ -34,10 +34,13 @@ import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.job
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -47,6 +50,7 @@ import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
+import kotlin.coroutines.coroutineContext
 import kotlin.time.measureTimedValue
 
 class WidgetUIViewModel(
@@ -54,7 +58,7 @@ class WidgetUIViewModel(
 	private val widgetId: Int,
 	private val credentialsFacade: NativeCredentialsFacade,
 	private val cryptoFacade: AndroidNativeCryptoFacade,
-	private val sdk: Sdk?,
+	private var sdk: Sdk?,
 	private val calendar: Calendar,
 	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
@@ -73,18 +77,22 @@ class WidgetUIViewModel(
 		widgetCacheDataStore: DataStore<Preferences>,
 		now: LocalDateTime
 	): WidgetUIState? {
+		println("loadUiState" + currentCoroutineContext().job)
+
 		Log.i(TAG, "Init loadUIState")
 		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
-
+		Log.d("Steps", "A*")
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
+		Log.d("Steps", "B*")
 		if (widgetStoredState == null) {
 			Log.w(TAG, "No previous state found, probably missing configuration!")
 			_uiState.value = WidgetUIState.Loading
 			return uiState.value
 		}
+		Log.d("Steps", "C*")
 
 		val (settings, calendars, credentials, lastSync) = widgetStoredState
 		Log.i(TAG, "Loaded stored widget state. Last sync info $lastSync")
@@ -92,6 +100,7 @@ class WidgetUIViewModel(
 		_uiState.value = WidgetUIState.Loading
 		// Force is set as True when worker detects that it's a new day
 		val forceRemoteEventsFetch = lastSync?.force ?: false
+		Log.d("Steps", "D*")
 
 		Log.d(TAG, "Starting to fetch calendar events...")
 		val calendarToEventsListMap = this.getCalendarEvents(
@@ -102,6 +111,8 @@ class WidgetUIViewModel(
 			settings,
 			calendars
 		)
+		Log.d("Steps", "E*")
+
 
 		val startOfToday = now.toLocalDate()
 		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
@@ -288,8 +299,9 @@ class WidgetUIViewModel(
 	): Map<GeneratedId, CalendarEventListDao> {
 		if (shouldFetchFromServer && sdk != null) {
 			try {
+				Log.d("Steps", "A")
 				val loggedInSdk = sdk.login(credentials.toSdkCredentials())
-
+				Log.d("Steps", "B")
 				var events: Map<GeneratedId, CalendarEventListDao>
 				val time = measureTimedValue {
 					events = repository.loadEvents(
@@ -303,7 +315,7 @@ class WidgetUIViewModel(
 					)
 				}
 				Log.d(TAG, "LoadEvents time: $time")
-
+				Log.d("Steps", "C")
 				return events
 			} catch (e: LoginException) {
 				// Fallback to cached events. We don't set an error here because we still able to display "something"
@@ -403,6 +415,10 @@ class WidgetUIViewModel(
 		}
 
 		return null
+	}
+
+	fun setSdk(sdk: Sdk?) {
+		this.sdk = sdk
 	}
 }
 

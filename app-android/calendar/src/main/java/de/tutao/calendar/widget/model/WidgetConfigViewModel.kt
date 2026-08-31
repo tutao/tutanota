@@ -23,9 +23,11 @@ import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.PersistedCredentials
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -166,6 +168,7 @@ class WidgetConfigViewModel(
 		_isLoading.value = true
 
 		return viewModelScope.launch {
+			println("viewModelScope.launch" + currentCoroutineContext().job)
 			try {
 				repository.storeLastSyncInBatch(context, intArrayOf(widgetId), Date(), WidgetUpdateTrigger.SETTINGS)
 				repository.storeSettings(

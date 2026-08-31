@@ -8,12 +8,23 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStore
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetDataRepository
+import de.tutao.calendar.widget.model.BirthdayStrings
+import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.TempDir
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
+import java.security.SecureRandom
 import java.time.Duration
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 const val WIDGET_SETTINGS_PREFIX = "calendar_widget_settings"
@@ -59,7 +70,41 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 	override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
 		super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-		Log.d(TAG, "onUpdate called")
+		Log.d(TAG, "onUpdate called $appWidgetIds")
+		val a = appWidgetManager.getAppWidgetInfo(appWidgetIds.first())
+		val b = appWidgetManager.getAppWidgetOptions(appWidgetIds.first())
+		Log.d(TAG, "$a")
+		Log.d(TAG, "$b")
+
+		Log.d(TAG, appWidgetManager.getAppWidgetIds(a.provider).toString())
+
+		val manager = GlanceAppWidgetManager(context)
+		val glanceId = manager.getGlanceIdBy(appWidgetIds.first())
+		Log.d(TAG, "$glanceId")
+
+		WidgetViewModelProvider.sayHi("onUpdate Receiver $glanceId")
+		WidgetViewModelProvider.log()
+
+		val db = AppDatabase.getDatabase(context, true)
+		val tempDir = TempDir(context)
+		val tempFs = TempFs(context, SecureRandom(), tempDir)
+		val crypto = AndroidNativeCryptoFacade(context, tempFs)
+		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+		val birthdayStrings = BirthdayStrings(
+			context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
+		)
+
+		val viewModel = WidgetUIViewModel(
+			context.widgetDataRepository,
+			appWidgetIds.first(),
+			nativeCredentialsFacade,
+			crypto,
+			null,
+			Calendar.getInstance(),
+			birthdayStrings
+		)
+
+		WidgetViewModelProvider.addNew(appWidgetIds.first(), viewModel)
 	}
 
 	override fun onDisabled(context: Context) {

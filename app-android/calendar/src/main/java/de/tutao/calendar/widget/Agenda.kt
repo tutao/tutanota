@@ -55,14 +55,11 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.remote.RemoteStorage
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Calendar
 
 
 const val TAG = "AgendaWidget"
@@ -86,17 +83,23 @@ class Agenda : GlanceAppWidget() {
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
 
-		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated) {
-			Log.i(TAG, "Widget UI state is empty, starting coroutine to populate UI state.")
+		WidgetViewModelProvider.sayHi("provideGlance $appWidgetId")
+		WidgetViewModelProvider.log()
 
-			withContext(Dispatchers.IO) {
-				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
-				)
-			}
-		}
+//		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated || widgetUIViewModel.uiState.value is WidgetUIState.Loading) {
+//			Log.i(TAG, "Widget UI state is empty, starting coroutine to populate UI state.")
+//
+//			withContext(Dispatchers.IO) {
+//				widgetUIViewModel.loadUIState(
+//					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+//				)
+//			}
+//		}
 
 		provideContent {
+			WidgetViewModelProvider.sayHi("provideContent $appWidgetId")
+			WidgetViewModelProvider.log()
+
 			Log.d(TAG, "provideContent called")
 
 			val data by widgetUIViewModel.uiState.collectAsState()
@@ -157,18 +160,27 @@ class Agenda : GlanceAppWidget() {
 			context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
 		)
 
-		val widgetUIViewModel = WidgetUIViewModel(
-			context.widgetDataRepository,
-			appWidgetId,
-			nativeCredentialsFacade,
-			crypto,
-			sdk,
-			Calendar.getInstance(),
-			birthdayStrings
-		)
+//		val widgetUIViewModel = WidgetUIViewModel(
+//			context.widgetDataRepository,
+//			appWidgetId,
+//			nativeCredentialsFacade,
+//			crypto,
+//			sdk,
+//			Calendar.getInstance(),
+//			birthdayStrings
+//		)
+
+		val widgetUIViewModel: WidgetUIViewModel =
+			WidgetViewModelProvider.getModelFor(appWidgetId)
+
+		widgetUIViewModel.setSdk(sdk)
+
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
-		return Pair(widgetUIViewModel, userId)
+		val pair = Pair(widgetUIViewModel, userId)
+		Log.d(TAG, "Widegt setup data: $pair")
+
+		return pair
 	}
 
 	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {

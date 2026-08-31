@@ -96,6 +96,7 @@ import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
+import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
@@ -117,7 +118,12 @@ import de.tutao.tutashared.ipc.PersistedCredentials
 import de.tutao.tutashared.parseColor
 import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.security.SecureRandom
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -186,6 +192,9 @@ class WidgetConfigActivity : AppCompatActivity() {
 			AppWidgetManager.EXTRA_APPWIDGET_ID,
 			AppWidgetManager.INVALID_APPWIDGET_ID
 		) ?: AppWidgetManager.INVALID_APPWIDGET_ID
+
+		WidgetViewModelProvider.sayHi("Config $appWidgetId")
+		WidgetViewModelProvider.log()
 
 		// Set default result in case the user cancels.
 		val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
@@ -256,28 +265,57 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
-							try {
-								val activityContext = this
-								val storeJob = viewModel.storeSettings(this, appWidgetId)
-								storeJob.invokeOnCompletion {
-									lifecycleScope.launch {
-										Log.i(TAG, "Asking for widget reload after user change its settings")
-										val manager = GlanceAppWidgetManager(activityContext)
-										val glanceId = manager.getGlanceIdBy(appWidgetId)
-										Log.i(TAG, "Reload widget with glanceId ${glanceId}")
-										Agenda().update(context, glanceId)
-									}
-								}
-								setResult(Activity.RESULT_OK, resultValue)
-							} catch (ex: Exception) {
-								Toast.makeText(
-									applicationContext,
-									"Could not save widget config - ${ex.message}",
-									Toast.LENGTH_SHORT
-								).show()
-							}
+							lifecycleScope.launch {
+								try {
+									val activityContext = this
+									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
 
-							finish()
+//									runBlocking {
+//										println("withContext(NonCancellable)" + currentCoroutineContext().job)
+//
+//										Log.d(TAG, "Getting existing ViewModel")
+//										val model: WidgetUIViewModel =
+//											WidgetViewModelProvider.getModelFor(appWidgetId)
+//										model.loadUIState(
+//											context.widgetDataStore, context.widgetCacheDataStore,
+//											LocalDateTime.now()
+//										)
+//
+//										Log.i(TAG, "Asking for widget reload after user change its settings")
+//										val manager = GlanceAppWidgetManager(activityContext)
+//										val glanceId = manager.getGlanceIdBy(appWidgetId)
+//										Log.i(TAG, "Reload widget with glanceId ${glanceId}")
+//										Agenda().update(context, glanceId)
+//									}
+
+									println("lifecycleScope.launch" + currentCoroutineContext().job)
+
+									Log.d(TAG, "Getting existing ViewModel")
+									val model: WidgetUIViewModel =
+										WidgetViewModelProvider.getModelFor(appWidgetId)
+									model.loadUIState(
+										context.widgetDataStore, context.widgetCacheDataStore,
+										LocalDateTime.now()
+									)
+
+									Log.i(TAG, "Asking for widget reload after user change its settings")
+									val manager = GlanceAppWidgetManager(this@WidgetConfigActivity)
+									val glanceId = manager.getGlanceIdBy(appWidgetId)
+									Log.i(TAG, "Reload widget with glanceId ${glanceId}")
+									Log.w("!!!", "Starting Agenda().update(context, glanceId)...")
+									Agenda().update(context, glanceId)
+									Log.w("!!!", "Agenda().update(context, glanceId) done")
+								} catch (ex: Exception) {
+									Toast.makeText(
+										applicationContext,
+										"Could not save widget config - ${ex.message}",
+										Toast.LENGTH_SHORT
+									).show()
+								}
+
+								setResult(Activity.RESULT_OK, resultValue)
+								finish()
+							}
 						}
 					)
 				}
