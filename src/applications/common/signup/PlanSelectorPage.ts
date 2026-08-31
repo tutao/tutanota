@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
-import { getCurrentPaymentInterval, PlanTypeToName, shouldShowApplePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
+import { getCurrentPaymentInterval, PlanTypeToName, shouldShowExternalStorePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle } from "../subscription/utils/PlanSelectorUtils"
 import { TranslationKeyType } from "../../../ui/utils/TranslationKey"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
@@ -20,7 +20,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		const data = ctx.viewModel
 		const { planPrices, acceptedPlans, accountingInfo } = data
 		let availablePlans = acceptedPlans
-		const isApplePrice = shouldShowApplePrices(accountingInfo ?? null)
+		const isApplePrice = shouldShowExternalStorePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
 		const promotionMessage = planPrices!.getRawPricingData().messageTextId as TranslationKeyType
 		let message
@@ -73,7 +73,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								actionButtons: actionButtons,
 								priceAndConfigProvider: planPrices!,
 								availablePlans: availablePlans!,
-								isApplePrice,
+								isExternalStorePrice: isApplePrice,
 								currentPlan: data.currentPlan ?? undefined,
 								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo) ?? PaymentInterval.Yearly,
 								allowSwitchingPaymentInterval: isApplePrice || data.upgradeType !== UpgradeType.Switch,
