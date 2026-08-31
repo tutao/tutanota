@@ -1,4 +1,4 @@
-import { DbError } from "../../common/error/DbError"
+import { DbError, GenericDbError } from "../../common/error/DbError"
 import { defer, DeferredObject, delay, downcast, LazyLoaded, newPromise, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { IndexingNotSupportedError } from "../../common/error/IndexingNotSupportedError"
 import { QuotaExceededError } from "../../common/error/QuotaExceededError"
@@ -105,7 +105,7 @@ export class DbFacade {
 								// @ts-ignore
 								onupgrade(event, event.target.result, this)
 							} catch (e) {
-								reject(new DbError("could not create object store for DB " + this._id, e))
+								reject(new GenericDbError("could not create object store for DB " + this._id, e))
 							}
 						}
 
@@ -166,7 +166,7 @@ export class DbFacade {
 	static deleteDb(id: string): Promise<void> {
 		return newPromise((resolve, reject) => {
 			const deleteRequest = self.indexedDB.deleteDatabase(id)
-			deleteRequest.onerror = (event: ErrorEvent) => reject(new DbError(`could not delete database ${id}`, downcast<Error>(event)))
+			deleteRequest.onerror = (event: ErrorEvent) => reject(new GenericDbError(`could not delete database ${id}`, downcast<Error>(event)))
 			deleteRequest.onsuccess = () => resolve()
 		})
 	}
@@ -192,7 +192,7 @@ export class DbFacade {
 				})
 				return transaction
 			} catch (e) {
-				throw new DbError("could not create transaction", e)
+				throw new GenericDbError("could not create transaction", e)
 			}
 		})
 	}
@@ -390,7 +390,7 @@ export class IndexedDbTransaction implements DbTransaction {
 				console.warn("Storage Quota exceeded")
 				callback(new QuotaExceededError(msg, e))
 			} else {
-				callback(new DbError(msg, e))
+				callback(new GenericDbError(msg, e))
 			}
 		}
 	}

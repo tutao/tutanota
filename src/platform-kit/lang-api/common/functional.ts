@@ -14,7 +14,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param message optional error message
  */
 export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
-	if (isNull(value)) {
+	if (value == null) {
 		throw new Error("AssertNotNull failed: " + message)
 	}
 

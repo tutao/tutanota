@@ -260,7 +260,7 @@ export class EnvProvider {
 	}
 
 	@TTranspileIgnore({
-		reason: "This is irrelevant to the transpiled code",
+		reason: "by the time we make use of transpiled code, this function would not exists",
 	})
 	public static assertMainOrNode(): void {
 		if (!assertionsEnabled) {

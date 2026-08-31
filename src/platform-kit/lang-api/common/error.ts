@@ -10,11 +10,13 @@
  */
 import { isNotNull, isNull } from "./functional"
 import { TypeChecks } from "./types.js"
+import { TSwUncheckedSendable } from "./decorators"
 
+@TSwUncheckedSendable({ reasoning: "All fields in TutanotaError are readonly and we dont mutate anything once an error is created" })
 export class TutanotaError extends Error {
 	constructor(
-		public name: string,
-		public readonly message: string,
+		public override readonly name: string,
+		public override readonly message: string,
 	) {
 		super(message)
 
@@ -52,6 +54,7 @@ export class TutanotaError extends Error {
 	}
 }
 
+@TSwUncheckedSendable({ reasoning: "TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields" })
 export class ProgrammingError extends TutanotaError {
 	constructor(m: string | null = null) {
 		super("ProgrammingError", m ?? "Unknown programming error")

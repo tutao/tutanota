@@ -7,7 +7,6 @@ import { DbError } from "./DbError"
  */
 export class QuotaExceededError extends DbError {
 	constructor(message: string, error: Error | null) {
-		super(message, error ?? undefined)
-		this.name = "QuotaExceededError"
+		super("QuotaExceededError", message, error ?? undefined)
 	}
 }
