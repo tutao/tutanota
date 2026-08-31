@@ -1,6 +1,5 @@
 package de.tutao.calendar.widget
 
-import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -96,6 +95,7 @@ import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
+import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
@@ -256,13 +256,26 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
+
 							lifecycleScope.launch {
 								try {
 									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
+
+									Log.d(TAG, "Getting existing ViewModel")
+									val model: WidgetUIViewModel =
+										WidgetViewModelProvider.getModelFor(appWidgetId)
+											?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+
+									model.loadUIState(
+										context.widgetDataStore, context.widgetCacheDataStore,
+										LocalDateTime.now()
+									)
+
 									Log.i(TAG, "Asking for widget reload after user change its settings")
 									val glanceId = GlanceAppWidgetManager(applicationContext).getGlanceIdBy(appWidgetId)
 									Agenda().update(applicationContext, glanceId)
-									setResult(Activity.RESULT_OK, resultValue)
+
+									setResult(RESULT_OK, resultValue)
 								} catch (ex: Exception) {
 									Toast.makeText(
 										applicationContext,
