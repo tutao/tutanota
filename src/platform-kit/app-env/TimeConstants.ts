@@ -5,6 +5,8 @@ export class TimeConstants {
 	static readonly DAY_IN_MILLIS: number = TimeConstants.hoursToMillis(24)
 	static readonly DAY_IN_MINUTES: number = 24 * 60
 
+	constructor() {}
+
 	/**
 	 * Convert the number of seconds to milliseconds.
 	 * @param seconds seconds to convert
