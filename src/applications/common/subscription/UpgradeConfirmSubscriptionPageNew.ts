@@ -337,6 +337,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 					externalStorePlanName(data.targetPlanType),
 					data.options.paymentInterval(),
 					customerIdBytes,
+					null,
 				),
 			)
 			if (result.result !== MobilePaymentResultType.Success) {

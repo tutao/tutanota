@@ -16,6 +16,9 @@
 				},
 				{
 					"customerIdBytes": "bytes"
+				},
+				{
+					"currentInterval": "number?"
 				}
 			],
 			"ret": "MobilePaymentResult"

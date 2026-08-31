@@ -48,7 +48,7 @@ import {
 	getPaymentMethodType,
 	hasMatchingExternalPaymentSetup,
 	PlanTypeToName,
-	shouldShowApplePrices,
+	shouldShowExternalStorePrices,
 	SubscriptionApp,
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
@@ -106,8 +106,8 @@ export async function showSwitchDialog({
 	const paymentInterval = stream(parseInt(accountingInfo.paymentInterval)) // always default to yearly
 	const options = { businessUse, paymentInterval }
 	const multipleUsersAllowed = model.multipleUsersStillSupportedLegacy()
-	const isApplePrice = shouldShowApplePrices(accountingInfo)
-	const discountDetails = getDiscountDetails(isApplePrice, priceAndConfigProvider)
+	const isExternalStorePrice = shouldShowExternalStorePrices(accountingInfo)
+	const discountDetails = getDiscountDetails(isExternalStorePrice, priceAndConfigProvider)
 
 	if (currentPlanInfo.planType != null && LegacyPlans.includes(currentPlanInfo.planType)) {
 		reason = "currentPlanDiscontinued_msg"
@@ -121,13 +121,13 @@ export async function showSwitchDialog({
 				type: ButtonType.Secondary,
 			},
 		],
-		right: isApplePrice ? [] : [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)],
+		right: isExternalStorePrice ? [] : [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)],
 		middle: "subscription_label",
 	}
 
 	const renderPlanSelector = () => {
 		// Reassigning the right button for header to update the label
-		if (!isApplePrice) {
+		if (!isExternalStorePrice) {
 			newPlanSelectorHeaderBarAttrs.right = [getPrivateBusinessSwitchButton(businessUse, acceptedPlans)]
 		}
 
@@ -148,11 +148,11 @@ export async function showSwitchDialog({
 					actionButtons: subscriptionActionButtons,
 					priceAndConfigProvider,
 					availablePlans: acceptedPlans,
-					isApplePrice,
+					isExternalStorePrice: isExternalStorePrice,
 					currentPlan: currentPlanInfo.planType,
 					currentPaymentInterval: getCurrentPaymentInterval(accountingInfo),
 					// We hide the payment interval switch in the setting and let the plan selector handles the interval changing for iOS
-					allowSwitchingPaymentInterval: isApplePrice || !!currentPlanInfo.paymentInterval,
+					allowSwitchingPaymentInterval: isExternalStorePrice || !!currentPlanInfo.paymentInterval,
 					showMultiUser: multipleUsersAllowed,
 					targetPlan: currentPlanInfo.planType, // dummy property; only relevant for signup, but required to exist
 					discountDetails,
@@ -256,14 +256,19 @@ async function doSwitchToPaidPlan(
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
 ) {
-	if (EnvProvider.get().isIOSApp() && getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore) {
+	if (hasMatchingExternalPaymentSetup(getPaymentMethodType(accountingInfo))) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		dialog.close()
 		try {
-			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(externalStorePlanName(targetSubscription), newPaymentInterval, customerIdBytes)
+			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+				externalStorePlanName(targetSubscription),
+				newPaymentInterval,
+				customerIdBytes,
+				currentPlanInfo.paymentInterval,
+			)
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {
-				console.error("AppStore subscription failed", e)
+				console.error("external subscription failed", e)
 				void Dialog.message("appStoreSubscriptionError_msg", e.message)
 			} else {
 				throw e

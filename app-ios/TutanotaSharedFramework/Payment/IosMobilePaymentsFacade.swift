@@ -105,7 +105,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		}
 	}
 	@MainActor public func showSubscriptionConfigView() async throws { try await AppStore.showManageSubscriptions(in: self.windowScene()) }
-	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper) async throws -> MobilePaymentResult {
+	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper, _: Int?) async throws -> MobilePaymentResult {
 		let uuid = customerIdToUUID(customerIdBytes.data)
 		let planType = formatPlanType(plan, UInt(interval))
 

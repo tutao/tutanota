@@ -13,7 +13,8 @@ public protocol MobilePaymentsFacade : Sendable {
 	func requestSubscriptionToPlan(
 		_ plan: String,
 		_ interval: Int,
-		_ customerIdBytes: DataWrapper
+		_ customerIdBytes: DataWrapper,
+		_ currentInterval: Int?
 	) async throws -> MobilePaymentResult
 	/**
 	 * Returns displayable prices for all plans

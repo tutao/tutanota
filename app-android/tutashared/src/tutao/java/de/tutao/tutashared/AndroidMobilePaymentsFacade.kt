@@ -6,6 +6,8 @@ import android.content.Intent
 import androidx.core.net.toUri
 import com.android.billingclient.api.BillingClient
 import com.android.billingclient.api.BillingFlowParams
+import com.android.billingclient.api.BillingFlowParams.ProductDetailsParams.SubscriptionProductReplacementParams
+import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
@@ -18,11 +20,12 @@ import de.tutao.tutashared.ipc.MobilePlanPrice
 class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : MobilePaymentsFacade {
 	val billingClient: TutaoBillingClient = TutaoBillingClient(activity)
 
-	// FIXME: should this handle plan changes as well?
+	// Handles plan changes as well as new subscriptions.
 	override suspend fun requestSubscriptionToPlan(
 		plan: String,
 		interval: Long,
-		customerIdBytes: DataWrapper
+		customerIdBytes: DataWrapper,
+		currentInterval: Long?,
 	): MobilePaymentResult {
 		val planPrefix = getPlanPrefix()
 		val productId = when (plan) {
@@ -45,6 +48,16 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 				offer.basePlanId == basePlanId && offer.offerId == null
 			} ?: error("Could not find base plan $basePlanId for product $productId")
 
+		val accountId = customerIdBytes.toObfuscatedAccountId()
+		val currentPurchases = billingClient.queryPurchases(
+			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).includeSuspendedSubscriptions(true).build()
+		).filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && it.accountIdentifiers?.obfuscatedAccountId == accountId }
+		val currentPurchase = currentPurchases.singleOrNull()
+		if (currentPurchases.size > 1) error("Multiple subscriptions found for this account")
+		if (currentPurchase != null) {
+			return replaceSubscription(productId, interval, currentInterval, accountId, productDetails, offerDetails, currentPurchase)
+		}
+
 		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
 			.setProductDetails(productDetails)
 			.setOfferToken(offerDetails.offerToken)
@@ -54,6 +67,47 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 			BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(productDetailsParams))
 				.setObfuscatedAccountId(customerIdBytes.toObfuscatedAccountId()).build()
 
+		return billingClient.launchBillingFlow(billingFlowParams)
+	}
+
+	private suspend fun replaceSubscription(
+		productId: String,
+		interval: Long,
+		currentInterval: Long?,
+		accountId: String,
+		productDetails: ProductDetails,
+		offerDetails: ProductDetails.SubscriptionOfferDetails,
+		currentPurchase: Purchase,
+	): MobilePaymentResult {
+		val oldProductId = currentPurchase.products.single()
+		val oldInterval = currentInterval ?: error("Missing current interval")
+		val oldOffer = (if (oldProductId == productId) productDetails else billingClient.queryProduct(oldProductId)).subscriptionOfferDetails
+			.orEmpty().single { it.basePlanId == (if (oldInterval == 12L) "yearly" else "monthly") && it.offerId == null }
+		val mode = if (oldProductId == productId ) {
+
+				SubscriptionProductReplacementParams.ReplacementMode.WITHOUT_PRORATION
+
+
+		}
+		// TODO: Think carefully about this condition. Should the price be multiplied by interval/currentInterval?
+		else if (offerDetails.pricingPhases.pricingPhaseList.last().priceAmountMicros / interval >
+			oldOffer.pricingPhases.pricingPhaseList.last().priceAmountMicros / oldInterval
+		) {
+			SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
+		} else {
+			SubscriptionProductReplacementParams.ReplacementMode.DEFERRED
+		}
+		val productDetailsParams = BillingFlowParams.ProductDetailsParams.newBuilder()
+			.setProductDetails(productDetails)
+			.setOfferToken(offerDetails.offerToken)
+			.setSubscriptionProductReplacementParams(
+				SubscriptionProductReplacementParams.newBuilder().setOldProductId(oldProductId).setReplacementMode(mode).build()
+			).build()
+		val billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(productDetailsParams))
+			.setObfuscatedAccountId(accountId)
+			.setSubscriptionUpdateParams(
+				BillingFlowParams.SubscriptionUpdateParams.newBuilder().setOldPurchaseToken(currentPurchase.purchaseToken).build()
+			).build()
 		return billingClient.launchBillingFlow(billingFlowParams)
 	}
 

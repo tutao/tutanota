@@ -20,7 +20,8 @@ class AndroidMobilePaymentsFacade(_activity: Activity, _app: AppType) : MobilePa
 	override suspend fun requestSubscriptionToPlan(
 		plan: String,
 		interval: Long,
-		customerIdBytes: DataWrapper
+		customerIdBytes: DataWrapper,
+		currentInterval: Long?,
 	): MobilePaymentResult {
 		throw NotImplementedError("there is no requestSubscriptionToPlan for non-playstore apps")
 	}

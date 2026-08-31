@@ -10,7 +10,12 @@ export interface MobilePaymentsFacade {
 	/**
 	 * Display a pop-up for the user to start a subscription
 	 */
-	requestSubscriptionToPlan(plan: string, interval: number, customerIdBytes: Uint8Array<ArrayBuffer>): Promise<MobilePaymentResult>
+	requestSubscriptionToPlan(
+		plan: string,
+		interval: number,
+		customerIdBytes: Uint8Array<ArrayBuffer>,
+		currentInterval: number | null,
+	): Promise<MobilePaymentResult>
 
 	/**
 	 * Returns displayable prices for all plans
