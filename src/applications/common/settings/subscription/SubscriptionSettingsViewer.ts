@@ -392,7 +392,10 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				: m(
 						".flex.justify-end.gap-8",
 						m(PrimaryButton, {
-							label: "subscriptionSettingAppleWebsite_action",
+							label:
+								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+									? "subscriptionSettingAppleWebsite_action"
+									: "subscriptionSettingGoogleWebsite_action",
 							width: "flex",
 							onclick: () => {
 								this.onSubscriptionClick()
@@ -495,6 +498,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			// If there's a running Play Store subscription it must be managed through Google.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through OS or when subscription expires.
+			//FIXME: This doesn't seem to work -> env in openExternalSubscriptionPage is default when called
 			void openExternalSubscriptionPage()
 		} else {
 			// other cases (not mobile app, not external payment method, no running external subscription, iOS/Android but another payment method)

@@ -310,7 +310,7 @@ export function externalStorePlanName(planType: PlanType): string {
 
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
 
-/** does current user has an active (non-expired) AppStore subscription? */
+/** does current user has an active (non-expired) AppStore or Playstore subscription? */
 export function hasMatchingExternalStoreSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
 	if (
 		getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore &&
@@ -347,9 +347,9 @@ export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array
 	return await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(userIdBytes)
 }
 
-// we can't do the upgrade from the client because apple is supposed to contact us.
+// we can't do the upgrade from the client because apple or google is supposed to contact us.
 // we can proceed with the flow once we see that the plan on customerInfo is what we
-// ordered.
+// ordered. This function returns true if we got a message from an external store and false otherwise
 export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanType, customerId: Id): Promise<boolean> {
 	const timeout_ms = 60_000
 	const customer = await locator.entityClient.load(CustomerTypeRef, idToElementId(customerId), {
@@ -383,7 +383,7 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 								})
 								if (expectedPlan === newCustomerInfo.plan) {
 									// plan is now correct!
-									console.log("app store upgrade listener succeeded for", customer.customerInfo)
+									console.log("external store upgrade listener succeeded for", customer.customerInfo)
 									resolve(true)
 									locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
 								}
@@ -395,11 +395,11 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 				locator.eventController.addEntityUpdatesListener(entityUpdatesListener)
 				setTimeout(() => {
 					locator.eventController.removeEntityUpdatesListener(entityUpdatesListener)
-					console.warn("app store upgrade listener timed out for", customer.customerInfo)
+					console.warn("external store  upgrade listener timed out for", customer.customerInfo)
 					resolve(false)
 				}, timeout_ms)
 			} catch (e) {
-				console.error("failed to receive app store upgrade notification for", customer.customerInfo, e)
+				console.error("failed to receive external store upgrade notification for", customer.customerInfo, e)
 				resolve(false)
 			}
 		})
