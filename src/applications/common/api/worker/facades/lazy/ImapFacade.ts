@@ -169,6 +169,7 @@ export class ImapFacade {
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				shouldSync,
 				imapSpecialUse: specialUse,
+				imapFolderSyncState: null,
 			})
 			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
@@ -221,6 +222,7 @@ export class ImapFacade {
 				mailSet: mailSetId,
 				shouldSync: mailSetId !== null && !shouldCreateLabels,
 				imapSpecialUse: imapMailbox.specialUse ?? null,
+				imapFolderSyncState: null,
 			})
 			imapFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			imapFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
