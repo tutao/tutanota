@@ -1,3 +1,3 @@
 public class SwRegex {
-    public init() {}
+  public init(_ reg: String) {}
 }

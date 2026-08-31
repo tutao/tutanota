@@ -38,6 +38,10 @@ public final class SwDouble: Sendable, EquitableIsStructural, Hashable {
     return SwDouble(Double(value.asPrimitive()))
   }
 
+  public static func from(_ value: Double) -> TsDouble {
+    return SwDouble(value)
+  }
+
   public static func == (lhs: SwDouble, rhs: SwDouble) -> Bool {
     return lhs.inner == rhs.inner
   }

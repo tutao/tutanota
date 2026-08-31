@@ -5,3 +5,5 @@ public final class SwString: Sendable {
     self.inner = val
   }
 }
+
+public typealias TsString = SwString
