@@ -12,8 +12,22 @@ import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetDataRepository
+import de.tutao.calendar.widget.model.BirthdayStrings
+import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.tutasdk.Sdk
+import de.tutao.tutashared.AndroidNativeCryptoFacade
+import de.tutao.tutashared.SdkFileClient
+import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.TempDir
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
+import de.tutao.tutashared.remote.RemoteStorage
+import java.security.SecureRandom
 import java.time.Duration
+import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
 const val WIDGET_SETTINGS_PREFIX = "calendar_widget_settings"
@@ -57,14 +71,60 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 	}
 
 	override fun onUpdate(context: Context, appWidgetManager: AppWidgetManager, appWidgetIds: IntArray) {
+
 		super.onUpdate(context, appWidgetManager, appWidgetIds)
 
-		Log.d(TAG, "onUpdate called")
+		Log.d(
+			TAG, "[App widget ids full array] ${appWidgetIds.contentToString()}"
+		)
+
+		appWidgetIds.forEach { appWidgetId ->
+			Log.d(TAG, "appWidgetId in onUpdate foreach: $appWidgetId")
+			if (WidgetViewModelProvider.getModelFor(appWidgetId) == null) {
+				val db = AppDatabase.getDatabase(context, true)
+				val remoteStorage = RemoteStorage(db)
+				val tempDir = TempDir(context)
+				val tempFs = TempFs(context, SecureRandom(), tempDir)
+				val crypto = AndroidNativeCryptoFacade(context, tempFs)
+				val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+				val birthdayStrings = BirthdayStrings(
+					context.getString(R.string.birthdayEvent_title),
+					context.getString(R.string.birthdayEventAge_title)
+				)
+				val sdk = try {
+					Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
+				} catch (e: Exception) {
+					Log.e(
+						TAG,
+						"[$appWidgetId] Failed to initialize SDK, falling back to cached events if available. $e"
+					)
+					null
+				}
+
+				val viewModel = WidgetUIViewModel(
+					context.widgetDataRepository,
+					appWidgetId,
+					nativeCredentialsFacade,
+					crypto,
+					sdk,
+					Calendar.getInstance(),
+					birthdayStrings
+				)
+				Log.d(TAG, "about to add new widgetUiViewModel for appWidgetId: $appWidgetId")
+				WidgetViewModelProvider.addNew(appWidgetId, viewModel)
+			}
+		}
 	}
 
 	override fun onDisabled(context: Context) {
 		super.onDisabled(context)
 		WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORKER_TAG)
 		context.preferencesDataStoreFile(WIDGET_SETTINGS_DATASTORE_FILE).delete()
+	}
+
+	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+		super.onDeleted(context, appWidgetIds)
+
+		Log.i(TAG, "[$appWidgetIds.first()] Removing widget")
 	}
 }
