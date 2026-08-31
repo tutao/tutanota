@@ -44,7 +44,3 @@ export type BrowserData = {
 	indexedDbSupported: boolean
 	clientPlatform: ClientPlatform
 }
-
-export class TeamLabels {
-	public static readonly companyTeamLabel: string = "Tuta Team"
-}
