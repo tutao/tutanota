@@ -568,6 +568,12 @@ pub struct ExternalUserData {
 	pub externalUserEncUserGroupInfoInstanceKey: Option<Vec<u8>>,
 	#[serde(rename = "2057")]
 	pub externalUserGroupInfoInstanceKeyVersion: Option<i64>,
+	#[serde(rename = "2058")]
+	#[serde(with = "serde_bytes")]
+	pub externalUserGroupInfoKdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2059")]
+	#[serde(with = "serde_bytes")]
+	pub externalMailGroupInfoKdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "151")]
 	pub userGroupData: CreateExternalUserGroupData,
 }

@@ -22,6 +22,7 @@ import {
 	CryptoWrapper,
 	decryptKey,
 	encryptKey,
+	generateKdfNonce,
 	generateRandomSalt,
 	keyToUint8Array,
 	murmurHash,
@@ -188,6 +189,7 @@ import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipel
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { InstanceKeyFacade } from "../../../../../../platform-kit/base/base-crypto/InstanceKeyFacade"
 
 assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -238,6 +240,7 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+		private readonly instanceKeyFacade: InstanceKeyFacade,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
@@ -1130,6 +1133,21 @@ export class MailFacade {
 		const internalMailEncUserGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalUserGroupInfoSessionKey)
 		const internalMailEncMailGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
+		// the internal mail group is the owner group of the external [user|mail] group info instances
+		const externalUserGroupInfoKdfNonce = generateKdfNonce()
+		const currentExternalUserGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalUserGroupInfoKdfNonce)
+		const externalUserEncUserGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
+			currentExternalUserGroupKey,
+			currentExternalUserGroupInfoInstanceKey.object,
+		)
+
+		const externalMailGroupInfoKdfNonce = generateKdfNonce()
+		const currentExternalMailGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalMailGroupInfoKdfNonce)
+		const externalMailEncMailGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
+			currentExternalMailGroupKey,
+			currentExternalMailGroupInfoInstanceKey.object,
+		)
+
 		const externalUserData = createExternalUserData({
 			verifier,
 			userGroupData,
@@ -1146,11 +1164,12 @@ export class MailFacade {
 			internalMailEncUserGroupInfoSessionKey: internalMailEncUserGroupInfoSessionKey.key,
 			internalMailEncMailGroupInfoSessionKey: internalMailEncMailGroupInfoSessionKey.key,
 			internalMailGroupKeyVersion: internalMailGroupKey.version.toString(),
-			//TODO
-			externalMailEncMailGroupInfoInstanceKey: null,
-			externalMailGroupInfoInstanceKeyVersion: null,
-			externalUserEncUserGroupInfoInstanceKey: null,
-			externalUserGroupInfoInstanceKeyVersion: null,
+			externalMailEncMailGroupInfoInstanceKey: externalMailEncMailGroupInfoInstanceKey.key,
+			externalMailGroupInfoInstanceKeyVersion: currentExternalMailGroupInfoInstanceKey.version.toString(),
+			externalUserEncUserGroupInfoInstanceKey: externalUserEncUserGroupInfoInstanceKey.key,
+			externalUserGroupInfoInstanceKeyVersion: currentExternalUserGroupInfoInstanceKey.version.toString(),
+			externalUserGroupInfoKdfNonce,
+			externalMailGroupInfoKdfNonce,
 		})
 		await this.serviceExecutor.post(ExternalUserService, externalUserData, null)
 		return {

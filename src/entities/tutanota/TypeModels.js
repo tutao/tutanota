@@ -1743,6 +1743,24 @@ const typeModels = {
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
+			},
+			"2058": {
+				"final": false,
+				"name": "externalUserGroupInfoKdfNonce",
+				"id": 2058,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2059": {
+				"final": false,
+				"name": "externalMailGroupInfoKdfNonce",
+				"id": 2059,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
