@@ -4664,13 +4664,14 @@ export function createImapPostIn(values: ImapPostInParams): ImapPostIn {
 export type ImapPostInParams = {
 
 
-	maxQuota: NumberString;
-	postponedUntil: NumberString;
-	provider: NumberString;
+	maxQuota: null | NumberString;
+	postponedUntil: null | NumberString;
+	provider: null | NumberString;
 
-	imapAccount: ImapAccount;
+	imapAccount: null | ImapAccount;
 	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
+	imapAccountSyncState: null | ImapAccountSyncStateTransferAggregatedType;
 }
 
 export type ImapPostIn = {
@@ -4679,16 +4680,17 @@ export type ImapPostIn = {
 	_original?: ImapPostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
-	ownerGroup: Id;
-	maxQuota: NumberString;
-	postponedUntil: NumberString;
-	provider: NumberString;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
+	ownerGroup: null | Id;
+	maxQuota: null | NumberString;
+	postponedUntil: null | NumberString;
+	provider: null | NumberString;
 
-	imapAccount: ImapAccount;
+	imapAccount: null | ImapAccount;
 	rootImportMailSet: null | IdTuple;
 	syncLabel: null | IdTuple;
+	imapAccountSyncState: null | ImapAccountSyncStateTransferAggregatedType;
 }
 export const ImapPostOutTypeRef: TypeRef<ImapPostOut> = new TypeRef("tutanota", 1955)
 
@@ -5044,4 +5046,96 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	imapSpecialUse: null | string;
 
 	mailSet: null | IdTuple;
+}
+export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2067)
+
+export function createOAuthTokenEndpointResponseTransferAggregatedType(values: OAuthTokenEndpointResponseTransferAggregatedTypeParams): OAuthTokenEndpointResponseTransferAggregatedType {
+    return Object.assign(create(typeModels[OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef.typeId], OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef), values)
+}
+
+export type OAuthTokenEndpointResponseTransferAggregatedTypeParams = {
+
+
+	accessToken: string;
+	refreshToken: null | string;
+	expiresIn: null | NumberString;
+	tokenType: string;
+}
+
+export type OAuthTokenEndpointResponseTransferAggregatedType = {
+	_type: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType>;
+	_original?: OAuthTokenEndpointResponseTransferAggregatedType
+
+	_id: Id;
+	accessToken: string;
+	refreshToken: null | string;
+	expiresIn: null | NumberString;
+	tokenType: string;
+}
+export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2073)
+
+export function createImapAccountTransferAggregatedType(values: ImapAccountTransferAggregatedTypeParams): ImapAccountTransferAggregatedType {
+    return Object.assign(create(typeModels[ImapAccountTransferAggregatedTypeTypeRef.typeId], ImapAccountTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapAccountTransferAggregatedTypeParams = {
+
+
+	host: string;
+	port: NumberString;
+	username: string;
+	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
+
+	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponseTransferAggregatedType;
+}
+
+export type ImapAccountTransferAggregatedType = {
+	_type: TypeRef<ImapAccountTransferAggregatedType>;
+	_original?: ImapAccountTransferAggregatedType
+
+	_id: Id;
+	host: string;
+	port: NumberString;
+	username: string;
+	password: null | string;
+	ignoreCertificateErrors: boolean;
+	customCertificateData: null | Uint8Array<ArrayBuffer>;
+
+	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponseTransferAggregatedType;
+}
+export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2082)
+
+export function createImapAccountSyncStateTransferAggregatedType(values: ImapAccountSyncStateTransferAggregatedTypeParams): ImapAccountSyncStateTransferAggregatedType {
+    return Object.assign(create(typeModels[ImapAccountSyncStateTransferAggregatedTypeTypeRef.typeId], ImapAccountSyncStateTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapAccountSyncStateTransferAggregatedTypeParams = {
+
+
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+	provider: NumberString;
+
+	imapAccount: ImapAccountTransferAggregatedType;
+	rootImportMailSet: null | IdTuple;
+	imapSyncLabel: null | IdTuple;
+}
+
+export type ImapAccountSyncStateTransferAggregatedType = {
+	_type: TypeRef<ImapAccountSyncStateTransferAggregatedType>;
+	_original?: ImapAccountSyncStateTransferAggregatedType
+
+	_id: Id;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	maxQuota: NumberString;
+	postponedUntil: NumberString;
+	provider: NumberString;
+
+	imapAccount: ImapAccountTransferAggregatedType;
+	rootImportMailSet: null | IdTuple;
+	imapSyncLabel: null | IdTuple;
 }
