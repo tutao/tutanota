@@ -78,7 +78,8 @@ class WidgetUIViewModel(
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
 		if (widgetStoredState == null) {
-			Log.w(TAG, "No previous state found, probably missing configuration!")
+			Log.w(TAG, "No previous stored settings state found, probably missing configuration!")
+			Log.d(TAG, "Current WidgetUIViewModel value is: ${uiState.value}")
 			_uiState.value = WidgetUIState.Loading
 			return uiState.value
 		}
