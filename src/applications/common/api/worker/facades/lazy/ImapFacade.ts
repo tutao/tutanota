@@ -9,6 +9,7 @@ import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { assertNotNull } from "@tutao/utils"
 import {
+	createImapAccountSyncStateTransferAggregatedType,
 	createImapDeleteIn,
 	createImapFolderDeleteIn,
 	createImapFolderPostIn,
@@ -91,6 +92,7 @@ export class ImapFacade {
 			rootImportMailSet: rootImportMailSetId,
 			syncLabel: syncLabelId,
 			provider: initializeParams.provider.toString(),
+			imapAccountSyncState: createImapAccountSyncStateTransferAggregatedType({}),
 		})
 		imapPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 		imapPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
