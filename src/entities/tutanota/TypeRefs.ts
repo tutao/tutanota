@@ -4587,12 +4587,13 @@ export function createImapFolderPostIn(values: ImapFolderPostInParams): ImapFold
 export type ImapFolderPostInParams = {
 
 
-	path: string;
+	path: null | string;
 	shouldSync: boolean;
 	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
 	mailSet: null | IdTuple;
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType;
 }
 
 export type ImapFolderPostIn = {
@@ -4601,15 +4602,16 @@ export type ImapFolderPostIn = {
 	_original?: ImapFolderPostIn
 
 	_format: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
-	ownerGroup: Id;
-	path: string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
+	ownerGroup: null | Id;
+	path: null | string;
 	shouldSync: boolean;
 	imapSpecialUse: null | string;
 
 	imapAccountSyncState: IdTuple;
 	mailSet: null | IdTuple;
+	imapFolderSyncState: null | ImapFolderSyncStateTransferAggregatedType;
 }
 export const ImapFolderPostOutTypeRef: TypeRef<ImapFolderPostOut> = new TypeRef("tutanota", 1937)
 
@@ -5014,4 +5016,32 @@ export type MailSetTransferAggregatedType = {
 	color: null | string;
 
 	parentFolder: null | IdTuple;
+}
+export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2058)
+
+export function createImapFolderSyncStateTransferAggregatedType(values: ImapFolderSyncStateTransferAggregatedTypeParams): ImapFolderSyncStateTransferAggregatedType {
+    return Object.assign(create(typeModels[ImapFolderSyncStateTransferAggregatedTypeTypeRef.typeId], ImapFolderSyncStateTransferAggregatedTypeTypeRef), values)
+}
+
+export type ImapFolderSyncStateTransferAggregatedTypeParams = {
+
+
+	path: string;
+	imapSpecialUse: null | string;
+
+	mailSet: null | IdTuple;
+}
+
+export type ImapFolderSyncStateTransferAggregatedType = {
+	_type: TypeRef<ImapFolderSyncStateTransferAggregatedType>;
+	_original?: ImapFolderSyncStateTransferAggregatedType
+
+	_id: Id;
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	path: string;
+	imapSpecialUse: null | string;
+
+	mailSet: null | IdTuple;
 }
