@@ -141,8 +141,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 			val remoteStorage = RemoteStorage(db)
 
 			val serverURL = remoteStorage.getRemoteUrl()
-			val tempDir= TempDir(applicationContext)
-			val tempFs= TempFs(applicationContext, SecureRandom(),tempDir)
+			val tempDir = TempDir(applicationContext)
+			val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 			val crypto = AndroidNativeCryptoFacade(baseContext, tempFs)
 			val sdk =
 				if (serverURL == null) {
@@ -256,30 +256,27 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
-							try {
-								val activityContext = this
-								val storeJob = viewModel.storeSettings(this, appWidgetId)
-								storeJob.invokeOnCompletion {
-									lifecycleScope.launch {
-										Log.i(TAG, "Asking for widget reload after user change its settings")
-										val manager = GlanceAppWidgetManager(activityContext)
-										val widget = Agenda()
-										val glanceIds = manager.getGlanceIds(widget.javaClass)
-										glanceIds.forEach { glanceId ->
-											widget.update(context, glanceId)
-										}
+							lifecycleScope.launch {
+								try {
+									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
+									Log.i(TAG, "Asking for widget reload after user change its settings")
+									val manager = GlanceAppWidgetManager(applicationContext)
+									val widget = Agenda()
+									manager.getGlanceIds(widget.javaClass).forEach { glanceId ->
+										widget.update(applicationContext, glanceId)
 									}
+									setResult(Activity.RESULT_OK, resultValue)
+								} catch (ex: Exception) {
+									Toast.makeText(
+										applicationContext,
+										"Could not save widget config - ${ex.message}",
+										Toast.LENGTH_SHORT
+									).show()
+								} finally {
+									finish()
 								}
-								setResult(Activity.RESULT_OK, resultValue)
-							} catch (ex: Exception) {
-								Toast.makeText(
-									applicationContext,
-									"Could not save widget config - ${ex.message}",
-									Toast.LENGTH_SHORT
-								).show()
 							}
 
-							finish()
 						}
 					)
 				}
