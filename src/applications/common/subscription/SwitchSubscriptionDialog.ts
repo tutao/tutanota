@@ -75,7 +75,7 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	if (!hasMatchingExternalStoreSubscription(accountingInfo, lastBooking)) {
+	if (hasMatchingExternalStoreSubscription(accountingInfo, lastBooking)) {
 		await showManageSubscriptionThroughExternalStoreDialog()
 		return
 	}

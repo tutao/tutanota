@@ -2495,6 +2495,10 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"waitingForGooglePlayConfirmation_msg": "Warte auf Bestätigung des Abonnements von Google …",
+		"googlePlayConfirmationTimeout_msg": "Google hat Ihr Abonnement noch nicht bestätigt. Ihr Konto sollte innerhalb der nächsten 72 Stunden aktualisiert werden. Sollte dies nicht der Fall sein, beantragen Sie bitte in den Abonnementeinstellungen des Google Play Stores eine Rückerstattung bei Google.",
+		"checkoutWithGooglePlay_action": "Im Google Play Store bezahlen",
+		"subscriptionSettingGoogleWebsite_action": "Google-Webseite"
 	}
 }

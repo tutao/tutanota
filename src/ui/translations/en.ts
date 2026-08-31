@@ -2499,5 +2499,9 @@ export default {
 		"storeSubscriptionGoogle_msg": "Please manage subscriptions made in the Google Play Store directly in there.\nSee {AppStorePayment}",
 		"storeDowngradeOrResubscribe_msg": "Your current subscription is expired. Would you like to downgrade your account or resubscribe to keep the paid features?\nSee {AppStoreDowngrade}",
 		"storeNoSubscriptionGoogle_msg": "There is an existing subscription for your account through another Google Account.\nSee {AppStorePayment}",
-	}
+		"waitingForGooglePlayConfirmation_msg": "Waiting for Google to confirm subscription …",
+		"googlePlayConfirmationTimeout_msg": "Google has not confirmed your subscription yet. Your account should be upgraded within the next 72 hours. If it is not, request a refund from Google in the Google Play subscription settings.",
+		"checkoutWithGooglePlay_action": "Checkout with Google Play",
+		"subscriptionSettingGoogleWebsite_action": "Google website"
+		}
 }

@@ -2496,3 +2496,7 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "storeSubscriptionGoogle_msg"
 	| "storePaymentMethodChangeGoogle_msg"
+	| "waitingForGooglePlayConfirmation_msg"
+	| "googlePlayConfirmationTimeout_msg"
+	| "checkoutWithGooglePlay_action"
+	| "subscriptionSettingGoogleWebsite_action"
