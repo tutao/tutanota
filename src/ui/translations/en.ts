@@ -2144,7 +2144,7 @@ export default {
 		"subscriptionSettingOptionPageRevoke_action": "Refund (revoke contract)",
 		"subscriptionSettingOptionPageRevoke_label": "Cancel your contract and get a refund. This is only available within the first 14 days of your subscription.",
 		"subscriptionSettingResponderFeature_label": "Autoresponder",
-		"subscriptionSettingResponderFeature_msg": "If you have set an autoresponder please deactivate it in Settings > Mail > Autoresponder",
+		"subscriptionSettingResponderFeature_msg": "If you have set an autoresponder please deactivate it in Settings > Email > Autoresponder",
 		"subscriptionSettingRevocationSubscriptionOnlyFeatures_msg": "If you're using any of the features below, please deactivate them first. Otherwise, we won't be able to downgrade your account automatically, and you'll need to downgrade it manually.",
 		"subscriptionSettingRevokePageExplanation_msg": "<ul><li>You have the right to revoke your contract within 14 days of the purchase.</li><li>By revoking, your contract will be canceled and you will receive a full refund.</li><li>Your account will then be downgraded to the free plan</li><li>If you are using paid features, you must deactivate them before.</li></ul>",
 		"subscriptionSettings_label": "Subscription Settings",
