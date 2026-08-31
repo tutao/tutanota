@@ -81,28 +81,28 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-		Log.d(TAG, "provideGlance called")
 
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+		Log.d(TAG, "[$appWidgetId] provideGlance called")
+
 		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
 
 		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated) {
-			Log.i(TAG, "Widget UI state is empty, starting coroutine to populate UI state.")
-
+			Log.i(TAG, "[$appWidgetId] Widget UI state is empty, starting coroutine to populate UI state.")
 			withContext(Dispatchers.IO) {
 				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
+					context.widgetDataStore,
+					context.widgetCacheDataStore,
+					LocalDateTime.now()
 				)
 			}
 		}
 
 		provideContent {
-			Log.d(TAG, "provideContent called")
+			Log.d(TAG, "[$appWidgetId] provideContent called")
 			val data by widgetUIViewModel.uiState.collectAsState()
 
-			GlanceTheme(
-				colors = AppTheme.colors
-			) {
+			GlanceTheme(colors = AppTheme.colors) {
 				WidgetBody(data, userId)
 			}
 		}
@@ -111,36 +111,45 @@ class Agenda : GlanceAppWidget() {
 	suspend fun setupWidget(
 		context: Context, appWidgetId: Int
 	): Pair<WidgetUIViewModel, String?> {
-		val db = AppDatabase.getDatabase(context, true)
-		val remoteStorage = RemoteStorage(db)
-		val tempDir = TempDir(context)
-		val tempFs = TempFs(context, SecureRandom(), tempDir)
-		val crypto = AndroidNativeCryptoFacade(context, tempFs)
-		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+		if (WidgetViewModelProvider.getModelFor(appWidgetId) == null) {
+			val db = AppDatabase.getDatabase(context, true)
+			val remoteStorage = RemoteStorage(db)
+			val tempDir = TempDir(context)
+			val tempFs = TempFs(context, SecureRandom(), tempDir)
+			val crypto = AndroidNativeCryptoFacade(context, tempFs)
+			val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+			val birthdayStrings = BirthdayStrings(
+				context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
+			)
 
-		val sdk = try {
-			Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
-		} catch (e: Exception) {
-			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
-			null
+			val sdk = try {
+				Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
+			} catch (e: Exception) {
+				Log.e(TAG, "[$appWidgetId] Failed to initialize SDK, falling back to cached events if available. $e")
+				null
+			}
+			val widgetUIViewModel = WidgetUIViewModel.initWithData(
+				context.widgetDataRepository,
+				appWidgetId,
+				nativeCredentialsFacade,
+				crypto,
+				sdk,
+				Calendar.getInstance(),
+				birthdayStrings,
+				context.widgetDataStore,
+				context.widgetCacheDataStore
+			)
+			WidgetViewModelProvider.addNew(appWidgetId, widgetUIViewModel)
 		}
 
-		val birthdayStrings = BirthdayStrings(
-			context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
-		)
+		val widgetUIViewModel: WidgetUIViewModel = WidgetViewModelProvider.getModelFor(appWidgetId)!!
 
-		val widgetUIViewModel = WidgetUIViewModel(
-			context.widgetDataRepository,
-			appWidgetId,
-			nativeCredentialsFacade,
-			crypto,
-			sdk,
-			Calendar.getInstance(),
-			birthdayStrings
-		)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
-		return Pair(widgetUIViewModel, userId)
+		val pair = Pair(widgetUIViewModel, userId)
+		Log.d(TAG, "[$appWidgetId] Widget setup data: $pair")
+
+		return pair
 	}
 
 	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {
@@ -207,7 +216,7 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				is WidgetUIState.NewlyCreated -> {
-					Log.w(TAG, "Widget State: NewlyCreated")
+					// Ideally this state is never rendered because provideGlance loads it before provideContent().
 				}
 			}
 		}
@@ -257,7 +266,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -369,7 +378,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -445,7 +454,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -512,7 +521,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -534,7 +543,7 @@ class Agenda : GlanceAppWidget() {
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
