@@ -1,9 +1,10 @@
-import { CancelledError, DomainConfig, EnvProvider } from "@tutao/app-env"
-import { assertNotNull, isNotNull, newPromise, Nullable, typedEntries, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { DomainConfig, EnvProvider } from "@tutao/app-env"
+import { assertNotNull, isNotNull, Nullable, typedEntries } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
-import { ConnectionError, handleRestError, PayloadTooLargeError, SuspensionError } from "./error.js"
+import { handleRestError, PayloadTooLargeError, SuspensionError, XhrError } from "./error.js"
 import {
 	HttpMethod,
+	InterceptedResponse,
 	MediaType,
 	RestBinaryBody,
 	RestBody,
@@ -13,10 +14,11 @@ import {
 	RestTextBody,
 	SuspensionBehavior,
 } from "./types"
-import { once } from "../utils/memoized"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
+import { HttpResponse } from "./HttpClientJavascript"
+import { HttpClient } from "./HttpClient"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -32,12 +34,13 @@ export const REQUEST_SIZE_LIMIT_MAP: Map<string, number> = new Map([
 	["/rest/tutanota/draftservice", REQUEST_SIZE_LIMIT_DEFAULT * 5], // should be large enough
 	["/rest/tutanota/importmailservice", IMPORT_MAIL_SERVICE_SIZE_LIMIT],
 ])
-const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
+export const BLOB_REQUEST_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 
 export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
 	body: null,
 	responseType: null,
-	progressListener: null,
+	uploadProgressListener: null,
+	downloadProgressListener: null,
 	baseUrl: null,
 	headers: null,
 	queryParams: null,
@@ -50,12 +53,8 @@ export const DEFAULT_REST_CLIENT_OPTIONS: RestClientOptions = {
  * Allows REST communication with the server.
  * The RestClient observes upload/download progress and times
  * out in case no data is sent or received for a certain time.
- *
- * Uses XmlHttpRequest as there is still no support for tracking
- * upload progress with fetch (see https://stackoverflow.com/a/69400632)
  */
 export class RestClient implements RestClientInterface {
-	private lastRequestId: number
 	// accurate to within a few seconds, depending on network speed
 	private serverTimeOffsetMs: number | null = null
 	private responseMiddlewares: Array<RestClientMiddleware> = new Array<RestClientMiddleware>()
@@ -64,243 +63,110 @@ export class RestClient implements RestClientInterface {
 		private readonly suspensionHandler: restSuspension.SuspensionHandler,
 		private readonly domainConfig: DomainConfig,
 		private readonly clientPlatform: string,
-	) {
-		this.lastRequestId = 0
-	}
+		private readonly httpClient: HttpClient,
+	) {}
 
 	addMiddleware(middleware: RestClientMiddleware): RestClient {
 		this.responseMiddlewares.push(middleware)
 		return this
 	}
 
-	request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
-		// @ts-ignore
-		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
-		const verbose: boolean = EnvProvider.isWorker() && debug
-
+	async request(path: string, method: HttpMethod, options: RestClientOptions): Promise<any | null> {
 		this.checkRequestSizeLimit(path, method, options.body ?? null)
 
 		if (this.suspensionHandler.isSuspended()) {
 			return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
 		} else {
-			return newPromise((resolve, _reject) => {
-				// Make sure to call reject() only once (e.g. if both xhr.onabort and xhr.upload.onabort fire) because
-				// it is illegal to call resolve/reject more than once
-				const reject = once(_reject)
-				const id = ++this.lastRequestId
+			const queryParams: Dict = options.queryParams ?? {}
 
-				const queryParams: Dict = options.queryParams ?? {}
+			if (method === HttpMethod.GET && options.body instanceof RestTextBody) {
+				queryParams["_body"] = options.body.payload // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
+			}
 
-				if (method === HttpMethod.GET && options.body instanceof RestTextBody) {
-					queryParams["_body"] = options.body.payload // get requests are not allowed to send a body. Therefore, we convert our body to a parameter
+			if (isNotNull(options.noCORS) && options.noCORS) {
+				queryParams["cv"] = EnvProvider.get().getVersionNumber()
+				if (EnvProvider.get().networkDebuggingEnabled()) {
+					queryParams["network-debugging"] = "enable-network-debugging"
 				}
+			}
 
-				if (isNotNull(options.noCORS) && options.noCORS) {
-					queryParams["cv"] = EnvProvider.get().getVersionNumber()
-					if (EnvProvider.get().networkDebuggingEnabled()) {
-						queryParams["network-debugging"] = "enable-network-debugging"
-					}
+			const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
+			const resourceURL = new URL(origin)
+			resourceURL.pathname = path
+			const url = addParamsToUrl(resourceURL, queryParams).toString()
+			const headers = this.createHeaders(options)
+			const { downloadProgressListener, uploadProgressListener, body, abortSignal, responseType, noCORS } = options
+			const timeout = options.body instanceof RestBinaryBody ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue()
+
+			let response: HttpResponse
+			try {
+				response = await this.httpClient.request(
+					url.toString(),
+					method,
+					body,
+					headers,
+					responseType,
+					timeout,
+					abortSignal,
+					noCORS,
+					uploadProgressListener,
+					downloadProgressListener,
+				)
+				this.saveServerTimeOffsetFromRequest(response)
+			} catch (e) {
+				if (e instanceof XhrError) {
+					logFailedRequest(method, url.toString(), e.response, options)
+					this.saveServerTimeOffsetFromRequest(e.response)
+					throw handleRestError(
+						e.response.status,
+						` | ${method} ${url}`,
+						e.response.getResponseHeader("Error-Id"),
+						e.response.getResponseHeader("Precondition"),
+					)
+				} else {
+					throw e
 				}
+			}
 
-				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig)
-				const resourceURL = new URL(origin)
-				resourceURL.pathname = path
-				const url = addParamsToUrl(resourceURL, queryParams)
-				const xhr = new XMLHttpRequest()
-				xhr.open(method, url.toString())
+			const interceptedResponse: InterceptedResponse = { url: url.toString(), getHeader: (name) => response.getResponseHeader(name) }
+			await Promise.all(this.responseMiddlewares.map((middleware) => middleware.interceptResponse(interceptedResponse, method)))
 
-				this.setHeaders(xhr, options)
-
-				xhr.responseType = options.responseType === MediaType.Json || options.responseType === MediaType.Text ? "text" : "arraybuffer"
-
-				// We time out reqeuests if there is no progress for some time
-				let requestTimeoutTimeoutID: TimeoutID | null = null
-				const abortOnTimeout = (): void => {
-					console.log(TAG, `${id}: ${String(new Date())} aborting ${requestTimeoutTimeoutID}`)
-					xhr.abort()
+			if (response.status === 200 || (method === HttpMethod.POST && response.status === 201)) {
+				const body = response.body
+				if (body instanceof RestTextBody) {
+					return body.payload
+				} else if (body instanceof RestBinaryBody) {
+					return body.payload
+				} else {
+					return null
 				}
-				const restartTimeoutTimer = (): void => {
-					if (!usingTimeoutAbort()) {
-						return
-					}
+			} else {
+				const suspensionTime = response.getResponseHeader("Retry-After") ?? response.getResponseHeader("Suspension-Time") ?? null
+				const isSuspensionResp = restSuspension.isSuspensionResponse(response.status, suspensionTime)
 
-					if (requestTimeoutTimeoutID != null) {
-						clearTimeout(requestTimeoutTimeoutID)
-					}
-					const isBlobRequest = options.body instanceof RestBinaryBody
-					requestTimeoutTimeoutID = setTimeout(abortOnTimeout, isBlobRequest ? BLOB_REQUEST_TIMEOUT_MS : EnvProvider.get().getTimeOutValue())
-				}
-				const cancelTimeoutTimer = (): void => {
-					if (requestTimeoutTimeoutID != null) clearTimeout(requestTimeoutTimeoutID)
-				}
+				if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
+					throw new SuspensionError(
+						`blocked for ${suspensionTime}, not suspending (${response.status})`,
+						isNotNull(suspensionTime) ? (parseInt(suspensionTime) * 1000).toString() : "unknown time",
+					)
+				} else if (isSuspensionResp) {
+					this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
 
-				restartTimeoutTimer()
-
-				if (isNotNull(options.abortSignal)) {
-					options.abortSignal.addEventListener(
-						"abort",
-						() => {
-							xhr.abort()
-						},
-						{ once: true },
+					return this.suspensionHandler.deferRequest(() => this.request(path, method, options))
+				} else {
+					logFailedRequest(method, url, response, options)
+					throw handleRestError(
+						response.status,
+						`| ${method} ${path}`,
+						response.getResponseHeader("Error-Id"),
+						response.getResponseHeader("Precondition"),
 					)
 				}
-
-				if (verbose) {
-					console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
-				}
-
-				xhr.onload = async (): Promise<void> => {
-					try {
-						// XMLHttpRequestProgressEvent, but not needed
-						if (verbose) {
-							console.log(TAG, `${id}: ${String(new Date())} finished request. Clearing Timeout ${String(requestTimeoutTimeoutID)}.`)
-						}
-
-						cancelTimeoutTimer()
-
-						this.saveServerTimeOffsetFromRequest(xhr)
-
-						await Promise.all(this.responseMiddlewares.map((middleware) => middleware.interceptResponse(xhr, method)))
-
-						if (xhr.status === 200 || (method === HttpMethod.POST && xhr.status === 201)) {
-							if (options.responseType === MediaType.Json || options.responseType === MediaType.Text) {
-								resolve(xhr.response)
-							} else if (options.responseType === MediaType.Binary) {
-								resolve(new Uint8Array(xhr.response))
-							} else {
-								resolve(null)
-							}
-						} else {
-							const suspensionTime = xhr.getResponseHeader("Retry-After") ?? xhr.getResponseHeader("Suspension-Time") ?? null
-							const isSuspensionResp = restSuspension.isSuspensionResponse(xhr.status, suspensionTime)
-
-							if (isSuspensionResp && options.suspensionBehavior === SuspensionBehavior.Throw) {
-								reject(
-									new SuspensionError(
-										`blocked for ${suspensionTime}, not suspending (${xhr.status})`,
-										isNotNull(suspensionTime) ? (parseInt(suspensionTime) * 1000).toString() : "unknown time",
-									),
-								)
-							} else if (isSuspensionResp) {
-								this.suspensionHandler.activateSuspensionIfInactive(Number(suspensionTime), resourceURL)
-
-								resolve(this.suspensionHandler.deferRequest(() => this.request(path, method, options)))
-							} else {
-								logFailedRequest(method, url, xhr, options)
-								reject(
-									handleRestError(
-										xhr.status,
-										`| ${method} ${path}`,
-										xhr.getResponseHeader("Error-Id"),
-										xhr.getResponseHeader("Precondition"),
-									),
-								)
-							}
-						}
-					} catch (e) {
-						const msg = "unexpected error in RestClient::onload handler: "
-						console.error(msg, e)
-						reject(msg + e.stack)
-					}
-				}
-
-				xhr.onerror = (): void => {
-					try {
-						cancelTimeoutTimer()
-						logFailedRequest(method, url, xhr, options)
-						reject(handleRestError(xhr.status, ` | ${method} ${path}`, xhr.getResponseHeader("Error-Id"), xhr.getResponseHeader("Precondition")))
-					} catch (e) {
-						const msg = "unexpected error in RestClient::onerror handler: "
-						console.error(msg, e)
-						reject(msg + e.stack)
-					}
-				}
-
-				// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
-				if (isNull(options.noCORS) || !options.noCORS) {
-					xhr.upload.onprogress = (pe: ProgressEvent): void => {
-						if (verbose) {
-							console.log(TAG, `${id}: ${String(new Date())} upload progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
-						}
-
-						restartTimeoutTimer()
-
-						if (verbose) {
-							console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
-						}
-
-						if (options.progressListener != null && pe.lengthComputable) {
-							// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-							options.progressListener.upload((1 / pe.total) * pe.loaded, pe.loaded)
-						}
-					}
-
-					xhr.upload.ontimeout = (e): void => {
-						if (verbose) {
-							console.log(TAG, `${id}: ${String(new Date())} upload timeout. calling error handler.`, e)
-						}
-						xhr.onerror?.(e)
-					}
-
-					xhr.upload.onerror = (e): void => {
-						if (verbose) {
-							console.log(TAG, `${id}: ${String(new Date())} upload error. calling error handler.`, e)
-						}
-						xhr.onerror?.(e)
-					}
-
-					xhr.upload.onabort = (e): void => {
-						cancelTimeoutTimer()
-						if (options.abortSignal?.aborted ?? false) {
-							reject(new CancelledError(`upload has been aborted ${method} ${path}`))
-						} else {
-							if (verbose) {
-								console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
-							}
-							reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${path}`))
-						}
-					}
-				}
-
-				xhr.onprogress = (pe: ProgressEvent): void => {
-					if (verbose) {
-						console.log(TAG, `${id}: ${String(new Date())} download progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
-					}
-
-					restartTimeoutTimer()
-
-					if (verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
-					}
-
-					if (options.progressListener != null && pe.lengthComputable) {
-						// see https://developer.mozilla.org/en-US/docs/Web/API/ProgressEvent
-						options.progressListener.download((1 / pe.total) * pe.loaded, pe.loaded)
-					}
-				}
-
-				xhr.onabort = (): void => {
-					cancelTimeoutTimer()
-					if (options.abortSignal?.aborted ?? false) {
-						reject(new CancelledError(`Request canceled | ${method} ${path}`))
-					} else {
-						reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${path}`))
-					}
-				}
-
-				if (options.body instanceof RestBinaryBody) {
-					xhr.send(uint8ArrayToArrayBuffer(options.body.payload))
-				} else if (options.body instanceof RestTextBody) {
-					xhr.send(options.body.payload)
-				} else {
-					xhr.send()
-				}
-			})
+			}
 		}
 	}
 
-	private saveServerTimeOffsetFromRequest(xhr: XMLHttpRequest): void {
+	private saveServerTimeOffsetFromRequest(response: HttpResponse): void {
 		// Dates sent in the `Date` field of HTTP headers follow the format specified by rfc7231
 		// JavaScript's Date expects dates in the format specified by rfc2822
 		// rfc7231 provides three options of formats, the preferred one being IMF-fixdate. This one is definitely
@@ -308,7 +174,7 @@ export class RestClient implements RestClientInterface {
 		// format of rfc5322, which is the same as rfc2822 accepting more folding white spaces.
 		// Furthermore, there is no reason to expect the server to return any of the other two accepted formats, which
 		// are obsolete and accepted only for backwards compatibility.
-		const serverTimestamp = xhr.getResponseHeader("Date")
+		const serverTimestamp = response.getResponseHeader("Date")
 
 		if (serverTimestamp != null) {
 			// check that serverTimestamp has been returned
@@ -348,7 +214,7 @@ export class RestClient implements RestClientInterface {
 		}
 	}
 
-	setHeaders(xhr: XMLHttpRequest, options: RestClientOptions): void {
+	private createHeaders(options: RestClientOptions): Dict {
 		if (options.headers == null) {
 			options.headers = {}
 		}
@@ -379,10 +245,10 @@ export class RestClient implements RestClientInterface {
 
 		if (isNotNull(responseType)) {
 			headers["Accept"] = responseType
+		} else {
+			headers["Accept"] = MediaType.Json
 		}
-		for (const i in headers) {
-			xhr.setRequestHeader(i, headers[i])
-		}
+		return headers
 	}
 }
 
@@ -398,8 +264,8 @@ export function addParamsToUrl(url: URL, urlParams: Nullable<Dict>): URL {
 	return url
 }
 
-function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, options: RestClientOptions): void {
-	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), xhr.status, xhr.statusText]
+function logFailedRequest(method: HttpMethod, url: string, response: HttpResponse, options: RestClientOptions): void {
+	const args: Array<unknown> = [TAG, "failed request", method, url.toString(), response.status, response.statusText]
 	if (options.headers != null) {
 		args.push(Object.keys(options.headers))
 	}
@@ -413,9 +279,4 @@ function logFailedRequest(method: HttpMethod, url: URL, xhr: XMLHttpRequest, opt
 		args.push("no body")
 	}
 	console.log(...args)
-}
-
-/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
-function usingTimeoutAbort(): boolean {
-	return EnvProvider.get().isWebClient() || EnvProvider.get().isAndroidApp()
 }

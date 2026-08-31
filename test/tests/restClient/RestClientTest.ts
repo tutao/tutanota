@@ -1,6 +1,16 @@
 import o from "@tutao/otest"
 import { RestClient, restError, restSuspension } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestBinaryBody, RestClientMiddleware, RestTextBody } from "../../../src/platform-kit/rest-client/types"
+import {
+	HttpMethod,
+	InterceptedResponse,
+	MediaType,
+	ProgressListener,
+	RestBinaryBody,
+	RestClientMiddleware,
+	RestTextBody,
+	SuspensionBehavior,
+} from "../../../src/platform-kit/rest-client/types"
+import { CancelledError } from "../../../src/platform-kit/app-env/CancelledError"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -12,6 +22,8 @@ import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDet
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ApplicationTypesService_GET } from "@tutao/entities/base"
+import { HttpClientJavascript, HttpResponse } from "../../../src/platform-kit/rest-client/HttpClientJavascript"
+import { HttpClient } from "../../../src/platform-kit/rest-client/HttpClient"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 
@@ -44,7 +56,12 @@ o.spec("RestClientTest", function () {
 		})
 
 		o.beforeEach(() => {
-			restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, String(ClientPlatform.UNKNOWN))
+			restClient = new RestClient(
+				suspensionHandlerMock as SuspensionHandler,
+				domainConfigStub,
+				String(ClientPlatform.UNKNOWN),
+				new HttpClientJavascript(),
+			)
 		})
 
 		o.after(async function () {
@@ -183,7 +200,8 @@ o.spec("RestClientTest", function () {
 				let url = "/" + method + "/empty-body"
 				app[method.toLowerCase()](url, (req, res) => {
 					o(req.headers["content-type"]).equals(undefined)
-					o(req.headers["accept"]).equals(undefined)
+					// unlike XHR, fetch() always sends an Accept header ("*/*") so we set it explicitly
+					o(req.headers["accept"]).equals("application/json")
 					res.set("Date", SERVER_TIME_IN_HEADER)
 					res.send()
 				})
@@ -210,6 +228,39 @@ o.spec("RestClientTest", function () {
 				await o(() => restClient.request(url, method, { ...DEFAULT_REST_CLIENT_OPTIONS, baseUrl })).asyncThrows(restError.ResourceError)
 			}
 		}
+
+		o("a connection failure (not just a non-200 status) is translated into a ConnectionError", async function () {
+			o.timeout(400)
+			app.get("/get/connection-reset", (req, res) => {
+				// simulate a network-level failure (as opposed to a normal HTTP error response) by
+				// killing the socket before a response can be written
+				req.socket.destroy()
+			})
+
+			await o(() =>
+				restClient.request("/get/connection-reset", HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					baseUrl,
+				}),
+			).asyncThrows(restError.ConnectionError)
+		})
+
+		o("aborting the request via the abortSignal rejects with a CancelledError", async function () {
+			o.timeout(400)
+			app.get("/get/never-responds", (req, res) => {
+				// intentionally never respond; the test aborts the request before any response arrives
+			})
+
+			const controller = new AbortController()
+			const promise = restClient.request("/get/never-responds", HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				baseUrl,
+				abortSignal: controller.signal,
+			})
+			controller.abort()
+
+			await o(() => promise).asyncThrows(CancelledError)
+		})
 
 		o("get time successful request", async () => {
 			const test = testEmptyBody("GET")
@@ -307,10 +358,106 @@ o.spec("RestClientTest", function () {
 			o(res).equals(responseText)
 		})
 
+		o("download progress listener is invoked for a download, not the upload progress listener", async function () {
+			o.timeout(400)
+			let response = Buffer.alloc(1024 * 64, 7)
+			app.get("/get/binary-with-progress", (req, res) => {
+				res.send(response)
+			})
+
+			const downloadUpdates: Array<{ percent: number; bytes: number }> = []
+			const uploadUpdates: Array<{ percent: number; bytes: number }> = []
+			const res = await restClient.request("/get/binary-with-progress", HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				queryParams: {},
+				responseType: MediaType.Binary,
+				baseUrl,
+				downloadProgressListener: {
+					update(percent, bytes) {
+						downloadUpdates.push({ percent, bytes })
+					},
+				},
+				uploadProgressListener: {
+					update(percent, bytes) {
+						uploadUpdates.push({ percent, bytes })
+					},
+				},
+			})
+
+			o(Array.from(res as any)).deepEquals(Array.from(response))
+			o(downloadUpdates.length > 0).equals(true)("expected the download progress listener to be called at least once")
+			o(uploadUpdates.length).equals(0)("upload progress listener must not be called for a download")
+		})
+
+		o("a suspension response activates suspension and the request is retried through the suspension handler", async function () {
+			o.timeout(400)
+			let requestCount = 0
+			app.get("/get/suspend-then-succeed", (req, res) => {
+				requestCount++
+				if (requestCount === 1) {
+					res.set("Retry-After", "1")
+					res.status(503).send()
+				} else {
+					res.send('{"msg":"ok after suspension"}')
+				}
+			})
+
+			const activateSuspensionCalls: Array<{ seconds: number; url: string }> = []
+			restClient = new RestClient(
+				{
+					...suspensionHandlerMock,
+					activateSuspensionIfInactive: (seconds: number, url: URL) => {
+						activateSuspensionCalls.push({ seconds, url: url.toString() })
+					},
+				} as SuspensionHandler,
+				domainConfigStub,
+				String(ClientPlatform.UNKNOWN),
+				new HttpClientJavascript(),
+			)
+
+			const res = await restClient.request("/get/suspend-then-succeed", HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				responseType: MediaType.Json,
+				baseUrl,
+			})
+
+			o(res).equals('{"msg":"ok after suspension"}')
+			o(requestCount).equals(2)("expected the suspension handler to have caused a retry")
+			o(activateSuspensionCalls.length).equals(1)
+			o(activateSuspensionCalls[0]?.seconds).equals(1)
+		})
+
+		o("a suspension response throws a SuspensionError (with the retry time in ms) when suspensionBehavior is Throw", async function () {
+			o.timeout(400)
+			app.get("/get/suspend-throw", (req, res) => {
+				res.set("Retry-After", "42")
+				res.status(503).send()
+			})
+
+			let thrown: unknown = null
+			try {
+				await restClient.request("/get/suspend-throw", HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					baseUrl,
+					suspensionBehavior: SuspensionBehavior.Throw,
+				})
+			} catch (e) {
+				thrown = e
+			}
+
+			o(thrown instanceof restError.SuspensionError).equals(true)
+			o((thrown as restError.SuspensionError)?.data).equals("42000")
+		})
+
 		o("middlewares are invoked", async () => {
 			const middlewareOne = new CountingMiddleWare()
 			const middlewareTwo = new CountingMiddleWare()
-			restClient = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, String(ClientPlatform.UNKNOWN))
+			restClient = new RestClient(
+				suspensionHandlerMock as SuspensionHandler,
+				domainConfigStub,
+				String(ClientPlatform.UNKNOWN),
+				new HttpClientJavascript(),
+			)
 				.addMiddleware(middlewareOne)
 				.addMiddleware(middlewareTwo)
 			await testEmptyBody("GET")()
@@ -323,6 +470,28 @@ o.spec("RestClientTest", function () {
 			o(middlewareTwo.counter).equals(2)
 		})
 	})
+	o.spec("HttpClient wiring", function () {
+		o("passes upload and download progress listeners to the HttpClient in the correct argument positions", async function () {
+			const httpClient = new RecordingHttpClient()
+			const client = new RestClient(suspensionHandlerMock as SuspensionHandler, domainConfigStub, String(ClientPlatform.UNKNOWN), httpClient)
+
+			const uploadProgressListener: ProgressListener = { update: noOp }
+			const downloadProgressListener: ProgressListener = { update: noOp }
+
+			await client.request("/some/path", HttpMethod.PUT, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				uploadProgressListener,
+				downloadProgressListener,
+				baseUrl: "http://localhost",
+			})
+
+			o(httpClient.lastArgs).notEquals(null)
+			const [, , , , , , , , actualUploadProgressListener, actualDownloadProgressListener] = httpClient.lastArgs!
+			o(actualUploadProgressListener).equals(uploadProgressListener)
+			o(actualDownloadProgressListener).equals(downloadProgressListener)
+		})
+	})
+
 	o("isSuspensionResponse", () => {
 		o(restSuspension.isSuspensionResponse(503, "1")).equals(true)
 		o(restSuspension.isSuspensionResponse(429, "100")).equals(true)
@@ -336,7 +505,17 @@ o.spec("RestClientTest", function () {
 class CountingMiddleWare implements RestClientMiddleware {
 	constructor(public counter = 0) {}
 
-	async interceptResponse(sentRequest: XMLHttpRequest, method: HttpMethod): Promise<void> {
+	async interceptResponse(sentResponse: InterceptedResponse, method: HttpMethod): Promise<void> {
 		this.counter += 1
+	}
+}
+
+/** Records the exact arguments it was called with so tests can assert on their order/identity. */
+class RecordingHttpClient implements HttpClient {
+	public lastArgs: Parameters<HttpClient["request"]> | null = null
+
+	async request(...args: Parameters<HttpClient["request"]>): Promise<HttpResponse> {
+		this.lastArgs = args
+		return new HttpResponse(200, "OK", null, new Map())
 	}
 }

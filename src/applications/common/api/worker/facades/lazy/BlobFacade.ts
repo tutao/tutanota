@@ -618,7 +618,8 @@ export class BlobFacade {
 						noCORS: true,
 						suspensionBehavior: SuspensionBehavior.Suspend,
 						body: null,
-						progressListener: null,
+						uploadProgressListener: null,
+						downloadProgressListener: null,
 						abortSignal: null,
 					}),
 				`can't load instances from server `,
@@ -817,12 +818,12 @@ export class BlobFacade {
 					responseType: MediaType.Json,
 					baseUrl: serverUrl,
 					abortSignal,
-					progressListener: {
-						download() {},
-						upload(_, bytes) {
+					uploadProgressListener: {
+						update(_, bytes) {
 							onProgress?.(bytes)
 						},
 					},
+					downloadProgressListener: null,
 				})
 				return await this.parseBlobPostOutResponse(response)
 			},
@@ -1009,9 +1010,9 @@ export class BlobFacade {
 						noCORS: true,
 						headers: blobLoadOptions.extraHeaders,
 						suspensionBehavior: blobLoadOptions.suspensionBehavior,
-						progressListener: {
-							upload(_: number) {},
-							download(_: number, bytes: number) {
+						uploadProgressListener: null,
+						downloadProgressListener: {
+							update(_: number, bytes: number) {
 								onProgress(bytes)
 							},
 						},
