@@ -1,1 +1,1 @@
-public class SwDate {}
+public final class SwDate: Sendable {}
