@@ -305,10 +305,11 @@ import("../../ui/translations/en.js")
 			})
 		}
 
-		mailLocator.logins.addPostLoginAction(async () => {
-			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
-			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
-		})
+		// FIXME
+		// mailLocator.logins.addPostLoginAction(async () => {
+		// 	const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
+		// 	return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
+		// })
 
 		if (EnvProvider.get().isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {

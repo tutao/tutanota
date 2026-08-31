@@ -2,11 +2,23 @@ import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePer
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
-import { assertNotNull, collectToMap, difference, groupBy, isEmpty, isNotEmpty, lastThrow, LazyLoaded, partition, promiseMap } from "@tutao/utils"
+import {
+	assertNotNull,
+	collectToMap,
+	difference,
+	groupBy,
+	isEmpty,
+	isNotEmpty,
+	lastThrow,
+	LazyLoaded,
+	partition,
+	promiseMap,
+	splitInChunks,
+} from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
-import { InstancePipeline, ServerTypeModelResolver } from "@tutao/instance-pipeline"
+import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -46,30 +58,36 @@ const TAG = "[OfflineMailIndexer]"
 
 // we do not want to bump this up any higher, as it determines how big our range requests are, and we can potentially
 // break MAX_SAFE_SQL_VARS
-const INDEX_CHUNK_SIZE = 1000
+const INDEX_CHUNK_SIZE = 500
 
 /**
  * Mail indexer that efficiently indexes the entire user (i.e. all mailboxes they have access to)
  */
 export class OfflineMailIndexer implements MailIndexer {
+	private fullyIndexed: boolean = false
+	private currentlyIndexingPromise: Promise<void> | null = null
+	private indexTasks: (() => Promise<unknown>)[] = []
+	private abortController: AbortController = new AbortController()
+	private archiveIds = new Set<Id>()
+	private mailDetailsBlobServerTypeModel = new LazyLoaded(async () => {
+		return await this.typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
+	})
+	private mailDetailsBlobClientTypeModel = new LazyLoaded(async () => {
+		return await this.typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)
+	})
+
 	constructor(
 		private readonly offlineStoragePersistence: OfflineStoragePersistence,
 		private readonly blobFacade: BlobFacade,
 		private readonly entityClient: EntityClient,
 		private readonly mailFacade: MailFacade,
 		private readonly crypto: CryptoFacade,
-		private readonly serverTypeModelResolver: ServerTypeModelResolver,
+		private readonly typeModelResolver: TypeModelResolver,
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
-
-	private fullyIndexed: boolean = false
-	private currentlyIndexingPromise: Promise<void> | null = null
-	private indexTasks: (() => Promise<unknown>)[] = []
-	private abortController: AbortController = new AbortController()
-	private archiveIds = new Set<Id>()
 
 	get currentIndexTimestamp(): number {
 		return this.fullyIndexed ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
@@ -80,22 +98,10 @@ export class OfflineMailIndexer implements MailIndexer {
 		return true
 	}
 
-	private createSearchIndexStateInfo(progress: number, indexedMailCount: number = 0): SearchIndexStateInfo {
-		return {
-			initializing: false,
-			mailIndexEnabled: this.mailIndexingEnabled,
-			progress,
-			currentMailIndexTimestamp: this.currentIndexTimestamp,
-			aimedMailIndexTimestamp: FULL_INDEXED_TIMESTAMP,
-			indexedMailCount,
-			failedIndexingUpTo: null,
-		}
-	}
-
 	async init(): Promise<void> {
 		const mailIndexedGroups = (await this.offlineStoragePersistence.getIndexedGroups()).filter((indexedGroup) => indexedGroup.type === GroupType.Mail)
 		this.fullyIndexed = isNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === FULL_INDEXED_TIMESTAMP)
-		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
+		// await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
 	}
 
 	async afterMailCreated(mailid: IdTuple): Promise<void> {
@@ -140,30 +146,102 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.currentlyIndexingPromise
 	}
 
-	private mailDetailsBlobTypeModel = new LazyLoaded(async () => {
-		return await this.serverTypeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
-	})
+	async waitForIndex(): Promise<void> {
+		await this.currentlyIndexingPromise
+	}
 
+	async rebuildIndex(user: User): Promise<void> {
+		await this.offlineStoragePersistence.resetMailIndex()
+		await this.extendMailIndex(user)
+	}
+
+	async processEntityEvents(): Promise<void> {
+		// no-op
+	}
+
+	async beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void> {
+		// in case we never get around to importing, persist our queue
+		await this.offlineStoragePersistence.enqueueImport(importedMailsList, mailImportType)
+
+		// append to current index queue (unless the user cancelled indexing)
+		if (!this.abortController.signal.aborted) {
+			// FIXME
+			// this.indexTasks.push(() => this.processImport(importedMailsList, mailImportType))
+			// this.processIndexQueue()
+		}
+	}
+
+	cancelMailIndexing(): void {
+		this.abortController.abort(MailIndexingAbortReason.Cancelled)
+	}
+
+	private createSearchIndexStateInfo(progress: number, indexedMailCount: number = 0): SearchIndexStateInfo {
+		return {
+			initializing: false,
+			mailIndexEnabled: this.mailIndexingEnabled,
+			progress,
+			currentMailIndexTimestamp: this.currentIndexTimestamp,
+			aimedMailIndexTimestamp: FULL_INDEXED_TIMESTAMP,
+			indexedMailCount,
+			failedIndexingUpTo: null,
+		}
+	}
+
+	// FIXME
 	private async loadMailDetailsArchivesForUser(): Promise<void> {
-		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
+		const mailDetailsBlobServerTypeModel = await this.mailDetailsBlobServerTypeModel.getAsync()
+		const mailDetailsBlobClientTypeModel = await this.mailDetailsBlobClientTypeModel.getAsync()
 
 		for (const archiveId of this.archiveIds.values()) {
-			console.log(TAG, `Downloading archive ${archiveId}...`)
-			const storePromise = abortAware(this.abortController, async () => {
+			this.indexTasks.push(async () => {
 				const downloadStart = performance.now()
-				const blobs = await this.blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
+				console.log(TAG, `Downloading archive ${archiveId}...`)
+				const blobs = await this.blobFacade.downloadFullEncryptedDetailsBlobElementEntityArchive(
+					MailDetailsBlobTypeRef,
+					archiveId,
+					mailDetailsBlobClientTypeModel,
+					mailDetailsBlobServerTypeModel,
+				)
 				const downloadEnd = performance.now()
 				console.log(
 					TAG,
 					`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
 				)
-				await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
+
+				for (const chunk of splitInChunks(20, blobs)) {
+					await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobServerTypeModel, chunk)
+				}
 				const storeEnd = performance.now()
 				console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
 			})
 
-			await storePromise
+			// FIXME
+			break
+
+			// const storePromise = abortAware(this.abortController, async () => {
+			// 	const downloadStart = performance.now()
+			// 	console.log(TAG, `Downloading archive ${archiveId}...`)
+			// 	const blobs = await this.blobFacade.downloadFullEncryptedDetailsBlobElementEntityArchive(
+			// 		MailDetailsBlobTypeRef,
+			// 		archiveId,
+			// 		mailDetailsBlobClientTypeModel,
+			// 		mailDetailsBlobServerTypeModel,
+			// 	)
+			// 	const downloadEnd = performance.now()
+			// 	console.log(
+			// 		TAG,
+			// 		`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
+			// 	)
+			// 	// await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobServerTypeModel, blobs)
+			// 	const storeEnd = performance.now()
+			// 	console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
+			// })
+
+			// await storePromise
 		}
+
+		this.archiveIds.clear()
+		this.processIndexQueue()
 	}
 
 	private async fullyIndexUser(user: User): Promise<void> {
@@ -200,8 +278,8 @@ export class OfflineMailIndexer implements MailIndexer {
 			const indexStart = performance.now()
 
 			const updateProgress = async (progress: number) => {
-				const update = this.createSearchIndexStateInfo(Math.max(progress * 100, 1), indexedMailCount)
-				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
+				// const update = this.createSearchIndexStateInfo(Math.max(progress * 100, 1), indexedMailCount)
+				// await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			}
 
 			await updateProgress(0)
@@ -221,7 +299,7 @@ export class OfflineMailIndexer implements MailIndexer {
 					await updateProgress(progress)
 				})
 
-				// FIXM
+				// FIXME
 				// await this.offlineStoragePersistence.updateIndexingTimestamp(group, FULL_INDEXED_TIMESTAMP)
 
 				indexedMailboxes += 1
@@ -234,7 +312,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		console.log(TAG, `Updating UI...`)
 		this.fullyIndexed = true
-		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
+		// await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
 		const end = performance.now()
 		console.log(TAG, `Fully indexed (took ${end - start} ms). Cleaning up...`)
 		await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
@@ -277,25 +355,25 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		await this.loadMailDetailsArchivesForUser()
 
-		for (const mailList of allMailBags) {
-			if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
-				const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
-				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
-				const indexMailbagStart = performance.now()
-				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsIndexed, currentMailbagMailsDownloaded) => {
-					// We don't know how many mails a user has in a mailbox, so this curve actually never reaches 1 (but
-					// reaches ~99.98% after 5000 mails)
-					//
-					// This shows the user there is progress even it isn't known how long until it's finished.
-					const currentMailbagDownloadedPartialProgress = 1 - 5000 ** (-currentMailbagMailsDownloaded / 5000)
-					await mailboxProgress((indexedMailbags + currentMailbagDownloadedPartialProgress) / totalMailbags, newMailsIndexed)
-				})
-				const indexMailbagEnd = performance.now()
-				console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
-			}
-
-			indexedMailbags += 1
-		}
+		// for (const mailList of allMailBags) {
+		// 	if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
+		// 		const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
+		// 		console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
+		// 		const indexMailbagStart = performance.now()
+		// 		await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsIndexed, currentMailbagMailsDownloaded) => {
+		// 			// We don't know how many mails a user has in a mailbox, so this curve actually never reaches 1 (but
+		// 			// reaches ~99.98% after 5000 mails)
+		// 			//
+		// 			// This shows the user there is progress even it isn't known how long until it's finished.
+		// 			const currentMailbagDownloadedPartialProgress = 1 - 5000 ** (-currentMailbagMailsDownloaded / 5000)
+		// 			await mailboxProgress((indexedMailbags + currentMailbagDownloadedPartialProgress) / totalMailbags, newMailsIndexed)
+		// 		})
+		// 		const indexMailbagEnd = performance.now()
+		// 		console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
+		// 	}
+		//
+		// 	indexedMailbags += 1
+		// }
 	}
 
 	private async indexMailbag(
@@ -379,6 +457,78 @@ export class OfflineMailIndexer implements MailIndexer {
 		throw this.abortController.signal.reason
 	}
 
+	// FIXME
+	// private async processImport(importList: Id, mailImportType: MailImportType) {
+	// 	// First get the queue...
+	// 	let latestCommonImportedMailElementId: Id | null = await this.offlineStoragePersistence.getImportQueueProgress(importList)
+	// 	if (latestCommonImportedMailElementId == null) {
+	// 		return
+	// 	}
+	// 	const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
+	// 	const importedMails = await this.entityClient.loadAll(typeRef, importList, latestCommonImportedMailElementId)
+	// 	console.log(TAG, `Processing import of ${importedMails.length} new ${mailImportType} mails...`)
+	// 	if (isEmpty(importedMails)) {
+	// 		return
+	// 	}
+	//
+	// 	const zippedImportedIds = importedMails.map((importedMail) => {
+	// 		return {
+	// 			mailSetEntryElementId: elementIdPart(importedMail.mailSetEntry),
+	// 			commonImportedMailElementId: elementIdPart(importedMail._id),
+	// 		}
+	// 	})
+	//
+	// 	const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(assertNotNull(getFirstOrThrow(importedMails)._ownerGroup)))
+	// 	const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
+	// 	const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
+	// 	const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
+	//
+	// 	// Only mailSetEntry guaranteed to be there as long as the mail is there is the one on the entries list of the IMPORTED mail set,
+	// 	// the mailSetEntry referenced by the ImportedMail could already be deleted from our database if the user already moved the mail.
+	// 	const importedMailSetEntryListId = importedMailSet.entries
+	// 	const entries = await this.entityClient.loadMultiple(
+	// 		MailSetEntryTypeRef,
+	// 		importedMailSetEntryListId,
+	// 		zippedImportedIds.map((metaData) => metaData.mailSetEntryElementId),
+	// 	)
+	//
+	// 	let mailIds = entries.map((entries) => entries.mail).sort((a, b) => compareOldestFirst(elementIdPart(a), elementIdPart(b), EntityIdEncoding.Base64Ext))
+	//
+	// 	// Can happen if we finished but the app closed before this was called
+	// 	if (isEmpty(mailIds)) {
+	// 		await this.offlineStoragePersistence.removeImportQueueEntry(importList)
+	// 		return
+	// 	}
+	//
+	// 	let indexedMailCount = 0
+	// 	await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(1, indexedMailCount))
+	//
+	// 	const archiveDownloadPromises = new Map()
+	//
+	// 	for (const chunk of splitInChunks(this.indexChunkSize, mailIds)) {
+	// 		const idsGrouped = groupByAndMap(chunk, listIdPart, elementIdPart)
+	// 		const mails = await promiseMap(idsGrouped, async ([list, elements]) => {
+	// 			return await this.entityClient.loadMultiple(MailTypeRef, list, elements)
+	// 		})
+	// 		const mailsFlat = mails.flat()
+	// 		await this.indexNonRecentMails(mailsFlat, archiveDownloadPromises, async () => {
+	// 			const update = this.createSearchIndexStateInfo(Math.max(1, (indexedMailCount / mailIds.length) * 100), indexedMailCount++)
+	// 			await this.infoMessageHandler.onSearchIndexStateUpdate(update)
+	// 		})
+	//
+	// 		const latestMailId = lastThrow(chunk)
+	// 		const latestMail = assertNotNull(mailsFlat.find((mail) => isSameId(mail._id, latestMailId)))
+	// 		const latestMailSetEntryElementId = constructMailSetEntryId(latestMail.receivedDate, elementIdPart(latestMail._id))
+	// 		const latestCommonImportedMailElementId = assertNotNull(
+	// 			zippedImportedIds.find((zippedIds) => isSameId(idToElementId(zippedIds.mailSetEntryElementId), idToElementId(latestMailSetEntryElementId))),
+	// 		).commonImportedMailElementId
+	// 		await this.offlineStoragePersistence.updateImportQueueProgress(importList, latestCommonImportedMailElementId, mailImportType)
+	// 	}
+	//
+	// 	await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
+	// 	await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
+	// }
+
 	private async loadNonRecentMails(mails: readonly Mail[]): Promise<void> {
 		const [draftMails, nonDraftMails] = partition(mails, isDraft)
 		// FIXME newMailDownloader also loads attachments which is unnecessary
@@ -392,7 +542,7 @@ export class OfflineMailIndexer implements MailIndexer {
 	}
 
 	private async indexNonRecentMails(mails: readonly Mail[], onMailStore?: () => Promise<unknown>) {
-		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
+		const mailDetailsBlobTypeModel = await this.mailDetailsBlobServerTypeModel.getAsync()
 
 		const mailsToStore: MailWithDetailsAndAttachments[] = []
 		await promiseMap(
@@ -477,111 +627,10 @@ export class OfflineMailIndexer implements MailIndexer {
 					update.error = e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown
 					update.failedIndexingUpTo = e instanceof ConnectionError ? this.currentIndexTimestamp : null
 				}
-				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
+				// await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			} finally {
 				this.currentlyIndexingPromise = null
 			}
 		})()
-	}
-
-	async waitForIndex(): Promise<void> {
-		await this.currentlyIndexingPromise
-	}
-
-	// FIXME
-	// private async processImport(importList: Id, mailImportType: MailImportType) {
-	// 	// First get the queue...
-	// 	let latestCommonImportedMailElementId: Id | null = await this.offlineStoragePersistence.getImportQueueProgress(importList)
-	// 	if (latestCommonImportedMailElementId == null) {
-	// 		return
-	// 	}
-	// 	const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
-	// 	const importedMails = await this.entityClient.loadAll(typeRef, importList, latestCommonImportedMailElementId)
-	// 	console.log(TAG, `Processing import of ${importedMails.length} new ${mailImportType} mails...`)
-	// 	if (isEmpty(importedMails)) {
-	// 		return
-	// 	}
-	//
-	// 	const zippedImportedIds = importedMails.map((importedMail) => {
-	// 		return {
-	// 			mailSetEntryElementId: elementIdPart(importedMail.mailSetEntry),
-	// 			commonImportedMailElementId: elementIdPart(importedMail._id),
-	// 		}
-	// 	})
-	//
-	// 	const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(assertNotNull(getFirstOrThrow(importedMails)._ownerGroup)))
-	// 	const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
-	// 	const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
-	// 	const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
-	//
-	// 	// Only mailSetEntry guaranteed to be there as long as the mail is there is the one on the entries list of the IMPORTED mail set,
-	// 	// the mailSetEntry referenced by the ImportedMail could already be deleted from our database if the user already moved the mail.
-	// 	const importedMailSetEntryListId = importedMailSet.entries
-	// 	const entries = await this.entityClient.loadMultiple(
-	// 		MailSetEntryTypeRef,
-	// 		importedMailSetEntryListId,
-	// 		zippedImportedIds.map((metaData) => metaData.mailSetEntryElementId),
-	// 	)
-	//
-	// 	let mailIds = entries.map((entries) => entries.mail).sort((a, b) => compareOldestFirst(elementIdPart(a), elementIdPart(b), EntityIdEncoding.Base64Ext))
-	//
-	// 	// Can happen if we finished but the app closed before this was called
-	// 	if (isEmpty(mailIds)) {
-	// 		await this.offlineStoragePersistence.removeImportQueueEntry(importList)
-	// 		return
-	// 	}
-	//
-	// 	let indexedMailCount = 0
-	// 	await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(1, indexedMailCount))
-	//
-	// 	const archiveDownloadPromises = new Map()
-	//
-	// 	for (const chunk of splitInChunks(this.indexChunkSize, mailIds)) {
-	// 		const idsGrouped = groupByAndMap(chunk, listIdPart, elementIdPart)
-	// 		const mails = await promiseMap(idsGrouped, async ([list, elements]) => {
-	// 			return await this.entityClient.loadMultiple(MailTypeRef, list, elements)
-	// 		})
-	// 		const mailsFlat = mails.flat()
-	// 		await this.indexNonRecentMails(mailsFlat, archiveDownloadPromises, async () => {
-	// 			const update = this.createSearchIndexStateInfo(Math.max(1, (indexedMailCount / mailIds.length) * 100), indexedMailCount++)
-	// 			await this.infoMessageHandler.onSearchIndexStateUpdate(update)
-	// 		})
-	//
-	// 		const latestMailId = lastThrow(chunk)
-	// 		const latestMail = assertNotNull(mailsFlat.find((mail) => isSameId(mail._id, latestMailId)))
-	// 		const latestMailSetEntryElementId = constructMailSetEntryId(latestMail.receivedDate, elementIdPart(latestMail._id))
-	// 		const latestCommonImportedMailElementId = assertNotNull(
-	// 			zippedImportedIds.find((zippedIds) => isSameId(idToElementId(zippedIds.mailSetEntryElementId), idToElementId(latestMailSetEntryElementId))),
-	// 		).commonImportedMailElementId
-	// 		await this.offlineStoragePersistence.updateImportQueueProgress(importList, latestCommonImportedMailElementId, mailImportType)
-	// 	}
-	//
-	// 	await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
-	// 	await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
-	// }
-
-	async rebuildIndex(user: User): Promise<void> {
-		await this.offlineStoragePersistence.resetMailIndex()
-		await this.extendMailIndex(user)
-	}
-
-	async processEntityEvents(): Promise<void> {
-		// no-op
-	}
-
-	async beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void> {
-		// in case we never get around to importing, persist our queue
-		await this.offlineStoragePersistence.enqueueImport(importedMailsList, mailImportType)
-
-		// append to current index queue (unless the user cancelled indexing)
-		if (!this.abortController.signal.aborted) {
-			// FIXME
-			// this.indexTasks.push(() => this.processImport(importedMailsList, mailImportType))
-			// this.processIndexQueue()
-		}
-	}
-
-	cancelMailIndexing(): void {
-		this.abortController.abort(MailIndexingAbortReason.Cancelled)
 	}
 }

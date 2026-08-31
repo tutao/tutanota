@@ -19,6 +19,7 @@ export class MailIndexerPostLoginAction implements PostLoginAction {
 			this.syncTracker.addSyncDoneListener({
 				id: "MailIndexerPostLoginAction",
 				onSyncDone: async () => {
+					//FIXME
 					await this.indexer.extendMailIndex(FULL_INDEXED_TIMESTAMP)
 				},
 				priority: ListenerPriority.HIGH,

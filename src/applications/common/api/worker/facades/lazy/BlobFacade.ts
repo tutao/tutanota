@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, ClientTypeModel, PersistentEntity, ServerTypeModel, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -204,10 +204,6 @@ export class BlobFacade {
 	// this will not work in multi-window scenario
 	private latestTransferId: number = 0
 
-	async generateTransferId(): Promise<TransferId> {
-		return String(this.latestTransferId++) as TransferId
-	}
-
 	constructor(
 		private readonly restClient: RestClient,
 		private readonly suspensionHandler: restSuspension.SuspensionHandler,
@@ -219,6 +215,10 @@ export class BlobFacade {
 		private readonly progressDispatcher: TransferProgressDispatcher,
 		private readonly typeModelResolver: TypeModelResolver,
 	) {}
+
+	async generateTransferId(): Promise<TransferId> {
+		return String(this.latestTransferId++) as TransferId
+	}
 
 	/**
 	 * Encrypts and uploads binary data to the blob store. The binary data is split into multiple blobs in case it
@@ -261,14 +261,6 @@ export class BlobFacade {
 		} finally {
 			this.abortControllers.delete(transferId)
 		}
-	}
-
-	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array<ArrayBuffer>): Promise<EncryptedChunk> {
-		return (await _encryptBytes(sessionKey, chunk)) as EncryptedChunk
-	}
-	private async encryptChunkNative(sessionKey: AesKey, fileUri: FileUri): Promise<string> {
-		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
-		return encryptedFileInfo.uri
 	}
 
 	/**
@@ -479,31 +471,6 @@ export class BlobFacade {
 		}
 	}
 
-	private async uploadMultipleBlobs(
-		encryptedData: Uint8Array<ArrayBuffer>,
-		blobServerAccessInfo: BlobServerAccessInfo,
-		abortSignal: AbortSignal,
-	): Promise<BlobReferenceTokenWrapper[]> {
-		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
-
-		return tryServers(
-			blobServerAccessInfo.servers,
-			async (serverUrl) => {
-				const response = await this.restClient.request(BlobService_GET.serviceRestPath, HttpMethod.POST, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					queryParams,
-					body: new RestBinaryBody(encryptedData),
-					responseType: MediaType.Json,
-					baseUrl: serverUrl,
-					abortSignal,
-				})
-
-				return await this.parseBlobPostOutResponseMultiple(response)
-			},
-			`can't upload multiple blobs`,
-		)
-	}
-
 	/**
 	 * Downloads multiple blobs, decrypts and joins them to unencrypted binary data.
 	 *
@@ -570,20 +537,6 @@ export class BlobFacade {
 		}
 	}
 
-	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
-		const resultSize = Array.from(blobChunks.values()).reduce((sum, blob) => blob.length + sum, 0)
-		const resultBuffer = new Uint8Array(resultSize)
-		let offset = 0
-		for (const blob of referencingInstance.blobs) {
-			const data = blobChunks.get(blob.blobId) ?? null
-			assertNonNull(data, `Server did not return blob for id : ${blob.blobId}`)
-			resultBuffer.set(data, offset)
-			offset += data.length
-			blobChunks.delete(blob.blobId)
-		}
-		return resultBuffer
-	}
-
 	/**
 	 * Download a full archive of (encrypted) blob entities.
 	 *
@@ -625,6 +578,50 @@ export class BlobFacade {
 			)
 
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
+		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
+	}
+
+	// FIXME
+	async downloadFullEncryptedDetailsBlobElementEntityArchive<T extends BlobElementEntity>(
+		typeRef: TypeRef<T>,
+		archiveId: Id,
+		clientTypeModel: ClientTypeModel,
+		serverTypeModel: ServerTypeModel,
+	): Promise<Array<IncomingServerJson>> {
+		const headers: Dict = {
+			v: String(clientTypeModel.version),
+		}
+
+		if (clientTypeModel.dependsOnVersion) {
+			headers.dv = String(clientTypeModel.dependsOnVersion)
+		}
+
+		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
+		const serversToTry = blobServerAccessInfo.servers
+
+		// blob element types are accessed with a specific rest path
+		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
+
+		const t = () =>
+			tryServers(
+				serversToTry,
+				async (serverUrl) =>
+					this.restClient.request(path, HttpMethod.GET, {
+						queryParams: allParams,
+						headers: {}, // prevent CORS request due to non standard header usage
+						responseType: MediaType.Json,
+						baseUrl: serverUrl,
+						noCORS: true,
+						suspensionBehavior: SuspensionBehavior.Suspend,
+						body: null,
+						progressListener: null,
+						abortSignal: null,
+					}),
+				`can't load instances from server `,
+			)
+
 		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
 		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
 	}
@@ -673,33 +670,6 @@ export class BlobFacade {
 		}
 
 		return result
-	}
-
-	private async decryptInstanceData(instance: BlobReferencingInstance, blobs: Map<Id, Uint8Array<ArrayBuffer>>): Promise<Uint8Array<ArrayBuffer> | null> {
-		// get the key of the instance
-		const sessionKey = await this.resolveSessionKey(instance.entity)
-		// decrypt blobs of the instance and concatenate them
-		const decryptedChunks: Uint8Array[] = []
-		for (const blob of instance.blobs) {
-			const encryptedChunk = blobs.get(blob.blobId)
-			if (encryptedChunk == null) {
-				console.log(TAG, `Did not find blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`)
-				return null
-			}
-			try {
-				decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
-			} catch (e) {
-				// If decrypting one chunk of an instance fails it doesn't make sense to return any data for
-				// that instance
-				if (e instanceof CryptoError) {
-					console.log(TAG, `Could not decrypt blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`, e)
-					return null
-				} else {
-					throw e
-				}
-			}
-		}
-		return concat(...decryptedChunks)
 	}
 
 	/**
@@ -790,6 +760,161 @@ export class BlobFacade {
 		}
 	}
 
+	/**
+	 * Encrypt and upload a blob using the referencing instance to resolve the session key.
+	 *
+	 * @param mainInstance used to resolve session key
+	 * @param archiveDataType
+	 * @param blobData
+	 * @param ownerGroupId
+	 */
+	async encryptAndUploadBlobWithReferencingInstance(
+		mainInstance: PersistentEntity,
+		archiveDataType: ArchiveDataType,
+		blobData: Uint8Array<ArrayBuffer>,
+		ownerGroupId: Id,
+	) {
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(mainInstance))
+		const transferId = await this.generateTransferId()
+		return await this.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId)
+	}
+
+	async abortUpload(transferId: TransferId) {
+		this.abortControllers.get(transferId)?.abort(new CancelledError("Upload canceled"))
+
+		// Need to find the right entry by transfer id. Should be okay since it's linear and now very common
+		for (const [chunkId, entry] of this.nativeUploadProgressState) {
+			if (entry.transferId === transferId) {
+				await this.fileApp.abortUpload(chunkId)
+				// we keep going after finding the match to cancel all the chunks of it, just in case
+			}
+		}
+	}
+
+	// Visible for testing
+	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
+		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
+		const serverJson = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
+		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap<BlobPostOut>(serverJson, null)
+		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
+		// post single always has a valid blobRefernceToken with cardinality one.
+		if (blobReferenceToken == null) {
+			throw new ProgrammingError("empty blobReferenceToken not allowed for post single blob")
+		}
+		return createBlobReferenceTokenWrapper({ blobReferenceToken })
+	}
+
+	public async parseBlobPostOutResponseMultiple(jsonData: string): Promise<BlobReferenceTokenWrapper[]> {
+		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
+		const instance = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
+		const blobPostOut = await this.instancePipeline.decryptAndMap<BlobPostOut>(instance, null)
+		if (isEmpty(blobPostOut.blobReferenceTokens)) {
+			throw new ProgrammingError(`empty blobReferenceTokens not allowed for post multiple blob ${JSON.stringify(blobPostOut)}`)
+		}
+		return blobPostOut.blobReferenceTokens
+	}
+
+	/** called from native to report a progress for a single blob download */
+	async nativeDownloadProgress(blobId: string, bytes: number) {
+		const state = this.nativeDownloadProgressState.get(blobId)
+		if (state == null) return
+		state.bytesDownloadedPerBlob.set(blobId, bytes)
+		const downloadedBytes = collectionSum(state.bytesDownloadedPerBlob.values())
+		// report downstream on the overall transfer progress
+		this.progressDispatcher.onChunkDownloaded({
+			transferId: state.transferId,
+			downloadedBytes: downloadedBytes,
+		})
+	}
+
+	async nativeUploadProgress(chunkId: Id, bytes: number) {
+		const state = this.nativeUploadProgressState.get(chunkId)
+		if (state == null) return
+		state.bytesUploadedPerBlob.set(chunkId, bytes)
+		const uploadedBytes = collectionSum(state.bytesUploadedPerBlob.values())
+		// report downstream on the overall transfer progress
+		this.progressDispatcher.onChunkUploaded({
+			transferId: state.transferId,
+			uploadedBytes,
+			totalBytes: state.totalSize,
+		})
+	}
+
+	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array<ArrayBuffer>): Promise<EncryptedChunk> {
+		return (await _encryptBytes(sessionKey, chunk)) as EncryptedChunk
+	}
+
+	private async encryptChunkNative(sessionKey: AesKey, fileUri: FileUri): Promise<string> {
+		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
+		return encryptedFileInfo.uri
+	}
+
+	private async uploadMultipleBlobs(
+		encryptedData: Uint8Array<ArrayBuffer>,
+		blobServerAccessInfo: BlobServerAccessInfo,
+		abortSignal: AbortSignal,
+	): Promise<BlobReferenceTokenWrapper[]> {
+		const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
+
+		return tryServers(
+			blobServerAccessInfo.servers,
+			async (serverUrl) => {
+				const response = await this.restClient.request(BlobService_GET.serviceRestPath, HttpMethod.POST, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					queryParams,
+					body: new RestBinaryBody(encryptedData),
+					responseType: MediaType.Json,
+					baseUrl: serverUrl,
+					abortSignal,
+				})
+
+				return await this.parseBlobPostOutResponseMultiple(response)
+			},
+			`can't upload multiple blobs`,
+		)
+	}
+
+	private concatenateBlobChunks(referencingInstance: BlobReferencingInstance, blobChunks: Map<Id, Uint8Array>) {
+		const resultSize = Array.from(blobChunks.values()).reduce((sum, blob) => blob.length + sum, 0)
+		const resultBuffer = new Uint8Array(resultSize)
+		let offset = 0
+		for (const blob of referencingInstance.blobs) {
+			const data = blobChunks.get(blob.blobId) ?? null
+			assertNonNull(data, `Server did not return blob for id : ${blob.blobId}`)
+			resultBuffer.set(data, offset)
+			offset += data.length
+			blobChunks.delete(blob.blobId)
+		}
+		return resultBuffer
+	}
+
+	private async decryptInstanceData(instance: BlobReferencingInstance, blobs: Map<Id, Uint8Array<ArrayBuffer>>): Promise<Uint8Array<ArrayBuffer> | null> {
+		// get the key of the instance
+		const sessionKey = await this.resolveSessionKey(instance.entity)
+		// decrypt blobs of the instance and concatenate them
+		const decryptedChunks: Uint8Array[] = []
+		for (const blob of instance.blobs) {
+			const encryptedChunk = blobs.get(blob.blobId)
+			if (encryptedChunk == null) {
+				console.log(TAG, `Did not find blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`)
+				return null
+			}
+			try {
+				decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+			} catch (e) {
+				// If decrypting one chunk of an instance fails it doesn't make sense to return any data for
+				// that instance
+				if (e instanceof CryptoError) {
+					console.log(TAG, `Could not decrypt blob of the instance. blobId: ${blob.blobId}, instance: ${instance}`, e)
+					return null
+				} else {
+					throw e
+				}
+			}
+		}
+		return concat(...decryptedChunks)
+	}
+
 	private async resolveSessionKey(entity: PersistentEntity): Promise<AesKey> {
 		return neverNull(await this.cryptoFacade.resolveSessionKey(entity))
 	}
@@ -877,60 +1002,6 @@ export class BlobFacade {
 		} else {
 			throw handleRestError(statusCode, ` | ${HttpMethod.POST} ${fullUrl.toString()} failed to natively upload blob`, errorId, precondition)
 		}
-	}
-
-	/**
-	 * Encrypt and upload a blob using the referencing instance to resolve the session key.
-	 *
-	 * @param mainInstance used to resolve session key
-	 * @param archiveDataType
-	 * @param blobData
-	 * @param ownerGroupId
-	 */
-	async encryptAndUploadBlobWithReferencingInstance(
-		mainInstance: PersistentEntity,
-		archiveDataType: ArchiveDataType,
-		blobData: Uint8Array<ArrayBuffer>,
-		ownerGroupId: Id,
-	) {
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(mainInstance))
-		const transferId = await this.generateTransferId()
-		return await this.encryptAndUpload(archiveDataType, blobData, ownerGroupId, sessionKey, transferId)
-	}
-
-	async abortUpload(transferId: TransferId) {
-		this.abortControllers.get(transferId)?.abort(new CancelledError("Upload canceled"))
-
-		// Need to find the right entry by transfer id. Should be okay since it's linear and now very common
-		for (const [chunkId, entry] of this.nativeUploadProgressState) {
-			if (entry.transferId === transferId) {
-				await this.fileApp.abortUpload(chunkId)
-				// we keep going after finding the match to cancel all the chunks of it, just in case
-			}
-		}
-	}
-
-	// Visible for testing
-	public async parseBlobPostOutResponse(jsonData: string): Promise<BlobReferenceTokenWrapper> {
-		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
-		const serverJson = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
-		const { blobReferenceToken } = await this.instancePipeline.decryptAndMap<BlobPostOut>(serverJson, null)
-		// is null in case of post multiple to the BlobService, currently only supported in the rust-sdk
-		// post single always has a valid blobRefernceToken with cardinality one.
-		if (blobReferenceToken == null) {
-			throw new ProgrammingError("empty blobReferenceToken not allowed for post single blob")
-		}
-		return createBlobReferenceTokenWrapper({ blobReferenceToken })
-	}
-
-	public async parseBlobPostOutResponseMultiple(jsonData: string): Promise<BlobReferenceTokenWrapper[]> {
-		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
-		const instance = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
-		const blobPostOut = await this.instancePipeline.decryptAndMap<BlobPostOut>(instance, null)
-		if (isEmpty(blobPostOut.blobReferenceTokens)) {
-			throw new ProgrammingError(`empty blobReferenceTokens not allowed for post multiple blob ${JSON.stringify(blobPostOut)}`)
-		}
-		return blobPostOut.blobReferenceTokens
 	}
 
 	private async downloadAndDecryptMultipleBlobsOfArchives(
@@ -1107,32 +1178,6 @@ export class BlobFacade {
 			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 		return headers
-	}
-
-	/** called from native to report a progress for a single blob download */
-	async nativeDownloadProgress(blobId: string, bytes: number) {
-		const state = this.nativeDownloadProgressState.get(blobId)
-		if (state == null) return
-		state.bytesDownloadedPerBlob.set(blobId, bytes)
-		const downloadedBytes = collectionSum(state.bytesDownloadedPerBlob.values())
-		// report downstream on the overall transfer progress
-		this.progressDispatcher.onChunkDownloaded({
-			transferId: state.transferId,
-			downloadedBytes: downloadedBytes,
-		})
-	}
-
-	async nativeUploadProgress(chunkId: Id, bytes: number) {
-		const state = this.nativeUploadProgressState.get(chunkId)
-		if (state == null) return
-		state.bytesUploadedPerBlob.set(chunkId, bytes)
-		const uploadedBytes = collectionSum(state.bytesUploadedPerBlob.values())
-		// report downstream on the overall transfer progress
-		this.progressDispatcher.onChunkUploaded({
-			transferId: state.transferId,
-			uploadedBytes,
-			totalBytes: state.totalSize,
-		})
 	}
 }
 
