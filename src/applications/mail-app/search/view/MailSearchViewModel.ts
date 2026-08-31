@@ -55,6 +55,7 @@ import {
 import { ListFetchResult, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { MailSearchModel } from "../model/MailSearchModel"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { isDriveEnabled } from "../../../common/misc/DriveUtils"
 
 const SEARCH_PAGE_SIZE = 100
 export class MailSearchViewModel {
@@ -130,6 +131,10 @@ export class MailSearchViewModel {
 
 	isFreeAccount(): boolean {
 		return this.logins.getUserController().isFreeAccount()
+	}
+
+	isDriveEnabled(): boolean {
+		return isDriveEnabled(this.logins)
 	}
 
 	getSelectedMails(): readonly Mail[] {

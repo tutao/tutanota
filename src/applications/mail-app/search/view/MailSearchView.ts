@@ -936,7 +936,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 						},
 						icon: Icons.CalendarFilled,
 					},
-					!ClientDetector.get().isMailApp()
+					!ClientDetector.get().isMailApp() && this.searchViewModel.isDriveEnabled()
 						? {
 								label: "driveView_action",
 								click: () => {
