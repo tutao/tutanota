@@ -256,28 +256,24 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
-							try {
-								val activityContext = this
-								val storeJob = viewModel.storeSettings(this, appWidgetId)
-								storeJob.invokeOnCompletion {
-									lifecycleScope.launch {
-										Log.i(TAG, "Asking for widget reload after user change its settings")
-										val manager = GlanceAppWidgetManager(activityContext)
-										val glanceId = manager.getGlanceIdBy(appWidgetId)
-										Log.i(TAG, "Reload widget with glanceId ${glanceId}")
-										Agenda().update(context, glanceId)
-									}
+							lifecycleScope.launch {
+								try {
+									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
+									Log.i(TAG, "Asking for widget reload after user change its settings")
+									val glanceId = GlanceAppWidgetManager(applicationContext).getGlanceIdBy(appWidgetId)
+									Agenda().update(applicationContext, glanceId)
+									setResult(Activity.RESULT_OK, resultValue)
+								} catch (ex: Exception) {
+									Toast.makeText(
+										applicationContext,
+										"Could not save widget config - ${ex.message}",
+										Toast.LENGTH_SHORT
+									).show()
+								} finally {
+									finish()
 								}
-								setResult(Activity.RESULT_OK, resultValue)
-							} catch (ex: Exception) {
-								Toast.makeText(
-									applicationContext,
-									"Could not save widget config - ${ex.message}",
-									Toast.LENGTH_SHORT
-								).show()
 							}
 
-							finish()
 						}
 					)
 				}
