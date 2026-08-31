@@ -215,7 +215,9 @@ class WidgetUIViewModel(
 			lastSync = repository.decodeLastSyncFromPreferences(preferences, widgetId)
 			Log.i(TAG, "[$widgetId] Widget last sync at $lastSync")
 
-			sdk?.let { sdk -> loadCalendars(widgetDataStore, sdk, settings) }
+			sdk?.let { sdk ->
+				loadCalendars(widgetDataStore, sdk, settings) // Silently fails so it doens't prevent events loading
+			}
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
 			Log.e(TAG, "[$widgetId] Error when loading initial UI State", e)

@@ -221,9 +221,9 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 
 		for ((id, events) in selectedCachedEvents.entries) {
 			cachedEventsMap[id] = CalendarEventListDao(
-				shortEvents = events.shortEvents.filter { it.startTime >= now || it.endTime >= now },
-				longEvents = events.longEvents.filter { it.startTime >= now || it.endTime >= now },
-				birthdayEvents = events.birthdayEvents.filter { it.eventDao.startTime >= now || it.eventDao.endTime >= now }
+				shortEvents = events.shortEvents.filter { it.endTime >= now },
+				longEvents = events.longEvents.filter { it.endTime >= now },
+				birthdayEvents = events.birthdayEvents.filter { it.eventDao.endTime >= now }
 			)
 		}
 
