@@ -60,7 +60,7 @@ import { CalendarSearchView, CalendarSearchViewAttrs } from "../calendar-app/cal
 import { CalendarSearchViewModel } from "../calendar-app/calendar/search/view/CalendarSearchViewModel"
 import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/DriveSearchView"
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
-import { FolderItem } from "../drive-app/drive/view/DriveUtils"
+import { FolderItem, FolderItemId } from "../drive-app/drive/view/DriveUtils"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -517,6 +517,7 @@ import("../../ui/translations/en.js")
 					cache: MailViewCache
 					header: AppHeaderAttrs
 					mailViewModel: MailViewModel
+					showDriveFilePicker: (startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) => unknown
 					undoModel: UndoModel
 				}
 			>(
@@ -535,16 +536,18 @@ import("../../ui/translations/en.js")
 								},
 								header: await mailLocator.appHeaderAttrs(),
 								mailViewModel: await mailLocator.mailViewModel(),
+								showDriveFilePicker: mailLocator.showDriveFilePickerDialog,
 								undoModel: await mailLocator.undoModel(),
 							},
 						}
 					},
-					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel, undoModel }) => ({
+					prepareAttrs: ({ drawerAttrsFactory, cache, header, mailViewModel, showDriveFilePicker, undoModel }) => ({
 						drawerAttrs: drawerAttrsFactory(),
 						cache,
 						header,
 						desktopSystemFacade: mailLocator.desktopSystemFacade,
 						mailViewModel,
+						showDriveFilePicker,
 						undoModel,
 					}),
 				},
@@ -585,6 +588,7 @@ import("../../ui/translations/en.js")
 					undoModel: UndoModel
 					drawerAttrsFactory: () => DrawerMenuAttrs
 					header: AppHeaderAttrs
+					showDrivefilePicker: (startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) => unknown
 					makeViewModel: () => MailSearchViewModel
 				}
 			>(
@@ -600,6 +604,7 @@ import("../../ui/translations/en.js")
 								undoModel,
 								drawerAttrsFactory,
 								header: await mailLocator.appHeaderAttrs(),
+								showDrivefilePicker: mailLocator.showDriveFilePickerDialog,
 								makeViewModel,
 							},
 						}
@@ -610,6 +615,7 @@ import("../../ui/translations/en.js")
 							undoModel: cache.undoModel,
 							header: cache.header,
 							drawerAttrs: cache.drawerAttrsFactory(),
+							showDriveFilePicker: cache.showDrivefilePicker,
 							makeViewModel: cache.makeViewModel,
 						}
 					},

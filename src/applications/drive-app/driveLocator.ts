@@ -127,6 +127,7 @@ import { SearchRouter } from "../common/search/view/SearchRouter"
 import { DriveModel } from "./drive/model/DriveModel"
 import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
+import { Icons } from "../../ui/base/icons/Icons"
 
 EnvProvider.assertMainOrNode()
 
@@ -270,11 +271,25 @@ class DriveLocator implements CommonLocator {
 
 	async showMoveItemDialog(items: FolderItem[], moveItems: PickedDestinationAction) {
 		const { showItemPicker } = await import("./drive/view/DriveItemPicker.js")
+		let itemLabel: string
+		const firstItem = assertNotNull(items.at(0))
+		if (items.length === 1) {
+			itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
+		} else {
+			itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": items.length }).text
+		}
+		const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 		const pickerAttrs: DriveItemPickerAttrs = {
 			files: items,
 			mode: DriveItemPickerBehavior.PickDestination,
 			action: moveItems,
 			canCreateFolders: true,
+			title: "move_action",
+			actionLabel: "moveItemHere_action",
+			descriptionLabel: itemLabel,
+			descriptionTestId: "dialog:movingItem_title",
+			startFolderId: parentFolderId,
+			icon: Icons.Move,
 		}
 		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
 	}

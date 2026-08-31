@@ -53,7 +53,7 @@ export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
 							return m(DriveFolderBrowserEntry, {
 								key: elementId,
 								item: item,
-								isInvalidTarget: disabledTargetIds.has(elementId) || item.type === "file",
+								isInvalidTarget: disabledTargetIds.has(elementId),
 								selected: index === this.activeIndex,
 								onSingleSelection: onItemClicked,
 							} satisfies DriveFolderBrowserEntryAttrs & { key: string })

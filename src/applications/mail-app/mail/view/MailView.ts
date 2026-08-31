@@ -87,6 +87,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
+import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -101,6 +102,7 @@ export interface MailViewAttrs extends TopLevelAttrs {
 	cache: MailViewCache
 	header: AppHeaderAttrs
 	mailViewModel: MailViewModel
+	showDriveFilePicker: (startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) => unknown
 	undoModel: UndoModel
 }
 

@@ -88,12 +88,14 @@ import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { FolderItemId } from "../../../drive-app/drive/view/DriveUtils"
 
 export interface MailSearchViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
 	header: AppHeaderAttrs
 	undoModel: UndoModel
 	contactModel: ContactModel
+	showDriveFilePicker: (startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) => unknown
 	makeViewModel: () => MailSearchViewModel
 }
 export class MailSearchView extends BaseTopLevelView implements TopLevelView<MailSearchViewAttrs> {

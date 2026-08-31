@@ -4,13 +4,12 @@ import { theme } from "../../../../ui/theme"
 import { DriveBreadcrumbs, DriveBreadcrumbsAttrs } from "./DriveBreadcrumbs"
 import { PrimaryButton, TertiaryButton, TertiaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { assertNotNull } from "../../../../platform-kit/utils"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
-import { FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, folderItemToId, toFolderItem, toFolderItems } from "./DriveUtils"
+import { FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, folderItemToId, isFolderFolderItem, toFolderItem, toFolderItems } from "./DriveUtils"
 import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
@@ -19,10 +18,13 @@ import { TextField } from "../../../../ui/base/TextField"
 import { Styles } from "../../../../ui/styles"
 import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
-import { ProgrammingError } from "@tutao/app-env"
+import { filterInt } from "@tutao/utils"
+import { MAX_ATTACHMENT_SIZE } from "../../../../entities/tutanota/Utils"
 
 interface State {
 	currentFolder: FolderFolderItem
+	filesElementIds: readonly string[]
+	nonAttachableFileIds: readonly string[]
 	items: readonly FolderItem[]
 	parents: readonly FolderFolderItem[]
 	newFolderName: string | null
@@ -43,12 +45,24 @@ export type DriveItemPickerAttrs =
 			canCreateFolders: true
 			files: FolderItem[]
 			action: PickedDestinationAction
+			title: TranslationKey
+			actionLabel: TranslationKey
+			descriptionLabel: string
+			descriptionTestId: string
+			startFolderId: IdTuple
+			icon: Icons
 	  }
 	// attributes for picking a file
 	| {
 			mode: DriveItemPickerBehavior.PickItems
 			canCreateFolders: false
 			action: PickedItemAction
+			title: TranslationKey
+			actionLabel: TranslationKey
+			descriptionLabel: string
+			descriptionTestId: string
+			startFolderId: IdTuple
+			icon: Icons
 	  }
 
 /**
@@ -57,33 +71,30 @@ export type DriveItemPickerAttrs =
  */
 export async function showItemPicker(entityClient: EntityClient, driveFacade: DriveFacade, attrs: DriveItemPickerAttrs) {
 	const pickerMode = attrs.mode
-	if (pickerMode !== DriveItemPickerBehavior.PickDestination) {
-		throw new ProgrammingError("Not implemented yet")
-	}
 
-	const files = attrs.files
-	const pickedDestination = attrs.action
+	const action = attrs.action
 
-	const firstItem = assertNotNull(files.at(0))
-	const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
+	const parentFolderId = attrs.startFolderId
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
 	//We do not need a parent here so we don't provide it
 	const loadParents = async () => driveFacade.getFolderParents(state.currentFolder.folder._id).then((parents) => parents.map((p) => toFolderItem(p, null)))
-	let itemLabel: string
-	if (files.length === 1) {
-		itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
-	} else {
-		itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": files.length }).text
-	}
 
 	async function loadFolder(folderId: IdTuple): Promise<State> {
 		const currentFolder = toFolderItem(await entityClient.load(DriveFolderTypeRef, folderId), null)
 
 		const contents = await driveFacade.getFolderContents(folderId)
 		const items = toFolderItems(contents)
+		const filesElementIds = items
+			.filter((item) => !isFolderFolderItem(item))
+			.map(folderItemEntity)
+			.map(getElementId)
+		const nonAttachableFileIds = items
+			.filter((item) => !isFolderFolderItem(item) && filterInt(item.file.size) > MAX_ATTACHMENT_SIZE)
+			.map(folderItemEntity)
+			.map(getElementId)
 		const parents = currentFolder.folder.parent ? [toFolderItem(await entityClient.load(DriveFolderTypeRef, currentFolder.folder.parent), null)] : []
-		return { currentFolder, parents, items, newFolderName: null }
+		return { currentFolder, filesElementIds, nonAttachableFileIds, parents, items, newFolderName: null }
 	}
 
 	let folderBrowserDom: HTMLElement | null = null
@@ -92,22 +103,28 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 		DialogType.EditLarger,
 		class DriveItemPicker implements Component {
 			view(): Children {
-				const { currentFolder, parents, items: currentFolderItems, newFolderName } = state
-				const disabledTargetIds = new Set(files.map(folderItemEntity).map(getElementId))
+				const { currentFolder, parents, items: currentFolderItems, newFolderName, filesElementIds, nonAttachableFileIds } = state
+				const disabledTargetIds: Set<string> =
+					attrs.mode === DriveItemPickerBehavior.PickDestination
+						? new Set([...attrs.files.map(folderItemEntity).map(getElementId), ...filesElementIds])
+						: new Set([...nonAttachableFileIds])
 				return [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => pickerDialog.close(), type: ButtonType.Secondary }],
-						middle: "move_action",
-						right: [
-							{
-								label: "moveItemHere_action",
-								click: () => {
-									pickedDestination(files.map(folderItemToId), state.currentFolder.folder)
-									pickerDialog.close()
-								},
-								type: ButtonType.Secondary,
-							},
-						],
+						middle: attrs.title,
+						right:
+							attrs.mode === DriveItemPickerBehavior.PickDestination
+								? [
+										{
+											label: attrs.actionLabel,
+											click: () => {
+												attrs.action(attrs.files.map(folderItemToId), state.currentFolder.folder)
+												pickerDialog.close()
+											},
+											type: ButtonType.Secondary,
+										},
+									]
+								: [],
 					}),
 					m(
 						".plr-16.pt-16.pb-16.flex.col.gap-24.border-radius-8",
@@ -126,13 +143,13 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 						[
 							m(".flex.gap-12", [
 								m(Icon, {
-									icon: Icons.Move,
+									icon: attrs.icon,
 									size: IconSize.PX24,
 									style: {
 										fill: theme.on_surface_variant,
 									},
 								}),
-								m(".b.uppercase.text-ellipsis", { "data-testid": "dialog:movingItem_title" }, itemLabel),
+								m(".b.uppercase.text-ellipsis", { "data-testid": attrs.descriptionTestId }, attrs.descriptionLabel),
 							]),
 							m(
 								".border-radius-6.plr-16.pt-12.pb-12",
@@ -159,11 +176,17 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 										items: currentFolderItems,
 										disabledTargetIds,
 										onItemClicked: (item: FolderItem) => {
-											if (
-												item.type === "folder" &&
-												!files.some((itemToMove) => isSameId(item.folder._id, folderItemEntity(itemToMove)._id))
-											) {
+											if (isFolderFolderItem(item)) {
+												if (attrs.mode === DriveItemPickerBehavior.PickDestination) {
+													if (attrs.files.some((targetitem) => isSameId(item.folder._id, folderItemEntity(targetitem)._id))) {
+														return
+													}
+												}
+
 												this.onOpenFolder(item.folder)
+											} else if (attrs.mode === DriveItemPickerBehavior.PickItems) {
+												attrs.action([folderItemToId(item)])
+												pickerDialog.close()
 											}
 										},
 										oncreate: ({ dom }: VnodeDOM<DriveFolderBrowserAttrs>) => {

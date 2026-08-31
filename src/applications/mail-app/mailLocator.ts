@@ -138,7 +138,7 @@ import type { QuickActionsModel } from "../common/misc/quickactions/QuickActions
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
-import { FolderItem } from "../drive-app/drive/view/DriveUtils"
+import { FolderItem, FolderItemId } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
@@ -170,6 +170,7 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
+import { Icons } from "../../ui/base/icons/Icons"
 
 EnvProvider.assertMainOrNode()
 
@@ -1474,11 +1475,45 @@ class MailLocator implements CommonLocator {
 
 	async showMoveItemDialog(items: FolderItem[], moveItems: PickedDestinationAction) {
 		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
+		let itemLabel: string
+		const firstItem = assertNotNull(items.at(0))
+		if (items.length === 1) {
+			itemLabel = firstItem.type === "file" ? firstItem.file.name : firstItem.folder.name
+		} else {
+			itemLabel = lang.getTranslation("movingItemCount_label", { "{count}": items.length }).text
+		}
+		const parentFolderId = firstItem.type === "file" ? firstItem.file.folder : assertNotNull(firstItem.folder.parent)
 		const pickerAttrs: DriveItemPickerAttrs = {
 			files: items,
 			mode: DriveItemPickerBehavior.PickDestination,
 			action: moveItems,
 			canCreateFolders: true,
+			title: "move_action",
+			actionLabel: "moveItemHere_action",
+			descriptionLabel: itemLabel,
+			descriptionTestId: "dialog:movingItem_title",
+			startFolderId: parentFolderId,
+			icon: Icons.Move,
+		}
+		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
+	}
+
+	// For the internal drive file picker, not the system one
+	async showDriveFilePickerDialog(startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) {
+		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
+		const pickerAttrs: DriveItemPickerAttrs = {
+			action: (items) => {
+				action(items)
+				return Promise.resolve()
+			},
+			actionLabel: "attachFiles_action", // FIXME
+			canCreateFolders: false,
+			descriptionLabel: "file picker test", // FIXME
+			descriptionTestId: "file picker test", // FIXME
+			icon: Icons.Paperclip,
+			startFolderId,
+			title: "attachment_label", // FIXME
+			mode: DriveItemPickerBehavior.PickItems,
 		}
 		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
 	}
