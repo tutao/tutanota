@@ -3,6 +3,8 @@ import { EnvProvider } from "./Env"
 import { isNull, ProgrammingError, TsDouble, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
+	constructor() {}
+
 	public static readonly Const: ConstType = {
 		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
@@ -70,6 +72,8 @@ export class TutanotaConstants {
 	public static readonly MAX_WORD_FREQUENCY: number = 31
 	public static readonly DEFAULT_VECTOR_MAX_LENGTH: number = 2048
 	public static readonly UNDO_SEND_TIMEOUT_SECONDS: number = 10
+
+	public static readonly companyTeamLabel: string = "Tuta Team"
 
 	public static enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
 		const key =
