@@ -2,8 +2,8 @@
 
 import { TutanotaError } from "@tutao/app-env"
 
-export class DbError extends TutanotaError {
-	error: Error | null
+export abstract class DbError extends TutanotaError {
+	public readonly error: Error | null
 
 	/**
 	 * A db error is thrown from indexeddb
@@ -11,8 +11,14 @@ export class DbError extends TutanotaError {
 	 * @param error The original error that was thrown.
 	 * @param name Name to use for this error instance
 	 */
-	constructor(message: string, error?: Error, name: string = "DbError") {
+	protected constructor(name: string, message: string, error?: Error) {
 		super(name, error ? message + `: ${error.name}, ${error.message}> ` + (error.stack ? error.stack : error.message) : message, null)
 		this.error = error ?? null
+	}
+}
+
+export class GenericDbError extends DbError {
+	public constructor(message: string, error?: Error) {
+		super("GenericDbError", message, error)
 	}
 }
