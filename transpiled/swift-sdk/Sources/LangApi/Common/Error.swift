@@ -1,4 +1,4 @@
-public class TutanotaError: Error {
+open class TutanotaError: Error, @unchecked Sendable {
   private let _name: String
   private let _message: String
 
