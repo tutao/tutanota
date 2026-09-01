@@ -29,8 +29,8 @@ import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
-import de.tutao.calendar.widget.component.EmptyBody
-import de.tutao.calendar.widget.component.ErrorBody
+import de.tutao.calendar.widget.component.EmptyStateUI
+import de.tutao.calendar.widget.component.ErrorStateUI
 import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
 import de.tutao.calendar.widget.data.UIEvent
@@ -98,45 +98,17 @@ class Agenda : GlanceAppWidget() {
 
 		provideContent {
 			Log.d(TAG, "provideContent called")
-
 			val data by widgetUIViewModel.uiState.collectAsState()
-			val error by widgetUIViewModel.error.collectAsState()
-
-			if (data is WidgetUIState.Loading) {
-				Log.i(
-					TAG,
-					"Widget UI is still loading... Widget will show a loading state."
-				)
-			} else if (data is WidgetUIState.Available) {
-				Log.i(
-					TAG,
-					"Widget UI has ${(data as WidgetUIState.Available).normalEvents?.values?.flatten()?.size} normal timed events and ${(data as WidgetUIState.Available).allDayEvents?.values?.flatten()?.size} all day events."
-				)
-			} else {
-				Log.d(TAG, "WidgetUIState: $data")
-			}
-
 
 			GlanceTheme(
 				colors = AppTheme.colors
 			) {
-				if (error != null) {
-					return@GlanceTheme ErrorBody(
-						error,
-						logsAction = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error)),
-						loginAction = openCalendarAgenda(context, userId)
-					)
-				}
-
-				WidgetBody(
-					data,
-					userId,
-				)
+				WidgetBody(data, userId)
 			}
 		}
 	}
 
-	private suspend fun setupWidget(
+	suspend fun setupWidget(
 		context: Context, appWidgetId: Int
 	): Pair<WidgetUIViewModel, String?> {
 		val db = AppDatabase.getDatabase(context, true)
@@ -189,26 +161,37 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun WidgetBody(data: WidgetUIState?, userId: String?) {
+	fun WidgetBody(data: WidgetUIState, userId: String?) {
 		Column(
 			modifier = GlanceModifier.padding(
 				top = Dimensions.Spacing.space_16.dp,
 				start = Dimensions.Spacing.space_16.dp,
 				end = Dimensions.Spacing.space_16.dp,
 				bottom = 0.dp
-			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
+			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground()
+				.cornerRadius(20.dp),
 		) {
-
 			when (data) {
+				is WidgetUIState.Error -> {
+					ErrorStateUI(
+						data.error,
+						logsAction = actionStartActivity(
+							WidgetErrorHandler.buildLogsIntent(
+								LocalContext.current,
+								data.error
+							)
+						),
+						loginAction = openCalendarAgenda(LocalContext.current, userId)
+					)
+				}
+
 				is WidgetUIState.Loading -> {
 					LoadingSpinner()
 				}
 
 				is WidgetUIState.Available -> {
-					val hasAllDayEvents =
-						data.allDayEvents?.values?.any { it.isNotEmpty() } ?: false
-					val hasNormalEvents =
-						data.normalEvents?.values?.any { it.isNotEmpty() } ?: false
+					val hasAllDayEvents = data.allDayEvents.values.any { it.isNotEmpty() }
+					val hasNormalEvents = data.normalEvents.values.any { it.isNotEmpty() }
 
 					val onNewEvent = openCalendarEditor(LocalContext.current, userId)
 
@@ -219,13 +202,12 @@ class Agenda : GlanceAppWidget() {
 							userId
 						)
 					} else {
-						EmptyBody(onNewEvent, userId)
-
+						EmptyStateUI(onNewEvent, userId)
 					}
 				}
 
-				else -> {
-					Log.w(TAG, "Very unexpected widget state")
+				is WidgetUIState.NewlyCreated -> {
+					Log.w(TAG, "Widget State: NewlyCreated")
 				}
 			}
 		}
@@ -564,7 +546,7 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewError() {
 		GlanceTheme(colors = AppTheme.colors) {
-			ErrorBody(
+			ErrorStateUI(
 				WidgetError("Failed", "", WidgetErrorType.UNEXPECTED),
 				logsAction = actionRunCallback<ActionCallback>(),
 				loginAction = actionRunCallback<ActionCallback>()
@@ -577,7 +559,7 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewCredentialError() {
 		GlanceTheme(colors = AppTheme.colors) {
-			ErrorBody(
+			ErrorStateUI(
 				WidgetError("Failed", "", WidgetErrorType.CREDENTIALS),
 				logsAction = actionRunCallback<ActionCallback>(),
 				loginAction = actionRunCallback<ActionCallback>()
