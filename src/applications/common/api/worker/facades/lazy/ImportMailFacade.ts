@@ -170,6 +170,7 @@ export class ImportMailFacade {
 				encImports,
 				importFileMailState: null,
 				imapFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
+				imports: [],
 			})
 			await this.serviceExecutor.post(ImportMailService, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
@@ -276,6 +277,8 @@ export class ImportMailFacade {
 			encCid: newFile.cid == null ? null : this.cryptoWrapper.encryptString(fileSessionKey, newFile.cid),
 			encMimeType: this.cryptoWrapper.encryptString(fileSessionKey, newFile.mimeType),
 			referenceTokens: referenceTokens,
+			deduplicatedImportedAttachment: null,
+			file: null,
 		})
 		importAttachment.newAttachment.ownerKeyVersion = fileHash ? ownerEncFileHashSessionKey.encryptingKeyVersion.toString() : null
 

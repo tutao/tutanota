@@ -3518,11 +3518,13 @@ export type NewImportAttachmentParams = {
 
 	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>;
 	encFileHash: null | Uint8Array<ArrayBuffer>;
-	encFileName: Uint8Array<ArrayBuffer>;
-	encMimeType: Uint8Array<ArrayBuffer>;
+	encFileName: null | Uint8Array<ArrayBuffer>;
+	encMimeType: null | Uint8Array<ArrayBuffer>;
 	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
+	deduplicatedImportedAttachment: null | ImportedDeduplicatedImportedAttachment;
+	file: null | FileTransferAggregatedType;
 }
 
 export type NewImportAttachment = {
@@ -3532,12 +3534,14 @@ export type NewImportAttachment = {
 	_id: Id;
 	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>;
 	encFileHash: null | Uint8Array<ArrayBuffer>;
-	encFileName: Uint8Array<ArrayBuffer>;
-	encMimeType: Uint8Array<ArrayBuffer>;
+	encFileName: null | Uint8Array<ArrayBuffer>;
+	encMimeType: null | Uint8Array<ArrayBuffer>;
 	encCid: null | Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: null | NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
+	deduplicatedImportedAttachment: null | ImportedDeduplicatedImportedAttachment;
+	file: null | FileTransferAggregatedType;
 }
 export const ImportAttachmentTypeRef: TypeRef<ImportAttachment> = new TypeRef("tutanota", 1524)
 
@@ -3548,8 +3552,8 @@ export function createImportAttachment(values: ImportAttachmentParams): ImportAt
 export type ImportAttachmentParams = {
 
 
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
-	ownerFileKeyVersion: NumberString;
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerFileKeyVersion: null | NumberString;
 
 	newAttachment: null | NewImportAttachment;
 	existingAttachmentFile: null | IdTuple;
@@ -3560,8 +3564,8 @@ export type ImportAttachment = {
 	_original?: ImportAttachment
 
 	_id: Id;
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>;
-	ownerFileKeyVersion: NumberString;
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerFileKeyVersion: null | NumberString;
 
 	newAttachment: null | NewImportAttachment;
 	existingAttachmentFile: null | IdTuple;
@@ -3701,6 +3705,7 @@ export type ImportMailPostInParams = {
 	importFileMailState: null | IdTuple;
 	encImports: StringWrapper[];
 	imapFolderSyncState: null | IdTuple;
+	imports: ImportMailData2[];
 }
 
 export type ImportMailPostIn = {
@@ -3712,6 +3717,7 @@ export type ImportMailPostIn = {
 	importFileMailState: null | IdTuple;
 	encImports: StringWrapper[];
 	imapFolderSyncState: null | IdTuple;
+	imports: ImportMailData2[];
 }
 export const ImportMailPostOutTypeRef: TypeRef<ImportMailPostOut> = new TypeRef("tutanota", 1579)
 
@@ -5138,4 +5144,212 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	imapAccount: ImapAccountTransferAggregatedType;
 	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
+}
+export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2094)
+
+export function createImportedHeader(values: ImportedHeaderParams): ImportedHeader {
+    return Object.assign(create(typeModels[ImportedHeaderTypeRef.typeId], ImportedHeaderTypeRef), values)
+}
+
+export type ImportedHeaderParams = {
+
+
+	compressedHeaders: null | string;
+}
+
+export type ImportedHeader = {
+	_type: TypeRef<ImportedHeader>;
+	_original?: ImportedHeader
+
+	_id: Id;
+	compressedHeaders: null | string;
+}
+export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2097)
+
+export function createImportedBody(values: ImportedBodyParams): ImportedBody {
+    return Object.assign(create(typeModels[ImportedBodyTypeRef.typeId], ImportedBodyTypeRef), values)
+}
+
+export type ImportedBodyParams = {
+
+
+	compressedText: null | string;
+}
+
+export type ImportedBody = {
+	_type: TypeRef<ImportedBody>;
+	_original?: ImportedBody
+
+	_id: Id;
+	compressedText: null | string;
+}
+export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2100)
+
+export function createImportedMailDetails(values: ImportedMailDetailsParams): ImportedMailDetails {
+    return Object.assign(create(typeModels[ImportedMailDetailsTypeRef.typeId], ImportedMailDetailsTypeRef), values)
+}
+
+export type ImportedMailDetailsParams = {
+
+
+	sentDate: Date;
+
+	replyTos: EncryptedMailAddress[];
+	recipients: Recipients;
+	headers: null | ImportedHeader;
+	body: ImportedBody;
+}
+
+export type ImportedMailDetails = {
+	_type: TypeRef<ImportedMailDetails>;
+	_original?: ImportedMailDetails
+
+	_id: Id;
+	sentDate: Date;
+
+	replyTos: EncryptedMailAddress[];
+	recipients: Recipients;
+	headers: null | ImportedHeader;
+	body: ImportedBody;
+}
+export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2107)
+
+export function createImportedMailDetailsBlob(values: ImportedMailDetailsBlobParams): ImportedMailDetailsBlob {
+    return Object.assign(create(typeModels[ImportedMailDetailsBlobTypeRef.typeId], ImportedMailDetailsBlobTypeRef), values)
+}
+
+export type ImportedMailDetailsBlobParams = {
+
+
+
+	details: ImportedMailDetails;
+}
+
+export type ImportedMailDetailsBlob = {
+	_type: TypeRef<ImportedMailDetailsBlob>;
+	_original?: ImportedMailDetailsBlob
+
+	_id: Id;
+
+	details: ImportedMailDetails;
+}
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2110)
+
+export function createImportedMail(values: ImportedMailParams): ImportedMail {
+    return Object.assign(create(typeModels[ImportedMailTypeRef.typeId], ImportedMailTypeRef), values)
+}
+
+export type ImportedMailParams = {
+
+
+	subject: string;
+	receivedDate: Date;
+	state: NumberString;
+	unread: boolean;
+	confidential: boolean;
+	replyType: NumberString;
+	differentEnvelopeSender: null | string;
+	phishingStatus: NumberString;
+	method: NumberString;
+
+	sender: MailAddress;
+	firstRecipient: null | MailAddress;
+}
+
+export type ImportedMail = {
+	_type: TypeRef<ImportedMail>;
+	_original?: ImportedMail
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	subject: string;
+	receivedDate: Date;
+	state: NumberString;
+	unread: boolean;
+	confidential: boolean;
+	replyType: NumberString;
+	differentEnvelopeSender: null | string;
+	phishingStatus: NumberString;
+	method: NumberString;
+
+	sender: MailAddress;
+	firstRecipient: null | MailAddress;
+}
+export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2125)
+
+export function createImportedImportedImapMail(values: ImportedImportedImapMailParams): ImportedImportedImapMail {
+    return Object.assign(create(typeModels[ImportedImportedImapMailTypeRef.typeId], ImportedImportedImapMailTypeRef), values)
+}
+
+export type ImportedImportedImapMailParams = {
+
+
+	imapUid: NumberString;
+	imapModSeq: null | NumberString;
+}
+
+export type ImportedImportedImapMail = {
+	_type: TypeRef<ImportedImportedImapMail>;
+	_original?: ImportedImportedImapMail
+
+	_id: Id;
+	imapUid: NumberString;
+	imapModSeq: null | NumberString;
+}
+export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2129)
+
+export function createImportedDeduplicatedImportedAttachment(values: ImportedDeduplicatedImportedAttachmentParams): ImportedDeduplicatedImportedAttachment {
+    return Object.assign(create(typeModels[ImportedDeduplicatedImportedAttachmentTypeRef.typeId], ImportedDeduplicatedImportedAttachmentTypeRef), values)
+}
+
+export type ImportedDeduplicatedImportedAttachmentParams = {
+
+
+	attachmentHash: string;
+}
+
+export type ImportedDeduplicatedImportedAttachment = {
+	_type: TypeRef<ImportedDeduplicatedImportedAttachment>;
+	_original?: ImportedDeduplicatedImportedAttachment
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	attachmentHash: string;
+}
+export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2136)
+
+export function createImportMailData2(values: ImportMailData2Params): ImportMailData2 {
+    return Object.assign(create(typeModels[ImportMailData2TypeRef.typeId], ImportMailData2TypeRef), values)
+}
+
+export type ImportMailData2Params = {
+
+
+	messageId: null | string;
+	inReplyTo: null | string;
+
+	labels: IdTuple[];
+	references: ImportMailDataMailReference[];
+	mail: ImportedMail;
+	mailDetailsBlob: ImportedMailDetailsBlob;
+	importAttachments: ImportAttachment[];
+	importedImapMail: null | ImportedImportedImapMail;
+}
+
+export type ImportMailData2 = {
+	_type: TypeRef<ImportMailData2>;
+	_original?: ImportMailData2
+
+	_id: Id;
+	messageId: null | string;
+	inReplyTo: null | string;
+
+	labels: IdTuple[];
+	references: ImportMailDataMailReference[];
+	mail: ImportedMail;
+	mailDetailsBlob: ImportedMailDetailsBlob;
+	importAttachments: ImportAttachment[];
+	importedImapMail: null | ImportedImportedImapMail;
 }

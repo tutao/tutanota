@@ -9378,7 +9378,7 @@
 				"name": "encFileName",
 				"id": 1520,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -9387,7 +9387,7 @@
 				"name": "encMimeType",
 				"id": 1521,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -9420,6 +9420,26 @@
 				"refTypeId": 1990,
 				"dependency": "sys",
 				"transferredAttributeId": null
+			},
+			"2134": {
+				"final": true,
+				"name": "deduplicatedImportedAttachment",
+				"id": 2134,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2129,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2135": {
+				"final": true,
+				"name": "file",
+				"id": 2135,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 1994,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -9450,7 +9470,7 @@
 				"name": "ownerEncFileSessionKey",
 				"id": 1526,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -9459,7 +9479,7 @@
 				"name": "ownerFileKeyVersion",
 				"id": 1527,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
@@ -9949,6 +9969,16 @@
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1895,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2146": {
+				"final": true,
+				"name": "imports",
+				"id": 2146,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2136,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -13563,6 +13593,529 @@
 				"refTypeId": 429,
 				"dependency": null,
 				"transferredAttributeId": 1927
+			}
+		}
+	},
+	"2094": {
+		"name": "ImportedHeader",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2094,
+		"rootId": "CHR1dGFub3RhAAgu",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1269,
+		"values": {
+			"2095": {
+				"final": true,
+				"name": "_id",
+				"id": 2095,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2096": {
+				"final": true,
+				"name": "compressedHeaders",
+				"id": 2096,
+				"type": "CompressedString",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1272
+			}
+		},
+		"associations": {}
+	},
+	"2097": {
+		"name": "ImportedBody",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2097,
+		"rootId": "CHR1dGFub3RhAAgx",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1273,
+		"values": {
+			"2098": {
+				"final": true,
+				"name": "_id",
+				"id": 2098,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2099": {
+				"final": true,
+				"name": "compressedText",
+				"id": 2099,
+				"type": "CompressedString",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 1276
+			}
+		},
+		"associations": {}
+	},
+	"2100": {
+		"name": "ImportedMailDetails",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2100,
+		"rootId": "CHR1dGFub3RhAAg0",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1282,
+		"values": {
+			"2101": {
+				"final": true,
+				"name": "_id",
+				"id": 2101,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2102": {
+				"final": true,
+				"name": "sentDate",
+				"id": 2102,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1284
+			}
+		},
+		"associations": {
+			"2103": {
+				"final": true,
+				"name": "replyTos",
+				"id": 2103,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 612,
+				"dependency": null,
+				"transferredAttributeId": 1285
+			},
+			"2104": {
+				"final": true,
+				"name": "recipients",
+				"id": 2104,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 1277,
+				"dependency": null,
+				"transferredAttributeId": 1286
+			},
+			"2105": {
+				"final": true,
+				"name": "headers",
+				"id": 2105,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2094,
+				"dependency": null,
+				"transferredAttributeId": 1287
+			},
+			"2106": {
+				"final": true,
+				"name": "body",
+				"id": 2106,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2097,
+				"dependency": null,
+				"transferredAttributeId": 1288
+			}
+		}
+	},
+	"2107": {
+		"name": "ImportedMailDetailsBlob",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2107,
+		"rootId": "CHR1dGFub3RhAAg7",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1298,
+		"values": {
+			"2108": {
+				"final": true,
+				"name": "_id",
+				"id": 2108,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2109": {
+				"final": true,
+				"name": "details",
+				"id": 2109,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2100,
+				"dependency": null,
+				"transferredAttributeId": 1305
+			}
+		}
+	},
+	"2110": {
+		"name": "ImportedMail",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2110,
+		"rootId": "CHR1dGFub3RhAAg-",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 97,
+		"values": {
+			"2111": {
+				"final": true,
+				"name": "_id",
+				"id": 2111,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2112": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2112,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 102
+			},
+			"2113": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2113,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1395
+			},
+			"2114": {
+				"final": true,
+				"name": "subject",
+				"id": 2114,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 105
+			},
+			"2115": {
+				"final": true,
+				"name": "receivedDate",
+				"id": 2115,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 107
+			},
+			"2116": {
+				"final": true,
+				"name": "state",
+				"id": 2116,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 108
+			},
+			"2117": {
+				"final": false,
+				"name": "unread",
+				"id": 2117,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 109
+			},
+			"2118": {
+				"final": true,
+				"name": "confidential",
+				"id": 2118,
+				"type": "Boolean",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 426
+			},
+			"2119": {
+				"final": false,
+				"name": "replyType",
+				"id": 2119,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 466
+			},
+			"2120": {
+				"final": true,
+				"name": "differentEnvelopeSender",
+				"id": 2120,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true,
+				"transferredAttributeId": 617
+			},
+			"2121": {
+				"final": false,
+				"name": "phishingStatus",
+				"id": 2121,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1021
+			},
+			"2122": {
+				"final": true,
+				"name": "method",
+				"id": 2122,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1120
+			}
+		},
+		"associations": {
+			"2123": {
+				"final": true,
+				"name": "sender",
+				"id": 2123,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 92,
+				"dependency": null,
+				"transferredAttributeId": 111
+			},
+			"2124": {
+				"final": true,
+				"name": "firstRecipient",
+				"id": 2124,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 92,
+				"dependency": null,
+				"transferredAttributeId": 1306
+			}
+		}
+	},
+	"2125": {
+		"name": "ImportedImportedImapMail",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2125,
+		"rootId": "CHR1dGFub3RhAAhN",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1873,
+		"values": {
+			"2126": {
+				"final": true,
+				"name": "_id",
+				"id": 2126,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2127": {
+				"final": true,
+				"name": "imapUid",
+				"id": 2127,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 1879
+			},
+			"2128": {
+				"final": true,
+				"name": "imapModSeq",
+				"id": 2128,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1880
+			}
+		},
+		"associations": {}
+	},
+	"2129": {
+		"name": "ImportedDeduplicatedImportedAttachment",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2129,
+		"rootId": "CHR1dGFub3RhAAhR",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1883,
+		"values": {
+			"2130": {
+				"final": true,
+				"name": "_id",
+				"id": 2130,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2131": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2131,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1889
+			},
+			"2132": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2132,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1890
+			},
+			"2133": {
+				"final": true,
+				"name": "attachmentHash",
+				"id": 2133,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1892
+			}
+		},
+		"associations": {}
+	},
+	"2136": {
+		"name": "ImportMailData2",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2136,
+		"rootId": "CHR1dGFub3RhAAhY",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2137": {
+				"final": true,
+				"name": "_id",
+				"id": 2137,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2138": {
+				"final": true,
+				"name": "messageId",
+				"id": 2138,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2139": {
+				"final": true,
+				"name": "inReplyTo",
+				"id": 2139,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2140": {
+				"final": false,
+				"name": "labels",
+				"id": 2140,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "Any",
+				"refTypeId": 429,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2141": {
+				"final": true,
+				"name": "references",
+				"id": 2141,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1513,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2142": {
+				"final": true,
+				"name": "mail",
+				"id": 2142,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2110,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2143": {
+				"final": true,
+				"name": "mailDetailsBlob",
+				"id": 2143,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2107,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2144": {
+				"final": true,
+				"name": "importAttachments",
+				"id": 2144,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 1524,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"2145": {
+				"final": true,
+				"name": "importedImapMail",
+				"id": 2145,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2125,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	}
