@@ -51,14 +51,14 @@ class AndroidArchiveDownloaderFacade (
 					// By this point we got the response header but we might not have read the body yet.
 					response.use { response ->
 						val endDownload = TimeSource.Monotonic.markNow()
-						Log.d(TAG, "Finished downloading archive (took " + endDownload.minus(startDownload).inWholeMilliseconds + " ms)")
+						val timeToDownload = endDownload.minus(startDownload).inWholeMilliseconds
+						Log.d(TAG, "Finished downloading archive (took $timeToDownload ms)")
 
 						if (response.code == 200) {
 							Log.d(TAG, "Started storing archive")
-							val startStore = TimeSource.Monotonic.markNow()
 							storeBytes(response.body.byteStream(), typeref, modelVersion)
-							val endStore = TimeSource.Monotonic.markNow()
-							Log.d(TAG, "Finished storing archive (took " + endStore.minus(startStore).inWholeMilliseconds + " ms)")
+							val timeToStore = TimeSource.Monotonic.markNow().minus(endDownload).inWholeMilliseconds
+							Log.d(TAG, "Finished storing archive (took $timeToStore ms)")
 						}
 					}
 				} catch (e: IOException) {
@@ -84,16 +84,18 @@ class AndroidArchiveDownloaderFacade (
 		var currentFullBlobId: String? = null
 		var finishedReadingBlobId = false
 
-		val chunk = ByteArray(10_000)
+		// this seems to be the maximum read
+		// when upgrading to minimum API Level 33, we could try and use InputStream#readNBytes
+		val chunk = ByteArray(8192)
 		var changed: Int
-		val currentBlobBytes = mutableListOf<Byte>()
+		var currentBlobBytes = mutableListOf<Byte>()
 		var byteInt: Int
 
 		var startBlob = TimeSource.Monotonic.markNow()
+		var storage: StoreArchive? = null
 
-		Log.d(TAG, "Started parsing blob")
 		while (true) {
-			changed = bytes.read(chunk, 0, 10_000)
+			changed = bytes.read(chunk)
 			if (changed == -1) {
 				break
 			} else {
@@ -143,25 +145,32 @@ class AndroidArchiveDownloaderFacade (
 								if (openCurlyBraces == 0) {
 									// get blob id
 									val fullBlobId = Json.decodeFromString<Array<String>>(currentFullBlobId!!)
-									val blobId = fullBlobId[1]
-									val archiveId = fullBlobId[0]
 
 									// logging
 									val time = TimeSource.Monotonic.markNow().minus(startBlob).inWholeMilliseconds
-									Log.d(TAG, "Finished parsing blob $blobId (took $time ms)")
+									Log.d(TAG, "Finished processing blob (took $time ms)")
+									startBlob = TimeSource.Monotonic.markNow()
 
 									// store
-									doStore(blobId, archiveId, currentBlobBytes.toByteArray(), typeref, modelVersion)
+									if (storage == null) {
+										storage = StoreArchive(fullBlobId[0], typeref, modelVersion, sqlCipherFacade)
+									}
+									val byteArray = currentBlobBytes.toByteArray()
+									val time2 = TimeSource.Monotonic.markNow().minus(startBlob).inWholeMilliseconds
+									Log.d(TAG, "$time2 ms")
+									currentBlobBytes.add(chunk[i])
+
+									storage.storeBlob(fullBlobId[1], byteArray)
 
 									// cleanup variables
-									currentBlobBytes.clear()
+									currentBlobBytes = mutableListOf()
 									finishedReadingBlobId = false
 									currentFullBlobId = null
 									currentBlobIdPrefix = null
 
-									// do not store the comma itself
-									Log.d(TAG, "Started parsing next blob")
 									startBlob = TimeSource.Monotonic.markNow()
+									// do not store the brace twice
+									continue
 								}
 							}
 						}
@@ -169,7 +178,6 @@ class AndroidArchiveDownloaderFacade (
 							if (!finishedReadingBlobId && !currentFullBlobId.isNullOrEmpty()) {
 								currentFullBlobId += byteInt.toChar()
 								finishedReadingBlobId = true
-								Log.d(TAG, "Found blobId $currentFullBlobId")
 							}
 						}
 						','.code -> {
@@ -187,30 +195,75 @@ class AndroidArchiveDownloaderFacade (
 				}
 			}
 		}
-	}
-
-	private suspend fun doStore(blobId: String, archiveId: String, bytesToStore: ByteArray, typeref: String, modelVersion: Long) {
-		val size = bytesToStore.size
-		Log.d(TAG, "Started storing blob $blobId (storing at least $size bytes)")
-		val start = TimeSource.Monotonic.markNow()
-
-		val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
-		sqlCipherFacade.run(query, listOf(
-			TaggedSqlValue.Str(blobId),
-			TaggedSqlValue.Str(archiveId),
-			TaggedSqlValue.Bytes(DataWrapper(bytesToStore)),
-			TaggedSqlValue.Str(typeref),
-			TaggedSqlValue.Num(modelVersion)
-		))
-		val end = TimeSource.Monotonic.markNow()
-		val time = end.minus(start).inWholeMilliseconds
-		Log.d(TAG, "Finished storing blob $blobId (took $time ms)");
-
+		storage?.close()
 	}
 
 	private companion object {
 		const val TAG = "ArchiveDownloaderFacade"
 		const val HTTP_TIMEOUT = 15L
 	}
+
+	private class StoreArchive(
+		private val archiveId: String,
+		private val typeref: String,
+		private val modelVersion: Long,
+		private val sqlCipherFacade: SqlCipherFacade
+	) {
+		// store when 8 mb of data reached
+		private val BYTE_COUNT_LIMIT = 4 * 1024 * 1024
+		private var byteCountCurrent = 0
+		private val blobs = mutableListOf<StoreBlob>()
+		private var closed = false
+
+		suspend fun storeBlob(blobId: String, bytesToStore: ByteArray) {
+			if (closed) return
+
+			blobs.add(StoreBlob(blobId, bytesToStore))
+			byteCountCurrent += bytesToStore.size
+
+			if (byteCountCurrent > BYTE_COUNT_LIMIT) {
+				store()
+				byteCountCurrent = 0
+			}
+		}
+
+		suspend fun close() {
+			if (blobs.isNotEmpty()) {
+				store()
+			}
+			closed = true
+		}
+
+		private suspend fun store() {
+			Log.d(TAG, "Started storing at least $byteCountCurrent bytes")
+			val start = TimeSource.Monotonic.markNow()
+
+			val archiveId = TaggedSqlValue.Str(archiveId)
+			val typeref = TaggedSqlValue.Str(typeref)
+			val modelVersion = TaggedSqlValue.Num(modelVersion)
+
+			val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " + "(?, ?, ?, ?, ?), ".repeat(blobs.size - 1) + "(?, ?, ?, ?, ?)"
+			val params = List<TaggedSqlValue>(blobs.size * 5) init@{ i ->
+				return@init when (i % 5) {
+					0 -> TaggedSqlValue.Str(blobs[i/5].blobId)
+					1 -> archiveId
+					2 -> TaggedSqlValue.Bytes(DataWrapper(blobs[i/5].bytesToStore))
+					3 -> typeref
+					else -> modelVersion
+				}
+			}
+			sqlCipherFacade.run(query, params)
+			byteCountCurrent = 0
+			blobs.clear()
+
+			val time = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
+			Log.d(TAG, "Finished storing data (took $time ms)")
+		}
+	}
+
+	private class StoreBlob(
+		val blobId: String,
+		val bytesToStore: ByteArray,
+	)
 
 }
