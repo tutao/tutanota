@@ -58,11 +58,9 @@ class WidgetUIViewModel(
 	private val calendar: Calendar,
 	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
-	private val _uiState = MutableStateFlow<WidgetUIState?>(WidgetUIState.NewlyCreated)
-	val uiState: StateFlow<WidgetUIState?> = _uiState.asStateFlow()
 
-	private val _error = MutableStateFlow<WidgetError?>(null)
-	val error: StateFlow<WidgetError?> = _error.asStateFlow()
+	private val _uiState = MutableStateFlow<WidgetUIState>(WidgetUIState.NewlyCreated)
+	val uiState: StateFlow<WidgetUIState> = _uiState.asStateFlow()
 
 	companion object {
 		private const val TAG = "WidgetUIViewModel"
@@ -72,12 +70,11 @@ class WidgetUIViewModel(
 		widgetDataStore: DataStore<Preferences>,
 		widgetCacheDataStore: DataStore<Preferences>,
 		now: LocalDateTime
-	): WidgetUIState? {
+	): WidgetUIState {
 		Log.i(TAG, "Init loadUIState")
 		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
-
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
 		if (widgetStoredState == null) {
@@ -223,21 +220,27 @@ class WidgetUIViewModel(
 		} catch (e: Exception) {
 			Log.e(TAG, "Error when loading initial UI State", e)
 			// We couldn't load widget settings, so we must show an error to User
-			_error.value = WidgetError(
-				"Error reading from DataStore (WidgetId $widgetId)",
-				e.stackTraceToString(),
-				WidgetErrorType.UNEXPECTED
-			)
+			_uiState.value =
+				WidgetUIState.Error(
+					error =
+						WidgetError(
+							"Error reading from DataStore (WidgetId $widgetId)",
+							e.stackTraceToString(),
+							WidgetErrorType.UNEXPECTED
+						)
+				)
 			return null
 		}
 
 		val userId = settings.userId
 		val credentials = this.credentialsFacade.loadByUserId(userId)
 		if (credentials == null) {
-			_error.value = WidgetError(
-				"Missing credentials for user ${userId}",
-				"",
-				WidgetErrorType.CREDENTIALS
+			_uiState.value = WidgetUIState.Error(
+				WidgetError(
+					"Missing credentials for user ${userId}",
+					"",
+					WidgetErrorType.CREDENTIALS
+				)
 			)
 			Log.w(TAG, "Missing credentials for user ${userId} during widget setup")
 			return null
@@ -288,8 +291,8 @@ class WidgetUIViewModel(
 	): Map<GeneratedId, CalendarEventListDao> {
 		if (shouldFetchFromServer && sdk != null) {
 			try {
-				val loggedInSdk = sdk.login(credentials.toSdkCredentials())
-
+				val sdkCredentials = credentials.toSdkCredentials()
+				val loggedInSdk = sdk.login(sdkCredentials)
 				var events: Map<GeneratedId, CalendarEventListDao>
 				val time = measureTimedValue {
 					events = repository.loadEvents(
@@ -395,7 +398,9 @@ class WidgetUIViewModel(
 				"Error on Data Store while loading Widget Settings: ${e.stackTraceToString()}"
 			)
 		} catch (e: Exception) {
-			_error.value = WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
+			_uiState.value = WidgetUIState.Error(
+				WidgetError(e.message ?: "", e.stackTraceToString(), WidgetErrorType.UNEXPECTED)
+			)
 			Log.e(
 				WidgetConfigViewModel.TAG,
 				"Unexpected error while loading Widget Settings: ${e.stackTraceToString()}"

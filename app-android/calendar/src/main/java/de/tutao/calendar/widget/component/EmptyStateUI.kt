@@ -27,7 +27,7 @@ import de.tutao.calendar.widget.style.Dimensions
 import kotlin.random.Random
 
 @Composable
-fun EmptyBody(
+fun EmptyStateUI(
 	openCalendarEditorAction: Action,
 	userId: String?
 ) {
