@@ -138,9 +138,9 @@ import type { QuickActionsModel } from "../common/misc/quickactions/QuickActions
 import { DriveFacade } from "../common/api/worker/facades/lazy/DriveFacade"
 import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
-import { FolderItem, FolderItemId } from "../drive-app/drive/view/DriveUtils"
+import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
+import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction, PickedItemAction } from "../drive-app/drive/view/DriveItemPicker"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
@@ -1499,7 +1499,7 @@ class MailLocator implements CommonLocator {
 	}
 
 	// For the internal drive file picker, not the system one
-	async showDriveFilePickerDialog(startFolderId: IdTuple, action: (pickedItems: readonly FolderItemId[]) => unknown) {
+	async showDriveFilePickerDialog(startFolderId: IdTuple, action: PickedItemAction) {
 		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
 		const pickerAttrs: DriveItemPickerAttrs = {
 			action: (items) => {
@@ -1516,6 +1516,22 @@ class MailLocator implements CommonLocator {
 			mode: DriveItemPickerBehavior.PickItems,
 		}
 		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
+	}
+
+	async showDriveDestinationPickerDialog(files: FolderItem[], action: PickedDestinationAction) {
+		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
+		const pickerAttrs: DriveItemPickerAttrs = {
+			action,
+			files,
+			actionLabel: "attachment_label", //FIXME
+			canCreateFolders: true,
+			descriptionLabel: "Pick Destination", //FIXME
+			descriptionTestId: "Pick Destination", //FIXME,
+			icon: Icons.FolderFilled,
+			startFolderId: (await this.driveFacade.loadRootFolders("withNetwork")).root, //FIXME
+			title: "attachment_label", //FIXME,
+			mode: DriveItemPickerBehavior.PickDestination,
+		}
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {
