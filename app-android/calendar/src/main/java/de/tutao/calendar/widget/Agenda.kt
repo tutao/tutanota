@@ -78,6 +78,9 @@ class Agenda : GlanceAppWidget() {
 
 		repository.eraseLastSyncForWidget(context, glanceId)
 		repository.eraseSettingsForWidget(context, glanceId)
+
+		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+		WidgetViewModelProvider.deleteModelFor(appWidgetId)
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
