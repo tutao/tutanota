@@ -121,10 +121,4 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 		WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORKER_TAG)
 		context.preferencesDataStoreFile(WIDGET_SETTINGS_DATASTORE_FILE).delete()
 	}
-
-	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
-		super.onDeleted(context, appWidgetIds)
-
-		Log.i(TAG, "[$appWidgetIds.first()] Removing widget")
-	}
 }
