@@ -187,6 +187,13 @@ export class ImapImporter implements ImapSyncFacade {
 		}
 	}
 
+	async stopLocalImport(accountSyncStateId: IdTuple): Promise<void> {
+		const session = this.getImapImportSessionOrNull(accountSyncStateId)
+		if (session !== null) {
+			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+		}
+	}
+
 	async postponeImport(accountSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {

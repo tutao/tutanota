@@ -92,6 +92,11 @@ export class ImapMailImportController {
 					if (shouldDisplayGmailAllMailsIMAPDisabledErrorDialog) {
 						Dialog.message("migrationGmailAllMailsDisabledImapError_msg")
 					}
+
+					// in case another client does pause/stop the imap import, we need to stop it here as well
+					if (imapAccountSyncState.status !== ImapAccountSyncStatus.RUNNING) {
+						this.stopLocalImport(imapAccountSyncStateId)
+					}
 				}
 			}
 		}
@@ -227,6 +232,13 @@ export class ImapMailImportController {
 	async pauseImport(accountSyncStateId: IdTuple) {
 		this.isInStateTransition = true
 		await this.imapImporter.pauseImport(accountSyncStateId)
+		await this.updateActiveUiSessions()
+		this.isInStateTransition = false
+	}
+
+	async stopLocalImport(accountSyncStateId: IdTuple) {
+		this.isInStateTransition = true
+		await this.imapImporter.stopLocalImport(accountSyncStateId)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}
