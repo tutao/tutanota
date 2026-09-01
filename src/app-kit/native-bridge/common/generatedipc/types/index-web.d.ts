@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+export type { ArchiveDownloaderFacade } from "./ArchiveDownloaderFacade"
 export type { CommonNativeFacade } from "./CommonNativeFacade"
 export type { CommonSystemFacade } from "./CommonSystemFacade"
 export type { DesktopFacade } from "./DesktopFacade"
@@ -25,6 +26,7 @@ export type { SqlCipherFacade } from "./SqlCipherFacade"
 export type { ThemeFacade } from "./ThemeFacade"
 export type { WebAuthnFacade } from "./WebAuthnFacade"
 export type { AlarmNotification } from "./AlarmNotification"
+export type { ArchiveDownloadRangeHeaders } from "./ArchiveDownloadRangeHeaders"
 export type { ContactAddressType } from "./ContactAddressType"
 export type { ContactBook } from "./ContactBook"
 export type { ContactCustomDateType } from "./ContactCustomDateType"
