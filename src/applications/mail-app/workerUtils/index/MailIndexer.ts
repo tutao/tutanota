@@ -125,3 +125,32 @@ export function abortAware<T>(abortController: AbortController, loading: () => P
 		}
 	})
 }
+
+export async function abortAwareWithCleanup(abortController: AbortController, loading: () => Promise<void>, cleanup: () => Promise<void>): Promise<void> {
+	type AbortEventListener = Parameters<AbortSignal["addEventListener"]>[1]
+
+	let listener: AbortEventListener | null = null
+	const success = await Promise.race([
+		(async () => {
+			await loading()
+			return true
+		})(),
+		newPromise<boolean>((resolve) => {
+			// return right away if already aborted
+			if (abortController.signal.aborted) resolve(false)
+			listener = () => {
+				resolve(false)
+			}
+			abortController.signal.addEventListener("abort", listener, { once: true })
+		}),
+	]).finally(() => {
+		if (listener) {
+			abortController.signal.removeEventListener("abort", listener)
+		}
+	})
+
+	if (!success) {
+		await cleanup()
+		throw new CancelledError("mail indexing canceled", abortController.signal.reason)
+	}
+}
