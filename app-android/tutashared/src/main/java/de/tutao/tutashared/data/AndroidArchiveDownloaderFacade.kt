@@ -87,14 +87,23 @@ class AndroidArchiveDownloaderFacade (
 		// this seems to be the maximum read
 		// when upgrading to minimum API Level 33, we could try and use InputStream#readNBytes
 		val chunk = ByteArray(8192)
-		var changed: Int
-		var currentBlobBytes = mutableListOf<Byte>()
+		var changed = -1
+		var currentBlobBytes = ByteArray(0)
 		var byteInt: Int
+		var startAppend = 0
 
 		var startBlob = TimeSource.Monotonic.markNow()
 		var storage: StoreArchive? = null
 
+
 		while (true) {
+			// FIXME
+			if (startAppend < changed) {
+				currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
+			}
+			// for new chunk
+			startAppend = 0
+
 			changed = bytes.read(chunk)
 			if (changed == -1) {
 				break
@@ -105,7 +114,6 @@ class AndroidArchiveDownloaderFacade (
 					// just save & continue
 					// if we finished reading the blob id, we only need minimal parsing and can return as quickly as possible
 					if (isInString && finishedReadingBlobId && byteInt != '"'.code) {
-						currentBlobBytes.add(chunk[i])
 						continue@loop
 					}
 
@@ -155,20 +163,19 @@ class AndroidArchiveDownloaderFacade (
 									if (storage == null) {
 										storage = StoreArchive(fullBlobId[0], typeref, modelVersion, sqlCipherFacade)
 									}
-									val byteArray = currentBlobBytes.toByteArray()
+									storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
 									val time2 = TimeSource.Monotonic.markNow().minus(startBlob).inWholeMilliseconds
 									Log.d(TAG, "$time2 ms")
-									currentBlobBytes.add(chunk[i])
-
-									storage.storeBlob(fullBlobId[1], byteArray)
 
 									// cleanup variables
-									currentBlobBytes = mutableListOf()
+									currentBlobBytes = ByteArray(0)
 									finishedReadingBlobId = false
 									currentFullBlobId = null
 									currentBlobIdPrefix = null
 
 									startBlob = TimeSource.Monotonic.markNow()
+
+									startAppend = i + 1
 									// do not store the brace twice
 									continue
 								}
@@ -183,11 +190,11 @@ class AndroidArchiveDownloaderFacade (
 						','.code -> {
 							if (currentBlobBytes.isEmpty()) {
 								// do not add commas in between objects to currentBlobBytes
-								continue
+								startAppend++
 							}
 						}
 					}
-					currentBlobBytes.add(chunk[i])
+
 					// if we started reading full blob id, continue to do so
 					if (!finishedReadingBlobId && currentFullBlobId != null && (currentFullBlobId.isNotEmpty() || byteInt != ':'.code)) {
 						currentFullBlobId += byteInt.toChar()

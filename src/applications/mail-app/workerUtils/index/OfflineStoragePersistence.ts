@@ -347,7 +347,7 @@ VALUES (
 				insertParameters.push([tagSqlValue(blobId), tagSqlValue(archiveId), tagSqlValue(encodedBlob), tagSqlValue(typeref), versionParam])
 			}
 
-			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`).join(", ")
 			await this.sqlCipherFacade.run(insertQuery, insertParameters.flat())
 		}
 	}
