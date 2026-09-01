@@ -27,6 +27,7 @@ import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/Whitelabe
 import { PlanType } from "../../../../entities/sys/Utils"
 
 import { isFreeSignupOnly } from "../../misc/LoginUtils"
+import { TsArray } from "@tutao/lang-api"
 
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.

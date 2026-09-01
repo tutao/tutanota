@@ -54,11 +54,11 @@ export function isNotNull<T>(t: T | null): t is NonNullable<T> {
 	return t != null
 }
 
-export function isNull<T>(t: T | null): t is null {
+export function isNull<T>(t: T | null | undefined): t is null | undefined {
 	return t === null || t === undefined
 }
 
-export function assert(assertion: boolean, message: string): void {
+export function assert(assertion: boolean, message: string): asserts assertion {
 	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
 	}
