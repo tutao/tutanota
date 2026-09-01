@@ -78,6 +78,7 @@ import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.data.AndroidArchiveDownloaderFacade
 import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
@@ -137,6 +138,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
+	private lateinit var archiveDownloaderFacade: AndroidArchiveDownloaderFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -214,11 +216,13 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, tempDir, NetworkUtils.defaultClient)
+		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutanota", BuildConfig.APPLICATION_ID)
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
+			archiveDownloaderFacade,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,

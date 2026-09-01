@@ -93,6 +93,14 @@ mailAddresses
 		purgedWithCache: true,
 	},
 
+	// All successfully downloaded and stored mail details blobs archives, that are not finished indexing yet.
+	//
+	// This is temporary and will be cleared once indexing is finished
+	fully_persisted_mail_details_archives: {
+		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+		purgedWithCache: true,
+	},
+
 	// All successfully indexed mail details blobs archives.
 	//
 	// This is saved to prevent redownloading entire archives.
@@ -309,7 +317,7 @@ VALUES (
 	}
 
 	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
-		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM encrypted_mail_details_blobs", [])
+		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_mail_details_archives", [])
 		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
 	}
 
@@ -335,9 +343,14 @@ VALUES (
 				insertParameters.push([tagSqlValue(blobId), tagSqlValue(archiveId), tagSqlValue(encodedBlob), tagSqlValue(typeref), versionParam])
 			}
 
-			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`).join(", ")
 			await this.sqlCipherFacade.run(insertQuery, insertParameters.flat())
 		}
+	}
+
+	async markArchiveAsStored(archiveId: Id): Promise<void> {
+		const { query, params } = sql`INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (${archiveId})`
+		await this.sqlCipherFacade.run(query, params)
 	}
 
 	private pendingEncryptedMailDetailsBlobRetrieval: Promise<Map<Id, IncomingServerJson>> | null = null

@@ -10,6 +10,7 @@ import de.tutao.tutashared.ipc.*
 
 class AndroidGlobalDispatcher (
 	json: Json,
+	archiveDownloaderFacade : ArchiveDownloaderFacade,
 	commonSystemFacade : CommonSystemFacade,
 	externalCalendarFacade : ExternalCalendarFacade,
 	fileFacade : FileFacade,
@@ -22,6 +23,7 @@ class AndroidGlobalDispatcher (
 	themeFacade : ThemeFacade,
 	webAuthnFacade : WebAuthnFacade,
 ) {
+	private val archiveDownloaderFacade: ArchiveDownloaderFacadeReceiveDispatcher = ArchiveDownloaderFacadeReceiveDispatcher(json, archiveDownloaderFacade)
 	private val commonSystemFacade: CommonSystemFacadeReceiveDispatcher = CommonSystemFacadeReceiveDispatcher(json, commonSystemFacade)
 	private val externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher = ExternalCalendarFacadeReceiveDispatcher(json, externalCalendarFacade)
 	private val fileFacade: FileFacadeReceiveDispatcher = FileFacadeReceiveDispatcher(json, fileFacade)
@@ -36,6 +38,7 @@ class AndroidGlobalDispatcher (
 	
 	suspend fun dispatch(facadeName: String, methodName: String, args: List<String>): String {
 		return when (facadeName) {
+			"ArchiveDownloaderFacade" -> this.archiveDownloaderFacade.dispatch(methodName, args)
 			"CommonSystemFacade" -> this.commonSystemFacade.dispatch(methodName, args)
 			"ExternalCalendarFacade" -> this.externalCalendarFacade.dispatch(methodName, args)
 			"FileFacade" -> this.fileFacade.dispatch(methodName, args)

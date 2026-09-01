@@ -68,10 +68,12 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AndroidArchiveDownloaderFacade
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
+import de.tutao.tutashared.ipc.ArchiveDownloaderFacade
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
@@ -203,6 +205,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
+			AndroidArchiveDownloaderFacade(sqlCipherFacade),
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
