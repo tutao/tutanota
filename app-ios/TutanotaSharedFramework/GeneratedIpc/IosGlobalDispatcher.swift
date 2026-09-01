@@ -2,6 +2,7 @@
 
 
 public final class IosGlobalDispatcher: Sendable {
+	private let archiveDownloaderFacade: ArchiveDownloaderFacadeReceiveDispatcher
 	private let commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private let externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private let fileFacade: FileFacadeReceiveDispatcher
@@ -16,6 +17,7 @@ public final class IosGlobalDispatcher: Sendable {
 	private let webAuthnFacade: WebAuthnFacadeReceiveDispatcher
 	
 	public init(
+		archiveDownloaderFacade : any ArchiveDownloaderFacade,
 		commonSystemFacade : any CommonSystemFacade,
 		externalCalendarFacade : any ExternalCalendarFacade,
 		fileFacade : any FileFacade,
@@ -29,6 +31,7 @@ public final class IosGlobalDispatcher: Sendable {
 		themeFacade : any ThemeFacade,
 		webAuthnFacade : any WebAuthnFacade
 	) {
+		self.archiveDownloaderFacade = ArchiveDownloaderFacadeReceiveDispatcher(facade: archiveDownloaderFacade)
 		self.commonSystemFacade = CommonSystemFacadeReceiveDispatcher(facade: commonSystemFacade)
 		self.externalCalendarFacade = ExternalCalendarFacadeReceiveDispatcher(facade: externalCalendarFacade)
 		self.fileFacade = FileFacadeReceiveDispatcher(facade: fileFacade)
@@ -45,6 +48,8 @@ public final class IosGlobalDispatcher: Sendable {
 	
 	public func dispatch(facadeName: String, methodName: String, args: Array<String>) async throws -> String {
 		switch facadeName {
+			case "ArchiveDownloaderFacade":
+				return try await self.archiveDownloaderFacade.dispatch(method: methodName, arg: args)
 			case "CommonSystemFacade":
 				return try await self.commonSystemFacade.dispatch(method: methodName, arg: args)
 			case "ExternalCalendarFacade":

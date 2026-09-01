@@ -266,7 +266,7 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType())
 	})
 
 	o.test("index one mail that was cached already", async () => {
@@ -327,7 +327,7 @@ o.spec("OfflineMailIndexer", () => {
 		verify(persistence.markArchiveAsDownloaded(matchers.anything()), { times: 0 })
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType())
 	})
 
 	o.test("index 2000 mails", async () => {
@@ -455,7 +455,7 @@ o.spec("OfflineMailIndexer", () => {
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
 		verify(persistence.markArchiveAsDownloaded(archiveId))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType())
 	})
 
 	o.spec("import mails", () => {
@@ -516,7 +516,7 @@ o.spec("OfflineMailIndexer", () => {
 			o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 			o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType())
 			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(importedMail._id), MailImportType.FileImport))
 		}
 
@@ -615,7 +615,7 @@ o.spec("OfflineMailIndexer", () => {
 			verify(persistence.updateImportQueueProgress(importList, updateProgressCaptor.capture(), mailImportType))
 			o.check(last(updateProgressCaptor.values!)).equals(elementIdPart(importedMails[totalMails - 1]._id))
 
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType())
 			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
 		})
 
@@ -737,7 +737,7 @@ o.spec("OfflineMailIndexer", () => {
 			o.check(finalProgress).equals(elementIdPart(lastMailTotal._id))
 
 			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType())
 		})
 	})
 })

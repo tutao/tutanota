@@ -2,7 +2,7 @@ import { addParamsToUrl, DEFAULT_REST_CLIENT_OPTIONS, MAX_BLOB_SIZE_BYTES, RestC
 import { handleRestError, NotFoundError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType, RestBinaryBody, RestTextBody, SuspensionBehavior } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, getTypeString, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -50,11 +50,17 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 
 EnvProvider.assertWorkerOrNode()
 
 export const TAG = "BlobFacade"
+
+export interface ArchiveDownloadResumeParams {
+	serverHostname: string
+	rangeHeaders: ArchiveDownloadRangeHeaders
+}
 
 export interface FileData {
 	data: Uint8Array<ArrayBuffer>
@@ -617,49 +623,50 @@ export class BlobFacade {
 	}
 
 	/**
-	 * Download a full archive of (encrypted) blob entities.
-	 *
-	 * To decrypt the entities, you will have to call {@link CryptoMapper#decryptParsedInstance}.
+	 * Download a full archive of blob entities and store them (encrypted) in offline database.
 	 */
-	async downloadFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id): Promise<Array<IncomingServerJson>> {
+	async downloadAndStoreEncryptedBlobArchive<T extends BlobElementEntity>(
+		typeRef: TypeRef<T>,
+		archiveId: Id,
+		archiveDownloader: ArchiveDownloaderFacade,
+		resumeParams: ArchiveDownloadResumeParams | null,
+	): Promise<void> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const headers: Dict = {
-			v: String(clientTypeModel.version),
-		}
-
-		if (clientTypeModel.dependsOnVersion) {
-			headers.dv = String(clientTypeModel.dependsOnVersion)
-		}
+		const typeString = getTypeString(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
-		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
 		const serversToTry = blobServerAccessInfo.servers
 
+		let rangeHeaders: ArchiveDownloadRangeHeaders | null = null
+		if (resumeParams != null) {
+			// try to resume from the last-used server first
+			const resumeServerIndex = blobServerAccessInfo.servers.findIndex(({ url }) => new URL(url).hostname === resumeParams.serverHostname)
+			if (resumeServerIndex !== -1) {
+				rangeHeaders = resumeParams.rangeHeaders
+				const resumeServer = getFirstOrThrow(serversToTry.splice(resumeServerIndex, 1))
+				serversToTry.unshift(resumeServer)
+			}
+		}
+
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
 		// blob element types are accessed with a specific rest path
 		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
 
 		const t = () =>
 			tryServers(
 				serversToTry,
-				async (serverUrl) =>
-					this.restClient.request(path, HttpMethod.GET, {
-						queryParams: allParams,
-						headers: {}, // prevent CORS request due to non standard header usage
-						responseType: MediaType.Json,
-						baseUrl: serverUrl,
-						noCORS: true,
-						suspensionBehavior: SuspensionBehavior.Suspend,
-						body: null,
-						uploadProgressListener: null,
-						downloadProgressListener: null,
-						abortSignal: null,
-					}),
+				async (serverUrl) => {
+					const entityUrl = new URL(serverUrl)
+					entityUrl.pathname = path
+					const url = addParamsToUrl(entityUrl, allParams)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeString, serverTypeModel.version, rangeHeaders)
+				},
 				`can't load instances from server `,
 			)
 
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
-		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
+		await doBlobRequestWithRetry(t, doEvictToken)
 	}
 
 	/**
