@@ -59,11 +59,22 @@ async function applyCustomPatches() {
 }
 
 async function patchUndici() {
-	// Patch undici by looking for every export into the undici namespace and re-adding it as a named export.
-	// This should probably be done via a rollup plugin (in `transform`) instead.
 	console.log("updateLibs: applying a patch to undici")
 	const undiciPath = path.join(__dirname, "../libs/undici.mjs")
 	let replaced = await fs.readFile(undiciPath, { encoding: "utf-8" })
+
+	// Tutao: @rollup/plugin-commonjs and Rolldown both leave require() as is inside
+	// try-catch (and in few other cases), even with `requireNodeBuiltins: true` which obviously
+	// does not work when it is inside an esm module (like dist builds are).
+	// Provide a blanket `require()` for undici
+	replaced =
+		`// TUTAO PATCH: conditional require() replacement
+import { createRequire } from "node:module" 
+const require = createRequire(import.meta.url)
+` + replaced
+
+	// Patch undici by looking for every export into the undici namespace and re-adding it as a named export.
+	// This should probably be done via a rollup plugin (in `transform`) instead.
 	replaced += `
 //
 // TUTAO PATCH: esm exports
@@ -195,7 +206,7 @@ async function rollupImapLibraries(src, target, banner) {
 			alias({
 				entries: [],
 			}),
-			logResolvePlugin,
+			// logResolvePlugin,
 			nodeResolve(),
 			commonjs(),
 			json(),
@@ -245,6 +256,10 @@ async function rollDesktopDep(src, target, banner) {
 			nodeResolve({ preferBuiltins: true }),
 			commonjs({
 				ignore: ["node:sqlite"],
+				// like "auto" (wrap modules in a function only when necessary) but informs
+				// where it does the wrapping
+				// see https://github.com/rollup/plugins/tree/master/packages/commonjs#strictrequires
+				strictRequires: "debug",
 			}),
 		],
 		onwarn: (warning, defaultHandler) => {
