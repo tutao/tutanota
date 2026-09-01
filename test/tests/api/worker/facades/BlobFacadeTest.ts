@@ -30,6 +30,7 @@ import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/B
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
+	ArchiveEnumerationService_GET,
 	BlobGetInTypeRef,
 	BlobIdTypeRef,
 	BlobPostOut,
@@ -37,6 +38,8 @@ import {
 	BlobServerAccessInfoTypeRef,
 	BlobServerUrlTypeRef,
 	BlobService_GET,
+	createArchiveEnumerationGetIn,
+	createArchiveEnumerationGetOut,
 	createBlobPostOut,
 	createBlobServerUrl,
 	storageTypeModels,
@@ -50,6 +53,8 @@ import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
+import { NotAuthorizedError, NotFoundError } from "../../../../../src/platform-kit/rest-client/error"
 
 const { anything, captor } = matchers
 
@@ -74,6 +79,7 @@ o.spec("BlobFacadeTest", function () {
 	let anotherFile: File
 	let typeModelResolver: TypeModelResolver
 	let realInstancePipeline: InstancePipeline
+	let serviceExecutor: IServiceExecutor
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
@@ -84,6 +90,7 @@ o.spec("BlobFacadeTest", function () {
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 		typeModelResolver = clientInitializedTypeModelResolver()
 		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		serviceExecutor = object()
 
 		const mimeType = "text/plain"
 		const name = "fileName"
@@ -100,6 +107,7 @@ o.spec("BlobFacadeTest", function () {
 			blobAccessTokenFacade,
 			object(),
 			typeModelResolver,
+			serviceExecutor,
 		)
 	})
 
@@ -117,6 +125,7 @@ o.spec("BlobFacadeTest", function () {
 				blobAccessTokenFacade,
 				object(),
 				typeModelResolver,
+				serviceExecutor,
 			)
 
 			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
@@ -1424,6 +1433,44 @@ o.spec("BlobFacadeTest", function () {
 				j.getInnerJson(),
 			)
 			o.check(downloadedBlobs).deepEquals(expectedBlobs)
+		})
+	})
+
+	o.spec("enumerateArchivesForGroup", () => {
+		o.test("success", async () => {
+			when(
+				serviceExecutor.execute(
+					ArchiveEnumerationService_GET,
+					createArchiveEnumerationGetIn({ group: "a group", archiveType: ArchiveDataType.MailDetails }),
+					null,
+				),
+			).thenResolve(createArchiveEnumerationGetOut({ archives: ["archive 1", "archive 2", "archive 3"] }))
+
+			o.check(await blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).deepEquals(["archive 1", "archive 2", "archive 3"])
+		})
+
+		o.test("not found", async () => {
+			when(
+				serviceExecutor.execute(
+					ArchiveEnumerationService_GET,
+					createArchiveEnumerationGetIn({ group: "a group", archiveType: ArchiveDataType.MailDetails }),
+					null,
+				),
+			).thenReject(new NotFoundError(":("))
+
+			o.check(await blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).deepEquals([])
+		})
+
+		o.test("not authorized", async () => {
+			when(
+				serviceExecutor.execute(
+					ArchiveEnumerationService_GET,
+					createArchiveEnumerationGetIn({ group: "a group", archiveType: ArchiveDataType.MailDetails }),
+					null,
+				),
+			).thenReject(new NotAuthorizedError(":("))
+
+			await o.check(() => blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).asyncThrows(NotAuthorizedError)
 		})
 	})
 })

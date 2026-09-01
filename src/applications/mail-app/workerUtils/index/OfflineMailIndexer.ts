@@ -88,7 +88,6 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly infoMessageHandler: InfoMessageHandler,
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
-		private readonly serviceExecutor: IServiceExecutor,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
@@ -282,15 +281,8 @@ export class OfflineMailIndexer implements MailIndexer {
 	}
 
 	private async preloadEncryptedArchivesForGroup(mailGroupId: Id): Promise<void> {
-		const allArchives = await this.serviceExecutor.execute(
-			ArchiveEnumerationService_GET,
-			createArchiveEnumerationGetIn({
-				group: mailGroupId,
-				archiveType: ArchiveDataType.MailDetails,
-			}),
-			null,
-		)
-		await this.preloadArchives(allArchives.archives)
+		const allArchives = await this.blobFacade.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)
+		await this.preloadArchives(allArchives)
 	}
 
 	/**

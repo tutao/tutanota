@@ -112,7 +112,6 @@ o.spec("OfflineMailIndexer", () => {
 		crypto = object()
 		infoMessageHandler = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
-		serviceExecutor = object()
 		mailDetailsBlobModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
 
 		mailIndexer = new OfflineMailIndexer(
@@ -125,7 +124,6 @@ o.spec("OfflineMailIndexer", () => {
 			infoMessageHandler,
 			newMailDownloader,
 			realInstancePipeline,
-			serviceExecutor,
 			TEST_INDEX_CHUNK_SIZE,
 		)
 		user = createTestEntity(UserTypeRef, {
@@ -249,20 +247,7 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		]
 
-		when(
-			serviceExecutor.execute(
-				ArchiveEnumerationService_GET,
-				createArchiveEnumerationGetIn({
-					group: mailGroupId,
-					archiveType: ArchiveDataType.MailDetails,
-				}),
-				null,
-			),
-		).thenResolve(
-			createArchiveEnumerationGetOut({
-				archives: [listIdPart(mail.mailDetails)],
-			}),
-		)
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([listIdPart(mail.mailDetails)])
 
 		await mailIndexer.extendMailIndex(user)
 
@@ -289,20 +274,7 @@ o.spec("OfflineMailIndexer", () => {
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
 
-		when(
-			serviceExecutor.execute(
-				ArchiveEnumerationService_GET,
-				createArchiveEnumerationGetIn({
-					group: mailGroupId,
-					archiveType: ArchiveDataType.MailDetails,
-				}),
-				null,
-			),
-		).thenResolve(
-			createArchiveEnumerationGetOut({
-				archives: [archiveId],
-			}),
-		)
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
 
 		for (let i = 0; i < mailCount; i++) {
 			const mailDetails = createTestEntity(
