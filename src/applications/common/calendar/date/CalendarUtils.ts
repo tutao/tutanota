@@ -34,7 +34,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, ProgrammingError, RepeatPeriod, WeekStart } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	CalendarEventDateTimeFields,
@@ -160,6 +160,64 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 		.setZone(zone, { keepLocalTime: true })
 		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 		.toJSDate()
+}
+
+/**
+ * Returns true if the year is a leap year in the Gregorian calendar.
+ * @param year a positive integer in the signed 32-bit range [0;2^31)
+ */
+export function isLeapYear(year: number): boolean {
+	if (year < 0) {
+		throw new ProgrammingError(`isLeapYear called with negative year=${year}!`)
+	}
+	const yearInteger = year | 0
+	if (yearInteger !== year) {
+		console.error(`isLeapYear called with non-integer year=${year}!`)
+	}
+	// See https://en.wikipedia.org/wiki/Leap_year#Gregorian_calendar
+	return yearInteger % 4 === 0 && (yearInteger % 100 !== 0 || yearInteger % 400 === 0)
+}
+
+/**
+ * Returns the number of days in a month.
+ *
+ * @param year A positive integer in the signed 32-bit range [0;2^31).
+ *     The `year` argument is needed because February has 29 days on leap years, instead of 28
+ * @param month 1 to 12 (inclusive)
+ */
+export function daysInMonth(year: number, month: number): number {
+	const monthInteger = month | 0
+	if (monthInteger !== month) {
+		console.error(`daysInMonth called with non-integer month=${month}!`)
+	}
+	switch (monthInteger) {
+		case 1:
+			return 31
+		case 2:
+			return 28 + (isLeapYear(year) ? 1 : 0)
+		case 3:
+			return 31
+		case 4:
+			return 30
+		case 5:
+			return 31
+		case 6:
+			return 30
+		case 7:
+			return 31
+		case 8:
+			return 31
+		case 9:
+			return 30
+		case 10:
+			return 31
+		case 11:
+			return 30
+		case 12:
+			return 31
+		default:
+			throw new Error(`daysInMonth called with invalid month=${month}! Month must be between 1 and 12.`)
+	}
 }
 
 /**
@@ -1838,20 +1896,6 @@ export enum ByRule {
 	BYSETPOS = "7",
 	WKST = "8",
 }
-
-export const BYRULE_MAP = freezeMap(
-	new Map([
-		["BYMINUTE", ByRule.BYMINUTE],
-		["BYHOUR", ByRule.BYHOUR],
-		["BYDAY", ByRule.BYDAY],
-		["BYMONTHDAY", ByRule.BYMONTHDAY],
-		["BYYEARDAY", ByRule.BYYEARDAY],
-		["BYWEEKNO", ByRule.BYWEEKNO],
-		["BYMONTH", ByRule.BYMONTH],
-		["BYSETPOS", ByRule.BYSETPOS],
-		["WKST", ByRule.WKST],
-	]),
-)
 
 export function getTimeFromClickInteraction(e: MouseEvent, time: Time): Time {
 	const rect = (e.target as HTMLElement).getBoundingClientRect()

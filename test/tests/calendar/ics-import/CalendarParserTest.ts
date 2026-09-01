@@ -13,19 +13,18 @@ import {
 	parseExDates,
 	parseICalendar,
 	parseProperty,
-	parsePropertyKeyValue,
 	parseRecurrenceId,
-	parseTime,
 	parseUntilRruleTime,
 	propertySequenceParser,
 	repeatPeriodToIcalFrequency,
+	Terminator,
 	triggerToAlarmInterval,
 } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import { AlarmInfo, AlarmInfoTypeRef, createDateWrapper, createRepeatRule, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 import { serializeCalendar, serializeEvent } from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter"
 import { CalendarEvent, CalendarEventTypeRef, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
-import { AlarmIntervalUnit, getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
+import { AlarmIntervalUnit, ByRule, getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils"
 import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils"
 import { ParserError, StringIterator } from "../../../../src/applications/common/misc/parsing/ParserCombinator"
@@ -66,7 +65,26 @@ o.spec("CalendarParser", function () {
 		})
 
 		o("key-value value", function () {
-			o(propertySequenceParser(new StringIterator("RRULE:FREQ=WEEKLY;BYDAY=SA"))).deepEquals(["RRULE", null, ":", "FREQ=WEEKLY;BYDAY=SA"])
+			o.check(propertySequenceParser(new StringIterator("RRULE:FREQ=WEEKLY;BYDAY=SA"))).deepEquals(["RRULE", null, ":", "FREQ=WEEKLY;BYDAY=SA"])
+		})
+
+		o.test("allows empty prop value", function () {
+			o.check(propertySequenceParser(new StringIterator("PROPNAME:"))).deepEquals(["PROPNAME", null, ":", ""])
+		})
+
+		o.test("allows empty prop param", function () {
+			o.check(propertySequenceParser(new StringIterator("PROPNAME;PARAM=:PROPVAL"))).deepEquals(["PROPNAME", [";", [["PARAM", "=", ""]]], ":", "PROPVAL"])
+		})
+
+		o.test("Allows letters, underscores and minus in prop name", function () {
+			o.check(propertySequenceParser(new StringIterator("azAZ_-:PROPVAL"))).deepEquals(["azAZ_-", null, ":", "PROPVAL"])
+		})
+
+		o.test("throws on empty prop name", function () {
+			o.check(() => propertySequenceParser(new StringIterator(":PROPVAL"))).throws(ParserError)
+		})
+		o.test("throws on invalid param without value", function () {
+			o.check(() => propertySequenceParser(new StringIterator("PROPNAME;INVALIDPARAM:PROPVAL"))).throws(ParserError)
 		})
 	})
 
@@ -107,16 +125,6 @@ o.spec("CalendarParser", function () {
 				params: {},
 				value: "some value",
 			})
-		})
-	})
-
-	o("parsePropertyKeyValue", function () {
-		o(parsePropertyKeyValue("KEY=VALUE")).deepEquals({
-			KEY: "VALUE",
-		})
-		o(parsePropertyKeyValue("KEY=VALUE;ANOTHERKEY=ANOTHERVALUE")).deepEquals({
-			KEY: "VALUE",
-			ANOTHERKEY: "ANOTHERVALUE",
 		})
 	})
 
@@ -243,70 +251,160 @@ o.spec("CalendarParser", function () {
 		o(() => parseDuration("P8W15M")).throws(Error)
 	})
 
-	o("triggerToAlarmInterval", function () {
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
-			unit: AlarmIntervalUnit.MINUTE,
-			value: 5 * 60 + 30,
+	o.spec("triggerToAlarmInterval", function () {
+		o.test("relative trigger using DURATION as offset", function () {
+			o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
+				unit: AlarmIntervalUnit.MINUTE,
+				value: 5 * 60 + 30,
+			})
+			o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M20S")).deepEquals({
+				unit: AlarmIntervalUnit.MINUTE,
+				value: 5 * 60 + 30,
+			})
+			o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H0M")).deepEquals({
+				unit: AlarmIntervalUnit.HOUR,
+				value: 5,
+			})
+			o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-P1DT5H0M")).deepEquals({
+				unit: AlarmIntervalUnit.HOUR,
+				value: 29,
+			})
 		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M20S")).deepEquals({
-			unit: AlarmIntervalUnit.MINUTE,
-			value: 5 * 60 + 30,
-		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H0M")).deepEquals({
-			unit: AlarmIntervalUnit.HOUR,
-			value: 5,
-		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-P1DT5H0M")).deepEquals({
-			unit: AlarmIntervalUnit.HOUR,
-			value: 29,
+		o.test("absolute trigger specified as DATE-TIME", function () {
+			const eventStartTimestamp = Date.UTC(1999, 11 - 1, 22, 11, 22, 33)
+
+			const eventTriggerYear = 2000
+			const eventTriggerMonth = 11
+			const eventTriggerDay = 22
+			const eventTriggerHour = 11
+			const eventTriggerMinute = 22
+			const eventTriggerSecond = 33
+
+			const eventTriggerTimestamp = Date.UTC(
+				eventTriggerYear,
+				eventTriggerMonth - 1,
+				eventTriggerDay,
+				eventTriggerHour,
+				eventTriggerMinute,
+				eventTriggerSecond,
+			)
+
+			const trigger = triggerToAlarmInterval(
+				new Date(eventStartTimestamp),
+				`${eventTriggerYear}${eventTriggerMonth}${eventTriggerDay}T${eventTriggerHour}${eventTriggerMinute}${eventTriggerSecond}Z`,
+			)
+			o.check(trigger!.unit).equals(AlarmIntervalUnit.MINUTE)
+
+			const expectedOffsetFromStartInMins = (eventStartTimestamp - eventTriggerTimestamp) / (60 * 1000)
+			const actualOffsetFromStartInMins = trigger!.value
+
+			const TOLERATED_ERROR_IN_MINS = 1.0
+			o.check(Math.abs(expectedOffsetFromStartInMins - actualOffsetFromStartInMins) <= TOLERATED_ERROR_IN_MINS).equals(true)
 		})
 	})
 
-	o.spec("parseTime", function () {
-		o.test("time with UTC indicator", function () {
-			o(parseTime("20180115T214000Z", null)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 21, 40, 0)),
-				allDay: false,
+	o.spec("parseDateTimeToObject", function () {
+		// Happy path
+		o.test("time with Z-suffix UTC indicator", function () {
+			let str = "20180115T214000Z"
+			o(parseDateTime(str, 0, Terminator.endOfString)).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: 21,
+				minute: 40,
+				hasZSuffix: true,
+				offset: str.length,
+				terminator: Terminator.endOfString,
 			})
 		})
-
-		o.test("time with timezone", function () {
-			o(parseTime("20180115T214000", zone)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 20, 40, 0)),
-				allDay: false,
+		o.test("time without Z-suffix UTC indicator", function () {
+			let str = "20180115T214000"
+			o(parseDateTime(str, 0, Terminator.endOfString)).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: 21,
+				minute: 40,
+				hasZSuffix: false,
+				offset: str.length,
+				terminator: Terminator.endOfString,
 			})
 		})
-
-		o.test("All day event doens't care about timezones", function () {
-			o(parseTime("20180115T", zone)).deepEquals({
-				date: new Date(Date.UTC(2018, 0, 15, 0, 0, 0)),
-				allDay: true,
+		o.test("date-time without time component", function () {
+			let str = "20180115T"
+			o(parseDateTime(str, 0, Terminator.endOfString)).deepEquals({
+				year: 2018,
+				month: 1,
+				day: 15,
+				hour: null,
+				minute: null,
+				hasZSuffix: false,
+				offset: str.length,
+				terminator: Terminator.endOfString,
 			})
 		})
+		const inlineWhitespaceCombos = [" ", "\t", "\v", "  ", " \t"]
+		o.test("ignores whitespace at start of date-time strings", function () {
+			for (const whitespace of inlineWhitespaceCombos) {
+				const str = whitespace + "19991122"
+				o(parseDateTime(str, 0, Terminator.endOfString)).deepEquals({
+					year: 1999,
+					month: 11,
+					day: 22,
+					hour: null,
+					minute: null,
+					hasZSuffix: false,
+					offset: str.length,
+					terminator: Terminator.endOfString,
+				})
+			}
+		})
+		o.test("ignores whitespace at end of date-time strings", function () {
+			for (const whitespace of inlineWhitespaceCombos) {
+				const str = "19991122" + whitespace
+				o(parseDateTime(str, 0, Terminator.endOfString)).deepEquals({
+					year: 1999,
+					month: 11,
+					day: 22,
+					hour: null,
+					minute: null,
+					hasZSuffix: false,
+					offset: str.length,
+					terminator: Terminator.endOfString,
+				})
+			}
+		})
 
+		// Sad path
 		o.test("Invalid month throws error", function () {
-			o(() => parseTime("20180015T214000Z", "Europe/Berlin")).throws(ParserError)
+			o(() => parseDateTime("19990011", 0, Terminator.endOfString)).throws(ParserError)
+			o(() => parseDateTime("19991311", 0, Terminator.endOfString)).throws(ParserError)
 		})
-	})
-
-	o.spec("parseDateTime", function () {
+		o.test("Invalid day throws error", function () {
+			o(() => parseDateTime("20001100", 0, Terminator.endOfString)).throws(ParserError)
+			o(() => parseDateTime("20001131", 0, Terminator.endOfString)).throws(ParserError)
+		})
+		o.test("throws error on empty string", function () {
+			o.check(() => parseDateTime("", 0, Terminator.endOfString)).throws(ParserError)
+		})
 		o.test("does not mistake a valid date-time after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("invalidPrefix 20331122T001122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("invalidPrefix 20331122T001122", 0, Terminator.endOfString)).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("invalidPrefix 20331122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("invalidPrefix 20331122", 0, Terminator.endOfString)).throws(ParserError)
 		})
 		o.test("does not mistake a valid date-time before invalid string suffix as valid", function () {
-			o.check(() => parseDateTime("20331122T001122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("20331122T001122 invalidSuffix", 0, Terminator.endOfString)).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("20331122 invalidSuffix", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("20331122 invalidSuffix", 0, Terminator.endOfString)).throws(ParserError)
 		})
 		o.test("does not mistake a valid date-time after invalid numeric prefix as valid", function () {
-			o.check(() => parseDateTime("2020111122T001122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("2020111122T001122", 0, Terminator.endOfString)).throws(ParserError)
 		})
 		o.test("does not mistake a valid all-day date after invalid string prefix as valid", function () {
-			o.check(() => parseDateTime("2020331122", "UTC", "UTC")).throws(ParserError)
+			o.check(() => parseDateTime("2020331122", 0, Terminator.endOfString)).throws(ParserError)
 		})
 	})
 
@@ -329,18 +427,30 @@ o.spec("CalendarParser", function () {
 
 		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
 			const event = makeEvent({ start, end })
-			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			const { icsCalendarEvent } = parseCalendarEvents(event, zone).contents[0]
 			o(icsCalendarEvent.endTime.getTime()).equals(expect)
 		}
 
 		o("allday equal", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220315T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220315T",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 		o("allday flipped", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220314T",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 		o("allday with an endTime that has hours/minutes/seconds", function () {
-			testParseIllegalCalendarEvents({ start: "20220315T", end: "20220314T225915Z", expect: parseTime("20220316T", "Europe/Berlin").date.getTime() })
+			testParseIllegalCalendarEvents({
+				start: "20220315T",
+				end: "20220314T225915Z",
+				expect: DateTime.fromObject({ year: 2022, month: 3, day: 16 }, { zone: "UTC" /* All-day events use the UTC time zone*/ }).toMillis(),
+			})
 		})
 
 		o("endTime equal", function () {
@@ -406,6 +516,10 @@ o.spec("CalendarParser", function () {
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
+		o("allows empty exclusion dates", function () {
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "" }])
+			o(parsedDates.length).equals(0)
+		})
 		o("is timezone parsed", function () {
 			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
 			o(parsedDates).deepEquals([
@@ -413,7 +527,7 @@ o.spec("CalendarParser", function () {
 				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
 			])
 		})
-		o(" deduplication over different timezones", function () {
+		o("deduplication over different timezones", function () {
 			const parsedDates = parseExDates([
 				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
 				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
@@ -478,6 +592,18 @@ o.spec("CalendarParser", function () {
 			o(summary?.value).equals("This is a very long summary that is folded across multiple lines according to RFC 5545")
 		})
 	})
+
+	const calendarWithRRule = (rruleValue: string) =>
+		"BEGIN:VCALENDAR\r\n" +
+		"VERSION:2.0\r\n" +
+		"BEGIN:VEVENT\r\n" +
+		"UID:repeat-rule-test\r\n" +
+		"DTSTART:20331122T001122Z\r\n" +
+		"DTEND:20331122T112233Z\r\n" +
+		"SUMMARY:Test Repeat Rule\r\n" +
+		`RRULE:${rruleValue}\r\n` +
+		"END:VEVENT\r\n" +
+		"END:VCALENDAR"
 
 	o.spec("parseCalendarStringData", function () {
 		let expectedParsedCalendarData: ParsedCalendarData
@@ -566,24 +692,8 @@ o.spec("CalendarParser", function () {
 
 			for (const supportedRepeatFrequency of ["DAILY", "WEEKLY", "MONTHLY", "YEARLY"]) {
 				o(`Accepts events with supported ${supportedRepeatFrequency} repeat frequency`, function () {
-					const result = parseCalendarStringData(
-						"BEGIN:VCALENDAR\r\n" +
-							"PRODID:-//Tutao GmbH//Tutanota 42//EN\r\n" +
-							"VERSION:2.0\r\n" +
-							"CALSCALE:GREGORIAN\r\n" +
-							"METHOD:PUBLISH\r\n" +
-							"BEGIN:VEVENT\r\n" +
-							"DTSTART;TZID=Europe/Berlin:20000101T020000\r\n" +
-							"DTEND;TZID=Europe/Berlin:20100007T020000\r\n" +
-							"DTSTAMP:20190813T140100Z\r\n" +
-							"UID:test@tuta.com\r\n" +
-							"SEQUENCE:0\r\n" +
-							"SUMMARY:Hourly repeating event\r\n" +
-							`RRULE:FREQ=${supportedRepeatFrequency}\r\n` +
-							"END:VEVENT\r\n" +
-							"END:VCALENDAR",
-						zone,
-					)
+					const rruleValue = `FREQ=${supportedRepeatFrequency}`
+					const result = parseCalendarStringData(calendarWithRRule(rruleValue), zone)
 					const repeatRule = result.contents[0].icsCalendarEvent.repeatRule
 					o(repeatPeriodToIcalFrequency((repeatRule?.frequency ?? "") as unknown as RepeatPeriod) as string).equals(supportedRepeatFrequency)
 				})
@@ -611,7 +721,7 @@ o.spec("CalendarParser", function () {
 					)
 					o(result.contents.length).equals(0)
 					o(result.parseEventErrors.length).equals(1)
-					o(result.parseEventErrors[0].message).equals(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)
+					o(result.parseEventErrors[0].message.includes(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)).equals(true)
 				})
 			}
 
@@ -1558,36 +1668,89 @@ END:VCALENDAR`
 	})
 
 	o.spec("handles repeat rule property", function () {
-		const calendarWithRRule = (rruleValue: string) =>
-			"BEGIN:VCALENDAR\r\n" +
-			"VERSION:2.0\r\n" +
-			"BEGIN:VEVENT\r\n" +
-			"UID:repeat-rule-test\r\n" +
-			"DTSTART:20331122T001122Z\r\n" +
-			"DTEND:20331122T112233Z\r\n" +
-			"SUMMARY:Test Repeat Rule\r\n" +
-			`RRULE:${rruleValue}\r\n` +
-			"END:VEVENT\r\n" +
-			"END:VCALENDAR"
+		o.test("sets INTERVAL to 1 when missing", function () {
+			const rruleValue = `FREQ=WEEKLY;COUNT=1`
+			const result = parseCalendarStringData(calendarWithRRule(rruleValue), zone)
 
+			o.check(result.parseEventErrors.length).equals(0)
+			o.check(result.contents.length).equals(1)
+			o.check(result.contents[0].icsCalendarEvent.repeatRule?.interval).equals("1")
+		})
+
+		const advancedRRulePropNames = ["BYMINUTE", "BYHOUR", "BYDAY", "BYMONTHDAY", "BYYEARDAY", "BYWEEKNO", "BYMONTH", "BYSETPOS", "WKST"]
+		o.test("creates advanced repeat rules", function () {
+			for (const advancedRRulePropName of advancedRRulePropNames) {
+				const rruleValue = `FREQ=WEEKLY;${advancedRRulePropName}=Bogus`
+				const result = parseCalendarStringData(calendarWithRRule(rruleValue), zone)
+
+				o.check(result.parseEventErrors.length).equals(0)
+				o.check(result.contents.length).equals(1)
+
+				const advancedRepeatRules = result.contents[0].icsCalendarEvent.repeatRule?.advancedRules!
+				o.check(advancedRepeatRules.length).equals(1)
+				o.check(advancedRepeatRules[0].ruleType).equals(ByRule[advancedRRulePropName])
+				o.check(advancedRepeatRules[0].interval).equals("Bogus")
+			}
+		})
+		o.test("creates multiple advanced repeat rules for each comma-separated value", function () {
+			for (const advancedRRulePropName of advancedRRulePropNames) {
+				const rruleValue = `FREQ=WEEKLY;${advancedRRulePropName}=A,B`
+				const result = parseCalendarStringData(calendarWithRRule(rruleValue), zone)
+
+				o.check(result.parseEventErrors.length).equals(0)
+				o.check(result.contents.length).equals(1)
+
+				const advancedRepeatRules = result.contents[0].icsCalendarEvent.repeatRule?.advancedRules!
+				o.check(advancedRepeatRules.length).equals(2)
+				o.check(advancedRepeatRules[0].ruleType).equals(ByRule[advancedRRulePropName])
+				o.check(advancedRepeatRules[0].interval).equals("A")
+				o.check(advancedRepeatRules[1].ruleType).equals(ByRule[advancedRRulePropName])
+				o.check(advancedRepeatRules[1].interval).equals("B")
+			}
+		})
+		o.test("creates empty comma-separated values in advanced repeat rules", function () {
+			for (const advancedRRulePropName of advancedRRulePropNames) {
+				const rruleValue = `FREQ=WEEKLY;${advancedRRulePropName}=,,A,B,`
+				const result = parseCalendarStringData(calendarWithRRule(rruleValue), zone)
+
+				o.check(result.parseEventErrors.length).equals(0)
+				o.check(result.contents.length).equals(1)
+
+				const advancedRepeatRules = result.contents[0].icsCalendarEvent.repeatRule?.advancedRules!
+				o.check(advancedRepeatRules.length).equals(2)
+				o.check(advancedRepeatRules[0].ruleType).equals(ByRule[advancedRRulePropName])
+				o.check(advancedRepeatRules[0].interval).equals("A")
+				o.check(advancedRepeatRules[1].ruleType).equals(ByRule[advancedRRulePropName])
+				o.check(advancedRepeatRules[1].interval).equals("B")
+			}
+		})
+
+		o.test("throws an error when FREQ is missing", function () {
+			const rruleValue = "INTERVAL=1;COUNT=1"
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
+		})
+		o.test("throws an error when COUNT is empty", function () {
+			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT="
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
+		})
 		o.test("throws an error when COUNT is non-numeric", function () {
 			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=abc"
-			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
 		})
 		o.test("throws an error when COUNT has an invalid suffix", function () {
 			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=1 invalidSuffix"
-			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
 		})
 		o.test("throws an error when COUNT is negative", function () {
 			const rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=-1"
-			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
 		})
 		o.test("throws an error when COUNT is hexidecimal", function () {
 			let rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=0x123"
-			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
 
 			rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=0X123"
-			o.check(() => parseCalendarStringData(calendarWithRRule(rruleValue), zone)).throws(ParserError)
+			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
 		})
 	})
 })
