@@ -24,6 +24,7 @@ EnvProvider.assertMainOrNode()
 export const enum DownloadPostProcessing {
 	Open,
 	Write,
+	SaveToDrive,
 }
 
 export interface DownloadReturn {

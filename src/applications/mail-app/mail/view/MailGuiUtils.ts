@@ -30,12 +30,12 @@ import { InlineImageReference, InlineImages } from "../../../common/mailFunction
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import {
-	MailSetInfo,
-	getMailSetName,
 	getIndentedFolderNameForDropdown,
+	getMailSetName,
 	getMoveTargetFolderSystems,
 	getMoveTargetFolderSystemsForMailsInFolder,
 	getSystemFolderName,
+	MailSetInfo,
 	MoveService,
 	RegularMoveTargets,
 	SimpleMoveTargets,
@@ -46,7 +46,7 @@ import { LabelsPopup } from "./LabelsPopup"
 import { Styles } from "../../../../ui/styles"
 import { showSnackBar } from "../../../../ui/base/SnackBar"
 import { UndoModel } from "../../UndoModel"
-import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
+import { IndentedMailSet } from "../../../common/api/common/mail/FolderSystem"
 import { computeColor, rgbToHSL } from "../../../../ui/base/Color"
 import { getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { DownloadListener, TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
@@ -972,6 +972,9 @@ export class AttachmentDownloader {
 				if (postDownload === DownloadPostProcessing.Open) {
 					// downloading a file reference does not make any sense, since the file is already on the file system
 					await this.fileApp.open(attachment)
+				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
+					//Fixme: not implemented
+					console.log("file reference: ", attachment)
 				} else {
 					throw new ProgrammingError("File Reference cannot be downloaded")
 				}
@@ -979,12 +982,18 @@ export class AttachmentDownloader {
 				if (postDownload === DownloadPostProcessing.Write) {
 					// When it is a data file, only support downloading
 					await this.fileController.saveDataFile(attachment)
+				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
+					//Fixme: not implemented
+					console.log("Datafile: ", attachment)
 				} else {
 					throw new ProgrammingError("Data File cannot be opened")
 				}
 			} else if (isTutanotaFile(attachment)) {
 				if (postDownload === DownloadPostProcessing.Open) {
 					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.open(attachment))
+				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
+					//Fixme: not implemented
+					console.log("Tutanotafile: ", attachment)
 				} else {
 					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.download(attachment))
 				}

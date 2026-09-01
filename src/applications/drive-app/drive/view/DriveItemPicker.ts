@@ -72,10 +72,6 @@ export type DriveItemPickerAttrs =
  * It also enables the user to create new folders.
  */
 export async function showItemPicker(entityClient: EntityClient, driveFacade: DriveFacade, attrs: DriveItemPickerAttrs) {
-	const pickerMode = attrs.mode
-
-	const action = attrs.action
-
 	const parentFolderId = attrs.startFolderId
 	// TODO: show a progress here?
 	let state: State = await loadFolder(parentFolderId)
@@ -98,7 +94,7 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 		const parents = currentFolder.folder.parent ? [toFolderItem(await entityClient.load(DriveFolderTypeRef, currentFolder.folder.parent), null)] : []
 
 		const listModel = new ListModel<FolderItem, Id>({
-			fetch: async (lastFetchedItem, count) => {
+			fetch: async (lastFetchedItem) => {
 				if (lastFetchedItem == null) {
 					return { items, complete: true }
 				} else {

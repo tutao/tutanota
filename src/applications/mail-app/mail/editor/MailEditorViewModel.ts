@@ -104,6 +104,7 @@ export function createAttachmentBubbleAttrs(
 		download: fileDownloader.canDownloadAttachment(attachment)
 			? () => fileDownloader.openOrDownloadAttachment(attachment, DownloadPostProcessing.Write)
 			: null,
+		saveToDrive: () => fileDownloader.openOrDownloadAttachment(attachment, DownloadPostProcessing.SaveToDrive),
 		remove: () => {
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {

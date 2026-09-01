@@ -31,6 +31,7 @@ export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
+	saveToDrive: Thunk | null
 	remove: Thunk | null
 	fileImport: Thunk | null
 	type: AttachmentType
@@ -190,7 +191,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, fileImport, type } = this.attrs
+		const { remove, open, download, attachment, fileImport, type, saveToDrive } = this.attrs
 		return m(
 			".flex.mb-8.pr-12",
 			{
@@ -247,6 +248,13 @@ export class AttachmentDetailsPopup implements ModalComponent {
 										type: ButtonType.Secondary,
 										label: "download_action",
 										click: () => this.thenClose(download),
+									})
+								: null,
+							saveToDrive
+								? m(Button, {
+										type: ButtonType.Secondary,
+										label: lang.makeTranslation("saveToDrive", "Save to Drive"),
+										click: () => this.thenClose(saveToDrive),
 									})
 								: null,
 						]),

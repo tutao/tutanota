@@ -673,6 +673,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				open: viewModel.attachmentDownloader.canOpenAttachment(attachment)
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
+				saveToDrive: () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.SaveToDrive),
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})
