@@ -174,7 +174,8 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 							TAG,
 							"Calendar $calendarId loaded. " +
 									"Found ${events.shortEvents.size} short events. " +
-									"Found ${events.longEvents.size} long events"
+									"Found ${events.longEvents.size} long events" +
+									"for time range ${start} to ${end}"
 						)
 
 						calendarId to CalendarEventListDao(
