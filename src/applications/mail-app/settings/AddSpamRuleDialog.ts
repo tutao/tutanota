@@ -141,7 +141,7 @@ function validate(
 function isInvalidRule(type: NumberString, value: string, customDomains: string[]): boolean {
 	if (type !== SpamRuleType.WHITELIST) {
 		if (isDomainOrTopLevelDomain(value)) {
-			return value === "tutao.de" || contains(TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS, value) || contains(customDomains, value)
+			return value === "tutao.de" || TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS.indexOf(value) !== -1 || contains(customDomains, value)
 		} else if (isMailAddress(value, false)) {
 			let domain = value.split("@")[1]
 			return domain === "tutao.de" || contains(customDomains, domain)

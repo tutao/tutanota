@@ -1,3 +1,5 @@
+import { isNull } from "@tutao/lang-api"
+
 /**
  * return a list of words contained in a text, lowercased.
  * @param text
