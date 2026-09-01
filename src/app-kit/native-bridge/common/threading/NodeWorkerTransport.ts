@@ -2,7 +2,9 @@ import { parentPort, Worker as NodeWorker } from "node:worker_threads"
 import { Message, Transport } from "../../shared/MessageTypes"
 
 /** transport impl for the node main thread */
-export class NodeWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
+export class NodeWorkerTransport<OutgoingCommandType extends string, IncomingCommandType extends string>
+	implements Transport<OutgoingCommandType, IncomingCommandType>
+{
 	/** typed for the main thread that creates the worker and for the thread itself that gets a parentPort instance */
 	constructor(private readonly worker: NodeWorker | NonNullable<typeof parentPort>) {}
 

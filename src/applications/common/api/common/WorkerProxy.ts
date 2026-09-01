@@ -5,7 +5,7 @@ import { downcast } from "@tutao/utils"
 import { Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
 import { ProgrammingError } from "@tutao/app-env"
 
-type RequestSender<RequestTypes> = (arg0: Request<RequestTypes>) => Promise<any>
+type RequestSender<RequestTypes extends string> = (arg0: Request<RequestTypes>) => Promise<any>
 
 /**
  * Generates proxy where each field will be treated as an interface with async methods. Each method will delegate to the
@@ -31,7 +31,7 @@ export function exposeRemote<T>(requestSender: RequestSender<"facade">): T {
  * Attention! Make sure that the *only* fields on T are facades. Every facade method must return promise or Bad Things will happen.
  * You should specify T explicitly to avoid mistakes.
  */
-export function exposeLocal<T extends object, IncomingRequestType>(impls: T): (message: Request<IncomingRequestType>) => Promise<any> {
+export function exposeLocal<T extends object, IncomingRequestType extends string>(impls: T): (message: Request<IncomingRequestType>) => Promise<any> {
 	return (message: Request<IncomingRequestType>) => {
 		const [facade, fn, args] = message.args
 		const impl = downcast(impls)[facade]
@@ -57,7 +57,7 @@ export type DelayedImpls<IMPLS extends FacadeImpls> = {
  * Attention! Make sure that the *only* fields on T are functions that resolve to facades. Every facade method must return promise or Bad Things will happen.
  * You should specify T explicitly to avoid mistakes.
  */
-export function exposeLocalDelayed<T extends DelayedImpls<FacadeImpls>, IncomingRequestType>(
+export function exposeLocalDelayed<T extends DelayedImpls<FacadeImpls>, IncomingRequestType extends string>(
 	impls: T,
 ): (message: Request<IncomingRequestType>) => Promise<any> {
 	return async (message: Request<IncomingRequestType>) => {

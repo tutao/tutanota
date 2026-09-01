@@ -68,6 +68,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 			}
 		} else if (message.type === "request") {
 			const command = this.commands[message.requestType]
+			const { id, requestType } = message
 
 			if (command != null) {
 				const commandResult = command(message)
@@ -75,22 +76,22 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 				// Every method exposed via worker protocol must return a promise. Failure to do so is a violation of contract so we
 				// try to catch it early and throw an error.
 				if (commandResult == null || typeof commandResult.then !== "function") {
-					throw new Error(`Handler returned non-promise result: ${message.requestType}`)
+					throw new Error(`Handler returned non-promise result: ${requestType}`)
 				}
 
 				commandResult.then(
 					(value) => {
-						this.transport.postMessage(new Response(message.id!, value))
+						this.transport.postMessage(new Response(id!, value))
 					},
 					(error) => {
-						this.transport.postMessage(new RequestError(message.id!, error))
+						this.transport.postMessage(new RequestError(id!, error))
 					},
 				)
 			} else {
-				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
+				let error = new Error(`unexpected request: ${id!}, ${requestType}`)
 
 				if (EnvProvider.isWorker()) {
-					this.transport.postMessage(new RequestError(message.id!, error))
+					this.transport.postMessage(new RequestError(id!, error))
 				} else {
 					throw error
 				}

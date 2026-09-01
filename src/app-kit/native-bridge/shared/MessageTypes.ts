@@ -1,10 +1,10 @@
 import { errorToObj } from "../../../platform-kit/utils"
 
-export type Command<T> = (msg: Request<T>) => Promise<any>
+export type Command<T extends string> = (msg: Request<T>) => Promise<any>
 export type Commands<T extends string> = Record<T, Command<T>>
-export type Message<Type> = Request<Type> | Response<Type> | RequestError<Type>
+export type Message<Type extends string> = Request<Type> | Response<Type> | RequestError<Type>
 
-export class Request<T> {
+export class Request<T extends string> {
 	readonly type: "request"
 	readonly requestType: T
 	/** should be selected and assigned by the message dispatcher or on deserialization only. */
@@ -49,7 +49,7 @@ export type MessageCallbacks = {
 	reject: (error: Error) => void
 }
 
-export interface Transport<OutgoingCommandType, IncomingCommandType> {
+export interface Transport<OutgoingCommandType extends string, IncomingCommandType extends string> {
 	/**
 	 * Post a message to the other side of the transport
 	 */

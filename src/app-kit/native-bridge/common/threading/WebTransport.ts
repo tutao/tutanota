@@ -4,7 +4,9 @@ import { Message, Transport } from "../../shared/MessageTypes"
 /**
  * Queue transport for both WorkerClient and WorkerImpl
  */
-export class WebWorkerTransport<OutgoingCommandType, IncomingCommandType> implements Transport<OutgoingCommandType, IncomingCommandType> {
+export class WebWorkerTransport<OutgoingCommandType extends string, IncomingCommandType extends string>
+	implements Transport<OutgoingCommandType, IncomingCommandType>
+{
 	constructor(private readonly worker: Worker | DedicatedWorkerGlobalScope) {}
 
 	postMessage(message: Message<OutgoingCommandType>): void {
