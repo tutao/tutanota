@@ -55,7 +55,7 @@ export function isNotNull<T>(t: T | null): t is NonNullable<T> {
 	return t != null
 }
 
-export function isNull<T>(t: T | null): t is null {
+export function isNull<T>(t: T | null | undefined): t is null | undefined {
 	return t === null || t === undefined
 }
 

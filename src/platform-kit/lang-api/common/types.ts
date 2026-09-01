@@ -11,6 +11,8 @@ export type BrandedType<T, B extends TsBrand> = { __brand: B } & T
 export type TsArray<T> = {
 	find(predicate: (value: T, index: TsInt, obj: T[]) => unknown, thisArg?: any): Nullable<T>
 	map<U>(callbackfn: (value: T, index: TsInt, array: T[]) => U, thisArg?: any): TsArray<U>
+	indexOf(searchElement: T, fromIndex?: number): number
+	includes(searchElement: T, fromIndex?: number): boolean
 }
 
 // mutating array
