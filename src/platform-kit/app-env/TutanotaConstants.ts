@@ -602,9 +602,13 @@ export enum CredentialEncryptionMode {
 }
 
 export function getClientType(): ClientType {
-	return EnvProvider.get().isApp()
-		? ClientType.App
-		: EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
-			? ClientType.Desktop
-			: ClientType.Browser
+	if (EnvProvider.get().isApp()) {
+		return ClientType.App
+	} else {
+		if (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
+			return ClientType.Desktop
+		} else {
+			return ClientType.Browser
+		}
+	}
 }
