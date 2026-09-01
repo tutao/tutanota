@@ -104,6 +104,7 @@ import { CertificateProvider } from "./CertificateProvider"
 import { CryptoFunctions } from "./CryptoFunctions"
 import { AeadFacade } from "../../../platform-kit/crypto/encryption/symmetric/AeadFacade"
 import { SymmetricKeyDeriver } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
+import { DesktopArchiveDownloaderFacade } from "./DesktopArchiveDownloaderFacade"
 
 mp()
 
@@ -431,6 +432,7 @@ async function createComponents(): Promise<Components> {
 			return createImapSync(noopListener, certificateProvider)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
+			new DesktopArchiveDownloaderFacade(customFetch, sqlCipherFacade),
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),

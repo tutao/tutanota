@@ -6,7 +6,7 @@ import {
 } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "../../../../../src/applications/common/desktop/db/DesktopSqlCipher"
-import { assertNotNull, typedValues } from "../../../../../src/platform-kit/utils"
+import { assertNotNull, stringToUtf8Uint8Array, typedValues, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
 import { untagSqlObject, untagSqlValue } from "../../../../../src/app-kit/local-store/SqlValue"
 import { sql } from "../../../../../src/app-kit/local-store/Sql"
 import { GENERATED_MAX_ID, getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/platform-kit/meta"
@@ -20,12 +20,14 @@ import {
 	ContactTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
+	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { sha256Hash } from "@tutao/crypto/sha256"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
 
@@ -124,24 +126,157 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(await persistence.getIndexedGroups()).deepEquals([mailGroupData, contactGroupData])
 	})
 
-	o.test("clearEncryptedMailDetailsBlobs", async () => {
+	o.test("deleteEncryptedBlob", async () => {
+		const archiveId = "wwoww"
+		const data = new Uint8Array([5, 6, 7, 8])
+		const modelVersion = 123
+		const mailDetailsType = getTypeString(MailDetailsBlobTypeRef)
+		const fileType = getTypeString(FileTypeRef)
+
+		{
+			const { query, params } = sql`INSERT
+			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES 
+			('blob-1', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
+			('blob-2', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
+			('blob-2', ${archiveId}, ${data}, ${fileType}, ${modelVersion})`
+			await sqlCipherFacade.run(query, params)
+		}
+		{
+			const { query, params } = sql`SELECT blobId, type FROM encrypted_blobs`
+			const rows = await sqlCipherFacade.all(query, params)
+			o.check(rows.map((row) => untagSqlObject(row))).deepEquals([
+				{ type: mailDetailsType, blobId: "blob-1" },
+				{ type: mailDetailsType, blobId: "blob-2" },
+				{ type: fileType, blobId: "blob-2" },
+			])
+		}
+
+		await persistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, "blob-2")
+
+		const { query, params } = sql`SELECT blobId, type FROM encrypted_blobs`
+		const rows = await sqlCipherFacade.all(query, params)
+		o.check(rows.map((row) => untagSqlObject(row))).deepEquals([
+			{ type: mailDetailsType, blobId: "blob-1" },
+			{ type: fileType, blobId: "blob-2" },
+		])
+	})
+
+	o.test("clearEncryptedBlobsForType", async () => {
 		for (let a = 10; a < 15; a++) {
 			for (let b = 100; b < 105; b++) {
 				const { query, params } = sql`INSERT
-				OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES (
 				${`${a + b}`},
 				${`${b}`},
 				${new Uint8Array([1, 2, 3, 4])},
-				'tutanota/mail',
+				${getTypeString(MailDetailsBlobTypeRef)},
 				1337
 				)`
 				await sqlCipherFacade.run(query, params)
 			}
+
+			const { query, params } = sql`INSERT
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES (
+				${`${a}`},
+				${"wwoww"},
+				${new Uint8Array([5, 6, 7, 8])},
+				${getTypeString(FileTypeRef)},
+				1337
+				)`
+			await sqlCipherFacade.run(query, params)
 		}
 
-		o.check(await persistence.getDownloadedArchives()).deepEquals([])
-		await persistence.clearEncryptedMailDetailsBlobs()
-		o.check((await persistence.getDownloadedArchives()).sort()).deepEquals(["100", "101", "102", "103", "104"])
+		{
+			const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs`
+			const result = await sqlCipherFacade.get(query, params)
+			const mailDetailsBlobsCount = untagSqlValue(assertNotNull(result)["total"]) as number
+			o.check(mailDetailsBlobsCount).equals(30)
+		}
+
+		await persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef)
+
+		const { query, params } = sql`SELECT type FROM encrypted_blobs`
+		const rows = await sqlCipherFacade.all(query, params)
+		o.check(rows.length).equals(5)
+		o.check(rows.every(({ type }) => untagSqlValue(type) === getTypeString(FileTypeRef))).equals(true)
+	})
+
+	o.test("getLastLoadedArchiveForType", async () => {
+		const mailDetailsType = getTypeString(MailDetailsBlobTypeRef)
+		const fileType = getTypeString(FileTypeRef)
+
+		{
+			const { query, params } = sql`INSERT INTO encrypted_blobs_metadata (type, archiveId, modelVersion, serverHostname)
+									  VALUES (${mailDetailsType}, 'c', 123, 'blobplanet.org'),
+											 (${mailDetailsType}, 'b', 123, 'blobplanet.org'),
+											 (${mailDetailsType}, 'a', 123, 'blobplanet.org'),
+											 (${fileType}, 'd', 123, 'blobplanet.org'),
+											 (${fileType}, 'y', 123, 'blobplanet.org')`
+
+			await sqlCipherFacade.run(query, params)
+		}
+		o.check(assertNotNull(await persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef))).deepEquals({
+			archiveId: "c",
+			modelVersion: 123,
+			serverHostname: "blobplanet.org",
+		})
+		o.check(assertNotNull(await persistence.getLastLoadedArchiveForType(FileTypeRef))).deepEquals({
+			archiveId: "y",
+			modelVersion: 123,
+			serverHostname: "blobplanet.org",
+		})
+
+		{
+			const { query, params } = sql`DELETE FROM encrypted_blobs_metadata WHERE archiveId = 'c'`
+			await sqlCipherFacade.run(query, params)
+		}
+		o.check(assertNotNull(await persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef))).deepEquals({
+			archiveId: "b",
+			modelVersion: 123,
+			serverHostname: "blobplanet.org",
+		})
+	})
+
+	o.test("getArchiveDownloadRangeHeaders", async () => {
+		const archiveId = "wwoww"
+		const data = new Uint8Array([5, 6, 7, 8])
+		const mailDetailsType = getTypeString(MailDetailsBlobTypeRef)
+		const fileType = getTypeString(FileTypeRef)
+
+		{
+			const { query, params } = sql`INSERT
+			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES 
+			('blob-2', ${archiveId}, ${data}, ${mailDetailsType}, 123),
+			('blob-1', ${archiveId}, ${data}, ${mailDetailsType}, 123),
+			('blob-5', ${archiveId}, ${data}, ${mailDetailsType}, 124),
+			('blob-3', ${archiveId}, ${data}, ${mailDetailsType}, 123),
+			('blob-4', ${archiveId}, ${data}, ${mailDetailsType}, 124),
+			('blob-6', ${archiveId}, ${data}, ${fileType}, 123),
+			('blob-7', ${archiveId}, ${data}, ${fileType}, 123)`
+
+			await sqlCipherFacade.run(query, params)
+		}
+
+		// non-cached archive
+		o.check(await persistence.getArchiveDownloadRangeHeaders("non-cached-archive", MailDetailsBlobTypeRef, 123)).equals(null)
+		// non-cached modelVersion
+		o.check(await persistence.getArchiveDownloadRangeHeaders(archiveId, MailDetailsBlobTypeRef, 125)).equals(null)
+		// non-cached type
+		o.check(await persistence.getArchiveDownloadRangeHeaders(archiveId, MailTypeRef, 123)).equals(null)
+
+		// resumable archives
+		o.check(await persistence.getArchiveDownloadRangeHeaders(archiveId, MailDetailsBlobTypeRef, 123)).deepEquals({
+			rangeStart: 3,
+			reprDigest: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array("blob-2blob-1blob-3"))),
+		})
+		o.check(await persistence.getArchiveDownloadRangeHeaders(archiveId, MailDetailsBlobTypeRef, 124)).deepEquals({
+			rangeStart: 2,
+			reprDigest: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array("blob-5blob-4"))),
+		})
+		o.check(await persistence.getArchiveDownloadRangeHeaders(archiveId, FileTypeRef, 123)).deepEquals({
+			rangeStart: 2,
+			reprDigest: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array("blob-6blob-7"))),
+		})
 	})
 
 	o.test("addIndexedGroup", async () => {

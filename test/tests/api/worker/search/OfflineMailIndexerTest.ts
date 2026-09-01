@@ -20,7 +20,6 @@ import {
 	getElementId,
 	getListId,
 	idToElementId,
-	isSameTypeRef,
 	listIdPart,
 	ServerTypeModel,
 } from "../../../../../src/platform-kit/meta"
@@ -50,7 +49,7 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { ArchiveDataType, GroupType } from "../../../../../src/entities/sys/Utils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
-import { assert, assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
@@ -59,6 +58,8 @@ import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
 import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
+import { Aes256Key } from "../../../../../src/platform-kit/crypto"
 
 const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
@@ -104,6 +105,8 @@ o.spec("OfflineMailIndexer", () => {
 	let mailSetEntry: MailSetEntry
 	let mailDetailsBlobModel: ServerTypeModel
 	let cacheStorage: CacheStorage
+	let archiveDownloader: ArchiveDownloaderFacade
+	let storedBlobs: Map<Id, IncomingServerJson>
 
 	o.beforeEach(async () => {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
@@ -120,6 +123,7 @@ o.spec("OfflineMailIndexer", () => {
 		crypto = object()
 		infoMessageHandler = object()
 		cacheStorage = object()
+		archiveDownloader = object()
 		newMailDownloader = func<MailIndexerNewMailDownloader>()
 		mailDetailsBlobModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
 
@@ -134,6 +138,7 @@ o.spec("OfflineMailIndexer", () => {
 			newMailDownloader,
 			realInstancePipeline,
 			cacheStorage,
+			archiveDownloader,
 			TEST_INDEX_CHUNK_SIZE,
 		)
 		user = createTestEntity(UserTypeRef, {
@@ -154,20 +159,13 @@ o.spec("OfflineMailIndexer", () => {
 			_ownerGroup: mailGroupId,
 		})
 
-		const storedBlobs: Map<Id, IncomingServerJson> = new Map()
+		storedBlobs = new Map()
 
 		when(persistence.retrieveEncryptedMailDetailsBlob(matchers.anything(), matchers.anything())).thenDo(
 			async (_, blobId) => storedBlobs.get(blobId) ?? null,
 		)
 
-		when(persistence.storeEncryptedMailDetailsBlobs(matchers.anything(), matchers.anything())).thenDo(async (_, blobs: readonly IncomingServerJson[]) => {
-			for (const b of blobs) {
-				assert(isSameTypeRef(b.getTypeRef(), MailDetailsBlobTypeRef), "wrong object passed into storeEncryptedMailDetailsBlobs")
-				storedBlobs.set(elementIdPart(b.getValueByName("_id").asIdTuple()), b)
-			}
-		})
-
-		when(persistence.getEncryptedMailDetailsBlobsArchives()).thenResolve([])
+		when(persistence.getLastLoadedArchiveForType(matchers.anything())).thenResolve(null)
 
 		entityRestClientMock.addElementInstances(mailBox, mailboxGroupRoot)
 		entityRestClientMock.addListInstances(importedMailSet)
@@ -177,6 +175,21 @@ o.spec("OfflineMailIndexer", () => {
 
 	function addTestMail() {
 		entityRestClientMock.addListInstances(mail, mailSetEntry)
+	}
+
+	async function storeMailDetailsBlobs(detailBlobs: readonly MailDetailsBlob[], sk: Aes256Key) {
+		await Promise.all(
+			detailBlobs.map((blob) =>
+				realInstancePipeline
+					.mapAndEncrypt(MailDetailsBlobTypeRef, blob, sk)
+					.then((encryptedBlob) =>
+						storedBlobs.set(
+							getElementId(blob),
+							IncomingServerJson.expectSingleInstance(encryptedBlob.getJsonRepresentation(), mailDetailsBlobModel),
+						),
+					),
+			),
+		)
 	}
 
 	o.spec("afterMailUpdated", () => {
@@ -206,10 +219,30 @@ o.spec("OfflineMailIndexer", () => {
 		verify(persistence.storeMailData([mailData]))
 	})
 
-	o.test("beforeMailDeleted", async () => {
-		addTestMail()
-		await mailIndexer.beforeMailDeleted(mail._id)
-		verify(persistence.deleteMailData(mail._id))
+	o.spec("beforeMailDeleted", () => {
+		o.test("non-cached mail", async () => {
+			await mailIndexer.beforeMailDeleted(mail._id)
+			verify(persistence.deleteMailData(mail._id))
+			verify(persistence.deleteEncryptedBlob(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("cached draft", async () => {
+			addTestMail()
+			mail.mailDetailsDraft = ["whooooa", "i'm NOT a blob :D"]
+			await mailIndexer.beforeMailDeleted(mail._id)
+			verify(persistence.deleteMailData(mail._id))
+			verify(persistence.deleteEncryptedBlob(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+		})
+
+		o.test("cached non-draft", async () => {
+			addTestMail()
+			const archiveId = "whooooa"
+			const blobId = "i'm a blob :D"
+			mail.mailDetails = [archiveId, blobId]
+			await mailIndexer.beforeMailDeleted(mail._id)
+			verify(persistence.deleteMailData(mail._id))
+			verify(persistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, blobId))
+		})
 	})
 
 	o.test("index one mail initially", async () => {
@@ -224,13 +257,8 @@ o.spec("OfflineMailIndexer", () => {
 
 		const sk = symmetricCipherUtils.aes256RandomKey()
 		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([listIdPart(mail.mailDetails)])
-		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
-			return [
-				IncomingServerJson.expectSingleMailDetailsBlob(
-					(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJson(),
-					mailDetailsBlobModel,
-				),
-			]
+		when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), archiveDownloader, null)).thenDo(async () => {
+			await storeMailDetailsBlobs([mailDetails], sk)
 		})
 
 		addTestMail()
@@ -251,7 +279,6 @@ o.spec("OfflineMailIndexer", () => {
 			},
 		])
 		when(cacheStorage.provideMultiple(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), [elementIdPart(mail.mailDetails)])).thenResolve([])
-		when(persistence.getDownloadedArchives()).thenResolve([])
 
 		user.memberships = [
 			createTestEntity(GroupMembershipTypeRef, {
@@ -265,7 +292,6 @@ o.spec("OfflineMailIndexer", () => {
 		const storedMailData = matchers.captor()
 
 		verify(persistence.storeMailData(storedMailData.capture()))
-		verify(persistence.markArchiveAsDownloaded(listIdPart(mail.mailDetails)))
 
 		const storedMails: Array<MailWithDetailsAndAttachments> = storedMailData.values![0]
 		o.check(storedMails.length).equals(1)
@@ -275,7 +301,101 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
+	})
+
+	o.test("do not load data when group is fully indexed", async () => {
+		const entityRestClient: EntityClient = object()
+		mailIndexer = new OfflineMailIndexer(
+			persistence,
+			blobs,
+			entityRestClient,
+			mailFacade,
+			crypto,
+			typeModelResolver,
+			infoMessageHandler,
+			newMailDownloader,
+			realInstancePipeline,
+			cacheStorage,
+			archiveDownloader,
+			TEST_INDEX_CHUNK_SIZE,
+		)
+
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef, {
+				group: mailGroupId,
+				groupType: GroupType.Mail,
+			}),
+		]
+		when(persistence.getIndexedGroups()).thenResolve([
+			{
+				groupId: mailGroupId,
+				type: GroupType.Mail,
+				indexedTimestamp: FULL_INDEXED_TIMESTAMP,
+				lastIndexedEntityListId: GENERATED_MIN_ID,
+				lastIndexedEntityElementId: GENERATED_MIN_ID,
+			},
+		])
+
+		await mailIndexer.extendMailIndex(user)
+
+		verify(entityRestClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(entityRestClient.loadRange(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything()), {
+			times: 0,
+		})
+		verify(blobs.enumerateArchivesForGroup(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef), { times: 0 })
+		verify(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, matchers.anything(), matchers.anything(), matchers.anything()), {
+			times: 0,
+		})
+		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
+	})
+
+	o.test("do not re-load already loaded archives", async () => {
+		user.memberships = [
+			createTestEntity(GroupMembershipTypeRef, {
+				group: mailGroupId,
+				groupType: GroupType.Mail,
+			}),
+		]
+		when(persistence.getIndexedGroups()).thenResolve([
+			{
+				groupId: mailGroupId,
+				type: GroupType.Mail,
+				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				lastIndexedEntityListId: GENERATED_MIN_ID,
+				lastIndexedEntityElementId: GENERATED_MIN_ID,
+			},
+		])
+
+		const rangeHeaders: ArchiveDownloadRangeHeaders = {
+			rangeStart: 1,
+			reprDigest: "hashBrownIsDelecious",
+		}
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve(["archive-c", "archive-b", "archive-a", "archive-d"])
+		when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve({
+			archiveId: "archive-c",
+			modelVersion: mailDetailsBlobModel.version,
+			serverHostname: "blobtown.tuta.com",
+		})
+		when(persistence.getArchiveDownloadRangeHeaders("archive-c", MailDetailsBlobTypeRef, mailDetailsBlobModel.version)).thenResolve(rangeHeaders)
+
+		await mailIndexer.extendMailIndex(user)
+
+		const archivePreloadCaptor = matchers.captor()
+		const resumeParamsCaptor = matchers.captor()
+
+		verify(
+			blobs.downloadAndStoreEncryptedBlobArchive(
+				MailDetailsBlobTypeRef,
+				archivePreloadCaptor.capture(),
+				matchers.anything(),
+				resumeParamsCaptor.capture(),
+			),
+			{ times: 2 },
+		)
+		o.check(archivePreloadCaptor.values).deepEquals(["archive-c", "archive-d"])
+		o.check(resumeParamsCaptor.values).deepEquals([{ serverHostname: "blobtown.tuta.com", rangeHeaders }, null])
 	})
 
 	o.test("index one mail that was cached already", async () => {
@@ -286,10 +406,6 @@ o.spec("OfflineMailIndexer", () => {
 		const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: mail.mailDetails,
 			details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
-		})
-
-		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(() => {
-			throw new Error("whoops I tried to download an archive for no reason :(")
 		})
 
 		addTestMail()
@@ -318,8 +434,19 @@ o.spec("OfflineMailIndexer", () => {
 			}),
 		]
 
-		when(persistence.getDownloadedArchives()).thenResolve([listIdPart(mail.mailDetails)])
-		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([listIdPart(mail.mailDetails)])
+		const archiveId = listIdPart(mail.mailDetails)
+		const rangeHeaders: ArchiveDownloadRangeHeaders = {
+			rangeStart: 1,
+			reprDigest: "hashBrownIsDelecious",
+		}
+
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
+		when(persistence.getArchiveDownloadRangeHeaders(archiveId, MailDetailsBlobTypeRef, mailDetailsBlobModel.version)).thenResolve(rangeHeaders)
+		when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve({
+			archiveId,
+			serverHostname: "blobtown.tuta.com",
+			modelVersion: mailDetailsBlobModel.version,
+		})
 
 		await mailIndexer.extendMailIndex(user)
 
@@ -333,10 +460,16 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 		verify(cacheStorage.putMultiple(matchers.anything(), matchers.anything()), { times: 0 })
-		verify(persistence.markArchiveAsDownloaded(matchers.anything()), { times: 0 })
+		verify(
+			blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, {
+				serverHostname: "blobtown.tuta.com",
+				rangeHeaders,
+			}),
+			{ times: 1 },
+		)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 	})
 
 	o.test("index 2000 mails", async () => {
@@ -348,7 +481,6 @@ o.spec("OfflineMailIndexer", () => {
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
 
-		when(persistence.getDownloadedArchives()).thenResolve([])
 		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
 
 		for (let i = 0; i < mailCount; i++) {
@@ -403,16 +535,9 @@ o.spec("OfflineMailIndexer", () => {
 
 		const sk = symmetricCipherUtils.aes256RandomKey()
 		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
-		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).thenResolve(
-			await Promise.all(
-				detailBlobs.map(async (db) =>
-					IncomingServerJson.expectSingleMailDetailsBlob(
-						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, db, sk)).getInnerJson(),
-						mailDetailsBlobModel,
-					),
-				),
-			),
-		)
+		when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, null)).thenDo(async () => {
+			await storeMailDetailsBlobs(detailBlobs, sk)
+		})
 
 		when(persistence.getIndexedGroups()).thenResolve([
 			{
@@ -463,17 +588,17 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(blobCaptor.values?.flat().every((a) => allBlobs.has(a))).equals(true)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
-		verify(persistence.markArchiveAsDownloaded(archiveId))
-		verify(persistence.clearEncryptedMailDetailsBlobs())
+		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 	})
 
 	o.spec("import mails", () => {
+		const archiveId = "archiveId"
 		let importedMail: ImportedFileMail
 		let mailDetails: MailDetailsBlob
 		let attachments: File[]
 
 		o.beforeEach(async () => {
-			mail.mailDetails = ["whooooa", "i'm a blob :D"]
+			mail.mailDetails = [archiveId, "i'm a blob :D"]
 
 			importedMail = createTestEntity(
 				ImportedFileMailTypeRef,
@@ -496,16 +621,12 @@ o.spec("OfflineMailIndexer", () => {
 
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MIN_ID)
+			when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve(null)
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
-			when(persistence.getDownloadedArchives()).thenResolve([])
 
-			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
-				return [
-					IncomingServerJson.expectSingleMailDetailsBlob(
-						(await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetails, sk)).getInnerJson(),
-						mailDetailsBlobModel,
-					),
-				]
+			when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
+			when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), archiveDownloader, null)).thenDo(async () => {
+				await storeMailDetailsBlobs([mailDetails], sk)
 			})
 
 			addTestMail()
@@ -525,7 +646,7 @@ o.spec("OfflineMailIndexer", () => {
 			o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 			o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 			verify(persistence.updateImportQueueProgress(listIdPart(importedMail._id), elementIdPart(importedMail._id), MailImportType.FileImport))
 		}
 
@@ -562,7 +683,7 @@ o.spec("OfflineMailIndexer", () => {
 						_id: mailId,
 						_ownerGroup: mailGroupId,
 						receivedDate: new Date(2020, 1, i + 1),
-						mailDetails: ["blobList", `blob${i}`],
+						mailDetails: [archiveId, `blob${i}`],
 					},
 					{ populateAggregates: true },
 				)
@@ -592,22 +713,19 @@ o.spec("OfflineMailIndexer", () => {
 			when(persistence.getIndexedGroups()).thenResolve([])
 			when(persistence.getImportQueueEntries()).thenResolve([{ listId: importList, mailImportType }])
 
-			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
+			when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, null)).thenDo(async () => {
 				const sk = symmetricCipherUtils.aes256RandomKey()
-				return await Promise.all(
-					mails.map(async (mail) => {
-						const mailDetailsBlob = createTestEntity(
-							MailDetailsBlobTypeRef,
-							{
-								_id: mail.mailDetails!,
-								details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
-							},
-							{ populateAggregates: true },
-						)
-						const mapped = await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetailsBlob, sk)
-						return IncomingServerJson.expectSingleMailDetailsBlob(mapped.getInnerJson(), mailDetailsBlobModel)
-					}),
+				const detailsBlobs = mails.map((mail) =>
+					createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: mail.mailDetails!,
+							details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
+						},
+						{ populateAggregates: true },
+					),
 				)
+				await storeMailDetailsBlobs(detailsBlobs, sk)
 			})
 			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
@@ -624,7 +742,7 @@ o.spec("OfflineMailIndexer", () => {
 			verify(persistence.updateImportQueueProgress(importList, updateProgressCaptor.capture(), mailImportType))
 			o.check(last(updateProgressCaptor.values!)).equals(elementIdPart(importedMails[totalMails - 1]._id))
 
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
 		})
 
@@ -648,7 +766,7 @@ o.spec("OfflineMailIndexer", () => {
 						_id: mailId,
 						_ownerGroup: mailGroupId,
 						receivedDate: new Date(2020, 0, index), // sequential dates
-						mailDetails: ["blobList", `blob${index}`],
+						mailDetails: [archiveId, `blob${index}`],
 					},
 					{ populateAggregates: true },
 				)
@@ -688,23 +806,21 @@ o.spec("OfflineMailIndexer", () => {
 			when(persistence.getIndexedGroups()).thenResolve([])
 			when(persistence.getImportQueueEntries()).thenResolve([{ listId, mailImportType }])
 
-			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
+			when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, null)).thenDo(async () => {
 				const sk = symmetricCipherUtils.aes256RandomKey()
-				return await Promise.all(
-					mails.map(async (mail) => {
-						const mailDetailsBlob = createTestEntity(
-							MailDetailsBlobTypeRef,
-							{
-								_id: mail.mailDetails!,
-								details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
-							},
-							{ populateAggregates: true },
-						)
-						const mapped = await realInstancePipeline.mapAndEncrypt(MailDetailsBlobTypeRef, mailDetailsBlob, sk)
-						return IncomingServerJson.expectSingleMailDetailsBlob(mapped.getInnerJson(), mailDetailsBlobModel)
-					}),
+				const detailsBlobs = mails.map((mail) =>
+					createTestEntity(
+						MailDetailsBlobTypeRef,
+						{
+							_id: mail.mailDetails!,
+							details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
+						},
+						{ populateAggregates: true },
+					),
 				)
+				await storeMailDetailsBlobs(detailsBlobs, sk)
 			})
+
 			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
 
@@ -746,7 +862,7 @@ o.spec("OfflineMailIndexer", () => {
 			o.check(finalProgress).equals(elementIdPart(lastMailTotal._id))
 
 			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
-			verify(persistence.clearEncryptedMailDetailsBlobs())
+			verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 		})
 	})
 })
