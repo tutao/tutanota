@@ -13,10 +13,14 @@ export interface DriveFolderBrowserEntryAttrs {
 	isInvalidTarget: boolean
 	selected: boolean
 	onSingleSelection: (f: FolderItem) => unknown
+	onSingleInclusiveSelection: (f: FolderItem) => unknown
+	onRangeSelectionTowards: (f: FolderItem) => unknown
 }
 
 export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntryAttrs> {
-	view({ attrs: { item, isInvalidTarget, selected, onSingleSelection } }: Vnode<DriveFolderBrowserEntryAttrs>): m.Children {
+	view({
+		attrs: { item, isInvalidTarget, selected, onSingleSelection, onSingleInclusiveSelection, onRangeSelectionTowards },
+	}: Vnode<DriveFolderBrowserEntryAttrs>): m.Children {
 		const name = item.type === "folder" ? item.folder.name : item.file.name
 		const typeLabel = lang.getTranslationText(item.type === "file" ? "file_label" : "folder_label")
 		return m(
@@ -27,14 +31,22 @@ export class DriveFolderBrowserEntry implements Component<DriveFolderBrowserEntr
 				"aria-description": typeLabel,
 				class: isInvalidTarget ? undefined : "cursor-pointer",
 				style: {
-					background: theme.surface,
+					background: selected ? theme.state_bg_hover : theme.surface,
 					"border-radius": "10px",
 				},
 				onclick: (event: MouseEvent) => {
-					onSingleSelection(item)
+					if (!isInvalidTarget) {
+						if (event.shiftKey) {
+							onRangeSelectionTowards(item)
+						} else if (event.ctrlKey) {
+							onSingleInclusiveSelection(item)
+						} else {
+							onSingleSelection(item)
+						}
+					}
 				},
 				onkeydown: (event: KeyboardEvent) => {
-					if (isKeyPressed(event.key, Keys.RETURN, Keys.SPACE)) {
+					if (isKeyPressed(event.key, Keys.RETURN, Keys.SPACE) && !isInvalidTarget) {
 						onSingleSelection(item)
 					}
 				},

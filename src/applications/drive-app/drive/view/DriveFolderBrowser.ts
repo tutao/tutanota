@@ -6,12 +6,15 @@ import { isEmpty, lastIndex } from "../../../../platform-kit/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { ListState } from "../../../../ui/base/List"
 
 export interface DriveFolderBrowserAttrs {
-	items: readonly FolderItem[]
+	listState: ListState<FolderItem>
 	disabledTargetIds: ReadonlySet<Id>
-	onItemClicked: (f: FolderItem) => unknown
 	style?: Record<string, unknown>
+	onSingleSelection: (f: FolderItem) => unknown
+	onSingleInclusiveSelection: (f: FolderItem) => unknown
+	onRangeSelectionTowards: (f: FolderItem) => unknown
 }
 
 export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
@@ -19,7 +22,11 @@ export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
 	private activeIndex: number = 0
 	private dom: HTMLElement | null = null
 
-	view({ attrs: { items, disabledTargetIds, onItemClicked, style } }: Vnode<DriveFolderBrowserAttrs>): Children {
+	view({
+		attrs: { listState, disabledTargetIds, style, onSingleSelection, onSingleInclusiveSelection, onRangeSelectionTowards },
+	}: Vnode<DriveFolderBrowserAttrs>): Children {
+		const items = listState.items
+
 		return m(
 			".flex.col.gap-4.scroll",
 			{
@@ -54,8 +61,10 @@ export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
 								key: elementId,
 								item: item,
 								isInvalidTarget: disabledTargetIds.has(elementId),
-								selected: index === this.activeIndex,
-								onSingleSelection: onItemClicked,
+								selected: listState.selectedItems.has(item),
+								onSingleSelection,
+								onSingleInclusiveSelection,
+								onRangeSelectionTowards,
 							} satisfies DriveFolderBrowserEntryAttrs & { key: string })
 						}),
 			],

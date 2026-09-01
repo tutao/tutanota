@@ -8,7 +8,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { DriveFolderBrowser, DriveFolderBrowserAttrs } from "./DriveFolderBrowser"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { getElementId, isSameId } from "../../../../platform-kit/meta"
+import { getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
 import { FolderFolderItem, FolderItem, folderItemEntity, FolderItemId, folderItemToId, isFolderFolderItem, toFolderItem, toFolderItems } from "./DriveUtils"
 import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar"
 import { ButtonType } from "../../../../ui/base/Button"
@@ -20,14 +20,16 @@ import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { filterInt } from "@tutao/utils"
 import { MAX_ATTACHMENT_SIZE } from "../../../../entities/tutanota/Utils"
+import { ListModel } from "../../../common/misc/ListModel"
+import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 
 interface State {
 	currentFolder: FolderFolderItem
 	filesElementIds: readonly string[]
 	nonAttachableFileIds: readonly string[]
-	items: readonly FolderItem[]
 	parents: readonly FolderFolderItem[]
 	newFolderName: string | null
+	listModel: ListModel<FolderItem, Id>
 }
 
 export type PickedDestinationAction = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
@@ -94,7 +96,27 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 			.map(folderItemEntity)
 			.map(getElementId)
 		const parents = currentFolder.folder.parent ? [toFolderItem(await entityClient.load(DriveFolderTypeRef, currentFolder.folder.parent), null)] : []
-		return { currentFolder, filesElementIds, nonAttachableFileIds, parents, items, newFolderName: null }
+
+		const listModel = new ListModel<FolderItem, Id>({
+			fetch: async (lastFetchedItem, count) => {
+				if (lastFetchedItem == null) {
+					return { items, complete: true }
+				} else {
+					return { items: [] satisfies FolderItem[], complete: true }
+				}
+			},
+			getItemId(item: FolderItem): Id {
+				return getElementId(folderItemEntity(item))
+			},
+			sortCompare: (item1: FolderItem, item2: FolderItem): number => {
+				return 0 // FIXME: Does this make sense?
+			},
+			isSameId: isSameSingleId,
+			autoSelectBehavior: () => ListAutoSelectBehavior.OLDER,
+		})
+		await listModel.loadInitial()
+
+		return { currentFolder, filesElementIds, nonAttachableFileIds, parents, newFolderName: null, listModel }
 	}
 
 	let folderBrowserDom: HTMLElement | null = null
@@ -103,7 +125,7 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 		DialogType.EditLarger,
 		class DriveItemPicker implements Component {
 			view(): Children {
-				const { currentFolder, parents, items: currentFolderItems, newFolderName, filesElementIds, nonAttachableFileIds } = state
+				const { listModel, currentFolder, parents, newFolderName, filesElementIds, nonAttachableFileIds } = state
 				const disabledTargetIds: Set<string> =
 					attrs.mode === DriveItemPickerBehavior.PickDestination
 						? new Set([...attrs.files.map(folderItemEntity).map(getElementId), ...filesElementIds])
@@ -112,19 +134,21 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => pickerDialog.close(), type: ButtonType.Secondary }],
 						middle: attrs.title,
-						right:
-							attrs.mode === DriveItemPickerBehavior.PickDestination
-								? [
-										{
-											label: attrs.actionLabel,
-											click: () => {
-												attrs.action(attrs.files.map(folderItemToId), state.currentFolder.folder)
-												pickerDialog.close()
-											},
-											type: ButtonType.Secondary,
-										},
-									]
-								: [],
+						right: [
+							{
+								label: attrs.actionLabel,
+								click: () => {
+									if (attrs.mode === DriveItemPickerBehavior.PickDestination) {
+										attrs.action(attrs.files.map(folderItemToId), state.currentFolder.folder)
+									} else if (attrs.mode === DriveItemPickerBehavior.PickItems) {
+										const folderItemsId = listModel.getSelectedAsArray().map(folderItemToId)
+										attrs.action(folderItemsId)
+									}
+									pickerDialog.close()
+								},
+								type: ButtonType.Secondary,
+							},
+						],
 					}),
 					m(
 						".plr-16.pt-16.pb-16.flex.col.gap-24.border-radius-8",
@@ -173,9 +197,9 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 								[
 									m(DriveFolderBrowser, {
 										key: getElementId(currentFolder.folder),
-										items: currentFolderItems,
+										listState: listModel.state,
 										disabledTargetIds,
-										onItemClicked: (item: FolderItem) => {
+										onSingleSelection: (item: FolderItem) => {
 											if (isFolderFolderItem(item)) {
 												if (attrs.mode === DriveItemPickerBehavior.PickDestination) {
 													if (attrs.files.some((targetitem) => isSameId(item.folder._id, folderItemEntity(targetitem)._id))) {
@@ -185,8 +209,17 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 
 												this.onOpenFolder(item.folder)
 											} else if (attrs.mode === DriveItemPickerBehavior.PickItems) {
-												attrs.action([folderItemToId(item)])
-												pickerDialog.close()
+												listModel.onSingleSelection(item)
+											}
+										},
+										onSingleInclusiveSelection: (item: FolderItem) => {
+											if (attrs.mode === DriveItemPickerBehavior.PickItems) {
+												listModel.onSingleInclusiveSelection(item)
+											}
+										},
+										onRangeSelectionTowards: (item: FolderItem) => {
+											if (attrs.mode === DriveItemPickerBehavior.PickItems) {
+												listModel.selectRangeTowards(item)
 											}
 										},
 										oncreate: ({ dom }: VnodeDOM<DriveFolderBrowserAttrs>) => {
