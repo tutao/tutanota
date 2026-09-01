@@ -48,6 +48,7 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
+import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -627,6 +628,40 @@ export class BlobFacade {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
 		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
+	}
+
+	/**
+	 * Download a full archive of (encrypted) blob entities and store them to the SQLite DB.
+	 */
+	async downloadAndStoreFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(
+		typeRef: TypeRef<T>,
+		archiveId: Id,
+		archiveDownloader: ArchiveDownloaderFacade,
+	): Promise<void> {
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+
+		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
+		const serversToTry = blobServerAccessInfo.servers
+
+		// blob element types are accessed with a specific rest path
+		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
+
+		const t = () =>
+			tryServers(
+				serversToTry,
+				async (serverUrl) => {
+					const entityUrl = new URL(serverUrl)
+					entityUrl.pathname = path
+					const url = addParamsToUrl(entityUrl, allParams)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), serverTypeModel.type, serverTypeModel.version)
+				},
+				`can't load instances from server `,
+			)
+
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
+		await doBlobRequestWithRetry(t, doEvictToken)
 	}
 
 	/**

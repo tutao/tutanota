@@ -1,0 +1,24 @@
+{
+	"name": "ArchiveDownloaderFacade",
+	"doc": "download archives and write them to the database.",
+	"type": "facade",
+	"receivers": ["android"],
+	"senders": ["web"],
+	"methods": {
+		"downloadAndStoreArchive": {
+			"doc": "download an archive and store it to the local db",
+			"arg": [
+				{
+					"sourceUrl": "string"
+				},
+				{
+					"typeref": "string"
+				},
+				{
+					"modelVersion": "number"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

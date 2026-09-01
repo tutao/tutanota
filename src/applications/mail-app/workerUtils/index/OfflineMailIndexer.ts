@@ -65,6 +65,7 @@ import { isDraft } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ArchiveEnumerationService_GET, createArchiveEnumerationGetIn } from "@tutao/entities/storage"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
+import { locator } from "../worker/WorkerLocator"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -314,18 +315,14 @@ export class OfflineMailIndexer implements MailIndexer {
 			const everythingStart = performance.now()
 			for (const archiveId of archivesToLoad) {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
-				await abortAware(this.abortController, async () => {
-					const downloadStart = performance.now()
-					const blobs = await this.blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
-					const downloadEnd = performance.now()
-					console.log(
-						TAG,
-						`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
-					)
-					await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(mailDetailsBlobTypeModel, blobs)
-					const storeEnd = performance.now()
-					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
-				})
+				const downloadAndStoreBlobsStart = performance.now()
+				await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(
+					MailDetailsBlobTypeRef,
+					archiveId,
+					await locator.archiveDownloader(),
+				)
+				const downloadAndStoreBlobsEnd = performance.now()
+				console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
 			}
 
 			const everythingEnd = performance.now()
@@ -402,7 +399,9 @@ export class OfflineMailIndexer implements MailIndexer {
 		)
 
 		if (!isEmpty(mailsToStore)) {
-			await this.offlineStoragePersistence.storeMailData(mailsToStore)
+			for (const chunk of splitInChunks(100, mailsToStore)) {
+				await this.offlineStoragePersistence.storeMailData(chunk)
+			}
 		}
 	}
 

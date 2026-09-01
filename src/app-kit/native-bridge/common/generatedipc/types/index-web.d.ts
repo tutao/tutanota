@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+export type { ArchiveDownloaderFacade } from "./ArchiveDownloaderFacade"
 export type { CommonNativeFacade } from "./CommonNativeFacade"
 export type { CommonSystemFacade } from "./CommonSystemFacade"
 export type { DesktopFacade } from "./DesktopFacade"
