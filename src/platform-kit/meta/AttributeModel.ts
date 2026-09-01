@@ -4,6 +4,7 @@ import { AppName } from "./TypeRef.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 import { AttributeId, AttributeName, TypeId } from "./EntityConstants"
+import { isNull } from "@tutao/lang-api"
 
 export class AttributeModel {
 	private static readonly typeIdToAttributeNameMap: Record<AppName, Map<TypeId, Map<AttributeName, AttributeId>>> = {

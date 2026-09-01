@@ -18,7 +18,7 @@ import {
 import { ParsedValue } from "./ParsedValue"
 import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
-import { assertNotNaN } from "../utils/Utils"
+import { assertNotNaN, isNull } from "@tutao/lang-api"
 import { EnvProvider } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 

@@ -25,6 +25,7 @@ import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
 import { TypeChecks } from "../app-env/TsTypeChecks"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
