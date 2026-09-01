@@ -1,5 +1,7 @@
 /* generated file, don't edit. */
 
+import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacadeReceiveDispatcher } from "./ArchiveDownloaderFacadeReceiveDispatcher.js"
 import { CommonSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CommonSystemFacadeReceiveDispatcher } from "./CommonSystemFacadeReceiveDispatcher.js"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -36,6 +38,7 @@ import { WebAuthnFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { WebAuthnFacadeReceiveDispatcher } from "./WebAuthnFacadeReceiveDispatcher.js"
 
 export class DesktopGlobalDispatcher {
+	private readonly archiveDownloaderFacade: ArchiveDownloaderFacadeReceiveDispatcher
 	private readonly commonSystemFacade: CommonSystemFacadeReceiveDispatcher
 	private readonly desktopSystemFacade: DesktopSystemFacadeReceiveDispatcher
 	private readonly exportFacade: ExportFacadeReceiveDispatcher
@@ -54,6 +57,7 @@ export class DesktopGlobalDispatcher {
 	private readonly themeFacade: ThemeFacadeReceiveDispatcher
 	private readonly webAuthnFacade: WebAuthnFacadeReceiveDispatcher
 	constructor(
+		archiveDownloaderFacade: ArchiveDownloaderFacade,
 		commonSystemFacade: CommonSystemFacade,
 		desktopSystemFacade: DesktopSystemFacade,
 		exportFacade: ExportFacade,
@@ -72,6 +76,7 @@ export class DesktopGlobalDispatcher {
 		themeFacade: ThemeFacade,
 		webAuthnFacade: WebAuthnFacade,
 	) {
+		this.archiveDownloaderFacade = new ArchiveDownloaderFacadeReceiveDispatcher(archiveDownloaderFacade)
 		this.commonSystemFacade = new CommonSystemFacadeReceiveDispatcher(commonSystemFacade)
 		this.desktopSystemFacade = new DesktopSystemFacadeReceiveDispatcher(desktopSystemFacade)
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
@@ -93,6 +98,8 @@ export class DesktopGlobalDispatcher {
 
 	async dispatch(facadeName: string, methodName: string, args: Array<any>) {
 		switch (facadeName) {
+			case "ArchiveDownloaderFacade":
+				return this.archiveDownloaderFacade.dispatch(methodName, args)
 			case "CommonSystemFacade":
 				return this.commonSystemFacade.dispatch(methodName, args)
 			case "DesktopSystemFacade":
