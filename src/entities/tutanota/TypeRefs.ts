@@ -5285,11 +5285,13 @@ export function createNewImportAttachment(values: NewImportAttachmentParams): Ne
 export type NewImportAttachmentParams = {
 	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>
 	encFileHash: null | Uint8Array<ArrayBuffer>
-	encFileName: Uint8Array<ArrayBuffer>
-	encMimeType: Uint8Array<ArrayBuffer>
+	encFileName: null | Uint8Array<ArrayBuffer>
+	encMimeType: null | Uint8Array<ArrayBuffer>
 	encCid: null | Uint8Array<ArrayBuffer>
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	deduplicatedImportedAttachment: null | ImportedDeduplicatedImportedAttachment
+	file: null | FileTransferAggregatedType
 }
 
 export type NewImportAttachment = {
@@ -5298,14 +5300,16 @@ export type NewImportAttachment = {
 	_id: Id
 	ownerEncFileHashSessionKey: null | Uint8Array<ArrayBuffer>
 	encFileHash: null | Uint8Array<ArrayBuffer>
-	encFileName: Uint8Array<ArrayBuffer>
-	encMimeType: Uint8Array<ArrayBuffer>
+	encFileName: null | Uint8Array<ArrayBuffer>
+	encMimeType: null | Uint8Array<ArrayBuffer>
 	encCid: null | Uint8Array<ArrayBuffer>
 	ownerKeyVersion: null | NumberString
 
 	// == associations
 
 	referenceTokens: BlobReferenceTokenWrapper[]
+	deduplicatedImportedAttachment: null | ImportedDeduplicatedImportedAttachment
+	file: null | FileTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -5329,8 +5333,8 @@ export function createImportAttachment(values: ImportAttachmentParams): ImportAt
 }
 
 export type ImportAttachmentParams = {
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>
-	ownerFileKeyVersion: NumberString
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerFileKeyVersion: null | NumberString
 
 	newAttachment: null | NewImportAttachment
 	existingAttachmentFile: null | IdTuple
@@ -5340,8 +5344,8 @@ export type ImportAttachment = {
 	// == values
 
 	_id: Id
-	ownerEncFileSessionKey: Uint8Array<ArrayBuffer>
-	ownerFileKeyVersion: NumberString
+	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerFileKeyVersion: null | NumberString
 
 	// == associations
 
@@ -5539,6 +5543,7 @@ export type ImportMailPostInParams = {
 	importFileMailState: null | IdTuple
 	encImports: StringWrapper[]
 	imapFolderSyncState: null | IdTuple
+	encImports2: StringWrapper[]
 }
 
 export type ImportMailPostIn = {
@@ -5554,6 +5559,7 @@ export type ImportMailPostIn = {
 	importFileMailState: null | IdTuple
 	encImports: StringWrapper[]
 	imapFolderSyncState: null | IdTuple
+	encImports2: StringWrapper[]
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -8030,5 +8036,398 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<ImapAccountSyncStateTransferAggregatedType>
 	_original: Nullable<ImapAccountSyncStateTransferAggregatedType>
+	isAdapter: false
+}
+export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2134)
+
+export function createImportedMailAddress(values: ImportedMailAddressParams): ImportedMailAddress {
+	return Object.assign(create(typeModels[ImportedMailAddressTypeRef.typeId], ImportedMailAddressTypeRef), values)
+}
+
+export type ImportedMailAddressParams = {
+	name: string
+	address: string
+}
+
+export type ImportedMailAddress = {
+	// == values
+
+	_id: Id
+	name: string
+	address: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedMailAddress>
+	_original: Nullable<ImportedMailAddress>
+	isAdapter: false
+}
+export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2138)
+
+export function createImportedRecipients(values: ImportedRecipientsParams): ImportedRecipients {
+	return Object.assign(create(typeModels[ImportedRecipientsTypeRef.typeId], ImportedRecipientsTypeRef), values)
+}
+
+export type ImportedRecipientsParams = {
+	toRecipients: ImportedMailAddress[]
+	ccRecipients: ImportedMailAddress[]
+	bccRecipients: ImportedMailAddress[]
+}
+
+export type ImportedRecipients = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	toRecipients: ImportedMailAddress[]
+	ccRecipients: ImportedMailAddress[]
+	bccRecipients: ImportedMailAddress[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedRecipients>
+	_original: Nullable<ImportedRecipients>
+	isAdapter: false
+}
+export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2143)
+
+export function createImportedHeader(values: ImportedHeaderParams): ImportedHeader {
+	return Object.assign(create(typeModels[ImportedHeaderTypeRef.typeId], ImportedHeaderTypeRef), values)
+}
+
+export type ImportedHeaderParams = {
+	compressedHeaders: null | string
+}
+
+export type ImportedHeader = {
+	// == values
+
+	_id: Id
+	compressedHeaders: null | string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedHeader>
+	_original: Nullable<ImportedHeader>
+	isAdapter: false
+}
+export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2146)
+
+export function createImportedBody(values: ImportedBodyParams): ImportedBody {
+	return Object.assign(create(typeModels[ImportedBodyTypeRef.typeId], ImportedBodyTypeRef), values)
+}
+
+export type ImportedBodyParams = {
+	compressedText: null | string
+}
+
+export type ImportedBody = {
+	// == values
+
+	_id: Id
+	compressedText: null | string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedBody>
+	_original: Nullable<ImportedBody>
+	isAdapter: false
+}
+export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2149)
+
+export function createImportedMailDetails(values: ImportedMailDetailsParams): ImportedMailDetails {
+	return Object.assign(create(typeModels[ImportedMailDetailsTypeRef.typeId], ImportedMailDetailsTypeRef), values)
+}
+
+export type ImportedMailDetailsParams = {
+	sentDate: Date
+
+	replyTos: EncryptedMailAddress[]
+	recipients: ImportedRecipients
+	headers: null | ImportedHeader
+	body: ImportedBody
+}
+
+export type ImportedMailDetails = {
+	// == values
+
+	_id: Id
+	sentDate: Date
+
+	// == associations
+
+	replyTos: EncryptedMailAddress[]
+	recipients: ImportedRecipients
+	headers: null | ImportedHeader
+	body: ImportedBody
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedMailDetails>
+	_original: Nullable<ImportedMailDetails>
+	isAdapter: false
+}
+export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2156)
+
+export function createImportedMailDetailsBlob(values: ImportedMailDetailsBlobParams): ImportedMailDetailsBlob {
+	return Object.assign(create(typeModels[ImportedMailDetailsBlobTypeRef.typeId], ImportedMailDetailsBlobTypeRef), values)
+}
+
+export type ImportedMailDetailsBlobParams = {
+	details: ImportedMailDetails
+}
+
+export type ImportedMailDetailsBlob = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	details: ImportedMailDetails
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedMailDetailsBlob>
+	_original: Nullable<ImportedMailDetailsBlob>
+	isAdapter: false
+}
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2159)
+
+export function createImportedMail(values: ImportedMailParams): ImportedMail {
+	return Object.assign(create(typeModels[ImportedMailTypeRef.typeId], ImportedMailTypeRef), values)
+}
+
+export type ImportedMailParams = {
+	subject: string
+	receivedDate: Date
+	state: NumberString
+	unread: boolean
+	confidential: boolean
+	replyType: NumberString
+	differentEnvelopeSender: null | string
+	phishingStatus: NumberString
+	method: NumberString
+
+	sender: ImportedMailAddress
+	firstRecipient: null | ImportedMailAddress
+}
+
+export type ImportedMail = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	subject: string
+	receivedDate: Date
+	state: NumberString
+	unread: boolean
+	confidential: boolean
+	replyType: NumberString
+	differentEnvelopeSender: null | string
+	phishingStatus: NumberString
+	method: NumberString
+
+	// == associations
+
+	sender: ImportedMailAddress
+	firstRecipient: null | ImportedMailAddress
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedMail>
+	_original: Nullable<ImportedMail>
+	isAdapter: false
+}
+export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2174)
+
+export function createImportedImportedImapMail(values: ImportedImportedImapMailParams): ImportedImportedImapMail {
+	return Object.assign(create(typeModels[ImportedImportedImapMailTypeRef.typeId], ImportedImportedImapMailTypeRef), values)
+}
+
+export type ImportedImportedImapMailParams = {
+	imapUid: NumberString
+	imapModSeq: null | NumberString
+}
+
+export type ImportedImportedImapMail = {
+	// == values
+
+	_id: Id
+	imapUid: NumberString
+	imapModSeq: null | NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedImportedImapMail>
+	_original: Nullable<ImportedImportedImapMail>
+	isAdapter: false
+}
+export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2178)
+
+export function createImportedDeduplicatedImportedAttachment(values: ImportedDeduplicatedImportedAttachmentParams): ImportedDeduplicatedImportedAttachment {
+	return Object.assign(create(typeModels[ImportedDeduplicatedImportedAttachmentTypeRef.typeId], ImportedDeduplicatedImportedAttachmentTypeRef), values)
+}
+
+export type ImportedDeduplicatedImportedAttachmentParams = {
+	attachmentHash: string
+}
+
+export type ImportedDeduplicatedImportedAttachment = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	attachmentHash: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportedDeduplicatedImportedAttachment>
+	_original: Nullable<ImportedDeduplicatedImportedAttachment>
+	isAdapter: false
+}
+export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2185)
+
+export function createImportMailData2(values: ImportMailData2Params): ImportMailData2 {
+	return Object.assign(create(typeModels[ImportMailData2TypeRef.typeId], ImportMailData2TypeRef), values)
+}
+
+export type ImportMailData2Params = {
+	messageId: null | string
+	inReplyTo: null | string
+
+	labels: IdTuple[]
+	references: ImportMailDataMailReference[]
+	mail: ImportedMail
+	mailDetailsBlob: ImportedMailDetailsBlob
+	importAttachments: ImportAttachment[]
+	importedImapMail: null | ImportedImportedImapMail
+}
+
+export type ImportMailData2 = {
+	// == values
+
+	_format: NumberString
+	messageId: null | string
+	inReplyTo: null | string
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	labels: IdTuple[]
+	references: ImportMailDataMailReference[]
+	mail: ImportedMail
+	mailDetailsBlob: ImportedMailDetailsBlob
+	importAttachments: ImportAttachment[]
+	importedImapMail: null | ImportedImportedImapMail
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ImportMailData2>
+	_original: Nullable<ImportMailData2>
 	isAdapter: false
 }
