@@ -2339,7 +2339,7 @@ export default {
 		"transfersFailed_msg": "發生問題",
 		"transferTimeRemaining_msg": "剩餘{time}",
 		"transferWaiting_msg": "等待中⋯",
-		"trash_action": "垃圾桶",
+		"trash_action": "移到垃圾桶",
 		"trashIsEmpty_msg": "垃圾桶是空的",
 		"trashItemsSuccess_msg": "已將{count}個項目移到垃圾桶",
 		"tryAudioCaptcha_action": "改為嘗試音訊謎題",
