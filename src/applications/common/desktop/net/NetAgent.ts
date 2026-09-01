@@ -12,7 +12,6 @@ const SOCKET_IDLE_TIMEOUT_MS = 5 * 60 * 1000 + 1000
 /** Timeout between reading data. */
 const READ_TIMEOUT_MS = 20_000
 
-// We do not enable HTTP2 yet because it is still experimental (and buggy).
 const agent = new Agent({
 	connections: 3,
 	keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
@@ -21,6 +20,10 @@ const agent = new Agent({
 	connectTimeout: READ_TIMEOUT_MS,
 	// this is needed to address issues in some cases where IPv6 does not really work
 	autoSelectFamily: true,
+	// We do not enable HTTP2 yet, it was buggy in the past and does not work in dist builds still
+	//
+	// see tutanota#11428
+	allowH2: false,
 })
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {
