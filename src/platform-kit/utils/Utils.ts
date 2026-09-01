@@ -1,7 +1,7 @@
 import { KeyVersion } from "./TsUtils.js"
-import { downcast, isNotNull, TypeChecks } from "../lang-api/everywhere.js"
+import { downcast, isNotNull, TypeChecks } from "../lang-api/common/index.js"
 
-export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "../lang-api/everywhere.js"
+export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "../lang-api/common/index.js"
 
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>

@@ -16,7 +16,7 @@ import {
 	TypeChecks,
 } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
-import { LangApiEnum } from "../../lang-api/common/types/enum"
+import { LangApiEnum } from "@tutao/lang-api/common"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -25,7 +25,7 @@ export class ClientDetector {
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
-	browserVersion: TsDouble = 0
+	browserVersion: TsDouble | null = null
 	browser: BrowserType = BrowserType.OTHER
 	device: DeviceType = DeviceType.DESKTOP
 
@@ -159,7 +159,7 @@ export class ClientDetector {
 		}
 
 		// if the version is not valid, the browser type is not valid, so set it to other
-		if (this.browserVersion === 0) {
+		if (isNull(this.browserVersion)) {
 			this.browser = BrowserType.OTHER
 		}
 	}
@@ -253,13 +253,13 @@ export class ClientDetector {
 		return (
 			this.isIos() ||
 			this.browser === BrowserType.SAFARI ||
-			(this.browser === BrowserType.FIREFOX && this.browserVersion <= 60) ||
-			(this.browser === BrowserType.CHROME && this.browserVersion < 59)
+			(this.browser === BrowserType.FIREFOX && isNotNull(this.browserVersion) && this.browserVersion <= 60) ||
+			(this.browser === BrowserType.CHROME && isNotNull(this.browserVersion) && this.browserVersion < 59)
 		)
 	}
 
 	needsExplicitIDBIds(): boolean {
-		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
+		return this.browser === BrowserType.SAFARI && isNotNull(this.browserVersion) && this.browserVersion < 12.2
 	}
 
 	browserData(): BrowserData {

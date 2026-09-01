@@ -1,7 +1,7 @@
 import { AppType, EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../platform-kit/app-env/boot/ClientConstants"
-import { TypeChecks } from "@tutao/lang-api"
+import { TsString, TypeChecks } from "@tutao/lang-api"
 
 export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"

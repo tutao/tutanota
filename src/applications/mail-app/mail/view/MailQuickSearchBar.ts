@@ -12,8 +12,7 @@ import { mailLocator } from "../../mailLocator"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
-import { EnvProvider } from "@tutao/app-env"
-import { TeamLabels } from "../../../../platform-kit/app-env/boot/ClientConstants"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 
 export interface MailSearchBarAttrs {
 	loadResults: (searchQuery: QuickSearchQuery) => Promise<LiveSearchResult<Mail>>
@@ -65,7 +64,7 @@ export class MailQuickSearchBar implements ClassComponent<MailSearchBarAttrs> {
 							{
 								classes: ".small.mr-8",
 							},
-							TeamLabels.companyTeamLabel,
+							TutanotaConstants.companyTeamLabel,
 						)
 					: null,
 				m("small.text-ellipsis", getSenderOrRecipientHeading(mail, true)),
