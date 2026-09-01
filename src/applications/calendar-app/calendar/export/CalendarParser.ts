@@ -23,9 +23,7 @@ import {
 	combineParsers,
 	makeCharacterParser,
 	makeEitherParser,
-	makeNotCharacterParser,
 	makeSeparatedByParser,
-	makeZeroOrMoreParser,
 	mapParser,
 	maybeParse,
 	numberParser,
@@ -34,7 +32,7 @@ import {
 } from "../../../common/misc/parsing/ParserCombinator"
 import { EndType, ProgrammingError, RepeatPeriod, TimeConstants } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
-import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmInterval, AlarmIntervalUnit, ByRule, daysInMonth, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
@@ -106,6 +104,91 @@ type ICalDuration = {
 	minute?: number
 }
 
+/**
+ * Set of character codes needed during iCal parsing.
+ *
+ * By default, TypeScript inlines const enum members, if this is also the case with our config,
+ * using these enum members should be efficient.
+ */
+const enum CharCode {
+	// See ascii manpage: Run `man 7 ascii` in terminal
+	tab = 0x09,
+	verticalTab = 0x0b,
+	space = 0x20,
+	comma = 0x2c,
+	minus = 0x2d,
+	zero = 0x30,
+	nine = 0x39,
+	semicolon = 0x3b,
+	equals = 0x3d,
+	A = 0x41,
+	T = 0x54,
+	Z = 0x5a,
+	underscore = 0x5f,
+	a = 0x61,
+	z = 0x7a,
+}
+
+/**
+ * Bit-flags for terminators needed during iCal parsing that can be combined to a bit-set using binary or `|`.
+ *
+ * @VisibleForTesting
+ */
+export const enum Terminator {
+	endOfString = 1,
+	semicolon = 2,
+	comma = 4,
+}
+
+function terminatorToString(terminator: Terminator): string {
+	switch (terminator) {
+		case Terminator.endOfString:
+			return "END OF STRING"
+		case Terminator.semicolon:
+			return "';'"
+		case Terminator.comma:
+			return "','"
+		default:
+			return `INVALID TERMINATOR=${terminator}`
+	}
+}
+
+function terminatorBitSetToString(terminatorBitSet: Terminator): string {
+	let result = ""
+	for (let i = 0; i < 32; ++i) {
+		const bit = (1 << i) & 1
+		if (bit === Terminator.endOfString || bit === Terminator.semicolon || bit === Terminator.comma) {
+			if (result !== "") {
+				result += ", "
+			}
+			result += terminatorToString(bit)
+		}
+	}
+	return result
+}
+
+function matchTerminatorAt(str: string, offset: number, terminatorBitSet: Terminator): Terminator | 0 {
+	if (offset >= str.length) {
+		return terminatorBitSet & Terminator.endOfString
+	}
+	switch (str.charCodeAt(offset)) {
+		case CharCode.semicolon:
+			return terminatorBitSet & Terminator.semicolon
+		case CharCode.comma:
+			return terminatorBitSet & Terminator.comma
+		default:
+			return 0
+	}
+}
+
+function findNextTerminator(str: string, offset: number, terminatorBitSet: Terminator): [Terminator | 0, number] {
+	let terminator: Terminator | 0 = 0
+	for (; terminator === 0 && offset <= str.length; ++offset) {
+		terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+	}
+	return [terminator, offset - 1]
+}
+
 function getProp(obj: ICalObject, tag: string, optional: false): Property
 function getProp(obj: ICalObject, tag: string, optional: true): Property | null | undefined
 function getProp(obj: ICalObject, tag: string, optional: boolean): Property | null | undefined
@@ -155,7 +238,7 @@ const escapedStringValueParser: Parser<string> = (iterator: StringIterator) => {
 }
 
 const propertyParametersKeyValueParser: Parser<[string, string, string]> = combineParsers(
-	parsePropertyName,
+	parsePropertyNameCombinator,
 	makeCharacterParser("="),
 	makeEitherParser(escapedStringValueParser, parameterStringValueParser),
 )
@@ -208,32 +291,10 @@ const anyStringUnescapeParser: Parser<string> = (iterator) => {
 }
 
 /**
- * Parses everything until the semicolon character
- */
-const propertyStringValueParser: Parser<string> = (iterator) => {
-	let value = ""
-
-	let next
-	while ((next = iterator.peek()) && /[;]/.test(next) === false) {
-		value += neverNull(iterator.next().value)
-	}
-
-	return value
-}
-
-/**
- * Parses values separated by commas
- */
-const separatedByCommaParser: Parser<Array<string>> = makeSeparatedByParser(
-	makeCharacterParser(","),
-	mapParser(makeZeroOrMoreParser(makeNotCharacterParser(",")), (arr) => arr.join("")),
-)
-
-/**
  * Parses the whole property (both sides)
  */
 export const propertySequenceParser: Parser<[string, [string, Array<[string, string, string]>] | null, string, string]> = combineParsers(
-	parsePropertyName,
+	parsePropertyNameCombinator,
 	maybeParse(parsePropertyParameters),
 	makeCharacterParser(":"),
 	anyStringUnescapeParser,
@@ -260,28 +321,6 @@ export function parseProperty(data: string): Property | null {
 	} catch (e) {
 		return null // Returning null to avoid raising parser errors so we can ignore the current broken data/property
 	}
-}
-
-/**
- * Parses single key=value pair on the right side of the semicolon (value side)
- */
-const propertyKeyValueParser: Parser<[string, string, string]> = combineParsers(parsePropertyName, makeCharacterParser("="), propertyStringValueParser)
-
-/**
- * Parses multiple key=value pair on the right side of the semicolon (value side)
- */
-const valuesSeparatedBySemicolonParser: Parser<Array<[string, string, string]>> = makeSeparatedByParser(makeCharacterParser(";"), propertyKeyValueParser)
-
-/**
- * Parses multiple key=value pair on the right side of the semicolon (value side)
- */
-export function parsePropertyKeyValue(data: string): Record<string, string> {
-	const values = valuesSeparatedBySemicolonParser(new StringIterator(data))
-	const result: Record<string, string> = {}
-	for (const [key, _eq, value] of values) {
-		result[key] = value
-	}
-	return result
 }
 
 function parseIcalObject(tag: string, iterator: Iterator<string>): ICalObject {
@@ -349,10 +388,14 @@ function parseAlarm(alarmObject: ICalObject, startTime: Date): AlarmInfoTemplate
 export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): AlarmInterval | null {
 	// Absolute time
 	if (triggerValue.endsWith("Z")) {
+		const dtParseResult = parseDateTime(triggerValue, 0, Terminator.endOfString)
+		if (!dtParseResult.hasZSuffix) {
+			throw new ProgrammingError(`triggerValue=${triggerValue} ends with Z but parseDateTime result has hasZSuffix===false!`)
+		}
+		const triggerTime = jsDateFromDateTimeParseResult(dtParseResult, "UTC")
+		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
-		const triggerTime = parseTime(triggerValue, null).date
-		const tillEvent = eventStart.getTime() - triggerTime.getTime()
 		const minutes = Duration.fromMillis(tillEvent).as("minutes")
 		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
 	} else {
@@ -398,38 +441,142 @@ export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): 
 }
 
 export function parseRrule(rawRruleValue: string, startTzId: string | null): RepeatRule {
-	let rruleValue
+	let frequency: RepeatPeriod | null = null
+	let until: Date | null = null
+	let count: number | null = null
+	let interval: number | null = null
+	const advancedRepeatRules: CalendarAdvancedRepeatRule[] = []
 
+	let offset = 0
+	let i = 0
+	const MAX_COMPONENTS = 1000
 	try {
-		rruleValue = parsePropertyKeyValue(rawRruleValue)
+		while (i < MAX_COMPONENTS) {
+			const propertyName = parsePropertyName(rawRruleValue, offset)
+			offset += propertyName.length
+			if (offset >= rawRruleValue.length || rawRruleValue.charCodeAt(offset) !== CharCode.equals) {
+				throw new ParserError(`Expected equals "=" after RRULE property name "${propertyName}"!`)
+			}
+			++offset
+
+			let advancedByRule: ByRule | null = null
+			let terminator: Terminator | ParseIntError = Terminator.endOfString
+			let end: number
+			switch (propertyName) {
+				case "FREQ":
+					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+					frequency = icalFrequencyToRepeatPeriod(rawRruleValue.slice(offset, end))
+					offset = end
+					break
+				case "UNTIL":
+					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+					until = parseUntilRruleTime(rawRruleValue.slice(offset, end), startTzId)
+					offset = end
+					break
+				case "COUNT":
+					;[terminator, count, offset] = parsePositiveInt(rawRruleValue, offset, 1, null, Terminator.semicolon | Terminator.endOfString)
+					if (terminator < 0) {
+						throw new ParserError("Invalid COUNT value!")
+					}
+					break
+				case "INTERVAL":
+					;[terminator, interval, offset] = parsePositiveInt(rawRruleValue, offset, 1, null, Terminator.semicolon | Terminator.endOfString)
+					if (terminator < 0) {
+						throw new ParserError("Invalid INTERVAL value!")
+					}
+					break
+
+				case "BYMINUTE":
+					advancedByRule = ByRule.BYMINUTE
+					break
+				case "BYHOUR":
+					advancedByRule = ByRule.BYHOUR
+					break
+				case "BYDAY":
+					advancedByRule = ByRule.BYDAY
+					break
+				case "BYMONTHDAY":
+					advancedByRule = ByRule.BYMONTHDAY
+					break
+				case "BYYEARDAY":
+					advancedByRule = ByRule.BYYEARDAY
+					break
+				case "BYWEEKNO":
+					advancedByRule = ByRule.BYWEEKNO
+					break
+				case "BYMONTH":
+					advancedByRule = ByRule.BYMONTH
+					break
+				case "BYSETPOS":
+					advancedByRule = ByRule.BYSETPOS
+					break
+				case "WKST":
+					advancedByRule = ByRule.WKST
+					break
+				default:
+					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+					console.warn(`${TAG} Ignoring unhandled RRULE property: ${propertyName}=${rawRruleValue.slice(offset, end)}!`)
+					offset = end
+					break
+			}
+
+			if (advancedByRule) {
+				while (offset <= rawRruleValue.length) {
+					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.comma | Terminator.semicolon | Terminator.endOfString)
+					if (end === offset) {
+						console.warn(`${TAG} Ignoring empty advanced RRULE property ${propertyName}!`)
+					} else {
+						advancedRepeatRules.push(
+							createCalendarAdvancedRepeatRule({
+								ruleType: advancedByRule,
+								interval: rawRruleValue.slice(offset, end),
+							}),
+						)
+						offset = end
+					}
+					if (terminator === Terminator.comma) {
+						++offset
+					} else {
+						break
+					}
+				}
+			}
+
+			if (terminator === Terminator.endOfString) {
+				break
+			} else if (terminator !== Terminator.semicolon) {
+				throw new ParserError(`RRule "${propertyName}" has invalid value!`)
+			}
+			++offset
+
+			++i
+		}
 	} catch (e) {
 		if (e instanceof ParserError) {
-			throw new ParserError("RRULE is not an object " + e.message)
+			throw new ParserError(`Invalid RRULE:${rawRruleValue}: ` + e.message)
 		} else {
 			throw e
 		}
 	}
-
-	const frequency = icalFrequencyToRepeatPeriod(rruleValue["FREQ"])
-	const until = rruleValue["UNTIL"] ? parseUntilRruleTime(rruleValue["UNTIL"], startTzId) : null
-	let count: number | null = null
-	const countString = rruleValue["COUNT"]
-	if (countString) {
-		count = parsePositiveInt(countString)
-		if (count === null) {
-			throw new ParserError(`Invalid COUNT in repeat rule: RRULE:${rawRruleValue}`)
-		}
+	if (i >= MAX_COMPONENTS) {
+		throw new ParserError(
+			`RRULE="${rawRruleValue.slice(0, 100)}..." too contains more than ${MAX_COMPONENTS} components: it's too complex, erroneous or malicious!`,
+		)
 	}
+
+	if (frequency === null) {
+		throw new ParserError(`RRULE=${rawRruleValue} missing FREQ!`)
+	}
+
 	const endType: EndType = until != null ? EndType.UntilDate : count != null ? EndType.Count : EndType.Never
-	const interval = rruleValue["INTERVAL"] ? parseInt(rruleValue["INTERVAL"]) : 1
 	const repeatRule = createRepeatRule({
 		endValue: until ? String(until.getTime()) : count ? String(count) : null,
 		endType: endType,
-		interval: String(interval),
+		interval: interval ? interval.toString() : "1",
 		frequency: frequency,
 		excludedDates: [],
 		timeZone: "",
-		advancedRules: parseAdvancedRule(rruleValue),
+		advancedRules: advancedRepeatRules,
 	})
 
 	if (typeof startTzId === "string") {
@@ -439,46 +586,100 @@ export function parseRrule(rawRruleValue: string, startTzId: string | null): Rep
 	return repeatRule
 }
 
-export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvancedRepeatRule[] {
-	const advancedRepeatRules: CalendarAdvancedRepeatRule[] = []
-	for (const rruleKey in rrule) {
-		if (!BYRULE_MAP.has(rruleKey)) {
+export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
+	const exclusionDates: Date[] = []
+	for (let excludedDatesProp of excludedDatesProps) {
+		const str = excludedDatesProp.value
+		// Skip EXDATE props with empty values
+		if (str.length === 0) {
 			continue
 		}
+		const tzId: string | null = getTzId(excludedDatesProp)
+		let offset = 0
+		for (;;) {
+			const dateTimeStart = offset
+			const dtParseResult = parseDateTime(str, dateTimeStart, Terminator.comma | Terminator.endOfString)
+			offset = dtParseResult.offset + 1
 
-		for (const interval of rrule[rruleKey].split(",")) {
-			if (interval === "") {
-				continue
+			// resolve the exclusion date time zone
+			let zone: string | null
+			const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+			if (isAllDay) {
+				if (tzId) {
+					console.warn(TAG + ` EXDATES date-time has all-day value ${str.slice(dateTimeStart, offset)}, but also TZID=${tzId}. Ignoreing TZID!`)
+				}
+				zone = "UTC"
+			} else if (dtParseResult.hasZSuffix) {
+				if (tzId !== null && tzId !== "UTC") {
+					const dtStr = str.slice(dateTimeStart, offset)
+					throw new ParserError(`Invalid EXDATES date-time ${dtStr} has both Z suffix in date-time value ${dtStr} and non-UTC TZID=${tzId}!`)
+				}
+				zone = "UTC"
+			} else if (tzId) {
+				zone = tzId
+			} else {
+				zone = null
+				console.warn(TAG + ` exclusion date-time ${str.slice(dateTimeStart, offset)} has undefined time zone. The local time zone will be used! `)
 			}
 
-			advancedRepeatRules.push(
-				createCalendarAdvancedRepeatRule({
-					ruleType: BYRULE_MAP.get(rruleKey)!.toString(),
-					interval,
-				}),
-			)
+			exclusionDates.push(jsDateFromDateTimeParseResult(dtParseResult, zone))
+
+			if (dtParseResult.terminator !== Terminator.comma) {
+				break
+			}
 		}
 	}
-	return advancedRepeatRules
+
+	// sort the exclusion dates
+	exclusionDates.sort((date1, date2) => date1.getTime() - date2.getTime())
+
+	// remove duplicates exclusion dates by dropping dates whenever the previous date's timestamp equals the current one's
+	let dst = 0
+	let prevTimestamp = -0x80000000 // a very small integer that should not match exclusion timestamps
+	for (let src = 0; src < exclusionDates.length; ++src) {
+		const date = exclusionDates[src]
+		const currTimestamp = date.getTime()
+		if (prevTimestamp !== currTimestamp) {
+			exclusionDates[dst] = date
+			++dst
+		}
+		prevTimestamp = currTimestamp
+	}
+	exclusionDates.length = dst
+
+	return exclusionDates.map((date) => createDateWrapper({ date }))
 }
 
-export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
-	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
-	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
-	for (let excludedDatesProp of excludedDatesProps) {
-		const tzId: string | null = getTzId(excludedDatesProp)
-		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
-		for (let value of values) {
-			const { date: exDate } = parseTime(value, tzId)
-			allExDates.set(exDate.getTime(), createDateWrapper({ date: exDate }))
+export function parseRecurrenceId(recurrenceIdProp: Property, startTzId: string | null): Date {
+	const value = recurrenceIdProp.value
+
+	const dtParseResult = parseDateTime(value, 0, Terminator.endOfString)
+
+	// resolve the recurrence ID time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		zone = "UTC"
+	} else {
+		const tzId = getTzId(recurrenceIdProp)
+		if (dtParseResult.hasZSuffix) {
+			if (tzId !== null && tzId !== "UTC") {
+				throw new ParserError(`Invalid RECURRENCE-ID has both Z suffix in date-time value ${value} ` + `and non-UTC TZID=${tzId}!`)
+			}
+			zone = "UTC"
+		} else if (tzId) {
+			zone = tzId
+		} else if (startTzId) {
+			// If the recurrence ID prop does NOT have a time zone, but DTSTART DOES have a time zone, we use the start time zone
+			zone = startTzId
+		} else {
+			zone = null
+			console.warn(TAG + " RECURRENCE-ID time zone is undefined. The local time zone will be used, to match DTSTART behavior! ")
 		}
 	}
-	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
-}
 
-export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null): Date {
-	const result = parseDateTime(recurrenceIdProp.value, getTzId(recurrenceIdProp), tzId ?? null)
-	return toValidJSDate(result.dateTime, recurrenceIdProp.value, tzId)
+	const dateTime = luxonDateTimeFromDateTimeParseResult(dtParseResult, zone)
+	return toValidJSDate(dateTime, recurrenceIdProp.value, startTzId)
 }
 
 /**
@@ -643,7 +844,7 @@ function getContents(eventObjects: ICalObject[], zone: string): [ParsedEventAlar
 function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
 	const startProp = getProp(eventObj, "DTSTART", false)
 	const startTzId: string | null = getTzId(startProp)
-	const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+	const { date: startTime, allDay } = parseDtStartValue(startProp.value, startTzId)
 
 	// start time and tzid is sorted, so we can worry about event identity now before proceeding...
 	let hasValidUid = false
@@ -663,14 +864,30 @@ function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
 	const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
 	let recurrenceId: Date | null = null
 	if (recurrenceIdProp != null && hasValidUid) {
-		// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-		// in that case, we just don't add the recurrenceId and import the event as a standalone.
 		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
 	}
+	// else
+	//   if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+	//   in that case, we just don't add the recurrenceId and import the event as a standalone.
 
+	let endTime: Date
+	let endTzId: string | null = null
 	const endProp = getProp(eventObj, "DTEND", true)
-	const endTzId = endProp ? getTzId(endProp) : null
-	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+	if (endProp) {
+		endTzId = endProp ? getTzId(endProp) : null
+		endTime = parseDtEndValue(endProp.value, allDay, startTime, startTzId, endTzId)
+	} else {
+		const durationValue = getPropStringValue(eventObj, "DURATION", true)
+		if (durationValue) {
+			endTime = parseEventDuration(durationValue, startTime)
+		} else {
+			// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
+			// "DURATION" property, the event's duration is taken to be one day.
+			//
+			// https://tools.ietf.org/html/rfc5545#section-3.6.1
+			endTime = oneDayDurationEnd(startTime, allDay, startTzId, zone)
+		}
+	}
 
 	let summary: string = ""
 	const maybeSummary = parseICalText(eventObj, "SUMMARY")
@@ -819,46 +1036,98 @@ function parseICalText(eventObj: ICalObject, tag: string) {
 	return text
 }
 
-function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, calendarTimeZone: string): Date {
-	const endProp = getProp(eventObj, "DTEND", true)
+export function parseDtStartValue(
+	value: string,
+	startTzId: string | null,
+): {
+	date: Date
+	allDay: boolean
+} {
+	const dtParseResult = parseDateTime(value, 0, Terminator.endOfString)
 
-	if (endProp) {
-		if (typeof endProp.value !== "string") {
-			throw new ParserError("DTEND value is not a string")
+	// resolve the start time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		if (startTzId) {
+			console.warn(TAG + ` DTSTART has all-day value ${value}, but also TZID=${startTzId}. Ignoreing TZID!`)
 		}
-
-		const parseEndDateResult = parseDateTime(endProp.value, getTzId(endProp), startTzId)
-
-		const endTime = parseEndDateResult.dateTime.toJSDate()
-		if (endTime > startTime) {
-			return endTime
+		zone = "UTC"
+	} else if (dtParseResult.hasZSuffix) {
+		if (startTzId !== null && startTzId !== "UTC") {
+			throw new ParserError(`Invalid DTSTART has both Z suffix in date-time value ${value} and non-UTC TZID=${startTzId}!`)
 		}
-
-		// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
-		if (allDay) {
-			// if the startTime indicates an all-day event, we want to preserve that.
-			// we'll assume a 1-day duration.
-			return DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
-		} else {
-			// we make a best effort to deliver alarms at the set interval before startTime and set the
-			// event duration to be 1 second
-			// as of now:
-			// * this displays as ending the same minute it starts in the tutanota calendar
-			// * gets exported with a duration of 1 second
-			return DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
-		}
+		zone = "UTC"
+	} else if (startTzId) {
+		zone = startTzId
 	} else {
-		const durationValue = getPropStringValue(eventObj, "DURATION", true)
+		zone = null
+		console.warn(
+			TAG +
+				" DTSTART time zone is null. The local time zone will be used! " +
+				"This means that the start time of the event will have the same wall-clock time, " +
+				"no matter the time zone (which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+		)
+	}
 
-		if (durationValue) {
-			return parseEventDuration(durationValue, startTime)
-		} else {
-			// >For cases where a "VEVENT" calendar component specifies a "DTSTART" property with a DATE value type but no "DTEND" nor
-			// "DURATION" property, the event's duration is taken to be one day.
-			//
-			// https://tools.ietf.org/html/rfc5545#section-3.6.1
-			return oneDayDurationEnd(startTime, allDay, startTzId, calendarTimeZone)
+	return { date: jsDateFromDateTimeParseResult(dtParseResult, zone), allDay: isAllDay }
+}
+
+function parseDtEndValue(value: string, allDay: boolean, startTime: Date, startTzId: string | null, endTzId: string | null): Date {
+	if (typeof value !== "string") {
+		throw new ParserError("DTEND value is not a string")
+	}
+
+	const dtParseResult = parseDateTime(value, 0, Terminator.endOfString)
+
+	let zone: string | null
+	// resolve the end time zone
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay) {
+		if (endTzId !== null && endTzId !== "UTC") {
+			console.warn(TAG + ` DTEND has all-day value ${value}, but also TZID=${endTzId}. Ignoreing TZID!`)
 		}
+		zone = "UTC"
+	} else {
+		if (dtParseResult.hasZSuffix) {
+			if (endTzId !== null && endTzId !== "UTC") {
+				throw new ParserError(`Invalid DTEND has both Z suffix in date-time value ${value} and non-UTC TZID=${endTzId}!`)
+			}
+			zone = "UTC"
+		} else if (endTzId) {
+			zone = endTzId
+		} else if (startTzId) {
+			// If we do NOT have an end time zone, but DO have a start time zone, we use the start time zone
+			zone = startTzId
+		} else {
+			zone = null
+			console.warn(
+				TAG +
+					" DTEND time zone is undefined. The local time zone will be used! " +
+					"This means that the end time of the event will have the same wall-clock time, " +
+					"no matter the time zone (which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+			)
+		}
+	}
+
+	const endTime = jsDateFromDateTimeParseResult(dtParseResult, zone)
+
+	if (endTime > startTime) {
+		return endTime
+	}
+
+	// as per RFC, these are _technically_ illegal: https://tools.ietf.org/html/rfc5545#section-3.8.2.2
+	if (allDay) {
+		// if the startTime indicates an all-day event, we want to preserve that.
+		// we'll assume a 1-day duration.
+		return DateTime.fromJSDate(startTime).plus({ day: 1 }).toJSDate()
+	} else {
+		// we make a best effort to deliver alarms at the set interval before startTime and set the
+		// event duration to be 1 second
+		// as of now:
+		// * this displays as ending the same minute it starts in the tutanota calendar
+		// * gets exported with a duration of 1 second
+		return DateTime.fromJSDate(startTime).plus({ second: 1 }).toJSDate()
 	}
 }
 
@@ -897,98 +1166,214 @@ export function repeatPeriodToIcalFrequency(repeatPeriod: RepeatPeriod) {
 	}
 }
 
-/** parse a date time */
-export function parseDateTime(
-	value: string,
-	tzId: string | null,
-	fallbackZone: string | null,
-): {
-	dateTime: DateTime
-	isAllDay: boolean
-} {
-	value = value.trim()
+type DateTimeParseResult =
+	| {
+			// YYYYMMDD, i.e. date-only case
+			year: number
+			month: number
+			day: number
+			hour: null
+			minute: null
+			hasZSuffix: false
+			offset: number
+			terminator: Terminator
+	  }
+	| {
+			// YYYYMMDDThhmmss, i.e. date-time case
+			year: number
+			month: number
+			day: number
+			hour: number
+			minute: number
+			hasZSuffix: boolean
+			offset: number
+			terminator: Terminator
+	  }
 
-	let offset = 0
+export function parseDateTime(str: string, offset: number, terminatorBitSet: Terminator): DateTimeParseResult {
+	// Refer to RFC 5545, Section 3.3.5 for specification of DATE-TIME
+	// https://www.rfc-editor.org/info/rfc5545/#section-3.3.5
 
-	let year = parsePositiveFixedLenInt(value, offset, 4)
-	if (year === null) {
-		throw new ParserError(`No year in invalid date time string: ${value}!`)
+	// Refer to RFC 5545, Section 3.3.4 for specification of DATE
+	// https://www.rfc-editor.org/info/rfc5545/#section-3.3.4
+
+	let parseIntStatus: ParseIntError | Terminator
+	let year: number
+	let month: number
+	let day: number
+	let hour: number | null = null
+	let minute: number | null = null
+	let seconds: number
+	let hasZSuffix: boolean = false
+	let terminator: Terminator | 0
+
+	offset = skipInlineWhitespace(str, offset)
+
+	const dateTimeStart = offset
+
+	;[parseIntStatus, year, offset] = parsePositiveInt(str, offset, 4, 4, null)
+	if (parseIntStatus < 0) {
+		throw new ParserError(`No year in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
 	}
-	offset += 4
 
-	let month = parsePositiveFixedLenInt(value, offset, 2)
-	if (month === null) {
-		throw new ParserError(`No month in invalid date time string: ${value}!`)
+	;[parseIntStatus, month, offset] = parsePositiveInt(str, offset, 2, 2, null)
+	if (parseIntStatus < 0) {
+		throw new ParserError(`No month in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
 	}
-	offset += 2
-
-	let day = parsePositiveFixedLenInt(value, offset, 2)
-	if (day === null) {
-		throw new ParserError(`No day in invalid date time string: ${value}!`)
+	if (month < 1 || month > 12) {
+		throw new ParserError(`Invalid month=${month} in date time string "${str.slice(dateTimeStart, offset)}..."! Month must be between 1 and 12.`)
 	}
-	offset += 2
 
-	if (offset < value.length) {
-		if (value[offset] !== "T") {
-			throw new ParserError(`Invalid date time string "${value}"! Expected character 'T' between YYYYMMDD and hhmmss.`)
-		}
+	;[parseIntStatus, day, offset] = parsePositiveInt(str, offset, 2, 2, null)
+	if (parseIntStatus < 0) {
+		throw new ParserError(`No day in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
+	}
+	const maxDay = daysInMonth(year, month)
+	if (day < 1 || day > maxDay) {
+		throw new ParserError(`Invalid day=${day} in date time string "${str.slice(dateTimeStart, offset)}..."! Expected day between 1 and ${maxDay}.`)
+	}
+
+	parseTimeIf: if (offset < str.length && str.charCodeAt(offset) === CharCode.T) {
+		// Case: `value` is a date-time with optional Z-suffix for UTC (YYYYMMDDThhmmss[Z])
+
 		++offset
-	}
-
-	let hour = 0
-	let minute = 0
-	let zone: string | undefined = tzId ?? fallbackZone ?? undefined
-	const isAllDay = offset >= value.length
-	if (isAllDay) {
-		zone = "UTC"
-	} else {
-		const hourOrNull = parsePositiveFixedLenInt(value, offset, 2)
-		if (hourOrNull === null) {
-			throw new ParserError(`No hour in invalid date time string: ${value}!`)
+		terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+		if (terminator) {
+			// We support dates followed by 'T' without a time YYYYMMDDT, probably for compatibility buggy external calendars
+			break parseTimeIf
 		}
-		hour = hourOrNull
-		offset += 2
 
-		const minuteOrNull = parsePositiveFixedLenInt(value, offset, 2)
-		if (minuteOrNull === null) {
-			throw new ParserError(`No minute in invalid date time string: ${value}!`)
+		// Refer to RFC 5545, Section 3.3.12 for specification of TIME
+		// https://www.rfc-editor.org/info/rfc5545/#section-3.3.12[parseIntStatus, hour, offset] = parsePositiveInt(str, offset, 2, 2, null)
+
+		;[parseIntStatus, hour, offset] = parsePositiveInt(str, offset, 2, 2, null)
+		if (parseIntStatus < 0) {
+			throw new ParserError(`No hour in invalid date time string: "${str.slice(dateTimeStart, offset)}..."!`)
 		}
-		minute = minuteOrNull
-		offset += 2
+		// NOTE: This will break if some spec-non-compiliant calendars set hour=24, e.g. "...T240000"
+		if (hour > 23) {
+			throw new ParserError(`Invalid hour=${hour} in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 23.`)
+		}
+		// NOTE: `hour` cannot be less than 0 because parsePositiveFixedLenInt is used
 
-		parsePositiveFixedLenInt(value, offset, 2) // parse seconds
-		offset += 2
-
-		if (offset < value.length && value[offset] === "Z") {
-			zone = "UTC"
-			if (tzId !== null && tzId !== zone) {
-				throw new ParserError(`Failed to parse time from ${value}, due to conflicting time zone representation. Event has a TZID ${tzId} and UTC time.`)
+		;[parseIntStatus, minute, offset] = parsePositiveInt(str, offset, 2, 2, null)
+		if (parseIntStatus < 0) {
+			throw new ParserError(`No minute in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
+		}
+		const MAX_RECOVERABLE_MINUTE_DIST_TO_VALID = 5
+		if (minute > 59) {
+			if (minute > 59 + MAX_RECOVERABLE_MINUTE_DIST_TO_VALID) {
+				throw new ParserError(`Invalid minute=${minute} >59 in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 59.`)
 			}
+			console.error(`Invalid minute=${minute} >59. Less than ${MAX_RECOVERABLE_MINUTE_DIST_TO_VALID} off from 59, so recovering by setting to 59`)
+			minute = 59
+		}
+		// NOTE: `minute` cannot be less than 0 because parsePositiveFixedLenInt is used
+
+		;[parseIntStatus, seconds, offset] = parsePositiveInt(str, offset, 2, 2, null)
+		if (parseIntStatus < 0) {
+			throw new ParserError(`No seconds in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
+		}
+		const MAX_IGNORABLE_SECONDS_DIST_TO_VALID = 29
+		if (seconds === 60) {
+			// A value of 60 is allowed according to the RFC to interface with systems that count leap seconds.
+			// See RFC 5545, Section 3.3.12 https://www.rfc-editor.org/info/rfc5545/#section-3.3.12
+		} else if (seconds > 59) {
+			if (seconds > 59 + MAX_IGNORABLE_SECONDS_DIST_TO_VALID) {
+				throw new ParserError(`Invalid seconds=${seconds} >59 in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 59.`)
+			}
+			console.error(
+				`Invalid seconds=${minute} >59 in date time string "${str.slice(dateTimeStart, offset)}...". Less than ${MAX_IGNORABLE_SECONDS_DIST_TO_VALID} off from 59, so ignoring`,
+			)
+		}
+		// NOTE: `seconds` cannot be less than 0 because parsePositiveFixedLenInt is used
+
+		hasZSuffix = offset < str.length && str.charCodeAt(offset) === CharCode.Z
+		if (hasZSuffix) {
 			++offset
 		}
 	}
-	if (offset < value.length) {
-		throw new ParserError(`Invalid characters at end of date time string: ${value}!`)
+
+	offset = skipInlineWhitespace(str, offset)
+	terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+	if (!terminator) {
+		throw new ParserError(
+			`Unexpected ${offset >= str.length ? "end of string" : `'${str[offset]}'`} ` +
+				`at end of date time string "${str.slice(dateTimeStart, offset + 1)}". ` +
+				`Expected one of ${terminatorBitSetToString(terminatorBitSet)}!`,
+		)
 	}
 
-	if (!zone) {
-		console.warn(TAG + " zone is undefined.  Event time will appear the same in all time zones.")
+	return { year, month, day, hour, minute, hasZSuffix, offset, terminator } as DateTimeParseResult
+}
+
+function jsDateFromDateTimeParseResult(dtParseResult: DateTimeParseResult, zone: string | null) {
+	if (dtParseResult.hasZSuffix && zone !== "UTC") {
+		throw new ParserError(
+			`Attempted to use date time parse result ${JSON.stringify(dtParseResult)} with hasZSuffix=true with incompatible non-UTC time zone = ${zone}!`,
+		)
 	}
 
-	const dateTime = DateTime.fromObject({ year, month, day, hour, minute }, { zone })
-	return { isAllDay, dateTime }
+	if (dtParseResult.hour === null && dtParseResult.minute === null && !dtParseResult.hasZSuffix) {
+		return new Date(Date.UTC(dtParseResult.year, dtParseResult.month - 1, dtParseResult.day))
+	} else if (zone === "UTC") {
+		return new Date(Date.UTC(dtParseResult.year, dtParseResult.month - 1, dtParseResult.day, dtParseResult.hour, dtParseResult.minute))
+	} else {
+		return DateTime.fromObject(
+			{
+				year: dtParseResult.year,
+				month: dtParseResult.month,
+				day: dtParseResult.day,
+				hour: dtParseResult.hour,
+				minute: dtParseResult.minute,
+			},
+			{ zone: zone ?? undefined },
+		).toJSDate()
+	}
+}
+
+function luxonDateTimeFromDateTimeParseResult(dtParseResult: DateTimeParseResult, zone: string | null) {
+	if (dtParseResult.hasZSuffix && zone !== "UTC") {
+		throw new ParserError(
+			`Attempted to use date time parse result ${JSON.stringify(dtParseResult)} with hasZSuffix=true with incompatible non-UTC time zone = ${zone}!`,
+		)
+	}
+
+	return DateTime.fromObject(
+		{
+			year: dtParseResult.year,
+			month: dtParseResult.month,
+			day: dtParseResult.day,
+			hour: dtParseResult.hour ?? 0,
+			minute: dtParseResult.minute ?? 0,
+		},
+		{ zone: zone ?? undefined },
+	)
 }
 
 export function parseUntilRruleTime(value: string, startTzId: string | null): Date {
-	const parseDateTimeResult = parseDateTime(
-		value,
+	const dtParseResult = parseDateTime(value, 0, Terminator.endOfString)
+
+	// resolve the repeat rule time zone
+	let zone: string | null
+	const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
+	if (isAllDay || dtParseResult.hasZSuffix) {
+		zone = "UTC"
+	} else if (startTzId) {
 		// We don't use the zone from the components (RRULE) but the one from start time if it was given.
 		// Don't ask me why but that's how it is.
-		null,
-		startTzId,
-	)
-	let dateTime = parseDateTimeResult.dateTime
-	dateTime = dateTime
+		zone = startTzId
+	} else {
+		zone = null
+		console.warn(
+			TAG +
+				" RRULE UNTIL time zone and start time zone are undefined. The local time zone will be used! " +
+				"This means the UNTIL time will have the same wall-clock time, no matter the time zone " +
+				"(which may be desired by the system generating the .ics file ¯\\(ツ)/¯).",
+		)
+	}
+
+	let dateTime = luxonDateTimeFromDateTimeParseResult(dtParseResult, zone)
 		.plus({ day: 1 }) // rrule until is inclusive in ical but exclusive in Tutanota
 		.startOf("day")
 	if (startTzId) {
@@ -1001,23 +1386,6 @@ export function parseUntilRruleTime(value: string, startTzId: string | null): Da
 	return toValidJSDate(dateTime, value, startTzId)
 }
 
-/**
- * parse a ical time string and return a JS Date object along with a flag that determines
- * whether the time should be considered part of an all-day event
- * @param value {string} the time string to be parsed
- * @param eventTzId {string} the TZID used in this {@link value}
- */
-export function parseTime(
-	value: string,
-	eventTzId: string | null,
-): {
-	date: Date
-	allDay: boolean
-} {
-	const result = parseDateTime(value, eventTzId, null)
-	return { date: result.dateTime.toJSDate(), allDay: result.isAllDay }
-}
-
 function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): Date {
 	if (!dateTime.isValid) {
 		throw new ParserError(`Date value ${value} is invalid in zone ${String(zone)}`)
@@ -1026,18 +1394,30 @@ function toValidJSDate(dateTime: DateTime, value: string, zone: string | null): 
 	return dateTime.toJSDate()
 }
 
-function parsePropertyName(iterator: StringIterator): string {
-	let text = ""
-
-	let next
-	while ((next = iterator.peek()) && /[a-zA-Z0-9-_]/.test(next)) {
-		text += neverNull(iterator.next().value)
+function parsePropertyName(str: string, offset: number): string {
+	let end = offset
+	while (end < str.length) {
+		const charCode = str.charCodeAt(end)
+		if (
+			(charCode < CharCode.a || charCode > CharCode.z) &&
+			(charCode < CharCode.A || charCode > CharCode.Z) &&
+			(charCode < CharCode.zero || charCode > CharCode.nine) &&
+			charCode !== CharCode.minus &&
+			charCode !== CharCode.underscore
+		) {
+			break
+		}
+		++end
 	}
-
-	if (text === "") {
-		throw new ParserError("could not parse property name: " + iterator.peek())
+	if (end === offset) {
+		throw new ParserError("could not parse property name: " + str[offset])
 	}
+	return str.slice(offset, end)
+}
 
+function parsePropertyNameCombinator(iterator: StringIterator): string {
+	const text = parsePropertyName(iterator.iteratee, iterator.position + 1)
+	iterator.position += text.length
 	return text
 }
 
@@ -1107,37 +1487,96 @@ export function parseDuration(value: string): ICalDuration {
 }
 
 /**
- * Parse a positive integer from a string.
- *
- * Simpler and safer than to parseInt... no "helpful" edge-cases
+ * Check whether the character at a specific offset in a string is a whitespace that is NOT a line break
+ * (a.k.a., inline whitespace).
  */
-function parsePositiveInt(str: string): number | null {
-	const MAX_SAFE_INTEGER_LEN = 15
-	if (str.length > MAX_SAFE_INTEGER_LEN) {
-		return null
-	}
-	return parsePositiveFixedLenInt(str, 0, str.length)
+function hasInlineWhitespaceAt(str: string, offset: number): boolean {
+	const charCode = str.charCodeAt(offset)
+	// RFC 5545 only specifies SPACE and HTAB as inline whitespace characters, but non-spec-compliant iCal software
+	// could conceivably also use vertical tabs
+	return charCode === CharCode.space || charCode === CharCode.tab || charCode === CharCode.verticalTab
 }
 
 /**
- * Parse a positive integer with a fixed number of digits at a specified offset in a string.
- *
- * Simpler and safer than to parseInt... no "helpful" edge-cases
- *
- * @returns [boolean indicating success or failure,  the positive integer,  new offset after parsing]
+ * Skip zero or more whitespace characters that are NOT line breaks (a.k.a. inline).
+ * @return The offset of the next character after the whitespace characters that were skipped.
  */
-function parsePositiveFixedLenInt(str: string, offset: number, fixedLen: number): number | null {
-	const end = offset + fixedLen
-	if (end > str.length) {
-		return null
+function skipInlineWhitespace(str: string, offset: number): number {
+	while (offset < str.length && hasInlineWhitespaceAt(str, offset)) {
+		++offset
 	}
+	return offset
+}
+
+const enum ParseIntError {
+	NO_ERROR = 0,
+	NOT_ENDED_BY_TERMINATOR = -1,
+	INT_TOO_LARGE = -2,
+	SMALLER_THAN_MIN_LEN = -3,
+}
+
+/**
+ * Parse a positive integer from a string.
+ *
+ * Safer than to parseInt... no "helpful" edge-cases
+ */
+function parsePositiveInt(
+	str: string,
+	offset: number,
+	minLen: number,
+	maxLen: number | null,
+	terminatorBitSet: Terminator | null,
+): [Terminator | ParseIntError, number, number] {
+	let status: Terminator | ParseIntError = ParseIntError.NO_ERROR
 	let integer = 0
-	for (let i = offset; i < end; ++i) {
-		const digit = str.charCodeAt(i) - 0x30 // 0 has charCode 0X30
-		if (digit < 0 || digit > 9) {
-			return null
+	let end = offset
+	for (;;) {
+		if (terminatorBitSet !== null) {
+			status = matchTerminatorAt(str, end, terminatorBitSet)
+			if (status) {
+				break
+			}
 		}
-		integer = 10 * integer + digit
+
+		if (end >= str.length) {
+			if (terminatorBitSet !== null) {
+				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
+			}
+			break
+		}
+
+		if (maxLen && end >= offset + maxLen) {
+			if (terminatorBitSet !== null) {
+				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
+			}
+			break
+		}
+
+		const charCode = str.charCodeAt(end)
+		if (terminatorBitSet && charCode === terminatorBitSet) {
+			break
+		}
+
+		if (integer > 214748364 /* floor((2^31 - 1) / 10) */) {
+			status = ParseIntError.INT_TOO_LARGE
+		}
+
+		const digit = charCode - CharCode.zero
+		if (digit < 0 || digit > 9) {
+			if (terminatorBitSet) {
+				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
+			}
+			break
+		}
+
+		integer = 10 * integer + (charCode - CharCode.zero)
+
+		++end
 	}
-	return integer
+
+	if (end - offset < minLen) {
+		status = ParseIntError.SMALLER_THAN_MIN_LEN
+	}
+
+	return [status, integer, end]
 }
