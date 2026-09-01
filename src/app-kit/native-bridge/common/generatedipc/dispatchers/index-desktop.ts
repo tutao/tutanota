@@ -1,5 +1,6 @@
 /* generated file, don't edit. */
 
+export * from "./ArchiveDownloaderFacadeReceiveDispatcher.js"
 export * from "./CommonNativeFacadeSendDispatcher.js"
 export * from "./CommonSystemFacadeReceiveDispatcher.js"
 export * from "./DesktopFacadeSendDispatcher.js"

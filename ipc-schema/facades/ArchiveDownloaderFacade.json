@@ -1,0 +1,39 @@
+{
+	"name": "ArchiveDownloaderFacade",
+	"doc": "Download archives and write them encrypted to offline database.",
+	"type": "facade",
+	"receivers": ["ios", "desktop", "android"],
+	"senders": ["web"],
+	"methods": {
+		"downloadAndStoreArchive": {
+			"doc": "Download an archive and store it in offline database",
+			"arg": [
+				{
+					"sourceUrl": "string"
+				},
+				{
+					"archiveId": "string"
+				},
+				{
+					"archiveType": "string"
+				},
+				{
+					"modelVersion": "number"
+				},
+				{
+					"rangeHeaders": "ArchiveDownloadRangeHeaders?"
+				}
+			],
+			"ret": "void"
+		},
+		"abortDownloadAndStoreArchive": {
+			"doc": "Abort downloading or storing an archive",
+			"arg": [
+				{
+					"archiveId": "string"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}
