@@ -108,6 +108,7 @@ import { MigrationSyncSession } from "./migration/MigrationSyncSession"
 import { createImapSyncSession } from "./migration/imapsync/ImapSyncSession"
 import { createGmailSyncSession } from "./migration/gmailsync/GmailSyncSession"
 import { createM365SyncSession } from "./migration/m365sync/M365SyncSession"
+import { DesktopArchiveDownloaderFacade } from "./DesktopArchiveDownloaderFacade"
 
 mp()
 
@@ -445,6 +446,7 @@ async function createComponents(): Promise<Components> {
 			return createMigrationSync(fetchMethod, noopListener)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
+			new DesktopArchiveDownloaderFacade(customFetch, sqlCipherFacade),
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
