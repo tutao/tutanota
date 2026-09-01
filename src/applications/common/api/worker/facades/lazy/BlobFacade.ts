@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, getTypeString, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -50,11 +50,17 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 
 EnvProvider.assertWorkerOrNode()
 
 export const TAG = "BlobFacade"
+
+export interface ArchiveDownloadResumeParams {
+	serverHostname: string
+	rangeHeaders: ArchiveDownloadRangeHeaders
+}
 
 export interface FileData {
 	data: Uint8Array<ArrayBuffer>
@@ -660,6 +666,53 @@ export class BlobFacade {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
 		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
+	}
+
+	/**
+	 * Download a full archive of blob entities and store them (encrypted) in offline database.
+	 */
+	async downloadAndStoreEncryptedBlobArchive<T extends BlobElementEntity>(
+		typeRef: TypeRef<T>,
+		archiveId: Id,
+		archiveDownloader: ArchiveDownloaderFacade,
+		resumeParams: ArchiveDownloadResumeParams | null,
+	): Promise<void> {
+		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+		const typeString = getTypeString(typeRef)
+
+		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
+		const serversToTry = blobServerAccessInfo.servers
+
+		let rangeHeaders: ArchiveDownloadRangeHeaders | null = null
+		if (resumeParams != null) {
+			// try to resume from the last-used server first
+			const resumeServerIndex = blobServerAccessInfo.servers.findIndex(({ url }) => new URL(url).hostname === resumeParams.serverHostname)
+			if (resumeServerIndex !== -1) {
+				rangeHeaders = resumeParams.rangeHeaders
+				const resumeServer = getFirstOrThrow(serversToTry.splice(resumeServerIndex, 1))
+				serversToTry.unshift(resumeServer)
+			}
+		}
+
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
+		// blob element types are accessed with a specific rest path
+		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
+
+		const t = () =>
+			tryServers(
+				serversToTry,
+				async (serverUrl) => {
+					const entityUrl = new URL(serverUrl)
+					entityUrl.pathname = path
+					const url = addParamsToUrl(entityUrl, allParams)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeString, serverTypeModel.version, rangeHeaders)
+				},
+				`can't load instances from server `,
+			)
+
+		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
+		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
+		await doBlobRequestWithRetry(t, doEvictToken)
 	}
 
 	/**
