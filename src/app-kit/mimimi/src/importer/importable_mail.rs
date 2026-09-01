@@ -103,18 +103,20 @@ impl ImportableMailAttachment {
 
 		ImportAttachment {
 			_id: None,
-			ownerEncFileSessionKey: owner_enc_file_session_key.object,
-			ownerFileKeyVersion: owner_enc_file_session_key.version as i64,
+			ownerEncFileSessionKey: Some(owner_enc_file_session_key.object),
+			ownerFileKeyVersion: Some(owner_enc_file_session_key.version as i64),
 			existingAttachmentFile: None,
 			newAttachment: Some(NewImportAttachment {
 				_id: None,
 				encCid: enc_cid,
 				encFileHash: None,
-				encFileName: enc_file_name,
-				encMimeType: enc_mime_type,
+				encFileName: Some(enc_file_name),
+				encMimeType: Some(enc_mime_type),
 				ownerEncFileHashSessionKey: None,
 				ownerKeyVersion: None,
 				referenceTokens: reference_tokens,
+				deduplicatedImportedAttachment: None,
+				file: None,
 			}),
 		}
 	}

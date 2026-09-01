@@ -180,6 +180,7 @@ impl ImportEssential {
 			importFileMailState: Some(self.remote_state_id.clone()),
 			imapFolderSyncState: None,
 			_format: 0,
+			encImports2: vec![],
 		};
 
 		Ok(post_in)
