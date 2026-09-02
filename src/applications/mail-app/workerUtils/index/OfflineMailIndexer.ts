@@ -241,7 +241,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
 		const end = performance.now()
 		console.log(TAG, `Fully indexed (took ${end - start} ms). Cleaning up...`)
-		await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
+		await this.cleanupStoredArchives()
 		const cleanupEnd = performance.now()
 		console.log(TAG, `Cleaned up and fully indexed (took ${cleanupEnd - end} ms)`)
 	}
@@ -303,7 +303,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			return 0
 		}
 
-		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
+		const archiveDownloader = await locator.archiveDownloader()
 		const archivesAlreadyLoaded = await this.offlineStoragePersistence.getEncryptedMailDetailsBlobsArchives()
 		const archivesNeededDeduped = deduplicate(archivesNeeded)
 		const archivesToLoad = difference(archivesNeededDeduped, archivesAlreadyLoaded)
@@ -319,21 +319,14 @@ export class OfflineMailIndexer implements MailIndexer {
 					this.abortController,
 					async () => {
 						const downloadAndStoreBlobsStart = performance.now()
-						await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(
-							MailDetailsBlobTypeRef,
-							archiveId,
-							await locator.archiveDownloader(),
-						)
+						await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader)
 						const downloadAndStoreBlobsEnd = performance.now()
 						console.log(
 							TAG,
 							`Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`,
 						)
 					},
-					async () => {
-						const downloader = await locator.archiveDownloader()
-						await downloader.abortDownloadAndStoreArchive(archiveId)
-					},
+					async () => archiveDownloader.abortDownloadAndStoreArchive(archiveId),
 				)
 			}
 
@@ -567,7 +560,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0, indexedMailCount))
-		await this.offlineStoragePersistence.clearEncryptedMailDetailsBlobs()
+		await this.cleanupStoredArchives()
 	}
 
 	async rebuildIndex(user: User): Promise<void> {
@@ -592,5 +585,10 @@ export class OfflineMailIndexer implements MailIndexer {
 
 	cancelMailIndexing(): void {
 		this.abortController.abort(MailIndexingAbortReason.Cancelled)
+	}
+
+	private async cleanupStoredArchives() {
+		const archiveDownloader = await locator.archiveDownloader()
+		await archiveDownloader.clearStoredArchives()
 	}
 }

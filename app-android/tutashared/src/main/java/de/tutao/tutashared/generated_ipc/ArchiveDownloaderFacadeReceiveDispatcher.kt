@@ -34,6 +34,11 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"clearStoredArchives" -> {
+				val result: Unit = this.facade.clearStoredArchives(
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for ArchiveDownloaderFacade: $method")
 		}
 	}

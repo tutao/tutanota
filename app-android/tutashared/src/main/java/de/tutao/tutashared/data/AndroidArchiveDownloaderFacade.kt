@@ -24,6 +24,7 @@ class AndroidArchiveDownloaderFacade (
 ): ArchiveDownloaderFacade {
 
 	private val activeRequests = ConcurrentHashMap<String, Call>()
+	private val storageForArchive = ConcurrentHashMap<String, StoreArchive>()
 
 	override suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
@@ -36,7 +37,7 @@ class AndroidArchiveDownloaderFacade (
 		return coroutineScope {
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
-				Log.d(TAG, "Started downloading archive")
+				Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
 				val requestBuilder = Request.Builder()
@@ -59,13 +60,10 @@ class AndroidArchiveDownloaderFacade (
 					response.use { response ->
 						val endDownload = TimeSource.Monotonic.markNow()
 						val timeToDownload = endDownload.minus(startDownload).inWholeMilliseconds
-						Log.d(TAG, "Finished downloading archive (took $timeToDownload ms)")
+						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
 
 						if (response.code == 200) {
-							Log.d(TAG, "Started storing archive")
-							storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion, sourceUrl)
-							val timeToStore = TimeSource.Monotonic.markNow().minus(endDownload).inWholeMilliseconds
-							Log.d(TAG, "Finished storing archive (took $timeToStore ms)")
+							storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion)
 						}
 					}
 				} catch (e: IOException) {
@@ -82,13 +80,31 @@ class AndroidArchiveDownloaderFacade (
 
 	override suspend fun abortDownloadAndStoreArchive(archiveId: String) {
 		if (activeRequests.containsKey(archiveId)) {
-			activeRequests[archiveId]?.cancel()
-			activeRequests.remove(archiveId)
+			cleanState(archiveId)
 			Log.d(TAG, "Aborted storing archive with id $archiveId")
 		}
 	}
 
-	private suspend fun storeBytes(bytes: InputStream, archiveId: String, typeref: String, modelVersion: Long, sourceUrl: String) {
+	override suspend fun clearStoredArchives() {
+		activeRequests.clear()
+		storageForArchive.clear()
+		sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", listOf())
+		sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", listOf())
+	}
+
+	private suspend fun cleanState(archiveId: String) {
+		activeRequests[archiveId]?.cancel()
+		activeRequests.remove(archiveId)
+		// delete saved blobs of not fully stored archive & close storage
+		storageForArchive[archiveId]?.close()
+		storageForArchive.remove(archiveId)
+		Log.d(TAG, "Cleaned up state of archive download with id $archiveId, kept the blobs.")
+	}
+
+	private suspend fun storeBytes(bytes: InputStream, archiveId: String, typeref: String, modelVersion: Long) {
+		Log.d(TAG, "Started storing archive with id $archiveId")
+		val startTime = TimeSource.Monotonic.markNow()
+
 		var openCurlyBraces = 0
 		var isInString = false
 
@@ -121,8 +137,6 @@ class AndroidArchiveDownloaderFacade (
 
 			changed = bytes.read(chunk)
 			if (changed == -1) {
-				// exit and cleanup map
-				activeRequests.remove(archiveId)
 				break
 			} else {
 				loop@for(i in 0..<changed) {
@@ -207,7 +221,17 @@ class AndroidArchiveDownloaderFacade (
 				}
 			}
 		}
-		storage?.close()
+
+		// fully stored archive -> store that information as well
+		// changed is > -1 if abortDownloadAndStore was called
+		if (changed == -1) {
+			storage.success()
+		}
+		// exit and cleanup map
+		cleanState(archiveId)
+
+		val timeToStore = TimeSource.Monotonic.markNow().minus(startTime).inWholeMilliseconds
+		Log.d(TAG, "Finished storing archive with id $archiveId (took $timeToStore ms)")
 	}
 
 	private companion object {
@@ -246,6 +270,13 @@ class AndroidArchiveDownloaderFacade (
 			closed = true
 		}
 
+		suspend fun success() {
+			sqlCipherFacade.run(
+				"INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)",
+				listOf(TaggedSqlValue.Str(archiveId))
+			)
+		}
+
 		private suspend fun store() {
 			Log.d(TAG, "Started storing at least $byteCountCurrent bytes")
 			val start = TimeSource.Monotonic.markNow()
@@ -254,17 +285,20 @@ class AndroidArchiveDownloaderFacade (
 			val typeref = TaggedSqlValue.Str(typeref)
 			val modelVersion = TaggedSqlValue.Num(modelVersion)
 
-			val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " + "(?, ?, ?, ?, ?), ".repeat(blobs.size - 1) + "(?, ?, ?, ?, ?)"
-			val params = List<TaggedSqlValue>(blobs.size * 5) init@{ i ->
-				return@init when (i % 5) {
-					0 -> TaggedSqlValue.Str(blobs[i/5].blobId)
-					1 -> archiveId
-					2 -> TaggedSqlValue.Bytes(DataWrapper(blobs[i/5].bytesToStore))
-					3 -> typeref
-					else -> modelVersion
+			if (!closed) {
+				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " + "(?, ?, ?, ?, ?), ".repeat(blobs.size - 1) + "(?, ?, ?, ?, ?)"
+				val params = List<TaggedSqlValue>(blobs.size * 5) init@{ i ->
+					return@init when (i % 5) {
+						0 -> TaggedSqlValue.Str(blobs[i/5].blobId)
+						1 -> archiveId
+						2 -> TaggedSqlValue.Bytes(DataWrapper(blobs[i/5].bytesToStore))
+						3 -> typeref
+						else -> modelVersion
+					}
 				}
+				sqlCipherFacade.run(query, params)
 			}
-			sqlCipherFacade.run(query, params)
+
 			byteCountCurrent = 0
 			blobs.clear()
 

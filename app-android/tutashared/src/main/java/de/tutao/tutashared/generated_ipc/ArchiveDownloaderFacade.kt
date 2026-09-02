@@ -25,4 +25,9 @@ interface ArchiveDownloaderFacade {
 	suspend fun abortDownloadAndStoreArchive(
 		archive: String,
 	): Unit
+	/**
+	 * remove all cached blobs and archives, for example when finished indexing
+	 */
+	suspend fun clearStoredArchives(
+	): Unit
 }

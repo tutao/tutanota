@@ -31,6 +31,11 @@
 				}
 			],
 			"ret": "void"
+		},
+		"clearStoredArchives": {
+			"doc": "remove all cached blobs and archives, for example when finished indexing",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

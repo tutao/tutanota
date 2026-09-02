@@ -13,4 +13,7 @@ export class ArchiveDownloaderFacadeSendDispatcher implements ArchiveDownloaderF
 	async abortDownloadAndStoreArchive(...args: Parameters<ArchiveDownloaderFacade["abortDownloadAndStoreArchive"]>) {
 		return this.transport.invokeNative("ipc", ["ArchiveDownloaderFacade", "abortDownloadAndStoreArchive", ...args])
 	}
+	async clearStoredArchives(...args: Parameters<ArchiveDownloaderFacade["clearStoredArchives"]>) {
+		return this.transport.invokeNative("ipc", ["ArchiveDownloaderFacade", "clearStoredArchives", ...args])
+	}
 }

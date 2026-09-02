@@ -92,6 +92,13 @@ mailAddresses
 			"CREATE TABLE IF NOT EXISTS encrypted_mail_details_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
 		purgedWithCache: true,
 	},
+	// List of archives that were *fully* stored in encrypted_mail_details_blobs and therefore do not need to be re-downloaded when trying to resume indexing
+	//
+	// This is temporary and will be cleared once indexing is finished
+	fully_persisted_mail_details_archives: {
+		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+		purgedWithCache: true,
+	},
 })
 
 export interface IndexedGroupData {
@@ -301,7 +308,7 @@ VALUES (
 	}
 
 	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
-		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM encrypted_mail_details_blobs", [])
+		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_mail_details_archives", [])
 		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
 	}
 
@@ -413,22 +420,6 @@ VALUES (
 		this.pendingEncryptedMailDetailsBlobItems.add(blobId)
 
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
-	}
-
-	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs WHERE blobId = ${blobId}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-	}
-
-	async clearEncryptedMailDetailsBlobs(): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs`
-			await this.sqlCipherFacade.run(query, params)
-		}
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
