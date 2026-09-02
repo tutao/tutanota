@@ -64,34 +64,6 @@ class WidgetUIViewModel(
 
 	companion object {
 		private const val TAG = "WidgetUIViewModel"
-
-		suspend fun initWithData(
-			repository: WidgetRepository,
-			widgetId: Int,
-			credentialsFacade: NativeCredentialsFacade,
-			cryptoFacade: AndroidNativeCryptoFacade,
-			sdk: Sdk?,
-			calendar: Calendar,
-			birthdayStrings: BirthdayStrings,
-			widgetDataStore: DataStore<Preferences>,
-			widgetCacheDataStore: DataStore<Preferences>
-		): WidgetUIViewModel {
-
-			Log.i(TAG, "[$widgetId] Init UIModel with data")
-			val model = WidgetUIViewModel(
-				repository,
-				widgetId,
-				credentialsFacade,
-				cryptoFacade,
-				sdk,
-				calendar,
-				birthdayStrings,
-			)
-
-			model.loadUIState(widgetDataStore, widgetCacheDataStore, LocalDateTime.now())
-
-			return model
-		}
 	}
 
 	suspend fun loadUIState(
@@ -108,7 +80,6 @@ class WidgetUIViewModel(
 		if (widgetStoredState == null) {
 			Log.w(TAG, "[$widgetId] No previous stored settings state found, probably missing configuration!")
 			Log.d(TAG, "[$widgetId] Current WidgetUIViewModel value is: ${uiState.value}")
-			_uiState.value = WidgetUIState.Loading
 			return uiState.value
 		}
 
@@ -441,6 +412,10 @@ class WidgetUIViewModel(
 		}
 
 		return null
+	}
+
+	fun setAsConfigured() {
+		_uiState.value = WidgetUIState.NewConfigurationProvided
 	}
 }
 
