@@ -53,7 +53,6 @@ import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.room.util.query
 import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
@@ -139,6 +138,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
+	private lateinit var paymentsFacade: AndroidMobilePaymentsFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -218,7 +218,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutanota", BuildConfig.APPLICATION_ID)
 
-		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.MAIL)
+		paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.MAIL)
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
@@ -425,10 +425,6 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			// mailbox later when loaded (in handleIntent())
 			if (intent != null && (OPEN_USER_MAILBOX_ACTION == intent.action || OPEN_CALENDAR_ACTION == intent.action)) {
 				queryParameters["noAutoLogin"] = "true"
-			}
-
-			if (paymentsFacade.hasPlaystorePayment()) {
-				queryParameters["paymentSetup"] = "playstore"
 			}
 
 			// Start observing SSE users in the background.
@@ -647,6 +643,9 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}
 		parameters["platformId"] = "android"
+		if (paymentsFacade.hasPlaystorePayment()) {
+			parameters["paymentSetup"] = "playstore"
+		}
 		val queryBuilder = StringBuilder()
 		for ((key, value) in parameters) {
 			try {
@@ -914,13 +913,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	}
 
 	override fun reload(parameters: Map<String, String>) {
-
-		val queryParameters = parameters.toMutableMap()
-		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.MAIL)
-		if (paymentsFacade.hasPlaystorePayment()) {
-			queryParameters["paymentSetup"] = "playstore"
-		}
-		runOnUiThread { startWebApp(queryParameters) }
+		runOnUiThread { startWebApp(parameters.toMutableMap()) }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {

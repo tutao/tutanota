@@ -44,6 +44,7 @@ import {
 	getCurrentCount,
 	getPaymentMethodType,
 	getTotalStorageCapacityPerCustomer,
+	hasMatchingExternalPaymentSetup,
 	hasMatchingExternalStoreSubscription,
 	isAppStorePayment,
 	isAutoResponderActive,
@@ -366,9 +367,10 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		if (isRevoked) {
 			return undefined
 		}
-		//Render buttons for apple
+		// Render external-store controls only when this client matches the subscription's store.
 		if (isExternalSubscription) {
-			return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default
+			const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
+			return hasMatchingExternalPaymentSetup(paymentMethod)
 				? m(
 						".flex.justify-end.gap-8",
 
@@ -394,7 +396,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						m(PrimaryButton, {
 							label:
 								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
-									? "subscriptionSettingAppleWebsite_action"
+									? "subscriptionSettingManageSubscription_action"
 									: "subscriptionSettingGoogleWebsite_action",
 							width: "flex",
 							onclick: () => {
@@ -488,7 +490,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	private async onSubscriptionClick() {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && isExternalPaymentMethod(paymentMethod)) {
+		if (hasMatchingExternalPaymentSetup(paymentMethod)) {
 			// case 1: we are in iOS/ Android app and we either are not paying or are already on external subscription
 			void this.handleExternalSubscriptionChange()
 		} else if (isExternalPaymentMethod(paymentMethod)) {
@@ -499,7 +501,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through OS or when subscription expires.
 			//FIXME: This doesn't seem to work -> env in openExternalSubscriptionPage is default when called
-			void openExternalSubscriptionPage()
+			void openExternalSubscriptionPage(paymentMethod)
 		} else {
 			// other cases (not mobile app, not external payment method, no running external subscription, iOS/Android but another payment method)
 			if (this._accountingInfo && this._customer && this._customerInfo && this._lastBooking) {

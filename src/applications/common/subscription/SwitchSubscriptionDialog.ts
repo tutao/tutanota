@@ -17,7 +17,16 @@ import {
 	SwitchAccountTypeService_POST,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, AvailablePlanType, GroupType, LegacyPlans, NewBusinessPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
+import {
+	AccountType,
+	AvailablePlanType,
+	GroupType,
+	isExternalPaymentMethod,
+	LegacyPlans,
+	NewBusinessPlans,
+	PaymentMethodType,
+	PlanType,
+} from "../../../entities/sys/Utils"
 import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
@@ -37,7 +46,7 @@ import {
 	externalStorePlanName,
 	getCurrentPaymentInterval,
 	getPaymentMethodType,
-	hasMatchingExternalStoreSubscription,
+	hasMatchingExternalPaymentSetup,
 	PlanTypeToName,
 	shouldShowApplePrices,
 	SubscriptionApp,
@@ -75,8 +84,9 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	if (hasMatchingExternalStoreSubscription(accountingInfo, lastBooking)) {
-		await showManageSubscriptionThroughExternalStoreDialog()
+	const paymentMethod = getPaymentMethodType(accountingInfo)
+	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
+		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return
 	}
 
@@ -413,7 +423,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 					return false
 				} else {
 					// we have an app store subscription, but the down/upgrade is attempted on another platform
-					await showManageSubscriptionThroughExternalStoreDialog()
+					await showManageSubscriptionThroughExternalStoreDialog(PaymentMethodType.AppStore)
 					return false
 				}
 

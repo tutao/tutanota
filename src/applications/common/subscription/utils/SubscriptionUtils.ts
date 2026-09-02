@@ -310,6 +310,15 @@ export function externalStorePlanName(planType: PlanType): string {
 
 export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
 
+export function hasMatchingExternalPaymentSetup(paymentMethod: PaymentMethodType | null): boolean {
+	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	return (
+		(paymentMethod === PaymentMethodType.AppStore && paymentSetup === PaymentSetup.Appstore) ||
+		(paymentMethod === PaymentMethodType.GooglePlay && paymentSetup === PaymentSetup.Playstore)
+	)
+}
+
+/** Does the current user have an active external subscription belonging to this client's store? */
 /** does current user has an active (non-expired) AppStore or Playstore subscription? */
 export function hasMatchingExternalStoreSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
 	if (
