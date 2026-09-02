@@ -1,1 +1,1 @@
-public class SwRecord {}
+public class SwRecord<Key, Value> {}
