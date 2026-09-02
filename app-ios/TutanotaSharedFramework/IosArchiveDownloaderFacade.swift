@@ -60,6 +60,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		var currentBlobStartIndex = 0
 		var currentBlobEndIndex = 0
 
+		// everything we need for chunking
+		// FIXME need to test which value here is optimal
+		let minBytes = 4 * 1024 * 1024  // at least 4mb
+		var currentBytes = 0
+		var waitingBlobIds: [String] = []
+		var waitingBlobs: [Data] = []
+
 		// general parsing stuff
 		var openCurlyBraces = 0
 		var isInString = false
@@ -95,8 +102,18 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 						let json = currentFullBlobId.data(using: .utf8)!
 						let blobId = try decoder.decode(Array<String>.self, from: json)
 
-						// FIXME introduce chuning
-						try await storeBlob(blobId[1], data[currentBlobStartIndex...currentBlobEndIndex], archiveId, typeref, modelVersion)
+						// save it in chunks of size minBytes
+						currentBytes += currentBlobEndIndex - currentBlobStartIndex + 1
+						waitingBlobIds.append(blobId[1])
+						waitingBlobs.append(data[currentBlobStartIndex...currentBlobEndIndex])
+						if currentBytes >= minBytes {
+							TUTSLog("Trying to store \(currentBytes) bytes of data")
+							try await storeBlobs(waitingBlobIds, waitingBlobs, archiveId, typeref, modelVersion)
+							TUTSLog("Succeeded storing \(currentBytes) bytes of data")
+							currentBytes = 0
+							waitingBlobs = []
+							waitingBlobIds = []
+						}
 
 						// cleanup
 						currentlyReadingFullBlobId = false
@@ -118,14 +135,26 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		TUTSLog("Finished storing archive with id \(archiveId)")
 	}
 
-	private func storeBlob(_ blobId: String, _ data: Data, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
+	private func storeBlobs(_ blobIds: [String], _ data: [Data], _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
 		do {
+			let wrappedArchiveId = TaggedSqlValue.string(value: archiveId)
+			let wrappedTypeRef = TaggedSqlValue.string(value: typeref)
+			let wrappedModelVersion = TaggedSqlValue.number(value: modelVersion)
+
+			var params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: 5 * blobIds.count)
+			for i in 0..<blobIds.count {
+				switch i % 5 {
+				case 0: params[i] = TaggedSqlValue.string(value: blobIds[i])
+				case 1: params[i] = wrappedArchiveId
+				case 2: params[i] = TaggedSqlValue.bytes(value: DataWrapper(data: data[i]))
+				case 3: params[i] = wrappedTypeRef
+				default: params[i] = wrappedModelVersion
+				}
+			}
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)",
-				[
-					TaggedSqlValue.string(value: blobId), TaggedSqlValue.string(value: archiveId), TaggedSqlValue.bytes(value: DataWrapper(data: data)),
-					TaggedSqlValue.string(value: typeref), TaggedSqlValue.number(value: modelVersion),
-				]
+				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
+					+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
+				params
 			)
 		} catch { throw error }
 	}
