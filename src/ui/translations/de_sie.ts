@@ -2518,6 +2518,11 @@ export default {
 		"driveGenericFilter_label":"Other",
 		"driveFileTypeFilter_label":"File type",
 		"driveAllFileTypes_label":"All",
-		"retryFailedTransfers_action": "Fehlgeschlagene Übertragungen erneut versuchen"
+		"retryFailedTransfers_action": "Fehlgeschlagene Übertragungen erneut versuchen",
+		"attachDriveFiles_action" : "Attach",
+		"attachDriveFiles_label": "Select files",
+		"pickDriveFileDestination_action":"Save here",
+		"pickDriveFileDestination_label":"Pick a destination",
+		"saveToDriveDialog_label":"Save to Drive",
 	}
 }

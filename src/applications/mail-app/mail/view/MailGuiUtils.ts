@@ -66,6 +66,7 @@ import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp"
+import { mailLocator } from "../../mailLocator"
 
 const UNDO_SNACKBAR_SHOW_TIME = TimeConstants.secondsToMillis(10)
 
@@ -974,7 +975,6 @@ export class AttachmentDownloader {
 					await this.fileApp.open(attachment)
 				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
 					//Fixme: not implemented
-					console.log("file reference: ", attachment)
 				} else {
 					throw new ProgrammingError("File Reference cannot be downloaded")
 				}
@@ -983,8 +983,8 @@ export class AttachmentDownloader {
 					// When it is a data file, only support downloading
 					await this.fileController.saveDataFile(attachment)
 				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
-					//Fixme: not implemented
-					console.log("Datafile: ", attachment)
+					//FIXME locator and callback
+					await mailLocator.showDriveDestinationPickerDialog([attachment], () => console.log(attachment.name))
 				} else {
 					throw new ProgrammingError("Data File cannot be opened")
 				}
@@ -993,7 +993,6 @@ export class AttachmentDownloader {
 					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.open(attachment))
 				} else if (postDownload === DownloadPostProcessing.SaveToDrive) {
 					//Fixme: not implemented
-					console.log("Tutanotafile: ", attachment)
 				} else {
 					await showDownloadProgressDialog(this.transferProgressDispatcher, [attachment], await this.fileController.download(attachment))
 				}

@@ -140,7 +140,13 @@ import { DriveViewModel } from "../drive-app/drive/view/DriveViewModel"
 import { TransferProgressDispatcher } from "../common/api/main/TransferProgressDispatcher"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { CalendarEventUpdateCoordinator } from "../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
-import { DriveItemPickerAttrs, DriveItemPickerBehavior, PickedDestinationAction, PickedItemAction } from "../drive-app/drive/view/DriveItemPicker"
+import {
+	DriveItemPickerAttrs,
+	DriveItemPickerBehavior,
+	PickedDestinationAction,
+	PickedDestinationUploadAction,
+	PickedItemAction,
+} from "../drive-app/drive/view/DriveItemPicker"
 import { WebMobileFacade } from "../common/native/WebMobileFacade"
 import { SystemPermissionHandler } from "../common/native/SystemPermissionHandler"
 import { NativeInterfaces } from "../common/native/NativeInterfaceFactory"
@@ -171,6 +177,8 @@ import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { Icons } from "../../ui/base/icons/Icons"
+import { FileReference, WebFile } from "../../entities/tutanota/Utils"
+import { DataFile } from "../../entities/tutanota/MailBundle"
 
 EnvProvider.assertMainOrNode()
 
@@ -1506,32 +1514,34 @@ class MailLocator implements CommonLocator {
 				action(items)
 				return Promise.resolve()
 			},
-			actionLabel: "attachFiles_action", // FIXME
+			actionLabel: "attachDriveFiles_action",
 			canCreateFolders: false,
-			descriptionLabel: "file picker test", // FIXME
-			descriptionTestId: "file picker test", // FIXME
+			descriptionLabel: lang.getTranslation("attachDriveFiles_label").text,
+			descriptionTestId: "dialog:attachingDriveFile_title",
 			icon: Icons.Paperclip,
 			startFolderId,
-			title: "attachment_label", // FIXME
+			title: "attachment_label",
 			mode: DriveItemPickerBehavior.PickItems,
 		}
 		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
 	}
 
-	async showDriveDestinationPickerDialog(files: FolderItem[], action: PickedDestinationAction) {
+	async showDriveDestinationPickerDialog(files: (DataFile | FileReference | WebFile)[], action: PickedDestinationUploadAction) {
 		const { showItemPicker } = await import("../drive-app/drive/view/DriveItemPicker.js")
+		const rootFolders = await this.driveFacade.loadRootFolders("withNetwork")
 		const pickerAttrs: DriveItemPickerAttrs = {
 			action,
 			files,
-			actionLabel: "attachment_label", //FIXME
+			actionLabel: "pickDriveFileDestination_action",
 			canCreateFolders: true,
-			descriptionLabel: "Pick Destination", //FIXME
-			descriptionTestId: "Pick Destination", //FIXME,
+			descriptionLabel: lang.getTranslation("pickDriveFileDestination_label").text,
+			descriptionTestId: "dialog:pickADestination_title",
 			icon: Icons.FolderFilled,
-			startFolderId: (await this.driveFacade.loadRootFolders("withNetwork")).root, //FIXME
-			title: "attachment_label", //FIXME,
-			mode: DriveItemPickerBehavior.PickDestination,
+			startFolderId: rootFolders.root,
+			title: "saveToDriveDialog_label",
+			mode: DriveItemPickerBehavior.PickDestinationForUpload,
 		}
+		showItemPicker(this.entityClient, this.driveFacade, pickerAttrs)
 	}
 
 	async driveFilePicker(): Promise<DriveFilePicker> {

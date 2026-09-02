@@ -2517,3 +2517,8 @@ export type TranslationKeyType =
 	| "driveFileTypeFilter_label"
 	| "driveAllFileTypes_label"
 	| "retryFailedTransfers_action"
+	| "attachDriveFiles_action"
+	| "attachDriveFiles_label"
+	| "pickDriveFileDestination_action"
+	| "pickDriveFileDestination_label"
+	| "saveToDriveDialog_label"

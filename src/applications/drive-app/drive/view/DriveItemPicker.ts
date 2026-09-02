@@ -19,9 +19,10 @@ import { Styles } from "../../../../ui/styles"
 import { component_size, size } from "../../../../ui/size"
 import { DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { filterInt } from "@tutao/utils"
-import { MAX_ATTACHMENT_SIZE } from "../../../../entities/tutanota/Utils"
+import { FileReference, MAX_ATTACHMENT_SIZE, WebFile } from "../../../../entities/tutanota/Utils"
 import { ListModel } from "../../../common/misc/ListModel"
 import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { DataFile } from "../../../../entities/tutanota/MailBundle"
 
 interface State {
 	currentFolder: FolderFolderItem
@@ -33,11 +34,13 @@ interface State {
 }
 
 export type PickedDestinationAction = (items: readonly FolderItemId[], destinationFolder: DriveFolder) => Promise<void>
+export type PickedDestinationUploadAction = (items: readonly (DataFile | FileReference | WebFile)[], destinationFolder: DriveFolder) => unknown
 export type PickedItemAction = (item: readonly FolderItemId[]) => Promise<void>
 
 export enum DriveItemPickerBehavior {
 	PickDestination,
 	PickItems,
+	PickDestinationForUpload,
 }
 
 export type DriveItemPickerAttrs =
@@ -47,6 +50,19 @@ export type DriveItemPickerAttrs =
 			canCreateFolders: true
 			files: FolderItem[]
 			action: PickedDestinationAction
+			title: TranslationKey
+			actionLabel: TranslationKey
+			descriptionLabel: string
+			descriptionTestId: string
+			startFolderId: IdTuple
+			icon: Icons
+	  }
+	// attributes for picking a destination for a set of files to upload
+	| {
+			mode: DriveItemPickerBehavior.PickDestinationForUpload
+			canCreateFolders: true
+			files: (DataFile | WebFile | FileReference)[]
+			action: PickedDestinationUploadAction
 			title: TranslationKey
 			actionLabel: TranslationKey
 			descriptionLabel: string
@@ -125,7 +141,9 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 				const disabledTargetIds: Set<string> =
 					attrs.mode === DriveItemPickerBehavior.PickDestination
 						? new Set([...attrs.files.map(folderItemEntity).map(getElementId), ...filesElementIds])
-						: new Set([...nonAttachableFileIds])
+						: attrs.mode === DriveItemPickerBehavior.PickDestinationForUpload
+							? new Set([...filesElementIds])
+							: new Set([...nonAttachableFileIds])
 				return [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => pickerDialog.close(), type: ButtonType.Secondary }],

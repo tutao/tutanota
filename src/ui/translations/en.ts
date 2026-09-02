@@ -2519,5 +2519,10 @@ export default {
 		"driveFileTypeFilter_label":"File type",
 		"driveAllFileTypes_label":"All",
 		"retryFailedTransfers_action": "Retry all failed transfers",
+		"attachDriveFiles_action" : "Attach",
+		"attachDriveFiles_label": "Select files",
+		"pickDriveFileDestination_action":"Save here",
+		"pickDriveFileDestination_label":"Pick a destination",
+		"saveToDriveDialog_label":"Save to Drive",
 	}
 }
