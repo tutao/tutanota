@@ -192,7 +192,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 
 			return locator.mobilePaymentsFacade.showSubscriptionConfigView()
 		} else if (hasMatchingExternalStoreSubscription(this.accountingInfo, this.lastBooking)) {
-			return showManageSubscriptionThroughExternalStoreDialog()
+			return showManageSubscriptionThroughExternalStoreDialog(currentPaymentMethod)
 		} else if (isExternalPaymentMethod(currentPaymentMethod) && this.customer?.type === AccountType.PAID) {
 			// For now we do not allow changing payment method for Paid accounts that use external subscriptions,
 			// they must downgrade to Free first.
@@ -211,7 +211,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 				],
 			)
 			if (isResubscribe) {
-				return showManageSubscriptionThroughExternalStoreDialog()
+				return showManageSubscriptionThroughExternalStoreDialog(currentPaymentMethod)
 			} else {
 				return showConfirmDowngradingToFreeDialog()
 			}
@@ -704,22 +704,22 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 	}
 }
 
-export async function showManageSubscriptionThroughExternalStoreDialog(): Promise<void> {
-	const term = EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore ? "storeSubscription_msg" : "storeSubscriptionGoogle_msg"
+export async function showManageSubscriptionThroughExternalStoreDialog(paymentMethod: PaymentMethodType): Promise<void> {
+	const term = paymentMethod === PaymentMethodType.AppStore ? "storeSubscription_msg" : "storeSubscriptionGoogle_msg"
 	const confirmed = await Dialog.confirm(
 		lang.getTranslation(term, {
 			"{AppStorePayment}": InfoLink.AppStorePayment,
 		}),
 	)
 	if (confirmed) {
-		openExternalSubscriptionPage()
+		openExternalSubscriptionPage(paymentMethod)
 	}
 }
 
-export function openExternalSubscriptionPage() {
-	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore) {
+export function openExternalSubscriptionPage(paymentMethod?: PaymentMethodType | null) {
+	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore)) {
 		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
-	} else if (EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore) {
+	} else if (paymentMethod === PaymentMethodType.GooglePlay || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore)) {
 		window.open("https://play.google.com/store/account/subscriptions", "_blank", "noopener,noreferrer")
 	}
 }

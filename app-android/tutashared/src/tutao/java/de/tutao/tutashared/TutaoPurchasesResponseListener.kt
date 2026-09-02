@@ -11,6 +11,6 @@ class TutaoPurchasesResponseListener(
 	) -> Unit
 ) : PurchasesResponseListener {
 	override fun onQueryPurchasesResponse(billingResult: BillingResult, purchases: List<Purchase?>) {
-		handleUpdate(billingResult, purchases.orEmpty() as List<Purchase>)
+		handleUpdate(billingResult, purchases.filterNotNull())
 	}
 }

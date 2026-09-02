@@ -68,12 +68,21 @@ class TutaoBillingClient(val activity: Activity) {
 		}
 	}
 
-	suspend fun queryPurchasesAsync(params: QueryPurchasesParams, listener: TutaoPurchasesResponseListener){
-
-		withTimeout(INIT_TIMEOUT) {
-			initialized.await()
-		}
-		googleBillingClient.queryPurchasesAsync(params, listener)
+	suspend fun queryPurchases(params: QueryPurchasesParams): List<Purchase> = withTimeout(INIT_TIMEOUT) {
+		initialized.await()
+		val result = CompletableDeferred<List<Purchase>>()
+		googleBillingClient.queryPurchasesAsync(params, TutaoPurchasesResponseListener { billingResult, purchases ->
+			if (billingResult.responseCode == BillingResponseCode.OK) {
+				result.complete(purchases)
+			} else {
+				result.completeExceptionally(
+					IllegalStateException(
+						"Failed to query purchases: code=${billingResult.responseCode}, message=${billingResult.debugMessage}"
+					)
+				)
+			}
+		})
+		result.await()
 	}
 
 	suspend fun queryProduct(productId: String): ProductDetails {

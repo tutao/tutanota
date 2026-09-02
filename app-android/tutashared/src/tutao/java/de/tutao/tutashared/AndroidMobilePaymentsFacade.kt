@@ -3,10 +3,8 @@ package de.tutao.tutashared
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
-import androidx.core.content.ContextCompat.startActivity
+import androidx.core.net.toUri
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.QueryProductDetailsParams
@@ -16,8 +14,6 @@ import de.tutao.tutashared.ipc.MobilePaymentResult
 import de.tutao.tutashared.ipc.MobilePaymentSubscriptionOwnership
 import de.tutao.tutashared.ipc.MobilePaymentsFacade
 import de.tutao.tutashared.ipc.MobilePlanPrice
-import kotlinx.coroutines.CompletableDeferred
-import androidx.core.net.toUri
 
 class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : MobilePaymentsFacade {
 	val billingClient: TutaoBillingClient = TutaoBillingClient(activity)
@@ -90,56 +86,31 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 	}
 
 	override suspend fun queryExternalSubscriptionOwnership(customerIdBytes: DataWrapper?): MobilePaymentSubscriptionOwnership {
-
-		val builder = QueryPurchasesParams.newBuilder();
-		val params = builder
+		val params = QueryPurchasesParams.newBuilder()
 			.setProductType(BillingClient.ProductType.SUBS)
 			.includeSuspendedSubscriptions(true)
-			.build();
+			.build()
+		val purchases = billingClient.queryPurchases(params)
+		if (purchases.isEmpty()) return MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION
 
-		val result = CompletableDeferred<MobilePaymentSubscriptionOwnership>()
-		val listener =  TutaoPurchasesResponseListener({ billingResult, purchases ->
-			if(billingResult.responseCode == BillingResponseCode.OK) {
-				if(purchases.isEmpty()) result.complete( MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION)
-				for (purchase in purchases) {
-					if(purchase.purchaseState != Purchase.PurchaseState.PURCHASED) {
-						continue
-					}
-					if(purchase.accountIdentifiers?.obfuscatedAccountId == customerIdBytes?.toObfuscatedAccountId()) {
-						result.complete(MobilePaymentSubscriptionOwnership.OWNER)
-					}
-				}
-				result.complete(MobilePaymentSubscriptionOwnership.NOT_OWNER)
-			}
-		})
-
-		billingClient.queryPurchasesAsync(params, listener)
-
-		return result.await()
+		val customerId = customerIdBytes?.toObfuscatedAccountId()
+		return if (customerId != null && purchases.any { purchase ->
+				purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+						purchase.accountIdentifiers?.obfuscatedAccountId == customerId
+			}) {
+			MobilePaymentSubscriptionOwnership.OWNER
+		} else {
+			MobilePaymentSubscriptionOwnership.NOT_OWNER
+		}
 	}
 
 	override suspend fun isExternalSubscriptionRenewalEnabled(): Boolean {
-
-		val builder = QueryPurchasesParams.newBuilder();
-		val params = builder
+		val params = QueryPurchasesParams.newBuilder()
 			.setProductType(BillingClient.ProductType.SUBS)
 			.includeSuspendedSubscriptions(true)
-			.build();
+			.build()
 
-		val result = CompletableDeferred<Boolean>()
-		val listener =  TutaoPurchasesResponseListener({ billingResult, purchases ->
-			if(billingResult.responseCode == BillingResponseCode.OK) {
-				if(purchases.isEmpty()) result.complete(false)
-				for (purchase in purchases) {
-					if(purchase.isAutoRenewing) result.complete(true)
-				}
-				result.complete(false)
-			}
-		})
-
-		billingClient.queryPurchasesAsync(params, listener)
-
-		return result.await()
+		return billingClient.queryPurchases(params).any { it.isAutoRenewing }
 	}
 
 	fun hasPlaystorePayment(): Boolean {

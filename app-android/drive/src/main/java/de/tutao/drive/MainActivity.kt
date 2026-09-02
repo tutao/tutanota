@@ -108,6 +108,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
+	private lateinit var paymentsFacade: AndroidMobilePaymentsFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
 	private val activityRequests: MutableMap<Int, Continuation<ActivityResult>> = ConcurrentHashMap()
@@ -168,7 +169,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutadrive", BuildConfig.APPLICATION_ID)
 
-		val paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.DRIVE)
+		paymentsFacade = AndroidMobilePaymentsFacade(this, AppType.DRIVE)
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
 			commonSystemFacade,
@@ -364,10 +365,6 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 				queryParameters["noAutoLogin"] = "true"
 			}
 
-			if (paymentsFacade.hasPlaystorePayment()) {
-				queryParameters["paymentSetup"] = "playstore"
-			}
-
 			startWebApp(queryParameters)
 		}
 
@@ -545,6 +542,9 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}
 		parameters["platformId"] = "android"
+		if (paymentsFacade.hasPlaystorePayment()) {
+			parameters["paymentSetup"] = "playstore"
+		}
 		val queryBuilder = StringBuilder()
 		for ((key, value) in parameters) {
 			try {
