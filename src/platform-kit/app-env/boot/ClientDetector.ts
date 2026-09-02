@@ -10,7 +10,6 @@ import {
 	RuntimeInfo,
 	TMutableStaticSafety,
 	TMutableStaticSafetyKind,
-	tsDouble,
 	TsDouble,
 	TsInt,
 	TsString,
@@ -26,7 +25,7 @@ export class ClientDetector {
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
-	browserVersion: TsDouble = tsDouble(0)
+	browserVersion: TsDouble = 0
 	browser: BrowserType = BrowserType.OTHER
 	device: DeviceType = DeviceType.DESKTOP
 
@@ -152,7 +151,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = tsDouble(TsDouble.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2))) // we recognize one digit after the '.'
+					this.browserVersion = TsDouble.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -192,7 +191,7 @@ export class ClientDetector {
 				}
 
 				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = tsDouble(TsDouble.parseFloat(numberString.replace(/_/g, ".")))
+				this.browserVersion = TsDouble.parseFloat(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
 			}

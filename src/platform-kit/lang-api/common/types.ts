@@ -5,7 +5,6 @@ export const TsRegex = RegExp
 export abstract class TsBrand {
 	protected abstract readonly __brand: Nullable<never>
 }
-
 export type BrandedType<T, B extends TsBrand> = { __brand: B } & T
 
 export type TsArray<T> = Array<T>
@@ -36,27 +35,14 @@ export type TsRecord<K extends string | number, V> = Record<K, V>
 export class TsIntBrand extends TsBrand {
 	protected __brand: Nullable<never> = null
 }
-export type TsInt = BrandedType<number, TsIntBrand>
-export const TsInt = {
-	parseInt(str: TsString): TsInt {
-		return Number.parseInt(str.asString()) as TsInt
-	},
-
-	isNaN(num: TsInt | number): boolean {
-		return Number.isNaN(num)
-	},
-}
-
 export class TsDoubleBrand extends TsBrand {
 	protected __brand: Nullable<never> = null
 }
 
-export type TsDouble = BrandedType<number, TsDoubleBrand>
-
+export type TsInt = number
+export type TsDouble = number
+export const TsInt = Number
 export const TsDouble = Number
-export function tsDouble(num: number): TsDouble {
-	return num as TsDouble
-}
 
 export const TsDate = Date
 export const TsString = {
@@ -71,7 +57,7 @@ export type TsString = {
 	match(m: TsRegex): Nullable<RegExpMatchArray>
 	indexOf(s: TsString | string, position?: TsInt | number): TsInt
 	substring(start: TsInt | number, end?: TsInt | number): string
-	charAt(pos: TsInt | number): TsString
+	charAt(pos: TsInt | number): string
 
 	// FIXME:
 	// extend string prototype so that this function actually exists during runtime
