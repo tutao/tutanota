@@ -201,7 +201,7 @@ class AndroidArchiveDownloaderFacade (
 							}
 						}
 						']'.code -> {
-							if (!finishedReadingBlobId && !currentFullBlobId.isNullOrEmpty()) {
+							if (!finishedReadingBlobId && openCurlyBraces == 1 && !currentFullBlobId.isNullOrEmpty() && !isInString) {
 								currentFullBlobId += byteInt.toChar()
 								finishedReadingBlobId = true
 							}
