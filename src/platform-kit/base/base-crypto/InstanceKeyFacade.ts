@@ -1,4 +1,4 @@
-import { elementIdPart, idToElementId, isSameTypeRef, PersistentEntity, TypeRef } from "@tutao/meta"
+import { elementIdPart, GENERATED_MIN_ID, idToElementId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "@tutao/meta"
 import {
 	cryptoUtils,
 	CryptoWrapper,
@@ -20,18 +20,25 @@ import {
 	createInstanceKeyPermissionData,
 	createInstanceKeyPermissionServicePostIn,
 	createTypeInfo,
+	Customer,
+	CustomerTypeRef,
 	FormerInstanceKeyData,
+	GroupInfo,
 	GroupInfoTypeRef,
+	GroupMemberTypeRef,
+	GroupRootTypeRef,
 	GroupTypeRef,
 	InstanceKeyInstanceData,
 	InstanceKeyPermissionData,
 	InstanceKeyPermissionService,
 	Permission,
 	PermissionTypeRef,
+	SentGroupInvitationTypeRef,
+	User,
 } from "@tutao/entities/sys"
 import { assertNotNull, KeyVersion, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient"
-import { GroupType } from "../../../entities/sys/Utils"
+import { GroupType, isShareableGroupType } from "../../../entities/sys/Utils"
 import { CryptoFacade } from "./CryptoFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { IServiceExecutor } from "../../network/ServiceRequest"
@@ -94,6 +101,8 @@ export class InstanceKeyFacade {
 	async prepareInstanceKeysForSharedInstance(instance: PersistentEntity): Promise<InstanceKeyInstanceData> {
 		// TODO ignore instances of a type that is not shared (_formerInstanceKeys)
 		// TODO also enforce this on the server
+
+		// TODO filter for instances that are already migrated
 
 		let sharedInstanceListId: Nullable<Id> = null
 		let sharedInstanceElementId: Id
@@ -158,6 +167,59 @@ export class InstanceKeyFacade {
 		}
 
 		return instanceKeyInstanceData
+	}
+
+	async shareInstanceKeysWithExternalUsers(user: User) {
+		// external [user|mail] groupInfos are owned by the internal mail group and instance keys will change and might need to be re-shared
+		const externalGroupInfos = []
+		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, user.userGroup.group)
+		const externalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, groupRoot.externalGroupInfos)
+		const externalMailGroupInfos = (await this.entityClient.loadAll(GroupInfoTypeRef, assertNotNull(groupRoot.externalUserAreaGroupInfos).list)).filter(
+			(groupInfo) => groupInfo.groupType === GroupType.Mail,
+		)
+		externalGroupInfos.push(...externalUserGroupInfos, ...externalMailGroupInfos)
+		await this.postInstanceKeysForSharedInstances(externalGroupInfos)
+	}
+
+	async shareInstanceKeysForInternalGroupInfos(user: User, afterCustomerGroupKeyRotation: boolean) {
+		const groupInfos: GroupInfo[] = []
+		const customerId = assertNotNull(user.customer)
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
+		if (afterCustomerGroupKeyRotation) {
+			const allInternalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
+			groupInfos.push(...allInternalUserGroupInfos)
+		} else {
+			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
+			groupInfos.push(userGroupInfo)
+		}
+		const sharedUserAreaGroupInfos = await this.prepareSharedAreaGroupInfosUserIsMemberOf(user, customer)
+		groupInfos.push(...sharedUserAreaGroupInfos)
+		await this.postInstanceKeysForSharedInstances(groupInfos)
+	}
+
+	private async prepareSharedAreaGroupInfosUserIsMemberOf(user: User, customer: Customer) {
+		const userAreaGroupIdsFromMemberships: Id[] = user.memberships
+			.filter((m) => isShareableGroupType(m.groupType as GroupType) && isSameSingleId(m.groupInfo[0], assertNotNull(customer.userAreaGroups).list))
+			.map((m) => m.group)
+		if (userAreaGroupIdsFromMemberships.length < 1) {
+			return []
+		}
+		const userAreaGroupsFromMemberships = await this.entityClient.loadMultiple(GroupTypeRef, null, userAreaGroupIdsFromMemberships)
+		const sharedUserAreaGroups = userAreaGroupsFromMemberships.filter(async (group) => {
+			const members = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 2, false)
+			if (members.length > 1) {
+				return true
+			} else {
+				const pendingInvitations = await this.entityClient.loadRange(SentGroupInvitationTypeRef, group.invitations, GENERATED_MIN_ID, 1, false)
+				return pendingInvitations.length > 0
+			}
+		})
+
+		return await this.entityClient.loadMultiple(
+			GroupInfoTypeRef,
+			assertNotNull(customer.userAreaGroups).list,
+			sharedUserAreaGroups.map((group) => group.groupInfo[1]),
+		)
 	}
 
 	private async addAsymmetricPermissionData(

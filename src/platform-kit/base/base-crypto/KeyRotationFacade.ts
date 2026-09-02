@@ -61,7 +61,6 @@ import {
 	createUserGroupKeyRotationPostIn,
 	CustomerTypeRef,
 	Group,
-	GroupInfo,
 	GroupInfoTypeRef,
 	GroupKeyRotationData,
 	GroupKeyRotationService,
@@ -72,7 +71,6 @@ import {
 	GroupMembershipKeyData,
 	GroupMembershipUpdateData,
 	GroupMemberTypeRef,
-	GroupRootTypeRef,
 	GroupTypeRef,
 	KeyMac,
 	KeyPair,
@@ -89,8 +87,8 @@ import {
 	UserGroupRootTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { AccountType, GroupType, isShareableGroupType } from "../../../entities/sys/Utils"
-import { assertEnumValue, elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
+import { AccountType, GroupType } from "../../../entities/sys/Utils"
+import { assertEnumValue, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, listIdPart } from "@tutao/meta"
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 import { InstanceKeyFacade } from "./InstanceKeyFacade"
@@ -284,10 +282,10 @@ export class KeyRotationFacade {
 
 		if (customerGroupKeyRotationWasExecuted) {
 			// groupInfos are owned by the customer group and instance keys will change and might need to be re-shared
-			await this.shareInstanceKeysForInternalGroupInfos(user)
+			await this.instanceKeyFacade.shareInstanceKeysForInternalGroupInfos(user, true)
 		}
 		if (internalMailGroupWasRotated) {
-			await this.shareInstanceKeysWithExternalUsers()
+			await this.instanceKeyFacade.shareInstanceKeysWithExternalUsers(user)
 		}
 
 		for (const groupKeyUpdate of serviceData.groupKeyUpdates) {
@@ -298,49 +296,6 @@ export class KeyRotationFacade {
 			const shareFacade = await this.shareFacade()
 			await promiseMap(invitationData, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
 		}
-	}
-
-	private async shareInstanceKeysWithExternalUsers() {
-		// external [user|mail] groupInfos are owned by the internal mail group and instance keys will change and might need to be re-shared
-		const externalGroupInfos = []
-		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, this.userFacade.getUserGroupId())
-		const externalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, groupRoot.externalGroupInfos)
-		const externalMailGroupInfos = (await this.entityClient.loadAll(GroupInfoTypeRef, assertNotNull(groupRoot.externalUserAreaGroupInfos).list)).filter(
-			(groupInfo) => groupInfo.groupType === GroupType.Mail,
-		)
-		externalGroupInfos.push(...externalUserGroupInfos, ...externalMailGroupInfos)
-		await this.instanceKeyFacade.postInstanceKeysForSharedInstances(externalGroupInfos)
-	}
-
-	private async shareInstanceKeysForInternalGroupInfos(user: User) {
-		const groupInfos: GroupInfo[] = []
-		const customerId = assertNotNull(user.customer)
-		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
-		const allInternalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
-		groupInfos.push(...allInternalUserGroupInfos)
-		const userAreaGroupIdsFromMemberships: Id[] = user.memberships
-			.filter((m) => isShareableGroupType(m.groupType as GroupType) && isSameSingleId(m.groupInfo[0], assertNotNull(customer.userAreaGroups).list))
-			.map((m) => m.group)
-		if (userAreaGroupIdsFromMemberships.length < 1) {
-			return
-		}
-		const userAreaGroupsFromMemberships = await this.entityClient.loadMultiple(GroupTypeRef, null, userAreaGroupIdsFromMemberships)
-		const sharedUserAreaGroups = userAreaGroupsFromMemberships.filter(async (group) => {
-			const members = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 2, false)
-			if (members.length > 1) {
-				return true
-			} else {
-				const pendingInvitations = await this.entityClient.loadRange(SentGroupInvitationTypeRef, group.invitations, GENERATED_MIN_ID, 1, false)
-				return pendingInvitations.length > 0
-			}
-		})
-		const sharedUserAreaGroupInfos = await this.entityClient.loadMultiple(
-			GroupInfoTypeRef,
-			assertNotNull(customer.userAreaGroups).list,
-			sharedUserAreaGroups.map((group) => group.groupInfo[1]),
-		)
-		groupInfos.push(...sharedUserAreaGroupInfos)
-		await this.instanceKeyFacade.postInstanceKeysForSharedInstances(groupInfos)
 	}
 
 	/**
