@@ -1,14 +1,6 @@
-/**
- * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
- *
- * Note that passing errors between worker and main thread requires all fields of the error to be serializable.
- * Currently those are name, message, stack and data. See (errorToObj() and objToError()).
- *
- * In order to correctly set the class type of the error after deserialization
- * (needed for e instanceof CustomError to work), the error class needs to be
- * added to the ErrorNameToType map in Utils.js.
- */
 import { TypeChecks } from "./types/utility"
+
+
 /*
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
  *

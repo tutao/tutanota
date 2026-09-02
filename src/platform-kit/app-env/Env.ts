@@ -22,16 +22,16 @@ export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
 
 export type DomainConfigMap = TsRecord<string, DomainConfig>
 export type EnvType = {
-	staticUrl: string | null // if null the url from the browser is used
+	staticUrl: TsString | null // if null the url from the browser is used
 	mode: Mode
 	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
 	dist: boolean
-	versionNumber: string
+	versionNumber: TsString
 	timeout: TsInt
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
-	clientName: string | null
+	clientName: TsString | null
 	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
 	shadowDomAppRoot: string | null
 }
@@ -60,7 +60,7 @@ export type DomainConfig = {
 	/** Whether it is a well-known domain provided by us. */
 	firstPartyDomain: boolean
 	/** the other domain in the domain migration for the current staging level */
-	partneredDomainTransitionUrl: string
+	partneredDomainTransitionUrl: TsString
 	/**
 	 *  What URL should be used for REST requests.
 	 * Important! You probably do not want to use it directly but rather through the accessor function
@@ -70,27 +70,27 @@ export type DomainConfig = {
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
 	 */
-	webauthnUrl: string
+	webauthnUrl: TsString
 	/**
 	 * Which URL should b opened for Webauthn flow on desktop for keys associated with our legacy domain (tutanota.com)
 	 */
-	legacyWebauthnUrl: string
+	legacyWebauthnUrl: TsString
 	/** Same as {@link webauthnUrl} but for mobile apps. */
-	webauthnMobileUrl: string
+	webauthnMobileUrl: TsString
 	/** Same as {@link legacyWebauthnUrl} but for mobile apps. */
-	legacyWebauthnMobileUrl: string
+	legacyWebauthnMobileUrl: TsString
 	/** Which URL should be opened for the credit card payment flow. */
-	paymentUrl: string
+	paymentUrl: TsString
 	/** Our current Relying Party ID to register the keys for. Superdomain of our domains. */
-	webauthnRpId: string
+	webauthnRpId: TsString
 	/** URL for the legacy U2F API. */
-	u2fAppId: string
+	u2fAppId: TsString
 	/** Which URL to use to build the gift card sharing URL. */
-	giftCardBaseUrl: string
+	giftCardBaseUrl: TsString
 	/** Which URL to use to build the referral URL. */
-	referralBaseUrl: string
+	referralBaseUrl: TsString
 	/** Base URL for requesting any information from de website */
-	websiteBaseUrl: string
+	websiteBaseUrl: TsString
 }
 
 export const enum Mode {
@@ -150,7 +150,7 @@ export class EnvProvider {
 		return EnvProvider.singleton
 	}
 
-	public getVersionNumber(): string {
+	public getVersionNumber(): TsString {
 		return this.env.versionNumber
 	}
 
@@ -166,7 +166,7 @@ export class EnvProvider {
 		return this.env.networkDebugging
 	}
 
-	public getClientName(): string | null {
+	public getClientName(): TsString | null {
 		return this.env.clientName
 	}
 
