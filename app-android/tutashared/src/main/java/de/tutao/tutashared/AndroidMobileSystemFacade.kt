@@ -46,7 +46,7 @@ class AndroidMobileSystemFacade(
 	private val appType: AppType,
 	private val widgetRefresher: WidgetRefreshable?,
 	private val tempDir: TempDir
-	) : MobileSystemFacade {
+) : MobileSystemFacade {
 	private val authenticationPrompt = AuthenticationPrompt()
 
 	companion object {
@@ -264,6 +264,7 @@ class AndroidMobileSystemFacade(
 		}
 
 		try {
+			Log.d(TAG, "running AndroidMobileSystemFacade.requestWidgetRefresh()")
 			widgetRefresher.refresh(activity)
 		} catch (e: Exception) {
 			Log.e(TAG, "Failed to refresh widgets state ${e.message}")

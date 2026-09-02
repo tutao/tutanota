@@ -1,29 +1,32 @@
-package de.tutao.calendar.widget
+package de.tutao.calendar.widget.workers
 
 import android.content.Context
 import android.util.Log
 import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import de.tutao.calendar.widget.Agenda
+import de.tutao.calendar.widget.WidgetViewModelProvider
+import de.tutao.calendar.widget.widgetCacheDataStore
+import de.tutao.calendar.widget.widgetDataStore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
-const val WIDGET_ID_WORKER_KEY = "appWidgetId"
+const val APP_WIDGET_ID_KEY = "appWidgetId"
 
-class WidgetDataWorker(
+class WidgetDataSyncWorker(
 	private val appContext: Context,
 	workParams: WorkerParameters
 ) : CoroutineWorker(appContext, workParams) {
 	companion object {
-		private const val TAG = "WidgetDataWorker"
+		private const val TAG = "WidgetDataSyncWorker"
 	}
 
 	override suspend fun doWork(): Result {
-		val widgetId: Int = inputData.keyValueMap[WIDGET_ID_WORKER_KEY]!! as Int
+		val widgetId: Int = inputData.keyValueMap[APP_WIDGET_ID_KEY]!! as Int
 
 		Log.i(TAG, "[$widgetId] Getting existing ViewModel")
-
 		val model = WidgetViewModelProvider.getModelFor(widgetId)
 			?: throw Exception("Worker could not find a ViewModel for widget $widgetId")
 
