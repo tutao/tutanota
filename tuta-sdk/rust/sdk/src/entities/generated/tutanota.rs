@@ -3673,6 +3673,8 @@ pub struct ImportMailData {
 	pub imapModSeq: Option<i64>,
 	#[serde(rename = "1966")]
 	pub imapUid: Option<i64>,
+	#[serde(rename = "1996")]
+	pub sourceId: Option<String>,
 	#[serde(rename = "1547")]
 	pub references: Vec<ImportMailDataMailReference>,
 	#[serde(rename = "1548")]
@@ -4496,6 +4498,8 @@ pub struct ImportedImapMail {
 	pub imapModSeq: Option<i64>,
 	#[serde(rename = "1881")]
 	pub messageId: String,
+	#[serde(rename = "1995")]
+	pub sourceId: Option<String>,
 	#[serde(rename = "1882")]
 	pub mailSetEntry: IdTupleCustom,
 }

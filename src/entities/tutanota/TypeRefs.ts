@@ -5349,6 +5349,7 @@ export type ImportMailDataParams = {
 	compressedHeaders: string
 	imapModSeq: null | NumberString
 	imapUid: null | NumberString
+	sourceId: null | string
 
 	references: ImportMailDataMailReference[]
 	sender: MailAddress
@@ -5379,6 +5380,7 @@ export type ImportMailData = {
 	compressedHeaders: string
 	imapModSeq: null | NumberString
 	imapUid: null | NumberString
+	sourceId: null | string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -6684,6 +6686,7 @@ export type ImportedImapMailParams = {
 	imapUid: NumberString
 	imapModSeq: null | NumberString
 	messageId: string
+	sourceId: null | string
 
 	mailSetEntry: IdTuple
 }
@@ -6698,6 +6701,7 @@ export type ImportedImapMail = {
 	imapUid: NumberString
 	imapModSeq: null | NumberString
 	messageId: string
+	sourceId: null | string
 
 	// == associations
 
