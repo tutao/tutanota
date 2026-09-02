@@ -7,7 +7,7 @@ import {
 import { SqlCipherFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types/SqlCipherFacade.js"
 import { DesktopSqlCipher } from "../../../../../src/applications/common/desktop/db/DesktopSqlCipher"
 import { assertNotNull, typedValues } from "../../../../../src/platform-kit/utils"
-import { untagSqlObject, untagSqlValue } from "../../../../../src/app-kit/local-store/SqlValue"
+import { untagSqlObject } from "../../../../../src/app-kit/local-store/SqlValue"
 import { sql } from "../../../../../src/app-kit/local-store/Sql"
 import { GENERATED_MAX_ID, getElementId, getListId, getTypeString, ListElementEntity, serverToLocalIdEncoding } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils"
@@ -64,24 +64,6 @@ o.spec("OfflineStoragePersistence", () => {
 		await sqlCipherFacade.closeDb()
 	})
 
-	o.spec("isMailIndexingEnabled", () => {
-		o.test("on fresh db", async () => {
-			o.check(await persistence.isMailIndexingEnabled()).equals(false)
-		})
-		o.test("when mail indexing was enabled", async () => {
-			const query = `INSERT INTO search_metadata
-                           VALUES ('${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}', 1)`
-			await sqlCipherFacade.run(query, [])
-			o.check(await persistence.isMailIndexingEnabled()).equals(true)
-		})
-		o.test("when mail indexing was disabled", async () => {
-			const query = `INSERT INTO search_metadata
-                           VALUES ('${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}', 0)`
-			await sqlCipherFacade.run(query, [])
-			o.check(await persistence.isMailIndexingEnabled()).equals(false)
-		})
-	})
-
 	o.spec("areContactsIndexed", () => {
 		o.test("on fresh db", async () => {
 			o.check(await persistence.areContactsIndexed()).equals(false)
@@ -97,25 +79,6 @@ o.spec("OfflineStoragePersistence", () => {
                            VALUES ('${OfflineStoragePersistence.CONTACTS_INDEXED}', 0)`
 			await sqlCipherFacade.run(query, [])
 			o.check(await persistence.areContactsIndexed()).equals(false)
-		})
-	})
-
-	o.spec("setMailIndexingEnabled", () => {
-		o.test("enable indexing", async () => {
-			await persistence.setMailIndexingEnabled(true)
-			const query = `SELECT value
-                           FROM search_metadata
-                           WHERE key ='${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}'`
-			const record = untagSqlValue(assertNotNull(await sqlCipherFacade.get(query, [])).value)
-			o.check(record).equals(1)
-		})
-		o.test("disable indexing", async () => {
-			await persistence.setMailIndexingEnabled(false)
-			const query = `SELECT value
-                           FROM search_metadata
-                           WHERE key ='${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}'`
-			const record = untagSqlValue(assertNotNull(await sqlCipherFacade.get(query, [])).value)
-			o.check(record).equals(0)
 		})
 	})
 

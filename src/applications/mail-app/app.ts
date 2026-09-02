@@ -297,7 +297,7 @@ import("../../ui/translations/en.js")
 			})
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction.js")
-				return new MailIndexerPostLoginAction(mailLocator.indexerFacade, mailLocator.syncTracker)
+				return new MailIndexerPostLoginAction(mailLocator.indexerFacade, mailLocator.syncTracker, mailLocator.logins)
 			})
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { RegisterPushServicePostLoginAction } = await import("../common/native/RegisterPushServicePostLoginAction.js")

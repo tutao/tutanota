@@ -94,6 +94,7 @@ import "./api/worker/search/IndexedDbIndexerTest.js"
 import "./api/worker/search/WebMailIndexerTest.js"
 import "./api/worker/search/OfflineMailIndexerTest.js"
 import "./api/worker/search/MailIndexerTest.js"
+import "./api/worker/search/OfflineStorageMailIndexerBackendTest.js"
 import "./api/worker/search/IndexedDbMailIndexerBackendTest.js"
 import "./api/worker/search/IndexedDbSearchFacadeTest.js"
 import "./api/worker/search/SearchIndexEncodingTest.js"
@@ -266,8 +267,7 @@ import "./drive/DriveModelTest.js"
 
 import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
-import { EnvProvider, Mode } from "../../src/platform-kit/app-env"
-import { assert } from "../../src/platform-kit/utils"
+import { EnvProvider } from "../../src/platform-kit/app-env"
 
 export async function run({
 	integration,

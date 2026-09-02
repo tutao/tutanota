@@ -1,4 +1,4 @@
-import { CancelledError, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { CancelledError, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"

@@ -6,7 +6,7 @@ import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchIndexStateInfo, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNotNull, isEmpty, ofClass } from "../../../../platform-kit/utils"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
-import { areResultsForTheSameQuery, hasMoreResults, isNonBlockingSearchAvailable, mailSearchComparator } from "./MailSearchUtils"
+import { areResultsForTheSameQuery, hasMoreResults, mailSearchComparator } from "./MailSearchUtils"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
 import { EventController } from "../../../common/api/main/EventController"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
@@ -31,7 +31,7 @@ export class MailSearchModel {
 		this.indexingSupported = true
 		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
-			mailIndexEnabled: false,
+			mailIndexEnabled: EnvProvider.get().isOfflineStorageAvailable(),
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 			aimedMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
@@ -46,7 +46,7 @@ export class MailSearchModel {
 	}
 
 	async searchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
-		if (isNonBlockingSearchAvailable() && searchQuery.restriction.end == null) {
+		if (!EnvProvider.get().isFullArchiveSearchAvailable() && searchQuery.restriction.end == null) {
 			// we set search end when null to be able to tell when the same search is extended
 			const indexState = this.indexState()
 			searchQuery.restriction.end = getMailIndexTimestampForSearch(indexState.aimedMailIndexTimestamp)
@@ -86,7 +86,7 @@ export class MailSearchModel {
 				result.updates.end(true)
 			},
 			extendResults: async (extendEnd) => {
-				if (!isNonBlockingSearchAvailable()) {
+				if (EnvProvider.get().isFullArchiveSearchAvailable()) {
 					throw new ProgrammingError("Tried to extend search result but non-blocking search isn't available")
 				}
 
