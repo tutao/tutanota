@@ -9,8 +9,8 @@
  * added to the ErrorNameToType map in Utils.js.
  */
 import { isNotNull, isNull } from "./functional"
-import { TypeChecks } from "./types.js"
 import { TSwUncheckedSendable } from "./decorators"
+import { TypeChecks } from "./types/utility"
 
 @TSwUncheckedSendable({ reasoning: "All fields in TutanotaError are readonly and we dont mutate anything once an error is created" })
 export class TutanotaError extends Error {
