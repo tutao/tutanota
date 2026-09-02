@@ -152,23 +152,6 @@ export class OfflineStoragePersistence {
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async setMailIndexingEnabled(enabled: boolean): Promise<void> {
-		const { query, params } = sql`INSERT
-		OR REPLACE INTO search_metadata VALUES (
-		${OfflineStoragePersistence.MAIL_INDEXING_ENABLED},
-		${enabled ? 1 : 0}
-		)`
-		await this.sqlCipherFacade.run(query, params)
-	}
-
-	async isMailIndexingEnabled(): Promise<boolean> {
-		const { query, params } = sql`SELECT CAST(value as NUMBER) as value
-									  FROM search_metadata
-									  WHERE key = ${OfflineStoragePersistence.MAIL_INDEXING_ENABLED}`
-		const row = await this.sqlCipherFacade.get(query, params)
-		return row != null && untagSqlValue(row.value) === 1
-	}
-
 	/**
 	 * WARNING: Do NOT exceed MAX_SAFE_SQL_VARS (this function will not handle this for you)
 	 */

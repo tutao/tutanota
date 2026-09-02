@@ -77,10 +77,10 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 		} else if (
 			(this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
 				this.attrs.indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
-				EnvProvider.get().isOfflineStorageAvailable()) ||
+				EnvProvider.get().isFullArchiveSearchAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < this.attrs.indexState.currentMailIndexTimestamp)
 		) {
-			const extendToDate = EnvProvider.get().isOfflineStorageAvailable() ? null : sixMonthsBeforeStartDate
+			const extendToDate = EnvProvider.get().isFullArchiveSearchAvailable() ? null : sixMonthsBeforeStartDate
 
 			// If the list is in Loading or ConnectionLost, the list has a default message that should be displayed
 			innerChildren = m(

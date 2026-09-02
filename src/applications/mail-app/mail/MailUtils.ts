@@ -1,5 +1,5 @@
 //@bundleInto:common
-import { Const, FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS, PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS } from "../../../platform-kit/app-env"
+import { Const, FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS, PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS } from "../../../platform-kit/app-env"
 import { downcast } from "../../../platform-kit/utils"
 import { getAsEnumValue } from "../../../platform-kit/meta"
 import { MailSet } from "@tutao/entities/tutanota"
@@ -160,8 +160,8 @@ export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFiel
 
 export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
-export function getOfflineStorageDefaultTimeRangeDays(accountType: AccountType): number {
-	return accountType === AccountType.PAID ? PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS : FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS
+export function getOfflineStorageDefaultIndexRangeDays(accountType: AccountType): number {
+	return accountType === AccountType.PAID ? PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS : FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS
 }
 
 /**

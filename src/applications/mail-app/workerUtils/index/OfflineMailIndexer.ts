@@ -551,4 +551,13 @@ export class OfflineMailIndexer implements MailIndexer {
 	cancelMailIndexing(): void {
 		this.abortController.abort(MailIndexingAbortReason.Cancelled)
 	}
+
+	async doInitialMailIndexing() {
+		// no-op, initial indexing for sqlite search is done in MailIndexerPostLoginAction
+	}
+
+	async enableMailIndexing(): Promise<boolean> {
+		// no-op, mail indexing is always enabled for sqlite search
+		return true
+	}
 }

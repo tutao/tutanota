@@ -188,12 +188,6 @@ export function isIncompleteMailResult(searchResult: SearchResult, currentIndexT
 	return searchResult.currentIndexTimestamp > currentIndexTimestamp
 }
 
-/**
- * @return true if non-blocking search is used on the current client
- */
-export function isNonBlockingSearchAvailable(): boolean {
-	return EnvProvider.get().isBrowser()
-}
 export const mailSearchComparator: (l: Mail, r: Mail) => number = EnvProvider.get().isOfflineStorageAvailable()
 	? (l, r) => compareMails(l, r)
 	: (l, r) => sortCompareByReverseId(l, r, EntityIdEncoding.Base64Ext)

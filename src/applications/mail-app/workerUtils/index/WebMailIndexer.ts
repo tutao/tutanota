@@ -1,4 +1,11 @@
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
+import {
+	CancelledError,
+	EnvProvider,
+	FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS,
+	FULL_INDEXED_TIMESTAMP,
+	NOTHING_INDEXED_TIMESTAMP,
+	TimeConstants,
+} from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -57,7 +64,6 @@ import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailInd
 
 EnvProvider.assertWorkerOrNode()
 
-export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day
 
 const TAG = "WebMailIndexer"
@@ -197,7 +203,7 @@ export class WebMailIndexer implements MailIndexer {
 
 	async doInitialMailIndexing(user: User): Promise<void> {
 		// create index in background, termination is handled in Indexer.enableMailIndexing
-		const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
+		const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS).getTime()
 		// We don't have to disable mail indexing when it's stopped now
 		try {
 			await this.indexMailboxes(user, oldestTimestamp)
@@ -668,8 +674,8 @@ export class WebMailIndexer implements MailIndexer {
 		await this.indexMailboxes(user, currentIndexTimestamp)
 	}
 
-	async extendMailIndex(): Promise<void> {
-		// no-op on web
+	async extendMailIndex(user: User, aimedTimestamp: number): Promise<void> {
+		await this.indexMailboxes(user, aimedTimestamp)
 	}
 }
 

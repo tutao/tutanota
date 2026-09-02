@@ -95,7 +95,7 @@ export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> 
 		}
 
 		if (indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
-			indexInfo = !EnvProvider.get().isOfflineStorageAvailable() // we have isNonBlockingSearchAvailable() at home
+			indexInfo = !EnvProvider.get().isFullArchiveSearchAvailable() // we have isNonBlockingSearchAvailable() at home
 				? lang.getTranslationText("searchedUntil_msg") + " " + formatDate(new Date(indexTimestamp))
 				: lang.getTranslationText("notAllMailsSearchable_msg")
 		}

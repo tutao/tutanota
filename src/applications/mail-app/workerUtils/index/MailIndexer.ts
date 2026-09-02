@@ -33,8 +33,10 @@ export interface MailIndexer {
 	afterMailUpdated(mailid: IdTuple): Promise<void>
 	beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void>
 	rebuildIndex(user: User): Promise<void>
-	extendMailIndex(user: User): Promise<void>
+	extendMailIndex(user: User, aimedTimestamp: number): Promise<void>
 	cancelMailIndexing(): void
+	doInitialMailIndexing(user: User): Promise<void>
+	enableMailIndexing(): Promise<boolean>
 }
 
 /**

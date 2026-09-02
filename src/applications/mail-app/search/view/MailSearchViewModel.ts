@@ -18,7 +18,7 @@ import {
 	onceAsync,
 } from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { CancelledError, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { elementIdToId, getElementId, isSameIdTuple, isSameSingleId } from "@tutao/meta"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import {
@@ -26,7 +26,6 @@ import {
 	getFreeSearchStartDate,
 	getMailRestriction,
 	isIncompleteMailResult,
-	isNonBlockingSearchAvailable,
 	isSameSearchRestriction,
 	isSameSearchWithExtendedRange,
 	mailSearchComparator,
@@ -173,7 +172,7 @@ export class MailSearchViewModel {
 
 		if (
 			this.searchResult &&
-			isNonBlockingSearchAvailable() &&
+			!EnvProvider.get().isFullArchiveSearchAvailable() &&
 			restriction.end &&
 			isSameSearchWithExtendedRange(searchResultQuery(this.searchResult.searchResult), newQuery)
 		) {
@@ -443,7 +442,7 @@ export class MailSearchViewModel {
 		const isIndexingDoneOrCanceled = newState.progress === 0 && newState.error == null
 
 		const currentResult = this.searchResult
-		if (isNonBlockingSearchAvailable()) {
+		if (!EnvProvider.get().isFullArchiveSearchAvailable()) {
 			// Free users are not permitted to search beyond a certain date; avoid searching beyond this date if the index
 			// extended beyond it
 			const dateLimit = this.canSelectTimePeriod()

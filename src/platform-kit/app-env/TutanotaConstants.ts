@@ -447,9 +447,8 @@ export enum UsageTestMetricType {
 	STRING = "3",
 }
 
-export const FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 31
-
-export const PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS = 2 * 365
+export const FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS = 28
+export const PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS = 365
 
 export enum UsageTestParticipationMode {
 	Once = "0",

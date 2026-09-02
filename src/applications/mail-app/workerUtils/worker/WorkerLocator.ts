@@ -84,6 +84,7 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
+import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -187,7 +188,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const mailFacade = await locator.mail()
 		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.base.cachingEntityClient, mailFacade)
 
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
+		const isOfflineStorage = EnvProvider.get().isOfflineStorageAvailable()
+		const isFullArchiveSearch = EnvProvider.get().isFullArchiveSearchAvailable()
+
+		if (isOfflineStorage && isFullArchiveSearch) {
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
@@ -204,15 +208,25 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()
-			const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
+
+			let mailIndexerBackendProvider: (userId: Id) => MailIndexerBackend
+			if (isOfflineStorage) {
+				const persistence = await offlineStorageIndexerPersistence()
+				const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend.js")
+				mailIndexerBackendProvider = () => new OfflineStorageMailIndexerBackend(persistence)
+			} else {
+				const core = await indexerCore()
+				const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend.js")
+				mailIndexerBackendProvider = (userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver)
+			}
+
 			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
-			const core = await indexerCore()
 			return new WebMailIndexer(
 				mainInterface.infoMessageHandler,
 				locator.bulkMailLoader,
 				locator.base.cachingEntityClient,
 				dateProvider,
-				(userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
+				mailIndexerBackendProvider,
 				newMailDownloader,
 			)
 		}

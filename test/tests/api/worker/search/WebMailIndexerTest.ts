@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "../../../../../src/platform-kit/app-env"
+import { FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "../../../../../src/platform-kit/app-env"
 import {
 	constructMailSetEntryId,
 	idToElementId,
@@ -10,12 +10,7 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	timestampToGeneratedId,
 } from "../../../../../src/platform-kit/meta"
-import {
-	_getCurrentIndexTimestamp,
-	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	MboxIndexData,
-	WebMailIndexer,
-} from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
+import { _getCurrentIndexTimestamp, MboxIndexData, WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
@@ -158,7 +153,7 @@ o.spec("WebMailIndexer", () => {
 			//                           m3      m4  m2     m1                            m0
 			const rangeStart = 1554415200000 // "2019-04-04T22:00:00.000Z"
 			// Simulating time zone changes by adding/subtracting one hour
-			const rangeEnd = getDayShifted(new Date(rangeStart), -INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime() + 60 * 60 * 1000
+			const rangeEnd = getDayShifted(new Date(rangeStart), -FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS).getTime() + 60 * 60 * 1000
 			const rangeEnd2 = getDayShifted(new Date(rangeEnd), -1).getTime() - 60 * 60 * 1000
 			const rangeEndShifted2Days = getDayShifted(new Date(rangeEnd), -2).getTime()
 			const userId = "userId1"
