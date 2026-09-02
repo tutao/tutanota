@@ -654,7 +654,7 @@ export class BlobFacade {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), serverTypeModel.type, serverTypeModel.version)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, serverTypeModel.type, serverTypeModel.version)
 				},
 				`can't load instances from server `,
 			)

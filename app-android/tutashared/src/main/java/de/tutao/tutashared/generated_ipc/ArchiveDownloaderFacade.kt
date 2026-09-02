@@ -15,7 +15,14 @@ interface ArchiveDownloaderFacade {
 	 */
 	suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
+		archiveId: String,
 		typeref: String,
 		modelVersion: Long,
+	): Unit
+	/**
+	 * abort downloading or storing an archive
+	 */
+	suspend fun abortDownloadAndStoreArchive(
+		archive: String,
 	): Unit
 }

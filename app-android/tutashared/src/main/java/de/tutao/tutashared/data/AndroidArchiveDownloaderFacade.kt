@@ -11,9 +11,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import okhttp3.Call
 import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
 
@@ -21,8 +23,11 @@ class AndroidArchiveDownloaderFacade (
 	private val sqlCipherFacade: SqlCipherFacade
 ): ArchiveDownloaderFacade {
 
+	private val activeRequests = ConcurrentHashMap<String, Call>()
+
 	override suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
+		archiveId: String,
 		typeref: String,
 		modelVersion: Long
 	) {
@@ -48,6 +53,8 @@ class AndroidArchiveDownloaderFacade (
 					.newCall(requestBuilder.build())
 				try {
 					val response = call.execute()
+					activeRequests[archiveId] = call
+
 					// By this point we got the response header but we might not have read the body yet.
 					response.use { response ->
 						val endDownload = TimeSource.Monotonic.markNow()
@@ -56,7 +63,7 @@ class AndroidArchiveDownloaderFacade (
 
 						if (response.code == 200) {
 							Log.d(TAG, "Started storing archive")
-							storeBytes(response.body.byteStream(), typeref, modelVersion)
+							storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion, sourceUrl)
 							val timeToStore = TimeSource.Monotonic.markNow().minus(endDownload).inWholeMilliseconds
 							Log.d(TAG, "Finished storing archive (took $timeToStore ms)")
 						}
@@ -73,8 +80,15 @@ class AndroidArchiveDownloaderFacade (
 
 	}
 
+	override suspend fun abortDownloadAndStoreArchive(archiveId: String) {
+		if (activeRequests.containsKey(archiveId)) {
+			activeRequests[archiveId]?.cancel()
+			activeRequests.remove(archiveId)
+			Log.d(TAG, "Aborted storing archive with id $archiveId")
+		}
+	}
 
-	private suspend fun storeBytes(bytes: InputStream, typeref: String, modelVersion: Long) {
+	private suspend fun storeBytes(bytes: InputStream, archiveId: String, typeref: String, modelVersion: Long, sourceUrl: String) {
 		var openCurlyBraces = 0
 		var isInString = false
 
@@ -92,9 +106,13 @@ class AndroidArchiveDownloaderFacade (
 		var byteInt: Int
 		var startAppend = 0
 
-		var storage: StoreArchive? = null
+		val storage = StoreArchive(archiveId, typeref, modelVersion, sqlCipherFacade)
 
-		while (true) {
+		// while we're not cancelled or finished ...
+		var isIn = activeRequests.containsKey(archiveId)
+		Log.d(TAG, "Initially: $isIn")
+
+		while (activeRequests.containsKey(archiveId)) {
 			if (startAppend < changed) {
 				currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
 			}
@@ -103,6 +121,8 @@ class AndroidArchiveDownloaderFacade (
 
 			changed = bytes.read(chunk)
 			if (changed == -1) {
+				// exit and cleanup map
+				activeRequests.remove(archiveId)
 				break
 			} else {
 				loop@for(i in 0..<changed) {
@@ -152,9 +172,6 @@ class AndroidArchiveDownloaderFacade (
 									val fullBlobId = Json.decodeFromString<Array<String>>(currentFullBlobId!!)
 
 									// store
-									if (storage == null) {
-										storage = StoreArchive(fullBlobId[0], typeref, modelVersion, sqlCipherFacade)
-									}
 									storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
 
 									// cleanup variables

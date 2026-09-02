@@ -12,10 +12,22 @@
 					"sourceUrl": "string"
 				},
 				{
+					"archiveId": "string"
+				},
+				{
 					"typeref": "string"
 				},
 				{
 					"modelVersion": "number"
+				}
+			],
+			"ret": "void"
+		},
+		"abortDownloadAndStoreArchive": {
+			"doc": "abort downloading or storing an archive",
+			"arg": [
+				{
+					"archive": "string"
 				}
 			],
 			"ret": "void"

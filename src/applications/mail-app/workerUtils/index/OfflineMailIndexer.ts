@@ -1,5 +1,5 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
-import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
+import { abortAware, abortAwareWithCleanup, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
@@ -315,14 +315,26 @@ export class OfflineMailIndexer implements MailIndexer {
 			const everythingStart = performance.now()
 			for (const archiveId of archivesToLoad) {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
-				const downloadAndStoreBlobsStart = performance.now()
-				await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(
-					MailDetailsBlobTypeRef,
-					archiveId,
-					await locator.archiveDownloader(),
+				await abortAwareWithCleanup(
+					this.abortController,
+					async () => {
+						const downloadAndStoreBlobsStart = performance.now()
+						await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(
+							MailDetailsBlobTypeRef,
+							archiveId,
+							await locator.archiveDownloader(),
+						)
+						const downloadAndStoreBlobsEnd = performance.now()
+						console.log(
+							TAG,
+							`Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`,
+						)
+					},
+					async () => {
+						const downloader = await locator.archiveDownloader()
+						await downloader.abortDownloadAndStoreArchive(archiveId)
+					},
 				)
-				const downloadAndStoreBlobsEnd = performance.now()
-				console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
 			}
 
 			const everythingEnd = performance.now()
