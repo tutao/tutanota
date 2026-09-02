@@ -33,6 +33,10 @@ class KtString(private val inner: String) {
 		return this
 	}
 
+	fun replace(f: KtString, r: KtString): KtString {
+		return this
+	}
+
 	operator fun plus(other: KtString): KtString {
 		return KtString(this.inner.plus(other.inner))
 	}

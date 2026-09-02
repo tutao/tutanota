@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { isNull, ProgrammingError, TsDouble, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
+import { isNull, ProgrammingError, tsDouble, TsDouble, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	constructor() {}
@@ -9,7 +9,7 @@ export class TutanotaConstants {
 		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
 		MEMORY_GB_FACTOR: 1000000000,
-		MEMORY_WARNING_FACTOR: TsDouble.from(0.9),
+		MEMORY_WARNING_FACTOR: tsDouble(0.9),
 		// Sets the current date for testing date dependent services. Only available in test environments.
 		CURRENT_DATE: null,
 		CURRENCY_SYMBOL_EUR: "€",
@@ -26,7 +26,7 @@ export class TutanotaConstants {
 		EXECUTE_KDF_MIGRATION: true,
 	} as const
 
-	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: TsList<string> = TsObject.freeze(
+	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze(
 		TsList.from("tuta.com", "tutamail.com", "tuta.io", "tutanota.com", "tutanota.de", "keemail.me"),
 	)
 
@@ -38,7 +38,7 @@ export class TutanotaConstants {
 
 	public static readonly MAX_LOGO_SIZE: number = 1024 * 100
 	public static readonly MAX_BASE64_IMAGE_SIZE: number = TutanotaConstants.MAX_LOGO_SIZE
-	public static readonly ALLOWED_IMAGE_FORMATS: TsList<string> = TsObject.freeze(TsList.from("png", "jpg", "jpeg", "svg"))
+	public static readonly ALLOWED_IMAGE_FORMATS: ReadonlyArray<string> = TsObject.freeze(TsList.from("png", "jpg", "jpeg", "svg"))
 
 	public static readonly GENERATED_ID_MAX_TIMESTAMP: number = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 	public static readonly GENERATED_ID_MIN_TIMESTAMP: number = 0
