@@ -6,6 +6,8 @@ import java.time.LocalDate
 sealed interface WidgetUIState {
 	object NewlyCreated : WidgetUIState
 
+	object NewConfigurationProvided : WidgetUIState
+
 	object Loading : WidgetUIState
 
 	data class Error(val error: WidgetError) : WidgetUIState

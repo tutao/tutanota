@@ -79,8 +79,8 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 		)
 
 		appWidgetIds.forEach { appWidgetId ->
-			Log.d(TAG, "appWidgetId in onUpdate foreach: $appWidgetId")
 			if (WidgetViewModelProvider.getModelFor(appWidgetId) == null) {
+				Log.d(TAG, "[$appWidgetId] Creating new widgetUiViewModel")
 				val db = AppDatabase.getDatabase(context, true)
 				val remoteStorage = RemoteStorage(db)
 				val tempDir = TempDir(context)
@@ -110,7 +110,6 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 					Calendar.getInstance(),
 					birthdayStrings
 				)
-				Log.d(TAG, "about to add new widgetUiViewModel for appWidgetId: $appWidgetId")
 				WidgetViewModelProvider.addNew(appWidgetId, viewModel)
 			}
 		}
@@ -120,5 +119,12 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 		super.onDisabled(context)
 		WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORKER_TAG)
 		context.preferencesDataStoreFile(WIDGET_SETTINGS_DATASTORE_FILE).delete()
+	}
+
+	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+		super.onDeleted(context, appWidgetIds)
+		appWidgetIds.forEach { appWidgetId ->
+			WorkManager.getInstance(context).cancelAllWorkByTag("${LOAD_EVENTS_WORK}_$appWidgetId")
+		}
 	}
 }

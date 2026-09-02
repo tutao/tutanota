@@ -84,9 +84,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.MutableCreationExtras
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetConfigRepository
@@ -123,6 +126,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 const val BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
+
+const val LOAD_EVENTS_WORK = "LoadWidgetEventsAfterConfiguration"
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -256,24 +261,27 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
-
 							lifecycleScope.launch {
 								try {
+									Log.i(TAG, "[$appWidgetId] Confirming Widget configuration")
 									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
 
-									Log.d(TAG, "Getting existing ViewModel")
+									Log.d(TAG, "[$appWidgetId] Getting existing ViewModel")
 									val model: WidgetUIViewModel =
 										WidgetViewModelProvider.getModelFor(appWidgetId)
 											?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+									model.setAsConfigured()
 
-									model.loadUIState(
-										context.widgetDataStore, context.widgetCacheDataStore,
-										LocalDateTime.now()
-									)
-
-									Log.i(TAG, "Asking for widget reload after user change its settings")
-									val glanceId = GlanceAppWidgetManager(applicationContext).getGlanceIdBy(appWidgetId)
-									Agenda().update(applicationContext, glanceId)
+									WorkManager.getInstance(context).beginUniqueWork(
+										"${LOAD_EVENTS_WORK}_$appWidgetId",
+										ExistingWorkPolicy.REPLACE,
+										OneTimeWorkRequestBuilder<WidgetDataWorker>().addTag(TAG)
+											.setInputData(
+												Data.Builder().putAll(mapOf(WIDGET_ID_WORKER_KEY to appWidgetId))
+													.build()
+											)
+											.build()
+									).enqueue()
 
 									setResult(RESULT_OK, resultValue)
 								} catch (ex: Exception) {

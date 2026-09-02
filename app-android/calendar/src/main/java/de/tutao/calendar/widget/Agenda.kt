@@ -28,7 +28,6 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.R
 import de.tutao.calendar.widget.component.EmptyStateUI
 import de.tutao.calendar.widget.component.ErrorStateUI
 import de.tutao.calendar.widget.component.LoadingSpinner
@@ -39,31 +38,18 @@ import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
-import de.tutao.calendar.widget.model.BirthdayStrings
 import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutasdk.Sdk
-import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
-import de.tutao.tutashared.SdkFileClient
-import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.TempDir
-import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
-import de.tutao.tutashared.data.AppDatabase
-import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
-import de.tutao.tutashared.remote.RemoteStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.security.SecureRandom
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Calendar
-
 
 const val TAG = "AgendaWidget"
 
@@ -84,11 +70,14 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 		Log.d(TAG, "[$appWidgetId] provideGlance called")
 
-		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
+		val widgetUIViewModel: WidgetUIViewModel =
+			WidgetViewModelProvider.getModelFor(appWidgetId)
+				?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+
+		val userId = widgetUIViewModel.getLoggedInUser(context)
 
 		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated) {
 			Log.i(TAG, "[$appWidgetId] Widget UI state is empty, starting coroutine to populate UI state.")
@@ -109,50 +98,6 @@ class Agenda : GlanceAppWidget() {
 				WidgetBody(data, userId)
 			}
 		}
-	}
-
-	suspend fun setupWidget(
-		context: Context, appWidgetId: Int
-	): Pair<WidgetUIViewModel, String?> {
-		if (WidgetViewModelProvider.getModelFor(appWidgetId) == null) {
-			val db = AppDatabase.getDatabase(context, true)
-			val remoteStorage = RemoteStorage(db)
-			val tempDir = TempDir(context)
-			val tempFs = TempFs(context, SecureRandom(), tempDir)
-			val crypto = AndroidNativeCryptoFacade(context, tempFs)
-			val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-			val birthdayStrings = BirthdayStrings(
-				context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
-			)
-
-			val sdk = try {
-				Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
-			} catch (e: Exception) {
-				Log.e(TAG, "[$appWidgetId] Failed to initialize SDK, falling back to cached events if available. $e")
-				null
-			}
-			val widgetUIViewModel = WidgetUIViewModel.initWithData(
-				context.widgetDataRepository,
-				appWidgetId,
-				nativeCredentialsFacade,
-				crypto,
-				sdk,
-				Calendar.getInstance(),
-				birthdayStrings,
-				context.widgetDataStore,
-				context.widgetCacheDataStore
-			)
-			WidgetViewModelProvider.addNew(appWidgetId, widgetUIViewModel)
-		}
-
-		val widgetUIViewModel: WidgetUIViewModel = WidgetViewModelProvider.getModelFor(appWidgetId)!!
-
-		val userId = widgetUIViewModel.getLoggedInUser(context)
-
-		val pair = Pair(widgetUIViewModel, userId)
-		Log.d(TAG, "[$appWidgetId] Widget setup data: $pair")
-
-		return pair
 	}
 
 	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {
@@ -219,7 +164,11 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				is WidgetUIState.NewlyCreated -> {
-					// Ideally this state is never rendered because provideGlance loads it before provideContent().
+					// Transitory state, usually achieved after restarting the device. ProvideGlance start the data load before provideContent() but the composition still keeps running.
+				}
+
+				is WidgetUIState.NewConfigurationProvided -> {
+					// Transitory state, usually achieved after confirming the widget settings. A worker takes care of loading the data.
 				}
 			}
 		}
