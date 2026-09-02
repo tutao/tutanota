@@ -1,5 +1,5 @@
 import { isNotNull } from "./functional"
-import { Nullable } from "./types"
+import { Nullable } from "./types/utility"
 
 export class RuntimeInfo {
 	public static readonly _isWorker: boolean = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope
