@@ -1,5 +1,4 @@
 import { ProgrammingError } from "./error"
-import { Nullable } from "./types"
 
 export function neverNull<T>(object: T): NonNullable<T> {
 	if (isNull(object)) {
@@ -15,7 +14,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  */
 export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
 	if (value == null) {
-		throw new Error("AssertNotNull failed: " + message)
+		throw new ProgrammingError("AssertNotNull failed: " + message)
 	}
 
 	return value
@@ -67,28 +66,4 @@ export function assert(assertion: boolean, message: string): asserts assertion {
 
 export function downcast<R = any>(object: any): R {
 	return object as any
-}
-
-export function ifNull<T, R>(item: Nullable<T>, orEval: () => R): Nullable<R> {
-	return checkNullAnd(item, orEval, () => null)
-}
-
-export function ifNotNull<T, R>(item: Nullable<T>, whenNotNull: (_: NonNullable<T>) => R): Nullable<R> {
-	return checkNotNullAnd(item, whenNotNull, () => null)
-}
-
-export function checkNullAnd<T, R>(item: Nullable<T>, whenNull: () => R, whenNotNull: (_: NonNullable<T>) => R): R {
-	return isNotNull(item) ? whenNotNull(item) : whenNull()
-}
-
-export function checkNotNullAnd<T, R>(item: Nullable<T>, whenNotNull: (_: NonNullable<T>) => R, whenNull: () => R): R {
-	return checkNullAnd(item, whenNull, whenNotNull)
-}
-
-export function getStringEnumValue(value: string): string {
-	return value
-}
-
-export function getNumericEnumValue(value: number): number {
-	return value
 }

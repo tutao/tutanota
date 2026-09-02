@@ -3,7 +3,6 @@ import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
 import {
 	console,
-	getStringEnumValue,
 	isNotNull,
 	isNull,
 	ProgrammingError,
@@ -17,6 +16,7 @@ import {
 	TypeChecks,
 } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
+import { LangApiEnum } from "../../lang-api/common/types/enum"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -205,9 +205,7 @@ export class ClientDetector {
 		if (
 			isNotNull(userAgent.match(/iPad.*AppleWebKit/)) || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent.asString()) &&
-				RuntimeInfo.hasTouchEvent() &&
-				/.*Chrome.*/.test(userAgent.asString()) === false)
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && RuntimeInfo.hasTouchEvent() && /.*Chrome.*/.test(userAgent) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (isNotNull(userAgent.match(/iPhone.*AppleWebKit/))) {
@@ -229,17 +227,17 @@ export class ClientDetector {
 		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
 	}
 
-	getIdentifier(): string {
+	getIdentifier(): TsString {
 		const platformId = EnvProvider.get().getPlatformId()
 
 		if (EnvProvider.get().isApp()) {
 			if (this.appType === AppType.Integrated) {
 				throw new ProgrammingError("AppType.Integrated is not allowed for mobile apps")
 			}
-			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
+			const appType: TsString = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${ClientDetector.get().device} ${appType} App`
 		} else if (EnvProvider.get().isBrowser()) {
-			return getStringEnumValue(ClientDetector.get().browser) + " Browser"
+			return LangApiEnum.getStringEnumValue(ClientDetector.get().browser) + " Browser"
 		} else if (platformId === PlatformId.Linux) {
 			return "Linux Desktop"
 		} else if (platformId === PlatformId.Darwin) {

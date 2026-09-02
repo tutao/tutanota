@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { isNull, ProgrammingError, TsDouble, TsInt, TsList, TsMath, TsObject, TsString } from "@tutao/lang-api"
+import { TsDouble, TsInt, TsMath, TsObject, TsReadonlyArray, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	constructor() {}
@@ -26,19 +26,19 @@ export class TutanotaConstants {
 		EXECUTE_KDF_MIGRATION: true,
 	} satisfies ConstType)
 
-	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze(
-		TsList.from("tuta.com", "tutamail.com", "tuta.io", "tutanota.com", "tutanota.de", "keemail.me"),
+	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: TsReadonlyArray<TsString> = TsObject.freeze(
+		TsReadonlyArray.from("tuta.com", "tutamail.com", "tuta.io", "tutanota.com", "tutanota.de", "keemail.me"),
 	)
 
 	public static readonly TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS
 
-	public static readonly DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = TsString.fromString("tuta.com")
+	public static readonly DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = "tuta.com"
 
-	public static readonly DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = TsString.fromString("tutamail.com")
+	public static readonly DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = "tutamail.com"
 
 	public static readonly MAX_LOGO_SIZE: TsInt = 1024 * 100
 	public static readonly MAX_BASE64_IMAGE_SIZE: TsInt = TutanotaConstants.MAX_LOGO_SIZE
-	public static readonly ALLOWED_IMAGE_FORMATS: ReadonlyArray<string> = TsObject.freeze(TsList.from("png", "jpg", "jpeg", "svg"))
+	public static readonly ALLOWED_IMAGE_FORMATS: TsReadonlyArray<TsString> = TsObject.freeze(TsReadonlyArray.from("png", "jpg", "jpeg", "svg"))
 
 	public static readonly GENERATED_ID_MAX_TIMESTAMP: TsInt = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 	public static readonly GENERATED_ID_MIN_TIMESTAMP: TsInt = 0
@@ -52,18 +52,18 @@ export class TutanotaConstants {
 	public static readonly PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: TsInt = 2 * 365
 	public static readonly EXTERNAL_CALENDAR_SYNC_INTERVAL: TsInt = 60 * 30 * 1000 // 30 minutes
 
-	public static readonly DEFAULT_ERROR: string = "defaultError"
+	public static readonly DEFAULT_ERROR: TsString = "defaultError"
 
-	public static readonly BIRTHDAY_CALENDAR_BASE_ID: string = "birthday_calendar"
-	public static readonly DEFAULT_BIRTHDAY_CALENDAR_COLOR: string = "FF9933"
+	public static readonly BIRTHDAY_CALENDAR_BASE_ID: TsString = "birthday_calendar"
+	public static readonly DEFAULT_BIRTHDAY_CALENDAR_COLOR: TsString = "FF9933"
 	public static readonly MAX_LABELS_PER_MAIL: TsInt = 5
-	public static readonly TUTA_MAIL_GOOGLE_PLAY_URL: string = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
-	public static readonly TUTA_MAIL_APP_STORE_URL: string = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
-	public static readonly TUTA_CALENDAR_GOOGLE_PLAY_URL: string = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
-	public static readonly TUTA_CALENDAR_APP_STORE_URL: string = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
+	public static readonly TUTA_MAIL_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
+	public static readonly TUTA_MAIL_APP_STORE_URL: TsString = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
+	public static readonly TUTA_CALENDAR_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
+	public static readonly TUTA_CALENDAR_APP_STORE_URL: TsString = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
 
-	public static readonly PLAN_SELECTOR_SELECTED_BOX_SCALE: string = "1.03"
-	public static readonly DEFAULT_CALENDAR_COLOR: string = "2196f3"
+	public static readonly PLAN_SELECTOR_SELECTED_BOX_SCALE: TsString = "1.03"
+	public static readonly DEFAULT_CALENDAR_COLOR: TsString = "2196f3"
 
 	/**
 	 * We pick a max word frequency of 2^5 so that we can compress it together
@@ -73,20 +73,7 @@ export class TutanotaConstants {
 	public static readonly DEFAULT_VECTOR_MAX_LENGTH: TsInt = 2048
 	public static readonly UNDO_SEND_TIMEOUT_SECONDS: TsInt = 10
 
-	public static readonly companyTeamLabel: string = "Tuta Team"
-
-	public static enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
-		const key =
-			TsObject.keys(e)
-				.map((k) => k.asString())
-				.find((k) => e[k] === value) ?? null
-
-		if (isNull(key)) {
-			throw new ProgrammingError(`Unknown enum value: ${value}`)
-		}
-
-		return key
-	}
+	public static readonly companyTeamLabel: TsString = "Tuta Team"
 }
 
 export type ConstType = {
@@ -95,12 +82,12 @@ export type ConstType = {
 	MEMORY_GB_FACTOR: TsDouble
 	MEMORY_WARNING_FACTOR: TsDouble
 	CURRENT_DATE: Date | null
-	CURRENCY_SYMBOL_EUR: string
-	DEFAULT_APP_DOMAIN: string
-	LEGACY_WEBAUTHN_RP_ID: string
-	WEBAUTHN_RP_ID: string
-	U2f_APPID_SUFFIX: string
-	U2F_LEGACY_APPID: string
+	CURRENCY_SYMBOL_EUR: TsString
+	DEFAULT_APP_DOMAIN: TsString
+	LEGACY_WEBAUTHN_RP_ID: TsString
+	WEBAUTHN_RP_ID: TsString
+	U2f_APPID_SUFFIX: TsString
+	U2F_LEGACY_APPID: TsString
 	EXECUTE_KDF_MIGRATION: boolean
 }
 
@@ -459,7 +446,7 @@ export const enum ClientType {
 }
 
 export type PayPalData = {
-	account: string
+	account: TsString
 }
 
 export enum UsageTestState {

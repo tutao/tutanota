@@ -1,4 +1,4 @@
-import { TSwUncheckedSendable, TutanotaError } from "@tutao/lang-api"
+import { TsString, TSwUncheckedSendable, TutanotaError } from "@tutao/lang-api"
 
 @TSwUncheckedSendable({ reasoning: "TutanotaError is TSUncheckedSendable and CancelledError does not introduce any new fields" })
 export class CancelledError extends TutanotaError {
@@ -8,8 +8,8 @@ export class CancelledError extends TutanotaError {
 	 * @param reason A cancellation reason.
 	 */
 	constructor(
-		message: string,
-		readonly reason: string = "unknown",
+		message: TsString,
+		readonly reason: TsString = "unknown",
 	) {
 		super("CancelledError", message)
 	}

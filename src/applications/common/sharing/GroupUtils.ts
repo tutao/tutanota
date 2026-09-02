@@ -10,13 +10,14 @@ import {
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
 import { getInvitationGroupType, GroupMemberInfo, GroupType } from "../../../entities/sys/Utils"
-import { ShareCapability, TutanotaConstants } from "@tutao/app-env"
+import { ShareCapability } from "@tutao/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { UserController } from "../api/main/UserController"
 import { idToElementId } from "@tutao/meta"
+import { LangApiEnum } from "@tutao/lang-api"
 
 export function getCapabilityText(capability: ShareCapability): string {
 	switch (capability) {
@@ -73,7 +74,7 @@ export function getDefaultGroupName(groupType: GroupType): string {
 		case GroupType.Template:
 			return lang.getTranslationText("templateGroupDefaultName_label")
 		default:
-			return TutanotaConstants.enumKeyByValue(GroupType, groupType)
+			return LangApiEnum.enumKeyByValue(GroupType, groupType)
 	}
 }
 
