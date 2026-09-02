@@ -94,9 +94,7 @@ class AndroidArchiveDownloaderFacade (
 
 		var storage: StoreArchive? = null
 
-
 		while (true) {
-			// FIXME
 			if (startAppend < changed) {
 				currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
 			}
@@ -186,7 +184,7 @@ class AndroidArchiveDownloaderFacade (
 					}
 
 					// if we started reading full blob id, continue to do so
-					if (!finishedReadingBlobId && currentFullBlobId != null && (currentFullBlobId.isNotEmpty() || byteInt != ':'.code)) {
+					if (!finishedReadingBlobId && currentFullBlobId != null && !(currentFullBlobId.isEmpty() && byteInt == ':'.code)) {
 						currentFullBlobId += byteInt.toChar()
 					}
 				}
