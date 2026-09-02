@@ -92,7 +92,6 @@ class AndroidArchiveDownloaderFacade (
 		var byteInt: Int
 		var startAppend = 0
 
-		var startBlob = TimeSource.Monotonic.markNow()
 		var storage: StoreArchive? = null
 
 
@@ -154,26 +153,17 @@ class AndroidArchiveDownloaderFacade (
 									// get blob id
 									val fullBlobId = Json.decodeFromString<Array<String>>(currentFullBlobId!!)
 
-									// logging
-									val time = TimeSource.Monotonic.markNow().minus(startBlob).inWholeMilliseconds
-									Log.d(TAG, "Finished processing blob (took $time ms)")
-									startBlob = TimeSource.Monotonic.markNow()
-
 									// store
 									if (storage == null) {
 										storage = StoreArchive(fullBlobId[0], typeref, modelVersion, sqlCipherFacade)
 									}
 									storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
-									val time2 = TimeSource.Monotonic.markNow().minus(startBlob).inWholeMilliseconds
-									Log.d(TAG, "$time2 ms")
 
 									// cleanup variables
 									currentBlobBytes = ByteArray(0)
 									finishedReadingBlobId = false
 									currentFullBlobId = null
 									currentBlobIdPrefix = null
-
-									startBlob = TimeSource.Monotonic.markNow()
 
 									startAppend = i + 1
 									// do not store the brace twice
