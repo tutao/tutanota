@@ -69,12 +69,14 @@ export class ShareFacade {
 		const sharedGroupEncSharedGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, sharedGroupInfoCurrentInstanceKey.object)
 
 		// make sure the migration was run or do it now
+		const groupInfosWithoutFormerInstanceKeys: GroupInfo[] = []
 		if (userGroupInfo._formerInstanceKeys == null) {
-			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(userGroupInfo)
+			groupInfosWithoutFormerInstanceKeys.push(userGroupInfo)
 		}
 		if (sharedGroupInfo._formerInstanceKeys == null) {
-			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(sharedGroupInfo)
+			groupInfosWithoutFormerInstanceKeys.push(sharedGroupInfo)
 		}
+		await this.instanceKeyFacade.postInstanceKeysForSharedInstances(groupInfosWithoutFormerInstanceKeys)
 
 		const sharedGroupData = createSharedGroupData({
 			sessionEncInviterName: this.cryptoWrapper.encryptString(invitationSessionKey, userGroupInfo.name),
@@ -126,7 +128,7 @@ export class ShareFacade {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		// make sure the migration was run or do it now
 		if (userGroupInfo._formerInstanceKeys == null) {
-			await this.instanceKeyFacade.prepareInstanceKeysForSharedInstance(userGroupInfo)
+			await this.instanceKeyFacade.postInstanceKeysForSharedInstances([userGroupInfo])
 		}
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupKey = {
