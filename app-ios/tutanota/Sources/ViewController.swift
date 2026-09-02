@@ -70,7 +70,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		let globalDispatcher = IosGlobalDispatcher(
-			archiveDownloaderFacade: IosArchiveDownloaderFacade(schemeHandler: apiSchemeHandler, urlSession: urlSession),
+			archiveDownloaderFacade: IosArchiveDownloaderFacade(sqlCipherFacade: sqlCipherFacade, schemeHandler: apiSchemeHandler, urlSession: urlSession),
 			commonSystemFacade: commonSystemFacade,
 			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
 			fileFacade: IosFileFacade(

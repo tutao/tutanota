@@ -5,8 +5,8 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
 
-	public init(schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
-		self.sqlCipherFacade = IosSqlCipherFacade()
+	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
+		self.sqlCipherFacade = sqlCipherFacade
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
 	}
@@ -18,17 +18,18 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 		var response: URLResponse
 		var data: Data
-		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request)) } catch let error
-			as URLError where error.code == URLError.cancelled
+		TUTSLog("Downloading archive with id \(archiveId)")
+		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request)) } catch let error as URLError
+			where error.code == URLError.cancelled
 		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
+		TUTSLog("Finished downloading archive with id \(archiveId)")
+
 		let httpResponse = response as! HTTPURLResponse
-		if httpResponse.statusCode == 200 {
-			storeBytes(blobId[0], data, archiveId, typeref, modelVersion)
-		}
+		if httpResponse.statusCode == 200 { try await storeArchive(data, archiveId, typeref, modelVersion) }
 	}
 
 	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
-		// FIXME implement
+		// FIXME implement abort mechanism
 	}
 
 	public func clearStoredArchives() async throws {
@@ -36,99 +37,97 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
 
-	private func storeBytes(data: Data, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
-		let expectedBlobIdPrefix = "\"1300\":"
-		let currentBlobIdPrefixIndex = 0
+	private func storeArchive(_ data: Data, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
+		TUTSLog("Storing archive with id \(archiveId)")
+
+		// strings we listen for in the switch statement, as utf8 bytes
+		let quote = [UInt8]("\"".utf8)[0]
+		let openedCurlyBrace = [UInt8]("{".utf8)[0]
+		let closedCurlyBrace = [UInt8]("}".utf8)[0]
+		let closedBracket = [UInt8]("]".utf8)[0]
+		let comma = [UInt8](",".utf8)[0]
+
+		// getting blob id
+		let expectedBlobIdPrefixBytes = [UInt8]("\"1300\":".utf8)
+		var currentBlobIdPrefixIndex = 0
 		let decoder = JSONDecoder()
 
 		var currentFullBlobId = ""
 		var currentlyReadingFullBlobId = false
 		var finishedReadingFullBlobId = false
 
-        var currentBlobStartIndex = 0
-        var currentBlobEndIndex = 0
+		// defines range of bytes that make up one blob
+		var currentBlobStartIndex = 0
+		var currentBlobEndIndex = 0
 
+		// general parsing stuff
 		var openCurlyBraces = 0
 		var isInString = false
 
-        var byte: UInt8 = 0
+		// current byte, alias for data[i]
+		var byte: UInt8 = 0
 
-        for i in 0..data.count {
-            if currentBlobStartIndex > i { continue }
+		for i in 0..<data.count {
+			if currentBlobStartIndex > i { continue }
 
-            currentBlobEndIndex = i
-            byte = data[i]
+			currentBlobEndIndex = i
+			byte = data[i]
 
-        	if currentlyReadingFullBlobId {
-                currentFullBlobId += String(decoding: byte, as: UTF8.self)
-        	} else if currentBlobIdPrefix.count > 0 && !finishedReadingFullBlobId {
-        	    let char = String(decoding: byte, as: UTF8.self)
-        	    if char == expectedBlobIdPrefix[currentBlobIdPrefixIndex] {
-        	        currentBlobIdPrefixIndex++
-        	    }
-        	    if (currentBlobIdPrefixIndex == expectedBlobIdPrefix.count) {
-        	        finishedReadingFullBlobId = true
-        	        continue
-        	    }
-        	}
+			if currentlyReadingFullBlobId {
+				currentFullBlobId += String(bytes: [byte], encoding: .utf8)!
+			} else if !finishedReadingFullBlobId {
+				if byte == expectedBlobIdPrefixBytes[currentBlobIdPrefixIndex] { currentBlobIdPrefixIndex += 1 }
+				if currentBlobIdPrefixIndex == expectedBlobIdPrefixBytes.count {
+					currentlyReadingFullBlobId = true
+					continue
+				}
+			}
 
+			switch byte {
+			case quote: isInString.toggle()
+			case openedCurlyBrace: if !isInString { openCurlyBraces += 1 }
+			case closedCurlyBrace:
+				if !isInString {
+					openCurlyBraces -= 1
 
-            switch byte {
-                case "\"".utf8:
-                    isInString = !isInString
-                case "{".utf8:
-                    if !isInString { openCurlyBraces++ }
-                case "}".utf8:
-                    if !isInString {
-                        openCurlyBraces--
+					if openCurlyBraces == 0 {
+						// TUTSLog("Trying to store blob \(currentFullBlobId) after \(currentBlobEndIndex - currentBlobStartIndex) bytes")
+						let json = currentFullBlobId.data(using: .utf8)!
+						let blobId = try decoder.decode(Array<String>.self, from: json)
 
-                        if openCurlyBraces == 0 {
-                            let blobId = try decoder.decode(String[].self, from: currentFullBlobId)
-                            storeBlob(blobId[1], data.copy(from: currentBlobStartIndex, to: currentBlobEndIndex), archiveId, typeref, modelVersion)
+						// FIXME introduce chuning
+						try await storeBlob(blobId[1], data[currentBlobStartIndex...currentBlobEndIndex], archiveId, typeref, modelVersion)
 
-                            // cleanup
-                            currentlyReadingFullBlobId = false
-                            finishedReadingFullBlobId = false
-                            // skip comma
-                            currentBlobStartIndex = i+1
-                            currentBlobEndIndex = i+1
-                        }
-
-                    }
-                case "]".utf8:
-                    if !finishedReadingFullBlobId && openCurlyBraces == 1 && currentFullBlobId.count > 0 && !isInString {
-                        finishedReadingFullBlobId = true
-                    }
-                case ",".utf8:
-                    if !isInString && openCurlyBraces == 0 {
-                        currentBlobStartIndex++
-                    }
-            }
-        }
+						// cleanup
+						currentlyReadingFullBlobId = false
+						finishedReadingFullBlobId = false
+						currentFullBlobId = ""
+						currentBlobIdPrefixIndex = 0
+					}
+				}
+			case closedBracket:
+				if !finishedReadingFullBlobId && openCurlyBraces == 1 && currentFullBlobId.count > 0 && !isInString {
+					finishedReadingFullBlobId = true
+					currentlyReadingFullBlobId = false
+				}
+			case comma: if !isInString && openCurlyBraces == 0 { currentBlobStartIndex = i + 1 }
+			default: continue
+			}
+		}
+		try await sqlCipherFacade.run("INSERT OR IGNORE INTO fully_persisted_mail_details_archives VALUES (?)", [TaggedSqlValue.string(value: archiveId)])
+		TUTSLog("Finished storing archive with id \(archiveId)")
 	}
 
-	private func storeBlob(_ blobId: String, _ data: UInt8[], _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
-	    // largely copied from NotificationService
+	private func storeBlob(_ blobId: String, _ data: Data, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
 		do {
 			try await sqlCipherFacade.run(
-				"INSERT OR IGNORE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)",
+				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)",
 				[
-					TaggedSqlValue.string(value: blobId), TaggedSqlValue.string(value: archiveId),
-					TaggedSqlValue.bytes(value: DataWrapper(data: data)), TaggedSqlValue.string(value: typeref),
-					TaggedSqlValue.number(value: modelVersion),
+					TaggedSqlValue.string(value: blobId), TaggedSqlValue.string(value: archiveId), TaggedSqlValue.bytes(value: DataWrapper(data: data)),
+					TaggedSqlValue.string(value: typeref), TaggedSqlValue.number(value: modelVersion),
 				]
 			)
-
-			// Have to have two of these because defer doesn't support async.
-			//
-			// Better hope this doesn't throw because we'll call this again!
-			try await sqlCipherFacade.closeDb()
-		} catch {
-			// This is fine 🔥🐶🔥
-			try await sqlCipherFacade.closeDb()
-			throw error
-		}
-
+		} catch { throw error }
 	}
 
 }
