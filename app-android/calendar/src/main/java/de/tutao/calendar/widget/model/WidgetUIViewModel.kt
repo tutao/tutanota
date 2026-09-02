@@ -289,6 +289,7 @@ class WidgetUIViewModel(
 		settings: SettingsDao,
 		calendars: List<GeneratedId>
 	): Map<GeneratedId, CalendarEventListDao> {
+		Log.d(TAG, "shouldFetchFromServer: $shouldFetchFromServer")
 		if (shouldFetchFromServer && sdk != null) {
 			try {
 				val sdkCredentials = credentials.toSdkCredentials()
