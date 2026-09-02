@@ -124,7 +124,7 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
 		super.onDeleted(context, appWidgetIds)
 		appWidgetIds.forEach { appWidgetId ->
-			WorkManager.getInstance(context).cancelAllWorkByTag("${LOAD_EVENTS_WORK}_$appWidgetId")
+			WorkManager.getInstance(context).cancelAllWorkByTag("${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId")
 		}
 	}
 }

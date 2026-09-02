@@ -44,7 +44,8 @@ class WidgetConfigViewModel(
 	private val _error = MutableStateFlow<WidgetError?>(null)
 
 	override val credentials: StateFlow<List<PersistedCredentials>> = _credentials.asStateFlow()
-	override val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+	override val isLoading: StateFlow<Boolean> =
+		_isLoading.asStateFlow() // TODO: Do we ever actually read this?  I find no usages
 	override val selectedCredential: StateFlow<PersistedCredentials?> = _selectedCredential.asStateFlow()
 	override val calendars: StateFlow<Map<GeneratedId, CalendarRenderData>> = _calendars.asStateFlow()
 	override val error: StateFlow<WidgetError?> = _error.asStateFlow()

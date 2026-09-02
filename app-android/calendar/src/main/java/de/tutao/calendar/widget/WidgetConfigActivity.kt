@@ -127,7 +127,7 @@ import java.time.format.DateTimeFormatter
 
 const val BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
 
-const val LOAD_EVENTS_WORK = "LoadWidgetEventsAfterConfiguration"
+const val LOAD_EVENTS_AFTER_CONFIG_WORK = "LoadWidgetEventsAfterConfiguration"
 
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -273,7 +273,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 									model.setAsConfigured()
 
 									WorkManager.getInstance(context).beginUniqueWork(
-										"${LOAD_EVENTS_WORK}_$appWidgetId",
+										"${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId",
 										ExistingWorkPolicy.REPLACE,
 										OneTimeWorkRequestBuilder<WidgetDataWorker>().addTag(TAG)
 											.setInputData(
