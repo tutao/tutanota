@@ -76,16 +76,25 @@ export class InstanceKeyFacade {
 		return deriveInstanceKey(groupKey, kdfNonce)
 	}
 
-	async postInstanceKeysForSingleSharedInstance(instance: PersistentEntity) {
-		const instanceKeyInstanceData = await this.prepareInstanceKeysForSharedInstance(instance)
-		return this.serviceExecutor.post(
-			InstanceKeyPermissionService,
-			createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: [instanceKeyInstanceData] }),
-			null,
-		)
+	async postInstanceKeysForSharedInstances(instances: PersistentEntity[]) {
+		const permissionDataPerInstanceList: InstanceKeyInstanceData[] = []
+		for (const instance of instances) {
+			const instanceKeyInstanceData = await this.prepareInstanceKeysForSharedInstance(instance)
+			permissionDataPerInstanceList.push(instanceKeyInstanceData)
+		}
+		if (permissionDataPerInstanceList.length > 0) {
+			return this.serviceExecutor.post(
+				InstanceKeyPermissionService,
+				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList }),
+				null,
+			)
+		}
 	}
 
 	async prepareInstanceKeysForSharedInstance(instance: PersistentEntity): Promise<InstanceKeyInstanceData> {
+		// TODO ignore instances of a type that is not shared (_formerInstanceKeys)
+		// TODO also enforce this on the server
+
 		let sharedInstanceListId: Nullable<Id> = null
 		let sharedInstanceElementId: Id
 		if (instance._id instanceof Array) {

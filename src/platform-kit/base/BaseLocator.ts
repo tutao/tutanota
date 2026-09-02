@@ -347,6 +347,7 @@ export async function createBaseLocator({
 		publicEncryptionKeyProvider,
 		publicKeySignatureFacade,
 		adminKeyLoader,
+		instanceKey,
 	)
 
 	const rolloutFacade = new RolloutFacade(serviceExecutor, async (error: Error) => {
