@@ -8,12 +8,7 @@ export abstract class TsBrand {
 
 export type BrandedType<T, B extends TsBrand> = { __brand: B } & T
 
-export type TsArray<T> = {
-	find(predicate: (value: T, index: TsInt, obj: T[]) => unknown, thisArg?: any): Nullable<T>
-	map<U>(callbackfn: (value: T, index: TsInt, array: T[]) => U, thisArg?: any): TsArray<U>
-	indexOf(searchElement: T, fromIndex?: number): number
-	includes(searchElement: T, fromIndex?: number): boolean
-}
+export type TsArray<T> = Array<T>
 
 // mutating array
 export const TsArray = {
@@ -21,7 +16,6 @@ export const TsArray = {
 		return arr as unknown as TsArray<T>
 	},
 }
-
 // read-only array
 export type TsList<T> = TsArray<T>
 export const TsList = TsArray
@@ -59,13 +53,9 @@ export class TsDoubleBrand extends TsBrand {
 
 export type TsDouble = BrandedType<number, TsDoubleBrand>
 
-export const TsDouble = {
-	from(num: number | TsInt): TsDouble {
-		return num as TsDouble
-	},
-	parseDouble(str: TsString): TsDouble {
-		return Number.parseFloat(str.asString()) as TsDouble
-	},
+export const TsDouble = Number
+export function tsDouble(num: number): TsDouble {
+	return num as TsDouble
 }
 
 export const TsDate = Date
@@ -74,12 +64,13 @@ export const TsString = {
 		return str as unknown as TsString
 	},
 }
+
 export type TsString = {
 	length: TsInt
 	replace(f: TsRegex, r: TsString | string): TsString
 	match(m: TsRegex): Nullable<RegExpMatchArray>
 	indexOf(s: TsString | string, position?: TsInt | number): TsInt
-	substring(start: TsInt | number, end?: TsInt | number): TsString
+	substring(start: TsInt | number, end?: TsInt | number): string
 	charAt(pos: TsInt | number): TsString
 
 	// FIXME:
