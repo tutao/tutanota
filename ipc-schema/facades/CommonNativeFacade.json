@@ -141,6 +141,11 @@
 			"doc": "Bytes uploaded so far for a given file id",
 			"arg": [{ "fileId": "string" }, { "bytes": "number" }],
 			"ret": "void"
+		},
+		"finishedDownloadingArchive": {
+			"doc": "send next archive to ArchiveDownloaderFacade please owo",
+			"arg": [],
+			"ret": "void"
 		}
 	}
 }

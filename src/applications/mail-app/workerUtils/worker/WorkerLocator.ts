@@ -14,6 +14,7 @@ import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/Gif
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import {
+	ArchiveDownloaderFacadeSendDispatcher,
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
 	ImapSyncSystemFacadeSendDispatcher,
@@ -23,7 +24,7 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
@@ -111,6 +112,7 @@ export type WorkerLocatorType = {
 	search: lazyAsync<SearchFacade>
 	contactSearch: lazyAsync<ContactSearchFacade>
 	bulkMailLoader: lazyAsync<BulkMailLoader>
+	archiveDownloader: lazyAsync<ArchiveDownloaderFacade>
 
 	// Management facades
 	userManagement: lazyAsync<UserManagementFacade>
@@ -154,6 +156,9 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
 
+	locator.archiveDownloader = lazyMemoized(async () => {
+		return new ArchiveDownloaderFacadeSendDispatcher(worker)
+	})
 	locator.native = worker
 
 	locator.pdfWriter = async () => {
@@ -201,6 +206,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				mainInterface.infoMessageHandler,
 				newMailDownloader,
 				locator.base.instancePipeline,
+				locator.base.serviceExecutor,
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()

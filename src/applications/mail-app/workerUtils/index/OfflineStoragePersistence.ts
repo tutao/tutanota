@@ -24,7 +24,7 @@ import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, splitInChunks } from "@tutao/utils"
+import { deduplicate, delay, isEmpty, splitInChunks } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -90,6 +90,13 @@ mailAddresses
 	encrypted_mail_details_blobs: {
 		definition:
 			"CREATE TABLE IF NOT EXISTS encrypted_mail_details_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
+		purgedWithCache: true,
+	},
+	// List of archives that were *fully* stored in encrypted_mail_details_blobs and therefore do not need to be re-downloaded when trying to resume indexing
+	//
+	// This is temporary and will be cleared once indexing is finished
+	fully_persisted_mail_details_archives: {
+		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY, downloaded BOOL NOT NULL)",
 		purgedWithCache: true,
 	},
 })
@@ -300,6 +307,31 @@ VALUES (
 		await this.sqlCipherFacade.run(query, params)
 	}
 
+	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
+		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_mail_details_archives", [])
+		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
+	}
+
+	async countEncryptedMailDetailsBlobsInArchives(archivesNeeded: readonly Id[]): Promise<number> {
+		const archivesNeededDeduped = deduplicate(archivesNeeded)
+		if (isEmpty(archivesNeededDeduped)) {
+			return 0
+		}
+
+		const query = `SELECT COUNT(*) as total
+					   FROM encrypted_mail_details_blobs
+					   WHERE ${archivesNeededDeduped.map(() => "archiveId = ?").join(" OR ")}`
+
+		const params = archivesNeededDeduped.map(tagSqlValue)
+
+		const result = await this.sqlCipherFacade.get(query, params)
+		if (result == null) {
+			return 0
+		}
+
+		return untagSqlValue(result["total"]) as number
+	}
+
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
 		if (isEmpty(blobs)) {
 			return
@@ -322,7 +354,7 @@ VALUES (
 				insertParameters.push([tagSqlValue(blobId), tagSqlValue(archiveId), tagSqlValue(encodedBlob), tagSqlValue(typeref), versionParam])
 			}
 
-			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`)
+			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`).join(", ")
 			await this.sqlCipherFacade.run(insertQuery, insertParameters.flat())
 		}
 	}
@@ -388,22 +420,6 @@ VALUES (
 		this.pendingEncryptedMailDetailsBlobItems.add(blobId)
 
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
-	}
-
-	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs WHERE blobId = ${blobId}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-	}
-
-	async clearEncryptedMailDetailsBlobs(): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs`
-			await this.sqlCipherFacade.run(query, params)
-		}
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {

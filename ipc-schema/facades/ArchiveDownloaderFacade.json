@@ -1,0 +1,41 @@
+{
+	"name": "ArchiveDownloaderFacade",
+	"doc": "download archives and write them to the database.",
+	"type": "facade",
+	"receivers": ["ios", "android"],
+	"senders": ["web"],
+	"methods": {
+		"downloadAndStoreArchive": {
+			"doc": "download an archive and store it to the local db",
+			"arg": [
+				{
+					"sourceUrl": "string"
+				},
+				{
+					"archiveId": "string"
+				},
+				{
+					"typeref": "string"
+				},
+				{
+					"modelVersion": "number"
+				}
+			],
+			"ret": "void"
+		},
+		"abortDownloadAndStoreArchive": {
+			"doc": "abort downloading or storing an archive",
+			"arg": [
+				{
+					"archiveId": "string"
+				}
+			],
+			"ret": "void"
+		},
+		"clearStoredArchives": {
+			"doc": "remove all cached blobs and archives, for example when finished indexing",
+			"arg": [],
+			"ret": "void"
+		}
+	}
+}
