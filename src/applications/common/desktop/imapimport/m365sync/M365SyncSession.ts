@@ -328,9 +328,25 @@ export class M365SyncSession {
 		if (!folder.childFolderCount) {
 			return []
 		}
-		const children = await this.fetchAllPages<GraphMailFolderResource>(client, `/me/mailFolders/${encodeURIComponent(folder.id)}/childFolders`, {
-			includeHiddenFolders: "true",
-		})
+		let children: GraphMailFolderResource[]
+		try {
+			children = await this.fetchAllPages<GraphMailFolderResource>(client, `/me/mailFolders/${encodeURIComponent(folder.id)}/childFolders`, {
+				includeHiddenFolders: "true",
+			})
+		} catch (e) {
+			//Handle throttling.
+			if (this.getRetryAfterMs(e) !== null) {
+				throw e
+			}
+
+			const imapError = this.toImapError(e)
+			await this.listener.onError(imapError)
+			//Auth Failing must cause syncing to stop and prompt new credentials.
+			if (imapError.data.cause === ImapErrorCause.AUTH_FAILED) {
+				throw imapError
+			}
+			return []
+		}
 		const result: GraphMailFolderResource[] = []
 		for (const child of children) {
 			result.push(child, ...(await this.fetchChildFoldersRecursive(client, child)))
@@ -384,28 +400,52 @@ export class M365SyncSession {
 		return results
 	}
 
+	/**
+	 * Maps a caught Microsoft Graph error to an ImapErrorCause, reusing the same buckets IMAP errors fall into
+	 * (see fromImapFlowError in ImapError.ts) since callers (ImapErrorHandler, ImapMailImportController) already
+	 * branch on cause rather than on provider-specific codes:
+	 * - 401/403: no/insufficient access - same AUTH_FAILED bucket IMAP uses for AUTHENTICATIONFAILED as well as
+	 *   its own permission codes (AUTHORIZATIONFAILED/NOPERM/CONTACTADMIN), which triggers the existing
+	 *   refresh-token-or-reauth flow.
+	 * - 400/404: the request or the resource it targets (a folder/message deleted mid-sync, a malformed query)
+	 *   will not succeed on retry - IMAP's equivalent (UIDNOTSTICKY) also maps to PERMANENT_ERROR.
+	 * - 429/503/504: throttling or a transient gateway failure - handled by getRetryAfterMs/onPostpone instead of
+	 *   being classified here, but still labelled POSTPONE for the cases that reach this method directly (e.g.
+	 *   the getImapMailboxesFromServer wizard call, which has no sync round to postpone).
+	 * Anything else (including network-level failures, which this SDK collapses to a bare Error with no status -
+	 * see GraphErrorHandler.constructError) falls back to UNKNOWN, same as an unrecognized IMAP error code.
+	 */
 	private toImapError(e: any): ImapError {
 		if (e instanceof ImapError) {
 			return e
 		}
 		const status = e?.statusCode ?? e?.status
-		if (status === 401) {
-			return new ImapError(e?.message ?? "Microsoft Graph authentication failed", ImapErrorCause.AUTH_FAILED, "401")
+		switch (status) {
+			case 401:
+				return new ImapError(e?.message ?? "Microsoft Graph authentication failed", ImapErrorCause.AUTH_FAILED, "401")
+			case 403:
+				return new ImapError(e?.message ?? "Microsoft Graph denied access to the requested resource", ImapErrorCause.AUTH_FAILED, "403")
+			case 400:
+			case 404:
+				return new ImapError(e?.message ?? "Microsoft Graph rejected the request", ImapErrorCause.PERMANENT_ERROR, String(status))
+			case 429:
+			case 503:
+			case 504:
+				return new ImapError(e?.message ?? "Microsoft Graph throttled the request", ImapErrorCause.POSTPONE, String(status))
+			default:
+				return new ImapError(e?.message ?? "Unknown Microsoft Graph error", ImapErrorCause.UNKNOWN, String(status ?? ""))
 		}
-		if (status === 429 || status === 503) {
-			return new ImapError(e?.message ?? "Microsoft Graph throttled the request", ImapErrorCause.POSTPONE, String(status))
-		}
-		return new ImapError(e?.message ?? "Unknown Microsoft Graph error", ImapErrorCause.UNKNOWN, String(status ?? ""))
 	}
 
 	/**
-	 * Returns how long to postpone the sync for if `e` is a Microsoft Graph throttling response (429, occasionally
-	 * 503), honoring the Retry-After header (seconds) when present since it is authoritative - see
-	 * https://learn.microsoft.com/en-us/graph/throttling. Returns null for any other error.
+	 * Returns how long to postpone the sync for if `e` is a Microsoft Graph throttling response (429, 503, or 504 -
+	 * the same set the Graph SDK's own default RetryHandler treats as transient), honoring the Retry-After header
+	 * (seconds) when present since it is authoritative - see https://learn.microsoft.com/en-us/graph/throttling.
+	 * Returns null for any other error.
 	 */
 	private getRetryAfterMs(e: any): number | null {
 		const status = e?.statusCode ?? e?.status
-		if (status !== 429 && status !== 503) {
+		if (status !== 429 && status !== 503 && status !== 504) {
 			return null
 		}
 		const retryAfterHeader = e?.headers?.get?.("Retry-After")

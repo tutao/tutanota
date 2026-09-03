@@ -162,8 +162,8 @@ o.spec("M365SyncSession", () => {
 		verify(listenerMock.onFinish(), { times: 1 })
 	})
 
-	function graphThrottleError(statusCode: number, retryAfterSeconds?: number): Error {
-		const error: any = new Error("throttled")
+	function graphError(statusCode: number, retryAfterSeconds?: number): Error {
+		const error: any = new Error("graph error")
 		error.statusCode = statusCode
 		error.headers = { get: (name: string) => (name === "Retry-After" && retryAfterSeconds !== undefined ? String(retryAfterSeconds) : undefined) }
 		return error
@@ -173,7 +173,7 @@ o.spec("M365SyncSession", () => {
 		const responses = new Map<string, any>([
 			["/me/mailFolders", { value: [{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 }] }],
 			["/me/mailFolders/inbox", { id: "id-inbox" }],
-			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", graphThrottleError(429, 120)],
+			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", graphError(429, 120)],
 		])
 		session = sessionWithFakeGraphClient(responses)
 
@@ -195,7 +195,7 @@ o.spec("M365SyncSession", () => {
 	})
 
 	o.test("startSync - falls back to a default postpone time when Graph throttles without a Retry-After header", async () => {
-		const responses = new Map<string, any>([["/me/mailFolders", graphThrottleError(429)]])
+		const responses = new Map<string, any>([["/me/mailFolders", graphError(429)]])
 		session = sessionWithFakeGraphClient(responses)
 
 		const imapSyncContext: ImapSyncContext = {
@@ -211,5 +211,125 @@ o.spec("M365SyncSession", () => {
 
 		verify(listenerMock.onFinish(), { times: 0 })
 		verify(listenerMock.onPostpone(argThat((until: number) => until >= before + 30_000 && until <= after + 60_000)), { times: 1 })
+	})
+
+	o.test("startSync - throws AUTH_FAILED when Graph denies access with 403", async () => {
+		const responses = new Map<string, any>([["/me/mailFolders", graphError(403)]])
+		session = sessionWithFakeGraphClient(responses)
+
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [],
+			isGmail: false,
+		}
+
+		const e = await assertThrows(ImapError, async () => await session.startSync(imapSyncContext))
+		o.check(e.data.cause).equals(ImapErrorCause.AUTH_FAILED)
+	})
+
+	o.test("startSync - reports PERMANENT_ERROR and continues past a folder Graph can no longer find", async () => {
+		const responses = new Map<string, any>([
+			["/me/mailFolders", { value: [{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 }] }],
+			["/me/mailFolders/inbox", { id: "id-inbox" }],
+			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", graphError(404)],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		const mailboxState: ImapMailboxState = { path: "Inbox", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [mailboxState],
+			isGmail: false,
+		}
+
+		await session.startSync(imapSyncContext)
+
+		verify(listenerMock.onPostpone(anything()), { times: 0 })
+		verify(listenerMock.onError(argThat((e: ImapError) => e.data.cause === ImapErrorCause.PERMANENT_ERROR)), { times: 1 })
+		verify(listenerMock.onFinish(), { times: 1 })
+	})
+
+	o.test("startSync - skips a folder's children Graph can no longer list, but still discovers and syncs its siblings", async () => {
+		const responses = new Map<string, any>([
+			[
+				"/me/mailFolders",
+				{
+					value: [
+						{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 },
+						{ id: "id-archive", displayName: "Archive", childFolderCount: 1 },
+					],
+				},
+			],
+			["/me/mailFolders/inbox", { id: "id-inbox" }],
+			["/me/mailFolders/id-archive/childFolders", graphError(404)],
+			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", { value: [{ id: "graph-msg-1", subject: "Hello", isRead: true }] }],
+			["/me/mailFolders/id-archive/messages/delta?$expand=attachments", { value: [] }],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		const inboxState: ImapMailboxState = { path: "Inbox", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const archiveState: ImapMailboxState = { path: "Archive", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [inboxState, archiveState],
+			isGmail: false,
+		}
+
+		await session.startSync(imapSyncContext)
+
+		verify(listenerMock.onError(argThat((e: ImapError) => e.data.cause === ImapErrorCause.PERMANENT_ERROR)), { times: 1 })
+		verify(
+			listenerMock.onMailbox(
+				argThat((mb: any) => mb.path === "Archive"),
+				ImapSyncEventType.CREATE,
+			),
+			{ times: 1 },
+		)
+		verify(
+			listenerMock.onMultipleMails(
+				argThat((mails: any) => mails.length === 1 && mails[0].sourceId === "graph-msg-1"),
+				ImapSyncEventType.CREATE,
+			),
+			{ times: 1 },
+		)
+		verify(listenerMock.onFinish(), { times: 1 })
+	})
+
+	o.test("startSync - postpones the whole round instead of dropping a folder's children when Graph throttles discovery", async () => {
+		const responses = new Map<string, any>([
+			[
+				"/me/mailFolders",
+				{
+					value: [
+						{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 },
+						{ id: "id-archive", displayName: "Archive", childFolderCount: 1 },
+					],
+				},
+			],
+			["/me/mailFolders/inbox", { id: "id-inbox" }],
+			["/me/mailFolders/id-archive/childFolders", graphError(429, 90)],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		const inboxState: ImapMailboxState = { path: "Inbox", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const archiveState: ImapMailboxState = { path: "Archive", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [inboxState, archiveState],
+			isGmail: false,
+		}
+
+		const before = Date.now()
+		await session.startSync(imapSyncContext)
+		const after = Date.now()
+
+		verify(listenerMock.onError(anything()), { times: 0 })
+		verify(listenerMock.onMailbox(anything(), anything()), { times: 0 })
+		verify(listenerMock.onFinish(), { times: 0 })
+		verify(listenerMock.onPostpone(argThat((until: number) => until >= before + 90_000 && until <= after + 90_000)), { times: 1 })
 	})
 })
