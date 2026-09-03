@@ -234,6 +234,8 @@ impl EventFacade {
 		let mut current_occurrence_date = initial_start_time;
 
 		while end_type != EndType::Count || occurrences < end_value.unwrap() {
+			let occurrence_seconds = current_occurrence_date.as_seconds();
+			log::debug!("starting loop for iteration {iteration}, on date {occurrence_seconds}");
 			let occurrences_for_date =
 				self.apply_by_rules(current_occurrence_date, &repeat_rule, event_start_time)?;
 
@@ -1532,7 +1534,7 @@ impl EventFacade {
 				.cmp(&b.assume_utc().unix_timestamp())
 		});
 		clean_dates.dedup();
-
+		log::debug!("Returning clean_dates from finish_rules");
 		clean_dates
 	}
 

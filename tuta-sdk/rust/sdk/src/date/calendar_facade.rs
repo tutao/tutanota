@@ -316,6 +316,7 @@ impl CalendarFacade {
 
 				for ev in event_instances {
 					if ev.as_millis() == event.startTime.as_millis() {
+						// skipping progenitor event instance?
 						continue;
 					}
 
@@ -326,7 +327,9 @@ impl CalendarFacade {
 					generic_event.endTime = end_time;
 
 					advanced_instances.push(generic_event);
+					log::info!("Finished calculating event new start and end times")
 				}
+				log::info!("Finished iteration for one event in enumeration")
 			}
 
 			log::info!(
@@ -335,6 +338,7 @@ impl CalendarFacade {
 			);
 
 			unwrapped_long_events.append(&mut advanced_instances);
+
 			let mut filtered_long_events = self.filter_events_in_range(
 				start_date.as_millis(),
 				end_range,
@@ -342,7 +346,11 @@ impl CalendarFacade {
 				&unwrapped_long_events,
 			);
 
+			log::info!("Finished filtering long_events by date range");
+
 			filtered_long_events = self.filter_excluded_dates(&mut filtered_long_events);
+
+			log::info!("Finished filtering excluded dates");
 
 			long_events.append(&mut filtered_long_events);
 
@@ -1868,7 +1876,9 @@ mod calendar_facade_unit_tests {
 	mod get_calendar_events_tests {
 		use super::*;
 		use crate::date::event_facade::{EndType, RepeatPeriod};
-		use crate::entities::generated::tutanota::{CalendarGroupRoot, CalendarRepeatRule};
+		use crate::entities::generated::tutanota::{
+			AdvancedRepeatRule, CalendarGroupRoot, CalendarRepeatRule,
+		};
 		use crate::{CustomId, IdTupleCustom};
 		use time::Time;
 
@@ -2007,6 +2017,111 @@ mod calendar_facade_unit_tests {
 				(2026, time::Month::May, 9),
 				(2026, time::Month::May, 10),
 			];
+
+			assert_eq!(expected_times.len(), result.long_events.len());
+
+			for (i, (year, month, day)) in expected_times.iter().enumerate() {
+				let expected_start = DateTime::from_seconds(
+					time::Date::from_calendar_date(*year, *month, *day)
+						.unwrap()
+						.with_time(Time::from_hms(18, 0, 0).unwrap())
+						.assume_utc()
+						.unix_timestamp() as u64,
+				);
+				assert_eq!(
+					expected_start, result.long_events[i].startTime,
+					"Event {} should start on {}-{:?}-{}",
+					i, year, month, day
+				);
+			}
+		}
+
+		#[tokio::test]
+		async fn test_get_calendar_events_with_advanced_repeat_rule() {
+			log::error!("TEST ERROR");
+			let repeating_event = CalendarEvent {
+				_id: Some(IdTupleCustom {
+					list_id: GeneratedId(LONG_LIST_ID.to_owned()),
+					element_id: CustomId::from_custom_string("repeating-event-id"),
+				}),
+				summary: "Advanced Repeating Event".to_string(),
+				startTime: DateTime::from_seconds(
+					time::Date::from_calendar_date(2023, time::Month::May, 3)
+						.unwrap()
+						.with_time(Time::from_hms(19, 0, 0).unwrap())
+						.assume_utc()
+						.unix_timestamp() as u64,
+				),
+				endTime: DateTime::from_seconds(
+					time::Date::from_calendar_date(2023, time::Month::May, 3)
+						.unwrap()
+						.with_time(Time::from_hms(22, 00, 0).unwrap())
+						.assume_utc()
+						.unix_timestamp() as u64,
+				),
+
+				repeatRule: Some(CalendarRepeatRule {
+					frequency: RepeatPeriod::Monthly as i64,
+					interval: 1,
+					endType: EndType::Never as i64,
+					endValue: None,
+					excludedDates: vec![],
+					advancedRules: vec![
+						// AdvancedRepeatRule {
+						// 	ruleType: ByRuleType::BySetPos as i64,
+						// 	interval: "1".to_string(),
+						// 	..create_test_entity()
+						// },
+						AdvancedRepeatRule {
+							ruleType: ByRuleType::ByDay as i64,
+							interval: "WE".to_string(),
+							..create_test_entity()
+						},
+					],
+					timeZone: "UTC".to_string(),
+					..create_test_entity()
+				}),
+				..create_test_entity()
+			};
+
+			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+			mock_crypto_entity_client
+				.expect_load_range::<CalendarEvent, CustomId>()
+				.withf(|list_id, _, _, _| list_id == &GeneratedId(SHORT_LIST_ID.to_owned()))
+				.returning(|_, _, _, _| Ok(vec![]));
+
+			mock_crypto_entity_client
+				.expect_load_range::<CalendarEvent, CustomId>()
+				.withf(|list_id, _, _, _| list_id == &GeneratedId(LONG_LIST_ID.to_owned()))
+				.return_once(|_, _, _, _| Ok(vec![repeating_event]));
+
+			let calendar_facade = create_test_facade(mock_crypto_entity_client);
+
+			let start_date = DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::September, 3)
+					.unwrap()
+					.with_time(Time::from_hms(16, 19, 00).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			); // bug this is testing for was observed at this date
+
+			let end_date = DateTime::from_seconds(
+				time::Date::from_calendar_date(2026, time::Month::September, 9)
+					.unwrap()
+					.with_time(Time::from_hms(00, 00, 00).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			);
+
+			let result = calendar_facade
+				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), start_date, end_date)
+				.await
+				.unwrap();
+
+			assert!(result.short_events.is_empty());
+			assert!(result.birthday_events.is_empty());
+
+			let expected_times = [];
 
 			assert_eq!(expected_times.len(), result.long_events.len());
 
