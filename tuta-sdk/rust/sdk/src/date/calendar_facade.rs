@@ -19,6 +19,7 @@ use crate::tutanota_constants::{AccountType, PlanType};
 use crate::user_facade::UserFacade;
 use crate::util::first_bigger_than_second_custom_id;
 use crate::{ApiCallError, CustomId, GeneratedId, ListLoadDirection};
+use minicbor::len;
 use num_enum::TryFromPrimitive;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -261,8 +262,13 @@ impl CalendarFacade {
 					""
 				}
 			);
-			for event in &event_with_repeat_rules {
-				log::debug!("Initializing expansion of {}", event.summary);
+
+			for (index, event) in event_with_repeat_rules.iter().enumerate() {
+				log::debug!(
+					"Initializing expansion of event {} - {}",
+					index,
+					event.summary
+				);
 				let repeat_rule = event.repeatRule.as_ref().unwrap();
 				let event_instances = match events_facade.calculate_event_occurrences(
 					event.startTime,
@@ -293,6 +299,10 @@ impl CalendarFacade {
 				) {
 					Ok(ev) => ev,
 					Err(e) => {
+						log::info!(
+							"Failed to parse advanced repeat rules for event {:?}: {e}",
+							event._id
+						);
 						log::error!(
 							"Failed to parse advanced repeat rules for event {:?}: {e}",
 							event._id
@@ -301,6 +311,8 @@ impl CalendarFacade {
 						Vec::new()
 					},
 				};
+
+				log::info!("Generated {} event instances", event_instances.len());
 
 				for ev in event_instances {
 					if ev.as_millis() == event.startTime.as_millis() {
@@ -316,6 +328,11 @@ impl CalendarFacade {
 					advanced_instances.push(generic_event);
 				}
 			}
+
+			log::info!(
+				"Finished expansion of {} events",
+				event_with_repeat_rules.len()
+			);
 
 			unwrapped_long_events.append(&mut advanced_instances);
 			let mut filtered_long_events = self.filter_events_in_range(
@@ -462,6 +479,11 @@ impl CalendarFacade {
 		reference_range: &RangeWithOffset,
 		events: &[CalendarEvent],
 	) -> Vec<CalendarEvent> {
+		log::info!(
+			"Filtering events is range: from {:?} to {:?}",
+			OffsetDateTime::from_unix_timestamp(range_start as i64),
+			OffsetDateTime::from_unix_timestamp(range_end as i64)
+		);
 		events
 			.iter()
 			.filter(|&event| self.is_event_in_range(event, range_start, range_end, reference_range))
