@@ -234,6 +234,8 @@ impl EventFacade {
 		let mut current_occurrence_date = initial_start_time;
 
 		while end_type != EndType::Count || occurrences < end_value.unwrap() {
+			let occurrence_seconds = current_occurrence_date.as_seconds();
+			log::debug!("starting loop for iteration {iteration}, on date {occurrence_seconds}");
 			let occurrences_for_date =
 				self.apply_by_rules(current_occurrence_date, &repeat_rule, event_start_time)?;
 
@@ -548,6 +550,8 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		frequency: &RepeatPeriod,
 	) -> Vec<PrimitiveDateTime> {
+		log::debug!("apply_month_rules");
+
 		if rules.is_empty() {
 			return dates.clone();
 		}
@@ -629,6 +633,7 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		week_start: Weekday,
 	) -> Vec<PrimitiveDateTime> {
+		log::debug!("apply_week_no_rules");
 		if rules.is_empty() {
 			return dates.clone();
 		}
@@ -725,6 +730,7 @@ impl EventFacade {
 		evaluate_same_week: bool,
 		evaluate_same_month: bool,
 	) -> Vec<PrimitiveDateTime> {
+		log::debug!("apply_year_day_rules");
 		if rules.is_empty() {
 			return dates.clone();
 		}
@@ -814,6 +820,7 @@ impl EventFacade {
 		rules: &Vec<&ByRule>,
 		is_daily_event: bool,
 	) -> Vec<PrimitiveDateTime> {
+		log::debug!("apply_month_day_rules");
 		if rules.is_empty() {
 			return dates.clone();
 		}
@@ -873,6 +880,8 @@ impl EventFacade {
 		valid_year_days: Vec<i16>,
 		has_by_month: bool,
 	) -> Result<Vec<PrimitiveDateTime>, ApiCallError> {
+		log::debug!("apply_day_rules");
+
 		if rules.is_empty() {
 			return Ok(dates.clone());
 		}
@@ -951,6 +960,8 @@ impl EventFacade {
 		has_by_month: bool,
 		is_iterating_on_week_number_by_rule: bool,
 	) -> Result<(), ApiCallError> {
+		log::debug!("expand_by_day_rule_for_annually_events");
+
 		let offset_at_by_rule = leading_value
 			.map_or(Ok(0), |m| m.as_str().parse::<i64>())
 			.unwrap_or_default();
@@ -1207,6 +1218,7 @@ impl EventFacade {
 		target_week_day: Option<Match>,
 		leading_value: Option<Match>,
 	) -> Result<(), ApiCallError> {
+		log::debug!("expand_by_day_rule_for_monthly_events");
 		let mut allowed_days: Vec<u8> = Vec::new();
 
 		let week_change = leading_value
@@ -1316,18 +1328,30 @@ impl EventFacade {
 			}
 		} else {
 			// If there's no week change, just iterate to the target day
-			let mut current_date = base_date;
-			while current_date.assume_utc().unix_timestamp()
-				< stop_condition.assume_utc().unix_timestamp()
-			{
-				let new_date = current_date.replace_date(
-					Date::from_iso_week_date(
-						current_date.year(),
-						current_date.iso_week(),
-						parsed_weekday,
-					)
-					.unwrap(),
-				);
+			let date_with_weekday =
+				Date::from_iso_week_date(base_date.year(), base_date.iso_week(), parsed_weekday)
+					.unwrap();
+			let weekday = date_with_weekday.weekday();
+			let mut occurrence_date = base_date.replace_date(
+				Date::from_iso_week_date(base_date.year(), base_date.iso_week(), weekday).unwrap(),
+			);
+
+			let stop_stop_condition_timestamp = stop_condition.assume_utc().unix_timestamp();
+			loop {
+				let occurrence_timestamp = occurrence_date.assume_utc().unix_timestamp();
+				if occurrence_timestamp >= stop_stop_condition_timestamp {
+					break;
+				}
+
+				let new_date = occurrence_date;
+				// let new_date = current_date.replace_date(
+				// 	Date::from_iso_week_date(
+				// 		current_date.year(),
+				// 		current_date.iso_week(),
+				// 		parsed_weekday,
+				// 	)
+				// 	.unwrap(),
+				// );
 				if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
 					&& is_allowed_in_month_day(new_date.day())
 					&& ((!valid_months.is_empty()
@@ -1337,7 +1361,7 @@ impl EventFacade {
 					Self::safe_expand_dates(new_dates, new_date)?
 				}
 
-				current_date = match new_date.checked_add(Duration::days(7)) {
+				occurrence_date = match new_date.checked_add(Duration::days(7)) {
 					Some(new_date) => new_date,
 					None => {
 						return Err(ApiCallError::internal(format!(
@@ -1361,6 +1385,8 @@ impl EventFacade {
 		date: &PrimitiveDateTime,
 		target_week_day: Option<Match>,
 	) -> Result<(), ApiCallError> {
+		log::debug!("expand_by_day_rules_for_weekly_events");
+
 		let parsed_target_week_day = Weekday::from_short(target_week_day.unwrap().as_str());
 
 		// Go back to week start, so we don't miss any events
@@ -1490,6 +1516,7 @@ impl EventFacade {
 		valid_months: Vec<u8>,
 		event_start_time: Option<u64>,
 	) -> Vec<PrimitiveDateTime> {
+		log::debug!("finish_rules");
 		let mut clean_dates;
 
 		if !valid_months.is_empty() {
@@ -1519,7 +1546,7 @@ impl EventFacade {
 				.cmp(&b.assume_utc().unix_timestamp())
 		});
 		clean_dates.dedup();
-
+		log::debug!("Returning clean_dates from finish_rules");
 		clean_dates
 	}
 
@@ -4513,6 +4540,62 @@ mod event_facade_unit_tests {
 				date.replace_day(28).unwrap().to_date_time()
 			]
 		);
+	}
+
+	#[test]
+	fn test_flow_monthly_with_by_day_and_set_pos() {
+		let event_facade = EventFacade::new();
+
+		let event_start = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::August, 1)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let event_end = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::August, 1)
+				.unwrap()
+				.with_time(Time::from_hms(18, 30, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::September, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Monthly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "WE".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::BySetPos,
+					interval: "1".to_string(),
+				},
+			],
+		};
+
+		let events = event_facade
+			.calculate_event_occurrences(
+				event_start,
+				event_end,
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"UTC".to_string(),
+			)
+			.unwrap();
+
+		assert_eq!(events.len(), 2);
 	}
 
 	#[test]
