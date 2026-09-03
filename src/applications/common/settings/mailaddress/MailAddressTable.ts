@@ -31,11 +31,8 @@ export type MailAddressTableAttrs = {
 export class MailAddressTable implements Component<MailAddressTableAttrs> {
 	view({ attrs }: Vnode<MailAddressTableAttrs>): Children {
 		const { model } = attrs
-		// If the table is expanded we need to init the model.
-		// It is no-op to init multiple times so it's safe.
-		if (attrs.expanded) {
-			model.init()
-		}
+		model.init()
+
 		const addAliasButtonAttrs: IconButtonAttrs | null = model.userCanModifyAliases()
 			? {
 					title: "addEmailAlias_label",
@@ -48,7 +45,7 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			m(".flex-space-between.items-center.mt-32.mb-8", [
 				m(".h4", lang.get("mailAddresses_label")),
 				m(ExpanderButton, {
-					label: "show_action",
+					label: attrs.expanded ? "hide_action" : "show_action",
 					expanded: attrs.expanded,
 					onExpandedChange: (v) => {
 						attrs.onExpanded(v)
@@ -71,14 +68,14 @@ export class MailAddressTable implements Component<MailAddressTableAttrs> {
 			model.aliasCount
 				? [
 						m(
-							".mt-8",
+							".mt-16",
 							lang.get("amountUsedAndActivatedOf_label", {
 								"{used}": model.aliasCount.usedAliases,
 								"{active}": model.aliasCount.enabledAliases,
 								"{totalAmount}": model.aliasCount.totalAliases,
 							}),
 						),
-						m(".small.mt-8", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
+						m(".small.mt-8.mb-16", lang.get(model.aliasLimitIncludesCustomDomains() ? "mailAddressInfoLegacy_msg" : "mailAddressInfo_msg")),
 					]
 				: null,
 		]

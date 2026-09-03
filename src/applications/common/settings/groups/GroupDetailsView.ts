@@ -23,7 +23,7 @@ import { MailAddressTable } from "../mailaddress/MailAddressTable.js"
 EnvProvider.assertMainOrNode()
 
 export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
-	private mailAddressTableExpanded = true
+	private mailAddressTableExpanded = false
 
 	constructor(private readonly model: GroupDetailsModel) {}
 

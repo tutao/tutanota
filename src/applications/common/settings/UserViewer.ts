@@ -41,7 +41,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private mailAddressTableModel: MailAddressTableModel | null = null
-	private mailAddressTableExpanded: boolean
+	private mailAddressTableExpanded = false
 	private isPurchasingNewSharedMailboxGroup: boolean
 
 	constructor(
@@ -50,8 +50,6 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	) {
 		this.userGroupInfo = userGroupInfo
 		this.isPurchasingNewSharedMailboxGroup = false
-
-		this.mailAddressTableExpanded = false
 
 		this.secondFactorsForm = new SecondFactorsEditForm(
 			this.user,
