@@ -15,6 +15,7 @@ import {
 	LazyLoaded,
 	splitInChunks,
 	symmetricDifference,
+	throttle,
 } from "@tutao/utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
@@ -236,15 +237,32 @@ export class CalendarModel {
 		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
+
+		// let isFirstEntityUpdate = true
+		const throttledRequestWidgetRefresh = throttle(1000, this.requestWidgetRefresh)
+
 		eventController.addEntityUpdatesListener({
 			id: "CalendarModel",
-			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
+			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
+				console.log(TAG, "calling entityUpdatesListener.onEntityUpdatesReceived, which should call requestWidgetRefresh()")
+				// if (isFirstEntityUpdate) {
+				// 	isFirstEntityUpdate = false
+				// 	this.requestWidgetRefresh()
+				// } else {
+				throttledRequestWidgetRefresh()
+				// }
+				return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
+			},
 			priority: ListenerPriority.HIGH,
 		})
 
 		syncTracker.addSyncDoneListener({
 			id: "CalendarModel",
-			onSyncDone: async () => this.requestWidgetRefresh(),
+			onSyncDone: async () => {
+				console.log(TAG, "calling syncTracker.onSyncDone")
+				// since we aren't getting info from the app, why wait until sync is done before updating the widget?
+				// return this.requestWidgetRefresh()
+			},
 			priority: ListenerPriority.HIGH,
 		})
 
@@ -304,14 +322,19 @@ export class CalendarModel {
 	 * Provides public access to this.doCreate, so it can be used by Strategies.
 	 */
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
+		console.log("calling CalendarModel.createEvent(), which should call requestWidgetRefresh()")
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
+		this.requestWidgetRefresh()
 	}
 
 	/**
 	 * Provides public access to {@link CalendarFacade.createCalendarEvents}
 	 */
 	async createCalendarEvents(events: EventAlarmInfoTemplatesTuple[], operationId: OperationId) {
-		return await this.calendarFacade.createCalendarEvents(events, operationId)
+		console.log("calling calendarModel.createCalendarEvents(), which should call requestWidgetRefresh()")
+		const result = await this.calendarFacade.createCalendarEvents(events, operationId)
+		this.requestWidgetRefresh()
+		return result
 	}
 
 	/**
@@ -340,7 +363,7 @@ export class CalendarModel {
 		}
 
 		newEvent.pendingInvitation = this.isPendingInvitation(newEvent)
-
+		console.log("calling CalendarModel.updateEvent(), which should call requestWidgetRefresh()")
 		// in cases where start time or calendar changed, we need to change the event id and so need to delete/recreate.
 		// it's also possible that the event has to be moved from the long event list to the short event list or vice versa.
 		if (
@@ -350,16 +373,17 @@ export class CalendarModel {
 		) {
 			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms)
 
-			this.requestWidgetRefresh()
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
-			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
+			newEvent = await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = elementIdToId(groupRoot._id)
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
 			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
-			this.requestWidgetRefresh()
-			return newEvent
 		}
+
+		this.requestWidgetRefresh()
+
+		return newEvent
 	}
 
 	/**
@@ -882,6 +906,7 @@ export class CalendarModel {
 	}
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
+		console.log("calling CalendarModel.deleteEvent(), which should call requestWidgetRefresh()")
 		await this.entityClient.erase(event)
 		return this.requestWidgetRefresh()
 	}

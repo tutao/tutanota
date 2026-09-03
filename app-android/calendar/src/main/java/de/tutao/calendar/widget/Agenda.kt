@@ -4,12 +4,9 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
-import androidx.datastore.preferences.core.Preferences
-import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.GlanceTheme
@@ -24,7 +21,6 @@ import androidx.glance.appwidget.appWidgetBackground
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.currentState
 import androidx.glance.layout.Column
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
@@ -32,40 +28,28 @@ import androidx.glance.preview.ExperimentalGlancePreviewApi
 import androidx.glance.preview.Preview
 import androidx.glance.state.GlanceStateDefinition
 import de.tutao.calendar.MainActivity
-import de.tutao.calendar.R
-import de.tutao.calendar.widget.component.EmptyBody
-import de.tutao.calendar.widget.component.ErrorBody
+import de.tutao.calendar.widget.component.EmptyStateUI
+import de.tutao.calendar.widget.component.ErrorStateUI
 import de.tutao.calendar.widget.component.LoadingSpinner
 import de.tutao.calendar.widget.component.ScrollableDaysList
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.data.WidgetStateDefinition
-import de.tutao.calendar.widget.data.WidgetUIData
+import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
-import de.tutao.calendar.widget.model.BirthdayStrings
 import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
-import de.tutao.tutasdk.Sdk
-import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
-import de.tutao.tutashared.SdkFileClient
-import de.tutao.tutashared.SdkRestClient
-import de.tutao.tutashared.TempDir
-import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
-import de.tutao.tutashared.data.AppDatabase
-import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
-import de.tutao.tutashared.remote.RemoteStorage
-import java.security.SecureRandom
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
-import java.util.Calendar
-
 
 const val TAG = "AgendaWidget"
 
@@ -80,86 +64,40 @@ class Agenda : GlanceAppWidget() {
 
 		repository.eraseLastSyncForWidget(context, glanceId)
 		repository.eraseSettingsForWidget(context, glanceId)
+
+		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
+		WidgetViewModelProvider.deleteModelFor(appWidgetId)
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
-		Log.d(TAG, "provideGlance called")
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
+		Log.d(TAG, "[$appWidgetId] provideGlance called")
 
-		val (widgetUIViewModel, userId) = setupWidget(context, appWidgetId)
+		val widgetUIViewModel: WidgetUIViewModel =
+			WidgetViewModelProvider.getModelFor(appWidgetId)
+				?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
 
-		val settingsPreferencesKey = stringPreferencesKey("${WIDGET_SETTINGS_PREFIX}_$appWidgetId")
-		val lastSyncPreferencesKey = stringPreferencesKey("${WIDGET_LAST_SYNC_PREFIX}_$appWidgetId")
-
-		provideContent {
-
-			Log.d(TAG, "provideContent called")
-
-			val data by widgetUIViewModel.uiState.collectAsState()
-			val error by widgetUIViewModel.error.collectAsState()
-
-			val preferences = currentState<Preferences>()
-
-			LaunchedEffect(
-				preferences[settingsPreferencesKey], preferences[lastSyncPreferencesKey]
-			) {
-				widgetUIViewModel.loadUIState(
-					context.widgetDataStore, context.widgetCacheDataStore, LocalDateTime.now()
-				)
-			}
-
-			GlanceTheme(
-				colors = AppTheme.colors
-			) {
-				if (error != null) {
-					return@GlanceTheme ErrorBody(
-						error,
-						logsAction = actionStartActivity(WidgetErrorHandler.buildLogsIntent(context, error)),
-						loginAction = openCalendarAgenda(context, userId)
-					)
-				}
-
-				WidgetBody(
-					data,
-					userId,
-				)
-			}
-		}
-	}
-
-	private suspend fun setupWidget(
-		context: Context, appWidgetId: Int
-	): Pair<WidgetUIViewModel, String?> {
-		val db = AppDatabase.getDatabase(context, true)
-		val remoteStorage = RemoteStorage(db)
-		val tempDir = TempDir(context)
-		val tempFs = TempFs(context, SecureRandom(), tempDir)
-		val crypto = AndroidNativeCryptoFacade(context, tempFs)
-		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
-
-		val sdk = try {
-			Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
-		} catch (e: Exception) {
-			Log.e(TAG, "Failed to initialize SDK, falling back to cached events if available. $e")
-			null
-		}
-
-		val birthdayStrings = BirthdayStrings(
-			context.getString(R.string.birthdayEvent_title), context.getString(R.string.birthdayEventAge_title)
-		)
-
-		val widgetUIViewModel = WidgetUIViewModel(
-			context.widgetDataRepository,
-			appWidgetId,
-			nativeCredentialsFacade,
-			crypto,
-			sdk,
-			Calendar.getInstance(),
-			birthdayStrings
-		)
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 
-		return Pair(widgetUIViewModel, userId)
+		if (widgetUIViewModel.uiState.value is WidgetUIState.NewlyCreated) {
+			Log.i(TAG, "[$appWidgetId] Widget UI state is empty, starting coroutine to populate UI state.")
+			withContext(Dispatchers.IO) {
+				widgetUIViewModel.loadUIState(
+					context.widgetDataStore,
+					context.widgetCacheDataStore,
+					LocalDateTime.now()
+				)
+			}
+		}
+
+		provideContent {
+			Log.d(TAG, "[$appWidgetId] provideContent called")
+			val data by widgetUIViewModel.uiState.collectAsState()
+
+			GlanceTheme(colors = AppTheme.colors) {
+				WidgetBody(data, userId)
+			}
+		}
 	}
 
 	private fun openCalendarEditor(context: Context, userId: String? = ""): Action {
@@ -180,30 +118,58 @@ class Agenda : GlanceAppWidget() {
 	}
 
 	@Composable
-	fun WidgetBody(data: WidgetUIData?, userId: String?) {
-		val hasAllDayEvents = data?.allDayEvents?.values?.any { it.isNotEmpty() } ?: false
-		val hasNormalEvents = data?.normalEvents?.values?.any { it.isNotEmpty() } ?: false
-
-		val onNewEvent = openCalendarEditor(LocalContext.current, userId)
-
+	fun WidgetBody(data: WidgetUIState, userId: String?) {
 		Column(
 			modifier = GlanceModifier.padding(
 				top = Dimensions.Spacing.space_16.dp,
 				start = Dimensions.Spacing.space_16.dp,
 				end = Dimensions.Spacing.space_16.dp,
 				bottom = 0.dp
-			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground().cornerRadius(20.dp),
+			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground()
+				.cornerRadius(20.dp),
 		) {
-			if (data == null) {
-				LoadingSpinner()
-			} else if (!hasAllDayEvents && !hasNormalEvents) { // unique rendering case for totally empty widget
-				EmptyBody(onNewEvent, userId)
-			} else { // normal rendering case
-				ScrollableDaysList(
-					data,
-					onNewEvent = onNewEvent,
-					userId
-				)
+			when (data) {
+				is WidgetUIState.Error -> {
+					ErrorStateUI(
+						data.error,
+						logsAction = actionStartActivity(
+							WidgetErrorHandler.buildLogsIntent(
+								LocalContext.current,
+								data.error
+							)
+						),
+						loginAction = openCalendarAgenda(LocalContext.current, userId)
+					)
+				}
+
+				is WidgetUIState.Loading -> {
+					LoadingSpinner()
+				}
+
+				is WidgetUIState.Available -> {
+					val hasAllDayEvents = data.allDayEvents.values.any { it.isNotEmpty() }
+					val hasNormalEvents = data.normalEvents.values.any { it.isNotEmpty() }
+
+					val onNewEvent = openCalendarEditor(LocalContext.current, userId)
+
+					if (hasAllDayEvents || hasNormalEvents) {
+						ScrollableDaysList(
+							data,
+							onNewEvent = onNewEvent,
+							userId
+						)
+					} else {
+						EmptyStateUI(onNewEvent, userId)
+					}
+				}
+
+				is WidgetUIState.NewlyCreated -> {
+					// Transitory state, usually achieved after restarting the device. ProvideGlance start the data load before provideContent() but the composition still keeps running.
+				}
+
+				is WidgetUIState.NewConfigurationProvided -> {
+					// Transitory state, usually achieved after confirming the widget settings. A worker takes care of loading the data.
+				}
 			}
 		}
 	}
@@ -248,11 +214,11 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -360,11 +326,11 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -436,11 +402,11 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -503,11 +469,11 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -525,11 +491,11 @@ class Agenda : GlanceAppWidget() {
 
 		GlanceTheme(colors = AppTheme.colors) {
 			WidgetBody(
-				WidgetUIData(
+				WidgetUIState.Available(
 					allDayEvents = allDayEvents,
 					normalEvents = normalEventData,
 				),
-				"",
+				""
 			)
 		}
 	}
@@ -541,7 +507,7 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewError() {
 		GlanceTheme(colors = AppTheme.colors) {
-			ErrorBody(
+			ErrorStateUI(
 				WidgetError("Failed", "", WidgetErrorType.UNEXPECTED),
 				logsAction = actionRunCallback<ActionCallback>(),
 				loginAction = actionRunCallback<ActionCallback>()
@@ -554,7 +520,7 @@ class Agenda : GlanceAppWidget() {
 	@Composable
 	fun AgendaPreviewCredentialError() {
 		GlanceTheme(colors = AppTheme.colors) {
-			ErrorBody(
+			ErrorStateUI(
 				WidgetError("Failed", "", WidgetErrorType.CREDENTIALS),
 				logsAction = actionRunCallback<ActionCallback>(),
 				loginAction = actionRunCallback<ActionCallback>()

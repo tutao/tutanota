@@ -1,6 +1,5 @@
 package de.tutao.calendar.widget
 
-import android.app.Activity
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -85,9 +84,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewmodel.MutableCreationExtras
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import de.tutao.calendar.MainActivity
 import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetConfigRepository
@@ -96,6 +98,7 @@ import de.tutao.calendar.widget.error.WidgetErrorHandler
 import de.tutao.calendar.widget.error.WidgetErrorType
 import de.tutao.calendar.widget.model.WidgetConfigModel
 import de.tutao.calendar.widget.model.WidgetConfigViewModel
+import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
@@ -124,6 +127,8 @@ import java.time.format.DateTimeFormatter
 
 const val BIRTHDAY_CALENDAR_BASE_ID = "clientOnly_birthdays"
 
+const val LOAD_EVENTS_AFTER_CONFIG_WORK = "LoadWidgetEventsAfterConfiguration"
+
 class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -141,8 +146,8 @@ class WidgetConfigActivity : AppCompatActivity() {
 			val remoteStorage = RemoteStorage(db)
 
 			val serverURL = remoteStorage.getRemoteUrl()
-			val tempDir= TempDir(applicationContext)
-			val tempFs= TempFs(applicationContext, SecureRandom(),tempDir)
+			val tempDir = TempDir(applicationContext)
+			val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
 			val crypto = AndroidNativeCryptoFacade(baseContext, tempFs)
 			val sdk =
 				if (serverURL == null) {
@@ -187,14 +192,14 @@ class WidgetConfigActivity : AppCompatActivity() {
 			AppWidgetManager.INVALID_APPWIDGET_ID
 		) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
+		// Set default result in case the user cancels.
+		val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+		setResult(RESULT_CANCELED, resultValue)
+
 		if (appWidgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
 			finish()
 			return
 		}
-
-		// Set default result in case the user cancels.
-		val resultValue = Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
-		setResult(Activity.RESULT_CANCELED, resultValue)
 
 		// The view model depends on the injection of the SDK and CredentialsFacade
 		// So we must pass them to the factory through Extras.
@@ -256,30 +261,40 @@ class WidgetConfigActivity : AppCompatActivity() {
 							finish()
 						},
 						okAction = {
-							try {
-								val activityContext = this
-								val storeJob = viewModel.storeSettings(this, appWidgetId)
-								storeJob.invokeOnCompletion {
-									lifecycleScope.launch {
-										Log.i(TAG, "Asking for widget reload after user change its settings")
-										val manager = GlanceAppWidgetManager(activityContext)
-										val widget = Agenda()
-										val glanceIds = manager.getGlanceIds(widget.javaClass)
-										glanceIds.forEach { glanceId ->
-											widget.update(context, glanceId)
-										}
-									}
+							lifecycleScope.launch {
+								try {
+									Log.i(TAG, "[$appWidgetId] Confirming Widget configuration")
+									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
+
+									Log.d(TAG, "[$appWidgetId] Getting existing ViewModel")
+									val model: WidgetUIViewModel =
+										WidgetViewModelProvider.getModelFor(appWidgetId)
+											?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+									model.setAsConfigured()
+
+									WorkManager.getInstance(context).beginUniqueWork(
+										"${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId",
+										ExistingWorkPolicy.REPLACE,
+										OneTimeWorkRequestBuilder<WidgetDataWorker>().addTag(TAG)
+											.setInputData(
+												Data.Builder().putAll(mapOf(WIDGET_ID_WORKER_KEY to appWidgetId))
+													.build()
+											)
+											.build()
+									).enqueue()
+
+									setResult(RESULT_OK, resultValue)
+								} catch (ex: Exception) {
+									Toast.makeText(
+										applicationContext,
+										"Could not save widget config - ${ex.message}",
+										Toast.LENGTH_SHORT
+									).show()
+								} finally {
+									finish()
 								}
-								setResult(Activity.RESULT_OK, resultValue)
-							} catch (ex: Exception) {
-								Toast.makeText(
-									applicationContext,
-									"Could not save widget config - ${ex.message}",
-									Toast.LENGTH_SHORT
-								).show()
 							}
 
-							finish()
 						}
 					)
 				}

@@ -61,7 +61,19 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { getHtmlSanitizer, HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
 import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
-import { assertNotNull, cleanMatch, debounce, downcast, isNotNull, lazy, noOp, ofClass, throttle, typedValues } from "../../../../platform-kit/utils"
+import {
+	assertNotNull,
+	cleanMatch,
+	debounce,
+	downcast,
+	isNotNull,
+	lazy,
+	LazyLoaded,
+	noOp,
+	ofClass,
+	throttle,
+	typedValues,
+} from "../../../../platform-kit/utils"
 import {
 	AttachmentDownloader,
 	createInlineImage,
@@ -117,7 +129,7 @@ import type { AutosaveFacade, LocalAutosavedDraftData } from "../../../common/ap
 import { showOverwriteDraftDialog, showOverwriteRemoteDraftDialog } from "./OverwriteDraftDialogs"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { TimePicker, TimePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/TimePicker"
-import { Time } from "../../../common/calendar/date/Time"
+import { Time } from "../../../common/calendar/Time"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { getTimeFormatForUser } from "../../../common/api/common/utils/UserUtils"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -208,6 +220,15 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	private forceLightMode: boolean = false
 
 	private readonly htmlSanitizer: HtmlSanitizer = getHtmlSanitizer()
+
+	private dateComponents: LazyLoaded<{ DatePicker: Class<DatePicker>; TimePicker: Class<TimePicker> }> = new LazyLoaded(async () => {
+		const [{ DatePicker }, { TimePicker }] = await Promise.all([
+			import("../../../calendar-app/calendar/gui/pickers/DatePicker.js"),
+			import("../../../calendar-app/calendar/gui/pickers/TimePicker.js"),
+		])
+		m.redraw()
+		return { DatePicker, TimePicker }
+	})
 
 	constructor(vnode: Vnode<MailEditorAttrs>) {
 		const a = vnode.attrs
@@ -514,6 +535,15 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		}
 
 		let sendAt: Date | null = model.getSendAtDate()
+		const displaySendAtUi = sendAt !== null
+		// components displayed after clicking the "send at" icon button are in a separate chunk, so we load them
+		// on-demand
+		// not using LazyComponent because we only want to render the date picker line once we have both components
+		// loaded to animate to their intrinsic height.
+		if (displaySendAtUi) {
+			this.dateComponents.load()
+		}
+		const dateComponents = this.dateComponents.getSync()
 
 		const attachFilesButtonAttrs: IconButtonAttrs = {
 			title: "attachFiles_action",
@@ -705,7 +735,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						: null,
 				]),
 				isConfidential ? this.renderPasswordFields() : null,
-				sendAt
+				displaySendAtUi && dateComponents != null
 					? m(
 							"",
 							{
@@ -741,7 +771,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 													minWidth: "125px",
 												},
 											},
-											m(DatePicker, {
+											m(dateComponents.DatePicker, {
 												date: sendAt,
 												onDateSelected: (date) => {
 													model.setSendAtDate(date)
@@ -757,7 +787,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 													minWidth: "125px",
 												},
 											},
-											m(TimePicker, {
+											m(dateComponents.TimePicker, {
 												time: Time.fromDate(sendAt),
 												onTimeSelected: (time: Time) => model.setSendAtTime(time),
 												timeFormat: getTimeFormatForUser(model.logins.getUserController().userSettingsGroupRoot),

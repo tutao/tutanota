@@ -2,12 +2,14 @@ package de.tutao.calendar
 
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.emptyPreferences
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.CalendarEventDao
 import de.tutao.calendar.widget.data.CalendarEventListDao
 import de.tutao.calendar.widget.data.LastSyncDao
 import de.tutao.calendar.widget.data.SettingsDao
 import de.tutao.calendar.widget.data.WidgetRepository
+import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.model.BirthdayStrings
 import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.tutasdk.Sdk
@@ -18,7 +20,9 @@ import de.tutao.tutashared.ipc.CredentialsInfo
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.UnencryptedCredentials
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.mockito.kotlin.any
@@ -27,6 +31,7 @@ import org.mockito.kotlin.doThrow
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
 import org.mockito.kotlin.wheneverBlocking
 import java.time.Instant
 import java.time.LocalDateTime
@@ -34,6 +39,10 @@ import java.time.ZoneId
 import java.util.Calendar
 
 class WidgetUIViewModelTest {
+	private val testLocalDateTime = LocalDateTime.ofInstant(
+		Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin")
+	)
+
 	private lateinit var mockWidgetDataStore: DataStore<Preferences>
 	private lateinit var mockWidgetCacheDataStore: DataStore<Preferences>
 	private lateinit var mockWidgetRepository: WidgetRepository
@@ -75,26 +84,71 @@ class WidgetUIViewModelTest {
 	}
 
 	@Test
-	fun testEventsFromCache() = runTest {
+	fun `returns loading state when widget hasn't been configured yet`() = runTest {
+		whenever(mockWidgetRepository.decodeSettingsFromPreferences(any(), any())).thenReturn(null)
+
+		whenever(mockWidgetDataStore.data)
+			.thenReturn(flowOf(emptyPreferences()))
+
+		val model = makeUiViewModel()
+
+		val state = model.loadUIState(
+			mockWidgetDataStore, mockWidgetCacheDataStore, testLocalDateTime
+		)
+
+		assertTrue(state is WidgetUIState.Loading)
+	}
+
+	@Test
+	fun `returns empty events lists when cached calendars are empty`() = runTest {
+		val settingsDao = SettingsDao(
+			calendars = mapOf(),
+			userId = "selected-calendar-id",
+		)
+
 		wheneverBlocking { mockWidgetRepository.loadCalendars(any(), any(), any()) }.doReturn(mapOf())
 
 		wheneverBlocking {
 			mockWidgetRepository.loadLastSync(any(), any())
 		}.doReturn(LastSyncDao(0, WidgetUpdateTrigger.WORKER, false))
 
-		val model = WidgetUIViewModel(
-			mockWidgetRepository,
-			0,
-			credentialsFacade,
-			cryptoFacade,
-			sdk,
-			Calendar.getInstance(),
-			BirthdayStrings("", "")
-		)
+		val model = makeUiViewModel()
 		model.loadUIState(
-			mockWidgetDataStore, mockWidgetCacheDataStore, LocalDateTime.ofInstant(
-				Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin")
-			)
+			mockWidgetDataStore, mockWidgetCacheDataStore, testLocalDateTime
+		)
+
+		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(0)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+	}
+
+	@Test
+	fun `loads empty events list from cache when cached calendars events are in the past`() = runTest {
+		wheneverBlocking { mockWidgetRepository.loadCalendars(any(), any(), any()) }.doReturn(mapOf())
+
+		wheneverBlocking {
+			mockWidgetRepository.loadLastSync(any(), any())
+		}.doReturn(LastSyncDao(0, WidgetUpdateTrigger.WORKER, false))
+
+		val model = makeUiViewModel()
+		model.loadUIState(
+			mockWidgetDataStore, mockWidgetCacheDataStore, testLocalDateTime
+		)
+
+		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(0)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+	}
+
+	@Test
+	fun `loads events from cache when last sync was triggered by worker`() = runTest {
+		wheneverBlocking { mockWidgetRepository.loadCalendars(any(), any(), any()) }.doReturn(mapOf())
+
+		wheneverBlocking {
+			mockWidgetRepository.loadLastSync(any(), any())
+		}.doReturn(LastSyncDao(0, WidgetUpdateTrigger.WORKER, false))
+
+		val model = makeUiViewModel()
+		model.loadUIState(
+			mockWidgetDataStore, mockWidgetCacheDataStore, testLocalDateTime
 		)
 
 		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
@@ -110,23 +164,23 @@ class WidgetUIViewModelTest {
 			mockWidgetRepository.loadEvents(any(), any(), any(), any(), any(), any(), any())
 		}.doThrow(RuntimeException())
 
-		val model = WidgetUIViewModel(
-			mockWidgetRepository,
-			0,
-			credentialsFacade,
-			cryptoFacade,
-			sdk,
-			Calendar.getInstance(),
-			BirthdayStrings("", "")
-		)
+		val model = makeUiViewModel()
 		model.loadUIState(
-			mockWidgetDataStore, mockWidgetCacheDataStore, LocalDateTime.ofInstant(
-				Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin")
-			)
+			mockWidgetDataStore, mockWidgetCacheDataStore, testLocalDateTime
 		)
 
 		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
 	}
+
+	private fun makeUiViewModel(): WidgetUIViewModel = WidgetUIViewModel(
+		mockWidgetRepository,
+		0,
+		credentialsFacade,
+		cryptoFacade,
+		sdk,
+		Calendar.getInstance(),
+		BirthdayStrings("", "")
+	)
 
 	@Test
 	fun testEventsOrder() = runTest {
@@ -138,20 +192,21 @@ class WidgetUIViewModelTest {
 		val model = WidgetUIViewModel(
 			mockWidgetRepository, 0, credentialsFacade, cryptoFacade, sdk, mockedCalendar, BirthdayStrings("", "")
 		)
-		val events = model.loadUIState(
+		val state = model.loadUIState(
 			mockWidgetDataStore,
 			mockWidgetCacheDataStore,
 			LocalDateTime.ofInstant(Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin"))
 		)
 
-		assert(events != null)
-		assert(events?.normalEvents?.size == 1)
+		assertTrue(state is WidgetUIState.Available)
+		val availableState = state as WidgetUIState.Available
+		assertEquals(1, availableState.normalEvents.size)
 
 		verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 
-		val key = events?.normalEvents?.keys?.first()
-		val dayEvents = events?.normalEvents?.get(key)
+		val key = state.normalEvents.keys.first()
+		val dayEvents = state.normalEvents[key]
 
 		assert(dayEvents?.get(0)?.eventId == eventFour.id)
 		assert(dayEvents?.get(2)?.eventId == eventThree.id)
@@ -173,21 +228,22 @@ class WidgetUIViewModelTest {
 			mockedCalendar,
 			BirthdayStrings("", "")
 		)
-		val events = model.loadUIState(
+		val state = model.loadUIState(
 			mockWidgetDataStore,
 			mockWidgetCacheDataStore,
 			LocalDateTime.ofInstant(Instant.ofEpochMilli(1758333600000), ZoneId.of("Europe/Berlin"))
 		)
 
-		assert(events != null)
-		assert(events?.normalEvents?.size == 1)
+		assertTrue(state is WidgetUIState.Available)
+		val availableState = state as WidgetUIState.Available
+		assertEquals(1, availableState.normalEvents.size)
 
 		verify(mockWidgetRepository, times(1)).loadCalendars(any(), any(), any())
 		verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 		verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
 
-		val key = events?.normalEvents?.keys?.first()
-		val dayEvents = events?.normalEvents?.get(key)
+		val key = state.normalEvents.keys.first()
+		val dayEvents = state.normalEvents[key]
 
 		assert(dayEvents?.get(0)?.eventId == eventFour.id)
 		assert(dayEvents?.get(2)?.eventId == eventThree.id)
