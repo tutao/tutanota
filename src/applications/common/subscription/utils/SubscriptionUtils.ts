@@ -352,7 +352,7 @@ function hasMatchingSubscription(lastBooking: Booking | null): boolean {
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */
-export async function queryAppStoreSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
+export async function queryExternalSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
 	return await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(userIdBytes)
 }
 
@@ -587,8 +587,8 @@ export function isBusinessPlan(plan: AvailablePlanType): boolean {
  * @return true if the current platform should hide business plans from view
  */
 export function shouldHideBusinessPlans(): boolean {
-	// we cannot currently subscribe iOS users to business plans
-	return EnvProvider.get().isIOSApp()
+	// we cannot currently subscribe iOS/Android users to business plans
+	return EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default
 }
 
 /**

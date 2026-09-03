@@ -52,7 +52,7 @@ import {
 	isSharingActive,
 	isWhitelabelActive,
 	PlanTypeToName,
-	queryAppStoreSubscriptionOwnership,
+	queryExternalSubscriptionOwnership,
 	SubscriptionApp,
 } from "../../subscription/utils/SubscriptionUtils"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
@@ -520,11 +520,11 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleUpgradeSubscription() {
-		if (EnvProvider.get().isIOSApp()) {
+		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			// We pass `null` because we expect no subscription when upgrading
-			const appStoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
+			const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
 
-			if (appStoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+			if (externalSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				return Dialog.message(
 					lang.getTranslation("storeMultiSubscriptionError_msg", {
 						"{AppStorePayment}": InfoLink.AppStorePayment,
@@ -550,7 +550,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const externalSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
+		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
 		const isExternalPayment = isExternalPaymentMethod(getPaymentMethodType(accountingInfo))
 		const userStatus = customer.approvalStatus
 		const hasAnActiveSubscription = hasMatchingExternalStoreSubscription(accountingInfo, this._lastBooking)

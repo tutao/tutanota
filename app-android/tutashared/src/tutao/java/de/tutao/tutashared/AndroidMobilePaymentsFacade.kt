@@ -128,7 +128,8 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 
 		// "https://play.google.com/store/account/subscriptions?sku=$sku&package=$packageName"
 		try {
-			val myIntent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/account/subscriptions".toUri())
+			val packageName = BuildConfig.PACKAGE_NAME
+			val myIntent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/account/subscriptions?package=$packageName".toUri())
 			activity.startActivity(myIntent)
 
 		} catch (e: ActivityNotFoundException) {

@@ -47,7 +47,7 @@ class PendingPurchase : PurchasesUpdatedListener {
 				}
 			}
 
-			BillingResponseCode.USER_CANCELED -> {
+			BillingResponseCode.USER_CANCELED, BillingResponseCode.BILLING_UNAVAILABLE -> {
 				complete(
 					MobilePaymentResult(
 						result = MobilePaymentResultType.CANCELLED,

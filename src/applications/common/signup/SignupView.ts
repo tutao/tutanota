@@ -12,7 +12,7 @@ import {
 	canSubscribeToPlan,
 	getDefaultPaymentMethod,
 	PaymentData,
-	queryAppStoreSubscriptionOwnership,
+	queryExternalSubscriptionOwnership,
 	UpgradeType,
 } from "../subscription/utils/SubscriptionUtils"
 import { locator } from "../api/main/CommonLocator"
@@ -202,7 +202,7 @@ export class SignupViewModel {
 		// FIXME: adapt for play store payments
 		if (EnvProvider.get().isIOSApp()) {
 			this.options.businessUse(false)
-			const appstoreSubscriptionOwnership = await queryAppStoreSubscriptionOwnership(null)
+			const appstoreSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
 			// if we are on iOS app we only show other plans if AppStore payments are enabled and there's no subscription for this Apple ID.
 			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				this.acceptedPlans = this.acceptedPlans.filter((plan) => plan === PlanType.Free)
