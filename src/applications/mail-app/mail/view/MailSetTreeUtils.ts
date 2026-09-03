@@ -1,7 +1,7 @@
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { MailSet } from "@tutao/entities/tutanota"
 import m, { Children } from "mithril"
-import { getElementId } from "@tutao/meta"
+import { elementIdPart, getElementId } from "@tutao/meta"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 import { NavButtonAttrs, NavButtonColor } from "../../../../ui/base/NavButton"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -261,4 +261,24 @@ export function renderFolderTree(
 		result.children.push(render)
 	}
 	return result
+}
+
+export function prependParentLabelNamesToLabel(label: MailSet, allLabels: ReadonlyMap<string, MailSet>): string {
+	const nameParts: string[] = []
+	let current = label
+
+	while (current) {
+		nameParts.push(current.name)
+		if (!current.parentFolder) {
+			break
+		}
+		const parentId = elementIdPart(current.parentFolder)
+		const parent = allLabels.get(parentId)
+		if (!parent) {
+			break
+		}
+		current = parent
+	}
+
+	return nameParts.reverse().join("/")
 }

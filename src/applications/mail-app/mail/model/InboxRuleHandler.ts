@@ -106,6 +106,10 @@ export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleR
 			value: InboxRuleResultType.READ,
 			name: lang.getTranslationText("markRead_action"),
 		},
+		{
+			value: InboxRuleResultType.LABEL,
+			name: lang.getTranslationText("assignLabel_action"),
+		},
 	]
 }
 
