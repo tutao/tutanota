@@ -104,6 +104,8 @@ export class InstanceKeyFacade {
 
 		// TODO filter for instances that are already migrated
 
+		// TODO only add instance keys that are not there yet. try loading existing keys. maybe avoid that if initial migration is set?!
+
 		let sharedInstanceListId: Nullable<Id> = null
 		let sharedInstanceElementId: Id
 		if (instance._id instanceof Array) {
