@@ -443,7 +443,7 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 	return zipped
 }
 
-export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
+export function deduplicate<T>(arr: ReadonlyArray<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
 	const deduplicated: T[] = []
 	for (const a of arr) {
 		const isDuplicate = deduplicated.some((b) => comp(a, b))
