@@ -244,24 +244,7 @@ export class CalendarModel {
 		eventController.addEntityUpdatesListener({
 			id: "CalendarModel",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => {
-				console.log(TAG, "calling entityUpdatesListener.onEntityUpdatesReceived, which should call requestWidgetRefresh()")
-				// if (isFirstEntityUpdate) {
-				// 	isFirstEntityUpdate = false
-				// 	this.requestWidgetRefresh()
-				// } else {
-				throttledRequestWidgetRefresh()
-				// }
 				return this.onEntityUpdatesReceived(updates, eventOwnerGroupId)
-			},
-			priority: ListenerPriority.HIGH,
-		})
-
-		syncTracker.addSyncDoneListener({
-			id: "CalendarModel",
-			onSyncDone: async () => {
-				console.log(TAG, "calling syncTracker.onSyncDone")
-				// since we aren't getting info from the app, why wait until sync is done before updating the widget?
-				// return this.requestWidgetRefresh()
 			},
 			priority: ListenerPriority.HIGH,
 		})
@@ -324,7 +307,6 @@ export class CalendarModel {
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		console.log("calling CalendarModel.createEvent(), which should call requestWidgetRefresh()")
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
-		this.requestWidgetRefresh()
 	}
 
 	/**

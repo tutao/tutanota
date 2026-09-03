@@ -102,6 +102,8 @@ import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.style.AppTheme
 import de.tutao.calendar.widget.style.Dimensions
 import de.tutao.calendar.widget.test.WidgetConfigTestViewModel
+import de.tutao.calendar.widget.workers.APP_WIDGET_ID_KEY
+import de.tutao.calendar.widget.workers.WidgetDataSyncWorker
 import de.tutao.tutasdk.CalendarRenderData
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.Sdk
@@ -133,7 +135,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 	private var appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID
 
 	companion object {
-		private val TAG = "WidgetConfigActivity"
+		private const val TAG = "WidgetConfigActivity"
 	}
 
 	@OptIn(ExperimentalMaterial3Api::class)
@@ -272,15 +274,17 @@ class WidgetConfigActivity : AppCompatActivity() {
 											?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
 									model.setAsConfigured()
 
+									val uniqueWorkName = "${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId"
+									val workRequest = OneTimeWorkRequestBuilder<WidgetDataSyncWorker>().addTag(TAG)
+										.setInputData(
+											Data.Builder().putAll(mapOf(APP_WIDGET_ID_KEY to appWidgetId))
+												.build()
+										)
+										.build()
 									WorkManager.getInstance(context).beginUniqueWork(
-										"${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId",
+										uniqueWorkName,
 										ExistingWorkPolicy.REPLACE,
-										OneTimeWorkRequestBuilder<WidgetDataWorker>().addTag(TAG)
-											.setInputData(
-												Data.Builder().putAll(mapOf(WIDGET_ID_WORKER_KEY to appWidgetId))
-													.build()
-											)
-											.build()
+										workRequest
 									).enqueue()
 
 									setResult(RESULT_OK, resultValue)

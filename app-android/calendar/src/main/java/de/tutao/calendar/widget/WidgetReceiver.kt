@@ -16,6 +16,7 @@ import de.tutao.calendar.R
 import de.tutao.calendar.widget.data.WidgetDataRepository
 import de.tutao.calendar.widget.model.BirthdayStrings
 import de.tutao.calendar.widget.model.WidgetUIViewModel
+import de.tutao.calendar.widget.workers.WidgetPeriodicRefresherWorker
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.SdkFileClient
@@ -50,7 +51,6 @@ enum class WidgetUpdateTrigger {
 
 class WidgetReceiver : GlanceAppWidgetReceiver() {
 	companion object {
-		private const val WIDGET_WORKER_TAG = "agenda_widget_worker"
 		private const val TAG = "WidgetReceiver"
 	}
 
@@ -62,10 +62,10 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 		Log.d(TAG, "onEnabled called")
 
 		WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-			WIDGET_WORKER_TAG,
+			WidgetPeriodicRefresherWorker.TAG,
 			ExistingPeriodicWorkPolicy.UPDATE,
-			PeriodicWorkRequestBuilder<WidgetWorkManager>(30, TimeUnit.MINUTES)
-				.addTag(WIDGET_WORKER_TAG).setInitialDelay(Duration.ofMinutes(1))
+			PeriodicWorkRequestBuilder<WidgetPeriodicRefresherWorker>(30, TimeUnit.MINUTES)
+				.addTag(WidgetPeriodicRefresherWorker.TAG).setInitialDelay(Duration.ofMinutes(1))
 				.build()
 		)
 	}
@@ -117,14 +117,15 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 
 	override fun onDisabled(context: Context) {
 		super.onDisabled(context)
-		WorkManager.getInstance(context).cancelAllWorkByTag(WIDGET_WORKER_TAG)
+		WorkManager.getInstance(context).cancelAllWorkByTag(WidgetPeriodicRefresherWorker.TAG)
 		context.preferencesDataStoreFile(WIDGET_SETTINGS_DATASTORE_FILE).delete()
+		context.preferencesDataStoreFile(WIDGET_CACHE_DATASTORE_FILE).delete()
 	}
 
 	override fun onDeleted(context: Context, appWidgetIds: IntArray) {
 		super.onDeleted(context, appWidgetIds)
 		appWidgetIds.forEach { appWidgetId ->
-			WorkManager.getInstance(context).cancelAllWorkByTag("${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId")
+			WorkManager.getInstance(context).cancelUniqueWork("${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId")
 		}
 	}
 }

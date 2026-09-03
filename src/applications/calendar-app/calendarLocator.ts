@@ -542,6 +542,8 @@ class CalendarLocator implements CommonLocator {
 		// worker we end up losing state on the worker side (including our session).
 		this.worker = bootstrapWorker(this)
 		await this._createInstances()
+		this.systemFacade.requestWidgetRefresh()
+		// await this._createInstances()
 		this._entropyCollector = new EntropyCollector(this.entropyFacade, await this.scheduler(), window)
 
 		this._entropyCollector.start()
