@@ -375,7 +375,10 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						".flex.justify-end.gap-8",
 
 						m(SecondaryButton, {
-							label: "subscriptionSettingManageSubscription_action",
+							label:
+								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+									? "subscriptionSettingManageSubscription_action"
+									: "subscriptionSettingManageSubscriptionGoogle_action",
 							width: "flex",
 							icon: Icons.OpenOutline,
 							onclick: async () => {
@@ -552,7 +555,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const userStatus = customer.approvalStatus
 		const hasAnActiveSubscription = hasMatchingExternalStoreSubscription(accountingInfo, this._lastBooking)
 
-		if (hasAnActiveSubscription && !(await this.canManageAppStoreSubscriptionInApp(externalSubscriptionOwnership))) {
+		if (hasAnActiveSubscription && !(await this.canManageExternalSubscriptionInApp(externalSubscriptionOwnership))) {
 			return
 		}
 
@@ -626,7 +629,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async canManageAppStoreSubscriptionInApp(ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
+	private async canManageExternalSubscriptionInApp(ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
 		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			// we have a subscription with the external provider for this app (calendar / mail / drive), but it's for another tuta account.
 			// we could technically manage it from this tuta account, but we should not allow it because it's too easy to

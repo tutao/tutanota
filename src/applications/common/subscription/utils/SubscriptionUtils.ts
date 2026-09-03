@@ -533,7 +533,6 @@ export function shouldShowExternalStorePrices(accountingInfo: AccountingInfo | n
 		(!paymentMethod || paymentMethod === PaymentMethodType.AppStore || paymentMethod === PaymentMethodType.GooglePlay)
 	)
 }
-
 /**
  * Returns whether the apple price has an introductory offer. This should be used to check whether any campaign is running.
  * Before calling this function, it has to be checked if it is OK to display the Apple prices. Use `shouldShowApplePrices` for that matter.
@@ -610,10 +609,14 @@ export function getCurrentPaymentInterval(accountingInfo: AccountingInfo | null)
 export const BookingItemFeatureByCode = reverse(BookingItemFeatureType)
 
 export function getDefaultPaymentMethod(): PaymentMethodType {
-	if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
-		return PaymentMethodType.AppStore
+	const paymentSetup = EnvProvider.get().getPaymentSetup()
+	if (paymentSetup !== PaymentSetup.Default) {
+		if (paymentSetup === PaymentSetup.Appstore) {
+			return PaymentMethodType.AppStore
+		} else {
+			return PaymentMethodType.GooglePlay
+		}
 	}
-
 	return PaymentMethodType.CreditCard
 }
 

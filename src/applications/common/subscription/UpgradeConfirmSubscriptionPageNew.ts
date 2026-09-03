@@ -3,7 +3,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const, EnvProvider, SessionType } from "@tutao/app-env"
+import { Const, SessionType } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import {
@@ -16,7 +16,7 @@ import {
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, ofClass } from "@tutao/utils"
 import { locator } from "../api/main/CommonLocator"
 import { createSwitchAccountTypePostIn, SwitchAccountTypeService_POST } from "@tutao/entities/sys"
-import { AccountType, AvailablePlanType, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
+import { AccountType, AvailablePlanType, isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 import { getDisplayNameOfPlanType, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { MobilePaymentResultType } from "@tutao/native-bridge/generatedIpc/enums"
@@ -57,8 +57,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 		const subscription = isYearly ? lang.get("pricing.yearly_label") : lang.get("pricing.monthly_label")
 
 		const isFirstMonthForFree = data.planPrices!.getRawPricingData().firstMonthForFreeForYearlyPlan && isYearly
-		const isExternalPayment =
-			data.paymentData.paymentMethod === PaymentMethodType.AppStore || data.paymentData.paymentMethod === PaymentMethodType.GooglePlay
+		const isExternalPayment = isExternalPaymentMethod(data.paymentData.paymentMethod)
 		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
 			m(
 				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
@@ -117,7 +116,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 									color: theme.on_surface_variant,
 								},
 								injectionsRight: () => {
-									return EnvProvider.get().isIOSApp()
+									return isExternalPayment
 										? undefined
 										: m(IconButton, {
 												icon: Icons.PenFilled,
@@ -240,10 +239,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 	}
 
 	private async upgrade(ctx: WizardStepContext<SignupViewModel>) {
-		if (
-			ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.AppStore ||
-			ctx.viewModel.paymentData.paymentMethod === PaymentMethodType.GooglePlay
-		) {
+		if (isExternalPaymentMethod(ctx.viewModel.paymentData.paymentMethod)) {
 			return this.upgradeWithExternalStore(ctx)
 		} else {
 			return this.upgradeWithTuta(ctx)
@@ -292,6 +288,10 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 
 	private async upgradeWithExternalStore(ctx: WizardStepContext<SignupViewModel>): Promise<void> {
 		const paymentMethod = ctx.viewModel.paymentData.paymentMethod
+		//Return if payment method is not a mobile one
+		if (!isExternalPaymentMethod(paymentMethod)) {
+			return
+		}
 		const success = await this.handleExternalStorePayment(ctx.viewModel)
 		if (!success) {
 			return
@@ -301,7 +301,7 @@ export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<WizardS
 			waitUntilCustomerInfoPlanTypeIsCorrect(ctx.viewModel.targetPlanType, elementIdToId(assertNotNull(ctx.viewModel.customer?._id))),
 		)
 		if (!receivedNotification) {
-			await Dialog.message(PaymentMethodType.AppStore ? "appStoreConfirmationTimeout_msg" : "googlePlayConfirmationTimeout_msg", () =>
+			await Dialog.message(paymentMethod === PaymentMethodType.AppStore ? "appStoreConfirmationTimeout_msg" : "googlePlayConfirmationTimeout_msg", () =>
 				m(".pt-8", [
 					m(ExternalLink, {
 						href:

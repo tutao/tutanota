@@ -538,7 +538,7 @@ export default {
 		"deleteAccountConfirm_msg": "Möchten Sie den Account wirklich löschen? Der Account kann nicht wiederhergestellt werden und die E-Mail-Adresse kann nicht erneut registriert werden.",
 		"deleteAccountReason_label": "Warum?",
 		"deleteAccountReasonInfo_msg": "Optional: Wir freuen uns über einen kurzen Hinweis, warum Sie Ihren Account löschen möchten, damit wir Tuta verbessern können.",
-		"deleteAccountWithAppStoreSubscription_msg": "Sie können Ihr Konto nicht löschen, solange es ein App Store-Abonnement gibt. Sie müssen es zuerst im App Store kündigen. Siehe {AppStorePayment}",
+		"deleteAccountWithAppStoreSubscription_msg": "Sie können Ihr Konto nicht löschen, solange ein externes Store-Abo aktiv ist. Bitte kündige Sie es direkt über die Plattform, über die Sie es gekauft hast, bevor Sie fortfahren. Siehe {AppStorePayment}",
 		"deleteAccountWithTakeoverConfirm_msg": "Möchten Sie den Account wirklich löschen? Ihre E-Mail-Adressen können von dem Account {1} übernommen werden.",
 		"deleteAlias_msg": "Die E-Mail-Aliasadresse '{1}' wird jetzt gelöscht. Die Adresse wird freigegeben und kann erneut als E-Mail-Alias oder Benutzer*in in diesem Account verwendet werden.",
 		"deleteAllEventRecurrence_action": "Alle Termine löschen",
@@ -1882,7 +1882,7 @@ export default {
 		"revocationPeriodEnded_msg": "Dieser Account befindet sich nicht mehr innerhalb der zweiwöchigen Widerrufsfrist. Sie können Ihren Vertrag in den App-Einstellungen regulär kündigen.",
 		"revocationSubmitted_label": "Widerruf eingereicht",
 		"revocationSubmitted_msg": "Der Widerruf des Abonnements für den Account {accountName} wurde erfolgreich eingereicht. Er ist am {receivedDate} bei uns eingegangen und wird in Kürze bearbeitet.",
-		"revokeSubscriptionWithAppStoreSubscription_msg": "Ihr Abonnement wird über den Apple App Store verwaltet. Sie müssen es dort widerrufen. Siehe {AppStorePayment}",
+		"revokeSubscriptionWithAppStoreSubscription_msg": "Ihr Abonnement wird über einen externen Store verwaltet. Sie müssen es dort widerrufen. Siehe {AppStorePayment}",
 		"richNotifications_title": "Vollständige Push-Benachrichtigungen",
 		"richNotificationsNewsItem_msg": "Ihre Tuta Mail-App kann jetzt Betreff & Absender in den Benachrichtigungen anzeigen! Aktivieren Sie diese Funktion jetzt:",
 		"richText_label": "Rich Text",
@@ -2086,7 +2086,7 @@ export default {
 		"storedDataTimeRangeHelpText_msg": "Gespeicherte E-Mails, die älter sind als hier angegeben, werden automatisch von Ihrem Gerät entfernt.",
 		"storeDowngradeOrResubscribe_msg": "Ihr aktuelles App Store-Abonnement ist abgelaufen. Möchten Sie zu Free wechseln oder ein neues Abonnement abschließen, um die bezahlten Funktionen zu behalten?\nSiehe {AppStoreDowngrade}",
 		"storeMultiSubscriptionError_msg": "Es ist nicht möglich, mehrere Abonnements mit der gleichen Apple ID zu managen.\nSiehe {AppStorePayment}",
-		"storeNoSubscription_msg": "Es gibt ein bestehendes Abonnement für Ihr Konto über eine andere Apple ID.\nSiehe {AppStorePayment}",
+		"storeNoSubscription_msg": "Es gibt ein bestehendes Abonnement für Ihr Konto über eine andere Apple ID oder Google Konto.\nSiehe {AppStorePayment}",
 		"storePassword_action": "Passwort speichern",
 		"storePaymentMethodChange_msg": "Es ist nicht möglich, Ihre Zahlungsmethode zu ändern, während Sie über den App Store registriert sind.\nSiehe {AppStorePaymentChange}",
 		"storeSubscription_msg": "Bitte verwalten Sie im App Store abgeschlossene Abonnements direkt dort.\nSiehe {AppStorePayment}",
@@ -2500,6 +2500,8 @@ export default {
 		"googlePlayConfirmationTimeout_msg": "Google hat Ihr Abonnement noch nicht bestätigt. Ihr Konto sollte innerhalb der nächsten 72 Stunden aktualisiert werden. Sollte dies nicht der Fall sein, beantragen Sie bitte in den Abonnementeinstellungen des Google Play Stores eine Rückerstattung bei Google.",
 		"checkoutWithGooglePlay_action": "Im Google Play Store bezahlen",
 		"subscriptionSettingManageSubscriptionGoogle_action": "Google Einstellungen",
-		"subscriptionSettingGoogleWebsite_action": "Google-Webseite"
+		"subscriptionSettingGoogleWebsite_action": "Google-Webseite",
+		"storeSubscriptionGoogle_msg": "Bitte verwalte im Google Play Store abgeschlossene Abonnements direkt dort.\nSiehe {AppStorePayment}",
+		"storePaymentMethodChangeGoogle_msg": "Es ist nicht möglich, Ihre Zahlungsmethode zu ändern, während Sie über den Google Play Store registriert sind.\nSiehe {AppStorePaymentChange}",
 	}
 }
