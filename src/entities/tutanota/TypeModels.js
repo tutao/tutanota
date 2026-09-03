@@ -10489,7 +10489,7 @@ const typeModels = {
 				name: "imapUid",
 				id: 1879,
 				type: "Number",
-				cardinality: "One",
+				cardinality: "ZeroOrOne",
 				encrypted: false,
 			},
 			1880: {

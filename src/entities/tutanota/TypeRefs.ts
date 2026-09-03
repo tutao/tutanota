@@ -6683,7 +6683,7 @@ export function createImportedImapMail(values: ImportedImapMailParams): Imported
 }
 
 export type ImportedImapMailParams = {
-	imapUid: NumberString
+	imapUid: null | NumberString
 	imapModSeq: null | NumberString
 	messageId: string
 	sourceId: null | string
@@ -6698,7 +6698,7 @@ export type ImportedImapMail = {
 	_permissions: Id
 	_format: NumberString
 	_ownerGroup: null | Id
-	imapUid: NumberString
+	imapUid: null | NumberString
 	imapModSeq: null | NumberString
 	messageId: string
 	sourceId: null | string

@@ -4493,7 +4493,7 @@ pub struct ImportedImapMail {
 	#[serde(rename = "1878")]
 	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "1879")]
-	pub imapUid: i64,
+	pub imapUid: Option<i64>,
 	#[serde(rename = "1880")]
 	pub imapModSeq: Option<i64>,
 	#[serde(rename = "1881")]
