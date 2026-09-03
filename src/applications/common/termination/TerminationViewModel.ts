@@ -75,7 +75,7 @@ export class TerminationViewModel {
 						break
 					case "hasAppStoreSubscription":
 						this.onTerminationRequestFailed(
-							lang.getTranslation("revokeSubscriptionWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+							lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
 						)
 						break
 					default:

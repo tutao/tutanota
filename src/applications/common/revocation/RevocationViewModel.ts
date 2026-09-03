@@ -59,7 +59,7 @@ export class RevocationViewModel {
 						break
 					case "hasAppStoreSubscription":
 						this.onRevocationRequestFailed(
-							lang.getTranslation("deleteAccountWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
+							lang.getTranslation("revokeSubscriptionWithAppStoreSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }),
 						)
 						break
 					case "olderThanTwoWeeks":

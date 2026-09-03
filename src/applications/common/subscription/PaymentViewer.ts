@@ -184,7 +184,8 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			if (isExternalPaymentMethod(currentPaymentMethod)) {
 				// non-external paid users trying to change payment method on mobile with an active subscription
 				const term = currentPaymentMethod === PaymentMethodType.AppStore ? "storePaymentMethodChange_msg" : "storePaymentMethodChangeGoogle_msg"
-				return Dialog.message(lang.getTranslation(term, { "{AppStorePaymentChange}": InfoLink.AppStorePaymentChange }))
+				//AppStorePaymentChange don't exist anymore, but we can still replace it
+				return Dialog.message(lang.getTranslation(term, { "{AppStorePaymentChange}": InfoLink.AppStorePayment }))
 			} else if (this.customer?.type === AccountType.PAID) {
 				// non-external paid users trying to change payment method on mobile without an active subscription.
 				return Dialog.message(lang.getTranslation("settingNotApplicableInIos_msg"))

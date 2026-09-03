@@ -171,6 +171,11 @@ export enum PaymentMethodType {
 	GooglePlay = "6",
 }
 
+export type ExternalPaymentMethodType = Exclude<
+	PaymentMethodType,
+	PaymentMethodType.Invoice | PaymentMethodType.CreditCard | PaymentMethodType.Sepa | PaymentMethodType.Paypal | PaymentMethodType.AccountBalance
+>
+
 export function isExternalPaymentMethod(paymentMethod: PaymentMethodType | null) {
 	if (!paymentMethod) return false
 	return [PaymentMethodType.GooglePlay, PaymentMethodType.AppStore].includes(paymentMethod)
