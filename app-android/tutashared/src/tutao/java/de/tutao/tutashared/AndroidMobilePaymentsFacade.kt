@@ -83,16 +83,13 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val oldInterval = currentInterval ?: error("Missing current interval")
 		val oldOffer = (if (oldProductId == productId) productDetails else billingClient.queryProduct(oldProductId)).subscriptionOfferDetails
 			.orEmpty().single { it.basePlanId == (if (oldInterval == 12L) "yearly" else "monthly") && it.offerId == null }
-		val mode = if (oldProductId == productId ) {
-
-				SubscriptionProductReplacementParams.ReplacementMode.WITHOUT_PRORATION
-
-
-		}
-		// TODO: Think carefully about this condition. Should the price be multiplied by interval/currentInterval?
-		else if (offerDetails.pricingPhases.pricingPhaseList.last().priceAmountMicros / interval >
+		val isUpgrade = offerDetails.pricingPhases.pricingPhaseList.last().priceAmountMicros / interval >
 			oldOffer.pricingPhases.pricingPhaseList.last().priceAmountMicros / oldInterval
-		) {
+		val mode = if (oldProductId == productId) {
+			SubscriptionProductReplacementParams.ReplacementMode.WITHOUT_PRORATION
+		} else if (isUpgrade && oldInterval == 1L && interval == 12L) {
+			SubscriptionProductReplacementParams.ReplacementMode.CHARGE_FULL_PRICE
+		} else if (isUpgrade) {
 			SubscriptionProductReplacementParams.ReplacementMode.CHARGE_PRORATED_PRICE
 		} else {
 			SubscriptionProductReplacementParams.ReplacementMode.DEFERRED
