@@ -141,7 +141,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 			default: continue
 			}
 		}
-		try await sqlCipherFacade.run("INSERT OR IGNORE INTO fully_persisted_mail_details_archives VALUES (?)", [TaggedSqlValue.string(value: archiveId)])
+		try await sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (? true)", [TaggedSqlValue.string(value: archiveId)])
 		TUTSLog("Finished storing archive with id \(archiveId)")
 	}
 

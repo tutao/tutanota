@@ -272,7 +272,7 @@ class AndroidArchiveDownloaderFacade (
 
 		suspend fun success() {
 			sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)",
+				"INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (? true)",
 				listOf(TaggedSqlValue.Str(archiveId))
 			)
 		}

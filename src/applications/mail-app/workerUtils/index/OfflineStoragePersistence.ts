@@ -96,7 +96,7 @@ mailAddresses
 	//
 	// This is temporary and will be cleared once indexing is finished
 	fully_persisted_mail_details_archives: {
-		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY, downloaded BOOL NOT NULL)",
 		purgedWithCache: true,
 	},
 })

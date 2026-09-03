@@ -664,6 +664,10 @@ export class BlobFacade {
 		await doBlobRequestWithRetry(t, doEvictToken)
 	}
 
+	async initPreloadedArchives(archives: string[]) {
+
+	}
+
 	/**
 	 * Downloads blobs of all {@param referencingInstances}, decrypts them and joins them to unencrypted binaries.
 	 * If some blobs are not found the result will contain {@code null}.

@@ -313,6 +313,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		} else {
 			console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
 			const everythingStart = performance.now()
+			await this.blobFacade.initPreloadedArchives(archivesToLoad)
 			for (const archiveId of archivesToLoad) {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
 				await abortAwareWithCleanup(
