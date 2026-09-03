@@ -18,6 +18,7 @@ import {
 	FileFacadeSendDispatcher,
 	ImapSyncSystemFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
+	M365SyncSystemFacadeSendDispatcher,
 	NativeCryptoFacadeSendDispatcher,
 	NativePushFacadeSendDispatcher,
 	SqlCipherFacadeSendDispatcher,
@@ -643,7 +644,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 		)
 
-		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
+		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), new M365SyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

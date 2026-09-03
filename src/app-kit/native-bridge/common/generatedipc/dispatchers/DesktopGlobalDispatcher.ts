@@ -14,6 +14,8 @@ import { ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ImapSyncSystemFacadeReceiveDispatcher } from "./ImapSyncSystemFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { M365SyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { M365SyncSystemFacadeReceiveDispatcher } from "./M365SyncSystemFacadeReceiveDispatcher.js"
 import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
 import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -43,6 +45,7 @@ export class DesktopGlobalDispatcher {
 	private readonly fileFacade: FileFacadeReceiveDispatcher
 	private readonly imapSyncSystemFacade: ImapSyncSystemFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
+	private readonly m365SyncSystemFacade: M365SyncSystemFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
 	private readonly nativeMailImportFacade: NativeMailImportFacadeReceiveDispatcher
@@ -61,6 +64,7 @@ export class DesktopGlobalDispatcher {
 		fileFacade: FileFacade,
 		imapSyncSystemFacade: ImapSyncSystemFacade,
 		interWindowEventFacade: InterWindowEventFacade,
+		m365SyncSystemFacade: M365SyncSystemFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
 		nativeMailImportFacade: NativeMailImportFacade,
@@ -79,6 +83,7 @@ export class DesktopGlobalDispatcher {
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
 		this.imapSyncSystemFacade = new ImapSyncSystemFacadeReceiveDispatcher(imapSyncSystemFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
+		this.m365SyncSystemFacade = new M365SyncSystemFacadeReceiveDispatcher(m365SyncSystemFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
 		this.nativeMailImportFacade = new NativeMailImportFacadeReceiveDispatcher(nativeMailImportFacade)
@@ -107,6 +112,8 @@ export class DesktopGlobalDispatcher {
 				return this.imapSyncSystemFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
+			case "M365SyncSystemFacade":
+				return this.m365SyncSystemFacade.dispatch(methodName, args)
 			case "NativeCredentialsFacade":
 				return this.nativeCredentialsFacade.dispatch(methodName, args)
 			case "NativeCryptoFacade":

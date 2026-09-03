@@ -43,7 +43,12 @@ o.spec("ImapSyncSessionProcess", () => {
 		eventListenerMock = object<ImapSyncEventListener>()
 		imapCredentialsMock = object<ImapCredentials>()
 
-		syncSessionMailboxMock = new ImapSyncSessionMailbox({ path: mailboxPath, importedUidToMailIdsMap: new Map(), noSync: false })
+		syncSessionMailboxMock = new ImapSyncSessionMailbox({
+			path: mailboxPath,
+			importedUidToMailIdsMap: new Map(),
+			importedSourceIds: new Set(),
+			noSync: false,
+		})
 
 		when(uidLoaderMock.calculateUidDiff(anything(), anything())).thenResolve([])
 		when(uidLoaderMock.getNextUidFetchRequest()).thenResolve(null)
@@ -183,8 +188,8 @@ o.spec("ImapSyncSessionProcess", () => {
 
 	o.test("handleQresyncFetchResult - splits into updates and creates", async () => {
 		syncSessionMailboxMock.mailboxState.importedUidToMailIdsMap.set(1, { uid: 1 })
-		const mail1 = { uid: 1, belongsToMailbox: { path: "INBOX" } }
-		const mail2 = { uid: 2, belongsToMailbox: { path: "INBOX" } }
+		const mail1 = { uid: 1, sourceId: "1", belongsToMailbox: { path: "INBOX" } }
+		const mail2 = { uid: 2, sourceId: "2", belongsToMailbox: { path: "INBOX" } }
 		await sessionProcess.handleQresyncFetchResult([mail1, mail2], eventListenerMock)
 		verify(eventListenerMock.onMultipleMails([mail1], ImapSyncEventType.UPDATE), { times: 1 })
 		verify(eventListenerMock.onMultipleMails([mail2], ImapSyncEventType.CREATE), { times: 1 })

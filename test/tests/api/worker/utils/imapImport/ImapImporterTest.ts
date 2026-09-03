@@ -11,7 +11,7 @@ import { imapMailToImportMailParams } from "../../../../../../src/applications/c
 import { newImapImportSession } from "../../../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
 import { ImapError, ImapErrorCause } from "../../../../../../src/applications/common/api/common/error/ImapError"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../../src/entities/tutanota/Utils"
-import { ImapSyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
+import { ImapSyncSystemFacade, M365SyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { ImapImportTutaFileId, ImportMailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
 import {
 	ImapAccountSyncState,
@@ -36,6 +36,7 @@ const { anything } = matchers
 
 o.spec("ImapImporter", () => {
 	let imapSyncSystemFacadeMock: ImapSyncSystemFacade
+	let m365SyncSystemFacadeMock: M365SyncSystemFacade
 	let imapFacadeMock: ImapFacade
 	let importMailFacadeMock: ImportMailFacade
 	let importer: ImapImporter
@@ -72,6 +73,7 @@ o.spec("ImapImporter", () => {
 	} as ImapMailboxStatus
 	const imapMailMock: ImapMail = {
 		uid: 42,
+		sourceId: "42",
 		belongsToMailbox: imapMailboxMock,
 		modSeq: 123n,
 		envelope: { messageId: "msg123" } as ImapMailEnvelope,
@@ -83,10 +85,11 @@ o.spec("ImapImporter", () => {
 	let importedMailMock: ImportedImapMail
 	o.beforeEach(async () => {
 		imapSyncSystemFacadeMock = object<ImapSyncSystemFacade>()
+		m365SyncSystemFacadeMock = object<M365SyncSystemFacade>()
 		imapFacadeMock = object<ImapFacade>()
 		importMailFacadeMock = object<ImportMailFacade>()
 
-		importer = new ImapImporter(imapSyncSystemFacadeMock, imapFacadeMock, importMailFacadeMock)
+		importer = new ImapImporter(imapSyncSystemFacadeMock, m365SyncSystemFacadeMock, imapFacadeMock, importMailFacadeMock)
 
 		accountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
 			_id: accountSyncStateIdMock,
@@ -96,7 +99,7 @@ o.spec("ImapImporter", () => {
 			rootImportMailSet: null,
 			imapFolderSyncStateList: "folderSyncStateListId",
 			status: ImapAccountSyncStatus.RUNNING.toString(),
-			provider: ImapProvider.Outlook.toString(),
+			provider: ImapProvider.Other.toString(),
 		})
 		folderSyncStateMock = createTestEntity(ImapFolderSyncStateTypeRef, {
 			_id: folderSyncStateIdMock,
@@ -166,6 +169,28 @@ o.spec("ImapImporter", () => {
 		verify(imapFacadeMock.updateAccountSyncStateAndAllFolderSyncStates(accountSyncStateMock, ImapAccountSyncStatus.RUNNING, ImapFolderSyncStatus.RUNNING), {
 			times: 1,
 		})
+	})
+
+	o.test("continueImport - dispatches Outlook accounts to the Microsoft Graph facade instead of the IMAP facade", async () => {
+		const outlookAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
+			...accountSyncStateMock,
+			provider: ImapProvider.Outlook.toString(),
+		})
+		const session = newImapImportSession(outlookAccountSyncStateMock, [folderSyncStateMock])
+		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)
+
+		when(imapFacadeMock.getAllImapFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
+		when(imapFacadeMock.getImportedMails("importedMailsListId")).thenResolve([importedMailMock])
+		when(imapFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
+		when(m365SyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything())).thenResolve()
+		when(
+			imapFacadeMock.getImapAccountSyncStateById(accountSyncStateIdMock, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
+		).thenResolve(session.imapAccountSyncState)
+
+		await importer.continueImport(accountSyncStateIdMock)
+
+		verify(m365SyncSystemFacadeMock.startSync(accountSyncStateIdMock, anything()), { times: 1 })
+		verify(imapSyncSystemFacadeMock.startSync(anything(), anything()), { times: 0 })
 	})
 
 	o.test("continueImport - returns postponed if postponedUntil in future", async () => {
@@ -530,7 +555,7 @@ o.spec("ImapImporter", () => {
 						total: 0,
 					},
 					importedMailCount: 0,
-					provider: ImapProvider.Outlook,
+					provider: ImapProvider.Other,
 				} as ImapImportUiSession,
 			],
 			canceledSessions: [],

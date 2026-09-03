@@ -1,0 +1,39 @@
+{
+	"name": "M365SyncSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client starting and stopping an Outlook (Microsoft Graph) sync.",
+	"methods": {
+		"startSync": {
+			"doc": "Start the Microsoft Graph sync for a specific account.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"imapSyncContext": "ImapSyncContext"
+				}
+			],
+			"ret": "void"
+		},
+		"getImapMailboxesFromServer": {
+			"doc": "Fetches the mail folders from Microsoft Graph, to be used for the folder mapping step",
+			"arg": [
+				{
+					"imapCredentials": "ImapCredentials"
+				}
+			],
+			"ret": "List<ImapMailbox>"
+		},
+		"stopSync": {
+			"doc": "Stop a specific running Microsoft Graph sync.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

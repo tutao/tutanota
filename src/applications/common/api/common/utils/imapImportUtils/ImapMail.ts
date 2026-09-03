@@ -41,7 +41,9 @@ export type ImapMailBody = {
 }
 
 export type ImapMail = {
-	uid: number
+	uid?: number
+	//For non Imap ImapMails...
+	sourceId?: string
 	modSeq?: bigint
 	size?: number
 	internalDate?: Date

@@ -237,7 +237,7 @@ o.spec("ImapMailImportController", () => {
 		const imapCredentials = {} as ImapCredentials
 		const expected = { result: { imapMailboxes: [], imapCredentials: imapCredentials } }
 		when(imapImporter.getImapMailboxesFromServer(imapCredentials)).thenResolve([])
-		const result = await controller.doInitialConnectAndGetImapMailboxes(imapCredentials)
+		const result = await controller.doInitialFetchMailboxes(imapCredentials)
 		o.check(result).deepEquals(expected)
 	})
 

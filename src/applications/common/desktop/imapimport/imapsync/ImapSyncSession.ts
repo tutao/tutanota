@@ -360,7 +360,12 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			await this.imapSyncEventListener.onMailbox(imapMailbox, ImapSyncEventType.CREATE)
 			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === imapMailbox.parentFolder?.path)
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
-			syncSessionMailbox = new ImapSyncSessionMailbox({ path: imapMailbox.path, importedUidToMailIdsMap: new Map(), noSync })
+			syncSessionMailbox = new ImapSyncSessionMailbox({
+				path: imapMailbox.path,
+				importedUidToMailIdsMap: new Map(),
+				importedSourceIds: new Set(),
+				noSync,
+			})
 		}
 		if (imapMailbox.specialUse) {
 			syncSessionMailbox.specialUse = imapMailbox.specialUse

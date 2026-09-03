@@ -317,7 +317,11 @@ export class ImapMailImportController {
 		return this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailGroupInfo.group === session.mailGroupId)
 	}
 
-	async doInitialConnectAndGetImapMailboxes(imapCredentials: ImapCredentials): Promise<ImapImportUiGetMailboxResult> {
+	/**
+	 * Fetches the mailboxes to be used for the folder mapping step, over whichever transport the provider uses
+	 * (IMAP or Microsoft Graph) - the choice is made by ImapImporter, not here.
+	 */
+	async doInitialFetchMailboxes(imapCredentials: ImapCredentials): Promise<ImapImportUiGetMailboxResult> {
 		const imapImportUiGetMailboxResult: ImapImportUiGetMailboxResult = {}
 		try {
 			const imapMailboxes = await this.imapImporter.getImapMailboxesFromServer(imapCredentials)
@@ -333,7 +337,7 @@ export class ImapMailImportController {
 			const imapErrorHandlerResult = await this.imapErrorHandler.handleImapError(e, imapCredentials)
 			if (imapErrorHandlerResult.shouldRetry) {
 				const updatedImapCredentials = imapErrorHandlerResult.updatedImapCredentials ?? imapCredentials
-				return await this.doInitialConnectAndGetImapMailboxes(updatedImapCredentials)
+				return await this.doInitialFetchMailboxes(updatedImapCredentials)
 			}
 			imapImportUiGetMailboxResult.error = imapErrorHandlerResult.readableImapError
 		}

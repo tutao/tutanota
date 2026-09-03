@@ -217,13 +217,43 @@ o.spec("ImportMailFacade", () => {
 		o.check(newAttachment.ownerEncFileHashSessionKey !== null).equals(true)
 	})
 
+	o.test("importMails - correlates attachments by sourceId when imapUid is absent (M365)", async () => {
+		const dataFileMock: ImapImportDataFile = {
+			_type: "DataFile",
+			data: new Uint8Array([1, 2, 3]),
+			name: "test.txt",
+			mimeType: "text/plain",
+			size: 3,
+			fileHash: "abc123",
+		}
+		const params = { ...sampleImportMailParamsMock, attachments: [dataFileMock], imapUid: null, sourceId: "graph-msg-1" }
+		const paramsList = [params]
+
+		when(blobFacadeMock.generateTransferId()).thenResolve(transferIdMock)
+		const referenceTokensMock = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "token1" })]
+		when(blobFacadeMock.encryptAndUploadMultiple(ArchiveDataType.Attachments, mailGroupId, anything(), anything())).thenResolve([referenceTokensMock])
+		when(cryptoWrapperMock.encryptString(anything(), anything())).thenReturn(new Uint8Array([4, 5, 6]))
+
+		let capturedImportMailData: any = null
+		when(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything())).thenDo(async (_, data) => {
+			capturedImportMailData = data
+			return OutgoingServerJson.newFromRecord({ enc: "data" })
+		})
+
+		await facade.importMails(paramsList, mailGroupId)
+
+		o.check(capturedImportMailData.importedAttachments.length).equals(1)
+		o.check(capturedImportMailData.sourceId).equals("graph-msg-1")
+		o.check(capturedImportMailData.imapUid).equals(null)
+	})
+
 	o.test("_createAddedImportAttachments - handles already existing files (ImapImportTutaFileId)", async () => {
 		const existingFileIdMock: ImapImportTutaFileId = {
 			_type: "ImapImportTutaFileId",
 			_id: fileIdMock,
 		}
-		const imapMailUid = 10
-		const providedFiles = new Map<number, ImapImportAttachment[]>([[imapMailUid, [existingFileIdMock]]])
+		const sourceId = "10"
+		const providedFiles = new Map<string, ImapImportAttachment[]>([[sourceId, [existingFileIdMock]]])
 
 		const existingFileMock = createTestEntity(FileTypeRef, { _id: fileIdMock, _ownerGroup: mailGroupId })
 		const fileSessionKeyMock = aes256RandomKey()
@@ -233,7 +263,7 @@ o.spec("ImportMailFacade", () => {
 		const result = await facade._createAddedImportAttachments(providedFiles, mailGroupId, mailGroupKeyMock)
 
 		o.check(result.size).equals(1)
-		const attachments = result.get(imapMailUid)
+		const attachments = result.get(sourceId)
 		o.check(attachments!.length).equals(1)
 		o.check(attachments![0].existingAttachmentFile).equals(fileIdMock)
 		verify(entityClientMock.load(FileTypeRef, fileIdMock), { times: 1 })
@@ -249,8 +279,8 @@ o.spec("ImportMailFacade", () => {
 			size: 3,
 			fileHash: "def456",
 		}
-		const imapMailUid = 20
-		const providedFiles = new Map<number, ImapImportAttachment[]>([[imapMailUid, [dataFileMock]]])
+		const sourceId = "20"
+		const providedFiles = new Map<string, ImapImportAttachment[]>([[sourceId, [dataFileMock]]])
 
 		const referenceTokensMock = [createTestEntity(BlobReferenceTokenWrapperTypeRef, { blobReferenceToken: "token1" })]
 		when(blobFacadeMock.generateTransferId()).thenResolve(transferIdMock)
@@ -260,7 +290,7 @@ o.spec("ImportMailFacade", () => {
 		const result = await facade._createAddedImportAttachments(providedFiles, mailGroupId, mailGroupKeyMock)
 
 		o.check(result.size).equals(1)
-		const attachments = result.get(imapMailUid)
+		const attachments = result.get(sourceId)
 		o.check(attachments!.length).equals(1)
 		const importAttachment = attachments![0]
 		o.check(importAttachment.newAttachment!.referenceTokens).equals(referenceTokensMock)
@@ -274,7 +304,7 @@ o.spec("ImportMailFacade", () => {
 		verify(blobFacadeMock.encryptAndUploadMultiple(anything(), anything(), anything(), anything()), { times: 0 })
 	})
 
-	o.test("_createAddedImportAttachments - handles mix of existing and new files for same imapUid", async () => {
+	o.test("_createAddedImportAttachments - handles mix of existing and new files for same sourceId", async () => {
 		const existingFileIdMock: ImapImportTutaFileId = {
 			_type: "ImapImportTutaFileId",
 			_id: fileIdMock,
@@ -287,7 +317,7 @@ o.spec("ImportMailFacade", () => {
 			size: 1,
 			fileHash: "hash123",
 		}
-		const providedFiles = new Map<number, ImapImportAttachment[]>([[30, [existingFileIdMock, dataFileMock]]])
+		const providedFiles = new Map<string, ImapImportAttachment[]>([["30", [existingFileIdMock, dataFileMock]]])
 
 		const existingFileMock = createTestEntity(FileTypeRef, { _id: fileIdMock })
 		const fileSessionKeyMock = aes256RandomKey()
@@ -303,7 +333,7 @@ o.spec("ImportMailFacade", () => {
 		const result = await facade._createAddedImportAttachments(providedFiles, mailGroupId, mailGroupKeyMock)
 
 		o.check(result.size).equals(1)
-		const attachments = result.get(30)
+		const attachments = result.get("30")
 		o.check(attachments!.length).equals(2)
 		o.check(attachments![0].existingAttachmentFile).equals(fileIdMock)
 		o.check(attachments![1].newAttachment !== undefined).equals(true)

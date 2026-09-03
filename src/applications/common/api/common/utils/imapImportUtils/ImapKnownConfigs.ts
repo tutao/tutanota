@@ -20,7 +20,22 @@ export type OauthConfigParams = {
 	requiresClientSecret?: boolean
 }
 
-export type ServerImapImportParams = Pick<ImapAccount, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
+/**
+ * Distinguishes providers synced over plain IMAP from providers synced through a provider-specific API
+ * (e.g. Outlook via Microsoft Graph). Lets callers dispatch on transport without hardcoding provider checks,
+ * and keeps the door open for other providers (e.g. Gmail via the Gmail API) to move to `GraphApi`-style
+ * transports later without reshaping this type again.
+ */
+export const enum ImapTransport {
+	Imap = "imap",
+	GraphApi = "graphApi",
+}
+
+export type ServerImapImportParams = Pick<ImapAccount, "host" | "port"> & {
+	authType: ImapAuthType
+	oauthConfig?: OauthConfigParams
+	transport: ImapTransport
+}
 
 export const IMAP_SSL_PORT = "993"
 export const IMAP_UNSAFE_PORT = "143"
@@ -32,6 +47,7 @@ const wellKnownConfigs = {
 		host: "imap.gmail.com",
 		port: IMAP_SSL_PORT,
 		authType: ImapAuthType.Oauth2, //Find out a way to communicate Oauth Need?
+		transport: ImapTransport.Imap,
 		oauthConfig: {
 			server: "https://accounts.google.com",
 			clientId: "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com", // webapp id
@@ -45,16 +61,20 @@ const wellKnownConfigs = {
 		},
 	},
 	outlook: {
-		//See also: https://support.office.com/article/pop-imap-and-smtp-settings-for-outlook-com-d088b986-291d-42b8-9564-9c414e2aa040
+		// Outlook mail is synced through Microsoft Graph (see M365SyncSession), not IMAP. host/port are kept
+		// only because the persisted ImapAccount entity requires non-null values; they are not used for sync.
 		host: "outlook.office365.com",
 		port: IMAP_SSL_PORT,
 		authType: ImapAuthType.Oauth2,
+		transport: ImapTransport.GraphApi,
 		oauthConfig: {
 			server: "https://login.microsoftonline.com/common/v2.0",
-			// Prod config (albeit still under test)
-			clientId: "864faa0d-ae70-42bb-8b15-12b9eb385f23",
+			clientId: "5e304219-20c3-4627-a9e9-ae884703bf62",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
-			scope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
+			// Mail.Read covers reading mail folders (including child folders) and messages - there is no
+			// separate folder-read permission. Read-only is sufficient since folder naming/hierarchy for
+			// Outlook comes directly from Graph's folder tree, not from IMAP path strings.
+			scope: "offline_access Mail.Read",
 			providerSpecificParams: {
 				prompt: "consent",
 				response_mode: "query",
@@ -68,6 +88,7 @@ const wellKnownConfigs = {
 		host: "imap.mail.yahoo.com",
 		port: IMAP_SSL_PORT,
 		authType: ImapAuthType.Oauth2,
+		transport: ImapTransport.Imap,
 		oauthConfig: {
 			server: "https://api.login.yahoo.com/",
 			// This works to log in, but we do not have the scope required for imap access.
@@ -83,6 +104,7 @@ const wellKnownConfigs = {
 		host: "imap.gmx.net",
 		port: IMAP_SSL_PORT,
 		authType: ImapAuthType.Password,
+		transport: ImapTransport.Imap,
 	},
 	webde: {
 		// See also: https://hilfe.web.de/pop-imap/imap/imap-serverdaten.htm
@@ -90,6 +112,7 @@ const wellKnownConfigs = {
 		host: "imap.web.de",
 		port: IMAP_SSL_PORT,
 		authType: ImapAuthType.Password,
+		transport: ImapTransport.Imap,
 	},
 }
 

@@ -60,10 +60,19 @@ export interface ImportMailParams {
 	ccRecipients: RecipientList
 	bccRecipients: RecipientList
 	attachments: ImapImportAttachments | null
-	imapUid: number
+	// The message's native identifier for non-IMAP transports (e.g. Microsoft Graph's immutable message id).
+	// Only set for providers that don't have a real IMAP UID - left unset for IMAP, which identifies mails via
+	// imapUid/imapModSeq instead.
+	sourceId?: string
+	imapUid: number | null
 	imapModSeq: bigint | null
 	imapFolderSyncState: IdTuple
 	labels: IdTuple[]
+}
+
+/** Every ImportMailParams is uniquely identified by exactly one of sourceId (non-IMAP) or imapUid (IMAP). */
+function correlationKeyFor(importMailParams: ImportMailParams): string {
+	return importMailParams.sourceId ?? assertNotNull(importMailParams.imapUid).toString()
 }
 
 /**
@@ -85,10 +94,10 @@ export class ImportMailFacade {
 	async importMails(importMailsParamsList: Array<ImportMailParams>, mailGroupId: Id): Promise<void> {
 		let encImports: Array<StringWrapper> = []
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-		const imapUidsToImapAttachments = new Map<number, ImapImportAttachments>(
-			importMailsParamsList.map((importMailParams) => [importMailParams.imapUid, importMailParams.attachments ?? []]),
+		const mailKeyToImapAttachments = new Map<string, ImapImportAttachments>(
+			importMailsParamsList.map((importMailParams) => [correlationKeyFor(importMailParams), importMailParams.attachments ?? []]),
 		)
-		const imapUidsToImportAttachments = await this._createAddedImportAttachments(imapUidsToImapAttachments, mailGroupId, mailGroupKey)
+		const mailKeyToImportAttachments = await this._createAddedImportAttachments(mailKeyToImapAttachments, mailGroupId, mailGroupKey)
 		let currentEstimatedCallSize = 0
 		const chunkedEncImports: Array<Array<StringWrapper>> = []
 		for (const importMailParams of importMailsParamsList) {
@@ -141,10 +150,11 @@ export class ImportMailFacade {
 					),
 				}),
 
-				importedAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
-				imapUid: importMailParams.imapUid.toString(),
+				importedAttachments: mailKeyToImportAttachments.get(correlationKeyFor(importMailParams)) ?? [],
+				imapUid: importMailParams.imapUid != null ? importMailParams.imapUid.toString() : null,
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 				labels: importMailParams.labels,
+				sourceId: importMailParams.sourceId ?? null,
 			})
 			importMailData.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			importMailData.ownerEncSessionKey = ownerEncSessionKey.key
@@ -183,18 +193,18 @@ export class ImportMailFacade {
 	 */
 	// visible for testing
 	async _createAddedImportAttachments(
-		providedFiles: Map<number, ImapImportAttachments>,
+		providedFiles: Map<string, ImapImportAttachments>,
 		mailGroupId: Id,
 		mailGroupKey: VersionedKey,
-	): Promise<Map<number, ImportAttachment[]>> {
-		const result = new Map<number, ImportAttachment[]>()
+	): Promise<Map<string, ImportAttachment[]>> {
+		const result = new Map<string, ImportAttachment[]>()
 		if (providedFiles.size === 0) return result
 
 		const entries = Array.from(providedFiles.entries())
 
 		const alreadyOnServer = new Map(entries.map(([key, files]) => [key, files.filter(isImapImportTutaFileId)]))
 
-		const notOnServer = new Map(entries.map(([key, files]) => [key, files.filter((f) => !isImapImportTutaFileId(f))])) as Map<number, ImapImportDataFile[]>
+		const notOnServer = new Map(entries.map(([key, files]) => [key, files.filter((f) => !isImapImportTutaFileId(f))])) as Map<string, ImapImportDataFile[]>
 
 		await promiseMap(alreadyOnServer, async ([key, files]) => {
 			const attachments: ImportAttachment[] = []

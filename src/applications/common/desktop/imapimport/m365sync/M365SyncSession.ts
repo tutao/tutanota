@@ -1,0 +1,423 @@
+import { ImapCredentials, ImapMailboxState, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapMailbox, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import {
+	ImapMail,
+	ImapMailAddress,
+	ImapMailAttachment,
+	ImapMailAttachmentDisposition,
+	ImapMailBody,
+	ImapMailEnvelope,
+} from "../../../api/common/utils/imapImportUtils/ImapMail.js"
+import { ImapError, ImapErrorCause } from "../../../api/common/error/ImapError.js"
+import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils.js"
+import type { AuthenticationProvider, Client as GraphClient } from "@microsoft/microsoft-graph-client"
+import type { ImapSyncEventListener } from "../imapsync/ImapSyncEventListener.js"
+
+const MAIL_DOWNLOAD_BATCH_SIZE = 125
+const IMAP_FLAG_SEEN = "\\Seen"
+const IMMUTABLE_ID_HEADER = 'IdType="ImmutableId"'
+
+type GraphMailFolderResource = {
+	id: string
+	displayName: string
+	parentFolderId?: string
+	childFolderCount?: number
+}
+
+type GraphEmailAddress = { name?: string; address?: string }
+type GraphRecipient = { emailAddress?: GraphEmailAddress }
+
+type GraphAttachmentResource = {
+	id: string
+	name?: string
+	contentType?: string
+	contentBytes?: string
+	isInline?: boolean
+	size?: number
+	contentId?: string
+}
+
+type GraphMessageResource = {
+	id: string
+	internetMessageId?: string
+	subject?: string
+	sender?: GraphRecipient
+	from?: GraphRecipient
+	toRecipients?: GraphRecipient[]
+	ccRecipients?: GraphRecipient[]
+	bccRecipients?: GraphRecipient[]
+	replyTo?: GraphRecipient[]
+	sentDateTime?: string
+	receivedDateTime?: string
+	isRead?: boolean
+	body?: { contentType?: string; content?: string }
+	internetMessageHeaders?: { name: string; value: string }[]
+	attachments?: GraphAttachmentResource[]
+	"@removed"?: { reason: string }
+}
+
+type GraphPagedResponse<T> = {
+	value: T[]
+	"@odata.nextLink"?: string
+	"@odata.deltaLink"?: string
+}
+
+//https://learn.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0
+const WELL_KNOWN_FOLDERS: ReadonlyArray<{ name: string; specialUse: ImapMailboxSpecialUse }> = [
+	{ name: "inbox", specialUse: ImapMailboxSpecialUse.INBOX },
+	{ name: "sentitems", specialUse: ImapMailboxSpecialUse.SENT },
+	{ name: "drafts", specialUse: ImapMailboxSpecialUse.DRAFTS },
+	{ name: "deleteditems", specialUse: ImapMailboxSpecialUse.TRASH },
+	{ name: "junkemail", specialUse: ImapMailboxSpecialUse.JUNK },
+	{ name: "archive", specialUse: ImapMailboxSpecialUse.ARCHIVE },
+]
+
+class StaticAccessTokenAuthProvider implements AuthenticationProvider {
+	constructor(private readonly accessToken: string) {}
+
+	async getAccessToken(): Promise<string> {
+		return this.accessToken
+	}
+}
+
+/**
+ * Downloads Outlook mail via Microsoft Graph instead of IMAP, playing the same role ImapSyncSession plays for
+ * the IMAP path: discovers mail folders, syncs messages per folder, and reports back through an
+ * ImapSyncEventListener. Runs in the Electron main process exactly like ImapSyncSession, driven over IPC from
+ * ImapImporter (worker thread) via M365SyncSystemFacade - the Graph counterpart of ImapSyncSystemFacade.
+ *
+ * Token refresh on auth failure is intentionally NOT handled here: a 401 from Graph is surfaced as an
+ * ImapError(AUTH_FAILED), which propagates up through ImapImporter.continueImport() exactly like an IMAP
+ * AUTHENTICATIONFAILED does, so it's picked up by the existing ImapMailImportController/ImapErrorHandler
+ * refresh-and-retry flow (main thread) without duplicating that logic here.
+ */
+export type GraphClientFactory = (accessToken: string) => Promise<GraphClient>
+
+export class M365SyncSession {
+	private stopped = false
+	private readonly mailboxStateByPath = new Map<string, ImapMailboxState>()
+	private readonly folderIdByPath = new Map<string, string>()
+
+	constructor(
+		private readonly listener: ImapSyncEventListener,
+		private readonly graphClientFactory: GraphClientFactory = async (accessToken) => {
+			const { Client } = await import("./microsoft-graph-client-custom")
+			return Client.initWithMiddleware({ authProvider: new StaticAccessTokenAuthProvider(accessToken) })
+		},
+	) {}
+
+	stop(): void {
+		this.stopped = true
+	}
+
+	async startSync(imapSyncContext: ImapSyncContext): Promise<void> {
+		for (const mailboxState of imapSyncContext.imapMailboxStates) {
+			this.mailboxStateByPath.set(mailboxState.path, mailboxState)
+		}
+
+		const client = await this.createGraphClient(imapSyncContext.imapCredentials)
+
+		let mailboxes: ImapMailbox[]
+		try {
+			mailboxes = await this.discoverFolders(client)
+		} catch (e) {
+			throw this.toImapError(e)
+		}
+
+		const flatMailboxes = collectMailboxesDepthFirst(mailboxes)
+		for (const mailbox of flatMailboxes) {
+			await this.listener.onMailbox(mailbox, ImapSyncEventType.CREATE)
+		}
+
+		for (const mailbox of flatMailboxes) {
+			if (this.stopped) {
+				break
+			}
+			// Folders discovered for the first time this round have no ImapFolderSyncState yet (created
+			// asynchronously by ImapImporter.onMailbox above) - they're picked up on the next sync round once
+			// their sync state exists, mirroring how IMAP's newly-discovered folders aren't synced mid-round.
+			const mailboxState = this.mailboxStateByPath.get(mailbox.path)
+			if (!mailboxState || mailboxState.noSync) {
+				continue
+			}
+			try {
+				await this.syncFolder(client, mailbox, mailboxState)
+			} catch (e) {
+				const imapError = this.toImapError(e)
+				await this.listener.onError(imapError)
+				if (imapError.data.cause === ImapErrorCause.AUTH_FAILED) {
+					throw imapError
+				}
+			}
+		}
+
+		await this.listener.onFinish()
+	}
+
+	/**
+	 * Fetches the mailbox's folders via Microsoft Graph, mirroring ImapSyncSession.getImapMailboxesFromServer's
+	 * role for IMAP - used for the import wizard's folder-mapping step, independent of an active sync.
+	 */
+	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ImapMailbox[]> {
+		const client = await this.createGraphClient(imapCredentials)
+		try {
+			return await this.discoverFolders(client)
+		} catch (e) {
+			throw this.toImapError(e)
+		}
+	}
+
+	private async createGraphClient(imapCredentials: ImapCredentials): Promise<GraphClient> {
+		const accessToken = imapCredentials.tokenEndpointResponse?.access_token
+		if (!accessToken) {
+			throw new ImapError("No Microsoft Graph access token available", ImapErrorCause.AUTH_FAILED)
+		}
+		return this.graphClientFactory(accessToken)
+	}
+
+	private async syncFolder(client: GraphClient, mailbox: ImapMailbox, mailboxState: ImapMailboxState): Promise<void> {
+		const folderId = this.folderIdByPath.get(mailbox.path)
+		if (!folderId) {
+			return
+		}
+
+		await this.listener.onMailboxStatus({ path: mailbox.path, uidNext: 0, uidValidity: 1n, syncStatus: ImapFolderSyncStatus.RUNNING })
+
+		let nextUrl: string | null = `/me/mailFolders/${encodeURIComponent(folderId)}/messages/delta?$expand=attachments`
+		let createBatch: ImapMail[] = []
+		let deleteBatch: ImapMail[] = []
+		let isFinished = false
+
+		while (nextUrl) {
+			const response: GraphPagedResponse<GraphMessageResource> = await client.api(nextUrl).header("Prefer", IMMUTABLE_ID_HEADER).get()
+
+			for (const message of response.value ?? []) {
+				if (this.stopped) {
+					break
+				}
+				if (message["@removed"]) {
+					if (mailboxState.importedSourceIds.has(message.id)) {
+						deleteBatch.push({ sourceId: message.id, belongsToMailbox: mailbox })
+						mailboxState.importedSourceIds.delete(message.id)
+					}
+					continue
+				}
+
+				if (mailboxState.importedSourceIds.has(message.id)) {
+					// already imported in a previous round (or earlier in this one) - idempotent, skip
+					continue
+				}
+				mailboxState.importedSourceIds.add(message.id)
+				createBatch.push(this.graphMessageToImapMail(message, mailbox))
+				if (createBatch.length >= MAIL_DOWNLOAD_BATCH_SIZE) {
+					await this.listener.onMultipleMails(createBatch, ImapSyncEventType.CREATE)
+					createBatch = []
+				}
+			}
+
+			if (deleteBatch.length > 0) {
+				await this.listener.onMultipleMails(deleteBatch, ImapSyncEventType.DELETE)
+				deleteBatch = []
+			}
+
+			if (this.stopped) {
+				nextUrl = null
+				break
+			}
+
+			// The @odata.deltaLink reached at the end of a round is intentionally not persisted: ImapFolderSyncState
+			// (a generated server entity) has no free field to hold an opaque per-folder cursor for a non-IMAP
+			// provider. Each sync round therefore re-walks the whole folder via delta's own full-listing behavior.
+			// Correctness is unaffected - already-imported messages are recognized via the persisted immutable
+			// Graph message id in importedSourceIds - only the bandwidth benefit of resuming from a stored
+			// deltaLink is lost until ImapFolderSyncState gains a persisted cursor field.
+			nextUrl = response["@odata.nextLink"] ?? null
+			if (!nextUrl) {
+				isFinished = true
+			}
+		}
+
+		if (createBatch.length > 0) {
+			await this.listener.onMultipleMails(createBatch, ImapSyncEventType.CREATE)
+		}
+
+		if (isFinished) {
+			await this.listener.onMailboxStatus({ path: mailbox.path, uidNext: 0, uidValidity: 1n, syncStatus: ImapFolderSyncStatus.FINISHED })
+		}
+	}
+
+	private graphMessageToImapMail(message: GraphMessageResource, mailbox: ImapMailbox): ImapMail {
+		const envelope: ImapMailEnvelope = {
+			date: message.sentDateTime ? new Date(message.sentDateTime) : undefined,
+			subject: message.subject,
+			messageId: message.internetMessageId,
+			from: message.from ? [graphRecipientToImapMailAddress(message.from)] : undefined,
+			sender: message.sender ? [graphRecipientToImapMailAddress(message.sender)] : undefined,
+			to: message.toRecipients?.map(graphRecipientToImapMailAddress),
+			cc: message.ccRecipients?.map(graphRecipientToImapMailAddress),
+			bcc: message.bccRecipients?.map(graphRecipientToImapMailAddress),
+			replyTo: message.replyTo?.map(graphRecipientToImapMailAddress),
+		}
+
+		const isHtml = message.body?.contentType?.toLowerCase() === "html"
+		const body: ImapMailBody = {
+			html: isHtml ? (message.body?.content ?? "") : "",
+			plaintext: isHtml ? "" : (message.body?.content ?? ""),
+		}
+
+		const flags = new Set<string>()
+		if (message.isRead) {
+			flags.add(IMAP_FLAG_SEEN)
+		}
+
+		// Reference (OneDrive-shared) attachments have no contentBytes and are skipped - a known gap.
+		const attachments: ImapMailAttachment[] = (message.attachments ?? [])
+			.filter((attachment) => attachment.contentBytes !== undefined)
+			.map((attachment) => ({
+				size: attachment.size ?? 0,
+				mimeType: attachment.contentType ?? "application/octet-stream",
+				content: Buffer.from(attachment.contentBytes!, "base64"),
+				disposition: attachment.isInline ? ImapMailAttachmentDisposition.Inline : ImapMailAttachmentDisposition.Attachment,
+				filename: attachment.name,
+				cid: attachment.contentId,
+			}))
+
+		return {
+			sourceId: message.id,
+			internalDate: message.receivedDateTime ? new Date(message.receivedDateTime) : undefined,
+			flags,
+			envelope,
+			body,
+			attachments,
+			headers: reconstructHeaders(message.internetMessageHeaders),
+			belongsToMailbox: mailbox,
+		}
+	}
+
+	private async discoverFolders(client: GraphClient): Promise<ImapMailbox[]> {
+		const folderIdToSpecialUseMap = await this.resolveWellKnownFolderIds(client)
+		const topLevel = await this.fetchAllPages<GraphMailFolderResource>(client, "/me/mailFolders", { includeHiddenFolders: "true" })
+		const allFolders: GraphMailFolderResource[] = []
+		for (const folder of topLevel) {
+			allFolders.push(folder, ...(await this.fetchChildFoldersRecursive(client, folder)))
+		}
+		this.folderIdByPath.clear()
+		return this.buildMailboxTree(allFolders, folderIdToSpecialUseMap)
+	}
+
+	private async fetchChildFoldersRecursive(client: GraphClient, folder: GraphMailFolderResource): Promise<GraphMailFolderResource[]> {
+		if (!folder.childFolderCount) {
+			return []
+		}
+		const children = await this.fetchAllPages<GraphMailFolderResource>(client, `/me/mailFolders/${encodeURIComponent(folder.id)}/childFolders`, {
+			includeHiddenFolders: "true",
+		})
+		const result: GraphMailFolderResource[] = []
+		for (const child of children) {
+			result.push(child, ...(await this.fetchChildFoldersRecursive(client, child)))
+		}
+		return result
+	}
+
+	private async resolveWellKnownFolderIds(client: GraphClient): Promise<Map<string, ImapMailboxSpecialUse>> {
+		const result = new Map<string, ImapMailboxSpecialUse>()
+		for (const { name, specialUse } of WELL_KNOWN_FOLDERS) {
+			try {
+				const folder = await client.api(`/me/mailFolders/${name}`).header("Prefer", IMMUTABLE_ID_HEADER).select("id").get()
+				result.set(folder.id, specialUse)
+			} catch {
+				// Not every well-known folder exists for every mailbox (e.g. Archive) - skip it.
+			}
+		}
+		return result
+	}
+
+	private buildMailboxTree(folders: GraphMailFolderResource[], specialUseByFolderId: ReadonlyMap<string, ImapMailboxSpecialUse>): ImapMailbox[] {
+		const byId = new Map(folders.map((folder) => [folder.id, folder]))
+		const childrenByParent = new Map<string, GraphMailFolderResource[]>()
+		for (const folder of folders) {
+			if (folder.parentFolderId && byId.has(folder.parentFolderId)) {
+				const siblings = childrenByParent.get(folder.parentFolderId) ?? []
+				siblings.push(folder)
+				childrenByParent.set(folder.parentFolderId, siblings)
+			}
+		}
+		const topLevel = folders.filter((folder) => !folder.parentFolderId || !byId.has(folder.parentFolderId))
+
+		return topLevel.map((folder) => buildMailboxNode(folder, null, null, childrenByParent, specialUseByFolderId, this.folderIdByPath))
+	}
+
+	private async fetchAllPages<T>(client: GraphClient, path: string, queryParams: Record<string, string>): Promise<T[]> {
+		const results: T[] = []
+		let request = client.api(path).header("Prefer", IMMUTABLE_ID_HEADER)
+		for (const [key, value] of Object.entries(queryParams)) {
+			request = request.query({ [key]: value })
+		}
+		let response: GraphPagedResponse<T> = await request.get()
+		while (true) {
+			results.push(...(response.value ?? []))
+			const nextLink = response["@odata.nextLink"]
+			if (!nextLink) {
+				break
+			}
+			response = await client.api(nextLink).header("Prefer", IMMUTABLE_ID_HEADER).get()
+		}
+		return results
+	}
+
+	private toImapError(e: any): ImapError {
+		if (e instanceof ImapError) {
+			return e
+		}
+		const status = e?.statusCode ?? e?.status
+		if (status === 401) {
+			return new ImapError(e?.message ?? "Microsoft Graph authentication failed", ImapErrorCause.AUTH_FAILED, "401")
+		}
+		return new ImapError(e?.message ?? "Unknown Microsoft Graph error", ImapErrorCause.UNKNOWN, String(status ?? ""))
+	}
+}
+
+/** Builds one mailbox tree node and recurses into its children, registering each path's Graph folder id along the way. */
+function buildMailboxNode(
+	folder: GraphMailFolderResource,
+	parentPath: string | null,
+	parentMailbox: ImapMailbox | null,
+	childrenByParent: ReadonlyMap<string, GraphMailFolderResource[]>,
+	specialUseByFolderId: ReadonlyMap<string, ImapMailboxSpecialUse>,
+	folderIdByPath: Map<string, string>,
+): ImapMailbox {
+	const path = parentPath ? `${parentPath}/${folder.displayName}` : folder.displayName
+	const mailbox: ImapMailbox = {
+		name: folder.displayName,
+		path,
+		pathDelimiter: "/",
+		specialUse: specialUseByFolderId.get(folder.id),
+		parentFolder: parentMailbox,
+	}
+	folderIdByPath.set(path, folder.id)
+	mailbox.subFolders = (childrenByParent.get(folder.id) ?? []).map((child) =>
+		buildMailboxNode(child, path, mailbox, childrenByParent, specialUseByFolderId, folderIdByPath),
+	)
+	return mailbox
+}
+
+/** Flattens a mailbox tree (as produced by buildMailboxNode) into a single depth-first list. */
+function collectMailboxesDepthFirst(mailboxes: ImapMailbox[]): ImapMailbox[] {
+	const result: ImapMailbox[] = []
+	for (const mailbox of mailboxes) {
+		result.push(mailbox)
+		result.push(...collectMailboxesDepthFirst(mailbox.subFolders ?? []))
+	}
+	return result
+}
+
+function graphRecipientToImapMailAddress(recipient: GraphRecipient): ImapMailAddress {
+	return { name: recipient.emailAddress?.name, address: recipient.emailAddress?.address }
+}
+
+function reconstructHeaders(headers?: { name: string; value: string }[]): string | undefined {
+	if (!headers || headers.length === 0) {
+		return undefined
+	}
+	return headers.map((header) => `${header.name}: ${header.value}`).join("\r\n")
+}

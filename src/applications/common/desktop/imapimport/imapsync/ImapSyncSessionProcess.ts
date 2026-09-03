@@ -158,7 +158,9 @@ export class ImapSyncSessionProcess {
 
 						switch (nextUidFetchRequest.fetchRequestType) {
 							case UidFetchRequestType.CREATE:
-								this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid })
+								this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(assertNotNull(imapMail.uid), {
+									uid: assertNotNull(imapMail.uid),
+								})
 								if (this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 									imapMailsCreate.push(imapMail)
 								}
@@ -244,15 +246,18 @@ export class ImapSyncSessionProcess {
 
 	// Visible for testing
 	async handleQresyncFetchResult(imapMails: ImapMail[], imapSyncEventListener: ImapSyncEventListener) {
-		const mailUpdates = imapMails.filter((imapMail) => this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid))
+		const mailUpdates = imapMails.filter((imapMail) => this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(assertNotNull(imapMail.uid)))
 		if (!isEmpty(mailUpdates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.UPDATE)) {
 			await imapSyncEventListener.onMultipleMails(mailUpdates, ImapSyncEventType.UPDATE)
 		}
 
-		const mailCreates = imapMails.filter((imapMail) => !this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid))
+		const mailCreates = imapMails.filter(
+			(imapMail) => !this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(assertNotNull(imapMail.uid)),
+		)
 		if (!isEmpty(mailCreates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 			for (const imapMail of imapMails) {
-				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid, modSeq: imapMail.modSeq })
+				const imapUid = assertNotNull(imapMail.uid)
+				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapUid, { uid: imapUid, modSeq: imapMail.modSeq })
 			}
 			await imapSyncEventListener.onMultipleMails(mailCreates, ImapSyncEventType.CREATE)
 		}
@@ -293,7 +298,7 @@ export class ImapSyncSessionProcess {
 	// Visible for testing
 	async emitImapMailDeleteEvent(deletedUid: number, openedImapMailbox: ImapMailbox, imapSyncEventListener: ImapSyncEventListener) {
 		if (this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.DELETE)) {
-			const imapMail = { uid: deletedUid, belongsToMailbox: openedImapMailbox }
+			const imapMail = { uid: deletedUid, sourceId: deletedUid.toString(), belongsToMailbox: openedImapMailbox }
 			this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.delete(deletedUid)
 			await imapSyncEventListener.onMultipleMails([imapMail], ImapSyncEventType.DELETE)
 		}

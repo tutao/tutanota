@@ -92,6 +92,8 @@ import { DesktopOauthWindowFacade } from "./DesktopOauthWindowFacade"
 import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListener"
 import { createImapSync } from "./imapimport/imapsync/ImapSync"
 import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
+import { createM365Sync } from "./imapimport/m365sync/M365Sync"
+import { DesktopM365SyncSystemFacade, M365InitFolderSyncFactory, M365SyncFactory } from "./imapimport/DesktopM365SyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
 
 mp()
@@ -397,6 +399,28 @@ async function createComponents(): Promise<Components> {
 			}
 			return createImapSync(noopListener, certificateProvider)
 		}
+		const m365SyncFactory: M365SyncFactory = (accountSyncId: IdTuple) => {
+			const wrappedListener: ImapSyncEventListener = {
+				onMultipleMails: async (mails, type) => await window.imapSyncFacade.onMultipleMails(accountSyncId, mails, type),
+				onMailbox: async (mb, type) => await window.imapSyncFacade.onMailbox(accountSyncId, mb, type),
+				onMailboxStatus: async (stat) => await window.imapSyncFacade.onMailboxStatus(accountSyncId, stat),
+				onPostpone: async (until) => await window.imapSyncFacade.onPostpone(accountSyncId, until),
+				onFinish: async () => await window.imapSyncFacade.onFinish(accountSyncId),
+				onError: async (err) => await window.imapSyncFacade.onError(accountSyncId, err),
+			}
+			return createM365Sync(wrappedListener)
+		}
+		const m365InitFolderSyncFactory: M365InitFolderSyncFactory = () => {
+			const noopListener: ImapSyncEventListener = {
+				onMultipleMails: async () => {},
+				onMailbox: async () => {},
+				onMailboxStatus: async () => {},
+				onPostpone: async () => {},
+				onFinish: async () => {},
+				onError: async () => {},
+			}
+			return createM365Sync(noopListener)
+		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
@@ -405,6 +429,7 @@ async function createComponents(): Promise<Components> {
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process, progressTracker),
 			new DesktopImapSyncSystemFacade(imapSyncFactory, imapInitFolderSyncFactory),
 			new DesktopInterWindowEventFacade(window, wm),
+			new DesktopM365SyncSystemFacade(m365SyncFactory, m365InitFolderSyncFactory),
 			nativeCredentialsFacade,
 			desktopCrypto,
 			desktopImportFacade,

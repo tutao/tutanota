@@ -13,6 +13,10 @@ export type ImapMailboxState = {
 	uidNext?: number
 	highestModSeq?: bigint | null // null indicates that the CONDSTORE (and QRESYNC) IMAP extension, and therefore highestModSeq, is not supported
 	importedUidToMailIdsMap: Map<number, ImapMailId>
+	// Dedup for providers whose native message id isn't a real IMAP UID (Microsoft Graph today, a future
+	// Gmail message id) - kept separate from importedUidToMailIdsMap since IMAP's CONDSTORE/QRESYNC
+	// differential-uid logic (DifferentialUidLoader) is inherently numeric and IMAP-specific.
+	importedSourceIds: Set<string>
 	noSync: boolean
 }
 

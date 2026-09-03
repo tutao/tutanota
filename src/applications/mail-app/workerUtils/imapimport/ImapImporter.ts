@@ -8,7 +8,7 @@ import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { ImapImportSession, newImapImportSession } from "./ImapImportSession"
-import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getImapConfigForProvider, ImapProvider, ImapTransport } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import {
 	getFolderSyncStateForMailboxPath,
 	imapAccountSyncStateToImapCredentials,
@@ -27,7 +27,7 @@ import {
 import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
-import { ImapSyncFacade, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ImapSyncFacade, ImapSyncSystemFacade, M365SyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ImapImportUiSession } from "../../settings/imapimport/ImapMailImportController"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
@@ -78,9 +78,15 @@ export class ImapImporter implements ImapSyncFacade {
 
 	constructor(
 		private readonly imapSyncSystemFacade: ImapSyncSystemFacade,
+		private readonly m365SyncSystemFacade: M365SyncSystemFacade,
 		private readonly imapFacade: ImapFacade,
 		private readonly importMailFacade: ImportMailFacade,
 	) {}
+
+	/** Picks the sync transport (IMAP over IPC, or Microsoft Graph over IPC) for a given provider. */
+	private getSyncFacadeForProvider(provider: ImapProvider): ImapSyncSystemFacade | M365SyncSystemFacade {
+		return getImapConfigForProvider(provider)?.transport === ImapTransport.GraphApi ? this.m365SyncSystemFacade : this.imapSyncSystemFacade
+	}
 
 	async init(mailboxes: MailBox[]) {
 		for (const mailbox of mailboxes) {
@@ -162,7 +168,7 @@ export class ImapImporter implements ImapSyncFacade {
 		const hashToIdMap = await this.getImportedImapAttachmentHashToIdMap(session)
 		this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.set(mailGroupId, hashToIdMap)
 
-		await this.imapSyncSystemFacade.startSync(imapAccountSyncStateId, imapSyncContext)
+		await this.getSyncFacadeForProvider(imapCredentials.provider).startSync(imapAccountSyncStateId, imapSyncContext)
 
 		await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 			session.imapAccountSyncState,
@@ -178,7 +184,7 @@ export class ImapImporter implements ImapSyncFacade {
 	async pauseImport(accountSyncStateId: IdTuple): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
-			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+			await this.stopSync(accountSyncStateId)
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 				session.imapAccountSyncState,
 				ImapAccountSyncStatus.PAUSED,
@@ -190,14 +196,15 @@ export class ImapImporter implements ImapSyncFacade {
 	async stopLocalImport(accountSyncStateId: IdTuple): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
-			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+			const provider = parseInt(session.imapAccountSyncState.provider) as ImapProvider
+			await this.getSyncFacadeForProvider(provider).stopSync(session.imapAccountSyncState._id)
 		}
 	}
 
 	async postponeImport(accountSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
-			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+			await this.stopSync(accountSyncStateId)
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 				session.imapAccountSyncState,
 				ImapAccountSyncStatus.POSTPONED,
@@ -210,7 +217,7 @@ export class ImapImporter implements ImapSyncFacade {
 	async setGmailAllMailsImapDisabledOnImport(accountSyncStateId: IdTuple): Promise<void> {
 		const session = this.getImapImportSessionOrNull(accountSyncStateId)
 		if (session !== null) {
-			await this.imapSyncSystemFacade.stopSync(session.imapAccountSyncState._id)
+			await this.stopSync(accountSyncStateId)
 			await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 				session.imapAccountSyncState,
 				ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR,
@@ -222,12 +229,19 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async deleteImport(imapAccountSyncStateId: IdTuple): Promise<void> {
 		await this.imapFacade.deleteImapImport(imapAccountSyncStateId)
-		await this.imapSyncSystemFacade.stopSync(imapAccountSyncStateId)
+		await this.stopSync(imapAccountSyncStateId)
 		this.imapImportSessions.delete(this.getImapImportSessionsMapKey(imapAccountSyncStateId))
 	}
 
+	/** Stops whichever sync transport (IMAP or Microsoft Graph) is active for this account. */
+	private async stopSync(accountSyncStateId: IdTuple): Promise<void> {
+		const session = this.getImapImportSessionOrNull(accountSyncStateId)
+		const provider = session ? (parseInt(session.imapAccountSyncState.provider) as ImapProvider) : ImapProvider.Other
+		await this.getSyncFacadeForProvider(provider).stopSync(accountSyncStateId)
+	}
+
 	async getImapMailboxesFromServer(imapCredentials: ImapCredentials): Promise<ReadonlyArray<ImapMailbox>> {
-		return await this.imapSyncSystemFacade.getImapMailboxesFromServer(imapCredentials)
+		return await this.getSyncFacadeForProvider(imapCredentials.provider).getImapMailboxesFromServer(imapCredentials)
 	}
 
 	private async getAllImapMailboxStates(session: ImapImportSession): Promise<ImapMailboxState[]> {
@@ -236,9 +250,14 @@ export class ImapImporter implements ImapSyncFacade {
 
 		for (const folderSyncState of imapFolderSyncStates) {
 			const importedImapUidToImapMailId = new Map<number, ImapMailId>()
+			const importedSourceIds = new Set<string>()
 			if (!(folderSyncState.status === ImapFolderSyncStatus.NO_SYNC)) {
 				const importedImapMails = await this.imapFacade.getImportedMails(folderSyncState.importedMails)
 				for (const importedImapMail of importedImapMails) {
+					if (importedImapMail.sourceId !== null) {
+						importedSourceIds.add(importedImapMail.sourceId)
+					}
+
 					const imapUid = parseInt(importedImapMail.imapUid)
 					const importedImapMailId: ImapMailId = { uid: imapUid }
 					if (importedImapMail.imapModSeq !== null) {
@@ -254,6 +273,7 @@ export class ImapImporter implements ImapSyncFacade {
 			const imapMailboxState: ImapMailboxState = {
 				path: folderSyncState.path,
 				importedUidToMailIdsMap: importedImapUidToImapMailId,
+				importedSourceIds,
 				noSync: folderSyncState.status === ImapFolderSyncStatus.NO_SYNC,
 			}
 			imapMailboxState.uidNext = folderSyncState.uidnext ? parseInt(folderSyncState.uidnext) : undefined
@@ -451,7 +471,7 @@ export class ImapImporter implements ImapSyncFacade {
 							"There was a locked error while importing using imap importer, caused by two clients importing simultaneously. Stopping sync on this client ... ",
 							error,
 						)
-						await this.imapSyncSystemFacade.stopSync(accountSyncStateId)
+						await this.stopSync(accountSyncStateId)
 					} else {
 						console.error("There was some unknown error while importing using imap importer ... ", error)
 						await this.postponeImport(

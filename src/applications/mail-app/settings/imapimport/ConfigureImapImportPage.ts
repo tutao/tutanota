@@ -65,7 +65,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		const imapCredentials = this.getImapCredentials(imapImportData)
 
 		imapImportData.folderSystem = await imapImportController.getFolderSystemForSelectedMailbox()
-		const imapImportUiGetMailboxResult = await imapImportController.doInitialConnectAndGetImapMailboxes(imapCredentials)
+		const imapImportUiGetMailboxResult = await imapImportController.doInitialFetchMailboxes(imapCredentials)
 
 		if (imapImportUiGetMailboxResult.result) {
 			this.successfullyLoadedMailboxes = true
