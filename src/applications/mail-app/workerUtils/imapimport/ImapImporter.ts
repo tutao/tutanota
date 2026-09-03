@@ -83,7 +83,6 @@ export class ImapImporter implements ImapSyncFacade {
 		private readonly importMailFacade: ImportMailFacade,
 	) {}
 
-	/** Picks the sync transport (IMAP over IPC, or Microsoft Graph over IPC) for a given provider. */
 	private getSyncFacadeForProvider(provider: ImapProvider): ImapSyncSystemFacade | M365SyncSystemFacade {
 		return getImapConfigForProvider(provider)?.transport === ImapTransport.GraphApi ? this.m365SyncSystemFacade : this.imapSyncSystemFacade
 	}

@@ -34,6 +34,9 @@ class FakeGraphRequestBuilder {
 		if (response === undefined) {
 			throw new Error(`FakeGraphClient: no response configured for ${this.path}`)
 		}
+		if (response instanceof Error) {
+			throw response
+		}
 		return response
 	}
 }
@@ -157,5 +160,56 @@ o.spec("M365SyncSession", () => {
 
 		verify(listenerMock.onMultipleMails(anything(), anything()), { times: 0 })
 		verify(listenerMock.onFinish(), { times: 1 })
+	})
+
+	function graphThrottleError(statusCode: number, retryAfterSeconds?: number): Error {
+		const error: any = new Error("throttled")
+		error.statusCode = statusCode
+		error.headers = { get: (name: string) => (name === "Retry-After" && retryAfterSeconds !== undefined ? String(retryAfterSeconds) : undefined) }
+		return error
+	}
+
+	o.test("startSync - postpones using the Retry-After header when Graph throttles a folder sync", async () => {
+		const responses = new Map<string, any>([
+			["/me/mailFolders", { value: [{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 }] }],
+			["/me/mailFolders/inbox", { id: "id-inbox" }],
+			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", graphThrottleError(429, 120)],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		const mailboxState: ImapMailboxState = { path: "Inbox", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [mailboxState],
+			isGmail: false,
+		}
+
+		const before = Date.now()
+		await session.startSync(imapSyncContext)
+		const after = Date.now()
+
+		verify(listenerMock.onFinish(), { times: 0 })
+		verify(listenerMock.onError(anything()), { times: 0 })
+		verify(listenerMock.onPostpone(argThat((until: number) => until >= before + 120_000 && until <= after + 120_000)), { times: 1 })
+	})
+
+	o.test("startSync - falls back to a default postpone time when Graph throttles without a Retry-After header", async () => {
+		const responses = new Map<string, any>([["/me/mailFolders", graphThrottleError(429)]])
+		session = sessionWithFakeGraphClient(responses)
+
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [],
+			isGmail: false,
+		}
+
+		const before = Date.now()
+		await session.startSync(imapSyncContext)
+		const after = Date.now()
+
+		verify(listenerMock.onFinish(), { times: 0 })
+		verify(listenerMock.onPostpone(argThat((until: number) => until >= before + 30_000 && until <= after + 60_000)), { times: 1 })
 	})
 })

@@ -17,6 +17,13 @@ const MAIL_DOWNLOAD_BATCH_SIZE = 125
 const IMAP_FLAG_SEEN = "\\Seen"
 const IMMUTABLE_ID_HEADER = 'IdType="ImmutableId"'
 
+// Microsoft Graph throttles with 429 (and occasionally 503) and, per
+// https://learn.microsoft.com/en-us/graph/throttling, virtually always includes a Retry-After header (seconds)
+// that is authoritative - honor it as-is rather than guessing. Used only when the header is missing or is the
+// documented "Retry-After: 0" edge case, where Microsoft's own guidance is to still back off.
+const M365_RATE_LIMIT_DEFAULT_POSTPONE_TIME = 60 * 1000 // 60 seconds
+const M365_RATE_LIMIT_MIN_POSTPONE_TIME = 30 * 1000 // 30 seconds
+
 type GraphMailFolderResource = {
 	id: string
 	displayName: string
@@ -121,6 +128,11 @@ export class M365SyncSession {
 		try {
 			mailboxes = await this.discoverFolders(client)
 		} catch (e) {
+			const retryAfterMs = this.getRetryAfterMs(e)
+			if (retryAfterMs !== null) {
+				await this.listener.onPostpone(Date.now() + retryAfterMs)
+				return
+			}
 			throw this.toImapError(e)
 		}
 
@@ -143,6 +155,13 @@ export class M365SyncSession {
 			try {
 				await this.syncFolder(client, mailbox, mailboxState)
 			} catch (e) {
+				// Throttling applies tenant/app-wide, not per folder - continuing to the next folder would just
+				// trip the limit again, so the whole round is postponed instead of being logged and skipped.
+				const retryAfterMs = this.getRetryAfterMs(e)
+				if (retryAfterMs !== null) {
+					await this.listener.onPostpone(Date.now() + retryAfterMs)
+					return
+				}
 				const imapError = this.toImapError(e)
 				await this.listener.onError(imapError)
 				if (imapError.data.cause === ImapErrorCause.AUTH_FAILED) {
@@ -373,7 +392,26 @@ export class M365SyncSession {
 		if (status === 401) {
 			return new ImapError(e?.message ?? "Microsoft Graph authentication failed", ImapErrorCause.AUTH_FAILED, "401")
 		}
+		if (status === 429 || status === 503) {
+			return new ImapError(e?.message ?? "Microsoft Graph throttled the request", ImapErrorCause.POSTPONE, String(status))
+		}
 		return new ImapError(e?.message ?? "Unknown Microsoft Graph error", ImapErrorCause.UNKNOWN, String(status ?? ""))
+	}
+
+	/**
+	 * Returns how long to postpone the sync for if `e` is a Microsoft Graph throttling response (429, occasionally
+	 * 503), honoring the Retry-After header (seconds) when present since it is authoritative - see
+	 * https://learn.microsoft.com/en-us/graph/throttling. Returns null for any other error.
+	 */
+	private getRetryAfterMs(e: any): number | null {
+		const status = e?.statusCode ?? e?.status
+		if (status !== 429 && status !== 503) {
+			return null
+		}
+		const retryAfterHeader = e?.headers?.get?.("Retry-After")
+		const retryAfterSeconds = retryAfterHeader ? parseInt(retryAfterHeader, 10) : NaN
+		const retryAfterMs = Number.isFinite(retryAfterSeconds) ? retryAfterSeconds * 1000 : M365_RATE_LIMIT_DEFAULT_POSTPONE_TIME
+		return Math.max(retryAfterMs, M365_RATE_LIMIT_MIN_POSTPONE_TIME)
 	}
 }
 
