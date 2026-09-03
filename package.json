@@ -34,6 +34,7 @@
 		"@fingerprintjs/botd": "1.9.1",
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
+		"@microsoft/microsoft-graph-client": "3.0.7",
 		"@signalapp/sqlcipher": "git+https://github.com/tutao/node-sqlcipher#8d7eaa36321d7147faa3583231635855d8a991e7",
 		"@tensorflow/tfjs-backend-cpu": "4.22.0",
 		"@tensorflow/tfjs-backend-webgl": "4.22.0",

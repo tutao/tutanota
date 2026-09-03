@@ -50,6 +50,11 @@ const clientDependencies = [
 	{ src: "../src/applications/common/desktop/migration/imapsync/imapflow-custom.js", target: "imapflow.js", bundling: "rollupImap" },
 	{ src: "../src/applications/common/desktop/migration/mailparser/postalmime-custom.js", target: "postal-mime.js", bundling: "rollupImap" },
 	{ src: "../src/applications/mail-app/settings/migration/oauth/openid-client-custom.js", target: "openid-client.js", bundling: "rollupImap" },
+	{
+		src: "../src/applications/common/desktop/migration/m365sync/microsoft-graph-client-custom.js",
+		target: "microsoft-graph-client.js",
+		bundling: "rollupImap",
+	},
 ]
 
 /** Run special patches after bundling */
