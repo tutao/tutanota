@@ -1918,20 +1918,6 @@ o.spec("KeyRotationFacade", function () {
 		})
 
 		o.spec("Key rotation for customer or team group", function () {
-			// o.beforeEach(function () {
-			// const someCalendarGroupId = "someCalendarGroupId"
-			// user.memberships.push(
-			// 	createTestEntity(GroupMembershipTypeRef, {
-			// 		groupType: GroupType.Calendar,
-			// 		groupInfo: [customerUserAreaGroupsListId, "someCalendarGroupInfoId"],
-			// 		group: someCalendarGroupId,
-			// 	}),
-			// )
-			// const someCalendarGroup = crea
-			//
-			// 	when(entityClient.loadMultiple(GroupTypeRef, null, [someCalendarGroupId])).thenResolve([])
-			// })
-
 			o("Successful rotation, single member group", async function () {
 				const pendingKeyRotations = {
 					adminOrUserGroupKeyRotation: null,
