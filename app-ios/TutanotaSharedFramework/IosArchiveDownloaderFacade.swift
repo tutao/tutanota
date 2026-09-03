@@ -3,15 +3,20 @@ import Combine
 public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let sqlCipherFacade: IosSqlCipherFacade
 	private let schemeHandler: ApiSchemeHandler
-	private let urlSession: URLSession
+   	private let urlSession: URLSession
+   	// array of archiveIds
+    private var activeJobs: Set<String>
 
 	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
 		self.sqlCipherFacade = sqlCipherFacade
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
+		self.activeJobs = []
 	}
 
 	public func downloadAndStoreArchive(_ sourceUrl: String, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
+	    activeJobs.insert(archiveId)
+
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
@@ -21,15 +26,19 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		TUTSLog("Downloading archive with id \(archiveId)")
 		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request)) } catch let error as URLError
 			where error.code == URLError.cancelled
-		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
+		{
+		    activeJobs.remove(archiveId)
+		    throw CancelledError(message: "Download task was canceled", underlyingError: error)
+		}
 		TUTSLog("Finished downloading archive with id \(archiveId)")
 
 		let httpResponse = response as! HTTPURLResponse
 		if httpResponse.statusCode == 200 { try await storeArchive(data, archiveId, typeref, modelVersion) }
+		activeJobs.remove(archiveId)
 	}
 
 	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
-		// FIXME implement abort mechanism
+		activeJobs.remove(archiveId)
 	}
 
 	public func clearStoredArchives() async throws {
@@ -76,6 +85,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 		for i in 0..<data.count {
 			if currentBlobStartIndex > i { continue }
+            if !activeJobs.contains(archiveId) { break }
 
 			currentBlobEndIndex = i
 			byte = data[i]
@@ -151,12 +161,17 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 				default: params[i] = wrappedModelVersion
 				}
 			}
-			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
-					+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
-				params
-			)
-		} catch { throw error }
+			if activeJobs.contains(archiveId) {
+				try await sqlCipherFacade.run(
+					"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
+						+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
+					params
+				)
+			}
+		} catch {
+			activeJobs.remove(archiveId)
+			throw error
+		}
 	}
 
 }
