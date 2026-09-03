@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { matchers, object, verify } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { M365SyncSession } from "../../../../../src/applications/common/desktop/imapimport/m365sync/M365SyncSession"
 import { ImapSyncEventListener } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncEventListener"
 import { ImapCredentials, ImapMailboxState, ImapSyncContext } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
@@ -140,7 +140,60 @@ o.spec("M365SyncSession", () => {
 		verify(listenerMock.onFinish(), { times: 1 })
 	})
 
-	o.test("stop - halts before syncing any further folders", async () => {
+	o.test("startSync - syncs a folder discovered for the first time this round, not just previously-known ones", async () => {
+		const responses = new Map<string, any>([
+			["/me/mailFolders", { value: [{ id: "id-custom", displayName: "Custom", childFolderCount: 0 }] }],
+			["/me/mailFolders/id-custom/messages/delta?$expand=attachments", { value: [{ id: "graph-msg-custom", subject: "Hello", isRead: true }] }],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		// Custom is unknown to this round's imapSyncContext (mailboxStateByPath), matching a folder discovered
+		// for the first time by discoverFolders - only onMailbox(CREATE) below "knows" about it.
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [],
+			isGmail: false,
+		}
+
+		await session.startSync(imapSyncContext)
+
+		verify(
+			listenerMock.onMultipleMails(
+				argThat((mails: any) => mails.length === 1 && mails[0].sourceId === "graph-msg-custom"),
+				ImapSyncEventType.CREATE,
+			),
+			{ times: 1 },
+		)
+		verify(listenerMock.onMailboxStatus(argThat((status: any) => status.path === "Custom" && status.syncStatus === ImapFolderSyncStatus.FINISHED)), {
+			times: 1,
+		})
+		verify(listenerMock.onFinish(), { times: 1 })
+	})
+
+	o.test("startSync - a newly-discovered folder inherits noSync from its already-known excluded parent", async () => {
+		const responses = new Map<string, any>([
+			["/me/mailFolders", { value: [{ id: "id-excluded", displayName: "Excluded", childFolderCount: 1 }] }],
+			["/me/mailFolders/id-excluded/childFolders", { value: [{ id: "id-child", displayName: "ExcludedChild", childFolderCount: 0 }] }],
+		])
+		session = sessionWithFakeGraphClient(responses)
+
+		// The parent is already known (from a previous round) and excluded; its child is brand new this round.
+		const excludedParentState: ImapMailboxState = { path: "Excluded", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: true }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [excludedParentState],
+			isGmail: false,
+		}
+
+		await session.startSync(imapSyncContext)
+
+		verify(listenerMock.onMultipleMails(anything(), anything()), { times: 0 })
+		verify(listenerMock.onFinish(), { times: 1 })
+	})
+
+	o.test("stop - halts before syncing any further folders and does not report the round as finished", async () => {
 		const responses = new Map<string, any>([
 			["/me/mailFolders", { value: [{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 }] }],
 			["/me/mailFolders/inbox", { id: "id-inbox" }],
@@ -159,7 +212,45 @@ o.spec("M365SyncSession", () => {
 		await session.startSync(imapSyncContext)
 
 		verify(listenerMock.onMultipleMails(anything(), anything()), { times: 0 })
-		verify(listenerMock.onFinish(), { times: 1 })
+		verify(listenerMock.onFinish(), { times: 0 })
+	})
+
+	o.test("startSync - a mid-round stop (e.g. triggered by onMultipleMails postponing) skips onFinish for remaining folders", async () => {
+		const responses = new Map<string, any>([
+			[
+				"/me/mailFolders",
+				{
+					value: [
+						{ id: "id-drafts", displayName: "Drafts", childFolderCount: 0 },
+						{ id: "id-inbox", displayName: "Inbox", childFolderCount: 0 },
+					],
+				},
+			],
+			["/me/mailFolders/drafts", { id: "id-drafts" }],
+			["/me/mailFolders/inbox", { id: "id-inbox" }],
+			["/me/mailFolders/id-drafts/messages/delta?$expand=attachments", { value: [{ id: "graph-msg-drafts", subject: "Draft", isRead: true }] }],
+			["/me/mailFolders/id-inbox/messages/delta?$expand=attachments", { value: [{ id: "graph-msg-inbox", subject: "Hello", isRead: true }] }],
+		])
+		session = sessionWithFakeGraphClient(responses)
+		when(listenerMock.onMultipleMails(anything(), anything())).thenDo(() => {
+			// Simulates ImapImporter.onMultipleMails calling back into stopSync after a Tuta-side SuspensionError
+			// on the first folder's import batch - the error itself is swallowed there and never reaches us.
+			session.stop()
+		})
+
+		const draftsState: ImapMailboxState = { path: "Drafts", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const inboxState: ImapMailboxState = { path: "Inbox", importedUidToMailIdsMap: new Map(), importedSourceIds: new Set(), noSync: false }
+		const imapSyncContext: ImapSyncContext = {
+			imapCredentials: imapCredentialsWithToken,
+			maxQuota: 1000,
+			imapMailboxStates: [draftsState, inboxState],
+			isGmail: false,
+		}
+
+		await session.startSync(imapSyncContext)
+
+		verify(listenerMock.onMultipleMails(anything(), anything()), { times: 1 })
+		verify(listenerMock.onFinish(), { times: 0 })
 	})
 
 	function graphError(statusCode: number, retryAfterSeconds?: number): Error {

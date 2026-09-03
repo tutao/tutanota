@@ -175,6 +175,7 @@ o.spec("ImapImporter", () => {
 		const outlookAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
 			...accountSyncStateMock,
 			provider: ImapProvider.Outlook.toString(),
+			status: ImapAccountSyncStatus.PAUSED.toString(),
 		})
 		const session = newImapImportSession(outlookAccountSyncStateMock, [folderSyncStateMock])
 		importer.imapImportSessions.set(importer.getImapImportSessionsMapKey(accountSyncStateIdMock), session)

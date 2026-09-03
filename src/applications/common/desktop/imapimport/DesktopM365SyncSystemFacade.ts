@@ -16,8 +16,14 @@ export class DesktopM365SyncSystemFacade implements M365SyncSystemFacade {
 	) {}
 
 	async startSync(accountSyncId: IdTuple, imapSyncContext: ImapSyncContext): Promise<void> {
-		await this.stopSync(accountSyncId)
 		const idKey = accountSyncId.join("/")
+		if (this.activeSyncs.has(idKey)) {
+			// Should not normally happen - ImapImporter.continueImport skips starting a new round while the
+			// account is already RUNNING. If this logs, something bypassed that guard (e.g. a force-retry) and
+			// is about to kill the still-running sync below.
+			console.log(`M365 startSync called for ${idKey} while a sync is already active - stopping the previous one before starting a new round.`)
+		}
+		await this.stopSync(accountSyncId)
 		const sync = this.m365SyncFactory(accountSyncId)
 		this.activeSyncs.set(idKey, sync)
 

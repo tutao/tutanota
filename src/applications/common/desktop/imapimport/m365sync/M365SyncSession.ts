@@ -18,9 +18,7 @@ const IMAP_FLAG_SEEN = "\\Seen"
 const IMMUTABLE_ID_HEADER = 'IdType="ImmutableId"'
 
 // Microsoft Graph throttles with 429 (and occasionally 503) and, per
-// https://learn.microsoft.com/en-us/graph/throttling, virtually always includes a Retry-After header (seconds)
-// that is authoritative - honor it as-is rather than guessing. Used only when the header is missing or is the
-// documented "Retry-After: 0" edge case, where Microsoft's own guidance is to still back off.
+// https://learn.microsoft.com/en-us/graph/throttling
 const M365_RATE_LIMIT_DEFAULT_POSTPONE_TIME = 60 * 1000 // 60 seconds
 const M365_RATE_LIMIT_MIN_POSTPONE_TIME = 30 * 1000 // 30 seconds
 
@@ -87,19 +85,11 @@ class StaticAccessTokenAuthProvider implements AuthenticationProvider {
 	}
 }
 
-/**
- * Downloads Outlook mail via Microsoft Graph instead of IMAP, playing the same role ImapSyncSession plays for
- * the IMAP path: discovers mail folders, syncs messages per folder, and reports back through an
- * ImapSyncEventListener. Runs in the Electron main process exactly like ImapSyncSession, driven over IPC from
- * ImapImporter (worker thread) via M365SyncSystemFacade - the Graph counterpart of ImapSyncSystemFacade.
- *
- * Token refresh on auth failure is intentionally NOT handled here: a 401 from Graph is surfaced as an
- * ImapError(AUTH_FAILED), which propagates up through ImapImporter.continueImport() exactly like an IMAP
- * AUTHENTICATIONFAILED does, so it's picked up by the existing ImapMailImportController/ImapErrorHandler
- * refresh-and-retry flow (main thread) without duplicating that logic here.
- */
 export type GraphClientFactory = (accessToken: string) => Promise<GraphClient>
 
+/**
+ * Sync session to connect and retrieve mails from Graph API.
+ */
 export class M365SyncSession {
 	private stopped = false
 	private readonly mailboxStateByPath = new Map<string, ImapMailboxState>()
@@ -143,13 +133,32 @@ export class M365SyncSession {
 
 		for (const mailbox of flatMailboxes) {
 			if (this.stopped) {
+				// stop() can be triggered mid-loop by ImapImporter.onMultipleMails/onPostpone/pauseImport calling
+				// back into stopSync (e.g. a SuspensionError from Tuta's own import service, not just a Graph
+				// throttle) - see the guard below, which is what actually prevents this from being misreported as
+				// a completed round.
+				console.log(`M365 sync stopped mid-round after folder "${mailbox.path}" - remaining folders will resume next round.`)
 				break
 			}
-			// Folders discovered for the first time this round have no ImapFolderSyncState yet (created
-			// asynchronously by ImapImporter.onMailbox above) - they're picked up on the next sync round once
-			// their sync state exists, mirroring how IMAP's newly-discovered folders aren't synced mid-round.
-			const mailboxState = this.mailboxStateByPath.get(mailbox.path)
-			if (!mailboxState || mailboxState.noSync) {
+			// mailboxStateByPath is a snapshot taken before this round's discovery, so a folder discovered for the
+			// first time this round is never in it - even though the onMailbox loop above already created its
+			// ImapFolderSyncState. Build a fresh local state and sync it immediately instead of deferring to the
+			// next round (which silently dropped every custom folder's mail on its first sync round), mirroring
+			// ImapSyncSession.traverseImapMailboxes: noSync is inherited from an already-known parent - safe
+			// because collectMailboxesDepthFirst visits parents before children, so the parent's state (existing
+			// or just constructed here) is always present by the time a child is reached.
+			let mailboxState = this.mailboxStateByPath.get(mailbox.path)
+			if (!mailboxState) {
+				const parentMailboxState = mailbox.parentFolder ? this.mailboxStateByPath.get(mailbox.parentFolder.path) : undefined
+				mailboxState = {
+					path: mailbox.path,
+					importedUidToMailIdsMap: new Map(),
+					importedSourceIds: new Set(),
+					noSync: parentMailboxState?.noSync ?? false,
+				}
+				this.mailboxStateByPath.set(mailbox.path, mailboxState)
+			}
+			if (mailboxState.noSync) {
 				continue
 			}
 			try {
@@ -170,6 +179,18 @@ export class M365SyncSession {
 			}
 		}
 
+		if (this.stopped) {
+			// Do not report a round as finished when it was stopped part-way through (e.g. onMultipleMails
+			// postponing/stopping the account after a Tuta-side SuspensionError on some folder's import batch,
+			// or a manual pause/delete) - onFinish marks every folder FINISHED server-side
+			// (updateAccountSyncStateAndAllFolderSyncStates), which would wrongly cover folders never even
+			// reached this round. Mirrors ImapSyncSession, where the STOPPED state is checked before the
+			// equivalent onAllMailboxesFinish() call is ever reached.
+			console.log("M365 sync round ended early (stopped) - skipping onFinish so the remaining folders are retried next round.")
+			return
+		}
+
+		console.log("Finished M365 Sync.")
 		await this.listener.onFinish()
 	}
 

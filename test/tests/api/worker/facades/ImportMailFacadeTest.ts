@@ -1,4 +1,5 @@
 import o from "@tutao/otest"
+import { stringToBase64UrlCustomId } from "@tutao/utils"
 import { matchers, object, verify, when } from "testdouble"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
@@ -243,7 +244,7 @@ o.spec("ImportMailFacade", () => {
 		await facade.importMails(paramsList, mailGroupId)
 
 		o.check(capturedImportMailData.importedAttachments.length).equals(1)
-		o.check(capturedImportMailData.sourceId).equals("graph-msg-1")
+		o.check(capturedImportMailData.sourceId).equals(stringToBase64UrlCustomId("graph-msg-1"))
 		o.check(capturedImportMailData.imapUid).equals(null)
 	})
 

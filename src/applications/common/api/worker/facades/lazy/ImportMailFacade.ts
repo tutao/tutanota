@@ -20,7 +20,7 @@ import {
 	ImportMailDataTypeRef,
 	ImportMailService_POST,
 } from "@tutao/entities/tutanota"
-import { assertNotNull, getFirstOrThrow, isEmpty, promiseMap } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, promiseMap, stringToBase64UrlCustomId } from "@tutao/utils"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { BlobReferenceTokenWrapper, createStringWrapper, StringWrapper } from "@tutao/entities/sys"
 import { IMPORT_MAIL_SERVICE_SIZE_LIMIT } from "@tutao/rest-client"
@@ -154,7 +154,7 @@ export class ImportMailFacade {
 				imapUid: importMailParams.imapUid != null ? importMailParams.imapUid.toString() : null,
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 				labels: importMailParams.labels,
-				sourceId: importMailParams.sourceId ?? null,
+				sourceId: importMailParams.sourceId != null ? stringToBase64UrlCustomId(importMailParams.sourceId) : null,
 			})
 			importMailData.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			importMailData.ownerEncSessionKey = ownerEncSessionKey.key

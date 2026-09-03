@@ -3,7 +3,7 @@ import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../
 import { ImapMail, ImapMailAttachment } from "../../../common/api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapError } from "../../../common/api/common/error/ImapError.js"
 
-import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
+import { assertNotNull, base64UrlCustomIdToString, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
@@ -157,6 +157,18 @@ export class ImapImporter implements ImapSyncFacade {
 			}
 		}
 
+		// A second concurrent call for an already-RUNNING account (e.g. the periodic resync interval and
+		// continueAllImportsAfterLogin firing close together) must not start another round: M365SyncSystemFacade's
+		// startSync stops whatever is currently active for this accountSyncId before starting a new one, so without
+		// this guard a concurrent call kills an in-progress M365 round after only its first folder(s).
+		if (!isForceRetry && session.imapAccountSyncState.status === ImapAccountSyncStatus.RUNNING) {
+			console.log(`continueImport: accountSyncState ${imapAccountSyncStateId} is already RUNNING, skipping duplicate start.`)
+			return {
+				state: { status: ImapAccountSyncStatus.RUNNING },
+				remoteStateId: session.imapAccountSyncState._id,
+			}
+		}
+
 		const imapCredentials = imapAccountSyncStateToImapCredentials(session.imapAccountSyncState)
 		const maxQuota = parseInt(session.imapAccountSyncState.maxQuota)
 		const imapMailboxStates = await this.getAllImapMailboxStates(session)
@@ -167,13 +179,21 @@ export class ImapImporter implements ImapSyncFacade {
 		const hashToIdMap = await this.getImportedImapAttachmentHashToIdMap(session)
 		this.deduplicatedImportedAttachmentHashToFileIdByMailGroup.set(mailGroupId, hashToIdMap)
 
-		await this.getSyncFacadeForProvider(imapCredentials.provider).startSync(imapAccountSyncStateId, imapSyncContext)
-
+		// Persist RUNNING before kicking off startSync, not after: ImapSyncSystemFacade.startSync resolves almost
+		// immediately (ImapSyncSession fires off its per-mailbox chain without awaiting it), but
+		// M365SyncSystemFacade.startSync awaits the *entire* per-folder loop before resolving. If RUNNING were
+		// persisted afterwards, the account would stay at its stale pre-round status (POSTPONED/FINISHED) for the
+		// whole M365 round, which reloadImapImportSession + the POSTPONED-expiry check above read fresh on every
+		// call - a concurrent continueImport (periodic resync, login, retry) would then see that stale status,
+		// consider it safe to start another round, and DesktopM365SyncSystemFacade.startSync's own
+		// `await this.stopSync(accountSyncId)` would kill the still-running round after only its first folder(s).
 		await this.imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 			session.imapAccountSyncState,
 			ImapAccountSyncStatus.RUNNING,
 			ImapFolderSyncStatus.RUNNING,
 		)
+		await this.getSyncFacadeForProvider(imapCredentials.provider).startSync(imapAccountSyncStateId, imapSyncContext)
+
 		return Promise.resolve({
 			state: { status: ImapAccountSyncStatus.RUNNING },
 			remoteStateId: session.imapAccountSyncState._id,
@@ -253,19 +273,23 @@ export class ImapImporter implements ImapSyncFacade {
 			if (!(folderSyncState.status === ImapFolderSyncStatus.NO_SYNC)) {
 				const importedImapMails = await this.imapFacade.getImportedMails(folderSyncState.importedMails)
 				for (const importedImapMail of importedImapMails) {
+					// Every ImportedImapMail is identified by exactly one of sourceId (non-IMAP, e.g. Microsoft
+					// Graph) or imapUid (IMAP) - mirrors correlationKeyFor in ImportMailFacade. imapUid is a
+					// non-nullable server field for historical reasons, so its presence can't signal which case
+					// applies; sourceId's presence is the only reliable signal.
 					if (importedImapMail.sourceId !== null) {
-						importedSourceIds.add(importedImapMail.sourceId)
-					}
+						importedSourceIds.add(base64UrlCustomIdToString(importedImapMail.sourceId))
+					} else {
+						const imapUid = parseInt(assertNotNull(importedImapMail.imapUid))
+						const importedImapMailId: ImapMailId = { uid: imapUid }
+						if (importedImapMail.imapModSeq !== null) {
+							importedImapMailId.modSeq = BigInt(importedImapMail.imapModSeq)
+						}
+						importedImapMailId.messageId = importedImapMail.messageId
 
-					const imapUid = parseInt(importedImapMail.imapUid)
-					const importedImapMailId: ImapMailId = { uid: imapUid }
-					if (importedImapMail.imapModSeq !== null) {
-						importedImapMailId.modSeq = BigInt(importedImapMail.imapModSeq)
+						importedImapUidToImapMailId.set(imapUid, importedImapMailId)
 					}
-					importedImapMailId.messageId = importedImapMail.messageId
 					session.importedMessageIds.add(importedImapMail.messageId)
-
-					importedImapUidToImapMailId.set(imapUid, importedImapMailId)
 				}
 			}
 
