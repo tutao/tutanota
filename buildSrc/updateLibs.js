@@ -50,6 +50,11 @@ const clientDependencies = [
 	{ src: "../src/applications/common/desktop/imapimport/imapsync/imapflow-custom.js", target: "imapflow.js", bundling: "rollupImap" },
 	{ src: "../src/applications/common/desktop/imapimport/imapsync/imapmail/postalmime-custom.js", target: "postal-mime.js", bundling: "rollupImap" },
 	{ src: "../src/applications/mail-app/settings/imapimport/oauth/openid-client-custom.js", target: "openid-client.js", bundling: "rollupImap" },
+	{
+		src: "../src/applications/common/desktop/imapimport/m365sync/microsoft-graph-client-custom.js",
+		target: "microsoft-graph-client.js",
+		bundling: "rollupImap",
+	},
 ]
 
 /** Run special patches after bundling */
@@ -183,6 +188,11 @@ async function rollupTensorFlow(src, target, banner) {
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 
+/**
+ * @param src {string}
+ * @param target {string}
+ * @param banner {string | undefined}
+ */
 async function rollupImapLibraries(src, target, banner) {
 	console.log("rolling up Imap libraries with...", src, target, banner)
 	const bundle = await rollup({

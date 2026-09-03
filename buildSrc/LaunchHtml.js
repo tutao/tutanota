@@ -15,7 +15,12 @@ function getCspUrls(env) {
 		const webSocketUrl = `ws${env.staticUrl.substring(4)}`
 		const appApiUrl = `${env.staticUrl.replace(/^https?/, "api")}`
 		const websiteUrl = env.domainConfigs[url.hostname]?.websiteBaseUrl ?? "https://tuta.com"
-		const oAuthUrls = ["https://accounts.google.com", "https://oauth2.googleapis.com/token", "https://login.microsoftonline.com"]
+		const oAuthUrls = [
+			"https://accounts.google.com",
+			"https://oauth2.googleapis.com/token",
+			"https://login.microsoftonline.com",
+			"https://graph.microsoft.com",
+		]
 		return `${env.staticUrl} ${webSocketUrl} ${apiUrl} ${appApiUrl} ${websiteUrl} ${oAuthUrls.join(" ")}`
 	} else {
 		return ""

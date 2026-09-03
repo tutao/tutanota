@@ -1,18 +1,18 @@
-import require$$1 from 'fs';
-import require$$0 from 'constants';
-import require$$0$1 from 'stream';
-import require$$4 from 'util';
-import require$$5 from 'assert';
-import require$$1$1 from 'path';
-import require$$1$4 from 'child_process';
-import require$$0$2 from 'events';
-import require$$0$3 from 'crypto';
-import require$$1$2 from 'tty';
-import require$$2 from 'os';
-import require$$2$1 from 'url';
-import require$$1$3 from 'electron';
-import require$$14 from 'zlib';
-import require$$4$1 from 'http';
+import require$$1 from "fs"
+import require$$0 from "constants"
+import require$$0$1 from "stream"
+import require$$4 from "util"
+import require$$5 from "assert"
+import require$$1$1 from "path"
+import require$$1$4 from "child_process"
+import require$$0$2 from "events"
+import require$$0$3 from "crypto"
+import require$$1$2 from "tty"
+import require$$2 from "os"
+import require$$2$1 from "url"
+import require$$1$3 from "electron"
+import require$$14 from "zlib"
+import require$$4$1 from "http"
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
@@ -12003,55 +12003,47 @@ const coerce$1 = (version, options) => {
 };
 var coerce_1 = coerce$1;
 
-var lrucache;
-var hasRequiredLrucache;
 
-function requireLrucache () {
-	if (hasRequiredLrucache) return lrucache;
-	hasRequiredLrucache = 1;
-
-	class LRUCache {
-	  constructor () {
-	    this.max = 1000;
-	    this.map = new Map();
-	  }
-
-	  get (key) {
-	    const value = this.map.get(key);
-	    if (value === undefined) {
-	      return undefined
-	    } else {
-	      // Remove the key from the map and add it to the end
-	      this.map.delete(key);
-	      this.map.set(key, value);
-	      return value
-	    }
-	  }
-
-	  delete (key) {
-	    return this.map.delete(key)
-	  }
-
-	  set (key, value) {
-	    const deleted = this.delete(key);
-
-	    if (!deleted && value !== undefined) {
-	      // If cache is full, delete the least recently used item
-	      if (this.map.size >= this.max) {
-	        const firstKey = this.map.keys().next().value;
-	        this.delete(firstKey);
-	      }
-
-	      this.map.set(key, value);
-	    }
-
-	    return this
-	  }
+class LRUCache {
+	constructor () {
+		this.max = 1000;
+		this.map = new Map();
 	}
 
-	lrucache = LRUCache;
-	return lrucache;
+	get (key) {
+		const value = this.map.get(key);
+		if (value === undefined) {
+			return undefined
+		} else {
+			// Remove the key from the map and add it to the end
+			this.map.delete(key);
+			this.map.set(key, value);
+			return value
+		}
+	}
+
+	delete (key) {
+		return this.map.delete(key)
+	}
+
+	set (key, value) {
+		const deleted = this.delete(key);
+
+		if (!deleted && value !== undefined) {
+			// If cache is full, delete the least recently used item
+			if (this.map.size >= this.max) {
+				const firstKey = this.map.keys().next().value;
+				this.delete(firstKey);
+			}
+
+			this.map.set(key, value);
+		}
+
+		return this
+	}
 }
+
+var lrucache = LRUCache;
 
 var range;
 var hasRequiredRange;
@@ -12274,7 +12266,7 @@ function requireRange () {
 
 	range = Range;
 
-	const LRU = requireLrucache();
+	const LRU = lrucache;
 	const cache = new LRU();
 
 	const parseOptions = parseOptions_1;

@@ -25,6 +25,7 @@ export const dependencyMap = {
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./imapflow-custom": path.normalize("./libs/imapflow.js"),
 	"./postalmime-custom": path.normalize("./libs/postal-mime.js"),
+	"./microsoft-graph-client-custom": path.normalize("./libs/microsoft-graph-client.js"),
 }
 
 export let tsImportAliases = {
