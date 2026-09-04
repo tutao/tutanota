@@ -1035,6 +1035,7 @@ export default {
 		"label_label": "Label",
 		"labelInput_label": "Label name",
 		"labelLimitExceeded_msg": "Only 3 labels are included in the free plan. Please delete labels to downgrade.",
+		"labelNameInvalidExisting_msg": "A label with this name already exists.",
 		"labels_label": "Labels",
 		"language_label": "Language",
 		"languageAfrikaans_label": "Afrikaans",
@@ -1256,6 +1257,7 @@ export default {
 		"migrationFolderMappingEditConfirmButton_label": "Confirm folders",
 		"migrationGenericError_msg": "An error occurred while running your one-click email migration. Error code: {errorCode}",
 		"migrationGmailAllMailsDisabledImapError_msg": "The \"All Mail\" label is disabled for IMAP in your Gmail settings.\nPlease make sure \"Show in IMAP\" is enabled for the \"All Mail\" label in your Gmail account.\nPlease verify this setting in Gmail under: Settings -> See all Settings -> Labels, in your Gmail account.",
+		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server. Please check if your connection uses SSL/TLS security, if so, make sure you've enabled the 'Use SSL/TLS' checkbox in the previous step.",
 		"migrationHistory_label": "Migration history",
 		"migrationHistoryTotalImportedMails_msg": "Imported mails, {imported}",
 		"migrationHostNotFoundError_msg": "We could not establish a connection to the IMAP server. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server.",
@@ -1302,6 +1304,7 @@ export default {
 		"migrationUpdateCredentials_title": "Migration error",
 		"migrationUpdateCredentialsInfo_msg": "Your current migration credentials are expired or incorrect. Please update your credentials to continue.",
 		"migrationUploadCustomCertificate_action": "Select certificate file",
+		"migrationUseSSL_label": "Use SSL/TLS",
 		"mobile_label": "Mobile",
 		"modified_label": "Modified",
 		"monday_label": "Monday",
@@ -2518,9 +2521,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server. Please check if your connection uses SSL/TLS security, if so, make sure you've enabled the 'Use SSL/TLS' checkbox in the previous step.",
-		"migrationUseSSL_label": "Use SSL/TLS",
-		"labelNameInvalidExisting_msg": "A label with this name already exists."
+		"zoomOut_action": "Zoom Out"
 	}
 }

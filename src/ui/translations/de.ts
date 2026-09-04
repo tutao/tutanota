@@ -1035,6 +1035,7 @@ export default {
 		"label_label": "Label",
 		"labelInput_label": "Label-Name",
 		"labelLimitExceeded_msg": "In der kostenlosen Version sind nur 3 Labels enthalten. Bitte lösche Labels, um zu Free wechseln zu können.",
+		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits.",
 		"labels_label": "Labels",
 		"language_label": "Sprache",
 		"languageAfrikaans_label": "Afrikaans",
@@ -1256,6 +1257,7 @@ export default {
 		"migrationFolderMappingEditConfirmButton_label": "Ordner bestätigen",
 		"migrationGenericError_msg": "Während der Ein-Klick E-Mail Migration ist ein Fehler aufgetreten. Fehlercode: {errorCode}",
 		"migrationGmailAllMailsDisabledImapError_msg": "Das Label \"Alle E-Mails\" in deinem Gmail-Account ist für IMAP deaktiviert. Bitte stelle sicher, dass \"In IMAP anzeigen\" für das Label \"Alle E-Mails\" in deinem Gmail-Account aktiviert ist. Bitte überprüfe diese Gmail-Einstellung unter: Einstellungen -> Alle Einstellungen aufrufen -> Labels, in deinem Gmail-Account.",
+		"migrationGreetingTimeout_msg": "Aufgrund eines Timeouts konnte keine Verbindung zum IMAP-Server hergestellt werden. Bitte überprüfe, ob die angegebenen IMAP-Serverdaten korrekt sind und ob dein Netzwerk Verbindungen zu diesem IMAP-Server zulässt. Bitte prüfe, ob deine Verbindung SSL/TLS-Verschlüsselung verwendet. Ist dies der Fall, stelle sicher, dass du im vorherigen Schritt das Kontrollkästchen „SSL/TLS verwenden“ aktiviert hast.",
 		"migrationHistory_label": "Migrations-Verlauf",
 		"migrationHistoryTotalImportedMails_msg": "{imported} E-Mails importiert",
 		"migrationHostNotFoundError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden. Bitte überprüfe deine eingegebenen IMAP-Server Daten und stelle sicher, dass dein Netzwerk Verbindungen zu diesem IMAP-Server erlaubt.",
@@ -1302,6 +1304,7 @@ export default {
 		"migrationUpdateCredentials_title": "Fehler bei der Migration",
 		"migrationUpdateCredentialsInfo_msg": "Die aktuellen Zugangsdaten für deine Migration sind ungültig oder abgelaufen. Bitte korrigiere deine Zugangsdaten um die Migration fortzusetzen.",
 		"migrationUploadCustomCertificate_action": "Zertifikatsdatei auswählen",
+		"migrationUseSSL_label": "SSL/TLS verwenden",
 		"mobile_label": "Mobil",
 		"modified_label": "Geändert",
 		"monday_label": "Montag",
@@ -2144,7 +2147,7 @@ export default {
 		"subscriptionSettingOptionPageRevoke_action": "Rückerstattung (Vertrag widerrufen)",
 		"subscriptionSettingOptionPageRevoke_label": "Widerrufe dein Vertrag und erhalte eine Rückerstattung. Dies ist nur in den ersten 14 Tagen nach Beginn deines Abos möglich.",
 		"subscriptionSettingResponderFeature_label": "Autoresponder",
-		"subscriptionSettingResponderFeature_msg": "Falls du einen Autoresponder aktiviert hast, deaktiviere dies bitte unter Einstellungen > E-Mail > Autoresponder",
+		"subscriptionSettingResponderFeature_msg": "Falls du einen Autoresponder aktiviert hast, deaktiviere diesen bitte unter Einstellungen > E-Mail > Autoresponder",
 		"subscriptionSettingRevocationSubscriptionOnlyFeatures_msg": "Falls du eine der folgenden Features benutzt, deaktiviere diese bitte. Anderenfalls ist es uns nicht möglich, deinen Account zu Free zu wechseln und du musst den Wechsel manuell vornehmen.",
 		"subscriptionSettingRevokePageExplanation_msg": "<ul><li>Du hast das Recht deinen Vertrag innerhalb von 14 Tagen nach dem Kauf zu widerrufen.</li><li>Bei einem Widerruf wird dein Vertrag gekündigt und du erhälst eine Rückerstattung.</li><li>Dein Account wird, nachdem der Widerruf abgeschlossen ist, zu Free gewechselt.</li><li>Falls du noch bezahlte Features benutzt, musst du diese vor dem Widerruf deaktivieren</li></ul>",
 		"subscriptionSettings_label": "Abonnement-Einstellungen",
@@ -2518,9 +2521,6 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationGreetingTimeout_msg": "test",
-		"migrationUseSSL_label": "Connect securely to port(Use SSL)",
-		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits."
+		"zoomOut_action": "Herauszoomen"
 	}
 }

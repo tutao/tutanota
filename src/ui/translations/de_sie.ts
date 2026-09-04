@@ -1035,6 +1035,7 @@ export default {
 		"label_label": "Label",
 		"labelInput_label": "Label-Name",
 		"labelLimitExceeded_msg": "In der kostenlosen Version sind nur 3 Labels enthalten. Bitte löschen Sie Labels, um zu Free wechseln zu können.",
+		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits.",
 		"labels_label": "Labels",
 		"language_label": "Sprache",
 		"languageAfrikaans_label": "Afrikaans",
@@ -1256,6 +1257,7 @@ export default {
 		"migrationFolderMappingEditConfirmButton_label": "Ordner bestätigen",
 		"migrationGenericError_msg": "Während der Ein-Klick E-Mail Migration ist ein Fehler aufgetreten. Fehlercode: {errorCode}",
 		"migrationGmailAllMailsDisabledImapError_msg": "Das Label \"Alle E-Mails\" in Ihrem Gmail-Account ist für IMAP deaktiviert. Bitte stellen Sie sicher, dass \"In IMAP anzeigen\" für das Label \"Alle E-Mails\" in Ihrem Gmail-Account aktiviert ist. Bitte überprüfen Sie diese Gmail-Einstellung unter: Einstellungen -> Alle Einstellungen aufrufen -> Labels, in Ihrem Gmail-Account.",
+		"migrationGreetingTimeout_msg": "Aufgrund eines Timeouts konnte keine Verbindung zum IMAP-Server hergestellt werden. Bitte überprüfen Sie, ob die angegebenen IMAP-Serverdaten korrekt sind und ob Ihr Netzwerk Verbindungen zu diesem IMAP-Server zulässt. Bitte prüfen Sie, ob Ihre Verbindung SSL/TLS-Verschlüsselung verwendet. Ist dies der Fall, stellen Sie sicher, dass Sie im vorherigen Schritt das Kontrollkästchen „SSL/TLS verwenden“ aktiviert haben.",
 		"migrationHistory_label": "Migrations-Verlauf",
 		"migrationHistoryTotalImportedMails_msg": "{imported} E-Mails importiert",
 		"migrationHostNotFoundError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden. Bitte überprüfen Sie Ihre eingegebenen IMAP-Server Daten und stelle Sie sicher, dass in Ihrem Netzwerk Verbindungen zu diesem IMAP-Server erlaubt.",
@@ -1302,6 +1304,7 @@ export default {
 		"migrationUpdateCredentials_title": "Fehler bei der Migration",
 		"migrationUpdateCredentialsInfo_msg": "Die aktuellen Zugangsdaten für Ihre Migration sind ungültig oder abgelaufen. Bitte korrigieren Sie Ihre Zugangsdaten, um die Migration fortzusetzen.",
 		"migrationUploadCustomCertificate_action": "Zertifikatsdatei auswählen",
+		"migrationUseSSL_label": "SSL/TLS verwenden",
 		"mobile_label": "Mobil",
 		"modified_label": "Geändert",
 		"monday_label": "Montag",
@@ -2518,9 +2521,6 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen",
-		"migrationGreetingTimeout_msg": "We could not establish a connection to the IMAP server due a timeout. Please verify that the provided IMAP server information is correct, and your network allows connections to this IMAP server and check if your connection is secure(SSL), if so please make sure you've checked the setting during setup.",
-		"migrationUseSSL_label": "Use SSL/TLS",
-		"labelNameInvalidExisting_msg": "Ein Label mit diesem Namen existiert bereits."
+		"zoomOut_action": "Herauszoomen"
 	}
 }
