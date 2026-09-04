@@ -2531,3 +2531,5 @@ export type TranslationKeyType =
 	| "subscriptionSettingsExpiredStateDescription_label"
 	| "subscriptionSettingsRevokedStateDescription_label"
 	| "subscriptionSettingsCancelledStateDescription_label"
+	| "giftCardNotAvailableGoogle_msg"
+	| "giftCardNotAvailableApple_msg"

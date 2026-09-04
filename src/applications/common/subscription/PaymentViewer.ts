@@ -543,7 +543,7 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			click: createNotAvailableForFreeClickHandler(
 				UpgradePromptType.PURCHASE_GIFT_CARDS,
 				NewPaidPlans,
-				() => showPurchaseGiftCardDialog(),
+				() => showPurchaseGiftCardDialog(this.accountingInfo?.paymentMethod as PaymentMethodType),
 				isPremiumPredicate,
 			),
 			icon: Icons.Plus,

@@ -2109,8 +2109,8 @@ export default {
 		"storedDataDate_label": "Speichere E-Mails ab {date}",
 		"storedDataTimeRange_label": "Speichern der E-Mails der {numDays} letzten Tage",
 		"storedDataTimeRangeHelpText_msg": "Gespeicherte E-Mails, die älter sind als hier angegeben, werden automatisch von Ihrem Gerät entfernt.",
-		"storeDowngradeOrResubscribe_msg": "Ihr aktuelles App Store-Abonnement ist abgelaufen. Möchten Sie zu Free wechseln oder ein neues Abonnement abschließen, um die bezahlten Funktionen zu behalten?\nSiehe {AppStoreDowngrade}",
-		"storeMultiSubscriptionError_msg": "Es ist nicht möglich, mehrere Abonnements mit der gleichen Apple ID zu managen.\nSiehe {AppStorePayment}",
+		"storeDowngradeOrResubscribe_msg": "Ihr aktuelles App Abonnement ist abgelaufen. Möchten Sie zu Free wechseln oder ein neues Abonnement abschließen, um die bezahlten Funktionen zu behalten? Siehe {AppStoreDowngrade}",
+		"storeMultiSubscriptionError_msg": "Es ist nicht möglich, mehrere Abonnements mit der gleichen Apple ID zu managen. Siehe {AppStorePayment}",
 		"storeNoSubscription_msg": "Es gibt ein bestehendes Abonnement für Ihr Konto über eine andere Apple ID oder Google Konto.\nSiehe {AppStorePayment}",
 		"storePassword_action": "Passwort speichern",
 		"storePaymentMethodChange_msg": "Es ist nicht möglich, Ihre Zahlungsmethode zu ändern, während Sie über den App Store registriert sind.\nSiehe {AppStorePaymentChange}",
@@ -2533,5 +2533,7 @@ export default {
 		"subscriptionSettingsExpiredStateDescription_label": "Ihr Abonnement ist abgelaufen, aber einige kostenpflichtige Funktionen werden noch verwendet. Deshalb können Sie Ihr dein Account derzeit nur eingeschränkt nutzen.",
 		"subscriptionSettingsRevokedStateDescription_label": "Ihr Abonnement wurde widerrufen. Sie bekommen den Betrag innerhalb der nächsten Tage zurückerstattet. Danach wird Ihr Account auf den Free Plan gewechselt.",
 		"subscriptionSettingsCancelledStateDescription_label": "Ihr Abonnement wurde gekündigt und verlängert sich nicht. Sie haben bis zum Ende Ihres aktuellen Abrechnungszeitraums vollen Zugriff auf alle Funktionen.",
+		"giftCardNotAvailableAppStore_msg": "Der Kauf von Gutscheinen ist nicht möglich, da Sie ein aktives App-Store-Abonnement haben.",
+		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da Sie ein aktives Google Play Store-Abonnement haben.",
 	}
 }

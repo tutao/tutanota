@@ -2533,6 +2533,7 @@ export default {
 		"subscriptionSettingsExpiredStateDescription_label": "Dein Abonnement ist abgelaufen, aber einige kostenpflichtige Funktionen werden noch verwendet. Deshalb kannst du dein Account derzeit nur eingeschränkt nutzen.",
 		"subscriptionSettingsRevokedStateDescription_label": "Dein Abonnement wurde widerrufen. Du bekommst den Betrag innerhalb der nächsten Tage zurückerstattet. Danach wird dein Konto auf den Free Plan gewechselt.",
 		"subscriptionSettingsCancelledStateDescription_label": "Dein Abonnement wurde gekündigt und verlängert sich nicht. Du hast bis zum Ende deines aktuellen Abrechnungszeitraums vollen Zugriff auf alle Funktionen.",
-
+		"giftCardNotAvailableAppStore_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives App-Store-Abonnement hast.",
+		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives Google Play Store-Abonnement hast.",
 	}
 }
