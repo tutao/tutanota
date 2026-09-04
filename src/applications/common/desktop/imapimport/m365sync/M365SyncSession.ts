@@ -131,6 +131,16 @@ export class M365SyncSession {
 			await this.listener.onMailbox(mailbox, ImapSyncEventType.CREATE)
 		}
 
+		// Download mail per folder without awaiting it here: mirrors ImapSyncSession.runSyncSession, which fires
+		// off its per-mailbox chain (startNextMailboxSync) without awaiting it, so that the caller (ultimately
+		// the import wizard's progress dialog) resolves once folders are discovered rather than once the whole
+		// account has synced. Progress/completion is reported asynchronously through the listener.
+		this.syncFolders(client, flatMailboxes).catch((e) => {
+			console.error("M365 sync round failed", e)
+		})
+	}
+
+	private async syncFolders(client: GraphClient, flatMailboxes: ImapMailbox[]): Promise<void> {
 		for (const mailbox of flatMailboxes) {
 			if (this.stopped) {
 				// stop() can be triggered mid-loop by ImapImporter.onMultipleMails/onPostpone/pauseImport calling
