@@ -9,7 +9,6 @@ import { renderAcceptGiftCardTermsCheckbox, showGiftCardToShare } from "./GiftCa
 import type { DialogHeaderBarAttrs } from "../../../../ui/base/DialogHeaderBar"
 import { showUserError } from "../../misc/ErrorHandlerImpl"
 import { UserError } from "../../api/main/UserError"
-import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
@@ -24,7 +23,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { GiftCard, GiftCardOption, GiftCardService_GET, GiftCardTypeRef } from "@tutao/entities/sys"
-import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { isExternalPaymentMethod, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import { NULL_ENTITY } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
@@ -210,8 +209,11 @@ class GiftCardPurchaseView implements Component<GiftCardPurchaseViewAttrs> {
  * @returns {Promise<unknown>|Promise<void>|Promise<Promise<void>>}
  */
 
-export async function showPurchaseGiftCardDialog() {
-	if (EnvProvider.get().env.paymentSetup !== PaymentSetup.Default) {
+export async function showPurchaseGiftCardDialog(paymentMethodType: PaymentMethodType | null) {
+	if (!paymentMethodType) {
+		return false
+	}
+	if (isExternalPaymentMethod(paymentMethodType)) {
 		return Dialog.message("notAvailableInApp_msg")
 	}
 

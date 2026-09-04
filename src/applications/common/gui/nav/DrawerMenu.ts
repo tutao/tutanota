@@ -17,8 +17,10 @@ import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { EnvProvider, FeatureType, UpgradePromptType } from "@tutao/app-env"
-import { assertNotNull } from "@tutao/utils"
-import { isAndroid } from "squire-rte/dist/types/Constants"
+import { locator } from "../../api/main/CommonLocator"
+import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
+import { idToElementId } from "@tutao/meta"
+import { PaymentMethodType } from "../../../../entities/sys/Utils"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -28,6 +30,10 @@ export interface DrawerMenuAttrs {
 }
 
 export class DrawerMenu implements Component<DrawerMenuAttrs> {
+	accountingInfo: AccountingInfo | null = null
+	constructor() {
+		this.loadData()
+	}
 	view(vnode: Vnode<DrawerMenuAttrs>): Children {
 		const { logins, newsModel, desktopSystemFacade, isPartnerEnabled } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
@@ -69,14 +75,14 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								: null,
 						])
 					: null,
-				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !assertNotNull(customer).businessUse
+				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
 					? m(IconButton, {
 							icon: Icons.GiftFilled,
 							title: "buyGiftCard_label",
 							click: () => {
 								m.route.set("/settings/invoice")
 								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
-									return showPurchaseGiftCardDialog()
+									return showPurchaseGiftCardDialog(this.accountingInfo?.paymentMethod as PaymentMethodType)
 								})
 							},
 							colors: ButtonColor.DrawerNav,
@@ -145,6 +151,13 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				}),
 			],
 		)
+	}
+
+	private async loadData() {
+		const customer = await locator.logins.getUserController().reloadCustomer()
+		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+		this.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
+		m.redraw()
 	}
 }
 
