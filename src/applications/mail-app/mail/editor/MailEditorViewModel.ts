@@ -18,7 +18,7 @@ import { AttachmentDownloader } from "../view/MailGuiUtils"
 export async function chooseAndAttachFile(
 	model: SendMailModel,
 	boundingRect: ClientRect,
-	fileTypes?: Array<string>,
+	fileTypes?: ReadonlyArray<string>,
 ): Promise<ReadonlyArray<DataFile | FileReference> | void> {
 	boundingRect.height = Math.round(boundingRect.height)
 	boundingRect.width = Math.round(boundingRect.width)
@@ -55,7 +55,10 @@ export async function chooseAndAttachFile(
 	}
 }
 
-export function showFileChooserForAttachments(boundingRect: ClientRect, fileTypes?: Array<string>): Promise<ReadonlyArray<FileReference | DataFile> | void> {
+export function showFileChooserForAttachments(
+	boundingRect: ClientRect,
+	fileTypes?: ReadonlyArray<string>,
+): Promise<ReadonlyArray<FileReference | DataFile> | void> {
 	const fileSelector =
 		EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
 			? locator.fileApp.openFileChooser(boundingRect, fileTypes)

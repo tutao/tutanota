@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { elementIdPart, listIdPart } from "../../../../platform-kit/meta"
-import { EnvProvider, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchIndexStateInfo, SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { assertNotNull, isEmpty, ofClass } from "../../../../platform-kit/utils"
@@ -33,8 +33,8 @@ export class MailSearchModel {
 			initializing: true,
 			mailIndexEnabled: false,
 			progress: 0,
-			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
-			aimedMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+			currentMailIndexTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
+			aimedMailIndexTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 			indexedMailCount: 0,
 			failedIndexingUpTo: null,
 		})

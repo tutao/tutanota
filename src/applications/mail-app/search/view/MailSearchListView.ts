@@ -8,7 +8,7 @@ import { YEAR_IN_MILLIS } from "@tutao/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Button, ButtonType } from "../../../../ui/base/Button"
 import { CircleLoadingBar } from "../../../../ui/CircleLoadingBar"
-import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { formatDate } from "../../../../ui/utils/Formatter"
 import { component_size, px, size } from "../../../../ui/size"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -76,7 +76,7 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 			]
 		} else if (
 			(this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
-				this.attrs.indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+				this.attrs.indexState.currentMailIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
 				EnvProvider.get().isOfflineStorageAvailable()) ||
 			(sixMonthsBeforeStartDate && sixMonthsBeforeStartDate.getTime() < this.attrs.indexState.currentMailIndexTimestamp)
 		) {
@@ -94,7 +94,7 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 			)
 		} else if (
 			this.attrs.listModel.state.loadingStatus === ListLoadingState.Done &&
-			this.attrs.indexState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP &&
+			this.attrs.indexState.currentMailIndexTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
 			this.attrs.isIncompleteMailList
 		) {
 			innerChildren = m(

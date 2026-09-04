@@ -102,7 +102,7 @@ export class RestClient implements RestClientInterface {
 					}
 				}
 
-				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig).asString()
+				const origin = options.baseUrl ?? EnvProvider.get().getApiBaseUrl(this.domainConfig).toString()
 				const resourceURL = new URL(origin)
 				resourceURL.pathname = path
 				const url = addParamsToUrl(resourceURL, queryParams)

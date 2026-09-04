@@ -21,7 +21,7 @@ import {
 import { SparseVectorCompressor } from "./SparseVectorCompressor"
 import { assertNotNull, lazyAsync, lazyMemoized, splitUint8Array, tokenize } from "@tutao/utils"
 import { getMailBodyText } from "../../CommonMailUtils"
-import { DEFAULT_VECTOR_MAX_LENGTH, MailAuthenticationStatus, TutanotaConstants } from "@tutao/app-env"
+import { MailAuthenticationStatus, TutanotaConstants } from "@tutao/app-env"
 import { ClientSpamTrainingDatum, Mail, MailAddress, MailDetails } from "@tutao/entities/tutanota"
 
 export type PreprocessConfiguration = {
@@ -169,7 +169,10 @@ export class SpamMailProcessor {
 		return `\n${sender}\n${toRecipients}\n${ccRecipients}\n${bccRecipients}\n${authStatus}`
 	}
 
-	private extractCompressedVectorParts(vector: Uint8Array): { compressedVectorizedMail: Uint8Array; compressedServerClassificationData: Uint8Array } {
+	private extractCompressedVectorParts(vector: Uint8Array): {
+		compressedVectorizedMail: Uint8Array
+		compressedServerClassificationData: Uint8Array
+	} {
 		const [lengthBytes, rest] = splitUint8Array(vector, 2)
 		const length = this.sparseVectorCompressor.decodeCompressedVectorLength(lengthBytes)
 		const [compressedVectorizedMail, compressedServerClassificationData] = splitUint8Array(rest, length)

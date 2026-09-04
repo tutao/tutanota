@@ -1,6 +1,6 @@
 import { TimeConstants } from "./TimeConstants.js"
 import { EnvProvider } from "./Env"
-import { TsDouble, TsInt, TsMath, TsObject, TsReadonlyArray, TsString } from "@tutao/lang-api"
+import { TsDouble, TsInt, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
 	constructor() {}
@@ -26,9 +26,14 @@ export class TutanotaConstants {
 		EXECUTE_KDF_MIGRATION: true,
 	} satisfies ConstType)
 
-	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: TsReadonlyArray<TsString> = TsObject.freeze(
-		TsReadonlyArray.from("tuta.com", "tutamail.com", "tuta.io", "tutanota.com", "tutanota.de", "keemail.me"),
-	)
+	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = Object.freeze([
+		"tuta.com",
+		"tutamail.com",
+		"tuta.io",
+		"tutanota.com",
+		"tutanota.de",
+		"keemail.me",
+	])
 
 	public static readonly TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS
 
@@ -38,7 +43,7 @@ export class TutanotaConstants {
 
 	public static readonly MAX_LOGO_SIZE: TsInt = 1024 * 100
 	public static readonly MAX_BASE64_IMAGE_SIZE: TsInt = TutanotaConstants.MAX_LOGO_SIZE
-	public static readonly ALLOWED_IMAGE_FORMATS: TsReadonlyArray<TsString> = TsObject.freeze(TsReadonlyArray.from("png", "jpg", "jpeg", "svg"))
+	public static readonly ALLOWED_IMAGE_FORMATS: ReadonlyArray<string> = Object.freeze(["png", "jpg", "jpeg", "svg"])
 
 	public static readonly GENERATED_ID_MAX_TIMESTAMP: TsInt = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
 	public static readonly GENERATED_ID_MIN_TIMESTAMP: TsInt = 0

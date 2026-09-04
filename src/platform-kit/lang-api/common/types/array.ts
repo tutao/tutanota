@@ -4,6 +4,7 @@ import { Nullable } from "./utility"
 export type TsReadonlyArray<T> = {
 	readonly length: TsInt
 	find(predicate: (value: T, index: TsInt, obj: TsArray<T>) => unknown): Nullable<T>
+	indexOf(searchElement: T, fromIndex?: number): number
 }
 
 export const TsReadonlyArray = {
