@@ -143,6 +143,7 @@ class Agenda : GlanceAppWidget() {
 				}
 
 				is WidgetUIState.Loading -> {
+					// TODO: Consider doing this only in state NewConfigurationProvided so users can see their events
 					LoadingSpinner()
 				}
 

@@ -129,6 +129,8 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 	private var firstLoaded = false
 	private var webauthnResultHandler: WebauthnHandler? = null
 
+	private var widgetRefresher: WidgetRefresher = WidgetRefresher()
+
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
@@ -214,7 +216,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 				db,
 				BuildConfig.FILE_PROVIDER_AUTHORITY,
 				AppType.CALENDAR,
-				WidgetRefresher(),
+				widgetRefresher,
 				tempDir
 			),
 			CredentialsEncryptionFactory.create(this, cryptoFacade, db),
@@ -497,7 +499,14 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 	override fun onStop() {
 		Log.d(TAG, "onStop")
-		lifecycleScope.launch { mobileFacade.visibilityChange(false) }
+		lifecycleScope.launch {
+			mobileFacade.visibilityChange(false)
+			widgetRefresher.refresh(
+				applicationContext
+			)
+//			val appWidgetIds = intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_IDS, AppWidgetManager.INVALID_APPWIDGET_ID)
+		}
+
 		super.onStop()
 	}
 
