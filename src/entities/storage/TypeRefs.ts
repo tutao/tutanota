@@ -504,3 +504,80 @@ export type BlobReadData = {
 	_original: Nullable<BlobReadData>
 	isAdapter: false
 }
+export const ArchiveEnumerationGetInTypeRef: TypeRef<ArchiveEnumerationGetIn> = new TypeRef("storage", 211)
+
+export function createArchiveEnumerationGetIn(values: ArchiveEnumerationGetInParams): ArchiveEnumerationGetIn {
+	return Object.assign(create(typeModels[ArchiveEnumerationGetInTypeRef.typeId], ArchiveEnumerationGetInTypeRef), values)
+}
+
+export type ArchiveEnumerationGetInParams = {
+	archiveType: NumberString
+
+	group: Id
+}
+
+export type ArchiveEnumerationGetIn = {
+	// == values
+
+	_format: NumberString
+	archiveType: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	group: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ArchiveEnumerationGetIn>
+	_original: Nullable<ArchiveEnumerationGetIn>
+	isAdapter: false
+}
+export const ArchiveEnumerationGetOutTypeRef: TypeRef<ArchiveEnumerationGetOut> = new TypeRef("storage", 215)
+
+export function createArchiveEnumerationGetOut(values: ArchiveEnumerationGetOutParams): ArchiveEnumerationGetOut {
+	return Object.assign(create(typeModels[ArchiveEnumerationGetOutTypeRef.typeId], ArchiveEnumerationGetOutTypeRef), values)
+}
+
+export type ArchiveEnumerationGetOutParams = {
+	archives: Id[]
+}
+
+export type ArchiveEnumerationGetOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	archives: Id[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ArchiveEnumerationGetOut>
+	_original: Nullable<ArchiveEnumerationGetOut>
+	isAdapter: false
+}
