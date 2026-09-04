@@ -200,7 +200,7 @@ export const enum FileChooserFileMode {
  * `webkitRelativePath` available to them.
  * @param allowedExtensions Array of extensions strings without "."
  */
-export function runFileChooser(multiMode: FileChooserMultiMode, fileMode: FileChooserFileMode, allowedExtensions?: Array<string>): Promise<File[]> {
+export function runFileChooser(multiMode: FileChooserMultiMode, fileMode: FileChooserFileMode, allowedExtensions?: ReadonlyArray<string>): Promise<File[]> {
 	// each time when called create a new file chooser to make sure that the same file can be selected twice directly after another
 	// remove the last file input
 	const fileInput = document.getElementById("hiddenFileChooser")
@@ -240,7 +240,7 @@ export function runFileChooser(multiMode: FileChooserMultiMode, fileMode: FileCh
 	return promise
 }
 
-export async function showFileChooser(multiMode: FileChooserMultiMode, allowedExtensions?: Array<string>): Promise<Array<DataFile>> {
+export async function showFileChooser(multiMode: FileChooserMultiMode, allowedExtensions?: ReadonlyArray<string>): Promise<Array<DataFile>> {
 	const files = await runFileChooser(multiMode, FileChooserFileMode.File, allowedExtensions)
 	return readLocalFiles(files).catch(async (e) => {
 		console.log(e)

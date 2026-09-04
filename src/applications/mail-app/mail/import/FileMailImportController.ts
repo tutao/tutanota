@@ -294,7 +294,7 @@ export class FileMailImportController {
 				selectedTargetFolder._id,
 				fileUris,
 				unencryptedCredentials,
-				apiUrl.asString(),
+				apiUrl.toString(),
 			)
 
 			await importFacade.setProgressAction(mailboxId, ImportProgressAction.Continue)

@@ -7,7 +7,7 @@ export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 
 	constructor(appType: AppType) {
-		ClientDetector.get().init(TsString.fromString(navigator.userAgent), TsString.fromString(navigator.platform), appType)
+		ClientDetector.get().init(navigator.userAgent, navigator.platform, appType)
 	}
 
 	/**

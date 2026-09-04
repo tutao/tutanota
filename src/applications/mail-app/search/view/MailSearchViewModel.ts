@@ -18,7 +18,7 @@ import {
 	onceAsync,
 } from "@tutao/utils"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { CancelledError, TutanotaConstants, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { elementIdToId, getElementId, isSameIdTuple, isSameSingleId } from "@tutao/meta"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import {
@@ -341,7 +341,7 @@ export class MailSearchViewModel {
 		// extend mail index when searching mails and start date is outside the indexed range
 		const indexState = this.search.indexState()
 		if (
-			indexState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+			indexState.currentMailIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
 			(targetStartDate == null || targetStartDate.getTime() < indexState.aimedMailIndexTimestamp)
 		) {
 			if (this.listModel.state.loadingStatus === ListLoadingState.Done) {
@@ -352,7 +352,7 @@ export class MailSearchViewModel {
 			// for non-blocking search, the current search result will be extended as the range extends.
 			// for full-archive-download search, once indexing is done, the list will reload automatically if empty and
 			// by user action if not.
-			void this.indexerFacade.extendMailIndex(targetStartDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
+			void this.indexerFacade.extendMailIndex(targetStartDate?.getTime() ?? TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 		} else if (!isSameDay) {
 			this.searchAgain()
 		}
@@ -455,11 +455,12 @@ export class MailSearchViewModel {
 				: Math.max(newState.currentMailIndexTimestamp, getFreeSearchStartDate().getTime())
 			if (
 				isIndexingDoneOrCanceled &&
-				newState.currentMailIndexTimestamp !== FULL_INDEXED_TIMESTAMP &&
+				newState.currentMailIndexTimestamp !== TutanotaConstants.FULL_INDEXED_TIMESTAMP &&
 				(this.#startDate == null || this.#startDate.getTime() < newState.currentMailIndexTimestamp)
 			) {
 				// Indexing was cancelled and _startDate is outside the index range
-				this.#startDate = newState.currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : new Date(dateLimit)
+				this.#startDate =
+					newState.currentMailIndexTimestamp === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP ? getEndOfDay(new Date()) : new Date(dateLimit)
 			}
 
 			const isCurrentResultComplete =
@@ -544,9 +545,9 @@ export class MailSearchViewModel {
 		// currentMailIndexTimestamp < aimedMailIndexTimestamp when fully indexed
 		let timestamp = Math.min(aimedMailIndexTimestamp, currentMailIndexTimestamp)
 
-		if (timestamp === FULL_INDEXED_TIMESTAMP) {
+		if (timestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP) {
 			return null
-		} else if (timestamp === NOTHING_INDEXED_TIMESTAMP) {
+		} else if (timestamp === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP) {
 			return getEndOfDay(new Date())
 		} else {
 			return new Date(timestamp)

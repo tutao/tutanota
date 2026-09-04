@@ -86,6 +86,11 @@ export function tap<T>(action: (arg0: T) => unknown): (arg0: T) => T {
 	}
 }
 
+interface AbstractClass<T> {
+	readonly prototype: T
+	[Symbol.hasInstance](instance: unknown): boolean
+}
+
 /**
  * Helper utility intended to be used with typed exceptions and .catch() method of promise like so:
  *
@@ -101,10 +106,10 @@ export function tap<T>(action: (arg0: T) => unknown): (arg0: T) => T {
  * @param catcher to handle only errors of type cls
  * @returns handler which either forwards to catcher or rethrows
  */
-export function ofClass<E, R>(cls: Class<E>, catcher: (arg0: E) => R): (arg0: any) => Promise<R> {
+export function ofClass<E, R>(cls: AbstractClass<E>, catcher: (arg0: E) => R): (arg0: any) => Promise<R> {
 	return (e) => {
 		if (e instanceof cls) {
-			return Promise.resolve(catcher(e))
+			return Promise.resolve(catcher(e as E))
 		} else {
 			// It's okay to rethrow because:
 			// 1. It preserves the original stacktrace
@@ -114,10 +119,10 @@ export function ofClass<E, R>(cls: Class<E>, catcher: (arg0: E) => R): (arg0: an
 	}
 }
 
-export function ofClassAsync<E, R>(cls: Class<E>, catcher: (arg0: E) => Promise<R>): (arg0: any) => Promise<R> {
+export function ofClassAsync<E, R>(cls: AbstractClass<E>, catcher: (arg0: E) => Promise<R>): (arg0: any) => Promise<R> {
 	return async (e) => {
 		if (e instanceof cls) {
-			return catcher(e)
+			return catcher(e as E)
 		} else {
 			// It's okay to rethrow because:
 			// 1. It preserves the original stacktrace

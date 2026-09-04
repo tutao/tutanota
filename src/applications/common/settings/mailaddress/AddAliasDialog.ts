@@ -37,7 +37,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
 		let formDomain = getFirstOrThrow(domains)
 		if (!isNewPaidPlan && !hasCustomDomains) {
-			formDomain = domains.find((domain) => domain.domain === TutanotaConstants.DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN.asString()) ?? formDomain
+			formDomain = domains.find((domain) => domain.domain === TutanotaConstants.DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN.toString()) ?? formDomain
 		}
 		let senderName = model.defaultSenderName()
 
