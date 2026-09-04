@@ -1,7 +1,7 @@
 import m, { ChildArray, Children, Component, Vnode } from "mithril"
 import { LegacyTextFieldAttrs, LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
-import { Time } from "../../../../common/calendar/date/Time.js"
+import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
 import { font_size, px } from "../../../../../ui/size.js"

@@ -1,4 +1,3 @@
-import { DateTime } from "luxon"
 import { ProgrammingError } from "@tutao/app-env"
 
 /**
@@ -40,7 +39,7 @@ export class Time {
 		return new Time(date.getHours(), date.getMinutes())
 	}
 
-	static fromDateTime({ hour, minute }: DateTime): Time {
+	static fromDateTime({ hour, minute }: { hour: number; minute: number }): Time {
 		return new Time(hour, minute)
 	}
 
@@ -90,10 +89,6 @@ export class Time {
 		const date = baseDate ? new Date(baseDate) : new Date()
 		date.setHours(this._hour, this._minute)
 		return date
-	}
-
-	toDateTime(baseDate: Date, zone: string): DateTime {
-		return DateTime.fromJSDate(baseDate, { zone }).set({ hour: this._hour, minute: this._minute })
 	}
 
 	equals(otherTime: Time): boolean {
