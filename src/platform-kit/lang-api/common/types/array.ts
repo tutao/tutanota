@@ -2,7 +2,7 @@ import { TsInt } from "./primitives"
 import { Nullable } from "./utility"
 
 export type TsReadonlyArray<T> = {
-	length: TsInt
+	readonly length: TsInt
 	find(predicate: (value: T, index: TsInt, obj: TsArray<T>) => unknown): Nullable<T>
 }
 

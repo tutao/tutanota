@@ -77,18 +77,18 @@ export class ClientDetector {
 
 	_setBrowserAndVersion(): void {
 		const userAgent = this.getUserAgent()
-		const operaIndex1 = userAgent.indexOf("Opera")
-		const operaIndex2 = userAgent.indexOf("OPR/")
-		const firefoxIndex = userAgent.indexOf("Firefox/")
-		const paleMoonIndex = userAgent.indexOf("PaleMoon/")
-		const iceweaselIndex = userAgent.indexOf("Iceweasel/")
-		const chromeIndex = userAgent.indexOf("Chrome/")
-		const chromeIosIndex = userAgent.indexOf("CriOS/")
-		const safariIndex = userAgent.indexOf("Safari/")
-		const edgeIndex = userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
+		const operaIndex1: TsInt = userAgent.indexOf("Opera")
+		const operaIndex2: TsInt = userAgent.indexOf("OPR/")
+		const firefoxIndex: TsInt = userAgent.indexOf("Firefox/")
+		const paleMoonIndex: TsInt = userAgent.indexOf("PaleMoon/")
+		const iceweaselIndex: TsInt = userAgent.indexOf("Iceweasel/")
+		const chromeIndex: TsInt = userAgent.indexOf("Chrome/")
+		const chromeIosIndex: TsInt = userAgent.indexOf("CriOS/")
+		const safariIndex: TsInt = userAgent.indexOf("Safari/")
+		const edgeIndex: TsInt = userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 
-		const androidIndex = userAgent.indexOf("Android")
-		let versionIndex = -1
+		const androidIndex: TsInt = userAgent.indexOf("Android")
+		let versionIndex: TsInt = -1
 
 		if (edgeIndex !== -1) {
 			this.browser = BrowserType.EDGE
@@ -147,7 +147,7 @@ export class ClientDetector {
 		}
 
 		if (versionIndex !== -1) {
-			const mainVersionEndIndex = userAgent.indexOf(".", versionIndex)
+			const mainVersionEndIndex: TsInt = userAgent.indexOf(".", versionIndex)
 
 			if (mainVersionEndIndex !== -1) {
 				try {
@@ -168,14 +168,14 @@ export class ClientDetector {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
 		const userAgent = this.getUserAgent()
-		const versionIndex = userAgent.indexOf(" OS ")
+		const versionIndex: TsInt = userAgent.indexOf(" OS ")
 
 		if (versionIndex !== -1) {
 			this.browser = BrowserType.SAFARI
 
 			try {
 				// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
-				let pos = versionIndex + 4
+				let pos: TsInt = versionIndex + 4
 				let hadNan = false
 
 				while (pos < userAgent.length) {
