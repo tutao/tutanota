@@ -1328,18 +1328,30 @@ impl EventFacade {
 			}
 		} else {
 			// If there's no week change, just iterate to the target day
-			let mut current_date = base_date;
-			while current_date.assume_utc().unix_timestamp()
-				< stop_condition.assume_utc().unix_timestamp()
-			{
-				let new_date = current_date.replace_date(
-					Date::from_iso_week_date(
-						current_date.year(),
-						current_date.iso_week(),
-						parsed_weekday,
-					)
-					.unwrap(),
-				);
+			let date_with_weekday =
+				Date::from_iso_week_date(base_date.year(), base_date.iso_week(), parsed_weekday)
+					.unwrap();
+			let weekday = date_with_weekday.weekday();
+			let mut occurrence_date = base_date.replace_date(
+				Date::from_iso_week_date(base_date.year(), base_date.iso_week(), weekday).unwrap(),
+			);
+
+			let stop_stop_condition_timestamp = stop_condition.assume_utc().unix_timestamp();
+			loop {
+				let occurrence_timestamp = occurrence_date.assume_utc().unix_timestamp();
+				if occurrence_timestamp >= stop_stop_condition_timestamp {
+					break;
+				}
+
+				let new_date = occurrence_date;
+				// let new_date = current_date.replace_date(
+				// 	Date::from_iso_week_date(
+				// 		current_date.year(),
+				// 		current_date.iso_week(),
+				// 		parsed_weekday,
+				// 	)
+				// 	.unwrap(),
+				// );
 				if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
 					&& is_allowed_in_month_day(new_date.day())
 					&& ((!valid_months.is_empty()
@@ -1349,7 +1361,7 @@ impl EventFacade {
 					Self::safe_expand_dates(new_dates, new_date)?
 				}
 
-				current_date = match new_date.checked_add(Duration::days(7)) {
+				occurrence_date = match new_date.checked_add(Duration::days(7)) {
 					Some(new_date) => new_date,
 					None => {
 						return Err(ApiCallError::internal(format!(

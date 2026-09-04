@@ -1,11 +1,13 @@
+use std::fmt;
 use std::fmt::Formatter;
 use std::time::{Duration, SystemTime};
 
 use serde::de::{Error, Visitor};
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use time::UtcDateTime;
 
 /// A wrapper around `SystemTime` so we can change how it is serialised by serde.
-#[derive(Copy, Clone, PartialEq, PartialOrd, Debug)]
+#[derive(Copy, Clone, PartialEq, PartialOrd)]
 pub struct DateTime(u64);
 
 pub const DATETIME_STRUCT_NAME: &str = "DateTime";
@@ -48,6 +50,22 @@ impl DateTime {
 	#[must_use]
 	pub fn is_after(&self, other: &DateTime) -> bool {
 		self.0 > other.0
+	}
+}
+
+impl fmt::Debug for DateTime {
+	fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+		let dt = UtcDateTime::from_unix_timestamp((self.0 / 1000) as i64).unwrap();
+		write!(
+			f,
+			"DateTime {}-{}-{}T{}:{}:{} UTC",
+			dt.year(),
+			dt.month(),
+			dt.day(),
+			dt.hour(),
+			dt.minute(),
+			dt.second()
+		)
 	}
 }
 

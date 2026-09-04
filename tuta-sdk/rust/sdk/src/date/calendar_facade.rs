@@ -26,7 +26,7 @@ use std::cmp::Ordering;
 use std::collections::HashMap;
 use std::string::ToString;
 use std::sync::Arc;
-use time::{OffsetDateTime, Time, UtcDateTime, UtcOffset};
+use time::{Date, OffsetDateTime, Time, UtcDateTime, UtcOffset};
 
 // To keep the SDK decoupled and dependency free we decided to handle translations on native side
 pub const DEFAULT_CALENDAR_NAME: &str = "";
@@ -1880,7 +1880,7 @@ mod calendar_facade_unit_tests {
 			AdvancedRepeatRule, CalendarGroupRoot, CalendarRepeatRule,
 		};
 		use crate::{CustomId, IdTupleCustom};
-		use time::Time;
+		use time::{Month, Time};
 
 		const USER_GROUP_ID: &str = "user-group-id";
 		const CALENDAR_ID: &str = "calendar-id";
@@ -2048,14 +2048,14 @@ mod calendar_facade_unit_tests {
 				startTime: DateTime::from_seconds(
 					time::Date::from_calendar_date(2023, time::Month::May, 3)
 						.unwrap()
-						.with_time(Time::from_hms(19, 0, 0).unwrap())
+						.with_time(Time::from_hms(1, 0, 0).unwrap())
 						.assume_utc()
 						.unix_timestamp() as u64,
 				),
 				endTime: DateTime::from_seconds(
 					time::Date::from_calendar_date(2023, time::Month::May, 3)
 						.unwrap()
-						.with_time(Time::from_hms(22, 00, 0).unwrap())
+						.with_time(Time::from_hms(2, 00, 0).unwrap())
 						.assume_utc()
 						.unix_timestamp() as u64,
 				),
@@ -2067,11 +2067,11 @@ mod calendar_facade_unit_tests {
 					endValue: None,
 					excludedDates: vec![],
 					advancedRules: vec![
-						// AdvancedRepeatRule {
-						// 	ruleType: ByRuleType::BySetPos as i64,
-						// 	interval: "1".to_string(),
-						// 	..create_test_entity()
-						// },
+						AdvancedRepeatRule {
+							ruleType: ByRuleType::BySetPos as i64,
+							interval: "1".to_string(),
+							..create_test_entity()
+						},
 						AdvancedRepeatRule {
 							ruleType: ByRuleType::ByDay as i64,
 							interval: "WE".to_string(),
@@ -2098,7 +2098,7 @@ mod calendar_facade_unit_tests {
 			let calendar_facade = create_test_facade(mock_crypto_entity_client);
 
 			let start_date = DateTime::from_seconds(
-				time::Date::from_calendar_date(2026, time::Month::September, 3)
+				time::Date::from_calendar_date(2026, time::Month::September, 1)
 					.unwrap()
 					.with_time(Time::from_hms(16, 19, 00).unwrap())
 					.assume_utc()
@@ -2106,7 +2106,7 @@ mod calendar_facade_unit_tests {
 			); // bug this is testing for was observed at this date
 
 			let end_date = DateTime::from_seconds(
-				time::Date::from_calendar_date(2026, time::Month::September, 9)
+				time::Date::from_calendar_date(2026, time::Month::September, 7)
 					.unwrap()
 					.with_time(Time::from_hms(00, 00, 00).unwrap())
 					.assume_utc()
@@ -2121,24 +2121,23 @@ mod calendar_facade_unit_tests {
 			assert!(result.short_events.is_empty());
 			assert!(result.birthday_events.is_empty());
 
-			let expected_times = [];
+			assert_eq!(1, result.long_events.len());
 
-			assert_eq!(expected_times.len(), result.long_events.len());
-
-			for (i, (year, month, day)) in expected_times.iter().enumerate() {
-				let expected_start = DateTime::from_seconds(
-					time::Date::from_calendar_date(*year, *month, *day)
-						.unwrap()
-						.with_time(Time::from_hms(18, 0, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				);
-				assert_eq!(
-					expected_start, result.long_events[i].startTime,
-					"Event {} should start on {}-{:?}-{}",
-					i, year, month, day
-				);
-			}
+			let expected_start_date_time_str = "2026-09-02T01:00:00";
+			let expected_start = DateTime::from_millis(
+				(Date::from_calendar_date(2026, Month::September, 2)
+					.unwrap()
+					.with_hms(1, 0, 0)
+					.unwrap()
+					.assume_utc()
+					.unix_timestamp()
+					* 1000) as u64,
+			);
+			assert_eq!(
+				expected_start, result.long_events[0].startTime,
+				"Event should start on {}",
+				expected_start_date_time_str,
+			);
 		}
 	}
 }
