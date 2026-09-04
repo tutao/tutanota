@@ -367,6 +367,22 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		if (isRevoked) {
 			return undefined
 		}
+		//Show downgrade and resubscribe button if expired
+		if (currentSubscriptionState === "expired") {
+			return m(
+				".flex.justify-end.gap-8",
+				m(SecondaryButton, {
+					label: "subscriptionSettingDowngrade_action",
+					width: "flex",
+					onclick: () => showConfirmDowngradingToFreeDialog(),
+				}),
+				m(PrimaryButton, {
+					label: "subscriptionStateCardResubscribe_action",
+					width: "flex",
+					onclick: () => this.onSubscriptionClick(),
+				}),
+			)
+		}
 		// Render external-store controls only when this client matches the subscription's store.
 		if (isExternalSubscription) {
 			const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
@@ -399,30 +415,15 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						m(PrimaryButton, {
 							label:
 								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
-									? "subscriptionSettingManageSubscription_action"
+									? "subscriptionSettingAppleWebsite_action"
 									: "subscriptionSettingGoogleWebsite_action",
 							width: "flex",
+							icon: Icons.OpenOutline,
 							onclick: () => {
 								this.onSubscriptionClick()
 							},
 						}),
 					)
-		}
-		//Show downgrade and resubscribe button if expired
-		if (currentSubscriptionState === "expired") {
-			return m(
-				".flex.justify-end.gap-8",
-				m(SecondaryButton, {
-					label: "subscriptionSettingDowngrade_action",
-					width: "flex",
-					onclick: () => showConfirmDowngradingToFreeDialog(),
-				}),
-				m(PrimaryButton, {
-					label: "subscriptionStateCardResubscribe_action",
-					width: "flex",
-					onclick: () => this.onSubscriptionClick(),
-				}),
-			)
 		}
 
 		//Show cancel button if renewal is enabled
@@ -503,7 +504,6 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			// If there's a running Play Store subscription it must be managed through Google.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
 			// Running subscription cannot be changed from other client, but it can still be managed through OS or when subscription expires.
-			//FIXME: This doesn't seem to work -> env in openExternalSubscriptionPage is default when called
 			void openExternalSubscriptionPage(paymentMethod)
 		} else {
 			// other cases (not mobile app, not external payment method, no running external subscription, iOS/Android but another payment method)

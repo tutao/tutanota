@@ -17,6 +17,8 @@ import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { EnvProvider, FeatureType, UpgradePromptType } from "@tutao/app-env"
+import { assertNotNull } from "@tutao/utils"
+import { isAndroid } from "squire-rte/dist/types/Constants"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -67,7 +69,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								: null,
 						])
 					: null,
-				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !customer?.businessUse
+				logins.isGlobalAdminUserLoggedIn() && userController.isPaidAccount() && !assertNotNull(customer).businessUse
 					? m(IconButton, {
 							icon: Icons.GiftFilled,
 							title: "buyGiftCard_label",
