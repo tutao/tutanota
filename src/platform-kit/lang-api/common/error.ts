@@ -9,10 +9,9 @@
  * added to the ErrorNameToType map in Utils.js.
  */
 import { isNotNull, isNull } from "./functional"
-import { TSwUncheckedSendable } from "./decorators"
 import { TypeChecks } from "./types/utility"
 
-@TSwUncheckedSendable({ reasoning: "All fields in TutanotaError are readonly and we dont mutate anything once an error is created" })
+/** @TSwUncheckedSendable All fields in TutanotaError are readonly and we dont mutate anything once an error is created */
 export class TutanotaError<T = never> extends Error {
 	data: T | null = null
 	constructor(
@@ -55,7 +54,7 @@ export class TutanotaError<T = never> extends Error {
 	}
 }
 
-@TSwUncheckedSendable({ reasoning: "TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields" })
+/** @TSwUncheckedSendable TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields */
 export class ProgrammingError extends TutanotaError {
 	constructor(m: string | null = null) {
 		super("ProgrammingError", m ?? "Unknown programming error")
