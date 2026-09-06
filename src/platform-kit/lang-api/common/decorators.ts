@@ -1,12 +1,10 @@
-/// Do not transpile this statement/expression
+// These types and enums are used by the tuta-transpiler to represent parsed JSDoc tags.
+// Use JSDoc tags in source code instead of decorators, e.g.:
+//   /** @TTranspileIgnore reason text */
+//   /** @TMutableStaticSafety MainThreadInitialized */
+//   /** @TSwUncheckedSendable reasoning text */
 
 export type TTranspileIgnoreOpts = { reason: string }
-
-export function TTranspileIgnore(opts: TTranspileIgnoreOpts) {
-	return function (target: any, ctx: ClassMethodDecoratorContext | ClassFieldDecoratorContext): void {
-		return
-	}
-}
 
 export const enum TMutableStaticSafetyKind {
 	/// - must be a singleton
@@ -17,15 +15,4 @@ export const enum TMutableStaticSafetyKind {
 
 export type TMutableStaticSafetyOpts = { kind: TMutableStaticSafetyKind }
 
-export function TMutableStaticSafety(opts: TMutableStaticSafetyOpts) {
-	return function (target: any, ctx: ClassFieldDecoratorContext | ClassMethodDecoratorContext) {
-		// FIXME:
-		// this assertion is correct. pls do not just remove it while reviewing :)
-		// assert(ctx.static && ctx.private && ctx.name === "singleton", "Must be a private static field with name 'singleton'")
-	}
-}
-
 export type TSwUncheckedSendableOpts = { reasoning: string }
-export function TSwUncheckedSendable(opts: TSwUncheckedSendableOpts) {
-	return function (target: any, ctx: ClassDecoratorContext) {}
-}
