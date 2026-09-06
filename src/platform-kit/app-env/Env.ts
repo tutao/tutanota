@@ -1,15 +1,4 @@
-import {
-	isNotNull,
-	isNull,
-	ProgrammingError,
-	RuntimeInfo,
-	TMutableStaticSafety,
-	TMutableStaticSafetyKind,
-	TsInt,
-	TsRecord,
-	TsString,
-	TTranspileIgnore,
-} from "@tutao/lang-api"
+import { isNotNull, isNull, ProgrammingError, RuntimeInfo, TsInt, TsRecord, TsString } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -91,21 +80,17 @@ export const enum Mode {
 const assertionsEnabled: boolean = false
 
 export class EnvProvider {
-	@TTranspileIgnore({
-		reason: `
-			This is all method that uses this field is @TranspileIgnore
-		`,
-	})
+	/** @TTranspileIgnore This is all method that uses this field is @TranspileIgnore */
 	private static boot: boolean =
 		RuntimeInfo._isNode &&
 		!RuntimeInfo._isWorker &&
 		isNotNull(EnvProvider.tryInitWithGlobalEnv()) &&
 		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
-	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
+	/** @TMutableStaticSafety MainThreadInitialized */
 	private static singleton: EnvProvider | null = null
 
-	@TTranspileIgnore({ reason: "This method is only used from locator" })
+	/** @TTranspileIgnore This method is only used from locator */
 	public static get(): EnvProvider {
 		const singleton = EnvProvider.tryInitWithGlobalEnv()
 		if (isNull(singleton)) {
@@ -120,7 +105,7 @@ export class EnvProvider {
 		return EnvProvider.isMainOrNode()
 	}
 
-	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
+	/** @TMutableStaticSafety MainThreadInitialized */
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
 		if (isNull(EnvProvider.singleton)) {
 			const env = RuntimeInfo.globallyDefinedEnv<EnvType>()
@@ -225,22 +210,12 @@ export class EnvProvider {
 		return !this.isBrowser() && !this.isAdminClient()
 	}
 
-	@TTranspileIgnore({
-		reason: `
-		This method is only called from entryPoint of app which is not
-		used from transpiled code
-	`,
-	})
+	/** @TTranspileIgnore This method is only called from entryPoint of app which is not used from transpiled code */
 	public static bootFinished(): void {
 		this.boot = false
 	}
 
-	@TTranspileIgnore({
-		reason: `
-		This method is only called from entryPoint of app which is not
-		used from transpiled code
-	`,
-	})
+	/** @TTranspileIgnore This method is only called from entryPoint of app which is not used from transpiled code */
 	public static isBootFinished(): boolean {
 		return EnvProvider.boot
 	}
@@ -260,9 +235,7 @@ export class EnvProvider {
 		}
 	}
 
-	@TTranspileIgnore({
-		reason: "by the time we make use of transpiled code, this function would not exists",
-	})
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertMainOrNode(): void {
 		if (!assertionsEnabled) {
 			return
