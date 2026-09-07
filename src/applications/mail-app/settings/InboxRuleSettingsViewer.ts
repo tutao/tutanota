@@ -1,4 +1,4 @@
-import { EnvProvider,ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
