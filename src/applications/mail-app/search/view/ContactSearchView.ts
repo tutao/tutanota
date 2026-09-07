@@ -211,6 +211,11 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 		this.searchViewModel.dispose()
 		keyManager.unregisterShortcuts(this.shortcuts())
 	}
+
+	getViewSlider(): ViewSlider | null {
+		return this.viewSlider
+	}
+
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		await this.searchViewModel.init()
 		this.searchViewModel.onNewUrl(args, requestedPath)

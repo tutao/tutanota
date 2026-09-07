@@ -267,6 +267,10 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		this.searchViewModel.dispose()
 	}
 
+	getViewSlider(): ViewSlider | null {
+		return this.viewSlider
+	}
+
 	view({ attrs }: Vnode<DriveSearchViewAttrs>): Children {
 		return m(
 			"#search.main-view",
