@@ -32,7 +32,7 @@ import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
 import { TextField } from "../../../ui/base/TextField"
 import { theme } from "../../../ui/theme"
 import { px, size } from "../../../ui/size"
-import { assertNotNull, isEmpty, last } from "@tutao/utils"
+import { assertNotNull, isEmpty } from "@tutao/utils"
 import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../../ui/animation/Animations"
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
@@ -181,7 +181,7 @@ export async function show(
 			)
 		}
 
-		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number) => {
+		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number, allConditions: InboxRuleConditionField[]) => {
 			const isFirstCondition = conditionIndex === 0
 			const conditionLabel: TranslationKey = isFirstCondition ? "whenCondition_label" : "and_label"
 			const conditionInput = getRuleConditionValueInputByType(condition)
@@ -203,13 +203,12 @@ export async function show(
 						}),
 					]),
 					m(".flex.items-center", [
-						conditionInput ? m(".mlr-16", "=") : null,
 						conditionInput,
-						!isFirstCondition
+						allConditions.length > 1
 							? m(
 									".ml-4",
 									m(IconButton, {
-										icon: Icons.TrashFilled,
+										icon: Icons.X,
 										size: ButtonSize.Large,
 										style: {
 											fill: theme.on_surface_variant,
@@ -227,33 +226,28 @@ export async function show(
 		}
 
 		const renderAddConditionRow = (): Children => {
-			const lastCondition = last(inboxRuleConditions)
-			if (lastCondition != null && validateInboxRuleCondition(lastCondition) == null) {
-				return m(
-					".flex.items-center.row-gap-8.mt-16",
-					{
-						oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
-						onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					},
-					[
-						m(".flex.items-center.mr-24", lang.getTranslationText("and_label")),
-						m(SecondaryButton, {
-							width: "flex",
-							icon: Icons.Plus,
-							label: "addCondition_label",
-							onclick: () => {
-								inboxRuleConditions.push({
-									type: stream(InboxRuleConditionType.FROM_EQUALS),
-									value: stream(""),
-									key: currentRowKey++,
-								})
-							},
-						}),
-					],
-				)
-			} else {
-				return null
-			}
+			return m(
+				".flex.items-center.row-gap-8.mt-16",
+				{
+					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
+				},
+				[
+					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
+					m(SecondaryButton, {
+						width: "flex",
+						icon: Icons.Plus,
+						label: "addCondition_label",
+						onclick: () => {
+							inboxRuleConditions.push({
+								type: stream(InboxRuleConditionType.FROM_EQUALS),
+								value: stream(""),
+								key: currentRowKey++,
+							})
+						},
+					}),
+				],
+			)
 		}
 
 		const defaultResultOfType = (type: InboxRuleResultType): MailSet | null => {
@@ -265,19 +259,19 @@ export async function show(
 			}
 		}
 
-		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number) => {
-			const isFirstResult = resultIndex === 0
-			const resultLabel: TranslationKey = isFirstResult ? "then_label" : "and_label"
+		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number, allResults: InboxRuleResultField[]) => {
+			const resultLabel: TranslationKey = resultIndex === 0 ? "then_label" : "and_label"
 			const ruleValueInput = getRuleResultValueInputByType(ruleResult)
 
-			return m("", { key: ruleResult.key }, [
-				m(
-					".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16",
-					{
-						oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
-						onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					},
-					[
+			return m(
+				"",
+				{
+					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
+					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
+					key: ruleResult.key,
+				},
+				[
+					m(".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16", [
 						m(
 							".flex.items-center",
 							{
@@ -297,15 +291,15 @@ export async function show(
 								}),
 							],
 						),
-						m(".flex.items-center.justify-end", [
+						m(".flex.items-center", [
 							ruleValueInput !== null
 								? [m(".mlr-16", "="), ruleValueInput(ruleResult.type() === InboxRuleResultType.LABEL ? targetLabels : targetFolders)]
 								: null,
-							!isFirstResult
+							allResults.length > 1
 								? m(
 										".ml-4",
 										m(IconButton, {
-											icon: Icons.TrashFilled,
+											icon: Icons.X,
 											size: ButtonSize.Large,
 											style: {
 												fill: theme.on_surface_variant,
@@ -318,25 +312,25 @@ export async function show(
 									)
 								: null,
 						]),
-					],
-				),
-				m(
-					".mt-16.ml-between-8.flex.scroll-x",
-					ruleResult.type() === InboxRuleResultType.LABEL
-						? ruleResult.valueLabels().map((value) =>
-								m(Label, {
-									text: prependParentLabelNamesToLabel(value, labels),
-									color: value.color ?? theme.primary,
-									cancelable: true,
-									cancelAction: () => {
-										const newValue = ruleResult.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
-										ruleResult.valueLabels(newValue)
-									},
-								}),
+					]),
+					ruleResult.type() === InboxRuleResultType.LABEL && ruleResult.valueLabels().length
+						? m(
+								".flex.wrap.ml-32.mt-16.mr-between-8.row-gap-8",
+								ruleResult.valueLabels().map((value) =>
+									m(Label, {
+										text: prependParentLabelNamesToLabel(value, labels),
+										color: value.color ?? theme.primary,
+										cancelable: true,
+										cancelAction: () => {
+											const newValue = ruleResult.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
+											ruleResult.valueLabels(newValue)
+										},
+									}),
+								),
 							)
 						: null,
-				),
-			])
+				],
+			)
 		}
 
 		const renderAddResultRow = (): Children => {
@@ -350,7 +344,7 @@ export async function show(
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-24.smaller", lang.getTranslationText("and_label")),
+					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
@@ -395,13 +389,13 @@ export async function show(
 					".flex-end.wrap.mt-24.gap-16",
 					m(SecondaryButton, {
 						width: "flex",
-						label: "save_action",
-						onclick: () => inboxRuleOkAction(dialog, false),
+						label: "saveAndApply_action",
+						onclick: () => inboxRuleOkAction(dialog, true),
 					}),
 					m(PrimaryButton, {
 						width: "flex",
-						label: "saveAndApply_action",
-						onclick: () => inboxRuleOkAction(dialog, true),
+						label: "save_action",
+						onclick: () => inboxRuleOkAction(dialog, false),
 					}),
 				),
 			]
@@ -503,6 +497,16 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 		case InboxRuleConditionType.RECIPIENT_CC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
+			return [
+				m(".mlr-16", "="),
+				m(TextField, {
+					label: "emailSenderPlaceholder_label",
+					autocapitalize: Autocapitalize.none,
+					value: ruleCondition.value(),
+					oninput: ruleCondition.value,
+					class: "",
+				}),
+			]
 		case InboxRuleConditionType.SUBJECT_CONTAINS:
 		case InboxRuleConditionType.MAIL_HEADER_CONTAINS:
 			return m(TextField, {
@@ -510,7 +514,7 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 				autocapitalize: Autocapitalize.none,
 				value: ruleCondition.value(),
 				oninput: ruleCondition.value,
-				class: "",
+				class: "ml-16",
 			})
 		case InboxRuleConditionType.HAS_ATTACHMENT:
 		case InboxRuleConditionType.HAS_NO_ATTACHMENT:

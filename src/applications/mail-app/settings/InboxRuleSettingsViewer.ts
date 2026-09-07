@@ -1,4 +1,4 @@
-import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -118,7 +118,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 
 	renderInboxRuleTableLines(): Children[] {
 		return this.model.orderedInboxRules.map((rule, index, { length }) => {
-			const dragBorder = ".border-nota.border-left-none.border-right-none"
+			const dragBorder = ".border-accent.border-left-none.border-right-none"
 			const dragBorderTop = `.pt-4.pb-4.border-bottom-none${dragBorder}${index === 0 ? ".border-md" : ".border-sm"}`
 			const dragBorderBottom = `.border-top-none${dragBorder}${index === length - 1 ? ".border-md" : ".border-sm"}`
 

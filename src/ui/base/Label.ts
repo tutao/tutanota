@@ -40,7 +40,7 @@ export const Label = pureComponent(function Label({
 	const labelColor = getLabelColor(color)
 	const cancelButtonColor = isColorLight(color ?? theme.primary) ? ".icon-button-wrapper-black-icon" : ".icon-button-wrapper-white-icon"
 	return m(
-		"span.text-center.text-ellipsis" +
+		"span.text-center" +
 			(cancelable ? `.normal-font-size.border-radius-16.min-width-fit.flex.center-vertically${cancelButtonColor}` : ".small.border-radius-8"),
 		{
 			"data-testid": "label",
@@ -52,7 +52,7 @@ export const Label = pureComponent(function Label({
 				paddingLeft: cancelable ? `${size.spacing_8}px` : undefined,
 			},
 		},
-		text,
+		m(`.inline-block.text-ellipsis${cancelable ? ".max-width-200" : ""}`, { title: text }, text),
 		cancelable
 			? m(IconButton, {
 					icon: Icons.X,
