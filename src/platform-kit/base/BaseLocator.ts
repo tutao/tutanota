@@ -385,6 +385,7 @@ export async function createBaseLocator({
 		instancePipeline,
 		crypto,
 		keyRotation,
+		instanceKey,
 		maybeUninitializedStorage,
 		serviceExecutor,
 		user,
