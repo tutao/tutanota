@@ -1939,20 +1939,8 @@ mod calendar_facade_unit_tests {
 					element_id: CustomId::from_custom_string("repeating-event-id"),
 				}),
 				summary: "Daily repeating event".to_string(),
-				startTime: DateTime::from_seconds(
-					time::Date::from_calendar_date(2025, time::Month::January, 1)
-						.unwrap()
-						.with_time(Time::from_hms(18, 0, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				),
-				endTime: DateTime::from_seconds(
-					time::Date::from_calendar_date(2025, time::Month::January, 1)
-						.unwrap()
-						.with_time(Time::from_hms(18, 30, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				),
+				startTime: utc_datetime(2025, Month::January, 1, 18, 0),
+				endTime: utc_datetime(2025, Month::January, 1, 18, 30),
 				repeatRule: Some(CalendarRepeatRule {
 					frequency: RepeatPeriod::Daily as i64,
 					interval: 1,
@@ -1979,13 +1967,7 @@ mod calendar_facade_unit_tests {
 
 			let calendar_facade = create_test_facade(mock_crypto_entity_client);
 
-			let end_date: DateTime = DateTime::from_seconds(
-				time::Date::from_calendar_date(2026, time::Month::May, 11)
-					.unwrap()
-					.with_time(Time::from_hms(18, 30, 0).unwrap())
-					.assume_utc()
-					.unix_timestamp() as u64,
-			);
+			let end_date: DateTime = utc_datetime(2026, Month::May, 11, 18, 30);
 
 			let result = calendar_facade
 				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), START, end_date)
@@ -2011,13 +1993,7 @@ mod calendar_facade_unit_tests {
 			assert_eq!(expected_times.len(), result.long_events.len());
 
 			for (i, (year, month, day)) in expected_times.iter().enumerate() {
-				let expected_start = DateTime::from_seconds(
-					time::Date::from_calendar_date(*year, *month, *day)
-						.unwrap()
-						.with_time(Time::from_hms(18, 0, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				);
+				let expected_start = utc_datetime(*year, *month, *day, 18, 0);
 				assert_eq!(
 					expected_start, result.long_events[i].startTime,
 					"Event {} should start on {}-{:?}-{}",
@@ -2027,28 +2003,15 @@ mod calendar_facade_unit_tests {
 		}
 
 		#[tokio::test]
-		async fn test_get_calendar_events_with_monthly_by_day_rule() {
+		async fn test_get_calendar_events_monthly_by_day_returns_all_wednesdays_in_range() {
 			let repeating_event = CalendarEvent {
 				_id: Some(IdTupleCustom {
 					list_id: GeneratedId(LONG_LIST_ID.to_owned()),
 					element_id: CustomId::from_custom_string("repeating-event-id"),
 				}),
 				summary: "Advanced Repeating Event".to_string(),
-				startTime: DateTime::from_seconds(
-					time::Date::from_calendar_date(2023, time::Month::May, 3)
-						.unwrap()
-						.with_time(Time::from_hms(1, 0, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				),
-				endTime: DateTime::from_seconds(
-					time::Date::from_calendar_date(2023, time::Month::May, 3)
-						.unwrap()
-						.with_time(Time::from_hms(2, 00, 0).unwrap())
-						.assume_utc()
-						.unix_timestamp() as u64,
-				),
-
+				startTime: utc_datetime(2023, Month::May, 3, 1, 0),
+				endTime: utc_datetime(2023, Month::May, 3, 2, 0),
 				repeatRule: Some(CalendarRepeatRule {
 					frequency: RepeatPeriod::Monthly as i64,
 					interval: 1,
@@ -2067,6 +2030,7 @@ mod calendar_facade_unit_tests {
 			};
 
 			let mut mock_crypto_entity_client = MockCryptoEntityClient::default();
+
 			mock_crypto_entity_client
 				.expect_load_range::<CalendarEvent, CustomId>()
 				.withf(|list_id, _, _, _| list_id == &GeneratedId(SHORT_LIST_ID.to_owned()))
@@ -2079,21 +2043,9 @@ mod calendar_facade_unit_tests {
 
 			let calendar_facade = create_test_facade(mock_crypto_entity_client);
 
-			let start_date = DateTime::from_seconds(
-				time::Date::from_calendar_date(2026, time::Month::September, 1)
-					.unwrap()
-					.with_time(Time::from_hms(16, 19, 00).unwrap())
-					.assume_utc()
-					.unix_timestamp() as u64,
-			); // bug this is testing for was observed at this date
-
-			let end_date = DateTime::from_seconds(
-				time::Date::from_calendar_date(2026, time::Month::September, 14)
-					.unwrap()
-					.with_time(Time::from_hms(00, 00, 00).unwrap())
-					.assume_utc()
-					.unix_timestamp() as u64,
-			);
+			// Regression case: the bug was observed with this query range.
+			let start_date = utc_datetime(2026, Month::September, 1, 16, 19);
+			let end_date = utc_datetime(2026, Month::September, 14, 0, 0);
 
 			let result = calendar_facade
 				.get_calendar_events(&GeneratedId(CALENDAR_ID.to_owned()), start_date, end_date)
@@ -2103,39 +2055,39 @@ mod calendar_facade_unit_tests {
 			assert!(result.short_events.is_empty());
 			assert!(result.birthday_events.is_empty());
 
-			assert_eq!(2, result.long_events.len());
+			assert_eq!(result.long_events.len(), 2);
 
-			let expected_start_date_time_str = "2026-09-02T01:00:00";
-			let expected_start = DateTime::from_millis(
-				(Date::from_calendar_date(2026, Month::September, 2)
-					.unwrap()
-					.with_hms(1, 0, 0)
-					.unwrap()
-					.assume_utc()
-					.unix_timestamp()
-					* 1000) as u64,
-			);
 			assert_eq!(
-				expected_start, result.long_events[0].startTime,
-				"Event should start on {}",
-				expected_start_date_time_str,
+				result.long_events[0].startTime,
+				utc_datetime(2026, Month::September, 2, 1, 0),
+				"First occurrence should be Wednesday, September 2, 2026 at 01:00 UTC",
 			);
 
-			let expected_start_date_time_str = "2026-09-09T01:00:00";
-			let expected_start = DateTime::from_millis(
-				(Date::from_calendar_date(2026, Month::September, 9)
-					.unwrap()
-					.with_hms(1, 0, 0)
-					.unwrap()
-					.assume_utc()
-					.unix_timestamp()
-					* 1000) as u64,
-			);
 			assert_eq!(
-				expected_start, result.long_events[1].startTime,
-				"Event should start on {}",
-				expected_start_date_time_str,
+				result.long_events[0].endTime,
+				utc_datetime(2026, Month::September, 2, 2, 0),
 			);
+
+			assert_eq!(
+				result.long_events[1].startTime,
+				utc_datetime(2026, Month::September, 9, 1, 0),
+				"Second occurrence should be Wednesday, September 9, 2026 at 01:00 UTC",
+			);
+
+			assert_eq!(
+				result.long_events[1].endTime,
+				utc_datetime(2026, Month::September, 9, 2, 0),
+			);
+		}
+
+		fn utc_datetime(year: i32, month: Month, day: u8, hour: u8, minute: u8) -> DateTime {
+			DateTime::from_seconds(
+				Date::from_calendar_date(year, month, day)
+					.unwrap()
+					.with_time(Time::from_hms(hour, minute, 0).unwrap())
+					.assume_utc()
+					.unix_timestamp() as u64,
+			)
 		}
 	}
 }
