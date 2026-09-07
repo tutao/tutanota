@@ -68,7 +68,12 @@ o.spec("ServiceExecutor", function () {
 		fullyLoggedIn = true
 
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = new InstancePipeline(typeModelResolver, () => null!, new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER))
+		instancePipeline = new InstancePipeline(
+			typeModelResolver,
+			() => null!,
+			new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER),
+			authDataProvider,
+		)
 		sessionKey = aes256RandomKey()
 
 		cryptoFacade = object()
