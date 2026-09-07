@@ -17,7 +17,8 @@ import { clientInitializedTypeModelResolver, createTestEntity } from "../../../T
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import {
 	FileTypeRef,
-	ImportMailDataTypeRef,
+	ImportMailData2,
+	ImportMailData2TypeRef,
 	ImportMailPostIn,
 	ImportMailPostOutTypeRef,
 	ImportMailService,
@@ -32,6 +33,8 @@ import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/C
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { Nullable } from "../../../../../src/platform-kit/utils"
+import { TypeRef } from "../../../../../src/platform-kit/meta"
 
 const { anything } = matchers
 
@@ -110,12 +113,13 @@ o.spec("ImportMailFacade", () => {
 			cryptoWrapperMock,
 		)
 		const typeModelResolver = clientInitializedTypeModelResolver()
-		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailDataTypeRef)
+		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailData2TypeRef)
 		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encrypted subject" }, typeModel)
 
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve(mailGroupKeyMock)
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: new Uint8Array([1, 2, 3]), encryptingKeyVersion: 0 })
 		when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(serverJson)
+		when(instancePipelineMock.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(anything(), anything(), anything(), anything())).thenResolve(serverJson)
 	})
 
 	o.test("importMails - successfully imports a single mail without attachments", async () => {
@@ -126,23 +130,25 @@ o.spec("ImportMailFacade", () => {
 			serviceExecutorMock.post(ImportMailService, postInCaptor.capture(), {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
+				ownerKey: mailGroupKeyMock,
 			}),
 		).thenDo(() => Promise.resolve(createTestEntity(ImportMailPostOutTypeRef)))
 
 		await facade.importMails(paramsList, mailGroupId)
-		verify(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything()), { times: 1 })
+		verify(instancePipelineMock.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(ImportMailData2TypeRef, anything(), anything(), anything()), { times: 1 })
 
 		verify(
 			serviceExecutorMock.post(ImportMailService, postInCaptor.capture(), {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
+				ownerKey: mailGroupKeyMock,
 			}),
 			{
 				times: 1,
 			},
 		)
 		const importMailPostIn: ImportMailPostIn = postInCaptor.value
-		o.check(importMailPostIn!.encImports.length).equals(1)
+		o.check(importMailPostIn!.encImports2.length).equals(1)
 		o.check(importMailPostIn!.imapFolderSyncState).equals(imapFolderSyncStateIdMock)
 	})
 
@@ -153,24 +159,30 @@ o.spec("ImportMailFacade", () => {
 		const paramsList = [params1, params2]
 
 		let callCount = 0
-		when(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything())).thenDo(async () => {
-			callCount++
-			return OutgoingServerJson.newFromRecord({ data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) })
-		})
-
-		let postCalls: any[] = []
-		when(serviceExecutorMock.post(ImportMailService, anything(), { ...DEFAULT_EXTRA_SERVICE_PARAMS, suspensionBehavior: SuspensionBehavior.Throw })).thenDo(
-			async (_, postIn) => {
-				postCalls.push(postIn)
-				return {}
+		when(instancePipelineMock.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(ImportMailData2TypeRef, anything(), anything(), anything())).thenDo(
+			async () => {
+				callCount++
+				return OutgoingServerJson.newFromRecord({ data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) })
 			},
 		)
+
+		let postCalls: any[] = []
+		when(
+			serviceExecutorMock.post(ImportMailService, anything(), {
+				...DEFAULT_EXTRA_SERVICE_PARAMS,
+				suspensionBehavior: SuspensionBehavior.Throw,
+				ownerKey: mailGroupKeyMock,
+			}),
+		).thenDo(async (_: any, postIn: any) => {
+			postCalls.push(postIn)
+			return {}
+		})
 
 		await facade.importMails(paramsList, mailGroupId)
 
 		o.check(postCalls.length).equals(2)
-		o.check(postCalls[0].encImports.length).equals(1)
-		o.check(postCalls[1].encImports.length).equals(1)
+		o.check(postCalls[0].encImports2.length).equals(1)
+		o.check(postCalls[1].encImports2.length).equals(1)
 	})
 
 	o.test("importMails - handles attachments via _createAddedImportAttachments", async () => {
@@ -192,15 +204,17 @@ o.spec("ImportMailFacade", () => {
 		when(cryptoWrapperMock.encryptString(anything(), dataFileMock.name!)).thenReturn(new Uint8Array([7, 8, 9]))
 		when(cryptoWrapperMock.encryptString(anything(), dataFileMock.mimeType!)).thenReturn(new Uint8Array([10, 11, 12]))
 
-		let capturedImportMailData: any = null
-		when(instancePipelineMock.mapAndEncrypt(ImportMailDataTypeRef, anything(), anything())).thenDo(async (_, data) => {
-			capturedImportMailData = data
-			return OutgoingServerJson.newFromRecord({ enc: "data" })
-		})
+		let capturedImportMailData: Nullable<ImportMailData2> = null
+		when(instancePipelineMock.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(ImportMailData2TypeRef, anything(), anything(), anything())).thenDo(
+			async (_: TypeRef<ImportMailData2>, data: ImportMailData2) => {
+				capturedImportMailData = data
+				return OutgoingServerJson.newFromRecord({ enc: "data" })
+			},
+		)
 
 		await facade.importMails(paramsList, mailGroupId)
 
-		const attachments = capturedImportMailData.importedAttachments
+		const attachments = capturedImportMailData!.importAttachments
 		o.check(attachments.length).equals(1)
 
 		const attachment = attachments[0]
@@ -208,13 +222,14 @@ o.spec("ImportMailFacade", () => {
 		o.check(attachment.ownerEncFileSessionKey).deepEquals(new Uint8Array([1, 2, 3]))
 		o.check(attachment.ownerFileKeyVersion).equals("0")
 
-		const newAttachment = attachment.newAttachment
-		o.check(newAttachment.encFileName).deepEquals(new Uint8Array([7, 8, 9]))
-		o.check(newAttachment.encMimeType).deepEquals(new Uint8Array([10, 11, 12]))
+		const newAttachment = attachment.newAttachment!
+		const file = newAttachment.file!
+		o.check(file.name).deepEquals(dataFileMock.name)
+		o.check(file.mimeType).deepEquals(dataFileMock.mimeType)
 		o.check(newAttachment.referenceTokens).deepEquals(referenceTokensMock)
-
-		o.check(newAttachment.encFileHash !== null).equals(true)
-		o.check(newAttachment.ownerEncFileHashSessionKey !== null).equals(true)
+		const deduplicatedImportedAttachment = newAttachment.deduplicatedImportedAttachment!
+		o.check(deduplicatedImportedAttachment.attachmentHash !== null).equals(true)
+		o.check(deduplicatedImportedAttachment._ownerEncSessionKey !== null).equals(true)
 	})
 
 	o.test("_createAddedImportAttachments - handles already existing files (ImapImportTutaFileId)", async () => {

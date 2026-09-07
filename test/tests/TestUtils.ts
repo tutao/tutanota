@@ -417,7 +417,7 @@ export function instancePipelineFromTypeModelResolver(
 	keyLoaderFacade: KeyLoaderFacade = object(),
 	symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE,
 ): InstancePipeline {
-	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade)
+	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade, null)
 }
 
 export function base64Decode(base64: Base64): string {
