@@ -443,7 +443,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				message: lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }),
 				selected: listState.selectedItems.size === listState.items.length,
 				selectAll: () => this.driveViewModel.toggleSelectAll(),
-				selectNone: () => this.driveViewModel.toggleSelectAll(),
+				selectNone: () => this.driveViewModel.selectionEvents.selectNone(),
 			})
 		} else {
 			const useBackButton = isNotEmpty(this.driveViewModel.parents)
