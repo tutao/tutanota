@@ -1,4 +1,4 @@
-import { elementIdPart, GENERATED_MIN_ID, idToElementId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "@tutao/meta"
+import { elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, idToElementId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "@tutao/meta"
 import {
 	cryptoUtils,
 	CryptoWrapper,
@@ -10,7 +10,7 @@ import {
 	VersionedKey,
 } from "@tutao/crypto"
 import { KeyLoaderFacade } from "./KeyLoaderFacade"
-import { ProgrammingError } from "@tutao/app-env"
+import { GroupKeyRotationType, isAdminClient, ProgrammingError, SessionType } from "@tutao/app-env"
 import { createAndSetOrGetKdfNonce } from "../../network/EntityRestClient"
 import { TypeModelResolver } from "@tutao/instance-pipeline"
 import {
@@ -18,6 +18,7 @@ import {
 	createFormerInstanceKeyData,
 	createInstanceKeyInstanceData,
 	createInstanceKeyPermissionData,
+	createInstanceKeyPermissionServiceGetIn,
 	createInstanceKeyPermissionServicePostIn,
 	createInstanceReferenceData,
 	createTypeInfo,
@@ -29,20 +30,29 @@ import {
 	GroupMemberTypeRef,
 	GroupRootTypeRef,
 	GroupTypeRef,
+	InstanceKey,
 	InstanceKeyInstanceData,
 	InstanceKeyPermissionData,
 	InstanceKeyPermissionService,
+	InstanceKeysRef,
+	InstanceKeyTypeRef,
+	InstanceReferenceData,
+	KeyRotation,
+	KeyRotationTypeRef,
 	Permission,
 	PermissionTypeRef,
 	SentGroupInvitationTypeRef,
 	User,
+	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { assertNotNull, KeyVersion, Nullable } from "@tutao/utils"
+import { assertNotNull, groupBy, KeyVersion, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient"
-import { GroupType, isShareableGroupType } from "../../../entities/sys/Utils"
+import { AccountType, GroupType, isShareableGroupType } from "../../../entities/sys/Utils"
 import { CryptoFacade } from "./CryptoFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { IServiceExecutor } from "../../network/ServiceRequest"
+import { RolloutAction } from "../facades/RolloutFacade"
+import { UserFacade } from "../facades/UserFacade"
 
 export class InstanceKeyFacade {
 	constructor(
@@ -84,29 +94,34 @@ export class InstanceKeyFacade {
 		return deriveInstanceKey(groupKey, kdfNonce)
 	}
 
-	async postInstanceKeysForSharedInstances(instances: PersistentEntity[]) {
+	async postInstanceKeysForSharedInstances(instances: PersistentEntity[], instanceKeySharingType: Nullable<GroupKeyRotationType>) {
 		const permissionDataPerInstanceList: InstanceKeyInstanceData[] = []
+		//Filter for instances that actually need migration
+		const instanceReferenceDataList: InstanceReferenceData[] = []
 		for (const instance of instances) {
+			instanceReferenceDataList.push(this.getInstanceReferenceData(instance))
+		}
+		const getReturn = await this.serviceExecutor.get(
+			InstanceKeyPermissionService,
+			createInstanceKeyPermissionServiceGetIn({ potentialInstancesToMigrate: instanceReferenceDataList, keyRotationType: instanceKeySharingType }),
+			null,
+		)
+		const instancesToMigrate = instances.filter((i) => getReturn.confirmedInstancesToMigrate.indexOf(this.getInstanceReferenceData(i)) >= 0)
+
+		for (const instance of instancesToMigrate) {
 			const instanceKeyInstanceData = await this.prepareInstanceKeysForSharedInstance(instance)
 			permissionDataPerInstanceList.push(instanceKeyInstanceData)
 		}
 		if (permissionDataPerInstanceList.length > 0) {
 			return this.serviceExecutor.post(
 				InstanceKeyPermissionService,
-				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList, keyRotationType: null }), //TODO
+				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList, keyRotationType: instanceKeySharingType }),
 				null,
 			)
 		}
 	}
 
-	async prepareInstanceKeysForSharedInstance(instance: PersistentEntity): Promise<InstanceKeyInstanceData> {
-		// TODO ignore instances of a type that is not shared (_formerInstanceKeys)
-		// TODO also enforce this on the server
-
-		// TODO filter for instances that are already migrated
-
-		// TODO only add instance keys that are not there yet. try loading existing keys. maybe avoid that if initial migration is set?!
-
+	getInstanceReferenceData(instance: PersistentEntity) {
 		let instanceListId: Nullable<Id> = null
 		let instanceElementId: Id
 		if (instance._id instanceof Array) {
@@ -118,15 +133,24 @@ export class InstanceKeyFacade {
 		const application = instance._type.app
 		const typeId = instance._type.typeId.toString()
 		const typeInfo = createTypeInfo({ application, typeId })
+		return createInstanceReferenceData({ instanceElementId, instanceListId, typeInfo })
+	}
+	async prepareInstanceKeysForSharedInstance(instance: PersistentEntity): Promise<InstanceKeyInstanceData> {
+		const sharedInstanceReferenceData = this.getInstanceReferenceData(instance)
 
 		const permissionData: InstanceKeyPermissionData[] = []
 		const formerInstanceKeys: FormerInstanceKeyData[] = []
-		const sharedInstanceReferenceData = createInstanceReferenceData({ instanceElementId, instanceListId, typeInfo })
+
 		const instanceKeyInstanceData = createInstanceKeyInstanceData({
 			sharedInstanceReferenceData,
 			formerInstanceKeys,
 			permissionData,
 		})
+
+		let formerInstanceKeysProperty = "_formerInstanceKeys"
+		if (!Object.hasOwn(instance, formerInstanceKeysProperty)) {
+			throw new ProgrammingError("instance is of type that is not shared.")
+		}
 		if (instance._ownerGroup == null) {
 			throw new ProgrammingError("owner group missing for instance.")
 		}
@@ -135,14 +159,35 @@ export class InstanceKeyFacade {
 		}
 		const ownerGroup = await this.entityClient.load(GroupTypeRef, idToElementId(instance._ownerGroup))
 		let currentInstanceKey = await this.getCurrentInstanceKey(instance)
-		await this.addFormerInstanceKeys(currentInstanceKey, cryptoUtils.parseKeyVersion(ownerGroup.groupKeyVersion), instance, formerInstanceKeys)
+		let currentGroupKeyVersion = cryptoUtils.parseKeyVersion(ownerGroup.groupKeyVersion)
+
+		// TODO maybe avoid loading if initial migration is set?!
+		//TODO is it okay to ignore?
+		// @ts-ignore
+		const formerInstanceKeysRef: InstanceKeysRef = instance[formerInstanceKeysProperty]
+		let numberOfExistingFormerInstanceKeys = 0
+		if (formerInstanceKeysRef != null) {
+			let listOfLastFormerKey: InstanceKey[] = await this.entityClient.loadRange(
+				InstanceKeyTypeRef,
+				formerInstanceKeysRef.list,
+				GENERATED_MAX_ID,
+				1,
+				true,
+			)
+			numberOfExistingFormerInstanceKeys = listOfLastFormerKey.length === 0 ? 0 : cryptoUtils.parseKeyVersion(listOfLastFormerKey[0].symKeyVersion)
+		}
+		await this.addFormerInstanceKeys(currentInstanceKey, currentGroupKeyVersion, instance, formerInstanceKeys, numberOfExistingFormerInstanceKeys)
 		// TODO check default resource, because we only return filtered permissions?!
 		//  we need a way to load all. option: implement a GET on InstanceKeyPermissionService?
 		const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
 
 		for (const permission of permissions) {
+			if (permission.instanceKeyVersion != null && cryptoUtils.parseKeyVersion(permission.instanceKeyVersion) === currentGroupKeyVersion) {
+				continue //there's nothing to do
+			}
 			let permissionOwnerGroupId = permission._ownerGroup ?? elementIdPart(permission._id)
 			let permissionOwnerGroupKey: Nullable<VersionedKey> = null
+			//TODO do we want to keep this?
 			if (isSameTypeRef(instance._type, AccountingInfoTypeRef)) {
 				// the system customer has a permission to decrypt the accounting info, but we do not have access to the symmetric system customer group key
 				// so we use asymmetric encryption to provide access to new instance keys.
@@ -171,7 +216,7 @@ export class InstanceKeyFacade {
 		return instanceKeyInstanceData
 	}
 
-	async shareInstanceKeysWithExternalUsers(user: User) {
+	async shareInstanceKeysWithExternalUsers(user: User, instanceKeySharingType: Nullable<GroupKeyRotationType>) {
 		// external [user|mail] groupInfos are owned by the internal mail group and instance keys will change and might need to be re-shared
 		const externalGroupInfos = []
 		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, user.userGroup.group)
@@ -180,10 +225,10 @@ export class InstanceKeyFacade {
 			(groupInfo) => groupInfo.groupType === GroupType.Mail,
 		)
 		externalGroupInfos.push(...externalUserGroupInfos, ...externalMailGroupInfos)
-		await this.postInstanceKeysForSharedInstances(externalGroupInfos)
+		await this.postInstanceKeysForSharedInstances(externalGroupInfos, instanceKeySharingType)
 	}
 
-	async shareInstanceKeysForInternalGroupInfos(user: User, afterCustomerGroupKeyRotation: boolean) {
+	async shareInstanceKeysForInternalGroupInfos(user: User, afterCustomerGroupKeyRotation: boolean, instanceKeySharingType: Nullable<GroupKeyRotationType>) {
 		const groupInfos: GroupInfo[] = []
 		const customerId = assertNotNull(user.customer)
 		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
@@ -196,7 +241,7 @@ export class InstanceKeyFacade {
 		}
 		const sharedUserAreaGroupInfos = await this.prepareSharedAreaGroupInfosUserIsMemberOf(user, customer)
 		groupInfos.push(...sharedUserAreaGroupInfos)
-		await this.postInstanceKeysForSharedInstances(groupInfos)
+		await this.postInstanceKeysForSharedInstances(groupInfos, instanceKeySharingType)
 	}
 
 	private async prepareSharedAreaGroupInfosUserIsMemberOf(user: User, customer: Customer) {
@@ -304,9 +349,10 @@ export class InstanceKeyFacade {
 		currentGroupKeyVersion: KeyVersion,
 		instance: PersistentEntity,
 		formerInstanceKeys: FormerInstanceKeyData[],
+		numberOfExistingFormerInstanceKeys: number,
 	) {
 		let succeedingInstanceKey = currentInstanceKey
-		for (let i = currentGroupKeyVersion - 1; i >= 0; i--) {
+		for (let i = currentGroupKeyVersion - 1; i >= numberOfExistingFormerInstanceKeys; i--) {
 			const instanceKey = await this.getInstanceKey(instance, cryptoUtils.checkKeyVersionConstraints(i))
 			const successorEncInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(succeedingInstanceKey, instanceKey.object)
 			formerInstanceKeys.push(
@@ -317,6 +363,55 @@ export class InstanceKeyFacade {
 				}),
 			)
 			succeedingInstanceKey = instanceKey
+		}
+	}
+
+	async loadAndProcessPendingInstanceKeySharing(user: User) {
+		const pendingInstanceKeySharing = await this.loadPendingInstanceKeySharing(user)
+		await this.processPendingInstanceKeySharing(pendingInstanceKeySharing, user)
+	}
+
+	private async loadPendingInstanceKeySharing(user: User) {
+		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, idToElementId(user.userGroup.group))
+		const pendingInstanceKeySharing = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
+		return groupBy(pendingInstanceKeySharing, (keyRotation) => keyRotation.groupKeyRotationType)
+	}
+
+	private async processPendingInstanceKeySharing(pendingInstanceKeySharing: Map<string, Array<KeyRotation>>, user: User) {
+		const pendingInstanceKeySharingAfterCustomerKeyRotation =
+			pendingInstanceKeySharing.get(GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation) || []
+		const pendingInstanceKeySharingAfterInternalMailGroupRotation =
+			pendingInstanceKeySharing.get(GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation) || []
+		//TODO any validation here?
+		if (pendingInstanceKeySharingAfterCustomerKeyRotation.length > 0) {
+			await this.shareInstanceKeysForInternalGroupInfos(user, false, GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation)
+		}
+		if (pendingInstanceKeySharingAfterInternalMailGroupRotation.length > 0) {
+			await this.shareInstanceKeysWithExternalUsers(user, GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation)
+		}
+	}
+}
+
+/**
+ * Explicit RolloutAction to trigger instance key sharing.
+ *
+ * It is easier to test this as a concrete class than it is to capture and execute lambdas getting passed around.
+ */
+export class InstanceKeySharingRolloutAction implements RolloutAction {
+	constructor(
+		private readonly instanceKeyFacade: InstanceKeyFacade,
+		private readonly userFacade: UserFacade,
+		private readonly modernKdfType: boolean,
+		private readonly sessionType: SessionType,
+	) {}
+
+	public async execute() {
+		// If we have not migrated to argon2 we postpone the migration.
+		if (!isAdminClient() && this.sessionType !== SessionType.Temporary && this.modernKdfType) {
+			const user = this.userFacade.getUser()
+			if (user && user.accountType !== AccountType.EXTERNAL) {
+				await this.instanceKeyFacade.loadAndProcessPendingInstanceKeySharing(user)
+			}
 		}
 	}
 }

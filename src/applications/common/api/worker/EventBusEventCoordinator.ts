@@ -125,6 +125,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
+			await this.rolloutFacade.processRollout(RolloutType.InstanceKeySharing)
 		}
 
 		const useAead = {

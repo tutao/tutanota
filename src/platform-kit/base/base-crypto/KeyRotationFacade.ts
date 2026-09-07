@@ -282,10 +282,10 @@ export class KeyRotationFacade {
 
 		if (customerGroupKeyRotationWasExecuted) {
 			// groupInfos are owned by the customer group and instance keys will change and might need to be re-shared
-			await this.instanceKeyFacade.shareInstanceKeysForInternalGroupInfos(user, true)
+			await this.instanceKeyFacade.shareInstanceKeysForInternalGroupInfos(user, true, null)
 		}
 		if (internalMailGroupWasRotated) {
-			await this.instanceKeyFacade.shareInstanceKeysWithExternalUsers(user)
+			await this.instanceKeyFacade.shareInstanceKeysWithExternalUsers(user, null)
 		}
 
 		for (const groupKeyUpdate of serviceData.groupKeyUpdates) {

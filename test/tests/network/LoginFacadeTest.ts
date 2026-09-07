@@ -57,6 +57,7 @@ import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-c
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "../../../src/platform-kit/meta"
+import { InstanceKeyFacade, InstanceKeySharingRolloutAction } from "../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 
 const { anything, argThat } = matchers
 
@@ -175,6 +176,7 @@ o.spec("LoginFacadeTest", function () {
 			instancePipeline,
 			cryptoFacadeMock,
 			instance(KeyRotationFacade),
+			instance(InstanceKeyFacade),
 			cacheStorageInitializerMock,
 			serviceExecutor,
 			userFacade,
@@ -273,6 +275,18 @@ o.spec("LoginFacadeTest", function () {
 						rolloutFacade.configureRollout(
 							RolloutType.OtherGroupKeyRotation,
 							argThat((arg) => arg instanceof KeyRotationRolloutAction),
+						),
+					)
+					verify(eventBusClientMock.connect(ConnectMode.Initial))
+				})
+				o.test("InstanceKeySharing rollout is configured", async function () {
+					when(rolloutFacade.getScheduledRolloutTypes()).thenResolve([RolloutType.InstanceKeySharing])
+
+					await facade.createSession(login, passphrase, "client", SessionType.Persistent, null)
+					verify(
+						rolloutFacade.configureRollout(
+							RolloutType.InstanceKeySharing,
+							argThat((arg) => arg instanceof InstanceKeySharingRolloutAction),
 						),
 					)
 					verify(eventBusClientMock.connect(ConnectMode.Initial))
