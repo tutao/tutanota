@@ -60,6 +60,7 @@ import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { wholeListSelected } from "../../../common/misc/ListModel"
 
 export interface DriveViewAttrs extends TopLevelAttrs {
 	drawerAttrs: DrawerMenuAttrs
@@ -443,8 +444,9 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			return m(MultiselectMobileHeader, {
 				message: lang.getTranslation("itemsSelected_label", { "{number}": listState.selectedItems.size }),
 				selected: listState.selectedItems.size === listState.items.length,
-				selectAll: () => this.driveViewModel.toggleSelectAll(),
-				selectNone: () => this.driveViewModel.toggleSelectAll(),
+				selectAll: () =>
+					wholeListSelected(listState) ? this.driveViewModel.selectionEvents.selectNone() : this.driveViewModel.selectionEvents.selectAll(),
+				selectNone: () => this.driveViewModel.selectionEvents.selectNone(),
 			})
 		} else {
 			const useBackButton = isNotEmpty(this.driveViewModel.parents)
