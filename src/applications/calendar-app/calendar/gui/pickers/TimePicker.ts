@@ -124,12 +124,29 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			returnValue.push(
 				m("input.invisible.abs.full-width.full-height", {
 					type: TextFieldType.Time,
-					oninput: (event: InputEvent) => {
+					disabled: attrs.disabled,
+					value: this.selectedTime.to24HourString(),
+					oninput: (event: EventRedraw<InputEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
 						const inputElement = event.target! as HTMLInputElement
 						this.handleTextInput(inputElement.value, attrs)
-						m.redraw()
 					},
-					onchange: (event: InputEvent) => {
+					onchange: (event: EventRedraw<InputEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
 						const inputElement = event.target! as HTMLInputElement
 						const parsedTime = Time.parseFromString(inputElement.value)
 						if (parsedTime) {
@@ -138,7 +155,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 							m.redraw()
 						}
 					},
-					onclick: (event: MouseEvent) => event.stopPropagation(),
+					onclick: (event: EventRedraw<MouseEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
+						event.stopPropagation()
+					},
 				}),
 			)
 		}
