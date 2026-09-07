@@ -11,7 +11,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, withOverriddenEnv
 import { FileFolderItem, FolderFolderItem, FolderItem, FolderItemId, toFolderItem } from "../../../src/applications/drive-app/drive/view/DriveUtils"
 import { elementIdPart, getElementId } from "../../../src/platform-kit/meta"
 import { EntityRestClientMock } from "../api/worker/rest/EntityRestClientMock"
-import { WebFile } from "../../../src/entities/tutanota/Utils"
+import { FileReference, WebFile } from "../../../src/entities/tutanota/Utils"
 import { WindowFacade } from "../../../src/applications/common/misc/WindowFacade"
 import { Mode } from "../../../src/platform-kit/app-env"
 
@@ -406,6 +406,17 @@ o.spec("DriveModel", function () {
 			]
 
 			when(driveFacade.getFolderContents(rootFolders.root._id)).thenResolve({ files: [], folders: existingFolders })
+			let completionListener: (file: WebFile | FileReference) => unknown
+			// Store the completion listener registered by DriveModel, so we can call it later from the mocked transfer controller
+			when(transferController.setCompletionListenerFor(matchers.anything(), matchers.anything())).thenDo(
+				(file: WebFile | FileReference, listener: (file: WebFile | FileReference) => unknown) => {
+					completionListener = listener
+				},
+			)
+			// Call the completion listener registered by DriveModel
+			when(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything())).thenDo((file: WebFile | FileReference) => {
+				completionListener(file)
+			})
 			await driveModel.uploadFiles(webFiles, rootIds.root, async (_fileName: string, _fileCount: number) => {
 				return { choice: "replace", applyToAll: true }
 			})

@@ -15,7 +15,6 @@ import {
 	OperationUpdate,
 	pickNewFileName,
 	RunningOperation,
-	toFolderItem,
 	walkTree,
 } from "../view/DriveUtils"
 import { DriveTransferController, DriveTransfers, DriveTransferState } from "../view/DriveTransferController"
@@ -199,9 +198,16 @@ export class DriveModel {
 					fileName = pickNewFileName(fileName, takenFileNames)
 				} else {
 					const itemToReplace = assertNotNull(
-						folderItems.files.find((item) => item.name === fileName) ?? folderItems.folders.find((item) => item.name === fileName),
+						folderItems.files.find((item) => item.name === fileName) ?? folderItems.folders.find((item) => item.name === fileName) ?? null,
 					)
-					await this.moveToTrash([folderItemToId(toFolderItem(itemToReplace, null))])
+
+					this.transferController.setCompletionListenerFor(file, async () => {
+						try {
+							await this.driveFacade.moveToTrash([itemToReplace._id], [])
+						} catch (e) {
+							console.log(`Couldn't automatically delete file ${JSON.stringify(itemToReplace._id)}`, e)
+						}
+					})
 				}
 				takenFileNames.add(fileName)
 
@@ -249,7 +255,7 @@ export class DriveModel {
 		this.transferController.flush()
 	}
 
-	async moveToTrash(items: readonly FolderItemId[]) {
+	async moveToTrash(items: readonly FolderItemId[]): Promise<void> {
 		const { fileIds, folderIds } = itemsIntoIds(items)
 		try {
 			await this.driveFacade.moveToTrash(fileIds, folderIds)
