@@ -65,6 +65,7 @@ export class DriveTransferController {
 	private queue: QueuedTransfer[] = []
 	private finishedTransfers: QueuedTransfer[] = []
 	private allTransfersDoneListener: (() => unknown) | null = null
+	private completionListeners: Map<WebFile | FileReference | DataFile, () => unknown> = new Map()
 
 	get state(): DriveTransfers {
 		const currentTransfers = this.queue.map(queuedTransferToState)
@@ -106,6 +107,14 @@ export class DriveTransferController {
 
 	setAllTransfersDoneListener(listener: () => unknown) {
 		this.allTransfersDoneListener = listener
+	}
+
+	setCompletionListenerFor(file: WebFile | FileReference | DataFile, listener: () => unknown) {
+		if (this.completionListeners.has(file)) {
+			throw new ProgrammingError("completion listener for this file already exists")
+		} else {
+			this.completionListeners.set(file, listener)
+		}
 	}
 
 	async upload(file: WebFile | FileReference | DataFile, filename: string, targetFolderId: IdTuple): Promise<void> {
@@ -257,6 +266,7 @@ export class DriveTransferController {
 		const activeTransfers = this.queue.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
 		this.queue.splice(0, this.queue.length, ...activeTransfers)
 		this.finishedTransfers.splice(0)
+		this.completionListeners.clear()
 	}
 
 	private finishUpload(fileId: FileId) {
@@ -315,9 +325,14 @@ export class DriveTransferController {
 	}
 
 	private finalizeTransfer(transferId: TransferId, newState: "finished" | "failed") {
-		const stateForThisFile = this.transferForId(transferId)
-		if (stateForThisFile) {
-			stateForThisFile.state = newState
+		const transfer = this.transferForId(transferId)
+		if (transfer) {
+			transfer.state = newState
+
+			if (transfer.state === "finished" && transfer.type === "upload" && this.completionListeners.has(transfer.file)) {
+				this.completionListeners.get(transfer.file)?.()
+				this.completionListeners.delete(transfer.file) // do not remove on failed, it might be retried later
+			}
 			// once all transfers are done move them to the finished, which are not used for progress
 			const allTransfersDone = this.checkAllTransfersDone()
 			if (allTransfersDone) {
