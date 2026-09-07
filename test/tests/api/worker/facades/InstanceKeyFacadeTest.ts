@@ -31,7 +31,6 @@ import {
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { CryptoFacade, RecipientKeyData } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
-import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { assertNotNull, KeyVersion, Nullable } from "../../../../../src/platform-kit/utils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
@@ -326,12 +325,13 @@ o.spec("InstanceKeyFacadeTest", function () {
 			expectedFormerInstanceKeys: FormerInstanceKeyData[] = [],
 			expectedPubEncKeyData: Nullable<PubEncKeyData> = null,
 		) {
-			o.check(instanceKeyInstanceData.sharedInstanceElementId).equals(instance._id[1])
-			o.check(instanceKeyInstanceData.sharedInstanceListId).equals(instance._id[0])
+			const sharedInstanceReferenceData = instanceKeyInstanceData.sharedInstanceReferenceData
+			o.check(sharedInstanceReferenceData.instanceElementId).equals(instance._id[1])
+			o.check(sharedInstanceReferenceData.instanceListId).equals(instance._id[0])
 			o.check(instanceKeyInstanceData.formerInstanceKeys.length).equals(expectedFormerInstanceKeys.length)
 			o.check(instanceKeyInstanceData.formerInstanceKeys).deepEquals(expectedFormerInstanceKeys)
-			o.check(instanceKeyInstanceData.typeInfo.application).equals(instance._type.app)
-			o.check(instanceKeyInstanceData.typeInfo.typeId).equals(instance._type.typeId.toString())
+			o.check(sharedInstanceReferenceData.typeInfo.application).equals(instance._type.app)
+			o.check(sharedInstanceReferenceData.typeInfo.typeId).equals(instance._type.typeId.toString())
 			const permissionDataList = instanceKeyInstanceData.permissionData
 			o.check(permissionDataList.length).equals(1)
 			const permissionData = permissionDataList[0]
