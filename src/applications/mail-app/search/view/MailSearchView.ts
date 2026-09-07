@@ -576,6 +576,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 		this.searchViewModel.dispose()
 		KeyManager.get().unregisterShortcuts(this.shortcuts())
 	}
+
+	getViewSlider(): ViewSlider | null {
+		return this.viewSlider
+	}
+
 	private renderDetailsView(header: AppHeaderAttrs): Children {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
