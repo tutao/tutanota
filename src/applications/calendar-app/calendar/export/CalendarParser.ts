@@ -153,10 +153,10 @@ function terminatorToString(terminator: Terminator): string {
 	}
 }
 
-function terminatorBitSetToString(terminatorBitSet: Terminator): string {
+function terminatorBitSetToString(terminatorBitSet: Terminator | 0): string {
 	let result = ""
 	for (let i = 0; i < 32; ++i) {
-		const bit = (1 << i) & 1
+		const bit = terminatorBitSet & (1 << i)
 		if (bit === Terminator.endOfString || bit === Terminator.semicolon || bit === Terminator.comma) {
 			if (result !== "") {
 				result += ", "
@@ -167,7 +167,7 @@ function terminatorBitSetToString(terminatorBitSet: Terminator): string {
 	return result
 }
 
-function matchTerminatorAt(str: string, offset: number, terminatorBitSet: Terminator): Terminator | 0 {
+function matchTerminatorAt(str: string, offset: number, terminatorBitSet: Terminator): Terminator | null {
 	if (offset >= str.length) {
 		return terminatorBitSet & Terminator.endOfString
 	}
@@ -177,16 +177,18 @@ function matchTerminatorAt(str: string, offset: number, terminatorBitSet: Termin
 		case CharCode.comma:
 			return terminatorBitSet & Terminator.comma
 		default:
-			return 0
+			return null
 	}
 }
 
-function findNextTerminator(str: string, offset: number, terminatorBitSet: Terminator): [Terminator | 0, number] {
-	let terminator: Terminator | 0 = 0
-	for (; terminator === 0 && offset <= str.length; ++offset) {
-		terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+function findNextTerminator(str: string, offset: number, terminatorBitSet: Terminator): { terminator: Terminator | null; offset: number } {
+	for (; offset <= str.length; ++offset) {
+		const terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+		if (terminator) {
+			return { terminator, offset }
+		}
 	}
-	return [terminator, offset - 1]
+	return { terminator: null, offset: str.length }
 }
 
 function getProp(obj: ICalObject, tag: string, optional: false): Property
@@ -460,32 +462,46 @@ export function parseRrule(rawRruleValue: string, startTzId: string | null): Rep
 			++offset
 
 			let advancedByRule: ByRule | null = null
-			let terminator: Terminator | ParseIntError = Terminator.endOfString
-			let end: number
+			let terminator: Terminator | null = null
 			switch (propertyName) {
 				case "FREQ":
-					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
-					frequency = icalFrequencyToRepeatPeriod(rawRruleValue.slice(offset, end))
-					offset = end
+					{
+						const findResult = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+						frequency = icalFrequencyToRepeatPeriod(rawRruleValue.slice(offset, findResult.offset))
+						offset = findResult.offset
+						terminator = findResult.terminator
+					}
 					break
 				case "UNTIL":
-					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
-					until = parseUntilRruleTime(rawRruleValue.slice(offset, end), startTzId)
-					offset = end
+					{
+						const findResult = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+						until = parseUntilRruleTime(rawRruleValue.slice(offset, findResult.offset), startTzId)
+						offset = findResult.offset
+						terminator = findResult.terminator
+					}
 					break
 				case "COUNT":
-					;[terminator, count, offset] = parsePositiveInt(rawRruleValue, offset, 1, null, Terminator.semicolon | Terminator.endOfString)
-					if (terminator < 0) {
-						throw new ParserError("Invalid COUNT value!")
+					{
+						const intParseResult = parsePositiveInt(rawRruleValue, {
+							startOffset: offset,
+							terminatorBitSet: Terminator.semicolon | Terminator.endOfString,
+						})
+						count = intParseResult.result
+						offset = intParseResult.endOffset
+						terminator = intParseResult.terminator
 					}
 					break
 				case "INTERVAL":
-					;[terminator, interval, offset] = parsePositiveInt(rawRruleValue, offset, 1, null, Terminator.semicolon | Terminator.endOfString)
-					if (terminator < 0) {
-						throw new ParserError("Invalid INTERVAL value!")
+					{
+						const intParseResult = parsePositiveInt(rawRruleValue, {
+							startOffset: offset,
+							terminatorBitSet: Terminator.semicolon | Terminator.endOfString,
+						})
+						interval = intParseResult.result
+						offset = intParseResult.endOffset
+						terminator = intParseResult.terminator
 					}
 					break
-
 				case "BYMINUTE":
 					advancedByRule = ByRule.BYMINUTE
 					break
@@ -514,25 +530,29 @@ export function parseRrule(rawRruleValue: string, startTzId: string | null): Rep
 					advancedByRule = ByRule.WKST
 					break
 				default:
-					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
-					console.warn(`${TAG} Ignoring unhandled RRULE property: ${propertyName}=${rawRruleValue.slice(offset, end)}!`)
-					offset = end
+					{
+						const findResult = findNextTerminator(rawRruleValue, offset, Terminator.semicolon | Terminator.endOfString)
+						console.warn(`${TAG} Ignoring unhandled RRULE property: ${propertyName}=${rawRruleValue.slice(offset, findResult.offset)}!`)
+						offset = findResult.offset
+						terminator = findResult.terminator
+					}
 					break
 			}
 
 			if (advancedByRule) {
 				while (offset <= rawRruleValue.length) {
-					;[terminator, end] = findNextTerminator(rawRruleValue, offset, Terminator.comma | Terminator.semicolon | Terminator.endOfString)
-					if (end === offset) {
+					const findResult = findNextTerminator(rawRruleValue, offset, Terminator.comma | Terminator.semicolon | Terminator.endOfString)
+					terminator = findResult.terminator
+					if (findResult.offset === offset) {
 						console.warn(`${TAG} Ignoring empty advanced RRULE property ${propertyName}!`)
 					} else {
 						advancedRepeatRules.push(
 							createCalendarAdvancedRepeatRule({
 								ruleType: advancedByRule,
-								interval: rawRruleValue.slice(offset, end),
+								interval: rawRruleValue.slice(offset, findResult.offset),
 							}),
 						)
-						offset = end
+						offset = findResult.offset
 					}
 					if (terminator === Terminator.comma) {
 						++offset
@@ -586,7 +606,7 @@ export function parseRrule(rawRruleValue: string, startTzId: string | null): Rep
 	return repeatRule
 }
 
-export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
+export function parseExDates(excludedDatesProps: Property[], startTzId: string | null): DateWrapper[] {
 	const exclusionDates: Date[] = []
 	for (let excludedDatesProp of excludedDatesProps) {
 		const str = excludedDatesProp.value
@@ -599,12 +619,12 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 		for (;;) {
 			const dateTimeStart = offset
 			const dtParseResult = parseDateTime(str, dateTimeStart, Terminator.comma | Terminator.endOfString)
-			offset = dtParseResult.offset + 1
+			offset = dtParseResult.endOffset + 1
 
 			// resolve the exclusion date time zone
 			let zone: string | null
-			const isAllDay = dtParseResult.hour === null && dtParseResult.minute === null
-			if (isAllDay) {
+			const isDateWithoutTime = dtParseResult.hour === null && dtParseResult.minute === null
+			if (isDateWithoutTime) {
 				if (tzId) {
 					console.warn(TAG + ` EXDATES date-time has all-day value ${str.slice(dateTimeStart, offset)}, but also TZID=${tzId}. Ignoreing TZID!`)
 				}
@@ -617,9 +637,12 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 				zone = "UTC"
 			} else if (tzId) {
 				zone = tzId
+			} else if (startTzId) {
+				zone = startTzId
+				console.warn(TAG + ` EXDATES property does not specify a time zone. Using time zone from DTSTART: ${startTzId}!`)
 			} else {
 				zone = null
-				console.warn(TAG + ` exclusion date-time ${str.slice(dateTimeStart, offset)} has undefined time zone. The local time zone will be used! `)
+				console.warn(TAG + " EXDATES property does not specify a time zone and DTSTART does not have time zone. The local time zone will be used!")
 			}
 
 			exclusionDates.push(jsDateFromDateTimeParseResult(dtParseResult, zone))
@@ -903,7 +926,7 @@ function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
 	let repeatRule: RepeatRule | null = null
 	if (rruleProp != null) {
 		repeatRule = parseRrule(rruleProp, startTzId)
-		repeatRule.excludedDates = parseExDates(excludedDateProps)
+		repeatRule.excludedDates = parseExDates(excludedDateProps, startTzId)
 	}
 
 	const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
@@ -1175,7 +1198,7 @@ type DateTimeParseResult =
 			hour: null
 			minute: null
 			hasZSuffix: false
-			offset: number
+			endOffset: number
 			terminator: Terminator
 	  }
 	| {
@@ -1186,7 +1209,7 @@ type DateTimeParseResult =
 			hour: number
 			minute: number
 			hasZSuffix: boolean
-			offset: number
+			endOffset: number
 			terminator: Terminator
 	  }
 
@@ -1197,41 +1220,26 @@ export function parseDateTime(str: string, offset: number, terminatorBitSet: Ter
 	// Refer to RFC 5545, Section 3.3.4 for specification of DATE
 	// https://www.rfc-editor.org/info/rfc5545/#section-3.3.4
 
-	let parseIntStatus: ParseIntError | Terminator
-	let year: number
-	let month: number
-	let day: number
-	let hour: number | null = null
-	let minute: number | null = null
-	let seconds: number
-	let hasZSuffix: boolean = false
-	let terminator: Terminator | 0
-
 	offset = skipInlineWhitespace(str, offset)
 
 	const dateTimeStart = offset
 
-	;[parseIntStatus, year, offset] = parsePositiveInt(str, offset, 4, 4, null)
-	if (parseIntStatus < 0) {
-		throw new ParserError(`No year in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
-	}
+	const yearParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 4, maxLength: 4 })
+	const year = yearParseResult.result
+	offset = yearParseResult.endOffset
 
-	;[parseIntStatus, month, offset] = parsePositiveInt(str, offset, 2, 2, null)
-	if (parseIntStatus < 0) {
-		throw new ParserError(`No month in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
-	}
-	if (month < 1 || month > 12) {
-		throw new ParserError(`Invalid month=${month} in date time string "${str.slice(dateTimeStart, offset)}..."! Month must be between 1 and 12.`)
-	}
+	const monthParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 2, maxLength: 2, minValue: 1, maxValue: 12 })
+	const month = monthParseResult.result
+	offset = monthParseResult.endOffset
 
-	;[parseIntStatus, day, offset] = parsePositiveInt(str, offset, 2, 2, null)
-	if (parseIntStatus < 0) {
-		throw new ParserError(`No day in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
-	}
-	const maxDay = daysInMonth(year, month)
-	if (day < 1 || day > maxDay) {
-		throw new ParserError(`Invalid day=${day} in date time string "${str.slice(dateTimeStart, offset)}..."! Expected day between 1 and ${maxDay}.`)
-	}
+	const dayParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 2, maxLength: 2, minValue: 1, maxValue: daysInMonth(year, month) })
+	const day = dayParseResult.result
+	offset = dayParseResult.endOffset
+
+	let hour: number | null = null
+	let minute: number | null = null
+	let hasZSuffix: boolean = false
+	let terminator: Terminator | null
 
 	parseTimeIf: if (offset < str.length && str.charCodeAt(offset) === CharCode.T) {
 		// Case: `value` is a date-time with optional Z-suffix for UTC (YYYYMMDDThhmmss[Z])
@@ -1244,49 +1252,20 @@ export function parseDateTime(str: string, offset: number, terminatorBitSet: Ter
 		}
 
 		// Refer to RFC 5545, Section 3.3.12 for specification of TIME
-		// https://www.rfc-editor.org/info/rfc5545/#section-3.3.12[parseIntStatus, hour, offset] = parsePositiveInt(str, offset, 2, 2, null)
+		// https://www.rfc-editor.org/info/rfc5545/#section-3.3.12
 
-		;[parseIntStatus, hour, offset] = parsePositiveInt(str, offset, 2, 2, null)
-		if (parseIntStatus < 0) {
-			throw new ParserError(`No hour in invalid date time string: "${str.slice(dateTimeStart, offset)}..."!`)
-		}
-		// NOTE: This will break if some spec-non-compiliant calendars set hour=24, e.g. "...T240000"
-		if (hour > 23) {
-			throw new ParserError(`Invalid hour=${hour} in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 23.`)
-		}
-		// NOTE: `hour` cannot be less than 0 because parsePositiveFixedLenInt is used
+		const hourParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 2, maxLength: 2, minValue: 0, maxValue: 23 })
+		hour = hourParseResult.result
+		offset = hourParseResult.endOffset
 
-		;[parseIntStatus, minute, offset] = parsePositiveInt(str, offset, 2, 2, null)
-		if (parseIntStatus < 0) {
-			throw new ParserError(`No minute in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
-		}
-		const MAX_RECOVERABLE_MINUTE_DIST_TO_VALID = 5
-		if (minute > 59) {
-			if (minute > 59 + MAX_RECOVERABLE_MINUTE_DIST_TO_VALID) {
-				throw new ParserError(`Invalid minute=${minute} >59 in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 59.`)
-			}
-			console.error(`Invalid minute=${minute} >59. Less than ${MAX_RECOVERABLE_MINUTE_DIST_TO_VALID} off from 59, so recovering by setting to 59`)
-			minute = 59
-		}
-		// NOTE: `minute` cannot be less than 0 because parsePositiveFixedLenInt is used
+		const minuteParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 2, maxLength: 2, minValue: 0, maxValue: 59 })
+		minute = minuteParseResult.result
+		offset = minuteParseResult.endOffset
 
-		;[parseIntStatus, seconds, offset] = parsePositiveInt(str, offset, 2, 2, null)
-		if (parseIntStatus < 0) {
-			throw new ParserError(`No seconds in invalid date time string "${str.slice(dateTimeStart, offset)}..."!`)
-		}
-		const MAX_IGNORABLE_SECONDS_DIST_TO_VALID = 29
-		if (seconds === 60) {
-			// A value of 60 is allowed according to the RFC to interface with systems that count leap seconds.
-			// See RFC 5545, Section 3.3.12 https://www.rfc-editor.org/info/rfc5545/#section-3.3.12
-		} else if (seconds > 59) {
-			if (seconds > 59 + MAX_IGNORABLE_SECONDS_DIST_TO_VALID) {
-				throw new ParserError(`Invalid seconds=${seconds} >59 in date time string "${str.slice(dateTimeStart, offset)}..."! Must be between 0 and 59.`)
-			}
-			console.error(
-				`Invalid seconds=${minute} >59 in date time string "${str.slice(dateTimeStart, offset)}...". Less than ${MAX_IGNORABLE_SECONDS_DIST_TO_VALID} off from 59, so ignoring`,
-			)
-		}
-		// NOTE: `seconds` cannot be less than 0 because parsePositiveFixedLenInt is used
+		// A value of 60 is allowed according to the RFC to interface with systems that count leap seconds.
+		// See RFC 5545, Section 3.3.12 https://www.rfc-editor.org/info/rfc5545/#section-3.3.12
+		const secondsParseResult = parsePositiveInt(str, { startOffset: offset, minLength: 2, maxLength: 2, minValue: 0, maxValue: 60 })
+		offset = secondsParseResult.endOffset
 
 		hasZSuffix = offset < str.length && str.charCodeAt(offset) === CharCode.Z
 		if (hasZSuffix) {
@@ -1304,7 +1283,7 @@ export function parseDateTime(str: string, offset: number, terminatorBitSet: Ter
 		)
 	}
 
-	return { year, month, day, hour, minute, hasZSuffix, offset, terminator } as DateTimeParseResult
+	return { year, month, day, hour, minute, hasZSuffix, endOffset: offset, terminator } as DateTimeParseResult
 }
 
 function jsDateFromDateTimeParseResult(dtParseResult: DateTimeParseResult, zone: string | null) {
@@ -1508,75 +1487,94 @@ function skipInlineWhitespace(str: string, offset: number): number {
 	return offset
 }
 
-const enum ParseIntError {
-	NO_ERROR = 0,
-	NOT_ENDED_BY_TERMINATOR = -1,
-	INT_TOO_LARGE = -2,
-	SMALLER_THAN_MIN_LEN = -3,
-}
+const MAX_SIGNED_32_BIT_INT = 0x7fffffff
 
 /**
  * Parse a positive integer from a string.
  *
- * Safer than to parseInt... no "helpful" edge-cases
+ * @param str The string containing the integer that we're parsing
+ * @param options Optional named arguments to specify how the integer should be parsed.
+ * 	- `options.startOffset` where in the string to start parsing the integer. Defaults to 0
+ * 	- `options.minLength` the minimum number of digits in the integer. Defaults to 1
+ * 	- `options.maxLength` the maximum number of digits in the integer. Defaults to the string length
+ * 	- `options.minValue` throw an error if the parsed integer is less than this value. Defaults to 0
+ * 	- `options.maxValue` throw an error if the parsed integer is greater than this value.
+ * 	                     Defaults to the maximum signed 32-bit integer value `2^31 - 1` to avoid conversion to float64.
+ * 	- `options.terminatorBitSet` specify which terminator character(s) must appear directly after the end of the integer.
+ * 	                             Terminators are specified in the {@link Terminator} enum. Multiple terminators can be
+ * 	                             specified using bitwise-or, e.g. `Terminator.semicolon | Terminator.endOfString`
  */
-function parsePositiveInt(
+export function parsePositiveInt(
 	str: string,
-	offset: number,
-	minLen: number,
-	maxLen: number | null,
-	terminatorBitSet: Terminator | null,
-): [Terminator | ParseIntError, number, number] {
-	let status: Terminator | ParseIntError = ParseIntError.NO_ERROR
-	let integer = 0
-	let end = offset
+	options: {
+		startOffset?: number
+		minLength?: number
+		maxLength?: number
+		minValue?: number
+		maxValue?: number
+		terminatorBitSet?: Terminator
+	},
+): { result: number; endOffset: number; terminator: Terminator | null } {
+	const startOffset = options.startOffset ?? 0
+	const minLength = options.minLength ?? 1
+	const maxLength = options.maxLength ?? str.length
+	const minValue = options.minValue ?? 0
+	// by default, we only allow integers in the signed 32-bit range to avoid conversion to float64
+	const maxValue = options.maxValue ?? MAX_SIGNED_32_BIT_INT
+	const terminatorBitSet = options.terminatorBitSet ?? 0
+
+	let result = 0
+	let terminator: Terminator | null = null
+	let offset = startOffset
 	for (;;) {
-		if (terminatorBitSet !== null) {
-			status = matchTerminatorAt(str, end, terminatorBitSet)
-			if (status) {
+		if (terminatorBitSet) {
+			terminator = matchTerminatorAt(str, offset, terminatorBitSet)
+			if (terminator) {
 				break
 			}
 		}
 
-		if (end >= str.length) {
-			if (terminatorBitSet !== null) {
-				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
-			}
-			break
-		}
-
-		if (maxLen && end >= offset + maxLen) {
-			if (terminatorBitSet !== null) {
-				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
-			}
-			break
-		}
-
-		const charCode = str.charCodeAt(end)
-		if (terminatorBitSet && charCode === terminatorBitSet) {
-			break
-		}
-
-		if (integer > 214748364 /* floor((2^31 - 1) / 10) */) {
-			status = ParseIntError.INT_TOO_LARGE
-		}
-
-		const digit = charCode - CharCode.zero
-		if (digit < 0 || digit > 9) {
+		if (offset >= str.length) {
 			if (terminatorBitSet) {
-				status = ParseIntError.NOT_ENDED_BY_TERMINATOR
+				throw new ParserError(
+					`Positive integer ${str.slice(startOffset)} ended at end of string, not by expected terminator ${terminatorBitSetToString(terminatorBitSet)}!`,
+				)
 			}
 			break
 		}
 
-		integer = 10 * integer + (charCode - CharCode.zero)
+		if (offset >= startOffset + maxLength) {
+			if (terminatorBitSet) {
+				throw new ParserError(
+					`Positive integer "${str.slice(startOffset, offset)}..." expected terminator after reaching a length of maxLength=${maxLength}! Expected terminators: ${terminatorBitSetToString(terminatorBitSet)}`,
+				)
+			}
+			break
+		}
 
-		++end
+		const digit = str.charCodeAt(offset) - CharCode.zero
+		if (digit < 0 || digit > 9) {
+			throw new ParserError(
+				`Positive integer ${str.slice(startOffset, offset)} unexpectedly terminated by character '${str[offset]}'! Expected terminators: ${terminatorBitSetToString(terminatorBitSet)}`,
+			)
+		}
+
+		result = 10 * result + digit
+
+		if (result > maxValue) {
+			throw new ParserError(`Positive integer "${str.slice(startOffset, offset + 1)}..." greater than maxValue=${maxValue}!`)
+		}
+
+		++offset
 	}
 
-	if (end - offset < minLen) {
-		status = ParseIntError.SMALLER_THAN_MIN_LEN
+	if (result < minValue) {
+		throw new ParserError(`Positive integer ${result} less than minValue=${minValue}!`)
 	}
 
-	return [status, integer, end]
+	if (offset - startOffset < minLength) {
+		throw new ParserError(`Positive integer "${str.slice(startOffset, offset)}" shorter than minLength=${minLength}!`)
+	}
+
+	return { result, endOffset: offset, terminator }
 }

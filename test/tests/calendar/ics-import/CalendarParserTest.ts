@@ -12,6 +12,7 @@ import {
 	parseDuration,
 	parseExDates,
 	parseICalendar,
+	parsePositiveInt,
 	parseProperty,
 	parseRecurrenceId,
 	parseUntilRruleTime,
@@ -314,7 +315,7 @@ o.spec("CalendarParser", function () {
 				hour: 21,
 				minute: 40,
 				hasZSuffix: true,
-				offset: str.length,
+				endOffset: str.length,
 				terminator: Terminator.endOfString,
 			})
 		})
@@ -327,7 +328,7 @@ o.spec("CalendarParser", function () {
 				hour: 21,
 				minute: 40,
 				hasZSuffix: false,
-				offset: str.length,
+				endOffset: str.length,
 				terminator: Terminator.endOfString,
 			})
 		})
@@ -340,7 +341,7 @@ o.spec("CalendarParser", function () {
 				hour: null,
 				minute: null,
 				hasZSuffix: false,
-				offset: str.length,
+				endOffset: str.length,
 				terminator: Terminator.endOfString,
 			})
 		})
@@ -355,7 +356,7 @@ o.spec("CalendarParser", function () {
 					hour: null,
 					minute: null,
 					hasZSuffix: false,
-					offset: str.length,
+					endOffset: str.length,
 					terminator: Terminator.endOfString,
 				})
 			}
@@ -370,7 +371,7 @@ o.spec("CalendarParser", function () {
 					hour: null,
 					minute: null,
 					hasZSuffix: false,
-					offset: str.length,
+					endOffset: str.length,
 					terminator: Terminator.endOfString,
 				})
 			}
@@ -474,42 +475,48 @@ o.spec("CalendarParser", function () {
 
 	o.spec("parseExcludedDates", function () {
 		o("are excluded dates deduplicated", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }], null)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-03-08T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("are excluded dates sorted", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }], null)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-13T23:00:00Z") }),
 			])
 		})
 		o("multiple exdates in separate lines are parsed", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
-				{
-					name: "EXDATES",
-					params: {},
-					value: "20230203T230000Z",
-				},
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
+					{
+						name: "EXDATES",
+						params: {},
+						value: "20230203T230000Z",
+					},
+				],
+				null,
+			)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-02-03T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("deduplication over multiple lines works", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
-				{
-					name: "EXDATES",
-					params: {},
-					value: "20230309T230000Z,20230114T230000Z",
-				},
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
+					{
+						name: "EXDATES",
+						params: {},
+						value: "20230309T230000Z,20230114T230000Z",
+					},
+				],
+				null,
+			)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-01-14T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-02T23:00:00Z") }),
@@ -517,22 +524,50 @@ o.spec("CalendarParser", function () {
 			])
 		})
 		o("allows empty exclusion dates", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "" }], null)
 			o(parsedDates.length).equals(0)
 		})
-		o("is timezone parsed", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
-			o(parsedDates).deepEquals([
-				createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
-				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
-			])
+		o.test("uses time zone if present", function () {
+			const hourInEuropeBerlin = 11
+			const hourInUTC = 10
+			let parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: `19991122T${hourInEuropeBerlin}2200` }], null)
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date(`1999-11-22T${hourInUTC}:22:00Z`) })])
+		})
+		o.test("uses startTzId as a fallback time zone if no Z-suffix nor time zone is specified", function () {
+			const hourInEuropeBerlin = 11
+			const hourInUTC = 10
+			let parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: `19991122T${hourInEuropeBerlin}2200` }], "Europe/Berlin")
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date(`1999-11-22T${hourInUTC}:22:00Z`) })])
+		})
+		o.test("uses local time zone as a fallback time zone if no Z-suffix nor time zone nor startTzId is specified", function () {
+			let parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: `19991122T112200` }], null)
+			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("1999-11-22T11:22:00") })])
 		})
 		o("deduplication over different timezones", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
-				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
+					{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
+				],
+				null,
+			)
 			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
+		})
+		o.test("discards time zone and uses UTC if exclusion only has DATE component and no TIME component", function () {
+			let parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "19991122" },
+					{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20001122T" },
+				],
+				null,
+			)
+			o(parsedDates).deepEquals([
+				createDateWrapper({ date: new Date("1999-11-22T00:00:00Z") }),
+				createDateWrapper({ date: new Date("2000-11-22T00:00:00Z") }),
+			])
+		})
+		o.test("throws error if has time zone and Z suffix", function () {
+			o.check(() => parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "19991122T112233Z" }], null)).throws(ParserError)
 		})
 	})
 
@@ -1751,6 +1786,106 @@ END:VCALENDAR`
 
 			rruleValue = "FREQ=DAILY;INTERVAL=1;COUNT=0X123"
 			o.check(parseCalendarStringData(calendarWithRRule(rruleValue), zone).parseEventErrors.length).equals(1)
+		})
+	})
+
+	o.spec("parsePositiveInt", function () {
+		o.test("parses integers that end at the end of the string", function () {
+			let result = parsePositiveInt("0", { terminatorBitSet: Terminator.endOfString })
+			o.check(result.result).equals(0)
+			o.check(result.endOffset).equals(1)
+			o.check(result.terminator).equals(Terminator.endOfString)
+
+			result = parsePositiveInt("123", { terminatorBitSet: Terminator.endOfString })
+			o.check(result.result).equals(123)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(Terminator.endOfString)
+
+			result = parsePositiveInt("123", { startOffset: 1, terminatorBitSet: Terminator.endOfString })
+			o.check(result.result).equals(23)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(Terminator.endOfString)
+
+			result = parsePositiveInt("123", { startOffset: 2, terminatorBitSet: Terminator.endOfString })
+			o.check(result.result).equals(3)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(Terminator.endOfString)
+		})
+
+		o.test("parses fixed-length integers by passing minLength==maxLength", function () {
+			let result = parsePositiveInt("123", { minLength: 1, maxLength: 1 })
+			o.check(result.result).equals(1)
+			o.check(result.endOffset).equals(1)
+			o.check(result.terminator).equals(null)
+
+			result = parsePositiveInt("123", { minLength: 2, maxLength: 2 })
+			o.check(result.result).equals(12)
+			o.check(result.endOffset).equals(2)
+			o.check(result.terminator).equals(null)
+
+			result = parsePositiveInt("123", { minLength: 3, maxLength: 3 })
+			o.check(result.result).equals(123)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(null)
+		})
+
+		o.test("parses integer ended by terminator", function () {
+			let result = parsePositiveInt("123;", { terminatorBitSet: Terminator.semicolon })
+			o.check(result.result).equals(123)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(Terminator.semicolon)
+
+			result = parsePositiveInt("1,2;", { terminatorBitSet: Terminator.comma | Terminator.semicolon })
+			o.check(result.result).equals(1)
+			o.check(result.endOffset).equals(1)
+			o.check(result.terminator).equals(Terminator.comma)
+
+			result = parsePositiveInt("1,2;", { startOffset: 2, terminatorBitSet: Terminator.comma | Terminator.semicolon })
+			o.check(result.result).equals(2)
+			o.check(result.endOffset).equals(3)
+			o.check(result.terminator).equals(Terminator.semicolon)
+		})
+
+		o.test("parses value equal to maxValue option", function () {
+			const result = parsePositiveInt("6", { maxValue: 6 })
+			o.check(result.result).equals(6)
+			o.check(result.endOffset).equals(1)
+			o.check(result.terminator).equals(null)
+		})
+		o.test("parses value equal to minValue option", function () {
+			const result = parsePositiveInt("6", { minValue: 6 })
+			o.check(result.result).equals(6)
+			o.check(result.endOffset).equals(1)
+			o.check(result.terminator).equals(null)
+		})
+
+		o.test("can parse maxLength characters with terminator", function () {
+			const result = parsePositiveInt("1234;", { maxLength: 4, terminatorBitSet: Terminator.semicolon })
+			o.check(result.result).equals(1234)
+			o.check(result.endOffset).equals(4)
+			o.check(result.terminator).equals(Terminator.semicolon)
+		})
+
+		o.test("throws error when integer is not ended by specified terminator", function () {
+			o.check(() => parsePositiveInt("123NOT TERMINATOR", { terminatorBitSet: Terminator.semicolon })).throws(ParserError)
+			// test end-of-string instead of terminator
+			o.check(() => parsePositiveInt("123", { terminatorBitSet: Terminator.semicolon })).throws(ParserError)
+			// test max-length reached before terminator
+			o.check(() => parsePositiveInt("123;", { maxLength: 2, terminatorBitSet: Terminator.semicolon })).throws(ParserError)
+		})
+
+		o.test("throws error when integer has more digits than specified by maxLength option and a terminator is specified", function () {
+			o.check(() => parsePositiveInt("123", { maxLength: 2, terminatorBitSet: Terminator.endOfString })).throws(ParserError)
+		})
+		o.test("throws error when integer has less digits than specified by minLength option", function () {
+			o.check(() => parsePositiveInt("12!!", { minLength: 3 })).throws(ParserError)
+		})
+
+		o.test("throws error when integer is greater than maxValue option", function () {
+			o.check(() => parsePositiveInt("4", { maxValue: 2 })).throws(ParserError)
+		})
+		o.test("throws error when integer is smaller than minValue option", function () {
+			o.check(() => parsePositiveInt("6", { minValue: 7 })).throws(ParserError)
 		})
 	})
 })
