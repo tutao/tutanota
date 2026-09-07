@@ -1921,6 +1921,11 @@ export class MainStyles {
 				".hide-outline": {
 					outline: "none",
 				},
+				".hide-overlay": {
+					display: "none",
+					border: "none",
+					"box-shadow": "none !important",
+				},
 				".nofocus:focus": {
 					outline: "none",
 				},

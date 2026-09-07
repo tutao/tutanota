@@ -48,7 +48,9 @@ function showMinimizedEditorOverlay(viewModel: MinimizedMailEditorViewModel, min
 		},
 		"slide-bottom",
 		undefined,
-		"minimized-shadow",
+		// we define the shadow later to hide this in other views
+		// also, this makes nice rounded edges
+		"",
 	)
 }
 

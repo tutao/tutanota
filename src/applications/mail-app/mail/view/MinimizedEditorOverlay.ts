@@ -13,13 +13,15 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { mailLocator } from "../../mailLocator.js"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailTypeRef } from "@tutao/entities/tutanota"
 import { isSameId, OperationType } from "../../../../platform-kit/meta"
+import { isSelectedPrefix } from "../../../../ui/base/NavButton"
+import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
 
 const COUNTER_POS_OFFSET = px(-8)
 export type MinimizedEditorOverlayAttrs = {
@@ -61,9 +63,9 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 	}
 
 	view(vnode: Vnode<MinimizedEditorOverlayAttrs>): Children {
-		const { minimizedEditor, viewModel, eventController } = vnode.attrs
+		const { minimizedEditor, viewModel } = vnode.attrs
 		const subject = minimizedEditor.sendMailModel.getSubject()
-		return m(".elevated-bg.pl-12.border-radius", [
+		return m(`.elevated-bg.pl-12.border-radius${isSelectedPrefix(MAIL_PREFIX) ? ".minimized-shadow" : ".hide-overlay"}`, [
 			m(CounterBadge, {
 				count: viewModel.getMinimizedEditors().indexOf(minimizedEditor) + 1,
 				position: {
@@ -80,7 +82,7 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 						onclick: () => viewModel.reopenMinimizedEditor(minimizedEditor),
 					},
 					[
-						m(".b.text-ellipsis", subject ? subject : lang.get("newMail_action")),
+						m(".b.text-ellipsis", subject ? subject : lang.getTranslationText("newMail_action")),
 						m(".small.text-ellipsis", getStatusMessage(minimizedEditor.saveStatus())),
 					],
 				),
@@ -126,16 +128,16 @@ export class MinimizedEditorOverlay implements Component<MinimizedEditorOverlayA
 function getStatusMessage(saveStatus: SaveStatus): string {
 	switch (saveStatus.status) {
 		case SaveStatusEnum.Saving:
-			return lang.get("save_msg")
+			return lang.getTranslationText("save_msg")
 		case SaveStatusEnum.NotSaved:
 			switch (saveStatus.reason) {
 				case SaveErrorReason.ConnectionLost:
-					return lang.get("draftNotSavedConnectionLost_msg")
+					return lang.getTranslationText("draftNotSavedConnectionLost_msg")
 				default:
-					return lang.get("draftNotSaved_msg")
+					return lang.getTranslationText("draftNotSaved_msg")
 			}
 		case SaveStatusEnum.Saved:
-			return lang.get("draftSaved_msg")
+			return lang.getTranslationText("draftSaved_msg")
 		default:
 			return ""
 	}
