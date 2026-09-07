@@ -2031,6 +2031,9 @@ export class MainStyles {
 				".mt-between-4 > :not(:first-child)": {
 					"margin-top": px(size.spacing_4),
 				},
+				".mr-between-8 > :not(:last-child)": {
+					"margin-right": px(size.spacing_8),
+				},
 				// dropdown
 				".dropdown-panel": {
 					position: "absolute",

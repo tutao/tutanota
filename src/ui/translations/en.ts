@@ -912,7 +912,7 @@ export default {
 		"inboxRuleSenderEquals_action": "From/Sender",
 		"inboxRulesSettings_action": "Inbox rules",
 		"inboxRuleSubjectContains_action": "Subject contains",
-		"inboxRuleTargetFolder_label": "Target folder",
+		"inboxRuleTargetFolder_label": "Move to folder",
 		"inboxRuleToRecipientEquals_action": "To recipient",
 		"inboxRuleValue_label": "Value",
 		"includeRepeatingEvents_action": "Show event series",

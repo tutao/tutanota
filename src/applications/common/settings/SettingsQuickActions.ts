@@ -152,8 +152,8 @@ function emailSettings(router: Router): readonly QuickAction[] {
 			exec: () => routeToFolderSection(router, folder, "mailaddresses"),
 		},
 		{
-			description: `${emailSettingsLabel} ${lang.getTranslationText("inboxRulesSettings_action")}`,
-			exec: () => routeToFolderSection(router, folder, "inboxrules"),
+			description: `${lang.getTranslationText("inboxRulesSettings_action")}`,
+			exec: () => routeToFolder(router, "inboxrules"),
 		},
 	].filter(isNotNull)
 }
