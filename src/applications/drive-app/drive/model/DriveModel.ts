@@ -15,7 +15,6 @@ import {
 	OperationUpdate,
 	pickNewFileName,
 	RunningOperation,
-	toFolderItem,
 	walkTree,
 } from "../view/DriveUtils"
 import { DriveTransferController, DriveTransfers, DriveTransferState } from "../view/DriveTransferController"
@@ -36,6 +35,7 @@ import { DataFile, FileReference, WebFile } from "../../../../entities/tutanota/
 import { isWebFile } from "../../../../ui/utils/FileUtils"
 import { DuplicateFilesDialogDecision } from "../view/DriveGuiUtils"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
+import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 
 export const enum ClipboardAction {
 	Cut,
@@ -199,9 +199,17 @@ export class DriveModel {
 					fileName = pickNewFileName(fileName, takenFileNames)
 				} else {
 					const itemToReplace = assertNotNull(
-						folderItems.files.find((item) => item.name === fileName) ?? folderItems.folders.find((item) => item.name === fileName),
+						folderItems.files.find((item) => item.name === fileName) ?? folderItems.folders.find((item) => item.name === fileName) ?? null,
 					)
-					await this.moveToTrash([folderItemToId(toFolderItem(itemToReplace, null))])
+
+					this.transferController.setCompletionListenerFor(file, async () => {
+						try {
+							const { fileIds, folderIds } = itemsIntoIds([{ id: itemToReplace._id, type: isDriveFile(itemToReplace) ? "file" : "folder" }])
+							this.driveFacade.moveToTrash(fileIds, folderIds)
+						} catch (e) {
+							console.log(`Couldn't automatically delete file ${JSON.stringify(itemToReplace._id)}`, e)
+						}
+					})
 				}
 				takenFileNames.add(fileName)
 
@@ -249,7 +257,7 @@ export class DriveModel {
 		this.transferController.flush()
 	}
 
-	async moveToTrash(items: readonly FolderItemId[]) {
+	async moveToTrash(items: readonly FolderItemId[]): Promise<void> {
 		const { fileIds, folderIds } = itemsIntoIds(items)
 		try {
 			await this.driveFacade.moveToTrash(fileIds, folderIds)
