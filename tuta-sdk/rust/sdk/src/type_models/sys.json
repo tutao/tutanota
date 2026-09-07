@@ -468,10 +468,10 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2832": {
+			"2843": {
 				"final": true,
 				"name": "_formerInstanceKeys",
-				"id": 2832,
+				"id": 2843,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2800,
@@ -1911,28 +1911,28 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2827": {
+			"2838": {
 				"final": true,
 				"name": "symEncInstanceKey",
-				"id": 2827,
+				"id": 2838,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2828": {
+			"2839": {
 				"final": true,
 				"name": "instanceKeyVersion",
-				"id": 2828,
+				"id": 2839,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2829": {
+			"2840": {
 				"final": true,
 				"name": "bucketEncInstanceKey",
-				"id": 2829,
+				"id": 2840,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -3787,19 +3787,19 @@
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2830": {
+			"2841": {
 				"final": false,
 				"name": "ownerEncInstanceKey",
-				"id": 2830,
+				"id": 2841,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2831": {
+			"2842": {
 				"final": false,
 				"name": "instanceKeyVersion",
-				"id": 2831,
+				"id": 2842,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -17585,7 +17585,7 @@
 		"associations": {}
 	},
 	"2816": {
-		"name": "InstanceKeyInstanceData",
+		"name": "InstanceReferenceData",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
@@ -17608,7 +17608,7 @@
 			},
 			"2819": {
 				"final": false,
-				"name": "sharedInstanceListId",
+				"name": "instanceListId",
 				"id": 2819,
 				"type": "GeneratedId",
 				"cardinality": "ZeroOrOne",
@@ -17617,9 +17617,9 @@
 			},
 			"2820": {
 				"final": false,
-				"name": "sharedInstanceElementId",
+				"name": "instanceElementId",
 				"id": 2820,
-				"type": "GeneratedId",
+				"type": "String",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
@@ -17635,21 +17635,57 @@
 				"refTypeId": 1869,
 				"dependency": null,
 				"transferredAttributeId": null
+			}
+		}
+	},
+	"2821": {
+		"name": "InstanceKeyInstanceData",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "AGGREGATED_TYPE",
+		"id": 2821,
+		"rootId": "A3N5cwALBQ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2822": {
+				"final": true,
+				"name": "_id",
+				"id": 2822,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2823": {
+				"final": false,
+				"name": "sharedInstanceReferenceData",
+				"id": 2823,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 2816,
+				"dependency": null,
+				"transferredAttributeId": null
 			},
-			"2821": {
+			"2824": {
 				"final": false,
 				"name": "formerInstanceKeys",
-				"id": 2821,
+				"id": 2824,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2811,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2822": {
+			"2825": {
 				"final": false,
 				"name": "permissionData",
-				"id": 2822,
+				"id": 2825,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2803,
@@ -17658,23 +17694,113 @@
 			}
 		}
 	},
-	"2823": {
+	"2826": {
 		"name": "InstanceKeyPermissionServicePostIn",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2823,
-		"rootId": "A3N5cwALBw",
+		"id": 2826,
+		"rootId": "A3N5cwALCg",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": null,
 		"values": {
-			"2824": {
+			"2827": {
 				"final": false,
 				"name": "_format",
-				"id": 2824,
+				"id": 2827,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2828": {
+				"final": false,
+				"name": "keyRotationType",
+				"id": 2828,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2829": {
+				"final": false,
+				"name": "permissionDataPerInstance",
+				"id": 2829,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2821,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"2830": {
+		"name": "InstanceKeyPermissionServiceGetIn",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2830,
+		"rootId": "A3N5cwALDg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2831": {
+				"final": false,
+				"name": "_format",
+				"id": 2831,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2832": {
+				"final": false,
+				"name": "keyRotationType",
+				"id": 2832,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2833": {
+				"final": false,
+				"name": "potentialInstancesToMigrate",
+				"id": 2833,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2816,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"2834": {
+		"name": "InstanceKeyPermissionServiceGetOut",
+		"app": "sys",
+		"version": 155,
+		"since": 155,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 2834,
+		"rootId": "A3N5cwALEg",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"2835": {
+				"final": false,
+				"name": "_format",
+				"id": 2835,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
@@ -17682,10 +17808,10 @@
 			}
 		},
 		"associations": {
-			"2825": {
+			"2836": {
 				"final": false,
-				"name": "permissionDataPerInstance",
-				"id": 2825,
+				"name": "confirmedInstancesToMigrate",
+				"id": 2836,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2816,

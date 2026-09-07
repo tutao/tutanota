@@ -48,6 +48,8 @@ use crate::entities::generated::sys::IdentityKeyPostIn;
 use crate::entities::generated::sys::IdentityKeyGetIn;
 use crate::entities::generated::sys::IdentityKeyGetOut;
 use crate::entities::generated::sys::InstanceKeyPermissionServicePostIn;
+use crate::entities::generated::sys::InstanceKeyPermissionServiceGetIn;
+use crate::entities::generated::sys::InstanceKeyPermissionServiceGetOut;
 use crate::entities::generated::sys::InvoiceDataGetIn;
 use crate::entities::generated::sys::InvoiceDataGetOut;
 use crate::entities::generated::sys::LocationServiceGetReturn;
@@ -266,6 +268,7 @@ pub struct InstanceKeyPermissionService;
 
 crate::service_impl!(declare, InstanceKeyPermissionService, "sys/instancekeypermissionservice", 155);
 crate::service_impl!(POST, InstanceKeyPermissionService, InstanceKeyPermissionServicePostIn, ());
+crate::service_impl!(GET, InstanceKeyPermissionService, InstanceKeyPermissionServiceGetIn, InstanceKeyPermissionServiceGetOut);
 
 
 pub struct InvoiceDataService;

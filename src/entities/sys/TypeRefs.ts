@@ -6872,7 +6872,32 @@ export type FormerInstanceKeyData = {
 	symKeyVersion: NumberString;
 	instanceKeyVersion: NumberString;
 }
-export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2816)
+export const InstanceReferenceDataTypeRef: TypeRef<InstanceReferenceData> = new TypeRef("sys", 2816)
+
+export function createInstanceReferenceData(values: InstanceReferenceDataParams): InstanceReferenceData {
+    return Object.assign(create(typeModels[InstanceReferenceDataTypeRef.typeId], InstanceReferenceDataTypeRef), values)
+}
+
+export type InstanceReferenceDataParams = {
+
+
+	instanceListId: null | Id;
+	instanceElementId: string;
+
+	typeInfo: TypeInfo;
+}
+
+export type InstanceReferenceData = {
+	_type: TypeRef<InstanceReferenceData>;
+	_original?: InstanceReferenceData
+
+	_id: Id;
+	instanceListId: null | Id;
+	instanceElementId: string;
+
+	typeInfo: TypeInfo;
+}
+export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2821)
 
 export function createInstanceKeyInstanceData(values: InstanceKeyInstanceDataParams): InstanceKeyInstanceData {
     return Object.assign(create(typeModels[InstanceKeyInstanceDataTypeRef.typeId], InstanceKeyInstanceDataTypeRef), values)
@@ -6881,10 +6906,8 @@ export function createInstanceKeyInstanceData(values: InstanceKeyInstanceDataPar
 export type InstanceKeyInstanceDataParams = {
 
 
-	sharedInstanceListId: null | Id;
-	sharedInstanceElementId: Id;
 
-	typeInfo: TypeInfo;
+	sharedInstanceReferenceData: InstanceReferenceData;
 	formerInstanceKeys: FormerInstanceKeyData[];
 	permissionData: InstanceKeyPermissionData[];
 }
@@ -6894,14 +6917,12 @@ export type InstanceKeyInstanceData = {
 	_original?: InstanceKeyInstanceData
 
 	_id: Id;
-	sharedInstanceListId: null | Id;
-	sharedInstanceElementId: Id;
 
-	typeInfo: TypeInfo;
+	sharedInstanceReferenceData: InstanceReferenceData;
 	formerInstanceKeys: FormerInstanceKeyData[];
 	permissionData: InstanceKeyPermissionData[];
 }
-export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2823)
+export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2826)
 
 export function createInstanceKeyPermissionServicePostIn(values: InstanceKeyPermissionServicePostInParams): InstanceKeyPermissionServicePostIn {
     return Object.assign(create(typeModels[InstanceKeyPermissionServicePostInTypeRef.typeId], InstanceKeyPermissionServicePostInTypeRef), values)
@@ -6910,6 +6931,7 @@ export function createInstanceKeyPermissionServicePostIn(values: InstanceKeyPerm
 export type InstanceKeyPermissionServicePostInParams = {
 
 
+	keyRotationType: null | NumberString;
 
 	permissionDataPerInstance: InstanceKeyInstanceData[];
 }
@@ -6919,6 +6941,51 @@ export type InstanceKeyPermissionServicePostIn = {
 	_original?: InstanceKeyPermissionServicePostIn
 
 	_format: NumberString;
+	keyRotationType: null | NumberString;
 
 	permissionDataPerInstance: InstanceKeyInstanceData[];
+}
+export const InstanceKeyPermissionServiceGetInTypeRef: TypeRef<InstanceKeyPermissionServiceGetIn> = new TypeRef("sys", 2830)
+
+export function createInstanceKeyPermissionServiceGetIn(values: InstanceKeyPermissionServiceGetInParams): InstanceKeyPermissionServiceGetIn {
+    return Object.assign(create(typeModels[InstanceKeyPermissionServiceGetInTypeRef.typeId], InstanceKeyPermissionServiceGetInTypeRef), values)
+}
+
+export type InstanceKeyPermissionServiceGetInParams = {
+
+
+	keyRotationType: null | NumberString;
+
+	potentialInstancesToMigrate: InstanceReferenceData[];
+}
+
+export type InstanceKeyPermissionServiceGetIn = {
+	_type: TypeRef<InstanceKeyPermissionServiceGetIn>;
+	_original?: InstanceKeyPermissionServiceGetIn
+
+	_format: NumberString;
+	keyRotationType: null | NumberString;
+
+	potentialInstancesToMigrate: InstanceReferenceData[];
+}
+export const InstanceKeyPermissionServiceGetOutTypeRef: TypeRef<InstanceKeyPermissionServiceGetOut> = new TypeRef("sys", 2834)
+
+export function createInstanceKeyPermissionServiceGetOut(values: InstanceKeyPermissionServiceGetOutParams): InstanceKeyPermissionServiceGetOut {
+    return Object.assign(create(typeModels[InstanceKeyPermissionServiceGetOutTypeRef.typeId], InstanceKeyPermissionServiceGetOutTypeRef), values)
+}
+
+export type InstanceKeyPermissionServiceGetOutParams = {
+
+
+
+	confirmedInstancesToMigrate: InstanceReferenceData[];
+}
+
+export type InstanceKeyPermissionServiceGetOut = {
+	_type: TypeRef<InstanceKeyPermissionServiceGetOut>;
+	_original?: InstanceKeyPermissionServiceGetOut
+
+	_format: NumberString;
+
+	confirmedInstancesToMigrate: InstanceReferenceData[];
 }

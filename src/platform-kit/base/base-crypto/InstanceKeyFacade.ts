@@ -19,6 +19,7 @@ import {
 	createInstanceKeyInstanceData,
 	createInstanceKeyPermissionData,
 	createInstanceKeyPermissionServicePostIn,
+	createInstanceReferenceData,
 	createTypeInfo,
 	Customer,
 	CustomerTypeRef,
@@ -92,7 +93,7 @@ export class InstanceKeyFacade {
 		if (permissionDataPerInstanceList.length > 0) {
 			return this.serviceExecutor.post(
 				InstanceKeyPermissionService,
-				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList }),
+				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList, keyRotationType: null }), //TODO
 				null,
 			)
 		}
@@ -106,13 +107,13 @@ export class InstanceKeyFacade {
 
 		// TODO only add instance keys that are not there yet. try loading existing keys. maybe avoid that if initial migration is set?!
 
-		let sharedInstanceListId: Nullable<Id> = null
-		let sharedInstanceElementId: Id
+		let instanceListId: Nullable<Id> = null
+		let instanceElementId: Id
 		if (instance._id instanceof Array) {
-			sharedInstanceListId = instance._id[0]
-			sharedInstanceElementId = instance._id[1]
+			instanceListId = instance._id[0]
+			instanceElementId = instance._id[1]
 		} else {
-			sharedInstanceElementId = instance._id
+			instanceElementId = instance._id
 		}
 		const application = instance._type.app
 		const typeId = instance._type.typeId.toString()
@@ -120,10 +121,9 @@ export class InstanceKeyFacade {
 
 		const permissionData: InstanceKeyPermissionData[] = []
 		const formerInstanceKeys: FormerInstanceKeyData[] = []
+		const sharedInstanceReferenceData = createInstanceReferenceData({ instanceElementId, instanceListId, typeInfo })
 		const instanceKeyInstanceData = createInstanceKeyInstanceData({
-			sharedInstanceElementId,
-			sharedInstanceListId,
-			typeInfo,
+			sharedInstanceReferenceData,
 			formerInstanceKeys,
 			permissionData,
 		})
