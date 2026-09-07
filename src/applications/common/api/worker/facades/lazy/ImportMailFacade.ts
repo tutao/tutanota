@@ -35,6 +35,7 @@ import { SuspensionBehavior } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { ServiceExecutor } from "../../../../../../platform-kit/network/ServiceExecutor"
 
 export interface ImapImportTutaFileId {
 	readonly _type: "ImapImportTutaFileId"
@@ -183,7 +184,8 @@ export class ImportMailFacade {
 				references: importMailParams.references.map(referenceToImportMailDataMailReference),
 			})
 
-			const untypedInstance = await this.instancePipeline.mapAndEncrypt(ImportMailData2TypeRef, importMailData2, sk)
+			const subKeyInfo = (this.serviceExecutor as ServiceExecutor)["getSubKeyInfo"](sk) // TODO: make this less hacky
+			const untypedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(ImportMailData2TypeRef, importMailData2, subKeyInfo, mailGroupKey)
 
 			const encImport2 = createStringWrapper({
 				value: untypedInstance.getJsonRepresentation(),
@@ -209,7 +211,6 @@ export class ImportMailFacade {
 			await this.serviceExecutor.post(ImportMailService, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
-				ownerKey: mailGroupKey,
 			})
 		}
 	}
