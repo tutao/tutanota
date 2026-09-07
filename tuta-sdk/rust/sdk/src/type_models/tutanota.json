@@ -9421,20 +9421,20 @@
 				"dependency": "sys",
 				"transferredAttributeId": null
 			},
-			"2134": {
+			"2143": {
 				"final": true,
 				"name": "deduplicatedImportedAttachment",
-				"id": 2134,
+				"id": 2143,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2129,
+				"refTypeId": 2138,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2135": {
+			"2144": {
 				"final": true,
 				"name": "file",
-				"id": 2135,
+				"id": 2144,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1994,
@@ -9972,10 +9972,10 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2146": {
+			"2155": {
 				"final": true,
 				"name": "encImports2",
-				"id": 2146,
+				"id": 2155,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 728,
@@ -13597,7 +13597,7 @@
 		}
 	},
 	"2094": {
-		"name": "ImportedHeader",
+		"name": "ImportedMailAddress",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
@@ -13607,7 +13607,7 @@
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
-		"targetTypeId": 1269,
+		"targetTypeId": 92,
 		"values": {
 			"2095": {
 				"final": true,
@@ -13620,8 +13620,107 @@
 			},
 			"2096": {
 				"final": true,
-				"name": "compressedHeaders",
+				"name": "name",
 				"id": 2096,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 94
+			},
+			"2097": {
+				"final": true,
+				"name": "address",
+				"id": 2097,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": 95
+			}
+		},
+		"associations": {}
+	},
+	"2098": {
+		"name": "ImportedRecipients",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2098,
+		"rootId": "CHR1dGFub3RhAAgy",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1277,
+		"values": {
+			"2099": {
+				"final": true,
+				"name": "_id",
+				"id": 2099,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"2100": {
+				"final": true,
+				"name": "toRecipients",
+				"id": 2100,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2094,
+				"dependency": null,
+				"transferredAttributeId": 1279
+			},
+			"2101": {
+				"final": true,
+				"name": "ccRecipients",
+				"id": 2101,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2094,
+				"dependency": null,
+				"transferredAttributeId": 1280
+			},
+			"2102": {
+				"final": true,
+				"name": "bccRecipients",
+				"id": 2102,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 2094,
+				"dependency": null,
+				"transferredAttributeId": 1281
+			}
+		}
+	},
+	"2103": {
+		"name": "ImportedHeader",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2103,
+		"rootId": "CHR1dGFub3RhAAg3",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1269,
+		"values": {
+			"2104": {
+				"final": true,
+				"name": "_id",
+				"id": 2104,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2105": {
+				"final": true,
+				"name": "compressedHeaders",
+				"id": 2105,
 				"type": "CompressedString",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true,
@@ -13630,32 +13729,32 @@
 		},
 		"associations": {}
 	},
-	"2097": {
+	"2106": {
 		"name": "ImportedBody",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2097,
-		"rootId": "CHR1dGFub3RhAAgx",
+		"id": 2106,
+		"rootId": "CHR1dGFub3RhAAg6",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1273,
 		"values": {
-			"2098": {
+			"2107": {
 				"final": true,
 				"name": "_id",
-				"id": 2098,
+				"id": 2107,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2099": {
+			"2108": {
 				"final": true,
 				"name": "compressedText",
-				"id": 2099,
+				"id": 2108,
 				"type": "CompressedString",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true,
@@ -13664,32 +13763,32 @@
 		},
 		"associations": {}
 	},
-	"2100": {
+	"2109": {
 		"name": "ImportedMailDetails",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2100,
-		"rootId": "CHR1dGFub3RhAAg0",
+		"id": 2109,
+		"rootId": "CHR1dGFub3RhAAg9",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1282,
 		"values": {
-			"2101": {
+			"2110": {
 				"final": true,
 				"name": "_id",
-				"id": 2101,
+				"id": 2110,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2102": {
+			"2111": {
 				"final": true,
 				"name": "sentDate",
-				"id": 2102,
+				"id": 2111,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": false,
@@ -13697,65 +13796,65 @@
 			}
 		},
 		"associations": {
-			"2103": {
+			"2112": {
 				"final": true,
 				"name": "replyTos",
-				"id": 2103,
+				"id": 2112,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 612,
 				"dependency": null,
 				"transferredAttributeId": 1285
 			},
-			"2104": {
+			"2113": {
 				"final": true,
 				"name": "recipients",
-				"id": 2104,
+				"id": 2113,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 1277,
+				"refTypeId": 2098,
 				"dependency": null,
 				"transferredAttributeId": 1286
 			},
-			"2105": {
+			"2114": {
 				"final": true,
 				"name": "headers",
-				"id": 2105,
+				"id": 2114,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2094,
+				"refTypeId": 2103,
 				"dependency": null,
 				"transferredAttributeId": 1287
 			},
-			"2106": {
+			"2115": {
 				"final": true,
 				"name": "body",
-				"id": 2106,
+				"id": 2115,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 2097,
+				"refTypeId": 2106,
 				"dependency": null,
 				"transferredAttributeId": 1288
 			}
 		}
 	},
-	"2107": {
+	"2116": {
 		"name": "ImportedMailDetailsBlob",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2107,
-		"rootId": "CHR1dGFub3RhAAg7",
+		"id": 2116,
+		"rootId": "CHR1dGFub3RhAAhE",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1298,
 		"values": {
-			"2108": {
+			"2117": {
 				"final": true,
 				"name": "_id",
-				"id": 2108,
+				"id": 2117,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
@@ -13763,134 +13862,134 @@
 			}
 		},
 		"associations": {
-			"2109": {
+			"2118": {
 				"final": true,
 				"name": "details",
-				"id": 2109,
+				"id": 2118,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 2100,
+				"refTypeId": 2109,
 				"dependency": null,
 				"transferredAttributeId": 1305
 			}
 		}
 	},
-	"2110": {
+	"2119": {
 		"name": "ImportedMail",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2110,
-		"rootId": "CHR1dGFub3RhAAg-",
+		"id": 2119,
+		"rootId": "CHR1dGFub3RhAAhH",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 97,
 		"values": {
-			"2111": {
+			"2120": {
 				"final": true,
 				"name": "_id",
-				"id": 2111,
+				"id": 2120,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2112": {
+			"2121": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 2112,
+				"id": 2121,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 102
 			},
-			"2113": {
+			"2122": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 2113,
+				"id": 2122,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 1395
 			},
-			"2114": {
+			"2123": {
 				"final": true,
 				"name": "subject",
-				"id": 2114,
+				"id": 2123,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 105
 			},
-			"2115": {
+			"2124": {
 				"final": true,
 				"name": "receivedDate",
-				"id": 2115,
+				"id": 2124,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 107
 			},
-			"2116": {
+			"2125": {
 				"final": true,
 				"name": "state",
-				"id": 2116,
+				"id": 2125,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 108
 			},
-			"2117": {
+			"2126": {
 				"final": false,
 				"name": "unread",
-				"id": 2117,
+				"id": 2126,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 109
 			},
-			"2118": {
+			"2127": {
 				"final": true,
 				"name": "confidential",
-				"id": 2118,
+				"id": 2127,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 426
 			},
-			"2119": {
+			"2128": {
 				"final": false,
 				"name": "replyType",
-				"id": 2119,
+				"id": 2128,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 466
 			},
-			"2120": {
+			"2129": {
 				"final": true,
 				"name": "differentEnvelopeSender",
-				"id": 2120,
+				"id": 2129,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": 617
 			},
-			"2121": {
+			"2130": {
 				"final": false,
 				"name": "phishingStatus",
-				"id": 2121,
+				"id": 2130,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 1021
 			},
-			"2122": {
+			"2131": {
 				"final": true,
 				"name": "method",
-				"id": 2122,
+				"id": 2131,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true,
@@ -13898,63 +13997,63 @@
 			}
 		},
 		"associations": {
-			"2123": {
+			"2132": {
 				"final": true,
 				"name": "sender",
-				"id": 2123,
+				"id": 2132,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 92,
+				"refTypeId": 2094,
 				"dependency": null,
 				"transferredAttributeId": 111
 			},
-			"2124": {
+			"2133": {
 				"final": true,
 				"name": "firstRecipient",
-				"id": 2124,
+				"id": 2133,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 92,
+				"refTypeId": 2094,
 				"dependency": null,
 				"transferredAttributeId": 1306
 			}
 		}
 	},
-	"2125": {
+	"2134": {
 		"name": "ImportedImportedImapMail",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2125,
-		"rootId": "CHR1dGFub3RhAAhN",
+		"id": 2134,
+		"rootId": "CHR1dGFub3RhAAhW",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1873,
 		"values": {
-			"2126": {
+			"2135": {
 				"final": true,
 				"name": "_id",
-				"id": 2126,
+				"id": 2135,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2127": {
+			"2136": {
 				"final": true,
 				"name": "imapUid",
-				"id": 2127,
+				"id": 2136,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 1879
 			},
-			"2128": {
+			"2137": {
 				"final": true,
 				"name": "imapModSeq",
-				"id": 2128,
+				"id": 2137,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -13963,50 +14062,50 @@
 		},
 		"associations": {}
 	},
-	"2129": {
+	"2138": {
 		"name": "ImportedDeduplicatedImportedAttachment",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "AGGREGATED_TYPE",
-		"id": 2129,
-		"rootId": "CHR1dGFub3RhAAhR",
+		"id": 2138,
+		"rootId": "CHR1dGFub3RhAAha",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1883,
 		"values": {
-			"2130": {
+			"2139": {
 				"final": true,
 				"name": "_id",
-				"id": 2130,
+				"id": 2139,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2131": {
+			"2140": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 2131,
+				"id": 2140,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 1889
 			},
-			"2132": {
+			"2141": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 2132,
+				"id": 2141,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 1890
 			},
-			"2133": {
+			"2142": {
 				"final": true,
 				"name": "attachmentHash",
-				"id": 2133,
+				"id": 2142,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
@@ -14015,41 +14114,41 @@
 		},
 		"associations": {}
 	},
-	"2136": {
+	"2145": {
 		"name": "ImportMailData2",
 		"app": "tutanota",
 		"version": 114,
 		"since": 114,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2136,
-		"rootId": "CHR1dGFub3RhAAhY",
+		"id": 2145,
+		"rootId": "CHR1dGFub3RhAAhh",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": null,
 		"values": {
-			"2137": {
+			"2146": {
 				"final": false,
 				"name": "_format",
-				"id": 2137,
+				"id": 2146,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2138": {
+			"2147": {
 				"final": true,
 				"name": "messageId",
-				"id": 2138,
+				"id": 2147,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2139": {
+			"2148": {
 				"final": true,
 				"name": "inReplyTo",
-				"id": 2139,
+				"id": 2148,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -14057,63 +14156,63 @@
 			}
 		},
 		"associations": {
-			"2140": {
+			"2149": {
 				"final": false,
 				"name": "labels",
-				"id": 2140,
+				"id": 2149,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "Any",
 				"refTypeId": 429,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2141": {
+			"2150": {
 				"final": true,
 				"name": "references",
-				"id": 2141,
+				"id": 2150,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1513,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2142": {
+			"2151": {
 				"final": true,
 				"name": "mail",
-				"id": 2142,
+				"id": 2151,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 2110,
+				"refTypeId": 2119,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2143": {
+			"2152": {
 				"final": true,
 				"name": "mailDetailsBlob",
-				"id": 2143,
+				"id": 2152,
 				"type": "AGGREGATION",
 				"cardinality": "One",
-				"refTypeId": 2107,
+				"refTypeId": 2116,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2144": {
+			"2153": {
 				"final": true,
 				"name": "importAttachments",
-				"id": 2144,
+				"id": 2153,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 1524,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2145": {
+			"2154": {
 				"final": true,
 				"name": "importedImapMail",
-				"id": 2145,
+				"id": 2154,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2125,
+				"refTypeId": 2134,
 				"dependency": null,
 				"transferredAttributeId": null
 			}

@@ -5145,7 +5145,53 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	rootImportMailSet: null | IdTuple;
 	imapSyncLabel: null | IdTuple;
 }
-export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2094)
+export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2094)
+
+export function createImportedMailAddress(values: ImportedMailAddressParams): ImportedMailAddress {
+    return Object.assign(create(typeModels[ImportedMailAddressTypeRef.typeId], ImportedMailAddressTypeRef), values)
+}
+
+export type ImportedMailAddressParams = {
+
+
+	name: string;
+	address: string;
+}
+
+export type ImportedMailAddress = {
+	_type: TypeRef<ImportedMailAddress>;
+	_original?: ImportedMailAddress
+
+	_id: Id;
+	name: string;
+	address: string;
+}
+export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2098)
+
+export function createImportedRecipients(values: ImportedRecipientsParams): ImportedRecipients {
+    return Object.assign(create(typeModels[ImportedRecipientsTypeRef.typeId], ImportedRecipientsTypeRef), values)
+}
+
+export type ImportedRecipientsParams = {
+
+
+
+	toRecipients: ImportedMailAddress[];
+	ccRecipients: ImportedMailAddress[];
+	bccRecipients: ImportedMailAddress[];
+}
+
+export type ImportedRecipients = {
+	_type: TypeRef<ImportedRecipients>;
+	_original?: ImportedRecipients
+
+	_id: Id;
+
+	toRecipients: ImportedMailAddress[];
+	ccRecipients: ImportedMailAddress[];
+	bccRecipients: ImportedMailAddress[];
+}
+export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2103)
 
 export function createImportedHeader(values: ImportedHeaderParams): ImportedHeader {
     return Object.assign(create(typeModels[ImportedHeaderTypeRef.typeId], ImportedHeaderTypeRef), values)
@@ -5164,7 +5210,7 @@ export type ImportedHeader = {
 	_id: Id;
 	compressedHeaders: null | string;
 }
-export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2097)
+export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2106)
 
 export function createImportedBody(values: ImportedBodyParams): ImportedBody {
     return Object.assign(create(typeModels[ImportedBodyTypeRef.typeId], ImportedBodyTypeRef), values)
@@ -5183,7 +5229,7 @@ export type ImportedBody = {
 	_id: Id;
 	compressedText: null | string;
 }
-export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2100)
+export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2109)
 
 export function createImportedMailDetails(values: ImportedMailDetailsParams): ImportedMailDetails {
     return Object.assign(create(typeModels[ImportedMailDetailsTypeRef.typeId], ImportedMailDetailsTypeRef), values)
@@ -5195,7 +5241,7 @@ export type ImportedMailDetailsParams = {
 	sentDate: Date;
 
 	replyTos: EncryptedMailAddress[];
-	recipients: Recipients;
+	recipients: ImportedRecipients;
 	headers: null | ImportedHeader;
 	body: ImportedBody;
 }
@@ -5208,11 +5254,11 @@ export type ImportedMailDetails = {
 	sentDate: Date;
 
 	replyTos: EncryptedMailAddress[];
-	recipients: Recipients;
+	recipients: ImportedRecipients;
 	headers: null | ImportedHeader;
 	body: ImportedBody;
 }
-export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2107)
+export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2116)
 
 export function createImportedMailDetailsBlob(values: ImportedMailDetailsBlobParams): ImportedMailDetailsBlob {
     return Object.assign(create(typeModels[ImportedMailDetailsBlobTypeRef.typeId], ImportedMailDetailsBlobTypeRef), values)
@@ -5233,7 +5279,7 @@ export type ImportedMailDetailsBlob = {
 
 	details: ImportedMailDetails;
 }
-export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2110)
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2119)
 
 export function createImportedMail(values: ImportedMailParams): ImportedMail {
     return Object.assign(create(typeModels[ImportedMailTypeRef.typeId], ImportedMailTypeRef), values)
@@ -5252,8 +5298,8 @@ export type ImportedMailParams = {
 	phishingStatus: NumberString;
 	method: NumberString;
 
-	sender: MailAddress;
-	firstRecipient: null | MailAddress;
+	sender: ImportedMailAddress;
+	firstRecipient: null | ImportedMailAddress;
 }
 
 export type ImportedMail = {
@@ -5273,10 +5319,10 @@ export type ImportedMail = {
 	phishingStatus: NumberString;
 	method: NumberString;
 
-	sender: MailAddress;
-	firstRecipient: null | MailAddress;
+	sender: ImportedMailAddress;
+	firstRecipient: null | ImportedMailAddress;
 }
-export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2125)
+export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2134)
 
 export function createImportedImportedImapMail(values: ImportedImportedImapMailParams): ImportedImportedImapMail {
     return Object.assign(create(typeModels[ImportedImportedImapMailTypeRef.typeId], ImportedImportedImapMailTypeRef), values)
@@ -5297,7 +5343,7 @@ export type ImportedImportedImapMail = {
 	imapUid: NumberString;
 	imapModSeq: null | NumberString;
 }
-export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2129)
+export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2138)
 
 export function createImportedDeduplicatedImportedAttachment(values: ImportedDeduplicatedImportedAttachmentParams): ImportedDeduplicatedImportedAttachment {
     return Object.assign(create(typeModels[ImportedDeduplicatedImportedAttachmentTypeRef.typeId], ImportedDeduplicatedImportedAttachmentTypeRef), values)
@@ -5318,7 +5364,7 @@ export type ImportedDeduplicatedImportedAttachment = {
 	_ownerKeyVersion: null | NumberString;
 	attachmentHash: string;
 }
-export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2136)
+export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2145)
 
 export function createImportMailData2(values: ImportMailData2Params): ImportMailData2 {
     return Object.assign(create(typeModels[ImportMailData2TypeRef.typeId], ImportMailData2TypeRef), values)
