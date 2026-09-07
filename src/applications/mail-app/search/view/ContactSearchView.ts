@@ -67,6 +67,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: ContactSearchViewModel
 	private readonly routeTo = throttleRoute()
+	private searchBarFocused = false
 
 	constructor(vnode: Vnode<ContactSearchViewAttrs>) {
 		super()
@@ -284,7 +285,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 		})
 	}
 	private renderDetailsView(header: AppHeaderAttrs): Children {
-		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
+		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn && !this.searchBarFocused) {
 			this.viewSlider.focus(this.resultListColumn)
 			return null
 		}
@@ -379,6 +380,8 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 			busy: this.searchViewModel.busy,
 			onInput: (text: string) => this.searchViewModel.onSearchQueryUpdated(text),
 			onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
+			onFocus: () => (this.searchBarFocused = true),
+			onBlur: () => (this.searchBarFocused = false),
 		})
 	}
 	private renderFilterBar(): Children {
