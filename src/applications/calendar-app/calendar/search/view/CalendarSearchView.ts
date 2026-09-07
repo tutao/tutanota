@@ -517,6 +517,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		keyManager.unregisterShortcuts(this.shortcuts())
 	}
 
+	getViewSlider(): ViewSlider | null {
+		return this.viewSlider
+	}
+
 	private renderSearchbar(): Children {
 		return m(SearchViewSearchBar, {
 			placeholder: lang.getTranslationText("searchCalendar_placeholder"),
