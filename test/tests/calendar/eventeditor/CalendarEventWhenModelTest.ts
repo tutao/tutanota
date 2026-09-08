@@ -5,6 +5,7 @@ import { EndType, RepeatPeriod } from "../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../TestUtils.js"
 import {
 	CalendarEventWhenModel,
+	CalendarEventWhenModelInvalidReason,
 	getDefaultEndCountValue,
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
 import { Time } from "../../../../src/applications/common/calendar/Time.js"
@@ -13,6 +14,7 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
+import { DateTime } from "luxon"
 
 o.spec("CalendarEventWhenModel", function () {
 	if (getTimeZone() !== "Europe/Berlin") {
@@ -198,6 +200,271 @@ o.spec("CalendarEventWhenModel", function () {
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("result end time is correct")
 		})
+		o.test("rescheduling event from Jan. 31st to Feb. 3rd works correctly", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-01-31T12:00:00.000+01:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-01-31T13:00:00.000+01:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			model.rescheduleEventToDate(new Date(2026, 2 - 1, 3))
+			o.check(model.getStartDateTime().toISO()).equals("2026-02-03T12:00:00.000+01:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-02-03T13:00:00.000+01:00")
+		})
+		o.test("Going forward from standard time to daylight saving time works correctly", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-01-31T12:00:00.000+01:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-01-31T13:00:00.000+01:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			// Daylight saving time change in 29 March 2026, so we pick a date after that
+			model.rescheduleEventToDate(new Date(2026, 6 - 1, 3))
+			o.check(model.getStartDateTime().toISO()).equals("2026-06-03T12:00:00.000+02:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-06-03T13:00:00.000+02:00")
+		})
+
+		o.test("Going backward from standard time to daylight saving time works correctly", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-11-30T12:00:00.000+01:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-11-30T13:00:00.000+01:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			// Daylight saving time change in 29 March 2026, so we pick a date before that
+			model.rescheduleEventToDate(new Date(2026, 6 - 1, 3))
+			o.check(model.getStartDateTime().toISO()).equals("2026-06-03T12:00:00.000+02:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-06-03T13:00:00.000+02:00")
+		})
+
+		o.test("Going forward from daylight saving to standard time works correctly", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-06-30T12:00:00.000+02:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-06-30T13:00:00.000+02:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			// Daylight saving time change in 25 October 2026, so we pick a date after that
+			model.rescheduleEventToDate(new Date(2026, 11 - 1, 3))
+			o.check(model.getStartDateTime().toISO()).equals("2026-11-03T12:00:00.000+01:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-11-03T13:00:00.000+01:00")
+		})
+
+		o.test("Going backwards from daylight saving to standard time works correctly", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-06-30T12:00:00.000+02:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-06-30T13:00:00.000+02:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			// Daylight saving time change in 29 March 2026, so we pick a date before that
+			model.rescheduleEventToDate(new Date(2026, 1 - 1, 3))
+			o.check(model.getStartDateTime().toISO()).equals("2026-01-03T12:00:00.000+01:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-01-03T13:00:00.000+01:00")
+		})
+
+		o.test("Going forward from daylight saving time into standard time duplicate hour ", function () {
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromISO("2026-06-30T02:30:00.000+02:00").toJSDate(),
+					endTime: DateTime.fromISO("2026-06-30T03:00:00.000+02:00").toJSDate(),
+				}),
+				"Europe/Berlin",
+				noOp,
+			)
+			// Daylight saving time change in 25 October 2026, so we pick that date
+			model.rescheduleEventToDate(new Date(2026, 10 - 1, 25))
+			o.check(model.getStartDateTime().toISO()).equals("2026-10-25T02:30:00.000+02:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-10-25T03:00:00.000+01:00")
+		})
+
+		o.test("rescheduling event on last day of month to another month: many combinations", function () {
+			for (const zone of [
+				"UTC", // Base case
+				"Europe/Berlin", // Common case
+				"America/Adak", // UTC-10 during standard time, UTC-9 during daylight saving
+				"Pacific/Auckland", // UTC+12 during standard time, UTC+13 during daylight saving
+				"America/Santiago", // Sets clocks forward directly at midnight
+				"Etc/GMT+12", // UTC-12
+				"Etc/GMT-13", // UTC+13
+			]) {
+				for (let originYear = 2023; originYear <= 2026; ++originYear) {
+					for (let originMonth = 1; originMonth <= 12; ++originMonth) {
+						// The following line works because `Date` uses 0-based month indices
+						const daysInSrcMonth = new Date(originYear, originMonth, 0).getDate()
+						const originStartDateTime = DateTime.fromObject(
+							{ year: originYear, month: originMonth, day: daysInSrcMonth, hour: 0, minute: 1 },
+							{ zone },
+						)
+						const originEndDateTime = DateTime.fromObject(
+							{ year: originYear, month: originMonth, day: daysInSrcMonth, hour: 23, minute: 59 },
+							{ zone },
+						)
+
+						for (let targetYear = 2023; targetYear <= 2026; ++targetYear) {
+							for (let targetMonth = 1; targetMonth <= 12; ++targetMonth) {
+								const targetStartDateTime = DateTime.fromObject({ year: targetYear, month: targetMonth, day: 1, hour: 0, minute: 1 }, { zone })
+								const targetEndDateTime = DateTime.fromObject({ year: targetYear, month: targetMonth, day: 1, hour: 23, minute: 59 }, { zone })
+
+								// console.log(srcStartDateTime.toISO(), dstStartDateTime.toISO(), zone)
+
+								const model = new CalendarEventWhenModel(
+									createTestEntity(CalendarEventTypeRef, {
+										startTime: originStartDateTime.toJSDate(),
+										endTime: originEndDateTime.toJSDate(),
+									}),
+									zone,
+									noOp,
+								)
+								model.rescheduleEventToDate(new Date(targetYear, targetMonth - 1, 1))
+
+								o.check(model.getStartDateTime().toISO()).equals(targetStartDateTime.toISO())
+								o.check(model.getEndDateTime().toISO()).equals(targetEndDateTime.toISO())
+							}
+						}
+					}
+				}
+			}
+		})
+		o.test(
+			"rescheduling event start or end onto hour that is skipped because of standard time to daylight saving time transition makes model invalid",
+			function () {
+				const zone = "Europe/Berlin"
+				for (let [startHour, starMinute, endHour, endMinute] of [
+					[1, 30, 2, 0],
+					[2, 30, 2, 59],
+					[2, 59, 4, 0],
+				]) {
+					for (const originDay of [28, 30]) {
+						const model = new CalendarEventWhenModel(
+							createTestEntity(CalendarEventTypeRef, {
+								startTime: DateTime.fromObject(
+									{ year: 2026, month: 3, day: originDay, hour: startHour, minute: starMinute },
+									{ zone },
+								).toJSDate(),
+								endTime: DateTime.fromObject({ year: 2026, month: 3, day: originDay, hour: endHour, minute: endMinute }, { zone }).toJSDate(),
+							}),
+							zone,
+							noOp,
+						)
+						o.check(model.isValid()).equals(true)
+
+						// In the Europe/Berlin time zone the clocks are set forward by an hour from 02:00 to 03:00 on the last
+						// Sunday of March. In 2026, this happens on the date 2026-03-29.
+						model.rescheduleEventToDate(new Date(2026, 3 - 1, 29))
+
+						o.check(model.isValid()).equals(false)
+						o.check(model.getInvalidReason()).equals(CalendarEventWhenModelInvalidReason.TimesInHourSkippedWhenChangingToDST)
+
+						o.check(model.startDate.getFullYear()).equals(2026)
+						o.check(model.startDate.getMonth() + 1).equals(3)
+						o.check(model.startDate.getDate()).equals(29)
+						o.check(model.startTime.hour).equals(startHour)
+						o.check(model.startTime.minute).equals(starMinute)
+
+						o.check(model.endDate.getFullYear()).equals(2026)
+						o.check(model.endDate.getMonth() + 1).equals(3)
+						o.check(model.endDate.getDate()).equals(29)
+						o.check(model.endTime.hour).equals(endHour)
+						o.check(model.endTime.minute).equals(endMinute)
+					}
+				}
+			},
+		)
+		o.test(
+			"rescheduling event that starts or ends on hour that is skipped because of standard time to daylight saving time transition makes start and end valid",
+			function () {
+				const zone = "Europe/Berlin"
+				for (let [startHour, starMinute, endHour, endMinute] of [
+					[1, 30, 2, 0],
+					[2, 15, 2, 45],
+					[2, 30, 3, 0],
+				]) {
+					for (const targetDay of [28, 30]) {
+						// In the Europe/Berlin time zone the clocks are set forward by an hour from 02:00 to 03:00 on the last
+						// Sunday of March. In 2026, this happens on the date 2026-03-29.
+						const model = new CalendarEventWhenModel(
+							createTestEntity(CalendarEventTypeRef, {
+								startTime: DateTime.fromObject({ year: 2026, month: 3, day: 29, hour: 0, minute: 0 }, { zone }).toJSDate(),
+								endTime: DateTime.fromObject({ year: 2026, month: 3, day: 29, hour: 0, minute: 0 }, { zone }).toJSDate(),
+							}),
+							zone,
+							noOp,
+						)
+						model.startTime = new Time(startHour, starMinute)
+						model.endTime = new Time(endHour, endMinute)
+
+						o.check(model.isValid()).equals(false)
+
+						model.rescheduleEventToDate(new Date(2026, 3 - 1, targetDay))
+
+						o.check(model.isValid()).equals(true)
+
+						o.check(model.startDate.getFullYear()).equals(2026)
+						o.check(model.startDate.getMonth() + 1).equals(3)
+						o.check(model.startDate.getDate()).equals(targetDay)
+						o.check(model.startTime.hour).equals(startHour)
+						o.check(model.startTime.minute).equals(starMinute)
+
+						o.check(model.endDate.getFullYear()).equals(2026)
+						o.check(model.endDate.getMonth() + 1).equals(3)
+						o.check(model.endDate.getDate()).equals(targetDay)
+						o.check(model.endTime.hour).equals(endHour)
+						o.check(model.endTime.minute).equals(endMinute)
+					}
+				}
+			},
+		)
+		o.test(
+			"rescheduling event start or end onto hour that is duplicated because of daylight saving time to standard time transition preserves hour and minute values",
+			function () {
+				const zone = "Europe/Berlin"
+				for (let [startHour, starMinute, endHour, endMinute] of [
+					[2, 30, 3, 0],
+					[3, 0, 3, 30],
+					[3, 30, 4, 0],
+				]) {
+					for (const originDay of [24, 25]) {
+						const model = new CalendarEventWhenModel(
+							createTestEntity(CalendarEventTypeRef, {
+								startTime: DateTime.fromObject(
+									{ year: 2026, month: 10, day: originDay, hour: startHour, minute: starMinute },
+									{ zone },
+								).toJSDate(),
+								endTime: DateTime.fromObject({ year: 2026, month: 10, day: originDay, hour: endHour, minute: endMinute }, { zone }).toJSDate(),
+							}),
+							zone,
+							noOp,
+						)
+						// In the Europe/Berlin time zone the clocks are set back by an hour from 03:00 to 02:00 on the last
+						// Sunday of October. In 2026, this happens on the date 2026-10-25.
+						model.rescheduleEventToDate(new Date(2026, 10 - 1, 25))
+
+						o.check(model.startDate.getFullYear()).equals(2026)
+						o.check(model.startDate.getMonth() + 1).equals(10)
+						o.check(model.startDate.getDate()).equals(25)
+						o.check(model.startTime.hour).equals(startHour)
+						o.check(model.startTime.minute).equals(starMinute)
+
+						o.check(model.endDate.getFullYear()).equals(2026)
+						o.check(model.endDate.getMonth() + 1).equals(10)
+						o.check(model.endDate.getDate()).equals(25)
+						o.check(model.endTime.hour).equals(endHour)
+						o.check(model.endTime.minute).equals(endMinute)
+					}
+				}
+			},
+		)
 
 		o("setting the start date correctly updates the start date and end date", function () {
 			const model = getModelBerlin({
@@ -452,9 +719,10 @@ o.spec("CalendarEventWhenModel", function () {
 			o(model.endTime.minute).equals(0)
 
 			//
-			// Ensure that model is flags as having an invalid start after end
+			// Ensure that model is flagged as having an invalid start after end
 			//
-			o(model.hasValidStartBeforeEnd()).equals(false)
+			o(model.isValid()).equals(false)
+			o(model.getInvalidReason()).equals(CalendarEventWhenModelInvalidReason.InvalidEndBeforeStart)
 
 			//
 			// The result should convert the start and end to a JS date with the correct time stamp.

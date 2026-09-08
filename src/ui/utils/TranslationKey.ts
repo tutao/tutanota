@@ -2493,6 +2493,7 @@ export type TranslationKeyType =
 	| "paymentMethodOnAccountHowItWorks_msg"
 	| "importFileFailuresError_msg"
 	| "fromAfterToError_msg"
+	| "timesInHourSkippedWhenChangingToDSTError_msg"
 	| "duplicateFileName_msg"
 	| "keepBothFiles_action"
 	| "replaceFile_action"

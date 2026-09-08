@@ -88,7 +88,7 @@ import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import m from "mithril"
 import { getPasswordStrengthForUser } from "../../../../common/misc/passwords/PasswordUtils.js"
-import { CalendarEventWhenModel } from "./CalendarEventWhenModel.js"
+import { CalendarEventWhenModel, CalendarEventWhenModelInvalidReason } from "./CalendarEventWhenModel.js"
 import { CalendarEventWhoModel } from "./CalendarEventWhoModel.js"
 import { CalendarEventAlarmModel } from "./CalendarEventAlarmModel.js"
 import { SanitizedTextViewModel } from "../../../../common/misc/SanitizedTextViewModel.js"
@@ -496,9 +496,18 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
  * @throws UserError
  */
 export function createCalendarEventFromEditResult(models: CalendarEventEditModels, identity: Require<"uid", Partial<CalendarEventIdentity>>) {
-	if (!models.whenModel.hasValidStartBeforeEnd()) {
-		throw new UserError("fromAfterToError_msg")
+	switch (models.whenModel.getInvalidReason()) {
+		case null:
+			// Valid: do nothing
+			break
+		case CalendarEventWhenModelInvalidReason.InvalidEndBeforeStart:
+			throw new UserError("fromAfterToError_msg")
+		case CalendarEventWhenModelInvalidReason.TimesInHourSkippedWhenChangingToDST:
+			throw new UserError("timesInHourSkippedWhenChangingToDSTError_msg")
+		default:
+			throw new ProgrammingError(`Unexpected reason for CalendarEventWhenModel being invalid. Enum value = ${models.whenModel.getInvalidReason()}`)
 	}
+
 	const whenResult = models.whenModel.result
 	const whoResult = models.whoModel.result
 	const summary = models.summary.content
