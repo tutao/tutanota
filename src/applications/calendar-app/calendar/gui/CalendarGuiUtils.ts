@@ -68,6 +68,7 @@ import { AccountType, hasCapabilityOnGroup } from "../../../../entities/sys/Util
 import { clone } from "@tutao/meta"
 import { IcsCalendarEvent } from "../export/CalendarParser"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { pureComponent } from "../../../../ui/base/PureComponent"
 
 export interface IntervalOption {
 	value: number
@@ -1021,3 +1022,46 @@ export function getDayCircleClass(date: Date, selectedDate: Date | null) {
 
 	return { circle: "", text: "" }
 }
+
+export const EventDetailsActions = pureComponent(
+	(attrs: {
+		eventPreviewModel: CalendarEventPreviewViewModel
+		events: {
+			onSendUpdates: () => unknown
+			onEdit: (ev: MouseEvent, receiver: HTMLElement) => unknown
+			onTrash: (ev: MouseEvent, receiver: HTMLElement) => unknown
+		}
+	}) => {
+		const actions: Array<Children> = []
+
+		if (attrs.eventPreviewModel.canSendUpdates) {
+			actions.push(
+				m(IconButton, {
+					icon: Icons.MailFilled,
+					label: "sendUpdates_label",
+					click: () => attrs.events.onSendUpdates(),
+				}),
+			)
+		}
+		if (attrs.eventPreviewModel.canEdit) {
+			actions.push(
+				m(IconButton, {
+					icon: Icons.PenFilled,
+					label: "edit_action",
+					click: (ev: MouseEvent, receiver: HTMLElement) => attrs.events.onEdit(ev, receiver),
+				}),
+			)
+		}
+		if (attrs.eventPreviewModel.canDelete) {
+			actions.push(
+				m(IconButton, {
+					icon: Icons.TrashFilled,
+					label: "delete_action",
+					click: (ev: MouseEvent, receiver: HTMLElement) => attrs.events.onTrash(ev, receiver),
+				}),
+			)
+		}
+
+		return actions
+	},
+)

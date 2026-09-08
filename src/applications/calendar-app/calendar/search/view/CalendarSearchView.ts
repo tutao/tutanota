@@ -38,7 +38,7 @@ import {
 } from "../../view/EventDetailsView"
 import { Contact } from "@tutao/entities/tutanota"
 import { CalendarEventPreviewViewModel } from "../../gui/eventpopup/CalendarEventPreviewViewModel"
-import { MobileHeader } from "../../../../../ui/MobileHeader"
+import { MobileHeader, MobileHeaderAttrs } from "../../../../../ui/MobileHeader"
 import ColumnEmptyMessageBox from "../../../../../ui/base/ColumnEmptyMessageBox"
 import { ContactCardViewer } from "../../../../mail-app/contacts/view/ContactCardViewer"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView"
@@ -58,6 +58,7 @@ import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../../../ui/styles"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
+import { EventDetailsActions } from "../../gui/CalendarGuiUtils"
 
 export interface CalendarSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -299,7 +300,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	}
 
 	private renderMobileListActionsHeader(header: AppHeaderAttrs) {
-		const rightActions = []
+		const rightActions: Children = []
 
 		if (Styles.get().isSingleColumnLayout()) {
 			rightActions.push(this.renderHeaderRightView())
@@ -403,6 +404,22 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return m(".flex.gap-8.pl-16.pr-16.pt-8.pb-8.scroll-x", this.renderFilterChips())
 	}
 
+	private renderEventDetailsActions(): Children {
+		const previewModel = this.searchViewModel.eventPreviewData
+		if (previewModel) {
+			return m(EventDetailsActions, {
+				eventPreviewModel: previewModel,
+				events: {
+					onSendUpdates: () => handleSendUpdatesClick(previewModel),
+					onEdit: (ev, receiver) => handleEventEditButtonClick(previewModel, ev, receiver),
+					onTrash: (ev, receiver) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+				},
+			})
+		} else {
+			return null
+		}
+	}
+
 	private renderDetailsView(header: AppHeaderAttrs, editContact: (contact: Contact) => unknown): Children {
 		if (this.searchViewModel.listModel.isSelectionEmpty() && this.viewSlider.focusedColumn === this.resultDetailsColumn) {
 			this.viewSlider.focus(this.resultListColumn)
@@ -418,16 +435,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 					backAction: () => this.viewSlider.focusPreviousColumn(),
 					columnType: "other",
 					title: "search_label",
-					actions: null,
+					actions: ClientDetector.get().isCalendarApp() ? this.renderEventDetailsActions() : null,
 					multicolumnActions: () => [],
-					primaryAction: () => {
-						return m(IconButton, {
-							click: () => this.createNewEventDialog(),
-							label: "newEvent_action",
-							icon: Icons.Plus,
-						})
-					},
-				}),
+					primaryAction: () => null,
+				} satisfies MobileHeaderAttrs),
 			columnLayout:
 				selectedEvent == null
 					? m(ColumnEmptyMessageBox, {

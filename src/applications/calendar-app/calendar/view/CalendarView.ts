@@ -57,7 +57,7 @@ import { getSharedGroupName, loadGroupMembers } from "../../../common/sharing/Gr
 import { GroupInvitationFolderRow } from "../../../common/sharing/view/GroupInvitationFolderRow"
 import { SidebarSection } from "../../../../ui/SidebarSection"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer"
-import { calendarNavConfiguration, daysHaveEvents, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
+import { calendarNavConfiguration, daysHaveEvents, EventDetailsActions, shouldDefaultToAmPmTimeFormat, showDeletePopup } from "../gui/CalendarGuiUtils.js"
 import { CalendarEventBubbleKeyDownHandler, CalendarPreviewModels, CalendarViewModel, MouseOrPointerEvent, ScrollByListener } from "./CalendarViewModel"
 import { CalendarEventPopup } from "../gui/eventpopup/CalendarEventPopup.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -636,47 +636,21 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		)
 	}
 
-	private renderEventDetailsActions(): Array<Children> {
+	private renderEventDetailsActions(): Children {
 		const previewModel = this.viewModel.eventPreviewModel
-		const actions: Array<Children> = []
 
 		if (previewModel instanceof CalendarEventPreviewViewModel) {
-			if (previewModel.canSendUpdates) {
-				actions.push(
-					m(IconButton, {
-						icon: Icons.MailFilled,
-						label: "sendUpdates_label",
-						click: () => handleSendUpdatesClick(previewModel),
-					}),
-				)
-			}
-			if (previewModel.canEdit) {
-				actions.push(
-					m(IconButton, {
-						icon: Icons.PenFilled,
-						label: "edit_action",
-						click: (ev: MouseEvent, receiver: HTMLElement) => {
-							handleEventEditButtonClick(previewModel, ev, receiver, () => {
-								this.exitEventDetails()
-							})
-						},
-					}),
-				)
-			}
-			if (previewModel.canDelete) {
-				actions.push(
-					m(IconButton, {
-						icon: Icons.TrashFilled,
-						label: "delete_action",
-						click: async (ev: MouseEvent, receiver: HTMLElement) => {
-							await handleEventDeleteButtonClick(previewModel, ev, receiver, () => this.exitEventDetails())
-						},
-					}),
-				)
-			}
+			return m(EventDetailsActions, {
+				eventPreviewModel: previewModel,
+				events: {
+					onSendUpdates: () => handleSendUpdatesClick(previewModel),
+					onEdit: (ev, receiver) => handleEventEditButtonClick(previewModel, ev, receiver),
+					onTrash: (ev, receiver) => handleEventDeleteButtonClick(previewModel, ev, receiver),
+				},
+			})
+		} else {
+			return []
 		}
-
-		return actions
 	}
 
 	private renderFab(): Children {
