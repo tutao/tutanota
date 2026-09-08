@@ -812,6 +812,7 @@ export default {
 		"friend_label": "Freund*in",
 		"from_label": "Von",
 		"fromAfterToError_msg": "Die Terminstartzeit („Von“) darf nicht nach der Terminendzeit („Bis“) liegen.",
+		"timesInHourSkippedWhenChangingToDSTError_msg": "Die Terminzeiten sind aufgrund der Zeitumstellung auf die Sommerzeit ungültig. Bitte gib in den Feldern „Von“ und/oder „Bis“ andere Zeiten ein.",
 		"functionNotSupported_msg": "Diese Funktion wird von diesem Gerät oder Browser nicht unterstützt.",
 		"futureDate": "Zeitpunkt auswählen",
 		"general_label": "Allgemein",

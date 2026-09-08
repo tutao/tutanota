@@ -812,6 +812,7 @@ export default {
 		"friend_label": "Friend",
 		"from_label": "From",
 		"fromAfterToError_msg": "The \"From\" time should not be after the \"To\" time.",
+		"timesInHourSkippedWhenChangingToDSTError_msg": "The event times are invalid in your current time zone due to daylight saving time. Please select a different \"From\" and/or \"To\" time.",
 		"functionNotSupported_msg": "This function is not supported by your device or browser.",
 		"futureDate": "Future date",
 		"general_label": "General",
