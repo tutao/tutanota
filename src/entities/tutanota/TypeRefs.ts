@@ -567,7 +567,7 @@ export type MailBoxParams = {
 	extractedFeatures: Id
 	clientSpamTrainingData: Id
 	modifiedClientSpamTrainingDataIndex: Id
-	imapAccountSyncStates: null | Id
+	mailboxMigrationSyncStates: null | Id
 	deduplicatedImportedAttachments: null | Id
 }
 
@@ -597,7 +597,7 @@ export type MailBox = {
 	extractedFeatures: Id
 	clientSpamTrainingData: Id
 	modifiedClientSpamTrainingDataIndex: Id
-	imapAccountSyncStates: null | Id
+	mailboxMigrationSyncStates: null | Id
 	deduplicatedImportedAttachments: null | Id
 
 	//== some entities have these and some don't
@@ -5353,6 +5353,7 @@ export type ImportMailDataParams = {
 	compressedHeaders: string
 	imapModSeq: null | NumberString
 	imapUid: null | NumberString
+	sourceId: null | string
 
 	references: ImportMailDataMailReference[]
 	sender: MailAddress
@@ -5383,6 +5384,7 @@ export type ImportMailData = {
 	compressedHeaders: string
 	imapModSeq: null | NumberString
 	imapUid: null | NumberString
+	sourceId: null | string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -5506,7 +5508,7 @@ export function createImportMailPostIn(values: ImportMailPostInParams): ImportMa
 export type ImportMailPostInParams = {
 	importFileMailState: null | IdTuple
 	encImports: StringWrapper[]
-	imapFolderSyncState: null | IdTuple
+	mailboxMigrationFolderSyncState: null | IdTuple
 }
 
 export type ImportMailPostIn = {
@@ -5521,7 +5523,7 @@ export type ImportMailPostIn = {
 
 	importFileMailState: null | IdTuple
 	encImports: StringWrapper[]
-	imapFolderSyncState: null | IdTuple
+	mailboxMigrationFolderSyncState: null | IdTuple
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -6590,20 +6592,20 @@ export type SendDraftParameters = {
 	_original: Nullable<SendDraftParameters>
 	isAdapter: false
 }
-export const OAuthTokenEndpointResponseTypeRef: TypeRef<OAuthTokenEndpointResponse> = new TypeRef("tutanota", 1860)
+export const OAuthTokenEndpointResponseLegacyTypeRef: TypeRef<OAuthTokenEndpointResponseLegacy> = new TypeRef("tutanota", 1860)
 
-export function createOAuthTokenEndpointResponse(values: OAuthTokenEndpointResponseParams): OAuthTokenEndpointResponse {
-	return Object.assign(create(typeModels[OAuthTokenEndpointResponseTypeRef.typeId], OAuthTokenEndpointResponseTypeRef), values)
+export function createOAuthTokenEndpointResponseLegacy(values: OAuthTokenEndpointResponseLegacyParams): OAuthTokenEndpointResponseLegacy {
+	return Object.assign(create(typeModels[OAuthTokenEndpointResponseLegacyTypeRef.typeId], OAuthTokenEndpointResponseLegacyTypeRef), values)
 }
 
-export type OAuthTokenEndpointResponseParams = {
+export type OAuthTokenEndpointResponseLegacyParams = {
 	accessToken: string
 	refreshToken: null | string
 	expiresIn: null | NumberString
 	tokenType: string
 }
 
-export type OAuthTokenEndpointResponse = {
+export type OAuthTokenEndpointResponseLegacy = {
 	// == values
 
 	_id: Id
@@ -6625,43 +6627,43 @@ export type OAuthTokenEndpointResponse = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<OAuthTokenEndpointResponse>
-	_original: Nullable<OAuthTokenEndpointResponse>
+	_type: TypeRef<OAuthTokenEndpointResponseLegacy>
+	_original: Nullable<OAuthTokenEndpointResponseLegacy>
 	isAdapter: false
 }
-export const ImapAccountTypeRef: TypeRef<ImapAccount> = new TypeRef("tutanota", 1866)
+export const MailboxMigrationImapConfigurationTypeRef: TypeRef<MailboxMigrationImapConfiguration> = new TypeRef("tutanota", 1866)
 
-export function createImapAccount(values: ImapAccountParams): ImapAccount {
-	return Object.assign(create(typeModels[ImapAccountTypeRef.typeId], ImapAccountTypeRef), values)
+export function createMailboxMigrationImapConfiguration(values: MailboxMigrationImapConfigurationParams): MailboxMigrationImapConfiguration {
+	return Object.assign(create(typeModels[MailboxMigrationImapConfigurationTypeRef.typeId], MailboxMigrationImapConfigurationTypeRef), values)
 }
 
-export type ImapAccountParams = {
+export type MailboxMigrationImapConfigurationParams = {
 	host: string
 	port: NumberString
-	username: string
-	password: null | string
+	sharedUsername: null | string
+	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
 	useSSL: null | boolean
 
-	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse
+	sharedOauthToken: null | OAuthTokenEndpointResponseLegacy
 }
 
-export type ImapAccount = {
+export type MailboxMigrationImapConfiguration = {
 	// == values
 
 	_id: Id
 	host: string
 	port: NumberString
-	username: string
-	password: null | string
+	sharedUsername: null | string
+	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
 	useSSL: null | boolean
 
 	// == associations
 
-	oAuthTokenEndpointResponse: null | OAuthTokenEndpointResponse
+	sharedOauthToken: null | OAuthTokenEndpointResponseLegacy
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -6674,32 +6676,32 @@ export type ImapAccount = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImapAccount>
-	_original: Nullable<ImapAccount>
+	_type: TypeRef<MailboxMigrationImapConfiguration>
+	_original: Nullable<MailboxMigrationImapConfiguration>
 	isAdapter: false
 }
-export const ImportedImapMailTypeRef: TypeRef<ImportedImapMail> = new TypeRef("tutanota", 1873)
+export const ImportedMigrationMailTypeRef: TypeRef<ImportedMigrationMail> = new TypeRef("tutanota", 1873)
 
-export function createImportedImapMail(values: ImportedImapMailParams): ImportedImapMail {
-	return Object.assign(create(typeModels[ImportedImapMailTypeRef.typeId], ImportedImapMailTypeRef), values)
+export function createImportedMigrationMail(values: ImportedMigrationMailParams): ImportedMigrationMail {
+	return Object.assign(create(typeModels[ImportedMigrationMailTypeRef.typeId], ImportedMigrationMailTypeRef), values)
 }
 
-export type ImportedImapMailParams = {
-	imapUid: NumberString
+export type ImportedMigrationMailParams = {
+	sourceId: string
 	imapModSeq: null | NumberString
 	messageId: string
 
 	mailSetEntry: IdTuple
 }
 
-export type ImportedImapMail = {
+export type ImportedMigrationMail = {
 	// == values
 
 	_id: ListElementId
 	_permissions: Id
 	_format: NumberString
 	_ownerGroup: null | Id
-	imapUid: NumberString
+	sourceId: string
 	imapModSeq: null | NumberString
 	messageId: string
 
@@ -6718,8 +6720,8 @@ export type ImportedImapMail = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImportedImapMail>
-	_original: Nullable<ImportedImapMail>
+	_type: TypeRef<ImportedMigrationMail>
+	_original: Nullable<ImportedMigrationMail>
 	isAdapter: false
 }
 export const DeduplicatedImportedAttachmentTypeRef: TypeRef<DeduplicatedImportedAttachment> = new TypeRef("tutanota", 1883)
@@ -6763,26 +6765,26 @@ export type DeduplicatedImportedAttachment = {
 	_original: Nullable<DeduplicatedImportedAttachment>
 	isAdapter: false
 }
-export const ImapFolderSyncStateTypeRef: TypeRef<ImapFolderSyncState> = new TypeRef("tutanota", 1895)
+export const MailboxMigrationFolderSyncStateTypeRef: TypeRef<MailboxMigrationFolderSyncState> = new TypeRef("tutanota", 1895)
 
-export function createImapFolderSyncState(values: ImapFolderSyncStateParams): ImapFolderSyncState {
-	return Object.assign(create(typeModels[ImapFolderSyncStateTypeRef.typeId], ImapFolderSyncStateTypeRef), values)
+export function createMailboxMigrationFolderSyncState(values: MailboxMigrationFolderSyncStateParams): MailboxMigrationFolderSyncState {
+	return Object.assign(create(typeModels[MailboxMigrationFolderSyncStateTypeRef.typeId], MailboxMigrationFolderSyncStateTypeRef), values)
 }
 
-export type ImapFolderSyncStateParams = {
-	path: string
+export type MailboxMigrationFolderSyncStateParams = {
+	sourceId: string
 	status: NumberString
 	uidvalidity: null | NumberString
 	uidnext: null | NumberString
 	highestmodseq: null | NumberString
-	imapSpecialUse: null | string
+	specialUse: null | string
 
 	importedMails: Id
 	mailSet: null | IdTuple
-	imapAccountSyncState: IdTuple
+	mailboxMigrationSyncState: IdTuple
 }
 
-export type ImapFolderSyncState = {
+export type MailboxMigrationFolderSyncState = {
 	// == values
 
 	_id: ListElementId
@@ -6792,18 +6794,18 @@ export type ImapFolderSyncState = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
-	path: string
+	sourceId: string
 	status: NumberString
 	uidvalidity: null | NumberString
 	uidnext: null | NumberString
 	highestmodseq: null | NumberString
-	imapSpecialUse: null | string
+	specialUse: null | string
 
 	// == associations
 
 	importedMails: Id
 	mailSet: null | IdTuple
-	imapAccountSyncState: IdTuple
+	mailboxMigrationSyncState: IdTuple
 
 	//== some entities have these and some don't
 
@@ -6813,31 +6815,30 @@ export type ImapFolderSyncState = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImapFolderSyncState>
+	_type: TypeRef<MailboxMigrationFolderSyncState>
 	_errors: Object
-	_original: Nullable<ImapFolderSyncState>
+	_original: Nullable<MailboxMigrationFolderSyncState>
 	isAdapter: false
 }
-export const ImapAccountSyncStateTypeRef: TypeRef<ImapAccountSyncState> = new TypeRef("tutanota", 1911)
+export const MailboxMigrationSyncStateTypeRef: TypeRef<MailboxMigrationSyncState> = new TypeRef("tutanota", 1911)
 
-export function createImapAccountSyncState(values: ImapAccountSyncStateParams): ImapAccountSyncState {
-	return Object.assign(create(typeModels[ImapAccountSyncStateTypeRef.typeId], ImapAccountSyncStateTypeRef), values)
+export function createMailboxMigrationSyncState(values: MailboxMigrationSyncStateParams): MailboxMigrationSyncState {
+	return Object.assign(create(typeModels[MailboxMigrationSyncStateTypeRef.typeId], MailboxMigrationSyncStateTypeRef), values)
 }
 
-export type ImapAccountSyncStateParams = {
-	maxQuota: NumberString
+export type MailboxMigrationSyncStateParams = {
 	postponedUntil: NumberString
-	provider: NumberString
+	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
 
-	imapFolderSyncStateList: Id
-	imapAccount: ImapAccount
+	mailboxMigrationFolderSyncStates: Id
+	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
-	imapSyncLabel: null | IdTuple
+	syncLabel: null | IdTuple
 }
 
-export type ImapAccountSyncState = {
+export type MailboxMigrationSyncState = {
 	// == values
 
 	_id: ListElementId
@@ -6847,18 +6848,17 @@ export type ImapAccountSyncState = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
-	maxQuota: NumberString
 	postponedUntil: NumberString
-	provider: NumberString
+	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
 
 	// == associations
 
-	imapFolderSyncStateList: Id
-	imapAccount: ImapAccount
+	mailboxMigrationFolderSyncStates: Id
+	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
-	imapSyncLabel: null | IdTuple
+	syncLabel: null | IdTuple
 
 	//== some entities have these and some don't
 
@@ -6868,9 +6868,9 @@ export type ImapAccountSyncState = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImapAccountSyncState>
+	_type: TypeRef<MailboxMigrationSyncState>
 	_errors: Object
-	_original: Nullable<ImapAccountSyncState>
+	_original: Nullable<MailboxMigrationSyncState>
 	isAdapter: false
 }
 export const ImapFolderPostInTypeRef: TypeRef<ImapFolderPostIn> = new TypeRef("tutanota", 1929)
@@ -7008,7 +7008,7 @@ export type ImapPostInParams = {
 	postponedUntil: NumberString
 	provider: NumberString
 
-	imapAccount: ImapAccount
+	imapAccount: MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
 }
@@ -7029,7 +7029,7 @@ export type ImapPostIn = {
 
 	// == associations
 
-	imapAccount: ImapAccount
+	imapAccount: MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
 
@@ -7123,17 +7123,17 @@ export type ImapDeleteIn = {
 	_original: Nullable<ImapDeleteIn>
 	isAdapter: false
 }
-export const ImapOauthConfigGetInTypeRef: TypeRef<ImapOauthConfigGetIn> = new TypeRef("tutanota", 1969)
+export const MailboxMigrationOauthConfigGetInTypeRef: TypeRef<MailboxMigrationOauthConfigGetIn> = new TypeRef("tutanota", 1969)
 
-export function createImapOauthConfigGetIn(values: ImapOauthConfigGetInParams): ImapOauthConfigGetIn {
-	return Object.assign(create(typeModels[ImapOauthConfigGetInTypeRef.typeId], ImapOauthConfigGetInTypeRef), values)
+export function createMailboxMigrationOauthConfigGetIn(values: MailboxMigrationOauthConfigGetInParams): MailboxMigrationOauthConfigGetIn {
+	return Object.assign(create(typeModels[MailboxMigrationOauthConfigGetInTypeRef.typeId], MailboxMigrationOauthConfigGetInTypeRef), values)
 }
 
-export type ImapOauthConfigGetInParams = {
+export type MailboxMigrationOauthConfigGetInParams = {
 	clientId: string
 }
 
-export type ImapOauthConfigGetIn = {
+export type MailboxMigrationOauthConfigGetIn = {
 	// == values
 
 	_format: NumberString
@@ -7154,21 +7154,21 @@ export type ImapOauthConfigGetIn = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImapOauthConfigGetIn>
-	_original: Nullable<ImapOauthConfigGetIn>
+	_type: TypeRef<MailboxMigrationOauthConfigGetIn>
+	_original: Nullable<MailboxMigrationOauthConfigGetIn>
 	isAdapter: false
 }
-export const ImapOauthConfigGetOutTypeRef: TypeRef<ImapOauthConfigGetOut> = new TypeRef("tutanota", 1972)
+export const MailboxMigrationOauthConfigGetOutTypeRef: TypeRef<MailboxMigrationOauthConfigGetOut> = new TypeRef("tutanota", 1972)
 
-export function createImapOauthConfigGetOut(values: ImapOauthConfigGetOutParams): ImapOauthConfigGetOut {
-	return Object.assign(create(typeModels[ImapOauthConfigGetOutTypeRef.typeId], ImapOauthConfigGetOutTypeRef), values)
+export function createMailboxMigrationOauthConfigGetOut(values: MailboxMigrationOauthConfigGetOutParams): MailboxMigrationOauthConfigGetOut {
+	return Object.assign(create(typeModels[MailboxMigrationOauthConfigGetOutTypeRef.typeId], MailboxMigrationOauthConfigGetOutTypeRef), values)
 }
 
-export type ImapOauthConfigGetOutParams = {
+export type MailboxMigrationOauthConfigGetOutParams = {
 	clientSecret: string
 }
 
-export type ImapOauthConfigGetOut = {
+export type MailboxMigrationOauthConfigGetOut = {
 	// == values
 
 	_format: NumberString
@@ -7189,8 +7189,8 @@ export type ImapOauthConfigGetOut = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<ImapOauthConfigGetOut>
-	_original: Nullable<ImapOauthConfigGetOut>
+	_type: TypeRef<MailboxMigrationOauthConfigGetOut>
+	_original: Nullable<MailboxMigrationOauthConfigGetOut>
 	isAdapter: false
 }
 export const ImapPutInTypeRef: TypeRef<ImapPutIn> = new TypeRef("tutanota", 1979)
@@ -7386,5 +7386,299 @@ export type ExpandedInboxRuleList = {
 	// === these are not present in metamodel
 	_type: TypeRef<ExpandedInboxRuleList>
 	_original: Nullable<ExpandedInboxRuleList>
+	isAdapter: false
+}
+export const MailboxMigrationFolderPostInTypeRef: TypeRef<MailboxMigrationFolderPostIn> = new TypeRef("tutanota", 2021)
+
+export function createMailboxMigrationFolderPostIn(values: MailboxMigrationFolderPostInParams): MailboxMigrationFolderPostIn {
+	return Object.assign(create(typeModels[MailboxMigrationFolderPostInTypeRef.typeId], MailboxMigrationFolderPostInTypeRef), values)
+}
+
+export type MailboxMigrationFolderPostInParams = {
+	sourceId: string
+	shouldSync: boolean
+	specialUse: null | string
+
+	mailboxMigrationSyncState: IdTuple
+	mailSet: null | IdTuple
+}
+
+export type MailboxMigrationFolderPostIn = {
+	// == values
+
+	_format: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
+	ownerGroup: Id
+	sourceId: string
+	shouldSync: boolean
+	specialUse: null | string
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationSyncState: IdTuple
+	mailSet: null | IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationFolderPostIn>
+	_errors: Object
+	_original: Nullable<MailboxMigrationFolderPostIn>
+	isAdapter: false
+}
+export const MailboxMigrationFolderPostOutTypeRef: TypeRef<MailboxMigrationFolderPostOut> = new TypeRef("tutanota", 2031)
+
+export function createMailboxMigrationFolderPostOut(values: MailboxMigrationFolderPostOutParams): MailboxMigrationFolderPostOut {
+	return Object.assign(create(typeModels[MailboxMigrationFolderPostOutTypeRef.typeId], MailboxMigrationFolderPostOutTypeRef), values)
+}
+
+export type MailboxMigrationFolderPostOutParams = {
+	mailboxMigrationFolderSyncState: IdTuple
+}
+
+export type MailboxMigrationFolderPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationFolderSyncState: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationFolderPostOut>
+	_original: Nullable<MailboxMigrationFolderPostOut>
+	isAdapter: false
+}
+export const MailboxMigrationFolderDeleteInTypeRef: TypeRef<MailboxMigrationFolderDeleteIn> = new TypeRef("tutanota", 2034)
+
+export function createMailboxMigrationFolderDeleteIn(values: MailboxMigrationFolderDeleteInParams): MailboxMigrationFolderDeleteIn {
+	return Object.assign(create(typeModels[MailboxMigrationFolderDeleteInTypeRef.typeId], MailboxMigrationFolderDeleteInTypeRef), values)
+}
+
+export type MailboxMigrationFolderDeleteInParams = {
+	mailboxMigrationFolderSyncState: IdTuple
+}
+
+export type MailboxMigrationFolderDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationFolderSyncState: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationFolderDeleteIn>
+	_original: Nullable<MailboxMigrationFolderDeleteIn>
+	isAdapter: false
+}
+export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 2038)
+
+export function createMailboxMigrationPostIn(values: MailboxMigrationPostInParams): MailboxMigrationPostIn {
+	return Object.assign(create(typeModels[MailboxMigrationPostInTypeRef.typeId], MailboxMigrationPostInTypeRef), values)
+}
+
+export type MailboxMigrationPostInParams = {
+	postponedUntil: NumberString
+	provider: NumberString
+
+	imapConfiguration: null | MailboxMigrationImapConfiguration
+	syncLabel: null | IdTuple
+	rootImportMailSet: null | IdTuple
+	userMigrationInfo: IdTuple
+}
+
+export type MailboxMigrationPostIn = {
+	// == values
+
+	_format: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
+	ownerGroup: Id
+	postponedUntil: NumberString
+	provider: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	imapConfiguration: null | MailboxMigrationImapConfiguration
+	syncLabel: null | IdTuple
+	rootImportMailSet: null | IdTuple
+	userMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationPostIn>
+	_errors: Object
+	_original: Nullable<MailboxMigrationPostIn>
+	isAdapter: false
+}
+export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2049)
+
+export function createMailboxMigrationPostOut(values: MailboxMigrationPostOutParams): MailboxMigrationPostOut {
+	return Object.assign(create(typeModels[MailboxMigrationPostOutTypeRef.typeId], MailboxMigrationPostOutTypeRef), values)
+}
+
+export type MailboxMigrationPostOutParams = {
+	mailboxMigrationSyncState: IdTuple
+}
+
+export type MailboxMigrationPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationSyncState: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationPostOut>
+	_original: Nullable<MailboxMigrationPostOut>
+	isAdapter: false
+}
+export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2052)
+
+export function createMailboxMigrationDeleteIn(values: MailboxMigrationDeleteInParams): MailboxMigrationDeleteIn {
+	return Object.assign(create(typeModels[MailboxMigrationDeleteInTypeRef.typeId], MailboxMigrationDeleteInTypeRef), values)
+}
+
+export type MailboxMigrationDeleteInParams = {
+	mailboxMigrationSyncState: IdTuple
+}
+
+export type MailboxMigrationDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationSyncState: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationDeleteIn>
+	_original: Nullable<MailboxMigrationDeleteIn>
+	isAdapter: false
+}
+export const MailboxMigrationPutInTypeRef: TypeRef<MailboxMigrationPutIn> = new TypeRef("tutanota", 2055)
+
+export function createMailboxMigrationPutIn(values: MailboxMigrationPutInParams): MailboxMigrationPutIn {
+	return Object.assign(create(typeModels[MailboxMigrationPutInTypeRef.typeId], MailboxMigrationPutInTypeRef), values)
+}
+
+export type MailboxMigrationPutInParams = {
+	newMailboxMigrationSyncStatus: NumberString
+	newMailboxMigrationFolderSyncStatus: NumberString
+	newPostponedUntil: null | string
+
+	mailboxMigrationSyncState: IdTuple
+}
+
+export type MailboxMigrationPutIn = {
+	// == values
+
+	_format: NumberString
+	newMailboxMigrationSyncStatus: NumberString
+	newMailboxMigrationFolderSyncStatus: NumberString
+	newPostponedUntil: null | string
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationSyncState: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationPutIn>
+	_original: Nullable<MailboxMigrationPutIn>
 	isAdapter: false
 }
