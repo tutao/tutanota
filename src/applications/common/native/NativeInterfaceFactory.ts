@@ -7,9 +7,9 @@ import {
 	DesktopSystemFacade,
 	ExportFacade,
 	ExternalCalendarFacade,
-	ImapSyncFacade,
-	ImapSyncSystemFacade,
 	InterWindowEventFacade,
+	MigrationSyncFacade,
+	MigrationSyncSystemFacade,
 	MobileContactsFacade,
 	MobilePaymentsFacade,
 	MobileSystemFacade,
@@ -25,8 +25,8 @@ import {
 	ExportFacadeSendDispatcher,
 	ExternalCalendarFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
-	ImapSyncSystemFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
+	MigrationSyncSystemFacadeSendDispatcher,
 	MobileContactsFacadeSendDispatcher,
 	MobilePaymentsFacadeSendDispatcher,
 	MobileSystemFacadeSendDispatcher,
@@ -60,7 +60,7 @@ export type NativeInterfaces = {
 	nativeCredentialsFacade: NativeCredentialsFacade
 	mobilePaymentsFacade: MobilePaymentsFacade
 	externalCalendarFacade: ExternalCalendarFacade
-	imapSyncFacade: ImapSyncFacade
+	migrationSyncFacade: MigrationSyncFacade
 }
 
 export type DesktopInterfaces = {
@@ -70,7 +70,7 @@ export type DesktopInterfaces = {
 	nativeMailImportFacade: NativeMailImportFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 	exportFacade: ExportFacade
-	desktopImapSyncFacade: ImapSyncSystemFacade
+	migrationSyncSystemFacade: MigrationSyncSystemFacade
 	desktopOauthWindowFacade: OauthFacade
 }
 
@@ -81,7 +81,7 @@ export type DesktopInterfaces = {
 export function createNativeInterfaces(
 	mobileFacade: WebMobileFacade,
 	desktopFacade: DesktopFacade,
-	imapSyncFacade: ImapSyncFacade,
+	migrationSyncFacade: MigrationSyncFacade,
 	interWindowEventFacade: InterWindowEventFacade,
 	commonNativeFacade: CommonNativeFacade,
 	cryptoFacade: CryptoFacade,
@@ -95,7 +95,7 @@ export function createNativeInterfaces(
 		throw new ProgrammingError("Tried to make native interfaces in non-native")
 	}
 
-	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, imapSyncFacade, interWindowEventFacade, mobileFacade)
+	const dispatcher = new WebGlobalDispatcher(commonNativeFacade, desktopFacade, interWindowEventFacade, migrationSyncFacade, mobileFacade)
 	const native = new NativeInterfaceMain(dispatcher)
 	const nativePushFacadeSendDispatcher = new NativePushFacadeSendDispatcher(native)
 	const pushService = new NativePushServiceApp(
@@ -128,7 +128,7 @@ export function createNativeInterfaces(
 		nativeCredentialsFacade,
 		mobilePaymentsFacade,
 		externalCalendarFacade,
-		imapSyncFacade,
+		migrationSyncFacade,
 	}
 }
 
@@ -143,7 +143,7 @@ export function createDesktopInterfaces(native: NativeInterfaceMain): DesktopInt
 		nativeMailImportFacade: new NativeMailImportFacadeSendDispatcher(native),
 		interWindowEventSender: new InterWindowEventFacadeSendDispatcher(native),
 		exportFacade: new ExportFacadeSendDispatcher(native),
-		desktopImapSyncFacade: new ImapSyncSystemFacadeSendDispatcher(native),
+		migrationSyncSystemFacade: new MigrationSyncSystemFacadeSendDispatcher(native),
 		desktopOauthWindowFacade: new OauthFacadeSendDispatcher(native),
 	}
 }

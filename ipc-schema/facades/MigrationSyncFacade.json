@@ -1,0 +1,84 @@
+{
+	"name": "MigrationSyncFacade",
+	"type": "facade",
+	"senders": ["desktop"],
+	"receivers": ["web"],
+	"doc": "Facade implemented by the web worker, receiving Migration sync events.",
+	"methods": {
+		"onMailbox": {
+			"doc": "onMailbox Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"migrationMailbox": "MigrationMailbox"
+				},
+				{
+					"eventType": "MigrationSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onMailboxStatus": {
+			"doc": "onMailboxStatus Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"migrationMailboxStatus": "MigrationMailboxStatus"
+				}
+			],
+			"ret": "void"
+		},
+		"onMultipleMails": {
+			"doc": "onMultipleMails Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"migrationMails": "List<MigrationMail>"
+				},
+				{
+					"eventType": "MigrationSyncEventType"
+				}
+			],
+			"ret": "void"
+		},
+		"onPostpone": {
+			"doc": "onPostpone Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"postponedUntil": "number"
+				}
+			],
+			"ret": "void"
+		},
+		"onFinish": {
+			"doc": "onFinish Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		},
+		"onError": {
+			"doc": "onError Migration sync event.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"migrationError": "MigrationError"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

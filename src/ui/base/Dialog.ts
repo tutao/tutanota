@@ -879,7 +879,7 @@ export class Dialog implements ModalComponent {
 		})
 	}
 
-	static async showImapInitializationSuccessfulDialog(): Promise<void> {
+	static async showMigrationInitializationSuccessfulDialog(): Promise<void> {
 		const { ImageWithOptionsDialog } = await import("../dialogs/ImageWithOptionsDialog")
 		return newPromise((resolve) => {
 			let dialog: Dialog
