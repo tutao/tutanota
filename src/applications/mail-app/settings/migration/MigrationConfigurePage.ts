@@ -1,0 +1,585 @@
+import { EnvProvider } from "@tutao/app-env"
+import m, { Children, Vnode } from "mithril"
+import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
+import { MigrationData } from "./AddMigrationWizard"
+import { MigrationMailboxSpecialUse } from "../../../common/api/common/utils/migrationImportUtils/MigrationMailbox"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
+import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { createManageLabelServiceLabelData, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
+import { mailLocator } from "../../mailLocator"
+import { assertNotNull, promiseMap } from "@tutao/utils"
+import { isValidCSSHexColor } from "../../../../ui/base/Color"
+import { TitleSection } from "../../../../ui/TitleSection"
+import { px, size } from "../../../../ui/size"
+import { Switch } from "../../../../ui/base/Switch"
+import { IconButton } from "../../../../ui/base/IconButton"
+import { TextField } from "../../../../ui/base/TextField"
+import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionButton"
+import { showMigrationEditLabelDialog } from "../../mail/view/EditLabelDialog"
+import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/base/DropDownSelectorNew"
+import { getMailSetName } from "../../mail/model/MailUtils"
+import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
+import { MailSetKind } from "../../../../entities/tutanota/Utils"
+import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
+import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
+import { Card } from "../../../../ui/base/Card"
+import { Dialog } from "../../../../ui/base/Dialog"
+import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { Checkbox } from "../../../../ui/base/Checkbox"
+import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+
+EnvProvider.assertMainOrNode()
+
+class MigrationConfigurePage implements WizardPageN<MigrationData> {
+	private isGmail: boolean = false
+
+	private shouldDisplayRootImportMailSetTextField: boolean = false
+	private shouldDisplayLabelField: boolean = false
+	private shouldDisplayInfoHover: boolean = false
+	private hoverPosition: { left: number; top: number } = { left: 0, top: 0 }
+	private hoverInfo: TranslationKey = "migrationConfigurationLinkFoldersInfo_msg"
+
+	private titleSectionParams = {
+		icon: Icons.GearWheelFilled,
+		iconOptions: { color: theme.on_surface_variant, class: "icon-progress" },
+		subTitle: lang.getTranslationText("migrationConfigInfo_msg"),
+	}
+	private successfullyLoadedMailboxes: boolean = false
+
+	async oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
+		const migrationData = vnode.attrs.data
+
+		this.isGmail = migrationData.mailboxMigrationProvider === MailboxMigrationProvider.Gmail
+		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
+			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.mailboxMigrationProvider)),
+		}).text
+		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchMigrationMailboxesToTutaMailSets
+		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
+
+		const mailboxMigrationController = mailLocator.getMailboxMigrationController()
+		const migrationCredentials = this.getMigrationCredentials(migrationData)
+
+		migrationData.folderSystem = await mailboxMigrationController.getFolderSystemForSelectedMailbox()
+		const migrationUiGetMailboxResult = await mailboxMigrationController.doInitialFetchMailboxes(migrationCredentials)
+
+		if (migrationUiGetMailboxResult.result) {
+			this.successfullyLoadedMailboxes = true
+			this.titleSectionParams.iconOptions.class = ""
+			this.titleSectionParams.subTitle = lang.getTranslationText(this.isGmail ? "migrationConfigInfoGmail_msg" : "migrationConfigInfo_msg")
+
+			const migrationMailboxes = migrationUiGetMailboxResult.result.migrationMailboxes
+			migrationData.migrationMailboxes = migrationMailboxes
+			if (!this.isGmail) {
+				migrationData.migrationMailboxesToTutaMailSets =
+					await mailboxMigrationController.constructMigrationMailboxesToTutaFoldersMap(migrationMailboxes)
+			}
+			this.updateMigrationCredentials(migrationData, migrationUiGetMailboxResult.result.migrationCredentials)
+		} else if (migrationUiGetMailboxResult.error) {
+			this.titleSectionParams = {
+				icon: Icons.FailureFilled,
+				iconOptions: { color: theme.error, class: "" },
+				subTitle: migrationUiGetMailboxResult.error.errorMessage,
+			}
+		}
+		m.redraw()
+	}
+
+	private updateMigrationCredentials(migrationData: MigrationData, migrationCredentials: MigrationCredentials) {
+		migrationData.imapAccountHost = migrationCredentials.host
+		migrationData.imapAccountPort = migrationCredentials.port
+		migrationData.imapAccountUsername = migrationCredentials.username
+		migrationData.imapAccountPassword = migrationCredentials.password
+		migrationData.migrationAccountOAuthToken = migrationCredentials.tokenEndpointResponse
+		migrationData.customCertificateData = migrationCredentials.customCertificateData
+		migrationData.ignoreCertificateErrors = migrationCredentials.ignoreCertificateErrors
+	}
+
+	private getMigrationCredentials(migrationData: MigrationData) {
+		const migrationCredentials: MigrationCredentials = {
+			host: migrationData.imapAccountHost,
+			port: migrationData.imapAccountPort,
+			username: migrationData.imapAccountUsername,
+			password: migrationData.imapAccountPassword,
+			tokenEndpointResponse: migrationData.migrationAccountOAuthToken,
+			customCertificateData: migrationData.customCertificateData,
+			ignoreCertificateErrors: migrationData.ignoreCertificateErrors,
+			provider: migrationData.mailboxMigrationProvider,
+			useSSL: migrationData.useSSL,
+			isLegacy: false, // a migration created in the wizard uses the provider's fetch method
+		}
+		return migrationCredentials
+	}
+
+	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
+		const migrationData = vnode.attrs.data
+
+		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
+			this.shouldDisplayInfoHover
+				? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text)
+				: null,
+			m(
+				".mt-16",
+				m(TitleSection, {
+					...this.titleSectionParams,
+					title: "",
+					style: {
+						borderRadius: px(size.radius_16),
+					},
+				}),
+			),
+			this.isGmail ? this.renderGmailConfigureContent(migrationData) : this.renderNonGmailConfigureContent(migrationData),
+			this.renderContinueButton(migrationData),
+		])
+	}
+
+	private renderContinueButton(data: MigrationData) {
+		return m(
+			".flex-center.full-width.justify-end.pt-32.mb-32",
+			m(
+				"",
+				{
+					style: {
+						width: "260px",
+					},
+				},
+				m(PrimaryButton, {
+					label: "continue_action",
+					class: "wizard-next-button",
+					onclick: (_, dom) => {
+						emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+					},
+					disabled: !this.shouldAllowContinuing(data),
+				}),
+			),
+		)
+	}
+
+	private isFolderMappingCompleted(data: MigrationData) {
+		return (
+			(this.shouldDisplayRootImportMailSetTextField && data.rootImportMailSetName !== "") ||
+			(data.matchMigrationMailboxesToTutaMailSets && data.migrationMailboxes.length === data.migrationMailboxesToTutaMailSets?.size)
+		)
+	}
+
+	private isLabelCorrectlySet(data: MigrationData) {
+		return (
+			!data.addLabelToImportedMails ||
+			(data.migrationSyncLabelData !== null && data.migrationSyncLabelData.name !== "" && isValidCSSHexColor(data.migrationSyncLabelData.color))
+		)
+	}
+
+	private shouldAllowContinuing(data: MigrationData) {
+		return (this.isGmail || (this.isFolderMappingCompleted(data) && this.isLabelCorrectlySet(data))) && this.successfullyLoadedMailboxes
+	}
+
+	private renderGmailConfigureContent(data: MigrationData) {
+		return m(TextField, {
+			label: "migrationRootMailFolderName_label",
+			value: data.rootImportMailSetName,
+			oninput: (value) => (data.rootImportMailSetName = value),
+			helpLabel: () => lang.getTranslationText("migrationMailFolderNameGmail_helpLabel"),
+			leadingIcon: {
+				icon: Icons.FolderFilled,
+				color: theme.on_surface_variant,
+			},
+		})
+	}
+
+	private renderNonGmailConfigureContent(data: MigrationData) {
+		const obj = this
+		return [
+			m(".tutaui-switch.mt-16", [
+				m(Switch, {
+					ariaLabel: "migrationAddLabelToImportedMails_label",
+					checked: data.addLabelToImportedMails,
+					onclick(checked: boolean) {
+						obj.shouldDisplayLabelField = checked
+						data.addLabelToImportedMails = checked
+						if (!checked) {
+							data.migrationSyncLabelData = null
+						}
+					},
+				}),
+				m("", lang.getTranslationText("migrationAddLabelToImportedMails_label")),
+				m(IconButton, {
+					icon: Icons.QuestionmarkFilled,
+					label: "migrationAddLabelToImportedMails_label",
+					click: this.updateHoverMessage("migrationConfigurationAddLabelInfo_msg"),
+				}),
+			]),
+			this.shouldDisplayLabelField
+				? m(TextField, {
+						label: "labelInput_label",
+						value: data.migrationSyncLabelData?.name ?? "",
+						oninput: (value) => {
+							if (data.migrationSyncLabelData) {
+								data.migrationSyncLabelData.name = value
+							} else {
+								data.migrationSyncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentLabel: null })
+								m.redraw() //possibly doing nothing
+							}
+						},
+						leadingIcon: {
+							icon: Icons.LabelFilled,
+							color: theme.on_surface_variant,
+						},
+						injectionsRight: () => {
+							return m(ColorOptionButton, {
+								color: data.migrationSyncLabelData?.color ?? "",
+								onClick: () => {
+									if (!data.migrationSyncLabelData) {
+										data.migrationSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
+									}
+									const labelData = data.migrationSyncLabelData
+									showMigrationEditLabelDialog(
+										labelData,
+										(value) => {
+											if (data.migrationSyncLabelData) {
+												data.migrationSyncLabelData.name = value
+											} else {
+												data.migrationSyncLabelData = createManageLabelServiceLabelData({
+													name: value,
+													color: "",
+													parentLabel: null,
+												})
+											}
+										},
+										(newColor: string) => {
+											labelData.color = newColor
+										},
+									)
+								},
+							})
+						},
+						helpLabel: () => lang.getTranslationText("migrationLabelInput_helpLabel"),
+					})
+				: null,
+			m(".tutaui-switch.mt-16", [
+				m(Switch, {
+					ariaLabel: "matchMigrationFoldersToTutaMailSets_label",
+					checked: data.matchMigrationMailboxesToTutaMailSets,
+					onclick: (checked: boolean) => {
+						obj.shouldDisplayRootImportMailSetTextField = !checked
+						data.matchMigrationMailboxesToTutaMailSets = checked
+						if (checked) {
+							data.rootImportMailSetName = ""
+						}
+						m.redraw()
+					},
+				}),
+				m("", lang.getTranslationText("matchMigrationFoldersToTutaMailSets_label")),
+				m(IconButton, {
+					icon: Icons.QuestionmarkFilled,
+					label: "migrationFolderMapping_title",
+					click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
+				}),
+				!this.shouldDisplayRootImportMailSetTextField && this.successfullyLoadedMailboxes && !this.isFolderMappingCompleted(data)
+					? m(
+							"",
+							{
+								style: {
+									minWidth: "100px",
+									marginLeft: "auto",
+								},
+							},
+							this.renderCreateAllMissingFoldersButton(data),
+						)
+					: null,
+			]),
+			this.shouldDisplayRootImportMailSetTextField
+				? m(TextField, {
+						label: "migrationRootMailFolderName_label",
+						value: data.rootImportMailSetName,
+						oninput: (value) => (data.rootImportMailSetName = value),
+						helpLabel: () => lang.getTranslationText("migrationRootMailFolderName_helpLabel"),
+						leadingIcon: {
+							icon: Icons.FolderFilled,
+							color: theme.on_surface_variant,
+						},
+					})
+				: null,
+			!this.shouldDisplayRootImportMailSetTextField ? this.renderFolderMapping(data) : null,
+			this.shouldDisplayRootImportMailSetTextField
+				? m(".tutaui-switch", [
+						m(Checkbox, {
+							label: () => lang.getTranslationText("migrationMigrateSpamFolder_label"),
+							checked: data.spamFolderMigrationInformation?.shouldMigrateSpamFolder ?? false,
+							onChecked: (value: boolean) =>
+								(data.spamFolderMigrationInformation = {
+									shouldMigrateSpamFolder: value,
+									spamMailbox: data.migrationMailboxes.find((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.JUNK) ?? null,
+								}),
+						}),
+						m(IconButton, {
+							icon: Icons.InfoFilled,
+							label: "migrationCannotMapSpamFolder_label",
+							click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
+						}),
+					])
+				: null,
+		]
+	}
+
+	private renderFolderMapping(data: MigrationData) {
+		const migrationMailboxToTutaFolderRows = data.migrationMailboxes.map((mailbox) => {
+			const mailSetMapping = data.migrationMailboxesToTutaMailSets?.get(mailbox.path)
+			let tutaMailSet: MailSet | null = null
+			if (mailSetMapping?.mailSetElementId) {
+				tutaMailSet = data.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
+			}
+			return { migrationMailbox: mailbox, tutaMailSet, shouldSync: mailSetMapping?.shouldSync ?? true }
+		})
+		return m(
+			"",
+			migrationMailboxToTutaFolderRows.map((mailboxToRow) => {
+				const isHamFolder = mailboxToRow.migrationMailbox.specialUse !== MigrationMailboxSpecialUse.JUNK
+				return m(".flex.gap-8.items-center.mt-8", [
+					mailboxToRow.shouldSync
+						? m(IconButton, {
+								icon: Icons.CheckboxChecked,
+								label: "disableMigrationSyncForFolder_action",
+								click: async () => {
+									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)
+									if (mappedMailSet) {
+										mappedMailSet.shouldSync = false
+									} else {
+										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+											mailSetElementId: GENERATED_MIN_ID,
+											shouldSync: false,
+											specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
+										})
+									}
+								},
+							})
+						: m(IconButton, {
+								icon: Icons.CheckboxEmpty,
+								label: "enableMigrationSyncForFolder_action",
+								click: async () => {
+									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)
+									if (mappedMailSet) {
+										if (mappedMailSet.mailSetElementId === GENERATED_MIN_ID) {
+											data.migrationMailboxesToTutaMailSets?.delete(mailboxToRow.migrationMailbox.path)
+										} else {
+											mappedMailSet.shouldSync = true
+										}
+									}
+								},
+							}),
+					m(TextField, {
+						class: "m-0",
+						value: mailboxToRow.migrationMailbox.name ?? "",
+						isReadOnly: true,
+					}),
+					m(Icon, {
+						icon: Icons.SimpleArrowRight,
+						size: IconSize.PX24,
+						class: "pr-4 flex items-center",
+						style: {
+							fill: theme.on_surface,
+							//"background-color": "initial",
+							//minHeight: px(bubbleButtonHeight()),
+						},
+					}),
+					m(DropDownSelectorNew, {
+						selectedValue: mailboxToRow.tutaMailSet,
+						selectedValueDisplay: mailboxToRow.shouldSync
+							? mailboxToRow.tutaMailSet
+								? getMailSetName(mailboxToRow.tutaMailSet)
+								: lang.getTranslationText("migrationChooseFolder_msg")
+							: lang.getTranslationText("migrationNotImportedFolderName_msg"),
+						items: data.folderSystem
+							.getIndentedList(null)
+							.map((indentedFolder) => ({ name: getMailSetName(indentedFolder.mailSet), value: indentedFolder.mailSet })),
+						style:
+							mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
+								? {}
+								: {
+										background: theme.warning_container,
+										color: theme.on_warning_container,
+									},
+						icon: {
+							icon:
+								!mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
+									? Icons.FolderFilled
+									: getFolderIconByType(mailboxToRow.tutaMailSet.folderType as MailSetKind),
+							color: theme.on_surface_variant,
+						},
+						selectionChangedHandler: (selectedMailSet) => {
+							const shouldSync = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)?.shouldSync ?? true
+							data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+								mailSetElementId: getElementId(selectedMailSet),
+								shouldSync,
+								specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
+							})
+						},
+						disabled: !mailboxToRow.shouldSync || !isHamFolder,
+					} satisfies DropDownSelectorNewAttrs<MailSet>),
+					isHamFolder
+						? m(IconButton, {
+								icon: Icons.Plus,
+								label: "migrationCreateFolder_action",
+								click: async () => {
+									let newFolderElementId: Id | null = null
+									await showEditFolderDialog(
+										assertNotNull(mailLocator.getMailboxMigrationController().selectedMailBoxDetail),
+										null,
+										null,
+										mailboxToRow.migrationMailbox.name,
+										async (folderId) => {
+											newFolderElementId = elementIdPart(folderId)
+											// load new folder so that it is put to the cache and will be retrieved by the loadAll call
+											const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, folderId)
+											data.newlyCreatedFolders.add(newFolder)
+											const mailSets = await mailLocator.entityClient.loadAll(
+												MailSetTypeRef,
+												assertNotNull(mailLocator.getMailboxMigrationController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
+											)
+											data.folderSystem = new FolderSystem(mailSets)
+											if (newFolderElementId !== null) {
+												data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+													mailSetElementId: newFolderElementId,
+													shouldSync: true,
+													specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
+												})
+											}
+										},
+									)
+								},
+								disabled: !mailboxToRow.shouldSync,
+							})
+						: m(IconButton, {
+								icon: Icons.InfoFilled,
+								label: "migrationCannotMapSpamFolder_label",
+								click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
+							}),
+				])
+			}),
+		)
+	}
+
+	private updateHoverMessage(textMessage: TranslationKey) {
+		return (event: MouseEvent) => {
+			const isDisplayingHoverForPressedButton = this.shouldDisplayInfoHover && this.hoverInfo === textMessage
+			if (isDisplayingHoverForPressedButton) {
+				this.shouldDisplayInfoHover = false
+				return
+			}
+			const target = event.target as Element
+			const button = target.closest(".icon-button")
+			const dialogWindow = target.closest('[role="dialog"]')
+
+			if (button && dialogWindow) {
+				const targetRect = button.getBoundingClientRect()
+				const dialogRect = dialogWindow.getBoundingClientRect()
+
+				const shiftDistance = 45
+				// When calculating the left distance, it is being considered against the actual left side of screen
+				const hoverWindowLeft = targetRect.left + shiftDistance
+				//This top, however, is considering the dialog rect as it's start, then we need to do the calculation
+				const hoverWindowTop = targetRect.top - dialogRect.top - shiftDistance
+				this.hoverInfo = textMessage
+				this.hoverPosition = {
+					left: hoverWindowLeft,
+					top: hoverWindowTop,
+				}
+
+				this.shouldDisplayInfoHover = true
+			}
+		}
+	}
+
+	private renderHoverInfo(left: number, top: number, message: string): Children {
+		return m(
+			".hover-panel.border.border-radius",
+			{
+				style: {
+					left: px(left),
+					top: px(top),
+				},
+			},
+			[
+				m(Card, {}, [
+					m(
+						".flex.items-center.justify-center",
+						m(Icon, {
+							icon: Icons.InfoFilled,
+							size: IconSize.PX32,
+							style: {
+								fill: theme.on_surface_variant,
+							},
+						}),
+					),
+					m("", message),
+				]),
+			],
+		)
+	}
+
+	private renderCreateAllMissingFoldersButton(data: MigrationData) {
+		return m(PrimaryButton, {
+			label: "migrationCreateMissingFolders_label",
+			onclick: () => {
+				showProgressDialog(
+					"migrationCreatingMissingFolders_msg",
+					promiseMap(data.migrationMailboxes, async (migrationMailbox) => {
+						if (!data.migrationMailboxesToTutaMailSets?.has(migrationMailbox.path)) {
+							const ownerGroupId = assertNotNull(mailLocator.getMailboxMigrationController().selectedMailBoxDetail).mailGroup._id
+							const newFolderId = await mailLocator.mailFacade.createMailFolder(migrationMailbox.name ?? "", null, elementIdToId(ownerGroupId))
+							// loading here to populate the cache so that the folder system will have it
+							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
+							data.newlyCreatedFolders.add(newFolder)
+							data.migrationMailboxesToTutaMailSets?.set(migrationMailbox.path, {
+								mailSetElementId: elementIdPart(newFolder._id),
+								shouldSync: true,
+								specialUse: migrationMailbox.specialUse ?? null,
+							})
+						}
+					}).then(async () => {
+						const mailSets = await mailLocator.entityClient.loadAll(
+							MailSetTypeRef,
+							assertNotNull(mailLocator.getMailboxMigrationController().selectedMailBoxDetail).mailbox.mailSets.mailSets,
+						)
+						data.folderSystem = new FolderSystem(mailSets)
+					}),
+				)
+			},
+		})
+	}
+}
+
+export default MigrationConfigurePage
+
+export class MigrationConfigurePageAttrs implements WizardPageAttrs<MigrationData> {
+	data: MigrationData
+
+	constructor(migrationData: MigrationData) {
+		this.data = migrationData
+	}
+
+	headerTitle(): TranslationKey {
+		return "migrationSetup_title"
+	}
+
+	stepTitle = "migrationConfig_title" as TranslationKey
+
+	async nextAction(showErrorDialog: boolean = true): Promise<boolean> {
+		if (this.data.folderSystem.getFolderByName(this.data.rootImportMailSetName) !== null) {
+			Dialog.message("migrationRootMailFolderNameAlreadyExists_helpLabel")
+			return Promise.resolve(false)
+		}
+		return Promise.resolve(true)
+	}
+
+	isSkipAvailable(): boolean {
+		return false
+	}
+
+	isEnabled(): boolean {
+		return true
+	}
+}

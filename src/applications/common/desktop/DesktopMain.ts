@@ -89,10 +89,11 @@ import { accountingModelInfo, accountingTypeModels } from "@tutao/entities/accou
 import { initClientModels } from "../api/common/ClientModelInfoInitializer"
 import { loadWasmFromFileOrNetwork } from "../../../platform-kit/utils/WebAssembly"
 import { DesktopOauthWindowFacade } from "./DesktopOauthWindowFacade"
-import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListener"
-import { createImapSync } from "./imapimport/imapsync/ImapSync"
-import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
+import { MigrationSyncEventListener } from "./migration/MigrationSyncEventListener"
+import { DesktopMigrationSyncSystemFacade, MigrationInitFolderSyncFactory, MigrationSyncFactory } from "./migration/DesktopMigrationSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
+import { MigrationSync } from "./migration/MigrationSync"
+import { createImapSync } from "./migration/imapsync/ImapSyncSession"
 
 mp()
 
@@ -383,18 +384,21 @@ async function createComponents(): Promise<Components> {
 			},
 		}
 		const certificateProvider = new CertificateProvider(commandExecutor)
-		const imapSyncFactory: ImapSyncFactory = (accountSyncId: IdTuple) => {
-			const wrappedListener: ImapSyncEventListener = {
-				onMultipleMails: async (mails, type) => await window.imapSyncFacade.onMultipleMails(accountSyncId, mails, type),
-				onMailbox: async (mb, type) => await window.imapSyncFacade.onMailbox(accountSyncId, mb, type),
-				onMailboxStatus: async (stat) => await window.imapSyncFacade.onMailboxStatus(accountSyncId, stat),
-				onPostpone: async (until) => await window.imapSyncFacade.onPostpone(accountSyncId, until),
-				onFinish: async () => await window.imapSyncFacade.onFinish(accountSyncId),
-				onError: async (err) => await window.imapSyncFacade.onError(accountSyncId, err),
-			}
-			return createImapSync(wrappedListener, certificateProvider)
+		const createMigrationSync = (listener: MigrationSyncEventListener): MigrationSync => {
+			return createImapSync(listener, certificateProvider)
 		}
-		const imapInitFolderSyncFactory: ImapInitFolderSyncFactory = () => {
+		const migrationSyncFactory: MigrationSyncFactory = (accountSyncId: IdTuple) => {
+			const wrappedListener: MigrationSyncEventListener = {
+				onMultipleMails: async (mails, type) => await window.migrationSyncFacade.onMultipleMails(accountSyncId, mails, type),
+				onMailbox: async (mb, type) => await window.migrationSyncFacade.onMailbox(accountSyncId, mb, type),
+				onMailboxStatus: async (stat) => await window.migrationSyncFacade.onMailboxStatus(accountSyncId, stat),
+				onPostpone: async (until) => await window.migrationSyncFacade.onPostpone(accountSyncId, until),
+				onFinish: async () => await window.migrationSyncFacade.onFinish(accountSyncId),
+				onError: async (err) => await window.migrationSyncFacade.onError(accountSyncId, err),
+			}
+			return createMigrationSync(wrappedListener)
+		}
+		const migrationInitFolderSyncFactory: MigrationInitFolderSyncFactory = () => {
 			const noopListener = {
 				onMultipleMails: async () => {},
 				onMailbox: async () => {},
@@ -403,7 +407,7 @@ async function createComponents(): Promise<Components> {
 				onFinish: async () => {},
 				onError: async () => {},
 			}
-			return createImapSync(noopListener, certificateProvider)
+			return createMigrationSync(noopListener)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
@@ -411,8 +415,8 @@ async function createComponents(): Promise<Components> {
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
 			new DesktopExternalCalendarFacade(electron.app.userAgentFallback),
 			new DesktopFileFacade(window, conf, dateProvider, customFetch, electron, tfs, fs, path, commandExecutor, process, progressTracker),
-			new DesktopImapSyncSystemFacade(imapSyncFactory, imapInitFolderSyncFactory),
 			new DesktopInterWindowEventFacade(window, wm),
+			new DesktopMigrationSyncSystemFacade(migrationSyncFactory, migrationInitFolderSyncFactory),
 			nativeCredentialsFacade,
 			desktopCrypto,
 			desktopImportFacade,
