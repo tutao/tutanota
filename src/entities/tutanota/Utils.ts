@@ -329,7 +329,7 @@ export const enum ImapFolderSyncStatus {
 	CANCELED = "4",
 }
 
-export enum ImapAccountSyncStatus {
+export enum MailboxMigrationSyncStatus {
 	RUNNING = "0",
 	PAUSED = "1",
 	POSTPONED = "2",
