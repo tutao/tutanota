@@ -562,13 +562,15 @@ impl EventFacade {
 				};
 
 				if frequency == &RepeatPeriod::Weekly {
+					let (iso_year, iso_week_number, _) = date.to_iso_week_date();
+
 					let week_start = PrimitiveDateTime::new(
-						Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::Monday)
+						Date::from_iso_week_date(iso_year, iso_week_number, Weekday::Monday)
 							.unwrap(),
 						date.time(),
 					);
 					let week_end = PrimitiveDateTime::new(
-						Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::Sunday)
+						Date::from_iso_week_date(iso_year, iso_week_number, Weekday::Sunday)
 							.unwrap(),
 						date.time(),
 					);
@@ -671,13 +673,9 @@ impl EventFacade {
 
 					week_diff
 				} else {
+					let (iso_year, _, weekday) = new_date.to_iso_week_date();
 					new_date = new_date.replace_date(
-						Date::from_iso_week_date(
-							new_date.year(),
-							parsed_week as u8,
-							new_date.weekday(),
-						)
-						.unwrap(),
+						Date::from_iso_week_date(iso_year, parsed_week as u8, weekday).unwrap(),
 					);
 					parsed_week as u8
 				};
@@ -1109,13 +1107,14 @@ impl EventFacade {
 				return Ok(());
 			}
 
+			let (iso_year, iso_week_number, _) = date.to_iso_week_date();
 			let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
 			let new_date = date.replace_date(
-				Date::from_iso_week_date(date.year(), date.iso_week(), parsed_weekday).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
 			);
 
 			let interval_start = date.replace_date(
-				Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, week_start).unwrap(),
 			);
 
 			let Some(week_ahead) = interval_start.checked_add(Duration::days(7)) else {
@@ -1158,8 +1157,10 @@ impl EventFacade {
 			};
 
 			let stop_condition = date.replace_date(stop_date);
+
+			let (iso_year, iso_week_number, _) = day_one.to_iso_week_date();
 			let mut current_date = date.replace_date(
-				Date::from_iso_week_date(date.year(), day_one.iso_week(), parsed_weekday).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
 			);
 
 			if current_date.assume_utc().unix_timestamp() >= day_one.assume_utc().unix_timestamp() {
@@ -1316,9 +1317,9 @@ impl EventFacade {
 			}
 		} else {
 			// If there's no week change, just iterate to the target day
+			let (iso_year, iso_week_number, _) = base_date.to_iso_week_date();
 			let mut occurrence_date = base_date.replace_date(
-				Date::from_iso_week_date(base_date.year(), base_date.iso_week(), parsed_weekday)
-					.unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
 			);
 
 			let stop_stop_condition_timestamp = stop_condition.assume_utc().unix_timestamp();
