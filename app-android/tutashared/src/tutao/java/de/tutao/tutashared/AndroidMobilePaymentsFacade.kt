@@ -123,11 +123,21 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 	}
 
 	override suspend fun showSubscriptionConfigView() {
-
-		// "https://play.google.com/store/account/subscriptions?sku=$sku&package=$packageName"
+		val params = QueryPurchasesParams.newBuilder()
+			.setProductType(BillingClient.ProductType.SUBS)
+			.includeSuspendedSubscriptions(true)
+			.build()
+		val productId = billingClient.queryPurchases(params)
+			.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED }
+			.flatMap { it.products }
+			.distinct()
+			.singleOrNull()
+		val uri = "https://play.google.com/store/account/subscriptions".toUri().buildUpon()
+			.appendQueryParameter("package", activity.packageName)
+			.apply { if (productId != null) appendQueryParameter("sku", productId) }
+			.build()
 		try {
-			val packageName = BuildConfig.PACKAGE_NAME
-			val myIntent = Intent(Intent.ACTION_VIEW, "https://play.google.com/store/account/subscriptions?package=$packageName".toUri())
+			val myIntent = Intent(Intent.ACTION_VIEW, uri)
 			activity.startActivity(myIntent)
 
 		} catch (e: ActivityNotFoundException) {
