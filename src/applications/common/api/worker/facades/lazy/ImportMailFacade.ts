@@ -209,6 +209,7 @@ export class ImportMailFacade {
 			await this.serviceExecutor.post(ImportMailService, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				suspensionBehavior: SuspensionBehavior.Throw,
+				ownerKey: mailGroupKey,
 			})
 		}
 	}
