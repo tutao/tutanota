@@ -71,6 +71,7 @@ interface ConfigObject {
 	installationDate: string
 	/** Map from user id to the size of the list */
 	mailListSize: Record<Id, number>
+	folderListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
 
 	/**
@@ -101,7 +102,7 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
-	public static readonly Version = 9
+	public static readonly Version = 10
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -158,6 +159,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			isCredentialsMigratedToNative: loadedConfig.isCredentialsMigratedToNative ?? false,
 			lastExternalCalendarSync: loadedConfig.lastExternalCalendarSync ?? {},
 			mailListSize: loadedConfig.mailListSize ?? {},
+			folderListSize: loadedConfig.folderListSize ?? {},
 			events: loadedConfig.events ?? [],
 			lastRatingPromptedDate: loadedConfig.lastRatingPromptedDate ?? null,
 			retryRatingPromptAfter: loadedConfig.retryRatingPromptAfter ?? null,
@@ -496,6 +498,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	setMailAutoSelectBehavior(action: ListAutoSelectBehavior) {
 		this.config.mailAutoSelectBehavior = action
+		this.writeToStorage()
+	}
+
+	getFolderListSize(user: Id): number | null {
+		return this.config.folderListSize[user] ?? null
+	}
+
+	setFolderListSize(user: Id, folderListSize: number): void {
+		this.config.folderListSize[user] = folderListSize
 		this.writeToStorage()
 	}
 

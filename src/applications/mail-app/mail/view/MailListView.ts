@@ -353,7 +353,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 				ListColumnWrapper,
 				{
 					headerContent: this.renderListHeader(purgeButtonAttrs),
-					class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-margin",
+					class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-padding",
 				},
 				listModel == null || listModel.isEmptyAndDone()
 					? m(ColumnEmptyMessageBox, {

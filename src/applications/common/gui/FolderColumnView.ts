@@ -7,10 +7,11 @@ import type { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { MainCreateButton } from "../../../ui/MainCreateButton.js"
 import { EnvProvider } from "@tutao/app-env"
 import { Styles } from "../../../ui/styles"
+import { Icons } from "../../../ui/base/icons/Icons"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: ClickHandler } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler; icon?: Icons } | null | undefined
 	content: Children
 	ariaLabel: MaybeTranslation
 	drawer: DrawerMenuAttrs
@@ -19,13 +20,18 @@ export type Attrs = {
 export class FolderColumnView implements Component<Attrs> {
 	view({ attrs }: Vnode<Attrs>): Children {
 		const isAndroidWithBottomNavAndDrawer = EnvProvider.get().isAndroidApp() && Styles.get().isAppUsingBottomNav() && !Styles.get().isMobileDesktopLayout()
-		return m(".flex.height-100p.nav-bg" + (isAndroidWithBottomNavAndDrawer ? ".pb-safe-inset" : ""), [
-			m(DrawerMenu, attrs.drawer),
-			m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [
-				this.renderMainButton(attrs),
-				m(".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow", attrs.content),
-			]),
-		])
+		return m(
+			".flex.height-100p.nav-bg" +
+				(isAndroidWithBottomNavAndDrawer ? ".pb-safe-inset" : "") +
+				(Styles.get().isDesktopLayout() ? ".column-resize-padding" : ""),
+			[
+				m(DrawerMenu, attrs.drawer),
+				m(".folder-column.flex-grow.overflow-x-hidden.flex.col", landmarkAttrs(AriaLandmarks.Navigation, lang.getTranslationText(attrs.ariaLabel)), [
+					this.renderMainButton(attrs),
+					m(".scroll.scrollbar-gutter-stable-or-fallback.visible-scrollbar.overflow-x-hidden.flex.col.flex-grow", attrs.content),
+				]),
+			],
+		)
 	}
 
 	private renderMainButton(attrs: Attrs): Children {
@@ -35,6 +41,7 @@ export class FolderColumnView implements Component<Attrs> {
 				m(MainCreateButton, {
 					label: attrs.button.label,
 					click: attrs.button.click,
+					icon: attrs.button.icon,
 				}),
 			)
 		} else {
