@@ -41,6 +41,11 @@ type ValuesToRestoreWhenToggleAllDayOff = {
 	timeZone: string | null
 }
 
+export const enum CalendarEventWhenModelInvalidReason {
+	InvalidEndBeforeStart,
+	TimesInHourSkippedWhenChangingToDST,
+}
+
 export class CalendarEventWhenModel {
 	private repeatRule: CalendarRepeatRule | null = null
 	private _isAllDay: boolean
@@ -259,7 +264,7 @@ export class CalendarEventWhenModel {
 		if (newHour !== oldHour || newMinute !== oldMinute) {
 			// we do not keep the duration if the event has an invalid start after end to allow the user to recover
 			// from the invalid state
-			const keepDurationBetweenStartAndEnd = this.hasValidStartBeforeEnd()
+			const keepDurationBetweenStartAndEnd = this.getInvalidReason() !== CalendarEventWhenModelInvalidReason.InvalidEndBeforeStart
 
 			this.start.hour = newHour
 			this.start.minute = newMinute
@@ -344,14 +349,33 @@ export class CalendarEventWhenModel {
 	rescheduleEventToDate(date: Date) {
 		this.validateAndCorrectInputDate(date)
 
-		const newYear = date.getFullYear()
-		const newMonth = date.getMonth() + 1
-		const newDay = date.getDate()
-		if (newYear === this.start.year && newMonth === this.start.month && newDay === this.start.day) {
+		const newStartYear = date.getFullYear()
+		const newStartMonth = date.getMonth() + 1
+		const newStartDay = date.getDate()
+		if (newStartYear === this.start.year && newStartMonth === this.start.month && newStartDay === this.start.day) {
 			return
 		}
 
-		this.shiftEvent({ years: newYear - this.start.year, months: newMonth - this.start.month, days: newDay - this.start.day })
+		// Save end hour and minute to be restored later
+		const originalEndHour = this.end.hour
+		const originalEndMinute = this.end.minute
+
+		// Update the start's year, month and day and calculate the difference to the new start.
+		// IMPORTANT: This is done in a way that preserves the start's hour and minute values.
+		const oldStartDateTime = this.getStartDateTime()
+		this.start.year = newStartYear
+		this.start.month = newStartMonth
+		this.start.day = newStartDay
+		const newStartDateTime = this.getStartDateTime()
+		const diff = newStartDateTime.diff(oldStartDateTime)
+
+		// Move the end by the same amount as the start
+		this.setEndFromDateTime(this.getEndDateTime().plus(diff))
+
+		// Restore end hour and minute
+		this.end.hour = originalEndHour
+		this.end.minute = originalEndMinute
+
 		this.uiUpdateCallback()
 	}
 
@@ -380,7 +404,7 @@ export class CalendarEventWhenModel {
 		this.end.day = newEndDate.getDate()
 
 		if (this.end.year !== oldEndYear || this.end.month !== oldEndMonth || this.end.day !== oldEndDay) {
-			if (this.hasValidStartBeforeEnd()) {
+			if (this.isValid()) {
 				this.uiUpdateCallback()
 			} else {
 				this.logInfo("tried to set the end date to before the start date")
@@ -725,13 +749,38 @@ export class CalendarEventWhenModel {
 		return repeatRule
 	}
 
-	hasValidStartBeforeEnd(): boolean {
-		const durationInMinutes = this.getEndDateTime().diff(this.getStartDateTime()).as("minutes")
-		if (this._isAllDay) {
-			return durationInMinutes >= 0
-		} else {
-			return durationInMinutes > 0
+	getInvalidReason(): CalendarEventWhenModelInvalidReason | null {
+		const startDateTime = this.getStartDateTime()
+		if (!startDateTime.isValid) {
+			throw new ProgrammingError(`Invalid start datetime ${JSON.stringify(startDateTime.toObject())}`)
 		}
+		// If the time set falls in the time interval that is skipped when setting the clocks forward when
+		// transitioning from standard time to daylight saving time, `this.getStartDateTime()` will correct
+		// by incrementing the returned datetime by the duration of that time interval. As a result, the corrected
+		// hour and minute values will no longer match the values stored on the model allowing us to detect this
+		// invalid state.
+		if (startDateTime.hour !== this.start.hour || startDateTime.minute !== this.start.minute) {
+			return CalendarEventWhenModelInvalidReason.TimesInHourSkippedWhenChangingToDST
+		}
+
+		const endDateTime = this.getEndDateTime()
+		if (!endDateTime.isValid) {
+			throw new ProgrammingError(`Invalid end datetime ${JSON.stringify(endDateTime.toObject())}`)
+		}
+		if (endDateTime.hour !== this.end.hour || endDateTime.minute !== this.end.minute) {
+			return CalendarEventWhenModelInvalidReason.TimesInHourSkippedWhenChangingToDST
+		}
+
+		const millisDiff = endDateTime.toMillis() - startDateTime.toMillis()
+		if (this._isAllDay ? millisDiff < 0 : millisDiff <= 0) {
+			return CalendarEventWhenModelInvalidReason.InvalidEndBeforeStart
+		}
+
+		return null
+	}
+
+	isValid(): boolean {
+		return this.getInvalidReason() === null
 	}
 
 	get result() {
