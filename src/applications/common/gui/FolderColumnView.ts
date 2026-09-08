@@ -7,10 +7,11 @@ import type { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { MainCreateButton } from "../../../ui/MainCreateButton.js"
 import { EnvProvider } from "@tutao/app-env"
 import { Styles } from "../../../ui/styles"
+import { Icons } from "../../../ui/base/icons/Icons"
 
 export type Attrs = {
 	/** Button to be displayed on top of the column*/
-	button: { label: TranslationKey; click: ClickHandler } | null | undefined
+	button: { label: TranslationKey; click: ClickHandler; icon?: Icons } | null | undefined
 	content: Children
 	ariaLabel: MaybeTranslation
 	drawer: DrawerMenuAttrs
@@ -35,6 +36,7 @@ export class FolderColumnView implements Component<Attrs> {
 				m(MainCreateButton, {
 					label: attrs.button.label,
 					click: attrs.button.click,
+					icon: attrs.button.icon,
 				}),
 			)
 		} else {
