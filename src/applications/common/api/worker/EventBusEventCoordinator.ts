@@ -23,13 +23,13 @@ import {
 } from "@tutao/entities/sys"
 import { idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ImapImporter } from "../../../mail-app/workerUtils/imapimport/ImapImporter"
+import { MailboxImporter } from "../../../mail-app/workerUtils/imapimport/MailboxImporter"
 
 /** A bit of glue to distribute event bus events across the app. */
 export class EventBusEventCoordinator implements EventBusListener {
 	constructor(
 		private readonly mailFacade: lazyAsync<MailFacade> | null,
-		private readonly imapImporter: lazyAsync<ImapImporter> | null,
+		private readonly imapImporter: lazyAsync<MailboxImporter> | null,
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
 		private readonly eventController: ExposedEventController,

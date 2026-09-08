@@ -1,24 +1,24 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { ImapImporter, ImportResult, InitializeImapImportParams } from "../../../../src/applications/mail-app/workerUtils/imapimport/ImapImporter"
-import { newImapImportSession } from "../../../../src/applications/mail-app/workerUtils/imapimport/ImapImportSession"
+import { MailboxImporter, ImportResult, InitializeMailboxImportParams } from "../../../../src/applications/mail-app/workerUtils/imapimport/MailboxImporter"
+import { newMailboxImportSession } from "../../../../src/applications/mail-app/workerUtils/imapimport/MailboxImportSession"
 import { createTestEntity } from "../../TestUtils"
 import { ImapError, ImapErrorCause } from "../../../../src/applications/common/api/common/error/ImapError"
-import { ImapProvider } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { ImapCredentials } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
-import { ImapMailbox, ImapMailboxSpecialUse } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
-import { ImapAccountSyncStatus, ImapFolderSyncStatus, MailSetKind } from "../../../../src/entities/tutanota/Utils"
+import { MailboxMigrationProvider } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
+import { ImapCredentials } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
+import { ImapMailbox, ImapMailboxSpecialUse } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapMailbox"
+import { MailboxMigrationSyncStatus, MailboxMigrationFolderSyncStatus, MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { MailModel } from "../../../../src/applications/mail-app/mail/model/MailModel"
 import { MailboxDetail, MailboxModel } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient"
 import { OauthFacade } from "../../../../src/app-kit/native-bridge/common/generatedipc/types"
-import { ImapImportUiSession, ImapMailImportController } from "../../../../src/applications/mail-app/settings/imapimport/ImapMailImportController"
+import { MailboxImportUiSession, ImapMailImportController } from "../../../../src/applications/mail-app/settings/imapimport/ImapMailImportController"
 import {
-	ImapAccountSyncStateTypeRef,
-	ImapAccountTypeRef,
-	ImapFolderSyncStateTypeRef,
+	MailboxMigrationImapConfigurationTypeRef,
+	MailboxMigrationSyncStateTypeRef,
 	MailSetTypeRef,
-	OAuthTokenEndpointResponseTypeRef,
+	MailboxMigrationFolderSyncStateTypeRef,
+	OAuthTokenEndpointResponseLegacyTypeRef,
 } from "@tutao/entities/tutanota"
 import { FolderSystem } from "../../../../src/applications/common/api/common/mail/FolderSystem"
 import { ImapErrorHandler } from "../../../../src/applications/mail-app/settings/imapimport/ImapErrorHandler"
@@ -27,7 +27,7 @@ import { EventController } from "../../../../src/applications/common/api/main/Ev
 const { anything } = matchers
 
 o.spec("ImapMailImportController", () => {
-	let imapImporter: ImapImporter
+	let imapImporter: MailboxImporter
 	let mailModel: MailModel
 	let mailboxModel: MailboxModel
 	let entityClient: EntityClient
@@ -44,20 +44,20 @@ o.spec("ImapMailImportController", () => {
 		mailGroupInfo: { group: "group2" },
 		mailbox: { _ownerGroup: "group2" },
 	} as any
-	const imapAccountSyncStateIdMock: IdTuple = ["accountSyncStateListId", "accountSyncStateElementId"]
-	const accountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
-		_id: imapAccountSyncStateIdMock,
+	const mailboxMigrationSyncStateIdMock: IdTuple = ["mailboxMigrationSyncStateListId", "mailboxMigrationSyncStateElementId"]
+	const mailboxMigrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+		_id: mailboxMigrationSyncStateIdMock,
 		_ownerGroup: "group1",
-		imapFolderSyncStateList: "folderSyncStateListId",
-		status: ImapAccountSyncStatus.RUNNING.toString(),
+		mailboxMigrationFolderSyncStates: "folderSyncStateListId",
+		status: MailboxMigrationSyncStatus.RUNNING.toString(),
 	})
-	const folderSyncStateMock = createTestEntity(ImapFolderSyncStateTypeRef, {
+	const folderSyncStateMock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
 		_id: ["folderSyncStateListId", "folderSyncStateElementId"],
-		status: ImapFolderSyncStatus.FINISHED,
+		status: MailboxMigrationFolderSyncStatus.FINISHED,
 	})
 
 	o.beforeEach(() => {
-		imapImporter = object<ImapImporter>()
+		imapImporter = object<MailboxImporter>()
 		mailModel = object<MailModel>()
 		mailboxModel = object<MailboxModel>()
 		entityClient = object<EntityClient>()
@@ -69,21 +69,23 @@ o.spec("ImapMailImportController", () => {
 
 	o.test("init - loads mailbox details", async () => {
 		when(mailboxModel.getMailboxDetails()).thenResolve([mailboxDetail1Mock, mailboxDetail2Mock])
-		const imapImportSession = newImapImportSession(accountSyncStateMock, [])
-		imapImportSession.imapFolderSyncStates = [{ ...folderSyncStateMock, status: ImapFolderSyncStatus.FINISHED }]
-		const activeSessions = [{ imapAccountSyncStateId: accountSyncStateMock._id } as ImapImportUiSession] as ImapImportUiSession[]
-		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		const imapImportSession = newMailboxImportSession(mailboxMigrationSyncStateMock, [], null)
+		imapImportSession.imapFolderSyncStates = [{ ...folderSyncStateMock, status: MailboxMigrationFolderSyncStatus.FINISHED }]
+		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateMock._id } as MailboxImportUiSession] as MailboxImportUiSession[]
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		await controller.initUiSessions()
 		o.check(controller.mailboxDetails).deepEquals([mailboxDetail1Mock, mailboxDetail2Mock])
 		o.check(controller.selectedMailBoxDetail).equals(mailboxDetail1Mock)
 	})
 
 	o.test("initializeImport - delegates to imapImporter", async () => {
-		const params = {} as InitializeImapImportParams
-		const expectedSession = newImapImportSession(accountSyncStateMock, [])
+		const params = {} as InitializeMailboxImportParams
+		const expectedSession = newMailboxImportSession(mailboxMigrationSyncStateMock, [], null)
 		when(imapImporter.initializeNewImport(params)).thenResolve(expectedSession)
-		const activeSessions = [{ imapAccountSyncStateId: expectedSession.imapAccountSyncState._id } as ImapImportUiSession] as ImapImportUiSession[]
-		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		const activeSessions = [
+			{ mailboxMigrationSyncStateId: expectedSession.mailboxMigrationSyncState._id } as MailboxImportUiSession,
+		] as MailboxImportUiSession[]
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
 		const result = await controller.initializeImport(params)
 
 		o.check(result).equals(expectedSession)
@@ -92,72 +94,69 @@ o.spec("ImapMailImportController", () => {
 
 	o.test("continueImport - returns result on success", async () => {
 		const successResult: ImportResult = {
-			state: { status: accountSyncStateMock.status as ImapAccountSyncStatus },
-			remoteStateId: imapAccountSyncStateIdMock,
+			state: { status: mailboxMigrationSyncStateMock.status as MailboxMigrationSyncStatus },
+			remoteStateId: mailboxMigrationSyncStateIdMock,
 		}
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, anything())).thenResolve(successResult)
+		when(imapImporter.continueImport(mailboxMigrationSyncStateIdMock, false)).thenResolve(successResult)
 
-		const result = await controller.continueImport(imapAccountSyncStateIdMock)
+		const result = await controller.continueImport(mailboxMigrationSyncStateIdMock)
 
 		o.check(result).equals(successResult)
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, anything()), { times: 1 })
+		verify(imapImporter.continueImport(mailboxMigrationSyncStateIdMock, false), { times: 1 })
 	})
 
 	o.test("continueImport - handles AUTH_FAILED", async () => {
 		const authError = new ImapError("authentication failed when starting IMAP sync", ImapErrorCause.AUTH_FAILED)
 		const successResult: ImportResult = {
-			state: { status: accountSyncStateMock.status as ImapAccountSyncStatus },
-			remoteStateId: imapAccountSyncStateIdMock,
+			state: { status: mailboxMigrationSyncStateMock.status as MailboxMigrationSyncStatus },
+			remoteStateId: mailboxMigrationSyncStateIdMock,
 		}
-		let isBeforeTokenRefresh = true
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0)).thenReject(authError)
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1)).thenResolve(successResult)
+		when(imapImporter.continueImport(mailboxMigrationSyncStateIdMock, false)).thenReject(authError, successResult)
 
-		accountSyncStateMock.provider = ImapProvider.Gmail.toString()
-		accountSyncStateMock.imapAccount = createTestEntity(ImapAccountTypeRef, {
-			oAuthTokenEndpointResponse: createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+		mailboxMigrationSyncStateMock.legacyProvider = MailboxMigrationProvider.Gmail.toString()
+		mailboxMigrationSyncStateMock.imapConfiguration = createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+			sharedOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 				refreshToken: "oldRefreshToken123",
 			}),
 		})
-		when(entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(accountSyncStateMock)
+		when(entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateIdMock)).thenResolve(mailboxMigrationSyncStateMock)
 
 		const imapErrorHandler = object<ImapErrorHandler>()
 		when(imapErrorHandler.isAuthError(authError)).thenReturn(true)
-		when(imapErrorHandler.handleImapError(authError, undefined, imapAccountSyncStateIdMock)).thenResolve({ shouldRetry: true })
-		when(entityClient.update(accountSyncStateMock)).thenResolve()
+		when(imapErrorHandler.handleImapError(authError, undefined, mailboxMigrationSyncStateIdMock)).thenResolve({ shouldRetry: true })
+		when(entityClient.update(mailboxMigrationSyncStateMock)).thenResolve()
 
 		controller = new ImapMailImportController(imapImporter, mailModel, mailboxModel, entityClient, eventController, oauthFacade, imapErrorHandler)
-		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
-		when(imapImporter.getImapImportUiSessions()).thenResolve({
-			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
+		when(imapImporter.getImapImportSessions()).thenResolve([newMailboxImportSession(mailboxMigrationSyncStateMock, [], null)])
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({
+			activeSessions: [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxImportUiSession] as MailboxImportUiSession[],
 		})
-		await controller.continueImport(imapAccountSyncStateIdMock)
+		await controller.continueImport(mailboxMigrationSyncStateIdMock)
 
-		verify(imapErrorHandler.handleImapError(authError, undefined, imapAccountSyncStateIdMock), { times: 1 })
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0), { times: 1 })
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1), { times: 1 })
+		verify(imapErrorHandler.handleImapError(authError, undefined, mailboxMigrationSyncStateIdMock), { times: 1 })
+		verify(imapImporter.continueImport(mailboxMigrationSyncStateIdMock, false), { times: 2 })
 	})
 
 	o.test("continueImport - handles startSync error and postpones", async () => {
-		accountSyncStateMock.status = ImapAccountSyncStatus.PAUSED
-		const session = newImapImportSession(accountSyncStateMock, [folderSyncStateMock])
-		when(imapImporter.getImapImportSessions()).thenResolve([newImapImportSession(accountSyncStateMock, [])])
-		when(imapImporter.getImapImportUiSessions()).thenResolve({
-			activeSessions: [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[],
+		mailboxMigrationSyncStateMock.status = MailboxMigrationSyncStatus.PAUSED
+		const session = newMailboxImportSession(mailboxMigrationSyncStateMock, [folderSyncStateMock], null)
+		when(imapImporter.getImapImportSessions()).thenResolve([newMailboxImportSession(mailboxMigrationSyncStateMock, [], null)])
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({
+			activeSessions: [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxImportUiSession] as MailboxImportUiSession[],
 		})
 
 		const imapError = new ImapError("Connection failed", ImapErrorCause.UNKNOWN)
-		when(imapImporter.continueImport(accountSyncStateMock._id, anything(), anything())).thenReject(imapError)
-		const importResult = await controller.continueImport(accountSyncStateMock._id)
+		when(imapImporter.continueImport(mailboxMigrationSyncStateMock._id, anything())).thenReject(imapError)
+		const importResult = await controller.continueImport(mailboxMigrationSyncStateMock._id)
 
-		o.check(importResult.state.status).deepEquals(ImapAccountSyncStatus.POSTPONED)
-		verify(imapImporter.postponeImport(accountSyncStateMock._id, anything()), { times: 1 })
+		o.check(importResult.state.status).deepEquals(MailboxMigrationSyncStatus.POSTPONED)
+		verify(imapImporter.postponeImport(mailboxMigrationSyncStateMock._id, anything()), { times: 1 })
 	})
 
 	o.test("continue import rejects when error happens", async () => {
-		when(imapImporter.continueImport(imapAccountSyncStateIdMock)).thenReject(new ImapError("Some error", 1))
+		when(imapImporter.continueImport(mailboxMigrationSyncStateIdMock)).thenReject(new ImapError("Some error", 1))
 		try {
-			await controller.continueImport(imapAccountSyncStateIdMock)
+			await controller.continueImport(mailboxMigrationSyncStateIdMock)
 		} catch (imapException) {
 			o(imapException.message).equals("Some error")
 			o(imapException.data.cause).equals(1)
@@ -165,70 +164,80 @@ o.spec("ImapMailImportController", () => {
 	})
 
 	o.test("pauseImport - delegates to imapImporter", async () => {
-		const activeSessions = [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[]
-		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
-		await controller.pauseImport(imapAccountSyncStateIdMock)
-		verify(imapImporter.pauseImport(imapAccountSyncStateIdMock), { times: 1 })
+		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxImportUiSession] as MailboxImportUiSession[]
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		await controller.pauseImport(mailboxMigrationSyncStateIdMock)
+		verify(imapImporter.pauseImport(mailboxMigrationSyncStateIdMock), { times: 1 })
 	})
 
 	o.test("deleteImport - delegates to imapImporter", async () => {
-		const activeSessions = [{ imapAccountSyncStateId: imapAccountSyncStateIdMock } as ImapImportUiSession] as ImapImportUiSession[]
-		when(imapImporter.getImapImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
-		await controller.deleteImport(imapAccountSyncStateIdMock)
-		verify(imapImporter.deleteImport(imapAccountSyncStateIdMock), { times: 1 })
+		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxImportUiSession] as MailboxImportUiSession[]
+		when(imapImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		await controller.deleteImport(mailboxMigrationSyncStateIdMock)
+		verify(imapImporter.deleteImport(mailboxMigrationSyncStateIdMock), { times: 1 })
 	})
 
 	o.test("shouldRenderPauseButton - returns true for RUNNING", () => {
-		o.check(controller.shouldRenderPauseButton({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderPauseButton({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseButton({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseButton({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseButton({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(true)
+		o.check(controller.shouldRenderPauseButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(
+			false,
+		)
+		o.check(controller.shouldRenderPauseButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("shouldRenderResyncButton - returns true for FINISHED and POSTPONED", () => {
-		o.check(controller.shouldRenderResyncButton({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderResyncButton({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderResyncButton({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderResyncButton({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderResyncButton({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderResyncButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderResyncButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderResyncButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(
+			true,
+		)
+		o.check(controller.shouldRenderResyncButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(true)
+		o.check(controller.shouldRenderResyncButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("shouldRenderPlayButton - returns true for PAUSED", () => {
-		o.check(controller.shouldRenderPlayButton({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPlayButton({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderPlayButton({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPlayButton({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPlayButton({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPlayButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPlayButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(true)
+		o.check(controller.shouldRenderPlayButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPlayButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPlayButton({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("shouldRenderPauseIcon - returns true only for PAUSED", () => {
-		o.check(controller.shouldRenderPauseIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderPauseIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderPauseIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(true)
+		o.check(controller.shouldRenderPauseIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderPauseIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("shouldRenderClockIcon - returns true only for POSTPONED", () => {
-		o.check(controller.shouldRenderClockIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderClockIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderClockIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderClockIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderClockIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderClockIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderClockIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderClockIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(true)
+		o.check(controller.shouldRenderClockIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderClockIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("shouldRenderCheckmarkIcon - returns true only for FINISHED", () => {
-		o.check(controller.shouldRenderCheckmarkIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.RUNNING } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderCheckmarkIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderCheckmarkIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.POSTPONED } as ImapImportUiSession)).equals(false)
-		o.check(controller.shouldRenderCheckmarkIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.FINISHED } as ImapImportUiSession)).equals(true)
-		o.check(controller.shouldRenderCheckmarkIcon({ imapAccountSyncStatus: ImapAccountSyncStatus.ERROR } as ImapImportUiSession)).equals(false)
+		o.check(controller.shouldRenderCheckmarkIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.RUNNING } as MailboxImportUiSession)).equals(
+			false,
+		)
+		o.check(controller.shouldRenderCheckmarkIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED } as MailboxImportUiSession)).equals(false)
+		o.check(controller.shouldRenderCheckmarkIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.POSTPONED } as MailboxImportUiSession)).equals(
+			false,
+		)
+		o.check(controller.shouldRenderCheckmarkIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.FINISHED } as MailboxImportUiSession)).equals(
+			true,
+		)
+		o.check(controller.shouldRenderCheckmarkIcon({ mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.ERROR } as MailboxImportUiSession)).equals(false)
 	})
 
 	o.test("getDestinationMailboxDetailForSession - finds mailbox by owner group", () => {
 		controller.mailboxDetails = [mailboxDetail1Mock, mailboxDetail2Mock]
-		const session = { mailGroupId: "group2" } as ImapImportUiSession
+		const session = { mailGroupId: "group2" } as MailboxImportUiSession
 		const result = controller.getDestinationMailboxDetailForSession(session)
 		o.check(result).equals(mailboxDetail2Mock)
 	})

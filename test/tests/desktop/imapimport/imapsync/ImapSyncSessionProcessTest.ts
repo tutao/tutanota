@@ -9,7 +9,7 @@ import {
 } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionProcess"
 import { ImapFlow } from "imapflow"
 import { ImapSyncEventListener } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncEventListener"
-import { ImapCredentials } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapCredentials } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import { DifferentialUidLoader } from "../../../../../src/applications/common/desktop/imapimport/imapsync/DifferentialUidLoader"
 import { ImapSyncEventType } from "../../../../../src/entities/tutanota/Utils"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"

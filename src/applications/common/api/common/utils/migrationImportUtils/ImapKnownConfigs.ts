@@ -1,11 +1,11 @@
-import { ImapAccount } from "@tutao/entities/tutanota"
+import { MailboxMigrationImapConfiguration } from "@tutao/entities/tutanota"
 import { TranslationKey } from "../../../../../../ui/utils/LanguageViewModel"
 
 export const enum ImapAuthType {
 	"Password",
 	"Oauth2",
 }
-export const enum ImapProvider {
+export const enum MailboxMigrationProvider {
 	"Other",
 	"Outlook",
 	"Gmail",
@@ -20,7 +20,7 @@ export type OauthConfigParams = {
 	requiresClientSecret?: boolean
 }
 
-export type ServerImapImportParams = Pick<ImapAccount, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
+export type ServerImapImportParams = Pick<MailboxMigrationImapConfiguration, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
 
 export const IMAP_SSL_PORT = "993"
 export const IMAP_UNSAFE_PORT = "143"
@@ -93,23 +93,23 @@ const wellKnownConfigs = {
 	},
 }
 
-export function getImapConfigForProvider(provider: ImapProvider): ServerImapImportParams | null {
+export function getImapConfigForProvider(provider: MailboxMigrationProvider): ServerImapImportParams | null {
 	switch (provider) {
-		case ImapProvider.Gmail:
+		case MailboxMigrationProvider.Gmail:
 			return wellKnownConfigs.gmail
-		case ImapProvider.Outlook:
+		case MailboxMigrationProvider.Outlook:
 			return wellKnownConfigs.outlook
-		case ImapProvider.Other:
+		case MailboxMigrationProvider.Other:
 		default:
 			return null
 	}
 }
 
-export function getTranslationForImapProvider(provider: ImapProvider): TranslationKey {
+export function getTranslationForImapProvider(provider: MailboxMigrationProvider): TranslationKey {
 	switch (provider) {
-		case ImapProvider.Gmail:
+		case MailboxMigrationProvider.Gmail:
 			return "migrationProviderGmail_label"
-		case ImapProvider.Outlook:
+		case MailboxMigrationProvider.Outlook:
 			return "migrationProviderOutlook_label"
 		default:
 			return "migrationImapProvider_label"

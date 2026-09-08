@@ -72,7 +72,6 @@ export interface ImportMailParams {
  */
 export class ImportMailFacade {
 	constructor(
-		private readonly mailFacade: MailFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
 		private readonly blobFacade: BlobFacade,
@@ -142,7 +141,7 @@ export class ImportMailFacade {
 				}),
 
 				importedAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
-				imapUid: importMailParams.imapUid.toString(),
+				sourceId: importMailParams.imapUid.toString(),
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 				labels: importMailParams.labels,
 			})
@@ -169,7 +168,7 @@ export class ImportMailFacade {
 			const importMailPostIn = createImportMailPostIn({
 				encImports,
 				importFileMailState: null,
-				imapFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
+				mailboxMigrationFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
 			})
 			await this.serviceExecutor.execute(ImportMailService_POST, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,

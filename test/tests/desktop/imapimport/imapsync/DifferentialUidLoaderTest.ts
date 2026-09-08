@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { object } from "testdouble"
 import { DifferentialUidLoader, UidFetchRequestType } from "../../../../../src/applications/common/desktop/imapimport/imapsync/DifferentialUidLoader"
-import { ImapMailId } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapMailId } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import type { FetchMessageObject, ImapFlow } from "imapflow"
 import { ImapSyncEventType } from "../../../../../src/entities/tutanota/Utils"
 

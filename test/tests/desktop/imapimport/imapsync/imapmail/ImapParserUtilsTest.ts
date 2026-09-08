@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import fs from "node:fs"
 import { imapMailFromImapFlowFetchMessageObject } from "../../../../../../src/applications/common/desktop/imapimport/imapsync/imapmail/ImapParserUtils"
-import { ImapMailbox } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapMailbox"
 import { FetchMessageObject } from "imapflow"
 
 // See ImapMailRFC822ParserTest for more info.

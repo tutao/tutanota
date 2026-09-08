@@ -1,4 +1,9 @@
-import { ImapMailAttachment, ImapMailAttachmentDisposition, ImapMailBody, ImapMailEnvelope } from "../../../../api/common/utils/imapImportUtils/ImapMail.js"
+import {
+	ImapMailAttachment,
+	ImapMailAttachmentDisposition,
+	ImapMailBody,
+	ImapMailEnvelope,
+} from "../../../../api/common/utils/migrationImportUtils/ImapMail.js"
 
 import { PostalMime } from "./postalmime-custom"
 import { promiseMap } from "@tutao/utils"

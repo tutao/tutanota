@@ -1,7 +1,7 @@
 import { ImapSync } from "./imapsync/ImapSync.js"
-import { ImapMailbox } from "../../api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox } from "../../api/common/utils/migrationImportUtils/ImapMailbox"
 import { ImapCredentials, ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ImapSyncContext } from "../../api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapSyncContext } from "../../api/common/utils/migrationImportUtils/ImapSyncContext"
 
 export type ImapSyncFactory = (accountSyncId: IdTuple) => ImapSync
 export type ImapInitFolderSyncFactory = () => ImapSync

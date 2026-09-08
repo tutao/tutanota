@@ -54,7 +54,7 @@ import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstan
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
-import { ImapImporter } from "../imapimport/ImapImporter"
+import { MailboxImporter } from "../imapimport/MailboxImporter"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -102,7 +102,7 @@ export interface WorkerInterface {
 	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
-	readonly imapImporter: ImapImporter
+	readonly imapImporter: MailboxImporter
 }
 
 type WorkerRequest = Request<WorkerRequestType>

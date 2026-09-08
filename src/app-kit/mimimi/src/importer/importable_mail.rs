@@ -634,7 +634,7 @@ impl ImportableMail {
 			importedAttachments: vec![],
 			_errors: Default::default(),
 			imapModSeq: None,
-			imapUid: None,
+			sourceId: None,
 			labels: vec![],
 		}
 	}

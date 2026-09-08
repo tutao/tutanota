@@ -1,5 +1,5 @@
-import { ImapMailbox } from "../../../../api/common/utils/imapImportUtils/ImapMailbox"
-import { ImapMail, ImapMailEnvelope } from "../../../../api/common/utils/imapImportUtils/ImapMail"
+import { ImapMailbox } from "../../../../api/common/utils/migrationImportUtils/ImapMailbox"
+import { ImapMail, ImapMailEnvelope } from "../../../../api/common/utils/migrationImportUtils/ImapMail"
 import { ImapMailRFC822Parser } from "./ImapMailRFC822Parser"
 import { ProgrammingError } from "@tutao/app-env"
 import type { Email } from "postal-mime"
