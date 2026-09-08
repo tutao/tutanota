@@ -3519,6 +3519,7 @@ export class MainStyles {
 				".inbox-rule-wrapping-row": {
 					display: "flex",
 					"flex-flow": "row wrap",
+					"align-items": "flex-start",
 				},
 				".inbox-rule-wrapping-row > *": {
 					"min-width": px(200),
@@ -3528,6 +3529,16 @@ export class MainStyles {
 				},
 				".inbox-rule-wrapping-row > *:last-child": {
 					flex: "1 0 65%",
+				},
+				".error-text-field": {
+					"border-bottom": `3px solid ${theme.error}`,
+					"border-radius": `${px(size.radius_8)} ${px(size.radius_8)} 0 0 !important`,
+					color: theme.error,
+					"box-sizing": "border-box",
+				},
+				// helpLabel of textfield
+				".error-text-field + small": {
+					color: theme.error,
 				},
 			}
 		})

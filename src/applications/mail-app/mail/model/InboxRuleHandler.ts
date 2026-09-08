@@ -5,13 +5,6 @@ import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
 import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
-import { LoginController } from "../../../common/api/main/LoginController.js"
-import { getMailHeaders } from "./MailUtils.js"
-import { MailModel } from "./MailModel"
-import { UnencryptedProcessInboxDatum } from "./ProcessInboxHandler"
-import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
-import { elementIdPart } from "../../../../platform-kit/meta"
 
 EnvProvider.assertMainOrNode()
 

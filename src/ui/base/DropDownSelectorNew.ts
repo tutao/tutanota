@@ -17,7 +17,6 @@ export type SelectorItem<T> = {
 	value: T
 	selectable?: boolean
 	icon?: AllIcons
-	indentationLevel?: number
 }
 export type SelectorItemList<T> = ReadonlyArray<SelectorItem<T>>
 
