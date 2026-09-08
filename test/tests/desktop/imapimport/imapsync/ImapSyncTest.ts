@@ -1,10 +1,10 @@
 import o, { assertThrows } from "@tutao/otest"
 import { ImapSyncSession } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
 import { ImapSync } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
-import { ImapCredentials, ImapSyncContext } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapCredentials, ImapSyncContext } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 import { matchers, object, verify, when } from "testdouble"
-import { ImapMailbox } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapMailbox"
 
 o.spec("ImapSync", () => {
 	let mockSyncSession: ImapSyncSession

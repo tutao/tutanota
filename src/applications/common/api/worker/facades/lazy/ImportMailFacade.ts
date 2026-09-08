@@ -72,7 +72,6 @@ export interface ImportMailParams {
  */
 export class ImportMailFacade {
 	constructor(
-		private readonly mailFacade: MailFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
 		private readonly blobFacade: BlobFacade,
@@ -142,7 +141,7 @@ export class ImportMailFacade {
 				}),
 
 				importedAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
-				imapUid: importMailParams.imapUid.toString(),
+				sourceId: importMailParams.imapUid.toString(),
 				imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 				labels: importMailParams.labels,
 			})

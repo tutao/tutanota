@@ -1,6 +1,6 @@
 import * as openidClient from "./openid-client-custom"
 import type { Configuration } from "openid-client"
-import type { OauthConfigParams } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import type { OauthConfigParams } from "../../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../../platform-kit/network/ServiceRequest"
 import { createImapOauthConfigGetIn, ImapOauthConfigService_GET } from "@tutao/entities/tutanota"

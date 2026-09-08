@@ -1,4 +1,4 @@
-import { ImapFolderSyncStatus, MailSetKind, SystemFolderType } from "../../../../../../entities/tutanota/Utils"
+import { MailboxMigrationFolderSyncStatus, MailSetKind, SystemFolderType } from "../../../../../../entities/tutanota/Utils"
 import { ListTreeResponse } from "imapflow"
 
 export type ImapMailboxStatus = {
@@ -6,7 +6,7 @@ export type ImapMailboxStatus = {
 	messageCount?: number
 	uidNext: number
 	uidValidity: bigint
-	syncStatus: ImapFolderSyncStatus
+	syncStatus: MailboxMigrationFolderSyncStatus
 }
 
 export enum ImapMailboxSpecialUse {

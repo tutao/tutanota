@@ -1,5 +1,5 @@
-import type { ImapMailboxState } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
-import { ImapMailbox, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import type { ImapMailboxState } from "../../../api/common/utils/migrationImportUtils/ImapSyncContext.js"
+import { ImapMailbox, ImapMailboxSpecialUse } from "../../../api/common/utils/migrationImportUtils/ImapMailbox.js"
 
 export enum SyncSessionMailboxImportance {
 	NO_SYNC = 0,

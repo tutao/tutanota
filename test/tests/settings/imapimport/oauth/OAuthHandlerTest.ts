@@ -6,7 +6,7 @@ import { noOp } from "../../../../../src/platform-kit/utils"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { createImapOauthConfigGetIn, createImapOauthConfigGetOut, ImapOauthConfigService_GET } from "@tutao/entities/tutanota"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
-import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 
 o.spec("OAuthHandler", () => {
 	let clientMock: OAuthClient

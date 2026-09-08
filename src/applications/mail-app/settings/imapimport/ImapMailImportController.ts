@@ -1,15 +1,16 @@
 import { EnvProvider } from "@tutao/app-env"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
+import { MailboxImporter, ImportResult, InitializeMailboxImportParams, MailSetMapping } from "../../workerUtils/imapimport/MailboxImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first } from "@tutao/utils"
-import { ImapAccountSyncState, ImapAccountSyncStateTypeRef, MailBox } from "@tutao/entities/tutanota"
-import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
-import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
-import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
-import { getSpecialUseAsSystemFolderType, ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
+import { ImapCredentials } from "../../../common/api/common/utils/migrationImportUtils/ImapSyncContext"
+import { getSpecialUseAsSystemFolderType, ImapMailbox } from "../../../common/api/common/utils/migrationImportUtils/ImapMailbox"
 import { OauthFacade } from "@tutao/native-bridge/generatedIpc/types"
 import m from "mithril"
 import { ImapImportData } from "./AddImapImportWizard"
@@ -20,15 +21,17 @@ import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/Upd
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
+import { findUserMigrationInfoForSyncState } from "../../../common/api/common/utils/migrationImportUtils/MigrationImportUtils"
+import { mailLocator } from "../../mailLocator"
 
 EnvProvider.assertMainOrNode()
 
-export type ImapImportUiSession = {
-	provider: ImapProvider
-	imapAccountSyncStateId: IdTuple
+export type MailboxImportUiSession = {
+	provider: MailboxMigrationProvider
+	mailboxMigrationSyncStateId: IdTuple
 	mailGroupId: Id
-	sourceImapAddress: string
-	imapAccountSyncStatus: ImapAccountSyncStatus
+	username: string
+	mailboxMigrationSyncStatus: MailboxMigrationSyncStatus
 	postponedUntil: Date
 	syncProgress: {
 		completed: number
@@ -51,13 +54,13 @@ export class ImapMailImportController {
 	private isInStateTransition = false
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
-	public activeImapImportUiSessions: ImapImportUiSession[] = []
-	public canceledImapImportUiSessions: ImapImportUiSession[] = []
+	public activeImapImportUiSessions: MailboxImportUiSession[] = []
+	public canceledImapImportUiSessions: MailboxImportUiSession[] = []
 	private imapImportResyncIntervalId: TimeoutID | null = null
 	private isDisplayingOauthCredentialPopup = false
 
 	constructor(
-		private readonly imapImporter: ImapImporter,
+		private readonly imapImporter: MailboxImporter,
 		private readonly mailModel: MailModel,
 		private readonly mailboxModel: MailboxModel,
 		private readonly entityClient: EntityClient,
@@ -72,29 +75,39 @@ export class ImapMailImportController {
 		})
 	}
 
+	private async loadUserMigrationInformationForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInformation | null> {
+		const userMigrationInfosListId = mailLocator.logins.getUserController().user.userMigrationInfos
+		if (userMigrationInfosListId === null) {
+			return null
+		}
+		const userMigrationInformationList = await this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfosListId)
+		return findUserMigrationInfoForSyncState(userMigrationInformationList, migrationSyncStateId)
+	}
+
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
+			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
 					const imapAccountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
-					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
+					const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
 
-					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR
+					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
-						this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
+						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
+						this.displayUpdateImapCredentialsDialog(imapAccountSyncState, userMigrationInformation)
 					}
-					const shouldDisplayErrorDialog = imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
+					const shouldDisplayErrorDialog = imapAccountSyncState.status === MailboxMigrationSyncStatus.ERROR
 					if (shouldDisplayErrorDialog) {
 						Dialog.message("migrationSyncFailure_msg")
 					}
 					const shouldDisplayGmailAllMailsIMAPDisabledErrorDialog =
-						imapAccountSyncState.status === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+						imapAccountSyncState.status === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 					if (shouldDisplayGmailAllMailsIMAPDisabledErrorDialog) {
 						Dialog.message("migrationGmailAllMailsDisabledImapError_msg")
 					}
 
 					// in case another client does pause/stop the imap import, we need to stop it here as well
-					if (imapAccountSyncState.status !== ImapAccountSyncStatus.RUNNING) {
+					if (imapAccountSyncState.status !== MailboxMigrationSyncStatus.RUNNING) {
 						this.stopLocalImport(imapAccountSyncStateId)
 					}
 				}
@@ -103,23 +116,28 @@ export class ImapMailImportController {
 	}
 
 	public async promptUpdateImapCredentialsDialog(imapAccountSyncStateId: IdTuple) {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
+		const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
+		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
+		this.displayUpdateImapCredentialsDialog(imapAccountSyncState, userMigrationInformation)
 	}
 
-	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
+	private displayUpdateImapCredentialsDialog(imapAccountSyncState: MailboxMigrationSyncState, userMigrationInformation: UserMigrationInformation | null) {
 		if (!this.isDisplayingOauthCredentialPopup) {
 			this.isDisplayingOauthCredentialPopup = true
 			showUpdateImapCredentialsDialog(
 				{
 					syncState: imapAccountSyncState,
+					userMigrationInformation,
 					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
 				},
-				async (dialog, updatedAccount) => {
-					if (updatedAccount) {
-						imapAccountSyncState.imapAccount = updatedAccount
-						imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
+				async (dialog, updatedCredentials) => {
+					if (updatedCredentials) {
+						imapAccountSyncState.imapConfiguration = updatedCredentials.imapAccount
+						imapAccountSyncState.status = MailboxMigrationSyncStatus.PAUSED
 						await this.entityClient.update(imapAccountSyncState)
+						if (updatedCredentials.userMigrationInformation) {
+							await this.entityClient.update(updatedCredentials.userMigrationInformation)
+						}
 						await this.continueImport(imapAccountSyncState._id)
 						dialog.close()
 					} else {
@@ -132,26 +150,25 @@ export class ImapMailImportController {
 			)
 		}
 	}
-
+	//Changes here probably unnecessary. test without.
 	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 		this.selectedMailBoxDetail = first(this.mailboxDetails)
+		await this.imapImporter.init(this.mailboxDetails.map((detail) => detail.mailbox))
 		await this.updateActiveUiSessions()
 	}
 
 	async init(mailboxesOfUser: MailBox[]): Promise<void> {
 		await this.imapImporter.init(mailboxesOfUser)
 
-		if (this.imapImportResyncIntervalId != null) {
-			clearInterval(this.imapImportResyncIntervalId)
+		if (this.imapImportResyncIntervalId == null) {
+			this.imapImportResyncIntervalId = setInterval(() => {
+				this.resyncAllImports()
+			}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 		}
-
-		this.imapImportResyncIntervalId = setInterval(() => {
-			this.resyncAllImports()
-		}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 	}
 
-	async initializeImport(initializeImportParams: InitializeImapImportParams) {
+	async initializeImport(initializeImportParams: InitializeMailboxImportParams) {
 		this.isInStateTransition = true
 		const imapImportSession = await this.imapImporter.initializeNewImport(initializeImportParams)
 		await this.updateActiveUiSessions()
@@ -163,10 +180,10 @@ export class ImapMailImportController {
 		for (const session of await this.imapImporter.getImapImportSessions()) {
 			// we only resync in case we are done or postponed (e.g. when an error or rate limit occurs)
 			if (
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.FINISHED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.POSTPONED
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.FINISHED ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.POSTPONED
 			) {
-				const imapAccountSyncStateId = session.imapAccountSyncState._id
+				const imapAccountSyncStateId = session.mailboxMigrationSyncState._id
 				await this.continueImport(imapAccountSyncStateId)
 			}
 		}
@@ -176,7 +193,7 @@ export class ImapMailImportController {
 		this.isInStateTransition = true
 
 		try {
-			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry, retryAttempts)
+			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry)
 		} catch (e) {
 			console.log(`failed to continue imap sync for imapAccountSyncState: ${imapAccountSyncStateId}`, e)
 
@@ -189,21 +206,21 @@ export class ImapMailImportController {
 					const postponedUntilDate = new Date(Date.now() + IMAP_AUTH_ERROR_POSTPONE_TIME)
 					await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
 					return Promise.resolve({
-						state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
+						state: { status: MailboxMigrationSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 						remoteStateId: imapAccountSyncStateId,
 					})
 				}
 			} else if (this.imapErrorHandler.isGmailAllMailsIMAPDisabledError(e)) {
 				await this.imapImporter.setGmailAllMailsImapDisabledOnImport(imapAccountSyncStateId)
 				return Promise.resolve({
-					state: { status: ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR },
+					state: { status: MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR },
 					remoteStateId: imapAccountSyncStateId,
 				})
 			} else {
 				const postponedUntilDate = new Date(Date.now() + IMAP_ERROR_POSTPONE_TIME)
 				await this.imapImporter.postponeImport(imapAccountSyncStateId, postponedUntilDate)
 				return Promise.resolve({
-					state: { status: ImapAccountSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
+					state: { status: MailboxMigrationSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 					remoteStateId: imapAccountSyncStateId,
 				})
 			}
@@ -216,15 +233,15 @@ export class ImapMailImportController {
 		for (const session of await this.imapImporter.getImapImportSessions()) {
 			// in case a user manually paused or canceled a sync task we do not want to continue it after login nor if there are errors.
 			if (
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.PAUSED ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR ||
-				session.imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.CANCELED ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.PAUSED ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR
 			) {
 				continue
 			}
 
-			const imapAccountSyncStateId = session.imapAccountSyncState._id
+			const imapAccountSyncStateId = session.mailboxMigrationSyncState._id
 			await this.continueImport(imapAccountSyncStateId)
 		}
 	}
@@ -259,61 +276,61 @@ export class ImapMailImportController {
 	}
 
 	async updateActiveUiSessions() {
-		const { activeSessions, canceledSessions } = await this.imapImporter.getImapImportUiSessions()
+		const { activeSessions, canceledSessions } = await this.imapImporter.getMailboxImportUiSessions()
 		this.activeImapImportUiSessions = activeSessions
 		this.canceledImapImportUiSessions = canceledSessions
 		m.redraw()
 	}
 
-	shouldRenderPauseButton(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.RUNNING
+	shouldRenderPauseButton(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.RUNNING
 	}
 
-	shouldRenderResyncButton(session: ImapImportUiSession) {
+	shouldRenderResyncButton(session: MailboxImportUiSession) {
 		return (
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED ||
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED ||
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR ||
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.FINISHED ||
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.POSTPONED ||
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.AUTH_ERROR ||
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 		)
 	}
 
-	shouldRenderPlayButton(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED
+	shouldRenderPlayButton(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.PAUSED
 	}
 
-	shouldRenderPauseIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED
+	shouldRenderPauseIcon(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.PAUSED
 	}
 
-	shouldRenderClockIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED
+	shouldRenderClockIcon(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.POSTPONED
 	}
 
-	shouldRenderCheckmarkIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.FINISHED
+	shouldRenderCheckmarkIcon(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.FINISHED
 	}
 
-	shouldRenderErrorIcon(session: ImapImportUiSession) {
+	shouldRenderErrorIcon(session: MailboxImportUiSession) {
 		return (
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.ERROR ||
-			session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.ERROR ||
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 		)
 	}
 
-	shouldRenderAuthErrorIcon(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.AUTH_ERROR
+	shouldRenderAuthErrorIcon(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.AUTH_ERROR
 	}
 
-	shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session: ImapImportUiSession) {
-		return session.imapAccountSyncStatus === ImapAccountSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+	shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session: MailboxImportUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
 	}
 
 	shouldDisableButtons() {
 		return this.isInStateTransition
 	}
 
-	getDestinationMailboxDetailForSession(session: ImapImportUiSession) {
+	getDestinationMailboxDetailForSession(session: MailboxImportUiSession) {
 		return this.mailboxDetails.find((mailboxDetail) => mailboxDetail.mailGroupInfo.group === session.mailGroupId)
 	}
 
@@ -390,7 +407,7 @@ export class ImapMailImportController {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
 			},
-			imapAccountSyncStatus: ImapAccountSyncStatus.PAUSED,
+			mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED,
 			newlyCreatedFolders: new Set(),
 			matchImapMailboxesToTutaMailSets: true,
 			isImapServerSupportingOAuth: false,
@@ -398,7 +415,7 @@ export class ImapMailImportController {
 			imapSyncLabelData: null,
 			imapMailboxes: [],
 			folderSystem: new FolderSystem([]),
-			imapProvider: ImapProvider.Other,
+			imapProvider: MailboxMigrationProvider.Other,
 			customCertificateData: null,
 			ignoreCertificateErrors: false,
 			useSSL: true,

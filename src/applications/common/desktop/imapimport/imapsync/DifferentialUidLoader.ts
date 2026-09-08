@@ -1,4 +1,4 @@
-import { ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapMailId } from "../../../api/common/utils/migrationImportUtils/ImapSyncContext.js"
 import type { ImapFlow } from "./imapflow-custom.js"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 

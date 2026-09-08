@@ -2,7 +2,7 @@ import { EnvProvider } from "@tutao/app-env"
 import m, { Children, Vnode } from "mithril"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { ImapImportData } from "./AddImapImportWizard"
-import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/migrationImportUtils/ImapMailbox"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -27,10 +27,10 @@ import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@t
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { Card } from "../../../../ui/base/Card"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
-import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapCredentials } from "../../../common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 EnvProvider.assertMainOrNode()
@@ -54,7 +54,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
 
-		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
+		this.isGmail = imapImportData.imapProvider === MailboxMigrationProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
 		}).text

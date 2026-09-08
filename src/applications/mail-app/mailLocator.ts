@@ -153,7 +153,7 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../pla
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
-import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
+import { MailboxImporter } from "./workerUtils/imapimport/MailboxImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
@@ -245,7 +245,7 @@ class MailLocator implements CommonLocator {
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
-	imapImporter!: ImapImporter
+	imapImporter!: MailboxImporter
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private fileMailImportController: FileMailImportController | null = null
@@ -1041,7 +1041,7 @@ class MailLocator implements CommonLocator {
 						this.entityClient,
 						this.eventController,
 						this.oauthFacade,
-						new ImapErrorHandler(this.entityClient, this.serviceExecutor),
+						new ImapErrorHandler(this.entityClient, this.serviceExecutor, this.logins),
 					)
 				}
 			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {

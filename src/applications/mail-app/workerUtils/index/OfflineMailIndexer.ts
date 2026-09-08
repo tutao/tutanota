@@ -41,7 +41,7 @@ import {
 import {
 	FileTypeRef,
 	ImportedFileMailTypeRef,
-	ImportedImapMailTypeRef,
+	ImportedMigrationMailTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
@@ -463,7 +463,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		if (latestCommonImportedMailElementId == null) {
 			return
 		}
-		const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
+		const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedMigrationMailTypeRef) as TypeRef<CommonImportedMail>
 		const importedMails = await this.entityClient.loadAll(typeRef, importList, latestCommonImportedMailElementId)
 		console.log(TAG, `Processing import of ${importedMails.length} new ${mailImportType} mails...`)
 		if (isEmpty(importedMails)) {

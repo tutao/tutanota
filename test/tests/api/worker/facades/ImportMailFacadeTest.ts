@@ -99,16 +99,7 @@ o.spec("ImportMailFacade", () => {
 		instancePipelineMock = object<InstancePipeline>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		mailGroupKeyMock = { object: object(), version: 1 }
-		facade = new ImportMailFacade(
-			mailFacadeMock,
-			serviceExecutorMock,
-			entityClientMock,
-			blobFacadeMock,
-			cryptoMock,
-			keyLoaderMock,
-			instancePipelineMock,
-			cryptoWrapperMock,
-		)
+		facade = new ImportMailFacade(serviceExecutorMock, entityClientMock, blobFacadeMock, cryptoMock, keyLoaderMock, instancePipelineMock, cryptoWrapperMock)
 		const typeModelResolver = clientInitializedTypeModelResolver()
 		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailDataTypeRef)
 		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encypted subject" }, typeModel)

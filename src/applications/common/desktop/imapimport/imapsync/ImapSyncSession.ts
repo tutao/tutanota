@@ -1,16 +1,16 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox, SyncSessionMailboxImportance } from "./ImapSyncSessionMailbox.js"
-import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/migrationImportUtils/ImapSyncContext.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
-import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse, ImapMailboxSpecialUse } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import { ImapMailbox, imapMailboxFromImapFlowListTreeResponse, ImapMailboxSpecialUse } from "../../../api/common/utils/migrationImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
-import { ImapProvider } from "../../../api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../api/common/utils/migrationImportUtils/ImapKnownConfigs"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
@@ -217,7 +217,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			const imapMailboxes = await this.getImapMailboxes(imapClient)
 
-			const isGmail = imapCredentials.provider === ImapProvider.Gmail
+			const isGmail = imapCredentials.provider === MailboxMigrationProvider.Gmail
 			if (isGmail && !imapMailboxes.some((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)) {
 				throw new ImapError("All mails Gmail mailbox is not enabled for IMAP", ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
 			}

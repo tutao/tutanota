@@ -4,14 +4,14 @@ import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "
 import { ImapImportData } from "./AddImapImportWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
-import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
 import { TextField } from "../../../../ui/base/TextField"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { guessServerImapConfigFromEmail } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
+import { guessServerImapConfigFromEmail } from "../../../common/api/common/utils/migrationImportUtils/MigrationImportUtils"
 import { DropDownSelectorNew, DropDownSelectorNewAttrs } from "../../../../ui/base/DropDownSelectorNew"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
@@ -32,14 +32,14 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 		const imapImportData = vnode.attrs.data
 		const provider = imapImportData.imapProvider
 		switch (provider) {
-			case ImapProvider.Gmail:
+			case MailboxMigrationProvider.Gmail:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(GmailLogo)
 				imapImportData.matchImapMailboxesToTutaMailSets = false
 				imapImportData.addLabelToImportedMails = false
 				break
-			case ImapProvider.Outlook:
+			case MailboxMigrationProvider.Outlook:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(OutlookLogo)
@@ -71,7 +71,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 					oninput: (value) => {
 						vnode.attrs.data.imapAccountUsername = value
 						vnode.attrs.data.rootImportMailSetName = value
-						if (imapProvider !== ImapProvider.Gmail) {
+						if (imapProvider !== MailboxMigrationProvider.Gmail) {
 							vnode.attrs.data.imapSyncLabelData = createManageLabelServiceLabelData({
 								name: value,
 								color: theme.primary,
@@ -101,6 +101,10 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 						class: "wizard-next-button",
 						onclick: async (_, dom) => {
 							if (vnode.attrs.data.isImapServerSupportingOAuth) {
+								if (vnode.attrs.data.imapAccountOAuthToken) {
+									emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
+									return
+								}
 								this.shouldDisableNextButton = true
 								const config = vnode.attrs.data.oauthConfig
 								if (config === undefined) {
@@ -136,7 +140,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 									this.changeTitleSectionToErrorState(lang.getTranslationText("migrationOAuthWindowClosedFailure_msg"))
 								}
 							} else {
-								if (vnode.attrs.data.imapProvider === ImapProvider.Other) {
+								if (vnode.attrs.data.imapProvider === MailboxMigrationProvider.Other) {
 									//Get settings if user is not using IMAP and if none exist, allow the user
 									//to set it up.
 									const imapConfig = guessServerImapConfigFromEmail(vnode.attrs.data.imapAccountUsername)
