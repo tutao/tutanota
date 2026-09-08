@@ -435,6 +435,8 @@ pub struct User {
 	pub auth: Option<UserAuthentication>,
 	#[serde(rename = "1552")]
 	pub alarmInfoList: Option<UserAlarmInfoListType>,
+	#[serde(rename = "2806")]
+	pub userMigrationInfos: Option<GeneratedId>,
 }
 
 impl Entity for User {
@@ -6569,6 +6571,143 @@ impl Entity for SubscriptionRevocationServicePostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2771),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct OAuthToken {
+	#[serde(rename = "2784")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2785")]
+	pub accessToken: String,
+	#[serde(rename = "2786")]
+	pub refreshToken: Option<String>,
+	#[serde(rename = "2787")]
+	pub expiresIn: Option<i64>,
+	#[serde(rename = "2788")]
+	pub tokenType: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for OAuthToken {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2783),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserMigrationCredential {
+	#[serde(rename = "2790")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2791")]
+	pub username: String,
+	#[serde(rename = "2792")]
+	pub password: Option<String>,
+	#[serde(rename = "2793")]
+	pub oAuthToken: Option<OAuthToken>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for UserMigrationCredential {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2789),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserMigrationInformation {
+	#[serde(rename = "2796")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2797")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2798")]
+	pub _format: i64,
+	#[serde(rename = "2799")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2800")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2801")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2802")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2803")]
+	pub provider: i64,
+	#[serde(rename = "2804")]
+	pub credential: Option<UserMigrationCredential>,
+	#[serde(rename = "2805")]
+	pub mailboxMigrationSyncState: Option<IdTupleWrapper>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for UserMigrationInformation {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2794),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserMigrationServicePostIn {
+	#[serde(rename = "2808")]
+	pub _format: i64,
+	#[serde(rename = "2809")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncSessionKey: Vec<u8>,
+	#[serde(rename = "2810")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "2811")]
+	pub provider: i64,
+	#[serde(rename = "2812")]
+	pub credential: Option<UserMigrationCredential>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for UserMigrationServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2807),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UserMigrationServicePostOut {
+	#[serde(rename = "2814")]
+	pub _format: i64,
+	#[serde(rename = "2815")]
+	pub credential: IdTupleGenerated,
+}
+
+impl Entity for UserMigrationServicePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2813),
 		}
 	}
 }

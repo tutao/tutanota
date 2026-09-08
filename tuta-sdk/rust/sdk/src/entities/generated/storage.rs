@@ -275,3 +275,41 @@ impl Entity for BlobReadData {
 		}
 	}
 }
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ArchiveEnumerationGetIn {
+	#[serde(rename = "212")]
+	pub _format: i64,
+	#[serde(rename = "214")]
+	pub archiveType: i64,
+	#[serde(rename = "213")]
+	pub group: GeneratedId,
+}
+
+impl Entity for ArchiveEnumerationGetIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Storage,
+			type_id: TypeId::from(211),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ArchiveEnumerationGetOut {
+	#[serde(rename = "216")]
+	pub _format: i64,
+	#[serde(rename = "217")]
+	pub archives: Vec<GeneratedId>,
+}
+
+impl Entity for ArchiveEnumerationGetOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Storage,
+			type_id: TypeId::from(215),
+		}
+	}
+}

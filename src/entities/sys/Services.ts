@@ -98,6 +98,8 @@ import { UpdateSessionKeysPostIn, UpdateSessionKeysPostInTypeRef } from "./TypeR
 import { UpgradePriceServiceData, UpgradePriceServiceDataTypeRef } from "./TypeRefs.js"
 import { UpgradePriceServiceReturn, UpgradePriceServiceReturnTypeRef } from "./TypeRefs.js"
 import { UserGroupKeyRotationPostIn, UserGroupKeyRotationPostInTypeRef } from "./TypeRefs.js"
+import { UserMigrationServicePostIn, UserMigrationServicePostInTypeRef } from "./TypeRefs.js"
+import { UserMigrationServicePostOut, UserMigrationServicePostOutTypeRef } from "./TypeRefs.js"
 import { UserDataDelete, UserDataDeleteTypeRef } from "./TypeRefs.js"
 import { VerifierTokenServiceIn, VerifierTokenServiceInTypeRef } from "./TypeRefs.js"
 import { VerifierTokenServiceOut, VerifierTokenServiceOutTypeRef } from "./TypeRefs.js"
@@ -543,6 +545,13 @@ export const UserGroupKeyRotationService_POST = new PostService<UserGroupKeyRota
 	"UserGroupKeyRotationService",
 	UserGroupKeyRotationPostInTypeRef,
 	NullEntityTypeRef,
+)
+
+export const UserMigrationService_POST = new PostService<UserMigrationServicePostIn, UserMigrationServicePostOut>(
+	"sys",
+	"UserMigrationService",
+	UserMigrationServicePostInTypeRef,
+	UserMigrationServicePostOutTypeRef,
 )
 
 export const UserService_DELETE = new DeleteService<UserDataDelete, NullEntity>("sys", "UserService", UserDataDeleteTypeRef, NullEntityTypeRef)
