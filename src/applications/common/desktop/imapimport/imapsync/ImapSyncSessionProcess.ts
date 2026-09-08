@@ -1,8 +1,8 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
-import { ImapCredentials, ImapMailId, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
-import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
-import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
+import { ImapCredentials, ImapMailId, ImapSyncContext } from "../../../api/common/utils/migrationImportUtils/ImapSyncContext.js"
+import { ImapMail } from "../../../api/common/utils/migrationImportUtils/ImapMail.js"
+import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/migrationImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
@@ -10,7 +10,7 @@ import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
 import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
-import { ImapFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
+import { MailboxMigrationFolderSyncStatus, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { fromImapFlowError } from "../../../api/common/error/ImapError"
 
 export enum SyncSessionProcessState {
@@ -92,7 +92,7 @@ export class ImapSyncSessionProcess {
 				uidValidity: mailboxObject.uidValidity,
 				uidNext: mailboxObject.uidNext,
 				messageCount: mailboxObject.exists,
-				syncStatus: ImapFolderSyncStatus.RUNNING,
+				syncStatus: MailboxMigrationFolderSyncStatus.RUNNING,
 			}
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 			this.updateSyncSessionMailbox(imapMailboxStatus)
@@ -197,7 +197,7 @@ export class ImapSyncSessionProcess {
 			}
 
 			isMailboxFinished = true
-			imapMailboxStatus.syncStatus = ImapFolderSyncStatus.FINISHED
+			imapMailboxStatus.syncStatus = MailboxMigrationFolderSyncStatus.FINISHED
 			await imapSyncEventListener.onMailboxStatus(imapMailboxStatus)
 		} catch (e) {
 			// catch all exceptions, we will retry later

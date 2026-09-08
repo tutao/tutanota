@@ -34,7 +34,6 @@ export type ImapMailAttachment = {
 	method?: string
 	related?: boolean
 }
-
 export type ImapMailBody = {
 	html: string
 	plaintext: string

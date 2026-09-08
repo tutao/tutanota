@@ -4,9 +4,13 @@ import { matchers, object, verify, when } from "testdouble"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { noOp } from "../../../../../src/platform-kit/utils"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
-import { createImapOauthConfigGetIn, createImapOauthConfigGetOut, ImapOauthConfigService_GET } from "@tutao/entities/tutanota"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
-import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { OauthConfigParams } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
+import {
+	createMailboxMigrationOauthConfigGetIn,
+	createMailboxMigrationOauthConfigGetOut,
+	MailboxMigrationOauthConfigService_GET,
+} from "@tutao/entities/tutanota"
 
 o.spec("OAuthHandler", () => {
 	let clientMock: OAuthClient
@@ -71,8 +75,12 @@ o.spec("OAuthHandler", () => {
 		oauthConfigMock.requiresClientSecret = true
 		handler = new OAuthHandler(oauthConfigMock, serviceExecutorMock, clientMock)
 		when(
-			serviceExecutorMock.execute(ImapOauthConfigService_GET, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS),
-		).thenResolve(createImapOauthConfigGetOut({ clientSecret: "secret123" }))
+			serviceExecutorMock.execute(
+				MailboxMigrationOauthConfigService_GET,
+				createMailboxMigrationOauthConfigGetIn({ clientId: "test-client" }),
+				DEFAULT_EXTRA_SERVICE_PARAMS,
+			),
+		).thenResolve(createMailboxMigrationOauthConfigGetOut({ clientSecret: "secret123" }))
 		const authMock = noOp
 		when(clientMock.ClientSecretPost("secret123")).thenReturn(authMock)
 		when(
@@ -98,9 +106,16 @@ o.spec("OAuthHandler", () => {
 			),
 			{ times: 1 },
 		)
-		verify(serviceExecutorMock.execute(ImapOauthConfigService_GET, createImapOauthConfigGetIn({ clientId: "test-client" }), DEFAULT_EXTRA_SERVICE_PARAMS), {
-			times: 1,
-		})
+		verify(
+			serviceExecutorMock.execute(
+				MailboxMigrationOauthConfigService_GET,
+				createMailboxMigrationOauthConfigGetIn({ clientId: "test-client" }),
+				DEFAULT_EXTRA_SERVICE_PARAMS,
+			),
+			{
+				times: 1,
+			},
+		)
 	})
 
 	o.test("buildAuthorizationUrl - returns URL when config is set", async () => {

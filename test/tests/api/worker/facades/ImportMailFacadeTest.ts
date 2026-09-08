@@ -99,16 +99,7 @@ o.spec("ImportMailFacade", () => {
 		instancePipelineMock = object<InstancePipeline>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		mailGroupKeyMock = { object: object(), version: 1 }
-		facade = new ImportMailFacade(
-			mailFacadeMock,
-			serviceExecutorMock,
-			entityClientMock,
-			blobFacadeMock,
-			cryptoMock,
-			keyLoaderMock,
-			instancePipelineMock,
-			cryptoWrapperMock,
-		)
+		facade = new ImportMailFacade(serviceExecutorMock, entityClientMock, blobFacadeMock, cryptoMock, keyLoaderMock, instancePipelineMock, cryptoWrapperMock)
 		const typeModelResolver = clientInitializedTypeModelResolver()
 		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailDataTypeRef)
 		const serverJson = OutgoingServerJson.newFromRecord({ subject: "encypted subject" }, typeModel)
@@ -143,7 +134,7 @@ o.spec("ImportMailFacade", () => {
 		)
 		const importMailPostIn: ImportMailPostIn = postInCaptor.value
 		o.check(importMailPostIn!.encImports.length).equals(1)
-		o.check(importMailPostIn!.imapFolderSyncState).equals(imapFolderSyncStateIdMock)
+		o.check(importMailPostIn!.mailboxMigrationFolderSyncState).equals(imapFolderSyncStateIdMock)
 	})
 
 	o.test("importMails - chunks multiple mails when size limit is reached", async () => {

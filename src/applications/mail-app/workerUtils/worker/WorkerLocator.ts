@@ -7,7 +7,7 @@ import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/Cus
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import { Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
-import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ContactTypeRef, ImportFileMailStateTypeRef, MailboxMigrationFolderSyncStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -78,12 +78,12 @@ import { createBaseLocator } from "../../../../platform-kit/base/BaseLocator"
 import { createRsaImplementation } from "../../../../app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntityMigrator.js"
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
-import { ImapImporter } from "../imapimport/ImapImporter"
+import { MailboxImporter } from "../imapimport/MailboxImporter"
 import { CustomContactEventCacheHandler } from "./CustomContactEventCacheHandler"
 import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
-import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
+import { CustomMailboxMigrationFolderSyncStateCacheHandler } from "./CustomMailboxMigrationFolderSyncStateCacheHandler"
 import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 
 EnvProvider.assertWorkerOrNode()
@@ -137,7 +137,7 @@ export type WorkerLocatorType = {
 	_apps: Array<NamedClientModel>
 
 	// IMAP mail import
-	imapImporter: lazyAsync<ImapImporter>
+	imapImporter: lazyAsync<MailboxImporter>
 }
 
 export const locator: WorkerLocatorType = {} as any
@@ -328,8 +328,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 					handler: new CustomImportFileMailStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 				{
-					ref: ImapFolderSyncStateTypeRef,
-					handler: new CustomImapFolderSyncStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
+					ref: MailboxMigrationFolderSyncStateTypeRef,
+					handler: new CustomMailboxMigrationFolderSyncStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 			)
 
@@ -636,11 +636,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const domainConfig = new DomainConfigProvider().getCurrentDomainConfig()
 	locator.imapImporter = lazyMemoized(async () => {
 		const { ImportMailFacade } = await import("../../../common/api/worker/facades/lazy/ImportMailFacade.js")
-		const { ImapFacade } = await import("../../../common/api/worker/facades/lazy/ImapFacade.js")
+		const { MailboxMigrationFacade } = await import("../../../common/api/worker/facades/lazy/MailboxMigrationFacade.js")
 		const mailFacade = await locator.mail()
 		const blobFacade = await locator.blob()
 		const importMailFacade = new ImportMailFacade(
-			mailFacade,
 			locator.base.serviceExecutor,
 			locator.base.cachingEntityClient,
 			blobFacade,
@@ -649,7 +648,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.instancePipeline,
 			locator.base.cryptoWrapper,
 		)
-		const imapFacade = new ImapFacade(
+		const imapFacade = new MailboxMigrationFacade(
 			mailFacade,
 			locator.base.serviceExecutor,
 			locator.base.cachingEntityClient,
@@ -657,7 +656,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 		)
 
-		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
+		return new MailboxImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade, locator.base.user)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

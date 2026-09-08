@@ -1,9 +1,9 @@
 import * as openidClient from "./openid-client-custom"
 import type { Configuration } from "openid-client"
-import type { OauthConfigParams } from "../../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import type { OauthConfigParams } from "../../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../../platform-kit/network/ServiceRequest"
-import { createImapOauthConfigGetIn, ImapOauthConfigService_GET } from "@tutao/entities/tutanota"
+import { createMailboxMigrationOauthConfigGetIn, MailboxMigrationOauthConfigService_GET } from "@tutao/entities/tutanota"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { $Promisable } from "../../../workerUtils/index/IndexerPromiseUtils"
 
@@ -32,12 +32,12 @@ export class OAuthHandler {
 		const { server, clientId } = this.OauthConfig
 		const requiresClientSecret = this.OauthConfig.requiresClientSecret ?? false
 		if (requiresClientSecret) {
-			const imapOauthConfigGetOut = await this.serviceExecutor.execute(
-				ImapOauthConfigService_GET,
-				createImapOauthConfigGetIn({ clientId }),
+			const mailboxMigrationOauthConfigGetOut = await this.serviceExecutor.execute(
+				MailboxMigrationOauthConfigService_GET,
+				createMailboxMigrationOauthConfigGetIn({ clientId }),
 				DEFAULT_EXTRA_SERVICE_PARAMS,
 			)
-			const clientSecret = imapOauthConfigGetOut.clientSecret
+			const clientSecret = mailboxMigrationOauthConfigGetOut.clientSecret
 			const auth = this.client.ClientSecretPost(clientSecret)
 			this.config = await this.client.discovery(new URL(server), clientId, undefined, auth)
 		} else {

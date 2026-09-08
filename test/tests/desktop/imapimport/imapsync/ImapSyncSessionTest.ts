@@ -3,14 +3,18 @@ import { matchers, object, verify, when } from "testdouble"
 import { ImapSyncEventListener } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncEventListener"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
 import { ImapFlowFactory, ImapSyncSession, SyncSessionState } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSession"
-import { ImapCredentials, ImapMailboxState, ImapSyncContext } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
+import {
+	ImapCredentials,
+	ImapMailboxState,
+	ImapSyncContext,
+} from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import { ImapSyncConfig } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import { ImapError, ImapErrorCause } from "../../../../../src/applications/common/api/common/error/ImapError"
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
 import { CertificateProvider } from "../../../../../src/applications/common/desktop/CertificateProvider"
-import { ImapMailboxSpecialUse } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailboxSpecialUse } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapMailbox"
 import { getFirstOrThrow } from "../../../../../src/platform-kit/utils"
-import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 
 o.spec("ImapSyncSession", () => {
 	let eventListenerMock: ImapSyncEventListener
@@ -27,12 +31,11 @@ o.spec("ImapSyncSession", () => {
 		password: "pass",
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
-		provider: ImapProvider.Other,
+		provider: MailboxMigrationProvider.Other,
 		useSSL: true,
 	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,
-		maxQuota: 100_000_000,
 		imapMailboxStates: [],
 		isGmail: false,
 	}
@@ -122,7 +125,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -157,7 +159,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -194,7 +195,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -226,7 +226,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: true,
 		}

@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { ImapCredentials, ImapSyncContext } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapCredentials, ImapSyncContext } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapSyncContext"
 import { ImapError, ImapErrorCause } from "../../../../src/applications/common/api/common/error/ImapError"
 import { ImapSync } from "../../../../src/applications/common/desktop/imapimport/imapsync/ImapSync"
 import {
@@ -8,7 +8,7 @@ import {
 	ImapInitFolderSyncFactory,
 	ImapSyncFactory,
 } from "../../../../src/applications/common/desktop/imapimport/DesktopImapSyncSystemFacade"
-import { ImapProvider } from "../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 
 const { anything } = matchers
 
@@ -27,7 +27,7 @@ o.spec("DesktopImapSyncSystemFacade", () => {
 		password: "pass",
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
-		provider: ImapProvider.Other,
+		provider: MailboxMigrationProvider.Other,
 		useSSL: true,
 	}
 	const imapSyncContextMock = { imapCredentials: imapCredentialsMock } as ImapSyncContext

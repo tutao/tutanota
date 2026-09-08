@@ -1,9 +1,9 @@
 import { ImapImportCredentialsPage, ImapImportCredentialsPageAttrs } from "./ImapImportCredentialsPage.js"
 import ImapImportConfigurePage, { ImapImportConfigurePageAttrs } from "./ConfigureImapImportPage.js"
 import { EnvProvider } from "@tutao/app-env"
-import { ImapProvider, OauthConfigParams } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider, OauthConfigParams } from "../../../common/api/common/utils/migrationImportUtils/ImapKnownConfigs"
 import { TokenEndpointResponse } from "openid-client"
-import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox } from "../../../common/api/common/utils/migrationImportUtils/ImapMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { MailSet, ManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 import { createWizardDialog, wizardPageWrapper } from "../../../../ui/base/WizardDialog"
@@ -12,8 +12,8 @@ import { ImapImportIntroductionPage, ImapImportIntroductionPageAttrs } from "./I
 import ImapImportSummaryPage, { ImapImportSummaryPageAttrs } from "./ImapImportSummaryPage"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
-import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
-import { MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
+import { MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
+import { MailSetMapping } from "../../workerUtils/imapimport/MailboxImporter"
 import { mailLocator } from "../../mailLocator"
 
 EnvProvider.assertMainOrNode()
@@ -21,7 +21,7 @@ EnvProvider.assertMainOrNode()
 export type ImapImportData = {
 	oauthConfig?: OauthConfigParams
 	imapAccountOAuthToken?: TokenEndpointResponse
-	imapProvider: ImapProvider
+	imapProvider: MailboxMigrationProvider
 	imapAccountHost: string
 	imapAccountPort: number
 	useSSL: boolean
@@ -32,7 +32,7 @@ export type ImapImportData = {
 		shouldMigrateSpamFolder: boolean // flag to migrate spam folder to Tuta spam folder in case a root folder is provided for the account
 		spamMailbox: ImapMailbox | null // the spam mailbox if it exists, null otherwise
 	}
-	imapAccountSyncStatus: ImapAccountSyncStatus
+	mailboxMigrationSyncStatus: MailboxMigrationSyncStatus
 	matchImapMailboxesToTutaMailSets: boolean
 	newlyCreatedFolders: Set<MailSet>
 	imapMailboxes: ReadonlyArray<ImapMailbox>
@@ -61,9 +61,9 @@ export function showAddImapImportWizard(imapImportData: ImapImportData): Promise
 			pages: wizardPages,
 			closeAction: async () => {
 				resolve()
-				if (imapImportData.imapAccountSyncStatus === ImapAccountSyncStatus.RUNNING) {
+				if (imapImportData.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.RUNNING) {
 					Dialog.showImapInitializationSuccessfulDialog()
-				} else if (imapImportData.imapAccountSyncStatus === ImapAccountSyncStatus.PAUSED) {
+				} else if (imapImportData.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.PAUSED) {
 					for (const mailSet of imapImportData.newlyCreatedFolders) {
 						await mailLocator.mailModel.finallyDeleteCustomMailFolder(mailSet)
 					}

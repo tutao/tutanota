@@ -1,8 +1,8 @@
 import { ImapSyncEventListener } from "./ImapSyncEventListener.js"
 import { ImapSyncSession } from "./ImapSyncSession.js"
-import { ImapMailbox } from "../../../api/common/utils/imapImportUtils/ImapMailbox"
+import { ImapMailbox } from "../../../api/common/utils/migrationImportUtils/ImapMailbox"
 import { ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext"
+import { ImapCredentials, ImapSyncContext } from "../../../api/common/utils/migrationImportUtils/ImapSyncContext"
 import { CertificateProvider } from "../../CertificateProvider"
 
 const defaultImapSyncConfig: ImapSyncConfig = {

@@ -30,8 +30,8 @@ import {
 	FileTypeRef,
 	ImportedFileMail,
 	ImportedFileMailTypeRef,
-	ImportedImapMail,
-	ImportedImapMailTypeRef,
+	ImportedMigrationMail,
+	ImportedMigrationMailTypeRef,
 	Mail,
 	MailBagTypeRef,
 	MailboxGroupRootTypeRef,
@@ -454,7 +454,7 @@ o.spec("OfflineMailIndexer", () => {
 
 			const mails: Mail[] = []
 			const mailSetEntries: MailSetEntry[] = []
-			const importedMails: ImportedImapMail[] = []
+			const importedMails: ImportedMigrationMail[] = []
 
 			for (let i = 1; i <= totalMails; i++) {
 				const mailElementId = createId(i.toString())
@@ -480,7 +480,7 @@ o.spec("OfflineMailIndexer", () => {
 				mailSetEntries.push(mailSetEntryObj)
 
 				const importedMailId: IdTuple = [importList, stringToBase64UrlCustomId(i.toString())]
-				const importedMailObj = createTestEntity(ImportedImapMailTypeRef, {
+				const importedMailObj = createTestEntity(ImportedMigrationMailTypeRef, {
 					_id: importedMailId,
 					mailSetEntry: mailSetEntryId,
 					_ownerGroup: mailGroupId,
@@ -540,7 +540,7 @@ o.spec("OfflineMailIndexer", () => {
 
 			const mails: Mail[] = []
 			const mailSetEntries: MailSetEntry[] = []
-			const importedMails: ImportedImapMail[] = []
+			const importedMails: ImportedMigrationMail[] = []
 
 			const createMailInstances = (index: number) => {
 				const mailElementId = createId(index.toString())
@@ -566,7 +566,7 @@ o.spec("OfflineMailIndexer", () => {
 				mailSetEntries.push(mailSetEntryObj)
 
 				const importedMailId: IdTuple = [listId, stringToBase64UrlCustomId(index.toString())]
-				const importedMailObj = createTestEntity(ImportedImapMailTypeRef, {
+				const importedMailObj = createTestEntity(ImportedMigrationMailTypeRef, {
 					_id: importedMailId,
 					mailSetEntry: mailSetEntryId,
 					_ownerGroup: mailGroupId,
