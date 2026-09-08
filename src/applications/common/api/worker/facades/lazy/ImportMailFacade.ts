@@ -1,5 +1,5 @@
 import { DataFile, MailMethod, MailPhishingStatus, MailState, PartialRecipient, RecipientList, ReplyType } from "../../../../../../entities/tutanota/Utils"
-import { MailFacade, recipientToEncryptedMailAddress } from "./MailFacade"
+import { recipientToEncryptedMailAddress } from "./MailFacade"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { BlobFacade } from "./BlobFacade"
@@ -11,7 +11,7 @@ import {
 	createImportedBody,
 	createImportedDeduplicatedImportedAttachment,
 	createImportedHeader,
-	createImportedImportedImapMail,
+	createImportedImportedMigrationMail,
 	createImportedMail,
 	createImportedMailAddress,
 	createImportedMailDetails,
@@ -38,15 +38,15 @@ import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/Cr
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 
-export interface ImapImportTutaFileId {
-	readonly _type: "ImapImportTutaFileId"
+export interface MigrationImportTutaFileId {
+	readonly _type: "MigrationImportTutaFileId"
 	_id: IdTuple
 }
 
-export type ImapImportDataFile = DataFile & { fileHash: string | null }
+export type MigrationImportDataFile = DataFile & { fileHash: string | null }
 
-export type ImapImportAttachment = ImapImportTutaFileId | ImapImportDataFile
-export type ImapImportAttachments = ReadonlyArray<ImapImportTutaFileId | ImapImportDataFile>
+export type MigrationImportAttachment = MigrationImportTutaFileId | MigrationImportDataFile
+export type MigrationImportAttachments = ReadonlyArray<MigrationImportTutaFileId | MigrationImportDataFile>
 
 export interface ImportMailParams {
 	subject: string
@@ -68,10 +68,11 @@ export interface ImportMailParams {
 	toRecipients: RecipientList
 	ccRecipients: RecipientList
 	bccRecipients: RecipientList
-	attachments: ImapImportAttachments | null
-	imapUid: number
+	attachments: MigrationImportAttachments | null
+	sourceId: string // imapUid.toString() for IMAP imported mails
+	imapUid: number | null
 	imapModSeq: bigint | null
-	imapFolderSyncState: IdTuple
+	mailboxMigrationFolderSyncState: IdTuple
 	labels: IdTuple[]
 }
 
@@ -81,7 +82,6 @@ export interface ImportMailParams {
  */
 export class ImportMailFacade {
 	constructor(
-		private readonly mailFacade: MailFacade,
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly entityClient: EntityClient,
 		private readonly blobFacade: BlobFacade,
@@ -96,10 +96,10 @@ export class ImportMailFacade {
 	async importMails(importMailsParamsList: Array<ImportMailParams>, mailGroupId: Id): Promise<void> {
 		let encImports2: Array<StringWrapper> = []
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-		const imapUidsToImapAttachments = new Map<number, ImapImportAttachments>(
-			importMailsParamsList.map((importMailParams) => [importMailParams.imapUid, importMailParams.attachments ?? []]),
+		const mailKeyToMigrationImportAttachments = new Map<string, MigrationImportAttachments>(
+			importMailsParamsList.map((importMailParams) => [importMailParams.sourceId, importMailParams.attachments ?? []]),
 		)
-		const imapUidsToImportAttachments = await this._createAddedImportAttachments(imapUidsToImapAttachments, mailGroupId, mailGroupKey)
+		const mailKeyToImportAttachments = await this._createAddedImportAttachments(mailKeyToMigrationImportAttachments, mailGroupId, mailGroupKey)
 		let currentEstimatedCallSize = 0
 		const chunkedEncImports2: Array<Array<StringWrapper>> = []
 		for (const importMailParams of importMailsParamsList) {
@@ -173,9 +173,10 @@ export class ImportMailFacade {
 			})
 
 			const importMailData2 = createImportMailData2({
-				importAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
-				importedImapMail: createImportedImportedImapMail({
-					imapUid: importMailParams.imapUid.toString(),
+				importAttachments: mailKeyToImportAttachments.get(importMailParams.sourceId) ?? [],
+				imapUid: importMailParams.imapUid?.toString() ?? null,
+				importedMigrationMail: createImportedImportedMigrationMail({
+					sourceId: importMailParams.sourceId ?? importMailParams.imapUid?.toString() ?? null,
 					imapModSeq: importMailParams.imapModSeq?.toString() ?? null,
 				}),
 				mail: importedMail,
@@ -212,7 +213,7 @@ export class ImportMailFacade {
 			const importMailPostIn = createImportMailPostIn({
 				encImports: [],
 				importFileMailState: null,
-				imapFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
+				mailboxMigrationFolderSyncState: getFirstOrThrow(importMailsParamsList).mailboxMigrationFolderSyncState,
 				encImports2,
 			})
 			await this.serviceExecutor.execute(ImportMailService_POST, importMailPostIn, {
@@ -228,18 +229,21 @@ export class ImportMailFacade {
 	 */
 	// visible for testing
 	async _createAddedImportAttachments(
-		providedFiles: Map<number, ImapImportAttachments>,
+		providedFiles: Map<string, MigrationImportAttachments>,
 		mailGroupId: Id,
 		mailGroupKey: VersionedKey,
-	): Promise<Map<number, ImportAttachment[]>> {
-		const result = new Map<number, ImportAttachment[]>()
+	): Promise<Map<string, ImportAttachment[]>> {
+		const result = new Map<string, ImportAttachment[]>()
 		if (providedFiles.size === 0) return result
 
 		const entries = Array.from(providedFiles.entries())
 
-		const alreadyOnServer = new Map(entries.map(([key, files]) => [key, files.filter(isImapImportTutaFileId)]))
+		const alreadyOnServer = new Map(entries.map(([key, files]) => [key, files.filter(isMigrationImportTutaFileId)]))
 
-		const notOnServer = new Map(entries.map(([key, files]) => [key, files.filter((f) => !isImapImportTutaFileId(f))])) as Map<number, ImapImportDataFile[]>
+		const notOnServer = new Map(entries.map(([key, files]) => [key, files.filter((f) => !isMigrationImportTutaFileId(f))])) as Map<
+			string,
+			MigrationImportDataFile[]
+		>
 
 		await promiseMap(alreadyOnServer, async ([key, files]) => {
 			const attachments: ImportAttachment[] = []
@@ -297,7 +301,7 @@ export class ImportMailFacade {
 	private createAndEncryptImportAttachment(
 		referenceTokens: BlobReferenceTokenWrapper[],
 		fileSessionKey: AesKey,
-		newFile: ImapImportDataFile,
+		newFile: MigrationImportDataFile,
 		mailGroupKey: VersionedKey,
 	): ImportAttachment {
 		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
@@ -352,8 +356,8 @@ export class ImportMailFacade {
 	}
 }
 
-export function isImapImportTutaFileId(file: ImapImportAttachment): file is ImapImportTutaFileId {
-	return file._type === "ImapImportTutaFileId"
+export function isMigrationImportTutaFileId(file: MigrationImportAttachment): file is MigrationImportTutaFileId {
+	return file._type === "MigrationImportTutaFileId"
 }
 
 export function referenceToImportMailDataMailReference(reference: string): ImportMailDataMailReference {
