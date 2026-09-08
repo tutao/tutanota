@@ -41,7 +41,6 @@ import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoice
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
-import { showManageSubscriptionThroughExternalStoreDialog } from "./PaymentViewer.js"
 import {
 	externalStorePlanName,
 	getCurrentPaymentInterval,
@@ -66,6 +65,7 @@ import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
 import { InvoiceData } from "./utils/PaymentUtils"
+import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
 
 /**
  * Allows cancelling the subscription (only private use) and switching the subscription to a different paid subscription.
@@ -84,7 +84,7 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	const paymentMethod = getPaymentMethodType(accountingInfo)
+	const paymentMethod = assertNotNull(getPaymentMethodType(accountingInfo))
 	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
 		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return

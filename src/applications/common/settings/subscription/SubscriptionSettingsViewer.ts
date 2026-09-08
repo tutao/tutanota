@@ -45,7 +45,6 @@ import {
 	getPaymentMethodType,
 	getTotalStorageCapacityPerCustomer,
 	hasMatchingExternalPaymentSetup,
-	hasMatchingExternalStoreSubscription,
 	isAppStorePayment,
 	isAutoResponderActive,
 	isEventInvitesActive,
@@ -64,7 +63,6 @@ import { getDisplayNameOfPlanType } from "../../subscription/FeatureListProvider
 import { MobilePaymentsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { openExternalSubscriptionPage } from "../../subscription/PaymentViewer.js"
 import { theme } from "../../../../ui/theme"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { px } from "../../../../ui/size"
@@ -84,6 +82,7 @@ import { MessageBanner } from "../../../../ui/base/MessageBanner"
 import { shouldOfferSubscriptionRevocation } from "./RevocationEligibility"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { UpdatableSettingsViewer } from "../Interfaces"
+import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -495,11 +494,10 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
 
 		if (hasMatchingExternalPaymentSetup(paymentMethod)) {
-			// case 1: we are in iOS/ Android app and we either are not paying or are already on external subscription
+			// case 1: we are in iOS/ Android with apple/google payment method app and have an active or expired subscription
 			void this.handleExternalSubscriptionChange()
 		} else if (isExternalPaymentMethod(paymentMethod)) {
 			// case 2: we have a running AppStore/Google subscription but this is not the matching app
-
 			// If there's a running App Store subscription it must be managed through Apple.
 			// If there's a running Play Store subscription it must be managed through Google.
 			// This includes the case where renewal is already disabled, but it's not expired yet.
@@ -537,63 +535,54 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private async handleExternalSubscriptionChange() {
+		//Payment method and payment setup are matching here because we check before calling this method
+		//Google Payment & Android or App Store Payment & iOS App
 		if (!this.mobilePaymentsFacade) {
 			throw Error("Not allowed to change external subscription from web client")
 		}
 
 		let customer
 		let accountingInfo
-		if (this._customer && this._accountingInfo) {
+		let lastBooking
+		if (this._customer && this._accountingInfo && this._lastBooking) {
 			customer = this._customer
 			accountingInfo = this._accountingInfo
+			lastBooking = this._lastBooking
 		} else {
 			return
 		}
 
 		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
-		const isExternalPayment = isExternalPaymentMethod(getPaymentMethodType(accountingInfo))
 		const userStatus = customer.approvalStatus
-		const hasAnActiveSubscription = hasMatchingExternalStoreSubscription(accountingInfo, this._lastBooking)
+		const isActiveSubscription = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
 
-		if (hasAnActiveSubscription && !(await this.canManageExternalSubscriptionInApp(externalSubscriptionOwnership))) {
+		if (isActiveSubscription && !(await this.canManageExternalSubscriptionInApp(externalSubscriptionOwnership))) {
 			return
 		}
 
-		// Show a dialog only if the user's Apple account's last transaction was with this customer ID
-		//
+		// Show a dialog only if the user's Apple or Google account's last transaction was with this customer ID
 		// This prevents the user from accidentally changing a subscription that they don't own
 		if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NotOwner) {
-			// There's a subscription with this apple account that doesn't belong to this user
+			// There's a subscription with an external account that doesn't belong to this user
 			return Dialog.message(
 				lang.getTranslation("storeMultiSubscriptionError_msg", {
 					"{AppStorePayment}": InfoLink.AppStorePayment,
 				}),
 			)
 		} else if (
-			isExternalPayment &&
+			isActiveSubscription &&
 			externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription &&
 			userStatus === ApprovalStatus.REGISTRATION_APPROVED
 		) {
-			// User has an ongoing subscriptions but not on the current Apple/Google Account, so we shouldn't allow them to change their plan with this account
-			// instead of the account owner of the subscriptions
+			// User has an ongoing subscriptions in our database but not on the current Apple/Google Account,
+			// We shouldn't allow them to change their plan with this account
 			return Dialog.message(lang.getTranslation("storeNoSubscription_msg", { "{AppStorePayment}": InfoLink.AppStorePayment }))
-		} else if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
-			// User has no ongoing subscription and isn't approved. We should allow them to downgrade their accounts or resubscribe and
-			// restart an Apple/Google Subscription flow
-			const isResubscribe = await Dialog.choice(
-				lang.getTranslation("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStoreDowngrade }),
-				[
-					{
-						text: "subscriptionSettingDowngrade_action",
-						value: false,
-					},
-					{
-						text: "resubscribe_action",
-						value: true,
-					},
-				],
-			)
-
+		} else if (!isActiveSubscription && externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.NoSubscription) {
+			// User has no ongoing subscription, the old subscription is expired.
+			// We should allow them to downgrade their accounts or resubscribe and
+			// restart an Apple/Google subscription flow
+			const isResubscribe = await showDowngradeOrResubscribeDialog("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStorePayment })
+			// User decided to resubscribe to the old plan
 			if (isResubscribe) {
 				const planType = await locator.logins.getUserController().getPlanType()
 				const customerId = locator.logins.getUserController().user.customer!
@@ -614,9 +603,11 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					}
 				}
 			} else {
+				// User decided to downgrade to free
 				return showConfirmDowngradingToFreeDialog()
 			}
 		} else {
+			// Show normal switch to another plan dialog
 			if (this._customerInfo && this._lastBooking) {
 				return showSwitchDialog({
 					customer,

@@ -2529,5 +2529,8 @@ export default {
 		"subscriptionSettingManageSubscriptionGoogle_action": "Google settings",
 		"subscriptionSettingGoogleWebsite_action": "Google website",
 		"storePaymentMethodChangeGoogle_msg": "It's not possible to change your payment method while subscribed through Google .See {AppStorePaymentChange}",
+		"giftCardNotAvailableAppStore_msg": "Gift card purchases aren’t available while you have an active App Store subscription",
+		"giftCardNotAvailableGoogle_msg": "Gift card purchases aren’t available while you have an active Google Play Store subscription",
+		"expiredSubscriptionPaymentChange_msg": "Your subscription has expired. To change your payment method, please switch to the Free plan or resubscribe to your previous plan first."
 		}
 }

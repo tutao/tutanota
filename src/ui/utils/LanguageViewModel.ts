@@ -250,7 +250,6 @@ export const enum InfoLink {
 	InactiveAccounts = "https://tuta.com/faq/#inactive-accounts",
 	//FIXME: Change this to #external-payments (or smth else)
 	AppStorePayment = "https://tuta.com/support/#appstore-payments",
-	AppStoreDowngrade = "https://tuta.com/support/#appstore-subscription-downgrade",
 	PasswordGenerator = "https://tuta.com/faq#passphrase-generator",
 	HomePageFreeSignup = "https://tuta.com/free-email",
 	CalendarHomePageFreeSignup = "https://tuta.com/calendar",

@@ -2527,3 +2527,6 @@ export type TranslationKeyType =
 	| "checkoutWithGooglePlay_action"
 	| "subscriptionSettingManageSubscriptionGoogle_action"
 	| "subscriptionSettingGoogleWebsite_action"
+	| "giftCardNotAvailableGoogle_msg"
+	| "giftCardNotAvailableApple_msg"
+	| "expiredSubscriptionPaymentChange_msg"

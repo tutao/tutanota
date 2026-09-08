@@ -1,5 +1,5 @@
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
+import { assertNotNull, downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
@@ -27,6 +27,7 @@ import {
 	BookingItemFeatureType,
 	CustomDomainType,
 	CustomDomainTypeCount,
+	isExternalPaymentMethod,
 	LegacyBusinessPlans,
 	NewBusinessPlans,
 	NewPaidPlans,
@@ -308,7 +309,8 @@ export function externalStorePlanName(planType: PlanType): string {
 	return PlanTypeToName[planType].toLowerCase()
 }
 
-export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType => downcast<PaymentMethodType>(accountingInfo.paymentMethod)
+export const getPaymentMethodType = (accountingInfo: AccountingInfo): PaymentMethodType | null =>
+	downcast<PaymentMethodType | null>(accountingInfo.paymentMethod)
 
 export function hasMatchingExternalPaymentSetup(paymentMethod: PaymentMethodType | null): boolean {
 	const paymentSetup = EnvProvider.get().getPaymentSetup()
@@ -318,27 +320,30 @@ export function hasMatchingExternalPaymentSetup(paymentMethod: PaymentMethodType
 	)
 }
 
-/** Does the current user have an active external subscription belonging to this client's store? */
-/** does current user has an active (non-expired) AppStore or Playstore subscription? */
-export function hasMatchingExternalStoreSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
-	if (
-		getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore &&
-		accountingInfo.appStoreSubscription != null &&
-		EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
-	) {
-		return true
-	} else if (
-		getPaymentMethodType(accountingInfo) === PaymentMethodType.GooglePlay &&
-		EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore &&
-		hasMatchingSubscription(lastBooking)
-	) {
-		return true
-	} else {
+/**
+ * Does the current user have an active or expired subscription belonging to this client's store?
+ * NOTE: in the apps, a tutao subscription is also considered matching since we want to allow customers to
+ *       manage an existing subscription just like in web/desktop
+ */
+export function hasMatchingSubscription(accountingInfo: AccountingInfo, lastBooking: Booking | null): boolean {
+	if (lastBooking == null) {
 		return false
+	} else {
+		const paymentMethodType = getPaymentMethodType(accountingInfo)
+		if (!isExternalPaymentMethod(paymentMethodType)) {
+			// we can manage our own subscriptions anywhere
+			return true
+		} else if (paymentMethodType === PaymentMethodType.AppStore && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore) {
+			return true
+		} else if (paymentMethodType === PaymentMethodType.GooglePlay && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore) {
+			return true
+		} else {
+			return false
+		}
 	}
 }
 
-function hasMatchingSubscription(lastBooking: Booking | null): boolean {
+function hasMatchingExternalSubscription(lastBooking: Booking | null): boolean {
 	if (lastBooking != null) {
 		const isExpired = lastBooking.endDate && lastBooking.endDate?.getTime() < Date.now()
 		const provider = lastBooking.subscriptionReference.subscriptionProvider

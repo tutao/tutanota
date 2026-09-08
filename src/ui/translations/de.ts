@@ -2109,11 +2109,11 @@ export default {
 		"storedDataDate_label": "Speichere E-Mails ab {date}",
 		"storedDataTimeRange_label": "Speichern der E-Mails der {numDays} letzten Tage",
 		"storedDataTimeRangeHelpText_msg": "Gespeicherte E-Mails, die älter sind als hier angegeben, werden automatisch von deinem Gerät entfernt.",
-		"storeDowngradeOrResubscribe_msg": "Dein aktuelles App Store-Abonnement ist abgelaufen. Möchtest du zu Free wechseln oder ein neues Abonnement abschließen, um die bezahlten Funktionen zu behalten?\nSiehe {AppStoreDowngrade}",
-		"storeMultiSubscriptionError_msg": "Es ist nicht möglich, mehrere Abonnements mit der gleichen Apple ID zu managen.\nSiehe {AppStorePayment}",
-		"storeNoSubscription_msg": "Es gibt ein bestehendes Abonnement für dein Konto über eine andere Apple ID oder Google Konto.\nSiehe {AppStorePayment}",
+		"storeDowngradeOrResubscribe_msg": "Dein aktuelles Abonnement ist abgelaufen. Möchtest du zu Free wechseln oder ein neues Abonnement abschließen, um die bezahlten Funktionen zu behalten?\nSiehe {AppStoreDowngrade}",
+		"storeMultiSubscriptionError_msg": "Es ist nicht möglich, mehrere Abonnements mit der gleichen Apple ID oder mehreren Google Konten zu managen. Siehe {AppStorePayment}",
+		"storeNoSubscription_msg": "Es gibt ein bestehendes Abonnement für dein Konto über eine andere Apple ID oder Google Konto. Siehe {AppStorePayment}",
 		"storePassword_action": "Passwort speichern",
-		"storePaymentMethodChange_msg": "Es ist nicht möglich, deine Zahlungsmethode zu ändern, während du über den App Store registriert bist.\nSiehe {AppStorePaymentChange}",
+		"storePaymentMethodChange_msg": "Es ist nicht möglich, deine Zahlungsmethode zu ändern, während du über den App Store registriert bist. Siehe {AppStorePaymentChange}",
 		"storeSubscription_msg": "Bitte verwalte im App Store abgeschlossene Abonnements direkt dort.\nSiehe {AppStorePayment}",
 		"subject_label": "Betreff",
 		"submit_action": "Absenden",
@@ -2529,5 +2529,9 @@ export default {
 		"subscriptionSettingGoogleWebsite_action": "Google-Webseite",
 		"storeSubscriptionGoogle_msg": "Bitte verwalte im Google Play Store abgeschlossene Abonnements direkt dort.\nSiehe {AppStorePayment}",
 		"storePaymentMethodChangeGoogle_msg": "Es ist nicht möglich, deine Zahlungsmethode zu ändern, während du über den Google Play Store registriert bist.\nSiehe {AppStorePaymentChange}",
+		"giftCardNotAvailableAppStore_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives App-Store-Abonnement hast.",
+		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives Google Play Store-Abonnement hast.",
+		"expiredSubscriptionPaymentChange_msg": "Dein Abonnement ist abgelaufen. Um deine Zahlungsmethode zu ändern, wechsle bitte zuerst zum kostenlosen Abonnement oder abonniere deinen bisheriges Abonnement erneut.",
+
 	}
 }

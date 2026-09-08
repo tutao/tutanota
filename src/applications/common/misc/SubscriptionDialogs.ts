@@ -1,13 +1,13 @@
 import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog"
-import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
+import { InfoLink, lang, TranslationKey, TranslationReplacements } from "../../../ui/utils/LanguageViewModel"
 import type { ClickHandler } from "../../../ui/base/GuiUtils"
 import { locator } from "../api/main/CommonLocator"
 import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID } from "@tutao/meta"
-import { Const, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { Const, EnvProvider, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { BookingTypeRef } from "@tutao/entities/sys"
-import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PlanType } from "../../../entities/sys/Utils"
+import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
 
 let upgradeDialogShowing = false
 
@@ -136,6 +136,39 @@ export async function showUpgradeWizardOrSwitchSubscriptionDialog(
 		await showUpgradeWizard({ upgradePromptType, logins: locator.logins, acceptedPlans: acceptedPlans })
 	} else {
 		await showSwitchPlanDialog(userController, acceptedPlans)
+	}
+}
+
+export async function showDowngradeOrResubscribeDialog(mainText: TranslationKey, replacement?: TranslationReplacements): Promise<boolean> {
+	return await Dialog.choice(lang.getTranslation(mainText, replacement ? replacement : undefined), [
+		{
+			text: "subscriptionSettingDowngrade_action",
+			value: false,
+		},
+		{
+			text: "resubscribe_action",
+			value: true,
+		},
+	])
+}
+
+export async function showManageSubscriptionThroughExternalStoreDialog(paymentMethod: PaymentMethodType): Promise<void> {
+	const term = paymentMethod === PaymentMethodType.AppStore ? "storeSubscription_msg" : "storeSubscriptionGoogle_msg"
+	const confirmed = await Dialog.confirm(
+		lang.getTranslation(term, {
+			"{AppStorePayment}": InfoLink.AppStorePayment,
+		}),
+	)
+	if (confirmed) {
+		openExternalSubscriptionPage(paymentMethod)
+	}
+}
+
+export function openExternalSubscriptionPage(paymentMethod?: PaymentMethodType | null) {
+	if (paymentMethod === PaymentMethodType.AppStore || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore)) {
+		window.open("https://apps.apple.com/account/subscriptions", "_blank", "noopener,noreferrer")
+	} else if (paymentMethod === PaymentMethodType.GooglePlay || (paymentMethod == null && EnvProvider.get().getPaymentSetup() === PaymentSetup.Playstore)) {
+		window.open("https://play.google.com/store/account/subscriptions", "_blank", "noopener,noreferrer")
 	}
 }
 

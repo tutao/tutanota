@@ -214,7 +214,12 @@ export async function showPurchaseGiftCardDialog(paymentMethodType: PaymentMetho
 		return false
 	}
 	if (isExternalPaymentMethod(paymentMethodType)) {
-		return Dialog.message("notAvailableInApp_msg")
+		if (paymentMethodType === PaymentMethodType.AppStore) {
+			return Dialog.message("giftCardNotAvailableApple_msg")
+		} else {
+			//Google
+			return Dialog.message("giftCardNotAvailableGoogle_msg")
+		}
 	}
 
 	const model = await showProgressDialog("loading_msg", loadGiftCardModel()).catch(
