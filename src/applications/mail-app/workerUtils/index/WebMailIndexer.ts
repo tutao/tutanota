@@ -40,18 +40,18 @@ import { isDraft } from "../../mail/model/MailChecks.js"
 import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
-import { FileImportStatus, ImapFolderSyncStatus, MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
+import { FileImportStatus, MailboxMigrationFolderSyncStatus, MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
 	File,
-	ImapFolderSyncStateTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
 	ImportFileMailStateTypeRef,
 	Mail,
 	MailBox,
 	MailboxGroupRootTypeRef,
+	MailboxMigrationFolderSyncStateTypeRef,
 	MailBoxTypeRef,
 	MailDetails,
 	MailSetEntry,
@@ -534,7 +534,7 @@ export class WebMailIndexer implements MailIndexer {
 				mail: ImportedFileMailTypeRef,
 			},
 			[MailImportType.ImapImport]: {
-				state: ImapFolderSyncStateTypeRef,
+				state: MailboxMigrationFolderSyncStateTypeRef,
 				mail: ImportedImapMailTypeRef,
 			},
 		}
@@ -546,9 +546,9 @@ export class WebMailIndexer implements MailIndexer {
 		const importMailState = await this.entityClient.load(refs.state as TypeRef<CommonImportState>, importStateId)
 
 		if (mailImportType === MailImportType.ImapImport) {
-			const imapFolderSyncStatus = importMailState.status as ImapFolderSyncStatus
+			const imapFolderSyncStatus = importMailState.status as MailboxMigrationFolderSyncStatus
 			// We do not index while still syncing the folder from the IMAP server.
-			if (imapFolderSyncStatus === ImapFolderSyncStatus.RUNNING) {
+			if (imapFolderSyncStatus === MailboxMigrationFolderSyncStatus.RUNNING) {
 				return []
 			}
 		} else if (mailImportType === MailImportType.FileImport) {
@@ -588,7 +588,7 @@ export class WebMailIndexer implements MailIndexer {
 		for (const event of updates) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
 				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.FileImport)
-			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, event)) {
+			} else if (isUpdateForTypeRef(MailboxMigrationFolderSyncStateTypeRef, event)) {
 				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.ImapImport)
 			}
 		}

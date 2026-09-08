@@ -9,7 +9,7 @@ import { TitleSection } from "../../../../ui/TitleSection.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ImapAccountSyncStateTypeRef, ImapFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationSyncStateTypeRef, MailboxMigrationFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
 import { Card } from "../../../../ui/base/Card"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -23,7 +23,7 @@ import { BannerType, InfoBanner } from "../../../../ui/base/InfoBanner"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
-import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -130,7 +130,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 									.continueImport(accountSyncStateId, true)
 									.catch((e) => {
 										//Auth failing errors do not need to bubble up as programming errors.
-										if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
+										if (e.data?.cause !== ImapErrorCause.AUTH_FAILED) {
 											throw e
 										}
 									})
@@ -151,7 +151,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 								.continueImport(accountSyncStateId)
 								.catch((e) => {
 									//Auth failing errors do not need to bubble up as programming errors.
-									if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
+									if (e.data?.cause !== ImapErrorCause.AUTH_FAILED) {
 										throw e
 									}
 								})
@@ -176,7 +176,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 			)
 
 			let syncMessage = lang.getTranslation(
-				session.provider === ImapProvider.Gmail ? "migrationInProgressInfoGmail_msg" : "migrationInProgressInfo_msg",
+				session.provider === MailboxMigrationProvider.Gmail ? "migrationInProgressInfoGmail_msg" : "migrationInProgressInfo_msg",
 				{
 					"{completed}": session.syncProgress?.completed.toString() ?? "-",
 					"{total}": session.syncProgress?.total.toString() ?? "-",
@@ -353,7 +353,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update) || isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
+			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update) || isUpdateForTypeRef(MailboxMigrationFolderSyncStateTypeRef, update)) {
 				await this.imapImportController().updateActiveUiSessions()
 			}
 		}

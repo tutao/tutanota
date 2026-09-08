@@ -1,8 +1,10 @@
-import { ImapAccountSyncState, ImapFolderSyncState, MailSet } from "@tutao/entities/tutanota"
+import { MailboxMigrationSyncState, MailboxMigrationFolderSyncState } from "@tutao/entities/tutanota"
+import { UserMigrationInformation } from "@tutao/entities/sys"
 
 export type ImapImportSession = {
-	imapAccountSyncState: ImapAccountSyncState
-	imapFolderSyncStates: ImapFolderSyncState[]
+	mailboxMigrationSyncState: MailboxMigrationSyncState
+	imapFolderSyncStates: MailboxMigrationFolderSyncState[]
+	userMigrationInformation: UserMigrationInformation | null
 	importedMessageIds: Set<string>
 	syncProgress?: {
 		completed: number
@@ -10,10 +12,15 @@ export type ImapImportSession = {
 	}
 }
 
-export function newImapImportSession(accountSyncState: ImapAccountSyncState, folderSyncStates: ImapFolderSyncState[]): ImapImportSession {
+export function newImapImportSession(
+	accountSyncState: MailboxMigrationSyncState,
+	folderSyncStates: MailboxMigrationFolderSyncState[],
+	userMigrationInformation: UserMigrationInformation | null,
+): ImapImportSession {
 	return {
-		imapAccountSyncState: accountSyncState,
+		mailboxMigrationSyncState: accountSyncState,
 		imapFolderSyncStates: folderSyncStates,
+		userMigrationInformation,
 		importedMessageIds: new Set(),
 	}
 }

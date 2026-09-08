@@ -27,7 +27,7 @@ import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@t
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { Card } from "../../../../ui/base/Card"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { getTranslationForImapProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
@@ -54,7 +54,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
 
-		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
+		this.isGmail = imapImportData.imapProvider === MailboxMigrationProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
 		}).text

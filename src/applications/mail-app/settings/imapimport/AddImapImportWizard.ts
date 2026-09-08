@@ -1,7 +1,7 @@
 import { ImapImportCredentialsPage, ImapImportCredentialsPageAttrs } from "./ImapImportCredentialsPage.js"
 import ImapImportConfigurePage, { ImapImportConfigurePageAttrs } from "./ConfigureImapImportPage.js"
 import { EnvProvider } from "@tutao/app-env"
-import { ImapProvider, OauthConfigParams } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider, OauthConfigParams } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { TokenEndpointResponse } from "openid-client"
 import { ImapMailbox } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -21,7 +21,7 @@ EnvProvider.assertMainOrNode()
 export type ImapImportData = {
 	oauthConfig?: OauthConfigParams
 	imapAccountOAuthToken?: TokenEndpointResponse
-	imapProvider: ImapProvider
+	imapProvider: MailboxMigrationProvider
 	imapAccountHost: string
 	imapAccountPort: number
 	useSSL: boolean

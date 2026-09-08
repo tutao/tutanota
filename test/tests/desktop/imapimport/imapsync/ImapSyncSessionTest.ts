@@ -10,7 +10,7 @@ import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/d
 import { CertificateProvider } from "../../../../../src/applications/common/desktop/CertificateProvider"
 import { ImapMailboxSpecialUse } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getFirstOrThrow } from "../../../../../src/platform-kit/utils"
-import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 o.spec("ImapSyncSession", () => {
 	let eventListenerMock: ImapSyncEventListener
@@ -27,12 +27,11 @@ o.spec("ImapSyncSession", () => {
 		password: "pass",
 		ignoreCertificateErrors: false,
 		customCertificateData: null,
-		provider: ImapProvider.Other,
+		provider: MailboxMigrationProvider.Other,
 		useSSL: true,
 	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,
-		maxQuota: 100_000_000,
 		imapMailboxStates: [],
 		isGmail: false,
 	}
@@ -122,7 +121,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -157,7 +155,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -194,7 +191,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -226,7 +222,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: true,
 		}

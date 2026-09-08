@@ -5,7 +5,7 @@ import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
-import { getImapConfigForProvider, ImapAuthType, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs.js"
+import { getImapConfigForProvider, ImapAuthType, MailboxMigrationProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { px, size } from "../../../../ui/size"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
@@ -16,7 +16,7 @@ import { RadioSelector, RadioSelectorAttrs } from "../../../../ui/base/RadioSele
 EnvProvider.assertMainOrNode()
 
 export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportData> {
-	private selectedProvider: ImapProvider = ImapProvider.Gmail
+	private selectedProvider: MailboxMigrationProvider = MailboxMigrationProvider.Gmail
 	private titleSectionParams = {
 		icon: Icons.MailFilled,
 		iconOptions: { color: theme.on_surface_variant },
@@ -24,8 +24,10 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
+		this.selectedProvider = vnode.attrs.data.imapProvider
 		vnode.attrs.data.isImapServerSupportingOAuth = false
 		vnode.attrs.data.oauthConfig = undefined
+		vnode.attrs.data.imapAccountOAuthToken = undefined
 		const imapConfigForProvider = getImapConfigForProvider(this.selectedProvider)
 		if (imapConfigForProvider !== null) {
 			const { host, port } = imapConfigForProvider
@@ -83,20 +85,20 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 	}
 
 	private renderOptionButtons(data: ImapImportData): Children {
-		const options: ReadonlyArray<RadioSelectorOption<ImapProvider>> = [
+		const options: ReadonlyArray<RadioSelectorOption<MailboxMigrationProvider>> = [
 			{
 				name: "migrationProviderGmail_label",
-				value: ImapProvider.Gmail,
+				value: MailboxMigrationProvider.Gmail,
 				icon: m(".flex.ml-4", m.trust(GmailLogo)),
 			},
 			{
 				name: "migrationProviderOutlook_label",
-				value: ImapProvider.Outlook,
+				value: MailboxMigrationProvider.Outlook,
 				icon: m(".flex.ml-4", m.trust(OutlookLogo)),
 			},
 			{
 				name: "migrationProviderOther_label",
-				value: ImapProvider.Other,
+				value: MailboxMigrationProvider.Other,
 				icon: m(Icon, {
 					icon: Icons.MailFilled,
 					size: IconSize.PX40,
@@ -112,7 +114,7 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 				options,
 				optionClass: ".flex.row",
 				selectedOption: this.selectedProvider,
-				onOptionSelected: (provider: ImapProvider) => {
+				onOptionSelected: (provider: MailboxMigrationProvider) => {
 					this.selectedProvider = provider
 					data.imapAccountUsername = ""
 					const imapConfig = getImapConfigForProvider(provider)
@@ -126,7 +128,7 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 					}
 				},
 				horizontalLayout: true,
-			} satisfies RadioSelectorAttrs<ImapProvider>),
+			} satisfies RadioSelectorAttrs<MailboxMigrationProvider>),
 		)
 	}
 }

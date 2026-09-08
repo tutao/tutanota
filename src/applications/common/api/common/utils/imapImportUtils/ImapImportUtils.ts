@@ -1,11 +1,17 @@
 import { ImapMail, ImapMailAddress, ImapMailAttachment } from "./ImapMail.js"
 import { ImapMailboxSpecialUse } from "./ImapMailbox.js"
 import { plainTextToHtml } from "./PlainTextToHtmlConverter"
-import { getImapConfigWithPasswordAuthForDomain, ImapProvider, ServerImapImportParams } from "./ImapKnownConfigs"
+import { getImapConfigWithPasswordAuthForDomain, MailboxMigrationProvider, ServerImapImportParams } from "./ImapKnownConfigs"
 
 import { ImapCredentials } from "./ImapSyncContext"
 import type { TokenEndpointResponse } from "oauth4webapi"
-import { createOAuthTokenEndpointResponse, ImapAccountSyncState, ImapFolderSyncState, OAuthTokenEndpointResponse } from "@tutao/entities/tutanota"
+import {
+	createOAuthTokenEndpointResponseLegacy,
+	MailboxMigrationFolderSyncState,
+	MailboxMigrationSyncState,
+	OAuthTokenEndpointResponseLegacy,
+} from "@tutao/entities/tutanota"
+import { createOAuthToken, OAuthToken, UserMigrationInformation } from "@tutao/entities/sys"
 import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
@@ -16,8 +22,9 @@ import {
 	RecipientList,
 	ReplyType,
 } from "../../../../../../entities/tutanota/Utils"
-
-export const DEFAULT_IMAP_IMPORT_MAX_QUOTA = "2500000000"
+import { isSameSingleId, listIdPart } from "@tutao/meta"
+import { assertNotNull } from "@tutao/utils"
+import { ProgrammingError } from "@tutao/app-env"
 
 const TEXT_CALENDAR_MIME_TYPE = "text/calendar"
 
@@ -25,36 +32,84 @@ const IMAP_FLAG_SEEN = "\\Seen"
 const IMAP_FLAG_ANSWERED = "\\Answered"
 const IMAP_FLAG_FORWARDED = "$Forwarded"
 
-export function imapAccountSyncStateToImapCredentials(imapAccountSyncState: ImapAccountSyncState): ImapCredentials {
-	const imapAccount = imapAccountSyncState.imapAccount
+export type MailboxMigrationCredential = {
+	provider: MailboxMigrationProvider
+	username: string
+	password: string | null
+	oAuthToken: OAuthToken | OAuthTokenEndpointResponseLegacy | null
+}
+
+export function getMailboxMigrationCredential(
+	migrationSyncState: MailboxMigrationSyncState,
+	userMigrationInformation: UserMigrationInformation | null,
+): MailboxMigrationCredential {
+	const imapConfiguration = migrationSyncState.imapConfiguration
+
+	if (userMigrationInformation) {
+		const userMigrationCredential = userMigrationInformation.credential
+		return {
+			provider: parseInt(assertNotNull(userMigrationInformation?.provider)) as MailboxMigrationProvider,
+			username: imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
+			password: imapConfiguration?.sharedPassword ?? userMigrationCredential?.password ?? null,
+			oAuthToken: imapConfiguration?.sharedOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
+		}
+	} else if (imapConfiguration) {
+		return {
+			provider: parseInt(assertNotNull(migrationSyncState.legacyProvider)) as MailboxMigrationProvider,
+			username: assertNotNull(imapConfiguration.sharedUsername),
+			password: imapConfiguration.sharedPassword,
+			oAuthToken: imapConfiguration.sharedOauthToken,
+		}
+	} else {
+		throw new ProgrammingError("no mailbox migration credential available")
+	}
+}
+
+export function findUserMigrationInformationForSyncState(
+	userMigrationInformationList: ReadonlyArray<UserMigrationInformation>,
+	migrationSyncStateId: IdTuple,
+): UserMigrationInformation | null {
+	return (
+		userMigrationInformationList.find((userMigrationInformation) => {
+			const syncStateRef = userMigrationInformation.mailboxMigrationSyncStates
+			return syncStateRef !== null && isSameSingleId(syncStateRef.value, listIdPart(migrationSyncStateId))
+		}) ?? null
+	)
+}
+
+export function migrationSyncStateToImapCredentials(
+	migrationSyncState: MailboxMigrationSyncState,
+	userMigrationInformation: UserMigrationInformation | null,
+): ImapCredentials {
+	const imapAccount = assertNotNull(migrationSyncState.imapConfiguration)
+	const credentialSource = getMailboxMigrationCredential(migrationSyncState, userMigrationInformation)
 	const imapCredentials: ImapCredentials = {
 		host: imapAccount.host,
 		port: parseInt(imapAccount.port),
-		username: imapAccount.username,
+		username: credentialSource.username,
 		ignoreCertificateErrors: imapAccount.ignoreCertificateErrors,
 		customCertificateData: imapAccount.customCertificateData,
-		provider: parseInt(imapAccountSyncState.provider) as ImapProvider,
+		provider: credentialSource.provider,
 		useSSL: imapAccount.useSSL,
 	}
-	imapCredentials.password = imapAccount.password ?? undefined
-	const tokenEndpointResponse = imapAccount.oAuthTokenEndpointResponse
+	imapCredentials.password = credentialSource.password ?? undefined
 	imapCredentials.tokenEndpointResponse =
-		tokenEndpointResponse !== null ? oAuthTokenEndpointResponseToTokenEndpointResponse(tokenEndpointResponse) : undefined
+		credentialSource.oAuthToken !== null ? oAuthTokenLikeToTokenEndpointResponse(credentialSource.oAuthToken) : undefined
 
 	return imapCredentials
 }
 
-export function oAuthTokenEndpointResponseToTokenEndpointResponse(tokenEndpointResponse: OAuthTokenEndpointResponse): TokenEndpointResponse {
+export function oAuthTokenLikeToTokenEndpointResponse(oAuthToken: OAuthToken | OAuthTokenEndpointResponseLegacy): TokenEndpointResponse {
 	return {
-		access_token: tokenEndpointResponse.accessToken,
-		refresh_token: tokenEndpointResponse.refreshToken ?? undefined,
-		expires_in: tokenEndpointResponse.expiresIn !== null ? parseInt(tokenEndpointResponse.expiresIn) : undefined,
-		token_type: tokenEndpointResponse.tokenType as "bearer" | "dpop" | Lowercase<string>,
+		access_token: oAuthToken.accessToken,
+		refresh_token: oAuthToken.refreshToken ?? undefined,
+		expires_in: oAuthToken.expiresIn !== null ? parseInt(oAuthToken.expiresIn) : undefined,
+		token_type: oAuthToken.tokenType as "bearer" | "dpop" | Lowercase<string>,
 	}
 }
 
-export function tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse: TokenEndpointResponse): OAuthTokenEndpointResponse {
-	return createOAuthTokenEndpointResponse({
+export function tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse: TokenEndpointResponse): OAuthTokenEndpointResponseLegacy {
+	return createOAuthTokenEndpointResponseLegacy({
 		accessToken: tokenEndpointResponse.access_token,
 		refreshToken: tokenEndpointResponse.refresh_token ?? null,
 		expiresIn: tokenEndpointResponse.expires_in !== undefined ? tokenEndpointResponse.expires_in.toString() : null,
@@ -62,7 +117,19 @@ export function tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointR
 	})
 }
 
-export function getFolderSyncStateForMailboxPath(mailboxPath: string, folderSyncStates: ImapFolderSyncState[]): ImapFolderSyncState | null {
+export function tokenEndpointResponseToOAuthToken(tokenEndpointResponse: TokenEndpointResponse): OAuthToken {
+	return createOAuthToken({
+		accessToken: tokenEndpointResponse.access_token,
+		refreshToken: tokenEndpointResponse.refresh_token ?? null,
+		expiresIn: tokenEndpointResponse.expires_in !== undefined ? tokenEndpointResponse.expires_in.toString() : null,
+		tokenType: tokenEndpointResponse.token_type,
+	})
+}
+
+export function getFolderSyncStateForMailboxPath(
+	mailboxPath: string,
+	folderSyncStates: MailboxMigrationFolderSyncState[],
+): MailboxMigrationFolderSyncState | null {
 	return (
 		folderSyncStates.find((folderSyncState) => {
 			return folderSyncState.path === mailboxPath
@@ -74,7 +141,7 @@ export function imapMailToImportMailParams(
 	imapMail: ImapMail,
 	folderSyncStateId: IdTuple,
 	deduplicatedAttachments: ImapImportAttachments | null,
-	imapFolderSyncStates: ImapFolderSyncState[],
+	migrationFolderSyncStates: MailboxMigrationFolderSyncState[],
 ): ImportMailParams {
 	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
 	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
@@ -113,23 +180,22 @@ export function imapMailToImportMailParams(
 		imapUid: imapMail.uid,
 		imapModSeq: imapMail.modSeq ?? null,
 		imapFolderSyncState: folderSyncStateId,
-		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, imapFolderSyncStates) : [],
+		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, migrationFolderSyncStates) : [],
 	}
 }
 
-export function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: ImapFolderSyncState[]): IdTuple[] {
+export function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
 	for (const imapLabel of imapLabels) {
-		let folderSyncState: ImapFolderSyncState | null
-		folderSyncState = imapFolderSyncStates.find((imapFolderSyncState) => imapFolderSyncState.imapSpecialUse === imapLabel) ?? null
+		let folderSyncState: MailboxMigrationFolderSyncState | null
+		folderSyncState = imapFolderSyncStates.find((imapFolderSyncState) => imapFolderSyncState.specialUse === imapLabel) ?? null
 		// Gmail announces the folder's special use as DRAFTS, but the label on the mail is DRAFT...
 		if (imapLabel === ImapMailboxSpecialUse.DRAFT || imapLabel === ImapMailboxSpecialUse.DRAFTS) {
 			folderSyncState =
 				imapFolderSyncStates.find(
 					(imapFolderSyncState) =>
-						imapFolderSyncState.imapSpecialUse === ImapMailboxSpecialUse.DRAFTS ||
-						imapFolderSyncState.imapSpecialUse === ImapMailboxSpecialUse.DRAFT,
+						imapFolderSyncState.specialUse === ImapMailboxSpecialUse.DRAFTS || imapFolderSyncState.specialUse === ImapMailboxSpecialUse.DRAFT,
 				) ?? null
 		}
 		if (!folderSyncState) {

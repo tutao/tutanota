@@ -1,8 +1,8 @@
-import { ImapFolderSyncState, ImapFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationFolderSyncStateTypeRef, MailboxMigrationFolderSyncState } from "@tutao/entities/tutanota"
 import { CustomCacheHandler } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../index/MailIndexer"
-import { ImapFolderSyncStatus, MailImportType } from "../../../../entities/tutanota/Utils"
+import { MailboxMigrationFolderSyncStatus, MailImportType } from "../../../../entities/tutanota/Utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 
 /**
@@ -10,7 +10,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
  *
  * We need to do this to avoid potentially missing events before the batch id is written.
  */
-export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler<ImapFolderSyncState> {
+export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler<MailboxMigrationFolderSyncState> {
 	constructor(
 		private readonly indexer: lazyAsync<MailIndexer>,
 		private readonly entityClient: EntityClient,
@@ -25,11 +25,11 @@ export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler
 	}
 
 	private async handle(id: IdTuple) {
-		const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, id)
-		const status = imapFolderSyncState.status as ImapFolderSyncStatus
-		if (!(status === ImapFolderSyncStatus.RUNNING || status === ImapFolderSyncStatus.NO_SYNC)) {
+		const mailboxMigrationFolderSyncState = await this.entityClient.load(MailboxMigrationFolderSyncStateTypeRef, id)
+		const status = mailboxMigrationFolderSyncState.status as MailboxMigrationFolderSyncStatus
+		if (!(status === MailboxMigrationFolderSyncStatus.RUNNING || status === MailboxMigrationFolderSyncStatus.NO_SYNC)) {
 			const indexer = await this.indexer()
-			return await indexer.beforeImportedMailFinished(imapFolderSyncState.importedMails, MailImportType.ImapImport)
+			return await indexer.beforeImportedMailFinished(mailboxMigrationFolderSyncState.importedMails, MailImportType.ImapImport)
 		}
 	}
 }

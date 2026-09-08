@@ -10,7 +10,7 @@ import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
-import { ImapProvider } from "../../../api/common/utils/imapImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 const MAX_MAILBOX_FAILURES_THRESHOLD = 2
@@ -217,7 +217,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 			const imapMailboxes = await this.getImapMailboxes(imapClient)
 
-			const isGmail = imapCredentials.provider === ImapProvider.Gmail
+			const isGmail = imapCredentials.provider === MailboxMigrationProvider.Gmail
 			if (isGmail && !imapMailboxes.some((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)) {
 				throw new ImapError("All mails Gmail mailbox is not enabled for IMAP", ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
 			}

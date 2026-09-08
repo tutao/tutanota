@@ -321,7 +321,7 @@ export const enum FileImportStatus {
 	Finished = 3,
 }
 
-export const enum ImapFolderSyncStatus {
+export const enum MailboxMigrationFolderSyncStatus {
 	RUNNING = "0",
 	PAUSED = "1",
 	FINISHED = "2",
