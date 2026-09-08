@@ -161,32 +161,21 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		const forceWhiteBackground = isDarkTheme() && !this.shouldViewInDarkMode()
 
 		return [
-			m(
-				".mail-viewer.overflow-x-hidden",
-				{
-					oncontextmenu: (e: MouseEvent) => {
-						// If text is selected show typical right click menu, so text can be copied
-						if (window.getSelection()?.toString() === "") {
-							contextDropdown(e, getMailActionAttrs(this.viewModel.getMailActions(vnode.attrs.deleteAction, vnode.attrs.trash)))
-						}
-					},
-				},
-				[
-					this.renderMailHeader(vnode.attrs),
-					this.renderMailSubject(vnode.attrs),
-					m(
-						".flex-grow.scroll-x.pt-16.pb-16.border-radius-12" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
-						{
-							class: responsiveCardHPadding(),
-							oncreate: (vnode) => {
-								this.scrollDom = vnode.dom as HTMLElement
-							},
+			m(".mail-viewer.overflow-x-hidden", [
+				this.renderMailHeader(vnode.attrs),
+				this.renderMailSubject(vnode.attrs),
+				m(
+					".flex-grow.scroll-x.pt-16.pb-16.border-radius-12" + (forceWhiteBackground ? ".bg-white.content-black" : ""),
+					{
+						class: responsiveCardHPadding(),
+						oncreate: (vnode) => {
+							this.scrollDom = vnode.dom as HTMLElement
 						},
-						this.renderMailBodySection(vnode.attrs),
-					),
-					this.renderQuoteExpanderButton(),
-				],
-			),
+					},
+					this.renderMailBodySection(vnode.attrs),
+				),
+				this.renderQuoteExpanderButton(),
+			]),
 		]
 	}
 

@@ -44,6 +44,7 @@ import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
+import { contextDropdown } from "../../../../ui/base/GuiUtils"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -73,23 +74,34 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		const dateTime = formatDateWithWeekday(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 		const dateTimeFull = formatDateWithWeekdayAndYear(viewModel.mail.receivedDate) + " • " + formatTime(viewModel.mail.receivedDate)
 
-		return m(".header.selectable", [
-			this.renderSubjectActionsLine(attrs),
-			this.renderFolderAndLabels(viewModel),
-			this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
-			m(
-				ExpanderPanel,
-				{
-					expanded: this.detailsExpanded,
+		return m(
+			".header.selectable",
+			{
+				oncontextmenu: (e: MouseEvent) => {
+					// If text is selected show typical right click menu, so text can be copied
+					if (window.getSelection()?.toString() === "") {
+						contextDropdown(e, getMailActionAttrs(viewModel.getMailActions(attrs.deleteAction, attrs.trash)))
+					}
 				},
-				this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
-			),
-			this.renderAttachments(viewModel, attrs.importFile),
-			this.renderScheduledSendBanner(viewModel),
-			this.renderConnectionLostBanner(viewModel),
-			this.renderEventBanner(viewModel),
-			this.renderBanners(attrs),
-		])
+			},
+			[
+				this.renderSubjectActionsLine(attrs),
+				this.renderFolderAndLabels(viewModel),
+				this.renderAddressesAndDate(viewModel, attrs, dateTime, dateTimeFull),
+				m(
+					ExpanderPanel,
+					{
+						expanded: this.detailsExpanded,
+					},
+					this.renderDetails(attrs, { bubbleMenuWidth: 300 }),
+				),
+				this.renderAttachments(viewModel, attrs.importFile),
+				this.renderScheduledSendBanner(viewModel),
+				this.renderConnectionLostBanner(viewModel),
+				this.renderEventBanner(viewModel),
+				this.renderBanners(attrs),
+			],
+		)
 	}
 
 	private renderFolderAndLabels(viewModel: MailViewerViewModel) {
