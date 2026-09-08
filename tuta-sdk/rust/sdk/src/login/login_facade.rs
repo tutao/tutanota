@@ -369,6 +369,7 @@ mod tests {
 			customer: None,
 			successfulLogins: Default::default(),
 			plugins: None,
+			userMigrationInfos: None,
 		}
 	}
 }
