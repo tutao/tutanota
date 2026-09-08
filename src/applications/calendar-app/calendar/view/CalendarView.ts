@@ -168,6 +168,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								? {
 										label: "newEvent_action",
 										click: () => this.createNewEventDialog(),
+										icon: Icons.Plus,
 									}
 								: null,
 						content: [

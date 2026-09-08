@@ -95,7 +95,7 @@ export function renderListColumnWrapper<T, U extends ViewHolder<T>>(
 ): Children {
 	return m(
 		ListColumnWrapper,
-		{ headerContent: null, class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-margin" },
+		{ headerContent: null, class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-padding" },
 		listModel.isEmptyAndDone()
 			? m(ColumnEmptyMessageBox, {
 					icon,

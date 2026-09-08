@@ -204,6 +204,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 								e.preventDefault()
 							},
+							icon: Icons.Plus,
 							class: "mt-8",
 						})
 					: null,

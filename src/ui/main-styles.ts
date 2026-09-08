@@ -1875,9 +1875,9 @@ export class MainStyles {
 				".list-border-right": {
 					"border-right": `1px solid ${theme.outline_variant}`,
 				},
-				".column-resize-margin": {
+				".column-resize-padding": {
 					// prevent overlap of scrollbar with resize element
-					"margin-right": px(layout_size.column_resize_element_width),
+					"padding-right": px(layout_size.column_resize_element_width),
 				},
 				".folders": {
 					"margin-bottom": px(12),
