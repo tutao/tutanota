@@ -334,6 +334,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 													}),
 											})(ev, ev.target as HTMLElement)
 										},
+										icon: Icons.Plus,
 									},
 							content: [
 								this.driveViewModel.roots

@@ -146,7 +146,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		this.expandedMailSets = new Set(deviceConfig.getExpandedFolders(userId))
 		this.collapsedMailGroups = new Set(deviceConfig.getCollapsedMailGroups(userId))
 		this.cache = vnode.attrs.cache
-		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs)
+		this.folderColumn = this.createFolderColumn(null, vnode.attrs.drawerAttrs, userId)
 		this.mailViewModel = vnode.attrs.mailViewModel
 		this.undoModel = vnode.attrs.undoModel
 
@@ -1072,7 +1072,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			: null
 	}
 
-	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs) {
+	private createFolderColumn(editingFolderForMailGroup: Id | null = null, drawerAttrs: DrawerMenuAttrs, userId: string) {
 		return new ViewColumn(
 			{
 				view: () => {
@@ -1084,6 +1084,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 								? {
 										label: "newMail_action",
 										click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
+										icon: Icons.Write,
 									}
 								: null,
 						content: this.renderFoldersAndLabels(editingFolderForMailGroup),
@@ -1094,9 +1095,12 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			editingFolderForMailGroup ? ColumnType.Background : ColumnType.Foreground,
 			{
 				minWidth: layout_size.first_col_min_width,
-				maxWidth: layout_size.first_col_max_width,
+				maxWidth: deviceConfig.getFolderListSize(userId) ?? layout_size.first_col_max_width,
 				testId: "mailFolderColumn",
 				headerCenter: "folderTitle_label",
+				resizeCallback: (size: number) => {
+					deviceConfig.setFolderListSize(userId, size)
+				},
 			},
 		)
 	}

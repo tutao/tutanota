@@ -107,6 +107,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 							: {
 									label: "newContact_action",
 									click: () => this.createNewContact(),
+									icon: Icons.Plus,
 								},
 						content: [
 							m(
