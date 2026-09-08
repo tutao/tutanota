@@ -13,6 +13,7 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/
 
 import { createDateWrapper, createRepeatRule, DateWrapperTypeRef, RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { getTimeZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
+import { DateTime } from "luxon"
 
 o.spec("CalendarEventWhenModel", function () {
 	if (getTimeZone() !== "Europe/Berlin") {
@@ -197,6 +198,63 @@ o.spec("CalendarEventWhenModel", function () {
 			const result = model.result
 			o(result.startTime.toISOString()).equals("2023-04-30T00:00:00.000Z")("result start time is correct")
 			o(result.endTime.toISOString()).equals("2023-05-01T00:00:00.000Z")("result end time is correct")
+		})
+		o.test("rescheduling event from day in standard time to day in daylight saving time preserves time", function () {
+			const zone = "Europe/Berlin"
+			const model = new CalendarEventWhenModel(
+				createTestEntity(CalendarEventTypeRef, {
+					startTime: DateTime.fromObject({ year: 2026, month: 3, day: 28, hour: 3, minute: 0 }, { zone }).toJSDate(),
+					endTime: DateTime.fromObject({ year: 2026, month: 3, day: 28, hour: 3, minute: 30 }, { zone }).toJSDate(),
+				}),
+				zone,
+				noOp,
+			)
+			model.rescheduleEventToDate(new Date(2026, 3 - 1, 29))
+
+			o.check(model.getStartDateTime().toISO()).equals("2026-03-29T03:00:00.000+02:00")
+			o.check(model.getEndDateTime().toISO()).equals("2026-03-29T03:30:00.000+02:00")
+		})
+		o.test("rescheduling event on last day of month to another month: many combinations", function () {
+			for (const zone of [
+				"UTC", // Base case
+				"Europe/Berlin", // Common case
+				"America/Adak", // UTC-10 during standard time, UTC-9 during daylight saving
+				"Pacific/Auckland", // UTC+12 during standard time, UTC+13 during daylight saving
+				"America/Santiago", // Sets clocks forward directly at midnight
+				"Etc/GMT+12", // UTC-12
+				"Etc/GMT-13", // UTC+13
+			]) {
+				for (let srcYear = 2023; srcYear <= 2026; ++srcYear) {
+					for (let srcMonth = 1; srcMonth <= 12; ++srcMonth) {
+						// The following line works because `Date` uses 0-based month indices
+						const daysInSrcMonth = new Date(srcYear, srcMonth, 0).getDate()
+						const srcStartDateTime = DateTime.fromObject({ year: srcYear, month: srcMonth, day: daysInSrcMonth, hour: 0, minute: 1 }, { zone })
+						const srcEndDateTime = DateTime.fromObject({ year: srcYear, month: srcMonth, day: daysInSrcMonth, hour: 23, minute: 59 }, { zone })
+
+						for (let dstYear = 2023; dstYear <= 2026; ++dstYear) {
+							for (let dstMonth = 1; dstMonth <= 12; ++dstMonth) {
+								const dstStartDateTime = DateTime.fromObject({ year: dstYear, month: dstMonth, day: 1, hour: 0, minute: 1 }, { zone })
+								const dstEndDateTime = DateTime.fromObject({ year: dstYear, month: dstMonth, day: 1, hour: 23, minute: 59 }, { zone })
+
+								// console.log(srcStartDateTime.toISO(), dstStartDateTime.toISO(), zone)
+
+								const model = new CalendarEventWhenModel(
+									createTestEntity(CalendarEventTypeRef, {
+										startTime: srcStartDateTime.toJSDate(),
+										endTime: srcEndDateTime.toJSDate(),
+									}),
+									zone,
+									noOp,
+								)
+								model.rescheduleEventToDate(new Date(dstYear, dstMonth - 1, 1))
+
+								o.check(model.getStartDateTime().toISO()).equals(dstStartDateTime.toISO())
+								o.check(model.getEndDateTime().toISO()).equals(dstEndDateTime.toISO())
+							}
+						}
+					}
+				}
+			}
 		})
 
 		o("setting the start date correctly updates the start date and end date", function () {

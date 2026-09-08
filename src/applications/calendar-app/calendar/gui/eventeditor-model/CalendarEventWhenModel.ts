@@ -344,14 +344,37 @@ export class CalendarEventWhenModel {
 	rescheduleEventToDate(date: Date) {
 		this.validateAndCorrectInputDate(date)
 
-		const newYear = date.getFullYear()
-		const newMonth = date.getMonth() + 1
-		const newDay = date.getDate()
-		if (newYear === this.start.year && newMonth === this.start.month && newDay === this.start.day) {
+		const newStartYear = date.getFullYear()
+		const newStartMonth = date.getMonth() + 1
+		const newStartDay = date.getDate()
+		if (newStartYear === this.start.year && newStartMonth === this.start.month && newStartDay === this.start.day) {
 			return
 		}
 
-		this.shiftEvent({ years: newYear - this.start.year, months: newMonth - this.start.month, days: newDay - this.start.day })
+		// Save end hour and minute to be restored later
+		const originalEndHour = this.end.hour
+		const originalEndMinute = this.end.minute
+
+		// Update the start's year, month and day and calculate the difference to the new start.
+		// IMPORTANT: This is done in a way that preserves the start's hour and minute values.
+		const oldStartDateTime = this.getStartDateTime()
+		this.start.year = newStartYear
+		this.start.month = newStartMonth
+		this.start.day = newStartDay
+		const newStartDateTime = this.getStartDateTime()
+		const diff = newStartDateTime.diff(oldStartDateTime)
+
+		// Move the end by the same amount as the start
+		this.setEndFromDateTime(this.getEndDateTime().plus(diff))
+
+		const hourChangeTooLargeToBeCausedByDST = Math.abs(originalEndHour - this.end.hour) > 4
+		if (hourChangeTooLargeToBeCausedByDST) {
+			// TODO: Can this happen?... Time zones! When can this happen?... Which time zones?
+		} else {
+			this.end.hour = originalEndHour
+			this.end.minute = originalEndMinute
+		}
+
 		this.uiUpdateCallback()
 	}
 
