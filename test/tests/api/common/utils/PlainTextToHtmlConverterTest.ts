@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { plainTextToHtml } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/PlainTextToHtmlConverter"
+import { plainTextToHtml } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/PlainTextToHtmlConverter"
 
 o.spec("plainTextToHtml", () => {
 	o.test("converts empty string to empty string", () => {

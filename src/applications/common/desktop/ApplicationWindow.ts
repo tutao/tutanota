@@ -12,7 +12,7 @@ import { log } from "./DesktopLog"
 import { parseUrlOrNull } from "./PathUtils"
 import type { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
 import { DesktopThemeFacade } from "./DesktopThemeFacade"
-import { CommonNativeFacade, DesktopFacade, ImapSyncFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade, DesktopFacade, MigrationSyncFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CalendarOpenAction } from "@tutao/native-bridge/generatedIpc/enums"
 import { RemoteBridge, WindowCleanup } from "./ipc/RemoteBridge.js"
 import { InterWindowEventFacadeSendDispatcher } from "@tutao/native-bridge/generatedIpc/dispatchers"
@@ -52,7 +52,7 @@ export class ApplicationWindow {
 	private _interWindowEventSender!: InterWindowEventFacadeSendDispatcher
 	private _desktopMailImportFacade!: DesktopMailImportFacade
 	private windowCleanup!: WindowCleanup
-	private _imapSyncFacade!: ImapSyncFacade
+	private _migrationSyncFacade!: MigrationSyncFacade
 
 	_browserWindow!: BrowserWindow
 
@@ -245,8 +245,8 @@ export class ApplicationWindow {
 		})
 	}
 
-	get imapSyncFacade(): ImapSyncFacade {
-		return this._imapSyncFacade
+	get migrationSyncFacade(): MigrationSyncFacade {
+		return this._migrationSyncFacade
 	}
 
 	private initFacades() {
@@ -255,7 +255,7 @@ export class ApplicationWindow {
 		this._commonNativeFacade = sendingFacades.commonNativeFacade
 		this._interWindowEventSender = sendingFacades.interWindowEventSender
 		this.windowCleanup = sendingFacades.windowCleanup
-		this._imapSyncFacade = sendingFacades.imapSyncFacade
+		this._migrationSyncFacade = sendingFacades.migrationSyncFacade
 	}
 
 	private async loadInitialUrl(noAutoLogin: boolean) {

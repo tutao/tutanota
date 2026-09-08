@@ -1,7 +1,0 @@
-{
-	"name": "ImapMail",
-	"type": "typeref",
-	"location": {
-		"typescript": "@tutao/entities/tutanota"
-	}
-}
