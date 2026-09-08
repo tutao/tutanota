@@ -537,6 +537,7 @@ export type UserParams = {
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
+	userMigrationInfos: null | Id
 }
 
 export type User = {
@@ -567,6 +568,7 @@ export type User = {
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
+	userMigrationInfos: null | Id
 
 	//== some entities have these and some don't
 
@@ -10581,5 +10583,206 @@ export type CustomerPlugins = {
 	// === these are not present in metamodel
 	_type: TypeRef<CustomerPlugins>
 	_original: Nullable<CustomerPlugins>
+	isAdapter: false
+}
+export const OAuthTokenTypeRef: TypeRef<OAuthToken> = new TypeRef("sys", 2816)
+
+export function createOAuthToken(values: OAuthTokenParams): OAuthToken {
+	return Object.assign(create(typeModels[OAuthTokenTypeRef.typeId], OAuthTokenTypeRef), values)
+}
+
+export type OAuthTokenParams = {
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+}
+
+export type OAuthToken = {
+	// == values
+
+	_id: Id
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<OAuthToken>
+	_original: Nullable<OAuthToken>
+	isAdapter: false
+}
+export const UserMigrationCredentialTypeRef: TypeRef<UserMigrationCredential> = new TypeRef("sys", 2822)
+
+export function createUserMigrationCredential(values: UserMigrationCredentialParams): UserMigrationCredential {
+	return Object.assign(create(typeModels[UserMigrationCredentialTypeRef.typeId], UserMigrationCredentialTypeRef), values)
+}
+
+export type UserMigrationCredentialParams = {
+	username: string
+	password: null | string
+
+	oAuthToken: null | OAuthToken
+}
+
+export type UserMigrationCredential = {
+	// == values
+
+	_id: Id
+	username: string
+	password: null | string
+
+	// == associations
+
+	oAuthToken: null | OAuthToken
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationCredential>
+	_original: Nullable<UserMigrationCredential>
+	isAdapter: false
+}
+export const UserMigrationInformationTypeRef: TypeRef<UserMigrationInformation> = new TypeRef("sys", 2827)
+
+export function createUserMigrationInformation(values: UserMigrationInformationParams): UserMigrationInformation {
+	return Object.assign(create(typeModels[UserMigrationInformationTypeRef.typeId], UserMigrationInformationTypeRef), values)
+}
+
+export type UserMigrationInformationParams = {
+	provider: NumberString
+
+	credential: UserMigrationCredential
+	mailboxMigrationSyncStates: GeneratedIdWrapper
+}
+
+export type UserMigrationInformation = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	provider: NumberString
+
+	// == associations
+
+	credential: UserMigrationCredential
+	mailboxMigrationSyncStates: GeneratedIdWrapper
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationInformation>
+	_errors: Object
+	_original: Nullable<UserMigrationInformation>
+	isAdapter: false
+}
+export const UserMigrationServicePostInTypeRef: TypeRef<UserMigrationServicePostIn> = new TypeRef("sys", 2840)
+
+export function createUserMigrationServicePostIn(values: UserMigrationServicePostInParams): UserMigrationServicePostIn {
+	return Object.assign(create(typeModels[UserMigrationServicePostInTypeRef.typeId], UserMigrationServicePostInTypeRef), values)
+}
+
+export type UserMigrationServicePostInParams = {
+	provider: NumberString
+
+	credential: UserMigrationCredential
+}
+
+export type UserMigrationServicePostIn = {
+	// == values
+
+	_format: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
+	provider: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	credential: UserMigrationCredential
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationServicePostIn>
+	_errors: Object
+	_original: Nullable<UserMigrationServicePostIn>
+	isAdapter: false
+}
+export const UserMigrationServicePostOutTypeRef: TypeRef<UserMigrationServicePostOut> = new TypeRef("sys", 2846)
+
+export function createUserMigrationServicePostOut(values: UserMigrationServicePostOutParams): UserMigrationServicePostOut {
+	return Object.assign(create(typeModels[UserMigrationServicePostOutTypeRef.typeId], UserMigrationServicePostOutTypeRef), values)
+}
+
+export type UserMigrationServicePostOutParams = {
+	userMigrationInfo: IdTuple
+}
+
+export type UserMigrationServicePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationServicePostOut>
+	_original: Nullable<UserMigrationServicePostOut>
 	isAdapter: false
 }
