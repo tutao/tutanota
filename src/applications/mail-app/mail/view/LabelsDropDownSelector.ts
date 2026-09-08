@@ -31,6 +31,9 @@ export interface LabelsDropDownSelectorAttrs {
 	items: AssignedLabel[]
 	icon: TextFieldAttrs["leadingIcon"]
 	onLabelsApplied: (addedLabels: MailSet[]) => unknown
+	onModalClosed?: () => unknown
+	class?: string
+	helpLabel?: TextFieldAttrs["helpLabel"]
 }
 
 /**
@@ -47,7 +50,8 @@ export class LabelsDropDownSelector implements ClassComponent<LabelsDropDownSele
 			onDomWrapperCreated: (dom) => {
 				this.selectorDom = dom
 			},
-			class: "click ",
+			class: "click " + (attrs.class ?? ""),
+			helpLabel: attrs.helpLabel,
 			leadingIcon: attrs.icon,
 			injectionsRight: () =>
 				m(
@@ -66,9 +70,16 @@ export class LabelsDropDownSelector implements ClassComponent<LabelsDropDownSele
 
 	private showDropdown(attrs: LabelsDropDownSelectorAttrs) {
 		const dom = assertNotNull(this.selectorDom)
-		const dropdown = new LabelsDropdown(dom, dom.getBoundingClientRect(), Styles.get().isDesktopLayout() ? 300 : 200, attrs.items, async (addedLabels) => {
-			attrs.onLabelsApplied(addedLabels)
-		})
+		const dropdown = new LabelsDropdown(
+			dom,
+			dom.getBoundingClientRect(),
+			Styles.get().isDesktopLayout() ? 300 : 200,
+			attrs.items,
+			async (addedLabels) => {
+				attrs.onLabelsApplied(addedLabels)
+			},
+			() => attrs.onModalClosed?.(),
+		)
 		dropdown.show()
 	}
 }
@@ -82,6 +93,7 @@ class LabelsDropdown implements ModalComponent {
 		private readonly width: number,
 		private readonly items: AssignedLabel[],
 		private readonly onLabelsApplied: (addedLabels: MailSet[]) => unknown,
+		private readonly onModalClosed?: () => unknown,
 	) {
 		this.view = this.view.bind(this)
 	}
@@ -89,7 +101,7 @@ class LabelsDropdown implements ModalComponent {
 	async hideAnimation(): Promise<void> {}
 
 	onClose(): void {
-		modal.remove(this)
+		this.close()
 	}
 
 	shortcuts(): Shortcut[] {
@@ -97,7 +109,7 @@ class LabelsDropdown implements ModalComponent {
 	}
 
 	backgroundClick(e: MouseEvent): void {
-		modal.remove(this)
+		this.close()
 	}
 
 	popState(e: Event): boolean {
@@ -198,6 +210,7 @@ class LabelsDropdown implements ModalComponent {
 					class: "limit-width noselect bg-transparent button-height text-ellipsis content-accent-fg flex items-center plr-8 button-content justify-center border-top state-bg",
 					onclick: () => {
 						this.applyLabels()
+						this.onModalClosed?.()
 					},
 				}),
 				m(BaseButton, {
@@ -205,6 +218,7 @@ class LabelsDropdown implements ModalComponent {
 					text: lang.getTranslationText("close_alt"),
 					class: "hidden-until-focus content-accent-fg button-content",
 					onclick: () => {
+						this.onModalClosed?.()
 						modal.remove(this)
 					},
 				}),
@@ -285,5 +299,10 @@ class LabelsDropdown implements ModalComponent {
 
 	show() {
 		modal.displayUnique(this, false)
+	}
+
+	private close(): void {
+		this.onModalClosed?.()
+		modal.remove(this)
 	}
 }
