@@ -1,7 +1,13 @@
 import { getImapConfigForProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { ImapAccountSyncState, ImapAccountSyncStateTypeRef } from "@tutao/entities/tutanota"
-import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
+import { MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import {
+	findUserMigrationInformationForSyncState,
+	getImapCredentialSource,
+	tokenEndpointResponseToOAuthToken,
+	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
+} from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImapError, ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { OAuthHandler, OAuthHandlerFactory } from "./oauth/OAuthHandler"
 import { ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
@@ -12,6 +18,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { showImapCertificateErrorDialog } from "../../../common/gui/dialogs/ImapCertificateErrorDialog"
 import { FileChooserMultiMode, showFileChooser } from "../../../common/file/FileController"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
+import { assertNotNull } from "@tutao/utils"
 
 export type ReadableImapError = {
 	cause: ImapErrorCause
@@ -83,10 +90,20 @@ export class ImapErrorHandler {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly getUserMigrationInfosListId: () => Id | null,
 		private readonly oauthHandlerFactory: OAuthHandlerFactory = async (config) => {
 			return new OAuthHandler(config, serviceExecutor)
 		},
 	) {}
+
+	private async loadUserMigrationInformationForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInformation | null> {
+		const userMigrationInfosListId = this.getUserMigrationInfosListId()
+		if (userMigrationInfosListId === null) {
+			return null
+		}
+		const userMigrationInformationList = await this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfosListId)
+		return findUserMigrationInformationForSyncState(userMigrationInformationList, migrationSyncStateId)
+	}
 
 	/**
 	 *
@@ -130,31 +147,41 @@ export class ImapErrorHandler {
 	}
 
 	async handleAuthError(imapAccountSyncStateId: IdTuple) {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		const provider = parseInt(imapAccountSyncState.provider) as ImapProvider
-		const isOAuth = provider !== ImapProvider.Other
+		const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
+		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
+		const credentialSource = getImapCredentialSource(imapAccountSyncState, userMigrationInformation)
+		const isOAuth = credentialSource.provider !== ImapProvider.Other
 
 		if (isOAuth) {
-			const oAuthConfig = getImapConfigForProvider(provider)?.oauthConfig
+			const oAuthConfig = getImapConfigForProvider(credentialSource.provider)?.oauthConfig
 			if (oAuthConfig) {
-				if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse?.refreshToken) {
+				if (credentialSource.oAuthToken?.refreshToken) {
 					// we need get a new token using refresh token
 					const oauthHandler = await this.oauthHandlerFactory(oAuthConfig, this.serviceExecutor)
 					await oauthHandler.setupOauthLoginParams()
 					try {
-						const tokenEndpointResponse = await oauthHandler.refreshTokens(imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken)
-						const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponse(tokenEndpointResponse)
+						const previousRefreshToken = credentialSource.oAuthToken.refreshToken
+						const tokenEndpointResponse = await oauthHandler.refreshTokens(previousRefreshToken)
+
 						// When refreshing a token, the refresh token itself is not part of the response, so we must *not*
 						// replace the entire response.
-						const previousToken = imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken
-						imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse = oAuthTokenEndpointResponse
-						if (imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken === null) {
-							imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse.refreshToken = previousToken
+						if (userMigrationInformation?.credential) {
+							const oAuthToken = tokenEndpointResponseToOAuthToken(tokenEndpointResponse)
+							if (oAuthToken.refreshToken === null) {
+								oAuthToken.refreshToken = previousRefreshToken
+							}
+							userMigrationInformation.credential.oAuthToken = oAuthToken
+							await this.entityClient.update(userMigrationInformation)
+						} else {
+							const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse)
+							if (oAuthTokenEndpointResponse.refreshToken === null) {
+								oAuthTokenEndpointResponse.refreshToken = previousRefreshToken
+							}
+							assertNotNull(imapAccountSyncState.imapAccount).sharedOauthToken = oAuthTokenEndpointResponse
+							await this.entityClient.update(imapAccountSyncState)
 						}
 
-						await this.entityClient.update(imapAccountSyncState)
-
-						await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId, {
+						await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId, {
 							...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 							cacheMode: CacheMode.WriteOnly,
 						})
@@ -194,18 +221,18 @@ export class ImapErrorHandler {
 	}
 
 	isAuthError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.AUTH_FAILED
+		return e.data?.cause === ImapErrorCause.AUTH_FAILED
 	}
 
 	isCertificateError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.CERT_ERROR
+		return e.data?.cause === ImapErrorCause.CERT_ERROR
 	}
 
 	isGmailAllMailsIMAPDisabledError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED
+		return e.data?.cause === ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED
 	}
 
-	private async requestCredentialUpdate(imapAccountSyncState: ImapAccountSyncState) {
+	private async requestCredentialUpdate(imapAccountSyncState: MailboxMigrationSyncState) {
 		imapAccountSyncState.status = ImapAccountSyncStatus.AUTH_ERROR
 		// Updated to error state, which will cause an entity event
 		await this.entityClient.update(imapAccountSyncState)

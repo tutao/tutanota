@@ -24,8 +24,14 @@ export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportDa
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
+		// Reflect whatever provider was previously chosen instead of always defaulting to Gmail, so
+		// re-visiting this page (by navigating all the way back) doesn't silently revert the selection.
+		this.selectedProvider = vnode.attrs.data.imapProvider
 		vnode.attrs.data.isImapServerSupportingOAuth = false
 		vnode.attrs.data.oauthConfig = undefined
+		// Navigating all the way back to provider selection invalidates any previously obtained OAuth
+		// token - it must be re-obtained if the user continues forward again from here.
+		vnode.attrs.data.imapAccountOAuthToken = undefined
 		const imapConfigForProvider = getImapConfigForProvider(this.selectedProvider)
 		if (imapConfigForProvider !== null) {
 			const { host, port } = imapConfigForProvider

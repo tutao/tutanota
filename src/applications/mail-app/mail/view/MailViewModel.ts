@@ -41,15 +41,15 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import {
-	ImapAccountSyncStateTypeRef,
-	ImapFolderSyncStateTypeRef,
 	ImportFileMailStateTypeRef,
 	Mail,
 	MailBox,
+	MailboxMigrationSyncStateTypeRef,
 	MailSet,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
+	MigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
 import { ImapAccountSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
@@ -772,16 +772,19 @@ export class MailViewModel {
 					if (targetFolder) {
 						await this.deleteMailSetEntryRangeFolder(targetFolder, true)
 					}
-				} else if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
-					// We need to drop all ranges for mailSets corresponding to ImapFolderSyncStates + imapSyncLabel
-					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, [
+				} else if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
+					// We need to drop all ranges for mailSets corresponding to MigrationFolderSyncStates + imapSyncLabel
+					const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, [
 						assertNotNull(update.instanceListId),
 						update.instanceId,
 					])
 					// we only reload the folder / label the user is currently viewing in case we are done
 					const shouldReload = imapAccountSyncState.status !== ImapAccountSyncStatus.RUNNING
 
-					const imapFolderSyncStates = await this.entityClient.loadAll(ImapFolderSyncStateTypeRef, imapAccountSyncState.imapFolderSyncStateList)
+					const imapFolderSyncStates = await this.entityClient.loadAll(
+						MigrationFolderSyncStateTypeRef,
+						imapAccountSyncState.mailboxMigrationFolderSyncStateList,
+					)
 					if (imapAccountSyncState.imapSyncLabel) {
 						const syncLabel = await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
 						await this.deleteMailSetEntryRangeFolder(syncLabel, shouldReload)

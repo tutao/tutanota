@@ -1,4 +1,4 @@
-import { ImapAccount } from "@tutao/entities/tutanota"
+import { MailboxMigrationImapConfiguration } from "@tutao/entities/tutanota"
 import { TranslationKey } from "../../../../../../ui/utils/LanguageViewModel"
 
 export const enum ImapAuthType {
@@ -20,7 +20,7 @@ export type OauthConfigParams = {
 	requiresClientSecret?: boolean
 }
 
-export type ServerImapImportParams = Pick<ImapAccount, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
+export type ServerImapImportParams = Pick<MailboxMigrationImapConfiguration, "host" | "port"> & { authType: ImapAuthType; oauthConfig?: OauthConfigParams }
 
 export const IMAP_SSL_PORT = "993"
 export const IMAP_UNSAFE_PORT = "143"

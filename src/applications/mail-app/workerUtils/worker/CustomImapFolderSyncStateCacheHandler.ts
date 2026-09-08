@@ -1,4 +1,4 @@
-import { ImapFolderSyncState, ImapFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MigrationFolderSyncState, MigrationFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { CustomCacheHandler } from "../../../../app-kit/local-store/CustomCacheHandler"
 import { lazyAsync } from "@tutao/utils"
 import { MailIndexer } from "../index/MailIndexer"
@@ -10,7 +10,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
  *
  * We need to do this to avoid potentially missing events before the batch id is written.
  */
-export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler<ImapFolderSyncState> {
+export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler<MigrationFolderSyncState> {
 	constructor(
 		private readonly indexer: lazyAsync<MailIndexer>,
 		private readonly entityClient: EntityClient,
@@ -25,7 +25,7 @@ export class CustomImapFolderSyncStateCacheHandler implements CustomCacheHandler
 	}
 
 	private async handle(id: IdTuple) {
-		const imapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, id)
+		const imapFolderSyncState = await this.entityClient.load(MigrationFolderSyncStateTypeRef, id)
 		const status = imapFolderSyncState.status as ImapFolderSyncStatus
 		if (!(status === ImapFolderSyncStatus.RUNNING || status === ImapFolderSyncStatus.NO_SYNC)) {
 			const indexer = await this.indexer()

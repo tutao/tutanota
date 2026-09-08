@@ -45,7 +45,6 @@ import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
 	File,
-	ImapFolderSyncStateTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
 	ImportFileMailStateTypeRef,
@@ -58,6 +57,7 @@ import {
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
+	MigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
@@ -534,7 +534,7 @@ export class WebMailIndexer implements MailIndexer {
 				mail: ImportedFileMailTypeRef,
 			},
 			[MailImportType.ImapImport]: {
-				state: ImapFolderSyncStateTypeRef,
+				state: MigrationFolderSyncStateTypeRef,
 				mail: ImportedImapMailTypeRef,
 			},
 		}
@@ -588,7 +588,7 @@ export class WebMailIndexer implements MailIndexer {
 		for (const event of updates) {
 			if (isUpdateForTypeRef(ImportFileMailStateTypeRef, event)) {
 				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.FileImport)
-			} else if (isUpdateForTypeRef(ImapFolderSyncStateTypeRef, event)) {
+			} else if (isUpdateForTypeRef(MigrationFolderSyncStateTypeRef, event)) {
 				await this.processImportStateEntityUpdates(event.operation, [assertNotNull(event.instanceListId), event.instanceId], MailImportType.ImapImport)
 			}
 		}

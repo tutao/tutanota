@@ -1028,7 +1028,7 @@ class MailLocator implements CommonLocator {
 						this.entityClient,
 						this.eventController,
 						this.oauthFacade,
-						new ImapErrorHandler(this.entityClient, this.serviceExecutor),
+						new ImapErrorHandler(this.entityClient, this.serviceExecutor, () => this.logins.getUserController().user.userMigrationInfos),
 					)
 				}
 			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {

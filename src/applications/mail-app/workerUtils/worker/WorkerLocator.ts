@@ -7,7 +7,7 @@ import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/Cus
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
 import { Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
-import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
+import { ContactTypeRef, ImportFileMailStateTypeRef, MailTypeRef, MigrationFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
@@ -328,7 +328,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 					handler: new CustomImportFileMailStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 				{
-					ref: ImapFolderSyncStateTypeRef,
+					ref: MigrationFolderSyncStateTypeRef,
 					handler: new CustomImapFolderSyncStateCacheHandler(mailIndexer, locator.base.cachingEntityClient),
 				},
 			)
@@ -657,7 +657,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 		)
 
-		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade)
+		return new ImapImporter(new ImapSyncSystemFacadeSendDispatcher(worker), imapFacade, importMailFacade, locator.base.user)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

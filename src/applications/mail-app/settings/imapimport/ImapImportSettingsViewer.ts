@@ -9,7 +9,7 @@ import { TitleSection } from "../../../../ui/TitleSection.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { ImapAccountSyncStateTypeRef, ImapFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationSyncStateTypeRef, MigrationFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
 import { Card } from "../../../../ui/base/Card"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -130,7 +130,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 									.continueImport(accountSyncStateId, true)
 									.catch((e) => {
 										//Auth failing errors do not need to bubble up as programming errors.
-										if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
+										if (e.data?.cause !== ImapErrorCause.AUTH_FAILED) {
 											throw e
 										}
 									})
@@ -151,7 +151,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 								.continueImport(accountSyncStateId)
 								.catch((e) => {
 									//Auth failing errors do not need to bubble up as programming errors.
-									if (e.data.cause !== ImapErrorCause.AUTH_FAILED) {
+									if (e.data?.cause !== ImapErrorCause.AUTH_FAILED) {
 										throw e
 									}
 								})
@@ -353,7 +353,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update) || isUpdateForTypeRef(ImapFolderSyncStateTypeRef, update)) {
+			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update) || isUpdateForTypeRef(MigrationFolderSyncStateTypeRef, update)) {
 				await this.imapImportController().updateActiveUiSessions()
 			}
 		}

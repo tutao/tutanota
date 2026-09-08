@@ -10,17 +10,30 @@ import { px, size } from "../../../../ui/size"
 import { TextField } from "../../../../ui/base/TextField"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { LegacyTextFieldType } from "../../../../ui/base/LegacyTextField"
-import { ImapAccount, ImapAccountSyncState } from "@tutao/entities/tutanota"
+import { MailboxMigrationImapConfiguration, MailboxMigrationSyncState } from "@tutao/entities/tutanota"
+import { UserMigrationInformation } from "@tutao/entities/sys"
 import { getImapConfigForProvider, ImapProvider } from "../../api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { OAuthHandlerFactory } from "../../../mail-app/settings/imapimport/oauth/OAuthHandler"
 import { mailLocator } from "../../../mail-app/mailLocator"
-import { tokenEndpointResponseToOAuthTokenEndpointResponse } from "../../api/common/utils/imapImportUtils/ImapImportUtils"
+import {
+	getImapCredentialSource,
+	tokenEndpointResponseToOAuthToken,
+	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
+} from "../../api/common/utils/imapImportUtils/ImapImportUtils"
+import type { TokenEndpointResponse } from "oauth4webapi"
+import { assertNotNull } from "@tutao/utils"
 
 export interface UpdateImapCredentialsDialogAttrs {
-	syncState: ImapAccountSyncState
+	syncState: MailboxMigrationSyncState
+	userMigrationInformation: UserMigrationInformation | null
 	oauthHandlerFactory: OAuthHandlerFactory
+}
+
+export type UpdatedImapCredentials = {
+	imapAccount: MailboxMigrationImapConfiguration
+	userMigrationInformation: UserMigrationInformation | null
 }
 
 /**
@@ -31,10 +44,10 @@ export interface UpdateImapCredentialsDialogAttrs {
  */
 export function showUpdateImapCredentialsDialog(
 	attrs: UpdateImapCredentialsDialogAttrs,
-	okAction: (dialog: Dialog, updatedAccount?: ImapAccount) => unknown,
+	okAction: (dialog: Dialog, updatedCredentials?: UpdatedImapCredentials) => unknown,
 	onCloseDialog: () => void,
 ) {
-	const viewModel: UpdateImapCredentialsDialogViewModel = new UpdateImapCredentialsDialogViewModel(m.redraw, attrs.syncState)
+	const viewModel: UpdateImapCredentialsDialogViewModel = new UpdateImapCredentialsDialogViewModel(m.redraw, attrs.syncState, attrs.userMigrationInformation)
 	const dialogHeaderBarAttrs: DialogHeaderBarAttrs = {
 		left: [
 			{
@@ -69,13 +82,13 @@ export function showUpdateImapCredentialsDialog(
 								mainActionText: "resolveProblem_action",
 								mainActionClick: async () => {
 									viewModel.disableUpdateButton = true
-									const provider = parseInt(viewModel.imapAccountSyncState.provider) as ImapProvider
+									const provider = viewModel.provider
 									const isOAuth = provider !== ImapProvider.Other
 									if (isOAuth) {
 										const oauthConfig = getImapConfigForProvider(provider)?.oauthConfig
 										if (oauthConfig) {
 											const oauthHandler = await attrs.oauthHandlerFactory(oauthConfig, mailLocator.serviceExecutor)
-											const extraParams = { login_hint: viewModel.imapAccountSyncState.imapAccount.username }
+											const extraParams = { login_hint: viewModel.username }
 											await oauthHandler.setupOauthLoginParams(extraParams)
 											const responseUrl = await mailLocator
 												.getImapMailImportController()
@@ -83,9 +96,8 @@ export function showUpdateImapCredentialsDialog(
 											if (responseUrl) {
 												try {
 													const updatedToken = await oauthHandler.getAuthTokens(responseUrl)
-													viewModel.imapAccountSyncState.imapAccount.oAuthTokenEndpointResponse =
-														tokenEndpointResponseToOAuthTokenEndpointResponse(updatedToken)
-													okAction(dialog, viewModel.imapAccountSyncState.imapAccount)
+													viewModel.setOAuthToken(updatedToken)
+													okAction(dialog, viewModel.buildResult())
 												} catch (e) {
 													console.log("Failed to refresh token", e)
 												}
@@ -94,7 +106,7 @@ export function showUpdateImapCredentialsDialog(
 										viewModel.disableUpdateButton = false
 									} else {
 										onCloseDialog()
-										okAction(dialog, viewModel.imapAccountSyncState.imapAccount)
+										okAction(dialog, viewModel.buildResult())
 									}
 									dialog.close()
 								},
@@ -114,9 +126,7 @@ export function showUpdateImapCredentialsDialog(
 }
 
 function renderContent(viewModel: UpdateImapCredentialsDialogViewModel) {
-	const provider = parseInt(viewModel.imapAccountSyncState.provider) as ImapProvider
-	const isOAuth = provider !== ImapProvider.Other
-	const imapAccount = viewModel.imapAccountSyncState.imapAccount
+	const isOAuth = viewModel.provider !== ImapProvider.Other
 	return m(".mt-24", [
 		m(TitleSection, {
 			icon: Icons.SyncProblem,
@@ -133,8 +143,8 @@ function renderContent(viewModel: UpdateImapCredentialsDialogViewModel) {
 			label: "migrationAccountUsername_label",
 			class: "",
 			disabled: true,
-			value: imapAccount.username,
-			oninput: (value) => (imapAccount.username = value),
+			value: viewModel.username,
+			oninput: (value) => (viewModel.username = value),
 			leadingIcon: {
 				icon: Icons.MailFilled,
 				color: theme.on_surface_variant,
@@ -153,14 +163,13 @@ function renderContent(viewModel: UpdateImapCredentialsDialogViewModel) {
 }
 
 function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) {
-	const imapCredentials = viewModel.imapAccountSyncState.imapAccount
 	return m("", [
 		m(
 			".flex.row.gap-16.mt-16",
 			m(TextField, {
 				label: "migrationImapAccountPassword_label",
-				value: imapCredentials.password || "",
-				oninput: (value) => (imapCredentials.password = value),
+				value: viewModel.password || "",
+				oninput: (value) => (viewModel.password = value),
 				type: viewModel.renderPasswordVisibly ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 				injectionsRight: () => {
 					return m(ToggleButton, {
@@ -185,8 +194,8 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 			m(TextField, {
 				label: "migrationImapAccountHost_label",
 				class: "",
-				value: imapCredentials.host,
-				oninput: (value) => (imapCredentials.host = value),
+				value: viewModel.host,
+				oninput: (value) => (viewModel.host = value),
 				leadingIcon: {
 					icon: Icons.ServerFilled,
 					color: theme.on_surface_variant,
@@ -195,10 +204,10 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 			m(TextField, {
 				label: "migrationImapAccountPort_label",
 				class: "",
-				value: imapCredentials.port.toString(),
+				value: viewModel.port,
 				oninput: (value) => {
 					const typedNumber = Number.parseInt(value)
-					imapCredentials.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
+					viewModel.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
 				},
 				leadingIcon: {
 					icon: Icons.KeyFilled,
@@ -212,8 +221,44 @@ function renderImapCredentials(viewModel: UpdateImapCredentialsDialogViewModel) 
 class UpdateImapCredentialsDialogViewModel {
 	public renderPasswordVisibly: boolean = false
 	public disableUpdateButton: boolean = false
+	public readonly provider: ImapProvider
+	public username: string
+	public password: string
+	public host: string
+	public port: string
+
 	constructor(
 		readonly updateUi: () => void,
-		readonly imapAccountSyncState: ImapAccountSyncState,
-	) {}
+		readonly syncState: MailboxMigrationSyncState,
+		readonly userMigrationInformation: UserMigrationInformation | null,
+	) {
+		const credentialSource = getImapCredentialSource(syncState, userMigrationInformation)
+		this.provider = credentialSource.provider
+		this.username = credentialSource.username
+		this.password = credentialSource.password ?? ""
+		this.host = assertNotNull(syncState.imapAccount).host
+		this.port = assertNotNull(syncState.imapAccount).port
+	}
+
+	setOAuthToken(tokenEndpointResponse: TokenEndpointResponse) {
+		if (this.userMigrationInformation?.credential) {
+			this.userMigrationInformation.credential.oAuthToken = tokenEndpointResponseToOAuthToken(tokenEndpointResponse)
+		} else {
+			assertNotNull(this.syncState.imapAccount).sharedOauthToken = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse)
+		}
+	}
+
+	buildResult(): UpdatedImapCredentials {
+		const imapAccount = assertNotNull(this.syncState.imapAccount)
+		imapAccount.host = this.host
+		imapAccount.port = this.port
+		if (this.userMigrationInformation?.credential) {
+			this.userMigrationInformation.credential.username = this.username
+			this.userMigrationInformation.credential.password = this.password || null
+		} else {
+			imapAccount.sharedUsername = this.username
+			imapAccount.sharedPassword = this.password || null
+		}
+		return { imapAccount, userMigrationInformation: this.userMigrationInformation }
+	}
 }

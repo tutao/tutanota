@@ -4,7 +4,8 @@ import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping 
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first } from "@tutao/utils"
-import { ImapAccountSyncState, ImapAccountSyncStateTypeRef, MailBox } from "@tutao/entities/tutanota"
+import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
 import { IMAP_AUTH_ERROR_POSTPONE_TIME, IMAP_ERROR_POSTPONE_TIME, ImapAccountSyncStatus } from "../../../../entities/tutanota/Utils"
@@ -20,6 +21,8 @@ import { showUpdateImapCredentialsDialog } from "../../../common/gui/dialogs/Upd
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { ImapErrorHandler, ReadableImapError } from "./ImapErrorHandler"
+import { findUserMigrationInformationForSyncState } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
+import { mailLocator } from "../../mailLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -72,16 +75,26 @@ export class ImapMailImportController {
 		})
 	}
 
+	private async loadUserMigrationInformationForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInformation | null> {
+		const userMigrationInfosListId = mailLocator.logins.getUserController().user.userMigrationInfos
+		if (userMigrationInfosListId === null) {
+			return null
+		}
+		const userMigrationInformationList = await this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfosListId)
+		return findUserMigrationInformationForSyncState(userMigrationInformationList, migrationSyncStateId)
+	}
+
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
-			if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
+			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
 				if (update.operation === OperationType.UPDATE) {
 					const imapAccountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
-					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
+					const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
 
 					const shouldDisplayCredentialsDialog = imapAccountSyncState.status === ImapAccountSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
-						this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
+						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
+						this.displayUpdateImapCredentialsDialog(imapAccountSyncState, userMigrationInformation)
 					}
 					const shouldDisplayErrorDialog = imapAccountSyncState.status === ImapAccountSyncStatus.ERROR
 					if (shouldDisplayErrorDialog) {
@@ -103,23 +116,28 @@ export class ImapMailImportController {
 	}
 
 	public async promptUpdateImapCredentialsDialog(imapAccountSyncStateId: IdTuple) {
-		const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateId)
-		this.displayUpdateImapCredentialsDialog(imapAccountSyncState)
+		const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
+		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
+		this.displayUpdateImapCredentialsDialog(imapAccountSyncState, userMigrationInformation)
 	}
 
-	private displayUpdateImapCredentialsDialog(imapAccountSyncState: ImapAccountSyncState) {
+	private displayUpdateImapCredentialsDialog(imapAccountSyncState: MailboxMigrationSyncState, userMigrationInformation: UserMigrationInformation | null) {
 		if (!this.isDisplayingOauthCredentialPopup) {
 			this.isDisplayingOauthCredentialPopup = true
 			showUpdateImapCredentialsDialog(
 				{
 					syncState: imapAccountSyncState,
+					userMigrationInformation,
 					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
 				},
-				async (dialog, updatedAccount) => {
-					if (updatedAccount) {
-						imapAccountSyncState.imapAccount = updatedAccount
+				async (dialog, updatedCredentials) => {
+					if (updatedCredentials) {
+						imapAccountSyncState.imapAccount = updatedCredentials.imapAccount
 						imapAccountSyncState.status = ImapAccountSyncStatus.PAUSED
 						await this.entityClient.update(imapAccountSyncState)
+						if (updatedCredentials.userMigrationInformation) {
+							await this.entityClient.update(updatedCredentials.userMigrationInformation)
+						}
 						await this.continueImport(imapAccountSyncState._id)
 						dialog.close()
 					} else {
@@ -136,26 +154,27 @@ export class ImapMailImportController {
 	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 		this.selectedMailBoxDetail = first(this.mailboxDetails)
+		await this.imapImporter.init(this.mailboxDetails.map((detail) => detail.mailbox))
 		await this.updateActiveUiSessions()
 	}
 
 	async init(mailboxesOfUser: MailBox[]): Promise<void> {
 		await this.imapImporter.init(mailboxesOfUser)
 
-		if (this.imapImportResyncIntervalId != null) {
-			clearInterval(this.imapImportResyncIntervalId)
+		if (this.imapImportResyncIntervalId == null) {
+			this.imapImportResyncIntervalId = setInterval(() => {
+				this.resyncAllImports()
+			}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 		}
-
-		this.imapImportResyncIntervalId = setInterval(() => {
-			this.resyncAllImports()
-		}, IMAP_IMPORT_RESYNC_INTERVAL_MS)
 	}
 
 	async initializeImport(initializeImportParams: InitializeImapImportParams) {
 		this.isInStateTransition = true
 		const imapImportSession = await this.imapImporter.initializeNewImport(initializeImportParams)
+		console.log("summary has got the session")
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
+		console.log("the summary page is returning")
 		return imapImportSession
 	}
 
@@ -174,6 +193,7 @@ export class ImapMailImportController {
 
 	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts: number = 0): Promise<ImportResult> {
 		this.isInStateTransition = true
+		console.log("on the continue import. ### ")
 
 		try {
 			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry, retryAttempts)
@@ -260,6 +280,7 @@ export class ImapMailImportController {
 
 	async updateActiveUiSessions() {
 		const { activeSessions, canceledSessions } = await this.imapImporter.getImapImportUiSessions()
+		console.log("updated active ui sess")
 		this.activeImapImportUiSessions = activeSessions
 		this.canceledImapImportUiSessions = canceledSessions
 		m.redraw()

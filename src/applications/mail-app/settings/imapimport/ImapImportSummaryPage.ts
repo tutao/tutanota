@@ -12,7 +12,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { ImapMailbox } from "@tutao/native-bridge/generatedIpc/types"
-import { createImapAccount, createManageLabelServiceLabelData, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
+import { createMailboxMigrationImapConfiguration, createManageLabelServiceLabelData, MailSet, MailSetTypeRef } from "@tutao/entities/tutanota"
 import { TextField } from "../../../../ui/base/TextField"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { theme } from "../../../../ui/theme"
@@ -24,10 +24,6 @@ import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@t
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
 import { showImapEditLabelDialog } from "../../mail/view/EditLabelDialog"
-import {
-	DEFAULT_IMAP_IMPORT_MAX_QUOTA,
-	tokenEndpointResponseToOAuthTokenEndpointResponse,
-} from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImportResult, InitializeImapImportParams } from "../../workerUtils/imapimport/ImapImporter"
 import { ImapErrorCause } from "../../../common/api/common/error/ImapError"
 import { Dialog } from "../../../../ui/base/Dialog"
@@ -37,6 +33,7 @@ import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionBu
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { tokenEndpointResponseToOAuthTokenEndpointResponseLegacy } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -448,19 +445,17 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 			return Promise.resolve(false)
 		}
 		const imapImportController = mailLocator.getImapMailImportController()
-		const imapAccount = createImapAccount({
+		const imapAccount = createMailboxMigrationImapConfiguration({
 			host: this.data.imapAccountHost,
 			port: this.data.imapAccountPort.toString(),
-			username: this.data.imapAccountUsername,
-			password: this.data.imapAccountPassword ?? null,
-			oAuthTokenEndpointResponse:
-				this.data.imapAccountOAuthToken !== undefined ? tokenEndpointResponseToOAuthTokenEndpointResponse(this.data.imapAccountOAuthToken) : null,
+			sharedUsername: this.data.imapAccountUsername,
+			sharedPassword: this.data.imapAccountPassword ?? null,
+			sharedOauthToken: this.data.imapAccountOAuthToken ? tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(this.data.imapAccountOAuthToken) : null,
 			customCertificateData: this.data.customCertificateData,
 			ignoreCertificateErrors: this.data.ignoreCertificateErrors,
 			useSSL: this.data.useSSL,
 		})
 		const commonImapImportParams = {
-			maxQuota: DEFAULT_IMAP_IMPORT_MAX_QUOTA,
 			mailGroupId: elementIdToId(imapImportController.selectedMailBoxDetail!.mailGroup._id),
 			imapSyncLabelData: this.data.imapSyncLabelData,
 			provider: this.data.imapProvider,
@@ -495,7 +490,8 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}
 		} catch (e) {
-			if (e.data.cause === ImapErrorCause.AUTH_FAILED) {
+			console.log("yeah... it was here as the geepeetehh sugested", e)
+			if (e.data?.cause === ImapErrorCause.AUTH_FAILED) {
 				Dialog.message("migrationAuthFailed_msg" as TranslationKey).then(() => false)
 				return Promise.resolve(false)
 			}
