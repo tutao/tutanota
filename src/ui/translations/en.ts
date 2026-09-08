@@ -2538,7 +2538,7 @@ export default {
 		"inboxRuleHasAttachment_label": "Has attachment",
 		"inboxRuleHasNoAttachment_label": "Has no attachment",
 		"whenCondition_label": "When",
-		"selectLabel_action": "Select Label(s)",
-		"labelMustBeSelected_msg": "At least one Label must be selected."
+		"selectLabel_action": "Select label(s)",
+		"labelMustBeSelected_msg": "At least one label must be selected."
 	}
 }
