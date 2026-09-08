@@ -4,7 +4,7 @@ import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.
 import {
 	CommonSystemFacade,
 	DesktopSystemFacade,
-	ImapSyncFacade,
+	MigrationSyncFacade,
 	MobileContactsFacade,
 	MobilePaymentsFacade,
 	MobileSystemFacade,
@@ -137,7 +137,7 @@ export interface CommonLocator {
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
 	driveFacade: DriveFacade
-	imapImporter: ImapSyncFacade
+	mailboxImporter: MigrationSyncFacade
 
 	mailboxModel: MailboxModel
 

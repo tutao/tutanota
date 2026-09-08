@@ -41,17 +41,17 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import {
-	ImapAccountSyncStateTypeRef,
-	ImapFolderSyncStateTypeRef,
 	ImportFileMailStateTypeRef,
 	Mail,
 	MailBox,
+	MailboxMigrationSyncStateTypeRef,
 	MailSet,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
+	MailboxMigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
-import { ImapAccountSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
+import { MailboxMigrationSyncStatus, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import {
 	CacheSyncStatus,
@@ -772,21 +772,24 @@ export class MailViewModel {
 					if (targetFolder) {
 						await this.deleteMailSetEntryRangeFolder(targetFolder, true)
 					}
-				} else if (isUpdateForTypeRef(ImapAccountSyncStateTypeRef, update)) {
-					// We need to drop all ranges for mailSets corresponding to ImapFolderSyncStates + imapSyncLabel
-					const imapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, [
+				} else if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
+					// We need to drop all ranges for mailSets corresponding to MigrationFolderSyncStates + syncLabel
+					const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, [
 						assertNotNull(update.instanceListId),
 						update.instanceId,
 					])
 					// we only reload the folder / label the user is currently viewing in case we are done
-					const shouldReload = imapAccountSyncState.status !== ImapAccountSyncStatus.RUNNING
+					const shouldReload = mailboxMigrationSyncState.status !== MailboxMigrationSyncStatus.RUNNING
 
-					const imapFolderSyncStates = await this.entityClient.loadAll(ImapFolderSyncStateTypeRef, imapAccountSyncState.imapFolderSyncStateList)
-					if (imapAccountSyncState.imapSyncLabel) {
-						const syncLabel = await this.entityClient.load(MailSetTypeRef, imapAccountSyncState.imapSyncLabel)
+					const mailboxMigrationFolderSyncStates = await this.entityClient.loadAll(
+						MailboxMigrationFolderSyncStateTypeRef,
+						mailboxMigrationSyncState.mailboxMigrationFolderSyncStates,
+					)
+					if (mailboxMigrationSyncState.syncLabel) {
+						const syncLabel = await this.entityClient.load(MailSetTypeRef, mailboxMigrationSyncState.syncLabel)
 						await this.deleteMailSetEntryRangeFolder(syncLabel, shouldReload)
 					}
-					const mailSetIdsToDeleteRange = imapFolderSyncStates.map((imapFolderSyncState) => imapFolderSyncState.mailSet).filter(isNotNull)
+					const mailSetIdsToDeleteRange = mailboxMigrationFolderSyncStates.map((folderSyncState) => folderSyncState.mailSet).filter(isNotNull)
 					if (isNotEmpty(mailSetIdsToDeleteRange)) {
 						const mailSetsToDeleteRange = await pMap(
 							mailSetIdsToDeleteRange,
@@ -807,7 +810,7 @@ export class MailViewModel {
 
 	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
-		// currently used when importing mails from a file or IMAP.
+		// currently used when importing mails from a file or Migration.
 		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show
 		// all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to an import in the background

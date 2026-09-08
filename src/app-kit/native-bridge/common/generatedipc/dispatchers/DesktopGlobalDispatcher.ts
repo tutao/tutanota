@@ -10,10 +10,10 @@ import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { ExternalCalendarFacadeReceiveDispatcher } from "./ExternalCalendarFacadeReceiveDispatcher.js"
 import { FileFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { FileFacadeReceiveDispatcher } from "./FileFacadeReceiveDispatcher.js"
-import { ImapSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { ImapSyncSystemFacadeReceiveDispatcher } from "./ImapSyncSystemFacadeReceiveDispatcher.js"
 import { InterWindowEventFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { InterWindowEventFacadeReceiveDispatcher } from "./InterWindowEventFacadeReceiveDispatcher.js"
+import { MigrationSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MigrationSyncSystemFacadeReceiveDispatcher } from "./MigrationSyncSystemFacadeReceiveDispatcher.js"
 import { NativeCredentialsFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { NativeCredentialsFacadeReceiveDispatcher } from "./NativeCredentialsFacadeReceiveDispatcher.js"
 import { NativeCryptoFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -41,8 +41,8 @@ export class DesktopGlobalDispatcher {
 	private readonly exportFacade: ExportFacadeReceiveDispatcher
 	private readonly externalCalendarFacade: ExternalCalendarFacadeReceiveDispatcher
 	private readonly fileFacade: FileFacadeReceiveDispatcher
-	private readonly imapSyncSystemFacade: ImapSyncSystemFacadeReceiveDispatcher
 	private readonly interWindowEventFacade: InterWindowEventFacadeReceiveDispatcher
+	private readonly migrationSyncSystemFacade: MigrationSyncSystemFacadeReceiveDispatcher
 	private readonly nativeCredentialsFacade: NativeCredentialsFacadeReceiveDispatcher
 	private readonly nativeCryptoFacade: NativeCryptoFacadeReceiveDispatcher
 	private readonly nativeMailImportFacade: NativeMailImportFacadeReceiveDispatcher
@@ -59,8 +59,8 @@ export class DesktopGlobalDispatcher {
 		exportFacade: ExportFacade,
 		externalCalendarFacade: ExternalCalendarFacade,
 		fileFacade: FileFacade,
-		imapSyncSystemFacade: ImapSyncSystemFacade,
 		interWindowEventFacade: InterWindowEventFacade,
+		migrationSyncSystemFacade: MigrationSyncSystemFacade,
 		nativeCredentialsFacade: NativeCredentialsFacade,
 		nativeCryptoFacade: NativeCryptoFacade,
 		nativeMailImportFacade: NativeMailImportFacade,
@@ -77,8 +77,8 @@ export class DesktopGlobalDispatcher {
 		this.exportFacade = new ExportFacadeReceiveDispatcher(exportFacade)
 		this.externalCalendarFacade = new ExternalCalendarFacadeReceiveDispatcher(externalCalendarFacade)
 		this.fileFacade = new FileFacadeReceiveDispatcher(fileFacade)
-		this.imapSyncSystemFacade = new ImapSyncSystemFacadeReceiveDispatcher(imapSyncSystemFacade)
 		this.interWindowEventFacade = new InterWindowEventFacadeReceiveDispatcher(interWindowEventFacade)
+		this.migrationSyncSystemFacade = new MigrationSyncSystemFacadeReceiveDispatcher(migrationSyncSystemFacade)
 		this.nativeCredentialsFacade = new NativeCredentialsFacadeReceiveDispatcher(nativeCredentialsFacade)
 		this.nativeCryptoFacade = new NativeCryptoFacadeReceiveDispatcher(nativeCryptoFacade)
 		this.nativeMailImportFacade = new NativeMailImportFacadeReceiveDispatcher(nativeMailImportFacade)
@@ -103,10 +103,10 @@ export class DesktopGlobalDispatcher {
 				return this.externalCalendarFacade.dispatch(methodName, args)
 			case "FileFacade":
 				return this.fileFacade.dispatch(methodName, args)
-			case "ImapSyncSystemFacade":
-				return this.imapSyncSystemFacade.dispatch(methodName, args)
 			case "InterWindowEventFacade":
 				return this.interWindowEventFacade.dispatch(methodName, args)
+			case "MigrationSyncSystemFacade":
+				return this.migrationSyncSystemFacade.dispatch(methodName, args)
 			case "NativeCredentialsFacade":
 				return this.nativeCredentialsFacade.dispatch(methodName, args)
 			case "NativeCryptoFacade":
