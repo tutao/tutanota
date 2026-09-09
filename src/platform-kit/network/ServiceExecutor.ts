@@ -20,8 +20,6 @@ import { assertWorkerOrNode, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
-import { AesKey, SubKeyInfo, SubKeyInfoWithSessionKeyAead, SubKeyInfoWithSessionKeyCbcThenHmac, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
 
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 
@@ -153,23 +151,9 @@ export class ServiceExecutor implements IServiceExecutor {
 
 			const sessionKey = params?.sessionKey ?? null
 			const ownerKey = params?.ownerKey ?? null
-			const subKeyInfo = this.getSubKeyInfo(sessionKey)
-
-			return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(requestEntity._type, requestEntity, subKeyInfo, ownerKey)
+			return await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(requestEntity._type, requestEntity, sessionKey, ownerKey)
 		} else {
 			return null
-		}
-	}
-
-	private getSubKeyInfo(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfo> {
-		if (sessionKey == null) return null
-		switch (this.authDataProvider.getDefaultSymmetricEncryptionScheme()) {
-			case SymmetricEncryptionScheme.AesCbc:
-				return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
-			case SymmetricEncryptionScheme.Aead:
-				return new SubKeyInfoWithSessionKeyAead(sessionKey)
-			default:
-				throw new CryptoError("missing or unknown symmetric encryption scheme")
 		}
 	}
 

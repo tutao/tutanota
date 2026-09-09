@@ -38,7 +38,6 @@ import { SuspensionBehavior } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { ServiceExecutor } from "../../../../../../platform-kit/network/ServiceExecutor"
 
 export interface ImapImportTutaFileId {
 	readonly _type: "ImapImportTutaFileId"
@@ -132,7 +131,6 @@ export class ImportMailFacade {
 				state: importMailParams.state,
 				unread: importMailParams.unread,
 			})
-
 			importedMail._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			importedMail._ownerEncSessionKey = ownerEncSessionKey.key
 
@@ -174,16 +172,19 @@ export class ImportMailFacade {
 							),
 						}),
 						replyTos: importMailParams.replyTos.map(recipientToEncryptedMailAddress),
-						// There is also a sent date in importMailParams. Should that be used instead???
-						sentDate: importMailParams.receivedDate,
+						sentDate: importMailParams.sentDate,
 					}),
 				}),
 				messageId: importMailParams.messageId,
 				references: importMailParams.references.map(referenceToImportMailDataMailReference),
 			})
 
-			const subKeyInfo = (this.serviceExecutor as ServiceExecutor)["getSubKeyInfo"](sk) // TODO: make this less hacky
-			const untypedInstance = await this.instancePipeline.mapAndEncryptWithSubKeyInfo(ImportMailData2TypeRef, importMailData2, subKeyInfo, mailGroupKey)
+			const untypedInstance = await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(
+				ImportMailData2TypeRef,
+				importMailData2,
+				sk,
+				mailGroupKey,
+			)
 
 			const encImport2 = createStringWrapper({
 				value: untypedInstance.getJsonRepresentation(),
@@ -245,7 +246,7 @@ export class ImportMailFacade {
 						ownerEncFileSessionKey: ownerEncFileSessionKey.key,
 						ownerFileKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
 						existingAttachmentFile: existingFile._id,
-						newAttachment: null, // TODO: Is this never used???
+						newAttachment: null,
 					}),
 				)
 			}

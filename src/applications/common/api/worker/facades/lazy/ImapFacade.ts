@@ -119,12 +119,15 @@ export class ImapFacade {
 
 		const imapPostIn = createImapPostIn({
 			imapAccount: initializeParams.imapAccount,
+			imapAccountSyncState,
+
+			// These are now contained in the imapAccountSyncState
+
 			maxQuota: null,
 			postponedUntil: null,
 			rootImportMailSet: null,
 			syncLabel: null,
 			provider: null,
-			imapAccountSyncState,
 		})
 
 		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, {
@@ -209,7 +212,9 @@ export class ImapFacade {
 				imapAccountSyncState: imapAccountSyncState._id,
 				shouldSync,
 				imapFolderSyncState,
+
 				// These are now contained in the imapFolderSyncState
+
 				path: null,
 				mailSet: null,
 				imapSpecialUse: null,
@@ -270,7 +275,9 @@ export class ImapFacade {
 				imapAccountSyncState: imapAccountSyncState._id,
 				shouldSync: mailSetId !== null && !shouldCreateLabels,
 				imapFolderSyncState,
+
 				// These are now contained in the imapFolderSyncState
+
 				path: null,
 				mailSet: null,
 				imapSpecialUse: null,
