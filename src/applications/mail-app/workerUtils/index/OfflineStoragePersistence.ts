@@ -296,26 +296,6 @@ VALUES (
 		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
 	}
 
-	async countEncryptedMailDetailsBlobsInArchives(archivesNeeded: readonly Id[]): Promise<number> {
-		const archivesNeededDeduped = deduplicate(archivesNeeded)
-		if (isEmpty(archivesNeededDeduped)) {
-			return 0
-		}
-
-		const query = `SELECT COUNT(*) as total
-					   FROM encrypted_mail_details_blobs
-					   WHERE ${archivesNeededDeduped.map(() => "archiveId = ?").join(" OR ")}`
-
-		const params = archivesNeededDeduped.map(tagSqlValue)
-
-		const result = await this.sqlCipherFacade.get(query, params)
-		if (result == null) {
-			return 0
-		}
-
-		return untagSqlValue(result["total"]) as number
-	}
-
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
 		if (isEmpty(blobs)) {
 			return
@@ -448,6 +428,48 @@ VALUES (
 			return null
 		}
 		return untagSqlObject(rowIdResult).rowid
+	}
+
+	async estimateTotalBlobCountForArchives(ownerGroup: Id, archiveIds: readonly Id[]): Promise<number> {
+		// First, we need to get the number of every Mail that's indexed. This will include drafts, so it's not going to
+		// be 100% accurate. However, we expect drafts to not take up a significant portion of most mailboxes.
+		//
+		// We can't just check the cache for mail details blobs, as we might also be re-indexing.
+		let alreadyIndexedCount: number
+		{
+			const { query, params } =
+				sql`SELECT COUNT(*) as total from list_entities WHERE ownerGroup = ${ownerGroup} AND rowid IN (SELECT rowid FROM mail_index)`
+			const result = await this.sqlCipherFacade.get(query, params)
+			alreadyIndexedCount = (untagSqlObject(result ?? {})["total"] ?? 0) as number
+		}
+
+		let total = 0
+		for (const archive of archiveIds) {
+			let estimatedCount = 0
+
+			// First, let's get the preloaded count
+			{
+				const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_mail_details_blobs WHERE archiveId = ${archive}`
+				const result = await this.sqlCipherFacade.get(query, params)
+				if (result != null) {
+					estimatedCount = untagSqlValue(result["total"]) as number
+				}
+			}
+
+			// This might not have been preloaded, though! If so, it's already in our cache
+			if (estimatedCount === 0) {
+				const { query, params } = sql`SELECT COUNT(*) as total FROM blob_element_entities WHERE listId = ${archive}`
+				const result = await this.sqlCipherFacade.get(query, params)
+				if (result != null) {
+					estimatedCount = untagSqlValue(result["total"]) as number
+				}
+			}
+
+			total += estimatedCount
+		}
+
+		// There is some inaccuracy here. We don't know what mails actually have blobs (non-drafts).
+		return Math.max(total - alreadyIndexedCount, 0)
 	}
 
 	async resetMailIndex() {
