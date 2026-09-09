@@ -286,7 +286,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 			return
 		}
 
-		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.path }, info.text, [], "", "") } catch {
+		do { try await self.commonNativeFacade.createMailEditor(info.fileUrls.map { $0.absoluteString }, info.text, [], "", "") } catch {
 			TUTSLog("failed to open mail editor to share: \(error)")
 			try FileUtils.deleteSharedStorage(subDir: info.identifier)
 		}
