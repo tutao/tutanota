@@ -31,7 +31,6 @@ import {
 import {
 	AccountType,
 	AccountTypeNames,
-	AvailablePlans,
 	AvailablePlanType,
 	BookingItemFeatureType,
 	isExternalPaymentMethod,
@@ -83,6 +82,7 @@ import { shouldOfferSubscriptionRevocation } from "./RevocationEligibility"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
+import { InfoIconAttrs } from "../../../../ui/base/InfoIcon"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -268,7 +268,14 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						title: "subscriptionSettingCurrentSubscription_label",
 						cells: [
 							this.getPlanCellAttrs(planType),
-							this.getStatusCellAttrs(currentStateSubscription),
+							this.getStatusCellAttrs(
+								currentStateSubscription,
+								this.getSubscriptionStatusDescriptionText(currentStateSubscription)
+									? {
+											text: this.getSubscriptionStatusDescriptionText(currentStateSubscription),
+										}
+									: undefined,
+							),
 							!isExternalSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
 							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
 						],
@@ -487,6 +494,19 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			return "cancelled"
 		} else {
 			return "unknown"
+		}
+	}
+
+	private getSubscriptionStatusDescriptionText(state: SubscriptionStatus): string | null {
+		switch (state) {
+			case "expired":
+				return lang.getTranslationText("subscriptionSettingsExpiredStateDescription_label")
+			case "revoked":
+				return lang.getTranslationText("subscriptionSettingsRevokedStateDescription_label")
+			case "cancelled":
+				return lang.getTranslationText("subscriptionSettingsCancelledStateDescription_label")
+			default:
+				return null
 		}
 	}
 
@@ -923,10 +943,28 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private getStatusCellAttrs(status: SubscriptionStatus): SubscriptionStateCellAttrs {
+	private getStatusCellAttrs(status: SubscriptionStatus, infoIcon?: InfoIconAttrs): SubscriptionStateCellAttrs {
 		return {
 			label: "state_label",
 			value: lang.getTranslationText(this.getSubscriptionStateLabel(status)),
+			infoIcon,
+		}
+	}
+
+	private getInfoForCurrentSubscriptionStatus(status: SubscriptionStatus) {
+		switch (status) {
+			case "active":
+				return "Your subscription is currently active"
+			case "expired":
+				return "Your subscription could not downgraded to free"
+			case "revoked":
+				return "Your subscription is revoked and will be downgraded to free in the next days"
+			case "planned":
+				return "This is your next subscription period"
+			case "cancelled":
+				return "Your subscription was cancelled. All paid features will be available until your subscription ends"
+			case "unknown":
+				break
 		}
 	}
 

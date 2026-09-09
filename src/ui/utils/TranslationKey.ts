@@ -2527,3 +2527,7 @@ export type TranslationKeyType =
 	| "checkoutWithGooglePlay_action"
 	| "subscriptionSettingManageSubscriptionGoogle_action"
 	| "subscriptionSettingGoogleWebsite_action"
+	| "expiredSubscriptionPaymentChange_msg"
+	| "subscriptionSettingsExpiredStateDescription_label"
+	| "subscriptionSettingsRevokedStateDescription_label"
+	| "subscriptionSettingsCancelledStateDescription_label"

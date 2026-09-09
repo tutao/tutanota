@@ -2527,7 +2527,11 @@ export default {
 		"checkoutWithGooglePlay_action": "Im Google Play Store bezahlen",
 		"subscriptionSettingManageSubscriptionGoogle_action": "Google Einstellungen",
 		"subscriptionSettingGoogleWebsite_action": "Google-Webseite",
-		"storeSubscriptionGoogle_msg": "Bitte verwalte im Google Play Store abgeschlossene Abonnements direkt dort.\nSiehe {AppStorePayment}",
+		"storeSubscriptionGoogle_msg": "Bitte verwalte im Google Play Store abgeschlossene Abonnements direkt dort. Siehe {AppStorePayment}",
 		"storePaymentMethodChangeGoogle_msg": "Es ist nicht möglich, Ihre Zahlungsmethode zu ändern, während Sie über den Google Play Store registriert sind.\nSiehe {AppStorePaymentChange}",
+		"expiredSubscriptionPaymentChange_msg": "Ihr Abonnement ist abgelaufen. Um Ihre Zahlungsmethode zu ändern, wechsle Sie bitte zuerst zum kostenlosen Abonnement oder abonnieren Sie Ihr bisheriges Abonnement erneut.",
+		"subscriptionSettingsExpiredStateDescription_label": "Ihr Abonnement ist abgelaufen, aber einige kostenpflichtige Funktionen werden noch verwendet. Deshalb können Sie Ihr dein Account derzeit nur eingeschränkt nutzen.",
+		"subscriptionSettingsRevokedStateDescription_label": "Ihr Abonnement wurde widerrufen. Sie bekommen den Betrag innerhalb der nächsten Tage zurückerstattet. Danach wird Ihr Account auf den Free Plan gewechselt.",
+		"subscriptionSettingsCancelledStateDescription_label": "Ihr Abonnement wurde gekündigt und verlängert sich nicht. Sie haben bis zum Ende Ihres aktuellen Abrechnungszeitraums vollen Zugriff auf alle Funktionen.",
 	}
 }
