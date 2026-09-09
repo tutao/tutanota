@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Component, Vnode } from "mithril"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Card } from "../../../../ui/base/Card"
 import { MenuTitle } from "../../../../ui/titles/MenuTitle"

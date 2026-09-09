@@ -2532,5 +2532,8 @@ export default {
 		"giftCardNotAvailableAppStore_msg": "Der Kauf von Gutscheinen ist nicht möglich, da Sie über ein aktives App Store-Abonnement verfügen.",
 		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da Sie über ein aktives Google Play Store-Abonnement verfügen.",
 		"expiredSubscriptionPaymentChange_msg": "Ihr Abonnement ist abgelaufen. Um Ihre Zahlungsmethode zu ändern, wechsle Sie bitte zuerst zum kostenlosen Abonnement oder abonnieren Sie Ihr bisheriges Abonnement erneut.",
+		"subscriptionSettingsExpiredStateDescription_label": "Ihr Abonnement ist abgelaufen, aber einige kostenpflichtige Funktionen werden noch verwendet. Deshalb können Sie Ihr dein Account derzeit nur eingeschränkt nutzen.",
+		"subscriptionSettingsRevokedStateDescription_label": "Ihr Abonnement wurde widerrufen. Sie bekommen den Betrag innerhalb der nächsten Tage zurückerstattet. Danach wird Ihr Account auf den Free Plan gewechselt.",
+		"subscriptionSettingsCancelledStateDescription_label": "Ihr Abonnement wurde gekündigt und verlängert sich nicht. Sie haben bis zum Ende Ihres aktuellen Abrechnungszeitraums vollen Zugriff auf alle Funktionen.",
 	}
 }

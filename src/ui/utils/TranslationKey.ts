@@ -2530,3 +2530,6 @@ export type TranslationKeyType =
 	| "giftCardNotAvailableGoogle_msg"
 	| "giftCardNotAvailableApple_msg"
 	| "expiredSubscriptionPaymentChange_msg"
+	| "subscriptionSettingsExpiredStateDescription_label"
+	| "subscriptionSettingsRevokedStateDescription_label"
+	| "subscriptionSettingsCancelledStateDescription_label"
