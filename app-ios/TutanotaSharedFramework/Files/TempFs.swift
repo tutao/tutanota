@@ -23,7 +23,6 @@ public actor TempFs {
 			return FileInfo(name: name.fileName, size: Int64(chunk.count))
 		case .stream: throw GenericTutanotaError(message: "fileInfo is not available for tuta-stream uris")
 		case .file(let url):
-			try self.assertInTmp(url: url)
 			let fileInfo = try getFileInfo(fileUri: url)
 			return fileInfo
 		}
