@@ -86,7 +86,10 @@ class WidgetUIViewModel(
 		val (settings, calendars, credentials, lastSync) = widgetStoredState
 		Log.i(TAG, "[$widgetId] Loaded stored widget $widgetId state. Last sync info $lastSync")
 
-		_uiState.value = WidgetUIState.Loading
+		if (_uiState.value is WidgetUIState.NewConfigurationProvided) {
+			_uiState.value = WidgetUIState.Loading
+		}
+
 		// Force is set as True when worker detects that it's a new day
 		val forceRemoteEventsFetch = lastSync?.force ?: false
 
