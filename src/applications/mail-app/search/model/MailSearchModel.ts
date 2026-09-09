@@ -45,6 +45,12 @@ export class MailSearchModel {
 		})
 	}
 
+	updateIndexingState(state: SearchIndexStateInfo) {
+		if (JSON.stringify(state) !== JSON.stringify(this.indexState())) {
+			this.indexState(state)
+		}
+	}
+
 	async searchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
 		if (!EnvProvider.get().isFullArchiveSearchAvailable() && searchQuery.restriction.end == null) {
 			// we set search end when null to be able to tell when the same search is extended
