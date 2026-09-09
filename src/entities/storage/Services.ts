@@ -1,3 +1,5 @@
+import { ArchiveEnumerationGetIn, ArchiveEnumerationGetInTypeRef } from "./TypeRefs.js"
+import { ArchiveEnumerationGetOut, ArchiveEnumerationGetOutTypeRef } from "./TypeRefs.js"
 import { BlobAccessTokenPostIn, BlobAccessTokenPostInTypeRef } from "./TypeRefs.js"
 import { BlobAccessTokenPostOut, BlobAccessTokenPostOutTypeRef } from "./TypeRefs.js"
 import { BlobReferencePutIn, BlobReferencePutInTypeRef } from "./TypeRefs.js"
@@ -5,6 +7,13 @@ import { BlobReferenceDeleteIn, BlobReferenceDeleteInTypeRef } from "./TypeRefs.
 import { BlobGetIn, BlobGetInTypeRef } from "./TypeRefs.js"
 import { BlobPostOut, BlobPostOutTypeRef } from "./TypeRefs.js"
 import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
+
+export const ArchiveEnumerationService_GET = new GetService<ArchiveEnumerationGetIn, ArchiveEnumerationGetOut>(
+	"storage",
+	"ArchiveEnumerationService",
+	ArchiveEnumerationGetInTypeRef,
+	ArchiveEnumerationGetOutTypeRef,
+)
 
 export const BlobAccessTokenService_POST = new PostService<BlobAccessTokenPostIn, BlobAccessTokenPostOut>(
 	"storage",
