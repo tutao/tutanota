@@ -256,6 +256,7 @@ o.spec("OfflineMailIndexer", () => {
 		const storedMailData = matchers.captor()
 
 		verify(persistence.storeMailData(storedMailData.capture()))
+		verify(persistence.markArchiveAsDownloaded(listIdPart(mail.mailDetails)))
 
 		const storedMails: Array<MailWithDetailsAndAttachments> = storedMailData.values![0]
 		o.check(storedMails.length).equals(1)
@@ -323,6 +324,7 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 		verify(cacheStorage.putMultiple(matchers.anything(), matchers.anything()), { times: 0 })
+		verify(persistence.markArchiveAsDownloaded(matchers.anything()), { times: 0 })
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedMailDetailsBlobs())
@@ -452,6 +454,7 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(blobCaptor.values?.flat().every((a) => allBlobs.has(a))).equals(true)
 
 		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
+		verify(persistence.markArchiveAsDownloaded(archiveId))
 		verify(persistence.clearEncryptedMailDetailsBlobs())
 	})
 
