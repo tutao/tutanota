@@ -78,7 +78,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -915,7 +915,7 @@ class MailLocator implements CommonLocator {
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
-			this.mailSearchModel().then((model) => model.indexState(state))
+			this.mailSearchModel().then((model) => model.updateIndexingState(state))
 		})
 		this.autosaveFacade = autosaveFacade
 		this.imapImporter = imapImporter
