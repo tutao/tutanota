@@ -172,6 +172,7 @@ import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../plugin-manager/PluginManager"
+import { PluginHost } from "../plugin-manager/PluginHost"
 
 EnvProvider.assertMainOrNode()
 
@@ -251,6 +252,7 @@ class MailLocator implements CommonLocator {
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
+	private pluginManager!: PluginManager
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -600,6 +602,7 @@ class MailLocator implements CommonLocator {
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
 				this.syncTracker,
+				this.pluginManager,
 			)
 	}
 
@@ -947,9 +950,8 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
-
-		const pluginManager = new PluginManager()
-		await pluginManager.loadPlugins()
+		this.pluginManager = new PluginManager(new PluginHost())
+		await this.pluginManager.loadPlugins()
 
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")

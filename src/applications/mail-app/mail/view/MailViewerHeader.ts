@@ -685,7 +685,8 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				open: viewModel.attachmentDownloader.canOpenAttachment(attachment)
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
-				nextcloud: EnvProvider.get().isNextCloudPlugin() ? () => viewModel.saveToNextcloud(attachment) : null,
+				//FIXME assuming one button for now
+				nextcloud: viewModel.getAttachmentButtons()[0]?.clickCallback ?? null,
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})
