@@ -1,7 +1,7 @@
 import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "./SymmetricCipherVersion.js"
 import { bitArrayToUint8Array, InitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils"
 import { CryptoError } from "@tutao/crypto/error"
-import { uint8ArrayConcat } from "@tutao/utils"
+import { uint8ArrayUtils } from "@tutao/utils"
 import sjcl from "../../internal/sjcl"
 import { hmacSha256, verifyHmacSha256, verifyHmacSha256Async } from "../Hmac"
 import { AesCbcSubKeys, AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "./SymmetricKeyDeriver"
@@ -56,7 +56,7 @@ export class AesCbcFacade {
 			unauthenticatedCiphertext = ciphertext
 		} else {
 			//version byte is not included into authentication tag for legacy reasons
-			unauthenticatedCiphertext = uint8ArrayConcat(initializationVector.bytes, ciphertext)
+			unauthenticatedCiphertext = uint8ArrayUtils(initializationVector.bytes, ciphertext)
 		}
 		switch (cipherVersion) {
 			case SymmetricCipherVersion.UnusedReservedUnauthenticated:
@@ -68,7 +68,7 @@ export class AesCbcFacade {
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (subKeys instanceof AesCbcThenHmacSubKeys) {
 					const authenticationTag = hmacSha256(subKeys.authenticationKey, unauthenticatedCiphertext)
-					return uint8ArrayConcat(
+					return uint8ArrayUtils(
 						symmetricCipherVersionToUint8Array(SymmetricCipherVersion.AesCbcThenHmac),
 						unauthenticatedCiphertext,
 						authenticationTag,
@@ -145,7 +145,7 @@ export class AesCbcFacade {
 
 	private assembleVerifiableCiphertext(parsedCiphertext: ParsedCiphertextAesCbc): Uint8Array<ArrayBuffer> {
 		if (parsedCiphertext.initializationVector.variant === InitializationVectorVariant.Random) {
-			return uint8ArrayConcat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
+			return uint8ArrayUtils(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		} else {
 			return parsedCiphertext.ciphertext
 		}

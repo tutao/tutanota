@@ -9,7 +9,7 @@ import {
 	numberOfBytes,
 	removeBinaryBlockRanges,
 } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
-import { uint8ArrayConcat } from "../../../../../src/platform-kit/utils"
+import { uint8ArrayUtils } from "../../../../../src/platform-kit/utils"
 
 o.spec("SearchIndexEncoding test", function () {
 	o("numberOfBytes", function () {
@@ -140,7 +140,7 @@ o.spec("SearchIndexEncoding test", function () {
 			const row = new Uint8Array([0x01, 0x02])
 			const newDataOne = new Uint8Array(256).fill(2)
 			const newDataTwo = new Uint8Array([0x01])
-			const expected = uint8ArrayConcat(new Uint8Array([0x01, 0x02]), new Uint8Array([0x82, 0x01, 0x00]), newDataOne, new Uint8Array([0x01, 0x01]))
+			const expected = uint8ArrayUtils(new Uint8Array([0x01, 0x02]), new Uint8Array([0x82, 0x01, 0x00]), newDataOne, new Uint8Array([0x01, 0x01]))
 			o(JSON.stringify(appendBinaryBlocks([newDataOne, newDataTwo], row))).equals(JSON.stringify(expected))
 		})
 	})

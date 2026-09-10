@@ -1,7 +1,7 @@
 import { PdfObject } from "./PdfObject.js"
 import { GENERATION_NUMBER, NEW_LINE, PDF_DEFAULT_OBJECTS, PDF_METADATA, PdfDictValue, PdfObjectRef, PdfStreamEncoding } from "./PdfConstants.js"
 import { PdfStreamObject } from "./PdfStreamObject.js"
-import { hexToUint8Array, uint8ArrayConcat } from "@tutao/utils"
+import { hexToUint8Array, uint8ArrayUtils } from "@tutao/utils"
 import { Deflater } from "./Deflater.js"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -330,6 +330,6 @@ export class PdfWriter {
 		const identifier = "FACEBEEF" + Date.now().toString() + Date.now().toString()
 		encodedObjects.push(this.textEncoder.encode(this.makeTrailer(identifier))) // Make trailer
 
-		return uint8ArrayConcat(...encodedObjects)
+		return uint8ArrayUtils(...encodedObjects)
 	}
 }

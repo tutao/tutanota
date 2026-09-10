@@ -1,4 +1,5 @@
 import { identity } from "./Utils.js"
+import { getFromMap } from "./MapUtils"
 
 /**
  * Everything that is in both array1 and array2
@@ -161,4 +162,122 @@ export function collectionUniqueBy<T>(collection: Iterable<T>, discriminator: (i
 		map.set(discriminator(item), item)
 	}
 	return map.values()
+}
+/**
+ * Group an array based on the given discriminator, but each group will have only unique items
+ */
+export function iterableGroupedUniqByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Set<E>> {
+	const map = new Map()
+
+	for (let el of iterable) {
+		const key = discriminator(el)
+		getFromMap(map, key, () => new Set()).add(mapper(el))
+	}
+
+	return map
+}
+
+/**
+ * convert an Array of T's into a Map of Arrays of E's by
+ * * grouping them based on a discriminator
+ * * mapping them from T to E
+ * @param iterable the array to split into groups
+ * @param discriminator a function that produces the keys to group the elements by
+ * @param mapper a function that maps the array elements before they get added to the group
+ * @returns {Map<R, Array<E>>}
+ */
+export function iterableGroupedByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
+	const map = new Map()
+
+	for (const el of iterable) {
+		const key = discriminator(el)
+		getFromMap(map, key, () => Array<E>()).push(mapper(el))
+	}
+
+	return map
+}
+
+/**
+ * Group array elements based on keys produced by a discriminator
+ * @param iterable the array to split into groups
+ * @param discriminator a function that produces the keys to group the elements by
+ * @returns {NodeJS.Global.Map<R, Array<T>>}
+ */
+export function iterableGroupedBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) => R): Map<R, Array<T>> {
+	return iterableGroupedByMapped(iterable, discriminator, identity)
+}
+
+/**
+ * Collect an iterable into a map based on {@param keyExtractor}.
+ */
+export function iterableCollectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
+	const map = new Map()
+	for (const el of iterable) {
+		const key = keyExtractor(el)
+		if (map.has(key)) {
+			throw new Error(`The elements of iterable are not unique, duplicated key: ${key}`)
+		}
+		map.set(key, el)
+	}
+	return map
+}
+
+/**
+ * All of the elements in all of the arguments combined, and deduplicated
+ */
+export function iterableUnion<T>(...iterables: Array<Iterable<T>>): Set<T> {
+	return new Set(...iterables.map((iterable) => Array.from(iterable)))
+}
+
+/**
+ * return a new array containing every item from array1 that isn't in array2
+ * @template T
+ * @param array1
+ * @param array2
+ * @param compare {(l: T, r: T) => boolean} compare items in the array for equality
+ * @returns {Array<T>}
+ */
+export function iterableDifference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
+	return array1.filter((element1) => !array2.some((element2) => compare(element1, element2)))
+}
+
+/**
+ * Returns a set with elements that are *not* in both sets.
+ *
+ * {a, b, c} △ {b, c, d} == {a, d}
+ */
+export function setSymmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
+	const diff = new Set<T>()
+
+	for (const el of set1) {
+		if (!set2.has(el)) {
+			diff.add(el)
+		}
+	}
+
+	for (const el of set2) {
+		if (!set1.has(el)) {
+			diff.add(el)
+		}
+	}
+
+	return diff
+}
+/**
+ * Create an array filled with the numbers min..max (inclusive)
+ */
+export function numberRange(min: number, max: number): Array<number> {
+	return [...Array(max + 1).keys()].slice(min)
+}
+
+/**
+ * Create a generator for integer range in [min; max).
+ */
+export function* lazyNumberRange(min: number, max: number): Generator<number> {
+	let current = min
+
+	while (current < max) {
+		yield current
+		current++
+	}
 }

@@ -18,9 +18,9 @@ import {
 	Nullable,
 	promiseMap,
 	uint8ArrayChunked,
-	uint8ArrayConcat,
 	uint8ArrayToBase64,
 	uint8ArrayToString,
+	uint8ArrayUtils,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
@@ -699,7 +699,7 @@ export class BlobFacade {
 				}
 			}
 		}
-		return uint8ArrayConcat(...decryptedChunks)
+		return uint8ArrayUtils(...decryptedChunks)
 	}
 
 	/**

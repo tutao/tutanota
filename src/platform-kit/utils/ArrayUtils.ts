@@ -1,35 +1,4 @@
-import { downcast, identity, neverNull } from "./Utils.js"
-import { getFromMap } from "./MapUtils.js"
-
-export function uint8ArrayConcat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
-	let length = arrays.reduce((previous, current) => previous + current.length, 0)
-	let result = new Uint8Array(length)
-	let index = 0
-	for (const array of arrays) {
-		result.set(array, index)
-		index += array.length
-	}
-	return result
-}
-
-/**
- * Create an array filled with the numbers min..max (inclusive)
- */
-export function numberRange(min: number, max: number): Array<number> {
-	return [...Array(max + 1).keys()].slice(min)
-}
-
-/**
- * Create a generator for integer range in [min; max).
- */
-export function* lazyNumberRange(min: number, max: number): Generator<number> {
-	let current = min
-
-	while (current < max) {
-		yield current
-		current++
-	}
-}
+import { downcast, neverNull } from "./Utils.js"
 
 /**
  * Compares two arrays for equality based on ===.
@@ -76,21 +45,6 @@ export function arrayEqualsBy<T>(a1: ReadonlyArray<T>, a2: ReadonlyArray<T>, pre
 	}
 
 	return false
-}
-
-export function uint8ArrayHashSigned(array: Uint8Array): number {
-	let hash = 0
-	hash |= 0
-
-	for (let i = 0; i < array.length; i++) {
-		hash = (hash << 5) - hash + array[i]
-		hash |= 0 // Convert to 32bit signed integer
-	}
-	return hash
-}
-
-export function uint8ArrayHashUnsigned(array: Uint8Array): number {
-	return uint8ArrayHashSigned(array) >>> 0
 }
 
 /**
@@ -276,65 +230,6 @@ export function arrayRemoveAll(array: Array<any>, elements: Array<any>): void {
 }
 
 /**
- * Group an array based on the given discriminator, but each group will have only unique items
- */
-export function iterableGroupedUniqByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Set<E>> {
-	const map = new Map()
-
-	for (let el of iterable) {
-		const key = discriminator(el)
-		getFromMap(map, key, () => new Set()).add(mapper(el))
-	}
-
-	return map
-}
-
-/**
- * convert an Array of T's into a Map of Arrays of E's by
- * * grouping them based on a discriminator
- * * mapping them from T to E
- * @param iterable the array to split into groups
- * @param discriminator a function that produces the keys to group the elements by
- * @param mapper a function that maps the array elements before they get added to the group
- * @returns {Map<R, Array<E>>}
- */
-export function iterableGroupedByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
-	const map = new Map()
-
-	for (const el of iterable) {
-		const key = discriminator(el)
-		getFromMap(map, key, () => Array<E>()).push(mapper(el))
-	}
-
-	return map
-}
-
-/**
- * Group array elements based on keys produced by a discriminator
- * @param iterable the array to split into groups
- * @param discriminator a function that produces the keys to group the elements by
- * @returns {NodeJS.Global.Map<R, Array<T>>}
- */
-export function iterableGroupedBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) => R): Map<R, Array<T>> {
-	return iterableGroupedByMapped(iterable, discriminator, identity)
-}
-
-/**
- * Collect an iterable into a map based on {@param keyExtractor}.
- */
-export function iterableCollectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
-	const map = new Map()
-	for (const el of iterable) {
-		const key = keyExtractor(el)
-		if (map.has(key)) {
-			throw new Error(`The elements of iterable are not unique, duplicated key: ${key}`)
-		}
-		map.set(key, el)
-	}
-	return map
-}
-
-/**
  * split an array into chunks of a given size.
  * the last chunk will be smaller if there are less than chunkSize elements left.
  * if array is empty, the last (and only) chunk will be empty (i.e. `[[]]` gets returned)
@@ -346,32 +241,12 @@ export function arrayChunked<T>(chunkSize: number, array: ReadonlyArray<T>): Arr
 	return _chunkArray(chunkSize, array)
 }
 
-export function uint8ArrayChunked(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
-	return _chunkUint8Array(chunkSize, array)
-}
-
 function _chunkArray<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
 	if (chunkSize < 1) {
 		return []
 	}
 	let chunkNum = 0
 	const chunks: Array<Array<T>> = []
-	let end
-	do {
-		let start = chunkNum * chunkSize
-		end = start + chunkSize
-		chunks[chunkNum] = array.slice(start, end)
-		chunkNum++
-	} while (end < array.length)
-	return chunks
-}
-
-function _chunkUint8Array(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
-	if (chunkSize < 1) {
-		return []
-	}
-	let chunkNum = 0
-	const chunks: Array<Uint8Array<ArrayBuffer>> = []
 	let end
 	do {
 		let start = chunkNum * chunkSize
@@ -499,48 +374,6 @@ export function arrayLastIndex<T>(array: ReadonlyArray<T>): number {
 }
 
 /**
- * All of the elements in all of the arguments combined, and deduplicated
- */
-export function iterableUnion<T>(...iterables: Array<Iterable<T>>): Set<T> {
-	return new Set(...iterables.map((iterable) => Array.from(iterable)))
-}
-
-/**
- * return a new array containing every item from array1 that isn't in array2
- * @template T
- * @param array1
- * @param array2
- * @param compare {(l: T, r: T) => boolean} compare items in the array for equality
- * @returns {Array<T>}
- */
-export function iterableDifference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
-	return array1.filter((element1) => !array2.some((element2) => compare(element1, element2)))
-}
-
-/**
- * Returns a set with elements that are *not* in both sets.
- *
- * {a, b, c} △ {b, c, d} == {a, d}
- */
-export function setSymmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
-	const diff = new Set<T>()
-
-	for (const el of set1) {
-		if (!set2.has(el)) {
-			diff.add(el)
-		}
-	}
-
-	for (const el of set2) {
-		if (!set1.has(el)) {
-			diff.add(el)
-		}
-	}
-
-	return diff
-}
-
-/**
  * Splits an array into two based on a predicate, where elements that match the predicate go into the left side.
  *
  * This exists in two overloads:
@@ -596,30 +429,7 @@ export async function arrayPartitionedAsync<T>(array: Array<T>, predicate: (item
  * Create an array with n elements by calling the provided factory
  */
 export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
-	return numberRange(0, n - 1).map(factory)
-}
-
-/**
- * @return 1 if first is bigger than second, -1 if second is bigger than first and 0 otherwise
- */
-export function uint8ArrayCompare(first: Uint8Array, second: Uint8Array): number {
-	if (first.length > second.length) {
-		return 1
-	} else if (first.length < second.length) {
-		return -1
-	}
-
-	for (let i = 0; i < first.length; i++) {
-		const a = first[i]
-		const b = second[i]
-		if (a > b) {
-			return 1
-		} else if (a < b) {
-			return -1
-		}
-	}
-
-	return 0
+	return new Array(n).map((_, idx) => factory(idx))
 }
 
 /**
@@ -637,13 +447,6 @@ export function uint8ArrayCompare(first: Uint8Array, second: Uint8Array): number
  *          {@link index} to the end.
  */
 export function arraySplitAt<T>(array: readonly T[], index: number): [T[], T[]] {
-	const left = array.slice(0, index)
-	const right = array.slice(index)
-
-	return [left, right]
-}
-
-export function uint8ArraySplitAt(array: Uint8Array, index: number): [Uint8Array, Uint8Array] {
 	const left = array.slice(0, index)
 	const right = array.slice(index)
 

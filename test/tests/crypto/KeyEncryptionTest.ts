@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { base64ToUint8Array, uint8ArrayConcat } from "../../../src/platform-kit/utils"
+import { base64ToUint8Array, uint8ArrayUtils } from "../../../src/platform-kit/utils"
 import {
 	Aes128Key,
 	Aes256Key,
@@ -110,7 +110,7 @@ o.spec("key encryption", function () {
 function legacyEncryptKeyWithDeviceKeyChain(keyChainKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array<ArrayBuffer> {
 	const initializationVector = _aes128RandomKey()
 	const encryptedBits = sjcl.mode.cbc.encrypt(new sjcl.cipher.aes(keyChainKey.bits), keyToBeEncrypted.bits, initializationVector.bits, [], false)
-	return uint8ArrayConcat(bitArrayToUint8Array(initializationVector.bits), bitArrayToUint8Array(encryptedBits))
+	return uint8ArrayUtils(bitArrayToUint8Array(initializationVector.bits), bitArrayToUint8Array(encryptedBits))
 }
 
 //Do not use outside this test!!!

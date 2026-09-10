@@ -47,7 +47,7 @@ import {
 } from "../../../../../src/platform-kit/app-env"
 
 import { CryptoFacade, RecipientKeyData } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
-import { arrayRemoveAllBy, assertNotNull, lazyAsync, lazyMemoized, uint8ArrayConcat, Versioned } from "../../../../../src/platform-kit/utils"
+import { arrayRemoveAllBy, assertNotNull, lazyAsync, lazyMemoized, uint8ArrayUtils, Versioned } from "../../../../../src/platform-kit/utils"
 import { RecoverCodeFacade } from "../../../../../src/platform-kit/base/facades/lazy/RecoverCodeFacade.js"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
 import { ShareFacade } from "../../../../../src/platform-kit/base/facades/lazy/ShareFacade.js"
@@ -411,7 +411,7 @@ function prepareMultiAdminUserKeyRotation(
 		decryptedAesKey: NEW_ADMIN_GROUP_KEY.object,
 	})
 
-	const newAdminGroupHashData = uint8ArrayConcat(Uint8Array.from([0, NEW_ADMIN_GROUP_KEY.version]), Uint8Array.from(NEW_ADMIN_GROUP_KEY.object.bits))
+	const newAdminGroupHashData = uint8ArrayUtils(Uint8Array.from([0, NEW_ADMIN_GROUP_KEY.version]), Uint8Array.from(NEW_ADMIN_GROUP_KEY.object.bits))
 	const newAdminGroupSymKeyHash = object<Uint8Array<ArrayBuffer>>()
 	when(mocks.cryptoWrapper.sha256Hash(newAdminGroupHashData)).thenReturn(newAdminGroupSymKeyHash)
 	// public key service request to get the admin keys

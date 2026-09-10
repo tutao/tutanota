@@ -19,9 +19,9 @@ import {
 	lazyNumberRange,
 	setSymmetricDifference,
 	uint8ArrayCompare,
-	uint8ArrayConcat,
 	uint8ArrayHashSigned,
 	uint8ArrayHashUnsigned,
+	uint8ArrayUtils,
 } from "../../../src/platform-kit/utils"
 
 type ObjectWithId = {
@@ -31,12 +31,12 @@ type ObjectWithId = {
 }
 o.spec("array utils", function () {
 	o("concat arrays", function () {
-		o(Array.from(uint8ArrayConcat(new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])))).deepEquals([1, 2, 3, 4, 5, 6])
-		o(Array.from(uint8ArrayConcat(new Uint8Array([]), new Uint8Array([1])))).deepEquals([1])
-		o(Array.from(uint8ArrayConcat(new Uint8Array([1]), new Uint8Array([])))).deepEquals([1])
-		o(Array.from(uint8ArrayConcat(new Uint8Array(0), new Uint8Array(0)))).deepEquals([])
-		o([1, 2, 3]).deepEquals(Array.from(uint8ArrayConcat(new Uint8Array([1, 2, 3]))))
-		o([1, 2, 3, 4, 5, 6]).deepEquals(Array.from(uint8ArrayConcat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
+		o(Array.from(uint8ArrayUtils(new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])))).deepEquals([1, 2, 3, 4, 5, 6])
+		o(Array.from(uint8ArrayUtils(new Uint8Array([]), new Uint8Array([1])))).deepEquals([1])
+		o(Array.from(uint8ArrayUtils(new Uint8Array([1]), new Uint8Array([])))).deepEquals([1])
+		o(Array.from(uint8ArrayUtils(new Uint8Array(0), new Uint8Array(0)))).deepEquals([])
+		o([1, 2, 3]).deepEquals(Array.from(uint8ArrayUtils(new Uint8Array([1, 2, 3]))))
+		o([1, 2, 3, 4, 5, 6]).deepEquals(Array.from(uint8ArrayUtils(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
 	})
 	o("ArrayEquals ", function () {
 		o(arrayEquals([], [])).equals(true)

@@ -19,7 +19,7 @@ import { InstanceTypeId, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { MacTag } from "../../../src/platform-kit/crypto"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
-import { stringToUtf8Uint8Array, uint8ArrayConcat } from "../../../src/platform-kit/utils"
+import { stringToUtf8Uint8Array, uint8ArrayUtils } from "../../../src/platform-kit/utils"
 import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -53,7 +53,7 @@ o.spec("ValueDecryptorTest", () => {
 	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
 		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
-		const ciphertext = uint8ArrayConcat(
+		const ciphertext = uint8ArrayUtils(
 			symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 			initializationVector.bytes,
 			parsedCiphertext.ciphertext,
@@ -72,7 +72,7 @@ o.spec("ValueDecryptorTest", () => {
 		const ciphertextRaw = new Uint8Array([1, 2])
 		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag)
 
-		const ciphertext = uint8ArrayConcat(
+		const ciphertext = uint8ArrayUtils(
 			symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 			initializationVector.bytes,
 			parsedCiphertext.ciphertext,
@@ -90,7 +90,7 @@ o.spec("ValueDecryptorTest", () => {
 	o.test("AesCbc with session key missing", async () => {
 		for (const cipherVersion of [SymmetricCipherVersion.UnusedReservedUnauthenticated, SymmetricCipherVersion.AesCbcThenHmac]) {
 			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
-			const ciphertext = uint8ArrayConcat(Uint8Array.of(cipherVersion), initializationVector.bytes, macTag)
+			const ciphertext = uint8ArrayUtils(Uint8Array.of(cipherVersion), initializationVector.bytes, macTag)
 			const e = await assertThrows(SessionKeyNotFoundError, async () => {
 				instanceDecryptor.getValueDecryptor(ciphertext, "")
 			})
@@ -104,7 +104,7 @@ o.spec("ValueDecryptorTest", () => {
 		const keyVersionLengthByte = 0
 		const groupKeyVersion = 0
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = uint8ArrayConcat(
+		const versionedCiphertext = uint8ArrayUtils(
 			Uint8Array.of(SymmetricCipherVersion.AeadWithGroupKey, keyVersionLengthByte, groupKeyVersion),
 			initializationVector.bytes,
 			ciphertext,
@@ -123,7 +123,7 @@ o.spec("ValueDecryptorTest", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(aes256Key, null, instanceTypeId)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = uint8ArrayConcat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAead
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		o.check(valueDecryptor.requiredGroupKeyVersion).equals(null)
@@ -136,7 +136,7 @@ o.spec("ValueDecryptorTest", () => {
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(null, null, instanceTypeId)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = uint8ArrayConcat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const e = await assertThrows(SessionKeyNotFoundError, async () => {
 			instanceDecryptor.getValueDecryptor(versionedCiphertext, "")
 		})
