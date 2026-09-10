@@ -281,10 +281,6 @@ export class OfflineMailIndexer implements MailIndexer {
 				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
 				const indexMailbagStart = performance.now()
 				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsIndexed, currentMailbagMailsDownloaded) => {
-					if (this.abortController.signal.aborted) {
-						await abortProgress()
-						return
-					}
 					// We don't know how many mails a user has in a mailbox, so this curve actually never reaches 1 (but
 					// reaches ~99.98% after 5000 mails)
 					//
@@ -366,7 +362,6 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		let mails: Mail[] = []
 		while (!this.abortController.signal.aborted) {
-			console.log("you failed D-:/>")
 			try {
 				mails = await this.entityClient.loadRange(MailTypeRef, mailList, currentId, this.indexChunkSize, true)
 			} catch (e) {

@@ -915,7 +915,7 @@ class MailLocator implements CommonLocator {
 		)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
-			this.mailSearchModel().then((model) => model.updateIndexingState(state))
+			this.mailSearchModel().then((model) => model.indexState(state))
 		})
 		this.autosaveFacade = autosaveFacade
 		this.imapImporter = imapImporter
