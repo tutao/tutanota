@@ -219,7 +219,7 @@ class WidgetUIViewModel(
 			Log.i(TAG, "[$widgetId] Widget last sync at $lastSync")
 
 			sdk?.let { sdk ->
-				loadCalendars(widgetDataStore, sdk, settings) // Silently fails so it doens't prevent events loading
+				syncCalendarsColors(widgetDataStore, sdk, settings) // Silently fails so it doens't prevent events loading
 			}
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
@@ -357,13 +357,12 @@ class WidgetUIViewModel(
 		val lastSync: LastSyncDao?,
 	)
 
-	private suspend fun loadCalendars(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
+	private suspend fun syncCalendarsColors(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
 		try {
 			Log.i(TAG, "[$widgetId] Fetching new calendar data from server")
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
 			Log.i(TAG, "[$widgetId] Successfully fetched ${loadedCalendars.size} calendars")
 			for (key in loadedCalendars.keys) {
-				// FIXME: Seems to only be updating colors but maybe not handling renames/deletions
 				settings.calendars[key]?.color = loadedCalendars[key]?.color ?: continue
 			}
 			repository.storeSettings(widgetDataStore, widgetId, settings)
