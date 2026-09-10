@@ -231,7 +231,6 @@ o.spec("CalendarModel", function () {
 			deviceConfigMock,
 			nativePushServiceAppMock,
 			syncTrackMock,
-			() => {},
 			languageViewModelMock,
 		)
 

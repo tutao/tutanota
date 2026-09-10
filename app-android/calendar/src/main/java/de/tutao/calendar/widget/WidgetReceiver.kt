@@ -80,6 +80,7 @@ class WidgetReceiver : GlanceAppWidgetReceiver() {
 
 		appWidgetIds.forEach { appWidgetId ->
 			if (WidgetViewModelProvider.getModelFor(appWidgetId) == null) {
+				// TODO: We may want to consider doing this somewhere else... Maybe we want a getOrCreateModelFor and move this logic there
 				Log.d(TAG, "[$appWidgetId] Creating new widgetUiViewModel")
 				val db = AppDatabase.getDatabase(context, true)
 				val remoteStorage = RemoteStorage(db)

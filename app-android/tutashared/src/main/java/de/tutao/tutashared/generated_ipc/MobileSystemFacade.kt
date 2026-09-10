@@ -72,11 +72,6 @@ interface MobileSystemFacade {
 	suspend fun requestInAppRating(
 	): Unit
 	/**
-	 * Sends a refresh signal to the native side, updating widget last sync
-	 */
-	suspend fun requestWidgetRefresh(
-	): Unit
-	/**
 	 * Sends the URL from the remote origin to be stored on the device
 	 */
 	suspend fun storeServerRemoteOrigin(

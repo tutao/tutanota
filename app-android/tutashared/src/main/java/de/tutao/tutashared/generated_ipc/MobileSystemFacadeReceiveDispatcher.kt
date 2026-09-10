@@ -102,11 +102,6 @@ class MobileSystemFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
-			"requestWidgetRefresh" -> {
-				val result: Unit = this.facade.requestWidgetRefresh(
-				)
-				return json.encodeToString(result)
-			}
 			"storeServerRemoteOrigin" -> {
 				val origin: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.storeServerRemoteOrigin(
