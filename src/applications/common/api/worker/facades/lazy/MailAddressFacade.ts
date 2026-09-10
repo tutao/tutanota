@@ -35,9 +35,13 @@ import {
 	MultipleMailAddressAvailabilityService_GET,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import {
+	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS,
+} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
 import { ReportMovedMailsType } from "../../../../../../entities/tutanota/Utils"
+import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -338,10 +342,12 @@ export class MailAddressFacade {
 	}
 
 	private async updateMailboxProperties(mailboxProperties: MailboxProperties, viaUser?: Id): Promise<MailboxProperties> {
+		const ownerKeyVersion = parseKeyVersion(assertNotNull(mailboxProperties._ownerKeyVersion))
 		const ownerKey = viaUser
-			? await this.adminKeyLoaderFacade.getCurrentGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), viaUser)
-			: await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup))
-		await this.nonCachingEntityClient.update(mailboxProperties, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, ownerKey })
+			? await this.adminKeyLoaderFacade.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), ownerKeyVersion, viaUser)
+			: await this.adminKeyLoaderFacade.getGroupKeyViaAdminEncGKey(assertNotNull(mailboxProperties._ownerGroup), ownerKeyVersion)
+		const versionedOwnerKey: VersionedKey = { object: ownerKey, version: ownerKeyVersion }
+		await this.nonCachingEntityClient.update(mailboxProperties, { ...DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS, ownerKey: versionedOwnerKey })
 		const groupKeyProvider = async (version: KeyVersion) =>
 			viaUser
 				? await this.adminKeyLoaderFacade.getGroupKeyViaUser(assertNotNull(mailboxProperties._ownerGroup), version, viaUser)
