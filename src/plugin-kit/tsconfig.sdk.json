@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./sdk", "../../types/*.d.ts"],
+	"compilerOptions": {
+		"rootDir": "./sdk",
+		"outDir": "../../build/plugin-kit/sdk",
+		"tsBuildInfoFile": "../../build/plugin-kit/sdk/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "../app-kit/tsconfig.native-bridge.json"
+		}
+	]
+}
