@@ -22,7 +22,7 @@ const MOBILE_SYS_MODEL_VERSION = 126
 
 function effectiveModelVersion(): number {
 	// on desktop, we use generated classes
-	// on mobile we use handwritten classes
+	// on mobile, we use handwritten classes
 	return isDesktop() ? sysModelInfo.version : MOBILE_SYS_MODEL_VERSION
 }
 
