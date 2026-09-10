@@ -57,7 +57,17 @@ import { InlineImages, revokeInlineImages } from "../../../common/mailFunctional
 import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
-import { editDraft, isNoReplyTeamAddress, isSystemNotification, loadMailDetails, MailViewerToolbarActions } from "./MailViewerUtils.js"
+import {
+	editDraft,
+	getPrintMailAction,
+	isNoReplyTeamAddress,
+	isSystemNotification,
+	loadMailDetails,
+	MailViewerMoreActions,
+	MailViewerToolbarActions,
+	showReportPhishingMailDialog,
+	unsubscribe,
+} from "./MailViewerUtils.js"
 import { getMailSetName, getPathToFolderString, loadMailHeaders } from "../model/MailUtils.js"
 import { isDraft, isEditableDraft, isMailDeletable, isMailMovable, isMailScheduled } from "../model/MailChecks"
 import type { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
@@ -1511,6 +1521,59 @@ export class MailViewerViewModel {
 			actions.read = () => this.setUnread(false)
 		} else {
 			actions.unread = () => this.setUnread(true)
+		}
+
+		return actions
+	}
+
+	public getReportSpamAction() {
+		if (this.canReportSpam()) {
+			return () =>
+				this.reportSpamForMail(MailReportType.SPAM)
+					.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+					.finally(m.redraw)
+		}
+	}
+
+	public getReportNotSpamAction() {
+		if (this.canReportNotSpam()) {
+			return () => this.reportNotSpamForMail()
+		}
+	}
+
+	public getMailViewerMoreActions(): MailViewerMoreActions {
+		const actions: MailViewerMoreActions = {}
+
+		if (this.canPersistBlockingStatus() && this.isShowingExternalContent()) {
+			actions.disallowExternalContentAction = () => this.setContentBlockingStatus(ContentBlockingStatus.Block)
+		}
+
+		if (this.canPersistBlockingStatus() && this.isBlockingExternalImages()) {
+			actions.showImagesAction = () => this.setContentBlockingStatus(ContentBlockingStatus.Show)
+		}
+
+		if (this.isListUnsubscribe()) {
+			actions.unsubscribeAction = () => unsubscribe(this)
+		}
+
+		if (this.canPrint()) {
+			actions.printAction = getPrintMailAction()
+		}
+
+		actions.reportSpamAction = this.getReportSpamAction()
+		actions.reportNotSpamAction = this.getReportNotSpamAction()
+
+		if (this.canReportPhishing()) {
+			actions.reportPhishingAction = () =>
+				showReportPhishingMailDialog(async () => {
+					this.reportSpamForMail(MailReportType.PHISHING)
+						.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
+						.finally(m.redraw)
+				})
+		}
+
+		if (this.canReapplyInboxRules()) {
+			actions.reapplyInboxRulesAction = () => this.reapplyInboxRuleForMail()
 		}
 
 		return actions

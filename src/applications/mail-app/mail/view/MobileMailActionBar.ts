@@ -23,7 +23,7 @@ export interface MobileMailActionBarAttrs {
 	forwardAction: (() => void) | null
 	mailViewerMoreActions: MailViewerMoreActions | null
 	unscheduleMailAction: (() => void) | null
-	reportNotSpamAction: (() => void) | null
+	reportNotSpamAction: (() => void) | undefined
 }
 
 export class MobileMailActionBar implements Component<MobileMailActionBarAttrs> {
