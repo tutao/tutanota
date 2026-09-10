@@ -1,16 +1,6 @@
 import { findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import {
-	arrayContains,
-	arrayFindAll,
-	assertNotNull,
-	cleanMailAddress,
-	defer,
-	DeferredObject,
-	lazy,
-	noOp,
-	trisectingDiff,
-} from "../../../../../platform-kit/utils"
-import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "../../../../../platform-kit/app-env"
+import { arrayFindAll, assertNotNull, cleanMailAddress, defer, DeferredObject, lazy, noOp, trisectingDiff } from "@tutao/utils"
+import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "@tutao/app-env"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
@@ -33,7 +23,7 @@ import {
 	Mail,
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, ConversationType, PartialRecipient, Recipient, RecipientType } from "../../../../../entities/tutanota/Utils"
-import { clone, haveSameId } from "../../../../../platform-kit/meta"
+import { clone, haveSameId } from "@tutao/meta"
 
 import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
 import { hasCapabilityOnGroup } from "../../../../../entities/sys/Utils"
@@ -127,7 +117,7 @@ export class CalendarEventWhoModel {
 		// resolve current recipients so that we know what external passwords to display
 		const resolvePromises = initialValues.attendees?.map((a) => this.resolveAndCacheAddress(a.address)).concat() ?? []
 		// only resolve the organizer if it is not part of the initial attendee list, otherwise we would query the encryption keys multiple times.
-		if (initialValues.organizer && arrayContains(initialValues.attendees || [], initialValues.organizer)) {
+		if (initialValues.organizer && initialValues.attendees.some((attendee) => attendee.address.address === initialValues.organizer?.address)) {
 			resolvePromises.push(this.resolveAndCacheAddress(initialValues.organizer))
 		}
 		Promise.all(resolvePromises).then(this.uiUpdateCallback)
