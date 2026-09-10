@@ -477,7 +477,7 @@ export function renderDragElement(name: string, icon: Icons, count: number, subS
 }
 
 export function contextDropdown(e: MouseEvent, dropdownAttrs: DropdownButtonAttrs[]): void {
-	if (isEmpty(dropdownAttrs)) {
+	if (isEmpty(dropdownAttrs) || ClientDetector.get().isMobileDevice()) {
 		return
 	}
 	e.preventDefault()
