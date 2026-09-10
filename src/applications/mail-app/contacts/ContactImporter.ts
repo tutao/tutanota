@@ -1,5 +1,5 @@
 import { Dialog } from "../../../ui/base/Dialog.js"
-import { assertNotNull, getFirstOrThrow, ofClass, promiseMap } from "../../../platform-kit/utils"
+import { arrayFirstOrThrow, assertNotNull, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { locator } from "../../common/api/main/CommonLocator.js"
 import { vCardFileToVCards, vCardListToContacts } from "./VCardImporter.js"
 import { ImportError } from "../../common/api/common/error/ImportError.js"
@@ -46,7 +46,7 @@ export class ContactImporter {
 
 		if (vCardList == null) throw new UserError("importVCardError_msg")
 
-		const contactMembership = getFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
+		const contactMembership = arrayFirstOrThrow(locator.logins.getUserController().getContactGroupMemberships())
 		const contacts = vCardListToContacts(vCardList, contactMembership.group)
 
 		const attrs: ContactSelectionDialogAttrs = {

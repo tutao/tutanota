@@ -1,6 +1,6 @@
 import o, { verify } from "@tutao/otest"
 
-import { getFirstOrThrow, neverNull, Require } from "../../../src/platform-kit/utils"
+import { arrayFirstOrThrow, neverNull, Require } from "../../../src/platform-kit/utils"
 import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 import { RepeatPeriod } from "../../../src/platform-kit/app-env"
 import { DateTime } from "luxon"
@@ -502,7 +502,7 @@ o.spec("CalendarModel", function () {
 					verify(calendarFacadeMock.updateCalendarEvent(updatedProgenitorCaptor.capture(), anything(), anything()))
 					const updatedProgenitor: CalendarEvent = updatedProgenitorCaptor.value
 					o.check(updatedProgenitor.pendingInvitation).equals(baseExistingProgenitor.pendingInvitation) // progenitor keeps existing pendingInvitation state
-					const excludedDate = getFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
+					const excludedDate = arrayFirstOrThrow(updatedProgenitor.repeatRule!.excludedDates)
 					o.check(excludedDate.date.getTime()).equals(alteredInstanceEvent.recurrenceId.getTime())
 				},
 			)

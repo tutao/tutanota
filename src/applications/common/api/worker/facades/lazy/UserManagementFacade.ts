@@ -1,5 +1,5 @@
 import { Const, EnvProvider } from "@tutao/app-env"
-import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
+import { arrayFirstOrThrow, freshVersioned, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
@@ -98,7 +98,7 @@ export class UserManagementFacade {
 		operationId: OperationId,
 	): Promise<void> {
 		let adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
-		const adminGroupId = getFirstOrThrow(adminGroupIds)
+		const adminGroupId = arrayFirstOrThrow(adminGroupIds)
 
 		const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 

@@ -1,6 +1,6 @@
 // @ts-ignore[untyped-import]
 import { BigInteger, parseBigInt, RSAKey } from "../internal/crypto-jsbn-2012-08-09_1.js"
-import { base64ToHex, base64ToUint8Array, concat, hexToUint8Array, int8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { base64ToHex, base64ToUint8Array, hexToUint8Array, int8ArrayToBase64, uint8ArrayConcat, uint8ArrayToHex } from "@tutao/utils"
 import { RsaPrivateKey, RsaPublicKey } from "./RsaKeyPair.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "../hashes/Sha256.js"
@@ -228,7 +228,7 @@ export function encode(message: Uint8Array<ArrayBuffer>, keyLength: number, salt
 
 	let messageHash = sha256Hash(message)
 	//  M' = (0x)00 00 00 00 00 00 00 00 || mHash || _salt
-	let message2 = concat(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]), messageHash, salt)
+	let message2 = uint8ArrayConcat(new Uint8Array([0, 0, 0, 0, 0, 0, 0, 0]), messageHash, salt)
 	let message2Hash = sha256Hash(message2)
 	let ps = new Uint8Array(emLen - salt.length - hashLength - 2)
 
@@ -236,7 +236,7 @@ export function encode(message: Uint8Array<ArrayBuffer>, keyLength: number, salt
 		ps[i] = 0
 	}
 
-	let db = concat(ps, new Uint8Array([1]), salt)
+	let db = uint8ArrayConcat(ps, new Uint8Array([1]), salt)
 
 	_clear(ps)
 
@@ -256,7 +256,7 @@ export function encode(message: Uint8Array<ArrayBuffer>, keyLength: number, salt
 	_clear(db)
 
 	maskedDb[0] &= 0xff >> (8 * emLen - emBits)
-	let em = concat(maskedDb, message2Hash, new Uint8Array([188])) // 0xbc
+	let em = uint8ArrayConcat(maskedDb, message2Hash, new Uint8Array([188])) // 0xbc
 
 	_clear(maskedDb)
 
@@ -287,7 +287,7 @@ export function mgf1(seed: Uint8Array<ArrayBuffer>, length: number): Uint8Array<
 
 	do {
 		C = i2osp(counter)
-		T = concat(T, sha256Hash(concat(seed, C)))
+		T = uint8ArrayConcat(T, sha256Hash(uint8ArrayConcat(seed, C)))
 	} while (++counter < Math.ceil(length / (256 / 8)))
 
 	return T.slice(0, length)

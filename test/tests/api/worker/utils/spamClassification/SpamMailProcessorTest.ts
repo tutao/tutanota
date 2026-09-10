@@ -8,7 +8,7 @@ import {
 
 import { createTestEntity } from "../../../../TestUtils"
 import { SparseVectorCompressor } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SparseVectorCompressor"
-import { splitArrayAt, splitUint8Array } from "../../../../../../src/platform-kit/utils"
+import { arraySplitAt, uint8ArraySplitAt } from "../../../../../../src/platform-kit/utils"
 import { createRandomString } from "./SparseVectorCompressorTest"
 import { DEFAULT_VECTOR_MAX_LENGTH } from "../../../../../../src/platform-kit/app-env"
 import { ClientSpamTrainingDatum, ClientSpamTrainingDatumTypeRef } from "@tutao/entities/tutanota"
@@ -65,16 +65,16 @@ o.spec("SpamMailProcessor Tests", () => {
 		const modelInputFromDownloadedData = await spamMailProcessor.processClientSpamTrainingDatum(clientSpamTrainingDatum)
 
 		const expectedOneHotEncodedServerClassificationData = spamMailProcessor.oneHotEncodeServerClassifiers(datum.serverClassificationData!)
-		const [lengthBytes, rest] = splitUint8Array(clientSpamTrainingDatum.vectorWithServerClassifiers!, BYTES_COMPRESSED_MAIL_VECTOR_LENGTH)
+		const [lengthBytes, rest] = uint8ArraySplitAt(clientSpamTrainingDatum.vectorWithServerClassifiers!, BYTES_COMPRESSED_MAIL_VECTOR_LENGTH)
 		const length = sparseVectorCompressor.decodeCompressedVectorLength(lengthBytes)
-		const [compressedVector, compressedServerClassificationData] = splitUint8Array(rest, length)
+		const [compressedVector, compressedServerClassificationData] = uint8ArraySplitAt(rest, length)
 		const vectorizedMailFromDatum = sparseVectorCompressor.decompress(compressedVector, DEFAULT_VECTOR_MAX_LENGTH)
 		const serverClassificationDataFromUploadedVector = sparseVectorCompressor.decompress(
 			compressedServerClassificationData,
 			BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 		)
 
-		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(expectedModelInput, DEFAULT_VECTOR_MAX_LENGTH)
+		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = arraySplitAt(expectedModelInput, DEFAULT_VECTOR_MAX_LENGTH)
 
 		const classifiers = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 1)
 		const decisions = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 0)

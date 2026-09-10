@@ -1,4 +1,4 @@
-import { first, last } from "@tutao/utils"
+import { arrayFirst, arrayLast } from "@tutao/utils"
 import { ProgressListener, ProgressMonitorInterface } from "../../../../../platform-kit/network/ProgressMonitorInterface"
 
 const DEFAULT_RATE_PER_SECOND = 0.5
@@ -43,11 +43,11 @@ export class EstimatingProgressMonitor implements ProgressMonitorInterface {
 				this.workEstimate(DEFAULT_RATE_PER_SECOND)
 			} else {
 				const previousRateEntry = this.ratePerSecondHistory[this.ratePerSecondHistory.length - 2]
-				const previousRateEntryTimestamp = first(previousRateEntry)!
+				const previousRateEntryTimestamp = arrayFirst(previousRateEntry)!
 
-				const lastRateEntry = last(this.ratePerSecondHistory)!
-				const lastRateEntryTimestamp = first(lastRateEntry)!
-				const lastRatePerSecond = last(lastRateEntry)!
+				const lastRateEntry = arrayLast(this.ratePerSecondHistory)!
+				const lastRateEntryTimestamp = arrayFirst(lastRateEntry)!
+				const lastRatePerSecond = arrayLast(lastRateEntry)!
 
 				let lastDurationBetweenRatePerSecondUpdatesMs = lastRateEntryTimestamp - previousRateEntryTimestamp
 				let currentDurationMs = Date.now() - lastRateEntryTimestamp
@@ -73,8 +73,8 @@ export class EstimatingProgressMonitor implements ProgressMonitorInterface {
 	}
 
 	private updateRatePerSecond(newWorkAmount: number) {
-		let lastRateEntry = last(this.ratePerSecondHistory)!
-		let lastTimestamp = first(lastRateEntry)!
+		let lastRateEntry = arrayLast(this.ratePerSecondHistory)!
+		let lastTimestamp = arrayFirst(lastRateEntry)!
 		let now = Date.now()
 		let durationSinceLastRateEntrySeconds = (now - lastTimestamp) / 1000
 		let ratePerSecond = newWorkAmount / durationSinceLastRateEntrySeconds

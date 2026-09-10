@@ -3,7 +3,7 @@ import { px, size } from "../../../../ui/size"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField"
 import { modal } from "../../../../ui/base/Modal"
 import { isKeyPressed, Shortcut } from "../../../../ui/utils/KeyManager"
-import { lastIndex } from "../../../../platform-kit/utils"
+import { arrayLastIndex } from "../../../../platform-kit/utils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { theme } from "../../../../ui/theme"
 import { boxShadowHigh } from "../../../../ui/main-styles"
@@ -73,7 +73,7 @@ class QuickActionBar implements Component<Attrs> {
 							this.scrollToIndex()
 							return false
 						} else if (isKeyPressed(keyPress.key, Keys.DOWN)) {
-							this.selectedIndex = Math.min(lastIndex(this.results), this.selectedIndex + 1)
+							this.selectedIndex = Math.min(arrayLastIndex(this.results), this.selectedIndex + 1)
 							this.scrollToIndex()
 							return false
 						}

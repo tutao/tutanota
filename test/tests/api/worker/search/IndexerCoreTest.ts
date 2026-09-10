@@ -12,7 +12,7 @@ import {
 	SearchIndexMetaDataRow,
 } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 import { _createNewIndexUpdate, getIdFromEncSearchIndexEntry, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
-import { base64ToUint8Array, concat, defer, downcast, neverNull, noOp, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
+import { base64ToUint8Array, defer, downcast, neverNull, noOp, uint8ArrayConcat, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
 
 import { DbKey, DbTransaction } from "../../../../../src/applications/common/api/worker/search/DbFacade.js"
 import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
@@ -58,7 +58,7 @@ function makeEntries(
 		const instanceIdB64 = timestampToGeneratedId(timestamp)
 		const encId = encryptIndexKeyUint8Array(key, instanceIdB64, initializationVector)
 		newEntries.push({
-			entry: concat(encId, new Uint8Array(0)),
+			entry: uint8ArrayConcat(encId, new Uint8Array(0)),
 			timestamp,
 		})
 	}
@@ -296,9 +296,9 @@ o.spec("IndexerCore", () => {
 
 		const instanceId = new Uint8Array(16).fill(1)
 		const metaId = 3
-		let entry: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([4, 7, 6]))
-		let other1: EncryptedSearchIndexEntry = concat(new Uint8Array(16).fill(2), new Uint8Array([1, 12]))
-		let other2: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([1, 12]))
+		let entry: EncryptedSearchIndexEntry = uint8ArrayConcat(instanceId, new Uint8Array([4, 7, 6]))
+		let other1: EncryptedSearchIndexEntry = uint8ArrayConcat(new Uint8Array(16).fill(2), new Uint8Array([1, 12]))
+		let other2: EncryptedSearchIndexEntry = uint8ArrayConcat(instanceId, new Uint8Array([1, 12]))
 		let encWord = uint8ArrayToBase64(new Uint8Array([7, 8, 23]))
 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(metaId, [
@@ -396,7 +396,7 @@ o.spec("IndexerCore", () => {
 				},
 			],
 		}
-		let entry: EncryptedSearchIndexEntry = concat(instanceId, new Uint8Array([4, 7, 6]))
+		let entry: EncryptedSearchIndexEntry = uint8ArrayConcat(instanceId, new Uint8Array([4, 7, 6]))
 		let encInstanceIdB64 = uint8ArrayToBase64(instanceId)
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(metaId, [
 			{
@@ -434,7 +434,7 @@ o.spec("IndexerCore", () => {
 
 		let indexUpdate = _createNewIndexUpdate(mailTypeInfo)
 
-		let entry: EncryptedSearchIndexEntry = concat(new Uint8Array(16), new Uint8Array([4, 7, 6]))
+		let entry: EncryptedSearchIndexEntry = uint8ArrayConcat(new Uint8Array(16), new Uint8Array([4, 7, 6]))
 		indexUpdate.delete.searchMetaRowToEncInstanceIds.set(1, [
 			{
 				encInstanceId: getIdFromEncSearchIndexEntry(entry),
@@ -506,7 +506,7 @@ o.spec("IndexerCore", () => {
 		})
 		o.test("new word", async function () {
 			let encInstanceId = new Uint8Array(16)
-			let entry: EncryptedSearchIndexEntry = concat(encInstanceId, new Uint8Array(0))
+			let entry: EncryptedSearchIndexEntry = uint8ArrayConcat(encInstanceId, new Uint8Array(0))
 			indexUpdate.create.indexMap.set(encWord, [
 				{
 					timestamp: 1,
@@ -532,7 +532,7 @@ o.spec("IndexerCore", () => {
 		})
 		o.test("existing word, growing the first row", async function () {
 			let encInstanceId = new Uint8Array(16)
-			let newEntry: EncryptedSearchIndexEntry = concat(encInstanceId, new Uint8Array(0))
+			let newEntry: EncryptedSearchIndexEntry = uint8ArrayConcat(encInstanceId, new Uint8Array(0))
 			const { appId, typeId } = indexUpdate.typeInfo
 			const metaId = 3
 			const existingBlock = appendBinaryBlocks([new Uint8Array([2, 0])])

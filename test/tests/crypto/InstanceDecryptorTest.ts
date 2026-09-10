@@ -8,7 +8,7 @@ import {
 	validateKdfNonceLength,
 } from "@tutao/crypto/symmetric-cipher-utils"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
-import { concat, KeyVersion, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { KeyVersion, stringToUtf8Uint8Array, uint8ArrayConcat } from "../../../src/platform-kit/utils"
 import {
 	AeadWithGroupKeySubKeys,
 	AeadWithSessionKeySubKeys,
@@ -65,7 +65,7 @@ o.spec("InstanceDecryptorTest", () => {
 		when(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion)).thenReturn(aes256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(differentAes256Key, null, instanceTypeId)
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayConcat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const firstValueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, matchers.anything()), { times: 0 })
 		firstValueDecryptor.getValue(differentAes256Key)
@@ -86,7 +86,12 @@ o.spec("InstanceDecryptorTest", () => {
 		const keyVersionLengthByte = 0
 		const cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayConcat(
+			Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion),
+			initializationVector.bytes,
+			ciphertext,
+			macTag,
+		)
 		const firstValueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, "") as ValueDecryptor
 		verify(symmetricKeyDeriver.deriveSubKeysAeadFromGroupKey(versionedDifferentAes256Key, kdfNonce, matchers.anything()), { times: 0 })
 		firstValueDecryptor.getValue(differentAes256Key)
@@ -107,7 +112,12 @@ o.spec("InstanceDecryptorTest", () => {
 		const keyVersionLengthByte = 0
 		const cipherVersion = SymmetricCipherVersion.AeadWithGroupKey
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayConcat(
+			Uint8Array.of(cipherVersion, keyVersionLengthByte, groupKeyVersion),
+			initializationVector.bytes,
+			ciphertext,
+			macTag,
+		)
 		const fieldPath = "superCoolFieldPath"
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, fieldPath) as ValueDecryptor
 		o.check(valueDecryptor["associatedData"]).deepEquals(stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_GROUP_KEY_DOMAIN + fieldPath))
@@ -124,7 +134,7 @@ o.spec("InstanceDecryptorTest", () => {
 		when(symmetricKeyDeriver.deriveSubKeysAeadFromSessionKey(differentAes256Key, matchers.anything())).thenReturn(aeadSessionKey256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(differentAes256Key, null, instanceTypeId)
 		const ciphertext = new Uint8Array()
-		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
+		const versionedCiphertext = uint8ArrayConcat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 		const fieldPath = "superCoolFieldPath"
 		const valueDecryptor = instanceDecryptor.getValueDecryptor(versionedCiphertext, fieldPath) as ValueDecryptor
 		o.check(valueDecryptor["associatedData"]).deepEquals(stringToUtf8Uint8Array(AEAD_ATTRIBUTE_ON_UNAUTHENTICATED_INSTANCE_SESSION_KEY_DOMAIN + fieldPath))

@@ -1,10 +1,10 @@
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, getKeyLengthInBytes } from "./AesKey.js"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { KdfNonce, keyToUint8Array, uint8ArrayToKey, uint8ArrayTo256Key } from "./SymmetricCipherUtils.js"
+import { KdfNonce, keyToUint8Array, uint8ArrayTo256Key, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
-import { concat, KeyVersion } from "@tutao/utils"
+import { KeyVersion, uint8ArrayConcat } from "@tutao/utils"
 import { AEAD_GROUP_KEY_NONCE_DERIVATION, AEAD_SESSION_KEY_DERIVATION, VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoError } from "@tutao/crypto/error"
@@ -119,7 +119,7 @@ export class SymmetricKeyDeriver {
 	 */
 	deriveSubKeysAeadFromGroupKey(groupKey: VersionedKey, kdfNonce: KdfNonce, instanceTypeId: InstanceTypeId): AeadWithGroupKeySubKeys {
 		const context = `${AEAD_GROUP_KEY_NONCE_DERIVATION}${instanceTypeId.app}/${instanceTypeId.id}`
-		const inputKeyMaterial = concat(keyToUint8Array(groupKey.object), kdfNonce)
+		const inputKeyMaterial = uint8ArrayConcat(keyToUint8Array(groupKey.object), kdfNonce)
 		return this.deriveAeadGroupKeySubKeys(inputKeyMaterial, context, groupKey.version)
 	}
 

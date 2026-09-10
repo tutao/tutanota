@@ -1,4 +1,4 @@
-import { assertNotNull, downcast, isEmpty, neverNull } from "@tutao/utils"
+import { arrayIsEmpty, assertNotNull, downcast, neverNull } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import type { ClickHandler } from "../../../ui/base/GuiUtils"
@@ -86,7 +86,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 				locator.serviceExecutor,
 				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
 			)
-			if (isEmpty(plansWithMoreStorage)) {
+			if (arrayIsEmpty(plansWithMoreStorage)) {
 				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")
 			} else {
 				await showPlanUpgradeRequiredDialog(UpgradePromptType.MORE_STORAGE_NEEDED, plansWithMoreStorage)
@@ -103,7 +103,7 @@ export async function showPlanUpgradeRequiredDialog(
 	acceptedPlans: readonly AvailablePlanType[],
 	reason?: TranslationKey,
 ): Promise<boolean> {
-	if (isEmpty(acceptedPlans)) {
+	if (arrayIsEmpty(acceptedPlans)) {
 		throw new ProgrammingError("no plans specified")
 	}
 	const userController = locator.logins.getUserController()

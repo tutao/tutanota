@@ -4,7 +4,7 @@ import type { Translation, TranslationKey } from "../../../ui/utils/LanguageView
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils"
 import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
-import { assertNotNull, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "../../../platform-kit/utils"
+import { arrayRemoveBy, arrayLastIndex, arrayLastOrThrow, assertNotNull, downcast, noOp, typedEntries } from "../../../platform-kit/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 import type { ButtonAttrs } from "../../../ui/base/Button.js"
@@ -218,7 +218,7 @@ export class ContactEditor {
 					m(".h4", lang.get("dates_label")),
 					m(".aggregateEditors", [
 						this.customDates.map(([date, id], index) => {
-							const lastEditor = index === lastIndex(this.customDates)
+							const lastEditor = index === arrayLastIndex(this.customDates)
 							return this.renderCustomDatesEditor(id, !lastEditor, date)
 						}),
 					]),
@@ -227,7 +227,7 @@ export class ContactEditor {
 					m(".h4", lang.get("email_label")),
 					m(".aggregateEditors", [
 						this.mailAddresses.map(([address, id], index) => {
-							const lastEditor = index === lastIndex(this.mailAddresses)
+							const lastEditor = index === arrayLastIndex(this.mailAddresses)
 							return this.renderMailAddressesEditor(id, !lastEditor, address)
 						}),
 					]),
@@ -236,7 +236,7 @@ export class ContactEditor {
 					m(".h4", lang.get("phone_label")),
 					m(".aggregateEditors", [
 						this.phoneNumbers.map(([phoneNumber, id], index) => {
-							const lastEditor = index === lastIndex(this.phoneNumbers)
+							const lastEditor = index === arrayLastIndex(this.phoneNumbers)
 							return this.renderPhonesEditor(id, !lastEditor, phoneNumber)
 						}),
 					]),
@@ -245,7 +245,7 @@ export class ContactEditor {
 					m(".h4", lang.get("relatedPeople_label")),
 					m(".aggregateEditors", [
 						this.relationships.map(([relationship, id], index) => {
-							const lastEditor = index === lastIndex(this.relationships)
+							const lastEditor = index === arrayLastIndex(this.relationships)
 							return this.renderRelationshipsEditor(id, !lastEditor, relationship)
 						}),
 					]),
@@ -254,7 +254,7 @@ export class ContactEditor {
 					m(".h4", lang.get("address_label")),
 					m(".aggregateEditors", [
 						this.addresses.map(([address, id], index) => {
-							const lastEditor = index === lastIndex(this.addresses)
+							const lastEditor = index === arrayLastIndex(this.addresses)
 							return this.renderAddressesEditor(id, !lastEditor, address)
 						}),
 					]),
@@ -265,7 +265,7 @@ export class ContactEditor {
 					m(".h4", lang.get("pronouns_label")),
 					m(".aggregateEditors", [
 						this.pronouns.map(([pronouns, id], index) => {
-							const lastEditor = index === lastIndex(this.pronouns)
+							const lastEditor = index === arrayLastIndex(this.pronouns)
 							return this.renderPronounsEditor(id, !lastEditor, pronouns)
 						}),
 					]),
@@ -274,7 +274,7 @@ export class ContactEditor {
 					m(".h4", lang.get("social_label")),
 					m(".aggregateEditors", [
 						this.socialIds.map(([socialId, id], index) => {
-							const lastEditor = index === lastIndex(this.socialIds)
+							const lastEditor = index === arrayLastIndex(this.socialIds)
 							return this.renderSocialsEditor(id, !lastEditor, socialId)
 						}),
 					]),
@@ -283,7 +283,7 @@ export class ContactEditor {
 					m(".h4", lang.get("websites_label")),
 					m(".aggregateEditors", [
 						this.websites.map(([website, id], index) => {
-							const lastEditor = index === lastIndex(this.websites)
+							const lastEditor = index === arrayLastIndex(this.websites)
 							return this.renderWebsitesEditor(id, !lastEditor, website)
 						}),
 					]),
@@ -292,7 +292,7 @@ export class ContactEditor {
 					m(".h4", lang.get("messenger_handles_label")),
 					m(".aggregateEditors", [
 						this.messengerHandles.map(([handle, id], index) => {
-							const lastEditor = index === lastIndex(this.messengerHandles)
+							const lastEditor = index === arrayLastIndex(this.messengerHandles)
 							return this.renderMessengerHandleEditor(id, !lastEditor, handle)
 						}),
 					]),
@@ -416,7 +416,7 @@ export class ContactEditor {
 			label: getContactCustomDateTypeToLabel(downcast(date.type), date.customTypeName),
 			helpLabel: dateHelpText(),
 			cancelAction: () => {
-				findAndRemove(this.customDates, (t) => t[1] === id)
+				arrayRemoveBy(this.customDates, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				date.date = value
@@ -426,7 +426,7 @@ export class ContactEditor {
 					if (parsedDate) {
 						try {
 							date.dateIso = birthdayToIsoDate(parsedDate)
-							if (date === lastThrow(this.customDates)[0]) this.customDates.push(this.newCustomDate())
+							if (date === arrayLastOrThrow(this.customDates)[0]) this.customDates.push(this.newCustomDate())
 							date.isValid = true
 						} catch (e) {
 							date.isValid = false
@@ -462,11 +462,11 @@ export class ContactEditor {
 			label: getContactAddressTypeLabel(downcast(mailAddress.type), mailAddress.customTypeName),
 			helpLabel,
 			cancelAction: () => {
-				findAndRemove(this.mailAddresses, (t) => t[1] === id)
+				arrayRemoveBy(this.mailAddresses, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				mailAddress.address = value
-				if (mailAddress === lastThrow(this.mailAddresses)[0]) this.mailAddresses.push(this.newAddress())
+				if (mailAddress === arrayLastOrThrow(this.mailAddresses)[0]) this.mailAddresses.push(this.newAddress())
 			},
 			animateCreate: !mailAddress.address,
 			allowCancel,
@@ -484,11 +484,11 @@ export class ContactEditor {
 			label: getContactPhoneNumberTypeLabel(downcast(phoneNumber.type), phoneNumber.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.phoneNumbers, (t) => t[1] === id)
+				arrayRemoveBy(this.phoneNumbers, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				phoneNumber.number = value
-				if (phoneNumber === lastThrow(this.phoneNumbers)[0]) this.phoneNumbers.push(this.newPhoneNumber())
+				if (phoneNumber === arrayLastOrThrow(this.phoneNumbers)[0]) this.phoneNumbers.push(this.newPhoneNumber())
 			},
 			animateCreate: !phoneNumber.number,
 			allowCancel,
@@ -506,11 +506,11 @@ export class ContactEditor {
 			label: getContactAddressTypeLabel(downcast(address.type), address.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.addresses, (t) => t[1] === id)
+				arrayRemoveBy(this.addresses, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				address.address = value
-				if (address === lastThrow(this.addresses)[0]) this.addresses.push(this.newAddress())
+				if (address === arrayLastOrThrow(this.addresses)[0]) this.addresses.push(this.newAddress())
 			},
 			animateCreate: !address.address,
 			allowCancel,
@@ -529,11 +529,11 @@ export class ContactEditor {
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
-				findAndRemove(this.socialIds, (t) => t[1] === id)
+				arrayRemoveBy(this.socialIds, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				socialId.socialId = value
-				if (socialId === lastThrow(this.socialIds)[0]) this.socialIds.push(this.newSocialId())
+				if (socialId === arrayLastOrThrow(this.socialIds)[0]) this.socialIds.push(this.newSocialId())
 			},
 			animateCreate: !socialId.socialId,
 			allowCancel,
@@ -552,11 +552,11 @@ export class ContactEditor {
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
-				findAndRemove(this.websites, (t) => t[1] === id)
+				arrayRemoveBy(this.websites, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				website.url = value
-				if (website === lastThrow(this.websites)[0]) this.websites.push(this.newWebsite())
+				if (website === arrayLastOrThrow(this.websites)[0]) this.websites.push(this.newWebsite())
 			},
 			animateCreate: !website.url,
 			allowCancel,
@@ -574,11 +574,11 @@ export class ContactEditor {
 			label: getContactRelationshipTypeToLabel(downcast<ContactRelationshipType>(relationship.type), relationship.customTypeName),
 			helpLabel: "emptyString_msg",
 			cancelAction: () => {
-				findAndRemove(this.relationships, (t) => t[1] === id)
+				arrayRemoveBy(this.relationships, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				relationship.person = value
-				if (relationship === lastThrow(this.relationships)[0]) this.relationships.push(this.newRelationship())
+				if (relationship === arrayLastOrThrow(this.relationships)[0]) this.relationships.push(this.newRelationship())
 			},
 			animateCreate: !relationship.person,
 			allowCancel,
@@ -597,11 +597,11 @@ export class ContactEditor {
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
-				findAndRemove(this.messengerHandles, (t) => t[1] === id)
+				arrayRemoveBy(this.messengerHandles, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				messengerHandle.handle = value
-				if (messengerHandle === lastThrow(this.messengerHandles)[0]) this.messengerHandles.push(this.newMessengerHandler())
+				if (messengerHandle === arrayLastOrThrow(this.messengerHandles)[0]) this.messengerHandles.push(this.newMessengerHandler())
 			},
 			animateCreate: !messengerHandle.handle,
 			allowCancel,
@@ -620,11 +620,11 @@ export class ContactEditor {
 			helpLabel: "emptyString_msg",
 			autocapitalizeTextField: Autocapitalize.none,
 			cancelAction: () => {
-				findAndRemove(this.pronouns, (t) => t[1] === id)
+				arrayRemoveBy(this.pronouns, (t) => t[1] === id)
 			},
 			onUpdate: (value) => {
 				pronouns.pronouns = value
-				if (pronouns === lastThrow(this.pronouns)[0]) this.pronouns.push(this.newPronoun())
+				if (pronouns === arrayLastOrThrow(this.pronouns)[0]) this.pronouns.push(this.newPronoun())
 			},
 			animateCreate: !pronouns.pronouns,
 			allowCancel,

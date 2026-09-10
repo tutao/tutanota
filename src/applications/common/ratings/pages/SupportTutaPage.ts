@@ -10,7 +10,7 @@ import { progressIcon } from "../../../../ui/base/Icon.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { completeSupportTutaStage, SupportTutaButtonType } from "../UserSatisfactionUtils.js"
 import { px } from "../../../../ui/size.js"
-import { assertNotNull, last, neverNull } from "@tutao/utils"
+import { arrayLast, assertNotNull, neverNull } from "@tutao/utils"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 import { getReferralLink, ReferralLinkViewer } from "../../misc/news/items/ReferralLinkViewer"
 import { BookingTypeRef } from "@tutao/entities/sys"
@@ -138,7 +138,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		const customer = await userController.reloadCustomer()
 		const accountingInfo = await userController.loadAccountingInfo()
 		const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-		const lastBooking = last(bookings)
+		const lastBooking = arrayLast(bookings)
 
 		const { showSwitchDialog } = await import("../../subscription/SwitchSubscriptionDialog.js")
 		await showSwitchDialog({ customer, accountingInfo, lastBooking: assertNotNull(lastBooking), acceptedPlans: NewPaidPlans, reason: null })

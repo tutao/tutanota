@@ -19,7 +19,7 @@ import { BulkMailLoader } from "../../../../../../src/applications/mail-app/work
 import { MailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../../../../TestUtils"
 import { DEFAULT_IS_SPAM_CONFIDENCE } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { last } from "../../../../../../src/platform-kit/utils"
+import { arrayLast } from "../../../../../../src/platform-kit/utils"
 import {
 	ClientSpamTrainingDatum,
 	ClientSpamTrainingDatumIndexEntryTypeRef,
@@ -288,7 +288,7 @@ o.spec("SpamClassifierDataDealer", () => {
 
 			o(trainingDataset).deepEquals({
 				trainingData: spamTrainingData,
-				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				lastTrainingDataIndexId: getElementId(arrayLast(modifiedIndicesSinceStart)!),
 				hamCount: 10,
 				spamCount: 10,
 			})
@@ -391,7 +391,7 @@ o.spec("SpamClassifierDataDealer", () => {
 
 			o(trainingDataset).deepEquals({
 				trainingData: updatedSpamTrainingData,
-				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				lastTrainingDataIndexId: getElementId(arrayLast(modifiedIndicesSinceStart)!),
 				hamCount: 40,
 				spamCount: 40,
 			})
@@ -514,7 +514,7 @@ o.spec("SpamClassifierDataDealer", () => {
 				trainingData: updatedSpamTrainingData.sort((l, r) =>
 					compareNewestFirst(elementIdPart(l._id), elementIdPart(r._id), EntityIdEncoding.Base64Ext),
 				),
-				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				lastTrainingDataIndexId: getElementId(arrayLast(modifiedIndicesSinceStart)!),
 				hamCount: 80,
 				spamCount: 80,
 			})
@@ -547,7 +547,7 @@ o.spec("SpamClassifierDataDealer", () => {
 
 			o(trainingDataset).deepEquals({
 				trainingData: spamTrainingData,
-				lastTrainingDataIndexId: getElementId(last(modifiedIndicesSinceStart)!),
+				lastTrainingDataIndexId: getElementId(arrayLast(modifiedIndicesSinceStart)!),
 				hamCount: 10,
 				spamCount: 10,
 			})
@@ -647,7 +647,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			o(trainingDataset.trainingData.length).equals(20)
 			o(trainingDataset.hamCount).equals(10)
 			o(trainingDataset.spamCount).equals(10)
-			o(trainingDataset.lastTrainingDataIndexId).equals(getElementId(last(modifiedIndicesSinceStart)!))
+			o(trainingDataset.lastTrainingDataIndexId).equals(getElementId(arrayLast(modifiedIndicesSinceStart)!))
 		})
 	})
 

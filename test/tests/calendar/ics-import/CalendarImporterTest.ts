@@ -16,7 +16,7 @@ import { OperationProgressTracker } from "../../../../src/applications/common/ap
 import { assignEventId, CalendarType } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { DateTime } from "luxon"
 import { clone, elementIdToId } from "../../../../src/platform-kit/meta"
-import { first, incrementDate, noOp } from "../../../../src/platform-kit/utils"
+import { arrayFirst, incrementDate, noOp } from "../../../../src/platform-kit/utils"
 import { EventSeriesResolver } from "../../../../src/applications/common/calendar/import/EventSeriesResolver"
 import { RepeatRuleTypeRef } from "@tutao/entities/sys"
 import { RepeatPeriod } from "../../../../src/platform-kit/app-env"
@@ -163,7 +163,7 @@ o.spec("CalendarImporter", function () {
 				const results = await calendarImporter.import(calendarGroupRoot, calendarInfoBase, [{ icsCalendarEvent, alarms: [] }], classifyEventsStub)
 
 				o.check(results!.successfulEvents.length).equals(1)
-				o.check(shallowIsSameEvent(first(results!.successfulEvents)!, calendarEvent)).equals(true)
+				o.check(shallowIsSameEvent(arrayFirst(results!.successfulEvents)!, calendarEvent)).equals(true)
 			})
 
 			o.test("imports new series with altered instance", async function () {
@@ -275,7 +275,7 @@ o.spec("CalendarImporter", function () {
 				)
 
 				o.check(results!.successfulEvents.length).equals(1)
-				o.check(shallowIsSameEvent(first(results!.successfulEvents)!, calendarEvent)).equals(true)
+				o.check(shallowIsSameEvent(arrayFirst(results!.successfulEvents)!, calendarEvent)).equals(true)
 			})
 		})
 

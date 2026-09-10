@@ -3,7 +3,7 @@ import { EnvProvider, UnsubscribeFailureReason } from "../../../platform-kit/app
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
+import { arrayFirstOrThrow, asyncFind, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { BadRequestError, NotAuthorizedError, PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { ColumnWidth, Table, TableAttrs } from "../../../ui/base/Table.js"
 import { getGroupTypeDisplayName } from "./groups/GroupDetailsView.js"
@@ -330,7 +330,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 					value: g,
 				}))
 
-				let selectedGroupInfo = getFirstOrThrow(availableGroupInfos)
+				let selectedGroupInfo = arrayFirstOrThrow(availableGroupInfos)
 				Dialog.showActionDialog({
 					title: "addUserToGroup_label",
 					child: {

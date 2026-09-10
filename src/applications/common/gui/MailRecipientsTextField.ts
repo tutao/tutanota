@@ -6,7 +6,7 @@ import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { stringToNameAndMailAddress } from "../misc/parsing/MailAddressParser.js"
 import { DropdownChildAttrs } from "../../../ui/base/Dropdown.js"
 import { RecipientsSearchModel } from "../misc/RecipientsSearchModel.js"
-import { getFirstOrThrow, lazy } from "@tutao/utils"
+import { arrayFirstOrThrow, lazy } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { SearchDropDown } from "./SearchDropDown.js"
 import { Icons } from "../../../ui/base/icons/Icons.js"
@@ -65,7 +65,7 @@ export class MailRecipientsTextField implements ClassComponent<MailRecipientsTex
 
 				if (errors.length === 1 && newRecipients.length === 0) {
 					// if there was a single recipient and it was invalid then just pretend nothing happened
-					attrs.onTextChanged(getFirstOrThrow(errors))
+					attrs.onTextChanged(arrayFirstOrThrow(errors))
 				} else {
 					if (errors.length > 0) {
 						Dialog.message(

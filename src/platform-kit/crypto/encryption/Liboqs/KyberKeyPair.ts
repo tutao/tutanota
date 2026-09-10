@@ -1,4 +1,4 @@
-import { byteArraysToBytes, bytesToByteArrays, concat } from "@tutao/utils"
+import { byteArraysToBytes, bytesToByteArrays, uint8ArrayConcat } from "@tutao/utils"
 import { KYBER_POLYVECBYTES, KYBER_SYMBYTES } from "./Kyber.js"
 
 export type KyberKeyPair = {
@@ -67,7 +67,7 @@ export function kyberPublicKeyToBytes(key: KyberPublicKey): Uint8Array<ArrayBuff
 export function bytesToKyberPublicKey(encodedPublicKey: Uint8Array<ArrayBuffer>): KyberPublicKey {
 	const keyComponents = bytesToByteArrays(encodedPublicKey, 2)
 	// key is expected by oqs in the same order t, rho
-	return { raw: concat(...keyComponents) }
+	return { raw: uint8ArrayConcat(...keyComponents) }
 }
 
 /**
@@ -81,12 +81,12 @@ export function bytesToKyberPrivateKey(encodedPrivateKey: Uint8Array<ArrayBuffer
 	const t = keyComponents[3]
 	const rho = keyComponents[4]
 	// key is expected by oqs in this order (vs how we encode it on the server): s, t, rho, hpk, nonce
-	return { raw: concat(s, t, rho, hpk, nonce) }
+	return { raw: uint8ArrayConcat(s, t, rho, hpk, nonce) }
 }
 
 export function extractKyberPublicKeyFromKyberPrivateKey(kyberPrivateKey: KyberPrivateKey): KyberPublicKey {
 	const keyBytes = kyberPrivateKey.raw
 	const t = keyBytes.slice(KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES)
 	const rho = keyBytes.slice(2 * KYBER_POLYVECBYTES, 2 * KYBER_POLYVECBYTES + KYBER_SYMBYTES)
-	return { raw: concat(t, rho) }
+	return { raw: uint8ArrayConcat(t, rho) }
 }

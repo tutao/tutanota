@@ -6,7 +6,7 @@ import { Autocomplete } from "../../../../ui/base/LegacyTextField.js"
 import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
 
 import { Checkbox, CheckboxAttrs } from "../../../../ui/base/Checkbox.js"
-import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/utils"
+import { arrayFirstOrThrow, defer, DeferredObject, lazy } from "@tutao/utils"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { locator } from "../../api/main/CommonLocator"
@@ -85,12 +85,12 @@ export class SignupFormNew implements Component<SignupFormAttrs> {
 		return (
 			this.availableDomains.find((domain) => domain.domain === preferredDomain) ??
 			this.availableDomains.find((domain) => domain.isPaid === isPaid) ??
-			getFirstOrThrow(this.availableDomains)
+			arrayFirstOrThrow(this.availableDomains)
 		)
 	}
 
 	constructor(vnode: Vnode<SignupFormAttrs>) {
-		this.selectedDomain = getFirstOrThrow(this.availableDomains)
+		this.selectedDomain = arrayFirstOrThrow(this.availableDomains)
 
 		// tuta.com gets preference user is signing up for a paid account and it is available
 		const defaultDomain = vnode.attrs.isPaidSubscription() ? DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN : DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN

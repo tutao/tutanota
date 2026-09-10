@@ -10,7 +10,7 @@ import { theme } from "../../../../ui/theme"
 import { DropData, DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { MailSetRow } from "./MailSetRow"
 import { getMailSetName, MAX_FOLDER_INDENT_LEVEL } from "../model/MailUtils"
-import { last, noOp, Nullable, Thunk } from "@tutao/utils"
+import { arrayLast, noOp, Nullable, Thunk } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconAttrs } from "../../../../ui/base/Icon"
 import { IconButtonAttrs } from "../../../../ui/base/IconButton"
@@ -233,7 +233,7 @@ export function renderFolderTree(
 					hasChildren,
 					onSelectedPath: path.includes(system.folder),
 					numberOfPreviousRows: result.numRows,
-					isLastSibling: last(subSystems) === system,
+					isLastSibling: arrayLast(subSystems) === system,
 					editMode: attrs.inEditMode,
 					onHover: () => {
 						rowContainer.visibleRow = id

@@ -1,6 +1,6 @@
 import type { Dialog } from "../../../../ui/base/Dialog"
 import type { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { lastThrow, remove } from "../../../../platform-kit/utils"
+import { arrayLastOrThrow, arrayRemove } from "../../../../platform-kit/utils"
 import Stream from "mithril/stream"
 import { Mail } from "@tutao/entities/tutanota"
 import { isSameId } from "../../../../platform-kit/meta"
@@ -69,21 +69,21 @@ export class MinimizedMailEditorViewModel {
 			})
 		}
 
-		return lastThrow(this._minimizedEditors)
+		return arrayLastOrThrow(this._minimizedEditors)
 	}
 
 	// fully removes and reopens clicked mail
 	reopenMinimizedEditor(editor: MinimizedEditor): void {
 		editor.closeOverlayFunction()
 		editor.dialog.show()
-		remove(this._minimizedEditors, editor)
+		arrayRemove(this._minimizedEditors, editor)
 	}
 
 	// fully removes clicked mail
 	removeMinimizedEditor(editor: MinimizedEditor): void {
 		editor.closeOverlayFunction()
 		editor.dispose()
-		remove(this._minimizedEditors, editor)
+		arrayRemove(this._minimizedEditors, editor)
 	}
 
 	getMinimizedEditors(): Array<MinimizedEditor> {

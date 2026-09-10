@@ -4,7 +4,7 @@ import { DriveFolderContent, DriveFolderContentAttrs } from "./DriveFolderConten
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import { px, size } from "../../../../ui/size"
-import { assertNotNull, isEmpty } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
@@ -138,7 +138,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						loadParents,
 						onDropInto,
 					}),
-			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+			listState.loadingStatus === ListLoadingState.Done && arrayIsEmpty(listState.items)
 				? this.renderEmptyView(currentFolder)
 				: m(DriveFolderContent, {
 						sortOrder,

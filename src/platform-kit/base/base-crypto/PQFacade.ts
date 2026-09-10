@@ -18,7 +18,7 @@ import {
 	X25519PublicKey,
 	X25519SharedSecrets,
 } from "@tutao/crypto"
-import { concat, stringToUtf8Uint8Array } from "@tutao/utils"
+import { stringToUtf8Uint8Array, uint8ArrayConcat } from "@tutao/utils"
 import { decodePQMessage, encodePQMessage, PQMessage } from "./PQMessage.js"
 import { CryptoProtocolVersion } from "@tutao/app-env"
 
@@ -116,7 +116,7 @@ export class PQFacade {
 		eccSharedSecret: X25519SharedSecrets,
 		cryptoProtocolVersion: CryptoProtocolVersion,
 	): Aes256Key {
-		const context = concat(
+		const context = uint8ArrayConcat(
 			senderIdentityPublicKey,
 			ephemeralPublicKey,
 			recipientPublicKeys.x25519PublicKey,
@@ -125,7 +125,7 @@ export class PQFacade {
 			new Uint8Array([Number(cryptoProtocolVersion)]),
 		)
 
-		const inputKeyMaterial = concat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)
+		const inputKeyMaterial = uint8ArrayConcat(eccSharedSecret.ephemeralSharedSecret, eccSharedSecret.authSharedSecret, kyberSharedSecret)
 
 		const kekBytes = hkdf(context, inputKeyMaterial, stringToUtf8Uint8Array("kek"), getKeyLengthInBytes(AesKeyLength.Aes256))
 		return uint8ArrayTo256Key(kekBytes)

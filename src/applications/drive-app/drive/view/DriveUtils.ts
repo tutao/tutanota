@@ -1,7 +1,7 @@
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
-import { assertNotNull, defer, isEmpty, isNotEmpty, partition, promiseMap } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, arrayIsNotEmpty, arrayPartitioned, assertNotNull, defer, promiseMap } from "../../../../platform-kit/utils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
@@ -103,7 +103,7 @@ export function pickNewFileName(originalName: string, takenFileNames: ReadonlySe
  * @throws MoveDestinationIsSourceError
  */
 export async function moveItems(entityClient: EntityClient, driveFacade: DriveFacade, items: readonly FolderItemId[], destinationFolderId: IdTuple) {
-	const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
+	const [fileItems, folderItems] = arrayPartitioned(items, (item) => item.type === "file")
 	const files = await loadMultipleFromLists(
 		DriveFileTypeRef,
 		entityClient,
@@ -202,7 +202,7 @@ async function readAllFolderEntries(folder: FileSystemDirectoryEntry): Promise<F
 	// MDN says on Chrome you need to call readEntries() multiple times because it only returns up to 100 entries.
 	while (true) {
 		const entriesChunk = await readFolderEntriesChunk(folderReader)
-		if (isEmpty(entriesChunk)) {
+		if (arrayIsEmpty(entriesChunk)) {
 			break
 		} else {
 			result.push(...entriesChunk)
@@ -225,7 +225,7 @@ export function calculatePercentage(currentTransfers: readonly DriveTransferStat
 export async function walkTree<EL>(root: EL, processNode: (el: EL) => Promise<EL[]>) {
 	const stack: EL[] = []
 	stack.push(root)
-	while (isNotEmpty(stack)) {
+	while (arrayIsNotEmpty(stack)) {
 		const currentEl = assertNotNull(stack.pop())
 		const newElements = await processNode(currentEl)
 		stack.push(...newElements)
@@ -241,7 +241,7 @@ export function folderItemParentId(item: FolderItem): IdTuple | null {
 }
 
 export function itemsIntoIds(items: readonly FolderItemId[]): { fileIds: IdTuple[]; folderIds: IdTuple[] } {
-	const [fileFolderItems, folderFolderItems] = partition(items, (item) => item.type === "file")
+	const [fileFolderItems, folderFolderItems] = arrayPartitioned(items, (item) => item.type === "file")
 	return {
 		fileIds: fileFolderItems.map((item) => item.id),
 		folderIds: folderFolderItems.map((item) => item.id),

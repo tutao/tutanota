@@ -4,7 +4,7 @@ import { sql } from "../../../../app-kit/local-store/Sql"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MailIndexer } from "./MailIndexer"
 import { getMailIndexTimestampForSearch } from "../../../common/api/common/utils/IndexUtils"
-import { assertNotNull, first, isEmpty, last, splitArrayAt } from "../../../../platform-kit/utils"
+import { arrayFirst, arrayIsEmpty, arrayLast, arraySplitAt, assertNotNull } from "../../../../platform-kit/utils"
 import { getTypeString, isSameId } from "../../../../platform-kit/meta"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { ContactIndexer } from "./ContactIndexer"
@@ -55,10 +55,10 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 		return this.search(result.query, extensionRestriction).then((extensionResult) => {
 			let moreResultsEntries: IdTuple[]
 
-			if (isEmpty(extensionResult.results)) {
+			if (arrayIsEmpty(extensionResult.results)) {
 				moreResultsEntries = result.moreResultsEntries
 			} else {
-				const lastEntry = last(result.moreResultsEntries) ?? last(result.results) ?? null
+				const lastEntry = arrayLast(result.moreResultsEntries) ?? arrayLast(result.results) ?? null
 
 				if (lastEntry == null) {
 					// the result being extended is empty
@@ -105,14 +105,14 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 			throw new ProgrammingError("cannot search mails with more than one mailset search restriction")
 		}
 
-		if (isEmpty(tokens)) {
+		if (arrayIsEmpty(tokens)) {
 			return this.emptySearchResult(originalQuery, restriction, getMailIndexTimestampForSearch(this.mailIndexer.currentIndexTimestamp))
 		} else {
 			// Create our FTS5 query
 			const normalizedQuery = this.normalizeQuery(tokens)
 
 			// An empty string will match any ID
-			const idToSearch = first(restriction.folderIds) ?? ""
+			const idToSearch = arrayFirst(restriction.folderIds) ?? ""
 
 			// Match a field to a column.
 			//
@@ -160,7 +160,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 				// We want to keep all of the IDs for the remaining results in an array so we don't need to do this
 				// search again (also minimizes IPC calls), but the underlying search facade also won't try to load all
 				// mails at once.
-				const [returnedIds, remainingIds] = splitArrayAt(resultIds, maxResults)
+				const [returnedIds, remainingIds] = arraySplitAt(resultIds, maxResults)
 				results = returnedIds
 				moreResultsEntries = remainingIds
 			}
@@ -182,7 +182,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 	private async searchContacts(originalQuery: string, tokens: SearchToken[], restriction: SearchRestriction): Promise<SearchResult> {
 		const indexTimestamp = (await this.contactIndexer.areContactsIndexed()) ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
 
-		if (isEmpty(tokens)) {
+		if (arrayIsEmpty(tokens)) {
 			return this.emptySearchResult(originalQuery, restriction, getMailIndexTimestampForSearch(indexTimestamp))
 		} else {
 			// Create our FTS5 query
@@ -221,7 +221,7 @@ export class OfflineStorageSearchFacade implements SearchFacade {
 
 	async getMoreSearchResults(searchResult: SearchResult, count: number): Promise<SearchResult> {
 		// We already have all of the IDs loaded, thus we really just need to extend our results
-		let [addedResultsEntries, remainingExtraResultsEntries] = splitArrayAt(searchResult.moreResultsEntries, count)
+		let [addedResultsEntries, remainingExtraResultsEntries] = arraySplitAt(searchResult.moreResultsEntries, count)
 		searchResult.results.push(...addedResultsEntries)
 		searchResult.moreResultsEntries = remainingExtraResultsEntries
 		return searchResult

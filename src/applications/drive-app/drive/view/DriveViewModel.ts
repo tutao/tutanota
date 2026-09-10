@@ -3,7 +3,7 @@ import { CacheSyncStatus, EntityUpdateData, isUpdateForTypeRef, ListenerPriority
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { BreadcrumbEntry, DriveFacade, DriveFolderType, DriveRootFolders } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
-import { assertNotNull, debounceStart, last, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
+import { arrayLast, assertNotNull, debounceStart, lazyAsync, memoizedWithHiddenArgument, promiseMap } from "@tutao/utils"
 import { DriveTransfers, DriveTransferState } from "./DriveTransferController"
 import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/SharedMailUtils"
 import { EventController } from "../../../common/api/main/EventController"
@@ -362,7 +362,7 @@ export class DriveViewModel {
 
 	goToParentFolder() {
 		const parents = this.parents
-		const directParent = last(parents)
+		const directParent = arrayLast(parents)
 		if (directParent != null) {
 			this.navigateToFolder(directParent._id)
 		}

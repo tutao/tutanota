@@ -1,6 +1,6 @@
 import m from "mithril"
 import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.js"
-import { assertNotNull, contains, findAllAndRemove, isEmpty, isNotNull, Nullable, ofClass } from "@tutao/utils"
+import { arrayContains, arrayIsEmpty, arrayRemoveAllBy, assertNotNull, isNotNull, Nullable, ofClass } from "@tutao/utils"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { FileNotFoundError } from "../../../common/api/common/error/FileNotFoundError"
@@ -87,7 +87,7 @@ export function createAttachmentBubbleAttrs(
 		remove: () => {
 			// If an attachment has a cid it means it could be in the editor's inline images too
 			if (attachment.cid) {
-				if (contains(model.getAttachments(), attachment)) {
+				if (arrayContains(model.getAttachments(), attachment)) {
 					model.getRemovedInlineImages().push(attachment)
 					const inlineImageElement = getDomElement().querySelector(`[cid='${attachment.cid}']`)
 					inlineImageElement?.remove()
@@ -130,7 +130,7 @@ export function cleanupInlineAttachments(
 	// briefly, e.g. if some text is inserted before/after the element, Squire would put it into another diff and this
 	// means removal + insertion.
 	const allEditorElements = editorElements.filter(isNotNull)
-	if (isEmpty(allEditorElements)) {
+	if (arrayIsEmpty(allEditorElements)) {
 		return
 	}
 
@@ -166,7 +166,7 @@ export function cleanupInlineAttachments(
 		}
 	}
 
-	if (findAllAndRemove(attachments, (attachment) => elementsToRemove.includes(attachment))) {
+	if (arrayRemoveAllBy(attachments, (attachment) => elementsToRemove.includes(attachment))) {
 		m.redraw()
 	}
 }

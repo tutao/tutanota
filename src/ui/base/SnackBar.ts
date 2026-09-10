@@ -9,7 +9,7 @@ import { Styles } from "../styles"
 import { LayerType } from "./RootView"
 import type { ClickHandler } from "./GuiUtils"
 import { EnvProvider, TimeConstants } from "../../platform-kit/app-env"
-import { isNotEmpty, remove } from "../../platform-kit/utils"
+import { arrayIsNotEmpty, arrayRemove } from "../../platform-kit/utils"
 import { IconButton, IconButtonAttrs } from "./IconButton"
 import { AllIcons, Icon, IconSize } from "./Icon"
 import { theme } from "../theme"
@@ -142,7 +142,7 @@ export function showSnackBar(args: {
 	const doCancel = {
 		/** cancel will be overwritten in {@link showNextNotification } once the snackbar  is shown */
 		cancel: () => {
-			remove(notificationQueue, queueEntry)
+			arrayRemove(notificationQueue, queueEntry)
 		},
 	}
 
@@ -171,7 +171,7 @@ export function showSnackBar(args: {
 	}
 
 	const triggerSnackbar = () => {
-		if (replace && isNotEmpty(notificationQueue)) {
+		if (replace && arrayIsNotEmpty(notificationQueue)) {
 			// there is currently a notification being displayed, so we should put this one after it and then run the
 			// currently displayed notification's cancel function
 			notificationQueue.splice(1, 0, queueEntry)

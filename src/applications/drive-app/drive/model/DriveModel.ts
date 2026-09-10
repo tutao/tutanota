@@ -26,7 +26,7 @@ import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
-import { assertNotNull, filterInt, isNotEmpty, isNotNull, lazyMemoized, noOp, partition } from "@tutao/utils"
+import { arrayIsNotEmpty, arrayPartitioned, assertNotNull, filterInt, isNotNull, lazyMemoized, noOp } from "@tutao/utils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { handleRestError } from "@tutao/rest-client/error"
@@ -142,7 +142,7 @@ export class DriveModel {
 		}
 	}
 	private async copyItems(items: readonly FolderItemId[], destination: DriveFolder) {
-		const [fileItems, folderItems] = partition(items, (item) => item.type === "file")
+		const [fileItems, folderItems] = arrayPartitioned(items, (item) => item.type === "file")
 		const files = await loadMultipleFromLists(
 			DriveFileTypeRef,
 			this.entityClient,
@@ -320,7 +320,7 @@ export class DriveModel {
 	async cancelAllTransfers(confirmationDialog: (activeTransfers: DriveTransferState[]) => Promise<boolean>) {
 		const { currentTransfers } = this.transfers()
 		const activeTransfers = currentTransfers.filter((transfer) => transfer.state === "active" || transfer.state === "waiting")
-		if (isNotEmpty(activeTransfers)) {
+		if (arrayIsNotEmpty(activeTransfers)) {
 			const ok = activeTransfers.length === 1 ? true : await confirmationDialog(activeTransfers)
 			if (ok) {
 				for (const { id } of currentTransfers) {

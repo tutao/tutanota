@@ -1,4 +1,4 @@
-import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
+import { downcast, promiseMap, stringToUtf8Uint8Array, uint8ArrayHashUnsigned } from "../../../../platform-kit/utils"
 import { env, PlatformStub, stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
 import { MAX_WORD_FREQUENCY } from "../../../../platform-kit/app-env"
 
@@ -60,6 +60,6 @@ export class HashingVectorizer {
 	 * }
 	 */
 	public async unsignedHash(array: Array<string>): Promise<Array<number>> {
-		return array.map((token) => arrayHashUnsigned(stringToUtf8Uint8Array(token)))
+		return array.map((token) => uint8ArrayHashUnsigned(stringToUtf8Uint8Array(token)))
 	}
 }

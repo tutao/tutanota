@@ -1,6 +1,6 @@
 import { CancelledError, SecondFactorType } from "@tutao/app-env"
 import type { Thunk } from "@tutao/utils"
-import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
+import { arrayFirstOrThrow, assertNotNull } from "@tutao/utils"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { AccessBlockedError, BadRequestError, LockedError, NotAuthenticatedError } from "@tutao/rest-client/error"
 import { Dialog } from "../../../../ui/base/Dialog.js"
@@ -94,7 +94,7 @@ export class SecondFactorAuthDialog {
 			// If we don't have any key we can use to log in we need to show a message to attempt the login on another domain.
 
 			if (cannotAttempt.length > 0) {
-				const loginUrlString = appIdToLoginUrl(getFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider)
+				const loginUrlString = appIdToLoginUrl(arrayFirstOrThrow(cannotAttempt).appId, this.domainConfigProvider)
 				const loginUrl = new URL(loginUrlString)
 				loginUrl.searchParams.set("noAutoLogin", "true")
 				otherDomainLoginUrl = loginUrl.toString()

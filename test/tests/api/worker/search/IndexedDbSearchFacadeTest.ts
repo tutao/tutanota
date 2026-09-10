@@ -18,7 +18,7 @@ import {
 	SearchRestriction,
 	SearchResult,
 } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
-import { groupBy, numberRange, splitInChunks } from "../../../../../src/platform-kit/utils"
+import { arrayChunked, iterableGroupedBy, numberRange } from "../../../../../src/platform-kit/utils"
 import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/platform-kit/app-env/boot/ClientConstants.js"
@@ -88,7 +88,7 @@ o.spec("IndexedDbSearchFacade", () => {
 	async function createDbContent(transaction: DbStubTransaction, dbData: KeyToIndexEntriesWithType[], fullIds: IdTuple[]) {
 		let counter = 0
 		for (const [index, keyToIndexEntries] of dbData.entries()) {
-			const indexEntriesByType = groupBy(keyToIndexEntries.indexEntries, (e) => e.typeInfo)
+			const indexEntriesByType = iterableGroupedBy(keyToIndexEntries.indexEntries, (e) => e.typeInfo)
 			const metaDataRow: SearchIndexMetaDataRow = {
 				id: index + 1,
 				word: keyToIndexEntries.indexKey,
@@ -103,7 +103,7 @@ o.spec("IndexedDbSearchFacade", () => {
 				const typeModel = await typeModelResolver.resolveClientTypeReference(typeRef)
 				entries.sort((a, b) => compareOldestFirst(a.id, b.id, getServerIdEncodingForType(typeModel)))
 
-				const chunks = splitInChunks(2, entries)
+				const chunks = arrayChunked(2, entries)
 				for (const chunk of chunks) {
 					counter++
 					metaDataRow.rows.push({

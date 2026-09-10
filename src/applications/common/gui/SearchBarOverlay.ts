@@ -5,7 +5,7 @@ import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import m, { Children, Component, Vnode } from "mithril"
 import { pureComponent } from "../../../ui/base/PureComponent"
-import { isNotEmpty } from "@tutao/utils"
+import { arrayIsNotEmpty } from "@tutao/utils"
 
 import { renderSearchInOurApps } from "./AppPromo"
 
@@ -38,7 +38,7 @@ const OverlayRow = pureComponent(({ isSelected, onclick }: { isSelected: boolean
 export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> {
 	view({ attrs }: Vnode<SearchBarOverlayAttrs<T>>): Children {
 		const { items, showMoreAction } = attrs
-		return [(isNotEmpty(items) || showMoreAction) && attrs.isFocused ? this.renderResults(attrs) : null]
+		return [(arrayIsNotEmpty(items) || showMoreAction) && attrs.isFocused ? this.renderResults(attrs) : null]
 	}
 
 	renderResults(attrs: SearchBarOverlayAttrs<T>): Children {

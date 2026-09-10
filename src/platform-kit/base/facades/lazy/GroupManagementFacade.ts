@@ -1,5 +1,5 @@
 import { EnvProvider } from "@tutao/app-env"
-import { freshVersioned, getFirstOrThrow, isNotNull, neverNull } from "@tutao/utils"
+import { arrayFirstOrThrow, freshVersioned, isNotNull, neverNull } from "@tutao/utils"
 import { CounterFacade } from "../../../network/CounterFacade.js"
 import { EntityClient } from "../../../network/EntityClient.js"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
@@ -66,7 +66,7 @@ export class GroupManagementFacade {
 
 	async createSharedMailGroup(name: string, mailAddress: string): Promise<void> {
 		const adminGroupIds = this.userFacade.getGroupIds(GroupType.Admin)
-		const adminGroupId = getFirstOrThrow(adminGroupIds)
+		const adminGroupId = arrayFirstOrThrow(adminGroupIds)
 
 		let adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 		let customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Customer))

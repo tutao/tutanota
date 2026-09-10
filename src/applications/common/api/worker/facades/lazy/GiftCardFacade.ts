@@ -1,12 +1,12 @@
 import {
+	arrayFirstOrThrow,
+	arrayIsEmpty,
 	assertNotNull,
 	base64ExtToBase64Url,
 	base64ToBase64Url,
 	base64ToUint8Array,
 	base64UrlToBase64,
 	base64UrlToBase64Ext,
-	getFirstOrThrow,
-	isEmpty,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
@@ -45,11 +45,11 @@ export class GiftCardFacade {
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
 		const adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
-		if (isEmpty(adminGroupIds)) {
+		if (arrayIsEmpty(adminGroupIds)) {
 			throw new Error("missing admin membership")
 		}
 
-		const adminGroupId = getFirstOrThrow(adminGroupIds)
+		const adminGroupId = arrayFirstOrThrow(adminGroupIds)
 		const ownerKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 		const sessionKey = aes256RandomKey()

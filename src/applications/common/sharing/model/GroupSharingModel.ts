@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { elementIdToId, getElementId, getEtId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import { ProgrammingError, ShareCapability } from "../../../../platform-kit/app-env"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
-import { assertNotNull, findAndRemove, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
+import { arrayRemoveBy, assertNotNull, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
 import { loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
@@ -17,8 +17,8 @@ import type { GroupManagementFacade } from "../../../../platform-kit/base/facade
 import { RecipientsModel } from "../../api/main/RecipientsModel"
 import { GroupNameData, GroupSettingsModel } from "./GroupSettingsModel"
 import {
-	EntityUpdatesListener,
 	EntityUpdateData,
+	EntityUpdatesListener,
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -225,7 +225,7 @@ export class GroupSharingModel {
 				}
 
 				if (update.operation === OperationType.DELETE) {
-					findAndRemove(this.sentGroupInvitations, (sentGroupInvitation) => isSameSingleId(getElementId(sentGroupInvitation), update.instanceId))
+					arrayRemoveBy(this.sentGroupInvitations, (sentGroupInvitation) => isSameSingleId(getElementId(sentGroupInvitation), update.instanceId))
 					this.onEntityUpdate()
 				}
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
@@ -247,7 +247,7 @@ export class GroupSharingModel {
 				}
 
 				if (update.operation === OperationType.DELETE) {
-					findAndRemove(this.memberInfos, (memberInfo) => isSameSingleId(getElementId(memberInfo.member), update.instanceId))
+					arrayRemoveBy(this.memberInfos, (memberInfo) => isSameSingleId(getElementId(memberInfo.member), update.instanceId))
 					this.onEntityUpdate()
 				}
 			}

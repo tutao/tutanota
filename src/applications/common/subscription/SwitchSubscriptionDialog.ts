@@ -27,7 +27,7 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, last, lazy } from "@tutao/utils"
+import { arrayLast, assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, lazy } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
@@ -480,7 +480,7 @@ export async function showConfirmDowngradingToFreeDialog(): Promise<PlanType> {
 	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
 	const customer = locator.logins.getUserController().getCustomer()
 	const bookings = await locator.entityClient.loadRange(BookingTypeRef, assertNotNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
-	const lastBooking = last(bookings)
+	const lastBooking = arrayLast(bookings)
 	if (lastBooking == null) {
 		console.warn("No booking")
 		return planType

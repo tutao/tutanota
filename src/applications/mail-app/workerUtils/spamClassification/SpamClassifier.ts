@@ -1,4 +1,4 @@
-import { assertNotNull, groupByAndMap, isEmpty, Nullable, promiseMap } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, iterableGroupedByMapped, Nullable, promiseMap } from "../../../../platform-kit/utils"
 import { SpamClassifierDataDealer, TrainingDataset } from "./SpamClassifierDataDealer"
 import {
 	dense,
@@ -227,7 +227,7 @@ export class SpamClassifier {
 			}
 
 			const trainingDataset = await this.spamClassifierDataDealer.fetchPartialTrainingDataFromIndexStartId(indexStartId, ownerGroup)
-			if (isEmpty(trainingDataset.trainingData)) {
+			if (arrayIsEmpty(trainingDataset.trainingData)) {
 				console.log(`no new spam classification training data since last update for mailbox ${ownerGroup}`)
 				return
 			}
@@ -243,7 +243,7 @@ export class SpamClassifier {
 
 	// visibleForTesting
 	async updateModel(ownerGroup: Id, trainingDataset: TrainingDataset): Promise<void> {
-		if (isEmpty(trainingDataset.trainingData)) {
+		if (arrayIsEmpty(trainingDataset.trainingData)) {
 			console.log(`no new spam classification training data for mailbox ${ownerGroup} since last update`)
 			return
 		}
@@ -266,7 +266,7 @@ export class SpamClassifier {
 			},
 		)
 
-		const trainingInputByConfidence = groupByAndMap(
+		const trainingInputByConfidence = iterableGroupedByMapped(
 			trainingInput,
 			({ isSpamConfidence }) => isSpamConfidence,
 			({ vector, label }) => {
@@ -478,7 +478,7 @@ export class SpamClassifier {
 
 	private async trainFromScratch(ownerGroup: string) {
 		const trainingDataset = await this.spamClassifierDataDealer.fetchAllTrainingData(ownerGroup)
-		if (isEmpty(trainingDataset.trainingData)) {
+		if (arrayIsEmpty(trainingDataset.trainingData)) {
 			console.log(`no training trainingData found for mailbox ${ownerGroup} training from scratch aborted.`)
 			return
 		}

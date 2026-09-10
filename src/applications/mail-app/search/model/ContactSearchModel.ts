@@ -1,7 +1,7 @@
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
-import { isNotEmpty, lastIndex } from "@tutao/utils"
+import { arrayIsNotEmpty, arrayLastIndex } from "@tutao/utils"
 import stream from "mithril/stream"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { EventController } from "../../../common/api/main/EventController"
@@ -41,7 +41,7 @@ export class ContactSearchModel {
 				return resultItems.slice(oldLoadedUntil, loadedUntil)
 			},
 			get hasMoreResults() {
-				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
+				return arrayIsNotEmpty(resultItems) && loadedUntil < arrayLastIndex(resultItems)
 			},
 			updates: stream(),
 			dispose: () => {

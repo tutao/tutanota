@@ -1,4 +1,9 @@
 import {
+	arrayChunked,
+	arrayFirstOrThrow,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
+	arrayRemoveBy,
 	assertNotNull,
 	deepEqual,
 	defer,
@@ -6,15 +11,10 @@ import {
 	delay,
 	downcast,
 	filterInt,
-	findAndRemove,
-	getFirstOrThrow,
 	getFromMap,
-	isEmpty,
-	isNotEmpty,
 	isNotNull,
 	LazyLoaded,
-	splitInChunks,
-	symmetricDifference,
+	setSymmetricDifference,
 } from "@tutao/utils"
 import {
 	BIRTHDAY_CALENDAR_BASE_ID,
@@ -388,7 +388,7 @@ export class CalendarModel {
 	}
 
 	private isSuccessfullResult(result: CreateCalendarEventsResult) {
-		return isEmpty(result.failedEvents) && isEmpty(result.failedAlarms)
+		return arrayIsEmpty(result.failedEvents) && arrayIsEmpty(result.failedAlarms)
 	}
 
 	/** Load map from group/groupRoot ID to the calendar info */
@@ -763,7 +763,7 @@ export class CalendarModel {
 
 			operationsLog.created++
 		}
-		if (isNotEmpty(eventsForCreation)) {
+		if (arrayIsNotEmpty(eventsForCreation)) {
 			let eventCreationOperation = this.operationProgressTracker.startNewOperation()
 			const result = await this.calendarFacade.createCalendarEvents(eventsForCreation, eventCreationOperation.id)
 			this.handleSaveCalendarEventsErrorIfNeeded(result)
@@ -894,7 +894,7 @@ export class CalendarModel {
 	}
 
 	async wipeCalendar(listId: Id, events: CalendarEvent[]): Promise<void> {
-		const chunks = splitInChunks(DELETE_MULTIPLE_LIMIT, events)
+		const chunks = arrayChunked(DELETE_MULTIPLE_LIMIT, events)
 		let chunksCompleted = 0
 
 		try {
@@ -1065,7 +1065,7 @@ export class CalendarModel {
 		// Load the events bypassing the cache because we might have already processed some updates and they might have changed the events we are about to load.
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const latestPersistedEventsIndexEntry: ResolvedUidIndexEntry | null = await this.getFirstUidIndexEntryMatchInPrivateCalendars(
-			getFirstOrThrow(parsedCalendarData.contents).icsCalendarEvent.uid,
+			arrayFirstOrThrow(parsedCalendarData.contents).icsCalendarEvent.uid,
 		)
 		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
 		const resolvedPersistedCalendarEvent = !icsEventRecurrenceIdTimestamp
@@ -1203,7 +1203,7 @@ export class CalendarModel {
 		const shouldRemoveAlteredIntanceFromProgenitorExcludedDates = progenitor && progenitor.repeatRule?.excludedDates
 		if (shouldRemoveAlteredIntanceFromProgenitorExcludedDates) {
 			const newProgenitor = clone(progenitor)
-			const exclusionDateRemoved = findAndRemove(
+			const exclusionDateRemoved = arrayRemoveBy(
 				newProgenitor.repeatRule!.excludedDates,
 				(dateWrapper) => dateWrapper.date.getTime() === targetDbEvent.recurrenceId?.getTime(),
 			)
@@ -1490,7 +1490,7 @@ export class CalendarModel {
 				const calendarMemberships = this.logins.getUserController().getCalendarMemberships()
 				const oldGroupIds = new Set(calendarInfos.keys())
 				const newGroupIds = new Set(calendarMemberships.map((m) => m.group))
-				const diff = symmetricDifference(oldGroupIds, newGroupIds)
+				const diff = setSymmetricDifference(oldGroupIds, newGroupIds)
 
 				if (diff.size !== 0) {
 					this.calendarInfos.reload()

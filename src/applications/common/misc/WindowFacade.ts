@@ -1,5 +1,5 @@
 import m, { Params } from "mithril"
-import { isSessionStorageAvailable, remove } from "@tutao/utils"
+import { arrayRemove, isSessionStorageAvailable } from "@tutao/utils"
 import { WebsocketConnectivityModel } from "./WebsocketConnectivityModel.js"
 import { LoginController } from "../api/main/LoginController.js"
 import type { KeyboardSizeListener, WindowSizeListener } from "../../../ui/utils/WindowUtils"
@@ -54,7 +54,7 @@ export class WindowFacade implements IWindowFacade {
 	}
 
 	removeResizeListener(listener: WindowSizeListener) {
-		remove(this._windowSizeListeners, listener)
+		arrayRemove(this._windowSizeListeners, listener)
 	}
 
 	addWindowCloseListener(listener: () => unknown): (...args: Array<any>) => any {
@@ -82,7 +82,7 @@ export class WindowFacade implements IWindowFacade {
 	}
 
 	removeKeyboardSizeListener(listener: KeyboardSizeListener) {
-		remove(this._keyboardSizeListeners, listener)
+		arrayRemove(this._keyboardSizeListeners, listener)
 	}
 
 	openLink(href: string) {
@@ -177,7 +177,7 @@ export class WindowFacade implements IWindowFacade {
 	}
 
 	removeHistoryEventListener(listener: (e: Event) => boolean): void {
-		remove(this._historyStateEventListeners, listener)
+		arrayRemove(this._historyStateEventListeners, listener)
 	}
 
 	/**

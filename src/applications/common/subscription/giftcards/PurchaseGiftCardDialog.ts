@@ -14,7 +14,7 @@ import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { GiftCardMessageEditorField } from "./GiftCardMessageEditorField"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { count, filterInt, noOp, ofClass } from "@tutao/utils"
+import { arrayCount, filterInt, noOp, ofClass } from "@tutao/utils"
 import { formatPrice, PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { UpgradePriceType } from "../FeatureListProvider"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
@@ -281,7 +281,7 @@ async function loadGiftCardModel(): Promise<PurchaseGiftCardModel> {
 
 	const sixMonthsAgo = new Date()
 	sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - parseInt(giftCardInfo.period))
-	const numPurchasedGiftCards = count(existingGiftCards, (giftCard) => giftCard.orderDate > sixMonthsAgo)
+	const numPurchasedGiftCards = arrayCount(existingGiftCards, (giftCard) => giftCard.orderDate > sixMonthsAgo)
 
 	if (numPurchasedGiftCards >= parseInt(giftCardInfo.maxPerPeriod)) {
 		throw new UserError(

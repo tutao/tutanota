@@ -15,7 +15,7 @@ import {
 	TypeRef,
 	ValueTypeEnum,
 } from "../meta"
-import { assertNotNull, groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
+import { arrayLast, assertNotNull, iterableGroupedByMapped, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
 import { ElementEntity, ListElementEntity, PersistentEntity } from "@tutao/meta"
@@ -169,8 +169,8 @@ export class EntityClient {
 
 function wasReverseRangeCompletelyLoaded<T extends ListElementEntity>(rangeItemLimit: number, loadedEntities: Array<T>, filteredEntities: Array<T>): boolean {
 	if (loadedEntities.length < rangeItemLimit) {
-		const lastLoaded = last(loadedEntities)
-		const lastFiltered = last(filteredEntities)
+		const lastLoaded = arrayLast(loadedEntities)
+		const lastFiltered = arrayLast(filteredEntities)
 
 		if (isNull(lastLoaded)) {
 			return true
@@ -196,7 +196,7 @@ export async function loadMultipleFromLists<T extends ListElementEntity>(
 	if (toLoad.length === 0) {
 		return []
 	}
-	const indexedEventIds = groupByAndMap<IdTuple, Id, Id>(toLoad, listIdPart, elementIdPart)
+	const indexedEventIds = iterableGroupedByMapped<IdTuple, Id, Id>(toLoad, listIdPart, elementIdPart)
 
 	return (
 		await promiseMap(

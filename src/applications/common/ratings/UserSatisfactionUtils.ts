@@ -2,7 +2,7 @@ import { deviceConfig, DeviceConfig } from "../misc/DeviceConfig.js"
 import { DateTime } from "luxon"
 import { locator } from "../api/main/CommonLocator.js"
 import { Stage } from "@tutao/usagetests"
-import { isEmpty } from "@tutao/utils"
+import { arrayIsEmpty } from "@tutao/utils"
 import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
 import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "../../../entities/sys/Utils"
@@ -115,7 +115,7 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 		const disallowReasons = (await evaluateRatingEligibility(new Date(), deviceConfig, EnvProvider.get().isApp())).filter(
 			(r) => r !== RatingDisallowReason.APP_INSTALLATION_TOO_YOUNG && r !== RatingDisallowReason.ACCOUNT_TOO_YOUNG,
 		)
-		if (isEmpty(disallowReasons)) {
+		if (arrayIsEmpty(disallowReasons)) {
 			setTimeout(() => showUserSatisfactionDialog("Upgrade"), 2000)
 		}
 	}

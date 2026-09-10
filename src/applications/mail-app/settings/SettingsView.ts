@@ -54,7 +54,7 @@ import { BaseTopLevelView } from "../../../ui/BaseTopLevelView"
 import { TopLevelView } from "../../../ui/base/TopLevelView"
 import { ViewSlider } from "../../../ui/nav/ViewSlider"
 import { ColumnType, ViewColumn } from "../../../ui/base/ViewColumn"
-import { LazyLoaded, partition, promiseMap } from "@tutao/utils"
+import { arrayPartitioned, LazyLoaded, promiseMap } from "@tutao/utils"
 import { GroupType, isSharedGroupOwner } from "../../../entities/sys/Utils"
 import { SidebarSection } from "../../../ui/SidebarSection"
 import { layout_size } from "../../../ui/size"
@@ -276,7 +276,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				},
 				view: () => {
 					const loggedOnUserId = this.logins.getUserController().user._id
-					const [ownTemplates, sharedTemplates] = partition(this._templateFolders, (folder) =>
+					const [ownTemplates, sharedTemplates] = arrayPartitioned(this._templateFolders, (folder) =>
 						isSharedGroupOwner(folder.data.group, elementIdToId(loggedOnUserId)),
 					)
 

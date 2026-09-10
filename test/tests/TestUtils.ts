@@ -1,7 +1,17 @@
 import { DbEncryptionData } from "../../src/applications/common/api/worker/search/SearchTypes.js"
 import { IndexerCore } from "../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/applications/common/api/worker/search/DbFacade.js"
-import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, remove, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
+import {
+	arrayRemove,
+	assertNotNull,
+	base64ToUint8Array,
+	deepEqual,
+	defer,
+	isNotNull,
+	Thunk,
+	typedEntries,
+	uint8ArrayToString,
+} from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
 import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../src/platform-kit/crypto"
@@ -484,7 +494,7 @@ export class EventControllerMock extends EventController {
 	}
 
 	removeEntityUpdatesListener(listener: EntityUpdatesListener) {
-		remove(this.listeners, listener)
+		arrayRemove(this.listeners, listener)
 	}
 
 	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id, isInitialSyncDone: boolean): Promise<void> {

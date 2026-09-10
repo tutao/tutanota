@@ -1,5 +1,5 @@
 import { OfflineDbMeta, OfflineStorage } from "./OfflineStorage.js"
-import { assertNotNull, last } from "../../platform-kit/utils"
+import { arrayLast, assertNotNull } from "../../platform-kit/utils"
 import { OutOfSyncError } from "../../platform-kit/app-env/OutOfSyncError.js"
 import { ProgrammingError } from "../../platform-kit/app-env"
 import { offline5 } from "./migrations/offline-v5"
@@ -144,7 +144,7 @@ export class OfflineStorageMigrator {
 }
 
 export function assertLastMigrationConsistentVersion(migrations: ReadonlyArray<OfflineMigration>): void {
-	const lastMigration = last(migrations)
+	const lastMigration = arrayLast(migrations)
 	if (lastMigration != null && lastMigration.version !== CURRENT_OFFLINE_VERSION) {
 		throw new ProgrammingError(
 			`Inconsistent offline migration state: expected latest version to be ${CURRENT_OFFLINE_VERSION} based on CURRENT_OFFLINE_VERSION but the last migration version is ${lastMigration.version}`,

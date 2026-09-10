@@ -3,7 +3,7 @@ import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
 import type { Shortcut } from "../utils/KeyManager"
 import { keyManager } from "../utils/KeyManager"
-import { insideRect, lastIndex, remove } from "../../platform-kit/utils"
+import { arrayLastIndex, arrayRemove, insideRect } from "../../platform-kit/utils"
 import { LayerType } from "./RootView"
 import { EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
@@ -51,7 +51,7 @@ class Modal implements Component {
 					{
 						key: wrapper.key,
 						"data-id": wrapper.key,
-						inert: i !== lastIndex(array),
+						inert: i !== arrayLastIndex(array),
 						oncreate: (vnode) => {
 							// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
 							// because onbeforeremove is not called in that case to set visible=false. this is probably an optimization in Chrome to reduce
@@ -83,7 +83,7 @@ class Modal implements Component {
 
 								await Promise.all([
 									this.addAnimation(vnode.dom as HTMLElement, false).then(() => {
-										remove(this.closingComponents, wrapper.component)
+										arrayRemove(this.closingComponents, wrapper.component)
 
 										if (this.components.length === 0 && this.closingComponents.length === 0) {
 											this.visible = false

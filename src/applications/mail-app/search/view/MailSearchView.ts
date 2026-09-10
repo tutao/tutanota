@@ -8,7 +8,7 @@ import { SidebarSection } from "../../../../ui/SidebarSection"
 import { layout_size } from "../../../../ui/size"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { assertNotNull, first, isEmpty, isNotEmpty, isSameDayOfDate, lazyMemoized, noOp, ofClass, setDifference } from "@tutao/utils"
+import { arrayFirst, arrayIsEmpty, arrayIsNotEmpty, assertNotNull, isSameDayOfDate, lazyMemoized, noOp, ofClass, setDifference } from "@tutao/utils"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -93,7 +93,6 @@ import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
-import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
@@ -248,7 +247,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 	}
 	private renderFilterChips(): Children {
 		const availableMailFolders = this.getAvailableMailFolders()
-		const selectedFolder = first(this.searchViewModel.selectedMailFolder)
+		const selectedFolder = arrayFirst(this.searchViewModel.selectedMailFolder)
 		return [
 			this.renderCategoryChip("emails_label", Icons.MailFilled),
 			m(FilterChip, {
@@ -702,7 +701,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 		const selected = this.searchViewModel.getSelectedMails()
 		const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
-		if (deletable && isNotEmpty(selected)) {
+		if (deletable && arrayIsNotEmpty(selected)) {
 			return {
 				deleteAction: () => {
 					promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
@@ -762,7 +761,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private setUnreadState(unread: boolean) {
 		const selection = this.searchViewModel.getSelectedMails()
-		if (!isEmpty(selection)) {
+		if (!arrayIsEmpty(selection)) {
 			selection.map((mail) => {
 				mail.unread = unread
 			})
@@ -775,7 +774,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private getUnreadState(): boolean {
 		const selection = this.searchViewModel.getSelectedMails()
-		return first(selection)?.unread ?? false
+		return arrayFirst(selection)?.unread ?? false
 	}
 
 	private getEditDraftAction(): (() => void) | null {
@@ -800,7 +799,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private getExportAction(): (() => void) | null {
 		const mails = this.searchViewModel.listModel.getSelectedAsArray() ?? []
-		if (!this.searchViewModel.isExportingMailsAllowed() || isEmpty(mails)) {
+		if (!this.searchViewModel.isExportingMailsAllowed() || arrayIsEmpty(mails)) {
 			return null
 		}
 

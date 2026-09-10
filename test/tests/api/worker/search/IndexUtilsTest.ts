@@ -7,10 +7,10 @@ import {
 	typeRefToTypeInfo,
 	userIsGlobalAdmin,
 } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
-import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
+import { base64ToUint8Array, byteLength, uint8ArrayConcat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 
-import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR, generateInitializationVector, InitializationVector } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, generateInitializationVector, InitializationVector } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import {
 	decryptMetaData,
@@ -35,7 +35,7 @@ o.spec("Index Utils", () => {
 		let key = aes256RandomKey()
 
 		let encryptedKey = encryptIndexKeyBase64(key, "blubb", INITIALIZATION_VECTOR)
-		let decrypted = aesDecryptUnauthenticated(key, concat(INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
+		let decrypted = aesDecryptUnauthenticated(key, uint8ArrayConcat(INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {

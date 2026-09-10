@@ -1,5 +1,5 @@
 import { AeadSubKeys, AeadWithGroupKeySubKeys } from "./SymmetricKeyDeriver.js"
-import { concat } from "@tutao/utils"
+import { uint8ArrayConcat } from "@tutao/utils"
 import { bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
@@ -72,13 +72,13 @@ export class AeadFacade {
 			),
 		)
 
-		const initializationVectorAndCiphertext = concat(initializationVector.bytes, aesCtrCiphertext)
+		const initializationVectorAndCiphertext = uint8ArrayConcat(initializationVector.bytes, aesCtrCiphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
 
 		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
-		const tag = blake3Mac(authenticationKey, concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData))
+		const tag = blake3Mac(authenticationKey, uint8ArrayConcat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData))
 
-		return concat(this.ciphertextVersionPrefix(subKeys), initializationVectorAndCiphertext, tag)
+		return uint8ArrayConcat(this.ciphertextVersionPrefix(subKeys), initializationVectorAndCiphertext, tag)
 	}
 
 	private ciphertextVersionPrefix(subKeys: AeadSubKeys): Uint8Array<ArrayBuffer> {
@@ -104,9 +104,9 @@ export class AeadFacade {
 			throw new CryptoError("AEAD sub-keys have the wrong cipher version for decryption")
 		}
 
-		const initializationVectorAndCiphertext = concat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
+		const initializationVectorAndCiphertext = uint8ArrayConcat(parsedCiphertext.initializationVector.bytes, parsedCiphertext.ciphertext)
 		const initializationVectorAndCiphertextLength = this.getSigned32BitIntegerFromNumberAsUint8Array(initializationVectorAndCiphertext.length)
-		const authenticatedData = concat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
+		const authenticatedData = uint8ArrayConcat(initializationVectorAndCiphertextLength, initializationVectorAndCiphertext, associatedData)
 		const authenticationKey = keyToUint8Array(subKeys.authenticationKey)
 		blake3MacVerify(authenticationKey, authenticatedData, parsedCiphertext.macTag)
 

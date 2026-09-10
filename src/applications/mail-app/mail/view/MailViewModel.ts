@@ -1,11 +1,11 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import {
+	arrayCount,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
 	assertNotNull,
-	count,
 	debounce,
-	isEmpty,
-	isNotEmpty,
 	isNotNull,
 	lazyAsync,
 	lazyMemoized,
@@ -416,7 +416,7 @@ export class MailViewModel {
 	 */
 	async getResolvedActionableMails(): Promise<readonly IdTuple[]> {
 		const actionableMails = this.getActionableMails()
-		if (isEmpty(actionableMails)) {
+		if (arrayIsEmpty(actionableMails)) {
 			return []
 		}
 
@@ -610,7 +610,7 @@ export class MailViewModel {
 				return this.fixCounterIfNeeded(mailSet, this.listModel?.mails ?? [])
 			}
 
-			const unreadMailsCount = count(this.listModel.mails, (e) => e.unread)
+			const unreadMailsCount = arrayCount(this.listModel.mails, (e) => e.unread)
 
 			const folderOrLabel = mailSet.folderType === MailSetKind.LABEL ? "label" : "folder"
 			const counterValue = await this.mailModel.getCounterValue(mailSet)
@@ -701,7 +701,7 @@ export class MailViewModel {
 	}
 
 	public async reapplyInboxRulesForMails(actionableMails: Mail[], undoModel: UndoModel) {
-		if (isEmpty(actionableMails)) {
+		if (arrayIsEmpty(actionableMails)) {
 			return
 		}
 
@@ -787,7 +787,7 @@ export class MailViewModel {
 						await this.deleteMailSetEntryRangeFolder(syncLabel, shouldReload)
 					}
 					const mailSetIdsToDeleteRange = imapFolderSyncStates.map((imapFolderSyncState) => imapFolderSyncState.mailSet).filter(isNotNull)
-					if (isNotEmpty(mailSetIdsToDeleteRange)) {
+					if (arrayIsNotEmpty(mailSetIdsToDeleteRange)) {
 						const mailSetsToDeleteRange = await pMap(
 							mailSetIdsToDeleteRange,
 							async (mailSetId) => await this.mailModel.getMailSetById(elementIdPart(mailSetId)),

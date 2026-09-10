@@ -77,7 +77,7 @@ import {
 	incrementSequence,
 	parseAlarmInterval,
 } from "../../../../common/calendar/date/CalendarUtils.js"
-import { arrayEqualsWithPredicate, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
+import { arrayEqualsBy, assertNotNull, cleanMailAddress, identity, lazy, Require } from "@tutao/utils"
 import { makeEmptyCalendarEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { CalendarInfo, CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationSender } from "../../view/CalendarNotificationSender.js"
@@ -479,7 +479,7 @@ export function eventHasChanged(now: CalendarEvent, previous: Partial<CalendarEv
 		// should this be a hard error, we never want to change the uid or compare events with different UIDs?
 		now.uid !== previous.uid ||
 		!areRepeatRulesEqual(now.repeatRule, previous?.repeatRule ?? null) ||
-		!arrayEqualsWithPredicate(
+		!arrayEqualsBy(
 			now.attendees,
 			previous?.attendees ?? [],
 			(a1, a2) => a1.status === a2.status && cleanMailAddress(a1.address.address) === cleanMailAddress(a2.address.address),

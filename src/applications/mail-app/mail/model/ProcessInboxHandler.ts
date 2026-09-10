@@ -5,7 +5,7 @@ import { SpamClassificationHandler } from "./SpamClassificationHandler"
 import { InboxRuleHandler } from "./InboxRuleHandler"
 import { isSameId } from "../../../../platform-kit/meta"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { assertNotNull, isEmpty, Nullable, throttle } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, Nullable, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -40,7 +40,7 @@ export class ProcessInboxHandler {
 				this.processedMailsByMailGroup = new Map()
 				for (const [mailGroup, processedMails] of map) {
 					// send request to server
-					if (!isEmpty(processedMails)) {
+					if (!arrayIsEmpty(processedMails)) {
 						try {
 							await mailFacade.processNewMails(mailGroup, processedMails)
 						} catch (e) {

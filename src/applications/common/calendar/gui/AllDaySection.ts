@@ -1,7 +1,7 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { ColumnBounds, DEFAULT_EVENT_COLUMN_SPAN_SIZE, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
-import { downcast, getFirstOrThrow } from "../../../../platform-kit/utils"
+import { arrayFirstOrThrow, downcast } from "../../../../platform-kit/utils"
 import {
 	CalendarEventBubble,
 	CalendarEventBubbleAttrs,
@@ -94,7 +94,7 @@ export class AllDaySection implements ClassComponent<AllDaySectionAttrs> {
 						horizontalOverflowInfo: this.findColumnOverflowInfo(dates, eventWrapper),
 						canReceiveFocus: true,
 						interactions: eventBubbleHandlers,
-						baseDate: getFirstOrThrow(dates),
+						baseDate: arrayFirstOrThrow(dates),
 						height: this.bubbleSize,
 						showTimeZones: false,
 					} satisfies CalendarEventBubbleAttrs,

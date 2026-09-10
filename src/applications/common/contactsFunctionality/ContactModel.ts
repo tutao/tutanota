@@ -1,6 +1,6 @@
 import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { elementIdPart, EntityIdEncoding, getEtId, idToElementId, listIdPart, sortCompareById } from "@tutao/meta"
-import { assertNotNull, cleanMailAddress, first, getFirstOrThrow, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
+import { arrayFirst, arrayFirstOrThrow, assertNotNull, cleanMailAddress, isNotNull, LazyLoaded, ofClass, promiseMap } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../../../platform-kit/network/EntityClient.js"
@@ -82,7 +82,7 @@ export class ContactModel {
 
 	async eraseContacts(contacts: Contact[]) {
 		if (contacts.length > 0) {
-			const listId = listIdPart(assertNotNull(first(contacts))._id)
+			const listId = listIdPart(assertNotNull(arrayFirst(contacts))._id)
 			await this.entityClient.eraseMultiple(listId, contacts)
 		}
 	}
@@ -160,7 +160,7 @@ export class ContactModel {
 	}
 
 	async getContactGroupId(): Promise<Id> {
-		return getFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
+		return arrayFirstOrThrow(this.loginController.getUserController().getContactGroupMemberships()).group
 	}
 
 	private async loadContactLists() {

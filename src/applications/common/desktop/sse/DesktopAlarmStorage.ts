@@ -2,7 +2,7 @@ import type { DesktopConfig } from "../config/DesktopConfig"
 import { DesktopNativeCryptoFacade } from "../DesktopNativeCryptoFacade"
 import { DesktopConfigKey } from "@tutao/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
-import { assertNotNull, base64ToUint8Array, findAllAndRemove, isEmpty, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
+import { arrayRemoveAllBy, arrayIsEmpty, assertNotNull, base64ToUint8Array, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
 import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
 import { EncryptedParsedInstance, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
@@ -111,7 +111,7 @@ export class DesktopAlarmStorage {
 
 	async storeAlarm(alarm: AlarmNotification): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === alarm.alarmInfo.alarmIdentifier)
+		arrayRemoveAllBy(allAlarms, (an) => an.getAlarmId() === alarm.alarmInfo.alarmIdentifier)
 		const sessionKeyWrapper = await this.getNotificationSessionKey(alarm.notificationSessionKeys)
 		const encryptedAlarm = await this.encryptAlarmNotification(alarm, assertNotNull(sessionKeyWrapper).sessionKey)
 		allAlarms.push(new EncryptedAlarmNotification(encryptedAlarm))
@@ -120,7 +120,7 @@ export class DesktopAlarmStorage {
 
 	async deleteAlarm(identifier: string): Promise<void> {
 		const allAlarms = await this.getScheduledAlarms()
-		findAllAndRemove(allAlarms, (an) => an.getAlarmId() === identifier)
+		arrayRemoveAllBy(allAlarms, (an) => an.getAlarmId() === identifier)
 
 		await this._saveAlarms(allAlarms.map((an) => an.encryptedInstance))
 	}
@@ -133,7 +133,7 @@ export class DesktopAlarmStorage {
 			return this._saveAlarms([])
 		} else {
 			const allScheduledAlarms = await this.getScheduledAlarms()
-			findAllAndRemove(allScheduledAlarms, (alarm) => alarm.getUser() === userId)
+			arrayRemoveAllBy(allScheduledAlarms, (alarm) => alarm.getUser() === userId)
 			const untypedAlarms = allScheduledAlarms.map((an) => an.encryptedInstance)
 			return this._saveAlarms(untypedAlarms)
 		}
@@ -160,7 +160,7 @@ export class DesktopAlarmStorage {
 		// to be able to decrypt & map these we need to at least add a plausible value there
 		// we'll unschedule, redownload and reschedule the fixed instances after login.
 		const rawAlarms: Nullable<any> = await this.conf.getVar(DesktopConfigKey.scheduledAlarms)
-		if (rawAlarms == null || (Array.isArray(rawAlarms) && isEmpty(rawAlarms))) {
+		if (rawAlarms == null || (Array.isArray(rawAlarms) && arrayIsEmpty(rawAlarms))) {
 			return []
 		}
 		const alarmNotificationTypeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)

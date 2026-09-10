@@ -5,13 +5,13 @@ import { EntityClient } from "../../network/EntityClient.js"
 import { getUserGroupMemberships } from "../../network/GroupUtils.js"
 import { CryptoProtocolVersion, EnvProvider, GroupKeyRotationType, RolloutType, SessionType, TutanotaError } from "@tutao/app-env"
 import {
+	arrayFirstOrThrow,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
 	assertNotNull,
 	downcast,
-	getFirstOrThrow,
-	groupBy,
-	isEmpty,
-	isNotEmpty,
 	isNotNull,
+	iterableGroupedBy,
 	KeyVersion,
 	lazyAsync,
 	Nullable,
@@ -231,7 +231,7 @@ export class KeyRotationFacade {
 	async loadPendingKeyRotations(user: User): Promise<PendingKeyRotation> {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, idToElementId(user.userGroup.group))
 		const pendingKeyRotations = await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)
-		const keyRotationsByType = groupBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
+		const keyRotationsByType = iterableGroupedBy(pendingKeyRotations, (keyRotation) => keyRotation.groupKeyRotationType)
 		let adminOrUserGroupKeyRotationArray: Array<KeyRotation> = [
 			keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationSingleUserAccount),
 			keyRotationsByType.get(GroupKeyRotationType.AdminGroupKeyRotationMultipleUserAccount),
@@ -274,7 +274,7 @@ export class KeyRotationFacade {
 
 		//user area, team and customer key rotations are send in a single request, so that they can be processed in parallel
 		const serviceData = createGroupKeyRotationPostIn({ groupKeyUpdates: [] })
-		if (!isEmpty(pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
+		if (!arrayIsEmpty(pendingKeyRotations.teamOrCustomerGroupKeyRotations)) {
 			const groupKeyRotationData = await this.rotateCustomerOrTeamGroupKeys(user, pendingKeyRotations)
 			if (groupKeyRotationData != null) {
 				serviceData.groupKeyUpdates = groupKeyRotationData
@@ -283,7 +283,7 @@ export class KeyRotationFacade {
 		}
 
 		let invitationData: GroupInvitationPostData[] = []
-		if (!isEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
+		if (!arrayIsEmpty(pendingKeyRotations.userAreaGroupsKeyRotations)) {
 			const { groupKeyRotationData, preparedReInvites } = await this.rotateUserAreaGroupKeys(user, pendingKeyRotations)
 			invitationData = preparedReInvites
 			if (groupKeyRotationData != null) {
@@ -300,7 +300,7 @@ export class KeyRotationFacade {
 			this.groupIdsThatPerformedKeyRotations.add(groupKeyUpdate.group)
 		}
 
-		if (!isEmpty(invitationData)) {
+		if (!arrayIsEmpty(invitationData)) {
 			const shareFacade = await this.shareFacade()
 			await promiseMap(invitationData, (preparedInvite) => shareFacade.sendGroupInvitationRequest(preparedInvite))
 		}
@@ -315,7 +315,7 @@ export class KeyRotationFacade {
 			return
 		}
 		const currentUserGroupKey = this.keyLoaderFacade.getCurrentSymUserGroupKey()
-		const adminGroupMembership = getFirstOrThrow(getUserGroupMemberships(user, GroupType.Admin))
+		const adminGroupMembership = arrayFirstOrThrow(getUserGroupMemberships(user, GroupType.Admin))
 		const currentAdminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupMembership.group)
 		const adminKeyRotationData = await this.prepareKeyRotationForSingleAdmin(keyRotation, user, currentUserGroupKey, currentAdminGroupKey, passphraseKey)
 
@@ -677,7 +677,7 @@ export class KeyRotationFacade {
 		const preparedReInvitations: Array<GroupInvitationPostData> = []
 		const targetGroupInfo = await this.entityClient.load(GroupInfoTypeRef, targetGroup.groupInfo)
 		const pendingInvitations = await this.entityClient.loadAll(SentGroupInvitationTypeRef, targetGroup.invitations)
-		const sentInvitationsByCapability = groupBy(pendingInvitations, (invitation) => invitation.capability)
+		const sentInvitationsByCapability = iterableGroupedBy(pendingInvitations, (invitation) => invitation.capability)
 		const shareFacade = await this.shareFacade()
 		for (const [capability, sentInvitations] of sentInvitationsByCapability) {
 			const inviteeMailAddresses = sentInvitations.map((invite) => invite.inviteeMailAddress)
@@ -698,7 +698,7 @@ export class KeyRotationFacade {
 				} else {
 					throw e
 				}
-				if (isNotEmpty(reducedInviteeAddresses)) {
+				if (arrayIsNotEmpty(reducedInviteeAddresses)) {
 					await prepareGroupReInvites(reducedInviteeAddresses)
 				}
 			}
@@ -716,7 +716,7 @@ export class KeyRotationFacade {
 	private async tryCreatingGroupKeyUpdatesForMembers(groupId: Id, otherMembers: GroupMember[], newGroupKey: VersionedKey): Promise<GroupKeyUpdateData[]> {
 		const groupKeyUpdates = new Array<GroupKeyUpdateData>()
 		// try to reduce the amount of requests
-		const groupedMembers = groupBy(otherMembers, (member) => listIdPart(member.userGroupInfo))
+		const groupedMembers = iterableGroupedBy(otherMembers, (member) => listIdPart(member.userGroupInfo))
 		const membersToRemove = new Array<GroupMember>()
 		for (const [listId, members] of groupedMembers) {
 			const userGroupInfos = await this.entityClient.loadMultiple(

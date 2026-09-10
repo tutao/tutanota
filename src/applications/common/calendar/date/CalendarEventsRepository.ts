@@ -20,7 +20,7 @@ import { elementIdPart, getElementId, getListId, idToElementId, isSameId, isSame
 import { DateTime } from "luxon"
 import { CalendarFacade } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { deepEqual, findAllAndRemove, isNotEmpty, mapAndFilterNull, stringToBase64 } from "@tutao/utils"
+import { arrayRemoveAllBy, arrayIsNotEmpty, arrayMapFilterNull, deepEqual, stringToBase64 } from "@tutao/utils"
 import { BIRTHDAY_CALENDAR_BASE_ID, DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR, RepeatPeriod } from "@tutao/app-env"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { EventController } from "../../api/main/EventController.js"
@@ -309,7 +309,7 @@ export class CalendarEventsRepository {
 		const newMap = this.cloneEvents()
 
 		for (const dayEvents of newMap.values()) {
-			findAllAndRemove(dayEvents, (e) => isSameId(e.event._id, id))
+			arrayRemoveAllBy(dayEvents, (e) => isSameId(e.event._id, id))
 		}
 
 		this.replaceEvents(newMap)
@@ -322,7 +322,7 @@ export class CalendarEventsRepository {
 		const newMap = this.cloneEvents()
 
 		for (const dayEvents of newMap.values()) {
-			findAllAndRemove(dayEvents, (e) => isSameId(e.event._id, eventToRemove._id))
+			arrayRemoveAllBy(dayEvents, (e) => isSameId(e.event._id, eventToRemove._id))
 		}
 
 		this.replaceEvents(newMap)
@@ -393,7 +393,7 @@ export class CalendarEventsRepository {
 					event,
 					flags: {
 						isGhost: !!event.pendingInvitation,
-						hasAlarms: isNotEmpty(event.alarmInfos),
+						hasAlarms: arrayIsNotEmpty(event.alarmInfos),
 						isAlteredInstance: Boolean(event.recurrenceId),
 					},
 					color: calendarInfos.get(eventOwnerGroupId)?.color ?? DEFAULT_CALENDAR_COLOR,
@@ -491,7 +491,7 @@ export class CalendarEventsRepository {
 
 		const contacts = await this.entityClient.loadAll(ContactTypeRef, listId)
 		const invalidContacts: Contact[] = []
-		const filteredContacts = mapAndFilterNull<Contact, ContactWrapper>(contacts, (contact) => {
+		const filteredContacts = arrayMapFilterNull<Contact, ContactWrapper>(contacts, (contact) => {
 			if (contact.birthdayIso == null) {
 				return null
 			}

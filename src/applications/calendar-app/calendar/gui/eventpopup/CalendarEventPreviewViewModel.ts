@@ -14,7 +14,7 @@ import { NotFoundError } from "@tutao/rest-client/error"
 import { CalendarInfoBase, CalendarModel } from "../../model/CalendarModel.js"
 import { EndType, ProgrammingError } from "../../../../../platform-kit/app-env"
 import m from "mithril"
-import { convertTextToHtml, deepEqual, incrementDate, isNotEmpty, LazyLoaded, Thunk } from "../../../../../platform-kit/utils"
+import { arrayIsNotEmpty, convertTextToHtml, deepEqual, incrementDate, LazyLoaded, Thunk } from "../../../../../platform-kit/utils"
 import { ResolvedUidIndexEntry } from "../../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { EventEditorDialog } from "../eventeditor-view/CalendarEventEditDialog.js"
 import { prepareCalendarDescription } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -278,7 +278,7 @@ export class CalendarEventPreviewViewModel {
 				event: progenitor,
 				color: calendar.color,
 				flags: {
-					hasAlarms: isNotEmpty(newEventModel.editModels.alarmModel.alarms),
+					hasAlarms: arrayIsNotEmpty(newEventModel.editModels.alarmModel.alarms),
 					isAlteredInstance: false,
 				},
 			}

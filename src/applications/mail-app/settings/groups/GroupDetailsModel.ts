@@ -1,4 +1,4 @@
-import { assertNotNull, getFirstOrThrow, LazyLoaded, neverNull, promiseMap } from "../../../../platform-kit/utils"
+import { arrayFirstOrThrow, assertNotNull, LazyLoaded, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
 import { stringValidator } from "../../../../ui/base/Dialog.js"
@@ -61,7 +61,7 @@ export class GroupDetailsModel {
 
 	private async loadSenderName(): Promise<string> {
 		const names = await locator.mailAddressFacade.getSenderNames(this.groupInfo.group)
-		return getFirstOrThrow(Array.from(names.values()))
+		return arrayFirstOrThrow(Array.from(names.values()))
 	}
 
 	isGroupActive(): boolean {

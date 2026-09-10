@@ -24,7 +24,7 @@ import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, splitInChunks } from "@tutao/utils"
+import { arrayChunked, arrayIsEmpty, delay } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -156,7 +156,7 @@ export class OfflineStoragePersistence {
 	 * WARNING: Do NOT exceed MAX_SAFE_SQL_VARS (this function will not handle this for you)
 	 */
 	async storeMailData(mailData: readonly MailWithDetailsAndAttachments[]) {
-		if (isEmpty(mailData)) {
+		if (arrayIsEmpty(mailData)) {
 			return
 		}
 
@@ -284,7 +284,7 @@ VALUES (
 	}
 
 	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
-		if (isEmpty(blobs)) {
+		if (arrayIsEmpty(blobs)) {
 			return
 		}
 		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
@@ -294,7 +294,7 @@ VALUES (
 
 		const versionParam = tagSqlValue(serverTypeModel.version)
 
-		for (const blobsChunked of splitInChunks(100, blobs)) {
+		for (const blobsChunked of arrayChunked(100, blobs)) {
 			let insertQuery = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
 			let insertParameters = []
 			for (const blob of blobsChunked) {

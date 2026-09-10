@@ -1,6 +1,6 @@
 import { OfflineStorage } from "../OfflineStorage.js"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { assertNotNull, isEmpty } from "../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull } from "../../../platform-kit/utils"
 import { sql } from "../Sql"
 import { CUSTOM_MIN_ID, getTypeString } from "../../../platform-kit/meta"
 import { untagSqlObject } from "../SqlValue"
@@ -22,7 +22,7 @@ export class offline12 extends OfflineMigration {
 										AND lower = ${CUSTOM_MIN_ID}`
 
 		const rows = await this.sqlCipherFacade.all(query, params)
-		if (isEmpty(rows)) {
+		if (arrayIsEmpty(rows)) {
 			// either no ranges exist yet, or all existing ranges are consistent
 			return
 		}

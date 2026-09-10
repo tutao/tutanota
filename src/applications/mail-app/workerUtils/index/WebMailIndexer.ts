@@ -7,16 +7,16 @@ import {
 	TimeConstants,
 } from "@tutao/app-env"
 import {
+	arrayChunked,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
+	arrayRemoveAllBy,
 	assertNotNull,
 	clamp,
 	defer,
 	DeferredObject,
-	findAllAndRemove,
-	isEmpty,
-	isNotEmpty,
 	isNotNull,
 	promiseMap,
-	splitInChunks,
 } from "../../../../platform-kit/utils"
 import {
 	deconstructMailSetEntryId,
@@ -244,7 +244,7 @@ export class WebMailIndexer implements MailIndexer {
 		try {
 			const mailboxIndexDatas: Array<MboxIndexData> = await this.getMailboxIndexDatasForGroups(mailGroups, oldestTimestamp)
 
-			if (isNotEmpty(mailboxIndexDatas)) {
+			if (arrayIsNotEmpty(mailboxIndexDatas)) {
 				const indexLoader = await this.bulkLoaderFactory()
 				const newestTimestamp = mailboxIndexDatas.reduce((acc, data) => Math.max(acc, data.newestTimestamp), 0)
 				const progress = new ProgressMonitor(newestTimestamp - oldestTimestamp, (progress) => {
@@ -354,7 +354,7 @@ export class WebMailIndexer implements MailIndexer {
 		user: User,
 	): Promise<void> {
 		const mailboxesToWrite = mailboxIndexDatas.filter((mboxData) => rangeEnd < mboxData.newestTimestamp)
-		if (isEmpty(mailboxesToWrite)) {
+		if (arrayIsEmpty(mailboxesToWrite)) {
 			return
 		}
 
@@ -363,7 +363,7 @@ export class WebMailIndexer implements MailIndexer {
 		while (!done) {
 			const result = await this._indexMailListsInTimeBatches(mailboxesToWrite, [batchStart, rangeEnd], progress, indexLoader, update, user)
 			// If there aren't any more mails in a mailbox that we can retrieve, we're done with those.
-			findAllAndRemove(mailboxesToWrite, (data) => this.isMailboxLoadedCompletely(data))
+			arrayRemoveAllBy(mailboxesToWrite, (data) => this.isMailboxLoadedCompletely(data))
 
 			done = result.done
 			batchStart = result.batchEnd
@@ -382,7 +382,7 @@ export class WebMailIndexer implements MailIndexer {
 		const mailSetEntriesToProcess: MailSetEntry[] = []
 		let batchStart = rangeStart
 
-		while (batchStart > rangeEnd && !isEmpty(mailboxesToWrite)) {
+		while (batchStart > rangeEnd && !arrayIsEmpty(mailboxesToWrite)) {
 			// Make sure that we index up until aligned date and not more, otherwise it stays misaligned for user after changing the time zone once
 			const batchEnd = clamp(batchStart - MAIL_INDEX_BATCH_INTERVAL, rangeEnd, batchStart)
 			const timeRange: TimeRange = [batchStart, batchEnd]
@@ -440,7 +440,7 @@ export class WebMailIndexer implements MailIndexer {
 	}
 
 	private isMailboxLoadedCompletely(data: MboxIndexData): boolean {
-		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
+		return data.mailSetListDatas.every((data) => data.loadedCompletely && arrayIsEmpty(data.loadedButUnusedEntries))
 	}
 
 	private async processIndexMails(
@@ -498,7 +498,7 @@ export class WebMailIndexer implements MailIndexer {
 		// (CREATE + UPDATE = CREATE) which requires us to process CREATE events with imported mails)
 		if (operation === OperationType.CREATE || operation === OperationType.UPDATE) {
 			const mailIds: IdTuple[] = await this.loadImportedMailIdsInIndexDateRange(importStateId, importType)
-			for (const mailIdChunk of splitInChunks(MAIL_INDEXER_CHUNK, mailIds)) {
+			for (const mailIdChunk of arrayChunked(MAIL_INDEXER_CHUNK, mailIds)) {
 				const mailData = await this.preloadMails(mailIdChunk)
 				for (const singleMailData of mailData) {
 					await this.backend.onMailCreated(singleMailData)
@@ -559,7 +559,7 @@ export class WebMailIndexer implements MailIndexer {
 		}
 		const importedMailEntries = await this.entityClient.loadAll(refs.mail as TypeRef<CommonImportedMail>, importMailState.importedMails)
 
-		if (isEmpty(importedMailEntries)) {
+		if (arrayIsEmpty(importedMailEntries)) {
 			return []
 		}
 

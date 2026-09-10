@@ -1,6 +1,6 @@
 import m, { Children, Component } from "mithril"
 import SquireEditor from "squire-rte"
-import { defer, first, isMailAddress, isNotNull } from "../../platform-kit/utils"
+import { arrayFirst, defer, isMailAddress, isNotNull } from "../../platform-kit/utils"
 import { px } from "../size"
 import { Dialog } from "../base/Dialog"
 import { TabIndex } from "../../platform-kit/app-env"
@@ -253,7 +253,7 @@ export class Editor implements ImageHandler, Component {
 			.map((f) => {
 				const alignClassLocation = f.indexOf(ALIGN_CLASS_SELECTOR_PREFIX)
 				if (alignClassLocation >= 0) {
-					return first(f.substring(alignClassLocation + ALIGN_CLASS_SELECTOR_PREFIX.length).split(/[^a-z]/))
+					return arrayFirst(f.substring(alignClassLocation + ALIGN_CLASS_SELECTOR_PREFIX.length).split(/[^a-z]/))
 				} else {
 					return null
 				}

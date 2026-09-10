@@ -13,7 +13,7 @@ import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize,
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import Badge from "../../../../ui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { assertNotNull, isEmpty, isNotNull } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, isNotNull } from "../../../../platform-kit/utils"
 import { resolveMaybeLazy } from "../../../../ui/base/MaybeLazy"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
@@ -330,7 +330,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 		}
 
 		const hasEventInvitation = viewModel.getCalendarEventAttachment()
-		return isEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-4." + responsiveCardHMargin())] : [...banners]
+		return arrayIsEmpty(banners) && !hasEventInvitation ? [m("hr.hr.mt-4." + responsiveCardHMargin())] : [...banners]
 	}
 
 	private renderFailureBanner(viewModel: MailViewerViewModel): Children | null {

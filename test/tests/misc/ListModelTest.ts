@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/applications/common/misc/ListModel.js"
 import { EntityIdEncoding, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/platform-kit/meta"
-import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "../../../src/platform-kit/utils"
+import { arrayFirstOrThrow, arrayLastOrThrow, defer, DeferredObject } from "../../../src/platform-kit/utils"
 import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/ui/base/List.js"
 import * as restError from "../../../src/platform-kit/rest-client/error"
@@ -808,16 +808,16 @@ o.spec("ListModel", function () {
 			o.test("when ListAutoSelectBehavior.OLDER and no older items the last remaining one is selected", async function () {
 				currentSelectBehavior = ListAutoSelectBehavior.OLDER
 				await setItems(items)
-				listModel.onSingleSelection(lastThrow(items))
-				await listModel.deleteLoadedItem(getElementId(lastThrow(items)))
+				listModel.onSingleSelection(arrayLastOrThrow(items))
+				await listModel.deleteLoadedItem(getElementId(arrayLastOrThrow(items)))
 				o.check(listModel.getSelectedAsArray()).deepEquals([items[items.length - 2]])
 			})
 
 			o.test("when ListAutoSelectBehavior.OLDER an older item is selected", async function () {
 				currentSelectBehavior = ListAutoSelectBehavior.OLDER
 				await setItems(items)
-				listModel.onSingleSelection(getFirstOrThrow(items))
-				await listModel.deleteLoadedItem(getElementId(getFirstOrThrow(items)))
+				listModel.onSingleSelection(arrayFirstOrThrow(items))
+				await listModel.deleteLoadedItem(getElementId(arrayFirstOrThrow(items)))
 				o.check(listModel.getSelectedAsArray()).deepEquals([items[1]])
 			})
 

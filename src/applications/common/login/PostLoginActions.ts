@@ -1,6 +1,6 @@
 import m from "mithril"
 import { LoginController } from "../api/main/LoginController"
-import { assertNotNull, DateProvider, isEmpty, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
+import { arrayIsEmpty, assertNotNull, DateProvider, LazyLoaded, neverNull, newPromise, noOp, ofClass } from "@tutao/utils"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { checkApprovalStatus } from "../misc/LoginUtils.js"
 import { locator } from "../api/main/CommonLocator"
@@ -284,7 +284,7 @@ export class PostLoginActions implements PostLoginAction {
 		// Next, check if we have at least one.
 		const user = this.logins.getUserController().user
 		const secondFactors = await this.entityClient.loadRange(SecondFactorTypeRef, assertNotNull(user.auth).secondFactors, GENERATED_MIN_ID, 1, false)
-		if (!isEmpty(secondFactors)) {
+		if (!arrayIsEmpty(secondFactors)) {
 			return
 		}
 

@@ -8,7 +8,7 @@ import Stream from "mithril/stream"
 import { CancelledError, DomainConfig, EnvProvider, ProgrammingError, SessionType } from "@tutao/app-env"
 import type { CredentialsProvider } from "../misc/credentials/CredentialsProvider.js"
 import { CredentialAuthenticationError } from "../api/common/error/CredentialAuthenticationError"
-import { first, noOp } from "@tutao/utils"
+import { arrayFirst, noOp } from "@tutao/utils"
 import { KeyPermanentlyInvalidatedError } from "../api/common/error/KeyPermanentlyInvalidatedError"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 import { DeviceConfig } from "../misc/DeviceConfig.js"
@@ -319,7 +319,7 @@ export class LoginViewModel implements ILoginViewModel {
 		try {
 			if (this.autoLoginCredentials == null) {
 				const allCredentials = await this.credentialsProvider.getInternalCredentialsInfos()
-				this.autoLoginCredentials = first(allCredentials)
+				this.autoLoginCredentials = arrayFirst(allCredentials)
 			}
 
 			// we don't want to auto-login on the legacy domain, there's a banner

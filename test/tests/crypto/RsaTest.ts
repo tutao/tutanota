@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "../../../src/platform-kit/utils"
+import { hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayConcat, uint8ArrayToHex } from "../../../src/platform-kit/utils"
 import { extractRawPublicRsaKeyFromPrivateRsaKey, random, RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "../../../src/platform-kit/crypto"
 import {
 	_getPSBlock,
@@ -221,7 +221,7 @@ o.spec("RsaTest", function () {
 
 		let encrypted = rsaEncrypt(publicKey, plain, random.generateRandomData(32))
 
-		o.check(() => rsaDecrypt(privateKey, concat(encrypted, stringToUtf8Uint8Array("hello")))).throws(CryptoError)
+		o.check(() => rsaDecrypt(privateKey, uint8ArrayConcat(encrypted, stringToUtf8Uint8Array("hello")))).throws(CryptoError)
 	})
 
 	/********************************* OAEP *********************************/

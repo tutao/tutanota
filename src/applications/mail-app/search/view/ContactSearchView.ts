@@ -10,7 +10,7 @@ import { SidebarSection } from "../../../../ui/SidebarSection"
 import { layout_size } from "../../../../ui/size"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { ContactEditor } from "../../contacts/ContactEditor"
-import { assertNotNull, getFirstOrThrow, isNotEmpty, lazyMemoized } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayIsNotEmpty, assertNotNull, lazyMemoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { ClickHandler } from "../../../../ui/base/GuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -151,7 +151,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 
 	getDeleteAndTrashActions(): { deleteAction: (() => unknown) | null; trashAction: (() => unknown) | null } {
 		const selectedContacts = this.searchViewModel.getSelectedContacts()
-		if (isNotEmpty(selectedContacts)) {
+		if (arrayIsNotEmpty(selectedContacts)) {
 			return {
 				deleteAction: () => {
 					Dialog.confirm("deleteContacts_msg").then((confirmed) => {
@@ -424,7 +424,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 				MobileBottomActionBar,
 				m(ContactViewerActions, {
 					contacts: this.searchViewModel.getSelectedContacts(),
-					onEdit: () => new ContactEditor(locator.entityClient, getFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
+					onEdit: () => new ContactEditor(locator.entityClient, arrayFirstOrThrow(this.searchViewModel.getSelectedContacts())).show(),
 					onDelete: (contacts: Contact[]) => deleteContacts(contacts, () => this.searchViewModel.listModel.selectNone()),
 					onMerge: confirmMerge,
 					onExport: exportContacts,

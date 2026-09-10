@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { arrayFirst, arrayIsEmpty, arrayPartitioned, assertNotNull, iterableGroupedBy, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -127,7 +127,7 @@ export class DriveFacade {
 	}
 
 	public async deleteFromTrash(items: readonly (DriveFile | DriveFolder)[]): Promise<Id> {
-		const [files, folders] = partition(items, isDriveFile)
+		const [files, folders] = arrayPartitioned(items, isDriveFile)
 
 		const deleteData = createDriveItemDeleteIn({
 			files: files.map((f) => f._id),
@@ -168,7 +168,7 @@ export class DriveFacade {
 		const folder = await this.entityClient.load(DriveFolderTypeRef, folderId)
 		const refs = await this.entityClient.loadAll(DriveFileRefTypeRef, folder.files)
 		const isFileRef = (ref: DriveFileRef): ref is Require<"file", DriveFileRef> => ref.file != null
-		const [fileRefs, folderRefs] = partition(refs, isFileRef)
+		const [fileRefs, folderRefs] = arrayPartitioned(refs, isFileRef)
 		const files = await loadMultipleFromLists(
 			DriveFileTypeRef,
 			this.entityClient,
@@ -396,29 +396,29 @@ export function* splitListElementsIntoChunksByList<I, L extends I, R extends I>(
 	}
 
 	// can't use itemListId directly because it fucks up the inference
-	const leftById = Array.from(groupBy(leftItems, (item) => itemListId(item)).values())
-	const rightById = Array.from(groupBy(rightItems, (item) => itemListId(item)).values())
+	const leftById = Array.from(iterableGroupedBy(leftItems, (item) => itemListId(item)).values())
+	const rightById = Array.from(iterableGroupedBy(rightItems, (item) => itemListId(item)).values())
 
 	// while there's at least a list of files or list of folders to process
-	while (!isEmpty(leftById) || !isEmpty(rightById)) {
-		const leftList = first(leftById)
+	while (!arrayIsEmpty(leftById) || !arrayIsEmpty(rightById)) {
+		const leftList = arrayFirst(leftById)
 		// if we still have a list of files to process, take it
 		let leftItems: L[]
 		if (leftList) {
 			// remove the first chunk from the current list
 			leftItems = leftList.splice(0, chunkSize)
-			if (isEmpty(leftList)) {
+			if (arrayIsEmpty(leftList)) {
 				// if we exhausted the list, yeet it out
 				leftById.shift()
 			}
 		} else {
 			leftItems = []
 		}
-		const rightList = first(rightById)
+		const rightList = arrayFirst(rightById)
 		let rightItems: R[]
 		if (rightList) {
 			rightItems = rightList.splice(0, chunkSize - leftItems.length)
-			if (isEmpty(rightList)) {
+			if (arrayIsEmpty(rightList)) {
 				rightById.shift()
 			}
 		} else {

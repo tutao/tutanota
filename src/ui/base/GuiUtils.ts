@@ -2,7 +2,7 @@ import { MaybeTranslation, TranslationKey } from "../utils/LanguageViewModel"
 import { ButtonColor } from "./Button.js"
 import { Icons } from "./icons/Icons"
 import { createAsyncDropdown, DomRectReadOnlyPolyfilled, Dropdown, DropdownButtonAttrs, DropdownChildAttrs } from "./Dropdown.js"
-import { assertNotNull, isEmpty, lazy } from "../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, lazy } from "../../platform-kit/utils"
 import { MaybeLazy, resolveMaybeLazy } from "./MaybeLazy"
 import { Dialog } from "./Dialog"
 import { ProgrammingError } from "../../platform-kit/app-env"
@@ -477,7 +477,7 @@ export function renderDragElement(name: string, icon: Icons, count: number, subS
 }
 
 export function contextDropdown(e: MouseEvent, dropdownAttrs: DropdownButtonAttrs[]): void {
-	if (isEmpty(dropdownAttrs)) {
+	if (arrayIsEmpty(dropdownAttrs)) {
 		return
 	}
 	e.preventDefault()

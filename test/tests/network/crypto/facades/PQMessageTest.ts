@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { decodePQMessage, encodePQMessage, PQMessage } from "../../../../../src/platform-kit/base/base-crypto/PQMessage.js"
-import { concat, stringToUtf8Uint8Array } from "../../../../../src/platform-kit/utils"
+import { stringToUtf8Uint8Array, uint8ArrayConcat } from "../../../../../src/platform-kit/utils"
 
 o.spec("PQMessageTest", function () {
 	o.spec("encodeDecodeRoundtrip", function () {
@@ -17,7 +17,7 @@ o.spec("PQMessageTest", function () {
 			const encodedPqMessage = encodePQMessage(pqMessage)
 
 			o(
-				concat(
+				uint8ArrayConcat(
 					new Uint8Array([0, stringToUtf8Uint8Array("id").length]),
 					stringToUtf8Uint8Array("id"),
 					new Uint8Array([0, stringToUtf8Uint8Array("eph").length]),

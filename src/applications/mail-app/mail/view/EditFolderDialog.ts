@@ -7,7 +7,7 @@ import { isOfflineError, LockedError } from "../../../../platform-kit/rest-clien
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel.js"
 import { reportMailsAutomatically } from "./MailReportDialog.js"
-import { groupByAndMap, noOp } from "../../../../platform-kit/utils"
+import { iterableGroupedByMapped, noOp } from "../../../../platform-kit/utils"
 import { mailLocator } from "../../mailLocator.js"
 import type { IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
 import { getIndentedFolderNameForDropdown, getMailSetName, getPathToFolderString } from "../model/MailUtils.js"
@@ -67,7 +67,7 @@ export async function showEditFolderDialog(
 
 	async function getMailIdsGroupedByListId(folder: MailSet): Promise<Map<Id, Id[]>> {
 		const mailSetEntries = await locator.entityClient.loadAll(MailSetEntryTypeRef, folder.entries)
-		return groupByAndMap(
+		return iterableGroupedByMapped(
 			mailSetEntries,
 			(mse) => listIdPart(mse.mail),
 			(mse) => elementIdPart(mse.mail),

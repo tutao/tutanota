@@ -6,12 +6,12 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import Stream from "mithril/stream"
 import { SearchCategoryType, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes"
 import {
+	arrayIsEmpty,
 	assertNotNull,
 	DateProvider,
 	debounce,
 	getEndOfDay,
 	getStartOfDay,
-	isEmpty,
 	isNotNull,
 	isSameDayOfDate,
 	memoizedWithHiddenArgument,
@@ -469,7 +469,7 @@ export class MailSearchViewModel {
 			if (!isCurrentResultComplete && currentResult.searchResult.currentIndexTimestamp > newState.currentMailIndexTimestamp) {
 				currentResult.extendResults(newState.currentMailIndexTimestamp)
 			}
-		} else if (isIndexingDoneOrCanceled && currentResult && isEmpty(currentResult.items) && !currentResult.hasMoreResults) {
+		} else if (isIndexingDoneOrCanceled && currentResult && arrayIsEmpty(currentResult.items) && !currentResult.hasMoreResults) {
 			// Indexing is done or cancelled and list is empty, run another search
 			this.performNewSearch(searchResultQuery(currentResult.searchResult))
 		}

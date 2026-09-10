@@ -1,5 +1,5 @@
 import { Aes256Key, InitializationVector } from "@tutao/crypto"
-import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import { stringToUtf8Uint8Array, uint8ArrayConcat, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
 import type {
 	DecryptedSearchIndexEntry,
 	EncryptedSearchIndexEntry,
@@ -27,7 +27,7 @@ export function encryptIndexKeyUint8Array(key: Aes256Key, indexKey: string, dbIn
 }
 
 export function decryptIndexKey(key: Aes256Key, encIndexKey: Uint8Array, dbInitializationVector: InitializationVector): string {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(dbInitializationVector.bytes, encIndexKey)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, uint8ArrayConcat(dbInitializationVector.bytes, encIndexKey)))
 }
 
 export function encryptSearchIndexEntry(key: Aes256Key, entry: SearchIndexEntry, encryptedInstanceId: Uint8Array<ArrayBuffer>): EncryptedSearchIndexEntry {

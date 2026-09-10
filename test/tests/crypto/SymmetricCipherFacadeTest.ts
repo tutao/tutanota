@@ -18,7 +18,7 @@ import {
 } from "../../../src/platform-kit/crypto"
 import { InitializationVector } from "../../../src/platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils.js"
 import { _aes128RandomKey } from "./AesTest.js"
-import { concat } from "../../../src/platform-kit/utils"
+import { uint8ArrayConcat } from "../../../src/platform-kit/utils"
 import { InitializationVectorVariant } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -127,7 +127,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			const initializationVectorVariant = InitializationVectorVariant.Random
 			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag)
 
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayConcat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
@@ -139,7 +139,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		})
 		o("decryptBytes 128 no mac", function () {
 			const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayConcat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
@@ -161,7 +161,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			const initializationVectorVariant = InitializationVectorVariant.Random
 			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag)
 
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayConcat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
@@ -173,7 +173,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		})
 		o("decryptBytesDeprecatedUnauthenticated 256 no mac succeeds", async function () {
 			const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayConcat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
@@ -215,7 +215,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		o("decryptKey 128", function () {
 			// we never encrypted keys with aes 128-bit keys as encryption key with a mac. so no additional test needed
 			const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(FIXED_INITIALIZATION_VECTOR, new Uint8Array([1, 2]))
-			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), parsedCiphertext.ciphertext)
+			const versionedCiphertext = uint8ArrayConcat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), parsedCiphertext.ciphertext)
 			when(
 				aesCbcFacade.decrypt(
 					matchers.isA(UnusedReservedUnauthenticatedSubKeys),
@@ -246,7 +246,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 			const initializationVectorVariant = InitializationVectorVariant.Random
 			const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertext, macTag)
 
-			const versionedCiphertext = concat(symmetricCipherVersionToUint8Array(cipherVersion), initializationVector.bytes, ciphertext, macTag)
+			const versionedCiphertext = uint8ArrayConcat(symmetricCipherVersionToUint8Array(cipherVersion), initializationVector.bytes, ciphertext, macTag)
 			when(aesCbcFacade.decrypt(aes256SubKeys, parsedCiphertext, PaddingStandard.None, AuthenticationEnforcement.Strict)).thenReturn(
 				keyToUint8Array(keyToEncrypt_256),
 			)
@@ -255,7 +255,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		})
 		o("decryptKeyDeprecatedUnauthenticated 256 no mac succeeds", function () {
 			const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayConcat(
 				symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion),
 				initializationVector.bytes,
 				parsedCiphertext.ciphertext,
