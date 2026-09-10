@@ -170,7 +170,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					oncontextmenu: (e: MouseEvent) => {
 						// If text is selected show typical right click menu, so text can be copied
 						// also disable while dragging so these two don't interfere on mobile
-						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null) {
+						if (window.getSelection()?.toString() === "" && this.draggingOverRuleIndex == null && !ClientDetector.get().isMobileDevice()) {
 							contextDropdown(e, this.getActionsForRule(index, rule))
 						}
 					},
