@@ -295,10 +295,10 @@ import("../../ui/translations/en.js")
 					mailLocator.syncTracker,
 				)
 			})
-			mailLocator.logins.addPostLoginAction(async () => {
-				const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction.js")
-				return new MailIndexerPostLoginAction(mailLocator.indexerFacade, mailLocator.syncTracker, mailLocator.logins)
-			})
+			// mailLocator.logins.addPostLoginAction(async () => {
+			// 	const { MailIndexerPostLoginAction } = await import("./search/model/MailIndexerPostLoginAction.js")
+			// 	return new MailIndexerPostLoginAction(mailLocator.indexerFacade, mailLocator.syncTracker, mailLocator.logins)
+			// })
 			mailLocator.logins.addPostLoginAction(async () => {
 				const { RegisterPushServicePostLoginAction } = await import("../common/native/RegisterPushServicePostLoginAction.js")
 				return new RegisterPushServicePostLoginAction(deviceConfig, mailLocator.pushService)
@@ -306,9 +306,14 @@ import("../../ui/translations/en.js")
 		}
 
 		mailLocator.logins.addPostLoginAction(async () => {
-			const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
-			return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
+			const { oomMeMaybePostLoginAction } = await import("./search/model/oomMeMaybePostLoginAction.js")
+			return new oomMeMaybePostLoginAction(mailLocator.entityClient, mailLocator.syncTracker, mailLocator.logins)
 		})
+
+		// mailLocator.logins.addPostLoginAction(async () => {
+		// 	const { SpamClassificationPostLoginAction } = await import("./mail/model/SpamClassificationPostLoginAction.js")
+		// 	return new SpamClassificationPostLoginAction(mailLocator.spamClassifier, mailLocator.customerFacade, mailLocator.syncTracker)
+		// })
 
 		if (EnvProvider.get().isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
