@@ -171,6 +171,7 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
+import { PluginManager } from "../plugin-manager/PluginManager"
 
 EnvProvider.assertMainOrNode()
 
@@ -946,6 +947,9 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
+
+		const pluginManager = new PluginManager()
+		await pluginManager.loadPlugins()
 
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
