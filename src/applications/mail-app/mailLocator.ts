@@ -172,6 +172,7 @@ import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarP
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { PluginManager } from "../plugin-manager/PluginManager"
+import { PluginHost } from "../plugin-manager/PluginHost"
 
 assertMainOrNode()
 
@@ -252,6 +253,7 @@ class MailLocator implements CommonLocator {
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
+	private pluginManager!: PluginManager
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -599,6 +601,7 @@ class MailLocator implements CommonLocator {
 				undoModel,
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
+				this.pluginManager,
 			)
 	}
 
@@ -926,9 +929,8 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
-
-		const pluginManager = new PluginManager()
-		await pluginManager.loadPlugins()
+		this.pluginManager = new PluginManager(new PluginHost())
+		await this.pluginManager.loadPlugins()
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")

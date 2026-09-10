@@ -31,7 +31,7 @@ import {
 	moveMailsToSystemFolder,
 	showDownloadProgressDialog,
 } from "./MailGuiUtils"
-import { DownloadPostProcessing, FileController, DownloadReturn } from "../../../common/file/FileController"
+import { DownloadPostProcessing, DownloadReturn, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -92,6 +92,8 @@ import { default as ncAxios } from "@nextcloud/axios"
 import { generateRemoteUrl as ncGenerateRemoteUrl } from "@nextcloud/router"
 import { getCurrentUser as ncGetCurrentUser } from "@nextcloud/auth"
 import { TransferId } from "../../../../entities/drive/Utils"
+import { PluginManager } from "../../../plugin-manager/PluginManager"
+import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -187,6 +189,7 @@ export class MailViewerViewModel {
 		private readonly undoModel: UndoModel,
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
+		private readonly pluginManager: PluginManager,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1439,6 +1442,10 @@ export class MailViewerViewModel {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
 		}
+	}
+
+	getAttachmentButtons(): ButtonConfiguration[] {
+		return this.pluginManager.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
 	}
 
 	canImportFile(file: File): boolean {
