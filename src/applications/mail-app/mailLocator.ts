@@ -96,7 +96,6 @@ import { MailAddressNameChanger, MailAddressTableModel, UserInfo } from "../comm
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
 import { CredentialRemovalHandler } from "../common/login/CredentialRemovalHandler.js"
-import { LoginViewModel } from "../common/login/LoginViewModel.js"
 import { EntropyCollector } from "../common/api/main/EntropyCollector.js"
 import { notifications } from "../../ui/Notifications.js"
 import { windowFacade } from "../common/misc/WindowFacade.js"
@@ -172,6 +171,7 @@ import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
+import { PluginManager } from "../plugin-manager/PluginManager"
 
 assertMainOrNode()
 
@@ -926,6 +926,9 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
+
+		const pluginManager = new PluginManager()
+		await pluginManager.loadPlugins()
 
 		if (!isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")

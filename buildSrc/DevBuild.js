@@ -102,6 +102,8 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, app })
 
+	await buildPlugins(buildDir)
+
 	if (desktop) {
 		await buildDesktopPart({ version, networkDebugging, app })
 	}
@@ -163,6 +165,21 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	import "./worker.js"
 	`,
 		)
+	})
+}
+
+async function buildPlugins(buildDir) {
+	const bundle = await rolldown({
+		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/Plugin.js" },
+	})
+	await bundle.write({
+		dir: `./${buildDir}/plugin-kit/plugins/`,
+		format: "esm",
+		// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
+		// intercepted, so we can't serve the files.
+		sourcemap: "inline",
+		// overwrite the files rather than keeping all versions in the build folder
+		chunkFileNames: "[name].js",
 	})
 }
 
@@ -294,7 +311,7 @@ function getStaticUrl(stage, mode, host) {
 	} else if (stage === "local") {
 		return "http://" + os.hostname() + ":9000"
 	} else {
-		// host
+		// plugin-manager
 		return host
 	}
 }

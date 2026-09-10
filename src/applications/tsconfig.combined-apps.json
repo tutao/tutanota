@@ -8,7 +8,8 @@
 		"../../types/",
 		"../global.d.ts",
 		"../../libs/tensorflow-platform-stub.js",
-		"../../libs/luxon.js"
+		"../../libs/luxon.js",
+		"plugin-manager/*"
 	],
 	"compilerOptions": {
 		"rootDir": "../..",
@@ -46,6 +47,9 @@
 		},
 		{
 			"path": "../app-kit/tsconfig.local-store.json"
+		},
+		{
+			"path": "../plugin-kit/tsconfig.sdk.json"
 		},
 		{
 			"path": "../ui/tsconfig.ui.json"
