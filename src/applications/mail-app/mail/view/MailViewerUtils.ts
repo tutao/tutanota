@@ -445,64 +445,6 @@ export function getMailActionAttrs(mailViewerActions: MailViewerToolbarActions):
 	return actionAttrs
 }
 
-export function getMailViewerMoreActions({
-	viewModel,
-	exportAction,
-	reportSpam,
-	print,
-	reportPhishing,
-	reapplyInboxRules,
-	reportNotSpam,
-}: {
-	viewModel: MailViewerViewModel
-	exportAction: (() => unknown) | null
-	print: (() => unknown) | null
-	reapplyInboxRules: (() => unknown) | null
-	reportSpam: (() => unknown) | null
-	reportNotSpam: (() => unknown) | null
-	reportPhishing: (() => unknown) | null
-}): MailViewerMoreActions {
-	const actions: MailViewerMoreActions = {}
-
-	if (exportAction) {
-		actions.exportAction = exportAction
-	}
-
-	if (viewModel.canPersistBlockingStatus() && viewModel.isShowingExternalContent()) {
-		actions.disallowExternalContentAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Block)
-	}
-
-	if (viewModel.canPersistBlockingStatus() && viewModel.isBlockingExternalImages()) {
-		actions.showImagesAction = () => viewModel.setContentBlockingStatus(ContentBlockingStatus.Show)
-	}
-
-	if (viewModel.isListUnsubscribe()) {
-		actions.unsubscribeAction = () => unsubscribe(viewModel)
-	}
-
-	if (print && viewModel.canPrint()) {
-		actions.printAction = print
-	}
-
-	if (reportSpam) {
-		actions.reportSpamAction = reportSpam
-	}
-
-	if (reportPhishing) {
-		actions.reportPhishingAction = reportPhishing
-	}
-
-	if (reapplyInboxRules) {
-		actions.reapplyInboxRulesAction = reapplyInboxRules
-	}
-
-	if (reportNotSpam) {
-		actions.reportNotSpamAction = reportNotSpam
-	}
-
-	return actions
-}
-
 function mailViewerMoreActions({
 	exportAction,
 	disallowExternalContentAction,
@@ -847,4 +789,12 @@ export function getMailFilterForType(filter: MailFilterType): ListFilter<Mail> {
 
 export function canDoDragAndDropExport(): boolean {
 	return EnvProvider.get().isDesktop()
+}
+
+export function getPrintMailAction(): (() => void) | undefined {
+	if (EnvProvider.get().isApp()) {
+		return () => locator.systemFacade.print()
+	} else if (typeof window.print === "function") {
+		return () => window.print()
+	}
 }
