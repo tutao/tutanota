@@ -53,7 +53,15 @@ import {
 } from "@tutao/utils"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { checkAttachmentSize, getDefaultSender, getTemplateLanguages, isAliasEnabledWithUser, isUserEmail, RecipientField } from "./SharedMailUtils.js"
+import {
+	checkAttachmentSize,
+	getDefaultSender,
+	getTemplateLanguages,
+	isAliasEnabledWithUser,
+	isSharedMailbox,
+	isUserEmail,
+	RecipientField,
+} from "./SharedMailUtils.js"
 import { cloneInlineImages, InlineImages, revokeInlineImages } from "./inlineImagesUtils.js"
 import { RecipientsModel, ResolvableRecipient } from "../api/main/RecipientsModel.js"
 import {
@@ -256,7 +264,7 @@ export class SendMailModel {
 	}
 
 	isSharedMailbox(): boolean {
-		return !this.mailboxDetails.mailGroup.user
+		return isSharedMailbox(this.mailboxDetails)
 	}
 
 	getPreviousMail(): Mail | null {

@@ -12,6 +12,7 @@ import {
 	filterInt,
 	first,
 	isEmpty,
+	isNotNull,
 	lazyAsync,
 	noOp,
 	Nullable,
@@ -54,7 +55,13 @@ import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFa
 import { AttachmentType, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import type { ContactImporter } from "../../contacts/ContactImporter.js"
 import { InlineImages, revokeInlineImages } from "../../../common/mailFunctionality/inlineImagesUtils.js"
-import { getDefaultSender, getEnabledMailAddressesWithUser, getMailboxName, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
+import {
+	getDefaultSender,
+	getEnabledMailAddressesWithUser,
+	getMailboxName,
+	isSharedMailbox,
+	isTutaTeamMail,
+} from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { getDisplayedSender, getMailBodyText, MailAddressAndName } from "../../../common/api/common/CommonMailUtils.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import {
@@ -84,6 +91,7 @@ import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailD
 import {
 	ConversationType,
 	ExternalImageRule,
+	InboxRuleConditionType,
 	MailMethod,
 	MailPhishingStatus,
 	MailReportType,
@@ -178,6 +186,7 @@ export class MailViewerViewModel {
 	}
 
 	private mailDetails: MailDetails | null = null
+	private mailboxDetails: MailboxDetail | null = null
 
 	constructor(
 		private _mail: Mail,
@@ -742,7 +751,16 @@ export class MailViewerViewModel {
 	}
 
 	canReapplyInboxRules(): boolean {
-		return this.logins.isInternalUserLoggedIn() && this.getFolderInfo()?.folderType === MailSetKind.INBOX
+		return (
+			this.logins.isInternalUserLoggedIn() &&
+			isNotNull(this.mailboxDetails) &&
+			!isSharedMailbox(this.mailboxDetails) &&
+			this.getFolderInfo()?.folderType === MailSetKind.INBOX
+		)
+	}
+
+	canCreateInboxRule(): boolean {
+		return this.logins.isInternalUserLoggedIn() && isNotNull(this.mailboxDetails) && !isSharedMailbox(this.mailboxDetails)
 	}
 
 	canShowHeaders(): boolean {
@@ -930,6 +948,7 @@ export class MailViewerViewModel {
 
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
+			this.mailboxDetails = await this.getMailboxDetails()
 			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -1574,6 +1593,19 @@ export class MailViewerViewModel {
 
 		if (this.canReapplyInboxRules()) {
 			actions.reapplyInboxRulesAction = () => this.reapplyInboxRuleForMail()
+		}
+
+		if (this.canCreateInboxRule()) {
+			actions.addInboxRuleAction = async () => {
+				const { show } = await import("../../settings/AddInboxRuleDialog")
+
+				if (this.mailboxDetails) {
+					show(this.mailboxDetails, this.inboxRuleModel, null, [
+						{ type: InboxRuleConditionType.FROM_EQUALS, value: this.mail.sender.address },
+						{ type: InboxRuleConditionType.SUBJECT_CONTAINS, value: this.mail.subject },
+					])
+				}
+			}
 		}
 
 		return actions

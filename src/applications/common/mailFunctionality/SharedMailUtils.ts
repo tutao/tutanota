@@ -336,3 +336,7 @@ export type MailBundle = {
 	headers: string | null
 	attachments: DataFile[]
 }
+
+export function isSharedMailbox(mailboxDetails: MailboxDetail): boolean {
+	return !mailboxDetails.mailGroup.user
+}
