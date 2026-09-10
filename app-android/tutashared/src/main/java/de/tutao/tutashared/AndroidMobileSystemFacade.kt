@@ -257,20 +257,6 @@ class AndroidMobileSystemFacade(
 		throw NotImplementedError("requestInAppRating")
 	}
 
-	override suspend fun requestWidgetRefresh() {
-		if (widgetRefresher == null) {
-			Log.e(TAG, "widgetRefresher is null, should not happen")
-			return
-		}
-
-		try {
-			Log.d(TAG, "running AndroidMobileSystemFacade.requestWidgetRefresh()")
-			widgetRefresher.refresh(activity)
-		} catch (e: Exception) {
-			Log.e(TAG, "Failed to refresh widgets state ${e.message}")
-		}
-	}
-
 	override suspend fun storeServerRemoteOrigin(origin: String) {
 		val remoteStorage = RemoteStorage(db)
 		remoteStorage.storeRemoteUrl(origin)
