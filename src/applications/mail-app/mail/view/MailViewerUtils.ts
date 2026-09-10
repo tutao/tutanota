@@ -1,5 +1,5 @@
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "../../../../platform-kit/utils"
+import { assertNotNull, groupByAndMap, isEmpty, isNotNull, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import m from "mithril"
@@ -68,6 +68,7 @@ export type MailViewerMoreActions = {
 	unsubscribeAction?: () => void
 	printAction?: () => void
 	reapplyInboxRulesAction?: (() => void) | null
+	addInboxRuleAction?: () => void
 	reportSpamAction?: () => void
 	reportNotSpamAction?: () => void
 	reportPhishingAction?: () => void
@@ -452,6 +453,7 @@ function mailViewerMoreActions({
 	unsubscribeAction,
 	printAction,
 	reapplyInboxRulesAction,
+	addInboxRuleAction,
 	reportSpamAction,
 	reportNotSpamAction,
 	reportPhishingAction,
@@ -512,6 +514,14 @@ function mailViewerMoreActions({
 			label: "reapplyInboxRules_action",
 			click: reapplyInboxRulesAction,
 			icon: Icons.ArrowCurvedForwardFilled,
+		})
+	}
+
+	if (isNotNull(addInboxRuleAction)) {
+		moreButtons.push({
+			label: "addInboxRule_action",
+			click: addInboxRuleAction,
+			icon: Icons.FunnelFilled,
 		})
 	}
 
