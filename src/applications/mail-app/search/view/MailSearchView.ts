@@ -12,7 +12,7 @@ import { assertNotNull, first, isEmpty, isNotEmpty, isSameDayOfDate, lazyMemoize
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { EnvProvider, FeatureType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
+import { FeatureType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { ClickHandler, getDetachedDropdownBounds } from "../../../../ui/base/GuiUtils"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout"
@@ -36,14 +36,7 @@ import { Mail } from "@tutao/entities/tutanota"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { MailViewerActions } from "../../mail/view/MailViewerToolbar"
 import { MobileHeader } from "../../../../ui/MobileHeader"
-import {
-	canDoDragAndDropExport,
-	editDraft,
-	getMailViewerMoreActions,
-	MailFilterType,
-	showReportPhishingMailDialog,
-	startExport,
-} from "../../mail/view/MailViewerUtils"
+import { canDoDragAndDropExport, editDraft, MailFilterType, startExport } from "../../mail/view/MailViewerUtils"
 import {
 	getCommonShortcuts,
 	getConversationTitle,
@@ -56,7 +49,6 @@ import {
 	trashMails,
 } from "../../mail/view/MailGuiUtils"
 import { ConversationViewer } from "../../mail/view/ConversationViewer"
-import { MailViewerViewModel } from "../../mail/view/MailViewerViewModel"
 import { MoveMode } from "../../mail/model/MailModel"
 import { mailLocator } from "../../mailLocator"
 import { isDraft, isMailMovable } from "../../mail/model/MailChecks"
@@ -66,8 +58,7 @@ import { allInSameMailbox, getIndentedFolderNameForDropdown } from "../../mail/m
 import { ConversationViewModel } from "../../mail/view/ConversationViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { showUserError } from "../../../common/misc/ErrorHandlerImpl"
-import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { LockedError } from "@tutao/rest-client/error"
+import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { SelectAllCheckbox } from "../../../../ui/SelectAllCheckbox"
@@ -88,12 +79,10 @@ import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { MultiselectMode } from "../../../../ui/base/List"
 import { SimpleMoveMailTarget } from "../../mail/MailUtils"
 import { MailSearchListView } from "./MailSearchListView"
-
 import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
-import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
@@ -641,15 +630,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					replyAll: this.getReplyAction(conversationViewModel, true),
 					forward: this.getForwardAction(conversationViewModel),
 				},
-				mailViewerMoreActions: getMailViewerMoreActions({
-					viewModel: conversationViewModel.primaryViewModel(),
+				mailViewerMoreActions: {
+					...conversationViewModel.primaryViewModel().getMailViewerMoreActions(),
 					exportAction: this.getExportAction(),
-					print: this.getPrintAction(),
-					reapplyInboxRules: null,
-					reportSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
-					reportNotSpam: this.getSingleMailReportNotSpamAction(conversationViewModel.primaryViewModel()),
-					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
-				}),
+					reapplyInboxRulesAction: null,
+				},
 			})
 			return m(BackgroundColumnLayout, {
 				backgroundColor: theme.surface_container,
@@ -683,15 +668,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 							: null
 					},
 					moreActions: (mailViewerModel) => {
-						return getMailViewerMoreActions({
-							viewModel: mailViewerModel,
-							exportAction: null,
-							print: this.getPrintAction(),
-							reapplyInboxRules: null,
-							reportSpam: this.getSingleMailSpamAction(mailViewerModel),
-							reportNotSpam: this.getSingleMailReportNotSpamAction(mailViewerModel),
-							reportPhishing: this.getSingleMailPhishingAction(mailViewerModel),
-						})
+						return { ...mailViewerModel.getMailViewerMoreActions(), reapplyInboxRulesAction: null }
 					},
 				}),
 			})
@@ -734,18 +711,6 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 						MoveMode.Mails,
 						mailLocator.contactModel,
 					)
-			: null
-	}
-
-	private getSingleMailReportNotSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportNotSpam() ? () => viewModel.reportNotSpamForMail() : null
-	}
-
-	private getSingleMailPhishingAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportPhishing()
-			? () => {
-					showReportPhishingMailDialog(async () => this.reportSingleMail(viewModel, MailReportType.PHISHING))
-				}
 			: null
 	}
 
@@ -826,27 +791,6 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			return null
 		}
 	}
-
-	private getPrintAction(): (() => unknown) | null {
-		if (EnvProvider.get().isApp()) {
-			return () => locator.systemFacade.print()
-		} else if (typeof window.print === "function") {
-			return () => window.print()
-		} else {
-			return null
-		}
-	}
-
-	private getSingleMailSpamAction(viewModel: MailViewerViewModel): (() => void) | null {
-		return viewModel.canReportSpam() ? () => this.reportSingleMail(viewModel, MailReportType.SPAM) : null
-	}
-
-	private reportSingleMail(viewModel: MailViewerViewModel, reportType: MailReportType): void {
-		viewModel
-			.reportSpamForMail(reportType)
-			.catch(ofClass(LockedError, () => Dialog.message("operationStillActive_msg")))
-			.finally(m.redraw)
-	}
 	private getReportSelectedMailsSpamAction(): (() => unknown) | null {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 		return selectedMails.every(isDraft)
@@ -883,16 +827,12 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 				replyAction: this.getReplyAction(conversationViewModel, false),
 				replyAllAction: this.getReplyAction(conversationViewModel, true),
 				forwardAction: this.getForwardAction(conversationViewModel),
-				mailViewerMoreActions: getMailViewerMoreActions({
-					viewModel: conversationViewModel.primaryViewModel(),
+				mailViewerMoreActions: {
+					...conversationViewModel.primaryViewModel().getMailViewerMoreActions(),
 					exportAction: this.getExportAction(),
-					print: this.getPrintAction(),
-					reapplyInboxRules: null,
-					reportSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
-					reportNotSpam: this.getSingleMailSpamAction(conversationViewModel.primaryViewModel()),
-					reportPhishing: this.getSingleMailPhishingAction(conversationViewModel.primaryViewModel()),
-				}),
-				reportNotSpamAction: null,
+					reapplyInboxRulesAction: null,
+				},
+				reportNotSpamAction: undefined,
 			})
 		} else if (isInMultiselect) {
 			const { deleteAction, trashAction } = this.getDeleteAndTrashActions()
