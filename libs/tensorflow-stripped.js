@@ -1067,880 +1067,887 @@ class PlatformStub {
 	}
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
-var long = Long$1;
+var long$1;
+var hasRequiredLong;
 
+function requireLong () {
+	if (hasRequiredLong) return long$1;
+	hasRequiredLong = 1;
+	long$1 = Long;
 
-var wasm = null;
+	
+	var wasm = null;
 
-try {
-  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
-    0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11
-  ])), {}).exports;
-} catch (e) {
-  
+	try {
+	  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
+	    0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11
+	  ])), {}).exports;
+	} catch (e) {
+	  
+	}
+
+	
+	function Long(low, high, unsigned) {
+
+	    
+	    this.low = low | 0;
+
+	    
+	    this.high = high | 0;
+
+	    
+	    this.unsigned = !!unsigned;
+	}
+
+	Object.defineProperty(Long.prototype, "__isLong__", { value: true });
+
+	
+	function isLong(obj) {
+	    return (obj && obj["__isLong__"]) === true;
+	}
+
+	
+	Long.isLong = isLong;
+
+	
+	var INT_CACHE = {};
+
+	
+	var UINT_CACHE = {};
+
+	
+	function fromInt(value, unsigned) {
+	    var obj, cachedObj, cache;
+	    if (unsigned) {
+	        value >>>= 0;
+	        if (cache = (0 <= value && value < 256)) {
+	            cachedObj = UINT_CACHE[value];
+	            if (cachedObj)
+	                return cachedObj;
+	        }
+	        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
+	        if (cache)
+	            UINT_CACHE[value] = obj;
+	        return obj;
+	    } else {
+	        value |= 0;
+	        if (cache = (-128 <= value && value < 128)) {
+	            cachedObj = INT_CACHE[value];
+	            if (cachedObj)
+	                return cachedObj;
+	        }
+	        obj = fromBits(value, value < 0 ? -1 : 0, false);
+	        if (cache)
+	            INT_CACHE[value] = obj;
+	        return obj;
+	    }
+	}
+
+	
+	Long.fromInt = fromInt;
+
+	
+	function fromNumber(value, unsigned) {
+	    if (isNaN(value))
+	        return unsigned ? UZERO : ZERO;
+	    if (unsigned) {
+	        if (value < 0)
+	            return UZERO;
+	        if (value >= TWO_PWR_64_DBL)
+	            return MAX_UNSIGNED_VALUE;
+	    } else {
+	        if (value <= -TWO_PWR_63_DBL)
+	            return MIN_VALUE;
+	        if (value + 1 >= TWO_PWR_63_DBL)
+	            return MAX_VALUE;
+	    }
+	    if (value < 0)
+	        return fromNumber(-value, unsigned).neg();
+	    return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
+	}
+
+	
+	Long.fromNumber = fromNumber;
+
+	
+	function fromBits(lowBits, highBits, unsigned) {
+	    return new Long(lowBits, highBits, unsigned);
+	}
+
+	
+	Long.fromBits = fromBits;
+
+	
+	var pow_dbl = Math.pow; 
+
+	
+	function fromString(str, unsigned, radix) {
+	    if (str.length === 0)
+	        throw Error('empty string');
+	    if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
+	        return ZERO;
+	    if (typeof unsigned === 'number') {
+	        
+	        radix = unsigned,
+	        unsigned = false;
+	    } else {
+	        unsigned = !! unsigned;
+	    }
+	    radix = radix || 10;
+	    if (radix < 2 || 36 < radix)
+	        throw RangeError('radix');
+
+	    var p;
+	    if ((p = str.indexOf('-')) > 0)
+	        throw Error('interior hyphen');
+	    else if (p === 0) {
+	        return fromString(str.substring(1), unsigned, radix).neg();
+	    }
+
+	    
+	    
+	    var radixToPower = fromNumber(pow_dbl(radix, 8));
+
+	    var result = ZERO;
+	    for (var i = 0; i < str.length; i += 8) {
+	        var size = Math.min(8, str.length - i),
+	            value = parseInt(str.substring(i, i + size), radix);
+	        if (size < 8) {
+	            var power = fromNumber(pow_dbl(radix, size));
+	            result = result.mul(power).add(fromNumber(value));
+	        } else {
+	            result = result.mul(radixToPower);
+	            result = result.add(fromNumber(value));
+	        }
+	    }
+	    result.unsigned = unsigned;
+	    return result;
+	}
+
+	
+	Long.fromString = fromString;
+
+	
+	function fromValue(val, unsigned) {
+	    if (typeof val === 'number')
+	        return fromNumber(val, unsigned);
+	    if (typeof val === 'string')
+	        return fromString(val, unsigned);
+	    
+	    return fromBits(val.low, val.high, typeof unsigned === 'boolean' ? unsigned : val.unsigned);
+	}
+
+	
+	Long.fromValue = fromValue;
+
+	
+	
+
+	
+	var TWO_PWR_16_DBL = 1 << 16;
+
+	
+	var TWO_PWR_24_DBL = 1 << 24;
+
+	
+	var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+
+	
+	var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
+
+	
+	var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
+
+	
+	var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
+
+	
+	var ZERO = fromInt(0);
+
+	
+	Long.ZERO = ZERO;
+
+	
+	var UZERO = fromInt(0, true);
+
+	
+	Long.UZERO = UZERO;
+
+	
+	var ONE = fromInt(1);
+
+	
+	Long.ONE = ONE;
+
+	
+	var UONE = fromInt(1, true);
+
+	
+	Long.UONE = UONE;
+
+	
+	var NEG_ONE = fromInt(-1);
+
+	
+	Long.NEG_ONE = NEG_ONE;
+
+	
+	var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
+
+	
+	Long.MAX_VALUE = MAX_VALUE;
+
+	
+	var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
+
+	
+	Long.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
+
+	
+	var MIN_VALUE = fromBits(0, 0x80000000|0, false);
+
+	
+	Long.MIN_VALUE = MIN_VALUE;
+
+	
+	var LongPrototype = Long.prototype;
+
+	
+	LongPrototype.toInt = function toInt() {
+	    return this.unsigned ? this.low >>> 0 : this.low;
+	};
+
+	
+	LongPrototype.toNumber = function toNumber() {
+	    if (this.unsigned)
+	        return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
+	    return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
+	};
+
+	
+	LongPrototype.toString = function toString(radix) {
+	    radix = radix || 10;
+	    if (radix < 2 || 36 < radix)
+	        throw RangeError('radix');
+	    if (this.isZero())
+	        return '0';
+	    if (this.isNegative()) { 
+	        if (this.eq(MIN_VALUE)) {
+	            
+	            
+	            var radixLong = fromNumber(radix),
+	                div = this.div(radixLong),
+	                rem1 = div.mul(radixLong).sub(this);
+	            return div.toString(radix) + rem1.toInt().toString(radix);
+	        } else
+	            return '-' + this.neg().toString(radix);
+	    }
+
+	    
+	    
+	    var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
+	        rem = this;
+	    var result = '';
+	    while (true) {
+	        var remDiv = rem.div(radixToPower),
+	            intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
+	            digits = intval.toString(radix);
+	        rem = remDiv;
+	        if (rem.isZero())
+	            return digits + result;
+	        else {
+	            while (digits.length < 6)
+	                digits = '0' + digits;
+	            result = '' + digits + result;
+	        }
+	    }
+	};
+
+	
+	LongPrototype.getHighBits = function getHighBits() {
+	    return this.high;
+	};
+
+	
+	LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
+	    return this.high >>> 0;
+	};
+
+	
+	LongPrototype.getLowBits = function getLowBits() {
+	    return this.low;
+	};
+
+	
+	LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
+	    return this.low >>> 0;
+	};
+
+	
+	LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
+	    if (this.isNegative()) 
+	        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
+	    var val = this.high != 0 ? this.high : this.low;
+	    for (var bit = 31; bit > 0; bit--)
+	        if ((val & (1 << bit)) != 0)
+	            break;
+	    return this.high != 0 ? bit + 33 : bit + 1;
+	};
+
+	
+	LongPrototype.isZero = function isZero() {
+	    return this.high === 0 && this.low === 0;
+	};
+
+	
+	LongPrototype.eqz = LongPrototype.isZero;
+
+	
+	LongPrototype.isNegative = function isNegative() {
+	    return !this.unsigned && this.high < 0;
+	};
+
+	
+	LongPrototype.isPositive = function isPositive() {
+	    return this.unsigned || this.high >= 0;
+	};
+
+	
+	LongPrototype.isOdd = function isOdd() {
+	    return (this.low & 1) === 1;
+	};
+
+	
+	LongPrototype.isEven = function isEven() {
+	    return (this.low & 1) === 0;
+	};
+
+	
+	LongPrototype.equals = function equals(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
+	        return false;
+	    return this.high === other.high && this.low === other.low;
+	};
+
+	
+	LongPrototype.eq = LongPrototype.equals;
+
+	
+	LongPrototype.notEquals = function notEquals(other) {
+	    return !this.eq( other);
+	};
+
+	
+	LongPrototype.neq = LongPrototype.notEquals;
+
+	
+	LongPrototype.ne = LongPrototype.notEquals;
+
+	
+	LongPrototype.lessThan = function lessThan(other) {
+	    return this.comp( other) < 0;
+	};
+
+	
+	LongPrototype.lt = LongPrototype.lessThan;
+
+	
+	LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
+	    return this.comp( other) <= 0;
+	};
+
+	
+	LongPrototype.lte = LongPrototype.lessThanOrEqual;
+
+	
+	LongPrototype.le = LongPrototype.lessThanOrEqual;
+
+	
+	LongPrototype.greaterThan = function greaterThan(other) {
+	    return this.comp( other) > 0;
+	};
+
+	
+	LongPrototype.gt = LongPrototype.greaterThan;
+
+	
+	LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+	    return this.comp( other) >= 0;
+	};
+
+	
+	LongPrototype.gte = LongPrototype.greaterThanOrEqual;
+
+	
+	LongPrototype.ge = LongPrototype.greaterThanOrEqual;
+
+	
+	LongPrototype.compare = function compare(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    if (this.eq(other))
+	        return 0;
+	    var thisNeg = this.isNegative(),
+	        otherNeg = other.isNegative();
+	    if (thisNeg && !otherNeg)
+	        return -1;
+	    if (!thisNeg && otherNeg)
+	        return 1;
+	    
+	    if (!this.unsigned)
+	        return this.sub(other).isNegative() ? -1 : 1;
+	    
+	    return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
+	};
+
+	
+	LongPrototype.comp = LongPrototype.compare;
+
+	
+	LongPrototype.negate = function negate() {
+	    if (!this.unsigned && this.eq(MIN_VALUE))
+	        return MIN_VALUE;
+	    return this.not().add(ONE);
+	};
+
+	
+	LongPrototype.neg = LongPrototype.negate;
+
+	
+	LongPrototype.add = function add(addend) {
+	    if (!isLong(addend))
+	        addend = fromValue(addend);
+
+	    
+
+	    var a48 = this.high >>> 16;
+	    var a32 = this.high & 0xFFFF;
+	    var a16 = this.low >>> 16;
+	    var a00 = this.low & 0xFFFF;
+
+	    var b48 = addend.high >>> 16;
+	    var b32 = addend.high & 0xFFFF;
+	    var b16 = addend.low >>> 16;
+	    var b00 = addend.low & 0xFFFF;
+
+	    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+	    c00 += a00 + b00;
+	    c16 += c00 >>> 16;
+	    c00 &= 0xFFFF;
+	    c16 += a16 + b16;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c32 += a32 + b32;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c48 += a48 + b48;
+	    c48 &= 0xFFFF;
+	    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+	};
+
+	
+	LongPrototype.subtract = function subtract(subtrahend) {
+	    if (!isLong(subtrahend))
+	        subtrahend = fromValue(subtrahend);
+	    return this.add(subtrahend.neg());
+	};
+
+	
+	LongPrototype.sub = LongPrototype.subtract;
+
+	
+	LongPrototype.multiply = function multiply(multiplier) {
+	    if (this.isZero())
+	        return ZERO;
+	    if (!isLong(multiplier))
+	        multiplier = fromValue(multiplier);
+
+	    
+	    if (wasm) {
+	        var low = wasm.mul(this.low,
+	                           this.high,
+	                           multiplier.low,
+	                           multiplier.high);
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    if (multiplier.isZero())
+	        return ZERO;
+	    if (this.eq(MIN_VALUE))
+	        return multiplier.isOdd() ? MIN_VALUE : ZERO;
+	    if (multiplier.eq(MIN_VALUE))
+	        return this.isOdd() ? MIN_VALUE : ZERO;
+
+	    if (this.isNegative()) {
+	        if (multiplier.isNegative())
+	            return this.neg().mul(multiplier.neg());
+	        else
+	            return this.neg().mul(multiplier).neg();
+	    } else if (multiplier.isNegative())
+	        return this.mul(multiplier.neg()).neg();
+
+	    
+	    if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
+	        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
+
+	    
+	    
+
+	    var a48 = this.high >>> 16;
+	    var a32 = this.high & 0xFFFF;
+	    var a16 = this.low >>> 16;
+	    var a00 = this.low & 0xFFFF;
+
+	    var b48 = multiplier.high >>> 16;
+	    var b32 = multiplier.high & 0xFFFF;
+	    var b16 = multiplier.low >>> 16;
+	    var b00 = multiplier.low & 0xFFFF;
+
+	    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+	    c00 += a00 * b00;
+	    c16 += c00 >>> 16;
+	    c00 &= 0xFFFF;
+	    c16 += a16 * b00;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c16 += a00 * b16;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c32 += a32 * b00;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c32 += a16 * b16;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c32 += a00 * b32;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+	    c48 &= 0xFFFF;
+	    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+	};
+
+	
+	LongPrototype.mul = LongPrototype.multiply;
+
+	
+	LongPrototype.divide = function divide(divisor) {
+	    if (!isLong(divisor))
+	        divisor = fromValue(divisor);
+	    if (divisor.isZero())
+	        throw Error('division by zero');
+
+	    
+	    if (wasm) {
+	        
+	        
+	        
+	        if (!this.unsigned &&
+	            this.high === -2147483648 &&
+	            divisor.low === -1 && divisor.high === -1) {
+	            
+	            return this;
+	        }
+	        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(
+	            this.low,
+	            this.high,
+	            divisor.low,
+	            divisor.high
+	        );
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    if (this.isZero())
+	        return this.unsigned ? UZERO : ZERO;
+	    var approx, rem, res;
+	    if (!this.unsigned) {
+	        
+	        
+	        if (this.eq(MIN_VALUE)) {
+	            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
+	                return MIN_VALUE;  
+	            else if (divisor.eq(MIN_VALUE))
+	                return ONE;
+	            else {
+	                
+	                var halfThis = this.shr(1);
+	                approx = halfThis.div(divisor).shl(1);
+	                if (approx.eq(ZERO)) {
+	                    return divisor.isNegative() ? ONE : NEG_ONE;
+	                } else {
+	                    rem = this.sub(divisor.mul(approx));
+	                    res = approx.add(rem.div(divisor));
+	                    return res;
+	                }
+	            }
+	        } else if (divisor.eq(MIN_VALUE))
+	            return this.unsigned ? UZERO : ZERO;
+	        if (this.isNegative()) {
+	            if (divisor.isNegative())
+	                return this.neg().div(divisor.neg());
+	            return this.neg().div(divisor).neg();
+	        } else if (divisor.isNegative())
+	            return this.div(divisor.neg()).neg();
+	        res = ZERO;
+	    } else {
+	        
+	        
+	        if (!divisor.unsigned)
+	            divisor = divisor.toUnsigned();
+	        if (divisor.gt(this))
+	            return UZERO;
+	        if (divisor.gt(this.shru(1))) 
+	            return UONE;
+	        res = UZERO;
+	    }
+
+	    
+	    
+	    
+	    
+	    
+	    rem = this;
+	    while (rem.gte(divisor)) {
+	        
+	        
+	        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
+
+	        
+	        
+	        var log2 = Math.ceil(Math.log(approx) / Math.LN2),
+	            delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
+
+	        
+	        
+	            approxRes = fromNumber(approx),
+	            approxRem = approxRes.mul(divisor);
+	        while (approxRem.isNegative() || approxRem.gt(rem)) {
+	            approx -= delta;
+	            approxRes = fromNumber(approx, this.unsigned);
+	            approxRem = approxRes.mul(divisor);
+	        }
+
+	        
+	        
+	        if (approxRes.isZero())
+	            approxRes = ONE;
+
+	        res = res.add(approxRes);
+	        rem = rem.sub(approxRem);
+	    }
+	    return res;
+	};
+
+	
+	LongPrototype.div = LongPrototype.divide;
+
+	
+	LongPrototype.modulo = function modulo(divisor) {
+	    if (!isLong(divisor))
+	        divisor = fromValue(divisor);
+
+	    
+	    if (wasm) {
+	        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(
+	            this.low,
+	            this.high,
+	            divisor.low,
+	            divisor.high
+	        );
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    return this.sub(this.div(divisor).mul(divisor));
+	};
+
+	
+	LongPrototype.mod = LongPrototype.modulo;
+
+	
+	LongPrototype.rem = LongPrototype.modulo;
+
+	
+	LongPrototype.not = function not() {
+	    return fromBits(~this.low, ~this.high, this.unsigned);
+	};
+
+	
+	LongPrototype.and = function and(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
+	};
+
+	
+	LongPrototype.or = function or(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
+	};
+
+	
+	LongPrototype.xor = function xor(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
+	};
+
+	
+	LongPrototype.shiftLeft = function shiftLeft(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    if ((numBits &= 63) === 0)
+	        return this;
+	    else if (numBits < 32)
+	        return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
+	    else
+	        return fromBits(0, this.low << (numBits - 32), this.unsigned);
+	};
+
+	
+	LongPrototype.shl = LongPrototype.shiftLeft;
+
+	
+	LongPrototype.shiftRight = function shiftRight(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    if ((numBits &= 63) === 0)
+	        return this;
+	    else if (numBits < 32)
+	        return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
+	    else
+	        return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
+	};
+
+	
+	LongPrototype.shr = LongPrototype.shiftRight;
+
+	
+	LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    numBits &= 63;
+	    if (numBits === 0)
+	        return this;
+	    else {
+	        var high = this.high;
+	        if (numBits < 32) {
+	            var low = this.low;
+	            return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
+	        } else if (numBits === 32)
+	            return fromBits(high, 0, this.unsigned);
+	        else
+	            return fromBits(high >>> (numBits - 32), 0, this.unsigned);
+	    }
+	};
+
+	
+	LongPrototype.shru = LongPrototype.shiftRightUnsigned;
+
+	
+	LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
+
+	
+	LongPrototype.toSigned = function toSigned() {
+	    if (!this.unsigned)
+	        return this;
+	    return fromBits(this.low, this.high, false);
+	};
+
+	
+	LongPrototype.toUnsigned = function toUnsigned() {
+	    if (this.unsigned)
+	        return this;
+	    return fromBits(this.low, this.high, true);
+	};
+
+	
+	LongPrototype.toBytes = function toBytes(le) {
+	    return le ? this.toBytesLE() : this.toBytesBE();
+	};
+
+	
+	LongPrototype.toBytesLE = function toBytesLE() {
+	    var hi = this.high,
+	        lo = this.low;
+	    return [
+	        lo        & 0xff,
+	        lo >>>  8 & 0xff,
+	        lo >>> 16 & 0xff,
+	        lo >>> 24       ,
+	        hi        & 0xff,
+	        hi >>>  8 & 0xff,
+	        hi >>> 16 & 0xff,
+	        hi >>> 24
+	    ];
+	};
+
+	
+	LongPrototype.toBytesBE = function toBytesBE() {
+	    var hi = this.high,
+	        lo = this.low;
+	    return [
+	        hi >>> 24       ,
+	        hi >>> 16 & 0xff,
+	        hi >>>  8 & 0xff,
+	        hi        & 0xff,
+	        lo >>> 24       ,
+	        lo >>> 16 & 0xff,
+	        lo >>>  8 & 0xff,
+	        lo        & 0xff
+	    ];
+	};
+
+	
+	Long.fromBytes = function fromBytes(bytes, unsigned, le) {
+	    return le ? Long.fromBytesLE(bytes, unsigned) : Long.fromBytesBE(bytes, unsigned);
+	};
+
+	
+	Long.fromBytesLE = function fromBytesLE(bytes, unsigned) {
+	    return new Long(
+	        bytes[0]       |
+	        bytes[1] <<  8 |
+	        bytes[2] << 16 |
+	        bytes[3] << 24,
+	        bytes[4]       |
+	        bytes[5] <<  8 |
+	        bytes[6] << 16 |
+	        bytes[7] << 24,
+	        unsigned
+	    );
+	};
+
+	
+	Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
+	    return new Long(
+	        bytes[4] << 24 |
+	        bytes[5] << 16 |
+	        bytes[6] <<  8 |
+	        bytes[7],
+	        bytes[0] << 24 |
+	        bytes[1] << 16 |
+	        bytes[2] <<  8 |
+	        bytes[3],
+	        unsigned
+	    );
+	};
+	return long$1;
 }
 
-
-function Long$1(low, high, unsigned) {
-
-    
-    this.low = low | 0;
-
-    
-    this.high = high | 0;
-
-    
-    this.unsigned = !!unsigned;
-}
-
-Object.defineProperty(Long$1.prototype, "__isLong__", { value: true });
-
-
-function isLong(obj) {
-    return (obj && obj["__isLong__"]) === true;
-}
-
-
-Long$1.isLong = isLong;
-
-
-var INT_CACHE = {};
-
-
-var UINT_CACHE = {};
-
-
-function fromInt(value, unsigned) {
-    var obj, cachedObj, cache;
-    if (unsigned) {
-        value >>>= 0;
-        if (cache = (0 <= value && value < 256)) {
-            cachedObj = UINT_CACHE[value];
-            if (cachedObj)
-                return cachedObj;
-        }
-        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
-        if (cache)
-            UINT_CACHE[value] = obj;
-        return obj;
-    } else {
-        value |= 0;
-        if (cache = (-128 <= value && value < 128)) {
-            cachedObj = INT_CACHE[value];
-            if (cachedObj)
-                return cachedObj;
-        }
-        obj = fromBits(value, value < 0 ? -1 : 0, false);
-        if (cache)
-            INT_CACHE[value] = obj;
-        return obj;
-    }
-}
-
-
-Long$1.fromInt = fromInt;
-
-
-function fromNumber(value, unsigned) {
-    if (isNaN(value))
-        return unsigned ? UZERO : ZERO;
-    if (unsigned) {
-        if (value < 0)
-            return UZERO;
-        if (value >= TWO_PWR_64_DBL)
-            return MAX_UNSIGNED_VALUE;
-    } else {
-        if (value <= -TWO_PWR_63_DBL)
-            return MIN_VALUE;
-        if (value + 1 >= TWO_PWR_63_DBL)
-            return MAX_VALUE;
-    }
-    if (value < 0)
-        return fromNumber(-value, unsigned).neg();
-    return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
-}
-
-
-Long$1.fromNumber = fromNumber;
-
-
-function fromBits(lowBits, highBits, unsigned) {
-    return new Long$1(lowBits, highBits, unsigned);
-}
-
-
-Long$1.fromBits = fromBits;
-
-
-var pow_dbl = Math.pow; 
-
-
-function fromString(str, unsigned, radix) {
-    if (str.length === 0)
-        throw Error('empty string');
-    if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
-        return ZERO;
-    if (typeof unsigned === 'number') {
-        
-        radix = unsigned,
-        unsigned = false;
-    } else {
-        unsigned = !! unsigned;
-    }
-    radix = radix || 10;
-    if (radix < 2 || 36 < radix)
-        throw RangeError('radix');
-
-    var p;
-    if ((p = str.indexOf('-')) > 0)
-        throw Error('interior hyphen');
-    else if (p === 0) {
-        return fromString(str.substring(1), unsigned, radix).neg();
-    }
-
-    
-    
-    var radixToPower = fromNumber(pow_dbl(radix, 8));
-
-    var result = ZERO;
-    for (var i = 0; i < str.length; i += 8) {
-        var size = Math.min(8, str.length - i),
-            value = parseInt(str.substring(i, i + size), radix);
-        if (size < 8) {
-            var power = fromNumber(pow_dbl(radix, size));
-            result = result.mul(power).add(fromNumber(value));
-        } else {
-            result = result.mul(radixToPower);
-            result = result.add(fromNumber(value));
-        }
-    }
-    result.unsigned = unsigned;
-    return result;
-}
-
-
-Long$1.fromString = fromString;
-
-
-function fromValue(val, unsigned) {
-    if (typeof val === 'number')
-        return fromNumber(val, unsigned);
-    if (typeof val === 'string')
-        return fromString(val, unsigned);
-    
-    return fromBits(val.low, val.high, typeof unsigned === 'boolean' ? unsigned : val.unsigned);
-}
-
-
-Long$1.fromValue = fromValue;
-
-
-
-
-
-var TWO_PWR_16_DBL = 1 << 16;
-
-
-var TWO_PWR_24_DBL = 1 << 24;
-
-
-var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
-
-
-var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
-
-
-var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
-
-
-var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
-
-
-var ZERO = fromInt(0);
-
-
-Long$1.ZERO = ZERO;
-
-
-var UZERO = fromInt(0, true);
-
-
-Long$1.UZERO = UZERO;
-
-
-var ONE = fromInt(1);
-
-
-Long$1.ONE = ONE;
-
-
-var UONE = fromInt(1, true);
-
-
-Long$1.UONE = UONE;
-
-
-var NEG_ONE = fromInt(-1);
-
-
-Long$1.NEG_ONE = NEG_ONE;
-
-
-var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
-
-
-Long$1.MAX_VALUE = MAX_VALUE;
-
-
-var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
-
-
-Long$1.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
-
-
-var MIN_VALUE = fromBits(0, 0x80000000|0, false);
-
-
-Long$1.MIN_VALUE = MIN_VALUE;
-
-
-var LongPrototype = Long$1.prototype;
-
-
-LongPrototype.toInt = function toInt() {
-    return this.unsigned ? this.low >>> 0 : this.low;
-};
-
-
-LongPrototype.toNumber = function toNumber() {
-    if (this.unsigned)
-        return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
-    return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
-};
-
-
-LongPrototype.toString = function toString(radix) {
-    radix = radix || 10;
-    if (radix < 2 || 36 < radix)
-        throw RangeError('radix');
-    if (this.isZero())
-        return '0';
-    if (this.isNegative()) { 
-        if (this.eq(MIN_VALUE)) {
-            
-            
-            var radixLong = fromNumber(radix),
-                div = this.div(radixLong),
-                rem1 = div.mul(radixLong).sub(this);
-            return div.toString(radix) + rem1.toInt().toString(radix);
-        } else
-            return '-' + this.neg().toString(radix);
-    }
-
-    
-    
-    var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
-        rem = this;
-    var result = '';
-    while (true) {
-        var remDiv = rem.div(radixToPower),
-            intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
-            digits = intval.toString(radix);
-        rem = remDiv;
-        if (rem.isZero())
-            return digits + result;
-        else {
-            while (digits.length < 6)
-                digits = '0' + digits;
-            result = '' + digits + result;
-        }
-    }
-};
-
-
-LongPrototype.getHighBits = function getHighBits() {
-    return this.high;
-};
-
-
-LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
-    return this.high >>> 0;
-};
-
-
-LongPrototype.getLowBits = function getLowBits() {
-    return this.low;
-};
-
-
-LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
-    return this.low >>> 0;
-};
-
-
-LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
-    if (this.isNegative()) 
-        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
-    var val = this.high != 0 ? this.high : this.low;
-    for (var bit = 31; bit > 0; bit--)
-        if ((val & (1 << bit)) != 0)
-            break;
-    return this.high != 0 ? bit + 33 : bit + 1;
-};
-
-
-LongPrototype.isZero = function isZero() {
-    return this.high === 0 && this.low === 0;
-};
-
-
-LongPrototype.eqz = LongPrototype.isZero;
-
-
-LongPrototype.isNegative = function isNegative() {
-    return !this.unsigned && this.high < 0;
-};
-
-
-LongPrototype.isPositive = function isPositive() {
-    return this.unsigned || this.high >= 0;
-};
-
-
-LongPrototype.isOdd = function isOdd() {
-    return (this.low & 1) === 1;
-};
-
-
-LongPrototype.isEven = function isEven() {
-    return (this.low & 1) === 0;
-};
-
-
-LongPrototype.equals = function equals(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
-        return false;
-    return this.high === other.high && this.low === other.low;
-};
-
-
-LongPrototype.eq = LongPrototype.equals;
-
-
-LongPrototype.notEquals = function notEquals(other) {
-    return !this.eq( other);
-};
-
-
-LongPrototype.neq = LongPrototype.notEquals;
-
-
-LongPrototype.ne = LongPrototype.notEquals;
-
-
-LongPrototype.lessThan = function lessThan(other) {
-    return this.comp( other) < 0;
-};
-
-
-LongPrototype.lt = LongPrototype.lessThan;
-
-
-LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-    return this.comp( other) <= 0;
-};
-
-
-LongPrototype.lte = LongPrototype.lessThanOrEqual;
-
-
-LongPrototype.le = LongPrototype.lessThanOrEqual;
-
-
-LongPrototype.greaterThan = function greaterThan(other) {
-    return this.comp( other) > 0;
-};
-
-
-LongPrototype.gt = LongPrototype.greaterThan;
-
-
-LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-    return this.comp( other) >= 0;
-};
-
-
-LongPrototype.gte = LongPrototype.greaterThanOrEqual;
-
-
-LongPrototype.ge = LongPrototype.greaterThanOrEqual;
-
-
-LongPrototype.compare = function compare(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    if (this.eq(other))
-        return 0;
-    var thisNeg = this.isNegative(),
-        otherNeg = other.isNegative();
-    if (thisNeg && !otherNeg)
-        return -1;
-    if (!thisNeg && otherNeg)
-        return 1;
-    
-    if (!this.unsigned)
-        return this.sub(other).isNegative() ? -1 : 1;
-    
-    return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
-};
-
-
-LongPrototype.comp = LongPrototype.compare;
-
-
-LongPrototype.negate = function negate() {
-    if (!this.unsigned && this.eq(MIN_VALUE))
-        return MIN_VALUE;
-    return this.not().add(ONE);
-};
-
-
-LongPrototype.neg = LongPrototype.negate;
-
-
-LongPrototype.add = function add(addend) {
-    if (!isLong(addend))
-        addend = fromValue(addend);
-
-    
-
-    var a48 = this.high >>> 16;
-    var a32 = this.high & 0xFFFF;
-    var a16 = this.low >>> 16;
-    var a00 = this.low & 0xFFFF;
-
-    var b48 = addend.high >>> 16;
-    var b32 = addend.high & 0xFFFF;
-    var b16 = addend.low >>> 16;
-    var b00 = addend.low & 0xFFFF;
-
-    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-    c00 += a00 + b00;
-    c16 += c00 >>> 16;
-    c00 &= 0xFFFF;
-    c16 += a16 + b16;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c32 += a32 + b32;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c48 += a48 + b48;
-    c48 &= 0xFFFF;
-    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
-};
-
-
-LongPrototype.subtract = function subtract(subtrahend) {
-    if (!isLong(subtrahend))
-        subtrahend = fromValue(subtrahend);
-    return this.add(subtrahend.neg());
-};
-
-
-LongPrototype.sub = LongPrototype.subtract;
-
-
-LongPrototype.multiply = function multiply(multiplier) {
-    if (this.isZero())
-        return ZERO;
-    if (!isLong(multiplier))
-        multiplier = fromValue(multiplier);
-
-    
-    if (wasm) {
-        var low = wasm.mul(this.low,
-                           this.high,
-                           multiplier.low,
-                           multiplier.high);
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    if (multiplier.isZero())
-        return ZERO;
-    if (this.eq(MIN_VALUE))
-        return multiplier.isOdd() ? MIN_VALUE : ZERO;
-    if (multiplier.eq(MIN_VALUE))
-        return this.isOdd() ? MIN_VALUE : ZERO;
-
-    if (this.isNegative()) {
-        if (multiplier.isNegative())
-            return this.neg().mul(multiplier.neg());
-        else
-            return this.neg().mul(multiplier).neg();
-    } else if (multiplier.isNegative())
-        return this.mul(multiplier.neg()).neg();
-
-    
-    if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
-        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
-
-    
-    
-
-    var a48 = this.high >>> 16;
-    var a32 = this.high & 0xFFFF;
-    var a16 = this.low >>> 16;
-    var a00 = this.low & 0xFFFF;
-
-    var b48 = multiplier.high >>> 16;
-    var b32 = multiplier.high & 0xFFFF;
-    var b16 = multiplier.low >>> 16;
-    var b00 = multiplier.low & 0xFFFF;
-
-    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-    c00 += a00 * b00;
-    c16 += c00 >>> 16;
-    c00 &= 0xFFFF;
-    c16 += a16 * b00;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c16 += a00 * b16;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c32 += a32 * b00;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c32 += a16 * b16;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c32 += a00 * b32;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
-    c48 &= 0xFFFF;
-    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
-};
-
-
-LongPrototype.mul = LongPrototype.multiply;
-
-
-LongPrototype.divide = function divide(divisor) {
-    if (!isLong(divisor))
-        divisor = fromValue(divisor);
-    if (divisor.isZero())
-        throw Error('division by zero');
-
-    
-    if (wasm) {
-        
-        
-        
-        if (!this.unsigned &&
-            this.high === -2147483648 &&
-            divisor.low === -1 && divisor.high === -1) {
-            
-            return this;
-        }
-        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(
-            this.low,
-            this.high,
-            divisor.low,
-            divisor.high
-        );
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    if (this.isZero())
-        return this.unsigned ? UZERO : ZERO;
-    var approx, rem, res;
-    if (!this.unsigned) {
-        
-        
-        if (this.eq(MIN_VALUE)) {
-            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
-                return MIN_VALUE;  
-            else if (divisor.eq(MIN_VALUE))
-                return ONE;
-            else {
-                
-                var halfThis = this.shr(1);
-                approx = halfThis.div(divisor).shl(1);
-                if (approx.eq(ZERO)) {
-                    return divisor.isNegative() ? ONE : NEG_ONE;
-                } else {
-                    rem = this.sub(divisor.mul(approx));
-                    res = approx.add(rem.div(divisor));
-                    return res;
-                }
-            }
-        } else if (divisor.eq(MIN_VALUE))
-            return this.unsigned ? UZERO : ZERO;
-        if (this.isNegative()) {
-            if (divisor.isNegative())
-                return this.neg().div(divisor.neg());
-            return this.neg().div(divisor).neg();
-        } else if (divisor.isNegative())
-            return this.div(divisor.neg()).neg();
-        res = ZERO;
-    } else {
-        
-        
-        if (!divisor.unsigned)
-            divisor = divisor.toUnsigned();
-        if (divisor.gt(this))
-            return UZERO;
-        if (divisor.gt(this.shru(1))) 
-            return UONE;
-        res = UZERO;
-    }
-
-    
-    
-    
-    
-    
-    rem = this;
-    while (rem.gte(divisor)) {
-        
-        
-        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
-
-        
-        
-        var log2 = Math.ceil(Math.log(approx) / Math.LN2),
-            delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
-
-        
-        
-            approxRes = fromNumber(approx),
-            approxRem = approxRes.mul(divisor);
-        while (approxRem.isNegative() || approxRem.gt(rem)) {
-            approx -= delta;
-            approxRes = fromNumber(approx, this.unsigned);
-            approxRem = approxRes.mul(divisor);
-        }
-
-        
-        
-        if (approxRes.isZero())
-            approxRes = ONE;
-
-        res = res.add(approxRes);
-        rem = rem.sub(approxRem);
-    }
-    return res;
-};
-
-
-LongPrototype.div = LongPrototype.divide;
-
-
-LongPrototype.modulo = function modulo(divisor) {
-    if (!isLong(divisor))
-        divisor = fromValue(divisor);
-
-    
-    if (wasm) {
-        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(
-            this.low,
-            this.high,
-            divisor.low,
-            divisor.high
-        );
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    return this.sub(this.div(divisor).mul(divisor));
-};
-
-
-LongPrototype.mod = LongPrototype.modulo;
-
-
-LongPrototype.rem = LongPrototype.modulo;
-
-
-LongPrototype.not = function not() {
-    return fromBits(~this.low, ~this.high, this.unsigned);
-};
-
-
-LongPrototype.and = function and(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
-};
-
-
-LongPrototype.or = function or(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
-};
-
-
-LongPrototype.xor = function xor(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
-};
-
-
-LongPrototype.shiftLeft = function shiftLeft(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    if ((numBits &= 63) === 0)
-        return this;
-    else if (numBits < 32)
-        return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
-    else
-        return fromBits(0, this.low << (numBits - 32), this.unsigned);
-};
-
-
-LongPrototype.shl = LongPrototype.shiftLeft;
-
-
-LongPrototype.shiftRight = function shiftRight(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    if ((numBits &= 63) === 0)
-        return this;
-    else if (numBits < 32)
-        return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
-    else
-        return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
-};
-
-
-LongPrototype.shr = LongPrototype.shiftRight;
-
-
-LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    numBits &= 63;
-    if (numBits === 0)
-        return this;
-    else {
-        var high = this.high;
-        if (numBits < 32) {
-            var low = this.low;
-            return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
-        } else if (numBits === 32)
-            return fromBits(high, 0, this.unsigned);
-        else
-            return fromBits(high >>> (numBits - 32), 0, this.unsigned);
-    }
-};
-
-
-LongPrototype.shru = LongPrototype.shiftRightUnsigned;
-
-
-LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
-
-
-LongPrototype.toSigned = function toSigned() {
-    if (!this.unsigned)
-        return this;
-    return fromBits(this.low, this.high, false);
-};
-
-
-LongPrototype.toUnsigned = function toUnsigned() {
-    if (this.unsigned)
-        return this;
-    return fromBits(this.low, this.high, true);
-};
-
-
-LongPrototype.toBytes = function toBytes(le) {
-    return le ? this.toBytesLE() : this.toBytesBE();
-};
-
-
-LongPrototype.toBytesLE = function toBytesLE() {
-    var hi = this.high,
-        lo = this.low;
-    return [
-        lo        & 0xff,
-        lo >>>  8 & 0xff,
-        lo >>> 16 & 0xff,
-        lo >>> 24       ,
-        hi        & 0xff,
-        hi >>>  8 & 0xff,
-        hi >>> 16 & 0xff,
-        hi >>> 24
-    ];
-};
-
-
-LongPrototype.toBytesBE = function toBytesBE() {
-    var hi = this.high,
-        lo = this.low;
-    return [
-        hi >>> 24       ,
-        hi >>> 16 & 0xff,
-        hi >>>  8 & 0xff,
-        hi        & 0xff,
-        lo >>> 24       ,
-        lo >>> 16 & 0xff,
-        lo >>>  8 & 0xff,
-        lo        & 0xff
-    ];
-};
-
-
-Long$1.fromBytes = function fromBytes(bytes, unsigned, le) {
-    return le ? Long$1.fromBytesLE(bytes, unsigned) : Long$1.fromBytesBE(bytes, unsigned);
-};
-
-
-Long$1.fromBytesLE = function fromBytesLE(bytes, unsigned) {
-    return new Long$1(
-        bytes[0]       |
-        bytes[1] <<  8 |
-        bytes[2] << 16 |
-        bytes[3] << 24,
-        bytes[4]       |
-        bytes[5] <<  8 |
-        bytes[6] << 16 |
-        bytes[7] << 24,
-        unsigned
-    );
-};
-
-
-Long$1.fromBytesBE = function fromBytesBE(bytes, unsigned) {
-    return new Long$1(
-        bytes[4] << 24 |
-        bytes[5] << 16 |
-        bytes[6] <<  8 |
-        bytes[7],
-        bytes[0] << 24 |
-        bytes[1] << 16 |
-        bytes[2] <<  8 |
-        bytes[3],
-        unsigned
-    );
-};
-
-var long_default = getDefaultExportFromCjs(long);
+var longExports =  requireLong();
+var long = getDefaultExportFromCjs(longExports);
 
 var LongExports = _mergeNamespaces({
     __proto__: null,
-    default: long_default
-}, [long]);
+    default: long
+}, [longExports]);
 
 
 
@@ -1948,7 +1955,7 @@ var LongExports = _mergeNamespaces({
 
 const Long = 
 
-long_default || LongExports;
+long || LongExports;
 function hexToLong(hex) {
     return Long.fromString(hex, true, 16);
 }
@@ -5744,709 +5751,944 @@ const prelu$2 =  op({ prelu_ });
 
 var alea$1 = {exports: {}};
 
-(function (module) {
-	
-	
-	
-	
+var alea = alea$1.exports;
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+var hasRequiredAlea;
 
+function requireAlea () {
+	if (hasRequiredAlea) return alea$1.exports;
+	hasRequiredAlea = 1;
+	(function (module) {
+		
+		
+		
+		
 
-
-	(function(global, module, define) {
-
-	function Alea(seed) {
-	  var me = this, mash = Mash();
-
-	  me.next = function() {
-	    var t = 2091639 * me.s0 + me.c * 2.3283064365386963e-10; 
-	    me.s0 = me.s1;
-	    me.s1 = me.s2;
-	    return me.s2 = t - (me.c = t | 0);
-	  };
-
-	  
-	  me.c = 1;
-	  me.s0 = mash(' ');
-	  me.s1 = mash(' ');
-	  me.s2 = mash(' ');
-	  me.s0 -= mash(seed);
-	  if (me.s0 < 0) { me.s0 += 1; }
-	  me.s1 -= mash(seed);
-	  if (me.s1 < 0) { me.s1 += 1; }
-	  me.s2 -= mash(seed);
-	  if (me.s2 < 0) { me.s2 += 1; }
-	  mash = null;
-	}
-
-	function copy(f, t) {
-	  t.c = f.c;
-	  t.s0 = f.s0;
-	  t.s1 = f.s1;
-	  t.s2 = f.s2;
-	  return t;
-	}
-
-	function impl(seed, opts) {
-	  var xg = new Alea(seed),
-	      state = opts && opts.state,
-	      prng = xg.next;
-	  prng.int32 = function() { return (xg.next() * 0x100000000) | 0; };
-	  prng.double = function() {
-	    return prng() + (prng() * 0x200000 | 0) * 1.1102230246251565e-16; 
-	  };
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
-
-	function Mash() {
-	  var n = 0xefc8249d;
-
-	  var mash = function(data) {
-	    data = String(data);
-	    for (var i = 0; i < data.length; i++) {
-	      n += data.charCodeAt(i);
-	      var h = 0.02519603282416938 * n;
-	      n = h >>> 0;
-	      h -= n;
-	      h *= n;
-	      n = h >>> 0;
-	      h -= n;
-	      n += h * 0x100000000; 
-	    }
-	    return (n >>> 0) * 2.3283064365386963e-10; 
-	  };
-
-	  return mash;
-	}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.alea = impl;
-	}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (alea$1));
+		(function(global, module, define) {
 
-var aleaExports = alea$1.exports;
+		function Alea(seed) {
+		  var me = this, mash = Mash();
+
+		  me.next = function() {
+		    var t = 2091639 * me.s0 + me.c * 2.3283064365386963e-10; 
+		    me.s0 = me.s1;
+		    me.s1 = me.s2;
+		    return me.s2 = t - (me.c = t | 0);
+		  };
+
+		  
+		  me.c = 1;
+		  me.s0 = mash(' ');
+		  me.s1 = mash(' ');
+		  me.s2 = mash(' ');
+		  me.s0 -= mash(seed);
+		  if (me.s0 < 0) { me.s0 += 1; }
+		  me.s1 -= mash(seed);
+		  if (me.s1 < 0) { me.s1 += 1; }
+		  me.s2 -= mash(seed);
+		  if (me.s2 < 0) { me.s2 += 1; }
+		  mash = null;
+		}
+
+		function copy(f, t) {
+		  t.c = f.c;
+		  t.s0 = f.s0;
+		  t.s1 = f.s1;
+		  t.s2 = f.s2;
+		  return t;
+		}
+
+		function impl(seed, opts) {
+		  var xg = new Alea(seed),
+		      state = opts && opts.state,
+		      prng = xg.next;
+		  prng.int32 = function() { return (xg.next() * 0x100000000) | 0; };
+		  prng.double = function() {
+		    return prng() + (prng() * 0x200000 | 0) * 1.1102230246251565e-16; 
+		  };
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
+
+		function Mash() {
+		  var n = 0xefc8249d;
+
+		  var mash = function(data) {
+		    data = String(data);
+		    for (var i = 0; i < data.length; i++) {
+		      n += data.charCodeAt(i);
+		      var h = 0.02519603282416938 * n;
+		      n = h >>> 0;
+		      h -= n;
+		      h *= n;
+		      n = h >>> 0;
+		      h -= n;
+		      n += h * 0x100000000; 
+		    }
+		    return (n >>> 0) * 2.3283064365386963e-10; 
+		  };
+
+		  return mash;
+		}
+
+
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.alea = impl;
+		}
+
+		})(
+		  alea,
+		  module); 
+	} (alea$1));
+	return alea$1.exports;
+}
 
 var xor128$1 = {exports: {}};
 
-(function (module) {
-	
-	
+var xor128 = xor128$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXor128;
 
-	function XorGen(seed) {
-	  var me = this, strseed = '';
+function requireXor128 () {
+	if (hasRequiredXor128) return xor128$1.exports;
+	hasRequiredXor128 = 1;
+	(function (module) {
+		
+		
 
-	  me.x = 0;
-	  me.y = 0;
-	  me.z = 0;
-	  me.w = 0;
+		(function(global, module, define) {
 
-	  
-	  me.next = function() {
-	    var t = me.x ^ (me.x << 11);
-	    me.x = me.y;
-	    me.y = me.z;
-	    me.z = me.w;
-	    return me.w ^= (me.w >>> 19) ^ t ^ (t >>> 8);
-	  };
+		function XorGen(seed) {
+		  var me = this, strseed = '';
 
-	  if (seed === (seed | 0)) {
-	    
-	    me.x = seed;
-	  } else {
-	    
-	    strseed += seed;
-	  }
+		  me.x = 0;
+		  me.y = 0;
+		  me.z = 0;
+		  me.w = 0;
 
-	  
-	  for (var k = 0; k < strseed.length + 64; k++) {
-	    me.x ^= strseed.charCodeAt(k) | 0;
-	    me.next();
-	  }
-	}
+		  
+		  me.next = function() {
+		    var t = me.x ^ (me.x << 11);
+		    me.x = me.y;
+		    me.y = me.z;
+		    me.z = me.w;
+		    return me.w ^= (me.w >>> 19) ^ t ^ (t >>> 8);
+		  };
 
-	function copy(f, t) {
-	  t.x = f.x;
-	  t.y = f.y;
-	  t.z = f.z;
-	  t.w = f.w;
-	  return t;
-	}
+		  if (seed === (seed | 0)) {
+		    
+		    me.x = seed;
+		  } else {
+		    
+		    strseed += seed;
+		  }
 
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  
+		  for (var k = 0; k < strseed.length + 64; k++) {
+		    me.x ^= strseed.charCodeAt(k) | 0;
+		    me.next();
+		  }
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xor128 = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x;
+		  t.y = f.y;
+		  t.z = f.z;
+		  t.w = f.w;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xor128$1));
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xor128Exports = xor128$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xor128 = impl;
+		}
+
+		})(
+		  xor128,
+		  module); 
+	} (xor128$1));
+	return xor128$1.exports;
+}
 
 var xorwow$1 = {exports: {}};
 
-(function (module) {
-	
-	
+var xorwow = xorwow$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXorwow;
 
-	function XorGen(seed) {
-	  var me = this, strseed = '';
+function requireXorwow () {
+	if (hasRequiredXorwow) return xorwow$1.exports;
+	hasRequiredXorwow = 1;
+	(function (module) {
+		
+		
 
-	  
-	  me.next = function() {
-	    var t = (me.x ^ (me.x >>> 2));
-	    me.x = me.y; me.y = me.z; me.z = me.w; me.w = me.v;
-	    return (me.d = (me.d + 362437 | 0)) +
-	       (me.v = (me.v ^ (me.v << 4)) ^ (t ^ (t << 1))) | 0;
-	  };
+		(function(global, module, define) {
 
-	  me.x = 0;
-	  me.y = 0;
-	  me.z = 0;
-	  me.w = 0;
-	  me.v = 0;
+		function XorGen(seed) {
+		  var me = this, strseed = '';
 
-	  if (seed === (seed | 0)) {
-	    
-	    me.x = seed;
-	  } else {
-	    
-	    strseed += seed;
-	  }
+		  
+		  me.next = function() {
+		    var t = (me.x ^ (me.x >>> 2));
+		    me.x = me.y; me.y = me.z; me.z = me.w; me.w = me.v;
+		    return (me.d = (me.d + 362437 | 0)) +
+		       (me.v = (me.v ^ (me.v << 4)) ^ (t ^ (t << 1))) | 0;
+		  };
 
-	  
-	  for (var k = 0; k < strseed.length + 64; k++) {
-	    me.x ^= strseed.charCodeAt(k) | 0;
-	    if (k == strseed.length) {
-	      me.d = me.x << 10 ^ me.x >>> 4;
-	    }
-	    me.next();
-	  }
-	}
+		  me.x = 0;
+		  me.y = 0;
+		  me.z = 0;
+		  me.w = 0;
+		  me.v = 0;
 
-	function copy(f, t) {
-	  t.x = f.x;
-	  t.y = f.y;
-	  t.z = f.z;
-	  t.w = f.w;
-	  t.v = f.v;
-	  t.d = f.d;
-	  return t;
-	}
+		  if (seed === (seed | 0)) {
+		    
+		    me.x = seed;
+		  } else {
+		    
+		    strseed += seed;
+		  }
 
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  
+		  for (var k = 0; k < strseed.length + 64; k++) {
+		    me.x ^= strseed.charCodeAt(k) | 0;
+		    if (k == strseed.length) {
+		      me.d = me.x << 10 ^ me.x >>> 4;
+		    }
+		    me.next();
+		  }
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xorwow = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x;
+		  t.y = f.y;
+		  t.z = f.z;
+		  t.w = f.w;
+		  t.v = f.v;
+		  t.d = f.d;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xorwow$1));
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xorwowExports = xorwow$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xorwow = impl;
+		}
+
+		})(
+		  xorwow,
+		  module); 
+	} (xorwow$1));
+	return xorwow$1.exports;
+}
 
 var xorshift7$1 = {exports: {}};
 
-(function (module) {
-	
-	
-	
-	
+var xorshift7 = xorshift7$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXorshift7;
 
-	function XorGen(seed) {
-	  var me = this;
+function requireXorshift7 () {
+	if (hasRequiredXorshift7) return xorshift7$1.exports;
+	hasRequiredXorshift7 = 1;
+	(function (module) {
+		
+		
+		
+		
 
-	  
-	  me.next = function() {
-	    
-	    var X = me.x, i = me.i, t, v;
-	    t = X[i]; t ^= (t >>> 7); v = t ^ (t << 24);
-	    t = X[(i + 1) & 7]; v ^= t ^ (t >>> 10);
-	    t = X[(i + 3) & 7]; v ^= t ^ (t >>> 3);
-	    t = X[(i + 4) & 7]; v ^= t ^ (t << 7);
-	    t = X[(i + 7) & 7]; t = t ^ (t << 13); v ^= t ^ (t << 9);
-	    X[i] = v;
-	    me.i = (i + 1) & 7;
-	    return v;
-	  };
+		(function(global, module, define) {
 
-	  function init(me, seed) {
-	    var j, X = [];
+		function XorGen(seed) {
+		  var me = this;
 
-	    if (seed === (seed | 0)) {
-	      
-	      X[0] = seed;
-	    } else {
-	      
-	      seed = '' + seed;
-	      for (j = 0; j < seed.length; ++j) {
-	        X[j & 7] = (X[j & 7] << 15) ^
-	            (seed.charCodeAt(j) + X[(j + 1) & 7] << 13);
-	      }
-	    }
-	    
-	    while (X.length < 8) X.push(0);
-	    for (j = 0; j < 8 && X[j] === 0; ++j);
-	    if (j == 8) X[7] = -1;
+		  
+		  me.next = function() {
+		    
+		    var X = me.x, i = me.i, t, v;
+		    t = X[i]; t ^= (t >>> 7); v = t ^ (t << 24);
+		    t = X[(i + 1) & 7]; v ^= t ^ (t >>> 10);
+		    t = X[(i + 3) & 7]; v ^= t ^ (t >>> 3);
+		    t = X[(i + 4) & 7]; v ^= t ^ (t << 7);
+		    t = X[(i + 7) & 7]; t = t ^ (t << 13); v ^= t ^ (t << 9);
+		    X[i] = v;
+		    me.i = (i + 1) & 7;
+		    return v;
+		  };
 
-	    me.x = X;
-	    me.i = 0;
+		  function init(me, seed) {
+		    var j, X = [];
 
-	    
-	    for (j = 256; j > 0; --j) {
-	      me.next();
-	    }
-	  }
+		    if (seed === (seed | 0)) {
+		      
+		      X[0] = seed;
+		    } else {
+		      
+		      seed = '' + seed;
+		      for (j = 0; j < seed.length; ++j) {
+		        X[j & 7] = (X[j & 7] << 15) ^
+		            (seed.charCodeAt(j) + X[(j + 1) & 7] << 13);
+		      }
+		    }
+		    
+		    while (X.length < 8) X.push(0);
+		    for (j = 0; j < 8 && X[j] === 0; ++j);
+		    if (j == 8) X[7] = -1;
 
-	  init(me, seed);
-	}
+		    me.x = X;
+		    me.i = 0;
 
-	function copy(f, t) {
-	  t.x = f.x.slice();
-	  t.i = f.i;
-	  return t;
-	}
+		    
+		    for (j = 256; j > 0; --j) {
+		      me.next();
+		    }
+		  }
 
-	function impl(seed, opts) {
-	  if (seed == null) seed = +(new Date);
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (state.x) copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  init(me, seed);
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xorshift7 = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x.slice();
+		  t.i = f.i;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xorshift7$1));
+		function impl(seed, opts) {
+		  if (seed == null) seed = +(new Date);
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (state.x) copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xorshift7Exports = xorshift7$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xorshift7 = impl;
+		}
+
+		})(
+		  xorshift7,
+		  module); 
+	} (xorshift7$1));
+	return xorshift7$1.exports;
+}
 
 var xor4096$1 = {exports: {}};
 
-(function (module) {
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+var xor4096 = xor4096$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXor4096;
 
-	function XorGen(seed) {
-	  var me = this;
+function requireXor4096 () {
+	if (hasRequiredXor4096) return xor4096$1.exports;
+	hasRequiredXor4096 = 1;
+	(function (module) {
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 
-	  
-	  me.next = function() {
-	    var w = me.w,
-	        X = me.X, i = me.i, t, v;
-	    
-	    me.w = w = (w + 0x61c88647) | 0;
-	    
-	    v = X[(i + 34) & 127];
-	    t = X[i = ((i + 1) & 127)];
-	    v ^= v << 13;
-	    t ^= t << 17;
-	    v ^= v >>> 15;
-	    t ^= t >>> 12;
-	    
-	    v = X[i] = v ^ t;
-	    me.i = i;
-	    
-	    return (v + (w ^ (w >>> 16))) | 0;
-	  };
+		(function(global, module, define) {
 
-	  function init(me, seed) {
-	    var t, v, i, j, w, X = [], limit = 128;
-	    if (seed === (seed | 0)) {
-	      
-	      v = seed;
-	      seed = null;
-	    } else {
-	      
-	      seed = seed + '\0';
-	      v = 0;
-	      limit = Math.max(limit, seed.length);
-	    }
-	    
-	    for (i = 0, j = -32; j < limit; ++j) {
-	      
-	      if (seed) v ^= seed.charCodeAt((j + 32) % seed.length);
-	      
-	      if (j === 0) w = v;
-	      v ^= v << 10;
-	      v ^= v >>> 15;
-	      v ^= v << 4;
-	      v ^= v >>> 13;
-	      if (j >= 0) {
-	        w = (w + 0x61c88647) | 0;     
-	        t = (X[j & 127] ^= (v + w));  
-	        i = (0 == t) ? i + 1 : 0;     
-	      }
-	    }
-	    
-	    if (i >= 128) {
-	      X[(seed && seed.length || 0) & 127] = -1;
-	    }
-	    
-	    
-	    
-	    i = 127;
-	    for (j = 4 * 128; j > 0; --j) {
-	      v = X[(i + 34) & 127];
-	      t = X[i = ((i + 1) & 127)];
-	      v ^= v << 13;
-	      t ^= t << 17;
-	      v ^= v >>> 15;
-	      t ^= t >>> 12;
-	      X[i] = v ^ t;
-	    }
-	    
-	    me.w = w;
-	    me.X = X;
-	    me.i = i;
-	  }
+		function XorGen(seed) {
+		  var me = this;
 
-	  init(me, seed);
-	}
+		  
+		  me.next = function() {
+		    var w = me.w,
+		        X = me.X, i = me.i, t, v;
+		    
+		    me.w = w = (w + 0x61c88647) | 0;
+		    
+		    v = X[(i + 34) & 127];
+		    t = X[i = ((i + 1) & 127)];
+		    v ^= v << 13;
+		    t ^= t << 17;
+		    v ^= v >>> 15;
+		    t ^= t >>> 12;
+		    
+		    v = X[i] = v ^ t;
+		    me.i = i;
+		    
+		    return (v + (w ^ (w >>> 16))) | 0;
+		  };
 
-	function copy(f, t) {
-	  t.i = f.i;
-	  t.w = f.w;
-	  t.X = f.X.slice();
-	  return t;
-	}
-	function impl(seed, opts) {
-	  if (seed == null) seed = +(new Date);
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (state.X) copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  function init(me, seed) {
+		    var t, v, i, j, w, X = [], limit = 128;
+		    if (seed === (seed | 0)) {
+		      
+		      v = seed;
+		      seed = null;
+		    } else {
+		      
+		      seed = seed + '\0';
+		      v = 0;
+		      limit = Math.max(limit, seed.length);
+		    }
+		    
+		    for (i = 0, j = -32; j < limit; ++j) {
+		      
+		      if (seed) v ^= seed.charCodeAt((j + 32) % seed.length);
+		      
+		      if (j === 0) w = v;
+		      v ^= v << 10;
+		      v ^= v >>> 15;
+		      v ^= v << 4;
+		      v ^= v >>> 13;
+		      if (j >= 0) {
+		        w = (w + 0x61c88647) | 0;     
+		        t = (X[j & 127] ^= (v + w));  
+		        i = (0 == t) ? i + 1 : 0;     
+		      }
+		    }
+		    
+		    if (i >= 128) {
+		      X[(seed && seed.length || 0) & 127] = -1;
+		    }
+		    
+		    
+		    
+		    i = 127;
+		    for (j = 4 * 128; j > 0; --j) {
+		      v = X[(i + 34) & 127];
+		      t = X[i = ((i + 1) & 127)];
+		      v ^= v << 13;
+		      t ^= t << 17;
+		      v ^= v >>> 15;
+		      t ^= t >>> 12;
+		      X[i] = v ^ t;
+		    }
+		    
+		    me.w = w;
+		    me.X = X;
+		    me.i = i;
+		  }
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xor4096 = impl;
-	}
+		  init(me, seed);
+		}
 
-	})(
-	  commonjsGlobal,                                     
-	  module); 
-} (xor4096$1));
+		function copy(f, t) {
+		  t.i = f.i;
+		  t.w = f.w;
+		  t.X = f.X.slice();
+		  return t;
+		}
+		function impl(seed, opts) {
+		  if (seed == null) seed = +(new Date);
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (state.X) copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xor4096Exports = xor4096$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xor4096 = impl;
+		}
+
+		})(
+		  xor4096,                                     
+		  module); 
+	} (xor4096$1));
+	return xor4096$1.exports;
+}
 
 var tychei$1 = {exports: {}};
 
-(function (module) {
+var tychei = tychei$1.exports;
+
+var hasRequiredTychei;
+
+function requireTychei () {
+	if (hasRequiredTychei) return tychei$1.exports;
+	hasRequiredTychei = 1;
+	(function (module) {
+		
+		
+		
+
+		(function(global, module, define) {
+
+		function XorGen(seed) {
+		  var me = this, strseed = '';
+
+		  
+		  me.next = function() {
+		    var b = me.b, c = me.c, d = me.d, a = me.a;
+		    b = (b << 25) ^ (b >>> 7) ^ c;
+		    c = (c - d) | 0;
+		    d = (d << 24) ^ (d >>> 8) ^ a;
+		    a = (a - b) | 0;
+		    me.b = b = (b << 20) ^ (b >>> 12) ^ c;
+		    me.c = c = (c - d) | 0;
+		    me.d = (d << 16) ^ (c >>> 16) ^ a;
+		    return me.a = (a - b) | 0;
+		  };
+
+		  
+
+		  me.a = 0;
+		  me.b = 0;
+		  me.c = 2654435769 | 0;
+		  me.d = 1367130551;
+
+		  if (seed === Math.floor(seed)) {
+		    
+		    me.a = (seed / 0x100000000) | 0;
+		    me.b = seed | 0;
+		  } else {
+		    
+		    strseed += seed;
+		  }
+
+		  
+		  for (var k = 0; k < strseed.length + 20; k++) {
+		    me.b ^= strseed.charCodeAt(k) | 0;
+		    me.next();
+		  }
+		}
+
+		function copy(f, t) {
+		  t.a = f.a;
+		  t.b = f.b;
+		  t.c = f.c;
+		  t.d = f.d;
+		  return t;
+		}
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
+
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.tychei = impl;
+		}
+
+		})(
+		  tychei,
+		  module); 
+	} (tychei$1));
+	return tychei$1.exports;
+}
+
+var seedrandom$2 = {exports: {}};
+
+
+var seedrandom$1 = seedrandom$2.exports;
+
+var hasRequiredSeedrandom$1;
+
+function requireSeedrandom$1 () {
+	if (hasRequiredSeedrandom$1) return seedrandom$2.exports;
+	hasRequiredSeedrandom$1 = 1;
+	(function (module) {
+		(function (global, pool, math) {
+		
+		
+		
+
+		var width = 256,        
+		    chunks = 6,         
+		    digits = 52,        
+		    rngname = 'random', 
+		    startdenom = math.pow(width, chunks),
+		    significance = math.pow(2, digits),
+		    overflow = significance * 2,
+		    mask = width - 1,
+		    nodecrypto;         
+
+		
+		
+		
+		
+		function seedrandom(seed, options, callback) {
+		  var key = [];
+		  options = (options == true) ? { entropy: true } : (options || {});
+
+		  
+		  var shortseed = mixkey(flatten(
+		    options.entropy ? [seed, tostring(pool)] :
+		    (seed == null) ? autoseed() : seed, 3), key);
+
+		  
+		  var arc4 = new ARC4(key);
+
+		  
+		  
+		  var prng = function() {
+		    var n = arc4.g(chunks),             
+		        d = startdenom,                 
+		        x = 0;                          
+		    while (n < significance) {          
+		      n = (n + x) * width;              
+		      d *= width;                       
+		      x = arc4.g(1);                    
+		    }
+		    while (n >= overflow) {             
+		      n /= 2;                           
+		      d /= 2;                           
+		      x >>>= 1;                         
+		    }
+		    return (n + x) / d;                 
+		  };
+
+		  prng.int32 = function() { return arc4.g(4) | 0; };
+		  prng.quick = function() { return arc4.g(4) / 0x100000000; };
+		  prng.double = prng;
+
+		  
+		  mixkey(tostring(arc4.S), pool);
+
+		  
+		  return (options.pass || callback ||
+		      function(prng, seed, is_math_call, state) {
+		        if (state) {
+		          
+		          if (state.S) { copy(state, arc4); }
+		          
+		          prng.state = function() { return copy(arc4, {}); };
+		        }
+
+		        
+		        
+		        if (is_math_call) { math[rngname] = prng; return seed; }
+
+		        
+		        
+		        else return prng;
+		      })(
+		  prng,
+		  shortseed,
+		  'global' in options ? options.global : (this == math),
+		  options.state);
+		}
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		function ARC4(key) {
+		  var t, keylen = key.length,
+		      me = this, i = 0, j = me.i = me.j = 0, s = me.S = [];
+
+		  
+		  if (!keylen) { key = [keylen++]; }
+
+		  
+		  while (i < width) {
+		    s[i] = i++;
+		  }
+		  for (i = 0; i < width; i++) {
+		    s[i] = s[j = mask & (j + key[i % keylen] + (t = s[i]))];
+		    s[j] = t;
+		  }
+
+		  
+		  (me.g = function(count) {
+		    
+		    var t, r = 0,
+		        i = me.i, j = me.j, s = me.S;
+		    while (count--) {
+		      t = s[i = mask & (i + 1)];
+		      r = r * width + s[mask & ((s[i] = s[j = mask & (j + t)]) + (s[j] = t))];
+		    }
+		    me.i = i; me.j = j;
+		    return r;
+		    
+		    
+		    
+		  })(width);
+		}
+
+		
+		
+		
+		
+		function copy(f, t) {
+		  t.i = f.i;
+		  t.j = f.j;
+		  t.S = f.S.slice();
+		  return t;
+		}
+		
+		
+		
+		
+		function flatten(obj, depth) {
+		  var result = [], typ = (typeof obj), prop;
+		  if (depth && typ == 'object') {
+		    for (prop in obj) {
+		      try { result.push(flatten(obj[prop], depth - 1)); } catch (e) {}
+		    }
+		  }
+		  return (result.length ? result : typ == 'string' ? obj : obj + '\0');
+		}
+
+		
+		
+		
+		
+		
+		function mixkey(seed, key) {
+		  var stringseed = seed + '', smear, j = 0;
+		  while (j < stringseed.length) {
+		    key[mask & j] =
+		      mask & ((smear ^= key[mask & j] * 19) + stringseed.charCodeAt(j++));
+		  }
+		  return tostring(key);
+		}
+
+		
+		
+		
+		
+		
+		function autoseed() {
+		  try {
+		    var out;
+		    if (nodecrypto && (out = nodecrypto.randomBytes)) {
+		      
+		      out = out(width);
+		    } else {
+		      out = new Uint8Array(width);
+		      (global.crypto || global.msCrypto).getRandomValues(out);
+		    }
+		    return tostring(out);
+		  } catch (e) {
+		    var browser = global.navigator,
+		        plugins = browser && browser.plugins;
+		    return [+new Date, global, plugins, global.screen, tostring(pool)];
+		  }
+		}
+
+		
+		
+		
+		
+		function tostring(a) {
+		  return String.fromCharCode.apply(0, a);
+		}
+
+		
+		
+		
+		
+		
+		
+		
+		mixkey(math.random(), pool);
+
+		
+		
+		
+		
+		if (module.exports) {
+		  module.exports = seedrandom;
+		  
+		  try {
+		    nodecrypto = require('crypto');
+		  } catch (ex) {}
+		} else {
+		  
+		  math['seed' + rngname] = seedrandom;
+		}
+
+
+		
+		})(
+		  
+		  
+		  (typeof self !== 'undefined') ? self : seedrandom$1,
+		  [],     
+		  Math    
+		); 
+	} (seedrandom$2));
+	return seedrandom$2.exports;
+}
+
+var seedrandom;
+var hasRequiredSeedrandom;
+
+function requireSeedrandom () {
+	if (hasRequiredSeedrandom) return seedrandom;
+	hasRequiredSeedrandom = 1;
 	
 	
 	
-
-	(function(global, module, define) {
-
-	function XorGen(seed) {
-	  var me = this, strseed = '';
-
-	  
-	  me.next = function() {
-	    var b = me.b, c = me.c, d = me.d, a = me.a;
-	    b = (b << 25) ^ (b >>> 7) ^ c;
-	    c = (c - d) | 0;
-	    d = (d << 24) ^ (d >>> 8) ^ a;
-	    a = (a - b) | 0;
-	    me.b = b = (b << 20) ^ (b >>> 12) ^ c;
-	    me.c = c = (c - d) | 0;
-	    me.d = (d << 16) ^ (c >>> 16) ^ a;
-	    return me.a = (a - b) | 0;
-	  };
-
-	  
-
-	  me.a = 0;
-	  me.b = 0;
-	  me.c = 2654435769 | 0;
-	  me.d = 1367130551;
-
-	  if (seed === Math.floor(seed)) {
-	    
-	    me.a = (seed / 0x100000000) | 0;
-	    me.b = seed | 0;
-	  } else {
-	    
-	    strseed += seed;
-	  }
-
-	  
-	  for (var k = 0; k < strseed.length + 20; k++) {
-	    me.b ^= strseed.charCodeAt(k) | 0;
-	    me.next();
-	  }
-	}
-
-	function copy(f, t) {
-	  t.a = f.a;
-	  t.b = f.b;
-	  t.c = f.c;
-	  t.d = f.d;
-	  return t;
-	}
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
-
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.tychei = impl;
-	}
-
-	})(
-	  commonjsGlobal,
-	  module); 
-} (tychei$1));
-
-var tycheiExports = tychei$1.exports;
-
-var seedrandom$1 = {exports: {}};
-
-
-
-(function (module) {
-	(function (global, pool, math) {
+	
+	
 	
 	
 	
 
-	var width = 256,        
-	    chunks = 6,         
-	    digits = 52,        
-	    rngname = 'random', 
-	    startdenom = math.pow(width, chunks),
-	    significance = math.pow(2, digits),
-	    overflow = significance * 2,
-	    mask = width - 1,
-	    nodecrypto;         
+	
+	
+	
+	var alea =  requireAlea();
+
+	
+	
+	
+	var xor128 =  requireXor128();
+
+	
+	
+	
+	var xorwow =  requireXorwow();
 
 	
 	
 	
 	
-	function seedrandom(seed, options, callback) {
-	  var key = [];
-	  options = (options == true) ? { entropy: true } : (options || {});
-
-	  
-	  var shortseed = mixkey(flatten(
-	    options.entropy ? [seed, tostring(pool)] :
-	    (seed == null) ? autoseed() : seed, 3), key);
-
-	  
-	  var arc4 = new ARC4(key);
-
-	  
-	  
-	  var prng = function() {
-	    var n = arc4.g(chunks),             
-	        d = startdenom,                 
-	        x = 0;                          
-	    while (n < significance) {          
-	      n = (n + x) * width;              
-	      d *= width;                       
-	      x = arc4.g(1);                    
-	    }
-	    while (n >= overflow) {             
-	      n /= 2;                           
-	      d /= 2;                           
-	      x >>>= 1;                         
-	    }
-	    return (n + x) / d;                 
-	  };
-
-	  prng.int32 = function() { return arc4.g(4) | 0; };
-	  prng.quick = function() { return arc4.g(4) / 0x100000000; };
-	  prng.double = prng;
-
-	  
-	  mixkey(tostring(arc4.S), pool);
-
-	  
-	  return (options.pass || callback ||
-	      function(prng, seed, is_math_call, state) {
-	        if (state) {
-	          
-	          if (state.S) { copy(state, arc4); }
-	          
-	          prng.state = function() { return copy(arc4, {}); };
-	        }
-
-	        
-	        
-	        if (is_math_call) { math[rngname] = prng; return seed; }
-
-	        
-	        
-	        else return prng;
-	      })(
-	  prng,
-	  shortseed,
-	  'global' in options ? options.global : (this == math),
-	  options.state);
-	}
+	
+	
+	var xorshift7 =  requireXorshift7();
 
 	
 	
@@ -6455,208 +6697,31 @@ var seedrandom$1 = {exports: {}};
 	
 	
 	
-	
-	
-	
-	function ARC4(key) {
-	  var t, keylen = key.length,
-	      me = this, i = 0, j = me.i = me.j = 0, s = me.S = [];
-
-	  
-	  if (!keylen) { key = [keylen++]; }
-
-	  
-	  while (i < width) {
-	    s[i] = i++;
-	  }
-	  for (i = 0; i < width; i++) {
-	    s[i] = s[j = mask & (j + key[i % keylen] + (t = s[i]))];
-	    s[j] = t;
-	  }
-
-	  
-	  (me.g = function(count) {
-	    
-	    var t, r = 0,
-	        i = me.i, j = me.j, s = me.S;
-	    while (count--) {
-	      t = s[i = mask & (i + 1)];
-	      r = r * width + s[mask & ((s[i] = s[j = mask & (j + t)]) + (s[j] = t))];
-	    }
-	    me.i = i; me.j = j;
-	    return r;
-	    
-	    
-	    
-	  })(width);
-	}
-
-	
-	
-	
-	
-	function copy(f, t) {
-	  t.i = f.i;
-	  t.j = f.j;
-	  t.S = f.S.slice();
-	  return t;
-	}
-	
-	
-	
-	
-	function flatten(obj, depth) {
-	  var result = [], typ = (typeof obj), prop;
-	  if (depth && typ == 'object') {
-	    for (prop in obj) {
-	      try { result.push(flatten(obj[prop], depth - 1)); } catch (e) {}
-	    }
-	  }
-	  return (result.length ? result : typ == 'string' ? obj : obj + '\0');
-	}
+	var xor4096 =  requireXor4096();
 
 	
 	
 	
 	
 	
-	function mixkey(seed, key) {
-	  var stringseed = seed + '', smear, j = 0;
-	  while (j < stringseed.length) {
-	    key[mask & j] =
-	      mask & ((smear ^= key[mask & j] * 19) + stringseed.charCodeAt(j++));
-	  }
-	  return tostring(key);
-	}
+	var tychei =  requireTychei();
 
 	
 	
-	
-	
-	
-	function autoseed() {
-	  try {
-	    var out;
-	    if (nodecrypto && (out = nodecrypto.randomBytes)) {
-	      
-	      out = out(width);
-	    } else {
-	      out = new Uint8Array(width);
-	      (global.crypto || global.msCrypto).getRandomValues(out);
-	    }
-	    return tostring(out);
-	  } catch (e) {
-	    var browser = global.navigator,
-	        plugins = browser && browser.plugins;
-	    return [+new Date, global, plugins, global.screen, tostring(pool)];
-	  }
-	}
+	var sr =  requireSeedrandom$1();
 
-	
-	
-	
-	
-	function tostring(a) {
-	  return String.fromCharCode.apply(0, a);
-	}
+	sr.alea = alea;
+	sr.xor128 = xor128;
+	sr.xorwow = xorwow;
+	sr.xorshift7 = xorshift7;
+	sr.xor4096 = xor4096;
+	sr.tychei = tychei;
 
-	
-	
-	
-	
-	
-	
-	
-	mixkey(math.random(), pool);
+	seedrandom = sr;
+	return seedrandom;
+}
 
-	
-	
-	
-	
-	if (module.exports) {
-	  module.exports = seedrandom;
-	  
-	  try {
-	    nodecrypto = require('crypto');
-	  } catch (ex) {}
-	} else {
-	  
-	  math['seed' + rngname] = seedrandom;
-	}
-
-
-	
-	})(
-	  
-	  
-	  (typeof self !== 'undefined') ? self : commonjsGlobal,
-	  [],     
-	  Math    
-	); 
-} (seedrandom$1));
-
-var seedrandomExports = seedrandom$1.exports;
-
-
-
-
-
-
-
-
-
-
-
-
-
-var alea = aleaExports;
-
-
-
-
-var xor128 = xor128Exports;
-
-
-
-
-var xorwow = xorwowExports;
-
-
-
-
-
-
-
-var xorshift7 = xorshift7Exports;
-
-
-
-
-
-
-
-
-var xor4096 = xor4096Exports;
-
-
-
-
-
-
-var tychei = tycheiExports;
-
-
-
-var sr = seedrandomExports;
-
-sr.alea = alea;
-sr.xor128 = xor128;
-sr.xorwow = xorwow;
-sr.xorshift7 = xorshift7;
-sr.xor4096 = xor4096;
-sr.tychei = tychei;
-
-var seedrandom = sr;
+var seedrandomExports =  requireSeedrandom();
 
 
 
@@ -6672,7 +6737,7 @@ class MPRandGauss {
             this.lower = this.mean - this.stdDev * 2;
         }
         const seedValue = seed ? seed : Math.random();
-        this.random = seedrandom.alea(seedValue.toString());
+        this.random = seedrandomExports.alea(seedValue.toString());
     }
     
     nextValue() {
@@ -6730,7 +6795,7 @@ class UniformRandom {
         if (!this.canReturnFloat() && this.range <= 1) {
             throw new Error(`The difference between ${min} - ${max} <= 1 and dtype is not float`);
         }
-        this.random = seedrandom.alea(seed);
+        this.random = seedrandomExports.alea(seed);
     }
     convertValue(value) {
         if (this.canReturnFloat()) {
@@ -33383,7 +33448,7 @@ function multinomial(args) {
         for (let event = 1; event < cdf.length; ++event) {
             cdf[event] = cdf[event - 1] + probVals[offset + event];
         }
-        const random = seedrandom.alea(seed.toString());
+        const random = seedrandomExports.alea(seed.toString());
         const outOffset = b * numSamples;
         for (let sampleId = 0; sampleId < numSamples; ++sampleId) {
             const r = random();

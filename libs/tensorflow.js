@@ -1296,1317 +1296,1324 @@ class PlatformStub {
 	}
 }
 
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
 function getDefaultExportFromCjs (x) {
 	return x && x.__esModule && Object.prototype.hasOwnProperty.call(x, 'default') ? x['default'] : x;
 }
 
-var long = Long$1;
+var long$1;
+var hasRequiredLong;
 
-/**
- * wasm optimizations, to do native i64 multiplication and divide
- */
-var wasm = null;
+function requireLong () {
+	if (hasRequiredLong) return long$1;
+	hasRequiredLong = 1;
+	long$1 = Long;
 
-try {
-  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
-    0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11
-  ])), {}).exports;
-} catch (e) {
-  // no wasm support :(
+	/**
+	 * wasm optimizations, to do native i64 multiplication and divide
+	 */
+	var wasm = null;
+
+	try {
+	  wasm = new WebAssembly.Instance(new WebAssembly.Module(new Uint8Array([
+	    0, 97, 115, 109, 1, 0, 0, 0, 1, 13, 2, 96, 0, 1, 127, 96, 4, 127, 127, 127, 127, 1, 127, 3, 7, 6, 0, 1, 1, 1, 1, 1, 6, 6, 1, 127, 1, 65, 0, 11, 7, 50, 6, 3, 109, 117, 108, 0, 1, 5, 100, 105, 118, 95, 115, 0, 2, 5, 100, 105, 118, 95, 117, 0, 3, 5, 114, 101, 109, 95, 115, 0, 4, 5, 114, 101, 109, 95, 117, 0, 5, 8, 103, 101, 116, 95, 104, 105, 103, 104, 0, 0, 10, 191, 1, 6, 4, 0, 35, 0, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 126, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 127, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 128, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 129, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11, 36, 1, 1, 126, 32, 0, 173, 32, 1, 173, 66, 32, 134, 132, 32, 2, 173, 32, 3, 173, 66, 32, 134, 132, 130, 34, 4, 66, 32, 135, 167, 36, 0, 32, 4, 167, 11
+	  ])), {}).exports;
+	} catch (e) {
+	  // no wasm support :(
+	}
+
+	/**
+	 * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
+	 *  See the from* functions below for more convenient ways of constructing Longs.
+	 * @exports Long
+	 * @class A Long class for representing a 64 bit two's-complement integer value.
+	 * @param {number} low The low (signed) 32 bits of the long
+	 * @param {number} high The high (signed) 32 bits of the long
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @constructor
+	 */
+	function Long(low, high, unsigned) {
+
+	    /**
+	     * The low 32 bits as a signed value.
+	     * @type {number}
+	     */
+	    this.low = low | 0;
+
+	    /**
+	     * The high 32 bits as a signed value.
+	     * @type {number}
+	     */
+	    this.high = high | 0;
+
+	    /**
+	     * Whether unsigned or not.
+	     * @type {boolean}
+	     */
+	    this.unsigned = !!unsigned;
+	}
+
+	Object.defineProperty(Long.prototype, "__isLong__", { value: true });
+
+	/**
+	 * @function
+	 * @param {*} obj Object
+	 * @returns {boolean}
+	 * @inner
+	 */
+	function isLong(obj) {
+	    return (obj && obj["__isLong__"]) === true;
+	}
+
+	/**
+	 * Tests if the specified object is a Long.
+	 * @function
+	 * @param {*} obj Object
+	 * @returns {boolean}
+	 */
+	Long.isLong = isLong;
+
+	/**
+	 * A cache of the Long representations of small integer values.
+	 * @type {!Object}
+	 * @inner
+	 */
+	var INT_CACHE = {};
+
+	/**
+	 * A cache of the Long representations of small unsigned integer values.
+	 * @type {!Object}
+	 * @inner
+	 */
+	var UINT_CACHE = {};
+
+	/**
+	 * @param {number} value
+	 * @param {boolean=} unsigned
+	 * @returns {!Long}
+	 * @inner
+	 */
+	function fromInt(value, unsigned) {
+	    var obj, cachedObj, cache;
+	    if (unsigned) {
+	        value >>>= 0;
+	        if (cache = (0 <= value && value < 256)) {
+	            cachedObj = UINT_CACHE[value];
+	            if (cachedObj)
+	                return cachedObj;
+	        }
+	        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
+	        if (cache)
+	            UINT_CACHE[value] = obj;
+	        return obj;
+	    } else {
+	        value |= 0;
+	        if (cache = (-128 <= value && value < 128)) {
+	            cachedObj = INT_CACHE[value];
+	            if (cachedObj)
+	                return cachedObj;
+	        }
+	        obj = fromBits(value, value < 0 ? -1 : 0, false);
+	        if (cache)
+	            INT_CACHE[value] = obj;
+	        return obj;
+	    }
+	}
+
+	/**
+	 * Returns a Long representing the given 32 bit integer value.
+	 * @function
+	 * @param {number} value The 32 bit integer in question
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {!Long} The corresponding Long value
+	 */
+	Long.fromInt = fromInt;
+
+	/**
+	 * @param {number} value
+	 * @param {boolean=} unsigned
+	 * @returns {!Long}
+	 * @inner
+	 */
+	function fromNumber(value, unsigned) {
+	    if (isNaN(value))
+	        return unsigned ? UZERO : ZERO;
+	    if (unsigned) {
+	        if (value < 0)
+	            return UZERO;
+	        if (value >= TWO_PWR_64_DBL)
+	            return MAX_UNSIGNED_VALUE;
+	    } else {
+	        if (value <= -TWO_PWR_63_DBL)
+	            return MIN_VALUE;
+	        if (value + 1 >= TWO_PWR_63_DBL)
+	            return MAX_VALUE;
+	    }
+	    if (value < 0)
+	        return fromNumber(-value, unsigned).neg();
+	    return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
+	}
+
+	/**
+	 * Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
+	 * @function
+	 * @param {number} value The number in question
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {!Long} The corresponding Long value
+	 */
+	Long.fromNumber = fromNumber;
+
+	/**
+	 * @param {number} lowBits
+	 * @param {number} highBits
+	 * @param {boolean=} unsigned
+	 * @returns {!Long}
+	 * @inner
+	 */
+	function fromBits(lowBits, highBits, unsigned) {
+	    return new Long(lowBits, highBits, unsigned);
+	}
+
+	/**
+	 * Returns a Long representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
+	 *  assumed to use 32 bits.
+	 * @function
+	 * @param {number} lowBits The low 32 bits
+	 * @param {number} highBits The high 32 bits
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {!Long} The corresponding Long value
+	 */
+	Long.fromBits = fromBits;
+
+	/**
+	 * @function
+	 * @param {number} base
+	 * @param {number} exponent
+	 * @returns {number}
+	 * @inner
+	 */
+	var pow_dbl = Math.pow; // Used 4 times (4*8 to 15+4)
+
+	/**
+	 * @param {string} str
+	 * @param {(boolean|number)=} unsigned
+	 * @param {number=} radix
+	 * @returns {!Long}
+	 * @inner
+	 */
+	function fromString(str, unsigned, radix) {
+	    if (str.length === 0)
+	        throw Error('empty string');
+	    if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
+	        return ZERO;
+	    if (typeof unsigned === 'number') {
+	        // For goog.math.long compatibility
+	        radix = unsigned,
+	        unsigned = false;
+	    } else {
+	        unsigned = !! unsigned;
+	    }
+	    radix = radix || 10;
+	    if (radix < 2 || 36 < radix)
+	        throw RangeError('radix');
+
+	    var p;
+	    if ((p = str.indexOf('-')) > 0)
+	        throw Error('interior hyphen');
+	    else if (p === 0) {
+	        return fromString(str.substring(1), unsigned, radix).neg();
+	    }
+
+	    // Do several (8) digits each time through the loop, so as to
+	    // minimize the calls to the very expensive emulated div.
+	    var radixToPower = fromNumber(pow_dbl(radix, 8));
+
+	    var result = ZERO;
+	    for (var i = 0; i < str.length; i += 8) {
+	        var size = Math.min(8, str.length - i),
+	            value = parseInt(str.substring(i, i + size), radix);
+	        if (size < 8) {
+	            var power = fromNumber(pow_dbl(radix, size));
+	            result = result.mul(power).add(fromNumber(value));
+	        } else {
+	            result = result.mul(radixToPower);
+	            result = result.add(fromNumber(value));
+	        }
+	    }
+	    result.unsigned = unsigned;
+	    return result;
+	}
+
+	/**
+	 * Returns a Long representation of the given string, written using the specified radix.
+	 * @function
+	 * @param {string} str The textual representation of the Long
+	 * @param {(boolean|number)=} unsigned Whether unsigned or not, defaults to signed
+	 * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
+	 * @returns {!Long} The corresponding Long value
+	 */
+	Long.fromString = fromString;
+
+	/**
+	 * @function
+	 * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val
+	 * @param {boolean=} unsigned
+	 * @returns {!Long}
+	 * @inner
+	 */
+	function fromValue(val, unsigned) {
+	    if (typeof val === 'number')
+	        return fromNumber(val, unsigned);
+	    if (typeof val === 'string')
+	        return fromString(val, unsigned);
+	    // Throws for non-objects, converts non-instanceof Long:
+	    return fromBits(val.low, val.high, typeof unsigned === 'boolean' ? unsigned : val.unsigned);
+	}
+
+	/**
+	 * Converts the specified value to a Long using the appropriate from* function for its type.
+	 * @function
+	 * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val Value
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {!Long}
+	 */
+	Long.fromValue = fromValue;
+
+	// NOTE: the compiler should inline these constant values below and then remove these variables, so there should be
+	// no runtime penalty for these.
+
+	/**
+	 * @type {number}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_16_DBL = 1 << 16;
+
+	/**
+	 * @type {number}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_24_DBL = 1 << 24;
+
+	/**
+	 * @type {number}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
+
+	/**
+	 * @type {number}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
+
+	/**
+	 * @type {number}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
+
+	/**
+	 * @type {!Long}
+	 * @const
+	 * @inner
+	 */
+	var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var ZERO = fromInt(0);
+
+	/**
+	 * Signed zero.
+	 * @type {!Long}
+	 */
+	Long.ZERO = ZERO;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var UZERO = fromInt(0, true);
+
+	/**
+	 * Unsigned zero.
+	 * @type {!Long}
+	 */
+	Long.UZERO = UZERO;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var ONE = fromInt(1);
+
+	/**
+	 * Signed one.
+	 * @type {!Long}
+	 */
+	Long.ONE = ONE;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var UONE = fromInt(1, true);
+
+	/**
+	 * Unsigned one.
+	 * @type {!Long}
+	 */
+	Long.UONE = UONE;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var NEG_ONE = fromInt(-1);
+
+	/**
+	 * Signed negative one.
+	 * @type {!Long}
+	 */
+	Long.NEG_ONE = NEG_ONE;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
+
+	/**
+	 * Maximum signed value.
+	 * @type {!Long}
+	 */
+	Long.MAX_VALUE = MAX_VALUE;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
+
+	/**
+	 * Maximum unsigned value.
+	 * @type {!Long}
+	 */
+	Long.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
+
+	/**
+	 * @type {!Long}
+	 * @inner
+	 */
+	var MIN_VALUE = fromBits(0, 0x80000000|0, false);
+
+	/**
+	 * Minimum signed value.
+	 * @type {!Long}
+	 */
+	Long.MIN_VALUE = MIN_VALUE;
+
+	/**
+	 * @alias Long.prototype
+	 * @inner
+	 */
+	var LongPrototype = Long.prototype;
+
+	/**
+	 * Converts the Long to a 32 bit integer, assuming it is a 32 bit integer.
+	 * @returns {number}
+	 */
+	LongPrototype.toInt = function toInt() {
+	    return this.unsigned ? this.low >>> 0 : this.low;
+	};
+
+	/**
+	 * Converts the Long to a the nearest floating-point representation of this value (double, 53 bit mantissa).
+	 * @returns {number}
+	 */
+	LongPrototype.toNumber = function toNumber() {
+	    if (this.unsigned)
+	        return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
+	    return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
+	};
+
+	/**
+	 * Converts the Long to a string written in the specified radix.
+	 * @param {number=} radix Radix (2-36), defaults to 10
+	 * @returns {string}
+	 * @override
+	 * @throws {RangeError} If `radix` is out of range
+	 */
+	LongPrototype.toString = function toString(radix) {
+	    radix = radix || 10;
+	    if (radix < 2 || 36 < radix)
+	        throw RangeError('radix');
+	    if (this.isZero())
+	        return '0';
+	    if (this.isNegative()) { // Unsigned Longs are never negative
+	        if (this.eq(MIN_VALUE)) {
+	            // We need to change the Long value before it can be negated, so we remove
+	            // the bottom-most digit in this base and then recurse to do the rest.
+	            var radixLong = fromNumber(radix),
+	                div = this.div(radixLong),
+	                rem1 = div.mul(radixLong).sub(this);
+	            return div.toString(radix) + rem1.toInt().toString(radix);
+	        } else
+	            return '-' + this.neg().toString(radix);
+	    }
+
+	    // Do several (6) digits each time through the loop, so as to
+	    // minimize the calls to the very expensive emulated div.
+	    var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
+	        rem = this;
+	    var result = '';
+	    while (true) {
+	        var remDiv = rem.div(radixToPower),
+	            intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
+	            digits = intval.toString(radix);
+	        rem = remDiv;
+	        if (rem.isZero())
+	            return digits + result;
+	        else {
+	            while (digits.length < 6)
+	                digits = '0' + digits;
+	            result = '' + digits + result;
+	        }
+	    }
+	};
+
+	/**
+	 * Gets the high 32 bits as a signed integer.
+	 * @returns {number} Signed high bits
+	 */
+	LongPrototype.getHighBits = function getHighBits() {
+	    return this.high;
+	};
+
+	/**
+	 * Gets the high 32 bits as an unsigned integer.
+	 * @returns {number} Unsigned high bits
+	 */
+	LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
+	    return this.high >>> 0;
+	};
+
+	/**
+	 * Gets the low 32 bits as a signed integer.
+	 * @returns {number} Signed low bits
+	 */
+	LongPrototype.getLowBits = function getLowBits() {
+	    return this.low;
+	};
+
+	/**
+	 * Gets the low 32 bits as an unsigned integer.
+	 * @returns {number} Unsigned low bits
+	 */
+	LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
+	    return this.low >>> 0;
+	};
+
+	/**
+	 * Gets the number of bits needed to represent the absolute value of this Long.
+	 * @returns {number}
+	 */
+	LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
+	    if (this.isNegative()) // Unsigned Longs are never negative
+	        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
+	    var val = this.high != 0 ? this.high : this.low;
+	    for (var bit = 31; bit > 0; bit--)
+	        if ((val & (1 << bit)) != 0)
+	            break;
+	    return this.high != 0 ? bit + 33 : bit + 1;
+	};
+
+	/**
+	 * Tests if this Long's value equals zero.
+	 * @returns {boolean}
+	 */
+	LongPrototype.isZero = function isZero() {
+	    return this.high === 0 && this.low === 0;
+	};
+
+	/**
+	 * Tests if this Long's value equals zero. This is an alias of {@link Long#isZero}.
+	 * @returns {boolean}
+	 */
+	LongPrototype.eqz = LongPrototype.isZero;
+
+	/**
+	 * Tests if this Long's value is negative.
+	 * @returns {boolean}
+	 */
+	LongPrototype.isNegative = function isNegative() {
+	    return !this.unsigned && this.high < 0;
+	};
+
+	/**
+	 * Tests if this Long's value is positive.
+	 * @returns {boolean}
+	 */
+	LongPrototype.isPositive = function isPositive() {
+	    return this.unsigned || this.high >= 0;
+	};
+
+	/**
+	 * Tests if this Long's value is odd.
+	 * @returns {boolean}
+	 */
+	LongPrototype.isOdd = function isOdd() {
+	    return (this.low & 1) === 1;
+	};
+
+	/**
+	 * Tests if this Long's value is even.
+	 * @returns {boolean}
+	 */
+	LongPrototype.isEven = function isEven() {
+	    return (this.low & 1) === 0;
+	};
+
+	/**
+	 * Tests if this Long's value equals the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.equals = function equals(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
+	        return false;
+	    return this.high === other.high && this.low === other.low;
+	};
+
+	/**
+	 * Tests if this Long's value equals the specified's. This is an alias of {@link Long#equals}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.eq = LongPrototype.equals;
+
+	/**
+	 * Tests if this Long's value differs from the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.notEquals = function notEquals(other) {
+	    return !this.eq(/* validates */ other);
+	};
+
+	/**
+	 * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.neq = LongPrototype.notEquals;
+
+	/**
+	 * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.ne = LongPrototype.notEquals;
+
+	/**
+	 * Tests if this Long's value is less than the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.lessThan = function lessThan(other) {
+	    return this.comp(/* validates */ other) < 0;
+	};
+
+	/**
+	 * Tests if this Long's value is less than the specified's. This is an alias of {@link Long#lessThan}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.lt = LongPrototype.lessThan;
+
+	/**
+	 * Tests if this Long's value is less than or equal the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
+	    return this.comp(/* validates */ other) <= 0;
+	};
+
+	/**
+	 * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.lte = LongPrototype.lessThanOrEqual;
+
+	/**
+	 * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.le = LongPrototype.lessThanOrEqual;
+
+	/**
+	 * Tests if this Long's value is greater than the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.greaterThan = function greaterThan(other) {
+	    return this.comp(/* validates */ other) > 0;
+	};
+
+	/**
+	 * Tests if this Long's value is greater than the specified's. This is an alias of {@link Long#greaterThan}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.gt = LongPrototype.greaterThan;
+
+	/**
+	 * Tests if this Long's value is greater than or equal the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
+	    return this.comp(/* validates */ other) >= 0;
+	};
+
+	/**
+	 * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.gte = LongPrototype.greaterThanOrEqual;
+
+	/**
+	 * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {boolean}
+	 */
+	LongPrototype.ge = LongPrototype.greaterThanOrEqual;
+
+	/**
+	 * Compares this Long's value with the specified's.
+	 * @param {!Long|number|string} other Other value
+	 * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+	 *  if the given one is greater
+	 */
+	LongPrototype.compare = function compare(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    if (this.eq(other))
+	        return 0;
+	    var thisNeg = this.isNegative(),
+	        otherNeg = other.isNegative();
+	    if (thisNeg && !otherNeg)
+	        return -1;
+	    if (!thisNeg && otherNeg)
+	        return 1;
+	    // At this point the sign bits are the same
+	    if (!this.unsigned)
+	        return this.sub(other).isNegative() ? -1 : 1;
+	    // Both are positive if at least one is unsigned
+	    return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
+	};
+
+	/**
+	 * Compares this Long's value with the specified's. This is an alias of {@link Long#compare}.
+	 * @function
+	 * @param {!Long|number|string} other Other value
+	 * @returns {number} 0 if they are the same, 1 if the this is greater and -1
+	 *  if the given one is greater
+	 */
+	LongPrototype.comp = LongPrototype.compare;
+
+	/**
+	 * Negates this Long's value.
+	 * @returns {!Long} Negated Long
+	 */
+	LongPrototype.negate = function negate() {
+	    if (!this.unsigned && this.eq(MIN_VALUE))
+	        return MIN_VALUE;
+	    return this.not().add(ONE);
+	};
+
+	/**
+	 * Negates this Long's value. This is an alias of {@link Long#negate}.
+	 * @function
+	 * @returns {!Long} Negated Long
+	 */
+	LongPrototype.neg = LongPrototype.negate;
+
+	/**
+	 * Returns the sum of this and the specified Long.
+	 * @param {!Long|number|string} addend Addend
+	 * @returns {!Long} Sum
+	 */
+	LongPrototype.add = function add(addend) {
+	    if (!isLong(addend))
+	        addend = fromValue(addend);
+
+	    // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
+
+	    var a48 = this.high >>> 16;
+	    var a32 = this.high & 0xFFFF;
+	    var a16 = this.low >>> 16;
+	    var a00 = this.low & 0xFFFF;
+
+	    var b48 = addend.high >>> 16;
+	    var b32 = addend.high & 0xFFFF;
+	    var b16 = addend.low >>> 16;
+	    var b00 = addend.low & 0xFFFF;
+
+	    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+	    c00 += a00 + b00;
+	    c16 += c00 >>> 16;
+	    c00 &= 0xFFFF;
+	    c16 += a16 + b16;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c32 += a32 + b32;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c48 += a48 + b48;
+	    c48 &= 0xFFFF;
+	    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+	};
+
+	/**
+	 * Returns the difference of this and the specified Long.
+	 * @param {!Long|number|string} subtrahend Subtrahend
+	 * @returns {!Long} Difference
+	 */
+	LongPrototype.subtract = function subtract(subtrahend) {
+	    if (!isLong(subtrahend))
+	        subtrahend = fromValue(subtrahend);
+	    return this.add(subtrahend.neg());
+	};
+
+	/**
+	 * Returns the difference of this and the specified Long. This is an alias of {@link Long#subtract}.
+	 * @function
+	 * @param {!Long|number|string} subtrahend Subtrahend
+	 * @returns {!Long} Difference
+	 */
+	LongPrototype.sub = LongPrototype.subtract;
+
+	/**
+	 * Returns the product of this and the specified Long.
+	 * @param {!Long|number|string} multiplier Multiplier
+	 * @returns {!Long} Product
+	 */
+	LongPrototype.multiply = function multiply(multiplier) {
+	    if (this.isZero())
+	        return ZERO;
+	    if (!isLong(multiplier))
+	        multiplier = fromValue(multiplier);
+
+	    // use wasm support if present
+	    if (wasm) {
+	        var low = wasm.mul(this.low,
+	                           this.high,
+	                           multiplier.low,
+	                           multiplier.high);
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    if (multiplier.isZero())
+	        return ZERO;
+	    if (this.eq(MIN_VALUE))
+	        return multiplier.isOdd() ? MIN_VALUE : ZERO;
+	    if (multiplier.eq(MIN_VALUE))
+	        return this.isOdd() ? MIN_VALUE : ZERO;
+
+	    if (this.isNegative()) {
+	        if (multiplier.isNegative())
+	            return this.neg().mul(multiplier.neg());
+	        else
+	            return this.neg().mul(multiplier).neg();
+	    } else if (multiplier.isNegative())
+	        return this.mul(multiplier.neg()).neg();
+
+	    // If both longs are small, use float multiplication
+	    if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
+	        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
+
+	    // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
+	    // We can skip products that would overflow.
+
+	    var a48 = this.high >>> 16;
+	    var a32 = this.high & 0xFFFF;
+	    var a16 = this.low >>> 16;
+	    var a00 = this.low & 0xFFFF;
+
+	    var b48 = multiplier.high >>> 16;
+	    var b32 = multiplier.high & 0xFFFF;
+	    var b16 = multiplier.low >>> 16;
+	    var b00 = multiplier.low & 0xFFFF;
+
+	    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
+	    c00 += a00 * b00;
+	    c16 += c00 >>> 16;
+	    c00 &= 0xFFFF;
+	    c16 += a16 * b00;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c16 += a00 * b16;
+	    c32 += c16 >>> 16;
+	    c16 &= 0xFFFF;
+	    c32 += a32 * b00;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c32 += a16 * b16;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c32 += a00 * b32;
+	    c48 += c32 >>> 16;
+	    c32 &= 0xFFFF;
+	    c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
+	    c48 &= 0xFFFF;
+	    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
+	};
+
+	/**
+	 * Returns the product of this and the specified Long. This is an alias of {@link Long#multiply}.
+	 * @function
+	 * @param {!Long|number|string} multiplier Multiplier
+	 * @returns {!Long} Product
+	 */
+	LongPrototype.mul = LongPrototype.multiply;
+
+	/**
+	 * Returns this Long divided by the specified. The result is signed if this Long is signed or
+	 *  unsigned if this Long is unsigned.
+	 * @param {!Long|number|string} divisor Divisor
+	 * @returns {!Long} Quotient
+	 */
+	LongPrototype.divide = function divide(divisor) {
+	    if (!isLong(divisor))
+	        divisor = fromValue(divisor);
+	    if (divisor.isZero())
+	        throw Error('division by zero');
+
+	    // use wasm support if present
+	    if (wasm) {
+	        // guard against signed division overflow: the largest
+	        // negative number / -1 would be 1 larger than the largest
+	        // positive number, due to two's complement.
+	        if (!this.unsigned &&
+	            this.high === -2147483648 &&
+	            divisor.low === -1 && divisor.high === -1) {
+	            // be consistent with non-wasm code path
+	            return this;
+	        }
+	        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(
+	            this.low,
+	            this.high,
+	            divisor.low,
+	            divisor.high
+	        );
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    if (this.isZero())
+	        return this.unsigned ? UZERO : ZERO;
+	    var approx, rem, res;
+	    if (!this.unsigned) {
+	        // This section is only relevant for signed longs and is derived from the
+	        // closure library as a whole.
+	        if (this.eq(MIN_VALUE)) {
+	            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
+	                return MIN_VALUE;  // recall that -MIN_VALUE == MIN_VALUE
+	            else if (divisor.eq(MIN_VALUE))
+	                return ONE;
+	            else {
+	                // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
+	                var halfThis = this.shr(1);
+	                approx = halfThis.div(divisor).shl(1);
+	                if (approx.eq(ZERO)) {
+	                    return divisor.isNegative() ? ONE : NEG_ONE;
+	                } else {
+	                    rem = this.sub(divisor.mul(approx));
+	                    res = approx.add(rem.div(divisor));
+	                    return res;
+	                }
+	            }
+	        } else if (divisor.eq(MIN_VALUE))
+	            return this.unsigned ? UZERO : ZERO;
+	        if (this.isNegative()) {
+	            if (divisor.isNegative())
+	                return this.neg().div(divisor.neg());
+	            return this.neg().div(divisor).neg();
+	        } else if (divisor.isNegative())
+	            return this.div(divisor.neg()).neg();
+	        res = ZERO;
+	    } else {
+	        // The algorithm below has not been made for unsigned longs. It's therefore
+	        // required to take special care of the MSB prior to running it.
+	        if (!divisor.unsigned)
+	            divisor = divisor.toUnsigned();
+	        if (divisor.gt(this))
+	            return UZERO;
+	        if (divisor.gt(this.shru(1))) // 15 >>> 1 = 7 ; with divisor = 8 ; true
+	            return UONE;
+	        res = UZERO;
+	    }
+
+	    // Repeat the following until the remainder is less than other:  find a
+	    // floating-point that approximates remainder / other *from below*, add this
+	    // into the result, and subtract it from the remainder.  It is critical that
+	    // the approximate value is less than or equal to the real value so that the
+	    // remainder never becomes negative.
+	    rem = this;
+	    while (rem.gte(divisor)) {
+	        // Approximate the result of division. This may be a little greater or
+	        // smaller than the actual value.
+	        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
+
+	        // We will tweak the approximate result by changing it in the 48-th digit or
+	        // the smallest non-fractional digit, whichever is larger.
+	        var log2 = Math.ceil(Math.log(approx) / Math.LN2),
+	            delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
+
+	        // Decrease the approximation until it is smaller than the remainder.  Note
+	        // that if it is too large, the product overflows and is negative.
+	            approxRes = fromNumber(approx),
+	            approxRem = approxRes.mul(divisor);
+	        while (approxRem.isNegative() || approxRem.gt(rem)) {
+	            approx -= delta;
+	            approxRes = fromNumber(approx, this.unsigned);
+	            approxRem = approxRes.mul(divisor);
+	        }
+
+	        // We know the answer can't be zero... and actually, zero would cause
+	        // infinite recursion since we would make no progress.
+	        if (approxRes.isZero())
+	            approxRes = ONE;
+
+	        res = res.add(approxRes);
+	        rem = rem.sub(approxRem);
+	    }
+	    return res;
+	};
+
+	/**
+	 * Returns this Long divided by the specified. This is an alias of {@link Long#divide}.
+	 * @function
+	 * @param {!Long|number|string} divisor Divisor
+	 * @returns {!Long} Quotient
+	 */
+	LongPrototype.div = LongPrototype.divide;
+
+	/**
+	 * Returns this Long modulo the specified.
+	 * @param {!Long|number|string} divisor Divisor
+	 * @returns {!Long} Remainder
+	 */
+	LongPrototype.modulo = function modulo(divisor) {
+	    if (!isLong(divisor))
+	        divisor = fromValue(divisor);
+
+	    // use wasm support if present
+	    if (wasm) {
+	        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(
+	            this.low,
+	            this.high,
+	            divisor.low,
+	            divisor.high
+	        );
+	        return fromBits(low, wasm.get_high(), this.unsigned);
+	    }
+
+	    return this.sub(this.div(divisor).mul(divisor));
+	};
+
+	/**
+	 * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+	 * @function
+	 * @param {!Long|number|string} divisor Divisor
+	 * @returns {!Long} Remainder
+	 */
+	LongPrototype.mod = LongPrototype.modulo;
+
+	/**
+	 * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
+	 * @function
+	 * @param {!Long|number|string} divisor Divisor
+	 * @returns {!Long} Remainder
+	 */
+	LongPrototype.rem = LongPrototype.modulo;
+
+	/**
+	 * Returns the bitwise NOT of this Long.
+	 * @returns {!Long}
+	 */
+	LongPrototype.not = function not() {
+	    return fromBits(~this.low, ~this.high, this.unsigned);
+	};
+
+	/**
+	 * Returns the bitwise AND of this Long and the specified.
+	 * @param {!Long|number|string} other Other Long
+	 * @returns {!Long}
+	 */
+	LongPrototype.and = function and(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
+	};
+
+	/**
+	 * Returns the bitwise OR of this Long and the specified.
+	 * @param {!Long|number|string} other Other Long
+	 * @returns {!Long}
+	 */
+	LongPrototype.or = function or(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
+	};
+
+	/**
+	 * Returns the bitwise XOR of this Long and the given one.
+	 * @param {!Long|number|string} other Other Long
+	 * @returns {!Long}
+	 */
+	LongPrototype.xor = function xor(other) {
+	    if (!isLong(other))
+	        other = fromValue(other);
+	    return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
+	};
+
+	/**
+	 * Returns this Long with bits shifted to the left by the given amount.
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shiftLeft = function shiftLeft(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    if ((numBits &= 63) === 0)
+	        return this;
+	    else if (numBits < 32)
+	        return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
+	    else
+	        return fromBits(0, this.low << (numBits - 32), this.unsigned);
+	};
+
+	/**
+	 * Returns this Long with bits shifted to the left by the given amount. This is an alias of {@link Long#shiftLeft}.
+	 * @function
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shl = LongPrototype.shiftLeft;
+
+	/**
+	 * Returns this Long with bits arithmetically shifted to the right by the given amount.
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shiftRight = function shiftRight(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    if ((numBits &= 63) === 0)
+	        return this;
+	    else if (numBits < 32)
+	        return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
+	    else
+	        return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
+	};
+
+	/**
+	 * Returns this Long with bits arithmetically shifted to the right by the given amount. This is an alias of {@link Long#shiftRight}.
+	 * @function
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shr = LongPrototype.shiftRight;
+
+	/**
+	 * Returns this Long with bits logically shifted to the right by the given amount.
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
+	    if (isLong(numBits))
+	        numBits = numBits.toInt();
+	    numBits &= 63;
+	    if (numBits === 0)
+	        return this;
+	    else {
+	        var high = this.high;
+	        if (numBits < 32) {
+	            var low = this.low;
+	            return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
+	        } else if (numBits === 32)
+	            return fromBits(high, 0, this.unsigned);
+	        else
+	            return fromBits(high >>> (numBits - 32), 0, this.unsigned);
+	    }
+	};
+
+	/**
+	 * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+	 * @function
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shru = LongPrototype.shiftRightUnsigned;
+
+	/**
+	 * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
+	 * @function
+	 * @param {number|!Long} numBits Number of bits
+	 * @returns {!Long} Shifted Long
+	 */
+	LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
+
+	/**
+	 * Converts this Long to signed.
+	 * @returns {!Long} Signed long
+	 */
+	LongPrototype.toSigned = function toSigned() {
+	    if (!this.unsigned)
+	        return this;
+	    return fromBits(this.low, this.high, false);
+	};
+
+	/**
+	 * Converts this Long to unsigned.
+	 * @returns {!Long} Unsigned long
+	 */
+	LongPrototype.toUnsigned = function toUnsigned() {
+	    if (this.unsigned)
+	        return this;
+	    return fromBits(this.low, this.high, true);
+	};
+
+	/**
+	 * Converts this Long to its byte representation.
+	 * @param {boolean=} le Whether little or big endian, defaults to big endian
+	 * @returns {!Array.<number>} Byte representation
+	 */
+	LongPrototype.toBytes = function toBytes(le) {
+	    return le ? this.toBytesLE() : this.toBytesBE();
+	};
+
+	/**
+	 * Converts this Long to its little endian byte representation.
+	 * @returns {!Array.<number>} Little endian byte representation
+	 */
+	LongPrototype.toBytesLE = function toBytesLE() {
+	    var hi = this.high,
+	        lo = this.low;
+	    return [
+	        lo        & 0xff,
+	        lo >>>  8 & 0xff,
+	        lo >>> 16 & 0xff,
+	        lo >>> 24       ,
+	        hi        & 0xff,
+	        hi >>>  8 & 0xff,
+	        hi >>> 16 & 0xff,
+	        hi >>> 24
+	    ];
+	};
+
+	/**
+	 * Converts this Long to its big endian byte representation.
+	 * @returns {!Array.<number>} Big endian byte representation
+	 */
+	LongPrototype.toBytesBE = function toBytesBE() {
+	    var hi = this.high,
+	        lo = this.low;
+	    return [
+	        hi >>> 24       ,
+	        hi >>> 16 & 0xff,
+	        hi >>>  8 & 0xff,
+	        hi        & 0xff,
+	        lo >>> 24       ,
+	        lo >>> 16 & 0xff,
+	        lo >>>  8 & 0xff,
+	        lo        & 0xff
+	    ];
+	};
+
+	/**
+	 * Creates a Long from its byte representation.
+	 * @param {!Array.<number>} bytes Byte representation
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @param {boolean=} le Whether little or big endian, defaults to big endian
+	 * @returns {Long} The corresponding Long value
+	 */
+	Long.fromBytes = function fromBytes(bytes, unsigned, le) {
+	    return le ? Long.fromBytesLE(bytes, unsigned) : Long.fromBytesBE(bytes, unsigned);
+	};
+
+	/**
+	 * Creates a Long from its little endian byte representation.
+	 * @param {!Array.<number>} bytes Little endian byte representation
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {Long} The corresponding Long value
+	 */
+	Long.fromBytesLE = function fromBytesLE(bytes, unsigned) {
+	    return new Long(
+	        bytes[0]       |
+	        bytes[1] <<  8 |
+	        bytes[2] << 16 |
+	        bytes[3] << 24,
+	        bytes[4]       |
+	        bytes[5] <<  8 |
+	        bytes[6] << 16 |
+	        bytes[7] << 24,
+	        unsigned
+	    );
+	};
+
+	/**
+	 * Creates a Long from its big endian byte representation.
+	 * @param {!Array.<number>} bytes Big endian byte representation
+	 * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
+	 * @returns {Long} The corresponding Long value
+	 */
+	Long.fromBytesBE = function fromBytesBE(bytes, unsigned) {
+	    return new Long(
+	        bytes[4] << 24 |
+	        bytes[5] << 16 |
+	        bytes[6] <<  8 |
+	        bytes[7],
+	        bytes[0] << 24 |
+	        bytes[1] << 16 |
+	        bytes[2] <<  8 |
+	        bytes[3],
+	        unsigned
+	    );
+	};
+	return long$1;
 }
 
-/**
- * Constructs a 64 bit two's-complement integer, given its low and high 32 bit values as *signed* integers.
- *  See the from* functions below for more convenient ways of constructing Longs.
- * @exports Long
- * @class A Long class for representing a 64 bit two's-complement integer value.
- * @param {number} low The low (signed) 32 bits of the long
- * @param {number} high The high (signed) 32 bits of the long
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @constructor
- */
-function Long$1(low, high, unsigned) {
-
-    /**
-     * The low 32 bits as a signed value.
-     * @type {number}
-     */
-    this.low = low | 0;
-
-    /**
-     * The high 32 bits as a signed value.
-     * @type {number}
-     */
-    this.high = high | 0;
-
-    /**
-     * Whether unsigned or not.
-     * @type {boolean}
-     */
-    this.unsigned = !!unsigned;
-}
-
-Object.defineProperty(Long$1.prototype, "__isLong__", { value: true });
-
-/**
- * @function
- * @param {*} obj Object
- * @returns {boolean}
- * @inner
- */
-function isLong(obj) {
-    return (obj && obj["__isLong__"]) === true;
-}
-
-/**
- * Tests if the specified object is a Long.
- * @function
- * @param {*} obj Object
- * @returns {boolean}
- */
-Long$1.isLong = isLong;
-
-/**
- * A cache of the Long representations of small integer values.
- * @type {!Object}
- * @inner
- */
-var INT_CACHE = {};
-
-/**
- * A cache of the Long representations of small unsigned integer values.
- * @type {!Object}
- * @inner
- */
-var UINT_CACHE = {};
-
-/**
- * @param {number} value
- * @param {boolean=} unsigned
- * @returns {!Long}
- * @inner
- */
-function fromInt(value, unsigned) {
-    var obj, cachedObj, cache;
-    if (unsigned) {
-        value >>>= 0;
-        if (cache = (0 <= value && value < 256)) {
-            cachedObj = UINT_CACHE[value];
-            if (cachedObj)
-                return cachedObj;
-        }
-        obj = fromBits(value, (value | 0) < 0 ? -1 : 0, true);
-        if (cache)
-            UINT_CACHE[value] = obj;
-        return obj;
-    } else {
-        value |= 0;
-        if (cache = (-128 <= value && value < 128)) {
-            cachedObj = INT_CACHE[value];
-            if (cachedObj)
-                return cachedObj;
-        }
-        obj = fromBits(value, value < 0 ? -1 : 0, false);
-        if (cache)
-            INT_CACHE[value] = obj;
-        return obj;
-    }
-}
-
-/**
- * Returns a Long representing the given 32 bit integer value.
- * @function
- * @param {number} value The 32 bit integer in question
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {!Long} The corresponding Long value
- */
-Long$1.fromInt = fromInt;
-
-/**
- * @param {number} value
- * @param {boolean=} unsigned
- * @returns {!Long}
- * @inner
- */
-function fromNumber(value, unsigned) {
-    if (isNaN(value))
-        return unsigned ? UZERO : ZERO;
-    if (unsigned) {
-        if (value < 0)
-            return UZERO;
-        if (value >= TWO_PWR_64_DBL)
-            return MAX_UNSIGNED_VALUE;
-    } else {
-        if (value <= -TWO_PWR_63_DBL)
-            return MIN_VALUE;
-        if (value + 1 >= TWO_PWR_63_DBL)
-            return MAX_VALUE;
-    }
-    if (value < 0)
-        return fromNumber(-value, unsigned).neg();
-    return fromBits((value % TWO_PWR_32_DBL) | 0, (value / TWO_PWR_32_DBL) | 0, unsigned);
-}
-
-/**
- * Returns a Long representing the given value, provided that it is a finite number. Otherwise, zero is returned.
- * @function
- * @param {number} value The number in question
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {!Long} The corresponding Long value
- */
-Long$1.fromNumber = fromNumber;
-
-/**
- * @param {number} lowBits
- * @param {number} highBits
- * @param {boolean=} unsigned
- * @returns {!Long}
- * @inner
- */
-function fromBits(lowBits, highBits, unsigned) {
-    return new Long$1(lowBits, highBits, unsigned);
-}
-
-/**
- * Returns a Long representing the 64 bit integer that comes by concatenating the given low and high bits. Each is
- *  assumed to use 32 bits.
- * @function
- * @param {number} lowBits The low 32 bits
- * @param {number} highBits The high 32 bits
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {!Long} The corresponding Long value
- */
-Long$1.fromBits = fromBits;
-
-/**
- * @function
- * @param {number} base
- * @param {number} exponent
- * @returns {number}
- * @inner
- */
-var pow_dbl = Math.pow; // Used 4 times (4*8 to 15+4)
-
-/**
- * @param {string} str
- * @param {(boolean|number)=} unsigned
- * @param {number=} radix
- * @returns {!Long}
- * @inner
- */
-function fromString(str, unsigned, radix) {
-    if (str.length === 0)
-        throw Error('empty string');
-    if (str === "NaN" || str === "Infinity" || str === "+Infinity" || str === "-Infinity")
-        return ZERO;
-    if (typeof unsigned === 'number') {
-        // For goog.math.long compatibility
-        radix = unsigned,
-        unsigned = false;
-    } else {
-        unsigned = !! unsigned;
-    }
-    radix = radix || 10;
-    if (radix < 2 || 36 < radix)
-        throw RangeError('radix');
-
-    var p;
-    if ((p = str.indexOf('-')) > 0)
-        throw Error('interior hyphen');
-    else if (p === 0) {
-        return fromString(str.substring(1), unsigned, radix).neg();
-    }
-
-    // Do several (8) digits each time through the loop, so as to
-    // minimize the calls to the very expensive emulated div.
-    var radixToPower = fromNumber(pow_dbl(radix, 8));
-
-    var result = ZERO;
-    for (var i = 0; i < str.length; i += 8) {
-        var size = Math.min(8, str.length - i),
-            value = parseInt(str.substring(i, i + size), radix);
-        if (size < 8) {
-            var power = fromNumber(pow_dbl(radix, size));
-            result = result.mul(power).add(fromNumber(value));
-        } else {
-            result = result.mul(radixToPower);
-            result = result.add(fromNumber(value));
-        }
-    }
-    result.unsigned = unsigned;
-    return result;
-}
-
-/**
- * Returns a Long representation of the given string, written using the specified radix.
- * @function
- * @param {string} str The textual representation of the Long
- * @param {(boolean|number)=} unsigned Whether unsigned or not, defaults to signed
- * @param {number=} radix The radix in which the text is written (2-36), defaults to 10
- * @returns {!Long} The corresponding Long value
- */
-Long$1.fromString = fromString;
-
-/**
- * @function
- * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val
- * @param {boolean=} unsigned
- * @returns {!Long}
- * @inner
- */
-function fromValue(val, unsigned) {
-    if (typeof val === 'number')
-        return fromNumber(val, unsigned);
-    if (typeof val === 'string')
-        return fromString(val, unsigned);
-    // Throws for non-objects, converts non-instanceof Long:
-    return fromBits(val.low, val.high, typeof unsigned === 'boolean' ? unsigned : val.unsigned);
-}
-
-/**
- * Converts the specified value to a Long using the appropriate from* function for its type.
- * @function
- * @param {!Long|number|string|!{low: number, high: number, unsigned: boolean}} val Value
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {!Long}
- */
-Long$1.fromValue = fromValue;
-
-// NOTE: the compiler should inline these constant values below and then remove these variables, so there should be
-// no runtime penalty for these.
-
-/**
- * @type {number}
- * @const
- * @inner
- */
-var TWO_PWR_16_DBL = 1 << 16;
-
-/**
- * @type {number}
- * @const
- * @inner
- */
-var TWO_PWR_24_DBL = 1 << 24;
-
-/**
- * @type {number}
- * @const
- * @inner
- */
-var TWO_PWR_32_DBL = TWO_PWR_16_DBL * TWO_PWR_16_DBL;
-
-/**
- * @type {number}
- * @const
- * @inner
- */
-var TWO_PWR_64_DBL = TWO_PWR_32_DBL * TWO_PWR_32_DBL;
-
-/**
- * @type {number}
- * @const
- * @inner
- */
-var TWO_PWR_63_DBL = TWO_PWR_64_DBL / 2;
-
-/**
- * @type {!Long}
- * @const
- * @inner
- */
-var TWO_PWR_24 = fromInt(TWO_PWR_24_DBL);
-
-/**
- * @type {!Long}
- * @inner
- */
-var ZERO = fromInt(0);
-
-/**
- * Signed zero.
- * @type {!Long}
- */
-Long$1.ZERO = ZERO;
-
-/**
- * @type {!Long}
- * @inner
- */
-var UZERO = fromInt(0, true);
-
-/**
- * Unsigned zero.
- * @type {!Long}
- */
-Long$1.UZERO = UZERO;
-
-/**
- * @type {!Long}
- * @inner
- */
-var ONE = fromInt(1);
-
-/**
- * Signed one.
- * @type {!Long}
- */
-Long$1.ONE = ONE;
-
-/**
- * @type {!Long}
- * @inner
- */
-var UONE = fromInt(1, true);
-
-/**
- * Unsigned one.
- * @type {!Long}
- */
-Long$1.UONE = UONE;
-
-/**
- * @type {!Long}
- * @inner
- */
-var NEG_ONE = fromInt(-1);
-
-/**
- * Signed negative one.
- * @type {!Long}
- */
-Long$1.NEG_ONE = NEG_ONE;
-
-/**
- * @type {!Long}
- * @inner
- */
-var MAX_VALUE = fromBits(0xFFFFFFFF|0, 0x7FFFFFFF|0, false);
-
-/**
- * Maximum signed value.
- * @type {!Long}
- */
-Long$1.MAX_VALUE = MAX_VALUE;
-
-/**
- * @type {!Long}
- * @inner
- */
-var MAX_UNSIGNED_VALUE = fromBits(0xFFFFFFFF|0, 0xFFFFFFFF|0, true);
-
-/**
- * Maximum unsigned value.
- * @type {!Long}
- */
-Long$1.MAX_UNSIGNED_VALUE = MAX_UNSIGNED_VALUE;
-
-/**
- * @type {!Long}
- * @inner
- */
-var MIN_VALUE = fromBits(0, 0x80000000|0, false);
-
-/**
- * Minimum signed value.
- * @type {!Long}
- */
-Long$1.MIN_VALUE = MIN_VALUE;
-
-/**
- * @alias Long.prototype
- * @inner
- */
-var LongPrototype = Long$1.prototype;
-
-/**
- * Converts the Long to a 32 bit integer, assuming it is a 32 bit integer.
- * @returns {number}
- */
-LongPrototype.toInt = function toInt() {
-    return this.unsigned ? this.low >>> 0 : this.low;
-};
-
-/**
- * Converts the Long to a the nearest floating-point representation of this value (double, 53 bit mantissa).
- * @returns {number}
- */
-LongPrototype.toNumber = function toNumber() {
-    if (this.unsigned)
-        return ((this.high >>> 0) * TWO_PWR_32_DBL) + (this.low >>> 0);
-    return this.high * TWO_PWR_32_DBL + (this.low >>> 0);
-};
-
-/**
- * Converts the Long to a string written in the specified radix.
- * @param {number=} radix Radix (2-36), defaults to 10
- * @returns {string}
- * @override
- * @throws {RangeError} If `radix` is out of range
- */
-LongPrototype.toString = function toString(radix) {
-    radix = radix || 10;
-    if (radix < 2 || 36 < radix)
-        throw RangeError('radix');
-    if (this.isZero())
-        return '0';
-    if (this.isNegative()) { // Unsigned Longs are never negative
-        if (this.eq(MIN_VALUE)) {
-            // We need to change the Long value before it can be negated, so we remove
-            // the bottom-most digit in this base and then recurse to do the rest.
-            var radixLong = fromNumber(radix),
-                div = this.div(radixLong),
-                rem1 = div.mul(radixLong).sub(this);
-            return div.toString(radix) + rem1.toInt().toString(radix);
-        } else
-            return '-' + this.neg().toString(radix);
-    }
-
-    // Do several (6) digits each time through the loop, so as to
-    // minimize the calls to the very expensive emulated div.
-    var radixToPower = fromNumber(pow_dbl(radix, 6), this.unsigned),
-        rem = this;
-    var result = '';
-    while (true) {
-        var remDiv = rem.div(radixToPower),
-            intval = rem.sub(remDiv.mul(radixToPower)).toInt() >>> 0,
-            digits = intval.toString(radix);
-        rem = remDiv;
-        if (rem.isZero())
-            return digits + result;
-        else {
-            while (digits.length < 6)
-                digits = '0' + digits;
-            result = '' + digits + result;
-        }
-    }
-};
-
-/**
- * Gets the high 32 bits as a signed integer.
- * @returns {number} Signed high bits
- */
-LongPrototype.getHighBits = function getHighBits() {
-    return this.high;
-};
-
-/**
- * Gets the high 32 bits as an unsigned integer.
- * @returns {number} Unsigned high bits
- */
-LongPrototype.getHighBitsUnsigned = function getHighBitsUnsigned() {
-    return this.high >>> 0;
-};
-
-/**
- * Gets the low 32 bits as a signed integer.
- * @returns {number} Signed low bits
- */
-LongPrototype.getLowBits = function getLowBits() {
-    return this.low;
-};
-
-/**
- * Gets the low 32 bits as an unsigned integer.
- * @returns {number} Unsigned low bits
- */
-LongPrototype.getLowBitsUnsigned = function getLowBitsUnsigned() {
-    return this.low >>> 0;
-};
-
-/**
- * Gets the number of bits needed to represent the absolute value of this Long.
- * @returns {number}
- */
-LongPrototype.getNumBitsAbs = function getNumBitsAbs() {
-    if (this.isNegative()) // Unsigned Longs are never negative
-        return this.eq(MIN_VALUE) ? 64 : this.neg().getNumBitsAbs();
-    var val = this.high != 0 ? this.high : this.low;
-    for (var bit = 31; bit > 0; bit--)
-        if ((val & (1 << bit)) != 0)
-            break;
-    return this.high != 0 ? bit + 33 : bit + 1;
-};
-
-/**
- * Tests if this Long's value equals zero.
- * @returns {boolean}
- */
-LongPrototype.isZero = function isZero() {
-    return this.high === 0 && this.low === 0;
-};
-
-/**
- * Tests if this Long's value equals zero. This is an alias of {@link Long#isZero}.
- * @returns {boolean}
- */
-LongPrototype.eqz = LongPrototype.isZero;
-
-/**
- * Tests if this Long's value is negative.
- * @returns {boolean}
- */
-LongPrototype.isNegative = function isNegative() {
-    return !this.unsigned && this.high < 0;
-};
-
-/**
- * Tests if this Long's value is positive.
- * @returns {boolean}
- */
-LongPrototype.isPositive = function isPositive() {
-    return this.unsigned || this.high >= 0;
-};
-
-/**
- * Tests if this Long's value is odd.
- * @returns {boolean}
- */
-LongPrototype.isOdd = function isOdd() {
-    return (this.low & 1) === 1;
-};
-
-/**
- * Tests if this Long's value is even.
- * @returns {boolean}
- */
-LongPrototype.isEven = function isEven() {
-    return (this.low & 1) === 0;
-};
-
-/**
- * Tests if this Long's value equals the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.equals = function equals(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    if (this.unsigned !== other.unsigned && (this.high >>> 31) === 1 && (other.high >>> 31) === 1)
-        return false;
-    return this.high === other.high && this.low === other.low;
-};
-
-/**
- * Tests if this Long's value equals the specified's. This is an alias of {@link Long#equals}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.eq = LongPrototype.equals;
-
-/**
- * Tests if this Long's value differs from the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.notEquals = function notEquals(other) {
-    return !this.eq(/* validates */ other);
-};
-
-/**
- * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.neq = LongPrototype.notEquals;
-
-/**
- * Tests if this Long's value differs from the specified's. This is an alias of {@link Long#notEquals}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.ne = LongPrototype.notEquals;
-
-/**
- * Tests if this Long's value is less than the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.lessThan = function lessThan(other) {
-    return this.comp(/* validates */ other) < 0;
-};
-
-/**
- * Tests if this Long's value is less than the specified's. This is an alias of {@link Long#lessThan}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.lt = LongPrototype.lessThan;
-
-/**
- * Tests if this Long's value is less than or equal the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.lessThanOrEqual = function lessThanOrEqual(other) {
-    return this.comp(/* validates */ other) <= 0;
-};
-
-/**
- * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.lte = LongPrototype.lessThanOrEqual;
-
-/**
- * Tests if this Long's value is less than or equal the specified's. This is an alias of {@link Long#lessThanOrEqual}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.le = LongPrototype.lessThanOrEqual;
-
-/**
- * Tests if this Long's value is greater than the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.greaterThan = function greaterThan(other) {
-    return this.comp(/* validates */ other) > 0;
-};
-
-/**
- * Tests if this Long's value is greater than the specified's. This is an alias of {@link Long#greaterThan}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.gt = LongPrototype.greaterThan;
-
-/**
- * Tests if this Long's value is greater than or equal the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.greaterThanOrEqual = function greaterThanOrEqual(other) {
-    return this.comp(/* validates */ other) >= 0;
-};
-
-/**
- * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.gte = LongPrototype.greaterThanOrEqual;
-
-/**
- * Tests if this Long's value is greater than or equal the specified's. This is an alias of {@link Long#greaterThanOrEqual}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {boolean}
- */
-LongPrototype.ge = LongPrototype.greaterThanOrEqual;
-
-/**
- * Compares this Long's value with the specified's.
- * @param {!Long|number|string} other Other value
- * @returns {number} 0 if they are the same, 1 if the this is greater and -1
- *  if the given one is greater
- */
-LongPrototype.compare = function compare(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    if (this.eq(other))
-        return 0;
-    var thisNeg = this.isNegative(),
-        otherNeg = other.isNegative();
-    if (thisNeg && !otherNeg)
-        return -1;
-    if (!thisNeg && otherNeg)
-        return 1;
-    // At this point the sign bits are the same
-    if (!this.unsigned)
-        return this.sub(other).isNegative() ? -1 : 1;
-    // Both are positive if at least one is unsigned
-    return (other.high >>> 0) > (this.high >>> 0) || (other.high === this.high && (other.low >>> 0) > (this.low >>> 0)) ? -1 : 1;
-};
-
-/**
- * Compares this Long's value with the specified's. This is an alias of {@link Long#compare}.
- * @function
- * @param {!Long|number|string} other Other value
- * @returns {number} 0 if they are the same, 1 if the this is greater and -1
- *  if the given one is greater
- */
-LongPrototype.comp = LongPrototype.compare;
-
-/**
- * Negates this Long's value.
- * @returns {!Long} Negated Long
- */
-LongPrototype.negate = function negate() {
-    if (!this.unsigned && this.eq(MIN_VALUE))
-        return MIN_VALUE;
-    return this.not().add(ONE);
-};
-
-/**
- * Negates this Long's value. This is an alias of {@link Long#negate}.
- * @function
- * @returns {!Long} Negated Long
- */
-LongPrototype.neg = LongPrototype.negate;
-
-/**
- * Returns the sum of this and the specified Long.
- * @param {!Long|number|string} addend Addend
- * @returns {!Long} Sum
- */
-LongPrototype.add = function add(addend) {
-    if (!isLong(addend))
-        addend = fromValue(addend);
-
-    // Divide each number into 4 chunks of 16 bits, and then sum the chunks.
-
-    var a48 = this.high >>> 16;
-    var a32 = this.high & 0xFFFF;
-    var a16 = this.low >>> 16;
-    var a00 = this.low & 0xFFFF;
-
-    var b48 = addend.high >>> 16;
-    var b32 = addend.high & 0xFFFF;
-    var b16 = addend.low >>> 16;
-    var b00 = addend.low & 0xFFFF;
-
-    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-    c00 += a00 + b00;
-    c16 += c00 >>> 16;
-    c00 &= 0xFFFF;
-    c16 += a16 + b16;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c32 += a32 + b32;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c48 += a48 + b48;
-    c48 &= 0xFFFF;
-    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
-};
-
-/**
- * Returns the difference of this and the specified Long.
- * @param {!Long|number|string} subtrahend Subtrahend
- * @returns {!Long} Difference
- */
-LongPrototype.subtract = function subtract(subtrahend) {
-    if (!isLong(subtrahend))
-        subtrahend = fromValue(subtrahend);
-    return this.add(subtrahend.neg());
-};
-
-/**
- * Returns the difference of this and the specified Long. This is an alias of {@link Long#subtract}.
- * @function
- * @param {!Long|number|string} subtrahend Subtrahend
- * @returns {!Long} Difference
- */
-LongPrototype.sub = LongPrototype.subtract;
-
-/**
- * Returns the product of this and the specified Long.
- * @param {!Long|number|string} multiplier Multiplier
- * @returns {!Long} Product
- */
-LongPrototype.multiply = function multiply(multiplier) {
-    if (this.isZero())
-        return ZERO;
-    if (!isLong(multiplier))
-        multiplier = fromValue(multiplier);
-
-    // use wasm support if present
-    if (wasm) {
-        var low = wasm.mul(this.low,
-                           this.high,
-                           multiplier.low,
-                           multiplier.high);
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    if (multiplier.isZero())
-        return ZERO;
-    if (this.eq(MIN_VALUE))
-        return multiplier.isOdd() ? MIN_VALUE : ZERO;
-    if (multiplier.eq(MIN_VALUE))
-        return this.isOdd() ? MIN_VALUE : ZERO;
-
-    if (this.isNegative()) {
-        if (multiplier.isNegative())
-            return this.neg().mul(multiplier.neg());
-        else
-            return this.neg().mul(multiplier).neg();
-    } else if (multiplier.isNegative())
-        return this.mul(multiplier.neg()).neg();
-
-    // If both longs are small, use float multiplication
-    if (this.lt(TWO_PWR_24) && multiplier.lt(TWO_PWR_24))
-        return fromNumber(this.toNumber() * multiplier.toNumber(), this.unsigned);
-
-    // Divide each long into 4 chunks of 16 bits, and then add up 4x4 products.
-    // We can skip products that would overflow.
-
-    var a48 = this.high >>> 16;
-    var a32 = this.high & 0xFFFF;
-    var a16 = this.low >>> 16;
-    var a00 = this.low & 0xFFFF;
-
-    var b48 = multiplier.high >>> 16;
-    var b32 = multiplier.high & 0xFFFF;
-    var b16 = multiplier.low >>> 16;
-    var b00 = multiplier.low & 0xFFFF;
-
-    var c48 = 0, c32 = 0, c16 = 0, c00 = 0;
-    c00 += a00 * b00;
-    c16 += c00 >>> 16;
-    c00 &= 0xFFFF;
-    c16 += a16 * b00;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c16 += a00 * b16;
-    c32 += c16 >>> 16;
-    c16 &= 0xFFFF;
-    c32 += a32 * b00;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c32 += a16 * b16;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c32 += a00 * b32;
-    c48 += c32 >>> 16;
-    c32 &= 0xFFFF;
-    c48 += a48 * b00 + a32 * b16 + a16 * b32 + a00 * b48;
-    c48 &= 0xFFFF;
-    return fromBits((c16 << 16) | c00, (c48 << 16) | c32, this.unsigned);
-};
-
-/**
- * Returns the product of this and the specified Long. This is an alias of {@link Long#multiply}.
- * @function
- * @param {!Long|number|string} multiplier Multiplier
- * @returns {!Long} Product
- */
-LongPrototype.mul = LongPrototype.multiply;
-
-/**
- * Returns this Long divided by the specified. The result is signed if this Long is signed or
- *  unsigned if this Long is unsigned.
- * @param {!Long|number|string} divisor Divisor
- * @returns {!Long} Quotient
- */
-LongPrototype.divide = function divide(divisor) {
-    if (!isLong(divisor))
-        divisor = fromValue(divisor);
-    if (divisor.isZero())
-        throw Error('division by zero');
-
-    // use wasm support if present
-    if (wasm) {
-        // guard against signed division overflow: the largest
-        // negative number / -1 would be 1 larger than the largest
-        // positive number, due to two's complement.
-        if (!this.unsigned &&
-            this.high === -2147483648 &&
-            divisor.low === -1 && divisor.high === -1) {
-            // be consistent with non-wasm code path
-            return this;
-        }
-        var low = (this.unsigned ? wasm.div_u : wasm.div_s)(
-            this.low,
-            this.high,
-            divisor.low,
-            divisor.high
-        );
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    if (this.isZero())
-        return this.unsigned ? UZERO : ZERO;
-    var approx, rem, res;
-    if (!this.unsigned) {
-        // This section is only relevant for signed longs and is derived from the
-        // closure library as a whole.
-        if (this.eq(MIN_VALUE)) {
-            if (divisor.eq(ONE) || divisor.eq(NEG_ONE))
-                return MIN_VALUE;  // recall that -MIN_VALUE == MIN_VALUE
-            else if (divisor.eq(MIN_VALUE))
-                return ONE;
-            else {
-                // At this point, we have |other| >= 2, so |this/other| < |MIN_VALUE|.
-                var halfThis = this.shr(1);
-                approx = halfThis.div(divisor).shl(1);
-                if (approx.eq(ZERO)) {
-                    return divisor.isNegative() ? ONE : NEG_ONE;
-                } else {
-                    rem = this.sub(divisor.mul(approx));
-                    res = approx.add(rem.div(divisor));
-                    return res;
-                }
-            }
-        } else if (divisor.eq(MIN_VALUE))
-            return this.unsigned ? UZERO : ZERO;
-        if (this.isNegative()) {
-            if (divisor.isNegative())
-                return this.neg().div(divisor.neg());
-            return this.neg().div(divisor).neg();
-        } else if (divisor.isNegative())
-            return this.div(divisor.neg()).neg();
-        res = ZERO;
-    } else {
-        // The algorithm below has not been made for unsigned longs. It's therefore
-        // required to take special care of the MSB prior to running it.
-        if (!divisor.unsigned)
-            divisor = divisor.toUnsigned();
-        if (divisor.gt(this))
-            return UZERO;
-        if (divisor.gt(this.shru(1))) // 15 >>> 1 = 7 ; with divisor = 8 ; true
-            return UONE;
-        res = UZERO;
-    }
-
-    // Repeat the following until the remainder is less than other:  find a
-    // floating-point that approximates remainder / other *from below*, add this
-    // into the result, and subtract it from the remainder.  It is critical that
-    // the approximate value is less than or equal to the real value so that the
-    // remainder never becomes negative.
-    rem = this;
-    while (rem.gte(divisor)) {
-        // Approximate the result of division. This may be a little greater or
-        // smaller than the actual value.
-        approx = Math.max(1, Math.floor(rem.toNumber() / divisor.toNumber()));
-
-        // We will tweak the approximate result by changing it in the 48-th digit or
-        // the smallest non-fractional digit, whichever is larger.
-        var log2 = Math.ceil(Math.log(approx) / Math.LN2),
-            delta = (log2 <= 48) ? 1 : pow_dbl(2, log2 - 48),
-
-        // Decrease the approximation until it is smaller than the remainder.  Note
-        // that if it is too large, the product overflows and is negative.
-            approxRes = fromNumber(approx),
-            approxRem = approxRes.mul(divisor);
-        while (approxRem.isNegative() || approxRem.gt(rem)) {
-            approx -= delta;
-            approxRes = fromNumber(approx, this.unsigned);
-            approxRem = approxRes.mul(divisor);
-        }
-
-        // We know the answer can't be zero... and actually, zero would cause
-        // infinite recursion since we would make no progress.
-        if (approxRes.isZero())
-            approxRes = ONE;
-
-        res = res.add(approxRes);
-        rem = rem.sub(approxRem);
-    }
-    return res;
-};
-
-/**
- * Returns this Long divided by the specified. This is an alias of {@link Long#divide}.
- * @function
- * @param {!Long|number|string} divisor Divisor
- * @returns {!Long} Quotient
- */
-LongPrototype.div = LongPrototype.divide;
-
-/**
- * Returns this Long modulo the specified.
- * @param {!Long|number|string} divisor Divisor
- * @returns {!Long} Remainder
- */
-LongPrototype.modulo = function modulo(divisor) {
-    if (!isLong(divisor))
-        divisor = fromValue(divisor);
-
-    // use wasm support if present
-    if (wasm) {
-        var low = (this.unsigned ? wasm.rem_u : wasm.rem_s)(
-            this.low,
-            this.high,
-            divisor.low,
-            divisor.high
-        );
-        return fromBits(low, wasm.get_high(), this.unsigned);
-    }
-
-    return this.sub(this.div(divisor).mul(divisor));
-};
-
-/**
- * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
- * @function
- * @param {!Long|number|string} divisor Divisor
- * @returns {!Long} Remainder
- */
-LongPrototype.mod = LongPrototype.modulo;
-
-/**
- * Returns this Long modulo the specified. This is an alias of {@link Long#modulo}.
- * @function
- * @param {!Long|number|string} divisor Divisor
- * @returns {!Long} Remainder
- */
-LongPrototype.rem = LongPrototype.modulo;
-
-/**
- * Returns the bitwise NOT of this Long.
- * @returns {!Long}
- */
-LongPrototype.not = function not() {
-    return fromBits(~this.low, ~this.high, this.unsigned);
-};
-
-/**
- * Returns the bitwise AND of this Long and the specified.
- * @param {!Long|number|string} other Other Long
- * @returns {!Long}
- */
-LongPrototype.and = function and(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low & other.low, this.high & other.high, this.unsigned);
-};
-
-/**
- * Returns the bitwise OR of this Long and the specified.
- * @param {!Long|number|string} other Other Long
- * @returns {!Long}
- */
-LongPrototype.or = function or(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low | other.low, this.high | other.high, this.unsigned);
-};
-
-/**
- * Returns the bitwise XOR of this Long and the given one.
- * @param {!Long|number|string} other Other Long
- * @returns {!Long}
- */
-LongPrototype.xor = function xor(other) {
-    if (!isLong(other))
-        other = fromValue(other);
-    return fromBits(this.low ^ other.low, this.high ^ other.high, this.unsigned);
-};
-
-/**
- * Returns this Long with bits shifted to the left by the given amount.
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shiftLeft = function shiftLeft(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    if ((numBits &= 63) === 0)
-        return this;
-    else if (numBits < 32)
-        return fromBits(this.low << numBits, (this.high << numBits) | (this.low >>> (32 - numBits)), this.unsigned);
-    else
-        return fromBits(0, this.low << (numBits - 32), this.unsigned);
-};
-
-/**
- * Returns this Long with bits shifted to the left by the given amount. This is an alias of {@link Long#shiftLeft}.
- * @function
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shl = LongPrototype.shiftLeft;
-
-/**
- * Returns this Long with bits arithmetically shifted to the right by the given amount.
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shiftRight = function shiftRight(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    if ((numBits &= 63) === 0)
-        return this;
-    else if (numBits < 32)
-        return fromBits((this.low >>> numBits) | (this.high << (32 - numBits)), this.high >> numBits, this.unsigned);
-    else
-        return fromBits(this.high >> (numBits - 32), this.high >= 0 ? 0 : -1, this.unsigned);
-};
-
-/**
- * Returns this Long with bits arithmetically shifted to the right by the given amount. This is an alias of {@link Long#shiftRight}.
- * @function
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shr = LongPrototype.shiftRight;
-
-/**
- * Returns this Long with bits logically shifted to the right by the given amount.
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shiftRightUnsigned = function shiftRightUnsigned(numBits) {
-    if (isLong(numBits))
-        numBits = numBits.toInt();
-    numBits &= 63;
-    if (numBits === 0)
-        return this;
-    else {
-        var high = this.high;
-        if (numBits < 32) {
-            var low = this.low;
-            return fromBits((low >>> numBits) | (high << (32 - numBits)), high >>> numBits, this.unsigned);
-        } else if (numBits === 32)
-            return fromBits(high, 0, this.unsigned);
-        else
-            return fromBits(high >>> (numBits - 32), 0, this.unsigned);
-    }
-};
-
-/**
- * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
- * @function
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shru = LongPrototype.shiftRightUnsigned;
-
-/**
- * Returns this Long with bits logically shifted to the right by the given amount. This is an alias of {@link Long#shiftRightUnsigned}.
- * @function
- * @param {number|!Long} numBits Number of bits
- * @returns {!Long} Shifted Long
- */
-LongPrototype.shr_u = LongPrototype.shiftRightUnsigned;
-
-/**
- * Converts this Long to signed.
- * @returns {!Long} Signed long
- */
-LongPrototype.toSigned = function toSigned() {
-    if (!this.unsigned)
-        return this;
-    return fromBits(this.low, this.high, false);
-};
-
-/**
- * Converts this Long to unsigned.
- * @returns {!Long} Unsigned long
- */
-LongPrototype.toUnsigned = function toUnsigned() {
-    if (this.unsigned)
-        return this;
-    return fromBits(this.low, this.high, true);
-};
-
-/**
- * Converts this Long to its byte representation.
- * @param {boolean=} le Whether little or big endian, defaults to big endian
- * @returns {!Array.<number>} Byte representation
- */
-LongPrototype.toBytes = function toBytes(le) {
-    return le ? this.toBytesLE() : this.toBytesBE();
-};
-
-/**
- * Converts this Long to its little endian byte representation.
- * @returns {!Array.<number>} Little endian byte representation
- */
-LongPrototype.toBytesLE = function toBytesLE() {
-    var hi = this.high,
-        lo = this.low;
-    return [
-        lo        & 0xff,
-        lo >>>  8 & 0xff,
-        lo >>> 16 & 0xff,
-        lo >>> 24       ,
-        hi        & 0xff,
-        hi >>>  8 & 0xff,
-        hi >>> 16 & 0xff,
-        hi >>> 24
-    ];
-};
-
-/**
- * Converts this Long to its big endian byte representation.
- * @returns {!Array.<number>} Big endian byte representation
- */
-LongPrototype.toBytesBE = function toBytesBE() {
-    var hi = this.high,
-        lo = this.low;
-    return [
-        hi >>> 24       ,
-        hi >>> 16 & 0xff,
-        hi >>>  8 & 0xff,
-        hi        & 0xff,
-        lo >>> 24       ,
-        lo >>> 16 & 0xff,
-        lo >>>  8 & 0xff,
-        lo        & 0xff
-    ];
-};
-
-/**
- * Creates a Long from its byte representation.
- * @param {!Array.<number>} bytes Byte representation
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @param {boolean=} le Whether little or big endian, defaults to big endian
- * @returns {Long} The corresponding Long value
- */
-Long$1.fromBytes = function fromBytes(bytes, unsigned, le) {
-    return le ? Long$1.fromBytesLE(bytes, unsigned) : Long$1.fromBytesBE(bytes, unsigned);
-};
-
-/**
- * Creates a Long from its little endian byte representation.
- * @param {!Array.<number>} bytes Little endian byte representation
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {Long} The corresponding Long value
- */
-Long$1.fromBytesLE = function fromBytesLE(bytes, unsigned) {
-    return new Long$1(
-        bytes[0]       |
-        bytes[1] <<  8 |
-        bytes[2] << 16 |
-        bytes[3] << 24,
-        bytes[4]       |
-        bytes[5] <<  8 |
-        bytes[6] << 16 |
-        bytes[7] << 24,
-        unsigned
-    );
-};
-
-/**
- * Creates a Long from its big endian byte representation.
- * @param {!Array.<number>} bytes Big endian byte representation
- * @param {boolean=} unsigned Whether unsigned or not, defaults to signed
- * @returns {Long} The corresponding Long value
- */
-Long$1.fromBytesBE = function fromBytesBE(bytes, unsigned) {
-    return new Long$1(
-        bytes[4] << 24 |
-        bytes[5] << 16 |
-        bytes[6] <<  8 |
-        bytes[7],
-        bytes[0] << 24 |
-        bytes[1] << 16 |
-        bytes[2] <<  8 |
-        bytes[3],
-        unsigned
-    );
-};
-
-var long_default = /*@__PURE__*/getDefaultExportFromCjs(long);
+var longExports = /*@__PURE__*/ requireLong();
+var long = /*@__PURE__*/getDefaultExportFromCjs(longExports);
 
 var LongExports = /*#__PURE__*/_mergeNamespaces({
     __proto__: null,
-    default: long_default
-}, [long]);
+    default: long
+}, [longExports]);
 
 /**
  * @license
@@ -2629,7 +2636,7 @@ var LongExports = /*#__PURE__*/_mergeNamespaces({
 // tslint:disable-next-line
 const Long = 
 // tslint:disable-next-line
-long_default || LongExports;
+long || LongExports;
 function hexToLong(hex) {
     return Long.fromString(hex, true, 16);
 }
@@ -9761,639 +9768,681 @@ const prelu$2 = /* @__PURE__ */ op({ prelu_ });
 
 var alea$1 = {exports: {}};
 
-(function (module) {
-	// A port of an algorithm by Johannes Baagøe <baagoe@baagoe.com>, 2010
-	// http://baagoe.com/en/RandomMusings/javascript/
-	// https://github.com/nquinlan/better-random-numbers-for-javascript-mirror
-	// Original work is under MIT license -
+var alea = alea$1.exports;
 
-	// Copyright (C) 2010 by Johannes Baagøe <baagoe@baagoe.org>
-	//
-	// Permission is hereby granted, free of charge, to any person obtaining a copy
-	// of this software and associated documentation files (the "Software"), to deal
-	// in the Software without restriction, including without limitation the rights
-	// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-	// copies of the Software, and to permit persons to whom the Software is
-	// furnished to do so, subject to the following conditions:
-	//
-	// The above copyright notice and this permission notice shall be included in
-	// all copies or substantial portions of the Software.
-	//
-	// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-	// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-	// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-	// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-	// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-	// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-	// THE SOFTWARE.
+var hasRequiredAlea;
 
+function requireAlea () {
+	if (hasRequiredAlea) return alea$1.exports;
+	hasRequiredAlea = 1;
+	(function (module) {
+		// A port of an algorithm by Johannes Baagøe <baagoe@baagoe.com>, 2010
+		// http://baagoe.com/en/RandomMusings/javascript/
+		// https://github.com/nquinlan/better-random-numbers-for-javascript-mirror
+		// Original work is under MIT license -
 
-
-	(function(global, module, define) {
-
-	function Alea(seed) {
-	  var me = this, mash = Mash();
-
-	  me.next = function() {
-	    var t = 2091639 * me.s0 + me.c * 2.3283064365386963e-10; // 2^-32
-	    me.s0 = me.s1;
-	    me.s1 = me.s2;
-	    return me.s2 = t - (me.c = t | 0);
-	  };
-
-	  // Apply the seeding algorithm from Baagoe.
-	  me.c = 1;
-	  me.s0 = mash(' ');
-	  me.s1 = mash(' ');
-	  me.s2 = mash(' ');
-	  me.s0 -= mash(seed);
-	  if (me.s0 < 0) { me.s0 += 1; }
-	  me.s1 -= mash(seed);
-	  if (me.s1 < 0) { me.s1 += 1; }
-	  me.s2 -= mash(seed);
-	  if (me.s2 < 0) { me.s2 += 1; }
-	  mash = null;
-	}
-
-	function copy(f, t) {
-	  t.c = f.c;
-	  t.s0 = f.s0;
-	  t.s1 = f.s1;
-	  t.s2 = f.s2;
-	  return t;
-	}
-
-	function impl(seed, opts) {
-	  var xg = new Alea(seed),
-	      state = opts && opts.state,
-	      prng = xg.next;
-	  prng.int32 = function() { return (xg.next() * 0x100000000) | 0; };
-	  prng.double = function() {
-	    return prng() + (prng() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
-	  };
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
-
-	function Mash() {
-	  var n = 0xefc8249d;
-
-	  var mash = function(data) {
-	    data = String(data);
-	    for (var i = 0; i < data.length; i++) {
-	      n += data.charCodeAt(i);
-	      var h = 0.02519603282416938 * n;
-	      n = h >>> 0;
-	      h -= n;
-	      h *= n;
-	      n = h >>> 0;
-	      h -= n;
-	      n += h * 0x100000000; // 2^32
-	    }
-	    return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
-	  };
-
-	  return mash;
-	}
+		// Copyright (C) 2010 by Johannes Baagøe <baagoe@baagoe.org>
+		//
+		// Permission is hereby granted, free of charge, to any person obtaining a copy
+		// of this software and associated documentation files (the "Software"), to deal
+		// in the Software without restriction, including without limitation the rights
+		// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+		// copies of the Software, and to permit persons to whom the Software is
+		// furnished to do so, subject to the following conditions:
+		//
+		// The above copyright notice and this permission notice shall be included in
+		// all copies or substantial portions of the Software.
+		//
+		// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+		// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+		// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+		// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+		// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+		// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+		// THE SOFTWARE.
 
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.alea = impl;
-	}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (alea$1));
+		(function(global, module, define) {
 
-var aleaExports = alea$1.exports;
+		function Alea(seed) {
+		  var me = this, mash = Mash();
+
+		  me.next = function() {
+		    var t = 2091639 * me.s0 + me.c * 2.3283064365386963e-10; // 2^-32
+		    me.s0 = me.s1;
+		    me.s1 = me.s2;
+		    return me.s2 = t - (me.c = t | 0);
+		  };
+
+		  // Apply the seeding algorithm from Baagoe.
+		  me.c = 1;
+		  me.s0 = mash(' ');
+		  me.s1 = mash(' ');
+		  me.s2 = mash(' ');
+		  me.s0 -= mash(seed);
+		  if (me.s0 < 0) { me.s0 += 1; }
+		  me.s1 -= mash(seed);
+		  if (me.s1 < 0) { me.s1 += 1; }
+		  me.s2 -= mash(seed);
+		  if (me.s2 < 0) { me.s2 += 1; }
+		  mash = null;
+		}
+
+		function copy(f, t) {
+		  t.c = f.c;
+		  t.s0 = f.s0;
+		  t.s1 = f.s1;
+		  t.s2 = f.s2;
+		  return t;
+		}
+
+		function impl(seed, opts) {
+		  var xg = new Alea(seed),
+		      state = opts && opts.state,
+		      prng = xg.next;
+		  prng.int32 = function() { return (xg.next() * 0x100000000) | 0; };
+		  prng.double = function() {
+		    return prng() + (prng() * 0x200000 | 0) * 1.1102230246251565e-16; // 2^-53
+		  };
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
+
+		function Mash() {
+		  var n = 0xefc8249d;
+
+		  var mash = function(data) {
+		    data = String(data);
+		    for (var i = 0; i < data.length; i++) {
+		      n += data.charCodeAt(i);
+		      var h = 0.02519603282416938 * n;
+		      n = h >>> 0;
+		      h -= n;
+		      h *= n;
+		      n = h >>> 0;
+		      h -= n;
+		      n += h * 0x100000000; // 2^32
+		    }
+		    return (n >>> 0) * 2.3283064365386963e-10; // 2^-32
+		  };
+
+		  return mash;
+		}
+
+
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.alea = impl;
+		}
+
+		})(
+		  alea,
+		  module); 
+	} (alea$1));
+	return alea$1.exports;
+}
 
 var xor128$1 = {exports: {}};
 
-(function (module) {
-	// A Javascript implementaion of the "xor128" prng algorithm by
-	// George Marsaglia.  See http://www.jstatsoft.org/v08/i14/paper
+var xor128 = xor128$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXor128;
 
-	function XorGen(seed) {
-	  var me = this, strseed = '';
+function requireXor128 () {
+	if (hasRequiredXor128) return xor128$1.exports;
+	hasRequiredXor128 = 1;
+	(function (module) {
+		// A Javascript implementaion of the "xor128" prng algorithm by
+		// George Marsaglia.  See http://www.jstatsoft.org/v08/i14/paper
 
-	  me.x = 0;
-	  me.y = 0;
-	  me.z = 0;
-	  me.w = 0;
+		(function(global, module, define) {
 
-	  // Set up generator function.
-	  me.next = function() {
-	    var t = me.x ^ (me.x << 11);
-	    me.x = me.y;
-	    me.y = me.z;
-	    me.z = me.w;
-	    return me.w ^= (me.w >>> 19) ^ t ^ (t >>> 8);
-	  };
+		function XorGen(seed) {
+		  var me = this, strseed = '';
 
-	  if (seed === (seed | 0)) {
-	    // Integer seed.
-	    me.x = seed;
-	  } else {
-	    // String seed.
-	    strseed += seed;
-	  }
+		  me.x = 0;
+		  me.y = 0;
+		  me.z = 0;
+		  me.w = 0;
 
-	  // Mix in string seed, then discard an initial batch of 64 values.
-	  for (var k = 0; k < strseed.length + 64; k++) {
-	    me.x ^= strseed.charCodeAt(k) | 0;
-	    me.next();
-	  }
-	}
+		  // Set up generator function.
+		  me.next = function() {
+		    var t = me.x ^ (me.x << 11);
+		    me.x = me.y;
+		    me.y = me.z;
+		    me.z = me.w;
+		    return me.w ^= (me.w >>> 19) ^ t ^ (t >>> 8);
+		  };
 
-	function copy(f, t) {
-	  t.x = f.x;
-	  t.y = f.y;
-	  t.z = f.z;
-	  t.w = f.w;
-	  return t;
-	}
+		  if (seed === (seed | 0)) {
+		    // Integer seed.
+		    me.x = seed;
+		  } else {
+		    // String seed.
+		    strseed += seed;
+		  }
 
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  // Mix in string seed, then discard an initial batch of 64 values.
+		  for (var k = 0; k < strseed.length + 64; k++) {
+		    me.x ^= strseed.charCodeAt(k) | 0;
+		    me.next();
+		  }
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xor128 = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x;
+		  t.y = f.y;
+		  t.z = f.z;
+		  t.w = f.w;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xor128$1));
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xor128Exports = xor128$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xor128 = impl;
+		}
+
+		})(
+		  xor128,
+		  module); 
+	} (xor128$1));
+	return xor128$1.exports;
+}
 
 var xorwow$1 = {exports: {}};
 
-(function (module) {
-	// A Javascript implementaion of the "xorwow" prng algorithm by
-	// George Marsaglia.  See http://www.jstatsoft.org/v08/i14/paper
+var xorwow = xorwow$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXorwow;
 
-	function XorGen(seed) {
-	  var me = this, strseed = '';
+function requireXorwow () {
+	if (hasRequiredXorwow) return xorwow$1.exports;
+	hasRequiredXorwow = 1;
+	(function (module) {
+		// A Javascript implementaion of the "xorwow" prng algorithm by
+		// George Marsaglia.  See http://www.jstatsoft.org/v08/i14/paper
 
-	  // Set up generator function.
-	  me.next = function() {
-	    var t = (me.x ^ (me.x >>> 2));
-	    me.x = me.y; me.y = me.z; me.z = me.w; me.w = me.v;
-	    return (me.d = (me.d + 362437 | 0)) +
-	       (me.v = (me.v ^ (me.v << 4)) ^ (t ^ (t << 1))) | 0;
-	  };
+		(function(global, module, define) {
 
-	  me.x = 0;
-	  me.y = 0;
-	  me.z = 0;
-	  me.w = 0;
-	  me.v = 0;
+		function XorGen(seed) {
+		  var me = this, strseed = '';
 
-	  if (seed === (seed | 0)) {
-	    // Integer seed.
-	    me.x = seed;
-	  } else {
-	    // String seed.
-	    strseed += seed;
-	  }
+		  // Set up generator function.
+		  me.next = function() {
+		    var t = (me.x ^ (me.x >>> 2));
+		    me.x = me.y; me.y = me.z; me.z = me.w; me.w = me.v;
+		    return (me.d = (me.d + 362437 | 0)) +
+		       (me.v = (me.v ^ (me.v << 4)) ^ (t ^ (t << 1))) | 0;
+		  };
 
-	  // Mix in string seed, then discard an initial batch of 64 values.
-	  for (var k = 0; k < strseed.length + 64; k++) {
-	    me.x ^= strseed.charCodeAt(k) | 0;
-	    if (k == strseed.length) {
-	      me.d = me.x << 10 ^ me.x >>> 4;
-	    }
-	    me.next();
-	  }
-	}
+		  me.x = 0;
+		  me.y = 0;
+		  me.z = 0;
+		  me.w = 0;
+		  me.v = 0;
 
-	function copy(f, t) {
-	  t.x = f.x;
-	  t.y = f.y;
-	  t.z = f.z;
-	  t.w = f.w;
-	  t.v = f.v;
-	  t.d = f.d;
-	  return t;
-	}
+		  if (seed === (seed | 0)) {
+		    // Integer seed.
+		    me.x = seed;
+		  } else {
+		    // String seed.
+		    strseed += seed;
+		  }
 
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  // Mix in string seed, then discard an initial batch of 64 values.
+		  for (var k = 0; k < strseed.length + 64; k++) {
+		    me.x ^= strseed.charCodeAt(k) | 0;
+		    if (k == strseed.length) {
+		      me.d = me.x << 10 ^ me.x >>> 4;
+		    }
+		    me.next();
+		  }
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xorwow = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x;
+		  t.y = f.y;
+		  t.z = f.z;
+		  t.w = f.w;
+		  t.v = f.v;
+		  t.d = f.d;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xorwow$1));
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xorwowExports = xorwow$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xorwow = impl;
+		}
+
+		})(
+		  xorwow,
+		  module); 
+	} (xorwow$1));
+	return xorwow$1.exports;
+}
 
 var xorshift7$1 = {exports: {}};
 
-(function (module) {
-	// A Javascript implementaion of the "xorshift7" algorithm by
-	// François Panneton and Pierre L'ecuyer:
-	// "On the Xorgshift Random Number Generators"
-	// http://saluc.engr.uconn.edu/refs/crypto/rng/panneton05onthexorshift.pdf
+var xorshift7 = xorshift7$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXorshift7;
 
-	function XorGen(seed) {
-	  var me = this;
+function requireXorshift7 () {
+	if (hasRequiredXorshift7) return xorshift7$1.exports;
+	hasRequiredXorshift7 = 1;
+	(function (module) {
+		// A Javascript implementaion of the "xorshift7" algorithm by
+		// François Panneton and Pierre L'ecuyer:
+		// "On the Xorgshift Random Number Generators"
+		// http://saluc.engr.uconn.edu/refs/crypto/rng/panneton05onthexorshift.pdf
 
-	  // Set up generator function.
-	  me.next = function() {
-	    // Update xor generator.
-	    var X = me.x, i = me.i, t, v;
-	    t = X[i]; t ^= (t >>> 7); v = t ^ (t << 24);
-	    t = X[(i + 1) & 7]; v ^= t ^ (t >>> 10);
-	    t = X[(i + 3) & 7]; v ^= t ^ (t >>> 3);
-	    t = X[(i + 4) & 7]; v ^= t ^ (t << 7);
-	    t = X[(i + 7) & 7]; t = t ^ (t << 13); v ^= t ^ (t << 9);
-	    X[i] = v;
-	    me.i = (i + 1) & 7;
-	    return v;
-	  };
+		(function(global, module, define) {
 
-	  function init(me, seed) {
-	    var j, X = [];
+		function XorGen(seed) {
+		  var me = this;
 
-	    if (seed === (seed | 0)) {
-	      // Seed state array using a 32-bit integer.
-	      X[0] = seed;
-	    } else {
-	      // Seed state using a string.
-	      seed = '' + seed;
-	      for (j = 0; j < seed.length; ++j) {
-	        X[j & 7] = (X[j & 7] << 15) ^
-	            (seed.charCodeAt(j) + X[(j + 1) & 7] << 13);
-	      }
-	    }
-	    // Enforce an array length of 8, not all zeroes.
-	    while (X.length < 8) X.push(0);
-	    for (j = 0; j < 8 && X[j] === 0; ++j);
-	    if (j == 8) X[7] = -1;
+		  // Set up generator function.
+		  me.next = function() {
+		    // Update xor generator.
+		    var X = me.x, i = me.i, t, v;
+		    t = X[i]; t ^= (t >>> 7); v = t ^ (t << 24);
+		    t = X[(i + 1) & 7]; v ^= t ^ (t >>> 10);
+		    t = X[(i + 3) & 7]; v ^= t ^ (t >>> 3);
+		    t = X[(i + 4) & 7]; v ^= t ^ (t << 7);
+		    t = X[(i + 7) & 7]; t = t ^ (t << 13); v ^= t ^ (t << 9);
+		    X[i] = v;
+		    me.i = (i + 1) & 7;
+		    return v;
+		  };
 
-	    me.x = X;
-	    me.i = 0;
+		  function init(me, seed) {
+		    var j, X = [];
 
-	    // Discard an initial 256 values.
-	    for (j = 256; j > 0; --j) {
-	      me.next();
-	    }
-	  }
+		    if (seed === (seed | 0)) {
+		      // Seed state array using a 32-bit integer.
+		      X[0] = seed;
+		    } else {
+		      // Seed state using a string.
+		      seed = '' + seed;
+		      for (j = 0; j < seed.length; ++j) {
+		        X[j & 7] = (X[j & 7] << 15) ^
+		            (seed.charCodeAt(j) + X[(j + 1) & 7] << 13);
+		      }
+		    }
+		    // Enforce an array length of 8, not all zeroes.
+		    while (X.length < 8) X.push(0);
+		    for (j = 0; j < 8 && X[j] === 0; ++j);
+		    if (j == 8) X[7] = -1;
 
-	  init(me, seed);
-	}
+		    me.x = X;
+		    me.i = 0;
 
-	function copy(f, t) {
-	  t.x = f.x.slice();
-	  t.i = f.i;
-	  return t;
-	}
+		    // Discard an initial 256 values.
+		    for (j = 256; j > 0; --j) {
+		      me.next();
+		    }
+		  }
 
-	function impl(seed, opts) {
-	  if (seed == null) seed = +(new Date);
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (state.x) copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  init(me, seed);
+		}
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xorshift7 = impl;
-	}
+		function copy(f, t) {
+		  t.x = f.x.slice();
+		  t.i = f.i;
+		  return t;
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (xorshift7$1));
+		function impl(seed, opts) {
+		  if (seed == null) seed = +(new Date);
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (state.x) copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xorshift7Exports = xorshift7$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xorshift7 = impl;
+		}
+
+		})(
+		  xorshift7,
+		  module); 
+	} (xorshift7$1));
+	return xorshift7$1.exports;
+}
 
 var xor4096$1 = {exports: {}};
 
-(function (module) {
-	// A Javascript implementaion of Richard Brent's Xorgens xor4096 algorithm.
-	//
-	// This fast non-cryptographic random number generator is designed for
-	// use in Monte-Carlo algorithms. It combines a long-period xorshift
-	// generator with a Weyl generator, and it passes all common batteries
-	// of stasticial tests for randomness while consuming only a few nanoseconds
-	// for each prng generated.  For background on the generator, see Brent's
-	// paper: "Some long-period random number generators using shifts and xors."
-	// http://arxiv.org/pdf/1004.3115v1.pdf
-	//
-	// Usage:
-	//
-	// var xor4096 = require('xor4096');
-	// random = xor4096(1);                        // Seed with int32 or string.
-	// assert.equal(random(), 0.1520436450538547); // (0, 1) range, 53 bits.
-	// assert.equal(random.int32(), 1806534897);   // signed int32, 32 bits.
-	//
-	// For nonzero numeric keys, this impelementation provides a sequence
-	// identical to that by Brent's xorgens 3 implementaion in C.  This
-	// implementation also provides for initalizing the generator with
-	// string seeds, or for saving and restoring the state of the generator.
-	//
-	// On Chrome, this prng benchmarks about 2.1 times slower than
-	// Javascript's built-in Math.random().
+var xor4096 = xor4096$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredXor4096;
 
-	function XorGen(seed) {
-	  var me = this;
+function requireXor4096 () {
+	if (hasRequiredXor4096) return xor4096$1.exports;
+	hasRequiredXor4096 = 1;
+	(function (module) {
+		// A Javascript implementaion of Richard Brent's Xorgens xor4096 algorithm.
+		//
+		// This fast non-cryptographic random number generator is designed for
+		// use in Monte-Carlo algorithms. It combines a long-period xorshift
+		// generator with a Weyl generator, and it passes all common batteries
+		// of stasticial tests for randomness while consuming only a few nanoseconds
+		// for each prng generated.  For background on the generator, see Brent's
+		// paper: "Some long-period random number generators using shifts and xors."
+		// http://arxiv.org/pdf/1004.3115v1.pdf
+		//
+		// Usage:
+		//
+		// var xor4096 = require('xor4096');
+		// random = xor4096(1);                        // Seed with int32 or string.
+		// assert.equal(random(), 0.1520436450538547); // (0, 1) range, 53 bits.
+		// assert.equal(random.int32(), 1806534897);   // signed int32, 32 bits.
+		//
+		// For nonzero numeric keys, this impelementation provides a sequence
+		// identical to that by Brent's xorgens 3 implementaion in C.  This
+		// implementation also provides for initalizing the generator with
+		// string seeds, or for saving and restoring the state of the generator.
+		//
+		// On Chrome, this prng benchmarks about 2.1 times slower than
+		// Javascript's built-in Math.random().
 
-	  // Set up generator function.
-	  me.next = function() {
-	    var w = me.w,
-	        X = me.X, i = me.i, t, v;
-	    // Update Weyl generator.
-	    me.w = w = (w + 0x61c88647) | 0;
-	    // Update xor generator.
-	    v = X[(i + 34) & 127];
-	    t = X[i = ((i + 1) & 127)];
-	    v ^= v << 13;
-	    t ^= t << 17;
-	    v ^= v >>> 15;
-	    t ^= t >>> 12;
-	    // Update Xor generator array state.
-	    v = X[i] = v ^ t;
-	    me.i = i;
-	    // Result is the combination.
-	    return (v + (w ^ (w >>> 16))) | 0;
-	  };
+		(function(global, module, define) {
 
-	  function init(me, seed) {
-	    var t, v, i, j, w, X = [], limit = 128;
-	    if (seed === (seed | 0)) {
-	      // Numeric seeds initialize v, which is used to generates X.
-	      v = seed;
-	      seed = null;
-	    } else {
-	      // String seeds are mixed into v and X one character at a time.
-	      seed = seed + '\0';
-	      v = 0;
-	      limit = Math.max(limit, seed.length);
-	    }
-	    // Initialize circular array and weyl value.
-	    for (i = 0, j = -32; j < limit; ++j) {
-	      // Put the unicode characters into the array, and shuffle them.
-	      if (seed) v ^= seed.charCodeAt((j + 32) % seed.length);
-	      // After 32 shuffles, take v as the starting w value.
-	      if (j === 0) w = v;
-	      v ^= v << 10;
-	      v ^= v >>> 15;
-	      v ^= v << 4;
-	      v ^= v >>> 13;
-	      if (j >= 0) {
-	        w = (w + 0x61c88647) | 0;     // Weyl.
-	        t = (X[j & 127] ^= (v + w));  // Combine xor and weyl to init array.
-	        i = (0 == t) ? i + 1 : 0;     // Count zeroes.
-	      }
-	    }
-	    // We have detected all zeroes; make the key nonzero.
-	    if (i >= 128) {
-	      X[(seed && seed.length || 0) & 127] = -1;
-	    }
-	    // Run the generator 512 times to further mix the state before using it.
-	    // Factoring this as a function slows the main generator, so it is just
-	    // unrolled here.  The weyl generator is not advanced while warming up.
-	    i = 127;
-	    for (j = 4 * 128; j > 0; --j) {
-	      v = X[(i + 34) & 127];
-	      t = X[i = ((i + 1) & 127)];
-	      v ^= v << 13;
-	      t ^= t << 17;
-	      v ^= v >>> 15;
-	      t ^= t >>> 12;
-	      X[i] = v ^ t;
-	    }
-	    // Storing state as object members is faster than using closure variables.
-	    me.w = w;
-	    me.X = X;
-	    me.i = i;
-	  }
+		function XorGen(seed) {
+		  var me = this;
 
-	  init(me, seed);
-	}
+		  // Set up generator function.
+		  me.next = function() {
+		    var w = me.w,
+		        X = me.X, i = me.i, t, v;
+		    // Update Weyl generator.
+		    me.w = w = (w + 0x61c88647) | 0;
+		    // Update xor generator.
+		    v = X[(i + 34) & 127];
+		    t = X[i = ((i + 1) & 127)];
+		    v ^= v << 13;
+		    t ^= t << 17;
+		    v ^= v >>> 15;
+		    t ^= t >>> 12;
+		    // Update Xor generator array state.
+		    v = X[i] = v ^ t;
+		    me.i = i;
+		    // Result is the combination.
+		    return (v + (w ^ (w >>> 16))) | 0;
+		  };
 
-	function copy(f, t) {
-	  t.i = f.i;
-	  t.w = f.w;
-	  t.X = f.X.slice();
-	  return t;
-	}
-	function impl(seed, opts) {
-	  if (seed == null) seed = +(new Date);
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (state.X) copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  function init(me, seed) {
+		    var t, v, i, j, w, X = [], limit = 128;
+		    if (seed === (seed | 0)) {
+		      // Numeric seeds initialize v, which is used to generates X.
+		      v = seed;
+		      seed = null;
+		    } else {
+		      // String seeds are mixed into v and X one character at a time.
+		      seed = seed + '\0';
+		      v = 0;
+		      limit = Math.max(limit, seed.length);
+		    }
+		    // Initialize circular array and weyl value.
+		    for (i = 0, j = -32; j < limit; ++j) {
+		      // Put the unicode characters into the array, and shuffle them.
+		      if (seed) v ^= seed.charCodeAt((j + 32) % seed.length);
+		      // After 32 shuffles, take v as the starting w value.
+		      if (j === 0) w = v;
+		      v ^= v << 10;
+		      v ^= v >>> 15;
+		      v ^= v << 4;
+		      v ^= v >>> 13;
+		      if (j >= 0) {
+		        w = (w + 0x61c88647) | 0;     // Weyl.
+		        t = (X[j & 127] ^= (v + w));  // Combine xor and weyl to init array.
+		        i = (0 == t) ? i + 1 : 0;     // Count zeroes.
+		      }
+		    }
+		    // We have detected all zeroes; make the key nonzero.
+		    if (i >= 128) {
+		      X[(seed && seed.length || 0) & 127] = -1;
+		    }
+		    // Run the generator 512 times to further mix the state before using it.
+		    // Factoring this as a function slows the main generator, so it is just
+		    // unrolled here.  The weyl generator is not advanced while warming up.
+		    i = 127;
+		    for (j = 4 * 128; j > 0; --j) {
+		      v = X[(i + 34) & 127];
+		      t = X[i = ((i + 1) & 127)];
+		      v ^= v << 13;
+		      t ^= t << 17;
+		      v ^= v >>> 15;
+		      t ^= t >>> 12;
+		      X[i] = v ^ t;
+		    }
+		    // Storing state as object members is faster than using closure variables.
+		    me.w = w;
+		    me.X = X;
+		    me.i = i;
+		  }
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.xor4096 = impl;
-	}
+		  init(me, seed);
+		}
 
-	})(
-	  commonjsGlobal,                                     // window object or global
-	  module); 
-} (xor4096$1));
+		function copy(f, t) {
+		  t.i = f.i;
+		  t.w = f.w;
+		  t.X = f.X.slice();
+		  return t;
+		}
+		function impl(seed, opts) {
+		  if (seed == null) seed = +(new Date);
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (state.X) copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var xor4096Exports = xor4096$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.xor4096 = impl;
+		}
+
+		})(
+		  xor4096,                                     // window object or global
+		  module); 
+	} (xor4096$1));
+	return xor4096$1.exports;
+}
 
 var tychei$1 = {exports: {}};
 
-(function (module) {
-	// A Javascript implementaion of the "Tyche-i" prng algorithm by
-	// Samuel Neves and Filipe Araujo.
-	// See https://eden.dei.uc.pt/~sneves/pubs/2011-snfa2.pdf
+var tychei = tychei$1.exports;
 
-	(function(global, module, define) {
+var hasRequiredTychei;
 
-	function XorGen(seed) {
-	  var me = this, strseed = '';
+function requireTychei () {
+	if (hasRequiredTychei) return tychei$1.exports;
+	hasRequiredTychei = 1;
+	(function (module) {
+		// A Javascript implementaion of the "Tyche-i" prng algorithm by
+		// Samuel Neves and Filipe Araujo.
+		// See https://eden.dei.uc.pt/~sneves/pubs/2011-snfa2.pdf
 
-	  // Set up generator function.
-	  me.next = function() {
-	    var b = me.b, c = me.c, d = me.d, a = me.a;
-	    b = (b << 25) ^ (b >>> 7) ^ c;
-	    c = (c - d) | 0;
-	    d = (d << 24) ^ (d >>> 8) ^ a;
-	    a = (a - b) | 0;
-	    me.b = b = (b << 20) ^ (b >>> 12) ^ c;
-	    me.c = c = (c - d) | 0;
-	    me.d = (d << 16) ^ (c >>> 16) ^ a;
-	    return me.a = (a - b) | 0;
-	  };
+		(function(global, module, define) {
 
-	  /* The following is non-inverted tyche, which has better internal
-	   * bit diffusion, but which is about 25% slower than tyche-i in JS.
-	  me.next = function() {
-	    var a = me.a, b = me.b, c = me.c, d = me.d;
-	    a = (me.a + me.b | 0) >>> 0;
-	    d = me.d ^ a; d = d << 16 ^ d >>> 16;
-	    c = me.c + d | 0;
-	    b = me.b ^ c; b = b << 12 ^ d >>> 20;
-	    me.a = a = a + b | 0;
-	    d = d ^ a; me.d = d = d << 8 ^ d >>> 24;
-	    me.c = c = c + d | 0;
-	    b = b ^ c;
-	    return me.b = (b << 7 ^ b >>> 25);
-	  }
-	  */
+		function XorGen(seed) {
+		  var me = this, strseed = '';
 
-	  me.a = 0;
-	  me.b = 0;
-	  me.c = 2654435769 | 0;
-	  me.d = 1367130551;
+		  // Set up generator function.
+		  me.next = function() {
+		    var b = me.b, c = me.c, d = me.d, a = me.a;
+		    b = (b << 25) ^ (b >>> 7) ^ c;
+		    c = (c - d) | 0;
+		    d = (d << 24) ^ (d >>> 8) ^ a;
+		    a = (a - b) | 0;
+		    me.b = b = (b << 20) ^ (b >>> 12) ^ c;
+		    me.c = c = (c - d) | 0;
+		    me.d = (d << 16) ^ (c >>> 16) ^ a;
+		    return me.a = (a - b) | 0;
+		  };
 
-	  if (seed === Math.floor(seed)) {
-	    // Integer seed.
-	    me.a = (seed / 0x100000000) | 0;
-	    me.b = seed | 0;
-	  } else {
-	    // String seed.
-	    strseed += seed;
-	  }
+		  /* The following is non-inverted tyche, which has better internal
+		   * bit diffusion, but which is about 25% slower than tyche-i in JS.
+		  me.next = function() {
+		    var a = me.a, b = me.b, c = me.c, d = me.d;
+		    a = (me.a + me.b | 0) >>> 0;
+		    d = me.d ^ a; d = d << 16 ^ d >>> 16;
+		    c = me.c + d | 0;
+		    b = me.b ^ c; b = b << 12 ^ d >>> 20;
+		    me.a = a = a + b | 0;
+		    d = d ^ a; me.d = d = d << 8 ^ d >>> 24;
+		    me.c = c = c + d | 0;
+		    b = b ^ c;
+		    return me.b = (b << 7 ^ b >>> 25);
+		  }
+		  */
 
-	  // Mix in string seed, then discard an initial batch of 64 values.
-	  for (var k = 0; k < strseed.length + 20; k++) {
-	    me.b ^= strseed.charCodeAt(k) | 0;
-	    me.next();
-	  }
-	}
+		  me.a = 0;
+		  me.b = 0;
+		  me.c = 2654435769 | 0;
+		  me.d = 1367130551;
 
-	function copy(f, t) {
-	  t.a = f.a;
-	  t.b = f.b;
-	  t.c = f.c;
-	  t.d = f.d;
-	  return t;
-	}
-	function impl(seed, opts) {
-	  var xg = new XorGen(seed),
-	      state = opts && opts.state,
-	      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
-	  prng.double = function() {
-	    do {
-	      var top = xg.next() >>> 11,
-	          bot = (xg.next() >>> 0) / 0x100000000,
-	          result = (top + bot) / (1 << 21);
-	    } while (result === 0);
-	    return result;
-	  };
-	  prng.int32 = xg.next;
-	  prng.quick = prng;
-	  if (state) {
-	    if (typeof(state) == 'object') copy(state, xg);
-	    prng.state = function() { return copy(xg, {}); };
-	  }
-	  return prng;
-	}
+		  if (seed === Math.floor(seed)) {
+		    // Integer seed.
+		    me.a = (seed / 0x100000000) | 0;
+		    me.b = seed | 0;
+		  } else {
+		    // String seed.
+		    strseed += seed;
+		  }
 
-	if (module && module.exports) {
-	  module.exports = impl;
-	} else {
-	  this.tychei = impl;
-	}
+		  // Mix in string seed, then discard an initial batch of 64 values.
+		  for (var k = 0; k < strseed.length + 20; k++) {
+		    me.b ^= strseed.charCodeAt(k) | 0;
+		    me.next();
+		  }
+		}
 
-	})(
-	  commonjsGlobal,
-	  module); 
-} (tychei$1));
+		function copy(f, t) {
+		  t.a = f.a;
+		  t.b = f.b;
+		  t.c = f.c;
+		  t.d = f.d;
+		  return t;
+		}
+		function impl(seed, opts) {
+		  var xg = new XorGen(seed),
+		      state = opts && opts.state,
+		      prng = function() { return (xg.next() >>> 0) / 0x100000000; };
+		  prng.double = function() {
+		    do {
+		      var top = xg.next() >>> 11,
+		          bot = (xg.next() >>> 0) / 0x100000000,
+		          result = (top + bot) / (1 << 21);
+		    } while (result === 0);
+		    return result;
+		  };
+		  prng.int32 = xg.next;
+		  prng.quick = prng;
+		  if (state) {
+		    if (typeof(state) == 'object') copy(state, xg);
+		    prng.state = function() { return copy(xg, {}); };
+		  }
+		  return prng;
+		}
 
-var tycheiExports = tychei$1.exports;
+		if (module && module.exports) {
+		  module.exports = impl;
+		} else {
+		  this.tychei = impl;
+		}
 
-var seedrandom$1 = {exports: {}};
+		})(
+		  tychei,
+		  module); 
+	} (tychei$1));
+	return tychei$1.exports;
+}
+
+var seedrandom$2 = {exports: {}};
 
 /*
 Copyright 2019 David Bau.
@@ -10418,298 +10467,314 @@ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
 SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 */
+var seedrandom$1 = seedrandom$2.exports;
 
-(function (module) {
-	(function (global, pool, math) {
+var hasRequiredSeedrandom$1;
+
+function requireSeedrandom$1 () {
+	if (hasRequiredSeedrandom$1) return seedrandom$2.exports;
+	hasRequiredSeedrandom$1 = 1;
+	(function (module) {
+		(function (global, pool, math) {
+		//
+		// The following constants are related to IEEE 754 limits.
+		//
+
+		var width = 256,        // each RC4 output is 0 <= x < 256
+		    chunks = 6,         // at least six RC4 outputs for each double
+		    digits = 52,        // there are 52 significant digits in a double
+		    rngname = 'random', // rngname: name for Math.random and Math.seedrandom
+		    startdenom = math.pow(width, chunks),
+		    significance = math.pow(2, digits),
+		    overflow = significance * 2,
+		    mask = width - 1,
+		    nodecrypto;         // node.js crypto module, initialized at the bottom.
+
+		//
+		// seedrandom()
+		// This is the seedrandom function described above.
+		//
+		function seedrandom(seed, options, callback) {
+		  var key = [];
+		  options = (options == true) ? { entropy: true } : (options || {});
+
+		  // Flatten the seed string or build one from local entropy if needed.
+		  var shortseed = mixkey(flatten(
+		    options.entropy ? [seed, tostring(pool)] :
+		    (seed == null) ? autoseed() : seed, 3), key);
+
+		  // Use the seed to initialize an ARC4 generator.
+		  var arc4 = new ARC4(key);
+
+		  // This function returns a random double in [0, 1) that contains
+		  // randomness in every bit of the mantissa of the IEEE 754 value.
+		  var prng = function() {
+		    var n = arc4.g(chunks),             // Start with a numerator n < 2 ^ 48
+		        d = startdenom,                 //   and denominator d = 2 ^ 48.
+		        x = 0;                          //   and no 'extra last byte'.
+		    while (n < significance) {          // Fill up all significant digits by
+		      n = (n + x) * width;              //   shifting numerator and
+		      d *= width;                       //   denominator and generating a
+		      x = arc4.g(1);                    //   new least-significant-byte.
+		    }
+		    while (n >= overflow) {             // To avoid rounding up, before adding
+		      n /= 2;                           //   last byte, shift everything
+		      d /= 2;                           //   right using integer math until
+		      x >>>= 1;                         //   we have exactly the desired bits.
+		    }
+		    return (n + x) / d;                 // Form the number within [0, 1).
+		  };
+
+		  prng.int32 = function() { return arc4.g(4) | 0; };
+		  prng.quick = function() { return arc4.g(4) / 0x100000000; };
+		  prng.double = prng;
+
+		  // Mix the randomness into accumulated entropy.
+		  mixkey(tostring(arc4.S), pool);
+
+		  // Calling convention: what to return as a function of prng, seed, is_math.
+		  return (options.pass || callback ||
+		      function(prng, seed, is_math_call, state) {
+		        if (state) {
+		          // Load the arc4 state from the given state if it has an S array.
+		          if (state.S) { copy(state, arc4); }
+		          // Only provide the .state method if requested via options.state.
+		          prng.state = function() { return copy(arc4, {}); };
+		        }
+
+		        // If called as a method of Math (Math.seedrandom()), mutate
+		        // Math.random because that is how seedrandom.js has worked since v1.0.
+		        if (is_math_call) { math[rngname] = prng; return seed; }
+
+		        // Otherwise, it is a newer calling convention, so return the
+		        // prng directly.
+		        else return prng;
+		      })(
+		  prng,
+		  shortseed,
+		  'global' in options ? options.global : (this == math),
+		  options.state);
+		}
+
+		//
+		// ARC4
+		//
+		// An ARC4 implementation.  The constructor takes a key in the form of
+		// an array of at most (width) integers that should be 0 <= x < (width).
+		//
+		// The g(count) method returns a pseudorandom integer that concatenates
+		// the next (count) outputs from ARC4.  Its return value is a number x
+		// that is in the range 0 <= x < (width ^ count).
+		//
+		function ARC4(key) {
+		  var t, keylen = key.length,
+		      me = this, i = 0, j = me.i = me.j = 0, s = me.S = [];
+
+		  // The empty key [] is treated as [0].
+		  if (!keylen) { key = [keylen++]; }
+
+		  // Set up S using the standard key scheduling algorithm.
+		  while (i < width) {
+		    s[i] = i++;
+		  }
+		  for (i = 0; i < width; i++) {
+		    s[i] = s[j = mask & (j + key[i % keylen] + (t = s[i]))];
+		    s[j] = t;
+		  }
+
+		  // The "g" method returns the next (count) outputs as one number.
+		  (me.g = function(count) {
+		    // Using instance members instead of closure state nearly doubles speed.
+		    var t, r = 0,
+		        i = me.i, j = me.j, s = me.S;
+		    while (count--) {
+		      t = s[i = mask & (i + 1)];
+		      r = r * width + s[mask & ((s[i] = s[j = mask & (j + t)]) + (s[j] = t))];
+		    }
+		    me.i = i; me.j = j;
+		    return r;
+		    // For robust unpredictability, the function call below automatically
+		    // discards an initial batch of values.  This is called RC4-drop[256].
+		    // See http://google.com/search?q=rsa+fluhrer+response&btnI
+		  })(width);
+		}
+
+		//
+		// copy()
+		// Copies internal state of ARC4 to or from a plain object.
+		//
+		function copy(f, t) {
+		  t.i = f.i;
+		  t.j = f.j;
+		  t.S = f.S.slice();
+		  return t;
+		}
+		//
+		// flatten()
+		// Converts an object tree to nested arrays of strings.
+		//
+		function flatten(obj, depth) {
+		  var result = [], typ = (typeof obj), prop;
+		  if (depth && typ == 'object') {
+		    for (prop in obj) {
+		      try { result.push(flatten(obj[prop], depth - 1)); } catch (e) {}
+		    }
+		  }
+		  return (result.length ? result : typ == 'string' ? obj : obj + '\0');
+		}
+
+		//
+		// mixkey()
+		// Mixes a string seed into a key that is an array of integers, and
+		// returns a shortened string seed that is equivalent to the result key.
+		//
+		function mixkey(seed, key) {
+		  var stringseed = seed + '', smear, j = 0;
+		  while (j < stringseed.length) {
+		    key[mask & j] =
+		      mask & ((smear ^= key[mask & j] * 19) + stringseed.charCodeAt(j++));
+		  }
+		  return tostring(key);
+		}
+
+		//
+		// autoseed()
+		// Returns an object for autoseeding, using window.crypto and Node crypto
+		// module if available.
+		//
+		function autoseed() {
+		  try {
+		    var out;
+		    if (nodecrypto && (out = nodecrypto.randomBytes)) {
+		      // The use of 'out' to remember randomBytes makes tight minified code.
+		      out = out(width);
+		    } else {
+		      out = new Uint8Array(width);
+		      (global.crypto || global.msCrypto).getRandomValues(out);
+		    }
+		    return tostring(out);
+		  } catch (e) {
+		    var browser = global.navigator,
+		        plugins = browser && browser.plugins;
+		    return [+new Date, global, plugins, global.screen, tostring(pool)];
+		  }
+		}
+
+		//
+		// tostring()
+		// Converts an array of charcodes to a string
+		//
+		function tostring(a) {
+		  return String.fromCharCode.apply(0, a);
+		}
+
+		//
+		// When seedrandom.js is loaded, we immediately mix a few bits
+		// from the built-in RNG into the entropy pool.  Because we do
+		// not want to interfere with deterministic PRNG state later,
+		// seedrandom will not call math.random on its own again after
+		// initialization.
+		//
+		mixkey(math.random(), pool);
+
+		//
+		// Nodejs and AMD support: export the implementation as a module using
+		// either convention.
+		//
+		if (module.exports) {
+		  module.exports = seedrandom;
+		  // When in node.js, try using crypto package for autoseeding.
+		  try {
+		    nodecrypto = require('crypto');
+		  } catch (ex) {}
+		} else {
+		  // When included as a plain script, set up Math.seedrandom global.
+		  math['seed' + rngname] = seedrandom;
+		}
+
+
+		// End anonymous scope, and pass initial values.
+		})(
+		  // global: `self` in browsers (including strict mode and web workers),
+		  // otherwise `this` in Node and other environments
+		  (typeof self !== 'undefined') ? self : seedrandom$1,
+		  [],     // pool: entropy pool starts empty
+		  Math    // math: package containing random, pow, and seedrandom
+		); 
+	} (seedrandom$2));
+	return seedrandom$2.exports;
+}
+
+var seedrandom;
+var hasRequiredSeedrandom;
+
+function requireSeedrandom () {
+	if (hasRequiredSeedrandom) return seedrandom;
+	hasRequiredSeedrandom = 1;
+	// A library of seedable RNGs implemented in Javascript.
 	//
-	// The following constants are related to IEEE 754 limits.
+	// Usage:
 	//
+	// var seedrandom = require('seedrandom');
+	// var random = seedrandom(1); // or any seed.
+	// var x = random();       // 0 <= x < 1.  Every bit is random.
+	// var x = random.quick(); // 0 <= x < 1.  32 bits of randomness.
 
-	var width = 256,        // each RC4 output is 0 <= x < 256
-	    chunks = 6,         // at least six RC4 outputs for each double
-	    digits = 52,        // there are 52 significant digits in a double
-	    rngname = 'random', // rngname: name for Math.random and Math.seedrandom
-	    startdenom = math.pow(width, chunks),
-	    significance = math.pow(2, digits),
-	    overflow = significance * 2,
-	    mask = width - 1,
-	    nodecrypto;         // node.js crypto module, initialized at the bottom.
+	// alea, a 53-bit multiply-with-carry generator by Johannes Baagøe.
+	// Period: ~2^116
+	// Reported to pass all BigCrush tests.
+	var alea = /*@__PURE__*/ requireAlea();
 
-	//
-	// seedrandom()
-	// This is the seedrandom function described above.
-	//
-	function seedrandom(seed, options, callback) {
-	  var key = [];
-	  options = (options == true) ? { entropy: true } : (options || {});
+	// xor128, a pure xor-shift generator by George Marsaglia.
+	// Period: 2^128-1.
+	// Reported to fail: MatrixRank and LinearComp.
+	var xor128 = /*@__PURE__*/ requireXor128();
 
-	  // Flatten the seed string or build one from local entropy if needed.
-	  var shortseed = mixkey(flatten(
-	    options.entropy ? [seed, tostring(pool)] :
-	    (seed == null) ? autoseed() : seed, 3), key);
+	// xorwow, George Marsaglia's 160-bit xor-shift combined plus weyl.
+	// Period: 2^192-2^32
+	// Reported to fail: CollisionOver, SimpPoker, and LinearComp.
+	var xorwow = /*@__PURE__*/ requireXorwow();
 
-	  // Use the seed to initialize an ARC4 generator.
-	  var arc4 = new ARC4(key);
+	// xorshift7, by François Panneton and Pierre L'ecuyer, takes
+	// a different approach: it adds robustness by allowing more shifts
+	// than Marsaglia's original three.  It is a 7-shift generator
+	// with 256 bits, that passes BigCrush with no systmatic failures.
+	// Period 2^256-1.
+	// No systematic BigCrush failures reported.
+	var xorshift7 = /*@__PURE__*/ requireXorshift7();
 
-	  // This function returns a random double in [0, 1) that contains
-	  // randomness in every bit of the mantissa of the IEEE 754 value.
-	  var prng = function() {
-	    var n = arc4.g(chunks),             // Start with a numerator n < 2 ^ 48
-	        d = startdenom,                 //   and denominator d = 2 ^ 48.
-	        x = 0;                          //   and no 'extra last byte'.
-	    while (n < significance) {          // Fill up all significant digits by
-	      n = (n + x) * width;              //   shifting numerator and
-	      d *= width;                       //   denominator and generating a
-	      x = arc4.g(1);                    //   new least-significant-byte.
-	    }
-	    while (n >= overflow) {             // To avoid rounding up, before adding
-	      n /= 2;                           //   last byte, shift everything
-	      d /= 2;                           //   right using integer math until
-	      x >>>= 1;                         //   we have exactly the desired bits.
-	    }
-	    return (n + x) / d;                 // Form the number within [0, 1).
-	  };
+	// xor4096, by Richard Brent, is a 4096-bit xor-shift with a
+	// very long period that also adds a Weyl generator. It also passes
+	// BigCrush with no systematic failures.  Its long period may
+	// be useful if you have many generators and need to avoid
+	// collisions.
+	// Period: 2^4128-2^32.
+	// No systematic BigCrush failures reported.
+	var xor4096 = /*@__PURE__*/ requireXor4096();
 
-	  prng.int32 = function() { return arc4.g(4) | 0; };
-	  prng.quick = function() { return arc4.g(4) / 0x100000000; };
-	  prng.double = prng;
+	// Tyche-i, by Samuel Neves and Filipe Araujo, is a bit-shifting random
+	// number generator derived from ChaCha, a modern stream cipher.
+	// https://eden.dei.uc.pt/~sneves/pubs/2011-snfa2.pdf
+	// Period: ~2^127
+	// No systematic BigCrush failures reported.
+	var tychei = /*@__PURE__*/ requireTychei();
 
-	  // Mix the randomness into accumulated entropy.
-	  mixkey(tostring(arc4.S), pool);
+	// The original ARC4-based prng included in this library.
+	// Period: ~2^1600
+	var sr = /*@__PURE__*/ requireSeedrandom$1();
 
-	  // Calling convention: what to return as a function of prng, seed, is_math.
-	  return (options.pass || callback ||
-	      function(prng, seed, is_math_call, state) {
-	        if (state) {
-	          // Load the arc4 state from the given state if it has an S array.
-	          if (state.S) { copy(state, arc4); }
-	          // Only provide the .state method if requested via options.state.
-	          prng.state = function() { return copy(arc4, {}); };
-	        }
+	sr.alea = alea;
+	sr.xor128 = xor128;
+	sr.xorwow = xorwow;
+	sr.xorshift7 = xorshift7;
+	sr.xor4096 = xor4096;
+	sr.tychei = tychei;
 
-	        // If called as a method of Math (Math.seedrandom()), mutate
-	        // Math.random because that is how seedrandom.js has worked since v1.0.
-	        if (is_math_call) { math[rngname] = prng; return seed; }
+	seedrandom = sr;
+	return seedrandom;
+}
 
-	        // Otherwise, it is a newer calling convention, so return the
-	        // prng directly.
-	        else return prng;
-	      })(
-	  prng,
-	  shortseed,
-	  'global' in options ? options.global : (this == math),
-	  options.state);
-	}
-
-	//
-	// ARC4
-	//
-	// An ARC4 implementation.  The constructor takes a key in the form of
-	// an array of at most (width) integers that should be 0 <= x < (width).
-	//
-	// The g(count) method returns a pseudorandom integer that concatenates
-	// the next (count) outputs from ARC4.  Its return value is a number x
-	// that is in the range 0 <= x < (width ^ count).
-	//
-	function ARC4(key) {
-	  var t, keylen = key.length,
-	      me = this, i = 0, j = me.i = me.j = 0, s = me.S = [];
-
-	  // The empty key [] is treated as [0].
-	  if (!keylen) { key = [keylen++]; }
-
-	  // Set up S using the standard key scheduling algorithm.
-	  while (i < width) {
-	    s[i] = i++;
-	  }
-	  for (i = 0; i < width; i++) {
-	    s[i] = s[j = mask & (j + key[i % keylen] + (t = s[i]))];
-	    s[j] = t;
-	  }
-
-	  // The "g" method returns the next (count) outputs as one number.
-	  (me.g = function(count) {
-	    // Using instance members instead of closure state nearly doubles speed.
-	    var t, r = 0,
-	        i = me.i, j = me.j, s = me.S;
-	    while (count--) {
-	      t = s[i = mask & (i + 1)];
-	      r = r * width + s[mask & ((s[i] = s[j = mask & (j + t)]) + (s[j] = t))];
-	    }
-	    me.i = i; me.j = j;
-	    return r;
-	    // For robust unpredictability, the function call below automatically
-	    // discards an initial batch of values.  This is called RC4-drop[256].
-	    // See http://google.com/search?q=rsa+fluhrer+response&btnI
-	  })(width);
-	}
-
-	//
-	// copy()
-	// Copies internal state of ARC4 to or from a plain object.
-	//
-	function copy(f, t) {
-	  t.i = f.i;
-	  t.j = f.j;
-	  t.S = f.S.slice();
-	  return t;
-	}
-	//
-	// flatten()
-	// Converts an object tree to nested arrays of strings.
-	//
-	function flatten(obj, depth) {
-	  var result = [], typ = (typeof obj), prop;
-	  if (depth && typ == 'object') {
-	    for (prop in obj) {
-	      try { result.push(flatten(obj[prop], depth - 1)); } catch (e) {}
-	    }
-	  }
-	  return (result.length ? result : typ == 'string' ? obj : obj + '\0');
-	}
-
-	//
-	// mixkey()
-	// Mixes a string seed into a key that is an array of integers, and
-	// returns a shortened string seed that is equivalent to the result key.
-	//
-	function mixkey(seed, key) {
-	  var stringseed = seed + '', smear, j = 0;
-	  while (j < stringseed.length) {
-	    key[mask & j] =
-	      mask & ((smear ^= key[mask & j] * 19) + stringseed.charCodeAt(j++));
-	  }
-	  return tostring(key);
-	}
-
-	//
-	// autoseed()
-	// Returns an object for autoseeding, using window.crypto and Node crypto
-	// module if available.
-	//
-	function autoseed() {
-	  try {
-	    var out;
-	    if (nodecrypto && (out = nodecrypto.randomBytes)) {
-	      // The use of 'out' to remember randomBytes makes tight minified code.
-	      out = out(width);
-	    } else {
-	      out = new Uint8Array(width);
-	      (global.crypto || global.msCrypto).getRandomValues(out);
-	    }
-	    return tostring(out);
-	  } catch (e) {
-	    var browser = global.navigator,
-	        plugins = browser && browser.plugins;
-	    return [+new Date, global, plugins, global.screen, tostring(pool)];
-	  }
-	}
-
-	//
-	// tostring()
-	// Converts an array of charcodes to a string
-	//
-	function tostring(a) {
-	  return String.fromCharCode.apply(0, a);
-	}
-
-	//
-	// When seedrandom.js is loaded, we immediately mix a few bits
-	// from the built-in RNG into the entropy pool.  Because we do
-	// not want to interfere with deterministic PRNG state later,
-	// seedrandom will not call math.random on its own again after
-	// initialization.
-	//
-	mixkey(math.random(), pool);
-
-	//
-	// Nodejs and AMD support: export the implementation as a module using
-	// either convention.
-	//
-	if (module.exports) {
-	  module.exports = seedrandom;
-	  // When in node.js, try using crypto package for autoseeding.
-	  try {
-	    nodecrypto = require('crypto');
-	  } catch (ex) {}
-	} else {
-	  // When included as a plain script, set up Math.seedrandom global.
-	  math['seed' + rngname] = seedrandom;
-	}
-
-
-	// End anonymous scope, and pass initial values.
-	})(
-	  // global: `self` in browsers (including strict mode and web workers),
-	  // otherwise `this` in Node and other environments
-	  (typeof self !== 'undefined') ? self : commonjsGlobal,
-	  [],     // pool: entropy pool starts empty
-	  Math    // math: package containing random, pow, and seedrandom
-	); 
-} (seedrandom$1));
-
-var seedrandomExports = seedrandom$1.exports;
-
-// A library of seedable RNGs implemented in Javascript.
-//
-// Usage:
-//
-// var seedrandom = require('seedrandom');
-// var random = seedrandom(1); // or any seed.
-// var x = random();       // 0 <= x < 1.  Every bit is random.
-// var x = random.quick(); // 0 <= x < 1.  32 bits of randomness.
-
-// alea, a 53-bit multiply-with-carry generator by Johannes Baagøe.
-// Period: ~2^116
-// Reported to pass all BigCrush tests.
-var alea = aleaExports;
-
-// xor128, a pure xor-shift generator by George Marsaglia.
-// Period: 2^128-1.
-// Reported to fail: MatrixRank and LinearComp.
-var xor128 = xor128Exports;
-
-// xorwow, George Marsaglia's 160-bit xor-shift combined plus weyl.
-// Period: 2^192-2^32
-// Reported to fail: CollisionOver, SimpPoker, and LinearComp.
-var xorwow = xorwowExports;
-
-// xorshift7, by François Panneton and Pierre L'ecuyer, takes
-// a different approach: it adds robustness by allowing more shifts
-// than Marsaglia's original three.  It is a 7-shift generator
-// with 256 bits, that passes BigCrush with no systmatic failures.
-// Period 2^256-1.
-// No systematic BigCrush failures reported.
-var xorshift7 = xorshift7Exports;
-
-// xor4096, by Richard Brent, is a 4096-bit xor-shift with a
-// very long period that also adds a Weyl generator. It also passes
-// BigCrush with no systematic failures.  Its long period may
-// be useful if you have many generators and need to avoid
-// collisions.
-// Period: 2^4128-2^32.
-// No systematic BigCrush failures reported.
-var xor4096 = xor4096Exports;
-
-// Tyche-i, by Samuel Neves and Filipe Araujo, is a bit-shifting random
-// number generator derived from ChaCha, a modern stream cipher.
-// https://eden.dei.uc.pt/~sneves/pubs/2011-snfa2.pdf
-// Period: ~2^127
-// No systematic BigCrush failures reported.
-var tychei = tycheiExports;
-
-// The original ARC4-based prng included in this library.
-// Period: ~2^1600
-var sr = seedrandomExports;
-
-sr.alea = alea;
-sr.xor128 = xor128;
-sr.xorwow = xorwow;
-sr.xorshift7 = xorshift7;
-sr.xor4096 = xor4096;
-sr.tychei = tychei;
-
-var seedrandom = sr;
+var seedrandomExports = /*@__PURE__*/ requireSeedrandom();
 
 /**
  * @license
@@ -10740,7 +10805,7 @@ class MPRandGauss {
             this.lower = this.mean - this.stdDev * 2;
         }
         const seedValue = seed ? seed : Math.random();
-        this.random = seedrandom.alea(seedValue.toString());
+        this.random = seedrandomExports.alea(seedValue.toString());
     }
     /** Returns next sample from a Gaussian distribution. */
     nextValue() {
@@ -10798,7 +10863,7 @@ class UniformRandom {
         if (!this.canReturnFloat() && this.range <= 1) {
             throw new Error(`The difference between ${min} - ${max} <= 1 and dtype is not float`);
         }
-        this.random = seedrandom.alea(seed);
+        this.random = seedrandomExports.alea(seed);
     }
     convertValue(value) {
         if (this.canReturnFloat()) {
@@ -47127,7 +47192,7 @@ function multinomial(args) {
         for (let event = 1; event < cdf.length; ++event) {
             cdf[event] = cdf[event - 1] + probVals[offset + event];
         }
-        const random = seedrandom.alea(seed.toString());
+        const random = seedrandomExports.alea(seed.toString());
         const outOffset = b * numSamples;
         for (let sampleId = 0; sampleId < numSamples; ++sampleId) {
             const r = random();

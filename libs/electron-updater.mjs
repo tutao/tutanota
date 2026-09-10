@@ -19452,7 +19452,7 @@ class NsisUpdater extends BaseUpdater_1.BaseUpdater {
 NsisUpdater$1.NsisUpdater = NsisUpdater;
 
 (function (exports$1) {
-	var __createBinding = (commonjsGlobal && commonjsGlobal.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+	var __createBinding = (main$2 && main$2.__createBinding) || (Object.create ? (function(o, m, k, k2) {
 	    if (k2 === undefined) k2 = k;
 	    var desc = Object.getOwnPropertyDescriptor(m, k);
 	    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
@@ -19463,7 +19463,7 @@ NsisUpdater$1.NsisUpdater = NsisUpdater;
 	    if (k2 === undefined) k2 = k;
 	    o[k2] = m[k];
 	}));
-	var __exportStar = (commonjsGlobal && commonjsGlobal.__exportStar) || function(m, exports$1) {
+	var __exportStar = (main$2 && main$2.__exportStar) || function(m, exports$1) {
 	    for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports$1, p)) __createBinding(exports$1, m, p);
 	};
 	Object.defineProperty(exports$1, "__esModule", { value: true });
