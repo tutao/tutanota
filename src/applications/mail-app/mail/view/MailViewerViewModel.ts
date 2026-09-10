@@ -35,7 +35,7 @@ import {
 	showLabelsPopup,
 	showMoveMailsDropdown,
 } from "./MailGuiUtils"
-import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
+import { DownloadPostProcessing, DownloadReturn, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -96,6 +96,8 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
+import { PluginManager } from "../../../plugin-manager/PluginManager"
+import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1395,6 +1397,10 @@ export class MailViewerViewModel {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
 		}
+	}
+
+	getAttachmentButtons(): ButtonConfiguration[] {
+		return this.pluginManager.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
 	}
 
 	canImportFile(file: File): boolean {

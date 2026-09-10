@@ -1,17 +1,21 @@
+import { lazyAsync } from "@tutao/utils"
+
 export enum ButtonExtensionPoint {
 	SaveAttachmentDialog = 0,
 }
 
 export type ButtonConfiguration = {
-	name: string
+	pluginId: string
 	extensionPoint: ButtonExtensionPoint
 	text: {
 		de: "Nextcloud attachment anhaengen"
 	}
+	clickCallback: lazyAsync<void>
 }
 export type ButtonRef = {
-	id: number
+	id: string
 }
 export interface PluginHostApi {
+	buttonRegistry: Array<ButtonConfiguration>
 	registerButton(config: ButtonConfiguration): ButtonRef
 }
