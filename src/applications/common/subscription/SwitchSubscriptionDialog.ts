@@ -191,7 +191,7 @@ export async function showSwitchDialog({
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo),
+				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo, paymentMethod),
 			}) satisfies PrimaryButtonAttrs,
 		[PlanType.Revolutionary]: createPlanButton(
 			dialog,
@@ -210,9 +210,9 @@ export async function showSwitchDialog({
 	return deferred.promise
 }
 
-async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo) {
-	if (EnvProvider.get().isIOSApp()) {
-		// We want the user to disable renewal in AppStore before they try to downgrade on our side
+async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo, paymentMethod: PaymentMethodType) {
+	if (isExternalPaymentMethod(paymentMethod)) {
+		// We want the user to disable renewal in the external store before they try to downgrade on our side
 		const ownership = await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(
 			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
 		)
@@ -222,7 +222,7 @@ async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInf
 			await showProgressDialog("pleaseWait_msg", waitUntilRenewalDisabled())
 
 			if (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled()) {
-				console.log("AppStore renewal is still enabled, canceling downgrade")
+				console.log("external store renewal is still enabled, canceling downgrade")
 				// User probably did not disable the renewal still, cancel
 				return
 			}
