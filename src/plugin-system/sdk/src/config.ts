@@ -1,1 +1,3 @@
-// set permissions
+export interface Config {
+	setPermission(): void
+}

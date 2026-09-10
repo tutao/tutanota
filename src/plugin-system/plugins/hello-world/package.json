@@ -16,7 +16,6 @@
 		"build": "tsc",
 		"prepare": "npm run build"
 	},
-	"dependencies": {},
 	"devDependencies": {
 		"typescript": "^5.8.3"
 	}

@@ -9,7 +9,7 @@
 		"../global.d.ts",
 		"../../libs/tensorflow-platform-stub.js",
 		"../../libs/luxon.js",
-		"../plugin-system/*.ts"
+		"../plugin-system/**/*.ts"
 	],
 	"compilerOptions": {
 		"rootDir": "../..",

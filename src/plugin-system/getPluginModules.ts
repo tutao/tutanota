@@ -2,14 +2,14 @@ import * as fs from "node:fs/promises"
 import { readdir, readFile } from "node:fs/promises"
 import * as path from "node:path"
 import { pathToFileURL } from "node:url"
-import { PluginCapabilities, PluginMetadata } from "./IWorkerApi.js"
+import { PluginContext } from "./sdk/src/context.js"
 
 export type PluginModule = {
 	load(context: unknown): void | Promise<void>
 	unload(): void | Promise<void>
 }
 
-export type TutaoPlugin = {
+type TutaoPlugin = {
 	module: PluginModule
 	metadata: PluginMetadata
 }
@@ -19,19 +19,13 @@ export async function getPluginModules(): Promise<TutaoPlugin[]> {
 
 	const plugins: TutaoPlugin[] = []
 	for (const packageLocation of packages) {
-		const packageModule = await getPackage(packageLocation + "/package.json")
-		const packageManifest = await getManifest(packageLocation + "/manifest.json")
-
-		plugins.push({
-			module: packageModule,
-			metadata: packageManifest,
-		})
+		plugins.push(await createTutaoPlugin(packageLocation))
 	}
 
 	return plugins
 }
 
-export async function createTutaoPlugin(packageLocation: string): Promise<TutaoPlugin> {
+async function createTutaoPlugin(packageLocation: string): Promise<TutaoPlugin> {
 	const packageModule = await getPackage(packageLocation + "/package.json")
 	const packageManifest = await getManifest(packageLocation + "/manifest.json")
 
@@ -41,7 +35,7 @@ export async function createTutaoPlugin(packageLocation: string): Promise<TutaoP
 	}
 }
 
-export async function getPackagePaths(root: string): Promise<string[]> {
+async function getPackagePaths(root: string): Promise<string[]> {
 	const packages: string[] = []
 	const directories: string[] = [root]
 
@@ -112,7 +106,7 @@ async function getPackage(filePath: string): Promise<PluginModule> {
 	return plugin
 }
 
-export async function getManifest(filePath: string): Promise<PluginMetadata> {
+async function getManifest(filePath: string): Promise<PluginMetadata> {
 	const content = await readFile(filePath, "utf-8")
 
 	let data: unknown
@@ -159,4 +153,15 @@ function isPluginCapability(value: unknown): value is PluginCapabilities {
 	return Object.values(PluginCapabilities).includes(value as PluginCapabilities)
 }
 
-// TODO() use to discover and register/ load plugins
+type PluginMetadata = {
+	name: string
+	description: string
+	version: string
+	pluginCapabilities: PluginCapabilities
+}
+
+enum PluginCapabilities {
+	FilesystemAccess = "FilesystemAccess",
+	MailDataAccess = "MailDataAccess",
+	None = "None",
+}

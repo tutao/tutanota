@@ -68,6 +68,7 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { PluginManager } from "../../plugin-system/pluginManager"
 
 assertMainOrNodeBoot()
 bootFinished()
@@ -859,6 +860,12 @@ import("../../ui/translations/en.js")
 		serviceworker.init(domainConfig)
 
 		printJobsMessage(domainConfig)
+
+		// Init plugin manager
+		const pluginManager = new PluginManager()
+		await pluginManager.registerPlugins(0)
+		await pluginManager.loadPlugins()
+		// const hostApi = new HostApiImpl(mailLocator.entityClient)
 	})
 
 function forceLogin(args: Record<string, Dict>, requestedPath: string) {

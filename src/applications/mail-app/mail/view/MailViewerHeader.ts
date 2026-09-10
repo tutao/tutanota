@@ -838,6 +838,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				let actionButtons: DropdownButtonAttrs[] = []
 				const { delete: deleteAction, trash: trashAction, move: moveAction } = actions
 
+				actionButtons.push({
+					label: "newMail_action",
+					click: () => console.log("clicked button"),
+					icon: Icons.FlashCrossedFilled,
+				})
+
 				const deleteButton: DropdownButtonAttrs | null =
 					deleteAction != null
 						? {

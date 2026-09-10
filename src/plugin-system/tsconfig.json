@@ -9,6 +9,5 @@
 		"esModuleInterop": true,
 		"skipLibCheck": true
 	},
-	"include": ["*.ts"],
-	"exclude": ["playground"]
+	"include": ["**/*.ts"]
 }

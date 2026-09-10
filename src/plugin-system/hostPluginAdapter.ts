@@ -5,7 +5,7 @@ export class HostApi extends RpcTarget implements IHostApi {
 	getMail(id: string): Promise<Mail> {
 		return Promise.resolve({
 			id: id,
-			from: "test@test.test",
+			from: "test@test.test: " + Math.random().toString(),
 			to: ["test2@test.test"],
 			cc: [],
 			bcc: [],

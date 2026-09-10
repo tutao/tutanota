@@ -1,9 +1,9 @@
-import { PluginModule } from "../../../getPluginModules"
+import { PluginModule } from "../../../getPluginModules.js"
 
 const plugin: PluginModule = {
-	load(context) {
-		// context.logger("")
+	async load(context) {
 		console.log("Hello, World!")
+		// context.logger.info("Hello World!")
 	},
 
 	unload() {

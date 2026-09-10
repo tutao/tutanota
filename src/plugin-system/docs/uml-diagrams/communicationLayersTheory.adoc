@@ -1,0 +1,32 @@
+[plantuml,puml,svg]
+----
+@startuml
+
+skinparam ranksep 1
+
+package "Host" {
+    [Application API] as HostAPI #LightBlue
+    [Wire Protocol] as HostProtocol #LightBlue
+    [Serilization] as HostSerialization #LightBlue
+    [Channel] as HostChannel
+
+    HostAPI -[hidden]down- HostProtocol
+    HostProtocol -[hidden]down- HostSerialization
+    HostSerialization -[hidden]down- HostChannel
+}
+
+package "Plugin" {
+    [Application API] as PluginAPI #LightBlue
+    [Wire Protocol] as PluginProtocol #LightBlue
+    [Serilization] as PluginSerialization #LightBlue
+    [Channel] as PluginChannel
+
+    PluginAPI -[hidden]down- PluginProtocol
+    PluginProtocol -[hidden]down- PluginSerialization
+    PluginSerialization -[hidden]down- PluginChannel
+}
+
+HostChannel <-right-> PluginChannel
+
+@enduml
+----

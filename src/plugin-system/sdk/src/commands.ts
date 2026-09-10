@@ -5,3 +5,8 @@
 // 		refresh()
 // 	},
 // })
+
+export interface Commands {
+	register(): void
+	deregister(): void
+}

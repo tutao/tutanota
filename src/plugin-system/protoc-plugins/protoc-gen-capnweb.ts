@@ -1,6 +1,6 @@
 import { createEcmaScriptPlugin, type GeneratedFile, type Schema, runNodeJs, getComments, Printable } from "@bufbuild/protoplugin"
 import { type DescFile, type DescMethod, getOption } from "@bufbuild/protobuf"
-import { registerEvent } from "../gen/proto/v1/customOptions_pb"
+// import { registerEvent } from "../gen/proto/v1/customOptions_pb.js"
 
 // Generates an Interface from .proto file
 // Supports empty method arguments

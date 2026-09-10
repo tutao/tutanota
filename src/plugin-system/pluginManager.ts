@@ -1,27 +1,27 @@
-import { RpcStub, newMessagePortRpcSession } from "capnweb"
+import { newMessagePortRpcSession, RpcStub } from "capnweb"
 import { IWorkerApi } from "./IWorkerApi.js"
 import { HostApi } from "./hostPluginAdapter.js"
-import { getPackagePaths } from "./getPluginModules.js"
 
 export async function initPluginSystem() {
 	console.log("Initializing plugin system")
 	const pluginManager = new PluginManager()
-	await pluginManager.registerPlugins()
+	for (let i = 0; i < 1250; i++) {
+		await pluginManager.registerPlugins(i)
+	}
 	await pluginManager.loadPlugins()
 
-	const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
-	await sleep(1000 * 5)
-
-	await pluginManager.unloadPlugins()
+	// const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms))
+	// await sleep(1000 * 5)
+	//
+	// await pluginManager.unloadPlugins()
 }
 
-class PluginManager {
+export class PluginManager {
 	private registeredPlugins: Map<number, RunningPlugin> = new Map()
 
-	async registerPlugins(): Promise<void> {
-		const packagePaths = await getPackagePaths("../plugins")
-
-		const tempPlugins = await RunningPlugin.create(0, packagePaths[0])
+	async registerPlugins(id: number): Promise<void> {
+		// TODO() register 1 plugin per worker dynamically
+		const tempPlugins = await RunningPlugin.create(id)
 		this.registeredPlugins.set(0, tempPlugins)
 	}
 
@@ -69,7 +69,7 @@ class RunningPlugin {
 		this.workerStub = workerStub
 	}
 
-	static async create(id: number, packageLocation: string): Promise<RunningPlugin> {
+	static async create(id: number): Promise<RunningPlugin> {
 		const channel = new MessageChannel()
 		const worker = new Worker("/plugin-worker.js", { type: "module", name: `plugin-worker:${id}` }) //TODO() maybe give plugin name
 		worker.onerror = (err: ErrorEvent) => {
@@ -78,8 +78,6 @@ class RunningPlugin {
 		worker.postMessage(channel.port2, [channel.port2])
 
 		const workerStub: RpcStub<IWorkerApi> = newMessagePortRpcSession(channel.port1, new HostApi())
-
-		await workerStub.init(packageLocation)
 
 		return new RunningPlugin(id, worker, channel, workerStub)
 	}
