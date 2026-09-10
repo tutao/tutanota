@@ -1,6 +1,6 @@
 import { CustomCacheHandler } from "../../../../../app-kit/local-store/CustomCacheHandler"
-import { elementIdToId, idToElementId, isSameId, isSameSingleId } from "@tutao/meta"
-import { difference } from "@tutao/utils"
+import { elementIdToId, isSameSingleId } from "@tutao/meta"
+import { iterableDifference } from "@tutao/utils"
 import { SpamClassifierStorageFacade } from "../facades/lazy/SpamClassifierStorageFacade"
 import { CacheStorage } from "../../../../../app-kit/local-store/CacheStorage"
 import { User, UserTypeRef } from "@tutao/entities/sys"
@@ -27,7 +27,7 @@ export class CustomUserCacheHandler implements CustomCacheHandler<User> {
 			// with no membership on it. We need to clean up all the entities that
 			// belong to that group since we shouldn't be able to access them anymore,
 			// and we won't get any update or another chance to clean them up.
-			const removedShips = difference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
+			const removedShips = iterableDifference(oldUser.memberships, newUser.memberships, (l, r) => l._id === r._id)
 			for (const ship of removedShips) {
 				console.log("Lost membership on ", ship._id, ship.groupType)
 				await this.storage.deleteAllOwnedBy(ship.group)

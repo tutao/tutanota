@@ -4,7 +4,7 @@ import { elementIdPart, listIdPart } from "../../../../platform-kit/meta"
 import { EnvProvider, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchIndexStateInfo, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertNotNull, isEmpty, ofClass } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, ofClass } from "../../../../platform-kit/utils"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, mailSearchComparator } from "./MailSearchUtils"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -115,7 +115,11 @@ export class MailSearchModel {
 					.extendSearchResult(currentResult, extendEnd)
 					.then(async (extendedResult) => {
 						const currentResultAgain = result.searchResult
-						if (currentResultAgain == null || !areResultsForTheSameQuery(currentResult, currentResultAgain) || isEmpty(extendedResult.results)) {
+						if (
+							currentResultAgain == null ||
+							!areResultsForTheSameQuery(currentResult, currentResultAgain) ||
+							arrayIsEmpty(extendedResult.results)
+						) {
 							return
 						}
 						const listId = listIdPart(extendedResult.results[0])

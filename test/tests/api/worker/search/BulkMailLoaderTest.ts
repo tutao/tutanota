@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 
 import { constructMailSetEntryId, GENERATED_MAX_ID, getElementId } from "../../../../../src/platform-kit/meta"
 import { createTestEntity, equalToArray } from "../../../TestUtils"
-import { lastThrow } from "../../../../../src/platform-kit/utils"
+import { arrayLastOrThrow } from "../../../../../src/platform-kit/utils"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { MailSetEntry, MailSetEntryTypeRef } from "@tutao/entities/tutanota"
 
@@ -227,7 +227,7 @@ o.spec("BulkMailLoader", () => {
 			// Must be smaller than MAIL_INDEXER_CHUNK
 			const loadedData = setUpTestData(200, 100)
 
-			const lastLoadedId = getElementId(lastThrow(loadedData))
+			const lastLoadedId = getElementId(arrayLastOrThrow(loadedData))
 			mailSetListData = {
 				listId: "listId",
 				lastLoadedId: lastLoadedId,
@@ -259,7 +259,7 @@ o.spec("BulkMailLoader", () => {
 			// Must be smaller than MAIL_INDEXER_CHUNK
 			const loadedData = setUpTestData(200, 100)
 
-			const lastLoadedId = getElementId(lastThrow(loadedData))
+			const lastLoadedId = getElementId(arrayLastOrThrow(loadedData))
 			mailSetListData = {
 				listId: "listId",
 				lastLoadedId: lastLoadedId,

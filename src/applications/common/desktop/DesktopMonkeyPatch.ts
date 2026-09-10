@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { app } from "electron"
 import { execSync } from "node:child_process"
-import { last, neverNull } from "../../../platform-kit/utils"
+import { arrayLast, neverNull } from "../../../platform-kit/utils"
 import { Logger, replaceNativeLogger } from "../api/common/Logger"
 import { log, rebindDesktopLog } from "./DesktopLog"
 
@@ -55,7 +55,7 @@ if (process.platform === "win32") {
 		const parts = stdout.split(" ")
 
 		if (parts.length > 0) {
-			const locale = neverNull(last(parts)).trim()
+			const locale = neverNull(arrayLast(parts)).trim()
 			log.debug("detected locale", locale)
 			process.env.LC_ALL = locale
 		}

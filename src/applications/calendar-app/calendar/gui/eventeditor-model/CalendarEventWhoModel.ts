@@ -1,6 +1,6 @@
 import { findRecipientWithAddress } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { assertNotNull, cleanMailAddress, contains, defer, DeferredObject, findAll, lazy, noOp, trisectingDiff } from "../../../../../platform-kit/utils"
-import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "../../../../../platform-kit/app-env"
+import { arrayFindAll, assertNotNull, cleanMailAddress, defer, DeferredObject, lazy, noOp, trisectingDiff } from "@tutao/utils"
+import { PresentableKeyVerificationState, ProgrammingError, ShareCapability } from "@tutao/app-env"
 import { RecipientsModel } from "../../../../common/api/main/RecipientsModel.js"
 import { Guest } from "../../view/CalendarInvites.js"
 import { isSecurePassword } from "../../../../common/misc/passwords/PasswordUtils.js"
@@ -23,7 +23,7 @@ import {
 	Mail,
 } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, ConversationType, PartialRecipient, Recipient, RecipientType } from "../../../../../entities/tutanota/Utils"
-import { clone, haveSameId } from "../../../../../platform-kit/meta"
+import { clone, haveSameId } from "@tutao/meta"
 
 import { getAttendeeStatus } from "../../../../common/calendar/date/CalendarUtils"
 import { hasCapabilityOnGroup } from "../../../../../entities/sys/Utils"
@@ -117,7 +117,7 @@ export class CalendarEventWhoModel {
 		// resolve current recipients so that we know what external passwords to display
 		const resolvePromises = initialValues.attendees?.map((a) => this.resolveAndCacheAddress(a.address)).concat() ?? []
 		// only resolve the organizer if it is not part of the initial attendee list, otherwise we would query the encryption keys multiple times.
-		if (initialValues.organizer && contains(initialValues.attendees || [], initialValues.organizer)) {
+		if (initialValues.organizer && initialValues.attendees.some((attendee) => attendee.address.address === initialValues.organizer?.address)) {
 			resolvePromises.push(this.resolveAndCacheAddress(initialValues.organizer))
 		}
 		Promise.all(resolvePromises).then(this.uiUpdateCallback)
@@ -271,7 +271,7 @@ export class CalendarEventWhoModel {
 		}
 
 		// we don't want ourselves in the attendee list, since we're using it to track updates we need to send.
-		const ownAttendeeAddresses = findAll(Array.from(this.initialAttendees.keys()), (address) => ownAddresses.includes(address))
+		const ownAttendeeAddresses = arrayFindAll(Array.from(this.initialAttendees.keys()), (address) => ownAddresses.includes(address))
 		this._ownAttendee = this.initialAttendees.get(ownAttendeeAddresses[0]) ?? null
 		this.initialOwnAttendeeStatus = (this._ownAttendee?.status as CalendarAttendeeStatus) ?? null
 		for (const match of ownAttendeeAddresses) {

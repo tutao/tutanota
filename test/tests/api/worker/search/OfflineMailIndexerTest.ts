@@ -50,7 +50,7 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
-import { assert, assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { arrayLast, assert, assertNotNull, deepEqual, iterableCollectToMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
@@ -311,7 +311,7 @@ o.spec("OfflineMailIndexer", () => {
 		}
 
 		// adding a stub for every single mail is slow
-		const mailsMap = collectToMap(mails, (m) => getElementId(m.mail))
+		const mailsMap = iterableCollectToMap(mails, (m) => getElementId(m.mail))
 		when(mailFacade.loadAttachments(matchers.anything())).thenDo((mailToFind: Mail) => {
 			return Promise.resolve(assertNotNull(mailsMap.get(getElementId(mailToFind)), `no ${getElementId(mailToFind)}`).attachments)
 		})
@@ -525,7 +525,7 @@ o.spec("OfflineMailIndexer", () => {
 
 			const updateProgressCaptor = matchers.captor()
 			verify(persistence.updateImportQueueProgress(importList, updateProgressCaptor.capture(), mailImportType))
-			o(last(updateProgressCaptor.values!)).equals(elementIdPart(importedMails[totalMails - 1]._id))
+			o(arrayLast(updateProgressCaptor.values!)).equals(elementIdPart(importedMails[totalMails - 1]._id))
 
 			verify(persistence.clearEncryptedMailDetailsBlobs())
 			verify(persistence.removeImportQueueEntry(matchers.anything()), { times: 0 })
@@ -585,7 +585,7 @@ o.spec("OfflineMailIndexer", () => {
 			})
 			const updateProgressCaptor = matchers.captor()
 			when(persistence.updateImportQueueProgress(listId, updateProgressCaptor.capture(), mailImportType)).thenDo(() => {
-				importQueueProgress = last(updateProgressCaptor.values!)
+				importQueueProgress = arrayLast(updateProgressCaptor.values!)
 			})
 
 			when(persistence.getIndexedGroups()).thenResolve([])

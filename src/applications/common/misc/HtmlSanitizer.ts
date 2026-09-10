@@ -1,5 +1,5 @@
 import { ReplacementImage } from "../../../ui/base/icons/Icons"
-import { isEmpty, isNotNull, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
+import { arrayIsEmpty, isNotNull, memoized, stringToUtf8Uint8Array, utf8Uint8ArrayToString } from "@tutao/utils"
 import DOMPurify, { Config } from "dompurify"
 import {
 	combineParsers,
@@ -456,7 +456,7 @@ export class HtmlSanitizer {
 	}
 
 	private highlightText(currentNode: Node, config: SanitizeConfig) {
-		if (isEmpty(config.highlightedStrings) || !currentNode.hasChildNodes()) {
+		if (arrayIsEmpty(config.highlightedStrings) || !currentNode.hasChildNodes()) {
 			return
 		}
 
@@ -473,7 +473,7 @@ export class HtmlSanitizer {
 				const substrings = splitTextForHighlighting(dataBefore, config.highlightedStrings)
 
 				// First, check if we even have anything that needs highlighted
-				if (isEmpty(substrings) || (substrings.length === 1 && !substrings[0].highlighted)) {
+				if (arrayIsEmpty(substrings) || (substrings.length === 1 && !substrings[0].highlighted)) {
 					continue
 				}
 

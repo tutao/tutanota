@@ -1,5 +1,5 @@
 import { decode } from "cborg"
-import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayPartitionedAsync, downcast, stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebAuthnFacade, WebauthnKeyDescriptor } from "@tutao/native-bridge/generatedIpc/types"
 import { Const, DomainConfig, EnvProvider } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
@@ -23,7 +23,7 @@ export class WebauthnClient {
 		// If it's a new Webauthn key it will match rpId, otherwise it will match legacy appId.
 
 		// Partition in keys that might work and which certainly cannot work.
-		const [canAttempt, cannotAttempt] = await partitionAsync(
+		const [canAttempt, cannotAttempt] = await arrayPartitionedAsync(
 			challenge.keys,
 			async (k) => (await this.webauthn.canAttemptChallengeForRpId(k.appId)) || (await this.webauthn.canAttemptChallengeForU2FAppId(k.appId)),
 		)
@@ -115,7 +115,7 @@ export class WebauthnClient {
 				return this.getWebauthnUrl(domainConfig, "legacy")
 			} else {
 				// Nothing else worked, select legacy U2F key for whitelabel domain
-				const keyToUse = getFirstOrThrow(challenge.keys)
+				const keyToUse = arrayFirstOrThrow(challenge.keys)
 				const keyUrl = new URL(keyToUse.appId)
 				const domainConfigForHostname = this.domainConfigProvider.getDomainConfigForHostname(keyUrl.hostname, keyUrl.protocol, keyUrl.port)
 				return this.getWebauthnUrl(domainConfigForHostname, "new")

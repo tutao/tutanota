@@ -14,7 +14,7 @@ import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatDate } from "../../../../ui/utils/Formatter"
-import { isEmpty, isNotEmpty, isNotNull, isSameDayOfDate, lazyMemoized } from "@tutao/utils"
+import { arrayIsEmpty, arrayIsNotEmpty, isNotNull, isSameDayOfDate, lazyMemoized } from "@tutao/utils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -176,7 +176,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
 		const anyItemInTrash = this.searchViewModel.anySelectedItemInTrash()
 		const selectedItems = Array.from(listState.selectedItems)
-		const hasSelectedItems = isNotEmpty(selectedItems)
+		const hasSelectedItems = arrayIsNotEmpty(selectedItems)
 		const allItemsInTrash = this.searchViewModel.allItemsInTrash()
 		return {
 			onTrash: hasSelectedItems && !allItemsInTrash ? () => this.searchViewModel.moveToTrash(selectedItems) : null,
@@ -544,7 +544,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 			m(
 				".rel.flex-grow",
 				!Styles.get().isDesktopLayout() ? null : this.renderActionBar(showMoveItemDialog),
-				listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
+				listState.loadingStatus === ListLoadingState.Done && arrayIsEmpty(listState.items)
 					? this.renderEmptyView()
 					: m(DriveFolderContent, {
 							sortOrder: this.searchViewModel.getCurrentColumnSortOrder(),

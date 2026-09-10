@@ -1,6 +1,6 @@
 import m, { Child, ClassComponent, Vnode } from "mithril"
 import { Time } from "../date/Time"
-import { deepMemoized, getStartOfDay, getStartOfNextDay, lastIndex } from "@tutao/utils"
+import { arrayLastIndex, deepMemoized, getStartOfDay, getStartOfNextDay } from "@tutao/utils"
 import { elementIdPart } from "@tutao/meta"
 import { DateTime } from "luxon"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
@@ -151,7 +151,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 				this.renderDayColumn(
 					date,
 					attrs,
-					index === lastIndex(attrs.dates) && attrs.layout.hideRightBorder,
+					index === arrayLastIndex(attrs.dates) && attrs.layout.hideRightBorder,
 					index === 0 && attrs.layout.showLeftBorderAtFirstColumn,
 				),
 			),

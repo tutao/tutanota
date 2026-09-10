@@ -4,7 +4,7 @@ import { EnvProvider, UpgradePromptType } from "../../../platform-kit/app-env"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { PasswordForm, PasswordModel } from "./PasswordForm.js"
 import { SelectMailAddressForm } from "./SelectMailAddressForm.js"
-import { assertNotNull, getFirstOrThrow, ofClass } from "../../../platform-kit/utils"
+import { arrayFirstOrThrow, assertNotNull, ofClass } from "../../../platform-kit/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
@@ -29,7 +29,7 @@ export async function show(): Promise<void> {
 		enforceStrength: false,
 		hideConfirmation: true,
 	})
-	let selectedDomain = getFirstOrThrow(availableDomains)
+	let selectedDomain = arrayFirstOrThrow(availableDomains)
 	let form = {
 		view: () => {
 			return [

@@ -2,7 +2,7 @@ import stream from "mithril/stream"
 import { getElementId, isSameId, listIdPart } from "@tutao/meta"
 import { CancelledError, EnvProvider } from "@tutao/app-env"
 import { SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertNonNull, assertNotNull, incrementMonth, isNotEmpty, lastIndex, lazyAsync, stringToBase64, tokenize } from "@tutao/utils"
+import { arrayIsNotEmpty, arrayLastIndex, assertNonNull, assertNotNull, incrementMonth, lazyAsync, stringToBase64, tokenize } from "@tutao/utils"
 import { ProgressTracker } from "../../../common/api/main/ProgressTracker.js"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
@@ -58,7 +58,7 @@ export class CalendarSearchModel {
 				return resultItems.slice(oldLoadedUntil, loadedUntil)
 			},
 			get hasMoreResults() {
-				return isNotEmpty(resultItems) && loadedUntil < lastIndex(resultItems)
+				return arrayIsNotEmpty(resultItems) && loadedUntil < arrayLastIndex(resultItems)
 			},
 			updates: stream(),
 			dispose: () => {

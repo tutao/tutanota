@@ -5,22 +5,22 @@ import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { HttpMethod, MediaType, RestBinaryBody, RestTextBody, SuspensionBehavior } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
+	arrayFirstOrThrow,
+	arrayIsEmpty,
 	assertNonNull,
 	assertNotNull,
 	base64ToBase64Ext,
 	collectionSum,
-	concat,
 	filterInt,
-	getFirstOrThrow,
-	groupBy,
-	isEmpty,
+	iterableGroupedBy,
 	neverNull,
 	noOp,
 	Nullable,
 	promiseMap,
-	splitUint8ArrayInChunks,
+	uint8ArrayChunked,
 	uint8ArrayToBase64,
 	uint8ArrayToString,
+	uint8ArrayUtils,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
@@ -234,7 +234,7 @@ export class BlobFacade {
 		transferId: TransferId,
 		onChunkUploaded?: (info: UploadProgressInfo) => void,
 	): Promise<BlobReferenceTokenWrapper[]> {
-		const chunks = splitUint8ArrayInChunks(MAX_BLOB_SIZE_BYTES, blobData)
+		const chunks = uint8ArrayChunked(MAX_BLOB_SIZE_BYTES, blobData)
 
 		const abortController = new AbortController()
 		this.abortControllers.set(transferId, abortController)
@@ -641,7 +641,7 @@ export class BlobFacade {
 	): Promise<Map<Id, Uint8Array<ArrayBuffer> | null>> {
 		// If a mail has multiple attachments, we cannot assume they are all on the same archive.
 		// But all blobs of a single attachment should be in the same archive
-		const instancesByArchive = groupBy(referencingInstances, (instance) => getFirstOrThrow(instance.blobs).archiveId)
+		const instancesByArchive = iterableGroupedBy(referencingInstances, (instance) => arrayFirstOrThrow(instance.blobs).archiveId)
 
 		// instance id to data
 		const result: Map<Id, Uint8Array<ArrayBuffer> | null> = new Map()
@@ -699,7 +699,7 @@ export class BlobFacade {
 				}
 			}
 		}
-		return concat(...decryptedChunks)
+		return uint8ArrayUtils(...decryptedChunks)
 	}
 
 	/**
@@ -746,7 +746,7 @@ export class BlobFacade {
 				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOpt)
 
 				try {
-					const archiveIdToBlobs = groupBy<Blob, Id>(referencingInstance.blobs, (blob) => blob.archiveId)
+					const archiveIdToBlobs = iterableGroupedBy<Blob, Id>(referencingInstance.blobs, (blob) => blob.archiveId)
 					for (const [archiveId, blobs] of archiveIdToBlobs) {
 						const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
 						for (const blob of blobs) {
@@ -927,7 +927,7 @@ export class BlobFacade {
 		const typeModel = await this.instancePipeline.typeModelResolver.resolveServerTypeReference(BlobPostOutTypeRef)
 		const instance = IncomingServerJson.expectSingleInstance(jsonData, typeModel)
 		const blobPostOut = await this.instancePipeline.decryptAndMap<BlobPostOut>(instance, null)
-		if (isEmpty(blobPostOut.blobReferenceTokens)) {
+		if (arrayIsEmpty(blobPostOut.blobReferenceTokens)) {
 			throw new ProgrammingError(`empty blobReferenceTokens not allowed for post multiple blob ${JSON.stringify(blobPostOut)}`)
 		}
 		return blobPostOut.blobReferenceTokens
@@ -941,7 +941,7 @@ export class BlobFacade {
 		onProgress: (bytes: number) => unknown,
 		abortSignal: Nullable<AbortSignal> = null,
 	): Promise<Map<Id, Uint8Array<ArrayBuffer>>> {
-		const archiveIdToBlobs = groupBy(blobs, (blob) => blob.archiveId)
+		const archiveIdToBlobs = iterableGroupedBy(blobs, (blob) => blob.archiveId)
 		let mapWithEncryptedBlobs: Map<Id, Uint8Array<ArrayBuffer>> = new Map()
 		for (const [archiveId, archiveBlobs] of archiveIdToBlobs) {
 			const blobServerAccessInfo = assertNotNull(blobServerAccessInfos.get(archiveId))
@@ -974,10 +974,10 @@ export class BlobFacade {
 		onProgress: (bytes: number) => unknown,
 		abortSignal: AbortSignal | null,
 	): Promise<Map<Id, Uint8Array<ArrayBuffer>>> {
-		if (isEmpty(blobs)) {
+		if (arrayIsEmpty(blobs)) {
 			throw new ProgrammingError("Blobs are empty")
 		}
-		const archiveId = getFirstOrThrow(blobs).archiveId
+		const archiveId = arrayFirstOrThrow(blobs).archiveId
 		if (blobs.some((blob) => blob.archiveId !== archiveId)) {
 			throw new ProgrammingError("Must only request blobs of the same archive together")
 		}

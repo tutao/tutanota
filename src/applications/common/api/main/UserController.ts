@@ -1,5 +1,5 @@
 import { EnvProvider, FeatureType, SessionType } from "@tutao/app-env"
-import { assertNotNull, downcast, first, mapAndFilterNull, newPromise, ofClass } from "@tutao/utils"
+import { arrayFirst, arrayMapFilterNull, assertNotNull, downcast, newPromise, ofClass } from "@tutao/utils"
 import { elementIdPart, elementIdToId, idToElementId, isSameId, isSameSingleId, listIdPart, NULL_ENTITY } from "@tutao/meta"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { locator } from "./CommonLocator"
@@ -363,8 +363,8 @@ export class UserController {
 		// therefore the result of the filtering all domainInfos with no whitelabelConfig
 		// can only be an array of length 0 or 1
 		const customerInfo = await this.loadCustomerInfo()
-		const domainInfoAndConfig = first(
-			mapAndFilterNull(
+		const domainInfoAndConfig = arrayFirst(
+			arrayMapFilterNull(
 				customerInfo.domainInfos,
 				(domainInfo) =>
 					domainInfo.whitelabelConfig && {

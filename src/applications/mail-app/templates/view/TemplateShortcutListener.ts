@@ -1,6 +1,6 @@
 import { Editor } from "../../../../ui/editor/Editor"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { downcast, getFirstOrThrow } from "../../../../platform-kit/utils"
+import { arrayFirstOrThrow, downcast } from "../../../../platform-kit/utils"
 import { TEMPLATE_SHORTCUT_PREFIX, TemplatePopupModel } from "../model/TemplatePopupModel.js"
 import { lang, languageByCode, LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
 import { Dropdown } from "../../../../ui/base/Dropdown.js"
@@ -73,7 +73,7 @@ class TemplateShortcutListener {
 						dropdown.setOrigin(this._editor.getCursorPosition())
 						modal.displayUnique(dropdown, false)
 					} else {
-						this._editor.insertHTML(getFirstOrThrow(template.contents).text)
+						this._editor.insertHTML(arrayFirstOrThrow(template.contents).text)
 					}
 				} else {
 					showTemplatePopupInEditor(this._templateModel, this._editor, null, selectedText)

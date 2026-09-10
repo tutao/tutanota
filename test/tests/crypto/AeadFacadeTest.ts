@@ -3,7 +3,7 @@ import { AeadWithSessionKeySubKeys, PADDING_BYTE, SymmetricCipherVersion } from 
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
-import { concat } from "../../../src/platform-kit/utils"
+import { uint8ArrayUtils } from "../../../src/platform-kit/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -31,8 +31,8 @@ o.spec("AeadFacadeTest", function () {
 		// we make sure that data is treated differently depending on whether it is part of the associated data or the ciphertext. this ensures a canonical form.
 		const versionedCiphertext = aeadFacade.encrypt(keys, plaintext, associatedData)
 		const wrongVersionedCiphertext = versionedCiphertext.subarray(0, versionedCiphertext.length - 4)
-		const wrongAssociatedData = concat(versionedCiphertext.subarray(versionedCiphertext.length - 4), associatedData)
-		o(concat(versionedCiphertext, associatedData)).deepEquals(concat(wrongVersionedCiphertext, wrongAssociatedData))
+		const wrongAssociatedData = uint8ArrayUtils(versionedCiphertext.subarray(versionedCiphertext.length - 4), associatedData)
+		o(uint8ArrayUtils(versionedCiphertext, associatedData)).deepEquals(uint8ArrayUtils(wrongVersionedCiphertext, wrongAssociatedData))
 		const parsedWrongCiphertext = parseVersionedCiphertext(wrongVersionedCiphertext) as ParsedCiphertextAead
 		const e = await assertThrows(CryptoError, async () => aeadFacade.decrypt(keys, parsedWrongCiphertext, wrongAssociatedData))
 		o(e.message).equals("invalid mac")

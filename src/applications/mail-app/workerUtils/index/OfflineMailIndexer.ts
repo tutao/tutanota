@@ -3,18 +3,18 @@ import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbor
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
+	arrayChunked,
+	arrayFirstOrThrow,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
+	arrayLastOrThrow,
 	assertNotNull,
-	collectToMap,
-	difference,
-	getFirstOrThrow,
-	groupBy,
-	groupByAndMap,
-	isEmpty,
-	isNotEmpty,
-	lastThrow,
+	iterableCollectToMap,
+	iterableDifference,
+	iterableGroupedBy,
+	iterableGroupedByMapped,
 	LazyLoaded,
 	promiseMap,
-	splitInChunks,
 } from "@tutao/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
@@ -115,7 +115,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 	async init(): Promise<void> {
 		const mailIndexedGroups = (await this.offlineStoragePersistence.getIndexedGroups()).filter((indexedGroup) => indexedGroup.type === GroupType.Mail)
-		this.fullyIndexed = isNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === FULL_INDEXED_TIMESTAMP)
+		this.fullyIndexed = arrayIsNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === FULL_INDEXED_TIMESTAMP)
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
 	}
 
@@ -173,15 +173,15 @@ export class OfflineMailIndexer implements MailIndexer {
 		const mailGroups = filterMailMemberships(user).map((membership) => membership.group)
 		const indexedGroups = await this.offlineStoragePersistence.getIndexedGroups()
 
-		const mailGroupData = collectToMap(
+		const mailGroupData = iterableCollectToMap(
 			indexedGroups.filter((group) => group.type === GroupType.Mail),
 			(g) => g.groupId,
 		)
 
 		const indexedMailGroups = [...mailGroupData.values()].filter((group) => group.indexedTimestamp === FULL_INDEXED_TIMESTAMP).map((group) => group.groupId)
 
-		const mailGroupsToAdd = difference(mailGroups, indexedMailGroups)
-		const mailGroupsToRemove = difference(indexedMailGroups, mailGroups)
+		const mailGroupsToAdd = iterableDifference(mailGroups, indexedMailGroups)
+		const mailGroupsToRemove = iterableDifference(indexedMailGroups, mailGroups)
 
 		console.log(
 			TAG,
@@ -195,7 +195,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		const totalMailboxes = mailGroupsToAdd.length
 		let indexedMailCount = 0
 
-		if (!isEmpty(mailGroupsToAdd)) {
+		if (!arrayIsEmpty(mailGroupsToAdd)) {
 			const indexStart = performance.now()
 
 			const updateProgress = async (progress: number) => {
@@ -298,19 +298,19 @@ export class OfflineMailIndexer implements MailIndexer {
 				}
 			}
 
-			if (isEmpty(mails)) {
+			if (arrayIsEmpty(mails)) {
 				return
 			}
 
 			const attachmentIds: IdTuple[] = mails.flatMap((mails) => mails.attachments)
-			const attachmentsByList: Map<Id, IdTuple[]> = groupBy(attachmentIds, listIdPart)
+			const attachmentsByList: Map<Id, IdTuple[]> = iterableGroupedBy(attachmentIds, listIdPart)
 
 			// load all files into cache (we should be able to retrieve these later if we are successful)
 			for (const [list, ids] of attachmentsByList.entries()) {
 				await this.entityClient.loadMultiple(FileTypeRef, list, ids.map(elementIdPart))
 			}
 
-			const lastMail = lastThrow(mails)
+			const lastMail = arrayLastOrThrow(mails)
 			currentId = getElementId(lastMail)
 			await this.indexNonRecentMails(mails, archiveDownloadPromises, async () => {
 				await updateStorageProgress(1, totalMailsDownloaded++)
@@ -342,7 +342,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			{ concurrency: 10 },
 		)
 
-		if (!isEmpty(mailsToStore)) {
+		if (!arrayIsEmpty(mailsToStore)) {
 			await this.offlineStoragePersistence.storeMailData(mailsToStore)
 		}
 	}
@@ -430,7 +430,7 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		this.currentlyIndexingPromise = (async () => {
 			try {
-				while (isNotEmpty(this.indexTasks)) {
+				while (arrayIsNotEmpty(this.indexTasks)) {
 					await abortAware(this.abortController, assertNotNull(this.indexTasks.shift()))
 				}
 			} catch (e) {
@@ -466,7 +466,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		const typeRef = (mailImportType === MailImportType.FileImport ? ImportedFileMailTypeRef : ImportedImapMailTypeRef) as TypeRef<CommonImportedMail>
 		const importedMails = await this.entityClient.loadAll(typeRef, importList, latestCommonImportedMailElementId)
 		console.log(TAG, `Processing import of ${importedMails.length} new ${mailImportType} mails...`)
-		if (isEmpty(importedMails)) {
+		if (arrayIsEmpty(importedMails)) {
 			return
 		}
 
@@ -477,7 +477,10 @@ export class OfflineMailIndexer implements MailIndexer {
 			}
 		})
 
-		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(assertNotNull(getFirstOrThrow(importedMails)._ownerGroup)))
+		const mailboxGroupRoot = await this.entityClient.load(
+			MailboxGroupRootTypeRef,
+			idToElementId(assertNotNull(arrayFirstOrThrow(importedMails)._ownerGroup)),
+		)
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 		const mailSets = await this.entityClient.loadAll(MailSetTypeRef, mailbox.mailSets.mailSets)
 		const importedMailSet = assertNotNull(mailSets.find((mailSet) => mailSet.folderType === MailSetKind.IMPORTED))
@@ -494,7 +497,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		let mailIds = entries.map((entries) => entries.mail).sort((a, b) => compareOldestFirst(elementIdPart(a), elementIdPart(b), EntityIdEncoding.Base64Ext))
 
 		// Can happen if we finished but the app closed before this was called
-		if (isEmpty(mailIds)) {
+		if (arrayIsEmpty(mailIds)) {
 			await this.offlineStoragePersistence.removeImportQueueEntry(importList)
 			return
 		}
@@ -504,8 +507,8 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		const archiveDownloadPromises = new Map()
 
-		for (const chunk of splitInChunks(this.indexChunkSize, mailIds)) {
-			const idsGrouped = groupByAndMap(chunk, listIdPart, elementIdPart)
+		for (const chunk of arrayChunked(this.indexChunkSize, mailIds)) {
+			const idsGrouped = iterableGroupedByMapped(chunk, listIdPart, elementIdPart)
 			const mails = await promiseMap(idsGrouped, async ([list, elements]) => {
 				return await this.entityClient.loadMultiple(MailTypeRef, list, elements)
 			})
@@ -515,7 +518,7 @@ export class OfflineMailIndexer implements MailIndexer {
 				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			})
 
-			const latestMailId = lastThrow(chunk)
+			const latestMailId = arrayLastOrThrow(chunk)
 			const latestMail = assertNotNull(mailsFlat.find((mail) => isSameId(mail._id, latestMailId)))
 			const latestMailSetEntryElementId = constructMailSetEntryId(latestMail.receivedDate, elementIdPart(latestMail._id))
 			const latestCommonImportedMailElementId = assertNotNull(

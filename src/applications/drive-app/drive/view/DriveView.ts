@@ -41,7 +41,7 @@ import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconB
 import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId, OperationUpdate, toFolderItem } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import Stream from "mithril/stream"
-import { isNotEmpty, isNotNull } from "@tutao/utils"
+import { arrayIsNotEmpty, isNotNull } from "@tutao/utils"
 import { MoveItems } from "./DriveMoveItemDialog"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
@@ -446,7 +446,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				selectNone: () => this.driveViewModel.toggleSelectAll(),
 			})
 		} else {
-			const useBackButton = isNotEmpty(this.driveViewModel.parents)
+			const useBackButton = arrayIsNotEmpty(this.driveViewModel.parents)
 			return m(MobileHeader, {
 				...headerAttrs,
 				title: this.driveViewModel.currentFolder ? driveFolderName(this.driveViewModel.currentFolder.folder) : undefined,
@@ -558,7 +558,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private selectedItemsActions(listState: ListState<FolderItem>, showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"]): DriveSelectedItemsActions {
 		const isListingTrash = this.driveViewModel.currentFolder?.type === DriveFolderType.Trash
 		const selectedItems = Array.from(listState.selectedItems)
-		const hasSelectedItems = isNotEmpty(selectedItems)
+		const hasSelectedItems = arrayIsNotEmpty(selectedItems)
 
 		return {
 			onTrash: isListingTrash || listState.selectedItems.size === 0 ? null : () => this.driveViewModel.moveToTrash(selectedItems.map(folderItemToId)),

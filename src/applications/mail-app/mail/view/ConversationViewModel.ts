@@ -12,10 +12,10 @@ import {
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { CreateMailViewerOptions } from "./MailViewer.js"
 import {
+	arrayFindLast,
+	arrayLastIndexBy,
 	assertNotNull,
-	findLast,
-	findLastIndex,
-	groupBy,
+	iterableGroupedBy,
 	makeSingleUse,
 	memoizedWithHiddenArgument,
 	ofClass,
@@ -127,7 +127,7 @@ export class ConversationViewModel {
 					return
 				}
 				const mail = await this.entityClient.load(MailTypeRef, entry.mail)
-				let index = findLastIndex(conversation, (i) => firstBiggerThanSecondBase64Ext(getElementId(entry), elementIdPart(i.entryId)))
+				let index = arrayLastIndexBy(conversation, (i) => firstBiggerThanSecondBase64Ext(getElementId(entry), elementIdPart(i.entryId)))
 				if (index < 0) {
 					index = conversation.length
 				} else {
@@ -274,7 +274,7 @@ export class ConversationViewModel {
 	}
 
 	private async loadMails(conversationEntries: ConversationEntry[]): Promise<Map<Id, Mail>> {
-		const byList = groupBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
+		const byList = iterableGroupedBy(conversationEntries, (c) => c.mail && listIdPart(c.mail))
 		const allMails: Map<Id, Mail> = new Map()
 		for (const [listId, conversations] of byList.entries()) {
 			if (!listId) continue
@@ -312,7 +312,7 @@ export class ConversationViewModel {
 				return null
 			}
 
-			return findLast(conversation, ({ viewModel }) => !viewModel.isDraftMail()) ?? null
+			return arrayFindLast(conversation, ({ viewModel }) => !viewModel.isDraftMail()) ?? null
 		},
 	)
 

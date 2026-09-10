@@ -5,7 +5,7 @@ import { DesktopNotifier } from "../notifications/DesktopNotifier"
 import { LanguageViewModel } from "../../../../ui/utils/LanguageViewModel"
 import { elementIdPart, isSameSingleId } from "@tutao/meta"
 import { CredentialEncryptionMode } from "@tutao/app-env"
-import { assert, assertNotNull, base64ToBase64Url, getFirstOrThrow, groupBy, neverNull, promiseMap } from "@tutao/utils"
+import { arrayFirstOrThrow, assert, assertNotNull, base64ToBase64Url, iterableGroupedBy, neverNull, promiseMap } from "@tutao/utils"
 import { log } from "../DesktopLog"
 import { DesktopAlarmScheduler } from "./DesktopAlarmScheduler.js"
 import { DesktopAlarmStorage } from "./DesktopAlarmStorage.js"
@@ -47,9 +47,9 @@ class TutaNotificationHandler {
 	}
 
 	async onMailNotification(sseInfo: SseInfo, notificationInfos: Array<NotificationInfoParams>) {
-		const infosByListId = groupBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
+		const infosByListId = iterableGroupedBy(notificationInfos, (ni) => assertNotNull(ni.mailId).listId)
 		for (const [listId, infos] of infosByListId.entries()) {
-			const firstNotificationInfo = getFirstOrThrow(infos)
+			const firstNotificationInfo = arrayFirstOrThrow(infos)
 			const appWindow = this.windowManager.getAll().find((window) => window.getUserId() === firstNotificationInfo.userId)
 
 			if (appWindow && appWindow.isFocused()) {

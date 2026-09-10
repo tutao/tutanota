@@ -23,7 +23,7 @@ import {
 	TypeRef,
 	ValueTypeEnum,
 } from "@tutao/meta"
-import { assertNotNull, getFirstOrThrow, groupBy, isNotEmpty, isNotNull, lastThrow, lazyAsync, Nullable } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayIsNotEmpty, arrayLastOrThrow, assertNotNull, isNotNull, iterableGroupedBy, lazyAsync, Nullable } from "@tutao/utils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { ENTITY_EVENT_BATCH_EXPIRE_MS } from "../../../../../app-kit/local-store/event/EventBusClient.js"
 import { DecryptedParsedInstance, OwnerEncSessionKeyProvider, PatchMerger, TypeModelResolver } from "@tutao/instance-pipeline"
@@ -510,11 +510,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			if (isFinishedLoading) {
 				console.log("finished loading, setting min id")
 				await this.cacheStorage.setLowerRangeForList(typeRef, listId, isCustomId ? CUSTOM_MIN_ID : GENERATED_MIN_ID)
-			} else if (isNotEmpty(instancesWithoutErrors)) {
+			} else if (arrayIsNotEmpty(instancesWithoutErrors)) {
 				// When all receivedEntities have SessionKeyNotFound errors, and therefore instancesWithoutSessionKeyNotFoundErrors is empty, do nothing
 
 				// After reversing the list the first element in the list is the lower range limit
-				const id = getFirstOrThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
+				const id = arrayFirstOrThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
 				await this.cacheStorage.setLowerRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		} else {
@@ -525,8 +525,8 @@ export class DefaultEntityRestCache implements EntityRestCache {
 				// all elements have been loaded, so the upper range must be set to MAX_ID
 				console.log("finished loading, setting max id")
 				await this.cacheStorage.setUpperRangeForList(typeRef, listId, isCustomId ? CUSTOM_MAX_ID : GENERATED_MAX_ID)
-			} else if (isNotEmpty(instancesWithoutErrors)) {
-				const id = lastThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
+			} else if (arrayIsNotEmpty(instancesWithoutErrors)) {
+				const id = arrayLastOrThrow(instancesWithoutErrors).getAttributeByName("_id").asIdTuple()
 				await this.cacheStorage.setUpperRangeForList(typeRef, listId, elementIdPart(id))
 			}
 		}
@@ -736,7 +736,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		// if the entity is not in cache we don't want to patch or re-download it
 		if (cached) {
 			try {
-				if (update.patches && isNotEmpty(update.patches)) {
+				if (update.patches && arrayIsNotEmpty(update.patches)) {
 					const patchAppliedInstance = await this.patchMerger.patchAndStoreInstance(update)
 					if (patchAppliedInstance == null) {
 						return await this.loadAndStoreInstanceFromUpdate(update)
@@ -762,7 +762,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 	}
 
 	async updateCacheWithMissedEntityUpdates(entityUpdates: EntityUpdateData[]): Promise<void> {
-		const eventsByType = groupBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
+		const eventsByType = iterableGroupedBy(entityUpdates, (entityUpdate) => getTypeString(entityUpdate.typeRef))
 		for (const [typeIdentifier, entityUpdates] of eventsByType) {
 			const typeRef = parseTypeString(typeIdentifier) as TypeRef<PersistentEntity>
 

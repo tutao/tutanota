@@ -6,7 +6,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import { isNavButtonSelected, isSelectedPrefix } from "../../../../ui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange.js"
-import { isNotEmpty } from "../../../../platform-kit/utils"
+import { arrayIsNotEmpty } from "../../../../platform-kit/utils"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
@@ -22,8 +22,6 @@ import { getFolderIcon } from "./MailGuiUtils"
 import { IconSize } from "../../../../ui/base/Icon"
 import { FolderSystemKind, MailSetTreeActionAttrs, MailSetTreeAttrs, renderFolderTree } from "./MailSetTreeUtils"
 import { Group } from "@tutao/entities/sys"
-import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { isSpamOrTrashFolder } from "../model/MailChecks"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
@@ -115,7 +113,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const orphanChildren = folders
 				? renderFolderTree(orphanSystems, FolderSystemKind.Orphan, groupCounters, folders, mailTreeAttrs, path, isInternalUser, this).children
 				: []
-			if (isNotEmpty(orphanChildren)) {
+			if (arrayIsNotEmpty(orphanChildren)) {
 				children.push(
 					m(
 						SidebarSection,

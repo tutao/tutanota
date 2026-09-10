@@ -1,52 +1,37 @@
 export {
-	concat,
-	numberRange,
-	lazyNumberRange,
 	arrayEquals,
-	arrayEqualsWithPredicate,
-	arrayHashSigned,
-	arrayHashUnsigned,
-	remove,
-	clear,
-	findAll,
-	findAndRemove,
-	findAllAndRemove,
-	replace,
-	mapAndFilterNull,
-	filterNull,
-	last,
-	isEmpty,
-	isNotEmpty,
-	lastThrow,
-	getFirstOrThrow,
-	first,
-	findLast,
-	findLastIndex,
-	contains,
-	addAll,
-	removeAll,
-	groupByAndMapUniquely,
-	groupByAndMap,
-	groupBy,
-	splitInChunks,
+	arrayEqualsBy,
+	arrayRemove,
+	arrayClear,
+	arrayFindAll,
+	arrayRemoveBy,
+	arrayRemoveAllBy,
+	arrayReplace,
+	arrayMapFilterNull,
+	arrayFilterNull,
+	arrayLast,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
+	arrayLastOrThrow,
+	arrayFirstOrThrow,
+	arrayFirst,
+	arrayFindLast,
+	arrayLastIndexBy,
+	arrayContains,
+	arrayAddAll,
+	arrayRemoveAll,
+	arrayChunked,
 	flatMap,
-	insertIntoSortedArray,
-	zip,
-	deduplicate,
-	binarySearch,
-	lastIndex,
-	union,
-	difference,
-	symmetricDifference,
-	partition,
-	splitUint8ArrayInChunks,
-	partitionAsync,
+	arrayInsertIntoSorted,
+	arrayZip,
+	arrayDeduplicated,
+	arrayBinarySearch,
+	arrayLastIndex,
+	arrayPartitioned,
+	arrayPartitionedAsync,
 	arrayOf,
-	count,
-	compare,
-	collectToMap,
-	splitArrayAt,
-	splitUint8Array,
+	arrayCount,
+	arraySplitAt,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export {
@@ -176,3 +161,18 @@ export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"
 export { mutable } from "./WebAssemblyArgument"
 export * from "./TsUtils"
+export { uint8ArraySplitAt } from "./Uint8ArrayUtils"
+export { uint8ArrayCompare } from "./Uint8ArrayUtils"
+export { uint8ArrayChunked } from "./Uint8ArrayUtils"
+export { uint8ArrayHashUnsigned } from "./Uint8ArrayUtils"
+export { uint8ArrayHashSigned } from "./Uint8ArrayUtils"
+export { uint8ArrayUtils } from "./Uint8ArrayUtils"
+export { setSymmetricDifference } from "./CollectionUtils"
+export { iterableDifference } from "./CollectionUtils"
+export { iterableUnion } from "./CollectionUtils"
+export { iterableCollectToMap } from "./CollectionUtils"
+export { iterableGroupedBy } from "./CollectionUtils"
+export { iterableGroupedByMapped } from "./CollectionUtils"
+export { iterableGroupedUniqByMapped } from "./CollectionUtils"
+export { lazyNumberRange } from "./CollectionUtils"
+export { numberRange } from "./CollectionUtils"

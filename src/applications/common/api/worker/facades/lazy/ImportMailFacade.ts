@@ -20,7 +20,7 @@ import {
 	ImportMailDataTypeRef,
 	ImportMailService_POST,
 } from "@tutao/entities/tutanota"
-import { assertNotNull, getFirstOrThrow, isEmpty, promiseMap } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayIsEmpty, assertNotNull, promiseMap } from "@tutao/utils"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { BlobReferenceTokenWrapper, createStringWrapper, StringWrapper } from "@tutao/entities/sys"
 import { IMPORT_MAIL_SERVICE_SIZE_LIMIT } from "@tutao/rest-client"
@@ -169,7 +169,7 @@ export class ImportMailFacade {
 			const importMailPostIn = createImportMailPostIn({
 				encImports,
 				importFileMailState: null,
-				imapFolderSyncState: getFirstOrThrow(importMailsParamsList).imapFolderSyncState,
+				imapFolderSyncState: arrayFirstOrThrow(importMailsParamsList).imapFolderSyncState,
 			})
 			await this.serviceExecutor.execute(ImportMailService_POST, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
@@ -214,7 +214,7 @@ export class ImportMailFacade {
 				)
 			}
 
-			if (!isEmpty(attachments)) {
+			if (!arrayIsEmpty(attachments)) {
 				result.set(key, attachments)
 			}
 		})

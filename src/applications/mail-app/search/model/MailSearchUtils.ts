@@ -1,5 +1,5 @@
 import { Params } from "mithril"
-import { arrayEquals, filterInt, getDayShifted, getStartOfDay, isEmpty } from "../../../../platform-kit/utils"
+import { arrayEquals, arrayIsEmpty, filterInt, getDayShifted, getStartOfDay } from "../../../../platform-kit/utils"
 import { SearchCategoryType, SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Mail, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
@@ -170,9 +170,9 @@ export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
 
 export function hasMoreResults(searchResult: SearchResult): boolean {
 	return (
-		!isEmpty(searchResult.moreResults) ||
-		!isEmpty(searchResult.moreResultsEntries) ||
-		(!isEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
+		!arrayIsEmpty(searchResult.moreResults) ||
+		!arrayIsEmpty(searchResult.moreResultsEntries) ||
+		(!arrayIsEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
 	)
 }
 

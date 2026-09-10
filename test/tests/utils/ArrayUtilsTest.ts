@@ -1,27 +1,27 @@
 import o from "@tutao/otest"
 import {
+	arrayChunked,
+	arrayClear,
+	arrayDeduplicated,
 	arrayEquals,
-	arrayEqualsWithPredicate,
-	arrayHashSigned,
-	arrayHashUnsigned,
+	arrayEqualsBy,
+	arrayInsertIntoSorted,
+	arrayLastIndexBy,
 	arrayOf,
-	clear,
-	compare,
-	concat,
-	deduplicate,
-	difference,
-	findLastIndex,
+	arrayPartitioned,
+	arrayPartitionedAsync,
+	arraySplitAt,
 	flatMap,
-	groupBy,
-	groupByAndMap,
-	groupByAndMapUniquely,
-	insertIntoSortedArray,
+	iterableDifference,
+	iterableGroupedBy,
+	iterableGroupedByMapped,
+	iterableGroupedUniqByMapped,
 	lazyNumberRange,
-	partition,
-	partitionAsync,
-	splitArrayAt,
-	splitInChunks,
-	symmetricDifference,
+	setSymmetricDifference,
+	uint8ArrayCompare,
+	uint8ArrayHashSigned,
+	uint8ArrayHashUnsigned,
+	uint8ArrayUtils,
 } from "../../../src/platform-kit/utils"
 
 type ObjectWithId = {
@@ -31,12 +31,12 @@ type ObjectWithId = {
 }
 o.spec("array utils", function () {
 	o("concat arrays", function () {
-		o(Array.from(concat(new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])))).deepEquals([1, 2, 3, 4, 5, 6])
-		o(Array.from(concat(new Uint8Array([]), new Uint8Array([1])))).deepEquals([1])
-		o(Array.from(concat(new Uint8Array([1]), new Uint8Array([])))).deepEquals([1])
-		o(Array.from(concat(new Uint8Array(0), new Uint8Array(0)))).deepEquals([])
-		o([1, 2, 3]).deepEquals(Array.from(concat(new Uint8Array([1, 2, 3]))))
-		o([1, 2, 3, 4, 5, 6]).deepEquals(Array.from(concat(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
+		o(Array.from(uint8ArrayUtils(new Uint8Array([1, 2, 3]), new Uint8Array([4, 5, 6])))).deepEquals([1, 2, 3, 4, 5, 6])
+		o(Array.from(uint8ArrayUtils(new Uint8Array([]), new Uint8Array([1])))).deepEquals([1])
+		o(Array.from(uint8ArrayUtils(new Uint8Array([1]), new Uint8Array([])))).deepEquals([1])
+		o(Array.from(uint8ArrayUtils(new Uint8Array(0), new Uint8Array(0)))).deepEquals([])
+		o([1, 2, 3]).deepEquals(Array.from(uint8ArrayUtils(new Uint8Array([1, 2, 3]))))
+		o([1, 2, 3, 4, 5, 6]).deepEquals(Array.from(uint8ArrayUtils(new Uint8Array([1, 2]), new Uint8Array([3, 4]), new Uint8Array([5, 6]))))
 	})
 	o("ArrayEquals ", function () {
 		o(arrayEquals([], [])).equals(true)
@@ -48,9 +48,9 @@ o.spec("array utils", function () {
 	o("arrayEqualsWithPredicate ", function () {
 		const predicate = (a: any, b: any) => a.value === b.value
 
-		o(arrayEqualsWithPredicate([], [], predicate)).equals(true)
+		o(arrayEqualsBy([], [], predicate)).equals(true)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						value: "a",
@@ -65,7 +65,7 @@ o.spec("array utils", function () {
 			),
 		).equals(true)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						value: "a",
@@ -80,7 +80,7 @@ o.spec("array utils", function () {
 			),
 		).equals(false)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						value: "a",
@@ -91,7 +91,7 @@ o.spec("array utils", function () {
 			),
 		).equals(false)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						value: "a",
@@ -106,7 +106,7 @@ o.spec("array utils", function () {
 			),
 		).equals(false)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						someOtherValue: "a",
@@ -121,7 +121,7 @@ o.spec("array utils", function () {
 			),
 		).equals(false)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[
 					{
 						someOtherValue: "a",
@@ -136,7 +136,7 @@ o.spec("array utils", function () {
 			),
 		).equals(true)
 		o(
-			arrayEqualsWithPredicate(
+			arrayEqualsBy(
 				[],
 				[
 					{
@@ -148,27 +148,27 @@ o.spec("array utils", function () {
 		).equals(false)
 	})
 	o("splitInChunks", function () {
-		o(splitInChunks(3, [1, 2, 3, 4, 5])).deepEquals([
+		o(arrayChunked(3, [1, 2, 3, 4, 5])).deepEquals([
 			[1, 2, 3],
 			[4, 5],
 		])
-		o(splitInChunks(5, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
-		o(splitInChunks(6, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
-		o(splitInChunks(0, [1, 2, 3, 4, 5])).deepEquals([])
-		o(splitInChunks(3, [])).deepEquals([[]])
-		o(splitInChunks(-1, [])).deepEquals([])
-		o(splitInChunks(-1, [1, 2, 3, 4])).deepEquals([])
-		o(splitInChunks(0, [])).deepEquals([])
-		o(splitInChunks(0, [1, 2, 3])).deepEquals([])
-		o(splitInChunks(1, [1, 2, 3])).deepEquals([[1], [2], [3]])
-		o(splitInChunks(2, [1, 2, 3])).deepEquals([[1, 2], [3]])
+		o(arrayChunked(5, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
+		o(arrayChunked(6, [1, 2, 3, 4, 5])).deepEquals([[1, 2, 3, 4, 5]])
+		o(arrayChunked(0, [1, 2, 3, 4, 5])).deepEquals([])
+		o(arrayChunked(3, [])).deepEquals([[]])
+		o(arrayChunked(-1, [])).deepEquals([])
+		o(arrayChunked(-1, [1, 2, 3, 4])).deepEquals([])
+		o(arrayChunked(0, [])).deepEquals([])
+		o(arrayChunked(0, [1, 2, 3])).deepEquals([])
+		o(arrayChunked(1, [1, 2, 3])).deepEquals([[1], [2], [3]])
+		o(arrayChunked(2, [1, 2, 3])).deepEquals([[1, 2], [3]])
 	})
 	o.spec("findLastIndex", function () {
 		o("returns the last index", function () {
-			o(findLastIndex([8, 1, 2, 8, 4, 5], (n) => n === 8)).equals(3)
+			o(arrayLastIndexBy([8, 1, 2, 8, 4, 5], (n) => n === 8)).equals(3)
 		})
 		o("returns -1 if not found", function () {
-			o(findLastIndex([1, 2, 3, 4, 5], (n) => n === 8)).equals(-1)
+			o(arrayLastIndexBy([1, 2, 3, 4, 5], (n) => n === 8)).equals(-1)
 		})
 	})
 	o.spec("insertIntoSortedArray", function () {
@@ -183,7 +183,7 @@ o.spec("array utils", function () {
 			expect: Array<ObjectWithId>,
 			equalsFn?: (arg0: ObjectWithId, arg1: ObjectWithId) => boolean,
 		) {
-			insertIntoSortedArray(insert, arr, comparator, equalsFn)
+			arrayInsertIntoSorted(insert, arr, comparator, equalsFn)
 			o(arr).deepEquals(expect)
 		}
 
@@ -616,13 +616,13 @@ o.spec("array utils", function () {
 	o("deduplicate", function () {
 		const comp = (a, b) => a === b
 
-		o(deduplicate([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], comp)).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
-		o(deduplicate([1, 1, 2, 3, 4, 4, 5, 6, 7, 0, 0, 8, 6, 5, 9, 4, 9, 3, 2, 1, 2, 3, 4], comp).sort()).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+		o(arrayDeduplicated([0, 1, 2, 3, 4, 5, 6, 7, 8, 9], comp)).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
+		o(arrayDeduplicated([1, 1, 2, 3, 4, 4, 5, 6, 7, 0, 0, 8, 6, 5, 9, 4, 9, 3, 2, 1, 2, 3, 4], comp).sort()).deepEquals([0, 1, 2, 3, 4, 5, 6, 7, 8, 9])
 		const object = {
 			a: 20,
 		}
 		o(
-			deduplicate([
+			arrayDeduplicated([
 				null,
 				1,
 				null,
@@ -692,14 +692,14 @@ o.spec("array utils", function () {
 	o("groupBy", function () {
 		const toRaw = (map) => Array.from(map.entries())
 
-		o(toRaw(groupBy([], (v) => v % 2))).deepEquals([])
-		o(toRaw(groupBy([0], (v) => v % 2))).deepEquals([[0, [0]]])
-		o(toRaw(groupBy([0, 1, 2, 3, 4], (_) => 1))).deepEquals([[1, [0, 1, 2, 3, 4]]])
-		o(toRaw(groupBy([0, 1, 2, 3, 4], (v) => v % 2))).deepEquals([
+		o(toRaw(iterableGroupedBy([], (v) => v % 2))).deepEquals([])
+		o(toRaw(iterableGroupedBy([0], (v) => v % 2))).deepEquals([[0, [0]]])
+		o(toRaw(iterableGroupedBy([0, 1, 2, 3, 4], (_) => 1))).deepEquals([[1, [0, 1, 2, 3, 4]]])
+		o(toRaw(iterableGroupedBy([0, 1, 2, 3, 4], (v) => v % 2))).deepEquals([
 			[0, [0, 2, 4]],
 			[1, [1, 3]],
 		])
-		o(toRaw(groupBy([0, 1, 2, 3, 3, 4, 4], (v) => v % 3))).deepEquals([
+		o(toRaw(iterableGroupedBy([0, 1, 2, 3, 3, 4, 4], (v) => v % 3))).deepEquals([
 			[0, [0, 3, 3]],
 			[1, [1, 4, 4]],
 			[2, [2]],
@@ -710,14 +710,14 @@ o.spec("array utils", function () {
 
 		const mapper = (v) => v * v
 
-		o(toRaw(groupByAndMap([], (v) => v % 2, mapper))).deepEquals([])
-		o(toRaw(groupByAndMap([0], (v) => v % 2, mapper))).deepEquals([[0, [0]]])
-		o(toRaw(groupByAndMap([0, 1, 2, 3, 4], (_) => 1, mapper))).deepEquals([[1, [0, 1, 4, 9, 16]]])
-		o(toRaw(groupByAndMap([0, 1, 2, 3, 4], (v) => v % 2, mapper))).deepEquals([
+		o(toRaw(iterableGroupedByMapped([], (v) => v % 2, mapper))).deepEquals([])
+		o(toRaw(iterableGroupedByMapped([0], (v) => v % 2, mapper))).deepEquals([[0, [0]]])
+		o(toRaw(iterableGroupedByMapped([0, 1, 2, 3, 4], (_) => 1, mapper))).deepEquals([[1, [0, 1, 4, 9, 16]]])
+		o(toRaw(iterableGroupedByMapped([0, 1, 2, 3, 4], (v) => v % 2, mapper))).deepEquals([
 			[0, [0, 4, 16]],
 			[1, [1, 9]],
 		])
-		o(toRaw(groupByAndMap([0, 1, 2, 3, 3, 4, 4], (v) => v % 3, mapper))).deepEquals([
+		o(toRaw(iterableGroupedByMapped([0, 1, 2, 3, 3, 4, 4], (v) => v % 3, mapper))).deepEquals([
 			[0, [0, 9, 9]],
 			[1, [1, 16, 16]],
 			[2, [4]],
@@ -728,14 +728,14 @@ o.spec("array utils", function () {
 
 		const mapper = (v) => v * v
 
-		o(toRaw(groupByAndMapUniquely([], (v) => v % 2, mapper))).deepEquals([])
-		o(toRaw(groupByAndMapUniquely([0], (v) => v % 2, mapper))).deepEquals([[0, [0]]])
-		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 4], (_) => 1, mapper))).deepEquals([[1, [0, 1, 4, 9, 16]]])
-		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 4], (v) => v % 2, mapper))).deepEquals([
+		o(toRaw(iterableGroupedUniqByMapped([], (v) => v % 2, mapper))).deepEquals([])
+		o(toRaw(iterableGroupedUniqByMapped([0], (v) => v % 2, mapper))).deepEquals([[0, [0]]])
+		o(toRaw(iterableGroupedUniqByMapped([0, 1, 2, 3, 4], (_) => 1, mapper))).deepEquals([[1, [0, 1, 4, 9, 16]]])
+		o(toRaw(iterableGroupedUniqByMapped([0, 1, 2, 3, 4], (v) => v % 2, mapper))).deepEquals([
 			[0, [0, 4, 16]],
 			[1, [1, 9]],
 		])
-		o(toRaw(groupByAndMapUniquely([0, 1, 2, 3, 3, 4, 4], (v) => v % 3, mapper))).deepEquals([
+		o(toRaw(iterableGroupedUniqByMapped([0, 1, 2, 3, 3, 4, 4], (v) => v % 3, mapper))).deepEquals([
 			[0, [0, 9]],
 			[1, [1, 16]],
 			[2, [4]],
@@ -744,7 +744,7 @@ o.spec("array utils", function () {
 	o("difference", function () {
 		const comp = (a, b) => a === b
 
-		const diff = (a, b) => difference(a, b, comp)
+		const diff = (a, b) => iterableDifference(a, b, comp)
 
 		o(diff([], [])).deepEquals([])
 		o(diff([], [1, 2, 3])).deepEquals([])
@@ -760,19 +760,19 @@ o.spec("array utils", function () {
 	o.spec("clear", function () {
 		o("clearing an array leaves it empty", function () {
 			let a = [1, 2, 3]
-			clear(a)
+			arrayClear(a)
 			o(a.length).equals(0)
 			o(a).deepEquals([])
 		})
 
 		o("clearing an array makes it return undefined for all entries", function () {
 			let a = ["hello", "world"]
-			clear(a)
+			arrayClear(a)
 			o(a[0]).equals(undefined)
 			o(a[1]).equals(undefined)
 
 			let b = ["a", "b", "c"]
-			clear(b)
+			arrayClear(b)
 			b.length = 3
 			o(b[0]).equals(undefined)
 			o(b[1]).equals(undefined)
@@ -781,25 +781,25 @@ o.spec("array utils", function () {
 	})
 	o.spec("symmetric difference", function () {
 		o("both empty", function () {
-			o(Array.from(symmetricDifference(new Set(), new Set()))).deepEquals([])
+			o(Array.from(setSymmetricDifference(new Set(), new Set()))).deepEquals([])
 		})
 		o("left empty", function () {
-			o(Array.from(symmetricDifference(new Set(), new Set([1])))).deepEquals([1])
+			o(Array.from(setSymmetricDifference(new Set(), new Set([1])))).deepEquals([1])
 		})
 		o("right empty", function () {
-			o(Array.from(symmetricDifference(new Set([1]), new Set([])))).deepEquals([1])
+			o(Array.from(setSymmetricDifference(new Set([1]), new Set([])))).deepEquals([1])
 		})
 		o("only difference", function () {
-			o(Array.from(symmetricDifference(new Set([1]), new Set([2])))).deepEquals([1, 2])
+			o(Array.from(setSymmetricDifference(new Set([1]), new Set([2])))).deepEquals([1, 2])
 		})
 		o("only common", function () {
-			o(Array.from(symmetricDifference(new Set([1, 2]), new Set([1, 2])))).deepEquals([])
+			o(Array.from(setSymmetricDifference(new Set([1, 2]), new Set([1, 2])))).deepEquals([])
 		})
 		o("left has more", function () {
-			o(Array.from(symmetricDifference(new Set([1, 2]), new Set([2])))).deepEquals([1])
+			o(Array.from(setSymmetricDifference(new Set([1, 2]), new Set([2])))).deepEquals([1])
 		})
 		o("right has more", function () {
-			o(Array.from(symmetricDifference(new Set([1]), new Set([1, 2])))).deepEquals([2])
+			o(Array.from(setSymmetricDifference(new Set([1]), new Set([1, 2])))).deepEquals([2])
 		})
 	})
 
@@ -811,7 +811,7 @@ o.spec("array utils", function () {
 				return typeof item === "string"
 			}
 
-			const [strings, numbers] = partition(array, isString)
+			const [strings, numbers] = arrayPartitioned(array, isString)
 			strings satisfies Array<string>
 			numbers satisfies Array<number>
 			o(strings).deepEquals(["1", "3"])
@@ -823,9 +823,9 @@ o.spec("array utils", function () {
 		const test = function (c: [string, any[], (any) => boolean, [any[], any[]]]) {
 			const [name, input, predicate, output] = c
 			o(name, async function () {
-				const result = partition(input, predicate)
+				const result = arrayPartitioned(input, predicate)
 				o(result).deepEquals(output)
-				const resultAsync = await partitionAsync(input, (e) => Promise.resolve(predicate(e)))
+				const resultAsync = await arrayPartitionedAsync(input, (e) => Promise.resolve(predicate(e)))
 				o(resultAsync).deepEquals(output)
 			})
 		}
@@ -861,7 +861,7 @@ o.spec("array utils", function () {
 		o("rejection in partitionAsync is propagated", async function () {
 			// can't use assertThrows because of circular dependency
 			try {
-				await partitionAsync([3, 1, 4, 1, 5, 9, 2, 6, 5, 3], (e) => (e === 9 ? Promise.reject(new Error()) : Promise.resolve(true)))
+				await arrayPartitionedAsync([3, 1, 4, 1, 5, 9, 2, 6, 5, 3], (e) => (e === 9 ? Promise.reject(new Error()) : Promise.resolve(true)))
 			} catch (e) {
 				return
 			}
@@ -882,17 +882,17 @@ o.spec("array utils", function () {
 	})
 
 	o("customId comparision", function () {
-		o(compare(new Uint8Array([]), new Uint8Array([]))).equals(0)
+		o(uint8ArrayCompare(new Uint8Array([]), new Uint8Array([]))).equals(0)
 
-		o(compare(new Uint8Array([1]), new Uint8Array([]))).equals(1)
+		o(uint8ArrayCompare(new Uint8Array([1]), new Uint8Array([]))).equals(1)
 
-		o(compare(new Uint8Array([]), new Uint8Array([1]))).equals(-1)
+		o(uint8ArrayCompare(new Uint8Array([]), new Uint8Array([1]))).equals(-1)
 
-		o(compare(new Uint8Array([1, 1]), new Uint8Array([1, 1]))).equals(0)
+		o(uint8ArrayCompare(new Uint8Array([1, 1]), new Uint8Array([1, 1]))).equals(0)
 
-		o(compare(new Uint8Array([1, 1, 3]), new Uint8Array([1, 1, 2]))).equals(1)
+		o(uint8ArrayCompare(new Uint8Array([1, 1, 3]), new Uint8Array([1, 1, 2]))).equals(1)
 
-		o(compare(new Uint8Array([1, 1, 2]), new Uint8Array([1, 1, 3]))).equals(-1)
+		o(uint8ArrayCompare(new Uint8Array([1, 1, 2]), new Uint8Array([1, 1, 3]))).equals(-1)
 	})
 
 	o.spec("lazyNumberRange", function () {
@@ -907,51 +907,51 @@ o.spec("array utils", function () {
 	})
 
 	o("arrayHashSigned", function () {
-		o(arrayHashSigned(new Uint8Array([]))).equals(0)
+		o(uint8ArrayHashSigned(new Uint8Array([]))).equals(0)
 		// Expected to overflow when shifting bytes left due array size
-		o(arrayHashSigned(new Uint8Array([3, 6, 3, 4, 5, 6, 7, 8, 9, 1, 2]))).equals(-405052188)
+		o(uint8ArrayHashSigned(new Uint8Array([3, 6, 3, 4, 5, 6, 7, 8, 9, 1, 2]))).equals(-405052188)
 		// When hashing a single number we expect it to be the return itself.
-		o(arrayHashSigned(new Uint8Array([1]))).equals(1)
+		o(uint8ArrayHashSigned(new Uint8Array([1]))).equals(1)
 
-		o(arrayHashSigned(new Uint8Array([123]))).equals(123)
+		o(uint8ArrayHashSigned(new Uint8Array([123]))).equals(123)
 
-		o(arrayHashSigned(new Uint8Array([1, 2, 4]))).equals(1027)
+		o(uint8ArrayHashSigned(new Uint8Array([1, 2, 4]))).equals(1027)
 	})
 
 	o("arrayHashUnsigned", function () {
-		o(arrayHashUnsigned(new Uint8Array([]))).equals(0)
+		o(uint8ArrayHashUnsigned(new Uint8Array([]))).equals(0)
 		// Expected to still be positive even if it has overflow from the arrayHash
-		o(arrayHashUnsigned(new Uint8Array([3, 6, 3, 4, 5, 6, 7, 8, 9, 1, 2]))).equals(3889915108)
+		o(uint8ArrayHashUnsigned(new Uint8Array([3, 6, 3, 4, 5, 6, 7, 8, 9, 1, 2]))).equals(3889915108)
 		// When hashing a single number we expect it to be the return itself.
-		o(arrayHashUnsigned(new Uint8Array([1]))).equals(1)
+		o(uint8ArrayHashUnsigned(new Uint8Array([1]))).equals(1)
 
-		o(arrayHashUnsigned(new Uint8Array([123]))).equals(123)
+		o(uint8ArrayHashUnsigned(new Uint8Array([123]))).equals(123)
 
-		o(arrayHashUnsigned(new Uint8Array([1, 2, 4]))).equals(1027)
+		o(uint8ArrayHashUnsigned(new Uint8Array([1, 2, 4]))).equals(1027)
 	})
 
 	o.spec("splitArrayAt", () => {
 		o.test("splits in middle", () => {
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 0)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 1)).deepEquals([[0], [1, 2, 3, 4, 5]])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 2)).deepEquals([
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 0)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 1)).deepEquals([[0], [1, 2, 3, 4, 5]])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 2)).deepEquals([
 				[0, 1],
 				[2, 3, 4, 5],
 			])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 3)).deepEquals([
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 3)).deepEquals([
 				[0, 1, 2],
 				[3, 4, 5],
 			])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 4)).deepEquals([
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 4)).deepEquals([
 				[0, 1, 2, 3],
 				[4, 5],
 			])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 5)).deepEquals([[0, 1, 2, 3, 4], [5]])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 6)).deepEquals([[0, 1, 2, 3, 4, 5], []])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 5)).deepEquals([[0, 1, 2, 3, 4], [5]])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 6)).deepEquals([[0, 1, 2, 3, 4, 5], []])
 		})
 		o.test("out of bounds splits", () => {
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], -1000)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
-			o.check(splitArrayAt([0, 1, 2, 3, 4, 5], 1000)).deepEquals([[0, 1, 2, 3, 4, 5], []])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], -1000)).deepEquals([[], [0, 1, 2, 3, 4, 5]])
+			o.check(arraySplitAt([0, 1, 2, 3, 4, 5], 1000)).deepEquals([[0, 1, 2, 3, 4, 5], []])
 		})
 	})
 })

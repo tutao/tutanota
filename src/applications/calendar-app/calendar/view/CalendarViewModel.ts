@@ -20,17 +20,17 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, Contac
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
+	arrayInsertIntoSorted,
+	arrayRemoveBy,
 	assertNotNull,
 	debounce,
 	deepEqual,
-	findAndRemove,
 	getEndOfDay,
 	getStartOfDay,
-	groupByAndMapUniquely,
 	identity,
 	incrementDate,
 	incrementMonth,
-	insertIntoSortedArray,
+	iterableGroupedUniqByMapped,
 	lazy,
 	lazyAsync,
 	memoized,
@@ -102,7 +102,6 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
@@ -619,7 +618,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const longEvents: Map<string, EventWrapper> = new Map()
 		let shortEvents: Array<Array<EventWrapper>> = []
 		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
-		const transientEventUidsByCalendar = groupByAndMapUniquely(
+		const transientEventUidsByCalendar = iterableGroupedUniqByMapped(
 			this._transientEvents,
 			(eventWrapper) => getListId(eventWrapper.event),
 			(eventWrapper) => eventWrapper.event.uid,
@@ -629,7 +628,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (isAllDayEvent(eventWrapper.event) || getDiffIn60mIntervals(eventWrapper.event.startTime, eventWrapper.event.endTime) >= 24) {
 				longEvents.set(getElementId(eventWrapper.event) + eventWrapper.event.startTime.toString(), eventWrapper)
 			} else {
-				insertIntoSortedArray(eventWrapper, shortEventsForDay, eventComparator, isSameEventInstance)
+				arrayInsertIntoSorted(eventWrapper, shortEventsForDay, eventComparator, isSameEventInstance)
 			}
 		}
 
@@ -680,7 +679,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	_removeTransientEvent(eventWrapper: EventWrapper) {
-		findAndRemove(this._transientEvents, (transient) => transient.event.uid === eventWrapper.event.uid)
+		arrayRemoveBy(this._transientEvents, (transient) => transient.event.uid === eventWrapper.event.uid)
 	}
 
 	/**

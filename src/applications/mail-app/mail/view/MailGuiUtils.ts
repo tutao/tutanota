@@ -4,15 +4,15 @@ import { Dialog } from "../../../../ui/base/Dialog"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import {
+	arrayFirst,
+	arrayFirstOrThrow,
+	arrayIsEmpty,
+	arrayIsNotEmpty,
 	assertNotNull,
 	clamp,
 	cleanMailAddress,
 	delay,
 	filterInt,
-	first,
-	getFirstOrThrow,
-	isEmpty,
-	isNotEmpty,
 	lazy,
 	lazyMemoized,
 	neverNull,
@@ -242,7 +242,7 @@ export async function moveMails({ mailModel, mailIds, targetFolder, moveMode, ma
 		}
 
 		const movedMails = await mailModel.moveMails(mailIds, targetFolder, moveMode)
-		if (isEmpty(movedMails)) {
+		if (arrayIsEmpty(movedMails)) {
 			return false
 		}
 		// run post-move actions async
@@ -271,7 +271,7 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 	// then it is okay to take the first target folder because it will be the same for each moved chunk.
 	// If it was a move in multiple mailboxes it will only be a system folder and all of the target mailSets will have
 	// the same type which is enough for our check.
-	const firstTargetFolderId = first(movedMails)?.targetFolder
+	const firstTargetFolderId = arrayFirst(movedMails)?.targetFolder
 	if (firstTargetFolderId == null) {
 		return
 	}
@@ -306,7 +306,7 @@ async function runPostMoveActions(mailModel: MailModel, mailboxModel: MailboxMod
 		}
 	}
 
-	const shouldReportMails = isNotEmpty(reportableMailIds) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
+	const shouldReportMails = arrayIsNotEmpty(reportableMailIds) && (await getReportConfirmation(MailReportType.SPAM, mailboxModel, mailModel))
 
 	const undoMoveText = shouldReportMails
 		? `${lang.getTranslation("undoMoveMail_msg", { "{folder}": getMailSetName(firstTargetFolder) }).text} ${lang.getTranslation("undoMailReport_msg").text}`
@@ -630,7 +630,7 @@ export async function showMoveMailsDropdown(
 	contactModel: ContactModel,
 	opts?: ShowMoveMailsDropdownOpts,
 ): Promise<void> {
-	const firstMail = first(mails)
+	const firstMail = arrayFirst(mails)
 	if (firstMail == null) return
 
 	const moveTargets = await getMoveTargetFolderSystems(mailModel, mails)
@@ -706,7 +706,7 @@ export async function showMailFolderDropdown(origin: PosRect, move: MoveDropdown
 			})
 		})
 	} else {
-		if (isEmpty(move.folders)) return
+		if (arrayIsEmpty(move.folders)) return
 
 		folderButtons = move.folders.map((f: MailSetInfo) =>
 			folderButton({
@@ -875,11 +875,11 @@ export function showLabelsPopup(
 ) {
 	const labels = mailModel.getLabelStatesForMails(selectedMails)
 
-	if (isEmpty(labels) || isEmpty(selectedMails)) {
+	if (arrayIsEmpty(labels) || arrayIsEmpty(selectedMails)) {
 		return
 	}
 
-	const mailGroupId = assertNotNull(getFirstOrThrow(selectedMails)._ownerGroup)
+	const mailGroupId = assertNotNull(arrayFirstOrThrow(selectedMails)._ownerGroup)
 	const labelSystem = assertNotNull(mailModel.getLabelFolderSystemByGroupId(mailGroupId))
 	const popup = new LabelsPopup(
 		dom ?? (document.activeElement as HTMLElement),

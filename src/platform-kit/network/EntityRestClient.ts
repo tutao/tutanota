@@ -11,18 +11,18 @@ import {
 } from "../meta"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
+	arrayChunked,
+	arrayIsNotEmpty,
 	assert,
 	assertNotNull,
 	Category,
 	downcast,
-	isNotEmpty,
 	isNotNull,
 	lazy,
 	Mapper,
 	Nullable,
 	ofClass,
 	promiseMap,
-	splitInChunks,
 	syncMetrics,
 } from "@tutao/utils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
@@ -273,7 +273,7 @@ export class EntityRestClient implements EntityRestInterface {
 			opts.ownerKeyProvider,
 			null,
 		)
-		const idChunks = splitInChunks(LOAD_MULTIPLE_LIMIT, elementIds)
+		const idChunks = arrayChunked(LOAD_MULTIPLE_LIMIT, elementIds)
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
 
@@ -502,7 +502,7 @@ export class EntityRestClient implements EntityRestInterface {
 			assert(false, `EntityRestClient should only be used for Elements or ListElements. Got: ${clientTypeModel.type}`)
 		}
 
-		const instanceChunks = splitInChunks(POST_MULTIPLE_LIMIT, instances)
+		const instanceChunks = arrayChunked(POST_MULTIPLE_LIMIT, instances)
 		const mapResult = await promiseMap(instanceChunks, (chunk) =>
 			this.postMultipleHandlerWithRetry(listId as Id, chunk, path, headers, persistencePostReturnTypeModel, clientTypeModel),
 		)
@@ -652,7 +652,7 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 
 		// Otherwise, split chunk in half and retry recursively
-		const smallerChunks = splitInChunks(Math.floor(instanceChunk.length / 2), instanceChunk)
+		const smallerChunks = arrayChunked(Math.floor(instanceChunk.length / 2), instanceChunk)
 		const results = await Promise.allSettled(
 			smallerChunks.map((chunk) => {
 				console.log(this.TAG, `Retrying with smaller chunk. \nFirst entity Id of new chunk: ${chunk[0]._id}`)
@@ -693,7 +693,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		// figure out differing fields and build the PATCH request payload
 		const patchList = await this.patchGenerator.computePatchPayload(originalParsedInstance, parsedInstance, modifiedEncryptedInstance)
-		if (isNotEmpty(patchList.patches)) {
+		if (arrayIsNotEmpty(patchList.patches)) {
 			// PatchList has no encrypted fields (sk == null)
 			const patchPayload = await this.instancePipeline.mapAndEncrypt(PatchListTypeRef, patchList, null)
 			await this.restClient.request(path, HttpMethod.PATCH, {

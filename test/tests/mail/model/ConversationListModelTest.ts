@@ -21,7 +21,7 @@ import { PageSize } from "../../../../src/ui/base/ListUtils"
 import { createTestEntity } from "../../TestUtils"
 import { MailboxDetail } from "../../../../src/applications/common/mailFunctionality/MailboxModel"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
-import { assertNotNull, clamp, isNotNull, lastThrow, pad } from "../../../../src/platform-kit/utils"
+import { arrayLastOrThrow, assertNotNull, clamp, isNotNull, pad } from "../../../../src/platform-kit/utils"
 import { LoadedMail } from "../../../../src/applications/mail-app/mail/model/MailSetListModel"
 import { ConversationListModel } from "../../../../src/applications/mail-app/mail/model/ConversationListModel"
 import { theme } from "../../../../src/ui/theme.js"
@@ -386,7 +386,7 @@ o.spec("ConversationListModel", () => {
 
 	o.test("handle create events while already loaded", async () => {
 		const loadedMails = await setUpTestData(PageSize, labels, false, 1)
-		const mail = lastThrow(loadedMails)
+		const mail = arrayLastOrThrow(loadedMails)
 		await model.loadInitial()
 
 		// the loaded mails are in reverse order, so we take the 0th element to get the last

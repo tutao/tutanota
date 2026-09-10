@@ -1,4 +1,4 @@
-import { concat, KeyVersion } from "@tutao/utils"
+import { KeyVersion, uint8ArrayUtils } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import {
 	Aes256Key,
@@ -103,7 +103,7 @@ const newAdminPubKeyAuthenticationSystem: KeyAuthenticationSystem<NewAdminPubKey
 			newAdminPubKey: { x25519PublicKey, kyberPublicKey },
 		},
 	}) {
-		return concat(x25519PublicKey, kyberPublicKey.raw)
+		return uint8ArrayUtils(x25519PublicKey, kyberPublicKey.raw)
 	},
 }
 
@@ -140,7 +140,7 @@ const pubDistKeyAuthenticationSystem: KeyAuthenticationSystem<PubDistKeyAuthenti
 			distPubKey: { x25519PublicKey, kyberPublicKey },
 		},
 	}) {
-		return concat(x25519PublicKey, kyberPublicKey.raw)
+		return uint8ArrayUtils(x25519PublicKey, kyberPublicKey.raw)
 	},
 }
 

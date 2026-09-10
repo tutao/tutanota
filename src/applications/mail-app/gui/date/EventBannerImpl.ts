@@ -2,7 +2,7 @@ import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEve
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { base64ToBase64Url, getStartOfDay, isNotNull, partition, stringToBase64 } from "@tutao/utils"
+import { base64ToBase64Url, getStartOfDay, isNotNull, arrayPartitioned, stringToBase64 } from "@tutao/utils"
 import { theme } from "../../../../ui/theme"
 import { Styles } from "../../../../ui/styles"
 import { layout_size, px } from "../../../../ui/size"
@@ -297,7 +297,7 @@ export async function loadEventsAroundInvite(
 
 		updateAttendeeStatusIfNeeded(iCalEvent, recipient, currentExistingEvent?.event)
 
-		const [allDayAndLongEvents, normalEvents] = partition(allExistingEvents, (ev) => {
+		const [allDayAndLongEvents, normalEvents] = arrayPartitioned(allExistingEvents, (ev) => {
 			const eventHas24HoursOrMore = getCalendarEventDurationInMinutes(ev.event) >= 60 * 24
 			return isAllDayEvent(ev.event) || eventHas24HoursOrMore
 		})

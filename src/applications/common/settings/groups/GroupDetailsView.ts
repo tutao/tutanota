@@ -3,7 +3,7 @@ import m, { ChildArray, Children } from "mithril"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../../ui/utils/Formatter.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { getFirstOrThrow, neverNull } from "@tutao/utils"
+import { arrayFirstOrThrow, neverNull } from "@tutao/utils"
 import type { TableAttrs } from "../../../../ui/base/Table.js"
 import { ColumnWidth, Table, TableLineAttrs } from "../../../../ui/base/Table.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
@@ -174,7 +174,7 @@ export class GroupDetailsView implements UpdatableSettingsDetailsViewer {
 		if (possibleMembers.length === 0) {
 			return Dialog.message("noValidMembersToAdd_msg")
 		}
-		let currentSelection = getFirstOrThrow(possibleMembers).value
+		let currentSelection = arrayFirstOrThrow(possibleMembers).value
 
 		const addUserToGroupOkAction = (dialog: Dialog) => {
 			// noinspection JSIgnoredPromiseFromCall

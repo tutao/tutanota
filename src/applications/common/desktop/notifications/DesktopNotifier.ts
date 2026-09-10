@@ -2,7 +2,7 @@ import type { NativeImage } from "electron"
 import type { DesktopTray } from "../tray/DesktopTray"
 import type { ApplicationWindow } from "../ApplicationWindow"
 import type { Dismisser, NotificationFactory } from "./NotificationFactory"
-import { defer, DeferredObject, getFromMap, isEmpty, LazyLoaded, noOp } from "@tutao/utils"
+import { arrayIsEmpty, defer, DeferredObject, getFromMap, LazyLoaded, noOp } from "@tutao/utils"
 
 /**
  * Send and manipulate notifications on desktop.
@@ -112,7 +112,7 @@ export class DesktopNotifier {
 
 	hasNotificationForUser(userId: string): boolean {
 		const grouped = this.notificationDismissersPerUser.get(userId)
-		return grouped != null && !isEmpty(grouped)
+		return grouped != null && !arrayIsEmpty(grouped)
 	}
 
 	async onNotificationClick(id: string): Promise<void> {

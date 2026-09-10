@@ -3,17 +3,17 @@ import stream from "mithril/stream"
 import { MailboxCounters, MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import {
+	arrayChunked,
+	arrayFirstOrThrow,
 	assertNotNull,
-	collectToMap,
-	getFirstOrThrow,
-	groupBy,
-	groupByAndMap,
 	isNotNull,
+	iterableCollectToMap,
+	iterableGroupedBy,
+	iterableGroupedByMapped,
 	lazyMemoized,
 	Nullable,
 	ofClass,
 	promiseMap,
-	splitInChunks,
 } from "../../../../platform-kit/utils"
 import { CUSTOM_MIN_ID, elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, listIdPart, OperationType } from "../../../../platform-kit/meta"
 import { EnvProvider, FeatureType, ProgrammingError, TutanotaError } from "../../../../platform-kit/app-env"
@@ -147,7 +147,7 @@ export class MailModel {
 				const labels = mailSets.filter(function (folder: MailSet): boolean {
 					return isLabel(folder)
 				})
-				const labelsMap = collectToMap(labels, getElementId)
+				const labelsMap = iterableCollectToMap(labels, getElementId)
 
 				const scheduledFolder = mailSets.find((set) => set.folderType === MailSetKind.SCHEDULED) ?? null
 				const folderSystem = new FolderSystem(mailSets)
@@ -307,7 +307,7 @@ export class MailModel {
 		if (mails.length === 0) {
 			return []
 		}
-		const labels = this.getLabelsByGroupId(assertNotNull(getFirstOrThrow(mails)._ownerGroup))
+		const labels = this.getLabelsByGroupId(assertNotNull(arrayFirstOrThrow(mails)._ownerGroup))
 		const allUsedSets = new Map<Id, number>()
 		for (const mail of mails) {
 			for (const set of mail.sets) {
@@ -443,9 +443,9 @@ export class MailModel {
 	}
 
 	async applyLabels(mails: readonly IdTuple[], addedLabels: readonly MailSet[], removedLabels: readonly MailSet[]): Promise<void> {
-		const groupedByListIds = groupBy(mails, (mailId) => listIdPart(mailId))
+		const groupedByListIds = iterableGroupedBy(mails, (mailId) => listIdPart(mailId))
 		for (const [_, groupedMails] of groupedByListIds) {
-			const mailChunks = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, groupedMails)
+			const mailChunks = arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, groupedMails)
 			for (const mailChunk of mailChunks) {
 				await this.mailFacade.applyLabels(mailChunk, addedLabels, removedLabels)
 			}
@@ -636,7 +636,7 @@ export class MailModel {
 	}
 
 	async loadAllMails(mailIds: readonly IdTuple[]): Promise<Mail[]> {
-		const mailIdsPerList = groupByAndMap(mailIds, listIdPart, elementIdPart)
+		const mailIdsPerList = iterableGroupedByMapped(mailIds, listIdPart, elementIdPart)
 		return (
 			await promiseMap(mailIdsPerList, ([listId, elementIds]) => this.entityClient.loadMultiple(MailTypeRef, listId, elementIds), {
 				concurrency: 2,

@@ -1,6 +1,6 @@
 import { KeyVerificationMismatchError } from "../../../network/error/KeyVerificationMismatchError"
 import { EncryptionKeyVerificationState, EnvProvider, IdentityKeySourceOfTrust, ProgrammingError } from "@tutao/app-env"
-import { concat, isNotNull, uint8ArrayToHex, Versioned } from "@tutao/utils"
+import { isNotNull, uint8ArrayToHex, uint8ArrayUtils, Versioned } from "@tutao/utils"
 import {
 	ed25519PublicKeyToBytes,
 	PublicKey,
@@ -42,8 +42,8 @@ export class KeyVerificationFacade {
 
 	//visible for testing
 	concatenateFingerprint(publicKey: Versioned<SigningPublicKey>): Uint8Array<ArrayBuffer> {
-		let keyMetadata = concat(new Uint8Array([publicKey.version, publicKey.object.type]))
-		return concat(keyMetadata, ed25519PublicKeyToBytes(publicKey.object.key))
+		let keyMetadata = uint8ArrayUtils(new Uint8Array([publicKey.version, publicKey.object.type]))
+		return uint8ArrayUtils(keyMetadata, ed25519PublicKeyToBytes(publicKey.object.key))
 	}
 
 	/**

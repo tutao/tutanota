@@ -1,5 +1,5 @@
 import { DriveFacade } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { assertNotNull, filterInt, findAllAndRemove } from "@tutao/utils"
+import { arrayRemoveAllBy, assertNotNull, filterInt } from "@tutao/utils"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import { CancelledError, ProgrammingError } from "@tutao/app-env"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
@@ -125,7 +125,7 @@ export class DriveTransferController {
 	}
 
 	private async reset(failedTransfer: QueuedTransfer) {
-		findAllAndRemove(this.finishedTransfers, (transfer) => transfer.id === failedTransfer.id)
+		arrayRemoveAllBy(this.finishedTransfers, (transfer) => transfer.id === failedTransfer.id)
 
 		// reset volatile properties
 		failedTransfer.transferredBytes = 0

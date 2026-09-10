@@ -8,7 +8,7 @@ import type { WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDia
 import { emitWizardEvent, WizardEventType } from "../../../../ui/base/WizardDialog.js"
 import { PreconditionFailedError } from "../../../../platform-kit/rest-client/error"
 import { showPlanUpgradeRequiredDialog } from "../../../common/misc/SubscriptionDialogs.js"
-import { isEmpty } from "../../../../platform-kit/utils"
+import { arrayIsEmpty } from "../../../../platform-kit/utils"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { createDnsRecordTable } from "./DnsRecordTable.js"
 import { getAvailableMatchingPlans } from "../../../common/subscription/utils/SubscriptionUtils.js"
@@ -127,7 +127,7 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 							return false
 						})
 
-						if (isEmpty(plans)) {
+						if (arrayIsEmpty(plans)) {
 							// shouldn't happen while we have the Unlimited plan...
 							Dialog.message("tooManyCustomDomains_msg")
 						} else {

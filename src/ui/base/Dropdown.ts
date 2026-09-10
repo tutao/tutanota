@@ -9,7 +9,7 @@ import { MultilineRowButton, MultilineRowButtonAttrs } from "./buttons/Multiline
 import { lang, MaybeTranslation, Translation } from "../utils/LanguageViewModel"
 import { EnvProvider, TabIndex } from "@tutao/app-env"
 import { getSafeAreaInsetBottom, getSafeAreaInsetTop } from "../HtmlUtils"
-import { assertNotNull, delay, downcast, filterNull, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/utils"
+import { arrayFilterNull, assertNotNull, delay, downcast, lazy, lazyAsync, makeSingleUse, noOp, Thunk } from "@tutao/utils"
 import { pureComponent } from "./PureComponent"
 import type { ClickHandler } from "./GuiUtils"
 import { IconButtonAttrs } from "./IconButton.js"
@@ -129,7 +129,7 @@ export class Dropdown implements ModalComponent {
 		this.filterString = ""
 
 		this.oninit = () => {
-			this.children = filterNull(lazyChildren())
+			this.children = arrayFilterNull(lazyChildren())
 			this.isFilterable = this.children.length > 10
 			this.children.map((child) => {
 				if (isDropDownInfo(child)) {

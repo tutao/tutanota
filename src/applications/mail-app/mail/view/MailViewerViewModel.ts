@@ -4,14 +4,14 @@ import { ContactModel } from "../../../common/contactsFunctionality/ContactModel
 import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import stream from "mithril/stream"
 import {
-	addAll,
+	arrayAddAll,
+	arrayContains,
+	arrayFirst,
+	arrayIsEmpty,
 	assertNonNull,
 	assertNotNull,
-	contains,
 	downcast,
 	filterInt,
-	first,
-	isEmpty,
 	lazyAsync,
 	noOp,
 	Nullable,
@@ -250,9 +250,9 @@ export class MailViewerViewModel {
 			this.mailDetails.recipients.toRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
 			this.mailDetails.recipients.ccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
 			this.mailDetails.recipients.bccRecipients.find((r) => enabledMailAddresses.has(r.address)) ??
-			first(this.mailDetails.recipients.toRecipients) ??
-			first(this.mailDetails.recipients.ccRecipients) ??
-			first(this.mailDetails.recipients.bccRecipients)
+			arrayFirst(this.mailDetails.recipients.toRecipients) ??
+			arrayFirst(this.mailDetails.recipients.ccRecipients) ??
+			arrayFirst(this.mailDetails.recipients.bccRecipients)
 		m.redraw()
 	}
 
@@ -791,7 +791,7 @@ export class MailViewerViewModel {
 			.replaceAll(/\n[ \t]/g, "") // join multiline headers to a single line
 			.split("\n") // split headers
 			.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
-		return !isEmpty(listUnsubscribeHeaders)
+		return !arrayIsEmpty(listUnsubscribeHeaders)
 	}
 
 	isImportedMail(): boolean {
@@ -828,7 +828,7 @@ export class MailViewerViewModel {
 
 		const listUnsubscribeHeaders = normalizedHeaders.filter((headerLine) => headerLine.toLowerCase().startsWith("list-unsubscribe:"))
 
-		if (isEmpty(listUnsubscribeHeaders)) {
+		if (arrayIsEmpty(listUnsubscribeHeaders)) {
 			return unsubscribeActions
 		}
 
@@ -1069,7 +1069,7 @@ export class MailViewerViewModel {
 					}),
 				)
 			}
-			const foundAddress = addressesInMail.find((address) => contains(myMailAddresses, address.address.toLowerCase()))
+			const foundAddress = addressesInMail.find((address) => arrayContains(myMailAddresses, address.address.toLowerCase()))
 			if (foundAddress) {
 				return foundAddress.address.toLowerCase()
 			} else {
@@ -1186,29 +1186,29 @@ export class MailViewerViewModel {
 				toRecipients.push(sender)
 			} else if (this.isReceivedMail()) {
 				if (this.getReplyTos().some((address) => !downcast(address)._errors)) {
-					addAll(toRecipients, this.getReplyTos())
+					arrayAddAll(toRecipients, this.getReplyTos())
 				} else {
 					toRecipients.push(sender)
 				}
 
 				if (replyAll) {
 					let myMailAddresses = getEnabledMailAddressesWithUser(mailboxDetails, this.logins.getUserController().userGroupInfo)
-					addAll(
+					arrayAddAll(
 						ccRecipients,
-						this.getToRecipients().filter((recipient) => !contains(myMailAddresses, recipient.address.toLowerCase())),
+						this.getToRecipients().filter((recipient) => !arrayContains(myMailAddresses, recipient.address.toLowerCase())),
 					)
-					addAll(
+					arrayAddAll(
 						ccRecipients,
-						this.getCcRecipients().filter((recipient) => !contains(myMailAddresses, recipient.address.toLowerCase())),
+						this.getCcRecipients().filter((recipient) => !arrayContains(myMailAddresses, recipient.address.toLowerCase())),
 					)
 				}
 			} else {
 				// this is a sent email, so use the to recipients as new recipients
-				addAll(toRecipients, this.getToRecipients())
+				arrayAddAll(toRecipients, this.getToRecipients())
 
 				if (replyAll) {
-					addAll(ccRecipients, this.getCcRecipients())
-					addAll(bccRecipients, this.getBccRecipients())
+					arrayAddAll(ccRecipients, this.getCcRecipients())
+					arrayAddAll(bccRecipients, this.getBccRecipients())
 				}
 			}
 

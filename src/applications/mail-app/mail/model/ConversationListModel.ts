@@ -6,13 +6,13 @@ import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailModel } from "./MailModel"
 import {
+	arrayFirst,
+	arrayInsertIntoSorted,
+	arrayIsEmpty,
+	arrayLast,
+	arrayRemoveAllBy,
 	assertNotNull,
-	findAllAndRemove,
-	first,
-	insertIntoSortedArray,
-	isEmpty,
 	isNotNull,
-	last,
 	mapWithout,
 	memoizedWithHiddenArgument,
 	settledThen,
@@ -92,7 +92,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	get lastItem(): Mail | null {
-		return last(this.items) ?? null
+		return arrayLast(this.items) ?? null
 	}
 
 	areAllSelected(): boolean {
@@ -395,7 +395,7 @@ export class ConversationListModel implements MailSetListModel {
 	}
 
 	setFilter(filterTypes: ReadonlyArray<ListFilter<Mail>>): void {
-		if (isEmpty(filterTypes)) {
+		if (arrayIsEmpty(filterTypes)) {
 			this.currentFilter = null
 		} else {
 			this.currentFilter = (item: Mail) => {
@@ -464,7 +464,7 @@ export class ConversationListModel implements MailSetListModel {
 		} else if (this.isInMultiselect()) {
 			return null
 		} else {
-			return first(this.getSelectedAsArray())
+			return arrayFirst(this.getSelectedAsArray())
 		}
 	}
 
@@ -718,7 +718,7 @@ export class LoadedConversation {
 	 * This does not update the displayed mail. To do that, you must call {@link updateMainMail} after adding mail(s).
 	 */
 	insertOrUpdateMail(mail: LoadedMail) {
-		insertIntoSortedArray(
+		arrayInsertIntoSorted(
 			mail,
 			this.conversationMails,
 			(a, b) => reverseCompareMailSetEntryId(elementIdPart(a.mailSetEntryId), elementIdPart(b.mailSetEntryId)),
@@ -733,7 +733,7 @@ export class LoadedConversation {
 	 * @param mailElementId mail to delete
 	 */
 	deleteMail(mailElementId: Id) {
-		findAllAndRemove(this.conversationMails, (mail) => getElementId(mail.mail) === mailElementId)
+		arrayRemoveAllBy(this.conversationMails, (mail) => getElementId(mail.mail) === mailElementId)
 	}
 
 	/**
@@ -753,7 +753,7 @@ export class LoadedConversation {
 
 		const filter = this.listFilter
 		if (filter == null) {
-			this.mainMail = first(this.conversationMails)
+			this.mainMail = arrayFirst(this.conversationMails)
 		} else {
 			// The main mail is only changed to a different mail when the filter is first applied, see applyFilterToConversation
 			// While the filter is still applied, we want to keep the same main mail (for example, in the case of
@@ -794,7 +794,7 @@ export class LoadedConversation {
 	 * Get the oldest mail of the conversation
 	 */
 	getOldestMail(): LoadedMail | null {
-		return last(this.conversationMails) ?? null
+		return arrayLast(this.conversationMails) ?? null
 	}
 
 	/**

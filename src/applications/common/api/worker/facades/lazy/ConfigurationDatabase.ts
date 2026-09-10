@@ -1,5 +1,14 @@
 import { DbFacade } from "../../search/DbFacade.js"
-import { assertNotNull, concat, downcast, LazyLoaded, Nullable, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
+import {
+	assertNotNull,
+	downcast,
+	LazyLoaded,
+	Nullable,
+	stringToUtf8Uint8Array,
+	uint8ArrayToBase64,
+	uint8ArrayUtils,
+	utf8Uint8ArrayToString,
+} from "@tutao/utils"
 import {
 	_encryptKeyWithVersionedKey,
 	Aes256Key,
@@ -63,7 +72,7 @@ export async function decryptLegacyItem(
 	key: Aes256Key,
 	initializationVector: InitializationVector,
 ): Promise<string> {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, concat(initializationVector.bytes, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, uint8ArrayUtils(initializationVector.bytes, encryptedAddress)))
 }
 
 /**

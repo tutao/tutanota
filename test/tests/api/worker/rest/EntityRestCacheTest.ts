@@ -22,7 +22,7 @@ import {
 	PersistentEntity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
-import { arrayOf, assertNotNull, deepEqual, downcast, last, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { arrayLast, arrayOf, assertNotNull, deepEqual, downcast, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
 import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
@@ -1941,7 +1941,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail = await storage.get(MailTypeRef, listId, getElementId(item))
 				o(mail).notEquals(null)
 			}
-			const lastId = getElementId(last(serverMails)!)
+			const lastId = getElementId(arrayLast(serverMails)!)
 			o(await storage.get(MailTypeRef, listId, lastId)).equals(null)
 
 			unmockAttribute(mockLoadRange)

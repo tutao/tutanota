@@ -1,12 +1,12 @@
 import { imapMailboxFromSyncSessionMailbox, ImapSyncSessionMailbox } from "./ImapSyncSessionMailbox.js"
 import type { ImapSyncEventListener } from "./ImapSyncEventListener.js"
-import { ImapCredentials, ImapMailId, ImapSyncContext } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
+import { ImapCredentials, ImapMailId } from "../../../api/common/utils/imapImportUtils/ImapSyncContext.js"
 import { ImapMail } from "../../../api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapMailbox, ImapMailboxStatus } from "../../../api/common/utils/imapImportUtils/ImapMailbox.js"
 import { ImapSyncConfig } from "./ImapSync.js"
 import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
-import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
+import { arrayIsEmpty, arrayIsNotEmpty, assertNotNull } from "@tutao/utils"
 import { imapMailFromImapFlowFetchMessageObject } from "./imapmail/ImapParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, SyncSessionEventListener } from "./ImapSyncSession"
@@ -183,10 +183,10 @@ export class ImapSyncSessionProcess {
 					}
 				}
 
-				if (isNotEmpty(imapMailsCreate)) {
+				if (arrayIsNotEmpty(imapMailsCreate)) {
 					await imapSyncEventListener.onMultipleMails(imapMailsCreate, ImapSyncEventType.CREATE)
 				}
-				if (isNotEmpty(imapMailsUpdate)) {
+				if (arrayIsNotEmpty(imapMailsUpdate)) {
 					await imapSyncEventListener.onMultipleMails(imapMailsUpdate, ImapSyncEventType.UPDATE)
 				}
 				nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest()
@@ -245,12 +245,12 @@ export class ImapSyncSessionProcess {
 	// Visible for testing
 	async handleQresyncFetchResult(imapMails: ImapMail[], imapSyncEventListener: ImapSyncEventListener) {
 		const mailUpdates = imapMails.filter((imapMail) => this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid))
-		if (!isEmpty(mailUpdates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.UPDATE)) {
+		if (!arrayIsEmpty(mailUpdates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.UPDATE)) {
 			await imapSyncEventListener.onMultipleMails(mailUpdates, ImapSyncEventType.UPDATE)
 		}
 
 		const mailCreates = imapMails.filter((imapMail) => !this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.has(imapMail.uid))
-		if (!isEmpty(mailCreates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.CREATE)) {
+		if (!arrayIsEmpty(mailCreates) && this.imapSyncConfig.emitImapSyncEventTypes.has(ImapSyncEventType.CREATE)) {
 			for (const imapMail of imapMails) {
 				this.syncSessionProcessMailbox.mailboxState.importedUidToMailIdsMap.set(imapMail.uid, { uid: imapMail.uid, modSeq: imapMail.modSeq })
 			}

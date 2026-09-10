@@ -7,6 +7,7 @@ import { Dialog } from "../../../../ui/base/Dialog.js"
 import type { MousePosAndBounds } from "../../../../ui/base/GuiUtils.js"
 import { Time } from "../../../common/calendar/date/Time.js"
 import {
+	arrayIsNotEmpty,
 	assert,
 	assertNotNull,
 	clamp,
@@ -14,7 +15,6 @@ import {
 	getFromMap,
 	getStartOfDay,
 	incrementDate,
-	isNotEmpty,
 	isSameDay,
 	isToday,
 	newPromise,
@@ -902,11 +902,11 @@ export function shouldDisplayEvent(e: CalendarEvent, hiddenCalendars: ReadonlySe
 }
 
 export function daysHaveEvents(eventsOnDays: EventsOnDays): boolean {
-	return eventsOnDays.shortEventsPerDay.some(isNotEmpty) || isNotEmpty(eventsOnDays.longEvents)
+	return eventsOnDays.shortEventsPerDay.some(arrayIsNotEmpty) || arrayIsNotEmpty(eventsOnDays.longEvents)
 }
 
 export function daysHaveAllDayEvents(eventsOnDays: EventsOnDays): boolean {
-	return isNotEmpty(eventsOnDays.longEvents)
+	return arrayIsNotEmpty(eventsOnDays.longEvents)
 }
 
 /**

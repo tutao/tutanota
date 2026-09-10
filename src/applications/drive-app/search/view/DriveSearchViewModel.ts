@@ -3,14 +3,14 @@ import Id from "../../../../ui/translations/id"
 import { createEmptyRestriction, emptyListModel, getSearchUrl, isNewSearch, LiveSearchResult, SearchQuery } from "../../../common/search/SearchUtils"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import {
+	arrayFirstOrThrow,
+	arrayIsNotEmpty,
 	DateProvider,
 	debounce,
 	filterInt,
 	findBy,
 	getEndOfDay,
-	getFirstOrThrow,
 	getStartOfDay,
-	isNotEmpty,
 	isNotNull,
 	memoizedWithHiddenArgument,
 	YEAR_IN_MILLIS,
@@ -331,8 +331,8 @@ export class DriveSearchViewModel {
 			this.#startDate = restriction.end ? new Date(restriction.end) : null
 			this.#endDate = restriction.start ? new Date(restriction.start) : null
 			const fileShips = this.logins.getUserController().getFileGroupMemberships()
-			if (isNotEmpty(fileShips)) {
-				const searchPromise = this.search.searchDrive(newQuery, getFirstOrThrow(fileShips).group).then((result) => {
+			if (arrayIsNotEmpty(fileShips)) {
+				const searchPromise = this.search.searchDrive(newQuery, arrayFirstOrThrow(fileShips).group).then((result) => {
 					this.applyLiveSearchResults(result)
 					return result
 				})

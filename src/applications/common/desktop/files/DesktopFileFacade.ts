@@ -12,7 +12,7 @@ import { FileUri } from "../../../../app-kit/native-bridge/common/FileApp.js"
 import { ElectronExports, FsExports, PathExports } from "../ElectronExportTypes.js"
 import path from "node:path"
 import { ApplicationWindow } from "../ApplicationWindow.js"
-import { assertNotNull, DateProvider, first, newPromise, promiseFilter, throttle, uint8ArrayToBase64 } from "@tutao/utils"
+import { arrayFirst, assertNotNull, DateProvider, newPromise, promiseFilter, throttle, uint8ArrayToBase64 } from "@tutao/utils"
 import { looksExecutable, nonClobberingFilename } from "../PathUtils.js"
 import { fileURLToPath as nodeFileURLToPath, pathToFileURL } from "node:url"
 import FsModule, { WriteStream } from "node:fs"
@@ -267,7 +267,7 @@ export class DesktopFileFacade implements FileFacade {
 		const { filePaths } = await this.electron.dialog.showOpenDialog(this.win._browserWindow, {
 			properties: ["openDirectory"],
 		})
-		const firstPath = first(filePaths)
+		const firstPath = arrayFirst(filePaths)
 		if (firstPath && (await this.fs.promises.stat(firstPath)).isDirectory()) {
 			return pathToFileURL(firstPath).toString()
 		} else {

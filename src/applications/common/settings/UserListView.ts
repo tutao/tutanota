@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { NotFoundError } from "../../../platform-kit/rest-client/error"
 import { component_size } from "../../../ui/size.js"
 import { elementIdPart } from "../../../platform-kit/meta"
-import { assertNotNull, contains, LazyLoaded, noOp } from "../../../platform-kit/utils"
+import { arrayContains, assertNotNull, LazyLoaded, noOp } from "../../../platform-kit/utils"
 import { UserViewer } from "./UserViewer.js"
 import { EnvProvider, FeatureType } from "../../../platform-kit/app-env"
 import { Icon } from "../../../ui/base/Icon.js"
@@ -183,7 +183,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private isAdmin(userGroupInfo: GroupInfo): boolean {
-		return contains(this.adminUserGroupInfoIds, userGroupInfo._id[1])
+		return arrayContains(this.adminUserGroupInfoIds, userGroupInfo._id[1])
 	}
 
 	private addButtonClicked() {

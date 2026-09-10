@@ -2,7 +2,16 @@ import { CalendarEvent, CalendarRepeatRule, createFile } from "@tutao/entities/t
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
 import { EndType, RepeatPeriod, TimeConstants } from "../../../../platform-kit/app-env"
-import { assertNotNull, downcast, incrementDate, isNotEmpty, mapAndFilterNull, neverNull, pad, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
+import {
+	arrayIsNotEmpty,
+	arrayMapFilterNull,
+	assertNotNull,
+	downcast,
+	incrementDate,
+	neverNull,
+	pad,
+	stringToUtf8Uint8Array,
+} from "../../../../platform-kit/utils"
 import { calendarAttendeeStatusToParstat, iCalReplacements, repeatPeriodToIcalFrequency } from "./CalendarParser"
 import { getAllDayDateLocal, isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { AlarmIntervalUnit, ByRule, generateUid, getTimeZone, parseAlarmInterval } from "../../../common/calendar/date/CalendarUtils"
@@ -93,7 +102,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(event.recurrenceId == null ? serializeRepeatRule(repeatRule, isAllDay, timeZone) : [])
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${serializeIcalText(event.location)}` : [])
 		.concat(
-			...mapAndFilterNull(alarms, (alarm) => {
+			...arrayMapFilterNull(alarms, (alarm) => {
 				try {
 					return serializeAlarm(event, alarm)
 				} catch (e) {
@@ -109,7 +118,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[]): string {
 	let advancedRepeatRules = ""
 
-	if (isNotEmpty(advancedRules)) {
+	if (arrayIsNotEmpty(advancedRules)) {
 		const BYRULES = new Map<string, string>()
 		const byRuleValueToKey = reverse(ByRule)
 		for (const r of advancedRules) {

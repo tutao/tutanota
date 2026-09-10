@@ -1,7 +1,7 @@
 import { AddressToName, MailAddressNameChanger } from "./MailAddressTableModel.js"
 import { MailboxModel } from "../../mailFunctionality/MailboxModel.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { findAndRemove } from "@tutao/utils"
+import { arrayRemoveBy } from "@tutao/utils"
 import { createMailAddressProperties, MailboxProperties } from "@tutao/entities/tutanota"
 
 /** Name changer for personal mailbox of the currently logged-in user. */
@@ -33,7 +33,7 @@ export class OwnMailAddressNameChanger implements MailAddressNameChanger {
 	async removeSenderName(address: string): Promise<AddressToName> {
 		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
-		findAndRemove(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === address)
+		arrayRemoveBy(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === address)
 		await this.entityClient.update(mailboxProperties)
 		return this.collectMap(mailboxProperties)
 	}

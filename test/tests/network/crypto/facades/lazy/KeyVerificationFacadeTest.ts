@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyVerificationFacade } from "../../../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { matchers, object, verify, when } from "testdouble"
-import { concat, hexToUint8Array, uint8ArrayToHex, Versioned } from "../../../../../../src/platform-kit/utils"
+import { hexToUint8Array, uint8ArrayToHex, uint8ArrayUtils, Versioned } from "../../../../../../src/platform-kit/utils"
 import { EncryptionKeyVerificationState, IdentityKeySourceOfTrust, ProgrammingError } from "../../../../../../src/platform-kit/app-env"
 import {
 	bytesToEd25519PublicKey,
@@ -28,7 +28,7 @@ const { anything } = matchers
 
 const PUBLIC_KEY_BYTES = hexToUint8Array(testData.ed25519Tests[0].alicePublicKeyHex)
 const PUBLIC_KEY: Ed25519PublicKey = bytesToEd25519PublicKey(PUBLIC_KEY_BYTES)
-const PUBLIC_KEY_FINGERPRINT = uint8ArrayToHex(sha256Hash(concat(new Uint8Array([0]), new Uint8Array([SigningKeyPairType.Ed25519]), PUBLIC_KEY_BYTES)))
+const PUBLIC_KEY_FINGERPRINT = uint8ArrayToHex(sha256Hash(uint8ArrayUtils(new Uint8Array([0]), new Uint8Array([SigningKeyPairType.Ed25519]), PUBLIC_KEY_BYTES)))
 
 let trustDBEntry: TrustDBEntry
 

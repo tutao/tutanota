@@ -2,7 +2,7 @@ import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient.js"
-import { assertNotNull, DateProvider, delay, findAndRemove, getFirstOrThrow, KeyVersion, ofClass } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayRemoveBy, assertNotNull, DateProvider, delay, KeyVersion, ofClass } from "@tutao/utils"
 import { getEnabledMailAddressesForGroupInfo } from "../../../../../../platform-kit/network/GroupUtils.js"
 import { PreconditionFailedError } from "@tutao/rest-client/error"
 import { AdminKeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/AdminKeyLoaderFacade"
@@ -175,7 +175,7 @@ export class MailAddressFacade {
 				return false
 			}
 			const result = await this.serviceExecutor.execute(MultipleMailAddressAvailabilityService_GET, data, null)
-			return getFirstOrThrow(result.availabilities).available
+			return arrayFirstOrThrow(result.availabilities).available
 		} else {
 			throw new ProgrammingError("tried to get mail address availability while not fully logged in without a signup token")
 		}
@@ -254,7 +254,7 @@ export class MailAddressFacade {
 	 */
 	async removeSenderName(mailGroupId: Id, mailAddress: string, viaUser?: Id): Promise<Map<string, string>> {
 		const mailboxProperties = await this.getOrCreateMailboxProperties(mailGroupId, viaUser)
-		findAndRemove(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === mailAddress)
+		arrayRemoveBy(mailboxProperties.mailAddressProperties, (p) => p.mailAddress === mailAddress)
 		const updatedProperties = await this.updateMailboxProperties(mailboxProperties, viaUser)
 		return this.collectSenderNames(updatedProperties)
 	}

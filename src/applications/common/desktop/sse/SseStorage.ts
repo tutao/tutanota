@@ -1,6 +1,6 @@
 import { DesktopConfig } from "../config/DesktopConfig.js"
 import { DesktopConfigEncKey, DesktopConfigKey } from "../../../../platform-kit/app-env"
-import { remove } from "../../../../platform-kit/utils"
+import { arrayRemove } from "../../../../platform-kit/utils"
 import { SseInfo } from "./SseInfo.js"
 import { ExtendedNotificationMode } from "@tutao/native-bridge/generatedIpc/enums"
 
@@ -42,7 +42,7 @@ export class SseStorage {
 	async removeUser(userId: Id): Promise<SseInfo | null> {
 		const sseInfo = await this.getSseInfo()
 		if (sseInfo != null) {
-			remove(sseInfo.userIds, userId)
+			arrayRemove(sseInfo.userIds, userId)
 			await this.conf.setVar(DesktopConfigEncKey.sseInfo, sseInfo)
 			return sseInfo
 		} else {

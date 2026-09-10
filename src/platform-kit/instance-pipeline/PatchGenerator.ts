@@ -10,7 +10,7 @@ import {
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
 import { createPatch, createPatchList, Patch, PatchList } from "@tutao/entities/sys"
-import { arrayEquals, arrayEqualsWithPredicate, assert, assertNotNull, deepEqual, isEmpty, isNotEmpty, isNotNull, Nullable } from "@tutao/utils"
+import { arrayEquals, arrayEqualsBy, arrayIsEmpty, arrayIsNotEmpty, assert, assertNotNull, deepEqual, isNotNull, Nullable } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { InstancePipeline } from "./InstancePipeline"
 import { OutgoingServerJson } from "./TypeMapper"
@@ -133,8 +133,9 @@ export class PatchGenerator {
 				const { addedItems, removedItems, commonItems } = this.segregateAggregates(modifiedAggregatedEncryptedEntities, originalAggregatedEntities)
 
 				if (
-					(modelAssociation.cardinality !== CardinalityEnum.Any && isEmpty(originalAggregatedEntities) !== isEmpty(modifiedAggregatedEntities)) ||
-					(!isEmpty(originalAggregatedEntities) && !isEmpty(modifiedAggregatedEntities) && isEmpty(commonItems))
+					(modelAssociation.cardinality !== CardinalityEnum.Any &&
+						arrayIsEmpty(originalAggregatedEntities) !== arrayIsEmpty(modifiedAggregatedEntities)) ||
+					(!arrayIsEmpty(originalAggregatedEntities) && !arrayIsEmpty(modifiedAggregatedEntities) && arrayIsEmpty(commonItems))
 				) {
 					const aggregatesAsJson = modifiedAggregatedEncryptedEntities.map((agg) => this.instancePipeline.typeMapper.makeServerJson(agg))
 					patches.push(
@@ -169,7 +170,7 @@ export class PatchGenerator {
 					})
 					patches = patches.concat(items)
 				}
-				if (isNotEmpty(removedItems)) {
+				if (arrayIsNotEmpty(removedItems)) {
 					const removedAggregateIds = removedItems.map((instance) => instance.getAttributeByName("_id").asId())
 					patches.push(
 						createPatch({
@@ -179,7 +180,7 @@ export class PatchGenerator {
 						}),
 					)
 				}
-				if (isNotEmpty(addedItems)) {
+				if (arrayIsNotEmpty(addedItems)) {
 					const addedItemsAsJson = addedItems.map((agg) => this.instancePipeline.typeMapper.makeServerJson(agg))
 					patches.push(
 						createPatch({
@@ -191,10 +192,10 @@ export class PatchGenerator {
 				}
 				const areItemsIdentical = originalAggregatedEntities.every((item) => modifiedAggregatedEntities.some((element) => deepEqual(element, item)))
 				if (
-					isEmpty(addedItems) &&
-					isEmpty(removedItems) &&
+					arrayIsEmpty(addedItems) &&
+					arrayIsEmpty(removedItems) &&
 					areItemsIdentical &&
-					!arrayEqualsWithPredicate(originalAggregatedEntities, modifiedAggregatedEntities, deepEqual)
+					!arrayEqualsBy(originalAggregatedEntities, modifiedAggregatedEntities, deepEqual)
 				) {
 					const modifiedAggregatesJson = modifiedAggregatedEncryptedEntities.map((agg) => this.instancePipeline.typeMapper.makeServerJson(agg))
 					patches.push(
@@ -217,10 +218,10 @@ export class PatchGenerator {
 					const removedItems = originalIds.filter((originalId) => !modifiedIds.some((modifiedId) => isSameSingleId(originalId, modifiedId)))
 
 					if (modelAssociation.cardinality === CardinalityEnum.Any) {
-						addedItemsJson = isNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdList(addedItems) : null
-						removedItemsJson = isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdList(removedItems) : null
+						addedItemsJson = arrayIsNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdList(addedItems) : null
+						removedItemsJson = arrayIsNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdList(removedItems) : null
 					} else {
-						modifiedIdsJson = isNotEmpty(addedItems) || isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdList(modifiedIds) : null
+						modifiedIdsJson = arrayIsNotEmpty(addedItems) || arrayIsNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdList(modifiedIds) : null
 					}
 				} else if (associationReprType === AssociationReprType.IdTuple) {
 					const modifiedIdTuples = modifiedInstance.getAttributeByIdOrNull(attributeId)?.asIdTupleList() ?? []
@@ -229,10 +230,11 @@ export class PatchGenerator {
 					const removedItems = originalIdTuples.filter((originalId) => !modifiedIdTuples.some((modifiedId) => isSameIdTuple(originalId, modifiedId)))
 
 					if (modelAssociation.cardinality === CardinalityEnum.Any) {
-						addedItemsJson = isNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdTupleList(addedItems) : null
-						removedItemsJson = isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdTupleList(removedItems) : null
+						addedItemsJson = arrayIsNotEmpty(addedItems) ? OutgoingServerJson.stringifyIdTupleList(addedItems) : null
+						removedItemsJson = arrayIsNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdTupleList(removedItems) : null
 					} else {
-						modifiedIdsJson = isNotEmpty(addedItems) || isNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdTupleList(modifiedIdTuples) : null
+						modifiedIdsJson =
+							arrayIsNotEmpty(addedItems) || arrayIsNotEmpty(removedItems) ? OutgoingServerJson.stringifyIdTupleList(modifiedIdTuples) : null
 					}
 				}
 

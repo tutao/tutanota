@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { getElementId } from "../../../../platform-kit/meta"
 import { DriveFolderBrowserEntry, DriveFolderBrowserEntryAttrs } from "./DriveFolderBrowserEntry"
 import { FolderItem, folderItemEntity } from "./DriveUtils"
-import { isEmpty, lastIndex } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, arrayLastIndex } from "../../../../platform-kit/utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
@@ -27,7 +27,7 @@ export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
 				role: "grid",
 				onkeydown: (e: KeyboardEvent) => {
 					if (isKeyPressed(e.key, Keys.J, Keys.DOWN)) {
-						this.activeIndex = Math.min(this.activeIndex + 1, lastIndex(items))
+						this.activeIndex = Math.min(this.activeIndex + 1, arrayLastIndex(items))
 						this.focusActiveChild()
 					} else if (isKeyPressed(e.key, Keys.K, Keys.UP)) {
 						this.activeIndex = Math.max(0, this.activeIndex - 1)
@@ -42,7 +42,7 @@ export class DriveFolderBrowser implements Component<DriveFolderBrowserAttrs> {
 				},
 			},
 			[
-				isEmpty(items)
+				arrayIsEmpty(items)
 					? m(
 							".text-center.h2.pt-32.pb-32.font-weight-500.translucent",
 							{ "data-testid": lang.getTestId("folderIsEmpty_msg") },

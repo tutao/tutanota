@@ -3,7 +3,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { ImapImporter, ImportResult, InitializeImapImportParams, MailSetMapping } from "../../workerUtils/imapimport/ImapImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, first } from "@tutao/utils"
+import { arrayFirst, assertNotNull } from "@tutao/utils"
 import { ImapAccountSyncState, ImapAccountSyncStateTypeRef, MailBox } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
@@ -135,7 +135,7 @@ export class ImapMailImportController {
 
 	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
-		this.selectedMailBoxDetail = first(this.mailboxDetails)
+		this.selectedMailBoxDetail = arrayFirst(this.mailboxDetails)
 		await this.updateActiveUiSessions()
 	}
 

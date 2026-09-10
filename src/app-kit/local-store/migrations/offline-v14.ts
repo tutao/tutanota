@@ -2,7 +2,7 @@ import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineMigration } from "../OfflineMigration"
 import { untagSqlObject } from "../SqlValue"
 import { GENERATED_MAX_ID } from "@tutao/meta"
-import { isEmpty } from "@tutao/utils"
+import { arrayIsEmpty } from "@tutao/utils"
 
 const VERSION = 14
 
@@ -16,7 +16,7 @@ export class offline14 extends OfflineMigration {
 
 	async migrate() {
 		const tableInfo = await this.sqlCipherFacade.all(`PRAGMA table_info(search_group_data)`, [])
-		if (isEmpty(tableInfo)) {
+		if (arrayIsEmpty(tableInfo)) {
 			// the whole table doesn't exist; that's fine, we'll add it when we initialize offline storage
 			return
 		}

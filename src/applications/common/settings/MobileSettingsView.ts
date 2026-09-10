@@ -4,7 +4,7 @@ import { SettingsFolder } from "./SettingsFolder"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { DomainConfigProvider } from "../api/common/DomainConfigProvider"
 import { SettingsList } from "./SettingsList"
-import { isNotEmpty } from "@tutao/utils"
+import { arrayIsNotEmpty } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { SettingsSupportButton } from "./SettingsSupportButton"
 import { SettingsAboutLInk } from "./SettingsAboutLInk"
@@ -19,7 +19,7 @@ import { BackgroundColumnLayout } from "../../../ui/BackgroundColumnLayout"
 import { theme } from "../../../ui/theme"
 import { MobileHeader } from "../../../ui/MobileHeader"
 import { component_size, layout_size, px, size } from "../../../ui/size"
-import { EntityUpdatesListener, EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { NavButtonAttrs, NavButtonColor } from "../../../ui/base/NavButton"
 import { CustomerTypeRef } from "@tutao/entities/sys"
 import { windowFacade } from "../misc/WindowFacade"
@@ -78,7 +78,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 											items: section.settings.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
 										}
 									})
-									.filter((section) => isNotEmpty(section.items)),
+									.filter((section) => arrayIsNotEmpty(section.items)),
 							}),
 							this.bottomSection(domainConfigProvider),
 						]),

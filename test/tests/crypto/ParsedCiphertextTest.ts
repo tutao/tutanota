@@ -14,7 +14,7 @@ import {
 	ParsedCiphertextUnusedReservedUnauthenticated,
 	parseVersionedCiphertext,
 } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
-import { concat, KeyVersion } from "../../../src/platform-kit/utils"
+import { KeyVersion, uint8ArrayUtils } from "../../../src/platform-kit/utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { MacTag, random } from "../../../src/platform-kit/crypto"
@@ -25,7 +25,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const symmetricCipherVersion = SymmetricCipherVersion.UnusedReservedUnauthenticated
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), ciphertext)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), ciphertext)
 			const parsedCiphertext = parseVersionedCiphertext(
 				versionedCiphertext,
 				InitializationVectorVariant.Fixed,
@@ -45,13 +45,13 @@ o.spec("ParsedCiphertextTest", () => {
 			const initializationVector = generateInitializationVector()
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextUnusedReservedUnauthenticated
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(initializationVector)
 			o.check(parsedCiphertext.ciphertext).deepEquals(ciphertext)
 			const parsedCiphertextNoVersionByte = parseVersionedCiphertext(
-				concat(initializationVector.bytes, ciphertext),
+				uint8ArrayUtils(initializationVector.bytes, ciphertext),
 			) as ParsedCiphertextUnusedReservedUnauthenticated
 			o.check(parsedCiphertextNoVersionByte).deepEquals(parsedCiphertext)
 		})
@@ -61,7 +61,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), ciphertext, macTag)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), ciphertext, macTag)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext, InitializationVectorVariant.Fixed) as ParsedCiphertextAesCbcThenHmac
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(FIXED_INITIALIZATION_VECTOR)
@@ -75,7 +75,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = random.generateRandomData(BLOCK_SIZE_BYTES)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAesCbcThenHmac
 			o.check(parsedCiphertext.cipherVersion).equals(symmetricCipherVersion)
 			o.check(parsedCiphertext.initializationVector).deepEquals(initializationVector)
@@ -89,7 +89,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = Uint8Array.of(0, 1, 2, 3)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), initializationVector.bytes, ciphertext, macTag)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext, InitializationVectorVariant.Fixed))
 			o.check(e.message).equals("AEAD requires a random initialization vector")
 			const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext) as ParsedCiphertextAeadWithSessionKey
@@ -107,7 +107,7 @@ o.spec("ParsedCiphertextTest", () => {
 			const ciphertext = Uint8Array.of(0, 1, 2, 3)
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES) as MacTag
 
-			const versionedCiphertext = concat(
+			const versionedCiphertext = uint8ArrayUtils(
 				Uint8Array.of(symmetricCipherVersion, groupKeyVersionLength, groupKeyVersion),
 				initializationVector.bytes,
 				ciphertext,
@@ -129,7 +129,7 @@ o.spec("ParsedCiphertextTest", () => {
 			// subtract an even number of bytes in order to keep the parity
 			const initializationVector = random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES - 2)
 			// empty ciphertext
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), initializationVector)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), initializationVector)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext))
 			o.check(e.message).equals("aes decryption failed> initialization vector must be 128 bits")
 		})
@@ -139,7 +139,7 @@ o.spec("ParsedCiphertextTest", () => {
 			// subtract an even number of bytes in order to keep the parity
 			const macTag = random.generateRandomData(SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES - 2)
 			// empty initialization vector and ciphertext
-			const versionedCiphertext = concat(Uint8Array.of(symmetricCipherVersion), macTag)
+			const versionedCiphertext = uint8ArrayUtils(Uint8Array.of(symmetricCipherVersion), macTag)
 			const e = await assertThrows(CryptoError, async () => parseVersionedCiphertext(versionedCiphertext))
 			o.check(e.message).equals("aes decryption failed> message authentication code must be 256 bits")
 		})

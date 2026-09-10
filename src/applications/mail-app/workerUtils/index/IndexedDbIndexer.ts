@@ -3,7 +3,7 @@ import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../
 import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import { b64UserIdHash, DbFacade } from "../../../common/api/worker/search/DbFacade.js"
-import { assertNotNull, contains, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "../../../../platform-kit/utils"
+import { arrayContains, assertNotNull, DateProvider, defer, downcast, isNotNull, millisToDays, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import type { GroupData } from "../../../common/api/worker/search/SearchTypes.js"
 import { IndexingErrorReason } from "../../../common/api/worker/search/SearchTypes.js"
@@ -436,7 +436,7 @@ export class IndexedDbIndexer implements Indexer {
 		const restrictTo = restrictToTheseGroups // type check
 
 		if (restrictTo) {
-			memberships = memberships.filter((membership) => contains(restrictTo, membership.group))
+			memberships = memberships.filter((membership) => arrayContains(restrictTo, membership.group))
 		}
 
 		return promiseMap(memberships, async (membership: GroupMembership) => {

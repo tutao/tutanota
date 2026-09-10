@@ -1,14 +1,14 @@
 import {
+	arrayChunked,
+	arrayIsEmpty,
+	arrayLast,
+	arrayLastIndexBy,
+	arrayLastOrThrow,
 	assertNotNull,
-	findLastIndex,
-	groupBy,
-	groupByAndMap,
-	isEmpty,
-	last,
-	lastThrow,
+	iterableGroupedBy,
+	iterableGroupedByMapped,
 	neverNull,
 	promiseMap,
-	splitInChunks,
 } from "../../../../platform-kit/utils"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import {
@@ -79,7 +79,7 @@ export class BulkMailLoader {
 		const result: Array<MailWithMailDetails> = []
 		// mailDetails stored as blob
 		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
-		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
+		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = iterableGroupedByMapped(
 			mailDetailsBlobMails,
 			(m) => listIdPart(assertNotNull(m.mailDetails)),
 			(m) => elementIdPart(neverNull(m.mailDetails)),
@@ -102,7 +102,7 @@ export class BulkMailLoader {
 		}
 		// mailDetails stored in db (draft)
 		let mailDetailsDraftMails = mails.filter((m) => m.mailDetailsDraft)
-		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
+		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = iterableGroupedByMapped(
 			mailDetailsDraftMails,
 			(m) => listIdPart(assertNotNull(m.mailDetailsDraft)),
 			(m) => elementIdPart(neverNull(m.mailDetailsDraft)),
@@ -132,14 +132,14 @@ export class BulkMailLoader {
 		const attachmentIds: IdTuple[] = []
 
 		for (const mail of mails) {
-			if (isEmpty(mail.attachments)) {
+			if (arrayIsEmpty(mail.attachments)) {
 				continue
 			}
 			attachmentIds.push(...mail.attachments)
 		}
 
 		const sessionKeyProvider = await this.mail.createOwnerEncSessionKeyProviderForAttachments(mails)
-		const filesByList = groupBy(attachmentIds, listIdPart)
+		const filesByList = iterableGroupedBy(attachmentIds, listIdPart)
 		const fileLoadingPromises: Array<Promise<Array<File>>> = []
 		for (const [listId, fileIds] of filesByList.entries()) {
 			fileLoadingPromises.push(this.loadInChunks(FileTypeRef, listId, fileIds.map(elementIdPart), sessionKeyProvider, options))
@@ -156,7 +156,7 @@ export class BulkMailLoader {
 		ownerEncSessionKeyProvider?: OwnerEncSessionKeyProvider,
 		options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T[]> {
-		const byChunk = splitInChunks(ENTITY_INDEXER_CHUNK, ids)
+		const byChunk = arrayChunked(ENTITY_INDEXER_CHUNK, ids)
 		const entityResults = await promiseMap(
 			byChunk,
 			(chunk) => {
@@ -202,13 +202,13 @@ export class BulkMailLoader {
 		// +--------------------+
 		// newest loaded  |      oldest loaded
 		//                rangeStart
-		const lastNewerThanStartIndex = findLastIndex(
+		const lastNewerThanStartIndex = arrayLastIndexBy(
 			mailSetListData.loadedButUnusedEntries,
 			(entry) => deconstructMailSetEntryId(getElementId(entry)).receiveDate.getTime() > rangeStart,
 		)
 		if (lastNewerThanStartIndex !== -1) {
 			const removed = mailSetListData.loadedButUnusedEntries.splice(0, lastNewerThanStartIndex + 1)
-			const lastRemovedItem = last(removed)
+			const lastRemovedItem = arrayLast(removed)
 			const lastRemovedDate = lastRemovedItem != null ? deconstructMailSetEntryId(getElementId(lastRemovedItem)).receiveDate : null
 			console.warn(
 				`Possibly not using loadMailSetEntriesForTimeRange correctly. Requested items from ${new Date(
@@ -242,7 +242,7 @@ export class BulkMailLoader {
 			const startId = mailSetListData.lastLoadedId ?? constructMailSetEntryId(new Date(rangeStart), GENERATED_MAX_ID)
 			const newItems = await this.mailEntityClient.loadRange(MailSetEntryTypeRef, mailSetListData.listId, startId, MAIL_INDEXER_CHUNK, true)
 			if (newItems.length > 0) {
-				mailSetListData.lastLoadedId = getElementId(lastThrow(newItems))
+				mailSetListData.lastLoadedId = getElementId(arrayLastOrThrow(newItems))
 			}
 
 			// If we exhausted the list call self again to figure it out
@@ -259,7 +259,7 @@ export class BulkMailLoader {
 	}
 
 	async loadMailsFromMultipleLists(mailIds: readonly IdTuple[]): Promise<Mail[]> {
-		const mailIdsByFolder = groupByAndMap(mailIds, listIdPart, elementIdPart)
+		const mailIdsByFolder = iterableGroupedByMapped(mailIds, listIdPart, elementIdPart)
 		const mails = await promiseMap(mailIdsByFolder, ([listId, mailIds]) => this.mailEntityClient.loadMultiple(MailTypeRef, listId, mailIds))
 		return mails.flat()
 	}

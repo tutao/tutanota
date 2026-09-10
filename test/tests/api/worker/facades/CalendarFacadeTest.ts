@@ -11,7 +11,7 @@ import {
 } from "../../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import { DefaultEntityRestCache } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
-import { assertNotNull, downcast, first, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import { arrayFirst, assertNotNull, downcast, stringToUtf8Uint8Array, uint8arrayToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { clone, ElementId, elementIdPart, elementIdToId, getElementId, getLetId, getListId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { SetupMultipleError } from "../../../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { GroupManagementFacade } from "../../../../../src/platform-kit/base/facades/lazy/GroupManagementFacade.js"
@@ -239,7 +239,7 @@ o.spec("CalendarFacadeTest", function () {
 			o.check(result.successfulEvents.length).equals(0)
 			o.check(result.failedEventsResult.failedEvents).deepEquals(calendarEvents)
 			o.check(result.failedEventsResult.errors.length).equals(1)
-			o.check(first(result.failedEventsResult.errors)?.message).equals(unexpectedErrorMessage)
+			o.check(arrayFirst(result.failedEventsResult.errors)?.message).equals(unexpectedErrorMessage)
 		})
 
 		o.test("when all events succeed, all events are in successfulEvents and no errors are present", async function () {
@@ -672,7 +672,7 @@ o.spec("CalendarFacadeTest", function () {
 
 				const result = await calendarFacade.getEventsByUid(privateEventSeriesUid, PRIVATE_CALENDAR_ID, CachingMode.Bypass)
 
-				o.check(first(result?.alteredInstances!)).deepEquals(privateAlteredInstance)
+				o.check(arrayFirst(result?.alteredInstances!)).deepEquals(privateAlteredInstance)
 				o.check(result?.progenitor).equals(null)
 			})
 

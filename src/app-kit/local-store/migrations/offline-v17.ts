@@ -1,11 +1,5 @@
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { OfflineMigration } from "../OfflineMigration"
-import { untagSqlObject } from "../SqlValue"
-import { isEmpty } from "@tutao/utils"
-
-import { MailImportType } from "../../../entities/tutanota/Utils"
-import { OfflineStorage } from "../OfflineStorage"
-import { sql } from "../Sql"
 
 const VERSION = 17
 

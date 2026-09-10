@@ -6,12 +6,12 @@ import { ViewSlider } from "../../../../ui/nav/ViewSlider.js"
 import { isKeyPressed, Key, keyboardEventToKeyPress, keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import {
+	arrayLast,
 	base64ToBase64Url,
 	base64UrlToBase64,
 	decodeBase64,
 	downcast,
 	getStartOfDay,
-	last,
 	noOp,
 	ofClass,
 	stringToBase64,
@@ -1337,7 +1337,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		let popupComponent: CalendarEventPopup | ContactEventPopup
 
 		if (isBirthdayEvent(selectedEvent.uid)) {
-			const base64ContactId = last(elementIdPart(selectedEvent._id).split("#"))
+			const base64ContactId = arrayLast(elementIdPart(selectedEvent._id).split("#"))
 			if (!base64ContactId) {
 				throw new Error(`Trying to open a birthday ${selectedEvent._id} without a contact id`)
 			}

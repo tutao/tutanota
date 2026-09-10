@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailDetails, MailDetailsBlobTypeRef, MailDetailsDraftTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { assertNotNull, first, newPromise } from "@tutao/utils"
+import { arrayFirst, assertNotNull, newPromise } from "@tutao/utils"
 import { isDraft } from "../../mail/model/MailChecks"
 import { elementIdPart, listIdPart } from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
@@ -66,7 +66,7 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 						encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 					}))
 					.then((d) => {
-						const draft = first(d)
+						const draft = arrayFirst(d)
 						if (draft == null) {
 							throw new NotFoundError(`MailDetailsDraft ${mailDetailsDraftId}`)
 						}
@@ -80,7 +80,7 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 						encryptingKeyVersion: cryptoUtils.parseKeyVersion(mail._ownerKeyVersion ?? "0"),
 					}))
 					.then((d) => {
-						const blob = first(d)
+						const blob = arrayFirst(d)
 						if (blob == null) {
 							throw new NotFoundError(`MailDetailsBlob ${mailDetailsBlobId}`)
 						}

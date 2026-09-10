@@ -1,4 +1,4 @@
-import { assertNotNull, groupBy } from "@tutao/utils"
+import { assertNotNull, iterableGroupedBy } from "@tutao/utils"
 import { elementIdPart, getElementId, isSameId, isSameSingleId } from "@tutao/meta"
 import { Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../../entities/tutanota/Utils"
@@ -17,7 +17,7 @@ export class FolderSystem {
 	readonly importedMailSet: Readonly<MailSet | null>
 
 	constructor(mailSets: readonly MailSet[], topLevelCustomFolderKind = MailSetKind.CUSTOM) {
-		const mailSetByParent = groupBy(mailSets, (mailSet) => (mailSet.parentFolder ? elementIdPart(mailSet.parentFolder) : null))
+		const mailSetByParent = iterableGroupedBy(mailSets, (mailSet) => (mailSet.parentFolder ? elementIdPart(mailSet.parentFolder) : null))
 		const existingMailSets = new Set(mailSets.map(getElementId))
 		const systemMailSets: MailSet[] = []
 		const topLevelCustomFolders: MailSet[] = []

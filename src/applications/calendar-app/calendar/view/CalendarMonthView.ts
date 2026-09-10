@@ -12,7 +12,7 @@ import {
 	getTimeZone,
 	getWeekNumber,
 } from "../../../common/calendar/date/CalendarUtils"
-import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "../../../../platform-kit/utils"
+import { arrayLastOrThrow, deepEqual, incrementDate, incrementMonth, isToday, neverNull, ofClass } from "../../../../platform-kit/utils"
 import { Styles } from "../../../../ui/styles"
 import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -396,7 +396,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 		const eventsOnDays = attrs.getEventsOnDaysToRender(week.map((day) => day.date))
 		const events = new Set(eventsOnDays.longEvents.concat(eventsOnDays.shortEventsPerDay.flat()))
 		const firstDayOfWeek = week[0].date
-		const lastDayOfWeek = lastThrow(week)
+		const lastDayOfWeek = arrayLastOrThrow(week)
 
 		const dayWidth = this.getWidthForDay()
 

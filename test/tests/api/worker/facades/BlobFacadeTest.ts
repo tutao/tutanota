@@ -19,11 +19,11 @@ import {
 	arrayEquals,
 	base64ExtToBase64,
 	base64ToUint8Array,
-	concat,
 	defer,
 	neverNull,
 	promiseMap,
 	stringToUtf8Uint8Array,
+	uint8ArrayUtils,
 } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
@@ -406,7 +406,7 @@ o.spec("BlobFacadeTest", function () {
 
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 1]),
 				// blob id
@@ -464,7 +464,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 2]),
 				// blob id
@@ -488,7 +488,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
-			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
+			o(decryptedData).deepEquals(uint8ArrayUtils(blobData1, blobData2))("decrypted data is equal")
 		})
 
 		o("downloadAndDecrypt multiple from different archives", async function () {
@@ -525,7 +525,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(file)).thenResolve(sessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 2]),
 				// blob id
@@ -549,7 +549,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
-			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
+			o(decryptedData).deepEquals(uint8ArrayUtils(blobData1, blobData2))("decrypted data is equal")
 		})
 
 		o("downloadAndDecryptNative", async function () {
@@ -769,7 +769,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 3]),
 				// blob id
@@ -803,7 +803,7 @@ o.spec("BlobFacadeTest", function () {
 
 			o(result).deepEquals(
 				new Map([
-					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(file), uint8ArrayUtils(blobData1, blobData2)],
 					[getElementId(anotherFile), blobData3],
 				]),
 			)
@@ -864,7 +864,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse1 = concat(
+			const blobResponse1 = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 2]),
 				// blob id
@@ -885,7 +885,7 @@ o.spec("BlobFacadeTest", function () {
 				encryptedBlobData2,
 			)
 
-			const blobResponse2 = concat(
+			const blobResponse2 = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 1]),
 				//blodId
@@ -932,7 +932,7 @@ o.spec("BlobFacadeTest", function () {
 
 			o(result).deepEquals(
 				new Map([
-					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(file), uint8ArrayUtils(blobData1, blobData2)],
 					[getElementId(anotherFile), blobData3],
 				]),
 			)
@@ -973,7 +973,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 2]),
 				// blob id
@@ -999,7 +999,7 @@ o.spec("BlobFacadeTest", function () {
 
 			o(result).deepEquals(
 				new Map([
-					[getElementId(file), concat(blobData1, blobData2)],
+					[getElementId(file), uint8ArrayUtils(blobData1, blobData2)],
 					[getElementId(anotherFile), null],
 				]),
 			)
@@ -1043,7 +1043,7 @@ o.spec("BlobFacadeTest", function () {
 			when(cryptoFacadeMock.resolveSessionKey(anotherFile)).thenResolve(anothersessionKey)
 			// data size is 65 (16 data block, 16 initialization vector, 32 hmac, 1 byte for mac marking)
 			const blobSizeBinary = new Uint8Array([0, 0, 0, 65])
-			const blobResponse = concat(
+			const blobResponse = uint8ArrayUtils(
 				// number of blobs
 				new Uint8Array([0, 0, 0, 3]),
 				// blob id

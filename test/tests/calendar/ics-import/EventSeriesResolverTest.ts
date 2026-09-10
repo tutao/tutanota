@@ -9,7 +9,7 @@ import { clone } from "../../../../src/platform-kit/meta"
 import { matchers, object, verify, when } from "testdouble"
 import { DateTime } from "luxon"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
-import { DateProvider, first } from "../../../../src/platform-kit/utils"
+import { arrayFirst, DateProvider } from "../../../../src/platform-kit/utils"
 
 const { anything } = matchers
 o.spec("EventSeriesResolver", function () {
@@ -112,7 +112,7 @@ o.spec("EventSeriesResolver", function () {
 
 			verify(mockCalendarModel.doUpdateEvent(existingProgenitor, progenitorWithNewExcludedDates), { times: 1 })
 			o.check(updatedProgenitors.length).equals(1)
-			o.check(first(updatedProgenitors)).deepEquals(progenitorWithNewExcludedDates)
+			o.check(arrayFirst(updatedProgenitors)).deepEquals(progenitorWithNewExcludedDates)
 		})
 
 		o.test("should add new altered instances to existing excluded dates and update progenitor", async function () {
@@ -132,7 +132,7 @@ o.spec("EventSeriesResolver", function () {
 
 			verify(mockCalendarModel.doUpdateEvent(existingProgenitor, progenitorWithNewExcludedDates), { times: 1 })
 			o.check(updatedProgenitors.length).equals(1)
-			o.check(first(updatedProgenitors)).deepEquals(progenitorWithNewExcludedDates)
+			o.check(arrayFirst(updatedProgenitors)).deepEquals(progenitorWithNewExcludedDates)
 		})
 
 		o.test("should add altered instances to its correct progenitor and update them", async function () {

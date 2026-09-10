@@ -2,7 +2,7 @@ import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { Select, SelectAttributes, SelectOption, SelectState } from "../../../../../ui/base/Select.js"
 import { TabIndex } from "../../../../../platform-kit/app-env"
 import { SingleLineTextField } from "../../../../../ui/base/SingleLineTextField.js"
-import { debounceStart, getFirstOrThrow } from "../../../../../platform-kit/utils"
+import { arrayFirstOrThrow, debounceStart } from "../../../../../platform-kit/utils"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { parseMailAddress, parsePastedInput, parseTypedInput } from "../../../../common/gui/MailRecipientsTextField.js"
@@ -135,7 +135,7 @@ export class GuestPicker implements ClassComponent<GuestPickerAttrs> {
 
 				if (errors.length === 1 && newRecipients.length === 0) {
 					// if there was a single recipient and it was invalid then just pretend nothing happened
-					this.value = getFirstOrThrow(errors)
+					this.value = arrayFirstOrThrow(errors)
 				} else {
 					if (errors.length > 0) {
 						Dialog.message(lang.makeTranslation("error_message", `${lang.get("invalidPastedRecipients_msg")}\n\n${errors.join("\n")}`))

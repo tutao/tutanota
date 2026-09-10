@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS, UpgradePromptType } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { elementIdPart, isSameId, OperationType } from "../../../platform-kit/meta"
-import { assertNotNull, isEmpty, LazyLoaded, noOp, ofClass, promiseMap, splitInChunks } from "../../../platform-kit/utils"
+import { arrayChunked, arrayIsEmpty, assertNotNull, LazyLoaded, noOp, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { getInboxRuleTypeName } from "../mail/model/InboxRuleHandler"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../../ui/base/Dialog"
@@ -471,7 +471,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 	private async reapplyAllInboxRules(progress: Stream<number>, abort: AbortController): Promise<number> {
 		const userController = mailLocator.logins.getUserController()
 		const inboxRules = userController.props.inboxRules
-		if (isEmpty(inboxRules)) {
+		if (arrayIsEmpty(inboxRules)) {
 			return 0
 		}
 
@@ -488,7 +488,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 		try {
 			const allIds = (await mailLocator.entityClient.loadAll(MailSetEntryTypeRef, inbox.entries)).reverse()
-			const chunked = splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
+			const chunked = arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, allIds)
 
 			for (const chunk of chunked) {
 				if (abort.signal.aborted) {

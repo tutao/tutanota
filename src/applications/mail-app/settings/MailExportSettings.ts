@@ -4,7 +4,7 @@ import { DropDownSelector, type DropDownSelectorAttrs } from "../../../ui/base/D
 import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 import { getMailboxName } from "../../common/mailFunctionality/SharedMailUtils"
 import { mailLocator } from "../mailLocator"
-import { first } from "../../../platform-kit/utils"
+import { arrayFirst } from "../../../platform-kit/utils"
 import { LoginController } from "../../common/api/main/LoginController"
 import { FailedMailDisplay, MailExportController } from "../native/main/MailExportController.js"
 import Stream from "mithril/stream"
@@ -40,7 +40,7 @@ export class MailExportSettings implements Component<MailExportSettingsAttrs> {
 
 	view(vnode: Vnode<MailExportSettingsAttrs>): Children {
 		const { mailboxDetails } = vnode.attrs
-		this.selectedMailbox = this.selectedMailbox ?? first(mailboxDetails)
+		this.selectedMailbox = this.selectedMailbox ?? arrayFirst(mailboxDetails)
 		const state = vnode.attrs.mailExportController.state()
 		const emptyLabel = m("br")
 		return [

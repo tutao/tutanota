@@ -1,6 +1,6 @@
 import { ImporterApi, ImportErrorKind, ImportOkKind, MailImportErrorMessage, MailImportMessage, PreparationError, TutaCredentials } from "@tutao/mimimi"
 import { NativeMailImportFacade, UnencryptedCredentials } from "@tutao/native-bridge/generatedIpc/types"
-import { assertNotNull, clear, defer, DeferredObject } from "@tutao/utils"
+import { arrayClear, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { ElectronExports } from "../ElectronExportTypes.js"
 import { ImportErrorCategories, MailImportError } from "../../api/common/error/MailImportError.js"
 import { DesktopNotifier } from "../notifications/DesktopNotifier.js"
@@ -248,7 +248,7 @@ export class DesktopMailImportFacade implements NativeMailImportFacade {
 				const mailImportError = new MailImportError(errorData)
 				listener(mailImportError)
 			}
-			clear(listeners)
+			arrayClear(listeners)
 		}
 	}
 

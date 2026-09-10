@@ -1,6 +1,6 @@
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
 import { LoginController } from "../api/main/LoginController.js"
-import { assertNotNull, mapNullable, pad, promiseMap, renderCsv, splitInChunks, stringToUtf8Uint8Array } from "../../../platform-kit/utils"
+import { arrayChunked, assertNotNull, mapNullable, pad, promiseMap, renderCsv, stringToUtf8Uint8Array } from "../../../platform-kit/utils"
 import { EntityClient } from "../../../platform-kit/network/EntityClient.js"
 import { FileController } from "../file/FileController.js"
 import { CounterFacade } from "../../../platform-kit/network/CounterFacade.js"
@@ -64,7 +64,7 @@ export async function loadUserExportData(
 	let completed = 0
 	onProgress?.(completed, total)
 
-	const downloaded = await promiseMap(splitInChunks(GROUP_DOWNLOAD_SIZE, groupsAdministeredByUser), async (infos) => {
+	const downloaded = await promiseMap(arrayChunked(GROUP_DOWNLOAD_SIZE, groupsAdministeredByUser), async (infos) => {
 		if (isCancelled) {
 			throw new CancelledError("user export cancelled by user")
 		}

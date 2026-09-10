@@ -1,35 +1,4 @@
-import { downcast, identity, neverNull } from "./Utils.js"
-import { getFromMap } from "./MapUtils.js"
-
-export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
-	let length = arrays.reduce((previous, current) => previous + current.length, 0)
-	let result = new Uint8Array(length)
-	let index = 0
-	for (const array of arrays) {
-		result.set(array, index)
-		index += array.length
-	}
-	return result
-}
-
-/**
- * Create an array filled with the numbers min..max (inclusive)
- */
-export function numberRange(min: number, max: number): Array<number> {
-	return [...Array(max + 1).keys()].slice(min)
-}
-
-/**
- * Create a generator for integer range in [min; max).
- */
-export function* lazyNumberRange(min: number, max: number): Generator<number> {
-	let current = min
-
-	while (current < max) {
-		yield current
-		current++
-	}
-}
+import { downcast, neverNull } from "./Utils.js"
 
 /**
  * Compares two arrays for equality based on ===.
@@ -57,17 +26,11 @@ export function arrayEquals<T>(a1: ArrayLike<T>, a2: ArrayLike<T>): boolean {
 	return false
 }
 
-/**
- * Compares two arrays for equality based on a predicate
- * @param a1
- * @param a2
- * @param predicate
- * @returns {boolean}
- */
-export function arrayEqualsWithPredicate<T>(a1: ReadonlyArray<T>, a2: ReadonlyArray<T>, predicate: (arg0: T, arg1: T) => boolean): boolean {
-	if (a1.length === a2.length) {
-		for (let i = 0; i < a1.length; i++) {
-			if (!predicate(a1[i], a2[i])) {
+/** @return whether arrays have the same length and each item is equal according to {@param predicate} */
+export function arrayEqualsBy<T>(arrayLeft: ReadonlyArray<T>, arrayRight: ReadonlyArray<T>, predicate: (itemLeft: T, itemRight: T) => boolean): boolean {
+	if (arrayLeft.length === arrayRight.length) {
+		for (let i = 0; i < arrayLeft.length; i++) {
+			if (!predicate(arrayLeft[i], arrayRight[i])) {
 				return false
 			}
 		}
@@ -78,28 +41,11 @@ export function arrayEqualsWithPredicate<T>(a1: ReadonlyArray<T>, a2: ReadonlyAr
 	return false
 }
 
-export function arrayHashSigned(array: Uint8Array): number {
-	let hash = 0
-	hash |= 0
-
-	for (let i = 0; i < array.length; i++) {
-		hash = (hash << 5) - hash + array[i]
-		hash |= 0 // Convert to 32bit signed integer
-	}
-	return hash
-}
-
-export function arrayHashUnsigned(array: Uint8Array): number {
-	return arrayHashSigned(array) >>> 0
-}
-
 /**
- * Remove the element from theArray if it is contained in the array.
- * @param theArray The array to remove the element from.
- * @param elementToRemove The element to remove from the array.
- * @return True if the element was removed, false otherwise.
+ * Remove the element from {@param theArray} if it is contained in the array (checked via `===`)
+ * @return whether the element was removed
  */
-export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
+export function arrayRemove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 	let i = theArray.indexOf(elementToRemove)
 
 	if (i !== -1) {
@@ -113,18 +59,16 @@ export function remove<T>(theArray: Array<T>, elementToRemove: T): boolean {
 /**
  * truncates the array and discards all elements
  */
-export function clear(theArray: Array<unknown>): void {
+export function arrayClear(theArray: Array<unknown>): void {
 	theArray.length = 0
 }
 
-/**
- * Find all items in an array that pass the given predicate
- */
-export function findAll<T>(theArray: Array<T>, finder: (arg0: T) => boolean): Array<T> {
+/** Find all items in {@param theArray} that match the given {@param predicate} */
+export function arrayFindAll<T>(theArray: ReadonlyArray<T>, predicate: (item: T) => boolean): Array<T> {
 	const found: T[] = []
 
 	for (let element of theArray) {
-		if (finder(element)) {
+		if (predicate(element)) {
 			found.push(element)
 		}
 	}
@@ -133,12 +77,11 @@ export function findAll<T>(theArray: Array<T>, finder: (arg0: T) => boolean): Ar
 }
 
 /**
- * @param theArray
- * @param finder
- * @return {boolean} if the element was found
+ * Remove the first item from {@param theArray} that matches the given {@param predicate}.
+ * @return {boolean} if the element was removed
  */
-export function findAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolean): boolean {
-	const index = theArray.findIndex(finder)
+export function arrayRemoveBy<T>(theArray: Array<T>, predicate: (item: T) => boolean): boolean {
+	const index = theArray.findIndex(predicate)
 
 	if (index !== -1) {
 		theArray.splice(index, 1)
@@ -148,12 +91,15 @@ export function findAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolea
 	}
 }
 
-/** find all matches inside an array and remove them. returns true if any instances were removed. */
-export function findAllAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolean, startIndex: number = 0): boolean {
+/**
+ * Removes all items starting from {@param startIndex} that match {@param predicate}.
+ * @return {boolean} if any element was removed
+ * */
+export function arrayRemoveAllBy<T>(theArray: Array<T>, predicate: (item: T) => boolean, startIndex: number = 0): boolean {
 	let removedElement = false
 
 	for (let i = theArray.length - 1; i >= startIndex; i--) {
-		if (finder(theArray[i])) {
+		if (predicate(theArray[i])) {
 			theArray.splice(i, 1)
 			removedElement = true
 		}
@@ -162,8 +108,12 @@ export function findAllAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boo
 	return removedElement
 }
 
-export function replace(theArray: Array<any>, oldElement: any, newElement: any): boolean {
-	let i = theArray.indexOf(oldElement)
+/**
+ * Replace the first occurrence of {@param oldElement} with {@param newElement}.
+ * @return {boolean} whether the element was replaced
+ */
+export function arrayReplace<T>(theArray: Array<T>, oldElement: T, newElement: T): boolean {
+	const i = theArray.indexOf(oldElement)
 
 	if (i !== -1) {
 		theArray.splice(i, 1, newElement)
@@ -175,8 +125,9 @@ export function replace(theArray: Array<any>, oldElement: any, newElement: any):
 
 /**
  * Same as filterMap in some languages. Apply mapper and then only include non-nullable items.
+ * @return new array with all non-null items produced by {@param mapper}
  */
-export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T) => R | null): Array<R> {
+export function arrayMapFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (item: T) => R | null): Array<R> {
 	const resultList: R[] = []
 
 	for (const item of array) {
@@ -190,52 +141,58 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
-export function filterNull<T>(array: ReadonlyArray<T | null>): Array<NonNullable<T>> {
+/** Return non-null items from {@param array} */
+export function arrayFilterNull<T>(array: ReadonlyArray<T | null>): Array<NonNullable<T>> {
 	return downcast(array.filter((item) => item != null))
 }
 
-/**
- * Provides the last element of the given array.
- * @param theArray The array.
- * @return The last element of the array.
- */
-export function last<T>(theArray: ReadonlyArray<T>): T | null {
-	return theArray.length > 0 ? theArray[theArray.length - 1] : null
-}
-
-export function isEmpty(array: ReadonlyArray<unknown>): boolean {
+/** @return whether {@param array} is empty (respective to its length) */
+export function arrayIsEmpty(array: ReadonlyArray<unknown>): boolean {
 	return array.length === 0
 }
 
-export function isNotEmpty(array: ReadonlyArray<unknown>): boolean {
+/** @return whether array is not empty (respective to its length) */
+export function arrayIsNotEmpty(array: ReadonlyArray<unknown>): boolean {
 	return array.length !== 0
 }
 
-export function lastThrow<T>(array: ReadonlyArray<T>): T {
-	if (isEmpty(array)) {
-		throw new RangeError("Array is empty")
-	}
+/** @return the first element of {@param array} or `null` if it's empty. */
+export function arrayFirst<T>(array: ReadonlyArray<T>): T | null {
+	return array[0] ?? null
+}
 
-	return neverNull(last(array))
+/** @return The last element of {@param array } or `null` if it's empty */
+export function arrayLast<T>(theArray: ReadonlyArray<T>): T | null {
+	return theArray.length > 0 ? theArray[theArray.length - 1] : null
 }
 
 /**
- * get first item or throw if there is none
+ * @return the last element of {@param array}
+ * @throws {RangeError} if array is empty
  */
-export function getFirstOrThrow<T>(array: ReadonlyArray<T>): T {
-	if (isEmpty(array)) {
+export function arrayLastOrThrow<T>(array: ReadonlyArray<T>): T {
+	if (arrayIsEmpty(array)) {
+		throw new RangeError("Array is empty")
+	}
+
+	return neverNull(arrayLast(array))
+}
+
+/**
+ * @return the first element of the {@param array}
+ * @throws {RangeError} if array is empty
+ */
+export function arrayFirstOrThrow<T>(array: ReadonlyArray<T>): T {
+	if (arrayIsEmpty(array)) {
 		throw new RangeError("Array is empty")
 	}
 
 	return array[0]
 }
 
-export function first<T>(array: ReadonlyArray<T>): T | null {
-	return array[0] ?? null
-}
-
-export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): T | null {
-	const index = findLastIndex(array, predicate)
+/** @return the last element of {@param array} that matches {@param predicate} */
+export function arrayFindLast<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): T | null {
+	const index = arrayLastIndexBy(array, predicate)
 
 	if (index !== -1) {
 		return array[index]
@@ -244,7 +201,8 @@ export function findLast<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boo
 	return null
 }
 
-export function findLastIndex<T>(array: ReadonlyArray<T>, predicate: (arg0: T) => boolean): number {
+/** @return index of the last item in {@param array} that matches {@param predicate}, otherwise -1 */
+export function arrayLastIndexBy<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): number {
 	for (let i = array.length - 1; i >= 0; i--) {
 		if (predicate(array[i])) {
 			return i
@@ -254,100 +212,35 @@ export function findLastIndex<T>(array: ReadonlyArray<T>, predicate: (arg0: T) =
 	return -1
 }
 
-export function contains(theArray: ReadonlyArray<any>, elementToCheck: any): boolean {
+/** @return whether {@param theArray} contains {@param elementToCheck}, checked using strict equality (`===`) */
+export function arrayContains<T>(theArray: ReadonlyArray<T>, elementToCheck: T): boolean {
 	return theArray.indexOf(elementToCheck) !== -1
 }
 
-/**
- * count how many of the items in {@param theArray} return true when passed to the predicate {@param pred}
- */
-export function count<T>(theArray: ReadonlyArray<T>, pred: (e: T) => boolean): number {
-	return theArray.reduce<number>((acc, next) => (pred(next) ? ++acc : acc), 0)
+/** @return number of items in {@param theArray} that match {@param predicate} */
+export function arrayCount<T>(theArray: ReadonlyArray<T>, predicate: (item: T) => boolean): number {
+	return theArray.reduce<number>((acc, next) => (predicate(next) ? ++acc : acc), 0)
 }
 
-export function addAll(array: Array<any>, elements: Array<any>): void {
+/** add all {@param elements} at the end of {@param array} */
+export function arrayAddAll<T>(array: Array<T>, elements: ReadonlyArray<T>): void {
 	array.push(...elements)
 }
 
-export function removeAll(array: Array<any>, elements: Array<any>): void {
+/** remove all {@param elements} from {@param array}. equality is checked via `===`. */
+export function arrayRemoveAll<T>(array: Array<T>, elements: ReadonlyArray<T>): void {
 	for (const element of elements) {
-		remove(array, element)
+		arrayRemove(array, element)
 	}
 }
 
 /**
- * Group an array based on the given discriminator, but each group will have only unique items
+ * Returns an array of chunks of a given size, sliced from {@param array}.
+ * The last chunk will be smaller if there are less than chunkSize elements left.
+ * Tf array is empty, the last (and only) chunk will be empty (i.e. `[[]]` gets returned).
  */
-export function groupByAndMapUniquely<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Set<E>> {
-	const map = new Map()
-
-	for (let el of iterable) {
-		const key = discriminator(el)
-		getFromMap(map, key, () => new Set()).add(mapper(el))
-	}
-
-	return map
-}
-
-/**
- * convert an Array of T's into a Map of Arrays of E's by
- * * grouping them based on a discriminator
- * * mapping them from T to E
- * @param iterable the array to split into groups
- * @param discriminator a function that produces the keys to group the elements by
- * @param mapper a function that maps the array elements before they get added to the group
- * @returns {Map<R, Array<E>>}
- */
-export function groupByAndMap<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
-	const map = new Map()
-
-	for (const el of iterable) {
-		const key = discriminator(el)
-		getFromMap(map, key, () => Array<E>()).push(mapper(el))
-	}
-
-	return map
-}
-
-/**
- * Group array elements based on keys produced by a discriminator
- * @param iterable the array to split into groups
- * @param discriminator a function that produces the keys to group the elements by
- * @returns {NodeJS.Global.Map<R, Array<T>>}
- */
-export function groupBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) => R): Map<R, Array<T>> {
-	return groupByAndMap(iterable, discriminator, identity)
-}
-
-/**
- * Collect an iterable into a map based on {@param keyExtractor}.
- */
-export function collectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
-	const map = new Map()
-	for (const el of iterable) {
-		const key = keyExtractor(el)
-		if (map.has(key)) {
-			throw new Error(`The elements of iterable are not unique, duplicated key: ${key}`)
-		}
-		map.set(key, el)
-	}
-	return map
-}
-
-/**
- * split an array into chunks of a given size.
- * the last chunk will be smaller if there are less than chunkSize elements left.
- * if array is empty, the last (and only) chunk will be empty (i.e. `[[]]` gets returned)
- * @param chunkSize
- * @param array
- * @returns {Array<Array<T>>}
- */
-export function splitInChunks<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
+export function arrayChunked<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
 	return _chunkArray(chunkSize, array)
-}
-
-export function splitUint8ArrayInChunks(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
-	return _chunkUint8Array(chunkSize, array)
 }
 
 function _chunkArray<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array<T>> {
@@ -366,27 +259,9 @@ function _chunkArray<T>(chunkSize: number, array: ReadonlyArray<T>): Array<Array
 	return chunks
 }
 
-function _chunkUint8Array(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
-	if (chunkSize < 1) {
-		return []
-	}
-	let chunkNum = 0
-	const chunks: Array<Uint8Array<ArrayBuffer>> = []
-	let end
-	do {
-		let start = chunkNum * chunkSize
-		end = start + chunkSize
-		chunks[chunkNum] = array.slice(start, end)
-		chunkNum++
-	} while (end < array.length)
-	return chunks
-}
-
 /**
  * Maps an array into a nested array and then flattens it
- * @param array
- * @param mapper
- * @returns {T|*[]}
+ * @deprecated use `Array.protype.flatMap` instead
  */
 export function flatMap<T, U>(array: ReadonlyArray<T>, mapper: (arg0: T) => Array<U>): Array<U> {
 	const result: U[] = []
@@ -406,7 +281,7 @@ export function flatMap<T, U>(array: ReadonlyArray<T>, mapper: (arg0: T) => Arra
  * @param comparator for sorting
  * @param replaceIf identity comparison for replacement
  */
-export function insertIntoSortedArray<T>(
+export function arrayInsertIntoSorted<T>(
 	element: T,
 	array: Array<T>,
 	comparator: (left: T, right: T) => number,
@@ -433,7 +308,17 @@ export function insertIntoSortedArray<T>(
 	array.splice(i, 0, element)
 }
 
-export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
+/**
+ * Merge two arrays into a single array, where every item is a tuple with respective items from each array.
+ *
+ * Important: if arrays are not of the same length it will produce an array as short as the shortest of the input ones.
+ *
+ * Example:
+ * ```ts
+ * arrayZip([1, 2, 3], ["a", "b"]) // produces [[1, "a"], [2, "b"]]
+ * ```
+ */
+export function arrayZip<A, B>(arr1: ReadonlyArray<A>, arr2: ReadonlyArray<B>): Array<[A, B]> {
 	const zipped: Array<[A, B]> = []
 
 	for (let i = 0; i < Math.min(arr1.length, arr2.length); i++) {
@@ -443,10 +328,14 @@ export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
 	return zipped
 }
 
-export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolean = (a, b) => a === b): Array<T> {
+/**
+ * Produce a new array only with unique elements of {@param arr} respective {@param predicate}.
+ * If two elements are equal the first one will be included.
+ */
+export function arrayDeduplicated<T>(arr: ReadonlyArray<T>, predicate: (left: T, right: T) => boolean = (a, b) => a === b): Array<T> {
 	const deduplicated: T[] = []
 	for (const a of arr) {
-		const isDuplicate = deduplicated.some((b) => comp(a, b))
+		const isDuplicate = deduplicated.some((b) => predicate(a, b))
 
 		if (!isDuplicate) {
 			deduplicated.push(a)
@@ -469,7 +358,7 @@ export function deduplicate<T>(arr: Array<T>, comp: (arg0: T, arg1: T) => boolea
  * The array may contain duplicate elements. If there are more than one equal elements in the array,
  * the returned value can be the index of any one of the equal elements.
  */
-export function binarySearch<T>(array: ReadonlyArray<T>, element: T, compareFn: (left: T, right: T) => number): number {
+export function arrayBinarySearch<T>(array: ReadonlyArray<T>, element: T, compareFn: (left: T, right: T) => number): number {
 	let m = 0
 	let n = array.length - 1
 
@@ -489,54 +378,16 @@ export function binarySearch<T>(array: ReadonlyArray<T>, element: T, compareFn: 
 	return -m - 1
 }
 
-export function lastIndex<T>(array: ReadonlyArray<T>): number {
+/**
+ * Last index of array.
+ * If array is empty returns 0 (why?)
+ */
+export function arrayLastIndex<T>(array: ReadonlyArray<T>): number {
 	if (array.length === 0) {
 		return 0
 	} else {
 		return array.length - 1
 	}
-}
-
-/**
- * All of the elements in all of the arguments combined, and deduplicated
- */
-export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
-	return new Set(...iterables.map((iterable) => Array.from(iterable)))
-}
-
-/**
- * return a new array containing every item from array1 that isn't in array2
- * @template T
- * @param array1
- * @param array2
- * @param compare {(l: T, r: T) => boolean} compare items in the array for equality
- * @returns {Array<T>}
- */
-export function difference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
-	return array1.filter((element1) => !array2.some((element2) => compare(element1, element2)))
-}
-
-/**
- * Returns a set with elements that are *not* in both sets.
- *
- * {a, b, c} △ {b, c, d} == {a, d}
- */
-export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
-	const diff = new Set<T>()
-
-	for (const el of set1) {
-		if (!set2.has(el)) {
-			diff.add(el)
-		}
-	}
-
-	for (const el of set2) {
-		if (!set1.has(el)) {
-			diff.add(el)
-		}
-	}
-
-	return diff
 }
 
 /**
@@ -551,13 +402,13 @@ export function symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T
  *
  * @return a tuple of partitioned elements. The first array has all the matching elements and the second one has the rest.
  */
-export function partition<Generic, Specific extends Generic>(
+export function arrayPartitioned<Generic, Specific extends Generic>(
 	array: ReadonlyArray<Generic>,
 	predicate: (item: Generic) => item is Specific,
 ): [Array<Specific>, Array<Exclude<Generic, Specific>>]
-export function partition<TL>(array: ReadonlyArray<TL>, predicate: (item: TL) => boolean): [Array<TL>, Array<TL>]
+export function arrayPartitioned<TL>(array: ReadonlyArray<TL>, predicate: (item: TL) => boolean): [Array<TL>, Array<TL>]
 // this is an implementation signature and is not visible from the outside
-export function partition<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): [Array<T>, Array<T>] {
+export function arrayPartitioned<T>(array: ReadonlyArray<T>, predicate: (item: T) => boolean): [Array<T>, Array<T>] {
 	const left: Array<T> = []
 	const right: Array<T> = []
 
@@ -573,10 +424,10 @@ export function partition<T>(array: ReadonlyArray<T>, predicate: (item: T) => bo
 }
 
 /**
- * Like {@link partition}, but async and only for TL = TR.
+ * Like {@link arrayPartitioned}, but async and only for TL = TR.
  * Rejects if any of the predicates reject.
  */
-export async function partitionAsync<T>(array: Array<T>, predicate: (item: T) => Promise<boolean>): Promise<[Array<T>, Array<T>]> {
+export async function arrayPartitionedAsync<T>(array: Array<T>, predicate: (item: T) => Promise<boolean>): Promise<[Array<T>, Array<T>]> {
 	const left: Array<T> = []
 	const right: Array<T> = []
 
@@ -595,54 +446,30 @@ export async function partitionAsync<T>(array: Array<T>, predicate: (item: T) =>
  * Create an array with n elements by calling the provided factory
  */
 export function arrayOf<T>(n: number, factory: (idx: number) => T): Array<T> {
-	return numberRange(0, n - 1).map(factory)
+	return [...new Array(n).keys()].map((_, idx) => factory(idx))
 }
 
 /**
- * @return 1 if first is bigger than second, -1 if second is bigger than first and 0 otherwise
- */
-export function compare(first: Uint8Array, second: Uint8Array): number {
-	if (first.length > second.length) {
-		return 1
-	} else if (first.length < second.length) {
-		return -1
-	}
-
-	for (let i = 0; i < first.length; i++) {
-		const a = first[i]
-		const b = second[i]
-		if (a > b) {
-			return 1
-		} else if (a < b) {
-			return -1
-		}
-	}
-
-	return 0
-}
-
-/**
- * Split the array at the given index, returning the left and right side.
+ * Returns two slices of the array, split at the given index, returning left (items before index) and right (items from
+ * index) side.
  *
- * The element at the given index will be included in the right side if it exists. For example, splitting at index 3 for
- * `[0,1,2,3,4,5]` returns `[[0,1,2], [3,4,5]]`
+ * The element at the given index will be included in the right split if it exists.
+ *
+ * Example:
+ *
+ * ```typescript
+ * arraySplitAt([0, 1, 2, 3, 4, 5], 3) // produces [[0,1,2], [3,4,5]]
+ * ```
  *
  * If `index >= array.length` then the right side will be an empty array, and the left side will be a shallow copy of
- * {@link array}.
+ * {@param array}.
  *
  * @param {Array} array array to split
  * @param {number} index index to split at (exclusive for left side, inclusive for right side)
- * @returns An array containing two arrays: all elements from 0 to {@link index} (exclusive), and all elements from
- *          {@link index} to the end.
+ * @returns An array containing two arrays: all elements from 0 to {@param index} (exclusive), and all elements from
+ *          {@param index} to the end.
  */
-export function splitArrayAt<T>(array: readonly T[], index: number): [T[], T[]] {
-	const left = array.slice(0, index)
-	const right = array.slice(index)
-
-	return [left, right]
-}
-
-export function splitUint8Array(array: Uint8Array, index: number): [Uint8Array, Uint8Array] {
+export function arraySplitAt<T>(array: readonly T[], index: number): [T[], T[]] {
 	const left = array.slice(0, index)
 	const right = array.slice(index)
 

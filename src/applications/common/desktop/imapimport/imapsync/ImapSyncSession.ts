@@ -8,7 +8,7 @@ import { ImapSyncConfig } from "./ImapSync.js"
 import { fromImapFlowError, ImapError, ImapErrorCause } from "../../../api/common/error/ImapError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { IMAP_ERROR_POSTPONE_TIME, ImapSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
+import { arrayFirst, arrayIsEmpty, arrayIsNotEmpty, assertNotNull, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
 import { ImapProvider } from "../../../api/common/utils/imapImportUtils/ImapKnownConfigs"
 
@@ -132,7 +132,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 
 		if (this.imapSyncContext?.isGmail) {
 			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === ImapMailboxSpecialUse.ALL)
-			if (isEmpty(this.syncSessionMailboxes)) {
+			if (arrayIsEmpty(this.syncSessionMailboxes)) {
 				throw new ImapError("All mails Gmail mailbox is not enabled for IMAP", ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
 			}
 		} else {
@@ -189,7 +189,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				}
 			})
 
-		if (isEmpty(remainingMailboxes)) {
+		if (arrayIsEmpty(remainingMailboxes)) {
 			await this.onAllMailboxesFinish()
 			return
 		}
@@ -199,7 +199,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			return
 		}
 
-		const nextMailbox = first(remainingMailboxes)
+		const nextMailbox = arrayFirst(remainingMailboxes)
 
 		if (nextMailbox) {
 			this.startMailboxSync(nextMailbox)
@@ -228,7 +228,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			}
 			console.log(e)
 			const errorList = e.errors ?? [e]
-			const firstError = first(errorList)
+			const firstError = arrayFirst(errorList)
 			if (firstError) {
 				throw fromImapFlowError(firstError)
 			} else {
@@ -269,9 +269,9 @@ export class ImapSyncSession implements SyncSessionEventListener {
 			})
 			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
 			// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
-			if (imapMailboxes && imapMailboxes.length === 1 && isNotEmpty(assertNotNull(first(imapMailboxes)).subFolders ?? [])) {
-				const inboxMailbox = assertNotNull(first(imapMailboxes))
-				const remainingMailboxes = assertNotNull(first(imapMailboxes)).subFolders ?? []
+			if (imapMailboxes && imapMailboxes.length === 1 && arrayIsNotEmpty(assertNotNull(arrayFirst(imapMailboxes)).subFolders ?? [])) {
+				const inboxMailbox = assertNotNull(arrayFirst(imapMailboxes))
+				const remainingMailboxes = assertNotNull(arrayFirst(imapMailboxes)).subFolders ?? []
 				return [inboxMailbox, ...remainingMailboxes]
 			}
 			return imapMailboxes ?? []
@@ -297,7 +297,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 		for (const folder of folders) {
 			if (folder.disabled) {
 				// Skip this folder, but process its children with the same prefix
-				if (folder.folders && isNotEmpty(folder.folders)) {
+				if (folder.folders && arrayIsNotEmpty(folder.folders)) {
 					const promoted = this.filterDisabledAndPromoteChildren(folder.folders, currentPrefix)
 					result.push(...promoted)
 				}
@@ -321,7 +321,7 @@ export class ImapSyncSession implements SyncSessionEventListener {
 				// Create a copy and update the name
 				const newFolder = { ...folder, name: relativeName }
 				// Process children with this folder as the new prefix
-				newFolder.folders = folder.folders && isNotEmpty(folder.folders) ? this.filterDisabledAndPromoteChildren(folder.folders, folderPath) : []
+				newFolder.folders = folder.folders && arrayIsNotEmpty(folder.folders) ? this.filterDisabledAndPromoteChildren(folder.folders, folderPath) : []
 				result.push(newFolder)
 			}
 		}

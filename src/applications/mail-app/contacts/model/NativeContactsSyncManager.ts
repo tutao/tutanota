@@ -1,4 +1,4 @@
-import { assert, defer, getFirstOrThrow, getFromMap, ofClass } from "../../../../platform-kit/utils"
+import { arrayFirstOrThrow, assert, defer, getFromMap, ofClass } from "../../../../platform-kit/utils"
 import { ContactSyncResult, MobileContactsFacade, StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
 import {
@@ -389,7 +389,7 @@ export class NativeContactsSyncManager {
 			title: contact.title ?? "",
 			role: contact.role,
 		})
-		newContact._ownerGroup = getFirstOrThrow(
+		newContact._ownerGroup = arrayFirstOrThrow(
 			this.loginController.getUserController().user.memberships.filter((membership) => membership.groupType === GroupType.Contact),
 		).group
 		return newContact

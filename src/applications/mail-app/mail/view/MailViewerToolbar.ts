@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { IconButton } from "../../../../ui/base/IconButton.js"
-import { isEmpty } from "../../../../platform-kit/utils"
+import { arrayIsEmpty } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { getMailActionAttrs, MailViewerMoreActions, MailViewerToolbarActions, multipleMailViewerMoreActions } from "./MailViewerUtils.js"
@@ -106,7 +106,7 @@ export class MailViewerActions implements Component<MailViewerToolbarAttrs> {
 	private renderExtraButtons(moreActions: MailViewerMoreActions | null): Children {
 		let actions: DropdownButtonAttrs[] = multipleMailViewerMoreActions(moreActions)
 
-		if (isEmpty(actions)) {
+		if (arrayIsEmpty(actions)) {
 			return null
 		} else {
 			return m(IconButton, {

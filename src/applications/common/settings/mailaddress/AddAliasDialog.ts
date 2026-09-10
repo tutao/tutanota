@@ -4,7 +4,7 @@ import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_DOMAINS, Upg
 import m from "mithril"
 import { SelectMailAddressForm } from "../SelectMailAddressForm.js"
 import { ExpanderPanel } from "../../../../ui/base/Expander.js"
-import { filterInt, getFirstOrThrow, ofClass } from "@tutao/utils"
+import { arrayFirstOrThrow, filterInt, ofClass } from "@tutao/utils"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { MailAddressTableModel } from "./MailAddressTableModel.js"
@@ -35,7 +35,7 @@ export function showAddAliasDialog(model: MailAddressTableModel, isNewPaidPlan: 
 		let isVerificationBusy = false
 		let mailAddress: string
 		let formErrorId: TranslationKey | null = "mailAddressNeutral_msg"
-		let formDomain = getFirstOrThrow(domains)
+		let formDomain = arrayFirstOrThrow(domains)
 		if (!isNewPaidPlan && !hasCustomDomains) {
 			formDomain = domains.find((domain) => domain.domain === DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN) ?? formDomain
 		}

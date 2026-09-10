@@ -1,5 +1,5 @@
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { assertNotNull, groupByAndMap, isEmpty, neverNull, promiseMap } from "../../../../platform-kit/utils"
+import { arrayIsEmpty, assertNotNull, iterableGroupedByMapped, neverNull, promiseMap } from "../../../../platform-kit/utils"
 import { InfoLink, lang, MaybeTranslation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import m from "mithril"
@@ -241,7 +241,7 @@ async function doExport(
 ) {
 	const mailIdsToLoad = await actionableMails()
 	numberOfMailsStream(mailIdsToLoad.length)
-	const mailIdsPerList = groupByAndMap(mailIdsToLoad, listIdPart, elementIdPart)
+	const mailIdsPerList = iterableGroupedByMapped(mailIdsToLoad, listIdPart, elementIdPart)
 	const mails = (
 		await promiseMap(mailIdsPerList, ([listId, elementIds]) => locator.entityClient.loadMultiple(MailTypeRef, listId, elementIds), {
 			concurrency: 2,
@@ -684,7 +684,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 									} else {
 										showProgressDialog("unsubscribing_msg", viewModel.unsubscribePost(nextUnsubscribeAction!))
 											.then((isSuccess) => {
-												if (isSuccess || (!isSuccess && isEmpty(nextUnsubscribeActions))) {
+												if (isSuccess || (!isSuccess && arrayIsEmpty(nextUnsubscribeActions))) {
 													return Dialog.showUnsubscribeFinishedDialog(isSuccess)
 												} else {
 													return showUnsubscribeDialog(nextUnsubscribeActions, viewModel, true)
@@ -694,7 +694,7 @@ async function showUnsubscribeDialog(nextUnsubscribeActions: Array<UnsubscribeAc
 												if (e instanceof LockedError) {
 													return Dialog.message("operationStillActive_msg")
 												} else {
-													if (isEmpty(nextUnsubscribeActions)) {
+													if (arrayIsEmpty(nextUnsubscribeActions)) {
 														return Dialog.showUnsubscribeFinishedDialog(false)
 													}
 													return showUnsubscribeDialog(nextUnsubscribeActions, viewModel, true)

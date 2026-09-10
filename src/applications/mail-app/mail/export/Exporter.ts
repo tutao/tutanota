@@ -1,4 +1,4 @@
-import { noOp, promiseMap, sortableTimestamp, splitInChunks } from "../../../../platform-kit/utils"
+import { arrayChunked, noOp, promiseMap, sortableTimestamp } from "../../../../platform-kit/utils"
 import { downloadMailBundle } from "./Bundler"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -75,7 +75,7 @@ export async function exportMails(
 
 		const { getHtmlSanitizer } = await import("../../../common/misc/HtmlSanitizer")
 		const htmlSanitizer = getHtmlSanitizer()
-		const mailChunks = splitInChunks<Mail>(EXPORT_CHUNK_SIZE, mails)
+		const mailChunks = arrayChunked<Mail>(EXPORT_CHUNK_SIZE, mails)
 		for (const [index, mailsChunk] of mailChunks.entries()) {
 			const downloadPromise = promiseMap(mailsChunk, async (mail) => {
 				checkAbortSignal()

@@ -1,6 +1,6 @@
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { assert, assertNotNull, getFirstOrThrow, isNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
+import { arrayFirstOrThrow, assert, assertNotNull, isNotNull, promiseMap, sortableTimestamp } from "@tutao/utils"
 import type { NativeFileApp } from "../../../app-kit/native-bridge/common/FileApp.js"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
 import { FileController, zipDataFiles } from "./FileController.js"
@@ -117,7 +117,7 @@ export class FileControllerNative extends FileController {
 			const dataFiles = (await promiseMap(downloadedFiles, (f) => this.fileApp.readDataFile(f.location))).filter(isNotNull)
 			fileInTemp = await this.fileApp.writeDataFile(await zipDataFiles(dataFiles, `${sortableTimestamp()}-attachments.zip`))
 		} else {
-			fileInTemp = getFirstOrThrow(downloadedFiles)
+			fileInTemp = arrayFirstOrThrow(downloadedFiles)
 		}
 		await this.fileApp.putFileIntoDownloadsFolder(fileInTemp.location, fileInTemp.name)
 	}

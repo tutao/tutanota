@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { assertNotNull, downcast, getFirstOrThrow, isToday, lastIndex, lastThrow } from "@tutao/utils"
+import { arrayFirstOrThrow, arrayLastOrThrow, assertNotNull, downcast, isToday, arrayLastIndex } from "@tutao/utils"
 import { getTimeFromMousePos } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { getPosAndBoundsFromMouseEvent } from "../../../../ui/base/GuiUtils"
 import { CalendarTimeColumnData, CalendarTimeGrid, SUBROWS_PER_INTERVAL } from "./CalendarTimeGrid"
@@ -73,7 +73,7 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 	private renderInteractableCells(attrs: CalendarDayColumnAttrs): Children {
 		const { intervals, baseDate, onCellPressed, onCellContextMenuPressed } = attrs
 		return intervals.map((interval, intervalIndex) => {
-			const showBorderBottom = intervalIndex !== lastIndex(intervals)
+			const showBorderBottom = intervalIndex !== arrayLastIndex(intervals)
 			const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
 			const rowEnd = rowStart + SUBROWS_PER_INTERVAL
 			return m(CalendarTimeCell, {
@@ -102,10 +102,10 @@ export class CalendarDayColumn implements ClassComponent<CalendarDayColumnAttrs>
 	private renderEvents(columnViewAttrs: CalendarDayColumnAttrs): Children {
 		const { timeColumnGrid, baseDate, eventInteractions, intervals, showTimeZonesAtEventBubble } = columnViewAttrs
 
-		const firstInterval = getFirstOrThrow(intervals)
+		const firstInterval = arrayFirstOrThrow(intervals)
 		const secondInterval = assertNotNull(intervals.at(1))
 		const intervalIncrement = firstInterval.diff(secondInterval)
-		const lastInterval = lastThrow(intervals)
+		const lastInterval = arrayLastOrThrow(intervals)
 
 		const timeRangeStartAsDate = firstInterval.toDate(baseDate)
 		const timeRangeEndAsDate = DateTime.fromJSDate(lastInterval.toDate(baseDate)).plus({ minutes: intervalIncrement }).toJSDate()

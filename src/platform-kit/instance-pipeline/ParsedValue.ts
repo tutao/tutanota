@@ -1,4 +1,4 @@
-import { arrayEqualsWithPredicate, assert, assertNotNull, base64ToUint8Array, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
+import { arrayEqualsBy, assert, assertNotNull, base64ToUint8Array, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { AnyEntityId, elementIdPart, listIdPart } from "@tutao/meta"
 import { assertNotNaN } from "../utils/Utils"
@@ -174,7 +174,7 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 			if (this.isString()) {
 				return this.asString() === other.asString()
 			} else if (this.isArray()) {
-				return arrayEqualsWithPredicate(this.asArray(), other.asArray(), (a, b) => a.deepEquals(b))
+				return arrayEqualsBy(this.asArray(), other.asArray(), (a, b) => a.deepEquals(b))
 			} else if (this.isNestedObj()) {
 				return this.asNestedObj().deepEquals(other.asNestedObj())
 			}

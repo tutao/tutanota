@@ -31,16 +31,16 @@ import {
 import * as cborg from "cborg"
 import { EncodeOptions, Token, Type } from "cborg"
 import {
+	arrayChunked,
+	arrayFirstOrThrow,
+	arrayIsEmpty,
 	assert,
 	assertNotNull,
 	Category,
-	getFirstOrThrow,
-	groupBy,
-	groupByAndMap,
-	isEmpty,
+	iterableGroupedBy,
+	iterableGroupedByMapped,
 	mapNullable,
 	Nullable,
-	splitInChunks,
 	syncMetrics,
 	typedEntries,
 	typedValues,
@@ -519,7 +519,7 @@ export class OfflineStorage implements CacheStorage {
 		const table = assertNotNull(tableNameByTypeId.get(type))
 		const storables = await this.toStorables(instances, typeModel, typeString, table)
 
-		const groupedByListId = groupBy(storables, (dbRef) => dbRef.listId)
+		const groupedByListId = iterableGroupedBy(storables, (dbRef) => dbRef.listId)
 		for (const [listId, storableInstances] of groupedByListId) {
 			await this.fetchRowIds(typeModel, table, typeString, listId, storableInstances)
 		}
@@ -532,7 +532,7 @@ export class OfflineStorage implements CacheStorage {
 				}
 			}
 
-			const chunks = splitInChunks(1000, storableInstances) // respect MAX_SAFE_SQL_VARS
+			const chunks = arrayChunked(1000, storableInstances) // respect MAX_SAFE_SQL_VARS
 			for (const chunk of chunks) {
 				let formattedQuery: FormattedQuery
 
@@ -785,7 +785,7 @@ export class OfflineStorage implements CacheStorage {
 									  WHERE ownerGroup = ${owner}`
 		const taggedRows = await this.sqlCipherFacade.all(query, params)
 		const rows = taggedRows.map(untagSqlObject) as { listId: Id; elementId: Id; type: string }[]
-		const groupedByType = groupBy(rows, (row) => row.type)
+		const groupedByType = iterableGroupedBy(rows, (row) => row.type)
 		for (const [type, rows] of groupedByType) {
 			const typeRef = parseTypeString(type) as TypeRef<BlobElementEntity>
 			await this.deleteMultiple(
@@ -803,7 +803,7 @@ export class OfflineStorage implements CacheStorage {
 		const rangeRows = await this.sqlCipherFacade.all(query, params)
 		type Row = { elementId: Id; listId: Id; type: string }
 		const rows = rangeRows.map((row) => untagSqlObject(row) as Row)
-		const listIdsByType: Map<string, Array<Row>> = groupByAndMap(
+		const listIdsByType: Map<string, Array<Row>> = iterableGroupedByMapped(
 			rows,
 			(row) => row.type + row.listId,
 			(row) => row,
@@ -811,7 +811,7 @@ export class OfflineStorage implements CacheStorage {
 
 		// delete the ranges for those listIds
 		for (const [_, rows] of listIdsByType.entries()) {
-			const { type } = getFirstOrThrow(rows)
+			const { type } = arrayFirstOrThrow(rows)
 			const typeRef = parseTypeString(type) as TypeRef<ListElementEntity>
 			// this particular query uses one other SQL var for the type.
 			const safeChunkSize = MAX_SAFE_SQL_VARS - 1
@@ -837,7 +837,7 @@ export class OfflineStorage implements CacheStorage {
 									  WHERE ownerGroup = ${owner}`
 		const taggedRows = await this.sqlCipherFacade.all(query, params)
 		const rows = taggedRows.map(untagSqlObject) as { elementId: Id; type: string }[]
-		const groupedByType = groupByAndMap(
+		const groupedByType = iterableGroupedByMapped(
 			rows,
 			(row) => row.type,
 			(row) => idToElementId(row.elementId),
@@ -894,7 +894,7 @@ export class OfflineStorage implements CacheStorage {
 	 * Will invoke {@link CustomCacheHandler#onBeforeCacheDeletion}.
 	 */
 	async deleteMultiple(typeRef: TypeRef<PersistentEntity>, ids: Array<AnyEntityId>) {
-		if (isEmpty(ids)) {
+		if (arrayIsEmpty(ids)) {
 			return
 		}
 
@@ -920,7 +920,7 @@ export class OfflineStorage implements CacheStorage {
 				break
 			case EntityTypeEnum.ListElement:
 				{
-					const byListId = groupByAndMap(ids, listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id as IdTuple)))
+					const byListId = iterableGroupedByMapped(ids, listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id as IdTuple)))
 					for (const [listId, elementIds] of byListId) {
 						await this.runChunked(
 							MAX_SAFE_SQL_VARS - 2,
@@ -936,7 +936,7 @@ export class OfflineStorage implements CacheStorage {
 				break
 			case EntityTypeEnum.BlobElement:
 				{
-					const byListId = groupByAndMap(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
+					const byListId = iterableGroupedByMapped(ids as IdTuple[], listIdPart, (id) => serverToLocalIdEncoding(typeModel, elementIdPart(id)))
 					for (const [listId, elementIds] of byListId) {
 						await this.runChunked(
 							MAX_SAFE_SQL_VARS - 2,
@@ -956,7 +956,7 @@ export class OfflineStorage implements CacheStorage {
 	}
 
 	async deleteIn<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Nullable<Id>, elementIds: Id[]): Promise<void> {
-		if (isEmpty(elementIds)) return
+		if (arrayIsEmpty(elementIds)) return
 
 		const fullIds: Array<AnyEntityId> = listId == null ? elementIds.map(idToElementId) : elementIds.map((id) => [listId, id])
 		await this.deleteMultiple(typeRef, fullIds)
@@ -1049,7 +1049,7 @@ export class OfflineStorage implements CacheStorage {
 	 * chunkSize must be chosen such that the total number of SQL variables in the final query does not exceed MAX_SAFE_SQL_VARS
 	 * */
 	private async runChunked(chunkSize: number, originalList: SqlValue[], formatter: (chunk: SqlValue[]) => FormattedQuery): Promise<void> {
-		for (const chunk of splitInChunks(chunkSize, originalList)) {
+		for (const chunk of arrayChunked(chunkSize, originalList)) {
 			const formattedQuery = formatter(chunk)
 			await this.sqlCipherFacade.run(formattedQuery.query, formattedQuery.params)
 		}
@@ -1065,7 +1065,7 @@ export class OfflineStorage implements CacheStorage {
 		formatter: (chunk: SqlValue[]) => FormattedQuery,
 	): Promise<Array<Record<string, TaggedSqlValue>>> {
 		const result: Array<Record<string, TaggedSqlValue>> = []
-		for (const chunk of splitInChunks(chunkSize, originalList)) {
+		for (const chunk of arrayChunked(chunkSize, originalList)) {
 			const formattedQuery = formatter(chunk)
 			result.push(...(await this.sqlCipherFacade.all(formattedQuery.query, formattedQuery.params)))
 		}

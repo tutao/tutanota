@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
-import { deduplicate, identity, incrementDate } from "../../../../platform-kit/utils"
+import { arrayDeduplicated, identity, incrementDate } from "../../../../platform-kit/utils"
 import { getRangeOfDays, getStartOfWeek, isSameEventInstance } from "../../../common/calendar/date/CalendarUtils"
 import { WeekStart } from "../../../../platform-kit/app-env"
 import type { EventDragHandlerCallbacks } from "./EventDragHandler"
@@ -146,8 +146,8 @@ export class CalendarTimeBasedView implements Component<CalendarTimeBasedViewAtt
 			key: startDate.getTime(),
 			dates: eventsInPeriod.days,
 			events: {
-				short: deduplicate(eventsInPeriod.shortEventsPerDay.flatMap(identity), isSameEventInstance),
-				long: deduplicate(eventsInPeriod.longEvents, isSameEventInstance),
+				short: arrayDeduplicated(eventsInPeriod.shortEventsPerDay.flatMap(identity), isSameEventInstance),
+				long: arrayDeduplicated(eventsInPeriod.longEvents, isSameEventInstance),
 			},
 		}
 	}

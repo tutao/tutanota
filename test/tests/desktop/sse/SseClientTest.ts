@@ -3,7 +3,7 @@ import { SseClient, SseConnectOptions, SseDelay, SseEventHandler } from "../../.
 import { ClientRequestOptions, DesktopNetworkClient } from "../../../../src/applications/common/desktop/net/DesktopNetworkClient.js"
 import { matchers, object, when } from "testdouble"
 import http from "node:http"
-import { assertNotNull, defer, getFirstOrThrow } from "../../../../src/platform-kit/utils"
+import { arrayFirstOrThrow, assertNotNull, defer } from "../../../../src/platform-kit/utils"
 import { SchedulerMock } from "../../TestUtils.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
 
@@ -181,7 +181,7 @@ o.spec("SseClient", function () {
 			const response = new ResponseStub()
 			await request.sendResponse(response)
 			response.sendData("\n\n")
-			await getFirstOrThrow(scheduler.getAllPeriodThunks())()
+			await arrayFirstOrThrow(scheduler.getAllPeriodThunks())()
 			o(request.state).equals("created")
 		})
 
@@ -195,7 +195,7 @@ o.spec("SseClient", function () {
 
 			net.prepareForAnotherRequest()
 
-			await getFirstOrThrow(scheduler.getAllPeriodThunks())()
+			await arrayFirstOrThrow(scheduler.getAllPeriodThunks())()
 			o(request.state).equals("destroyed")
 			await net.waitForRequest()
 		})

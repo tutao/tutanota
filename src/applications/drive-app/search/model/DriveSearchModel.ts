@@ -2,7 +2,7 @@ import { SearchRestriction, SearchResult } from "../../../common/api/worker/sear
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef, DriveGroupRootTypeRef } from "@tutao/entities/drive"
-import { collectToMap, isEmpty, isNotEmpty, isNotNull, lastIndex, lastThrow, tokenize } from "@tutao/utils"
+import { arrayIsEmpty, arrayIsNotEmpty, arrayLastIndex, arrayLastOrThrow, isNotNull, iterableCollectToMap, tokenize } from "@tutao/utils"
 import { assertIsEntity, elementIdPart, GENERATED_MAX_ID, getElementId, idToElementId, isSameSingleId, isSameTypeRef, OperationType } from "@tutao/meta"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
@@ -30,7 +30,7 @@ export class DriveSearchModel {
 				let currentId = GENERATED_MAX_ID
 				while (true) {
 					const chunk = await this.entityClient.loadRange(DriveFileTypeRef, fileBagId.files, currentId, 100, true)
-					if (isEmpty(chunk)) {
+					if (arrayIsEmpty(chunk)) {
 						break
 					}
 					for (const item of chunk) {
@@ -43,14 +43,14 @@ export class DriveSearchModel {
 						}
 					}
 
-					currentId = getElementId(lastThrow(chunk))
+					currentId = getElementId(arrayLastOrThrow(chunk))
 				}
 			}
 			for (const folderBagId of groupRoot.folderBags) {
 				let currentId = GENERATED_MAX_ID
 				while (true) {
 					const chunk = await this.entityClient.loadRange(DriveFolderTypeRef, folderBagId.folders, currentId, 100, true)
-					if (isEmpty(chunk)) {
+					if (arrayIsEmpty(chunk)) {
 						break
 					}
 					for (const item of chunk) {
@@ -62,7 +62,7 @@ export class DriveSearchModel {
 							}
 						}
 					}
-					currentId = getElementId(lastThrow(chunk))
+					currentId = getElementId(arrayLastOrThrow(chunk))
 				}
 			}
 		}
@@ -72,7 +72,7 @@ export class DriveSearchModel {
 		const parentFolderIds = resultItems.map((item) => (isDriveFile(item) ? item.folder : item.parent)).filter(isNotNull)
 		const uniqueParentFolderIds = [...collectionUniqueBy(parentFolderIds, (item) => elementIdPart(item))]
 		const parentFolders = await loadMultipleFromLists(DriveFolderTypeRef, this.entityClient, uniqueParentFolderIds)
-		const idToParentFolder = collectToMap(parentFolders, (parent) => elementIdPart(parent._id))
+		const idToParentFolder = iterableCollectToMap(parentFolders, (parent) => elementIdPart(parent._id))
 
 		const extendedResultItems: FolderItem[] = resultItems.map((item) => {
 			let parent: DriveFolder | null = null
@@ -116,7 +116,7 @@ export class DriveSearchModel {
 				liveResult.updates.end(true)
 			},
 			get hasMoreResults() {
-				return isNotEmpty(extendedResultItems) && loadedUntil < lastIndex(extendedResultItems)
+				return arrayIsNotEmpty(extendedResultItems) && loadedUntil < arrayLastIndex(extendedResultItems)
 			},
 		}
 		const entityUpdatesListener: EntityUpdatesListener = {

@@ -3,7 +3,7 @@ import stream from "mithril/stream"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import type { TableLineAttrs } from "../../../../ui/base/Table.js"
 import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
-import { assert, assertNotNull, cleanMailAddress, contains, downcast, findAndRemove, neverNull, remove } from "../../../../platform-kit/utils"
+import { arrayContains, arrayRemove, arrayRemoveBy, assert, assertNotNull, cleanMailAddress, downcast, neverNull } from "../../../../platform-kit/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { ButtonType } from "../../../../ui/base/Button.js"
@@ -201,7 +201,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 							click: () => {
 								const bubbleToRemove = findRecipientWithAddress(recipients, address)
 								if (bubbleToRemove) {
-									remove(recipients, bubbleToRemove)
+									arrayRemove(recipients, bubbleToRemove)
 								}
 							},
 						},
@@ -217,7 +217,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 								.whenResolved(() => m.redraw()),
 						),
 					onRecipientRemoved: (address) =>
-						findAndRemove(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
+						arrayRemoveBy(recipients, (recipient) => cleanMailAddress(recipient.address) === cleanMailAddress(address)),
 					onTextChanged: recipientsText,
 					search,
 					maxSuggestionsToShow: 3,
@@ -273,7 +273,7 @@ async function showAddParticipantDialog(model: GroupSharingModel, texts: GroupSh
 
 						// Mark all recipients that have a KeyVerificationMismatch after hitting "Send"
 						for (const recipient of recipients) {
-							if (contains(e.data, recipient.address)) {
+							if (arrayContains(e.data, recipient.address)) {
 								await recipient.markAsKeyVerificationMismatch()
 								failedRecipients.push(recipient)
 							}

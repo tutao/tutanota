@@ -4,7 +4,7 @@ import { EntropyFacade } from "../../../../src/platform-kit/base/facades/Entropy
 import { EntropySource } from "../../../../src/platform-kit/crypto"
 import { matchers, object, when } from "testdouble"
 import { SchedulerMock } from "../../TestUtils.js"
-import { getFromMap, remove } from "../../../../src/platform-kit/utils"
+import { arrayRemove, getFromMap } from "../../../../src/platform-kit/utils"
 import { EntropyDataChunk } from "../../../../src/platform-kit/crypto/random/EntropyDataChunk"
 
 class FakeWindow {
@@ -19,7 +19,7 @@ class FakeWindow {
 	}
 
 	removeEventListener: (typeof Window.prototype)["removeEventListener"] = (event, listener) => {
-		remove(this.getListeners(event), listener)
+		arrayRemove(this.getListeners(event), listener)
 	}
 
 	dispatch<E extends keyof WindowEventMap>(name: E, event: Partial<WindowEventMap[E]>) {
