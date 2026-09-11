@@ -38,6 +38,7 @@ import { InboxRuleType, NewsletterBannerRule } from "../../../../entities/tutano
 import { canSeeTutaLinks } from "../../../common/gui/base/TutaLinkUtils"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
+import { ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -672,8 +673,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				open: viewModel.attachmentDownloader.canOpenAttachment(attachment)
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
-				//FIXME assuming one button for now
-				nextcloud: viewModel.getAttachmentButtons()[0]?.clickCallback ?? null,
+				attachmentExtensionClickActions: viewModel.pluginManager
+					.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
+					.map((attachmentExtension) => {
+						return () =>
+							viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginName, viewModel.attachmentAsPluginDataFile(attachment))
+					}),
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
 			})
