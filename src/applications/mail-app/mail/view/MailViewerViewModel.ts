@@ -98,6 +98,7 @@ import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManag
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 import { PluginManager } from "../../../plugin-manager/PluginManager"
 import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
+import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1397,10 +1398,6 @@ export class MailViewerViewModel {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
 		}
-	}
-
-	getAttachmentButtons(): ButtonConfiguration[] {
-		return this.pluginManager.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
 	}
 
 	canImportFile(file: File): boolean {
