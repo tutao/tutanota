@@ -3125,7 +3125,7 @@ export class MainStyles {
 					position: "relative",
 					display: "block",
 					width: "52px",
-					height: "32px",
+					height: px(component_size.button_height_bubble),
 					"background-color": theme.surface_container_high,
 					"border-radius": px(size.spacing_8 * 4),
 					border: `2px solid ${theme.outline}`,
