@@ -91,7 +91,6 @@ o.spec("MailAddressFacadeTest", function () {
 				_ownerGroup: mailGroupId,
 				reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 				mailAddressProperties: [],
-				_ownerKeyVersion: "1",
 			})
 			const userGroupInfoId: IdTuple = ["groupInfoListId", "groupInfoId"]
 			const user = createTestEntity(UserTypeRef, {

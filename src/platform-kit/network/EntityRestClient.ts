@@ -59,6 +59,7 @@ import {
 } from "@tutao/rest-client/error"
 import {
 	AesKey,
+	cryptoUtils,
 	generateKdfNonce,
 	KdfNonce,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
@@ -404,7 +405,7 @@ export class EntityRestClient implements EntityRestInterface {
 	): Promise<DecryptedParsedInstance> {
 		let sessionKey: AesKey | null
 		if (isNotNull(ownerEncSessionKeyProvider)) {
-			const { listId: _, elementId } = expandId(entityAdapter._id)
+			const { elementId } = expandId(entityAdapter._id)
 
 			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
 			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
@@ -679,16 +680,19 @@ export class EntityRestClient implements EntityRestInterface {
 
 	async update<T extends PersistentEntity>(instance: T, options: EntityRestClientUpdateOptions = DEFAULT_ENTITY_RESTCLIENT_UPDATE_OPTIONS): Promise<void> {
 		const { listId, elementId } = expandId(assertNotNull(instance._id, "Id must be defined while updating an instance"))
-		const {
-			path,
-			queryParams,
-			clientTypeModel: _,
-			headers,
-		} = await this._validateAndPrepareRestRequest(instance._type, listId, elementId, null, null, null, options?.ownerKey ?? null)
+		const { path, queryParams, headers } = await this._validateAndPrepareRestRequest(
+			instance._type,
+			listId,
+			elementId,
+			null,
+			null,
+			options?.ownerKeyProvider,
+			null,
+		)
 		// map and encrypt instance._original and the instance
 		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(instance._original))
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(instance)
-		const subKeyInfo = await this.getSubKeyInfoOnUpdate(options?.ownerKey ?? null, instance)
+		const subKeyInfo = await this.getSubKeyInfoOnUpdate(options?.ownerKeyProvider, instance)
 		const modifiedEncryptedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
 
 		// figure out differing fields and build the PATCH request payload
@@ -733,15 +737,19 @@ export class EntityRestClient implements EntityRestInterface {
 		}
 	}
 
-	private async getSubKeyInfoOnUpdate<T extends PersistentEntity>(ownerKey: VersionedKey | null, instance: T): Promise<Nullable<SubKeyInfo>> {
+	private async getSubKeyInfoOnUpdate<T extends PersistentEntity>(ownerKeyProvider: Nullable<OwnerKeyProvider>, instance: T): Promise<Nullable<SubKeyInfo>> {
 		if (this.authDataProvider.getDefaultSymmetricEncryptionScheme() === SymmetricEncryptionScheme.AesCbc) {
-			const sessionKey: Nullable<AesKey> = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKey(
-				ownerKey != null ? ownerKey.object : null,
-				instance,
-			)
+			const sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider, instance)
 			return makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		} else {
-			if (isNull(ownerKey)) {
+			let ownerKey: VersionedKey
+			if (isNotNull(ownerKeyProvider)) {
+				let ownerKeyVersion = cryptoUtils.parseKeyVersion(instance._ownerKeyVersion ?? "0")
+				ownerKey = {
+					object: await ownerKeyProvider(ownerKeyVersion),
+					version: ownerKeyVersion,
+				}
+			} else {
 				if (instance._ownerGroup == null) {
 					throw new ProgrammingError("This instance has no owner group")
 				}
