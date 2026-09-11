@@ -18,7 +18,7 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { OAuthHandlerFactory } from "../../../mail-app/settings/imapimport/oauth/OAuthHandler"
 import { mailLocator } from "../../../mail-app/mailLocator"
 import {
-	getImapCredentialSource,
+	getMigrationCredential,
 	tokenEndpointResponseToOAuthToken,
 	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
 } from "../../api/common/utils/imapImportUtils/ImapImportUtils"
@@ -232,7 +232,7 @@ class UpdateImapCredentialsDialogViewModel {
 		readonly syncState: MailboxMigrationSyncState,
 		readonly userMigrationInformation: UserMigrationInformation | null,
 	) {
-		const credentialSource = getImapCredentialSource(syncState, userMigrationInformation)
+		const credentialSource = getMigrationCredential(syncState, userMigrationInformation)
 		this.provider = credentialSource.provider
 		this.username = credentialSource.username
 		this.password = credentialSource.password ?? ""

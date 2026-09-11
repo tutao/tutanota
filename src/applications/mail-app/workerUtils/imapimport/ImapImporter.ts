@@ -12,7 +12,7 @@ import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/I
 import {
 	findUserMigrationInformationForSyncState,
 	getFolderSyncStateForMailboxPath,
-	getImapCredentialSource,
+	getMigrationCredential,
 	migrationSyncStateToImapCredentials,
 	imapMailToImportMailParams,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
@@ -168,7 +168,6 @@ export class ImapImporter implements ImapSyncFacade {
 	 * Attempts to continue an import from an existing state, it may return errors in case of failure.
 	 */
 	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts = 0): Promise<ImportResult> {
-		console.log("continuing import")
 		let session = await this.reloadImapImportSession(imapAccountSyncStateId)
 
 		if (session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED) {
@@ -376,7 +375,7 @@ export class ImapImporter implements ImapSyncFacade {
 			return Promise.resolve()
 		}
 		const isALLSystemFolder = imapMailbox.specialUse !== undefined && imapMailbox.specialUse === ImapMailboxSpecialUse.ALL
-		const provider = getImapCredentialSource(session.imapAccountSyncState, session.userMigrationInformation).provider
+		const provider = getMigrationCredential(session.imapAccountSyncState, session.userMigrationInformation).provider
 		const isGmail = provider === ImapProvider.Gmail
 
 		switch (eventType) {
@@ -622,7 +621,7 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async getImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
 		const imapImportUiSessions: ImapImportUiSession[] = Array.from(this.imapImportSessions.values()).map((session) => {
-			const credentialSource = getImapCredentialSource(session.imapAccountSyncState, session.userMigrationInformation)
+			const credentialSource = getMigrationCredential(session.imapAccountSyncState, session.userMigrationInformation)
 			return {
 				provider: credentialSource.provider,
 				imapAccountSyncStateId: session.imapAccountSyncState._id,
