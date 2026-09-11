@@ -758,6 +758,8 @@ pub struct CustomerInfo {
 	pub partnerManagedCustomers: Option<GeneratedId>,
 	#[serde(rename = "2770")]
 	pub revocationRequest: Option<IdTupleGenerated>,
+	#[serde(rename = "2797")]
+	pub storeNotificationLog: Option<GeneratedId>,
 }
 
 impl Entity for CustomerInfo {

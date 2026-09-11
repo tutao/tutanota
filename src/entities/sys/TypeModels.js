@@ -2287,6 +2287,15 @@ const typeModels = {
 				refTypeId: 2759,
 				dependency: null,
 			},
+			2797: {
+				final: true,
+				name: "storeNotificationLog",
+				id: 2797,
+				type: "LIST_ASSOCIATION",
+				cardinality: "ZeroOrOne",
+				refTypeId: 2790,
+				dependency: null,
+			},
 		},
 	},
 	195: {

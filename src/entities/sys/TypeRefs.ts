@@ -916,6 +916,7 @@ export type CustomerInfoParams = {
 	managedByPartner: null | Id
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
+	storeNotificationLog: null | Id
 }
 
 export type CustomerInfo = {
@@ -963,6 +964,7 @@ export type CustomerInfo = {
 	managedByPartner: null | Id
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
+	storeNotificationLog: null | Id
 
 	//== some entities have these and some don't
 
