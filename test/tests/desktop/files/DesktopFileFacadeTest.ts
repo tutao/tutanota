@@ -5,6 +5,7 @@ import { ApplicationWindow } from "../../../../src/applications/common/desktop/A
 import { func, matchers, object, verify, when } from "testdouble"
 import { ElectronExports, FsExports, PathExports } from "../../../../src/applications/common/desktop/ElectronExportTypes.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
+import { ConnectionError } from "../../../../src/platform-kit/rest-client/error"
 import { HttpMethod } from "../../../../src/platform-kit/rest-client/types"
 import type fs from "node:fs"
 import { DateProvider, stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
@@ -220,8 +221,7 @@ o.spec("DesktopFileFacade", function () {
 			when(fs.createWriteStream(matchers.anything(), matchers.anything())).thenReturn(ws as unknown as fs.WriteStream)
 			when(tfs.ensureEncryptedDir()).thenResolve("/tutanota/tmp/path/encrypted")
 
-			const e = await assertThrows(Error, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
-			o(e).equals(error)
+			await assertThrows(ConnectionError, () => ff.download("some://url/file", "nativelyDownloadedFile", headers, "fileId"))
 			verify(fs.promises.unlink(urlLike("file:///tutanota/tmp/path/encrypted/nativelyDownloadedFile")), { times: 1 })
 		})
 	})
