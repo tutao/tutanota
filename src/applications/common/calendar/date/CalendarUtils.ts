@@ -44,7 +44,7 @@ import {
 	isAllDayEvent,
 	isAllDayEventByTimes,
 } from "../../api/common/utils/CommonCalendarUtils"
-import { Time } from "./Time.js"
+import { Time } from "../Time.js"
 import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel"
 import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"

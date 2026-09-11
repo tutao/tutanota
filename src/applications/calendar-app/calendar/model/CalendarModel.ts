@@ -119,13 +119,7 @@ import {
 	UserAlarmInfoTypeRef,
 } from "@tutao/entities/sys"
 import { isSharedGroupOwner } from "../../../../entities/sys/Utils"
-import {
-	CacheSyncStatus,
-	EntityUpdateData,
-	isUpdateFor,
-	isUpdateForTypeRef,
-	ListenerPriority,
-} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { OperationId, OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { formatNotificationForDisplay } from "../../../../ui/utils/Formatter"
 import {
@@ -238,21 +232,14 @@ export class CalendarModel {
 		private readonly deviceConfig: DeviceConfig,
 		private readonly pushService: NativePushServiceApp | null,
 		private readonly syncTracker: SyncTracker,
-		private readonly requestWidgetRefresh: () => void,
 		private readonly lang: LanguageViewModel,
 	) {
 		this.readProgressMonitor = oneShotProgressMonitorGenerator(progressTracker, logins.getUserController())
+
 		eventController.addEntityUpdatesListener({
 			id: "CalendarModel",
 			onEntityUpdatesReceived: (updates, eventOwnerGroupId) => this.onEntityUpdatesReceived(updates, eventOwnerGroupId),
 			priority: ListenerPriority.HIGH,
-		})
-
-		syncTracker.addSyncListener({
-			id: "CalendarModel",
-			priority: ListenerPriority.HIGH,
-			targetStatus: CacheSyncStatus.OnlineSyncDone,
-			onSyncStatusChange: async () => this.requestWidgetRefresh(),
 		})
 
 		this.birthdayCalendarInfo = this.createBirthdayCalendarInfo()
@@ -347,7 +334,6 @@ export class CalendarModel {
 		}
 
 		newEvent.pendingInvitation = this.isPendingInvitation(newEvent)
-
 		// in cases where start time or calendar changed, we need to change the event id and so need to delete/recreate.
 		// it's also possible that the event has to be moved from the long event list to the short event list or vice versa.
 		if (
@@ -357,16 +343,15 @@ export class CalendarModel {
 		) {
 			await this.replaceEvent(existingEvent, newEvent, zone, groupRoot, newAlarms)
 
-			this.requestWidgetRefresh()
 			// We should reload the instance here because session key and permissions are updated when we recreate event.
-			return await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
+			newEvent = await this.entityClient.load<CalendarEvent>(CalendarEventTypeRef, newEvent._id)
 		} else {
 			newEvent._ownerGroup = elementIdToId(groupRoot._id)
 			// We can't load updated event here because cache is not updated yet. We also shouldn't need to load it, we have the latest version
 			await this.calendarFacade.updateCalendarEvent(newEvent, newAlarms, existingEvent)
-			this.requestWidgetRefresh()
-			return newEvent
 		}
+
+		return newEvent
 	}
 
 	/**
@@ -847,8 +832,6 @@ export class CalendarModel {
 
 		const result = await this.calendarFacade.createCalendarEvent(event, alarmInfos ?? null)
 		this.handleSaveCalendarEventsErrorIfNeeded(result)
-
-		return this.requestWidgetRefresh()
 	}
 
 	private async replaceEvent(
@@ -878,7 +861,6 @@ export class CalendarModel {
 
 		const result = await this.calendarFacade.replaceCalendarEvent(oldEvent, newEvent, alarmInfos ?? null)
 		this.handleSaveCalendarEventsErrorIfNeeded(result)
-		return this.requestWidgetRefresh()
 	}
 
 	isPendingInvitation(event: CalendarEvent) {
@@ -890,7 +872,6 @@ export class CalendarModel {
 
 	async deleteEvent(event: CalendarEvent): Promise<void> {
 		await this.entityClient.erase(event)
-		return this.requestWidgetRefresh()
 	}
 
 	async wipeCalendar(listId: Id, events: CalendarEvent[]): Promise<void> {
@@ -906,8 +887,6 @@ export class CalendarModel {
 			console.error("Chunks: ", { chunksCompleted, total: chunks.length }, e.message)
 			throw e
 		}
-
-		return this.requestWidgetRefresh()
 	}
 
 	/**
@@ -1384,11 +1363,7 @@ export class CalendarModel {
 			this.entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, eventOwnerGroupId),
 		])
 		const alarmInfos = alarms.map((a) => a.alarmInfo)
-		const event = await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
-
-		this.requestWidgetRefresh()
-
-		return event
+		return await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
 	}
 
 	async init(): Promise<void> {

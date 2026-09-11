@@ -1,4 +1,4 @@
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { layout_size, px } from "../../../../ui/size"
 import { TimeBadge, TimeBadgeAttrs, TimeBadgeVarient } from "./TimeBadge"

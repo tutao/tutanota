@@ -874,9 +874,6 @@ class DriveLocator implements CommonLocator {
 			deviceConfig,
 			!EnvProvider.get().isBrowser() ? this.pushService : null,
 			this.syncTracker,
-			() => {
-				this.systemFacade.requestWidgetRefresh()
-			},
 			lang,
 		)
 	})

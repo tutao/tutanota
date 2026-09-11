@@ -17,7 +17,7 @@ import {
 } from "./CalendarEventModel.js"
 import { LoginController } from "../../../../common/api/main/LoginController.js"
 import { isAllDayEvent, isBefore } from "../../../../common/api/common/utils/CommonCalendarUtils"
-import { Time } from "../../../../common/calendar/date/Time"
+import { Time } from "../../../../common/calendar/Time"
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { RecipientField } from "../../../../common/mailFunctionality/SharedMailUtils"
 import { CalendarEvent, CalendarEventParams, createEncryptedMailAddress } from "@tutao/entities/tutanota"

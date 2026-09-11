@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { Time } from "../date/Time"
+import { Time } from "../Time"
 
 export enum TimeBadgeVarient {
 	SMALL,

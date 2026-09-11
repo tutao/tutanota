@@ -7,7 +7,7 @@ import {
 	CalendarEventWhenModel,
 	getDefaultEndCountValue,
 } from "../../../../src/applications/calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel.js"
-import { Time } from "../../../../src/applications/common/calendar/date/Time.js"
+import { Time } from "../../../../src/applications/common/calendar/Time.js"
 
 import { CalendarEvent, CalendarEventTypeRef, CalendarRepeatRule } from "@tutao/entities/tutanota"
 

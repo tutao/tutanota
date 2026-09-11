@@ -69,11 +69,6 @@ public protocol MobileSystemFacade : Sendable {
 	func requestInAppRating(
 	) async throws -> Void
 	/**
-	 * Sends a refresh signal to the native side, updating widget last sync
-	 */
-	func requestWidgetRefresh(
-	) async throws -> Void
-	/**
 	 * Sends the URL from the remote origin to be stored on the device
 	 */
 	func storeServerRemoteOrigin(

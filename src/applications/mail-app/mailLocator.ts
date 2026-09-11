@@ -1160,7 +1160,6 @@ class MailLocator implements CommonLocator {
 			deviceConfig,
 			!EnvProvider.get().isBrowser() ? this.pushService : null,
 			this.syncTracker,
-			noOp,
 			lang,
 		)
 	})
