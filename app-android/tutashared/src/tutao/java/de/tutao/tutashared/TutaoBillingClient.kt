@@ -40,11 +40,8 @@ class TutaoBillingClient(val activity: Activity) {
 		}
 		val deferredResult = pendingPurchase.start()
 		try {
-			val launchResult = withContext(Dispatchers.Main.immediate) {
+			withContext(Dispatchers.Main.immediate) {
 				googleBillingClient.launchBillingFlow(activity, params)
-			}
-			if (launchResult.responseCode != BillingResponseCode.OK) {
-				error("Failed to launch: code=${launchResult.responseCode} message=${launchResult.debugMessage}")
 			}
 			// duration until resolution depends on how fast the user goes through the flow
 			return deferredResult.await()

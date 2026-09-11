@@ -47,7 +47,7 @@ class PendingPurchase : PurchasesUpdatedListener {
 				}
 			}
 
-			BillingResponseCode.USER_CANCELED, BillingResponseCode.BILLING_UNAVAILABLE -> {
+			BillingResponseCode.USER_CANCELED -> {
 				complete(
 					MobilePaymentResult(
 						result = MobilePaymentResultType.CANCELLED,
@@ -56,6 +56,17 @@ class PendingPurchase : PurchasesUpdatedListener {
 					)
 				)
 			}
+
+			BillingResponseCode.BILLING_UNAVAILABLE,
+			BillingResponseCode.ERROR,
+			BillingResponseCode.FEATURE_NOT_SUPPORTED,
+			BillingResponseCode.NETWORK_ERROR,
+			BillingResponseCode.SERVICE_DISCONNECTED,
+			BillingResponseCode.SERVICE_TIMEOUT,
+			BillingResponseCode.SERVICE_UNAVAILABLE -> {
+				fail(MobilePaymentException())
+			}
+
 
 			else -> {
 				fail(

@@ -151,6 +151,9 @@ const ErrorNameToType = {
 	"de.tutao.tutashared.PermissionError": PermissionError,
 	"de.tutao.tutashared.ContactStoreError": ContactStoreError,
 	"de.tutao.tutanota.MobilePayment": MobilePaymentError,
+	"de.tutao.calendar.MobilePayment": MobilePaymentError,
+	"de.tutao.drive.MobilePayment": MobilePaymentError,
+	"de.tutao.tutashared.MobilePaymentException": MobilePaymentError,
 }
 
 export function isSecurityError(e: any): boolean {
