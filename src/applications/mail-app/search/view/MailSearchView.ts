@@ -93,7 +93,6 @@ import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
-import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
@@ -572,6 +571,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 		this.searchViewModel.dispose()
 		keyManager.unregisterShortcuts(this.shortcuts())
 	}
+
+	getViewSlider(): ViewSlider | null {
+		return this.viewSlider
+	}
+
 	private renderDetailsView(header: AppHeaderAttrs): Children {
 		const selectedMails = this.searchViewModel.getSelectedMails()
 
