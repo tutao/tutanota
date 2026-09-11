@@ -1,17 +1,12 @@
 import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "../../sdk/PluginHostApi"
+import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 
-export class Plugin extends PluginApi {
-	public readonly mainButton: ButtonConfiguration
+export class Plugin extends PluginApi implements AttachmentButtonExtension {
+	public readonly attachmentButton: ButtonConfiguration
 
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
-		this.mainButton = {
-			clickCallback: this.buttonClicked,
-			extensionPoint: ButtonExtensionPoint.SaveAttachmentDialog,
-			text: { de: "Nextcloud attachment anhaengen" },
-			pluginId: "nextcloud",
-		}
 	}
 	getMetadata(): PluginMetadata {
 		return {
@@ -21,16 +16,17 @@ export class Plugin extends PluginApi {
 		}
 	}
 
-	load(): Promise<void> {
-		this.pluginHost.registerButton(this.mainButton)
-		return Promise.resolve()
+	async load(): Promise<void> {
+		let saveAttachmentBtnConfig: ButtonConfiguration = {
+			extensionPoint: ButtonExtensionPoint.SaveAttachmentDialog,
+			text: { de: "Nextcloud attachment anhaengen" },
+		}
+		this.pluginHost.registerButton(saveAttachmentBtnConfig)
 	}
 
-	unload(): Promise<void> {
-		return Promise.resolve()
-	}
+	async unload(): Promise<void> {}
 
-	buttonClicked(button: ButtonRef) {
-		console.log("Nextcloud button clicked!")
+	attachmentButtonClicked(dataFile: PluginDataFile): void {
+		console.log("data file " + dataFile.name)
 	}
 }

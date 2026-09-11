@@ -1,8 +1,6 @@
-import { ButtonConfiguration, ButtonRef, PluginHostApi } from "./PluginHostApi"
+import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "./PluginHostApi"
 
 export abstract class PluginApi {
-	public readonly mainButton: ButtonConfiguration | null = null
-
 	constructor(public readonly pluginHost: PluginHostApi) {}
 
 	abstract getMetadata(): PluginMetadata

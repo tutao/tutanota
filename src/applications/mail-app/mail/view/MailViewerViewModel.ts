@@ -100,6 +100,7 @@ import { getCurrentUser as ncGetCurrentUser } from "@nextcloud/auth"
 import { TransferId } from "../../../../entities/drive/Utils"
 import { PluginManager } from "../../../plugin-manager/PluginManager"
 import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
+import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -197,7 +198,7 @@ export class MailViewerViewModel {
 		private readonly transferProgressDispatcher: TransferProgressDispatcher,
 		private readonly operationProgressTracker: OperationProgressTracker,
 		private readonly syncTracker: SyncTracker,
-		private readonly pluginManager: PluginManager,
+		public readonly pluginManager: PluginManager,
 	) {
 		this.folderMailboxText = null
 		if (showFolder) {
@@ -1323,6 +1324,12 @@ export class MailViewerViewModel {
 			}
 		}
 	}
+
+	async attachmentAsPluginDataFile(file: File): Promise<PluginDataFile> {
+		const dataFile = await this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
+		const { name, mimeType, data, size } = dataFile
+		return { name, mimeType, data, size }
+	}
 	public async saveToNextcloud(file: File) {
 		const dataFilePromise = this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
 		const filePutHeaders = {
@@ -1464,10 +1471,6 @@ export class MailViewerViewModel {
 			console.log(e)
 			throw new UserError("errorDuringFileOpen_msg")
 		}
-	}
-
-	getAttachmentButtons(): ButtonConfiguration[] {
-		return this.pluginManager.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
 	}
 
 	canImportFile(file: File): boolean {
