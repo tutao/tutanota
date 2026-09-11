@@ -11,7 +11,14 @@ import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, o
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import {
+	DecryptedParsedInstance,
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	OwnerKeyProvider,
+	TypeModelResolver,
+} from "../../../src/platform-kit/instance-pipeline"
 import {
 	aes256RandomKey,
 	AesKey,
@@ -1357,6 +1364,7 @@ o.spec("EntityRestClient", function () {
 		o("Update creates new KDF nonce when it is missing and required", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerKeyProvider: OwnerKeyProvider = async () => ownerGroupKey.object
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1386,7 +1394,7 @@ o.spec("EntityRestClient", function () {
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: postIn.instanceKdfNonce.kdfNonce }),
 			)
 
-			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKeyProvider })
 
 			o.check(calendarEvent._kdfNonce).notEquals(null)
 
@@ -1405,6 +1413,7 @@ o.spec("EntityRestClient", function () {
 		o("Update accepts KDF nonce from the server when trying to create a new one", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerKeyProvider: OwnerKeyProvider = async () => ownerGroupKey.object
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1436,7 +1445,7 @@ o.spec("EntityRestClient", function () {
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
 			)
 
-			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKeyProvider })
 
 			o.check(calendarEvent._kdfNonce).notEquals(null)
 
@@ -1456,6 +1465,7 @@ o.spec("EntityRestClient", function () {
 		o("Update does not overwrite KDF nonce", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
 			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerKeyProvider: OwnerKeyProvider = async () => ownerGroupKey.object
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1482,7 +1492,7 @@ o.spec("EntityRestClient", function () {
 			calendarEvent.summary = "totally different"
 			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
 
-			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKey: ownerGroupKey })
+			await entityRestClient.update(calendarEvent, { baseUrl: null, ownerKeyProvider })
 
 			verify(serviceExecutor.execute(UpdateKdfNonceService_POST, matchers.anything(), null), { times: 0 })
 
