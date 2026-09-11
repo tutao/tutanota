@@ -1,0 +1,12 @@
+{
+	"name": "tutanota-nextcloud-plugin",
+	"version": "1",
+	"license": "GPL-3.0",
+	"type": "module",
+	"dependencies": {
+		"@nextcloud/typings": "1.10.0",
+		"@nextcloud/axios": "2.5.2",
+		"@nextcloud/router": "3.1.0",
+		"@nextcloud/auth": "2.5.3"
+	}
+}
