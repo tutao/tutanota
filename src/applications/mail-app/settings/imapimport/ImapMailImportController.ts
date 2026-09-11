@@ -150,7 +150,7 @@ export class ImapMailImportController {
 			)
 		}
 	}
-
+	//Changes here probably unnecessary. test without.
 	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
 		this.selectedMailBoxDetail = first(this.mailboxDetails)
@@ -171,10 +171,8 @@ export class ImapMailImportController {
 	async initializeImport(initializeImportParams: InitializeImapImportParams) {
 		this.isInStateTransition = true
 		const imapImportSession = await this.imapImporter.initializeNewImport(initializeImportParams)
-		console.log("summary has got the session")
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
-		console.log("the summary page is returning")
 		return imapImportSession
 	}
 
@@ -193,7 +191,6 @@ export class ImapMailImportController {
 
 	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts: number = 0): Promise<ImportResult> {
 		this.isInStateTransition = true
-		console.log("on the continue import. ### ")
 
 		try {
 			return await this.imapImporter.continueImport(imapAccountSyncStateId, isForceRetry, retryAttempts)
@@ -280,7 +277,6 @@ export class ImapMailImportController {
 
 	async updateActiveUiSessions() {
 		const { activeSessions, canceledSessions } = await this.imapImporter.getImapImportUiSessions()
-		console.log("updated active ui sess")
 		this.activeImapImportUiSessions = activeSessions
 		this.canceledImapImportUiSessions = canceledSessions
 		m.redraw()

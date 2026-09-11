@@ -32,7 +32,6 @@ o.spec("ImapSyncSession", () => {
 	}
 	const imapSyncContext: ImapSyncContext = {
 		imapCredentials: imapCredentials,
-		maxQuota: 100_000_000,
 		imapMailboxStates: [],
 		isGmail: false,
 	}
@@ -122,7 +121,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -157,7 +155,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -194,7 +191,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: false,
 		}
@@ -226,7 +222,6 @@ o.spec("ImapSyncSession", () => {
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		const imapSyncContextWithStates: ImapSyncContext = {
 			imapCredentials: imapCredentials,
-			maxQuota: 100,
 			imapMailboxStates: [],
 			isGmail: true,
 		}

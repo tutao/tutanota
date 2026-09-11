@@ -2,11 +2,11 @@ import o from "@tutao/otest"
 import {
 	getFolderSyncStateForMailboxPath,
 	guessServerImapConfigFromEmail,
-	imapAccountSyncStateToImapCredentials,
+	migrationSyncStateToImapCredentials,
 	imapMailToImportMailParams,
 	labelsFromImapLabels,
-	oAuthTokenEndpointResponseToTokenEndpointResponse,
-	tokenEndpointResponseToOAuthTokenEndpointResponse,
+	oAuthTokenLikeToTokenEndpointResponse,
+	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapImportUtils.js"
 import type { TokenEndpointResponse } from "oauth4webapi"
 import { createTestEntity } from "../../../../TestUtils"
@@ -18,7 +18,13 @@ import {
 } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMail"
 import { ImapMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
-import { ImapAccountSyncStateTypeRef, ImapAccountTypeRef, ImapFolderSyncStateTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
+import {
+	MailboxMigrationSyncStateTypeRef,
+	MailboxMigrationImapConfigurationTypeRef,
+	MigrationFolderSyncStateTypeRef,
+	OAuthTokenEndpointResponseLegacyTypeRef,
+} from "@tutao/entities/tutanota"
+import { UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import { ImapImportAttachments, ImapImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
 import { ImapProvider } from "../../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
@@ -35,19 +41,19 @@ o.spec("ImapImportUtils", () => {
 		})
 	})
 
-	o.spec("imapAccountToImapCredentials", () => {
-		o.test("converts ImapAccount to ImapCredentials without token", () => {
-			const imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
-				imapAccount: createTestEntity(ImapAccountTypeRef, {
+	o.spec("migrationSyncStateToImapCredentials", () => {
+		o.test("converts to ImapCredentials without token", () => {
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					username: "user@test.com",
-					password: "secret",
-					oAuthTokenEndpointResponse: null,
+					sharedUsername: "user@test.com",
+					sharedPassword: "secret",
+					sharedOauthToken: null,
 				}),
-				provider: ImapProvider.Other.toString(),
+				legacyProvider: ImapProvider.Other.toString(),
 			})
-			const result = imapAccountSyncStateToImapCredentials(imapAccountSyncStateMock)
+			const result = migrationSyncStateToImapCredentials(migrationSyncStateMock, null)
 			o.check(result.host).equals("imap.test.com")
 			o.check(result.port).equals(993)
 			o.check(result.username).equals("user@test.com")
@@ -57,40 +63,66 @@ o.spec("ImapImportUtils", () => {
 		})
 
 		o.test("converts with token endpoint response", () => {
-			const tokenResponseMock = createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+			const tokenResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 				accessToken: "access123",
 				refreshToken: "refresh456",
 				expiresIn: "3600",
 				tokenType: "Bearer",
 			})
-			const imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
-				imapAccount: createTestEntity(ImapAccountTypeRef, {
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					username: "user@test.com",
-					password: null,
-					oAuthTokenEndpointResponse: tokenResponseMock,
+					sharedUsername: "user@test.com",
+					sharedPassword: null,
+					sharedOauthToken: tokenResponseMock,
 				}),
-				provider: ImapProvider.Gmail.toString(),
+				legacyProvider: ImapProvider.Gmail.toString(),
 			})
-			const result = imapAccountSyncStateToImapCredentials(imapAccountSyncStateMock)
+			const result = migrationSyncStateToImapCredentials(migrationSyncStateMock, null)
 			o.check(result.tokenEndpointResponse!.access_token).equals("access123")
 			o.check(result.tokenEndpointResponse!.refresh_token).equals("refresh456")
 			o.check(result.tokenEndpointResponse!.expires_in).equals(3600)
 			o.check(result.tokenEndpointResponse!.token_type.toLowerCase()).equals("bearer")
 			o.check(result.provider).equals(ImapProvider.Gmail)
 		})
+
+		o.test("prefers userMigrationInformation credential and provider when present", () => {
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					sharedUsername: "fallback@test.com",
+					sharedPassword: "fallbackSecret",
+					sharedOauthToken: null,
+				}),
+				legacyProvider: ImapProvider.Other.toString(),
+			})
+			const userMigrationInformationMock = createTestEntity(UserMigrationInformationTypeRef, {
+				provider: ImapProvider.Outlook.toString(),
+				credential: {
+					_id: "credentialId",
+					username: "user@outlook.com",
+					password: "secret",
+					oAuthToken: null,
+				} as any,
+			})
+			const result = migrationSyncStateToImapCredentials(migrationSyncStateMock, userMigrationInformationMock)
+			o.check(result.username).equals("user@outlook.com")
+			o.check(result.password).equals("secret")
+			o.check(result.provider).equals(ImapProvider.Outlook)
+		})
 	})
 
-	o.spec("oAuthTokenEndpointResponseToTokenEndpointResponse", () => {
+	o.spec("oAuthTokenLikeToTokenEndpointResponse", () => {
 		o.test("converts with all fields", () => {
-			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 				accessToken: "access123",
 				refreshToken: "refresh456",
 				expiresIn: "7200",
 				tokenType: "Bearer",
 			})
-			const result = oAuthTokenEndpointResponseToTokenEndpointResponse(tutaResponseMock)
+			const result = oAuthTokenLikeToTokenEndpointResponse(tutaResponseMock)
 			o.check(result.access_token).equals("access123")
 			o.check(result.refresh_token).equals("refresh456")
 			o.check(result.expires_in).equals(7200)
@@ -98,19 +130,19 @@ o.spec("ImapImportUtils", () => {
 		})
 
 		o.test("handles null refreshToken and expiresIn", () => {
-			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 				accessToken: "access123",
 				refreshToken: null,
 				expiresIn: null,
 				tokenType: "Bearer",
 			})
-			const result = oAuthTokenEndpointResponseToTokenEndpointResponse(tutaResponseMock)
+			const result = oAuthTokenLikeToTokenEndpointResponse(tutaResponseMock)
 			o.check(result.refresh_token).equals(undefined)
 			o.check(result.expires_in).equals(undefined)
 		})
 	})
 
-	o.spec("tokenEndpointResponseToOAuthTokenEndpointResponse", () => {
+	o.spec("tokenEndpointResponseToOAuthTokenEndpointResponseLegacy", () => {
 		o.test("converts with all fields", () => {
 			const oauthResponseMock: TokenEndpointResponse = {
 				access_token: "access456",
@@ -118,7 +150,7 @@ o.spec("ImapImportUtils", () => {
 				expires_in: 3600,
 				token_type: "bearer",
 			}
-			const result = tokenEndpointResponseToOAuthTokenEndpointResponse(oauthResponseMock)
+			const result = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(oauthResponseMock)
 			o.check(result.accessToken).equals("access456")
 			o.check(result.refreshToken).equals("refresh789")
 			o.check(result.expiresIn).equals("3600")
@@ -130,7 +162,7 @@ o.spec("ImapImportUtils", () => {
 				access_token: "access456",
 				token_type: "bearer",
 			}
-			const result = tokenEndpointResponseToOAuthTokenEndpointResponse(oauthResponseMock)
+			const result = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(oauthResponseMock)
 			o.check(result.accessToken).equals("access456")
 			o.check(result.refreshToken).equals(null)
 			o.check(result.expiresIn).equals(null)
@@ -139,14 +171,14 @@ o.spec("ImapImportUtils", () => {
 
 	o.spec("getFolderSyncStateForMailboxPath", () => {
 		o.test("returns the folder with matching path", () => {
-			const folder1Mock = createTestEntity(ImapFolderSyncStateTypeRef, { path: "INBOX" })
-			const folder2Mock = createTestEntity(ImapFolderSyncStateTypeRef, { path: "Sent" })
+			const folder1Mock = createTestEntity(MigrationFolderSyncStateTypeRef, { path: "INBOX" })
+			const folder2Mock = createTestEntity(MigrationFolderSyncStateTypeRef, { path: "Sent" })
 			const result = getFolderSyncStateForMailboxPath("Sent", [folder1Mock, folder2Mock])
 			o.check(result).equals(folder2Mock)
 		})
 
 		o.test("returns null if no match", () => {
-			const folderMock = createTestEntity(ImapFolderSyncStateTypeRef, { path: "INBOX" })
+			const folderMock = createTestEntity(MigrationFolderSyncStateTypeRef, { path: "INBOX" })
 			const result = getFolderSyncStateForMailboxPath("Drafts", [folderMock])
 			o.check(result).equals(null)
 		})
@@ -157,24 +189,24 @@ o.spec("ImapImportUtils", () => {
 		let folderSyncStateIdMock: IdTuple
 
 		const folderSyncStatesMock = [
-			createTestEntity(ImapFolderSyncStateTypeRef, {
+			createTestEntity(MigrationFolderSyncStateTypeRef, {
 				path: "INBOX",
-				imapSpecialUse: ImapMailboxSpecialUse.INBOX,
+				specialUse: ImapMailboxSpecialUse.INBOX,
 				mailSet: ["mailSetsListId", "inboxLabelSet"],
 			}),
-			createTestEntity(ImapFolderSyncStateTypeRef, {
+			createTestEntity(MigrationFolderSyncStateTypeRef, {
 				path: "[Google Mail]/Important",
-				imapSpecialUse: ImapMailboxSpecialUse.IMPORTANT,
+				specialUse: ImapMailboxSpecialUse.IMPORTANT,
 				mailSet: ["mailSetsListId", "importantLabelSet"],
 			}),
-			createTestEntity(ImapFolderSyncStateTypeRef, {
+			createTestEntity(MigrationFolderSyncStateTypeRef, {
 				path: "Drafts",
-				imapSpecialUse: ImapMailboxSpecialUse.DRAFTS,
+				specialUse: ImapMailboxSpecialUse.DRAFTS,
 				mailSet: ["mailSetsListId", "draftsLabelSet"],
 			}),
-			createTestEntity(ImapFolderSyncStateTypeRef, {
+			createTestEntity(MigrationFolderSyncStateTypeRef, {
 				path: "Custom",
-				imapSpecialUse: null,
+				specialUse: null,
 				mailSet: ["mailSetsListId", "customLabelSet"],
 			}),
 		]

@@ -103,8 +103,6 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 						onclick: async (_, dom) => {
 							if (vnode.attrs.data.isImapServerSupportingOAuth) {
 								if (vnode.attrs.data.imapAccountOAuthToken) {
-									// Already obtained a token in a previous pass through this page (e.g. the user went
-									// back from a later step and forward again) - no need to redo the OAuth login.
 									emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 									return
 								}

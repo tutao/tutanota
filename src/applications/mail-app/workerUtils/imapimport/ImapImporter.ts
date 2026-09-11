@@ -12,21 +12,21 @@ import { ImapProvider } from "../../../common/api/common/utils/imapImportUtils/I
 import {
 	findUserMigrationInformationForSyncState,
 	getFolderSyncStateForMailboxPath,
-	getImapCredentialSource,
-	migrationSyncStateToImapCredentials,
+	getMigrationCredential,
 	imapMailToImportMailParams,
+	migrationSyncStateToImapCredentials,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus, ImapSyncEventType } from "../../../../entities/tutanota/Utils"
 import {
 	DeduplicatedImportedAttachmentTypeRef,
+	MailBox,
 	MailboxMigrationImapConfiguration,
 	MailboxMigrationSyncStateTypeRef,
-	MailBox,
 	ManageLabelServiceLabelData,
 	MigrationFolderSyncState,
 	MigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
-import { UserMigrationInformation } from "@tutao/entities/sys"
+import { UserMigrationCredentialParams, UserMigrationInformation } from "@tutao/entities/sys"
 import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { ImapFacade } from "../../../common/api/worker/facades/lazy/ImapFacade"
@@ -44,6 +44,7 @@ type BaseInitializeImapImportParams = {
 	imapAccount: MailboxMigrationImapConfiguration
 	provider: ImapProvider
 	imapSyncLabelData: ManageLabelServiceLabelData | null
+	credential: UserMigrationCredentialParams
 }
 
 export type MailSetMapping = { mailSetElementId: Id; shouldSync: boolean; specialUse: ImapMailboxSpecialUse | null }
@@ -129,8 +130,7 @@ export class ImapImporter implements ImapSyncFacade {
 	}
 
 	async initializeNewImport(initializeParams: InitializeImapImportParams): Promise<ImapImportSession> {
-		const { imapAccountSyncState, initialFolderSyncStates } = await this.imapFacade.initializeImapImport(initializeParams)
-		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncState._id)
+		const { imapAccountSyncState, initialFolderSyncStates, userMigrationInformation } = await this.imapFacade.initializeImapImport(initializeParams)
 		const newSession = newImapImportSession(imapAccountSyncState, initialFolderSyncStates, userMigrationInformation)
 		this.imapImportSessions.set(this.getImapImportSessionsMapKey(imapAccountSyncState._id), newSession)
 		return newSession
@@ -168,7 +168,6 @@ export class ImapImporter implements ImapSyncFacade {
 	 * Attempts to continue an import from an existing state, it may return errors in case of failure.
 	 */
 	async continueImport(imapAccountSyncStateId: IdTuple, isForceRetry: boolean = false, retryAttempts = 0): Promise<ImportResult> {
-		console.log("continuing import")
 		let session = await this.reloadImapImportSession(imapAccountSyncStateId)
 
 		if (session.imapAccountSyncState.status === ImapAccountSyncStatus.CANCELED) {
@@ -376,7 +375,7 @@ export class ImapImporter implements ImapSyncFacade {
 			return Promise.resolve()
 		}
 		const isALLSystemFolder = imapMailbox.specialUse !== undefined && imapMailbox.specialUse === ImapMailboxSpecialUse.ALL
-		const provider = getImapCredentialSource(session.imapAccountSyncState, session.userMigrationInformation).provider
+		const provider = getMigrationCredential(session.imapAccountSyncState, session.userMigrationInformation).provider
 		const isGmail = provider === ImapProvider.Gmail
 
 		switch (eventType) {
@@ -622,7 +621,7 @@ export class ImapImporter implements ImapSyncFacade {
 
 	async getImapImportUiSessions(): Promise<{ activeSessions: ImapImportUiSession[]; canceledSessions: ImapImportUiSession[] }> {
 		const imapImportUiSessions: ImapImportUiSession[] = Array.from(this.imapImportSessions.values()).map((session) => {
-			const credentialSource = getImapCredentialSource(session.imapAccountSyncState, session.userMigrationInformation)
+			const credentialSource = getMigrationCredential(session.imapAccountSyncState, session.userMigrationInformation)
 			return {
 				provider: credentialSource.provider,
 				imapAccountSyncStateId: session.imapAccountSyncState._id,

@@ -33,7 +33,8 @@ import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionBu
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
-import { tokenEndpointResponseToOAuthTokenEndpointResponseLegacy } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
+import { UserMigrationCredentialParams } from "@tutao/entities/sys"
+import { tokenEndpointResponseToOAuthToken } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -448,13 +449,20 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 		const imapAccount = createMailboxMigrationImapConfiguration({
 			host: this.data.imapAccountHost,
 			port: this.data.imapAccountPort.toString(),
-			sharedUsername: this.data.imapAccountUsername,
-			sharedPassword: this.data.imapAccountPassword ?? null,
-			sharedOauthToken: this.data.imapAccountOAuthToken ? tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(this.data.imapAccountOAuthToken) : null,
+			sharedUsername: null,
+			sharedPassword: null,
+			sharedOauthToken: null,
 			customCertificateData: this.data.customCertificateData,
 			ignoreCertificateErrors: this.data.ignoreCertificateErrors,
 			useSSL: this.data.useSSL,
 		})
+
+		const userMigrationParams: UserMigrationCredentialParams = {
+			username: this.data.imapAccountUsername,
+			password: this.data.imapAccountPassword ?? null,
+			oAuthToken: this.data.imapAccountOAuthToken ? tokenEndpointResponseToOAuthToken(this.data.imapAccountOAuthToken) : null,
+		}
+
 		const commonImapImportParams = {
 			mailGroupId: elementIdToId(imapImportController.selectedMailBoxDetail!.mailGroup._id),
 			imapSyncLabelData: this.data.imapSyncLabelData,
@@ -463,6 +471,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 		const initializeImapImportParams: InitializeImapImportParams = this.data.matchImapMailboxesToTutaMailSets
 			? {
 					imapAccount,
+					credential: userMigrationParams,
 					...commonImapImportParams,
 
 					matchImapMailboxesToTutaMailSets: true,
@@ -470,8 +479,8 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 				}
 			: {
 					imapAccount,
+					credential: userMigrationParams,
 					...commonImapImportParams,
-
 					matchImapMailboxesToTutaMailSets: false,
 					rootImportMailSetName: this.data.rootImportMailSetName,
 					spamFolderMigrationInformation: this.data.spamFolderMigrationInformation,
@@ -490,7 +499,6 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}
 		} catch (e) {
-			console.log("yeah... it was here as the geepeetehh sugested", e)
 			if (e.data?.cause === ImapErrorCause.AUTH_FAILED) {
 				Dialog.message("migrationAuthFailed_msg" as TranslationKey).then(() => false)
 				return Promise.resolve(false)

@@ -9,30 +9,32 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { aes256RandomKey, CryptoWrapper } from "../../../../../src/platform-kit/crypto"
 import {
 	createImapFolderDeleteIn,
+	createMailboxMigrationDeleteIn,
 	DeduplicatedImportedAttachmentTypeRef,
-	ImapAccountSyncState,
-	ImapAccountSyncStateTypeRef,
-	ImapAccountTypeRef,
-	ImapDeleteInTypeRef,
 	ImapFolderService_DELETE,
 	ImapFolderService_POST,
-	ImapFolderSyncState,
-	ImapFolderSyncStateTypeRef,
-	ImapService_DELETE,
-	ImapService_POST,
-	ImapService_PUT,
 	ImportedImapMailTypeRef,
 	MailBox,
 	MailboxGroupRoot,
 	MailboxGroupRootTypeRef,
+	MailboxMigrationImapConfigurationTypeRef,
+	MailboxMigrationService_DELETE,
+	MailboxMigrationService_POST,
+	MailboxMigrationService_PUT,
+	MailboxMigrationSyncState,
+	MailboxMigrationSyncStateTypeRef,
 	MailBoxTypeRef,
 	MailSetRefTypeRef,
+	MigrationFolderSyncState,
+	MigrationFolderSyncStateTypeRef,
 } from "@tutao/entities/tutanota"
+import { UserMigrationService_POST } from "@tutao/entities/sys"
 import { ImapAccountSyncStatus, ImapFolderSyncStatus } from "../../../../../src/entities/tutanota/Utils"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { ImapFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/ImapFacade"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { idToElementId } from "../../../../../src/platform-kit/meta"
+import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 const { anything } = matchers
 
@@ -51,8 +53,8 @@ o.spec("ImapFacade", () => {
 	const mailFolderIdMock: IdTuple = ["mailSetListId", "mailSetElementId"]
 	const rootImportMailFolderIdMock: IdTuple = ["mailSetListId", "rootFolderElementId"]
 
-	let imapAccountSyncStateMock: ImapAccountSyncState
-	let imapFolderSyncStateMock: ImapFolderSyncState
+	let imapAccountSyncStateMock: MailboxMigrationSyncState
+	let imapFolderSyncStateMock: MigrationFolderSyncState
 	let mailboxGroupRootMock: MailboxGroupRoot
 	let mailBoxMock: MailBox
 
@@ -66,16 +68,16 @@ o.spec("ImapFacade", () => {
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve({ object: object(), version: 1 })
 		when(cryptoWrapperMock.aes256RandomKey()).thenReturn(aes256RandomKey())
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: Uint8Array.from([1, 2, 3]), encryptingKeyVersion: 1 })
-		imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
+		imapAccountSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: imapAccountSyncStateIdMock,
 			_ownerGroup: mailGroupId,
 			_ownerKeyVersion: "0",
 			_ownerEncSessionKey: new Uint8Array([1, 2, 3]),
 			rootImportMailSet: null,
-			imapFolderSyncStateList: "folderSyncStateListId",
+			mailboxMigrationFolderSyncStateList: "folderSyncStateListId",
 		})
 
-		imapFolderSyncStateMock = createTestEntity(ImapFolderSyncStateTypeRef, {
+		imapFolderSyncStateMock = createTestEntity(MigrationFolderSyncStateTypeRef, {
 			_id: imapFolderSyncStateIdMock,
 			status: ImapFolderSyncStatus.RUNNING,
 			uidnext: "1",
@@ -100,32 +102,39 @@ o.spec("ImapFacade", () => {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
 			},
-			matchImapMailboxesToTutaMailSets: false,
-			imapAccount: createTestEntity(ImapAccountTypeRef, {
-				host: "imap.test.com",
-				port: "993",
+			credential: {
 				username: "user",
 				password: "pass",
-				oAuthTokenEndpointResponse: null,
+				oAuthToken: null,
+			},
+			matchImapMailboxesToTutaMailSets: false,
+			imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+				host: "imap.test.com",
+				port: "993",
+				sharedUsername: null,
+				sharedPassword: null,
+				sharedOauthToken: null,
 				ignoreCertificateErrors: false,
 				customCertificateData: null,
 			}),
-			maxQuota: "1000",
 			imapSyncLabelData: null,
-			provider: 1,
+			provider: ImapProvider.Outlook,
 		}
 
 		when(mailFacadeMock.createMailFolder("IMAP Import", null, mailGroupId)).thenResolve(rootImportMailFolderIdMock)
 
-		const imapPostOutMock = { imapAccountSyncState: imapAccountSyncStateIdMock }
-		when(serviceExecutorMock.execute(ImapService_POST, anything(), anything())).thenResolve(imapPostOutMock)
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
+		const userMigrationInformationIdMock: IdTuple = ["userMigrationInfosListId", "userMigrationInfoElementId"]
+		when(serviceExecutorMock.execute(UserMigrationService_POST, anything(), anything())).thenResolve({ credential: userMigrationInformationIdMock })
+
+		const mailboxMigrationPostOutMock = { mailboxMigrationSyncState: imapAccountSyncStateIdMock }
+		when(serviceExecutorMock.execute(MailboxMigrationService_POST, anything(), anything())).thenResolve(mailboxMigrationPostOutMock)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateIdMock)).thenResolve(imapAccountSyncStateMock)
 
 		const result = await imapFacade.initializeImapImport(initializeParams)
 
 		verify(mailFacadeMock.createMailFolder("IMAP Import", null, mailGroupId), { times: 1 })
-		verify(serviceExecutorMock.execute(ImapService_POST, anything(), anything()), { times: 1 })
-		verify(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock), { times: 1 })
+		verify(serviceExecutorMock.execute(MailboxMigrationService_POST, anything(), anything()), { times: 1 })
+		verify(entityClientMock.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateIdMock), { times: 1 })
 		o.check(result.imapAccountSyncState).equals(imapAccountSyncStateMock)
 	})
 
@@ -134,37 +143,41 @@ o.spec("ImapFacade", () => {
 			mailGroupId,
 			rootImportMailSetName: "",
 			matchImapMailboxesToTutaMailSets: false,
+			credential: {
+				username: "user",
+				password: "pass",
+				oAuthToken: null,
+			},
 			spamFolderMigrationInformation: {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
 			},
 			imapAccount: { ignoreCertificateErrors: false, customCertificateData: null } as any,
-			maxQuota: "0",
 			imapSyncLabelData: null,
-			provider: 1,
+			provider: ImapProvider.Outlook,
 		}
 		const error = await assertThrows(ProgrammingError, () => imapFacade.initializeImapImport(initializeParams))
 		o.check(error.message).equals("Either rootImportMailFolderName or matchImapMailboxesToTutaMailSets must be set")
 	})
 
 	o.test("updateAccountSyncStateAndAllFolderSyncStates - calls service executor", async () => {
-		when(serviceExecutorMock.execute(ImapService_PUT, anything(), anything())).thenDo(() => Promise.resolve())
+		when(serviceExecutorMock.execute(MailboxMigrationService_PUT, anything(), anything())).thenDo(() => Promise.resolve())
 		await imapFacade.updateAccountSyncStateAndAllFolderSyncStates(
 			imapAccountSyncStateMock,
 			ImapAccountSyncStatus.FINISHED,
 			ImapFolderSyncStatus.FINISHED,
 			undefined,
 		)
-		verify(serviceExecutorMock.execute(ImapService_PUT, anything(), anything()), { times: 1 })
+		verify(serviceExecutorMock.execute(MailboxMigrationService_PUT, anything(), anything()), { times: 1 })
 	})
 
 	o.test("deleteImapImport - calls service executor delete", async () => {
-		const deleteInMock = createTestEntity(ImapDeleteInTypeRef, { imapAccountSyncState: imapAccountSyncStateIdMock })
-		when(serviceExecutorMock.execute(ImapService_DELETE, anything(), null)).thenDo(() => Promise.resolve())
+		const deleteInMock = createMailboxMigrationDeleteIn({ mailboxMigrationSyncState: imapAccountSyncStateIdMock })
+		when(serviceExecutorMock.execute(MailboxMigrationService_DELETE, anything(), null)).thenDo(() => Promise.resolve())
 
 		await imapFacade.deleteImapImport(imapAccountSyncStateIdMock)
 
-		verify(serviceExecutorMock.execute(ImapService_DELETE, deleteInMock, null), { times: 1 })
+		verify(serviceExecutorMock.execute(MailboxMigrationService_DELETE, deleteInMock, null), { times: 1 })
 	})
 
 	o.test("createImportMailFolder - creates folder and returns sync state when no root folder and mapping exists", async () => {
@@ -175,9 +188,9 @@ o.spec("ImapFacade", () => {
 		when(entityClientMock.load(MailBoxTypeRef, idToElementId(mailboxGroupRootMock.mailbox))).thenResolve(mailBoxMock)
 		const postOutMock = { imapFolderSyncState: imapFolderSyncStateIdMock }
 		when(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything())).thenResolve(postOutMock)
-		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
+		when(entityClientMock.load(MigrationFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
 
-		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, null, true, false)
+		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, ImapProvider.Other, null, true, false)
 
 		verify(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything()), { times: 1 })
 	})
@@ -189,16 +202,16 @@ o.spec("ImapFacade", () => {
 
 		const postOutMock = { imapFolderSyncState: imapFolderSyncStateIdMock }
 		when(serviceExecutorMock.execute(ImapFolderService_POST, anything(), anything())).thenResolve(postOutMock)
-		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
+		when(entityClientMock.load(MigrationFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
 
-		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, null, true, false)
+		await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, ImapProvider.Other, null, true, false)
 
 		verify(mailFacadeMock.createMailFolder("Sent", null, mailGroupId), { times: 1 })
 	})
 
 	o.test("createImportMailFolder - returns undefined if imapMailbox.name is falsy", async () => {
 		const imapMailbox: ImapMailbox = { path: "", name: "" }
-		const result = await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, null, true, false)
+		const result = await imapFacade.initializeImapMailSet(imapMailbox, imapAccountSyncStateMock, ImapProvider.Other, null, true, false)
 		o.check(result).equals(undefined)
 	})
 
@@ -214,7 +227,7 @@ o.spec("ImapFacade", () => {
 		imapFolderSyncStateMock.status = ImapFolderSyncStatus.RUNNING
 
 		when(entityClientMock.update(imapFolderSyncStateMock)).thenResolve()
-		when(entityClientMock.load(ImapFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
+		when(entityClientMock.load(MigrationFolderSyncStateTypeRef, imapFolderSyncStateIdMock)).thenResolve(imapFolderSyncStateMock)
 		await imapFacade.updateImapFolderSyncState(imapMailboxStatusMock, imapFolderSyncStateMock)
 
 		o.check(imapFolderSyncStateMock.uidnext).equals("100")
@@ -246,7 +259,7 @@ o.spec("ImapFacade", () => {
 	})
 
 	o.test("getImapAccountSyncStateById - loads entity", async () => {
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, imapAccountSyncStateIdMock, anything())).thenResolve(imapAccountSyncStateMock)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateIdMock, anything())).thenResolve(imapAccountSyncStateMock)
 
 		const result = await imapFacade.getImapAccountSyncStateById(imapAccountSyncStateIdMock)
 
@@ -255,7 +268,7 @@ o.spec("ImapFacade", () => {
 
 	o.test("getAllImapFolderSyncStates - loads all from list", async () => {
 		const listId = "folderStateListId"
-		when(entityClientMock.loadAll(ImapFolderSyncStateTypeRef, listId)).thenResolve([imapFolderSyncStateMock])
+		when(entityClientMock.loadAll(MigrationFolderSyncStateTypeRef, listId)).thenResolve([imapFolderSyncStateMock])
 
 		const result = await imapFacade.getAllImapFolderSyncStates(listId)
 

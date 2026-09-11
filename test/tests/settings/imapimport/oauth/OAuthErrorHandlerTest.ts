@@ -4,7 +4,7 @@ import { matchers, object, verify, when } from "testdouble"
 import { ImapErrorHandler } from "../../../../../src/applications/mail-app/settings/imapimport/ImapErrorHandler"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { createTestEntity } from "../../../TestUtils"
-import { ImapAccountSyncStateTypeRef, ImapAccountTypeRef, OAuthTokenEndpointResponseTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationImapConfigurationTypeRef, MailboxMigrationSyncStateTypeRef, OAuthTokenEndpointResponseLegacyTypeRef } from "@tutao/entities/tutanota"
 import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { ImapAccountSyncStatus } from "../../../../../src/entities/tutanota/Utils"
 import * as oauth from "oauth4webapi"
@@ -22,16 +22,21 @@ o.spec("OAuthErrorHandler", () => {
 		entityClientMock = object<EntityClient>()
 		oAuthHandlerMock = object<OAuthHandler>()
 		serviceExecutorMock = object<IServiceExecutor>()
-		oAuthErrorHandler = new ImapErrorHandler(entityClientMock, serviceExecutorMock, () => oAuthHandlerMock)
+		oAuthErrorHandler = new ImapErrorHandler(
+			entityClientMock,
+			serviceExecutorMock,
+			() => null,
+			async (config, serviceExecutor) => oAuthHandlerMock,
+		)
 	})
 
 	o.test("handleAuthError - returns false and updates to error if provider is other", async () => {
-		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: ImapProvider.Other.toString(),
+			legacyProvider: ImapProvider.Other.toString(),
 			status: ImapAccountSyncStatus.RUNNING,
 		})
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, state._id)).thenResolve(state)
 		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(false)
@@ -47,56 +52,56 @@ o.spec("OAuthErrorHandler", () => {
 			updatedToken as Partial<oauth.TokenEndpointResponse & TokenEndpointResponseHelpers>,
 		)
 
-		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: ImapProvider.Gmail.toString(),
+			legacyProvider: ImapProvider.Gmail.toString(),
 			status: ImapAccountSyncStatus.PAUSED,
-			imapAccount: createTestEntity(ImapAccountTypeRef, {
-				oAuthTokenEndpointResponse: createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+			imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+				sharedOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),
 			}),
 		})
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, state._id)).thenResolve(state)
 		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(true)
 		verify(entityClientMock.update(state), { times: 1 })
 		o.check(state.status).equals(ImapAccountSyncStatus.PAUSED)
-		o.check(state.imapAccount.oAuthTokenEndpointResponse?.refreshToken).equals("updatedToken")
+		o.check(state.imapAccount!.sharedOauthToken?.refreshToken).equals("updatedToken")
 	})
 
 	o.test("handleAuthError - returns false when provider is oauth and refresh failed", async () => {
 		when(oAuthHandlerMock.refreshTokens(matchers.anything())).thenReject({ message: "I am out of tokens" })
 
-		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: ImapProvider.Gmail.toString(),
+			legacyProvider: ImapProvider.Gmail.toString(),
 			status: ImapAccountSyncStatus.RUNNING,
-			imapAccount: createTestEntity(ImapAccountTypeRef, {
-				oAuthTokenEndpointResponse: createTestEntity(OAuthTokenEndpointResponseTypeRef, {
+			imapAccount: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+				sharedOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),
 			}),
 		})
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, state._id)).thenResolve(state)
 		const shouldRetry = await oAuthErrorHandler.handleAuthError(state._id)
 
 		o.check(shouldRetry).equals(false)
 		verify(entityClientMock.update(state), { times: 1 })
 		o.check(state.status).equals(ImapAccountSyncStatus.AUTH_ERROR)
-		o.check(state.imapAccount.oAuthTokenEndpointResponse?.refreshToken).equals("expiredToken")
+		o.check(state.imapAccount!.sharedOauthToken?.refreshToken).equals("expiredToken")
 	})
 
 	o.test("handleAuthError - throws programming error if provider is unknown", async () => {
 		when(oAuthHandlerMock.refreshTokens(matchers.anything())).thenReject({ message: "I am out of tokens" })
 
-		const state = createTestEntity(ImapAccountSyncStateTypeRef, {
+		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: "999",
+			legacyProvider: "999",
 			status: ImapAccountSyncStatus.RUNNING,
 		})
-		when(entityClientMock.load(ImapAccountSyncStateTypeRef, state._id)).thenResolve(state)
+		when(entityClientMock.load(MailboxMigrationSyncStateTypeRef, state._id)).thenResolve(state)
 		const e = await assertThrows(ProgrammingError, async () => await oAuthErrorHandler.handleAuthError(state._id))
 		o(e.message).equals("imap sync found no Oauth config")
 

@@ -31,22 +31,17 @@ const IMAP_FLAG_SEEN = "\\Seen"
 const IMAP_FLAG_ANSWERED = "\\Answered"
 const IMAP_FLAG_FORWARDED = "$Forwarded"
 
-/**
- * The username/password/oAuthToken credentials used to be stored directly on the ImapAccount embedded in the
- * sync state (now `MailboxMigrationSyncState.imapAccount`, kept only as a legacy/shared fallback). The current
- * source of truth is the `UserMigrationInformation` associated with the sync state, when one exists.
- */
-export type ImapCredentialSource = {
+export type MigrationCredential = {
 	provider: ImapProvider
 	username: string
 	password: string | null
 	oAuthToken: OAuthToken | OAuthTokenEndpointResponseLegacy | null
 }
 
-export function getImapCredentialSource(
+export function getMigrationCredential(
 	migrationSyncState: MailboxMigrationSyncState,
 	userMigrationInformation: UserMigrationInformation | null,
-): ImapCredentialSource {
+): MigrationCredential {
 	const imapAccount = migrationSyncState.imapAccount
 	const credential = userMigrationInformation?.credential ?? null
 	const provider = userMigrationInformation?.provider ?? migrationSyncState.legacyProvider
@@ -65,8 +60,6 @@ export function findUserMigrationInformationForSyncState(
 ): UserMigrationInformation | null {
 	return (
 		userMigrationInformationList.find((userMigrationInformation) => {
-			// mailboxMigrationSyncState is null for credentials whose migration was since canceled/deleted -
-			// the credentials are intentionally kept, they just no longer match any sync state.
 			const syncStateRef = userMigrationInformation.mailboxMigrationSyncState
 			return syncStateRef !== null && isSameId([syncStateRef.listId, syncStateRef.listElementId], migrationSyncStateId)
 		}) ?? null
@@ -78,7 +71,7 @@ export function migrationSyncStateToImapCredentials(
 	userMigrationInformation: UserMigrationInformation | null,
 ): ImapCredentials {
 	const imapAccount = assertNotNull(migrationSyncState.imapAccount)
-	const credentialSource = getImapCredentialSource(migrationSyncState, userMigrationInformation)
+	const credentialSource = getMigrationCredential(migrationSyncState, userMigrationInformation)
 	const imapCredentials: ImapCredentials = {
 		host: imapAccount.host,
 		port: parseInt(imapAccount.port),
@@ -134,7 +127,7 @@ export function imapMailToImportMailParams(
 	imapMail: ImapMail,
 	folderSyncStateId: IdTuple,
 	deduplicatedAttachments: ImapImportAttachments | null,
-	imapFolderSyncStates: MigrationFolderSyncState[],
+	migrationFolderSyncStates: MigrationFolderSyncState[],
 ): ImportMailParams {
 	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
 	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
@@ -173,7 +166,7 @@ export function imapMailToImportMailParams(
 		imapUid: imapMail.uid,
 		imapModSeq: imapMail.modSeq ?? null,
 		imapFolderSyncState: folderSyncStateId,
-		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, imapFolderSyncStates) : [],
+		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, migrationFolderSyncStates) : [],
 	}
 }
 

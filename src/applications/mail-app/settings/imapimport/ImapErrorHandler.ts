@@ -4,7 +4,7 @@ import { MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tu
 import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import {
 	findUserMigrationInformationForSyncState,
-	getImapCredentialSource,
+	getMigrationCredential,
 	tokenEndpointResponseToOAuthToken,
 	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
 } from "../../../common/api/common/utils/imapImportUtils/ImapImportUtils"
@@ -149,7 +149,7 @@ export class ImapErrorHandler {
 	async handleAuthError(imapAccountSyncStateId: IdTuple) {
 		const imapAccountSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId)
 		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(imapAccountSyncStateId)
-		const credentialSource = getImapCredentialSource(imapAccountSyncState, userMigrationInformation)
+		const credentialSource = getMigrationCredential(imapAccountSyncState, userMigrationInformation)
 		const isOAuth = credentialSource.provider !== ImapProvider.Other
 
 		if (isOAuth) {

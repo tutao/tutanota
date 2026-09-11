@@ -4,7 +4,6 @@ import { UserMigrationInformation } from "@tutao/entities/sys"
 export type ImapImportSession = {
 	imapAccountSyncState: MailboxMigrationSyncState
 	imapFolderSyncStates: MigrationFolderSyncState[]
-	/** The current source of truth for this sync state's provider/credentials, if one exists (see ImapImportUtils.getImapCredentialSource). */
 	userMigrationInformation: UserMigrationInformation | null
 	importedMessageIds: Set<string>
 	syncProgress?: {
