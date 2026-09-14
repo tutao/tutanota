@@ -175,6 +175,7 @@ import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { InboxRuleModel } from "./mail/model/InboxRuleModel"
+import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
 
 EnvProvider.assertMainOrNode()
 
@@ -330,8 +331,11 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly inboxRuleHandler = lazyMemoized(() => {
-		// FIXME use appropriate InboxRuleHandler depending on whether migrated or not
-		return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel, this.inboxRuleModel)
+		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+			return new LegacyInboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
+		} else {
+			return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel, this.inboxRuleModel)
+		}
 	})
 
 	readonly spamClassificationHandler = lazyMemoized(() => {
@@ -339,7 +343,14 @@ class MailLocator implements CommonLocator {
 	})
 
 	readonly processInboxHandler = lazyMemoized(() => {
-		return new ProcessInboxHandler(this.logins, this.mailFacade, this.cryptoFacade, this.spamClassificationHandler, this.inboxRuleHandler)
+		return new ProcessInboxHandler(
+			this.logins,
+			this.mailFacade,
+			this.cryptoFacade,
+			this.spamClassificationHandler,
+			this.inboxRuleHandler,
+			this.inboxRuleModel.isUsingLegacyInboxRules(),
+		)
 	})
 
 	readonly throttledRouter: lazy<Router> = lazyMemoized(() => new ThrottledRouter())

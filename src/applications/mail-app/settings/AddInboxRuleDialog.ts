@@ -42,6 +42,7 @@ import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
 import { LabelsDropDownSelector } from "../mail/view/LabelsDropDownSelector"
 import { Label } from "../../../ui/base/Label"
 import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
+import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 
 EnvProvider.assertMainOrNode()
 
@@ -498,7 +499,7 @@ export async function show(
 			savePromise
 				.then(() => {
 					if (applyRule) {
-						return applyRuleWithProgress([rule], mailLocator.inboxRuleHandler())
+						return applyRuleWithProgress([rule], <ExpandedInboxRuleHandler>mailLocator.inboxRuleHandler())
 					}
 				})
 				.then(() => {
@@ -592,12 +593,6 @@ function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
 		case InboxRuleResultType.MOVE:
 			return (targetFolders: TargetMailSet[]) =>
 				m(DropDownSelectorNew, {
-					// icon: {
-					// 	icon: ruleResult.valueFolder()?.folderType
-					// 		? getFolderIconByType(assertNotNull(ruleResult.valueFolder()).folderType as MailSetKind)
-					// 		: Icons.FolderFilled,
-					// 	color: theme.on_surface_variant,
-					// },
 					items: targetFolders,
 					selectedValue: ruleResult.valueFolder(),
 					selectedValueDisplay: getMailSetName(assertNotNull(ruleResult.valueFolder())),

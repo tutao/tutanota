@@ -115,6 +115,7 @@ import { PosRect } from "../../../../ui/utils/PosRect"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { InboxRuleModel } from "../model/InboxRuleModel"
+import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -677,8 +678,26 @@ export class MailViewerViewModel {
 	}
 
 	async reportNotSpamForMail() {
-		const hasMailMoved = await this.reapplyInboxRuleForMail()
-		if (!hasMailMoved) {
+		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+			const hasMailMoved = await this.reapplyLegacyInboxRuleForMail()
+			if (!hasMailMoved) {
+				const mailFolderForMail = this.mailModel.getMailFolderForMail(this.mail)
+				if (!mailFolderForMail) {
+					return
+				}
+
+				await moveMailsToSystemFolder({
+					mailboxModel: this.mailboxModel,
+					mailModel: this.mailModel,
+					currentFolder: mailFolderForMail,
+					mailIds: [this.mail._id],
+					targetFolderType: MailSetKind.INBOX,
+					moveMode: MoveMode.Mails,
+					undoModel: this.undoModel,
+					contactModel: mailLocator.contactModel,
+				})
+			}
+		} else {
 			const mailFolderForMail = this.mailModel.getMailFolderForMail(this.mail)
 			if (!mailFolderForMail) {
 				return
@@ -694,7 +713,40 @@ export class MailViewerViewModel {
 				undoModel: this.undoModel,
 				contactModel: mailLocator.contactModel,
 			})
+
+			await this.reapplyInboxRuleForMail()
 		}
+	}
+
+	async reapplyLegacyInboxRuleForMail() {
+		const mail = this.mail
+		if (!mail._ownerGroup) {
+			return false
+		}
+		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
+
+		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const currentFolder = this.mailModel.getMailFolderForMail(mail)
+		if (!currentFolder) {
+			return false
+		}
+		const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
+
+		if (isSameId(currentFolder._id, targetFolder._id)) {
+			return false
+		}
+
+		await moveMails({
+			targetFolder,
+			mailboxModel: locator.mailboxModel,
+			mailModel: mailLocator.mailModel,
+			mailIds: [mail._id],
+			moveMode: MoveMode.Mails,
+			undoModel: this.undoModel,
+			contactModel: mailLocator.contactModel,
+		})
+
+		return true
 	}
 
 	async reapplyInboxRuleForMail() {
@@ -704,31 +756,8 @@ export class MailViewerViewModel {
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		await mailLocator.inboxRuleHandler().applyRulesToGivenMails([mail], mailboxDetail)
-
-		// FIXME: old code for handling old inbox rules
-		// const inboxRuleHandler = mailLocator.processInboxHandler()
-		// const currentFolder = this.mailModel.getMailFolderForMail(mail)
-		// if (!currentFolder) {
-		// 	return false
-		// }
-		// const targetFolder = await inboxRuleHandler.getInboxRuleMoveTarget(mail, currentFolder, mailboxDetail)
-		//
-		// if (isSameId(currentFolder._id, targetFolder._id)) {
-		// 	return false
-		// }
-		//
-		// await moveMails({
-		// 	targetFolder,
-		// 	mailboxModel: locator.mailboxModel,
-		// 	mailModel: mailLocator.mailModel,
-		// 	mailIds: [mail._id],
-		// 	moveMode: MoveMode.Mails,
-		// 	undoModel: this.undoModel,
-		// 	contactModel: mailLocator.contactModel,
-		// })
-
-		return true
+		const inboxRuleHandler = <ExpandedInboxRuleHandler>mailLocator.inboxRuleHandler()
+		await inboxRuleHandler.applyRulesToGivenMails([mail], mailboxDetail)
 	}
 
 	canExport(): boolean {
@@ -1606,7 +1635,7 @@ export class MailViewerViewModel {
 			actions.reapplyInboxRulesAction = () => this.reapplyInboxRuleForMail()
 		}
 
-		if (this.canCreateInboxRule()) {
+		if (this.canCreateInboxRule() && !this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			actions.addInboxRuleAction = async () => {
 				const { show } = await import("../../settings/AddInboxRuleDialog")
 
