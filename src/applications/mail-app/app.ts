@@ -1,4 +1,4 @@
-import { AppType, DomainConfig, EnvProvider, FeatureType, ProgrammingError, SessionType } from "../../platform-kit/app-env"
+import { AppType, DomainConfig, EnvProvider, FeatureType, NEXTCLOUD_PREFIX, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -122,7 +122,8 @@ if (!ClientDetector.get().isSupported()) {
 setupExceptionHandling()
 
 const startRoute = getStartUrl(urlQueryParams)
-history.replaceState(null, "", startRoute)
+const nextCloudPrefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
+history.replaceState(null, "", nextCloudPrefix + startRoute)
 
 registerForMailto()
 
@@ -895,7 +896,7 @@ import("../../ui/translations/en.js")
 			),
 		})
 		// We set the prefix to empty string intentionally here. See (https://mithril.js.org/route.html?utm_source=chatgpt.com#routing-strategies)
-		m.route.prefix = ""
+		m.route.prefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
