@@ -2592,6 +2592,23 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"shareALink_label": "Share a link",
+		"secureWithPassword_label": "Secure the file with a password",
+		"setExpirationDate_label": "Set an expiration date for the link",
+		"selectExpiryDate_label" : "Select expiry date",
+		"updateLink_action": "Update share link",
+		"expirationDateEmpty_msg":"Expiration date must be set",
+		"expirationDateInPast_msg":"Expiration date cannot be in the past",
+		"updatingShare_msg":"Updating share link",
+		"creatingShare_msg": "Creating share link",
+		"setPasswordAndExpiration_label":"Set password and expiration date",
+		"deleteLink_action":"Delete link",
+		"shareDeleted_msg":"Share link for {fileName} has been deleted",
+		"fileNotFound_msg":"File not found",
+		"fileDoesNotExist_msg":"This file does not exist. It may have been deleted or unshared.",
+		"fileNotAvailable_msg" : "File not available",
+		"fileLoadingError_msg":"An error occurred while loading this file.",
+		"fileExpirationDate_msg": "This file available until {date}"
 	}
 }

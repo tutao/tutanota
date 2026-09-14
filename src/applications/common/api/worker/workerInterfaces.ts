@@ -38,6 +38,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { WebsocketConnectivityListener } from "../../../../platform-kit/network/WebsocketConnectivityListener"
 import { EntityRestInterface } from "../../../../platform-kit/network/EntityRestCacheInterface"
 import { AlarmFacade } from "./facades/lazy/AlarmFacade"
+import { DriveFileSharingFacade } from "./facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -96,5 +97,6 @@ export interface CommonWorkerInterface {
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
 	readonly driveFacade: DriveFacade
+	readonly driveFileSharingFacade: DriveFileSharingFacade
 	readonly alarmFacade: AlarmFacade
 }

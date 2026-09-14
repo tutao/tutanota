@@ -82,6 +82,7 @@ export type BaseLocator = {
 	kyberFacade: KyberFacade
 	pqFacade: PQFacade
 	ed25519Facade: Ed25519Facade
+	argon2idFacade: Argon2idFacade
 	publicKeySignatureFacade: PublicKeySignatureFacade
 	asymmetricCrypto: AsymmetricCryptoFacade
 	aesCbcFacade: AesCbcFacade
@@ -541,5 +542,6 @@ export async function createBaseLocator({
 		symmetricCipherFacade,
 		keyEncryption,
 		bcrypt,
+		argon2idFacade,
 	}
 }

@@ -78,7 +78,6 @@ import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/Id
 
 import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { LoginViewModel } from "../../login/LoginViewModel"
-import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { TransferProgressDispatcher } from "./TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../../../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -136,7 +135,6 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
-	driveFacade: DriveFacade
 	imapImporter: ImapSyncFacade
 
 	mailboxModel: MailboxModel
