@@ -11,12 +11,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
 import okhttp3.Call
 import okhttp3.Request
 import java.io.IOException
-import java.io.InputStream
-import java.net.SocketTimeoutException
-import java.sql.Time
+import java.io.Reader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
@@ -41,7 +41,6 @@ class AndroidArchiveDownloaderFacade (
 			withContext(Dispatchers.IO) {
 				val start = TimeSource.Monotonic.markNow()
 				for (i in 0..<50) {
-
 					Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
@@ -68,7 +67,7 @@ class AndroidArchiveDownloaderFacade (
 						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
 
 						if (response.code == 200) {
-								storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion)
+							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
 						}
 					}
 				} catch (e: IOException) {
@@ -110,183 +109,29 @@ class AndroidArchiveDownloaderFacade (
 		Log.d(TAG, "Cleaned up state of archive download with id $archiveId, kept the blobs.")
 	}
 
-	private suspend fun storeBytes(bytes: InputStream, archiveId: String, typeref: String, modelVersion: Long) {
+	private suspend fun storeBytes(reader: Reader, archiveId: String, typeref: String, modelVersion: Long) {
 		Log.d(TAG, "Started storing archive with id $archiveId")
 		val startTime = TimeSource.Monotonic.markNow()
 
-		var openCurlyBraces = 0
-		var isInString = false
-
-		val expectedBlobIdPrefix = "\"1300\":"
-		var currentBlobIdPrefix: String? = null
-		var tmpReadBlobIdPrefix = ""
-		var currentFullBlobId: String? = null
-		var finishedReadingBlobId = false
-
 		// this seems to be the maximum read
 		// when upgrading to minimum API Level 33, we could try and use InputStream#readNBytes
-		val chunk = ByteArray(8192)
-		var changed = -1
-		var currentBlobBytes = ByteArray(0)
-		var byteInt: Int
-		var startAppend = 0
 
 		val storage = StoreArchive(archiveId, typeref, modelVersion, sqlCipherFacade)
+		reader.forEachLine { line ->
+			if (line == "[" || line == "]") return@forEachLine
 
-		// while we're not cancelled or finished ...
-		var start = TimeSource.Monotonic.markNow()
-		while (activeRequests.containsKey(archiveId)) {
-			if (startAppend < changed) {
-				currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
-			}
-			// for new chunk
-			startAppend = 0
-
-			changed = try {
-				bytes.read(chunk)
-			} catch (e: SocketTimeoutException) {
-				try {
-					bytes.read(chunk, 0, 4096)
-				} catch (e: SocketTimeoutException) {
-					try {
-						bytes.read(chunk, 0, 2048)
-					} catch(e: SocketTimeoutException) {
-						try {
-							bytes.read(chunk, 0, 1024)
-						} catch(e: SocketTimeoutException) {
-							try {
-								bytes.read(chunk, 0, 512)
-							} catch(e: SocketTimeoutException) {
-								try {
-									bytes.read(chunk, 0, 256)
-								} catch(e: SocketTimeoutException) {
-									try {
-										bytes.read(chunk, 0, 128)
-									} catch(e: SocketTimeoutException) {
-										try {
-											bytes.read(chunk, 0, 64)
-										} catch(e: SocketTimeoutException) {
-											try {
-												bytes.read(chunk, 0, 32)
-											} catch(e: SocketTimeoutException) {
-												try {
-													bytes.read(chunk, 0, 16)
-												} catch(e: SocketTimeoutException) {
-													try {
-														bytes.read(chunk, 0, 8)
-													} catch(e: SocketTimeoutException) {
-														try {
-															bytes.read(chunk, 0, 4)
-														} catch(e: SocketTimeoutException) {
-															try {
-																bytes.read(chunk, 0, 2)
-															} catch(e: SocketTimeoutException) {
-																bytes.read(chunk, 0, 1)
-															}
-														}
-													}
-												}
-											}
-										}
-									}
-								}
-							}
-						}
-					}
-				}
-			}
-			if (changed == -1) {
-				break
-			} else {
-				loop@for(i in 0..<changed) {
-					byteInt = chunk[i].toInt()
-					// this is most of the data
-					// just save & continue
-					// if we finished reading the blob id, we only need minimal parsing and can return as quickly as possible
-					if (isInString && finishedReadingBlobId && byteInt != '"'.code) {
-						continue@loop
-					}
-
-					// check if our blob id's prefix is continuing
-					if (!finishedReadingBlobId && currentBlobIdPrefix != null) {
-						// yes: continue reading prefix
-						tmpReadBlobIdPrefix = currentBlobIdPrefix + byteInt.toChar()
-						if (expectedBlobIdPrefix.startsWith(tmpReadBlobIdPrefix)) {
-							currentBlobIdPrefix = tmpReadBlobIdPrefix
-							// we read the entire prefix, read blob id now
-							if (currentBlobIdPrefix.length == expectedBlobIdPrefix.length) {
-								currentFullBlobId = ""
-							}
-						} else { // no: stop reading prefix
-							currentBlobIdPrefix = null
-						}
-					}
-
-					when(byteInt) {
-						'"'.code -> {
-							// check if we define the blob id somewhere around here
-							if (!isInString && currentBlobIdPrefix == null && openCurlyBraces == 1) {
-								currentBlobIdPrefix = "\""
-							}
-							isInString = !isInString
-						}
-						'{'.code -> {
-							if (!isInString) {
-								if (openCurlyBraces === 0) {
-									startAppend = i
-									start = TimeSource.Monotonic.markNow()
-								}
-								openCurlyBraces++
-							}
-						}
-						'}'.code -> {
-							if (!isInString) {
-								openCurlyBraces--
-
-								// store when object ends
-								if (openCurlyBraces == 0) {
-									// get blob id
-									val fullBlobId = Json.decodeFromString<Array<String>>(currentFullBlobId!!)
-
-									val end = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
-									// Log.d(TAG, "Took $end ms to parse blob")
-									// store
-									// storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
-
-									// cleanup variables
-									currentBlobBytes = ByteArray(0)
-									finishedReadingBlobId = false
-									currentFullBlobId = null
-									currentBlobIdPrefix = null
-
-									// do not handle the brace twice
-									continue
-								}
-							}
-						}
-						']'.code -> {
-							if (!finishedReadingBlobId && openCurlyBraces == 1 && !currentFullBlobId.isNullOrEmpty() && !isInString) {
-								currentFullBlobId += byteInt.toChar()
-								finishedReadingBlobId = true
-							}
-						}
-					}
-
-					// if we started reading full blob id, continue to do so
-					if (!finishedReadingBlobId && currentFullBlobId != null && !(currentFullBlobId.isEmpty() && byteInt == ':'.code)) {
-						currentFullBlobId += byteInt.toChar()
-					}
-				}
-			}
+			val line = if(line.endsWith(",")) line.slice(0..<(line.length-1)) else line
+			val idPosStart = line.indexOf("\"1300\":") + "\"1300\":".length + 1
+			val idPosEnd = line.indexOf("]", idPosStart)
+			val id = line.slice(idPosStart..<idPosEnd).split(",")[1]
+			// "save"
 		}
 
 		// fully stored archive -> store that information as well
 		// changed is > -1 if abortDownloadAndStore was called
-		if (changed == -1) {
-			storage.success()
-		}
+		// storage.success()
 		// exit and cleanup map
-		cleanState(archiveId)
+		// cleanState(archiveId)
 
 		val timeToStore = TimeSource.Monotonic.markNow().minus(startTime).inWholeMilliseconds
 		Log.d(TAG, "Finished storing archive with id $archiveId (took $timeToStore ms)")
