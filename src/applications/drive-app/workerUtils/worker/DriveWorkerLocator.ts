@@ -57,6 +57,7 @@ import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailA
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
 import { random } from "@tutao/crypto"
+import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -94,6 +95,7 @@ export type DriveWorkerLocatorType = {
 
 	// Drive
 	driveFacade: lazyAsync<DriveFacade>
+	driveFileSharingFacade: lazyAsync<DriveFileSharingFacade>
 }
 export const locator: DriveWorkerLocatorType = {} as any
 
@@ -385,6 +387,21 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.base.crypto,
 			locator.base.cryptoWrapper,
 			locator.cacheStorage,
+			locator.base.symmetricCipherUtils,
+		)
+	})
+
+	locator.driveFileSharingFacade = lazyMemoized(async () => {
+		const { DriveFileSharingFacade } = await import("../../../common/api/worker/facades/lazy/DriveFileSharingFacade.js")
+		return new DriveFileSharingFacade(
+			locator.base.cryptoWrapper,
+			locator.base.serviceExecutor,
+			locator.base.crypto,
+			locator.base.keyLoader,
+			domainConfig,
+			locator.base.argon2idFacade,
+			locator.base.cachingEntityClient,
+			await locator.blob(),
 			locator.base.symmetricCipherUtils,
 		)
 	})

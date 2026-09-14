@@ -2,7 +2,7 @@
 	"0": {
 		"name": "DriveFolder",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 0,
@@ -148,7 +148,7 @@
 	"14": {
 		"name": "DriveFile",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 14,
@@ -297,13 +297,23 @@
 				"refTypeId": 0,
 				"dependency": null,
 				"transferredAttributeId": null
+			},
+			"167": {
+				"final": true,
+				"name": "share",
+				"id": 167,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 153,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
 	"30": {
 		"name": "DriveFileRef",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "LIST_ELEMENT_TYPE",
 		"id": 30,
@@ -376,7 +386,7 @@
 	"39": {
 		"name": "DriveFileBag",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 39,
@@ -412,7 +422,7 @@
 	"42": {
 		"name": "DriveFolderBag",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 42,
@@ -448,7 +458,7 @@
 	"45": {
 		"name": "DriveGroupRoot",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "ELEMENT_TYPE",
 		"id": 45,
@@ -541,7 +551,7 @@
 	"55": {
 		"name": "DriveUploadedFile",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 55,
@@ -623,7 +633,7 @@
 	"61": {
 		"name": "DrivePostIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 61,
@@ -686,7 +696,7 @@
 	"67": {
 		"name": "DriveItemPostIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 67,
@@ -732,7 +742,7 @@
 	"71": {
 		"name": "DriveItemPostOut",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 71,
@@ -768,7 +778,7 @@
 	"74": {
 		"name": "DriveItemPutIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 74,
@@ -843,7 +853,7 @@
 	"79": {
 		"name": "DriveItemDeleteIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 79,
@@ -889,7 +899,7 @@
 	"84": {
 		"name": "DriveFolderServicePostIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 84,
@@ -962,7 +972,7 @@
 	"89": {
 		"name": "DriveFolderServicePostOut",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 89,
@@ -998,7 +1008,7 @@
 	"92": {
 		"name": "DriveRenameData",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "AGGREGATED_TYPE",
 		"id": 92,
@@ -1053,7 +1063,7 @@
 	"97": {
 		"name": "DriveFolderServicePutIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 97,
@@ -1099,7 +1109,7 @@
 	"101": {
 		"name": "DriveFolderServiceDeleteIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 101,
@@ -1154,7 +1164,7 @@
 	"107": {
 		"name": "DriveCopyServicePostIn",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 1,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 107,
@@ -1200,7 +1210,7 @@
 	"115": {
 		"name": "DriveCopyServicePostOut",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 115,
@@ -1234,7 +1244,7 @@
 	"118": {
 		"name": "DriveItemServiceDeleteOut",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 3,
 		"type": "DATA_TRANSFER_TYPE",
 		"id": 118,
@@ -1268,7 +1278,7 @@
 	"123": {
 		"name": "DriveFolderTransferAggregatedType",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
 		"id": 123,
@@ -1340,7 +1350,7 @@
 	"130": {
 		"name": "DriveFolderNameTransferAggregatedType",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
 		"id": 130,
@@ -1401,7 +1411,7 @@
 	"136": {
 		"name": "DriveFileTransferAggregatedType",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
 		"id": 136,
@@ -1471,7 +1481,7 @@
 	"143": {
 		"name": "DriveFileNameTransferAggregatedType",
 		"app": "drive",
-		"version": 5,
+		"version": 6,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
 		"id": 143,
@@ -1528,5 +1538,533 @@
 			}
 		},
 		"associations": {}
+	},
+	"153": {
+		"name": "DriveFileShare",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "ELEMENT_TYPE",
+		"id": 153,
+		"rootId": "BWRyaXZlAACZ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"155": {
+				"final": true,
+				"name": "_id",
+				"id": 155,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"156": {
+				"final": true,
+				"name": "_permissions",
+				"id": 156,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"157": {
+				"final": false,
+				"name": "_format",
+				"id": 157,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"158": {
+				"final": true,
+				"name": "_ownerGroup",
+				"id": 158,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"160": {
+				"final": true,
+				"name": "accessToken",
+				"id": 160,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"161": {
+				"final": true,
+				"name": "verifier",
+				"id": 161,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"162": {
+				"final": true,
+				"name": "expirationDate",
+				"id": 162,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"163": {
+				"final": true,
+				"name": "shareKeyEncFileSessionKey",
+				"id": 163,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"164": {
+				"final": true,
+				"name": "ownerEncPassword",
+				"id": 164,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"165": {
+				"final": true,
+				"name": "groupKeyVersion",
+				"id": 165,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"166": {
+				"final": true,
+				"name": "nonce",
+				"id": 166,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"159": {
+				"final": true,
+				"name": "file",
+				"id": 159,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 14,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"168": {
+		"name": "DriveFileShareServicePostIn",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 168,
+		"rootId": "BWRyaXZlAACo",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"169": {
+				"final": false,
+				"name": "_format",
+				"id": 169,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"171": {
+				"final": true,
+				"name": "expirationDate",
+				"id": 171,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"172": {
+				"final": true,
+				"name": "shareKeyEncFileSessionKey",
+				"id": 172,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"173": {
+				"final": true,
+				"name": "ownerEncPassword",
+				"id": 173,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"174": {
+				"final": true,
+				"name": "groupKeyVersion",
+				"id": 174,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"175": {
+				"final": true,
+				"name": "verifier",
+				"id": 175,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"176": {
+				"final": true,
+				"name": "nonce",
+				"id": 176,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"170": {
+				"final": false,
+				"name": "file",
+				"id": 170,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 14,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"177": {
+		"name": "DriveFileShareServicePasswordUpdate",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "AGGREGATED_TYPE",
+		"id": 177,
+		"rootId": "BWRyaXZlAACx",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"178": {
+				"final": true,
+				"name": "_id",
+				"id": 178,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"179": {
+				"final": true,
+				"name": "verifier",
+				"id": 179,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"180": {
+				"final": true,
+				"name": "ownerEncPassword",
+				"id": 180,
+				"type": "Bytes",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {}
+	},
+	"181": {
+		"name": "DriveFileShareServicePutIn",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 181,
+		"rootId": "BWRyaXZlAAC1",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"182": {
+				"final": false,
+				"name": "_format",
+				"id": 182,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"185": {
+				"final": true,
+				"name": "expirationDate",
+				"id": 185,
+				"type": "Date",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"186": {
+				"final": true,
+				"name": "groupKeyVersion",
+				"id": 186,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"183": {
+				"final": false,
+				"name": "share",
+				"id": 183,
+				"type": "ELEMENT_ASSOCIATION",
+				"cardinality": "One",
+				"refTypeId": 153,
+				"dependency": null,
+				"transferredAttributeId": null
+			},
+			"184": {
+				"final": false,
+				"name": "passwordUpdate",
+				"id": 184,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 177,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"187": {
+		"name": "DriveFileShareServiceDeleteIn",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 187,
+		"rootId": "BWRyaXZlAAC7",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"188": {
+				"final": false,
+				"name": "_format",
+				"id": 188,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"189": {
+				"final": false,
+				"name": "file",
+				"id": 189,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 14,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"191": {
+		"name": "BlobServerUrl",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "AGGREGATED_TYPE",
+		"id": 191,
+		"rootId": "BWRyaXZlAAC_",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"192": {
+				"final": true,
+				"name": "_id",
+				"id": 192,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"193": {
+				"final": false,
+				"name": "url",
+				"id": 193,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {}
+	},
+	"194": {
+		"name": "BlobServerAccessInfo",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "AGGREGATED_TYPE",
+		"id": 194,
+		"rootId": "BWRyaXZlAADC",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"195": {
+				"final": true,
+				"name": "_id",
+				"id": 195,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"196": {
+				"final": false,
+				"name": "blobAccessToken",
+				"id": 196,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"197": {
+				"final": false,
+				"name": "expires",
+				"id": 197,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"198": {
+				"final": false,
+				"name": "tokenKind",
+				"id": 198,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"199": {
+				"final": false,
+				"name": "servers",
+				"id": 199,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 191,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"200": {
+		"name": "DriveFileShareTokenServicePostIn",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 200,
+		"rootId": "BWRyaXZlAADI",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"201": {
+				"final": false,
+				"name": "_format",
+				"id": 201,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"202": {
+				"final": false,
+				"name": "file",
+				"id": 202,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 14,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
+	},
+	"203": {
+		"name": "DriveFileShareTokenServicePostOut",
+		"app": "drive",
+		"version": 6,
+		"since": 6,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 203,
+		"rootId": "BWRyaXZlAADL",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": null,
+		"values": {
+			"204": {
+				"final": false,
+				"name": "_format",
+				"id": 204,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			}
+		},
+		"associations": {
+			"205": {
+				"final": false,
+				"name": "blobAccessInfo",
+				"id": 205,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 194,
+				"dependency": null,
+				"transferredAttributeId": null
+			}
+		}
 	}
 }

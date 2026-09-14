@@ -40,6 +40,7 @@ import { EntityRestInterface } from "../../../../platform-kit/network/EntityRest
 import { AlarmFacade } from "./facades/lazy/AlarmFacade"
 import { InboxRuleModel } from "../../../mail-app/mail/model/InboxRuleModel"
 import { Nullable } from "@tutao/utils"
+import { DriveFileSharingFacade } from "./facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -99,5 +100,6 @@ export interface CommonWorkerInterface {
 	readonly applicationTypesFacade: ApplicationTypesFacade
 	readonly identityKeyCreator: IdentityKeyCreator
 	readonly driveFacade: DriveFacade
+	readonly driveFileSharingFacade: DriveFileSharingFacade
 	readonly alarmFacade: AlarmFacade
 }

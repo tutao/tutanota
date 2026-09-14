@@ -57,7 +57,7 @@ import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivity
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, onceAsync } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -171,6 +171,7 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
+import { DriveFileShareDialog } from "../drive-app/drive/view/DriveFileShareDialog"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
@@ -178,6 +179,7 @@ import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
 import { showMeteredConnectionWarningDialog } from "../common/gui/dialogs/MeteredConnectionWarningDialog"
 import { MailIndexingAbortReason } from "./workerUtils/index/MailIndexer"
+import { DriveFileSharingFacade } from "../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -248,6 +250,7 @@ class MailLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
+	driveFileSharingFacade!: DriveFileSharingFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	mailboxImporter!: MailboxImporter
 
@@ -889,6 +892,7 @@ class MailLocator implements CommonLocator {
 			spamClassifier,
 			driveFacade,
 			mailboxImporter,
+			driveFileSharingFacade,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -913,6 +917,7 @@ class MailLocator implements CommonLocator {
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
 		this.driveFacade = driveFacade
+		this.driveFileSharingFacade = driveFileSharingFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(
@@ -1689,6 +1694,11 @@ class MailLocator implements CommonLocator {
 		const { ContactEditor } = await import("./contacts/ContactEditor.js")
 		return new ContactEditor(this.entityClient, contact)
 	}
+
+	readonly driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
+		const { DriveFileShareDialog } = await import("../drive-app/drive/view/DriveFileShareDialog.js")
+		return new DriveFileShareDialog(this.driveFileSharingFacade, this.logins)
+	})
 }
 
 export type IMailLocator = Readonly<MailLocator>

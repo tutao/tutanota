@@ -1,5 +1,10 @@
 import { DriveCopyServicePostIn, DriveCopyServicePostInTypeRef } from "./TypeRefs.js"
 import { DriveCopyServicePostOut, DriveCopyServicePostOutTypeRef } from "./TypeRefs.js"
+import { DriveFileShareServicePostIn, DriveFileShareServicePostInTypeRef } from "./TypeRefs.js"
+import { DriveFileShareServicePutIn, DriveFileShareServicePutInTypeRef } from "./TypeRefs.js"
+import { DriveFileShareServiceDeleteIn, DriveFileShareServiceDeleteInTypeRef } from "./TypeRefs.js"
+import { DriveFileShareTokenServicePostIn, DriveFileShareTokenServicePostInTypeRef } from "./TypeRefs.js"
+import { DriveFileShareTokenServicePostOut, DriveFileShareTokenServicePostOutTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePostIn, DriveFolderServicePostInTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePostOut, DriveFolderServicePostOutTypeRef } from "./TypeRefs.js"
 import { DriveFolderServicePutIn, DriveFolderServicePutInTypeRef } from "./TypeRefs.js"
@@ -17,6 +22,32 @@ export const DriveCopyService_POST = new PostService<DriveCopyServicePostIn, Dri
 	"DriveCopyService",
 	DriveCopyServicePostInTypeRef,
 	DriveCopyServicePostOutTypeRef,
+)
+
+export const DriveFileShareService_POST = new PostService<DriveFileShareServicePostIn, NullEntity>(
+	"drive",
+	"DriveFileShareService",
+	DriveFileShareServicePostInTypeRef,
+	NullEntityTypeRef,
+)
+export const DriveFileShareService_PUT = new PutService<DriveFileShareServicePutIn, NullEntity>(
+	"drive",
+	"DriveFileShareService",
+	DriveFileShareServicePutInTypeRef,
+	NullEntityTypeRef,
+)
+export const DriveFileShareService_DELETE = new DeleteService<DriveFileShareServiceDeleteIn, NullEntity>(
+	"drive",
+	"DriveFileShareService",
+	DriveFileShareServiceDeleteInTypeRef,
+	NullEntityTypeRef,
+)
+
+export const DriveFileShareTokenService_POST = new PostService<DriveFileShareTokenServicePostIn, DriveFileShareTokenServicePostOut>(
+	"drive",
+	"DriveFileShareTokenService",
+	DriveFileShareTokenServicePostInTypeRef,
+	DriveFileShareTokenServicePostOutTypeRef,
 )
 
 export const DriveFolderService_POST = new PostService<DriveFolderServicePostIn, DriveFolderServicePostOut>(

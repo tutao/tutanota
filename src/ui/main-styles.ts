@@ -1140,6 +1140,9 @@ export class MainStyles {
 				".half-width": {
 					width: "50%",
 				},
+				".three-quarter-width": {
+					width: "75%",
+				},
 				".block": {
 					display: "block",
 				},
@@ -3176,7 +3179,7 @@ export class MainStyles {
 				".tutaui-switch": {
 					display: "flex",
 					"align-items": "center",
-					gap: px(size.spacing_8),
+					gap: px(size.spacing_16),
 				},
 				".tutaui-toggle-pill": {
 					position: "relative",

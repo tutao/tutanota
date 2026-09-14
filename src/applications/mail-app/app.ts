@@ -64,6 +64,8 @@ import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { KeyManager } from "../../ui/utils/KeyManager"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 import { MigrationPreLogoutAction } from "./mail/migration/MigrationPreLogoutAction"
+import { DriveFileShareView, DriveFileShareViewAttrs } from "../drive-app/drive/view/DriveFileShareView"
+import { DataFile } from "../../entities/tutanota/Utils"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -741,6 +743,39 @@ import("../../ui/translations/en.js")
 							bottomNav: cache.bottomNav,
 							filePicker: cache.filePicker,
 							sendFileViaMail: sendDriveFileViaMail,
+							fileShareDialog: mailLocator.driveFileShareDialog,
+						}
+					},
+				},
+				mailLocator.logins,
+			),
+			driveFileShare: makeViewResolver<
+				DriveFileShareViewAttrs,
+				DriveFileShareView,
+				{
+					downloadFileForShare: DriveFileShareViewAttrs["downloadFileForShare"]
+					downloadBlobsForShare: DriveFileShareViewAttrs["downloadBlobsForShare"]
+					saveDataFile: (file: DataFile) => Promise<void>
+				}
+			>(
+				{
+					requireLogin: false,
+					prepareRoute: async () => {
+						const { DriveFileShareView } = await import("../drive-app/drive/view/DriveFileShareView.js")
+						return {
+							component: DriveFileShareView,
+							cache: {
+								downloadFileForShare: mailLocator.driveFileSharingFacade.loadSharedFile,
+								downloadBlobsForShare: mailLocator.driveFileSharingFacade.downloadSharedFileContent,
+								saveDataFile: mailLocator.fileController.saveDataFile,
+							},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {
+							downloadFileForShare: cache.downloadFileForShare,
+							downloadBlobsForShare: cache.downloadBlobsForShare,
+							saveDataFile: cache.saveDataFile,
 						}
 					},
 				},
@@ -814,6 +849,7 @@ import("../../ui/translations/en.js")
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						sendFileViaMail: sendDriveFileViaMail,
+						fileShareDialog: mailLocator.driveFileShareDialog,
 					}),
 				},
 				mailLocator.logins,

@@ -90,6 +90,7 @@ import { random, SymmetricCipherUtils } from "@tutao/crypto"
 import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
 import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
 import { getEtId } from "@tutao/meta"
+import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -136,6 +137,7 @@ export type WorkerLocatorType = {
 	spamClassifier: lazyAsync<SpamClassifier>
 	spamClassifierStorageFacade: lazyAsync<SpamClassifierStorageFacade>
 	driveFacade: lazyAsync<DriveFacade>
+	driveFileSharingFacade: lazyAsync<DriveFileSharingFacade>
 
 	// Meta
 	_worker: WorkerImpl
@@ -809,6 +811,21 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.crypto,
 			locator.base.cryptoWrapper,
 			locator.cacheStorage,
+			locator.base.symmetricCipherUtils,
+		)
+	})
+
+	locator.driveFileSharingFacade = lazyMemoized(async () => {
+		const { DriveFileSharingFacade } = await import("../../../common/api/worker/facades/lazy/DriveFileSharingFacade.js")
+		return new DriveFileSharingFacade(
+			locator.base.cryptoWrapper,
+			locator.base.serviceExecutor,
+			locator.base.crypto,
+			locator.base.keyLoader,
+			domainConfig,
+			locator.base.argon2idFacade,
+			locator.base.cachingEntityClient,
+			await locator.blob(),
 			locator.base.symmetricCipherUtils,
 		)
 	})

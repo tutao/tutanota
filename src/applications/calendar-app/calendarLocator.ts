@@ -128,7 +128,6 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { HttpClientJavascript } from "@tutao/http-client"
 
 EnvProvider.assertMainOrNode()
 
@@ -610,7 +609,6 @@ class CalendarLocator implements CommonLocator {
 			sqlCipherFacade,
 			contactFacade,
 			identityKeyCreator,
-			driveFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -630,7 +628,6 @@ class CalendarLocator implements CommonLocator {
 		this.userManagementFacade = userManagementFacade
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
-		this.driveFacade = driveFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.identityKeyCreator = identityKeyCreator
