@@ -442,23 +442,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				try {
 					await showProgressDialog(
 						"pleaseWait_msg",
-						this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel) /*.then(async (movedMailIds) => {
-							FIXME old inbox rule stuff that did some weird things we don't understand (moving mails again?)
-							const mailsToMoveToInbox = actionableMails
-								.filter((mail) => !movedMailIds?.some((movedMailId) => isSameSingleId(elementIdPart(mail._id), movedMailId)))
-								.map((mail) => mail._id)
-
-							await moveMailsToSystemFolder({
-								mailboxModel: locator.mailboxModel,
-								mailModel: this.mailViewModel.mailModel,
-								currentFolder: folder,
-								mailIds: mailsToMoveToInbox,
-								targetFolderType: MailSetKind.INBOX,
-								moveMode: this.mailViewModel.getMoveMode(folder),
-								undoModel: this.undoModel,
-								contactModel: mailLocator.contactModel,
-							})
-						})*/,
+						moveMailsToSystemFolder({
+							mailboxModel: locator.mailboxModel,
+							mailModel: this.mailViewModel.mailModel,
+							currentFolder: folder,
+							mailIds: actionableMails.map((mail) => mail._id),
+							targetFolderType: MailSetKind.INBOX,
+							moveMode: this.mailViewModel.getMoveMode(folder),
+							undoModel: this.undoModel,
+							contactModel: mailLocator.contactModel,
+						}).then(() => this.mailViewModel.reapplyInboxRulesForMails(actionableMails, this.undoModel)),
 					)
 				} catch (e) {
 					// handle the user cancelling the dialog
@@ -474,7 +467,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	}
 
 	private getReapplyInboxRulesAction(): (() => void) | null {
-		// FIXME need to check if using expandedInboxRules and if so use ExpandedInboxRuleHandler applyRulesToGivenMails
 		const currentFolder = this.mailViewModel.getMailSet()
 		//Inbox reapply rules should only be visible for paying users currently on the inbox folder.
 		if (!mailLocator.logins.getUserController().isPaidAccount() || currentFolder?.folderType !== MailSetKind.INBOX) {
