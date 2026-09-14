@@ -57,7 +57,8 @@ import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-c
 import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "../../../src/platform-kit/meta"
-import { InstanceKeyFacade, InstanceKeySharingRolloutAction } from "../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { InstanceKeyFacade } from "../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { InstanceKeySharingRolloutAction } from "../../../src/platform-kit/base/base-crypto/InstanceKeySharingRolloutAction"
 
 const { anything, argThat } = matchers
 
