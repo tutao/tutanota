@@ -1,44 +1,50 @@
 import Combine
+import os
 
 public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let sqlCipherFacade: IosSqlCipherFacade
 	private let schemeHandler: ApiSchemeHandler
-   	private let urlSession: URLSession
-   	// array of archiveIds
-    private var activeJobs: Set<String>
+	private let urlSession: URLSession
+	// array of archiveIds
+	private let activeJobsLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
 
 	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
 		self.sqlCipherFacade = sqlCipherFacade
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
-		self.activeJobs = []
 	}
 
 	public func downloadAndStoreArchive(_ sourceUrl: String, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
-	    activeJobs.insert(archiveId)
-
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
+		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
+
+		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+			private let taskCreated: (_ task: URLSessionTask) -> Void
+			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void) { self.taskCreated = taskCreated }
+			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) { taskCreated(task) }
+		}
+		let downloadDelegate = DownloadDelegate(taskCreated: { task in self.activeJobsLock.withLock { $0[archiveId] = task } })
 
 		var response: URLResponse
 		var data: Data
 		TUTSLog("Downloading archive with id \(archiveId)")
-		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request)) } catch let error as URLError
-			where error.code == URLError.cancelled
-		{
-		    activeJobs.remove(archiveId)
-		    throw CancelledError(message: "Download task was canceled", underlyingError: error)
-		}
+		do { (data, response) = try await self.urlSession.data(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate) } catch let error
+			as URLError where error.code == URLError.cancelled
+		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
 		TUTSLog("Finished downloading archive with id \(archiveId)")
 
 		let httpResponse = response as! HTTPURLResponse
 		if httpResponse.statusCode == 200 { try await storeArchive(data, archiveId, typeref, modelVersion) }
-		activeJobs.remove(archiveId)
 	}
 
-	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
-		activeJobs.remove(archiveId)
+	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws {
+		TUTSLog("Abort download and store for \(archiveId)")
+		self.activeJobsLock.withLock {
+			$0[archiveId]?.cancel()
+			$0.removeValue(forKey: archiveId)
+		}
 	}
 
 	public func clearStoredArchives() async throws {
@@ -85,7 +91,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 		for i in 0..<data.count {
 			if currentBlobStartIndex > i { continue }
-            if !activeJobs.contains(archiveId) { break }
+			// if !activeJobs.contains(archiveId) { break }
 
 			currentBlobEndIndex = i
 			byte = data[i]
@@ -161,17 +167,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 				default: params[i] = wrappedModelVersion
 				}
 			}
-			if activeJobs.contains(archiveId) {
-				try await sqlCipherFacade.run(
-					"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
-						+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
-					params
-				)
-			}
-		} catch {
-			activeJobs.remove(archiveId)
-			throw error
-		}
+			// if activeJobs.contains(archiveId) {
+			try await sqlCipherFacade.run(
+				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
+					+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
+				params
+			)// }
+		} catch { throw error }
 	}
 
 }
