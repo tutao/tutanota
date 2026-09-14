@@ -89,6 +89,7 @@ o.spec("ProcessInboxHandler", function () {
 			cryptoFacade,
 			() => spamHandler,
 			() => inboxRuleHandler,
+			true,
 			new Map(),
 			new Map(),
 			0,
