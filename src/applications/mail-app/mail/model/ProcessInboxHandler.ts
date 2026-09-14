@@ -14,7 +14,7 @@ import { LockedError } from "../../../../platform-kit/rest-client/error"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { InboxRuleHandler, SomeInboxRule } from "./InboxRuleHandler"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
-import { mailLocator } from "../../mailLocator"
+import { ExpandedInboxRuleHandler } from "./ExpandedInboxRuleHandler"
 
 EnvProvider.assertMainOrNode()
 
@@ -32,6 +32,7 @@ export class ProcessInboxHandler {
 		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private readonly usingLegacyInboxRules: boolean,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
 		private processedMailsAndInboxRules: Map<Id, { list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>; mailboxDetail: MailboxDetail }> = new Map(),
 		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
@@ -65,8 +66,8 @@ export class ProcessInboxHandler {
 				const listAndDetails = this.processedMailsAndInboxRules.values()
 				this.processedMailsAndInboxRules = new Map()
 				for (const { list, mailboxDetail } of listAndDetails) {
-					//FIXME getting inboxRuleHandler from locator because we only have generic inboxHandler
-					await mailLocator.inboxRuleHandler().applyRules(list, mailboxDetail, true)
+					const inboxRuleHandler = <ExpandedInboxRuleHandler>this.inboxRuleHandler()
+					await inboxRuleHandler.applyRules(list, mailboxDetail, true)
 				}
 			}
 		})
@@ -147,12 +148,13 @@ export class ProcessInboxHandler {
 				if (applyInboxRuleResultActions) {
 					targetFolder = ruleMoveTarget
 					processInboxDatum.classifierType = ClientClassifierType.CUSTOMER_INBOX_RULES
-					const id = getElementId(mailboxDetail.mailGroupInfo)
-					if (this.processedMailsAndInboxRules.has(id)) {
-						// FIXME need to add check for using ExpandedInboxRule before doing this cast
-						this.processedMailsAndInboxRules.get(id)!.list.push({ mail, inboxRule: matchingInboxRule as ExpandedInboxRule })
-					} else {
-						this.processedMailsAndInboxRules.set(id, { list: [{ mail, inboxRule: matchingInboxRule as ExpandedInboxRule }], mailboxDetail })
+					if (!this.usingLegacyInboxRules) {
+						const id = getElementId(mailboxDetail.mailGroupInfo)
+						if (this.processedMailsAndInboxRules.has(id)) {
+							this.processedMailsAndInboxRules.get(id)!.list.push({ mail, inboxRule: matchingInboxRule as ExpandedInboxRule })
+						} else {
+							this.processedMailsAndInboxRules.set(id, { list: [{ mail, inboxRule: matchingInboxRule as ExpandedInboxRule }], mailboxDetail })
+						}
 					}
 				}
 			}
