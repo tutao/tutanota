@@ -2531,5 +2531,8 @@ export type TranslationKeyType =
 	| "subscriptionSettingsExpiredStateDescription_label"
 	| "subscriptionSettingsRevokedStateDescription_label"
 	| "subscriptionSettingsCancelledStateDescription_label"
+	| "qrRecoveryDialogFormatNeutral_label"
+	| "qrRecoveryDialogFormatInvalid_label"
+	| "qrRecoveryDialogFormatValid_label"
 	| "giftCardNotAvailableGoogle_msg"
 	| "giftCardNotAvailableApple_msg"

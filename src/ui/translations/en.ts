@@ -2533,6 +2533,9 @@ export default {
 		"subscriptionSettingsExpiredStateDescription_label": "Your subscription has expired, but some paid features are still in use. Your account has limited functionality until those features are no longer in use.",
 		"subscriptionSettingsRevokedStateDescription_label": "Your subscription has been revoked and will be refunded within the next few days. Your account will be downgraded after the refund.",
 		"subscriptionSettingsCancelledStateDescription_label": "Your subscription is cancelled and will not renew. You’ll keep full access until the end of your current period.",
+		"qrRecoveryDialogFormatNeutral_label": "Please enter your unique 64-digit recovery code.",
+		"qrRecoveryDialogFormatInvalid_label": "Format of recovery code is not correct.",
+		"qrRecoveryDialogFormatValid_label": "Format of recovery code is correct",
 		"giftCardNotAvailableAppStore_msg": "Gift card purchases aren’t available while you have an active App Store subscription",
 		"giftCardNotAvailableGoogle_msg": "Gift card purchases aren’t available while you have an active Google Play Store subscription",
 		}

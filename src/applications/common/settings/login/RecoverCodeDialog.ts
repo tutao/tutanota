@@ -205,6 +205,7 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 						onError: (error) => this.handleScanError(error),
 					})
 				: m(this.editor),
+			this.getRecoveryCodeInfoText(),
 			m(
 				".mt-8",
 				m(PrimaryButton, {
@@ -216,6 +217,26 @@ export class RecoverCodeInput implements Component<RecoverCodeInputAttrs> {
 				}),
 			),
 		]
+	}
+
+	//Get text for helptext under recovery code text dialog
+	//Checks if the format of the recovery code is valid
+	getRecoveryCodeInfoText(): Children {
+		//Show no text if scanning is active
+		if (this.isScanning) {
+			return undefined
+		}
+		const qrLength = this.editor.getValue().replace(/\s+/g, "").length
+		const validLetters = new RegExp(/^[0-9a-fA-F]+$/)
+		let text: TranslationKey = "qrRecoveryDialogFormatNeutral_label"
+		//Invalid if between 1 and 63 or contains letters from g-z or G-Z
+		if (qrLength > 0 && (qrLength < 64 || qrLength > 64 || !validLetters.test(this.editor.getValue().replace(/\s+/g, "")))) {
+			text = "qrRecoveryDialogFormatInvalid_label"
+		} else if (qrLength === 64) {
+			//Valid iff 64 characters long and contains numbers 0-9 and letters a-f and A-F
+			text = "qrRecoveryDialogFormatValid_label"
+		}
+		return m(".small", lang.getTranslationText(text))
 	}
 
 	getValue(): string {

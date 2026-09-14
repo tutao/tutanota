@@ -2535,5 +2535,8 @@ export default {
 		"subscriptionSettingsCancelledStateDescription_label": "Dein Abonnement wurde gekündigt und verlängert sich nicht. Du hast bis zum Ende deines aktuellen Abrechnungszeitraums vollen Zugriff auf alle Funktionen.",
 		"giftCardNotAvailableAppStore_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives App-Store-Abonnement hast.",
 		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives Google Play Store-Abonnement hast.",
+		"qrRecoveryDialogFormatNeutral_label": "Bitte gib deinen persönlichen 64 Zeichen langen Wiederherstellungscode ein",
+		"qrRecoveryDialogFormatInvalid_label": "Das Format des Wiederherstellungscode ist nicht korrekt",
+		"qrRecoveryDialogFormatValid_label": "Das Format des Wiederherstellungscode ist korrekt",
 	}
 }
