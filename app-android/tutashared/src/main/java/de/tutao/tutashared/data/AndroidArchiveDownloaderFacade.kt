@@ -38,7 +38,6 @@ class AndroidArchiveDownloaderFacade (
 			withContext(Dispatchers.IO) {
 				val start = TimeSource.Monotonic.markNow()
 				//for (i in 0..<50) {
-
 					Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
@@ -107,72 +106,24 @@ class AndroidArchiveDownloaderFacade (
 		Log.d(TAG, "Cleaned up state of archive download with id $archiveId, kept the blobs.")
 	}
 
-	private suspend fun storeBytes(bytes: Reader, archiveId: String, typeref: String, modelVersion: Long) {
+	private suspend fun storeBytes(reader: Reader, archiveId: String, typeref: String, modelVersion: Long) {
 		Log.d(TAG, "Started storing archive with id $archiveId")
-		// first line is booring
-		// while (bytes.read() != '\n'.code) {}
-
 
 		val startTime = TimeSource.Monotonic.markNow()
-
-		var finishedReadingBlobId = false
-
-		// 8192 bytes seems to be the maximum number of bytes we're allowed to read at once
-		val chunk = ByteArray(8192)
-		var changed = -1
-		var currentBlobIdBytes = ByteArray(0)
-		var currentBlobBytes = ByteArray(0)
-		var byteInt: Int
-		var startAppend = 0
-
 		val storage = StoreArchive(archiveId, typeref, modelVersion, sqlCipherFacade)
 
 		// while we're not cancelled or finished ...
-		var start = TimeSource.Monotonic.markNow()
-		while (activeRequests.containsKey(archiveId)) {
-			if (startAppend <= changed) {
-				if (finishedReadingBlobId) {
-					currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
-				} else {
-					currentBlobIdBytes = currentBlobIdBytes.plus(chunk.sliceArray(startAppend..<changed))
-				}
-			}
-			// for new chunk
-			startAppend = 0
-			changed = withContext(Dispatchers.IO) {
-					bytes.read(chunk)
-			}
-			if (changed == -1) {
-				break
+		reader.forEachLine { line ->
+			val split = line.split(";", limit = 2)
+			if (split[0] == "id") {
+				return@forEachLine
 			} else {
-				loop@for(i in 0..<changed) {
-					byteInt = chunk[i].toInt()
-
-					if (byteInt == '\n'.code) {
-						currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<i))
-						val blobId = String(currentBlobIdBytes)
-						Log.d(TAG, "Saving blob $blobId")
-						// FIXME save
-						currentBlobIdBytes = ByteArray(0)
-						currentBlobBytes = ByteArray(0)
-						finishedReadingBlobId = false
-						startAppend = i + 1
-					} else if (byteInt == ';'.code) {
-						if (finishedReadingBlobId) continue@loop
-						else finishedReadingBlobId = true
-
-						currentBlobIdBytes = currentBlobIdBytes.plus(chunk.sliceArray(startAppend..<i))
-						startAppend = i + 1
-					}
-				}
+				// FIXME actually save
 			}
 		}
-
 		// fully stored archive -> store that information as well
 		// changed is > -1 if abortDownloadAndStore was called
-		if (changed == -1) {
-			storage.success()
-		}
+		storage.success()
 		// exit and cleanup map
 		cleanState(archiveId)
 
