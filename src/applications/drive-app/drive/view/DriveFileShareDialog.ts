@@ -70,7 +70,7 @@ export async function showFileShareDialog(item: FileFolderItem) {
 											// FXIME
 											label: lang.makeTranslation("shareLink_label", "Share link"),
 											// FIXME: real link
-											value: `http://localhost:9000/drivefile/${getListId(item.file)}/${getElementId(item.file)}#${uint8ArrayToBase64(shareStuff.key)}`,
+											value: `http://localhost:9000/drivefile/${getListId(item.file)}/${getElementId(item.file)}?nonce=${uint8ArrayToBase64(shareStuff.share.nonce)}#${uint8ArrayToBase64(shareStuff.key)}`,
 											// FIXME: test with screen reader
 											onfocus: (_, input) => {
 												input.select()

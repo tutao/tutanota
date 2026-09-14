@@ -4,8 +4,8 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { aes256RandomKey, CryptoWrapper, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
+import { assertNotNull, base64ToUint8Array, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -413,6 +413,18 @@ export class DriveFacade {
 		data.ownerKeyVersion = String(fileGroupKey.version)
 		await this.serviceExecutor.execute(DriveService_POST, data, null)
 		return this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
+	}
+	downloadFileForShare(fileId: IdTuple, nonce: string, key: Base64): Promise<DriveFile> {
+		return this.entityClient.load(DriveFileTypeRef, fileId, {
+			extraHeaders: { nonce: nonce },
+			ownerKeyProvider: async () => {
+				return uint8ArrayTo256Key(base64ToUint8Array(key))
+			},
+			baseUrl: null,
+			cacheMode: null,
+			queryParams: null,
+			suspensionBehavior: null,
+		})
 	}
 }
 

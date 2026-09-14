@@ -24,6 +24,7 @@ type ViewResolvers = {
 	contactSearch: RouteResolver
 	calendarSearch: RouteResolver
 	driveSearch: RouteResolver
+	driveFileShare: RouteResolver
 }
 
 export function applicationPaths({
@@ -47,6 +48,7 @@ export function applicationPaths({
 	contactSearch,
 	calendarSearch,
 	driveSearch,
+	driveFileShare,
 }: ViewResolvers): ApplicationPaths {
 	return {
 		"/login": login,
@@ -88,6 +90,7 @@ export function applicationPaths({
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
 		"/webauthnmobile": webauthnmobile,
+		"/drivefile/:listId/:elementId": driveFileShare,
 	}
 }
 

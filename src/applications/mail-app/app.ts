@@ -62,6 +62,7 @@ import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
+import { DriveFileShareView, DriveFileShareViewAttrs } from "../drive-app/drive/view/DriveFileShareView"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -723,6 +724,22 @@ import("../../ui/translations/en.js")
 							filePicker: cache.filePicker,
 							sendFileViaMail: sendDriveFileViaMail,
 						}
+					},
+				},
+				mailLocator.logins,
+			),
+			driveFileShare: makeViewResolver<DriveFileShareViewAttrs, DriveFileShareView, {}>(
+				{
+					requireLogin: false,
+					prepareRoute: async () => {
+						const { DriveFileShareView } = await import("../drive-app/drive/view/DriveFileShareView.js")
+						return {
+							component: DriveFileShareView,
+							cache: {},
+						}
+					},
+					prepareAttrs: (cache) => {
+						return {}
 					},
 				},
 				mailLocator.logins,
