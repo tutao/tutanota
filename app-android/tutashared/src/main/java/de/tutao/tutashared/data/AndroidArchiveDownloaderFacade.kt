@@ -15,6 +15,8 @@ import okhttp3.Call
 import okhttp3.Request
 import java.io.IOException
 import java.io.InputStream
+import java.net.SocketTimeoutException
+import java.sql.Time
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
@@ -37,7 +39,10 @@ class AndroidArchiveDownloaderFacade (
 		return coroutineScope {
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
-				Log.d(TAG, "Started downloading archive with id $archiveId")
+				val start = TimeSource.Monotonic.markNow()
+				for (i in 0..<50) {
+
+					Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
 				val requestBuilder = Request.Builder()
@@ -63,7 +68,7 @@ class AndroidArchiveDownloaderFacade (
 						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
 
 						if (response.code == 200) {
-							storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion)
+								storeBytes(response.body.byteStream(), archiveId, typeref, modelVersion)
 						}
 					}
 				} catch (e: IOException) {
@@ -73,6 +78,10 @@ class AndroidArchiveDownloaderFacade (
 						throw e
 					}
 				}
+			}
+			val end = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
+				val av = end.floorDiv(50)
+				Log.d(TAG, "Took $end ms ($av ms on average)")
 			}
 		}
 
@@ -125,9 +134,7 @@ class AndroidArchiveDownloaderFacade (
 		val storage = StoreArchive(archiveId, typeref, modelVersion, sqlCipherFacade)
 
 		// while we're not cancelled or finished ...
-		var isIn = activeRequests.containsKey(archiveId)
-		Log.d(TAG, "Initially: $isIn")
-
+		var start = TimeSource.Monotonic.markNow()
 		while (activeRequests.containsKey(archiveId)) {
 			if (startAppend < changed) {
 				currentBlobBytes = currentBlobBytes.plus(chunk.sliceArray(startAppend..<changed))
@@ -135,7 +142,59 @@ class AndroidArchiveDownloaderFacade (
 			// for new chunk
 			startAppend = 0
 
-			changed = bytes.read(chunk)
+			changed = try {
+				bytes.read(chunk)
+			} catch (e: SocketTimeoutException) {
+				try {
+					bytes.read(chunk, 0, 4096)
+				} catch (e: SocketTimeoutException) {
+					try {
+						bytes.read(chunk, 0, 2048)
+					} catch(e: SocketTimeoutException) {
+						try {
+							bytes.read(chunk, 0, 1024)
+						} catch(e: SocketTimeoutException) {
+							try {
+								bytes.read(chunk, 0, 512)
+							} catch(e: SocketTimeoutException) {
+								try {
+									bytes.read(chunk, 0, 256)
+								} catch(e: SocketTimeoutException) {
+									try {
+										bytes.read(chunk, 0, 128)
+									} catch(e: SocketTimeoutException) {
+										try {
+											bytes.read(chunk, 0, 64)
+										} catch(e: SocketTimeoutException) {
+											try {
+												bytes.read(chunk, 0, 32)
+											} catch(e: SocketTimeoutException) {
+												try {
+													bytes.read(chunk, 0, 16)
+												} catch(e: SocketTimeoutException) {
+													try {
+														bytes.read(chunk, 0, 8)
+													} catch(e: SocketTimeoutException) {
+														try {
+															bytes.read(chunk, 0, 4)
+														} catch(e: SocketTimeoutException) {
+															try {
+																bytes.read(chunk, 0, 2)
+															} catch(e: SocketTimeoutException) {
+																bytes.read(chunk, 0, 1)
+															}
+														}
+													}
+												}
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 			if (changed == -1) {
 				break
 			} else {
@@ -173,6 +232,10 @@ class AndroidArchiveDownloaderFacade (
 						}
 						'{'.code -> {
 							if (!isInString) {
+								if (openCurlyBraces === 0) {
+									startAppend = i
+									start = TimeSource.Monotonic.markNow()
+								}
 								openCurlyBraces++
 							}
 						}
@@ -185,8 +248,10 @@ class AndroidArchiveDownloaderFacade (
 									// get blob id
 									val fullBlobId = Json.decodeFromString<Array<String>>(currentFullBlobId!!)
 
+									val end = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
+									// Log.d(TAG, "Took $end ms to parse blob")
 									// store
-									storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
+									// storage.storeBlob(fullBlobId[1], currentBlobBytes.plus(chunk.sliceArray(startAppend..i)))
 
 									// cleanup variables
 									currentBlobBytes = ByteArray(0)
@@ -194,8 +259,7 @@ class AndroidArchiveDownloaderFacade (
 									currentFullBlobId = null
 									currentBlobIdPrefix = null
 
-									startAppend = i + 1
-									// do not store the brace twice
+									// do not handle the brace twice
 									continue
 								}
 							}
@@ -204,12 +268,6 @@ class AndroidArchiveDownloaderFacade (
 							if (!finishedReadingBlobId && openCurlyBraces == 1 && !currentFullBlobId.isNullOrEmpty() && !isInString) {
 								currentFullBlobId += byteInt.toChar()
 								finishedReadingBlobId = true
-							}
-						}
-						','.code -> {
-							if (currentBlobBytes.isEmpty()) {
-								// do not add commas in between objects to currentBlobBytes
-								startAppend++
 							}
 						}
 					}
