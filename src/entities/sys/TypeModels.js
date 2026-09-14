@@ -15548,7 +15548,7 @@ const typeModels = {
 		},
 	},
 	2783: {
-		name: "PluginsConfiguration",
+		name: "PluginConfiguration",
 		app: "sys",
 		version: 155,
 		since: 155,
@@ -15620,7 +15620,7 @@ const typeModels = {
 				name: "configJson",
 				id: 2792,
 				type: "String",
-				cardinality: "ZeroOrOne",
+				cardinality: "One",
 				encrypted: true,
 			},
 		},

@@ -8,6 +8,5 @@ export type PluginDataFile = {
 }
 
 export interface AttachmentButtonExtension {
-	attachmentButton: ButtonConfiguration
 	attachmentButtonClicked(dataFile: PluginDataFile): void
 }

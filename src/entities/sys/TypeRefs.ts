@@ -10437,17 +10437,17 @@ export type SubscriptionRevocationServicePostIn = {
 	_original: Nullable<SubscriptionRevocationServicePostIn>
 	isAdapter: false
 }
-export const PluginsConfigurationTypeRef: TypeRef<PluginsConfiguration> = new TypeRef("sys", 2783)
+export const PluginConfigurationTypeRef: TypeRef<PluginConfiguration> = new TypeRef("sys", 2783)
 
-export function createPluginsConfiguration(values: PluginsConfigurationParams): PluginsConfiguration {
-	return Object.assign(create(typeModels[PluginsConfigurationTypeRef.typeId], PluginsConfigurationTypeRef), values)
+export function createPluginConfiguration(values: PluginConfigurationParams): PluginConfiguration {
+	return Object.assign(create(typeModels[PluginConfigurationTypeRef.typeId], PluginConfigurationTypeRef), values)
 }
 
-export type PluginsConfigurationParams = {
-	configJson: null | string
+export type PluginConfigurationParams = {
+	configJson: string
 }
 
-export type PluginsConfiguration = {
+export type PluginConfiguration = {
 	// == values
 
 	_id: ListElementId
@@ -10457,7 +10457,7 @@ export type PluginsConfiguration = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
-	configJson: null | string
+	configJson: string
 
 	// == associations
 
@@ -10469,9 +10469,9 @@ export type PluginsConfiguration = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<PluginsConfiguration>
+	_type: TypeRef<PluginConfiguration>
 	_errors: Object
-	_original: Nullable<PluginsConfiguration>
+	_original: Nullable<PluginConfiguration>
 	isAdapter: false
 }
 export const PluginsRefTypeRef: TypeRef<PluginsRef> = new TypeRef("sys", 2793)

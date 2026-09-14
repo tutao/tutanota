@@ -6577,7 +6577,7 @@ impl Entity for SubscriptionRevocationServicePostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct PluginsConfiguration {
+pub struct PluginConfiguration {
 	#[serde(rename = "2785")]
 	pub _id: Option<IdTupleCustom>,
 	#[serde(rename = "2786")]
@@ -6595,13 +6595,13 @@ pub struct PluginsConfiguration {
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "2792")]
-	pub configJson: Option<String>,
+	pub configJson: String,
 
 	#[serde(default)]
 	pub _errors: Errors,
 }
 
-impl Entity for PluginsConfiguration {
+impl Entity for PluginConfiguration {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
