@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { InstanceKeyFacade, InstanceKeySharingRolloutAction } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import {
 	createFormerInstanceKeyData,
 	FormerInstanceKeyData,
@@ -19,7 +19,16 @@ import {
 	User,
 } from "@tutao/entities/sys"
 import { createTestEntity } from "../../../TestUtils"
-import { GENERATED_MAX_ID, idToElementId, PersistentEntity, stringifyId } from "../../../../../src/platform-kit/meta"
+import {
+	AssociationType,
+	GENERATED_MAX_ID,
+	idToElementId,
+	ModelAssociation,
+	ModelValue,
+	PersistentEntity,
+	stringifyId,
+	ValueTypeEnum,
+} from "../../../../../src/platform-kit/meta"
 import {
 	Aes256Key,
 	AesKey,
@@ -39,6 +48,7 @@ import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
+import { InstanceKeySharingRolloutAction } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeySharingRolloutAction"
 
 const { anything, argThat, captor } = matchers
 
@@ -63,7 +73,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 	let deriveInstanceKeyMethod: (groupKey: VersionedKey, kdfNonce: KdfNonce) => VersionedAes256Key
 
-	o.beforeEach(function () {
+	o.beforeEach(async function () {
 		keyLoaderFacade = object()
 		cryptoFacade = object()
 		typeModelResolver = object()
@@ -91,6 +101,29 @@ o.spec("InstanceKeyFacadeTest", function () {
 		})
 		derivedInstanceKey = { object: object(), version: 0 }
 		olderVersionDerivedInstanceKey = object()
+		const modelAssociation: ModelAssociation = {
+			cardinality: "ZeroOrOne",
+			dependency: undefined,
+			final: false,
+			id: 0,
+			refTypeId: 0,
+			transferredAttributeId: null,
+			type: AssociationType.Aggregation,
+			name: "_formerInstanceKeys",
+		}
+		const modelValue: ModelValue = {
+			cardinality: "ZeroOrOne",
+			encrypted: false,
+			final: false,
+			id: 0,
+			name: "_kdfNonce",
+			transferredAttributeId: null,
+			type: ValueTypeEnum.Bytes,
+		}
+		when(typeModelResolver.resolveClientTypeReference(instance._type)).thenResolve({
+			associations: { 12341: modelAssociation },
+			values: { 98768: modelValue },
+		})
 		when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(instanceGroupId)).thenResolve(currentInstanceGroupKey)
 		when(entityClient.loadRange(InstanceKeyTypeRef, anything(), GENERATED_MAX_ID, 1, true)).thenResolve([])
 		deriveInstanceKeyMethod = instanceKeyFacade.deriveInstanceKey
@@ -158,8 +191,12 @@ o.spec("InstanceKeyFacadeTest", function () {
 			const e = await assertThrows(ProgrammingError, async () => await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance))
 			o.check(e.message).equals("permissions missing for instance.")
 		})
+
 		o.test("fails if type is not shared", async function () {
 			const notSharedInstance = createTestEntity(GroupTypeRef)
+			when(typeModelResolver.resolveClientTypeReference(notSharedInstance._type)).thenResolve({
+				associations: {},
+			})
 			const e = await assertThrows(ProgrammingError, async () => await instanceKeyFacade.prepareInstanceKeysForSharedInstance(notSharedInstance))
 			o.check(e.message).equals("instance is of type that is not shared.")
 		})
@@ -382,7 +419,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 		o.check(permissionData.pubEncKeyData).deepEquals(expectedPubEncKeyData)
 	}
 })
-o.spec("InsanceKeySharingRolloutAction", function () {
+o.spec("InstanceKeySharingRolloutAction", function () {
 	o("Execute instance key sharing", async function () {
 		const instanceKeyFacadeMock: InstanceKeyFacade = object()
 		const userFacadeMock: UserFacade = object()
@@ -391,7 +428,7 @@ o.spec("InsanceKeySharingRolloutAction", function () {
 
 		const rolloutType = RolloutType.InstanceKeySharing
 
-		const rolloutAction = new InstanceKeySharingRolloutAction(instanceKeyFacadeMock, userFacadeMock, true, SessionType.Persistent)
+		const rolloutAction = new InstanceKeySharingRolloutAction(instanceKeyFacadeMock, userFacadeMock, SessionType.Persistent)
 		await rolloutAction.execute()
 		verify(instanceKeyFacadeMock.loadAndProcessPendingInstanceKeySharing(user), { times: 1 })
 	})

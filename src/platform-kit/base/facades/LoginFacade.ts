@@ -112,7 +112,8 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
-import { InstanceKeyFacade, InstanceKeySharingRolloutAction } from "../base-crypto/InstanceKeyFacade"
+import { InstanceKeyFacade } from "../base-crypto/InstanceKeyFacade"
+import { InstanceKeySharingRolloutAction } from "../base-crypto/InstanceKeySharingRolloutAction"
 
 assertWorkerOrNode()
 
@@ -887,11 +888,11 @@ export class LoginFacade implements SessionTypeProvider {
 					rolloutType,
 					new KeyRotationRolloutAction(this.keyRotationFacade, this.userFacade, rolloutType, userPassphraseKey, modernKdfType, sessionType),
 				)
-				// TODO we do not want to share instance keys if we have another key rotation scheduled?
-			} else if (rolloutType === RolloutType.InstanceKeySharing) {
+			}
+			if (rolloutType === RolloutType.InstanceKeySharing) {
 				await this.rolloutFacade.configureRollout(
 					rolloutType,
-					new InstanceKeySharingRolloutAction(this.instanceKeyFacade, this.userFacade, modernKdfType, sessionType),
+					new InstanceKeySharingRolloutAction(this.instanceKeyFacade, this.userFacade, sessionType),
 				)
 			}
 		}
