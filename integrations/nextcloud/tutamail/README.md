@@ -19,8 +19,8 @@ This is the official Tuta Mail plugin for nextcloud.
    and make sure to replace
    `/path/to/tutanota/repository` with the correct path:
    ```yaml
-       - '/path/to/tutanota/repository/integrations/nextcloud/tutamail:/var/www/html/apps-extra/tutamail'
-       - '/path/to/tutanota/repository/build/:/var/www/html/apps-extra/tutamail/js'
+       - '${HOME}/dev/repositories/tutanota/integrations/nextcloud/tutamail:/var/www/html/apps/tutamail'
+       - '${HOME}/home/map/dev/repositories/tutanota/build/:/var/www/html/apps/tutamail/js'
    ```
 4) Start the nextcloud container:
     * `docker compose up -d nextcloud` to start nextcloud

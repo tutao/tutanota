@@ -148,6 +148,10 @@ export class EnvProvider {
 		return env.integrationPlatform === IntegrationPlatform.Nextcloud
 	}
 
+	public getPathPrefix(): string {
+		return this.isNextCloudPlugin() ? "/apps/tutamail/js" : ""
+	}
+
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
