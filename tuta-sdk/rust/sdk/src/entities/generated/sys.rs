@@ -435,6 +435,8 @@ pub struct User {
 	pub auth: Option<UserAuthentication>,
 	#[serde(rename = "1552")]
 	pub alarmInfoList: Option<UserAlarmInfoListType>,
+	#[serde(rename = "2796")]
+	pub plugins: Option<PluginsRef>,
 }
 
 impl Entity for User {
@@ -6569,6 +6571,59 @@ impl Entity for SubscriptionRevocationServicePostIn {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2771),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PluginsConfiguration {
+	#[serde(rename = "2785")]
+	pub _id: Option<IdTupleCustom>,
+	#[serde(rename = "2786")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2787")]
+	pub _format: i64,
+	#[serde(rename = "2788")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2789")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2790")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2791")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2792")]
+	pub configJson: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for PluginsConfiguration {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2783),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct PluginsRef {
+	#[serde(rename = "2794")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2795")]
+	pub pluginConfigs: GeneratedId,
+}
+
+impl Entity for PluginsRef {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2793),
 		}
 	}
 }

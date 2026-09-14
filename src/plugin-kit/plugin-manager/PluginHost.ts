@@ -1,4 +1,4 @@
-import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "../../plugin-kit/sdk/PluginHostApi"
+import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "../sdk/PluginHostApi"
 import { assertNotNull, Nullable } from "@tutao/utils"
 
 export type PluginButtonConfiguration = {

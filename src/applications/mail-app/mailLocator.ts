@@ -171,8 +171,8 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
-import { PluginManager } from "../plugin-manager/PluginManager"
-import { PluginHost } from "../plugin-manager/PluginHost"
+import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
+import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 
 EnvProvider.assertMainOrNode()
 

@@ -1,0 +1,18 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./plugin-manager/", "../../types/"],
+	"compilerOptions": {
+		"rootDir": "./plugin-manager/",
+		"outDir": "../../build/plugin-kit/plugin-manager",
+		"tsBuildInfoFile": "../../build/plugin-kit/plugin-manager/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.sdk.json"
+		},
+		{
+			"path": "../platform-kit/tsconfig.utils.json"
+		}
+	]
+}

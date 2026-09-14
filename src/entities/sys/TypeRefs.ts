@@ -534,6 +534,7 @@ export type UserParams = {
 	pushIdentifierList: null | PushIdentifierList
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
+	plugins: null | PluginsRef
 }
 
 export type User = {
@@ -563,6 +564,7 @@ export type User = {
 	pushIdentifierList: null | PushIdentifierList
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
+	plugins: null | PluginsRef
 
 	//== some entities have these and some don't
 
@@ -10433,5 +10435,76 @@ export type SubscriptionRevocationServicePostIn = {
 	// === these are not present in metamodel
 	_type: TypeRef<SubscriptionRevocationServicePostIn>
 	_original: Nullable<SubscriptionRevocationServicePostIn>
+	isAdapter: false
+}
+export const PluginsConfigurationTypeRef: TypeRef<PluginsConfiguration> = new TypeRef("sys", 2783)
+
+export function createPluginsConfiguration(values: PluginsConfigurationParams): PluginsConfiguration {
+	return Object.assign(create(typeModels[PluginsConfigurationTypeRef.typeId], PluginsConfigurationTypeRef), values)
+}
+
+export type PluginsConfigurationParams = {
+	configJson: null | string
+}
+
+export type PluginsConfiguration = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	configJson: null | string
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<PluginsConfiguration>
+	_errors: Object
+	_original: Nullable<PluginsConfiguration>
+	isAdapter: false
+}
+export const PluginsRefTypeRef: TypeRef<PluginsRef> = new TypeRef("sys", 2793)
+
+export function createPluginsRef(values: PluginsRefParams): PluginsRef {
+	return Object.assign(create(typeModels[PluginsRefTypeRef.typeId], PluginsRefTypeRef), values)
+}
+
+export type PluginsRefParams = {
+	pluginConfigs: Id
+}
+
+export type PluginsRef = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	pluginConfigs: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<PluginsRef>
+	_original: Nullable<PluginsRef>
 	isAdapter: false
 }
