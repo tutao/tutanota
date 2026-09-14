@@ -73,6 +73,7 @@ export type DriveFileParams = {
 	folder: IdTuple
 	blobs: Blob[]
 	originalParent: null | IdTuple
+	share: null | Id
 }
 
 export type DriveFile = {
@@ -96,6 +97,7 @@ export type DriveFile = {
 	folder: IdTuple
 	blobs: Blob[]
 	originalParent: null | IdTuple
+	share: null | Id
 
 	//== some entities have these and some don't
 
@@ -810,5 +812,371 @@ export type DriveItemServiceDeleteOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<DriveItemServiceDeleteOut>
 	_original: Nullable<DriveItemServiceDeleteOut>
+	isAdapter: false
+}
+export const DriveFileShareTypeRef: TypeRef<DriveFileShare> = new TypeRef("drive", 123)
+
+export function createDriveFileShare(values: DriveFileShareParams): DriveFileShare {
+	return Object.assign(create(typeModels[DriveFileShareTypeRef.typeId], DriveFileShareTypeRef), values)
+}
+
+export type DriveFileShareParams = {
+	accessToken: string
+	verifier: null | Uint8Array<ArrayBuffer>
+	expirationDate: null | Date
+	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	nonce: Uint8Array<ArrayBuffer>
+
+	file: IdTuple
+}
+
+export type DriveFileShare = {
+	// == values
+
+	_id: ElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	accessToken: string
+	verifier: null | Uint8Array<ArrayBuffer>
+	expirationDate: null | Date
+	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	nonce: Uint8Array<ArrayBuffer>
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShare>
+	_original: Nullable<DriveFileShare>
+	isAdapter: false
+}
+export const DriveFileShareServicePostInTypeRef: TypeRef<DriveFileShareServicePostIn> = new TypeRef("drive", 138)
+
+export function createDriveFileShareServicePostIn(values: DriveFileShareServicePostInParams): DriveFileShareServicePostIn {
+	return Object.assign(create(typeModels[DriveFileShareServicePostInTypeRef.typeId], DriveFileShareServicePostInTypeRef), values)
+}
+
+export type DriveFileShareServicePostInParams = {
+	expirationDate: null | Date
+	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	verifier: null | Uint8Array<ArrayBuffer>
+	nonce: Uint8Array<ArrayBuffer>
+
+	file: IdTuple
+}
+
+export type DriveFileShareServicePostIn = {
+	// == values
+
+	_format: NumberString
+	expirationDate: null | Date
+	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	verifier: null | Uint8Array<ArrayBuffer>
+	nonce: Uint8Array<ArrayBuffer>
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareServicePostIn>
+	_original: Nullable<DriveFileShareServicePostIn>
+	isAdapter: false
+}
+export const DriveFileShareServicePasswordUpdateTypeRef: TypeRef<DriveFileShareServicePasswordUpdate> = new TypeRef("drive", 147)
+
+export function createDriveFileShareServicePasswordUpdate(values: DriveFileShareServicePasswordUpdateParams): DriveFileShareServicePasswordUpdate {
+	return Object.assign(create(typeModels[DriveFileShareServicePasswordUpdateTypeRef.typeId], DriveFileShareServicePasswordUpdateTypeRef), values)
+}
+
+export type DriveFileShareServicePasswordUpdateParams = {
+	verifier: Uint8Array<ArrayBuffer>
+	ownerEncPassword: Uint8Array<ArrayBuffer>
+}
+
+export type DriveFileShareServicePasswordUpdate = {
+	// == values
+
+	_id: Id
+	verifier: Uint8Array<ArrayBuffer>
+	ownerEncPassword: Uint8Array<ArrayBuffer>
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareServicePasswordUpdate>
+	_original: Nullable<DriveFileShareServicePasswordUpdate>
+	isAdapter: false
+}
+export const DriveFileShareServicePutInTypeRef: TypeRef<DriveFileShareServicePutIn> = new TypeRef("drive", 151)
+
+export function createDriveFileShareServicePutIn(values: DriveFileShareServicePutInParams): DriveFileShareServicePutIn {
+	return Object.assign(create(typeModels[DriveFileShareServicePutInTypeRef.typeId], DriveFileShareServicePutInTypeRef), values)
+}
+
+export type DriveFileShareServicePutInParams = {
+	expirationDate: null | Date
+	groupKeyVersion: NumberString
+
+	share: Id
+	passwordUpdate: null | DriveFileShareServicePasswordUpdate
+}
+
+export type DriveFileShareServicePutIn = {
+	// == values
+
+	_format: NumberString
+	expirationDate: null | Date
+	groupKeyVersion: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	share: Id
+	passwordUpdate: null | DriveFileShareServicePasswordUpdate
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareServicePutIn>
+	_original: Nullable<DriveFileShareServicePutIn>
+	isAdapter: false
+}
+export const DriveFileShareServiceDeleteInTypeRef: TypeRef<DriveFileShareServiceDeleteIn> = new TypeRef("drive", 157)
+
+export function createDriveFileShareServiceDeleteIn(values: DriveFileShareServiceDeleteInParams): DriveFileShareServiceDeleteIn {
+	return Object.assign(create(typeModels[DriveFileShareServiceDeleteInTypeRef.typeId], DriveFileShareServiceDeleteInTypeRef), values)
+}
+
+export type DriveFileShareServiceDeleteInParams = {
+	file: IdTuple
+}
+
+export type DriveFileShareServiceDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareServiceDeleteIn>
+	_original: Nullable<DriveFileShareServiceDeleteIn>
+	isAdapter: false
+}
+export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 161)
+
+export function createBlobServerUrl(values: BlobServerUrlParams): BlobServerUrl {
+	return Object.assign(create(typeModels[BlobServerUrlTypeRef.typeId], BlobServerUrlTypeRef), values)
+}
+
+export type BlobServerUrlParams = {
+	url: string
+}
+
+export type BlobServerUrl = {
+	// == values
+
+	_id: Id
+	url: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobServerUrl>
+	_original: Nullable<BlobServerUrl>
+	isAdapter: false
+}
+export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 164)
+
+export function createBlobServerAccessInfo(values: BlobServerAccessInfoParams): BlobServerAccessInfo {
+	return Object.assign(create(typeModels[BlobServerAccessInfoTypeRef.typeId], BlobServerAccessInfoTypeRef), values)
+}
+
+export type BlobServerAccessInfoParams = {
+	blobAccessToken: string
+	expires: Date
+	tokenKind: NumberString
+
+	servers: BlobServerUrl[]
+}
+
+export type BlobServerAccessInfo = {
+	// == values
+
+	_id: Id
+	blobAccessToken: string
+	expires: Date
+	tokenKind: NumberString
+
+	// == associations
+
+	servers: BlobServerUrl[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobServerAccessInfo>
+	_original: Nullable<BlobServerAccessInfo>
+	isAdapter: false
+}
+export const DriveFileShareTokenServicePostInTypeRef: TypeRef<DriveFileShareTokenServicePostIn> = new TypeRef("drive", 170)
+
+export function createDriveFileShareTokenServicePostIn(values: DriveFileShareTokenServicePostInParams): DriveFileShareTokenServicePostIn {
+	return Object.assign(create(typeModels[DriveFileShareTokenServicePostInTypeRef.typeId], DriveFileShareTokenServicePostInTypeRef), values)
+}
+
+export type DriveFileShareTokenServicePostInParams = {
+	file: IdTuple
+}
+
+export type DriveFileShareTokenServicePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareTokenServicePostIn>
+	_original: Nullable<DriveFileShareTokenServicePostIn>
+	isAdapter: false
+}
+export const DriveFileShareTokenServicePostOutTypeRef: TypeRef<DriveFileShareTokenServicePostOut> = new TypeRef("drive", 173)
+
+export function createDriveFileShareTokenServicePostOut(values: DriveFileShareTokenServicePostOutParams): DriveFileShareTokenServicePostOut {
+	return Object.assign(create(typeModels[DriveFileShareTokenServicePostOutTypeRef.typeId], DriveFileShareTokenServicePostOutTypeRef), values)
+}
+
+export type DriveFileShareTokenServicePostOutParams = {
+	blobAccessInfo: BlobServerAccessInfo
+}
+
+export type DriveFileShareTokenServicePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	blobAccessInfo: BlobServerAccessInfo
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShareTokenServicePostOut>
+	_original: Nullable<DriveFileShareTokenServicePostOut>
 	isAdapter: false
 }

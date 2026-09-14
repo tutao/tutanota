@@ -62,6 +62,7 @@ import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntit
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
+import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -103,6 +104,7 @@ export type CalendarWorkerLocatorType = {
 	// Contact & Drive
 	contactFacade: lazyAsync<ContactFacade>
 	driveFacade: lazyAsync<DriveFacade>
+	driveFileSharingFacade: lazyAsync<DriveFileSharingFacade>
 }
 export const locator: CalendarWorkerLocatorType = {} as any
 
