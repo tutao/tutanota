@@ -20,6 +20,7 @@ export function create(params) {
 		networkDebugging,
 		clientName,
 		integrationPlatform,
+		shadowDomAppRoot: null,
 	}
 }
 

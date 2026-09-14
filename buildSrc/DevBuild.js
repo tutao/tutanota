@@ -227,7 +227,15 @@ async function buildDesktopPart({ version, networkDebugging }) {
 						})
 					: undefined,
 				preludeEnvPlugin(
-					env.create({ staticUrl: null, version, mode: "Desktop", dist: false, domainConfigs, networkDebugging, integrationPlatform: null }),
+					env.create({
+						staticUrl: null,
+						version,
+						mode: "Desktop",
+						dist: false,
+						domainConfigs,
+						networkDebugging,
+						integrationPlatform: null,
+					}),
 				),
 			],
 		})
@@ -331,7 +339,7 @@ function getStaticUrl(stage, mode, host) {
  * @param integrationPlatform {string}
  * @return {Promise<void>}
  */
-export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, integrationPlatform) {
+export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, integrationPlatform, shadowDomAppRoot) {
 	await fs.emptyDir(path.join(root, `${buildDir}/images`))
 	await Promise.all([
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
@@ -349,7 +357,15 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	const modes = ["Browser", "App", "Desktop"]
 	for (const mode of modes) {
 		await createBootstrap(
-			env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging, integrationPlatform }),
+			env.create({
+				staticUrl: getStaticUrl(stage, mode, host),
+				version,
+				mode,
+				dist: false,
+				domainConfigs,
+				networkDebugging,
+				integrationPlatform,
+			}),
 			buildDir,
 		)
 	}

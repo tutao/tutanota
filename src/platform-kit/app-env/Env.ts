@@ -10,7 +10,6 @@ export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPla
 })
 
 export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
-export const NEXTCLOUD_PREFIX_WITHOUT_FILE: string = "/apps/tutamail/js"
 
 export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
@@ -25,6 +24,7 @@ export type EnvType = {
 	networkDebugging: boolean
 	clientName: string | null
 	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
+	shadowDomAppRoot: string | null
 }
 
 export const enum PlatformId {
@@ -156,6 +156,10 @@ export class EnvProvider {
 
 	public isNextCloudPlugin(): boolean {
 		return env.integrationPlatform === IntegrationPlatform.Nextcloud
+	}
+
+	public getPathPrefix(): string {
+		return this.env.shadowDomAppRoot != null ? this.env.shadowDomAppRoot : ""
 	}
 
 	/**

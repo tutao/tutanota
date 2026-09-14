@@ -1,6 +1,6 @@
 import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, size } from "./size"
-import { EnvProvider, NEXTCLOUD_PREFIX_WITHOUT_FILE } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -43,8 +43,8 @@ async function loadFonts() {
 	if (!EnvProvider.get().isNextCloudPlugin()) return
 
 	const fonts = [
-		new FontFace("Ionicons", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${NEXTCLOUD_PREFIX_WITHOUT_FILE}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
