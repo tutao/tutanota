@@ -3,6 +3,7 @@ import { KeyCache } from "../../../../../src/platform-kit/base/base-crypto/persi
 import { createTestEntity } from "../../../TestUtils.js"
 import { aes256RandomKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
+import { LoginIncompleteError } from "../../../../../src/platform-kit/rest-client/error"
 import { object } from "testdouble"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
@@ -95,5 +96,17 @@ o.spec("KeyCacheTest", function () {
 		o("getCurrentGroupKey", async function () {
 			await assertThrows(CryptoError, async () => keyCache.getCurrentGroupKey(groupId, async () => invalidVersionedKey))
 		})
+	})
+
+	o.test("clear entry from cache if KeyLoader fails", async function () {
+		const groupId = "somegroup"
+		await assertThrows(LoginIncompleteError, () =>
+			keyCache.getCurrentGroupKey(groupId, async () => {
+				throw new LoginIncompleteError("for testing")
+			}),
+		)
+		const versionedKeyPromise: Promise<VersionedKey> = Promise.resolve({ version: 1, object: object() })
+		const currentGroupKeyPromise = await keyCache.getCurrentGroupKey(groupId, async () => versionedKeyPromise)
+		o.check(currentGroupKeyPromise).deepEquals(await versionedKeyPromise)
 	})
 })
