@@ -2523,5 +2523,6 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"saveToNextcloud_action": "Save to Nextcloud",
+		"nextcloudLoginError_msg": "Something went wrong when logging in to your Nextcloud account",
 	}
 }

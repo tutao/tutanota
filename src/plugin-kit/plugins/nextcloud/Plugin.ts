@@ -6,7 +6,13 @@ import { DownloadReturn } from "../../../applications/common/file/FileController
 import { TransferId } from "../../../entities/drive/Utils"
 import { Dialog } from "../../../ui/base/Dialog"
 import { LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
+import { isNotNull } from "../../../platform-kit/utils"
 
+type NextcloudCredentials = {
+	appPassword: string
+	loginName: string
+	server: string
+}
 export class Plugin extends PluginApi implements AttachmentButtonExtension {
 	public readonly attachmentButton: ButtonConfiguration
 
@@ -32,26 +38,67 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 	async unload(): Promise<void> {}
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
+		//FIXME get the server url from somewhere
+		const url = "http://nextcloud.tuta"
 		console.log("data file " + dataFile.name)
 
 		const davFileName = `dav/files/admin/tuta/${dataFile.name}`
-		const url = `http://nextcloud.tuta/remote.php/${davFileName}`
+		const davUrl = `http://nextcloud.tuta/remote.php/${davFileName}`
 
-		const { transferIds, promise } = makePutRequestToNextcloud(url, dataFile.data)
-		await promise
-		console.log("uploaded to nextcloud?")
+		const nextcloudCredentials = await loginToNextcloud(url)
+		if (isNotNull(nextcloudCredentials)) {
+			const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
+			const { transferIds, promise } = await makePutRequestToNextcloud(url, dataFile.data, token)
+			await promise
+		} else {
+			// await Dialog.message("nextcloudLoginError_msg")
+		}
 	}
 }
 
-function makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array): DownloadReturn {
-	const loginName = "admin"
-	const appPassword = "APP_PASSWORD" // The generated Nextcloud App Password
-	const token = btoa(`${loginName}:${appPassword}`)
-	console.log(token)
+async function loginToNextcloud(nextcloudServerUrl: string): Promise<NextcloudCredentials | null> {
+	const url = `${nextcloudServerUrl}/index.php/login/v2`
+
+	const nextcloudResponse = await ncAxios.post(url)
+	const poll = nextcloudResponse.data.poll
+
+	const userLoginUrl = nextcloudResponse.data.login
+
+	window.open(userLoginUrl)
+
+	while (true) {
+		const pollResponse = await fetch(poll.endpoint, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/x-www-form-urlencoded",
+			},
+			body: new URLSearchParams({
+				token: poll.token,
+			}),
+		})
+
+		if (pollResponse.status === 404) {
+			await new Promise((resolve) => setTimeout(resolve, 2000))
+			console.log("Waiting for user to finish Nextcloud login")
+			continue
+		}
+
+		if (!pollResponse.ok) {
+			console.error(`Error in Nextcloud login flow. Response code: ${pollResponse.status}`)
+			console.error(pollResponse.body)
+			return null
+		}
+
+		return await pollResponse.json()
+	}
+}
+
+async function makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<DownloadReturn> {
 	const filePutHeaders = {
 		headers: {
 			"If-None-Match": "*", // do not override already existing files,
-			Authorization: `Basic ${token}`,
+			"OCS-APIRequest": "true",
+			Authorization: `Basic ${authToken}`,
 		},
 	}
 	const transferIds: TransferId[] = []
