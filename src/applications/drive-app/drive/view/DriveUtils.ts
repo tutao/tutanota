@@ -1,7 +1,7 @@
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
-import { assertNotNull, defer, isEmpty, isNotEmpty, partition, promiseMap } from "../../../../platform-kit/utils"
+import { assertNotNull, defer, isEmpty, isNotEmpty, isNotNull, partition, promiseMap } from "../../../../platform-kit/utils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
@@ -335,5 +335,14 @@ export function toggleSort(currentPreference: SortingPreference, column: SortCol
 		return { column: column, order: currentPreference.order === "asc" ? "desc" : "asc" }
 	} else {
 		return { column: column, order: "asc" }
+	}
+}
+export function normalizeShareExpirationDate(expirationDate: Date | null): Date | null {
+	// Set the expiration time to the end of the day
+	if (isNotNull(expirationDate)) {
+		expirationDate.setHours(23, 59, 59)
+		return expirationDate
+	} else {
+		return null
 	}
 }

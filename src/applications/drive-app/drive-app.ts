@@ -221,6 +221,7 @@ import("../../ui/translations/en.js")
 						filePicker,
 						bottomNav,
 						sendFileViaMail: null,
+						fileShareDialog: driveLocator.driveFileShareDialog,
 					}),
 				},
 				driveLocator.logins,
@@ -261,6 +262,7 @@ import("../../ui/translations/en.js")
 							showMoveItemDialog: cache.showMoveItemDialog,
 							filePicker: cache.filePicker,
 							sendFileViaMail: null,
+							fileShareDialog: driveLocator.driveFileShareDialog,
 						}
 					},
 				},

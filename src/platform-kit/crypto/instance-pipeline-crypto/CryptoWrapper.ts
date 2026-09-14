@@ -1,4 +1,4 @@
-import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
+import { arrayEquals, stringToUtf8Uint8Array, utf8Uint8ArrayToString, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
@@ -103,6 +103,9 @@ export class CryptoWrapper {
 
 	encryptString(sk: AesKey, value: string): Uint8Array<ArrayBuffer> {
 		return _encryptString(sk, value)
+	}
+	decryptString(sk: AesKey, value: Uint8Array<ArrayBuffer>): string {
+		return utf8Uint8ArrayToString(aesDecrypt(sk, value))
 	}
 
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs

@@ -91,6 +91,7 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { DialogAdapter } from "../../../../plugin-kit/sdk/PluginApi"
 import { Dialog } from "../../../../ui/base/Dialog"
+import { DriveFileSharingFacade } from "../worker/facades/lazy/DriveFileSharingFacade"
 
 export interface CommonLocator {
 	clientModelInfo: ClientModelInfo
@@ -137,6 +138,7 @@ export interface CommonLocator {
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
 	driveFacade: DriveFacade
+	driveFileSharingFacade: DriveFileSharingFacade
 	imapImporter: ImapSyncFacade
 
 	mailboxModel: MailboxModel

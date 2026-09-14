@@ -27,7 +27,7 @@ import { PageContextLoginListener } from "../common/api/main/PageContextLoginLis
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, onceAsync } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -128,10 +128,13 @@ import { SearchRouter } from "../common/search/view/SearchRouter"
 import { DriveModel } from "./drive/model/DriveModel"
 import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
+import { DriveFileShareDialog } from "./drive/view/DriveFileShareDialog"
+import { DriveFileSharingFacade } from "../common/api/worker/facades/lazy/DriveFileSharingFacade"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 
 EnvProvider.assertMainOrNode()
+
 class DriveLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
@@ -188,6 +191,7 @@ class DriveLocator implements CommonLocator {
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
+	driveFileSharingFacade!: DriveFileSharingFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapSyncFacade
 	searchRouter!: SearchRouter
@@ -575,6 +579,7 @@ class DriveLocator implements CommonLocator {
 			contactFacade,
 			identityKeyCreator,
 			driveFacade,
+			driveFileSharingFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -595,6 +600,7 @@ class DriveLocator implements CommonLocator {
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
 		this.driveFacade = driveFacade
+		this.driveFileSharingFacade = driveFileSharingFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.identityKeyCreator = identityKeyCreator
@@ -1098,6 +1104,11 @@ class DriveLocator implements CommonLocator {
 				driveOperations,
 			)
 	}
+
+	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
+		const { DriveFileShareDialog } = await import("./drive/view/DriveFileShareDialog")
+		return new DriveFileShareDialog(this.driveFileSharingFacade, this.logins)
+	})
 }
 
 export type IDriveLocator = Readonly<DriveLocator>
