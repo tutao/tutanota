@@ -24,6 +24,7 @@ export interface FileActions {
 	onDelete: (f: FolderItem) => unknown
 	onStartMove: (f: FolderItem) => unknown
 	onSendAsEmail: ((f: FileFolderItem) => unknown) | null
+	onShare: ((f: FileFolderItem) => unknown) | null
 }
 
 export interface DriveFolderContentEntryAttrs {

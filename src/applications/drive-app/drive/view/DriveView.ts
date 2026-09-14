@@ -60,6 +60,7 @@ import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
+import { showFileShareDialog } from "./DriveFileShareDialog"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -560,6 +561,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					})
 				},
 				onSendAsEmail: sendFileAsMail ? (item) => sendFileAsMail(item.file) : null,
+				onShare: (item) => showFileShareDialog(item),
 			},
 			onMove: (items: FolderItemId[], into: FolderFolderItem) => {
 				this.driveViewModel.moveItems(items, into.folder._id)

@@ -60,6 +60,7 @@ import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { DriveFilePicker } from "../../drive/view/DriveFilePicker"
 import { FileType } from "../../drive/model/DriveMimeUtils"
+import { showFileShareDialog } from "../../drive/view/DriveFileShareDialog"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -548,6 +549,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 					this.searchViewModel.moveItems(items, destinationFolder._id),
 				),
 			onSendAsEmail: sendFileViaMail ? (item) => sendFileViaMail(item.file) : null,
+			onShare: (item) => showFileShareDialog(item),
 		}
 		return m(
 			"div.col.flex.plr-8.fill-absolute..overflow-y-scroll",

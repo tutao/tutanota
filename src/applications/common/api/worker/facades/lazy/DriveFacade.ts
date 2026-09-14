@@ -26,11 +26,14 @@ import {
 	createDriveItemPutIn,
 	createDrivePostIn,
 	createDriveRenameData,
+	createDriveShareServiceDeleteIn,
+	createDriveShareServicePostIn,
 	createDriveUploadedFile,
 	DriveCopyService_POST,
 	DriveFile,
 	DriveFileRef,
 	DriveFileRefTypeRef,
+	DriveFileShare,
 	DriveFileTypeRef,
 	DriveFolder,
 	DriveFolderService_DELETE,
@@ -44,11 +47,13 @@ import {
 	DriveItemService_PUT,
 	DriveRenameData,
 	DriveService_POST,
+	DriveShareService_DELETE,
+	DriveShareService_POST,
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
-import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { CacheMode, DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { isDriveFile } from "../../../common/drive/DriveUtils"
 
 export interface BreadcrumbEntry {
@@ -357,6 +362,35 @@ export class DriveFacade {
 	}
 	async getFileGroupId(): Promise<Id> {
 		return this.userFacade.getGroupId(GroupType.File)
+	}
+
+	async createShareLink(file: DriveFile): Promise<DriveFileShare> {
+		await this.serviceExecutor.execute(
+			DriveShareService_POST,
+			createDriveShareServicePostIn({
+				file: file._id,
+			}),
+			null,
+		)
+		const updatedFile = await this.entityClient.load(DriveFileTypeRef, file._id, {
+			queryParams: null,
+			baseUrl: null,
+			extraHeaders: null,
+			ownerKeyProvider: null,
+			suspensionBehavior: null,
+			cacheMode: CacheMode.WriteOnly,
+		})
+		return assertNotNull(updatedFile.share)
+	}
+
+	async deleteShareLink(file: DriveFile): Promise<void> {
+		await this.serviceExecutor.execute(
+			DriveShareService_DELETE,
+			createDriveShareServiceDeleteIn({
+				file: file._id,
+			}),
+			null,
+		)
 	}
 
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {

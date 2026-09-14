@@ -86,6 +86,8 @@ pub struct DriveFile {
 	pub blobs: Vec<super::sys::Blob>,
 	#[serde(rename = "29")]
 	pub originalParent: Option<IdTupleGenerated>,
+	#[serde(rename = "127")]
+	pub share: Option<DriveFileShare>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -497,6 +499,79 @@ impl Entity for DriveItemServiceDeleteOut {
 		TypeRef {
 			app: AppName::Drive,
 			type_id: TypeId::from(118),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveFileShare {
+	#[serde(rename = "124")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "125")]
+	#[serde(with = "serde_bytes")]
+	pub nonce: Vec<u8>,
+	#[serde(rename = "126")]
+	pub expirationDate: Option<DateTime>,
+}
+
+impl Entity for DriveFileShare {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(123),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveShareServicePostIn {
+	#[serde(rename = "129")]
+	pub _format: i64,
+	#[serde(rename = "130")]
+	pub file: IdTupleGenerated,
+}
+
+impl Entity for DriveShareServicePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(128),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveShareServicePutIn {
+	#[serde(rename = "132")]
+	pub _format: i64,
+}
+
+impl Entity for DriveShareServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(131),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveShareServiceDeleteIn {
+	#[serde(rename = "134")]
+	pub _format: i64,
+	#[serde(rename = "135")]
+	pub file: IdTupleGenerated,
+}
+
+impl Entity for DriveShareServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(133),
 		}
 	}
 }

@@ -10,6 +10,9 @@ import { DriveItemPutIn, DriveItemPutInTypeRef } from "./TypeRefs.js"
 import { DriveItemDeleteIn, DriveItemDeleteInTypeRef } from "./TypeRefs.js"
 import { DriveItemServiceDeleteOut, DriveItemServiceDeleteOutTypeRef } from "./TypeRefs.js"
 import { DrivePostIn, DrivePostInTypeRef } from "./TypeRefs.js"
+import { DriveShareServicePostIn, DriveShareServicePostInTypeRef } from "./TypeRefs.js"
+import { DriveShareServicePutIn, DriveShareServicePutInTypeRef } from "./TypeRefs.js"
+import { DriveShareServiceDeleteIn, DriveShareServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
 export const DriveCopyService_POST = new PostService<DriveCopyServicePostIn, DriveCopyServicePostOut>(
@@ -53,3 +56,22 @@ export const DriveItemService_DELETE = new DeleteService<DriveItemDeleteIn, Driv
 )
 
 export const DriveService_POST = new PostService<DrivePostIn, NullEntity>("drive", "DriveService", DrivePostInTypeRef, NullEntityTypeRef)
+
+export const DriveShareService_POST = new PostService<DriveShareServicePostIn, NullEntity>(
+	"drive",
+	"DriveShareService",
+	DriveShareServicePostInTypeRef,
+	NullEntityTypeRef,
+)
+export const DriveShareService_PUT = new PutService<DriveShareServicePutIn, NullEntity>(
+	"drive",
+	"DriveShareService",
+	DriveShareServicePutInTypeRef,
+	NullEntityTypeRef,
+)
+export const DriveShareService_DELETE = new DeleteService<DriveShareServiceDeleteIn, NullEntity>(
+	"drive",
+	"DriveShareService",
+	DriveShareServiceDeleteInTypeRef,
+	NullEntityTypeRef,
+)

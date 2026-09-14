@@ -185,7 +185,7 @@ export function driveFolderName(folder: DriveFolder): Translation {
 
 // NOTE: Keep the order roughly in sync with getSelectionContextActions.
 export function getFileContextActions(item: FileFolderItem | FolderFolderItem, fileActions: FileActions): DropdownChildAttrs[] {
-	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload, onSendAsEmail } = fileActions
+	const { onRename, onCopy, onCut, onRestore, onTrash, onStartMove, onDelete, onDownload, onSendAsEmail, onShare } = fileActions
 
 	const itemInTrash = (item.type === "file" && item.file.originalParent != null) || (item.type === "folder" && item.folder.originalParent != null)
 
@@ -200,6 +200,16 @@ export function getFileContextActions(item: FileFolderItem | FolderFolderItem, f
 					onDownload(item)
 				},
 			})
+			if (onShare != null) {
+				actions.push({
+					label: "share_action",
+					icon: Icons.PersonAddFilled,
+					click: () => {
+						onShare(item)
+					},
+				})
+			}
+
 			if (onSendAsEmail) {
 				actions.push({
 					label: lang.getTranslation("sendDriveFileWithMail_action"),

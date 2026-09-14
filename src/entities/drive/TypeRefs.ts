@@ -73,6 +73,7 @@ export type DriveFileParams = {
 	folder: IdTuple
 	blobs: Blob[]
 	originalParent: null | IdTuple
+	share: null | DriveFileShare
 }
 
 export type DriveFile = {
@@ -96,6 +97,7 @@ export type DriveFile = {
 	folder: IdTuple
 	blobs: Blob[]
 	originalParent: null | IdTuple
+	share: null | DriveFileShare
 
 	//== some entities have these and some don't
 
@@ -810,5 +812,146 @@ export type DriveItemServiceDeleteOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<DriveItemServiceDeleteOut>
 	_original: Nullable<DriveItemServiceDeleteOut>
+	isAdapter: false
+}
+export const DriveFileShareTypeRef: TypeRef<DriveFileShare> = new TypeRef("drive", 123)
+
+export function createDriveFileShare(values: DriveFileShareParams): DriveFileShare {
+	return Object.assign(create(typeModels[DriveFileShareTypeRef.typeId], DriveFileShareTypeRef), values)
+}
+
+export type DriveFileShareParams = {
+	nonce: Uint8Array<ArrayBuffer>
+	expirationDate: null | Date
+}
+
+export type DriveFileShare = {
+	// == values
+
+	_id: Id
+	nonce: Uint8Array<ArrayBuffer>
+	expirationDate: null | Date
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveFileShare>
+	_original: Nullable<DriveFileShare>
+	isAdapter: false
+}
+export const DriveShareServicePostInTypeRef: TypeRef<DriveShareServicePostIn> = new TypeRef("drive", 128)
+
+export function createDriveShareServicePostIn(values: DriveShareServicePostInParams): DriveShareServicePostIn {
+	return Object.assign(create(typeModels[DriveShareServicePostInTypeRef.typeId], DriveShareServicePostInTypeRef), values)
+}
+
+export type DriveShareServicePostInParams = {
+	file: IdTuple
+}
+
+export type DriveShareServicePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareServicePostIn>
+	_original: Nullable<DriveShareServicePostIn>
+	isAdapter: false
+}
+export const DriveShareServicePutInTypeRef: TypeRef<DriveShareServicePutIn> = new TypeRef("drive", 131)
+
+export function createDriveShareServicePutIn(values: DriveShareServicePutInParams): DriveShareServicePutIn {
+	return Object.assign(create(typeModels[DriveShareServicePutInTypeRef.typeId], DriveShareServicePutInTypeRef), values)
+}
+
+export type DriveShareServicePutInParams = {}
+
+export type DriveShareServicePutIn = {
+	// == values
+
+	_format: NumberString
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareServicePutIn>
+	_original: Nullable<DriveShareServicePutIn>
+	isAdapter: false
+}
+export const DriveShareServiceDeleteInTypeRef: TypeRef<DriveShareServiceDeleteIn> = new TypeRef("drive", 133)
+
+export function createDriveShareServiceDeleteIn(values: DriveShareServiceDeleteInParams): DriveShareServiceDeleteIn {
+	return Object.assign(create(typeModels[DriveShareServiceDeleteInTypeRef.typeId], DriveShareServiceDeleteInTypeRef), values)
+}
+
+export type DriveShareServiceDeleteInParams = {
+	file: IdTuple
+}
+
+export type DriveShareServiceDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareServiceDeleteIn>
+	_original: Nullable<DriveShareServiceDeleteIn>
 	isAdapter: false
 }
