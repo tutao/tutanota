@@ -5,30 +5,21 @@ import { Button, ButtonType } from "../../../../ui/base/Button"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { FileFolderItem } from "./DriveUtils"
 import { TextField } from "../../../../ui/base/TextField"
-import { getElementId, getListId } from "@tutao/meta"
-import { assertNotNull, uint8ArrayToBase64 } from "@tutao/utils"
+import { isNotNull } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { DriveFileShare } from "@tutao/entities/drive"
 import { locator } from "../../../common/api/main/CommonLocator"
-
-interface ShareInfo {
-	share: DriveFileShare
-	key: Uint8Array<ArrayBuffer>
-}
+import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
+import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
+import type { DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
 
 export async function showFileShareDialog(item: FileFolderItem) {
 	const cryptoFacade = locator.cryptoFacade
 	const driveFacade = locator.driveFacade
 
-	let shareStuff: ShareInfo | null = item.file.share
-		? {
-				share: item.file.share,
-				key: assertNotNull(await cryptoFacade.resolveSessionKeyForInstanceBinary(item.file)),
-			}
-		: null
+	let shareInfo: DriveShareInfo | null = item.file.share ? await driveFacade.getShareInfo(item.file) : null
 
 	const dialog = new Dialog(
 		DialogType.EditMedium,
@@ -40,7 +31,7 @@ export async function showFileShareDialog(item: FileFolderItem) {
 					}),
 					m(".flex.col.mlr-16.mt-8.mb-16", [
 						m(".b.text-ellipsis", item.file.name),
-						shareStuff == null
+						shareInfo == null
 							? [
 									m(
 										"",
@@ -53,11 +44,7 @@ export async function showFileShareDialog(item: FileFolderItem) {
 											label: lang.makeTranslation("createLink_action", "Create a share link"),
 											onclick: async () => {
 												// FIXME: show progress
-												const share = await driveFacade.createShareLink(item.file)
-												shareStuff = {
-													share,
-													key: assertNotNull(await cryptoFacade.resolveSessionKeyForInstanceBinary(item.file)),
-												}
+												shareInfo = await driveFacade.createShareLink(item.file)
 												m.redraw()
 											},
 										}),
@@ -69,8 +56,7 @@ export async function showFileShareDialog(item: FileFolderItem) {
 											// isReadOnly: true,
 											// FXIME
 											label: lang.makeTranslation("shareLink_label", "Share link"),
-											// FIXME: real link
-											value: `http://localhost:9000/drivefile/${getListId(item.file)}/${getElementId(item.file)}?nonce=${uint8ArrayToBase64(shareStuff.share.nonce)}#${uint8ArrayToBase64(shareStuff.key)}`,
+											value: shareInfo.publicLink,
 											// FIXME: test with screen reader
 											onfocus: (_, input) => {
 												input.select()
@@ -81,8 +67,11 @@ export async function showFileShareDialog(item: FileFolderItem) {
 											style: { marginTop: px(size.spacing_12) },
 											icon: Icons.CopyOutline,
 											label: "copy_action",
-											click: () => {
-												// FIXME
+											click: async () => {
+												if (isNotNull(shareInfo)) {
+													await copyToClipboard(shareInfo.publicLink)
+													showInfoSnackbar("copied_msg")
+												}
 											},
 										}),
 									]),
@@ -93,7 +82,7 @@ export async function showFileShareDialog(item: FileFolderItem) {
 										click: () => {
 											// FIXME show progress
 											driveFacade.deleteShareLink(item.file)
-											shareStuff = null
+											shareInfo = null
 											m.redraw()
 										},
 									}),

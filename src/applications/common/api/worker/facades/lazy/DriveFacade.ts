@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, base64ToUint8Array, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { assertNotNull, base64ToUint8Array, first, groupBy, isEmpty, partition, promiseMap, Require, uint8ArrayToBase64 } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -80,6 +80,12 @@ export const enum DriveFolderType {
 	Regular = "0",
 	Root = "1",
 	Trash = "2",
+}
+
+export interface DriveShareInfo {
+	share: DriveFileShare
+	key: Uint8Array<ArrayBuffer>
+	publicLink: string
 }
 
 /**
@@ -364,7 +370,7 @@ export class DriveFacade {
 		return this.userFacade.getGroupId(GroupType.File)
 	}
 
-	async createShareLink(file: DriveFile): Promise<DriveFileShare> {
+	async createShareLink(file: DriveFile): Promise<DriveShareInfo> {
 		await this.serviceExecutor.execute(
 			DriveShareService_POST,
 			createDriveShareServicePostIn({
@@ -380,7 +386,16 @@ export class DriveFacade {
 			suspensionBehavior: null,
 			cacheMode: CacheMode.WriteOnly,
 		})
-		return assertNotNull(updatedFile.share)
+
+		return this.getShareInfo(updatedFile)
+	}
+
+	async getShareInfo(file: DriveFile): Promise<DriveShareInfo> {
+		const share = assertNotNull(file.share)
+		const key = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(file))
+		const publicLink = `http://localhost:9000/drivefile/${getListId(file)}/${getElementId(file)}?nonce=${uint8ArrayToBase64(share.nonce)}#${uint8ArrayToBase64(key)}`
+
+		return { share, key, publicLink }
 	}
 
 	async deleteShareLink(file: DriveFile): Promise<void> {
