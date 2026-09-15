@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
 import { ApprovalStatus, Const, EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
 import { elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, getDayShifted, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { asPaymentInterval, formatPriceDataWithInfo, PaymentInterval } from "../../subscription/utils/PriceUtils"
@@ -37,6 +37,7 @@ import {
 	LegacyPlans,
 	NewPaidPlans,
 	PlanType,
+	SubscriptionProvider,
 } from "../../../../entities/sys/Utils"
 import {
 	externalStorePlanName,
@@ -277,7 +278,15 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 									: undefined,
 							),
 							!isExternalSubscription ? this.getPriceCellAttrs(this._currentPriceFieldValue()) : null,
-							this.getEndDateAttrs(currentStateSubscription, booking.endDate),
+							this.getEndDateAttrs(
+								currentStateSubscription,
+								// We add 3 days to the end date of a google subscription as a buffer so that we don't expire it accidentially if googles notification reaches us too late
+								// We don't want this buffer to confuse users so we subtract it here in the client
+								// We currently *only* do this for google
+								booking.subscriptionReference.subscriptionProvider === SubscriptionProvider.Google && booking.endDate
+									? getDayShifted(booking.endDate, -3)
+									: booking.endDate,
+							),
 						],
 					} satisfies SubscriptionStateCardAttrs),
 					(!isNewSubscriptionVisible || isExternalSubscription) &&
