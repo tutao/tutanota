@@ -1,4 +1,3 @@
-import { formatSortableDate } from "@tutao/utils"
 import { ParsingError } from "../error/ParsingError"
 import { Birthday, createBirthday } from "@tutao/entities/tutanota"
 
@@ -16,8 +15,14 @@ export function birthdayToIsoDate(birthday: Birthday): string {
  * Converts iso Date (yyyy-mm-dd) or Date without year (--mm-dd) into Birthday object.
  */
 export function isoDateToBirthday(birthdayIso: string): Birthday {
-	//return new Date(Number(newBirthday.year), Number(newBirthday.month) - 1, Number(newBirthday.day))
-	const birthdayInitializer: Partial<Birthday> = {}
+	return createBirthday(parseBirthdayIsoDate(birthdayIso))
+}
+
+export function parseBirthdayIsoDate(birthdayIso: string): { year: string | null; month: string; day: string } {
+	let year: string | null
+	let month: string
+	let day: string
+
 	if (birthdayIso.startsWith("--")) {
 		const monthAndDay = birthdayIso.substring(2).split("-")
 
@@ -25,9 +30,9 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 			throw new ParsingError("invalid birthday without year: " + birthdayIso)
 		}
 
-		birthdayInitializer.month = monthAndDay[0]
-		birthdayInitializer.day = monthAndDay[1]
-		birthdayInitializer.year = null
+		month = monthAndDay[0]
+		day = monthAndDay[1]
+		year = null
 	} else {
 		const yearMonthAndDay = birthdayIso.split("-")
 
@@ -35,16 +40,18 @@ export function isoDateToBirthday(birthdayIso: string): Birthday {
 			throw new ParsingError("invalid birthday: " + birthdayIso)
 		}
 
-		birthdayInitializer.year = yearMonthAndDay[0]
-		birthdayInitializer.month = yearMonthAndDay[1]
-		birthdayInitializer.day = yearMonthAndDay[2]
+		year = yearMonthAndDay[0]
+		month = yearMonthAndDay[1]
+		day = yearMonthAndDay[2]
 	}
 
-	if (!isValidBirthday(birthdayInitializer)) {
+	const parseResult = { year, month, day }
+
+	if (!isValidBirthday(parseResult)) {
 		throw new ParsingError("Invalid birthday format: " + birthdayIso)
 	}
 
-	return createBirthday(birthdayInitializer)
+	return parseResult
 }
 
 export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthday {
@@ -52,17 +59,4 @@ export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthd
 	const month = Number(birthday.month)
 	const year = birthday.year ? Number(birthday.year) : null
 	return day > 0 && day < 32 && month > 0 && month < 13 && (year === null || (year > 0 && year < 10000))
-}
-
-/**
- * returns new birthday format from old birthday format
- * Export for testing
- */
-export function oldBirthdayToBirthday(oldBirthday: Date): Birthday {
-	let birthdayString = formatSortableDate(oldBirthday).split("-")
-	return createBirthday({
-		day: String(Number(birthdayString[2])),
-		month: String(Number(birthdayString[1])),
-		year: String(Number(birthdayString[0])),
-	})
 }

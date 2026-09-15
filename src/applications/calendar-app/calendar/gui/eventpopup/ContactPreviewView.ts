@@ -34,7 +34,7 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		const eventTitle = getContactTitle(contact)
 
 		const birthYear = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
-		const age = birthYear && calculateContactsAge(new Date(birthYear).getFullYear(), event.startTime.getFullYear())
+		const age = birthYear && calculateContactsAge(parseInt(birthYear) ?? 1970, event.startTime.getFullYear())
 		const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
