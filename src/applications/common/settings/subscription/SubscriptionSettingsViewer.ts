@@ -31,7 +31,6 @@ import {
 import {
 	AccountType,
 	AccountTypeNames,
-	AvailablePlanType,
 	BookingItemFeatureType,
 	isExternalPaymentMethod,
 	LegacyPlans,
@@ -250,7 +249,6 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		const currentStateSubscription = this.getCurrentStateOfSubscription(booking)
 		//Accounting interval can be changed by customer
 		const paymentInterval = Number(asPaymentInterval(accountingInfo.paymentInterval))
-		const isNewPlan = NewPaidPlans.includes(planType as AvailablePlanType)
 		const isExternalSubscription = isExternalPaymentMethod(getPaymentMethodType(accountingInfo))
 		//Make copy of booking end date to alter it
 		const nextEndDate = new Date(assertNotNull(booking.endDate))
@@ -289,9 +287,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							),
 						],
 					} satisfies SubscriptionStateCardAttrs),
-					(!isNewSubscriptionVisible || isExternalSubscription) &&
-						isNewPlan &&
-						this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
+					(!isNewSubscriptionVisible || isExternalSubscription) && this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
 				),
 				//Next Subscription period
 				isNewSubscriptionVisible &&
@@ -322,7 +318,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							],
 						} satisfies SubscriptionStateCardAttrs),
 						//Render Buttons
-						isNewPlan && this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
+						this.renderButtons(booking, currentStateSubscription, isExternalSubscription),
 					),
 			),
 
