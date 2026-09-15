@@ -923,7 +923,6 @@ class MailLocator implements CommonLocator {
 		this.mailExportFacade = mailExportFacade
 		this.connectivityModel = new WebsocketConnectivityModel(eventBus)
 		this.mailboxModel = new MailboxModel(this.eventController, this.entityClient, this.logins)
-		this.inboxRuleModel = new InboxRuleModel(this.entityClient, this.mailboxModel)
 		this.mailModel = new MailModel(
 			notifications,
 			this.mailboxModel,
@@ -936,6 +935,7 @@ class MailLocator implements CommonLocator {
 			this.bulkMailLoader,
 			registerIndexingNotAvailableHandler,
 		)
+		this.inboxRuleModel = new InboxRuleModel(this.entityClient, this.mailboxModel, this.mailModel)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			this.mailSearchModel().then((model) => model.indexState(state))

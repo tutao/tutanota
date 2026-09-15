@@ -484,17 +484,6 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		m.redraw()
 	}
 
-	private async getTextForTarget(mailboxDetail: MailboxDetail, targetFolderId: IdTuple): Promise<string> {
-		const folders = await mailLocator.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-		let folder = folders.getFolderById(elementIdPart(targetFolderId))
-
-		if (folder) {
-			return getMailSetName(folder)
-		} else {
-			return lang.get("deletedFolder_label")
-		}
-	}
-
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
 		for (const update of updates) {
 			const { operation } = update
