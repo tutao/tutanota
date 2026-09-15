@@ -237,6 +237,8 @@ pub struct Customer {
 	pub rejectedSenders: Option<RejectedSendersRef>,
 	#[serde(rename = "2061")]
 	pub referralCode: Option<GeneratedId>,
+	#[serde(rename = "2800")]
+	pub plugins: Option<CustomerPlugins>,
 }
 
 impl Entity for Customer {
@@ -6624,6 +6626,24 @@ impl Entity for PluginsRef {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2793),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomerPlugins {
+	#[serde(rename = "2798")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2799")]
+	pub pluginConfigs: GeneratedId,
+}
+
+impl Entity for CustomerPlugins {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2797),
 		}
 	}
 }

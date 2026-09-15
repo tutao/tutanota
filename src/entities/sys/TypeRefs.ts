@@ -256,6 +256,7 @@ export type CustomerParams = {
 	orderProcessingAgreement: null | IdTuple
 	rejectedSenders: null | RejectedSendersRef
 	referralCode: null | Id
+	plugins: null | CustomerPlugins
 }
 
 export type Customer = {
@@ -289,6 +290,7 @@ export type Customer = {
 	orderProcessingAgreement: null | IdTuple
 	rejectedSenders: null | RejectedSendersRef
 	referralCode: null | Id
+	plugins: null | CustomerPlugins
 
 	//== some entities have these and some don't
 
@@ -10506,5 +10508,39 @@ export type PluginsRef = {
 	// === these are not present in metamodel
 	_type: TypeRef<PluginsRef>
 	_original: Nullable<PluginsRef>
+	isAdapter: false
+}
+export const CustomerPluginsTypeRef: TypeRef<CustomerPlugins> = new TypeRef("sys", 2797)
+
+export function createCustomerPlugins(values: CustomerPluginsParams): CustomerPlugins {
+	return Object.assign(create(typeModels[CustomerPluginsTypeRef.typeId], CustomerPluginsTypeRef), values)
+}
+
+export type CustomerPluginsParams = {
+	pluginConfigs: Id
+}
+
+export type CustomerPlugins = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	pluginConfigs: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerPlugins>
+	_original: Nullable<CustomerPlugins>
 	isAdapter: false
 }
