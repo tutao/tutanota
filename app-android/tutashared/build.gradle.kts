@@ -131,7 +131,12 @@ cargo {
 
 tasks.whenTaskAdded {
 	when (name) {
-		"mergeDebugJniLibFolders", "mergeReleaseJniLibFolders", "mergeReleaseTestJniLibFolders" -> {
+		"mergeFdroidDebugJniLibFolders",
+		"mergeFdroidReleaseJniLibFolders",
+		"mergeFdroidReleaseTestJniLibFolders",
+		"mergeTutaoDebugJniLibFolders",
+		"mergeTutaoReleaseJniLibFolders",
+		"mergeTutaoReleaseTestJniLibFolders" -> {
 			dependsOn("cargoBuild")
 			mustRunAfter("cargoBuild")
 		}
