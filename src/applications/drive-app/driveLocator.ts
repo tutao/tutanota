@@ -128,6 +128,9 @@ import { SearchRouter } from "../common/search/view/SearchRouter"
 import { DriveModel } from "./drive/model/DriveModel"
 import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
+import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
+import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 
 EnvProvider.assertMainOrNode()
 
@@ -194,6 +197,7 @@ class DriveLocator implements CommonLocator {
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+	private pluginManager!: PluginManager
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -662,6 +666,11 @@ class DriveLocator implements CommonLocator {
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
 
+			const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
+			this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
+			this.pluginManager = new PluginManager(pluginConfigurationProvider)
+			pluginConfigurationProvider.setPluginManager(this.pluginManager)
+
 			// TODO: it would be nice to move this facade out of the ApplicationWindow
 			this.imapImporter = {} as ImapSyncFacade
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
@@ -994,6 +1003,7 @@ class DriveLocator implements CommonLocator {
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
+			this.pluginManager,
 		)
 	})
 

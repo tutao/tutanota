@@ -2,6 +2,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
 import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
+import { PluginsSettingsViewer } from "../../common/settings/plugins/PluginsSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
 import { MailSettingsViewer } from "./MailSettingsViewer"
 import { UserListView } from "../../common/settings/UserListView.js"
@@ -465,6 +466,16 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					() => Icons.GearWheelFilled,
 					"global",
 					() => new GlobalSettingsViewer(),
+					undefined,
+				),
+			)
+
+			adminFolders.push(
+				new SettingsFolder(
+					() => "plugins_label",
+					() => Icons.GridFilled,
+					"plugins",
+					() => new PluginsSettingsViewer(),
 					undefined,
 				),
 			)

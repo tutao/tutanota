@@ -1,25 +1,30 @@
 import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "../sdk/PluginHostApi"
 import { assertNotNull, Nullable } from "@tutao/utils"
+import { PluginManager } from "./PluginManager"
 
 export type PluginButtonConfiguration = {
 	config: ButtonConfiguration
 	pluginName: string
 }
 
+export type PluginConfigJson = string
+
 export interface ConfigurationAdapter {
-	storeConfig(pluginId: string, configJson: string): Promise<void>
-	getConfig(pluginId: string): Promise<string>
+	storeUserConfig(pluginId: string, configJson: string): Promise<void>
+	getUserConfig(pluginId: string): Promise<string>
+	getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>>
 }
 
 export class PluginHost implements PluginHostApi {
-	public readonly buttonRegistry: Array<PluginButtonConfiguration> = []
-	public loadingPluginName: Nullable<string> = null
-	constructor(private readonly configurationAdapter: ConfigurationAdapter) {}
+	constructor(
+		private readonly pluginManager: PluginManager,
+		private readonly pluginId: string,
+	) {}
 
 	registerButton(config: ButtonConfiguration): ButtonRef {
 		switch (config.extensionPoint) {
 			case ButtonExtensionPoint.SaveAttachmentDialog: {
-				this.buttonRegistry.push({ config, pluginName: assertNotNull(this.loadingPluginName) })
+				this.pluginManager.buttonRegistry.push({ config, pluginName: this.pluginId })
 				break
 			}
 			default:
@@ -28,12 +33,14 @@ export class PluginHost implements PluginHostApi {
 		return null!
 	}
 
-	async storeConfig(configJson: string): Promise<void> {
-		const pluginId = "nextcloud" // FIXME
-		await this.configurationAdapter.storeConfig(pluginId, configJson)
+	async storeUserConfig(configJson: string): Promise<void> {
+		await this.pluginManager.configurationAdapter.storeUserConfig(this.pluginId, configJson)
 	}
-	async getConfig(): Promise<string> {
-		const pluginId = "nextcloud" // FIXME
-		return await this.configurationAdapter.getConfig(pluginId)
+	async getUserConfig(): Promise<string> {
+		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
+	}
+
+	async getCustomerConfig(): Promise<string> {
+		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
 	}
 }

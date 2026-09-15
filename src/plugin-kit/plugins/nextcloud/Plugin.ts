@@ -35,10 +35,10 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 		const url = "http://nextcloud.tuta"
 		console.log("data file " + dataFile.name)
 
-		let config = await this.pluginHost.getConfig()
+		let config = await this.pluginHost.getUserConfig()
 		console.log("CONFIG", config)
 		config += "M"
-		await this.pluginHost.storeConfig(config)
+		await this.pluginHost.storeUserConfig(config)
 
 		// const davFileName = `dav/files/admin/tuta/${dataFile.name}`
 		// const davUrl = `http://nextcloud.tuta/remote.php/${davFileName}`

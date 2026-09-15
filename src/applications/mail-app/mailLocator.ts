@@ -172,8 +172,9 @@ import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
-import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
+import { ConfigurationAdapter, PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { PostLoginAction } from "../../app-kit/native-bridge/common/PostLoginAction"
 
 EnvProvider.assertMainOrNode()
 
@@ -254,6 +255,7 @@ class MailLocator implements CommonLocator {
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
 	private pluginManager!: PluginManager
+	pluginConfigurationProvider!: PluginConfigurationProvider
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -951,10 +953,11 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
-		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient)
-		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-		this.pluginManager = new PluginManager(new PluginHost(pluginConfigurationProvider))
-		await this.pluginManager.loadPlugins()
+
+		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
+		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter)
+		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
+		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider as PostLoginAction)
 
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
@@ -1366,6 +1369,7 @@ class MailLocator implements CommonLocator {
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
+			this.pluginManager,
 		)
 	})
 
