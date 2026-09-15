@@ -7,8 +7,8 @@ export type PluginButtonConfiguration = {
 }
 
 export interface ConfigurationAdapter {
-	storeConfig(pluginId: string, configJson: string): Promise<void>
-	getConfig(pluginId: string): Promise<string>
+	storeUserConfig(pluginId: string, configJson: string): Promise<void>
+	getUserConfig(pluginId: string): Promise<string>
 }
 
 export class PluginHost implements PluginHostApi {
@@ -30,10 +30,10 @@ export class PluginHost implements PluginHostApi {
 
 	async storeConfig(configJson: string): Promise<void> {
 		const pluginId = "nextcloud" // FIXME
-		await this.configurationAdapter.storeConfig(pluginId, configJson)
+		await this.configurationAdapter.storeUserConfig(pluginId, configJson)
 	}
 	async getConfig(): Promise<string> {
 		const pluginId = "nextcloud" // FIXME
-		return await this.configurationAdapter.getConfig(pluginId)
+		return await this.configurationAdapter.getUserConfig(pluginId)
 	}
 }
