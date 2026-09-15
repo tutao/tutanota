@@ -75,6 +75,9 @@ export const size = {
 	get icon_80(): number {
 		return this.core_80
 	},
+	get icon_128(): number {
+		return this.core_128
+	},
 
 	// Radii
 	get radius_4(): number {
