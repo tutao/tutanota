@@ -12,7 +12,7 @@ export interface ArchiveDownloaderFacade {
 	/**
 	 * abort downloading or storing an archive
 	 */
-	abortDownloadAndStoreArchive(archive: string): Promise<void>
+	abortDownloadAndStoreArchive(archiveId: string): Promise<void>
 
 	/**
 	 * remove all cached blobs and archives, for example when finished indexing

@@ -20,7 +20,7 @@ public protocol ArchiveDownloaderFacade : Sendable {
 	 * abort downloading or storing an archive
 	 */
 	func abortDownloadAndStoreArchive(
-		_ archive: String
+		_ archiveId: String
 	) async throws -> Void
 	/**
 	 * remove all cached blobs and archives, for example when finished indexing

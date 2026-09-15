@@ -27,7 +27,7 @@
 			"doc": "abort downloading or storing an archive",
 			"arg": [
 				{
-					"archive": "string"
+					"archiveId": "string"
 				}
 			],
 			"ret": "void"

@@ -23,9 +23,9 @@ public final class ArchiveDownloaderFacadeReceiveDispatcher: Sendable {
 			)
 			return "null"
 		case "abortDownloadAndStoreArchive":
-			let archive = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let archiveId = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.abortDownloadAndStoreArchive(
-				archive
+				archiveId
 			)
 			return "null"
 		case "clearStoredArchives":
