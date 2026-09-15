@@ -4,6 +4,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let sqlCipherFacade: IosSqlCipherFacade
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
+	private let activeJobsLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
 
 	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
 		self.sqlCipherFacade = sqlCipherFacade
@@ -15,7 +16,21 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
+		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
 
+		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
+		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+			private let taskCreated: (_ task: URLSessionTask) -> Void
+			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void) {
+				self.taskCreated = taskCreated
+			}
+			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
+				taskCreated(task)
+			}
+		}
+		let downloadDelegate = DownloadDelegate(
+			taskCreated: { task in self.activeJobsLock.withLock { $0[archiveId] = task } }
+		)
 		var response: URLResponse
 		var bytes: URLSession.AsyncBytes
 		TUTSLog("Downloading archive with id \(archiveId)")
@@ -30,7 +45,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	}
 
 	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
-		// FIXME implement
+		self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
 	}
 
 	public func clearStoredArchives() async throws {
