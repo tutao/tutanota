@@ -16,7 +16,6 @@ const FEATURED_COUNT = 3
 
 export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
-	private expandedPluginId: string | null = null
 	private readonly model: PluginSettingsModel
 
 	constructor() {
@@ -70,10 +69,6 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 				key: entry.id,
 				entry,
 				model: this.model,
-				expanded: this.expandedPluginId === entry.id,
-				onToggleExpand: () => {
-					this.expandedPluginId = this.expandedPluginId === entry.id ? null : entry.id
-				},
 			}),
 		)
 	}

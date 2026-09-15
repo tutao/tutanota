@@ -2522,6 +2522,7 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "plugins_label"
 	| "pluginsFeatured_label"
+	| "pluginConfigUpdated_msg"
 	| "pluginsAll_label"
 	| "searchPlugins_placeholder"
 	| "pluginEnableToggle_label"

@@ -2525,6 +2525,7 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"confirmDisablePlugin_msg": "Do you want to disable this plugin? Its configuration will be deleted.",
 		"confirmEnablePlugin_msg": "Do you want to enable this plugin for your organization?",
+		"pluginConfigUpdated_msg": "The plugin configuration has been updated.",
 		"pluginEnableToggle_label": "Enable {name}",
 		"pluginNextcloudServerUrl_label": "Nextcloud server URL",
 		"plugins_label": "Plugins",

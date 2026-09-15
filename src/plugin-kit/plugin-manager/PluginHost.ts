@@ -16,7 +16,6 @@ export interface ConfigurationAdapter {
 }
 
 export class PluginHost implements PluginHostApi {
-	public loadingPluginName: Nullable<string> = null
 	constructor(
 		private readonly pluginManager: PluginManager,
 		private readonly pluginId: string,
@@ -25,7 +24,7 @@ export class PluginHost implements PluginHostApi {
 	registerButton(config: ButtonConfiguration): ButtonRef {
 		switch (config.extensionPoint) {
 			case ButtonExtensionPoint.SaveAttachmentDialog: {
-				this.pluginManager.buttonRegistry.push({ config, pluginName: assertNotNull(this.loadingPluginName) })
+				this.pluginManager.buttonRegistry.push({ config, pluginName: this.pluginId })
 				break
 			}
 			default:
