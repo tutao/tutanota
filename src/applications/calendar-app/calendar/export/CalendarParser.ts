@@ -511,6 +511,11 @@ function getTzId(prop: Property): string | null {
 		return tzIdValue
 	}
 
+	const timeZoneFromWindowsMap = windowsToIANATimeZones[tzIdValue]
+	if (timeZoneFromWindowsMap) {
+		return timeZoneFromWindowsMap
+	}
+
 	// Special-case handling for time zone IDs starting with GMT/UTC, followed by an optional offset: +/-h[h][mm]
 	// We throw an error if the seconds value is non-zero, because we have no easy way to map them to an IANA time zone
 	// using the Intl API.
@@ -539,11 +544,6 @@ function getTzId(prop: Property): string | null {
 			// Etc/UTC is the reverse of normal UTC.  Same with GMT.  (See: https://data.iana.org/time-zones/tzdb/etcetera)
 			return `Etc/GMT${hour < 0 ? "+" : "-"}${Math.abs(hour)}`
 		}
-	}
-
-	const timeZoneFromWindowsMap = windowsToIANATimeZones[tzIdValue]
-	if (timeZoneFromWindowsMap) {
-		return timeZoneFromWindowsMap
 	}
 
 	try {
