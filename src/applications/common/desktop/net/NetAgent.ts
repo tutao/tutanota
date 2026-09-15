@@ -20,10 +20,8 @@ const agent = new Agent({
 	connectTimeout: READ_TIMEOUT_MS,
 	// this is needed to address issues in some cases where IPv6 does not really work
 	autoSelectFamily: true,
-	// We do not enable HTTP2 yet, it was buggy in the past and does not work in dist builds still
-	//
-	// see tutanota#11428
-	allowH2: false,
+	// this hinges on our patch to fix node:http2 import in undici
+	allowH2: true,
 })
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {
