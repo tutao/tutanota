@@ -255,6 +255,7 @@ class MailLocator implements CommonLocator {
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
 	private pluginManager!: PluginManager
+	pluginConfigurationProvider!: PluginConfigurationProvider
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -953,10 +954,10 @@ class MailLocator implements CommonLocator {
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
-		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
-		this.pluginManager = new PluginManager(pluginConfigurationProvider as ConfigurationAdapter)
-		pluginConfigurationProvider.setPluginManager(this.pluginManager)
-		this.logins.addPostLoginAction(async () => pluginConfigurationProvider as PostLoginAction)
+		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
+		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter)
+		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
+		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider as PostLoginAction)
 
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")

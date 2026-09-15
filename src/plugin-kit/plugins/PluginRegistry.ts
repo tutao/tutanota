@@ -1,8 +1,8 @@
-import type { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
-
 export type PluginConfigFieldDef = {
 	key: string
-	label: TranslationKeyType
+	// kept as a plain string (rather than TranslationKeyType) so this manifest doesn't pull the ui/ project
+	// into plugin-kit/plugins' isolated build graph; consumers in applications/ cast it back to TranslationKeyType.
+	label: string
 	type: "text"
 }
 

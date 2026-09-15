@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "../../../../ui/base/Card.js"
-import { PluginRegistryEntry } from "./PluginRegistry.js"
+import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 
 export type PluginFeaturedCardAttrs = {
 	entry: PluginRegistryEntry

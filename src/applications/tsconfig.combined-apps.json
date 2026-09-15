@@ -51,6 +51,9 @@
 			"path": "../plugin-kit/tsconfig.plugin-manager.json"
 		},
 		{
+			"path": "../plugin-kit/tsconfig.plugins.json"
+		},
+		{
 			"path": "../ui/tsconfig.ui.json"
 		},
 		{

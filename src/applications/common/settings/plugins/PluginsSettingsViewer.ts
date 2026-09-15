@@ -2,13 +2,12 @@ import m, { Children } from "mithril"
 import { UpdatableSettingsViewer } from "../Interfaces.js"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { Dialog } from "../../../../ui/base/Dialog.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar.js"
 import { theme } from "../../../../ui/theme.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { mailLocator } from "../../../mail-app/mailLocator.js"
-import { PLUGIN_REGISTRY } from "./PluginRegistry.js"
+import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { PluginFeaturedCard } from "./PluginFeaturedCard.js"
 import { PluginListRow } from "./PluginListRow.js"
@@ -18,7 +17,6 @@ const FEATURED_COUNT = 3
 export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
 	private expandedPluginId: string | null = null
-	private switchRenderKeys: Record<string, number> = {}
 	private readonly model: PluginSettingsModel
 
 	constructor() {
@@ -50,6 +48,8 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			onClear: () => {
 				this.searchQuery = ""
 			},
+			// prevent app-wide keyboard shortcuts from firing while typing a search term
+			onKeyDown: (e) => e.stopPropagation(),
 		} satisfies BaseSearchBarAttrs)
 	}
 
@@ -69,27 +69,13 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			m(PluginListRow, {
 				key: entry.id,
 				entry,
-				state: this.model.getState(entry.id),
+				model: this.model,
 				expanded: this.expandedPluginId === entry.id,
-				switchRenderKey: this.switchRenderKeys[entry.id] ?? 0,
 				onToggleExpand: () => {
 					this.expandedPluginId = this.expandedPluginId === entry.id ? null : entry.id
 				},
-				onToggleEnabled: (newChecked: boolean) => this.handleToggle(entry.id, newChecked),
-				onConfigFieldChange: (key: string, value: string) => {
-					this.model.setConfigField(entry.id, key, value).then(() => m.redraw())
-				},
 			}),
 		)
-	}
-
-	private async handleToggle(pluginId: string, newChecked: boolean): Promise<void> {
-		const confirmed = await Dialog.confirm(newChecked ? "confirmEnablePlugin_msg" : "confirmDisablePlugin_msg")
-		if (confirmed) {
-			await this.model.setEnabled(pluginId, newChecked)
-		}
-		this.switchRenderKeys[pluginId] = (this.switchRenderKeys[pluginId] ?? 0) + 1
-		m.redraw()
 	}
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown> {

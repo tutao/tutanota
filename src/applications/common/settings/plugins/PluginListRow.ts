@@ -2,24 +2,35 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Switch, SwitchAttrs } from "../../../../ui/base/Switch.js"
 import { ExpanderPanel } from "../../../../ui/base/Expander.js"
 import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
+import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
+import { Dialog } from "../../../../ui/base/Dialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { PluginRegistryEntry } from "./PluginRegistry.js"
-import { PluginState } from "./PluginSettingsModel.js"
+import type { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
+import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
+import { PluginSettingsModel } from "./PluginSettingsModel.js"
 
 export type PluginListRowAttrs = {
 	entry: PluginRegistryEntry
-	state: PluginState
+	model: PluginSettingsModel
 	expanded: boolean
-	switchRenderKey: number
 	onToggleExpand: () => unknown
-	onToggleEnabled: (enabled: boolean) => unknown
-	onConfigFieldChange: (key: string, value: string) => unknown
 }
 
 /** Single-line row: logo, name, description, enable Switch; clicking the row expands an inline config panel. */
 export class PluginListRow implements Component<PluginListRowAttrs> {
+	private switchRenderKey: number = 0
+	private draftConfig: Record<string, string> | null = null
+
 	view({ attrs }: Vnode<PluginListRowAttrs>): Children {
-		const { entry, state, expanded } = attrs
+		const { entry, model, expanded } = attrs
+		const state = model.getState(entry.id)
+
+		if (expanded) {
+			if (this.draftConfig == null) this.draftConfig = { ...state.config }
+		} else {
+			this.draftConfig = null
+		}
+
 		return m(".plugin-row", [
 			m(".flex.items-center.gap-8.pt-8.pb-8.click", { onclick: attrs.onToggleExpand }, [
 				m("img.icon-32", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
@@ -31,30 +42,57 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 					"",
 					{ onclick: (e: MouseEvent) => e.stopPropagation() },
 					m(Switch, {
-						key: attrs.switchRenderKey,
+						key: this.switchRenderKey,
 						...({
 							checked: state.enabled,
 							ariaLabel: lang.get("pluginEnableToggle_label", { "{name}": entry.name }),
-							onclick: attrs.onToggleEnabled,
+							onclick: (checked: boolean) => this.handleToggle(entry.id, model, checked),
 						} satisfies SwitchAttrs),
 					}),
 				),
 			]),
-			m(ExpanderPanel, { expanded }, expanded ? this.renderConfigPanel(attrs) : null),
+			m(ExpanderPanel, { expanded }, expanded ? this.renderConfigPanel(entry, state.enabled, model) : null),
 		])
 	}
 
-	private renderConfigPanel({ entry, state, onConfigFieldChange }: PluginListRowAttrs): Children {
-		return m(
-			".pb-16.pl-32.flex.flex-column.gap-8",
-			entry.configFields.map((field) =>
+	private async handleToggle(pluginId: string, model: PluginSettingsModel, newChecked: boolean): Promise<void> {
+		const confirmed = await Dialog.confirm(newChecked ? "confirmEnablePlugin_msg" : "confirmDisablePlugin_msg")
+		if (confirmed) {
+			await model.setEnabled(pluginId, newChecked)
+		}
+		this.switchRenderKey++
+		m.redraw()
+	}
+
+	private renderConfigPanel(entry: PluginRegistryEntry, enabled: boolean, model: PluginSettingsModel): Children {
+		const draft = this.draftConfig ?? {}
+		return m(".pb-16.pl-32.flex.flex-column.gap-8", [
+			...entry.configFields.map((field) =>
 				m(LegacyTextField, {
-					label: field.label,
-					value: state.config[field.key] ?? "",
-					disabled: !state.enabled,
-					oninput: (value: string) => onConfigFieldChange(field.key, value),
+					label: field.label as TranslationKeyType,
+					value: draft[field.key] ?? "",
+					disabled: !enabled,
+					oninput: (value: string) => {
+						draft[field.key] = value
+					},
 				} satisfies LegacyTextFieldAttrs),
 			),
-		)
+			m(
+				".flex",
+				m(Button, {
+					label: "update_action",
+					type: ButtonType.Secondary,
+					isDisabled: !enabled,
+					click: () => this.saveConfig(entry.id, model),
+				} satisfies ButtonAttrs),
+			),
+		])
+	}
+
+	private async saveConfig(pluginId: string, model: PluginSettingsModel): Promise<void> {
+		if (this.draftConfig != null) {
+			await model.updateConfig(pluginId, this.draftConfig)
+			m.redraw()
+		}
 	}
 }

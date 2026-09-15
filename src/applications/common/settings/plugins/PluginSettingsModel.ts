@@ -1,5 +1,5 @@
 import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider.js"
-import { PLUGIN_REGISTRY } from "./PluginRegistry.js"
+import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 
 export type PluginState = {
 	enabled: boolean
@@ -28,10 +28,10 @@ export class PluginSettingsModel {
 	async loadAll(): Promise<void> {
 		const customerPluginConfigs = await this.provider.getCustomerPluginConfigs()
 		for (const entry of PLUGIN_REGISTRY) {
-			const pluginConfig = customerPluginConfigs.get(entry.id)
+			const configJson = customerPluginConfigs.get(entry.id)
 			this.state.set(entry.id, {
-				enabled: pluginConfig != null,
-				config: parseConfig(pluginConfig?.configJson),
+				enabled: configJson != null,
+				config: parseConfig(configJson),
 			})
 		}
 	}
@@ -51,10 +51,9 @@ export class PluginSettingsModel {
 		}
 	}
 
-	async setConfigField(pluginId: string, key: string, value: string): Promise<void> {
-		const current = this.getState(pluginId)
-		if (!current.enabled) return
-		const config = { ...current.config, [key]: value }
+	/** Persists a full config object for an already-enabled plugin, e.g. when the admin clicks "Update" in the config panel. */
+	async updateConfig(pluginId: string, config: Record<string, string>): Promise<void> {
+		if (!this.getState(pluginId).enabled) return
 		this.state.set(pluginId, { enabled: true, config })
 		await this.provider.setCustomerPluginConfig(pluginId, JSON.stringify(config))
 	}
