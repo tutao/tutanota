@@ -519,7 +519,7 @@ export class BlobFacade {
 		transferId: TransferId,
 		blobLoadOptions: Nullable<BlobLoadOptions> = null,
 	): Promise<Uint8Array<ArrayBuffer>> {
-		const sessionKey = await this.resolveSessionKey(referencingInstance.entity)
+		const sessionKey = blobLoadOptions?.sessionKey ?? (await this.resolveSessionKey(referencingInstance.entity))
 
 		let bytesDownloadedSoFar = 0
 		const onProgress = (bytes: number) => {
@@ -534,11 +534,9 @@ export class BlobFacade {
 			// If this changes we need to group by archive and do request for each archive and then concatenate all the chunks.
 			const doBlobRequest = async () => {
 				controller.signal.throwIfAborted()
-				const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenBlobs(
-					archiveDataType,
-					referencingInstance,
-					blobLoadOptions ?? DEFAULT_BLOB_LOAD_OPTIONS,
-				)
+				const blobServerAccessInfo = blobLoadOptions?.accessTokenProvider
+					? await blobLoadOptions.accessTokenProvider(archiveDataType, referencingInstance)
+					: await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOptions ?? DEFAULT_BLOB_LOAD_OPTIONS)
 				return this.downloadAndDecryptMultipleBlobsOfArchives(
 					referencingInstance.blobs,
 					blobServerAccessInfo,
@@ -742,7 +740,13 @@ export class BlobFacade {
 				controller.signal.throwIfAborted()
 
 				blobIdToDecryptedFileUri = new Map()
-				const blobLoadOpt: BlobLoadOptions = { extraHeaders: null, suspensionBehavior: null, baseUrl: null }
+				const blobLoadOpt: BlobLoadOptions = {
+					extraHeaders: null,
+					suspensionBehavior: null,
+					baseUrl: null,
+					accessTokenProvider: null,
+					sessionKey: null,
+				}
 				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOpt)
 
 				try {

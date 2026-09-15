@@ -14,6 +14,7 @@ import { DriveShareServicePostIn, DriveShareServicePostInTypeRef } from "./TypeR
 import { DriveShareServicePutIn, DriveShareServicePutInTypeRef } from "./TypeRefs.js"
 import { DriveShareServiceDeleteIn, DriveShareServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { DriveShareTokenServicePostIn, DriveShareTokenServicePostInTypeRef } from "./TypeRefs.js"
+import { DriveShareTokenServicePostOut, DriveShareTokenServicePostOutTypeRef } from "./TypeRefs.js"
 import { GetService, PostService, PutService, DeleteService, NullEntityTypeRef, NullEntity } from "@tutao/meta"
 
 export const DriveCopyService_POST = new PostService<DriveCopyServicePostIn, DriveCopyServicePostOut>(
@@ -77,9 +78,9 @@ export const DriveShareService_DELETE = new DeleteService<DriveShareServiceDelet
 	NullEntityTypeRef,
 )
 
-export const DriveShareTokenService_POST = new PostService<DriveShareTokenServicePostIn, NullEntity>(
+export const DriveShareTokenService_POST = new PostService<DriveShareTokenServicePostIn, DriveShareTokenServicePostOut>(
 	"drive",
 	"DriveShareTokenService",
 	DriveShareTokenServicePostInTypeRef,
-	NullEntityTypeRef,
+	DriveShareTokenServicePostOutTypeRef,
 )

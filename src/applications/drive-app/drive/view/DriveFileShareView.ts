@@ -12,8 +12,10 @@ export interface DriveFileShareViewAttrs extends TopLevelAttrs {}
 
 export class DriveFileShareView extends BaseTopLevelView implements Component<DriveFileShareViewAttrs> {
 	private file: DriveFile | null = null
+	private base64Key = location.hash.slice(1)
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
-		if (this.file) {
+		const file = this.file
+		if (file) {
 			return m(".flex.mlr-64.mt-64.mb-64.fill-absolute", [
 				m(".flex.col.flex-space-between", [
 					m(".logo-height", m.trust(theme.logo)),
@@ -26,11 +28,13 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 								size: IconSize.PX40,
 								container: "div",
 							}),
-							m(".b.h2", this.file.name),
+							m(".b.h2", file.name),
 						),
 						m(PrimaryButton, {
 							label: "download_action",
-							onclick: () => {}, //FIXME,
+							onclick: () => {
+								this.downloadFile(file)
+							}, //FIXME,
 						}),
 					]),
 					m(""),
@@ -40,6 +44,11 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 		} else {
 			return progressIcon()
 		}
+	}
+
+	private async downloadFile(file: DriveFile) {
+		const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.base64Key)
+		await locator.fileController.saveDataFile(dataFile)
 	}
 
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {

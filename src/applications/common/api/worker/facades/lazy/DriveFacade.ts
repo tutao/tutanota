@@ -5,7 +5,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, base64ToUint8Array, first, groupBy, isEmpty, partition, promiseMap, Require, uint8ArrayToBase64 } from "@tutao/utils"
+import { assertNotNull, base64ToUint8Array, filterInt, first, groupBy, isEmpty, partition, promiseMap, Require, uint8ArrayToBase64 } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -28,6 +28,7 @@ import {
 	createDriveRenameData,
 	createDriveShareServiceDeleteIn,
 	createDriveShareServicePostIn,
+	createDriveShareTokenServicePostIn,
 	createDriveUploadedFile,
 	DriveCopyService_POST,
 	DriveFile,
@@ -49,12 +50,15 @@ import {
 	DriveService_POST,
 	DriveShareService_DELETE,
 	DriveShareService_POST,
+	DriveShareTokenService_POST,
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
 import { CacheMode, DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { isDriveFile } from "../../../common/drive/DriveUtils"
+import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
+import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -440,6 +444,33 @@ export class DriveFacade {
 			queryParams: null,
 			suspensionBehavior: null,
 		})
+	}
+
+	async downloadBlobsForShare(file: DriveFile, key: Base64): Promise<DataFile> {
+		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
+			baseUrl: null,
+			extraHeaders: null,
+			suspensionBehavior: null,
+			sessionKey: uint8ArrayTo256Key(base64ToUint8Array(key)),
+			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
+				const nonce = uint8ArrayToBase64(assertNotNull(file.share).nonce)
+				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
+					extraHeaders: { nonce: nonce },
+					sessionKey: null,
+					baseUrl: null,
+					queryParams: null,
+					suspensionBehavior: null,
+				})
+				return new Map([[file.blobs[0].archiveId, createBlobServerAccessInfo(result.blobAccessInfo)]])
+			},
+		})
+		return {
+			_type: "DataFile",
+			data: bytes,
+			mimeType: file.mimeType,
+			name: file.name,
+			size: filterInt(file.size),
+		}
 	}
 }
 

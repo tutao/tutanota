@@ -10,18 +10,25 @@ import { BlobAccessTokenService_POST } from "../../entities/storage/Services"
 import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
+import { AesKey } from "@tutao/crypto"
 
 EnvProvider.assertWorkerOrNode()
+
+export type AccessTokenProvider = (archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance) => Promise<Map<Id, BlobServerAccessInfo>>
 
 export interface BlobLoadOptions {
 	extraHeaders: Nullable<Dict>
 	suspensionBehavior: Nullable<SuspensionBehavior>
+	accessTokenProvider: Nullable<AccessTokenProvider>
+	sessionKey: Nullable<AesKey>
 	/** override origin for the request */
 	baseUrl: Nullable<string>
 }
 export const DEFAULT_BLOB_LOAD_OPTIONS: BlobLoadOptions = {
 	extraHeaders: null,
 	suspensionBehavior: null,
+	accessTokenProvider: null,
+	sessionKey: null,
 	baseUrl: null,
 }
 
