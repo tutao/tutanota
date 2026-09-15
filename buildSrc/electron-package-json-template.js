@@ -66,6 +66,9 @@ export default async function generateTemplate({ nameSuffix, version, updateUrl,
 			from: path.dirname(iconPath),
 			to: "./icons/",
 		},
+		toolsets: {
+			appimage: "1.0.2",
+		},
 		win: {
 			// relative to the project dir which is ./build/
 			extraFiles: ["mapirs.dll"],
