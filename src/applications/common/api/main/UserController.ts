@@ -153,19 +153,22 @@ export class UserController {
 		return downcast(this.planConfig)
 	}
 
-	isLegacyPlan(type: PlanType): boolean {
+	isLegacyPaidPlan(type: PlanType): boolean {
 		return LegacyPlans.includes(type)
 	}
 
+	/**
+	 * Returns true if it is a "new" paid plan type, as opposed to a Legacy paid plan type.
+	 */
 	async isNewPaidPlan(): Promise<boolean> {
 		const type = await this.getPlanType()
-		return !this.isLegacyPlan(type) && type !== PlanType.Free
+		return !this.isLegacyPaidPlan(type) && type !== PlanType.Free
 	}
 
 	async useLegacyBookingItem(): Promise<boolean> {
 		const customerInfo = await this.loadCustomerInfo()
 		const type: PlanType = downcast(customerInfo.plan)
-		return !(this.isLegacyPlan(type) && customerInfo.customPlan == null) && type !== PlanType.Free
+		return !(this.isLegacyPaidPlan(type) && customerInfo.customPlan == null) && type !== PlanType.Free
 	}
 
 	/**
@@ -176,7 +179,7 @@ export class UserController {
 		const planType = await this.getPlanType()
 		const planConfig = await this.getPlanConfig()
 
-		return this.isLegacyPlan(planType) || planConfig.multiUser || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
+		return this.isLegacyPaidPlan(planType) || planConfig.multiUser || isCustomizationEnabledForCustomer(customer, FeatureType.MultipleUsers)
 	}
 
 	async loadAccountingInfo(): Promise<AccountingInfo> {

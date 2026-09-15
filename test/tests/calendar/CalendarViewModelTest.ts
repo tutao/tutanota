@@ -149,6 +149,7 @@ o.spec("CalendarViewModel", function () {
 		o(viewModel).notEquals(undefined)
 		o(viewModel.selectedDate()).deepEquals(getStartOfDay(new Date()))
 	})
+
 	o.spec("Dragging Events", function () {
 		o("Start then drag then change mind is noop", async function () {
 			const { viewModel } = initCalendarViewModel(makeCalendarEventModel)

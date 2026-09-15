@@ -1567,16 +1567,6 @@ export class CalendarModel {
 		}
 	}
 
-	getBirthdayEventTitle(contactName: string) {
-		return this.lang.get("birthdayEvent_title", {
-			"{name}": contactName,
-		})
-	}
-
-	getAgeString(age: number) {
-		return this.lang.get("birthdayEventAge_title", { "{age}": age })
-	}
-
 	getGroupSettings(): GroupSettings[] {
 		return this.logins.getUserController().userSettingsGroupRoot.groupSettings
 	}

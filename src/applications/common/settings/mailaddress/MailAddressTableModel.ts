@@ -62,7 +62,7 @@ export class MailAddressTableModel {
 
 		// important: "not on legacy plan" is true for free plans
 		const userController = this.logins.getUserController()
-		this.onLegacyPlan = userController.isLegacyPlan(await userController.getPlanType())
+		this.onLegacyPlan = userController.isLegacyPaidPlan(await userController.getPlanType())
 
 		await this.loadNames()
 		this.redraw()
