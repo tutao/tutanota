@@ -71,16 +71,16 @@ export class Switch implements ClassComponent<SwitchAttrs> {
 		return m(
 			"span.tutaui-toggle-pill",
 			{
-				class: this.checkboxDom?.checked ? "checked" : "unchecked",
+				class: checked ? "checked" : "unchecked",
 			},
 			m("input[type='checkbox']", {
 				role: AriaRole.Switch,
+				checked: checked,
 				onclick: () => {
 					onclick(this.checkboxDom?.checked ?? false)
 				},
 				oncreate: ({ dom }: VnodeDOM<HTMLInputElement>) => {
 					this.checkboxDom = dom as HTMLInputElement
-					this.checkboxDom.checked = checked
 				},
 				tabIndex: TabIndex.Programmatic,
 				disabled: disabled ? true : undefined,

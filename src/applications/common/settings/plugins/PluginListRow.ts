@@ -6,9 +6,14 @@ import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import type { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
 import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
+import { ConfigFieldConfiguration, PluginLanguageCode } from "../../../../plugin-kit/sdk/PluginHostApi.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
+
+function configFieldLabelText(field: ConfigFieldConfiguration): string {
+	const preferredCode = lang.code.startsWith("de") ? PluginLanguageCode.de : PluginLanguageCode.en
+	return field.text[preferredCode] ?? field.text[PluginLanguageCode.en] ?? field.text[PluginLanguageCode.de] ?? field.configFieldId
+}
 
 export type PluginListRowAttrs = {
 	entry: PluginRegistryEntry
@@ -64,12 +69,12 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 	private renderConfigPanel(entry: PluginRegistryEntry, model: PluginSettingsModel): Children {
 		const draft = this.draftConfig ?? {}
 		return m(".pb-16.pl-32.flex.flex-column.gap-8", [
-			...entry.configFields.map((field) =>
+			...model.getConfigFields(entry.id).map((field) =>
 				m(LegacyTextField, {
-					label: field.label as TranslationKeyType,
-					value: draft[field.key] ?? "",
+					label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
+					value: draft[field.configFieldId] ?? "",
 					oninput: (value: string) => {
-						draft[field.key] = value
+						draft[field.configFieldId] = value
 					},
 				} satisfies LegacyTextFieldAttrs),
 			),

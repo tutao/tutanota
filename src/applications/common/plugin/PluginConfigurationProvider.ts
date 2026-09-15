@@ -42,7 +42,7 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 			const enabledPlugins = pluginConfigs.map((pc) => {
 				const pluginId = base64UrlCustomIdToString(elementIdPart(pc._id))
 				const globalConfigJson = pc.configJson
-				return { pluginId, globalConfigJson } as EnabledPlugin
+				return { pluginId, customerConfigJson: globalConfigJson } as EnabledPlugin
 			})
 
 			await assertNotNull(this.pluginManager).loadPlugins(enabledPlugins)

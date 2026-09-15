@@ -254,7 +254,7 @@ class MailLocator implements CommonLocator {
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
-	private pluginManager!: PluginManager
+	pluginManager!: PluginManager
 	pluginConfigurationProvider!: PluginConfigurationProvider
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {

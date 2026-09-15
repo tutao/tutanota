@@ -1,9 +1,10 @@
 import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
-import { ButtonConfiguration, ButtonExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
+import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { default as ncAxios } from "@nextcloud/axios"
-import { assert, assertNotNull, isNotNull, Nullable } from "@tutao/utils"
+import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
+import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
 
 type UserPluginConfig = {
 	credentials: NextcloudCredentials
@@ -18,10 +19,9 @@ type NextcloudCredentials = {
 	loginName: string
 	server: string
 }
-export class Plugin extends PluginApi implements AttachmentButtonExtension {
+export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension {
 	private userConfig: Nullable<UserPluginConfig> = null
 	private customerConfig: CustomerPluginConfig = null!
-
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
 	}
@@ -33,12 +33,19 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 		}
 	}
 
-	async load(): Promise<void> {
+	async load(customerConfigJson: string): Promise<void> {
+		this.customerConfig = JSON.parse(customerConfigJson)
 		await this.reloadUserConfig()
-		await this.reloadCustomerConfig()
+
+		const configFieldConfig: ConfigFieldConfiguration = {
+			extensionPoint: ExtensionPoint.ConfigField,
+			configFieldId: "nextCloudUrl",
+			text: { en: "Nextcloud instance URI" },
+		}
+		this.pluginHost.registerConfigField(configFieldConfig)
 
 		let saveAttachmentBtnConfig: ButtonConfiguration = {
-			extensionPoint: ButtonExtensionPoint.SaveAttachmentDialog,
+			extensionPoint: ExtensionPoint.SaveAttachmentDialog,
 			text: { de: "Nextcloud attachment anhaengen" },
 		}
 		this.pluginHost.registerButton(saveAttachmentBtnConfig)
@@ -54,6 +61,10 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 		const davUrl = this.proxiedUrl(`/remote.php/${davFileName}`)
 		const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
 		await this.makePutRequestToNextcloud(davUrl, dataFile.data, token)
+	}
+
+	updateCustomerConfig(globalConfigJson: string): void {
+		console.log("updated Config")
 	}
 
 	private async getOrMakeUserConfig(): Promise<UserPluginConfig> {
@@ -108,16 +119,6 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 	private async reloadUserConfig(): Promise<void> {
 		const configString = await this.pluginHost.getUserConfig()
 		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : null
-	}
-
-	private async reloadCustomerConfig(): Promise<void> {
-		// FIXME:
-		this.customerConfig = { nextCloudUrl: "http://nextcloud.local" }
-	}
-
-	private async updateConfig(): Promise<void> {
-		assert(isNotNull(this.userConfig), "Tried to set config to null?")
-		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
 	}
 
 	private proxiedUrl(targetUrl: string): string {

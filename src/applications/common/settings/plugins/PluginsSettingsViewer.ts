@@ -19,7 +19,7 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private readonly model: PluginSettingsModel
 
 	constructor() {
-		this.model = new PluginSettingsModel(mailLocator.pluginConfigurationProvider)
+		this.model = new PluginSettingsModel(mailLocator.pluginConfigurationProvider, mailLocator.pluginManager)
 		this.model.loadAll().then(() => m.redraw())
 	}
 

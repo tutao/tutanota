@@ -99,7 +99,6 @@ import { generateRemoteUrl as ncGenerateRemoteUrl } from "@nextcloud/router"
 import { getCurrentUser as ncGetCurrentUser } from "@nextcloud/auth"
 import { TransferId } from "../../../../entities/drive/Utils"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
-import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 
 export const enum ContentBlockingStatus {

@@ -4,7 +4,7 @@ export abstract class PluginApi {
 	constructor(public readonly pluginHost: PluginHostApi) {}
 
 	abstract getMetadata(): PluginMetadata
-	abstract load(): Promise<void>
+	abstract load(customerConfigJson: string): Promise<void>
 	abstract unload(): Promise<void>
 }
 

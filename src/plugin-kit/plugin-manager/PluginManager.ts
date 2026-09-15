@@ -1,13 +1,13 @@
 import { PluginApi } from "../sdk/PluginApi"
-import { ButtonExtensionPoint } from "../sdk/PluginHostApi"
+import { ExtensionPoint } from "../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
-import { ConfigurationAdapter, PluginButtonConfiguration, PluginHost } from "./PluginHost"
+import { ButtonExtension, ConfigExtension, ConfigurationAdapter, PluginHost } from "./PluginHost"
 import { assertNotNull, downcast } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 
 export type EnabledPlugin = {
 	pluginId: string
-	globalConfigJson: string
+	customerConfigJson: string
 }
 
 type PluginWrapper = {
@@ -19,7 +19,8 @@ type PluginWrapper = {
 
 export class PluginManager {
 	public readonly loadedPlugins: Record<string, PluginWrapper> = {}
-	public readonly buttonRegistry: Array<PluginButtonConfiguration> = []
+	public readonly buttonRegistry: Array<ButtonExtension> = []
+	public readonly configFieldRegistry: Array<ConfigExtension> = []
 
 	constructor(public readonly configurationAdapter: ConfigurationAdapter) {}
 
@@ -29,22 +30,25 @@ export class PluginManager {
 		}
 		console.log("loading plugins", enabledPlugins)
 		for (const enabledPlugin of enabledPlugins) {
-			const { pluginId, globalConfigJson } = enabledPlugin
+			const { pluginId, customerConfigJson } = enabledPlugin
 			//new Worker(`../plugins/${pluginName}.js`)
 			const pluginModule = await import(`${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`)
 			let pluginHost = new PluginHost(this, pluginId)
 			const plugin: PluginApi = new pluginModule.Plugin(pluginHost)
 
-			await plugin.load()
-			this.loadedPlugins[pluginId] = { pluginId, globalConfigJson, api: plugin, pluginHost: pluginHost }
+			await plugin.load(enabledPlugin.customerConfigJson)
+			this.loadedPlugins[pluginId] = { pluginId, globalConfigJson: customerConfigJson, api: plugin, pluginHost: pluginHost }
 		}
 	}
-	getRegisteredButtonsByExtensionPoint(extensionPoint: ButtonExtensionPoint): PluginButtonConfiguration[] {
+	getRegisteredButtonsByExtensionPoint(extensionPoint: ExtensionPoint): ButtonExtension[] {
 		switch (extensionPoint) {
-			case ButtonExtensionPoint.SaveAttachmentDialog:
-				return this.buttonRegistry.filter((b) => b.config.extensionPoint === ButtonExtensionPoint.SaveAttachmentDialog) ?? null
+			case ExtensionPoint.SaveAttachmentDialog:
+				return this.buttonRegistry.filter((b) => b.config.extensionPoint === ExtensionPoint.SaveAttachmentDialog) ?? null
 		}
 		return []
+	}
+	getRegisteredConfigFieldsByPluginId(pluginId: string): ConfigExtension[] {
+		return this.configFieldRegistry.filter((c) => c.pluginName === pluginId)
 	}
 	async attachmentButtonClicked(pluginName: string, dataFile: Promise<PluginDataFile>): Promise<void> {
 		downcast<AttachmentButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).attachmentButtonClicked(await dataFile)
