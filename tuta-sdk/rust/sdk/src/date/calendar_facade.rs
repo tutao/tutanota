@@ -577,7 +577,7 @@ impl CalendarFacade {
 		};
 
 		if first_bigger_than_second_custom_id(&last_event_id.element_id, max_id)
-			|| (&last_event_id.element_id).eq(max_id)
+			|| (last_event_id.element_id).eq(max_id)
 		{
 			return Ok((true, last_event_id.element_id));
 		}
