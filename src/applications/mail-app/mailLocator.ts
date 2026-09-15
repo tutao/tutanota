@@ -517,6 +517,7 @@ class MailLocator implements CommonLocator {
 			this.entityClient,
 			responseTo,
 			await this.calendarInviteHandler(),
+			this.pluginManager,
 			getTimeZone(),
 			showProgress,
 		)

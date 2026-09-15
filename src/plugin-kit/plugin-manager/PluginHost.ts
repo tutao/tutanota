@@ -38,7 +38,8 @@ export class PluginHost implements PluginHostApi {
 
 	registerButton(config: ButtonConfiguration): ButtonRef {
 		switch (config.extensionPoint) {
-			case ExtensionPoint.SaveAttachmentDialog: {
+			case ExtensionPoint.SaveAttachmentDialog:
+			case ExtensionPoint.EventLocationButton: {
 				this.pluginManager.buttonRegistry.push({ config, pluginName: this.pluginId })
 				return { id: this.pluginId }
 			}

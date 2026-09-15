@@ -2,7 +2,7 @@ import { Nullable } from "@tutao/utils"
 
 export enum ExtensionPoint {
 	SaveAttachmentDialog = 0,
-	EventLocationButton = 1, // Nextcloud Talk or MS Teams link
+	EventLocationButton = 1, // e.g. Nextcloud Talk or MS Teams link generated for the event location field
 	ConfigField = 2,
 }
 

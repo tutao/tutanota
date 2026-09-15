@@ -1,6 +1,7 @@
 import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
+import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
 import { default as ncAxios } from "@nextcloud/axios"
 import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
@@ -19,7 +20,7 @@ type NextcloudCredentials = {
 	loginName: string
 	server: string
 }
-export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension {
+export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension {
 	private userConfig: Nullable<UserPluginConfig> = null
 	private customerConfig: CustomerPluginConfig = null!
 	constructor(pluginHost: PluginHostApi) {
@@ -49,6 +50,12 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 			text: { de: "Nextcloud attachment anhaengen" },
 		}
 		this.pluginHost.registerButton(saveAttachmentBtnConfig)
+
+		let eventLocationBtnConfig: ButtonConfiguration = {
+			extensionPoint: ExtensionPoint.EventLocationButton,
+			text: { en: "Start Nextcloud Talk meeting", de: "Nextcloud Talk Meeting starten" },
+		}
+		this.pluginHost.registerButton(eventLocationBtnConfig)
 	}
 
 	async unload(): Promise<void> {}
@@ -65,6 +72,31 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 
 	updateCustomerConfig(globalConfigJson: string): void {
 		console.log("updated Config")
+	}
+
+	async eventLocationButtonClicked(): Promise<string> {
+		const { credentials: nextcloudCredentials } = await this.getOrMakeUserConfig()
+		const token = await this.createTalkRoom(nextcloudCredentials)
+		return `${this.customerConfig.nextCloudUrl}/index.php/call/${token}`
+	}
+
+	private async createTalkRoom(nextcloudCredentials: NextcloudCredentials): Promise<string> {
+		const authToken = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
+		const response = await ncAxios.post(
+			this.proxiedUrl("/ocs/v2.php/apps/spreed/api/v4/room"),
+			new URLSearchParams({
+				roomType: "3", // public conversation, so external event guests without a Nextcloud account can join via the link
+				roomName: "Tuta Meeting",
+			}),
+			{
+				headers: {
+					"OCS-APIRequest": "true",
+					Accept: "application/json",
+					Authorization: `Basic ${authToken}`,
+				},
+			},
+		)
+		return response.data.ocs.data.token
 	}
 
 	private async getOrMakeUserConfig(): Promise<UserPluginConfig> {
