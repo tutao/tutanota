@@ -75,6 +75,7 @@ export interface EntityRestClientLoadOptions {
 	extraHeaders: Nullable<Dict>
 	/** Use the key provided by this to decrypt the existing ownerEncSessionKey instead of trying to resolve the owner key based on the ownerGroup. */
 	ownerKeyProvider: Nullable<OwnerKeyProvider>
+	sessionKey: Nullable<AesKey>
 	/** Defaults to {@link CacheMode.ReadAndWrite }*/
 	cacheMode: Nullable<CacheMode>
 	baseUrl: Nullable<string>
@@ -96,6 +97,7 @@ export const DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS: EntityRestClientLoadOptions
 	...DEFAULT_REST_CLIENT_OPTIONS,
 	extraHeaders: null,
 	ownerKeyProvider: null,
+	sessionKey: null,
 	cacheMode: CacheMode.ReadAndWrite,
 }
 

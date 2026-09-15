@@ -383,6 +383,7 @@ export class DriveFacade {
 			baseUrl: null,
 			extraHeaders: null,
 			ownerKeyProvider: null,
+			sessionKey: null,
 			suspensionBehavior: null,
 			cacheMode: CacheMode.WriteOnly,
 		})
@@ -432,9 +433,8 @@ export class DriveFacade {
 	downloadFileForShare(fileId: IdTuple, nonce: string, key: Base64): Promise<DriveFile> {
 		return this.entityClient.load(DriveFileTypeRef, fileId, {
 			extraHeaders: { nonce: nonce },
-			ownerKeyProvider: async () => {
-				return uint8ArrayTo256Key(base64ToUint8Array(key))
-			},
+			ownerKeyProvider: null,
+			sessionKey: uint8ArrayTo256Key(base64ToUint8Array(key)),
 			baseUrl: null,
 			cacheMode: null,
 			queryParams: null,
