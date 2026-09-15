@@ -429,6 +429,14 @@ export class DriveViewModel {
 		}
 	}
 
+	navigateToCurrentOrRootFolder() {
+		if (this.currentFolder) {
+			this.navigateToFolder(this.currentFolder.folder._id)
+		} else {
+			this.navigateToRootFolder()
+		}
+	}
+
 	async openFile(file: DriveFile): Promise<void> {
 		await this.driveModel.openFile(file)
 	}
