@@ -694,9 +694,10 @@ class CalendarLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
+
 			const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 			this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-			this.pluginManager = new PluginManager(new PluginHost(pluginConfigurationProvider))
+			this.pluginManager = new PluginManager(pluginConfigurationProvider)
 			pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 			// TODO: it would be nice to move this facade out of the ApplicationWindow

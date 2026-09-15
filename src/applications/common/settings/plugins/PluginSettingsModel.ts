@@ -26,7 +26,7 @@ export class PluginSettingsModel {
 	constructor(private readonly provider: PluginConfigurationProvider) {}
 
 	async loadAll(): Promise<void> {
-		const customerPluginConfigs = await this.provider.loadCustomerPluginConfigs()
+		const customerPluginConfigs = await this.provider.getCustomerPluginConfigs()
 		for (const entry of PLUGIN_REGISTRY) {
 			const pluginConfig = customerPluginConfigs.get(entry.id)
 			this.state.set(entry.id, {

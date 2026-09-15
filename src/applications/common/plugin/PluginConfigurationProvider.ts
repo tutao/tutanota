@@ -1,4 +1,4 @@
-import { ConfigurationAdapter } from "../../../plugin-kit/plugin-manager/PluginHost"
+import { ConfigurationAdapter, PluginConfigJson } from "../../../plugin-kit/plugin-manager/PluginHost"
 import { assertNotNull, base64UrlCustomIdToString, isNotNull, Nullable, ofClass, stringToBase64UrlCustomId } from "@tutao/utils"
 import { createPluginConfiguration, PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
 import { elementIdPart, ListElementId } from "@tutao/meta"
@@ -12,7 +12,8 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	private pluginListId: Id = null!
 	private userOwnerGroup: Id = null!
 	private pluginManager: Nullable<PluginManager> = null
-	private globalPluginConfigsList: Nullable<Id> = null
+	private customerPluginConfigsList: Nullable<Id> = null
+	private customerPluginConfigs: Nullable<Map<string, PluginConfigJson>> = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -35,8 +36,8 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 
 		const customer = this.logins.getUserController().getCustomer()
 		if (customer && customer.plugins) {
-			this.globalPluginConfigsList = customer.plugins.pluginConfigs
-			const pluginConfigs = await this.entityClient.loadAll(PluginConfigurationTypeRef, this.globalPluginConfigsList)
+			this.customerPluginConfigsList = customer.plugins.pluginConfigs
+			const pluginConfigs = await this.entityClient.loadAll(PluginConfigurationTypeRef, this.customerPluginConfigsList)
 
 			const enabledPlugins = pluginConfigs.map((pc) => {
 				const pluginId = base64UrlCustomIdToString(elementIdPart(pc._id))
@@ -49,7 +50,7 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	}
 
 	async storeUserConfig(pluginId: string, configJson: string): Promise<void> {
-		let pluginConfig = await this.fetchConfig(pluginId)
+		let pluginConfig = await this.fetchUserConfig(pluginId)
 		if (isNotNull(pluginConfig)) {
 			pluginConfig.configJson = configJson
 			return await this.entityClient.update(pluginConfig)
@@ -61,27 +62,29 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 		}
 	}
 	async getUserConfig(pluginId: string): Promise<string> {
-		const pluginConfig = await this.fetchConfig(pluginId)
+		const pluginConfig = await this.fetchUserConfig(pluginId)
 		return isNotNull(pluginConfig) ? pluginConfig.configJson : ""
 	}
 
-	async fetchConfig(pluginId: string): Promise<Nullable<PluginConfiguration>> {
+	async fetchUserConfig(pluginId: string): Promise<Nullable<PluginConfiguration>> {
 		const userPluginConfigId: ListElementId = [this.pluginListId, stringToBase64UrlCustomId(pluginId)]
 		return await this.entityClient.load(PluginConfigurationTypeRef, userPluginConfigId).catch(ofClass(NotFoundError, () => null))
 	}
 
 	/**
-	 * Customer-scoped (org-wide) plugin configuration, used by the admin Plugins settings page.
-	 * Distinct from storeConfig/getConfig/fetchConfig above, which remain per-user (used by PluginHostApi at runtime).
+	 * Customer-scoped plugin configuration used by the plugin settings page.
 	 */
-	async loadCustomerPluginConfigs(): Promise<Map<string, PluginConfiguration>> {
-		const globalPluginConfigsList = assertNotNull(this.globalPluginConfigsList, "globalPluginConfigsList not initialized")
-		const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
-		return new Map(configs.map((pc) => [base64UrlCustomIdToString(elementIdPart(pc._id)), pc]))
+	async getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>> {
+		if (!this.customerPluginConfigs) {
+			const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
+			const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
+			this.customerPluginConfigs = new Map(configs.map((pc) => [base64UrlCustomIdToString(elementIdPart(pc._id)), pc.configJson]))
+		}
+		return this.customerPluginConfigs
 	}
 
 	async setCustomerPluginConfig(pluginId: string, configJson: string): Promise<void> {
-		const globalPluginConfigsList = assertNotNull(this.globalPluginConfigsList, "globalPluginConfigsList not initialized")
+		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
 		const existing = await this.entityClient.load(PluginConfigurationTypeRef, [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)]).catch(
 			ofClass(NotFoundError, async () => {
 				const pluginConfig = createPluginConfiguration({ configJson })
