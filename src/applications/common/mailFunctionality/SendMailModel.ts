@@ -29,11 +29,11 @@ import {
 } from "../../../entities/tutanota/Utils"
 import { CustomerPropertiesTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import {
-	arrayContains,
-	arrayDeduplicated,
-	arrayMapFilterNull,
-	arrayRemove,
-	arrayRemoveBy,
+	array_contains,
+	array_deduplicated,
+	array_mapFilterNull,
+	array_remove,
+	array_removeBy,
 	assertNotNull,
 	cleanMailAddress,
 	cleanMatch,
@@ -631,7 +631,7 @@ export class SendMailModel {
 
 		if (attachments) {
 			this.nonInlineAttachmentsCids = new Set(
-				arrayMapFilterNull(attachments, (attachment) => {
+				array_mapFilterNull(attachments, (attachment) => {
 					return attachment.cid == null || this.loadedInlineImages.has(attachment.cid) ? null : attachment.cid
 				}),
 			)
@@ -784,7 +784,7 @@ export class SendMailModel {
 	removeRecipient(recipient: Recipient, type: RecipientField, notify: boolean = true): boolean {
 		const recipients = this.recipients.get(type) ?? []
 		const cleanRecipientAddress = cleanMailAddress(recipient.address)
-		const didRemove = arrayRemoveBy(recipients, (r) => cleanMailAddress(r.address) === cleanRecipientAddress)
+		const didRemove = array_removeBy(recipients, (r) => cleanMailAddress(r.address) === cleanRecipientAddress)
 		this.markAsChangedIfNecessary(didRemove)
 
 		if (didRemove && notify) {
@@ -833,7 +833,7 @@ export class SendMailModel {
 	}
 
 	removeAttachment(file: Attachment): void {
-		this.markAsChangedIfNecessary(arrayRemove(this.attachments, file))
+		this.markAsChangedIfNecessary(array_remove(this.attachments, file))
 	}
 
 	getSenderName(): string {
@@ -1139,7 +1139,7 @@ export class SendMailModel {
 
 					// Mark all recipients that have a KeyVerificationMismatch after hitting "Send"
 					for (const recipient of this.allRecipients()) {
-						if (arrayContains(e.data, recipient.address)) {
+						if (array_contains(e.data, recipient.address)) {
 							await recipient.markAsKeyVerificationMismatch()
 							failedRecipients.push(recipient)
 						}
@@ -1489,7 +1489,7 @@ function recipientsFilter(recipientList: ReadonlyArray<PartialRecipient>): Array
 			recipient: a,
 			cleaned: cleanMailAddress(a.address),
 		}))
-	return arrayDeduplicated(cleanedList, (a, b) => a.cleaned === b.cleaned).map((a) => a.recipient)
+	return array_deduplicated(cleanedList, (a, b) => a.cleaned === b.cleaned).map((a) => a.recipient)
 }
 
 export interface SendMailResult {

@@ -1,6 +1,6 @@
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { IServiceExecutor } from "./ServiceRequest"
-import { arrayDeduplicated, arrayFirst, arrayIsEmpty, DateProvider, isNotNull, lazyMemoized, Nullable } from "@tutao/utils"
+import { array_deduplicated, array_first, array_isEmpty, DateProvider, isNotNull, lazyMemoized, Nullable } from "@tutao/utils"
 import { SuspensionBehavior } from "../rest-client/types"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { TypeModelResolver } from "../instance-pipeline/EntityFunctions"
@@ -97,7 +97,7 @@ export class BlobAccessTokenFacade {
 		referencingInstances: readonly BlobReferencingInstance[],
 		blobLoadOptions: BlobLoadOptions,
 	): Promise<BlobServerAccessInfo> {
-		if (arrayIsEmpty(referencingInstances)) {
+		if (array_isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
 		const instanceListId = referencingInstances[0].listId
@@ -223,12 +223,12 @@ export class BlobAccessTokenFacade {
 	}
 
 	private getArchiveIds(referencingInstances: readonly BlobReferencingInstance[]): Set<Id> {
-		if (arrayIsEmpty(referencingInstances)) {
+		if (array_isEmpty(referencingInstances)) {
 			throw new ProgrammingError("Must pass at least one referencing instance")
 		}
 		const archiveIds = new Set<Id>()
 		for (const referencingInstance of referencingInstances) {
-			if (arrayIsEmpty(referencingInstance.blobs)) {
+			if (array_isEmpty(referencingInstance.blobs)) {
 				throw new ProgrammingError("must pass blobs")
 			}
 			for (const blob of referencingInstance.blobs) {
@@ -294,8 +294,8 @@ class BlobAccessTokenCache {
 			return archiveToken
 		}
 
-		const tokens = arrayDeduplicated(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
-		const firstTokenFound = arrayFirst(tokens)
+		const tokens = array_deduplicated(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
+		const firstTokenFound = array_first(tokens)
 		if (tokens.length !== 1 || firstTokenFound == null || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
 			const newToken = await loader()
 			if (archiveOrGroupKey != null && newToken.tokenKind === BlobAccessTokenKind.Archive) {

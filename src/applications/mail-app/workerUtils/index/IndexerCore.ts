@@ -34,19 +34,19 @@
 
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
-	arrayLastIndexBy,
-	arrayLast,
-	arrayLastOrThrow,
+	array_last,
+	array_lastIndexBy,
+	array_lastOrThrow,
 	assertNotNull,
 	defer,
 	DeferredObject,
 	getFromMap,
-	iterableGroupedByMapped,
+	iterable_groupedByMapped,
 	mergeMaps,
 	neverNull,
 	noOp,
 	tokenize,
-	uint8ArrayHashSigned,
+	uint8Array_hashSigned,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
 import { elementIdPart, expandId, generatedIdToTimestamp, listIdPart, TypeRef } from "../../../../platform-kit/meta"
@@ -295,7 +295,7 @@ export class IndexerCore {
 		return await this.db.dbFacade.createTransaction(true, [GroupDataOS]).then((t) => {
 			return t.get(GroupDataOS, groupId).then((groupData: GroupData | null) => {
 				if (groupData) {
-					return arrayLast(groupData.lastBatchIds) ?? null
+					return array_last(groupData.lastBatchIds) ?? null
 				} else {
 					return null
 				}
@@ -417,7 +417,7 @@ export class IndexerCore {
 	): Promise<any> {
 		this._cancelIfNeeded()
 		// Collect hashes of all instances we want to delete to check it faster later
-		const encInstanceIdSet = new Set(instanceInfos.map((e) => uint8ArrayHashSigned(e.encInstanceId)))
+		const encInstanceIdSet = new Set(instanceInfos.map((e) => uint8Array_hashSigned(e.encInstanceId)))
 		return transaction.get(SearchIndexMetaDataOS, metaRowKey).then((encMetaDataRow) => {
 			if (!encMetaDataRow) {
 				// already deleted
@@ -450,7 +450,7 @@ export class IndexerCore {
 					// Find all entries we need to remove by hash of the encrypted ID
 					const rangesToRemove: Array<[number, number]> = []
 					iterateBinaryBlocks(indexEntriesRow, (block, start, end) => {
-						if (encInstanceIdSet.has(uint8ArrayHashSigned(getIdFromEncSearchIndexEntry(block)))) {
+						if (encInstanceIdSet.has(uint8Array_hashSigned(getIdFromEncSearchIndexEntry(block)))) {
 							rangesToRemove.push([start, end])
 						}
 					})
@@ -785,14 +785,14 @@ export class IndexerCore {
 			for (const id of sortedTimestamps) {
 				const encryptedEntries = neverNull(timestampToEntries.get(id))
 
-				if (arrayLastOrThrow(rows).row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
+				if (array_lastOrThrow(rows).row.length + encryptedEntries.length > SEARCH_INDEX_ROW_LENGTH) {
 					rows.push({
 						row: [],
 						oldestElementTimestamp: id,
 					})
 				}
 
-				arrayLastOrThrow(rows).row.push(...encryptedEntries)
+				array_lastOrThrow(rows).row.push(...encryptedEntries)
 			}
 			return rows
 		} else {
@@ -829,7 +829,7 @@ export class IndexerCore {
 		appId: number,
 		typeId: number,
 	): PromisableWrapper<void> {
-		const byTimestamp = iterableGroupedByMapped(
+		const byTimestamp = iterable_groupedByMapped(
 			encryptedSearchIndexEntries,
 			(e) => e.timestamp,
 			(e) => e.entry,
@@ -861,7 +861,7 @@ export class IndexerCore {
 	}
 
 	_findMetaDataEntryByTimestamp(metaData: SearchIndexMetaDataRow, oldestTimestamp: number, appId: number, typeId: number): number {
-		return arrayLastIndexBy(metaData.rows, (r) => r.app === appId && r.type === typeId && r.oldestElementTimestamp <= oldestTimestamp)
+		return array_lastIndexBy(metaData.rows, (r) => r.app === appId && r.type === typeId && r.oldestElementTimestamp <= oldestTimestamp)
 	}
 
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey, { key }: DbEncryptionData): Promise<SearchIndexMetaDataRow> {

@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { EnvProvider, FeatureType } from "@tutao/app-env"
-import { arrayClear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
+import { array_clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
@@ -177,7 +177,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 
 		if (this._whitelabelConfig) {
 			onRegistrationDomainSelected = (domain) => {
-				arrayClear(neverNull(this._whitelabelConfig).whitelabelRegistrationDomains)
+				array_clear(neverNull(this._whitelabelConfig).whitelabelRegistrationDomains)
 
 				if (domain) {
 					const domainWrapper = createStringWrapper({

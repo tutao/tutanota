@@ -7,7 +7,7 @@ import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } 
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
-import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
+import { array_equals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
@@ -880,7 +880,7 @@ o.spec("EntityRestClient", function () {
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
 		})
 
 		o("Setup overwrites KDF nonce with a random one if encrypting with AeadWithGroupKey", async function () {
@@ -910,7 +910,7 @@ o.spec("EntityRestClient", function () {
 
 			await entityRestClient.setup("listId", newCalendar, null, { baseUrl: null, ownerKey: ownerGroupKey })
 
-			o.check(arrayEquals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
+			o.check(array_equals(newCalendar._kdfNonce, originalKdfNonce)).equals(false)
 
 			o.check(instancePipeline.mapAndEncryptWithSubKeyInfo.invocations.length).equals(1)
 			const invocation = instancePipeline.mapAndEncryptWithSubKeyInfo.invocations[0]
@@ -918,7 +918,7 @@ o.spec("EntityRestClient", function () {
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, newCalendar._kdfNonce!)).equals(true)
 		})
 
 		o("Setup list entity throws when no listid is passed", async function () {
@@ -1399,7 +1399,7 @@ o.spec("EntityRestClient", function () {
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
 		})
 
 		o("Update accepts KDF nonce from the server when trying to create a new one", async function () {
@@ -1449,8 +1449,8 @@ o.spec("EntityRestClient", function () {
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, kdfNonce)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, kdfNonce)).equals(true)
 		})
 
 		o("Update does not overwrite KDF nonce", async function () {
@@ -1486,7 +1486,7 @@ o.spec("EntityRestClient", function () {
 
 			verify(serviceExecutor.execute(UpdateKdfNonceService_POST, matchers.anything(), null), { times: 0 })
 
-			o.check(arrayEquals(calendarEvent._kdfNonce, originalKdfNonce)).equals(true)
+			o.check(array_equals(calendarEvent._kdfNonce, originalKdfNonce)).equals(true)
 
 			let clientTypeModel = await typeModelResolver.resolveClientTypeReference(calendarEvent._type)
 
@@ -1497,7 +1497,7 @@ o.spec("EntityRestClient", function () {
 			if (subKeyInfo == null || subKeyInfo.cipherVersion !== SymmetricCipherVersion.AeadWithGroupKey) {
 				throw new Error()
 			}
-			o.check(arrayEquals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
+			o.check(array_equals(subKeyInfo.kdfNonce!, calendarEvent._kdfNonce!)).equals(true)
 		})
 	})
 

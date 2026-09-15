@@ -5,7 +5,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { CancelledError, EnvProvider, FeatureType, MAX_LABELS_PER_FREE_USER, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
-import { arrayFirst, arrayFirstOrThrow, arrayIsEmpty, arrayIsNotEmpty, assertNotNull, noOp, ofClass } from "../../../../platform-kit/utils"
+import { array_isEmpty, array_first, array_firstOrThrow, array_isNotEmpty, assertNotNull, noOp, ofClass } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { keyManager } from "../../../../ui/utils/KeyManager"
@@ -461,7 +461,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const isExternalUser = !locator.logins.isInternalUserLoggedIn()
 		const currentMailSet = this.mailViewModel.getSelectedMailSetKind()
 		const actionableMails = this.mailViewModel.getActionableMails()
-		if (arrayIsEmpty(actionableMails)) {
+		if (array_isEmpty(actionableMails)) {
 			return null
 		}
 
@@ -814,7 +814,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (mails.length !== 1) {
 			return null
 		}
-		return arrayFirstOrThrow(mails).unread
+		return array_firstOrThrow(mails).unread
 	}
 
 	/**
@@ -828,7 +828,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	 */
 	private getSetUnreadStateAction(): ((unread: boolean) => void) | null {
 		const actionableMails = this.mailViewModel.getActionableMails()
-		if (arrayIsEmpty(actionableMails)) {
+		if (array_isEmpty(actionableMails)) {
 			return null
 		}
 
@@ -964,7 +964,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async trashSelectedMails() {
 		const actionableMails = this.mailViewModel.getActionableMails()
-		const firstMail = arrayFirst(actionableMails)
+		const firstMail = array_first(actionableMails)
 		if (firstMail == null || !actionableMails.some((mail) => isMailMovable(mail, this.mailViewModel.mailModel))) {
 			// No trashable mails
 			return
@@ -1001,7 +1001,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
-		if (arrayIsEmpty(actionableMails)) {
+		if (array_isEmpty(actionableMails)) {
 			return
 		}
 
@@ -1064,7 +1064,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const actionableMails = this.mailViewModel.getActionableMails()
-		return arrayIsNotEmpty(actionableMails)
+		return array_isNotEmpty(actionableMails)
 			? (dom, opts) => {
 					// when viewing a conversation we need to get the label state for all the mails in that conversation
 					showLabelsPopup(this.mailViewModel.mailModel, actionableMails, (mails: Mail[]) => this.mailViewModel.getResolvedMails(mails), dom, opts)
@@ -1352,7 +1352,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async handleLabelMailDrop(dropData: MailDropData, targetLabel: MailSet): Promise<void> {
 		const mailsToAddLabel = this.getDroppedMails(dropData)
 
-		if (!arrayIsEmpty(mailsToAddLabel)) {
+		if (!array_isEmpty(mailsToAddLabel)) {
 			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToAddLabel)
 			await this.mailViewModel.applyLabelToMails(actionableMails, targetLabel)
 		}
@@ -1404,7 +1404,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		}
 
 		const mailsToMove = this.getDroppedMails(dropData)
-		if (!arrayIsEmpty(mailsToMove)) {
+		if (!array_isEmpty(mailsToMove)) {
 			const actionableMails = await this.mailViewModel.getResolvedMails(mailsToMove)
 			this.mailViewModel.clearStickyMail()
 			moveMails({
@@ -1499,7 +1499,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private getExportAction(): (() => void) | null {
 		const actionableMails = this.mailViewModel.getActionableMails()
-		if (!this.mailViewModel.isExportingMailsAllowed() || arrayIsEmpty(actionableMails)) {
+		if (!this.mailViewModel.isExportingMailsAllowed() || array_isEmpty(actionableMails)) {
 			return null
 		}
 
@@ -1509,7 +1509,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private async toggleUnreadMails(): Promise<void> {
 		const actionableMails = this.mailViewModel.getActionableMails()
-		if (arrayIsEmpty(actionableMails)) {
+		if (array_isEmpty(actionableMails)) {
 			return
 		}
 		const resolvedMails = await this.mailViewModel.getResolvedMails(actionableMails)
@@ -1526,7 +1526,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async deleteSelectedMails() {
 		const actionableMails = await this.mailViewModel.getResolvedActionableMails()
 		const currentFolder = assertNotNull(this.mailViewModel.getMailSet())
-		if (arrayIsNotEmpty(actionableMails)) {
+		if (array_isNotEmpty(actionableMails)) {
 			await promptAndDeleteMails(this.mailViewModel.mailModel, actionableMails, currentFolder._id, noOp)
 		}
 	}
@@ -1554,7 +1554,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async showLabelDeleteDialog(label: MailSet) {
 		const labelSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(label._ownerGroup))
 		if (labelSystem == null) return
-		const hasSublabels = arrayIsNotEmpty(labelSystem.getDescendantFoldersOfParent(label._id))
+		const hasSublabels = array_isNotEmpty(labelSystem.getDescendantFoldersOfParent(label._id))
 		const confirmed = await Dialog.confirm(
 			lang.getTranslation(hasSublabels ? "confirmDeleteLabelWithSublabels_msg" : "confirmDeleteLabel_msg", {
 				"{1}": label.name,

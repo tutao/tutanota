@@ -1,4 +1,4 @@
-export function uint8ArrayUtils(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
+export function uint8Array_concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
 	let length = arrays.reduce((previous, current) => previous + current.length, 0)
 	let result = new Uint8Array(length)
 	let index = 0
@@ -9,7 +9,7 @@ export function uint8ArrayUtils(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer
 	return result
 }
 
-export function uint8ArrayHashSigned(array: Uint8Array): number {
+export function uint8Array_hashSigned(array: Uint8Array): number {
 	let hash = 0
 	hash |= 0
 
@@ -20,11 +20,11 @@ export function uint8ArrayHashSigned(array: Uint8Array): number {
 	return hash
 }
 
-export function uint8ArrayHashUnsigned(array: Uint8Array): number {
-	return uint8ArrayHashSigned(array) >>> 0
+export function uint8Array_hashUnsigned(array: Uint8Array): number {
+	return uint8Array_hashSigned(array) >>> 0
 }
 
-export function uint8ArrayChunked(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
+export function uint8Array_chunked(chunkSize: number, array: Uint8Array<ArrayBuffer>): Array<Uint8Array<ArrayBuffer>> {
 	return _chunkUint8Array(chunkSize, array)
 }
 
@@ -47,7 +47,7 @@ function _chunkUint8Array(chunkSize: number, array: Uint8Array<ArrayBuffer>): Ar
 /**
  * @return 1 if first is bigger than second, -1 if second is bigger than first and 0 otherwise
  */
-export function uint8ArrayCompare(first: Uint8Array, second: Uint8Array): number {
+export function uint8Array_compare(first: Uint8Array, second: Uint8Array): number {
 	if (first.length > second.length) {
 		return 1
 	} else if (first.length < second.length) {
@@ -67,7 +67,7 @@ export function uint8ArrayCompare(first: Uint8Array, second: Uint8Array): number
 	return 0
 }
 
-export function uint8ArraySplitAt(array: Uint8Array, index: number): [Uint8Array, Uint8Array] {
+export function uint8Array_splitAt(array: Uint8Array, index: number): [Uint8Array, Uint8Array] {
 	const left = array.slice(0, index)
 	const right = array.slice(index)
 

@@ -2,7 +2,7 @@ import m from "mithril"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils.js"
-import { arrayContains, delay, ofClass, promiseMap } from "../../../platform-kit/utils"
+import { array_contains, delay, ofClass, promiseMap } from "../../../platform-kit/utils"
 import { PreconditionFailedError } from "../../../platform-kit/rest-client/error"
 import { showBuyDialog } from "../subscription/BuyDialog.js"
 import { locator } from "../api/main/CommonLocator.js"
@@ -94,7 +94,7 @@ function checkAndGetErrorMessage(userData: UserImportDetails[], availableDomains
 				errorMessageArray.push("mailAddressInvalid_msg")
 			}
 
-			if (!arrayContains(availableDomains, domain)) {
+			if (!array_contains(availableDomains, domain)) {
 				errorMessageArray.push("customDomainErrorDomainNotAvailable_msg")
 			}
 

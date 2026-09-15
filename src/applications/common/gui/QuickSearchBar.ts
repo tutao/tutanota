@@ -3,7 +3,7 @@ import { layout_size, px, size } from "../../../ui/size"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
 import type { Shortcut } from "../../../ui/utils/KeyManager"
 import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
-import { arrayFirstOrThrow, arrayIsNotEmpty, arrayLastIndex, debounce, mod } from "@tutao/utils"
+import { array_firstOrThrow, array_isNotEmpty, array_lastIndex, debounce, mod } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
 import { LayerType } from "../../../ui/base/RootView"
@@ -158,13 +158,13 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 				key: Keys.UP,
 				exec: () => {
 					if (entities && entities.length > 0) {
-						const oldSelected = selectedEntity || arrayFirstOrThrow(entities)
+						const oldSelected = selectedEntity || array_firstOrThrow(entities)
 
 						let newSelected: SearchBarState<T>["selected"]
 						if (selected === 0) {
 							newSelected = "showmore"
 						} else if (selected === "showmore") {
-							newSelected = arrayLastIndex(entities)
+							newSelected = array_lastIndex(entities)
 						} else {
 							newSelected = mod(entities.indexOf(oldSelected) - 1, entities.length)
 						}
@@ -176,10 +176,10 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 				key: Keys.DOWN,
 				exec: () => {
 					if (entities && entities.length > 0) {
-						const oldSelected = selectedEntity || arrayFirstOrThrow(entities)
+						const oldSelected = selectedEntity || array_firstOrThrow(entities)
 
 						let newSelected: SearchBarState<T>["selected"]
-						if (selected === arrayLastIndex(entities)) {
+						if (selected === array_lastIndex(entities)) {
 							newSelected = "showmore"
 						} else if (selected === "showmore") {
 							newSelected = 0
@@ -348,7 +348,7 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 
 				this.updateState({
 					searchResult: liveResult,
-					selected: arrayIsNotEmpty(liveResult.items) ? 0 : "showmore",
+					selected: array_isNotEmpty(liveResult.items) ? 0 : "showmore",
 				})
 			}
 		})().finally(() => cb())

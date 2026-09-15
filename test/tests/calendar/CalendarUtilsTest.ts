@@ -39,7 +39,7 @@ import {
 	prepareCalendarDescription,
 	serializeAlarmInterval,
 } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils.js"
-import { arrayLastOrThrow, getStartOfDay, identity, neverNull } from "../../../src/platform-kit/utils"
+import { array_lastOrThrow, getStartOfDay, identity, neverNull } from "../../../src/platform-kit/utils"
 import { CalendarEventAlteredInstance, CalendarEventProgenitor } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade.js"
 import { getDateInUTC, getDateInZone, makeEventWrapper, makeUserController } from "./CalendarTestUtils.js"
 import { ParserError } from "../../../src/applications/common/misc/parsing/ParserCombinator.js"
@@ -75,7 +75,7 @@ o.spec("CalendarUtilsTest", function () {
 			result += s
 			result += `(${d}) ${DateTime.fromMillis(d).toISO({ format: "extended", includeOffset: true })}`
 		}
-		result += arrayLastOrThrow(strings)
+		result += array_lastOrThrow(strings)
 		return result
 	}
 	o.spec("incrementByRepeatPeriod", function () {

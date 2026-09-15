@@ -2,7 +2,7 @@ import { ListFilter, ListModel } from "../../../common/misc/ListModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { ConversationPrefProvider } from "../view/ConversationViewModel"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { arrayFirst, arrayLast, assertNotNull, memoizedWithHiddenArgument, settledThen } from "@tutao/utils"
+import { array_first, array_last, assertNotNull, memoizedWithHiddenArgument, settledThen } from "@tutao/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
@@ -82,7 +82,7 @@ export class MailListModel implements MailSetListModel {
 	}
 
 	get lastItem(): Mail | null {
-		return arrayLast(this._loadedMails())?.mail ?? null
+		return array_last(this._loadedMails())?.mail ?? null
 	}
 
 	get loadingStatus(): ListLoadingState {
@@ -291,7 +291,7 @@ export class MailListModel implements MailSetListModel {
 		if (this.isInMultiselect()) {
 			return null
 		} else {
-			return arrayFirst(this.getSelectedAsArray())
+			return array_first(this.getSelectedAsArray())
 		}
 	}
 

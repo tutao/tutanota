@@ -1,12 +1,12 @@
 import { EnvProvider, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { getLetId, getListId, idToElementId, isSameId, isSameSingleId, listIdPart, RANGE_ITEM_LIMIT } from "@tutao/meta"
 import {
-	arrayIsEmpty,
-	arrayIsNotEmpty,
+	array_isEmpty,
+	array_isNotEmpty,
 	assertNotNull,
 	getFromMap,
-	iterableGroupedBy,
-	iterableGroupedUniqByMapped,
+	iterable_groupedBy,
+	iterable_groupedUniqByMapped,
 	neverNull,
 	ofClass,
 	promiseMap,
@@ -237,7 +237,7 @@ export class CalendarFacade {
 			failedAlarmErrors: [],
 		}
 
-		if (arrayIsEmpty(eventAlarmInfoTemplatesTuples)) {
+		if (array_isEmpty(eventAlarmInfoTemplatesTuples)) {
 			return results
 		}
 
@@ -249,7 +249,7 @@ export class CalendarFacade {
 		}
 
 		// 1. Group Events by listId (shortEvents and longEvents)
-		const eventAlarmsTupleByListId: Map<string, EventAlarmInfoTemplatesTuple[]> = iterableGroupedBy(
+		const eventAlarmsTupleByListId: Map<string, EventAlarmInfoTemplatesTuple[]> = iterable_groupedBy(
 			eventAlarmInfoTemplatesTuples,
 			(eventAlarmsTuple: EventAlarmInfoTemplatesTuple) => {
 				return getListId(eventAlarmsTuple.event)
@@ -271,12 +271,12 @@ export class CalendarFacade {
 			const { successfulEvents, failedEventsResult } = await this.setupMultipleCalendarEventsForOneList(calendarEventsToPersist, listId)
 
 			results.successfulEvents.push(...successfulEvents)
-			if (arrayIsNotEmpty(failedEventsResult.failedEvents)) {
+			if (array_isNotEmpty(failedEventsResult.failedEvents)) {
 				results.failedEvents.push(...failedEventsResult.failedEvents)
 				results.failedEventErrors.push(...failedEventsResult.errors)
 			}
 
-			if (arrayIsEmpty(successfulEvents)) {
+			if (array_isEmpty(successfulEvents)) {
 				continue
 			}
 
@@ -286,10 +286,10 @@ export class CalendarFacade {
 			await progressUpdater(currentProgress)
 
 			const eventAlarmTuplesToPersist = eventAlarmsTuples.filter(
-				(tuple) => successfulIds.has(tuple.event._id) && arrayIsNotEmpty(tuple.alarmInfoTemplates),
+				(tuple) => successfulIds.has(tuple.event._id) && array_isNotEmpty(tuple.alarmInfoTemplates),
 			)
 
-			if (arrayIsNotEmpty(eventAlarmTuplesToPersist)) {
+			if (array_isNotEmpty(eventAlarmTuplesToPersist)) {
 				await this.alarmFacade.createAlarms(loggedInUser, eventAlarmTuplesToPersist, pushIdentifiers).catch((e) => {
 					results.failedAlarms.push(...eventAlarmTuplesToPersist)
 					results.failedAlarmErrors.push(e)
@@ -451,14 +451,14 @@ export class CalendarFacade {
 
 		const userAlarmInfos = await this.cachingEntityClient.loadAll(UserAlarmInfoTypeRef, alarmInfoList.alarms)
 		// Group referenced event ids by list id so we can load events of one list in one request.
-		const listIdToElementIds = iterableGroupedUniqByMapped(
+		const listIdToElementIds = iterable_groupedUniqByMapped(
 			userAlarmInfos,
 			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.listId,
 			(userAlarmInfo) => userAlarmInfo.alarmInfo.calendarRef.elementId,
 		)
 		// we group by the full concatenated list id
 		// because there might be collisions between event element ids due to being custom ids
-		const eventIdToAlarmInfos = iterableGroupedBy(userAlarmInfos, (userAlarmInfo) => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
+		const eventIdToAlarmInfos = iterable_groupedBy(userAlarmInfos, (userAlarmInfo) => getEventIdFromUserAlarmInfo(userAlarmInfo).join(""))
 		const calendarEvents = await promiseMap(listIdToElementIds.entries(), ([listId, elementIds]) => {
 			return this.cachingEntityClient.loadMultiple(CalendarEventTypeRef, listId, Array.from(elementIds)).catch((error) => {
 				// handle NotAuthorized here because user could have been removed from group.

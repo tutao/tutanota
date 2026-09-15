@@ -6,7 +6,7 @@
 import { clone, elementIdToId, getAsEnumValue } from "@tutao/meta"
 import { CalendarModel } from "../../model/CalendarModel.js"
 import { CalendarNotificationModel } from "./CalendarNotificationModel.js"
-import { arrayIsNotEmpty, assertNotNull, identity } from "@tutao/utils"
+import { array_isNotEmpty, assertNotNull, identity } from "@tutao/utils"
 import { generateUid } from "../../../../common/calendar/date/CalendarUtils.js"
 import {
 	assembleEditResultAndAssignFromExisting,
@@ -106,7 +106,7 @@ export class CalendarEventApplyStrategies {
 							return { address: attendee.address.address, name: attendee.address.name }
 						})
 
-						if (arrayIsNotEmpty(recipients)) {
+						if (array_isNotEmpty(recipients)) {
 							const cancelModel = await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients)
 
 							await this.notificationModel.send(
@@ -185,7 +185,7 @@ export class CalendarEventApplyStrategies {
 							return { address: attendee.address.address, name: attendee.address.name }
 						})
 
-						if (arrayIsNotEmpty(recipients)) {
+						if (array_isNotEmpty(recipients)) {
 							sendModels.inviteModel = sendModels.inviteModel?.allRecipients().length ? sendModels.inviteModel : null
 							sendModels.cancelModel = sendModels.cancelModel?.allRecipients().length ? sendModels.cancelModel : null
 							sendModels.updateModel = recipients.length ? await this.calendarInviteHandler.getSendMailModelWithoutOwnRecipient(recipients) : null
@@ -349,7 +349,7 @@ export class CalendarEventApplyStrategies {
 				if (isBefore(occurrence.startTime, repeatRuleEndDate, "date")) {
 					continue
 				}
-				if (arrayIsNotEmpty(occurrence.attendees)) {
+				if (array_isNotEmpty(occurrence.attendees)) {
 					const alteredInstanceEditModels = this.editModelsFactory(occurrence)
 					await this.handleDeleteAlteredInstance(alteredInstanceEditModels, occurrence)
 				} else {

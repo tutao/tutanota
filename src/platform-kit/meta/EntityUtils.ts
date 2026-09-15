@@ -12,7 +12,7 @@ import {
 	Nullable,
 	pad,
 	repeat,
-	uint8ArrayCompare,
+	uint8Array_compare,
 	uint8ArrayToBase64,
 	uint8arrayToBase64UrlCustomId,
 } from "@tutao/utils"
@@ -89,7 +89,7 @@ export function firstBiggerThanSecond(firstId: Id, secondId: Id, encoding: Entit
 }
 
 export function firstBiggerThanSecondBase64Url(firstId: Id, secondId: Id): boolean {
-	return uint8ArrayCompare(base64UrlIdToUint8array(firstId), base64UrlIdToUint8array(secondId)) === 1
+	return uint8Array_compare(base64UrlIdToUint8array(firstId), base64UrlIdToUint8array(secondId)) === 1
 }
 
 export function firstBiggerThanSecondBase64Ext(firstId: Id, secondId: Id): boolean {

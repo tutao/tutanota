@@ -1,4 +1,4 @@
-import { arrayIsEmpty, assertNotNull } from "../../platform-kit/utils"
+import { array_isEmpty, assertNotNull } from "../../platform-kit/utils"
 
 /**
  * A token that was found in {@link splitQuery}
@@ -82,7 +82,7 @@ export function escapeRegExp(string: string): string {
  */
 export function splitTextForHighlighting(text: string, query: readonly SearchToken[]): HighlightSubstring[] {
 	// Re-return the text if there is nothing to highlight to avoid searching for literal nothingness.
-	if (arrayIsEmpty(query)) {
+	if (array_isEmpty(query)) {
 		return [{ text, highlighted: false }]
 	}
 

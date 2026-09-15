@@ -5,8 +5,8 @@ import {
 	LazyLoaded,
 	Nullable,
 	stringToUtf8Uint8Array,
+	uint8Array_concat,
 	uint8ArrayToBase64,
-	uint8ArrayUtils,
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import {
@@ -72,7 +72,7 @@ export async function decryptLegacyItem(
 	key: Aes256Key,
 	initializationVector: InitializationVector,
 ): Promise<string> {
-	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, uint8ArrayUtils(initializationVector.bytes, encryptedAddress)))
+	return utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, uint8Array_concat(initializationVector.bytes, encryptedAddress)))
 }
 
 /**

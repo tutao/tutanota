@@ -1,4 +1,4 @@
-import { arrayRemove, isNotNull } from "@tutao/utils"
+import { array_remove, isNotNull } from "@tutao/utils"
 
 export interface QuickAction {
 	/** Displayed in the list */
@@ -54,7 +54,7 @@ export class QuickActionsModel {
 	 * Execute the action and update the last actions.
 	 */
 	runAction(action: QuickAction) {
-		arrayRemove(this._lastRunActions, action)
+		array_remove(this._lastRunActions, action)
 		this._lastRunActions.unshift(action)
 		action.exec()
 	}

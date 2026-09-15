@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { arrayFirstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "../../../../../src/platform-kit/utils"
+import { array_firstOrThrow, hexToUint8Array, KeyVersion, uint8ArrayToHex, Versioned } from "../../../../../src/platform-kit/utils"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
@@ -57,11 +57,11 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		publicEncryptionKeyCache = object()
 		publicEncryptionKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade, publicEncryptionKeyCache)
 
-		const kyberTestData = arrayFirstOrThrow(testData.kyberEncryptionTests)
+		const kyberTestData = array_firstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
-		const rsaTestData = arrayFirstOrThrow(testData.rsaEncryptionTests)
+		const rsaTestData = array_firstOrThrow(testData.rsaEncryptionTests)
 		rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
-		const eccTestData = arrayFirstOrThrow(testData.x25519Tests)
+		const eccTestData = array_firstOrThrow(testData.x25519Tests)
 		x25519PublicKey = hexToUint8Array(eccTestData.alicePublicKeyHex)
 
 		publicKeyIdentifier = {
@@ -101,7 +101,7 @@ o.spec("PublicEncryptionKeyProviderTest", function () {
 		})
 
 		o("success rsa keys", async function () {
-			const rsaTestData = arrayFirstOrThrow(testData.rsaEncryptionTests)
+			const rsaTestData = array_firstOrThrow(testData.rsaEncryptionTests)
 			const rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
 			const signature: PublicKeySignature = object()
 			signature.signature = object()
@@ -322,11 +322,11 @@ o.spec("PublicEncryptionKeyProvider - convert keys", function () {
 
 		publicKeyProvider = new PublicEncryptionKeyProvider(serviceExecutor, async () => keyVerificationFacade, publicEncryptionKeyCache)
 
-		const kyberTestData = arrayFirstOrThrow(testData.kyberEncryptionTests)
+		const kyberTestData = array_firstOrThrow(testData.kyberEncryptionTests)
 		kyberPublicKey = hexToUint8Array(kyberTestData.publicKey)
-		const rsaTestData = arrayFirstOrThrow(testData.rsaEncryptionTests)
+		const rsaTestData = array_firstOrThrow(testData.rsaEncryptionTests)
 		rsaPublicKey = hexToUint8Array(rsaTestData.publicKey)
-		const eccTestData = arrayFirstOrThrow(testData.x25519Tests)
+		const eccTestData = array_firstOrThrow(testData.x25519Tests)
 		x25519PublicKey = hexToUint8Array(eccTestData.alicePublicKeyHex)
 	})
 

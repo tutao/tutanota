@@ -19,7 +19,7 @@ import {
 	TimeScale,
 	TimeScaleTuple,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
-import { arrayFilterNull, getStartOfDay, getStartOfNextDay, isSameDay } from "@tutao/utils"
+import { array_filterNull, getStartOfDay, getStartOfNextDay, isSameDay } from "@tutao/utils"
 import { InviteAgenda } from "./EventBannerImpl"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { layout_size, px, size } from "../../../../ui/size"
@@ -71,7 +71,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 		this.displayConflictingAgenda = attrs.agenda?.conflictCount === 1
 
 		if (attrs.agenda) {
-			this.eventWrappers = arrayFilterNull([attrs.agenda.before, attrs.agenda.main, attrs.agenda.after])
+			this.eventWrappers = array_filterNull([attrs.agenda.before, attrs.agenda.main, attrs.agenda.after])
 			const { timeColumnWidth, gridParams } = this.getTimeOverviewParameters(attrs.agenda)
 			this.timeColumnWidth = timeColumnWidth
 			this.gridParams = gridParams

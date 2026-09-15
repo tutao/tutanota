@@ -1,4 +1,4 @@
-import { assertNotNull, intersection, toLowerCase } from "../../platform-kit/utils"
+import { set_intersection, toLowerCase } from "../../platform-kit/utils"
 import { Attachment, WebFile } from "../../entities/tutanota/Utils"
 
 type StringPredicate = (arg0: string) => boolean
@@ -81,7 +81,7 @@ export function deduplicateFilenames(filenames: Array<string>, _taken: ReadonlyS
 	const deduplicatedNames = new Set(filenames.map(toLowerCase))
 
 	// None of the filenames were duplicated or taken
-	if (deduplicatedNames.size === filenames.length && intersection(deduplicatedNames, taken).size === 0) {
+	if (deduplicatedNames.size === filenames.length && set_intersection(deduplicatedNames, taken).size === 0) {
 		// if all file names are good then just return an identity map
 		return Object.fromEntries(filenames.map((f) => [f, [f]])) // convert into map oldname -> [newname]
 	}

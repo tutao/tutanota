@@ -5,7 +5,7 @@ import { BlobElementEntity, ListElementEntity, PersistentEntity, TypeRef } from 
 import { CustomCacheHandlerMap } from "./CustomCacheHandler"
 import { OfflineStorageArgs } from "../../platform-kit/base/facades/CacheStorageLateInitializer"
 import { CacheSyncStatus } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { arrayIsNotEmpty } from "@tutao/utils"
+import { array_isNotEmpty } from "@tutao/utils"
 import { DecryptedParsedInstance, ModelMapper } from "@tutao/instance-pipeline"
 
 export class CachingOfflineStorage implements CacheStorage {
@@ -98,7 +98,7 @@ export class CachingOfflineStorage implements CacheStorage {
 		if (shouldLoadOnlyFromFastCache) {
 			return fastResult
 		}
-		if (arrayIsNotEmpty(fastResult)) {
+		if (array_isNotEmpty(fastResult)) {
 			return fastResult
 		}
 		return this.delegate.getIdsInRange(typeRef, listId)

@@ -11,7 +11,7 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
-import { arrayIsNotEmpty, assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
+import { array_isNotEmpty, assertNotNull, DateProvider, delay, identity, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
 import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
@@ -715,7 +715,7 @@ export class EventBusClient {
 			if (this.isTerminated()) return
 
 			const filteredEvents = await this.cache.onEntityUpdatesReceived(batch.updates, batch.batchId, batch.groupId)
-			if (!this.isTerminated() && arrayIsNotEmpty(filteredEvents)) {
+			if (!this.isTerminated() && array_isNotEmpty(filteredEvents)) {
 				await this.listener.onEntityUpdatesReceived(filteredEvents, batch.batchId, batch.groupId, assertNotNull(batch.isInitialSyncDone))
 			}
 

@@ -1,5 +1,5 @@
 import o, { verify } from "@tutao/otest"
-import { arrayEquals, deepEqual, deepMemoized, memoized } from "../../../src/platform-kit/utils"
+import { array_equals, deepEqual, deepMemoized, memoized } from "../../../src/platform-kit/utils"
 import { func, matchers, when } from "testdouble"
 import { clone } from "../../../src/platform-kit/meta"
 
@@ -28,7 +28,7 @@ o.spec("utils", function () {
 		o(c1._ownerEncSessionKey instanceof Uint8Array).equals(true)
 		o(c2._ownerEncSessionKey instanceof Uint8Array).equals(true)
 		o(c2._ownerKeyVersion).equals(c1._ownerKeyVersion)
-		o(arrayEquals(ownerEncSessionKey, c2._ownerEncSessionKey)).equals(true)
+		o(array_equals(ownerEncSessionKey, c2._ownerEncSessionKey)).equals(true)
 		o(Object.is(c1.mailAddresses[0], c2.mailAddresses[0])).equals(false)("objects must be cloned")
 	})
 

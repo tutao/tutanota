@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { arrayChunked, arrayIsEmpty, arrayLast, assertNotNull, isNotNull, lazyAsync, promiseMap } from "../../../../platform-kit/utils"
+import { array_chunked, array_isEmpty, array_last, assertNotNull, isNotNull, lazyAsync, promiseMap } from "../../../../platform-kit/utils"
 import {
 	compareNewestFirst,
 	elementIdPart,
@@ -102,7 +102,7 @@ export class SpamClassifierDataDealer {
 			console.log(`mailbox ${mailbox._id} has ${mailsToUpload.length} new mails suitable for encrypted training vector data upload`)
 			const bulkMailLoader = await this.bulkMailLoader()
 			await promiseMap(
-				arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsToUpload),
+				array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsToUpload),
 				async (mailChunk) => {
 					const mailChunkWithDetails = await bulkMailLoader.loadMailDetails(mailChunk)
 					await this.uploadTrainingDataForMails(mailChunkWithDetails, mailbox, mailSets)
@@ -119,9 +119,9 @@ export class SpamClassifierDataDealer {
 			ClientSpamTrainingDatumIndexEntryTypeRef,
 			mailbox.modifiedClientSpamTrainingDataIndex,
 		)
-		const lastModifiedClientSpamTrainingDataIndexElementId = arrayIsEmpty(modifiedClientSpamTrainingDataIndices)
+		const lastModifiedClientSpamTrainingDataIndexElementId = array_isEmpty(modifiedClientSpamTrainingDataIndices)
 			? GENERATED_MIN_ID
-			: getElementId(assertNotNull(arrayLast(modifiedClientSpamTrainingDataIndices)))
+			: getElementId(assertNotNull(array_last(modifiedClientSpamTrainingDataIndices)))
 
 		return {
 			trainingData: subsampledTrainingData,
@@ -145,7 +145,7 @@ export class SpamClassifierDataDealer {
 			false,
 		)
 
-		if (arrayIsEmpty(modifiedClientSpamTrainingDataIndicesSinceStart)) {
+		if (array_isEmpty(modifiedClientSpamTrainingDataIndicesSinceStart)) {
 			return emptyResult
 		}
 
@@ -159,7 +159,7 @@ export class SpamClassifierDataDealer {
 
 		return {
 			trainingData: subsampledTrainingData,
-			lastTrainingDataIndexId: getElementId(assertNotNull(arrayLast(modifiedClientSpamTrainingDataIndicesSinceStart))),
+			lastTrainingDataIndexId: getElementId(assertNotNull(array_last(modifiedClientSpamTrainingDataIndicesSinceStart))),
 			hamCount,
 			spamCount,
 		}
@@ -257,7 +257,7 @@ export class SpamClassifierDataDealer {
 		const mailbagsToFetch = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags.reverse()]
 		for (let currentMailbag = mailbagsToFetch.shift() ?? null; isNotNull(currentMailbag); currentMailbag = mailbagsToFetch.shift() ?? null) {
 			const mailsOfThisMailbag = await this.fetchMailsByMailbagAfterDate(currentMailbag, mailSets, startDate)
-			if (arrayIsEmpty(mailsOfThisMailbag)) {
+			if (array_isEmpty(mailsOfThisMailbag)) {
 				// the list is empty if none of the mails in the mailbag were recent enough,
 				// therefore, there is no point in requesting the remaining mailbags unnecessarily
 				break
@@ -292,7 +292,7 @@ export class SpamClassifierDataDealer {
 			},
 		)
 
-		if (!arrayIsEmpty(unencryptedPopulateClientSpamTrainingData)) {
+		if (!array_isEmpty(unencryptedPopulateClientSpamTrainingData)) {
 			// we are uploading the initial spam training data using the PopulateClientSpamTrainingDataService
 			return (await this.mailFacade()).populateClientSpamTrainingData(assertNotNull(mailBox._ownerGroup), unencryptedPopulateClientSpamTrainingData)
 		}

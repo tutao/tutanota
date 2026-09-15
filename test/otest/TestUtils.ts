@@ -1,6 +1,6 @@
 import otest from "./index"
 import * as td from "testdouble"
-import { arrayLastOrThrow, mapObject } from "../../src/platform-kit/utils"
+import { array_lastOrThrow, mapObject } from "../../src/platform-kit/utils"
 
 /**
  * Mocks an attribute (function or object) on an object and makes sure that it can be restored to the original attribute by calling unmockAttribute() later.
@@ -59,7 +59,7 @@ export function spy(producer?: (...args: any) => any): Spy {
 	})
 	Object.defineProperty(s, "args", {
 		get(): any[] {
-			return arrayLastOrThrow(s.invocations)
+			return array_lastOrThrow(s.invocations)
 		},
 	})
 	Object.defineProperty(s, "calls", {

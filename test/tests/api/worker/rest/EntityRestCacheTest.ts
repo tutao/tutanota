@@ -22,7 +22,16 @@ import {
 	PersistentEntity,
 	TypeRef,
 } from "../../../../../src/platform-kit/meta"
-import { arrayLast, arrayOf, assertNotNull, deepEqual, downcast, Nullable, promiseMap, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
+import {
+	array_last,
+	array_of,
+	assertNotNull,
+	deepEqual,
+	downcast,
+	Nullable,
+	promiseMap,
+	stringToBase64UrlCustomId,
+} from "../../../../../src/platform-kit/utils"
 import { DefaultEntityRestCache, EXTEND_RANGE_MIN_CHUNK_SIZE } from "../../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { OfflineStorage } from "../../../../../src/app-kit/local-store/OfflineStorage.js"
 import { RestClient, restError } from "../../../../../src/platform-kit/rest-client"
@@ -1687,7 +1696,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const listId = "listId1"
 
-				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
+				const mails = array_of(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
 				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[98]), getElementId(mails[99]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[98]))
@@ -1748,7 +1757,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 
 				const listId = "listId1"
-				const mails = arrayOf(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
+				const mails = array_of(100, (idx) => createMailInstance(listId, createId(`${idx}`), `hola ${idx}`))
 
 				await storage.setNewRangeForList(MailTypeRef, listId, getElementId(mails[0]), getElementId(mails[1]))
 				await storage.put(MailTypeRef, await toStorableInstance(mails[0]))
@@ -1941,7 +1950,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				const mail = await storage.get(MailTypeRef, listId, getElementId(item))
 				o(mail).notEquals(null)
 			}
-			const lastId = getElementId(arrayLast(serverMails)!)
+			const lastId = getElementId(array_last(serverMails)!)
 			o(await storage.get(MailTypeRef, listId, lastId)).equals(null)
 
 			unmockAttribute(mockLoadRange)

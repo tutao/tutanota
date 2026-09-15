@@ -1,5 +1,5 @@
 import m, { ClassComponent, Vnode, VnodeDOM } from "mithril"
-import { arrayLastIndex } from "@tutao/utils"
+import { array_lastIndex } from "@tutao/utils"
 import { formatShortTime, formatTime } from "../../../../ui/utils/Formatter"
 import { getIntervalAsMinutes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "./CalendarTimeGrid"
 import { layout_size, px, size } from "../../../../ui/size"
@@ -67,7 +67,7 @@ export class CalendarTimeColumn implements ClassComponent<CalendarTimeColumnAttr
 					const formatedTime = Styles.get().isDesktopLayout() ? formatTime(parsedTime) : formatShortTime(parsedTime)
 					const rowStart = intervalIndex * SUBROWS_PER_INTERVAL + 1
 					const rowEnd = rowStart + SUBROWS_PER_INTERVAL
-					const showBorderBottom = intervalIndex !== arrayLastIndex(attrs.intervals)
+					const showBorderBottom = intervalIndex !== array_lastIndex(attrs.intervals)
 
 					return m(CalendarTimeCell, {
 						dateTime: {

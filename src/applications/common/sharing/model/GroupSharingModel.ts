@@ -5,7 +5,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { elementIdToId, getElementId, getEtId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../../platform-kit/meta"
 import { ProgrammingError, ShareCapability } from "../../../../platform-kit/app-env"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
-import { arrayRemoveBy, assertNotNull, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
+import { array_removeBy, assertNotNull, lazy, noOp, ofClass, promiseMap } from "../../../../platform-kit/utils"
 import { loadGroupInfoForMember, loadGroupMembers } from "../GroupUtils"
 import type { LoginController } from "../../api/main/LoginController"
 import { UserError } from "../../api/main/UserError"
@@ -225,7 +225,7 @@ export class GroupSharingModel {
 				}
 
 				if (update.operation === OperationType.DELETE) {
-					arrayRemoveBy(this.sentGroupInvitations, (sentGroupInvitation) => isSameSingleId(getElementId(sentGroupInvitation), update.instanceId))
+					array_removeBy(this.sentGroupInvitations, (sentGroupInvitation) => isSameSingleId(getElementId(sentGroupInvitation), update.instanceId))
 					this.onEntityUpdate()
 				}
 			} else if (isUpdateForTypeRef(GroupMemberTypeRef, update)) {
@@ -247,7 +247,7 @@ export class GroupSharingModel {
 				}
 
 				if (update.operation === OperationType.DELETE) {
-					arrayRemoveBy(this.memberInfos, (memberInfo) => isSameSingleId(getElementId(memberInfo.member), update.instanceId))
+					array_removeBy(this.memberInfos, (memberInfo) => isSameSingleId(getElementId(memberInfo.member), update.instanceId))
 					this.onEntityUpdate()
 				}
 			}

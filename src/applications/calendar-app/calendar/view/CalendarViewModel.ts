@@ -20,8 +20,8 @@ import { CalendarEvent, CalendarEventTypeRef, CalendarGroupRoot, Contact, Contac
 import { CustomerInfoTypeRef, GroupInfo, ReceivedGroupInvitation } from "@tutao/entities/sys"
 import { GroupType, NewPaidPlans } from "../../../../entities/sys/Utils"
 import {
-	arrayInsertIntoSorted,
-	arrayRemoveBy,
+	array_insertIntoSorted,
+	array_removeBy,
 	assertNotNull,
 	debounce,
 	deepEqual,
@@ -30,7 +30,7 @@ import {
 	identity,
 	incrementDate,
 	incrementMonth,
-	iterableGroupedUniqByMapped,
+	iterable_groupedUniqByMapped,
 	lazy,
 	lazyAsync,
 	memoized,
@@ -618,7 +618,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const longEvents: Map<string, EventWrapper> = new Map()
 		let shortEvents: Array<Array<EventWrapper>> = []
 		// It might be the case that a UID is shared by events across calendars, so we need to differentiate them by list ID aswell
-		const transientEventUidsByCalendar = iterableGroupedUniqByMapped(
+		const transientEventUidsByCalendar = iterable_groupedUniqByMapped(
 			this._transientEvents,
 			(eventWrapper) => getListId(eventWrapper.event),
 			(eventWrapper) => eventWrapper.event.uid,
@@ -628,7 +628,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 			if (isAllDayEvent(eventWrapper.event) || getDiffIn60mIntervals(eventWrapper.event.startTime, eventWrapper.event.endTime) >= 24) {
 				longEvents.set(getElementId(eventWrapper.event) + eventWrapper.event.startTime.toString(), eventWrapper)
 			} else {
-				arrayInsertIntoSorted(eventWrapper, shortEventsForDay, eventComparator, isSameEventInstance)
+				array_insertIntoSorted(eventWrapper, shortEventsForDay, eventComparator, isSameEventInstance)
 			}
 		}
 
@@ -679,7 +679,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 	}
 
 	_removeTransientEvent(eventWrapper: EventWrapper) {
-		arrayRemoveBy(this._transientEvents, (transient) => transient.event.uid === eventWrapper.event.uid)
+		array_removeBy(this._transientEvents, (transient) => transient.event.uid === eventWrapper.event.uid)
 	}
 
 	/**

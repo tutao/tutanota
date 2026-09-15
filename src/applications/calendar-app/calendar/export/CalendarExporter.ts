@@ -3,8 +3,8 @@ import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tut
 import { CalendarAdvancedRepeatRule, DateWrapper, RepeatRule, UserAlarmInfo } from "@tutao/entities/sys"
 import { EndType, RepeatPeriod, TimeConstants } from "../../../../platform-kit/app-env"
 import {
-	arrayIsNotEmpty,
-	arrayMapFilterNull,
+	array_mapFilterNull,
+	array_isNotEmpty,
 	assertNotNull,
 	downcast,
 	incrementDate,
@@ -102,7 +102,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 		.concat(event.recurrenceId == null ? serializeRepeatRule(repeatRule, isAllDay, timeZone) : [])
 		.concat(event.location && event.location.length > 0 ? `LOCATION:${serializeIcalText(event.location)}` : [])
 		.concat(
-			...arrayMapFilterNull(alarms, (alarm) => {
+			...array_mapFilterNull(alarms, (alarm) => {
 				try {
 					return serializeAlarm(event, alarm)
 				} catch (e) {
@@ -118,7 +118,7 @@ export function serializeEvent(event: CalendarEvent, alarms: Array<UserAlarmInfo
 function serializeAdvancedRepeatRules(advancedRules: CalendarAdvancedRepeatRule[]): string {
 	let advancedRepeatRules = ""
 
-	if (arrayIsNotEmpty(advancedRules)) {
+	if (array_isNotEmpty(advancedRules)) {
 		const BYRULES = new Map<string, string>()
 		const byRuleValueToKey = reverse(ByRule)
 		for (const r of advancedRules) {

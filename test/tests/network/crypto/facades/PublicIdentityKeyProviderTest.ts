@@ -10,7 +10,7 @@ import {
 	SigningKeyPairType,
 } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils"
-import { arrayEquals, hexToUint8Array } from "../../../../../src/platform-kit/utils"
+import { array_equals, hexToUint8Array } from "../../../../../src/platform-kit/utils"
 import { IdentityKeySourceOfTrust } from "../../../../../src/platform-kit/app-env"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import testData from "../../../api/worker/crypto/CompatibilityTestData.json"
@@ -95,7 +95,7 @@ o.spec("PublicIdentityKeyProviderTest", function () {
 					matchers.argThat((params: IdentityPubKeyAuthenticationParams) => {
 						return (
 							params.tagType === SystemMapKind.IDENTITY_PUB_KEY_TAG &&
-							arrayEquals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
+							array_equals(params.untrustedKey.identityPubKey, ed25519PublicKey) &&
 							params.sourceOfTrust.symmetricGroupKey === userGroupKey &&
 							isSameId(idToElementId(params.bindingData.groupId), userGroup._id) &&
 							String(params.bindingData.groupKeyVersion) === identityPublicKeyMac.taggingKeyVersion &&

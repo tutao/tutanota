@@ -6,7 +6,7 @@ import { IconButton } from "../../../../ui/base/IconButton.js"
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem.js"
 import { isNavButtonSelected, isSelectedPrefix } from "../../../../ui/base/NavButton.js"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange.js"
-import { arrayIsNotEmpty } from "../../../../platform-kit/utils"
+import { array_isNotEmpty } from "../../../../platform-kit/utils"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
@@ -113,7 +113,7 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			const orphanChildren = folders
 				? renderFolderTree(orphanSystems, FolderSystemKind.Orphan, groupCounters, folders, mailTreeAttrs, path, isInternalUser, this).children
 				: []
-			if (arrayIsNotEmpty(orphanChildren)) {
+			if (array_isNotEmpty(orphanChildren)) {
 				children.push(
 					m(
 						SidebarSection,

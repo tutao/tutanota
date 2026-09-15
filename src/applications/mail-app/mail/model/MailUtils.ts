@@ -1,5 +1,5 @@
 import { FolderSystem, IndentedMailSet } from "../../../common/api/common/mail/FolderSystem.js"
-import { arrayFirst, assertNotNull } from "../../../../platform-kit/utils"
+import { array_first, assertNotNull } from "../../../../platform-kit/utils"
 import { MailModel } from "./MailModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { Header, InboxRule, Mail, MailDetails, MailSet, TutanotaProperties } from "@tutao/entities/tutanota"
@@ -79,7 +79,7 @@ export async function getMoveTargetFolderSystems(foldersModel: MailModel, mails:
 		folders,
 	})
 
-	const firstMail = arrayFirst(mails)
+	const firstMail = array_first(mails)
 	if (firstMail == null) return regularMoveTargets([])
 
 	const mailboxDetails = await foldersModel.getMailboxDetailsForMail(firstMail)

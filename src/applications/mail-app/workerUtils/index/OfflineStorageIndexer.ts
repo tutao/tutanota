@@ -1,6 +1,6 @@
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
 import { MailIndexer } from "./MailIndexer"
-import { assertNotNull, iterableDifference } from "../../../../platform-kit/utils"
+import { assertNotNull, iterable_difference } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { OfflineStoragePersistence } from "./OfflineStoragePersistence"
@@ -30,11 +30,11 @@ export class OfflineStorageIndexer implements Indexer {
 		// Added mail groups will be indexed when extendMailIndex() will be called later
 		const indexedGroups = (await this.persistence.getIndexedGroups()).map((data) => data.groupId)
 		const userGroups = filterIndexMemberships(user).map((membership) => membership.group)
-		const removedGroups = iterableDifference(indexedGroups, userGroups)
+		const removedGroups = iterable_difference(indexedGroups, userGroups)
 		for (const removedGroup of removedGroups) {
 			await this.persistence.removeIndexedGroup(removedGroup)
 		}
-		const addedGroups = iterableDifference(userGroups, indexedGroups)
+		const addedGroups = iterable_difference(userGroups, indexedGroups)
 		for (const addedGroup of addedGroups) {
 			const membership = this.userFacade.getMembership(addedGroup)
 			const groupType = assertNotNull(membership.groupType) as GroupType

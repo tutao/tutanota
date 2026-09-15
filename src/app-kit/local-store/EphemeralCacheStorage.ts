@@ -20,7 +20,7 @@ import {
 	TypeModel,
 	TypeRef,
 } from "../../platform-kit/meta"
-import { arrayFilterNull, arrayIsEmpty, arrayRemove, assertNotNull, getFromMap, Nullable } from "@tutao/utils"
+import { array_filterNull, array_isEmpty, array_remove, assertNotNull, getFromMap, Nullable } from "@tutao/utils"
 import { CustomCacheHandlerMap } from "./CustomCacheHandler.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { DecryptedParsedInstance, ModelMapper, ServerTypeModelResolver } from "../../platform-kit/instance-pipeline"
@@ -173,7 +173,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				return this.getParsed(typeRef, listId, elementId)
 			}),
 		)
-		return arrayFilterNull(result)
+		return array_filterNull(result)
 	}
 
 	async getWholeListParsed(typeRef: TypeRef<Entity>, listId: string): Promise<Array<DecryptedParsedInstance>> {
@@ -211,7 +211,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 				const cache = this.listElementEntities.get(type)?.get(assertNotNull(listId) as Id)
 				if (cache != null) {
 					cache.elements.delete(elementId)
-					arrayRemove(cache.allRange, elementId)
+					array_remove(cache.allRange, elementId)
 				}
 				break
 			}
@@ -428,7 +428,7 @@ export class EphemeralCacheStorage implements CacheStorage {
 	} | null> {
 		const listCache = this.listElementEntities.get(getTypeString(typeRef))?.get(listId)
 
-		if (listCache == null || (arrayIsEmpty(listCache.allRange) && listCache.lowerRangeId === listCache.upperRangeId)) {
+		if (listCache == null || (array_isEmpty(listCache.allRange) && listCache.lowerRangeId === listCache.upperRangeId)) {
 			return null
 		}
 

@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { LOG_SIZE, Logger } from "../../../../../src/applications/common/api/common/Logger.js"
-import { arrayLastOrThrow } from "../../../../../src/platform-kit/utils"
+import { array_lastOrThrow } from "../../../../../src/platform-kit/utils"
 
 o.spec("Loger test", function () {
 	let dateProvider
@@ -30,6 +30,6 @@ o.spec("Loger test", function () {
 
 		o(log.getEntries().length).equals(LOG_SIZE)
 		o(log.getEntries()[0]).equals(log.formatLogEntry(new Date(2), "I", "info " + 2))
-		o(arrayLastOrThrow(log.getEntries())).equals(log.formatLogEntry(new Date(1001), "I", "info " + 1001))
+		o(array_lastOrThrow(log.getEntries())).equals(log.formatLogEntry(new Date(1001), "I", "info " + 1001))
 	})
 })

@@ -5,7 +5,7 @@
 
 import { AssociationReprType, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
-import { arrayIsEmpty, assertNotNull, deepEqual, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
+import { array_isEmpty, assertNotNull, deepEqual, isNotNull, KeyVersion, lazy, Nullable } from "@tutao/utils"
 import {
 	DecryptedParsedInstance,
 	DecryptedParsedValue,
@@ -225,7 +225,7 @@ export class PatchMerger {
 
 				// We fetch the latest state of the user immediately in LoginFacade#initSession, but we still receive
 				// patches from the server for the group memberships of the user. This is fine, so we don't want to log it
-				if (!arrayIsEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
+				if (!array_isEmpty(commonAssociationItems) && !isSameTypeRef(UserTypeRef, new TypeRef(typeModel.app, typeModel.id))) {
 					console.log(
 						`PatchMerger attempted to add an already existing item to an association. Common items: ${JSON.stringify(commonAssociationItems)}`,
 					)

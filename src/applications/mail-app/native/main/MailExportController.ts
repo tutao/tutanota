@@ -2,7 +2,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { elementIdToId, GENERATED_MAX_ID, getElementId, isSameId } from "../../../../platform-kit/meta"
-import { arrayLastOrThrow, assertNotNull, delay, filterInt, isNotNull } from "../../../../platform-kit/utils"
+import { array_lastOrThrow, assertNotNull, delay, filterInt, isNotNull } from "../../../../platform-kit/utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -254,7 +254,7 @@ export class MailExportController {
 						}
 					}
 				}
-				currentStartId = getElementId(arrayLastOrThrow(downloadedMails))
+				currentStartId = getElementId(array_lastOrThrow(downloadedMails))
 				const currentState = this._state()
 				if (currentState.type !== "exporting") {
 					return

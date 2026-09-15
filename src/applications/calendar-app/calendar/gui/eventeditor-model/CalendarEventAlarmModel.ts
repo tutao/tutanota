@@ -1,5 +1,5 @@
 import { generateEventElementId, serializeAlarmInterval } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { arrayIsEmpty, arrayRemoveAllBy, deepEqual, noOp } from "../../../../../platform-kit/utils"
+import { array_isEmpty, array_removeAllBy, deepEqual, noOp } from "../../../../../platform-kit/utils"
 import { EventType } from "./CalendarEventModel.js"
 import { DateProvider } from "../../../../../platform-kit/utils/DateProvider.js"
 import { AlarmInterval, alarmIntervalToLuxonDurationLikeObject, parseAlarmInterval } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -49,7 +49,7 @@ export class CalendarEventAlarmModel {
 	 * deactivate the alarm for the given interval.
 	 */
 	removeAlarm(alarmInterval: AlarmInterval) {
-		arrayRemoveAllBy(this._alarms, (savedAlarm) => deepEqual(savedAlarm, alarmInterval))
+		array_removeAllBy(this._alarms, (savedAlarm) => deepEqual(savedAlarm, alarmInterval))
 		this.uiUpdateCallback()
 	}
 
@@ -107,7 +107,7 @@ export class CalendarEventAlarmModel {
 	 * await myEventAlarmModel.removeCalendarDefaultAlarms('calendar123', allGroupSettings)
 	 */
 	async removeCalendarDefaultAlarms(calendarId: Id | null, groupSettings: GroupSettings[]) {
-		if (!calendarId || arrayIsEmpty(this._alarms)) {
+		if (!calendarId || array_isEmpty(this._alarms)) {
 			return
 		}
 

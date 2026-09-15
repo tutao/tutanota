@@ -15,8 +15,8 @@ import {
 } from "../../../../platform-kit/meta"
 import { DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
 import {
-	arrayContains,
-	arrayIsEmpty,
+	array_contains,
+	array_isEmpty,
 	assertNotNull,
 	asyncFind,
 	base64UrlToBase64Ext,
@@ -26,7 +26,7 @@ import {
 	ofClass,
 	promiseMap,
 	tokenize,
-	uint8ArrayHashSigned,
+	uint8Array_hashSigned,
 	uint8ArrayToBase64,
 } from "../../../../platform-kit/utils"
 import {
@@ -392,7 +392,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntry[]) => {
 								return indexEntries.map((entry) => ({
 									encEntry: entry,
-									idHash: uint8ArrayHashSigned(getIdFromEncSearchIndexEntry(entry)),
+									idHash: uint8Array_hashSigned(getIdFromEncSearchIndexEntry(entry)),
 								}))
 							})
 							.thenOrApply((indexEntries: EncryptedSearchIndexEntryWithHash[]) => {
@@ -594,7 +594,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		entryIdEncoding: EntityIdEncoding,
 	): boolean {
 		if (restriction.attributeIds) {
-			if (!arrayContains(restriction.attributeIds, entry.attribute)) {
+			if (!array_contains(restriction.attributeIds, entry.attribute)) {
 				return false
 			}
 		}
@@ -697,7 +697,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 			.then(async (intermediateResults) => {
 				// apply folder restrictions to intermediateResults
 
-				if (arrayIsEmpty(searchResult.restriction.folderIds)) {
+				if (array_isEmpty(searchResult.restriction.folderIds)) {
 					// no folder restrictions (ALL)
 					return intermediateResults
 				} else {

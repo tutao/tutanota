@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { iterableDifference } from "../../../src/platform-kit/utils"
+import { iterable_difference } from "../../../src/platform-kit/utils"
 import en from "../../../src/ui/translations/en.js"
 import de from "../../../src/ui/translations/de.js"
 import de_sie from "../../../src/ui/translations/de_sie.js"
@@ -10,10 +10,10 @@ o.spec("TranslationKeys", () => {
 			const enKeys = Object.keys(en.keys)
 			const deKeys = Object.keys(de.keys)
 			const deSieKeys = Object.keys(de_sie.keys)
-			const extraKeysInEn = iterableDifference(enKeys, deKeys)
-			const extraKeysInDe = iterableDifference(deKeys, enKeys)
-			const extraKeysInDeSie = iterableDifference(deSieKeys, deKeys)
-			const keysNotInDeSie = iterableDifference(deKeys, deSieKeys)
+			const extraKeysInEn = iterable_difference(enKeys, deKeys)
+			const extraKeysInDe = iterable_difference(deKeys, enKeys)
+			const extraKeysInDeSie = iterable_difference(deSieKeys, deKeys)
+			const keysNotInDeSie = iterable_difference(deKeys, deSieKeys)
 			o(extraKeysInEn).deepEquals([])("extra keys in en")
 			o(extraKeysInDe).deepEquals([])("extra keys in de")
 			o(extraKeysInDeSie).deepEquals([])("extra keys in de_sie")

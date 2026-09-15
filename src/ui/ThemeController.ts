@@ -1,7 +1,7 @@
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import { AppType, EnvProvider } from "../platform-kit/app-env"
-import { arrayMapFilterNull, arrayRemoveBy, downcast, LazyLoaded, typedValues } from "../platform-kit/utils"
+import { array_mapFilterNull, array_removeBy, downcast, LazyLoaded, typedValues } from "../platform-kit/utils"
 import m from "mithril"
 import { BaseThemeId, BaseThemeProvider, theme, Theme, ThemeId, ThemePreference } from "./theme"
 import { themes } from "./builtinThemes"
@@ -128,7 +128,7 @@ export class ThemeController implements BaseThemeProvider {
 
 		// Remove blue theme because we don't have it anymore
 		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
-		arrayRemoveBy(oldThemes, (t) => t.themeId === "blue")
+		array_removeBy(oldThemes, (t) => t.themeId === "blue")
 		await this.themeFacade.setThemes(oldThemes)
 
 		// Check if the blue theme was selected and fallback for auto
@@ -261,7 +261,7 @@ export class ThemeController implements BaseThemeProvider {
 		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
 		await this.sanitizeTheme(nonNullTheme)
 		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
-		arrayRemoveBy(oldThemes, (t) => t.themeId === updatedTheme.themeId)
+		array_removeBy(oldThemes, (t) => t.themeId === updatedTheme.themeId)
 		oldThemes.push(nonNullTheme)
 		await this.themeFacade.setThemes(oldThemes)
 		return nonNullTheme
@@ -300,7 +300,7 @@ export class ThemeController implements BaseThemeProvider {
 	}
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
-		return arrayMapFilterNull(await this.themeFacade.getThemes(), (theme) => {
+		return array_mapFilterNull(await this.themeFacade.getThemes(), (theme) => {
 			return !(theme.themeId in themes()) ? theme.themeId : null
 		})
 	}

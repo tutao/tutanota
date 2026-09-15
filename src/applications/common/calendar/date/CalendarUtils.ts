@@ -14,10 +14,10 @@ import {
 import { CalendarAttendeeStatus } from "../../../../entities/tutanota/Utils"
 import { CalendarAdvancedRepeatRule, createDateWrapper, DateWrapper, RepeatRule, User } from "@tutao/entities/sys"
 import {
-	arrayFirstOrThrow,
-	arrayInsertIntoSorted,
-	arrayIsNotEmpty,
-	arrayRemoveAllBy,
+	array_firstOrThrow,
+	array_insertIntoSorted,
+	array_isNotEmpty,
+	array_removeAllBy,
 	assert,
 	DateProvider,
 	decodeBase64,
@@ -956,10 +956,10 @@ export function addDaysForEventInstance(daysToEvents: Map<number, Array<EventWra
 		assert(iterations <= MAX_EVENT_ITERATIONS, "Run into the infinite loop, addDaysForEvent")
 		if (calculationTime < eventEndInRange) {
 			const eventsForCalculationDate = getFromMap(daysToEvents, calculationTime, () => [])
-			arrayInsertIntoSorted(eventWrapper, eventsForCalculationDate, eventComparator, isSameEventInstance)
+			array_insertIntoSorted(eventWrapper, eventsForCalculationDate, eventComparator, isSameEventInstance)
 		} else {
 			// If the duration of the original event instance was reduced, we also have to delete the remaining days of the previous event instance.
-			const removed = arrayRemoveAllBy(daysToEvents.get(calculationTime) ?? [], (e) => isSameEventInstance(e, eventWrapper))
+			const removed = array_removeAllBy(daysToEvents.get(calculationTime) ?? [], (e) => isSameEventInstance(e, eventWrapper))
 			if (!removed) {
 				// no further days this event instance occurred on
 				break
@@ -1156,7 +1156,7 @@ export function generateCalendarInstancesInRange(
 		// sort.
 		// we can then also maintain an index to the first still-open generator instead of splicing out the first generator when it stops yielding instances.
 		generators.sort((a, b) => (a.nextCandidate?.startTime.getTime() ?? 0) - (b.nextCandidate?.startTime.getTime() ?? 0))
-		const first = arrayFirstOrThrow(generators)
+		const first = array_firstOrThrow(generators)
 		const newNext = getNextCandidate(first.nextCandidate, first.generator, first.excludedDates)
 
 		ret.push(first.nextCandidate)
@@ -1292,7 +1292,7 @@ function* eventOccurencesGenerator(
 
 		const setPosRules = repeatRule.advancedRules.filter((rule) => rule.ruleType === ByRule.BYSETPOS)
 		const setPosRulesValues = setPosRules.map((rule) => rule.interval)
-		const shouldApplySetPos = arrayIsNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
+		const shouldApplySetPos = array_isNotEmpty(setPosRules) && setPosRules.length < repeatRule.advancedRules.length
 		let eventCount = 0
 
 		// We reached our range end, no need to continue generating/evaluating events
@@ -1655,8 +1655,8 @@ export function areRepeatRulesEqual(r1: CalendarRepeatRule | null, r2: CalendarR
 export function areAllAdvancedRepeatRulesValid(advancedRules: AdvancedRepeatRule[], repeatPeriod: RepeatPeriod | null) {
 	const isDailyOrYearly = repeatPeriod === RepeatPeriod.ANNUALLY || repeatPeriod === RepeatPeriod.DAILY
 
-	if (repeatPeriod == null && arrayIsNotEmpty(advancedRules)) return false
-	else if (isDailyOrYearly && arrayIsNotEmpty(advancedRules)) return false
+	if (repeatPeriod == null && array_isNotEmpty(advancedRules)) return false
+	else if (isDailyOrYearly && array_isNotEmpty(advancedRules)) return false
 	else if (advancedRules.some((rule) => rule.ruleType !== ByRule.BYDAY)) return false
 
 	return true

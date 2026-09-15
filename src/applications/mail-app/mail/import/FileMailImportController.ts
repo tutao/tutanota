@@ -1,4 +1,4 @@
-import { arrayFirst, arrayIsEmpty, assertNotNull } from "../../../../platform-kit/utils"
+import { array_isEmpty, array_first, assertNotNull } from "../../../../platform-kit/utils"
 import { NativeMailImportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { CredentialsProvider } from "../../../common/misc/credentials/CredentialsProvider"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider"
@@ -92,7 +92,7 @@ export class FileMailImportController {
 		}
 
 		if (!this.activeImport) {
-			this.selectedMailBoxDetail = arrayFirst(this.mailboxDetails)
+			this.selectedMailBoxDetail = array_first(this.mailboxDetails)
 			const selectedMailboxId = this.selectedMailBoxDetail?.mailbox._id
 			if (selectedMailboxId) {
 				this.selectedTargetFolder = this.mailboxToFolders.get(elementIdToId(selectedMailboxId))?.getSystemFolderByType(MailSetKind.ARCHIVE) ?? null
@@ -264,7 +264,7 @@ export class FileMailImportController {
 	 * @param fileUris to the .eml/.mbox files to import mails from
 	 */
 	async onStartBtnClick(fileUris: Array<string>) {
-		if (arrayIsEmpty(fileUris)) return
+		if (array_isEmpty(fileUris)) return
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
 		const apiUrl = EnvProvider.get().getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())

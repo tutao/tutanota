@@ -1,6 +1,6 @@
 import {
-	arrayFirstOrThrow,
-	arrayIsEmpty,
+	array_isEmpty,
+	array_firstOrThrow,
 	assertNotNull,
 	base64ExtToBase64Url,
 	base64ToBase64Url,
@@ -45,11 +45,11 @@ export class GiftCardFacade {
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
 		const adminGroupIds = this.user.getGroupIds(GroupType.Admin)
 
-		if (arrayIsEmpty(adminGroupIds)) {
+		if (array_isEmpty(adminGroupIds)) {
 			throw new Error("missing admin membership")
 		}
 
-		const adminGroupId = arrayFirstOrThrow(adminGroupIds)
+		const adminGroupId = array_firstOrThrow(adminGroupIds)
 		const ownerKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
 		const sessionKey = aes256RandomKey()

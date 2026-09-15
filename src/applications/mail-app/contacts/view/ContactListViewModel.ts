@@ -2,7 +2,7 @@ import { ListElementListModel } from "../../../common/misc/ListElementListModel.
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginController } from "../../../common/api/main/LoginController.js"
-import { arrayEquals, assertNotNull, debounce, lazy, lazyMemoized, memoized } from "../../../../platform-kit/utils"
+import { array_equals, assertNotNull, debounce, lazy, lazyMemoized, memoized } from "../../../../platform-kit/utils"
 import { EventController } from "../../../common/api/main/EventController.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -141,7 +141,7 @@ export class ContactListViewModel {
 				contact.mailAddresses.map((mailAddress) => mailAddress.address.toLowerCase()).includes(selected[0].emailAddress.toLowerCase()),
 			)
 			const nowSelected = this.getSelectedContactListEntries() ?? []
-			if (arrayEquals(selected, nowSelected)) {
+			if (array_equals(selected, nowSelected)) {
 				this.contactsForSelectedEntry = contacts
 			}
 		} else {

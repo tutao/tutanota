@@ -1,4 +1,4 @@
-import { arrayInsertIntoSorted, arrayRemoveBy } from "./ArrayUtils.js"
+import { array_insertIntoSorted, array_removeBy } from "./ArrayUtils.js"
 
 export type CompareFn<T> = (arg0: T, arg1: T) => number
 
@@ -51,10 +51,10 @@ export class SortedArray<T> {
 	}
 
 	insert(item: T): void {
-		arrayInsertIntoSorted(item, this.contents, this.compareFn)
+		array_insertIntoSorted(item, this.contents, this.compareFn)
 	}
 
 	removeFirst(finder: (arg0: T) => boolean): boolean {
-		return arrayRemoveBy(this.contents, finder)
+		return array_removeBy(this.contents, finder)
 	}
 }

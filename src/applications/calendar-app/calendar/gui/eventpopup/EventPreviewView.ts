@@ -22,7 +22,7 @@ import {
 	getTimeZone,
 } from "../../../../common/calendar/date/CalendarUtils.js"
 import { EndType, RepeatPeriod, UpgradePromptType } from "@tutao/app-env"
-import { arrayIsEmpty, cleanMailAddress, downcast, memoized } from "@tutao/utils"
+import { array_isEmpty, cleanMailAddress, downcast, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../../ui/utils/Formatter.js"
@@ -133,7 +133,7 @@ export class EventPreviewView implements Component<EventPreviewViewAttrs> {
 			return this.renderRow(Icons.AlarmFilled, m("", { style: { color: theme.error } }, lang.getTranslation("failedToLoadAlarms_error").text))
 		}
 
-		if (arrayIsEmpty(calendarEventPreviewModel.alarms)) {
+		if (array_isEmpty(calendarEventPreviewModel.alarms)) {
 			return null
 		}
 

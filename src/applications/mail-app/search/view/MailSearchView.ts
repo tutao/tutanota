@@ -8,7 +8,7 @@ import { SidebarSection } from "../../../../ui/SidebarSection"
 import { layout_size } from "../../../../ui/size"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
-import { arrayFirst, arrayIsEmpty, arrayIsNotEmpty, assertNotNull, isSameDayOfDate, lazyMemoized, noOp, ofClass, setDifference } from "@tutao/utils"
+import { array_first, array_isEmpty, array_isNotEmpty, assertNotNull, isSameDayOfDate, lazyMemoized, noOp, ofClass, setDifference } from "@tutao/utils"
 import { PermissionError } from "../../../common/api/common/error/PermissionError"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { locator } from "../../../common/api/main/CommonLocator"
@@ -247,7 +247,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 	}
 	private renderFilterChips(): Children {
 		const availableMailFolders = this.getAvailableMailFolders()
-		const selectedFolder = arrayFirst(this.searchViewModel.selectedMailFolder)
+		const selectedFolder = array_first(this.searchViewModel.selectedMailFolder)
 		return [
 			this.renderCategoryChip("emails_label", Icons.MailFilled),
 			m(FilterChip, {
@@ -701,7 +701,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 		const selected = this.searchViewModel.getSelectedMails()
 		const deletable = this.searchViewModel.isPermanentDeleteAllowed()
 
-		if (deletable && arrayIsNotEmpty(selected)) {
+		if (deletable && array_isNotEmpty(selected)) {
 			return {
 				deleteAction: () => {
 					promptAndDeleteMails(mailLocator.mailModel, getIds(selected), null, () => this.searchViewModel.listModel.selectNone())
@@ -761,7 +761,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private setUnreadState(unread: boolean) {
 		const selection = this.searchViewModel.getSelectedMails()
-		if (!arrayIsEmpty(selection)) {
+		if (!array_isEmpty(selection)) {
 			selection.map((mail) => {
 				mail.unread = unread
 			})
@@ -774,7 +774,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private getUnreadState(): boolean {
 		const selection = this.searchViewModel.getSelectedMails()
-		return arrayFirst(selection)?.unread ?? false
+		return array_first(selection)?.unread ?? false
 	}
 
 	private getEditDraftAction(): (() => void) | null {
@@ -799,7 +799,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	private getExportAction(): (() => void) | null {
 		const mails = this.searchViewModel.listModel.getSelectedAsArray() ?? []
-		if (!this.searchViewModel.isExportingMailsAllowed() || arrayIsEmpty(mails)) {
+		if (!this.searchViewModel.isExportingMailsAllowed() || array_isEmpty(mails)) {
 			return null
 		}
 

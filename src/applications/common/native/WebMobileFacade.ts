@@ -4,7 +4,7 @@ import { locator } from "../api/main/CommonLocator.js"
 import { modal } from "../../../ui/base/Modal"
 import { showUpgradeDialog } from "../gui/nav/NavFunctions.js"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, SEARCH_PREFIX, SETTINGS_PREFIX } from "../../../ui/utils/RouteChange"
-import { arrayLast } from "@tutao/utils"
+import { array_last } from "@tutao/utils"
 import { MobileFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Styles } from "../../../ui/styles"
 import { WebsocketConnectivityModel } from "../misc/WebsocketConnectivityModel.js"
@@ -34,7 +34,7 @@ export class WebMobileFacade implements MobileFacade {
 	 */
 	async handleBackPress(): Promise<boolean> {
 		await Promise.resolve()
-		const lastModalComponent = arrayLast(modal.components)
+		const lastModalComponent = array_last(modal.components)
 
 		if (lastModalComponent) {
 			// first check if any modal dialog is visible

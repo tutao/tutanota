@@ -1,4 +1,4 @@
-import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
+import { array_equals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
@@ -136,7 +136,7 @@ export class CryptoWrapper {
 
 	verifyPublicX25519Key(x25519KeyPair: X25519KeyPair): X25519PublicKey {
 		const extractedPubKey = deriveX25519PublicKey(x25519KeyPair.privateKey)
-		if (!arrayEquals(extractedPubKey, x25519KeyPair.publicKey)) {
+		if (!array_equals(extractedPubKey, x25519KeyPair.publicKey)) {
 			throw new CryptoError("Extracted public key does not match the provided public key")
 		}
 		return x25519KeyPair.publicKey
@@ -144,7 +144,7 @@ export class CryptoWrapper {
 
 	verifyKyberPublicKey(kyberKeyPair: KyberKeyPair): KyberPublicKey {
 		const extractedPubKey = extractKyberPublicKeyFromKyberPrivateKey(kyberKeyPair.privateKey)
-		if (!arrayEquals(extractedPubKey.raw, kyberKeyPair.publicKey.raw)) {
+		if (!array_equals(extractedPubKey.raw, kyberKeyPair.publicKey.raw)) {
 			throw new CryptoError("Extracted public key does not match the provided public key")
 		}
 		return kyberKeyPair.publicKey

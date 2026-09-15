@@ -1,5 +1,5 @@
 import { SecondFactorHandler } from "../../misc/2fa/SecondFactorHandler.js"
-import { arrayEquals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
+import { array_equals, assertNotNull, defer, DeferredObject } from "@tutao/utils"
 import { CacheInfo, LoginFailReason, LoginListener } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import { SessionType } from "@tutao/app-env"
 import { CredentialsProvider } from "../../misc/credentials/CredentialsProvider.js"
@@ -70,7 +70,7 @@ export class PageContextLoginListener implements LoginListener {
 			return false
 		}
 		if (persistedEncryptedPassphraseKey != null && credentialsEncryptedPassphraseKey != null) {
-			return !arrayEquals(persistedEncryptedPassphraseKey, credentialsEncryptedPassphraseKey)
+			return !array_equals(persistedEncryptedPassphraseKey, credentialsEncryptedPassphraseKey)
 		} else if (persistedEncryptedPassphraseKey == null && credentialsEncryptedPassphraseKey == null) {
 			// both are null so nothing has changed.
 			return false

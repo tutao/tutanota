@@ -1,5 +1,5 @@
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { arrayIsEmpty, downcast, LazyLoaded } from "@tutao/utils"
+import { array_isEmpty, downcast, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
@@ -243,7 +243,7 @@ async function getAtLeastOneAvailableMatchingPlan(
 	errorMessage: string,
 ): Promise<Array<AvailablePlanType>> {
 	const plans = await getAvailableMatchingPlans(locator.serviceExecutor, predicate)
-	if (arrayIsEmpty(plans)) {
+	if (array_isEmpty(plans)) {
 		throw new ProgrammingError(errorMessage)
 	}
 	return plans

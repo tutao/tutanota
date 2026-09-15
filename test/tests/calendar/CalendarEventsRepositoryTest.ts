@@ -11,7 +11,7 @@ import { DEFAULT_BIRTHDAY_CALENDAR_COLOR, DEFAULT_CALENDAR_COLOR } from "../../.
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { createTestEntity } from "../TestUtils"
 import { CalendarFacade } from "../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
-import { arrayFirstOrThrow, getStartOfDay } from "../../../src/platform-kit/utils"
+import { array_firstOrThrow, getStartOfDay } from "../../../src/platform-kit/utils"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 
 import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
@@ -264,8 +264,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
-				const [day, events] = arrayFirstOrThrow(Array.from(daysToEvents.entries()))
-				o.check(arrayFirstOrThrow(events).color).equals(DEFAULT_CALENDAR_COLOR)
+				const [day, events] = array_firstOrThrow(Array.from(daysToEvents.entries()))
+				o.check(array_firstOrThrow(events).color).equals(DEFAULT_CALENDAR_COLOR)
 			})
 
 			o.test("update event - apply color from settings", async function () {
@@ -287,8 +287,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
-				const [day, events] = arrayFirstOrThrow(Array.from(daysToEvents.entries()))
-				o.check(arrayFirstOrThrow(events).color).equals(SETTINGS_COLOR)
+				const [day, events] = array_firstOrThrow(Array.from(daysToEvents.entries()))
+				o.check(array_firstOrThrow(events).color).equals(SETTINGS_COLOR)
 			})
 
 			o.test("birthday calendar color is applied for birthday events", async function () {
@@ -313,8 +313,8 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 				// assert
 				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
-				const [day, events] = arrayFirstOrThrow(Array.from(daysToEvents.entries()))
-				o.check(arrayFirstOrThrow(events).color).equals(DEFAULT_BIRTHDAY_CALENDAR_COLOR)
+				const [day, events] = array_firstOrThrow(Array.from(daysToEvents.entries()))
+				o.check(array_firstOrThrow(events).color).equals(DEFAULT_BIRTHDAY_CALENDAR_COLOR)
 			})
 
 			// test case for calendar with multiple events

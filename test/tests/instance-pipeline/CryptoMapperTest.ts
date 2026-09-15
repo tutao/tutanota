@@ -15,7 +15,7 @@ import {
 import { matchers, object, replace, verify, when } from "testdouble"
 import { AppNameEnum, CardinalityEnum, ClientTypeModel, ModelValue, ServerTypeModel, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import {
-	arrayEquals,
+	array_equals,
 	assertNotNull,
 	base64ToUint8Array,
 	KeyVersion,
@@ -510,7 +510,7 @@ o.spec("CryptoMapperTest", () => {
 		await cryptoMapper.encryptParsedInstance(decryptedParsedInstance, subKeyInfo)
 		o.check(
 			encryptBytesWithAead.invocations.some((invocationParameters) =>
-				arrayEquals(stringToUtf8Uint8Array("attributeEncSK3/aggregateId/9/anotherCustomId/17"), invocationParameters[2]),
+				array_equals(stringToUtf8Uint8Array("attributeEncSK3/aggregateId/9/anotherCustomId/17"), invocationParameters[2]),
 			),
 		).equals(true)
 	})

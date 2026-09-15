@@ -12,7 +12,7 @@ import { showPlanUpgradeRequiredDialog } from "../../../common/misc/Subscription
 import { TemplateGroupPreconditionFailedReason } from "../../../common/sharing/GroupUtils.js"
 import { DropDownSelector } from "../../../../ui/base/DropDownSelector.js"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField.js"
-import { arrayFirstOrThrow } from "../../../../platform-kit/utils"
+import { array_firstOrThrow } from "../../../../platform-kit/utils"
 import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { EmailDomainData, getAvailableDomains } from "../../../common/settings/mailaddress/MailAddressesUtils.js"
@@ -90,13 +90,13 @@ export class AddGroupDialogViewModel {
 		this.availableDomains = availableDomains
 		this._groupManagementFacade = groupManagementFacade
 		this.groupTypes = this.getAvailableGroupTypes()
-		this.groupType = arrayFirstOrThrow(this.groupTypes)
+		this.groupType = array_firstOrThrow(this.groupTypes)
 		this.groupName = ""
 		this.mailAddress = ""
 		this.errorMessageId = "mailAddressNeutral_msg"
 		this.isVerifactionBusy = false
 
-		this.selectedDomain = arrayFirstOrThrow(availableDomains)
+		this.selectedDomain = array_firstOrThrow(availableDomains)
 	}
 
 	createSharedMailGroup(): Promise<void> {

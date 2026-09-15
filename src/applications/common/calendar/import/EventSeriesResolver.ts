@@ -1,5 +1,5 @@
 import { CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel"
-import { arrayFilterNull, arrayFirst, assertNotNull, DateProvider, isNotNull, iterableGroupedBy } from "@tutao/utils"
+import { array_filterNull, array_first, assertNotNull, DateProvider, isNotNull, iterable_groupedBy } from "@tutao/utils"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { repeatRuleWithExcludedAlteredInstances } from "../../../calendar-app/calendar/gui/eventeditor-model/CalendarEventWhenModel"
 import { clone } from "@tutao/meta"
@@ -24,13 +24,13 @@ export class EventSeriesResolver {
 	 * @returns Updated progenitors
 	 */
 	async updateExistingProgenitorForNewAlteredInstances(alteredInstances: CalendarEvent[], calendarGroupId: Id): Promise<CalendarEventProgenitor[]> {
-		const alteredInstanceByUid = iterableGroupedBy(alteredInstances, (event) => event.uid)
+		const alteredInstanceByUid = iterable_groupedBy(alteredInstances, (event) => event.uid)
 		if (alteredInstanceByUid.has(null)) {
 			throw new TutanotaError("EventSeriesResolver", "found altered instance without UID while trying to update progenitor with new excluded dates")
 		}
 		const uids: string[] = Array.from(alteredInstanceByUid.keys()) as string[]
 
-		const allProgenitors: CalendarEventProgenitor[] = arrayFilterNull(
+		const allProgenitors: CalendarEventProgenitor[] = array_filterNull(
 			await Promise.all(uids.map((uid) => this.calendarModel.resolveCalendarEventProgenitor({ uid, _ownerGroup: calendarGroupId }))),
 		)
 
@@ -40,7 +40,7 @@ export class EventSeriesResolver {
 					alteredInstanceByUid.get(progenitor.uid),
 					"Trying to update a progenitor but there are no new altered instances. Possible error at uid lookup.",
 				)
-				const datesToExclude = arrayFilterNull(newAlteredInstances.map((alteredInstance) => alteredInstance.recurrenceId))
+				const datesToExclude = array_filterNull(newAlteredInstances.map((alteredInstance) => alteredInstance.recurrenceId))
 				const repeatRuleWithExcludedDates = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, this.dateProvider.timeZone())
 				const progenitorWithNewExcludedDates = clone(progenitor)
 				progenitorWithNewExcludedDates.repeatRule = repeatRuleWithExcludedDates
@@ -66,19 +66,19 @@ export class EventSeriesResolver {
 		newAlteredInstances: CalendarEventAlteredInstance[],
 		calendarGroupId: Id,
 	) {
-		const newProgenitorsByUid = iterableGroupedBy(newProgenitors, (progenitor) => progenitor.uid)
-		const newAlteredInstancesByUid = iterableGroupedBy(newAlteredInstances, (alteredInstance) => alteredInstance.uid)
+		const newProgenitorsByUid = iterable_groupedBy(newProgenitors, (progenitor) => progenitor.uid)
+		const newAlteredInstancesByUid = iterable_groupedBy(newAlteredInstances, (alteredInstance) => alteredInstance.uid)
 
 		for (const [uid, progenitors] of newProgenitorsByUid) {
 			if (progenitors.length > 1) {
 				throw new TutanotaError("EventSeriesResolverError", "Trying to resolve excluded dates but found two progenitors")
 			}
-			const progenitor = arrayFirst(progenitors)!
+			const progenitor = array_first(progenitors)!
 			const newAlteredInstancesRecurrenceIds = (newAlteredInstancesByUid.get(uid) ?? []).map((alteredInstance) => alteredInstance.recurrenceId)
 			progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, newAlteredInstancesRecurrenceIds, this.dateProvider.timeZone())
 		}
 
-		const progenitorUidIndexEntries = arrayFilterNull(
+		const progenitorUidIndexEntries = array_filterNull(
 			await Promise.all(newProgenitors.map((progenitor) => this.calendarModel.getEventsByUid(assertNotNull(progenitor.uid), calendarGroupId))),
 		)
 		for (const entry of progenitorUidIndexEntries) {
@@ -87,9 +87,9 @@ export class EventSeriesResolver {
 			}
 
 			const datesToExclude = entry.alteredInstances.map((alteredInstance) => alteredInstance.recurrenceId)
-			const uid = arrayFirst(entry.alteredInstances)?.uid
+			const uid = array_first(entry.alteredInstances)?.uid
 			if (datesToExclude && uid) {
-				const progenitor = assertNotNull(arrayFirst(newProgenitorsByUid.get(uid)!))
+				const progenitor = assertNotNull(array_first(newProgenitorsByUid.get(uid)!))
 				progenitor.repeatRule = repeatRuleWithExcludedAlteredInstances(progenitor, datesToExclude, this.dateProvider.timeZone())
 			}
 		}

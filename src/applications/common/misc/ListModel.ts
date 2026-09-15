@@ -1,21 +1,21 @@
 import { ListLoadingState, ListState } from "../../../ui/base/List.js"
 import {
-	arrayFindLast,
-	arrayFirst,
-	arrayIsEmpty,
-	arrayLast,
-	arrayLastIndex,
-	arrayLastIndexBy,
-	arrayLastOrThrow,
-	arrayRemove,
+	array_findLast,
+	array_first,
+	array_isEmpty,
+	array_last,
+	array_lastIndex,
+	array_lastIndexBy,
+	array_lastOrThrow,
+	array_remove,
 	assertNonNull,
 	defer,
 	findBy,
 	memoizedWithHiddenArgument,
 	noOp,
+	set_equals,
+	set_map,
 	setAddAll,
-	setEquals,
-	setMap,
 	settledThen,
 } from "@tutao/utils"
 import Stream from "mithril/stream"
@@ -62,7 +62,7 @@ type PrivateListState<ItemType> = Omit<ListState<ItemType>, "items" | "activeInd
 }
 
 function firstIndex(arr: readonly unknown[]): number {
-	return arrayIsEmpty(arr) ? -1 : 0
+	return array_isEmpty(arr) ? -1 : 0
 }
 
 /** ListModel that does the state upkeep for the List, including loading state, loaded items, selection and filters*/
@@ -106,9 +106,9 @@ export class ListModel<ItemType, IdType> {
 
 	readonly differentItemsSelected: Stream<ReadonlySet<ItemType>> = Stream.scan(
 		(acc: ReadonlySet<ItemType>, state: ListState<ItemType>) => {
-			const newSelectedIds = setMap(state.selectedItems, (item) => this.config.getItemId(item))
-			const oldSelectedIds = setMap(acc, (item) => this.config.getItemId(item))
-			if (setEquals(oldSelectedIds, newSelectedIds)) {
+			const newSelectedIds = set_map(state.selectedItems, (item) => this.config.getItemId(item))
+			const oldSelectedIds = set_map(acc, (item) => this.config.getItemId(item))
+			if (set_equals(oldSelectedIds, newSelectedIds)) {
 				// Stream.scan type definitions does not take it into account
 				return Stream.SKIP as unknown as ReadonlySet<ItemType>
 			} else {
@@ -187,7 +187,7 @@ export class ListModel<ItemType, IdType> {
 	private async doLoad() {
 		this.updateLoadingStatus(ListLoadingState.Loading)
 		this.loading = Promise.resolve().then(async () => {
-			const lastFetchedItem = arrayLast(this.rawState.unfilteredItems)
+			const lastFetchedItem = array_last(this.rawState.unfilteredItems)
 			try {
 				const { items: newItems, complete } = await this.config.fetch(lastFetchedItem, PageSize)
 				// if the loading was cancelled in the meantime, don't insert anything so that it's not confusing
@@ -358,7 +358,7 @@ export class ListModel<ItemType, IdType> {
 		const newActiveIndex: number =
 			oldActiveIndex === -1
 				? oldActiveItem
-					? arrayLastIndexBy(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0)
+					? array_lastIndexBy(this.state.items, (item) => this.config.sortCompare(item, oldActiveItem) < 0)
 					: firstIndex(this.state.items)
 				: Math.max(oldActiveIndex - 1, 0)
 		const newActiveItem = newActiveIndex === -1 ? null : this.state.items[newActiveIndex]
@@ -369,7 +369,7 @@ export class ListModel<ItemType, IdType> {
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
 
-				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? arrayFirst(this.state.items)
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? array_first(this.state.items)
 				const anchorItem = this.rangeSelectionAnchorItem
 				if (!anchorItem) return
 				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
@@ -399,8 +399,8 @@ export class ListModel<ItemType, IdType> {
 	 */
 	private getPreviousItem(items: readonly ItemType[], oldActiveItem: ItemType | null): ItemType | null {
 		return oldActiveItem == null
-			? arrayFirst(items)
-			: (arrayFindLast(items, (item) => this.config.sortCompare(item, oldActiveItem) <= 0) ?? arrayFirst(items))
+			? array_first(items)
+			: (array_findLast(items, (item) => this.config.sortCompare(item, oldActiveItem) <= 0) ?? array_first(items))
 	}
 
 	selectNext(multiselect: boolean) {
@@ -416,16 +416,16 @@ export class ListModel<ItemType, IdType> {
 		const newActiveItem =
 			oldActiveIndex === -1
 				? oldActiveItem
-					? (this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? arrayFirst(this.state.items))
-					: arrayFirst(this.state.items)
-				: this.state.items.at(Math.min(oldActiveIndex + 1, arrayLastIndex(this.state.items)))
+					? (this.state.items.find((item) => this.config.sortCompare(item, oldActiveItem) > 0) ?? array_first(this.state.items))
+					: array_first(this.state.items)
+				: this.state.items.at(Math.min(oldActiveIndex + 1, array_lastIndex(this.state.items)))
 
 		if (newActiveItem != null) {
 			if (!multiselect) {
 				this.onSingleSelection(newActiveItem)
 			} else {
 				const selectedItems = new Set(this.state.selectedItems)
-				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? arrayFirst(this.state.items)
+				this.rangeSelectionAnchorItem = this.rangeSelectionAnchorItem ?? array_first(this.state.items)
 				const anchorItem = this.rangeSelectionAnchorItem
 				if (!anchorItem) return
 				const anchorIndex = this.state.items.findIndex((item) => this.config.isSameId(this.config.getItemId(item), this.config.getItemId(anchorItem)))
@@ -450,10 +450,10 @@ export class ListModel<ItemType, IdType> {
 	 */
 	private getNextItem(items: readonly ItemType[], oldActiveItem: ItemType | null, lastItem: ItemType | null | undefined): ItemType | null {
 		return oldActiveItem == null
-			? arrayFirst(items)
+			? array_first(items)
 			: lastItem && this.config.sortCompare(lastItem, oldActiveItem) <= 0
 				? lastItem
-				: (items.find((item) => this.config.sortCompare(item, oldActiveItem) >= 0) ?? arrayFirst(items))
+				: (items.find((item) => this.config.sortCompare(item, oldActiveItem) >= 0) ?? array_first(items))
 	}
 
 	areAllSelected(): boolean {
@@ -611,9 +611,9 @@ export class ListModel<ItemType, IdType> {
 				const shouldSelectANewItem = this.rawState.filteredItems.length > 1
 
 				const filteredItems = this.rawState.filteredItems.slice()
-				arrayRemove(filteredItems, item)
+				array_remove(filteredItems, item)
 				const unfilteredItems = this.rawState.unfilteredItems.slice()
-				arrayRemove(unfilteredItems, item)
+				array_remove(unfilteredItems, item)
 
 				if (shouldSelectANewItem) {
 					const desiredBehavior = this.config.autoSelectBehavior?.() ?? null
@@ -624,7 +624,7 @@ export class ListModel<ItemType, IdType> {
 							newActiveItem = this.getPreviousItem(filteredItems, item)
 						} else {
 							newActiveItem =
-								item === arrayLast(this.state.items) ? this.getPreviousItem(filteredItems, item) : this.getNextItem(filteredItems, item, null)
+								item === array_last(this.state.items) ? this.getPreviousItem(filteredItems, item) : this.getNextItem(filteredItems, item, null)
 						}
 					}
 
@@ -650,7 +650,7 @@ export class ListModel<ItemType, IdType> {
 
 	getLastItem(): ItemType | null {
 		if (this.rawState.unfilteredItems.length > 0) {
-			return arrayLastOrThrow(this.rawState.unfilteredItems)
+			return array_lastOrThrow(this.rawState.unfilteredItems)
 		} else {
 			return null
 		}

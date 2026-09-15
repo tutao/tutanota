@@ -2,7 +2,7 @@ import { ListFilter } from "../../../common/misc/ListModel"
 import { ListLoadingState, ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
 import { MailModel } from "./MailModel"
-import { arrayIsEmpty, iterableGroupedByMapped, promiseFilter, promiseMap } from "../../../../platform-kit/utils"
+import { array_isEmpty, iterable_groupedByMapped, promiseFilter, promiseMap } from "../../../../platform-kit/utils"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Mail, MailSet, MailSetEntry, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
@@ -268,7 +268,7 @@ export async function resolveMailSetEntries(
  */
 export async function provideAllMails(ids: IdTuple[], mailProvider: (listId: Id, elementIds: Id[]) => Promise<Mail[]>): Promise<Mail[]> {
 	// MailBag -> Mail element ID
-	const mailListMap: Map<Id, Id[]> = iterableGroupedByMapped(ids, listIdPart, elementIdPart)
+	const mailListMap: Map<Id, Id[]> = iterable_groupedByMapped(ids, listIdPart, elementIdPart)
 
 	// Retrieve all mails by mailbag
 	const allMails: Mail[] = []
@@ -291,7 +291,7 @@ export async function applyInboxRulesAndSpamPrediction(
 	entityClient: EntityClient,
 	isLeaderClient: boolean,
 ): Promise<LoadedMail[]> {
-	if (arrayIsEmpty(entries)) {
+	if (array_isEmpty(entries)) {
 		return entries
 	}
 	if (!(sourceFolder.folderType === MailSetKind.SPAM || sourceFolder.folderType === MailSetKind.INBOX)) {

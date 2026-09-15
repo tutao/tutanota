@@ -4,7 +4,7 @@ import { elementIdPart, listIdPart } from "../../../../platform-kit/meta"
 import { EnvProvider, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchIndexStateInfo, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { arrayIsEmpty, assertNotNull, ofClass } from "../../../../platform-kit/utils"
+import { array_isEmpty, assertNotNull, ofClass } from "../../../../platform-kit/utils"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, mailSearchComparator } from "./MailSearchUtils"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -118,7 +118,7 @@ export class MailSearchModel {
 						if (
 							currentResultAgain == null ||
 							!areResultsForTheSameQuery(currentResult, currentResultAgain) ||
-							arrayIsEmpty(extendedResult.results)
+							array_isEmpty(extendedResult.results)
 						) {
 							return
 						}

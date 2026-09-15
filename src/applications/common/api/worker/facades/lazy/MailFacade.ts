@@ -33,8 +33,8 @@ import { RecipientsNotFoundError } from "../../../../../../platform-kit/network/
 import { NotFoundError } from "@tutao/rest-client/error"
 import {
 	addressDomain,
-	arrayChunked,
-	arrayIsEmpty,
+	array_chunked,
+	array_isEmpty,
 	assertNotNull,
 	byteLength,
 	defer,
@@ -42,7 +42,7 @@ import {
 	freshVersioned,
 	getUrlDomain,
 	isNotNull,
-	iterableGroupedBy,
+	iterable_groupedBy,
 	noOp,
 	ofClass,
 	parseUrl,
@@ -411,15 +411,15 @@ export class MailFacade {
 	 * Move mails from {@param targetFolder} except those that are in {@param excludeMailSet}.
 	 */
 	async moveMails(mails: readonly IdTuple[], targetFolder: IdTuple, excludeMailSet: IdTuple | null): Promise<MovedMails[]> {
-		if (arrayIsEmpty(mails)) {
+		if (array_isEmpty(mails)) {
 			return []
 		}
 
 		// group by listId (for locking it on the server) because mails in the same Set can still be from different mail bags.
-		const mailsPerList = iterableGroupedBy(mails, (mailId) => listIdPart(mailId))
+		const mailsPerList = iterable_groupedBy(mails, (mailId) => listIdPart(mailId))
 		const movedMails: MovedMails[] = []
 		for (const [_, mailsInList] of mailsPerList) {
-			const mailChunks = arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
+			const mailChunks = array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailsInList)
 			for (const mails of mailChunks) {
 				const moveMailPostOut = await this.serviceExecutor.execute(
 					MoveMailService_POST,
@@ -438,11 +438,11 @@ export class MailFacade {
 	}
 
 	async simpleMoveMails(mails: readonly IdTuple[], targetFolderKind: SimpleMoveMailTarget): Promise<MovedMails[]> {
-		if (arrayIsEmpty(mails)) {
+		if (array_isEmpty(mails)) {
 			return []
 		}
 
-		const mailChunks = arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
+		const mailChunks = array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 		const movedMails: MovedMails[] = []
 		for (const mails of mailChunks) {
 			const simpleMove = await this.serviceExecutor.execute(
@@ -470,14 +470,14 @@ export class MailFacade {
 	}
 
 	async deleteMails(mails: readonly IdTuple[], filterMailSet: IdTuple | null): Promise<void> {
-		if (arrayIsEmpty(mails)) {
+		if (array_isEmpty(mails)) {
 			return
 		}
 
 		// Must be split by list (mailbag)
-		const mailsGrouped = iterableGroupedBy(mails, listIdPart)
+		const mailsGrouped = iterable_groupedBy(mails, listIdPart)
 		for (const [_, mails] of mailsGrouped) {
-			const mailChunks = arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
+			const mailChunks = array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails)
 			for (const mailChunk of mailChunks) {
 				const deleteMailData = createDeleteMailData({
 					mails: mailChunk,
@@ -898,7 +898,7 @@ export class MailFacade {
 		if (sendDraftParameters.symEncInternalRecipientKeyData.length > 0 || sendDraftParameters.secureExternalRecipientKeyData.length) {
 			return false
 		}
-		if (arrayIsEmpty(sendDraftParameters.internalRecipientKeyData)) {
+		if (array_isEmpty(sendDraftParameters.internalRecipientKeyData)) {
 			return false
 		}
 		return sendDraftParameters.internalRecipientKeyData.every((recipientData) => recipientData.protocolVersion === CryptoProtocolVersion.TUTA_CRYPT)
@@ -1295,7 +1295,7 @@ export class MailFacade {
 	 */
 	async markMails(mails: readonly IdTuple[], unread: boolean) {
 		await promiseMap(
-			arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
+			array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, mails),
 			async (mails) =>
 				this.serviceExecutor.execute(
 					UnreadMailStateService_POST,
@@ -1337,7 +1337,7 @@ export class MailFacade {
 	async processNewMails(mailGroupId: Id, unencryptedProcessInboxData: readonly UnencryptedProcessInboxDatum[]) {
 		const processInboxData = await this.encryptUnencryptedProcessInboxData(mailGroupId, unencryptedProcessInboxData)
 		await promiseMap(
-			arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, processInboxData),
+			array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, processInboxData),
 			async (inboxData) =>
 				this.serviceExecutor.execute(
 					ProcessInboxService_POST,
@@ -1384,7 +1384,7 @@ export class MailFacade {
 			unencryptedPopulateClientSpamTrainingData,
 		)
 		await promiseMap(
-			arrayChunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, populateClientSpamTrainingData),
+			array_chunked(MAX_NBR_OF_MAILS_SYNC_OPERATION, populateClientSpamTrainingData),
 			async (clientSpamTrainingData) =>
 				this.serviceExecutor.execute(
 					PopulateClientSpamTrainingDataService_POST,
@@ -1408,7 +1408,7 @@ export class MailFacade {
 	/** Resolve conversation list ids to the IDs of mails in those conversations. */
 	async resolveConversations(conversationListIds: readonly Id[]): Promise<IdTuple[]> {
 		const result = await promiseMap(
-			arrayChunked(MAX_NBR_OF_CONVERSATIONS, conversationListIds),
+			array_chunked(MAX_NBR_OF_CONVERSATIONS, conversationListIds),
 			async (conversationListIds) =>
 				this.serviceExecutor.execute(
 					ResolveConversationsService_GET,

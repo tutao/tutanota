@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { arrayDeduplicated, LazyLoaded, localeCompare, noOp, ofClass } from "../../../platform-kit/utils"
+import { array_deduplicated, LazyLoaded, localeCompare, noOp, ofClass } from "../../../platform-kit/utils"
 import type Stream from "mithril/stream"
 import stream from "mithril/stream"
 import { NotFoundError } from "../../../platform-kit/rest-client/error"
@@ -74,7 +74,7 @@ function keywordsToString(keywords: Array<KnowledgeBaseEntryKeyword>): string {
 }
 
 function stringToKeywords(keywords: string): Array<KnowledgeBaseEntryKeyword> {
-	return arrayDeduplicated(keywords.split(" ").filter(Boolean))
+	return array_deduplicated(keywords.split(" ").filter(Boolean))
 		.sort(localeCompare)
 		.map((keyword) =>
 			createKnowledgeBaseEntryKeyword({

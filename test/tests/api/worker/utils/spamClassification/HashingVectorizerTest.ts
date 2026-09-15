@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { HashingVectorizer } from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/HashingVectorizer"
-import { arrayEquals } from "../../../../../../src/platform-kit/utils"
+import { array_equals } from "../../../../../../src/platform-kit/utils"
 import { spamClassifierTokenizer } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 
 o.spec("HashingVectorizer", () => {
@@ -20,7 +20,7 @@ o.spec("HashingVectorizer", () => {
 		const tokens = ["privacy", "email", "data"]
 		const v1 = await vectorizer.vectorize(tokens)
 		const v2 = await vectorizer.vectorize(tokens)
-		o(arrayEquals(v1, v2)).equals(true)
+		o(array_equals(v1, v2)).equals(true)
 	})
 
 	o("vectorize handles empty input", async () => {

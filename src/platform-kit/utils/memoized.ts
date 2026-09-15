@@ -1,4 +1,4 @@
-import { arrayEquals } from "./ArrayUtils.js"
+import { array_equals } from "./ArrayUtils.js"
 import { lazy } from "./Utils.js"
 import { deepEqual } from "./TsUtils"
 
@@ -36,7 +36,7 @@ export function memoized<F extends (...args: any[]) => any>(fn: F): F {
 	let didCache = false
 
 	const memoizedFunction = (...args: Parameters<F>) => {
-		if (!didCache || !arrayEquals(lastArgs, args)) {
+		if (!didCache || !array_equals(lastArgs, args)) {
 			lastArgs = args
 			didCache = true
 			lastResult = fn(...args)

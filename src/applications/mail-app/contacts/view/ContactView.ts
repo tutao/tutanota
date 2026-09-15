@@ -6,7 +6,7 @@ import { Button, ButtonColor, ButtonType } from "../../../../ui/base/Button.js"
 import { ContactEditor } from "../ContactEditor"
 import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { arrayClear, arrayFirstOrThrow, arrayIsEmpty, arrayIsNotEmpty, assertNotNull, noOp, ofClass } from "../../../../platform-kit/utils"
+import { array_clear, array_isEmpty, array_firstOrThrow, array_isNotEmpty, assertNotNull, noOp, ofClass } from "../../../../platform-kit/utils"
 import { ContactMergeAction, EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
 import type { Shortcut } from "../../../../ui/utils/KeyManager"
 import { keyManager } from "../../../../ui/utils/KeyManager"
@@ -430,7 +430,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 						backgroundColor: theme.surface_container,
 					})
 				: m(ContactListEntryViewer, {
-						entry: arrayFirstOrThrow(entries),
+						entry: array_firstOrThrow(entries),
 						contacts: this.contactListViewModel.contactsForSelectedEntry,
 						contactEdit: (c: Contact) => this.editContact(c),
 						contactDelete: deleteContacts,
@@ -546,7 +546,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 	}
 
 	updateContactListInvitationsSection(receivedInvitations: ReceivedGroupInvitation[]) {
-		if (arrayIsEmpty(receivedInvitations)) {
+		if (array_isEmpty(receivedInvitations)) {
 			this.contactListInvitationSection = null
 		} else {
 			import("../../../common/sharing/view/GroupInvitationFolderRow.js").then(({ GroupInvitationFolderRow }) => {
@@ -770,7 +770,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 					} else if (action === ContactMergeAction.Skip) {
 						this._removeFromMergableContacts(mergable, contact2)
 					} else if (action === ContactMergeAction.Cancel) {
-						arrayClear(mergable)
+						array_clear(mergable)
 						canceled = true
 					}
 				})
@@ -816,7 +816,7 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 	private deleteSelectedContacts() {
 		const selectedContacts = this.getSelectedContacts()
-		if (arrayIsNotEmpty(selectedContacts)) {
+		if (array_isNotEmpty(selectedContacts)) {
 			return deleteContacts(selectedContacts, () => this.contactViewModel.listModel.selectNone())
 		}
 		return

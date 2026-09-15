@@ -1,4 +1,4 @@
-import { arrayRemove } from "@tutao/utils"
+import { array_remove } from "@tutao/utils"
 import { DownloadProgressInfo, UploadProgressInfo } from "../../../../entities/drive/Utils"
 
 export type UploadListener = (info: UploadProgressInfo) => unknown
@@ -23,12 +23,12 @@ export class TransferProgressDispatcher {
 
 	/** IPC: Should only be called from the same context as UploadProgressListener */
 	removeUploadListener(listener: UploadListener) {
-		arrayRemove(this.uploadListeners, listener)
+		array_remove(this.uploadListeners, listener)
 	}
 
 	/** IPC: Should only be called from the same context as UploadProgressListener */
 	removeDownloadListener(listener: DownloadListener) {
-		arrayRemove(this.downloadListeners, listener)
+		array_remove(this.downloadListeners, listener)
 	}
 
 	/** IPC: safe to call from different context */

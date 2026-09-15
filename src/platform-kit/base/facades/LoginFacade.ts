@@ -1,5 +1,5 @@
 import {
-	arrayEquals,
+	array_equals,
 	assertNotNull,
 	base64ToBase64Ext,
 	base64ToBase64Url,
@@ -1132,7 +1132,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const user = await this.entityClient.load(UserTypeRef, idToElementId(sessionData.userId))
 		let externalAuthInfo = assertNotNull(user.externalAuthInfo, "user does not have externalAuthInfo")
 		const latestSaltHash = assertNotNull(externalAuthInfo.latestSaltHash, "latestSaltHash is not set!")
-		if (!arrayEquals(latestSaltHash, sha256Hash(externalUserSalt))) {
+		if (!array_equals(latestSaltHash, sha256Hash(externalUserSalt))) {
 			// Do not delete session or credentials, we can still use them if the password
 			// hasn't been changed.
 			this.resetSession()

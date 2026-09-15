@@ -5,11 +5,11 @@ import { getFromMap } from "./MapUtils"
  * Everything that is in both array1 and array2
  * This is a naive implementation, don't use it on large inputs
  */
-export function intersection<T>(set1: Set<T>, set2: Set<T>): Set<T> {
+export function set_intersection<T>(set1: Set<T>, set2: Set<T>): Set<T> {
 	return new Set(Array.from(set1).filter((item) => set2.has(item)))
 }
 
-export function setEquals<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): boolean {
+export function set_equals<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): boolean {
 	if (set1.size !== set2.size) {
 		return false
 	}
@@ -21,7 +21,7 @@ export function setEquals<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): boolea
 	return true
 }
 
-export function setMap<T, R>(set: ReadonlySet<T>, mapper: (item: T) => R): Set<R> {
+export function set_map<T, R>(set: ReadonlySet<T>, mapper: (item: T) => R): Set<R> {
 	const result = new Set<R>()
 	for (const item of set) {
 		result.add(mapper(item))
@@ -166,7 +166,7 @@ export function collectionUniqueBy<T>(collection: Iterable<T>, discriminator: (i
 /**
  * Group an array based on the given discriminator, but each group will have only unique items
  */
-export function iterableGroupedUniqByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Set<E>> {
+export function iterable_groupedUniqByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Set<E>> {
 	const map = new Map()
 
 	for (let el of iterable) {
@@ -186,7 +186,7 @@ export function iterableGroupedUniqByMapped<T, R, E>(iterable: Iterable<T>, disc
  * @param mapper a function that maps the array elements before they get added to the group
  * @returns {Map<R, Array<E>>}
  */
-export function iterableGroupedByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
+export function iterable_groupedByMapped<T, R, E>(iterable: Iterable<T>, discriminator: (arg0: T) => R, mapper: (arg0: T) => E): Map<R, Array<E>> {
 	const map = new Map()
 
 	for (const el of iterable) {
@@ -201,16 +201,16 @@ export function iterableGroupedByMapped<T, R, E>(iterable: Iterable<T>, discrimi
  * Group array elements based on keys produced by a discriminator
  * @param iterable the array to split into groups
  * @param discriminator a function that produces the keys to group the elements by
- * @returns {NodeJS.Global.Map<R, Array<T>>}
+ * @returns {Map<R, Array<T>>}
  */
-export function iterableGroupedBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) => R): Map<R, Array<T>> {
-	return iterableGroupedByMapped(iterable, discriminator, identity)
+export function iterable_groupedBy<T, R>(iterable: Iterable<T>, discriminator: (arg0: T) => R): Map<R, Array<T>> {
+	return iterable_groupedByMapped(iterable, discriminator, identity)
 }
 
 /**
  * Collect an iterable into a map based on {@param keyExtractor}.
  */
-export function iterableCollectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
+export function iterable_collectToMap<T, R>(iterable: Iterable<T>, keyExtractor: (element: T) => R): Map<R, T> {
 	const map = new Map()
 	for (const el of iterable) {
 		const key = keyExtractor(el)
@@ -225,7 +225,7 @@ export function iterableCollectToMap<T, R>(iterable: Iterable<T>, keyExtractor: 
 /**
  * All of the elements in all of the arguments combined, and deduplicated
  */
-export function iterableUnion<T>(...iterables: Array<Iterable<T>>): Set<T> {
+export function iterable_union<T>(...iterables: Array<Iterable<T>>): Set<T> {
 	return new Set(...iterables.map((iterable) => Array.from(iterable)))
 }
 
@@ -237,7 +237,7 @@ export function iterableUnion<T>(...iterables: Array<Iterable<T>>): Set<T> {
  * @param compare {(l: T, r: T) => boolean} compare items in the array for equality
  * @returns {Array<T>}
  */
-export function iterableDifference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
+export function iterable_difference<T>(array1: ReadonlyArray<T>, array2: ReadonlyArray<T>, compare: (l: T, r: T) => boolean = (a, b) => a === b): Array<T> {
 	return array1.filter((element1) => !array2.some((element2) => compare(element1, element2)))
 }
 
@@ -246,7 +246,7 @@ export function iterableDifference<T>(array1: ReadonlyArray<T>, array2: Readonly
  *
  * {a, b, c} △ {b, c, d} == {a, d}
  */
-export function setSymmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
+export function set_symmetricDifference<T>(set1: ReadonlySet<T>, set2: ReadonlySet<T>): Set<T> {
 	const diff = new Set<T>()
 
 	for (const el of set1) {

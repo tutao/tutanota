@@ -9,7 +9,7 @@ import { ImapError, ImapErrorCause } from "../../../../../src/applications/commo
 import { ImapSyncSessionMailbox } from "../../../../../src/applications/common/desktop/imapimport/imapsync/ImapSyncSessionMailbox"
 import { CertificateProvider } from "../../../../../src/applications/common/desktop/CertificateProvider"
 import { ImapMailboxSpecialUse } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
-import { arrayFirstOrThrow } from "../../../../../src/platform-kit/utils"
+import { array_firstOrThrow } from "../../../../../src/platform-kit/utils"
 import { ImapProvider } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 
 o.spec("ImapSyncSession", () => {
@@ -233,7 +233,7 @@ o.spec("ImapSyncSession", () => {
 		await session.startSyncSession(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
 		o(session.syncSessionMailboxes?.length).equals(1)
-		o(arrayFirstOrThrow(session.syncSessionMailboxes).specialUse).equals(ImapMailboxSpecialUse.ALL)
+		o(array_firstOrThrow(session.syncSessionMailboxes).specialUse).equals(ImapMailboxSpecialUse.ALL)
 	})
 
 	o.test("getImapMailboxesFromServer - returns array of ImapMailbox", async () => {

@@ -1,5 +1,5 @@
 import { Params } from "mithril"
-import { arrayEquals, arrayIsEmpty, filterInt, getDayShifted, getStartOfDay } from "../../../../platform-kit/utils"
+import { array_equals, array_isEmpty, filterInt, getDayShifted, getStartOfDay } from "../../../../platform-kit/utils"
 import { SearchCategoryType, SearchRestriction, type SearchResult } from "../../../common/api/worker/search/SearchTypes"
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Mail, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
@@ -135,7 +135,7 @@ export function searchQueryEquals(a: SearchQuery, b: SearchQuery): boolean {
 }
 
 export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestriction): boolean {
-	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
+	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && array_equals(a.attributeIds, b.attributeIds))
 	return (
 		a.type === b.type &&
 		a.start === b.start &&
@@ -143,7 +143,7 @@ export function isSameSearchRestriction(a: SearchRestriction, b: SearchRestricti
 		a.field === b.field &&
 		isSameAttributeIds &&
 		(a.eventSeries === b.eventSeries || (a.eventSeries === null && b.eventSeries === true) || (a.eventSeries === true && b.eventSeries === null)) &&
-		arrayEquals(a.folderIds, b.folderIds)
+		array_equals(a.folderIds, b.folderIds)
 	)
 }
 
@@ -158,10 +158,10 @@ export function isSameSearchWithExtendedRange(oldQuery: SearchQuery, newQuery: S
  * @param b search result after possible extension
  */
 export function isSameSearchRestrictionWithRangeExtended(a: SearchRestriction, b: SearchRestriction): boolean {
-	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && arrayEquals(a.attributeIds, b.attributeIds))
+	const isSameAttributeIds = a.attributeIds === b.attributeIds || (!!a.attributeIds && !!b.attributeIds && array_equals(a.attributeIds, b.attributeIds))
 	const isRangeExtended = a.start === b.start && a.end != null && (b.end == null || b.end < a.end)
 
-	return a.type === b.type && isRangeExtended && a.field === b.field && isSameAttributeIds && arrayEquals(a.folderIds, b.folderIds)
+	return a.type === b.type && isRangeExtended && a.field === b.field && isSameAttributeIds && array_equals(a.folderIds, b.folderIds)
 }
 
 export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
@@ -170,9 +170,9 @@ export function areResultsForTheSameQuery(a: SearchResult, b: SearchResult) {
 
 export function hasMoreResults(searchResult: SearchResult): boolean {
 	return (
-		!arrayIsEmpty(searchResult.moreResults) ||
-		!arrayIsEmpty(searchResult.moreResultsEntries) ||
-		(!arrayIsEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
+		!array_isEmpty(searchResult.moreResults) ||
+		!array_isEmpty(searchResult.moreResultsEntries) ||
+		(!array_isEmpty(searchResult.lastReadSearchIndexRow) && searchResult.lastReadSearchIndexRow.every(([word, id]) => id !== 0))
 	)
 }
 

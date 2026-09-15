@@ -1,5 +1,14 @@
 import o, { spy } from "@tutao/otest"
-import { arrayEquals, assertNotNull, hexToUint8Array, KeyVersion, neverNull, noOp, utf8Uint8ArrayToString, Versioned } from "../../../../src/platform-kit/utils"
+import {
+	array_equals,
+	assertNotNull,
+	hexToUint8Array,
+	KeyVersion,
+	neverNull,
+	noOp,
+	utf8Uint8ArrayToString,
+	Versioned,
+} from "../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	CryptoProtocolVersion,
@@ -1232,7 +1241,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
+							array_equals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					}),
 				).equals(true)
@@ -1414,7 +1423,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
+							array_equals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					})
 				) {
@@ -1438,7 +1447,7 @@ o.spec("CryptoFacadeTest", function () {
 							updatedKey.instanceList === isk.instanceList &&
 							updatedKey.typeInfo.application === isk.typeInfo.application &&
 							updatedKey.typeInfo.typeId === isk.typeInfo.typeId &&
-							arrayEquals(updatedSessionKey.bits, expectedSessionKey.bits)
+							array_equals(updatedSessionKey.bits, expectedSessionKey.bits)
 						)
 					}),
 				).equals(true)

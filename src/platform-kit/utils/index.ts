@@ -1,41 +1,41 @@
 export {
-	arrayEquals,
-	arrayEqualsBy,
-	arrayRemove,
-	arrayClear,
-	arrayFindAll,
-	arrayRemoveBy,
-	arrayRemoveAllBy,
-	arrayReplace,
-	arrayMapFilterNull,
-	arrayFilterNull,
-	arrayLast,
-	arrayIsEmpty,
-	arrayIsNotEmpty,
-	arrayLastOrThrow,
-	arrayFirstOrThrow,
-	arrayFirst,
-	arrayFindLast,
-	arrayLastIndexBy,
-	arrayContains,
-	arrayAddAll,
-	arrayRemoveAll,
-	arrayChunked,
+	array_equals,
+	array_equalsBy,
+	array_remove,
+	array_clear,
+	array_findAll,
+	array_removeBy,
+	array_removeAllBy,
+	array_replace,
+	array_mapFilterNull,
+	array_filterNull,
+	array_last,
+	array_isEmpty,
+	array_isNotEmpty,
+	array_lastOrThrow,
+	array_firstOrThrow,
+	array_first,
+	array_findLast,
+	array_lastIndexBy,
+	array_contains,
+	array_addAll,
+	array_removeAll,
+	array_chunked,
 	flatMap,
-	arrayInsertIntoSorted,
-	arrayZip,
-	arrayDeduplicated,
-	arrayBinarySearch,
-	arrayLastIndex,
-	arrayPartitioned,
-	arrayPartitionedAsync,
-	arrayOf,
-	arrayCount,
-	arraySplitAt,
+	array_insertIntoSorted,
+	array_Zip,
+	array_deduplicated,
+	array_binarySearch,
+	array_lastIndex,
+	array_partitioned,
+	array_partitionedAsync,
+	array_of,
+	array_count,
+	array_splitAt,
 } from "./ArrayUtils.js"
 export { AsyncResult } from "./AsyncResult.js"
 export {
-	intersection,
+	set_intersection,
 	trisectingDiff,
 	setAddAll,
 	max,
@@ -45,8 +45,8 @@ export {
 	minBy,
 	mapWith,
 	mapWithout,
-	setEquals,
-	setMap,
+	set_equals,
+	set_map,
 	setDifference,
 	collectionSum,
 } from "./CollectionUtils.js"
@@ -161,18 +161,18 @@ export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"
 export { mutable } from "./WebAssemblyArgument"
 export * from "./TsUtils"
-export { uint8ArraySplitAt } from "./Uint8ArrayUtils"
-export { uint8ArrayCompare } from "./Uint8ArrayUtils"
-export { uint8ArrayChunked } from "./Uint8ArrayUtils"
-export { uint8ArrayHashUnsigned } from "./Uint8ArrayUtils"
-export { uint8ArrayHashSigned } from "./Uint8ArrayUtils"
-export { uint8ArrayUtils } from "./Uint8ArrayUtils"
-export { setSymmetricDifference } from "./CollectionUtils"
-export { iterableDifference } from "./CollectionUtils"
-export { iterableUnion } from "./CollectionUtils"
-export { iterableCollectToMap } from "./CollectionUtils"
-export { iterableGroupedBy } from "./CollectionUtils"
-export { iterableGroupedByMapped } from "./CollectionUtils"
-export { iterableGroupedUniqByMapped } from "./CollectionUtils"
+export { uint8Array_splitAt } from "./Uint8ArrayUtils"
+export { uint8Array_compare } from "./Uint8ArrayUtils"
+export { uint8Array_chunked } from "./Uint8ArrayUtils"
+export { uint8Array_hashUnsigned } from "./Uint8ArrayUtils"
+export { uint8Array_hashSigned } from "./Uint8ArrayUtils"
+export { uint8Array_concat } from "./Uint8ArrayUtils"
+export { set_symmetricDifference } from "./CollectionUtils"
+export { iterable_difference } from "./CollectionUtils"
+export { iterable_union } from "./CollectionUtils"
+export { iterable_collectToMap } from "./CollectionUtils"
+export { iterable_groupedBy } from "./CollectionUtils"
+export { iterable_groupedByMapped } from "./CollectionUtils"
+export { iterable_groupedUniqByMapped } from "./CollectionUtils"
 export { lazyNumberRange } from "./CollectionUtils"
 export { numberRange } from "./CollectionUtils"

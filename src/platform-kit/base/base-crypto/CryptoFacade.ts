@@ -1,5 +1,5 @@
 import {
-	arrayFirst,
+	array_first,
 	assert,
 	assertNotNull,
 	downcast,
@@ -216,7 +216,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
 		if (isNotNull(instanceSessionKeysFromCache)) {
 			const instanceId = instance._id
-			const encryptedSessionKeyForInstance = arrayFirst(
+			const encryptedSessionKeyForInstance = array_first(
 				instanceSessionKeysFromCache.filter((instanceSessionKey) =>
 					isSameId(instanceId, [instanceSessionKey.instanceList, instanceSessionKey.instanceId]),
 				),

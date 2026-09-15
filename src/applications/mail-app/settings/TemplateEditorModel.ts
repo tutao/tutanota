@@ -1,6 +1,6 @@
 import type { Language, LanguageCode, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang, languageByCode, languages } from "../../../ui/utils/LanguageViewModel"
-import { arrayFirstOrThrow, arrayRemove, iterableDifference, downcast } from "../../../platform-kit/utils"
+import { array_firstOrThrow, array_remove, downcast, iterable_difference } from "../../../platform-kit/utils"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
@@ -29,7 +29,7 @@ export class TemplateEditorModel {
 		this.title = stream("")
 		this.tag = stream("")
 		const contents = this.template.contents
-		this.selectedContent = stream(contents.length > 0 ? arrayFirstOrThrow(contents) : this.createContent(lang.code))
+		this.selectedContent = stream(contents.length > 0 ? array_firstOrThrow(contents) : this.createContent(lang.code))
 		this._templateGroupRoot = templateGroupRoot
 		this._entityClient = entityClient
 		this._contentProvider = null
@@ -64,7 +64,7 @@ export class TemplateEditorModel {
 		const content = this.selectedContent()
 
 		if (content) {
-			arrayRemove(this.template.contents, content)
+			array_remove(this.template.contents, content)
 		}
 	}
 
@@ -73,7 +73,7 @@ export class TemplateEditorModel {
 	 * @returns {Array<{name: string, value: LanguageCode}>}
 	 */
 	getAdditionalLanguages(): Array<Language> {
-		return iterableDifference(languages, this.getAddedLanguages(), (lang1, lang2) => lang1.code === lang2.code)
+		return iterable_difference(languages, this.getAddedLanguages(), (lang1, lang2) => lang1.code === lang2.code)
 	}
 
 	getAddedLanguages(): Array<Language> {

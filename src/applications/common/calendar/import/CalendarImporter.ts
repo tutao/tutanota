@@ -1,5 +1,5 @@
 import { ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
-import { arrayIsEmpty, arrayIsNotEmpty, deferWithHandler, isNotNull, iterableGroupedBy } from "@tutao/utils"
+import { array_isEmpty, array_isNotEmpty, deferWithHandler, isNotNull, iterable_groupedBy } from "@tutao/utils"
 import { generateEventElementId, isBefore } from "../../api/common/utils/CommonCalendarUtils"
 import { assignEventId, CalendarEventValidity, CalendarType, checkEventValidity } from "../date/CalendarUtils"
 import { EventAlarmInfoTemplatesTuple, makeCalendarEventFromIcsCalendarEvent, shallowIsSameEvent } from "./ImportExportUtils"
@@ -40,8 +40,8 @@ export class CalendarImporter {
 		calendarGroupRoot: CalendarGroupRoot,
 		zone: string,
 	): ClassifiedParsedEvents {
-		const parsedEventsByUid = iterableGroupedBy(parsedEventAlarmTuples, (e) => e.icsCalendarEvent.uid)
-		const existingEventsByUid = iterableGroupedBy(existingEvents, (e) => e.uid)
+		const parsedEventsByUid = iterable_groupedBy(parsedEventAlarmTuples, (e) => e.icsCalendarEvent.uid)
+		const existingEventsByUid = iterable_groupedBy(existingEvents, (e) => e.uid)
 
 		const result: ClassifiedParsedEvents = { rejectedEvents: new Map(), eventsForCreationTuples: [] }
 
@@ -75,7 +75,7 @@ export class CalendarImporter {
 		eventsClassifier: EventsClassifier,
 		calendarType: CalendarType = CalendarType.Private,
 	): Promise<CreateCalendarEventsResult | null> {
-		if (arrayIsEmpty(parsedEventAlarmTuples)) {
+		if (array_isEmpty(parsedEventAlarmTuples)) {
 			this.importInteractionHandler.showEmptyFileMessage()
 			return null
 		}
@@ -142,12 +142,12 @@ export class CalendarImporter {
 			const result = await this.calendarModel.createCalendarEvents(prioritizedEvents, operation.id)
 			await this.operationProgressTracker.onProgress(operation.id, (prioritizedEvents.length / progressData.maxOperations) * 100)
 
-			if (arrayIsNotEmpty(result.failedEventErrors)) {
+			if (array_isNotEmpty(result.failedEventErrors)) {
 				const errors = errorsToString(result.failedEventErrors.map((e) => errToErrorInfo(e)))
 				throw new ImportError(Error(errors), "Failed to create calendar events", result.failedEvents.length)
 			}
 
-			if (arrayIsNotEmpty(result.failedAlarms)) {
+			if (array_isNotEmpty(result.failedAlarms)) {
 				const errors = errorsToString(result.failedAlarmErrors.map((e) => errToErrorInfo(e)))
 				throw new ImportError(Error(errors), "Failed to create some alarms for imported events", result.failedAlarms.length)
 			}

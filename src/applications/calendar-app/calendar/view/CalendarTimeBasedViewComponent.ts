@@ -10,7 +10,7 @@ import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, Tim
 import { EventWrapper, ScrollByListener } from "./CalendarViewModel"
 import { EventBubbleInteractions } from "../../../common/calendar/gui/CalendarEventBubble"
 import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "./EventDragHandler"
-import { arrayIsEmpty, isToday, neverNull, ofClass } from "../../../../platform-kit/utils"
+import { array_isEmpty, isToday, neverNull, ofClass } from "../../../../platform-kit/utils"
 import { deviceConfig } from "../../../common/misc/DeviceConfig"
 import { PageView } from "../../../../ui/base/PageView"
 import { AllDaySection, AllDaySectionAttrs } from "../../../common/calendar/gui/AllDaySection"
@@ -205,7 +205,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 	}
 
 	private renderCalendarGridSection(attrs: CalendarTimeBasedViewComponentAttrs) {
-		if (arrayIsEmpty(attrs.headerComponentAttrs.dates)) {
+		if (array_isEmpty(attrs.headerComponentAttrs.dates)) {
 			console.warn("CalendarTimeBasedViewComponent: No dates provided")
 			return null
 		}

@@ -3,7 +3,7 @@ import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../
 import { ImapMail, ImapMailAttachment } from "../../../common/api/common/utils/imapImportUtils/ImapMail.js"
 import { ImapError } from "../../../common/api/common/error/ImapError.js"
 
-import { arrayFirstOrThrow, arrayIsEmpty, arrayPartitioned, assertNotNull, promiseMap, uint8ArrayToString } from "@tutao/utils"
+import { array_firstOrThrow, array_isEmpty, array_partitioned, assertNotNull, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import { ImapImportDataFile, ImapImportTutaFileId, ImportMailFacade, ImportMailParams } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
@@ -410,11 +410,11 @@ export class ImapImporter implements ImapSyncFacade {
 		const session = assertNotNull(this.getImapImportSessionOrNull(accountSyncStateId))
 		const mailGroupId = assertNotNull(session.imapAccountSyncState._ownerGroup)
 
-		if (arrayIsEmpty(imapMails)) {
+		if (array_isEmpty(imapMails)) {
 			return Promise.resolve()
 		}
 
-		const folderSyncState = getFolderSyncStateForMailboxPath(arrayFirstOrThrow(imapMails).belongsToMailbox.path, session.imapFolderSyncStates)
+		const folderSyncState = getFolderSyncStateForMailboxPath(array_firstOrThrow(imapMails).belongsToMailbox.path, session.imapFolderSyncStates)
 		if (folderSyncState === null || folderSyncState.status === ImapFolderSyncStatus.NO_SYNC) {
 			console.log("folder sync state is null or no sync")
 			return Promise.resolve()
@@ -427,7 +427,7 @@ export class ImapImporter implements ImapSyncFacade {
 		}
 		switch (eventType) {
 			case ImapSyncEventType.CREATE: {
-				if (arrayIsEmpty(importMailParamsList)) {
+				if (array_isEmpty(importMailParamsList)) {
 					return Promise.resolve()
 				}
 				try {
@@ -590,7 +590,7 @@ export class ImapImporter implements ImapSyncFacade {
 				importedMailCount: parseInt(session.imapAccountSyncState.importedMailCount ?? "0"),
 			}
 		})
-		const [activeSessions, canceledSessions] = arrayPartitioned(
+		const [activeSessions, canceledSessions] = array_partitioned(
 			imapImportUiSessions,
 			(imapImportUiSession) => imapImportUiSession.imapAccountSyncStatus !== ImapAccountSyncStatus.CANCELED,
 		)

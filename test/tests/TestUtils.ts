@@ -2,7 +2,7 @@ import { DbEncryptionData } from "../../src/applications/common/api/worker/searc
 import { IndexerCore } from "../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { DbFacade, DbTransaction } from "../../src/applications/common/api/worker/search/DbFacade.js"
 import {
-	arrayRemove,
+	array_remove,
 	assertNotNull,
 	base64ToUint8Array,
 	deepEqual,
@@ -494,7 +494,7 @@ export class EventControllerMock extends EventController {
 	}
 
 	removeEntityUpdatesListener(listener: EntityUpdatesListener) {
-		arrayRemove(this.listeners, listener)
+		array_remove(this.listeners, listener)
 	}
 
 	async onEntityUpdateReceived(entityUpdates: readonly EntityUpdateData[], eventOwnerGroupId: Id, isInitialSyncDone: boolean): Promise<void> {

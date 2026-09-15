@@ -4,7 +4,7 @@ import { SettingsFolder } from "./SettingsFolder"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import type { DomainConfigProvider } from "../api/common/DomainConfigProvider"
 import { SettingsList } from "./SettingsList"
-import { arrayIsNotEmpty } from "@tutao/utils"
+import { array_isNotEmpty } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { SettingsSupportButton } from "./SettingsSupportButton"
 import { SettingsAboutLInk } from "./SettingsAboutLInk"
@@ -78,7 +78,7 @@ export class MobileSettingsView extends BaseTopLevelView implements TopLevelView
 											items: section.settings.filter((f) => f.isVisible()).map((f) => this.createSettingsFolderNavButton(f)),
 										}
 									})
-									.filter((section) => arrayIsNotEmpty(section.items)),
+									.filter((section) => array_isNotEmpty(section.items)),
 							}),
 							this.bottomSection(domainConfigProvider),
 						]),
