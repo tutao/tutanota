@@ -75,27 +75,27 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	 * Customer-scoped plugin configuration used by the plugin settings page.
 	 */
 	async getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>> {
-		if (!this.customerPluginConfigs) {
-			const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
-			const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
-			this.customerPluginConfigs = new Map(configs.map((pc) => [base64UrlCustomIdToString(elementIdPart(pc._id)), pc.configJson]))
-		}
+		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
+		const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
+		this.customerPluginConfigs = new Map(configs.map((pc) => [base64UrlCustomIdToString(elementIdPart(pc._id)), pc.configJson]))
 		return this.customerPluginConfigs
 	}
 
 	async setCustomerPluginConfig(pluginId: string, configJson: string): Promise<void> {
 		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
-		const existing = await this.entityClient.load(PluginConfigurationTypeRef, [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)]).catch(
-			ofClass(NotFoundError, async () => {
+		try {
+			const existing = await this.entityClient.load(PluginConfigurationTypeRef, [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)])
+			existing.configJson = configJson
+			await this.entityClient.update(existing)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
 				const pluginConfig = createPluginConfiguration({ configJson })
 				pluginConfig._id = [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
 				pluginConfig._ownerGroup = assertNotNull(this.logins.getUserController().getCustomer(), "customer not loaded").customerGroup
 				await this.entityClient.setup(globalPluginConfigsList, pluginConfig)
-				return pluginConfig
-			}),
-		)
-		existing.configJson = configJson
-		await this.entityClient.update(existing)
+				return
+			}
+		}
 	}
 
 	async removeCustomerPluginConfig(pluginId: string): Promise<void> {

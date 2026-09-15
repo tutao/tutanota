@@ -32,8 +32,10 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 
 		return m(".plugin-row", [
 			m(".flex.items-center.gap-8.pt-8.pb-8", [
-				m("img.icon-32", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
-				m(".flex.flex-column.flex-grow.min-width-0", [
+				// every sibling in this array needs a key once one of them (the Switch) does -
+				// mithril requires a fragment's vnodes to be either all keyed or all unkeyed
+				m("img.icon-32", { key: "logo", src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
+				m(".flex.flex-column.flex-grow.min-width-0", { key: "text" }, [
 					m(".b.text-ellipsis", entry.name),
 					m(".smaller.text-ellipsis.on-surface-variant", entry.description),
 				]),
