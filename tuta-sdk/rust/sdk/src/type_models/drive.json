@@ -1246,5 +1246,159 @@
 				"dependency": null
 			}
 		}
+	},
+	"137": {
+		"name": "BlobServerUrl",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "AGGREGATED_TYPE",
+		"id": 137,
+		"rootId": "BWRyaXZlAACJ",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"138": {
+				"final": true,
+				"name": "_id",
+				"id": 138,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"139": {
+				"final": false,
+				"name": "url",
+				"id": 139,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {}
+	},
+	"140": {
+		"name": "BlobServerAccessInfo",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "AGGREGATED_TYPE",
+		"id": 140,
+		"rootId": "BWRyaXZlAACM",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"141": {
+				"final": true,
+				"name": "_id",
+				"id": 141,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"142": {
+				"final": false,
+				"name": "blobAccessToken",
+				"id": 142,
+				"type": "String",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"143": {
+				"final": false,
+				"name": "expires",
+				"id": 143,
+				"type": "Date",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"144": {
+				"final": false,
+				"name": "tokenKind",
+				"id": 144,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"145": {
+				"final": false,
+				"name": "servers",
+				"id": 145,
+				"type": "AGGREGATION",
+				"cardinality": "Any",
+				"refTypeId": 137,
+				"dependency": null
+			}
+		}
+	},
+	"146": {
+		"name": "DriveShareTokenServicePostIn",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 146,
+		"rootId": "BWRyaXZlAACS",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"147": {
+				"final": false,
+				"name": "_format",
+				"id": 147,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"148": {
+				"final": false,
+				"name": "file",
+				"id": 148,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "One",
+				"refTypeId": 14,
+				"dependency": null
+			}
+		}
+	},
+	"149": {
+		"name": "DriveShareTokenServicePostOut",
+		"app": "drive",
+		"version": 5,
+		"since": 5,
+		"type": "DATA_TRANSFER_TYPE",
+		"id": 149,
+		"rootId": "BWRyaXZlAACV",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"values": {
+			"150": {
+				"final": false,
+				"name": "_format",
+				"id": 150,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			}
+		},
+		"associations": {
+			"151": {
+				"final": false,
+				"name": "blobAccessInfo",
+				"id": 151,
+				"type": "AGGREGATION",
+				"cardinality": "One",
+				"refTypeId": 140,
+				"dependency": null
+			}
+		}
 	}
 }

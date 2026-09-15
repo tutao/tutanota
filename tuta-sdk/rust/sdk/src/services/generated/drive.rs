@@ -20,6 +20,7 @@ use crate::entities::generated::drive::DrivePostIn;
 use crate::entities::generated::drive::DriveShareServicePostIn;
 use crate::entities::generated::drive::DriveShareServicePutIn;
 use crate::entities::generated::drive::DriveShareServiceDeleteIn;
+use crate::entities::generated::drive::DriveShareTokenServicePostIn;
 pub struct DriveCopyService;
 
 crate::service_impl!(declare, DriveCopyService, "drive/drivecopyservice", 5);
@@ -54,3 +55,9 @@ crate::service_impl!(declare, DriveShareService, "drive/driveshareservice", 5);
 crate::service_impl!(POST, DriveShareService, DriveShareServicePostIn, ());
 crate::service_impl!(PUT, DriveShareService, DriveShareServicePutIn, ());
 crate::service_impl!(DELETE, DriveShareService, DriveShareServiceDeleteIn, ());
+
+
+pub struct DriveShareTokenService;
+
+crate::service_impl!(declare, DriveShareTokenService, "drive/drivesharetokenservice", 5);
+crate::service_impl!(POST, DriveShareTokenService, DriveShareTokenServicePostIn, ());

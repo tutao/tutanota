@@ -955,3 +955,151 @@ export type DriveShareServiceDeleteIn = {
 	_original: Nullable<DriveShareServiceDeleteIn>
 	isAdapter: false
 }
+export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 137)
+
+export function createBlobServerUrl(values: BlobServerUrlParams): BlobServerUrl {
+	return Object.assign(create(typeModels[BlobServerUrlTypeRef.typeId], BlobServerUrlTypeRef), values)
+}
+
+export type BlobServerUrlParams = {
+	url: string
+}
+
+export type BlobServerUrl = {
+	// == values
+
+	_id: Id
+	url: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobServerUrl>
+	_original: Nullable<BlobServerUrl>
+	isAdapter: false
+}
+export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 140)
+
+export function createBlobServerAccessInfo(values: BlobServerAccessInfoParams): BlobServerAccessInfo {
+	return Object.assign(create(typeModels[BlobServerAccessInfoTypeRef.typeId], BlobServerAccessInfoTypeRef), values)
+}
+
+export type BlobServerAccessInfoParams = {
+	blobAccessToken: string
+	expires: Date
+	tokenKind: NumberString
+
+	servers: BlobServerUrl[]
+}
+
+export type BlobServerAccessInfo = {
+	// == values
+
+	_id: Id
+	blobAccessToken: string
+	expires: Date
+	tokenKind: NumberString
+
+	// == associations
+
+	servers: BlobServerUrl[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<BlobServerAccessInfo>
+	_original: Nullable<BlobServerAccessInfo>
+	isAdapter: false
+}
+export const DriveShareTokenServicePostInTypeRef: TypeRef<DriveShareTokenServicePostIn> = new TypeRef("drive", 146)
+
+export function createDriveShareTokenServicePostIn(values: DriveShareTokenServicePostInParams): DriveShareTokenServicePostIn {
+	return Object.assign(create(typeModels[DriveShareTokenServicePostInTypeRef.typeId], DriveShareTokenServicePostInTypeRef), values)
+}
+
+export type DriveShareTokenServicePostInParams = {
+	file: IdTuple
+}
+
+export type DriveShareTokenServicePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	file: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareTokenServicePostIn>
+	_original: Nullable<DriveShareTokenServicePostIn>
+	isAdapter: false
+}
+export const DriveShareTokenServicePostOutTypeRef: TypeRef<DriveShareTokenServicePostOut> = new TypeRef("drive", 149)
+
+export function createDriveShareTokenServicePostOut(values: DriveShareTokenServicePostOutParams): DriveShareTokenServicePostOut {
+	return Object.assign(create(typeModels[DriveShareTokenServicePostOutTypeRef.typeId], DriveShareTokenServicePostOutTypeRef), values)
+}
+
+export type DriveShareTokenServicePostOutParams = {
+	blobAccessInfo: BlobServerAccessInfo
+}
+
+export type DriveShareTokenServicePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	blobAccessInfo: BlobServerAccessInfo
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareTokenServicePostOut>
+	_original: Nullable<DriveShareTokenServicePostOut>
+	isAdapter: false
+}
