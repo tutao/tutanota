@@ -96,7 +96,15 @@ import { CertificateProvider } from "./CertificateProvider"
 
 mp()
 
-dns.setDefaultResultOrder("ipv4first")
+// node (by default) tries to autoselect address family (IPv4 vs IPv6). It does it by trying each address family in
+// order.
+// For every attempt except for the last it uses `defaultAutoSelectFamilyAttemptTimeout`:
+// (see https://beta.docs.nodejs.org/net/Socket#socketconnectoptions-connectlistener).
+// With the settings below it will try IPv6 first for 2s, then attempt IPv4 with a regular timeout.
+// We try IPv6 first because it's more prone to being broken so we want to try more reliable IPv4 last, will full
+// timeout.
+dns.setDefaultResultOrder("ipv6first")
+net.setDefaultAutoSelectFamilyAttemptTimeout(2000)
 
 setupAssetProtocol(electron)
 
