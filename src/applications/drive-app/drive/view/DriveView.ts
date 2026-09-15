@@ -94,8 +94,8 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 				this.driveViewModel.displayFolder([folderListId, folderElementId]).then(() => m.redraw())
 			} else {
 				// /drive
-				// No folder given, load the drive root
-				this.driveViewModel.navigateToRootFolder()
+				// No folder given, load the currently open folder or root
+				this.driveViewModel.navigateToCurrentOrRootFolder()
 			}
 		})
 	}
