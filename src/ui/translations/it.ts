@@ -603,6 +603,7 @@ export default {
 		"formatTextUnderline_msg": "Sottolinea il testo selezionato.",
 		"forward_action": "Inoltra",
 		"freeAccountInfo_msg": "È consentito un solo account gratuito per persona. Gli account gratuiti possono essere utilizzati solo per comunicazioni private. Se desideri utilizzare Tuta per il tuo business o come libero professionista, ordina un abbonamento a pagamento. Tieni inoltre presente che gli account gratuiti vengono eliminati se non accedi per sei mesi.",
+		"friday_label": "Venerdì",
 		"friend_label": "Amico",
 		"from_label": "Da",
 		"functionNotSupported_msg": "Questa funzionalità non è supportata sul tuo dispositivo o browser.",

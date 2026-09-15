@@ -22,6 +22,7 @@ TutaoWidgetOpenAppAction = "Відкрити застосунок";
 TutaoWidgetUnexpectedErrorMsg = "Уупс! Щось пішло не так.";
 TutaoWidgetSendLogsAction = "Надіслати журнали";
 TutaoWidgetNoEventsMsg = "Немає подій";
+TutaoWidgetNoEventsTodayMsg = "Сьогодні немає подій";
 TutaoWidgetCredentialsErrorMsg = "Облікові дані відсутні";
 TutaoAccountLabel = "Користувач";
 TutaoCalendarsLabel = "Календарі";

@@ -1,5 +1,5 @@
 <resources>
-    <string name="reminder_label">hatırlatıcı</string>
+    <string name="reminder_label">Hatırlatıma</string>
     <string name="pushNewMail_msg">Yeni e-posta alındı.</string>
     <string name="notificationSync_msg">Bildirimler senkronize ediliyor</string>
     <string name="scheduleAlarmError_msg">Alarm kurulamadı. Lütfen uygulamayı güncelleyin.</string>

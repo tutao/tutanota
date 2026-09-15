@@ -1035,6 +1035,7 @@ export default {
 		"label_label": "Libellé",
 		"labelInput_label": "Nom du libellé",
 		"labelLimitExceeded_msg": "Seules 3 étiquettes sont incluses dans le plan gratuit. Veuillez supprimer des étiquettes.",
+		"labelNameInvalidExisting_msg": "Un libellé portant ce nom existe déjà.",
 		"labels_label": "Labels",
 		"language_label": "Langue",
 		"languageAfrikaans_label": "Afrikaans",

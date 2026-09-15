@@ -17,6 +17,7 @@
     <string name="widgetCredentialsError_msg">Будь ласка, увійдіть у застосунок Календар</string>
     <string name="widgetOpenApp_action">Відкрити застосунок</string>
     <string name="widgetNoEvents_msg">Немає подій</string>
+    <string name="widgetNoEventsToday_msg">Сьогодні немає подій</string>
     <string name="widgetDescription_msg">Показати найближчі події на сьогодні</string>
     <string name="birthdayCalendar_label">Дні народження</string>
     <string name="birthdayEvent_title">День народження {name}</string>
