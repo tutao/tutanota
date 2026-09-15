@@ -1,16 +1,70 @@
-import { ExpandedInboxRule, ExpandedInboxRuleTypeRef } from "@tutao/entities/tutanota"
+import {
+	createExpandedInboxRule,
+	createInboxRuleCondition,
+	createInboxRuleResult,
+	ExpandedInboxRule,
+	ExpandedInboxRuleTypeRef,
+	InboxRule,
+	TutanotaPropertiesTypeRef,
+} from "@tutao/entities/tutanota"
 import { elementIdToId, getElementId, getListId } from "@tutao/meta"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { createIdTupleWrapper, IdTupleWrapper } from "@tutao/entities/sys"
+import { InboxRuleConditionType, InboxRuleResultType } from "../../../../entities/tutanota/Utils"
+import { mailLocator } from "../../mailLocator"
 
 export class InboxRuleModel {
+	private usingLegacyInboxRules: boolean = true
+
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly mailboxModel: MailboxModel,
 	) {}
+
+	async init() {
+		const mailboxGroupRoot = await this.getUserMailboxGroupRoot()
+		this.usingLegacyInboxRules = !isNotNull(mailboxGroupRoot.inboxRules)
+	}
+
+	// FIXME: I don't know if this is the right place for migrateInboxRules, need to figure out where to call
+	// FIXME: this errors right now, but with breakpoints it doesn't. Probably just not waiting long enough
+	async triggerInboxRuleMigration() {
+		if (!this.usingLegacyInboxRules) {
+			const props = await this.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
+			if (props.inboxRules.length > 0) {
+				console.log("Migrating Inbox Rules!!!!")
+				await this.migrateInboxRules(props.inboxRules)
+
+				props.inboxRules = []
+
+				await this.entityClient.update(props)
+			}
+		}
+	}
+
+	private async migrateInboxRules(legacyInboxRules: InboxRule[]) {
+		for (const legacyInboxRule of legacyInboxRules) {
+			// FIXME: need to get name of Target Folder, right now it is just id
+			const inboxRuleName = `${legacyInboxRule.value} -> ${legacyInboxRule.targetFolder}`
+
+			const inboxRuleResults = [createInboxRuleResult({ type: InboxRuleResultType.MOVE, value: legacyInboxRule.targetFolder })]
+			if (legacyInboxRule.excludeFromSpamFilter) {
+				inboxRuleResults.push(createInboxRuleResult({ type: InboxRuleResultType.EXCLUDE_SPAM, value: null }))
+			}
+
+			const inboxRule = createExpandedInboxRule({
+				name: inboxRuleName,
+				conditions: [createInboxRuleCondition({ type: legacyInboxRule.type, value: legacyInboxRule.value })],
+				results: inboxRuleResults,
+				enabled: true,
+			})
+
+			await this.createInboxRule(inboxRule)
+		}
+	}
 
 	private async getUserMailboxGroupRoot() {
 		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
@@ -73,7 +127,6 @@ export class InboxRuleModel {
 	}
 
 	isUsingLegacyInboxRules() {
-		// FIXME: this function should actually check something, will be done with the migration issue
-		return false
+		return this.usingLegacyInboxRules
 	}
 }

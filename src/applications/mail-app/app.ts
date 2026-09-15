@@ -201,6 +201,7 @@ import("../../ui/translations/en.js")
 						}
 						syncManager.syncContacts()
 					}
+					await mailLocator.inboxRuleModel.init()
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
 				},
@@ -236,6 +237,8 @@ import("../../ui/translations/en.js")
 								})
 						}
 					}
+
+					await mailLocator.inboxRuleModel.triggerInboxRuleMigration()
 				},
 			}
 		})
