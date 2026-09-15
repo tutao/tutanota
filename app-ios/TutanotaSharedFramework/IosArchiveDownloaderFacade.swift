@@ -25,7 +25,8 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		TUTSLog("Finished downloading archive with id \(archiveId)")
 
 		let httpResponse = response as! HTTPURLResponse
-		if httpResponse.statusCode == 200 { try await storeArchive(bytes, archiveId, typeref, modelVersion) }
+		if httpResponse.statusCode == 200 { try await storeArchive(bytes, archiveId, typeref, modelVersion) catch let error
+		{ TUTSLog("Storing archive \(archiveId) failed") }
 	}
 
 	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
