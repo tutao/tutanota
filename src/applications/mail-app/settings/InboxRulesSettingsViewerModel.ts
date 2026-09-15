@@ -19,10 +19,12 @@ export class InboxRulesSettingsViewerModel {
 	}
 
 	private async init(): Promise<void> {
-		const [rulesById, rulesOrder] = await Promise.all([this.inboxRuleModel.getInboxRulesMap(), this.inboxRuleModel.getInboxRuleOrder()])
-		this.inboxRulesById = rulesById
-		this.inboxRulesOrder = rulesOrder
-		this.computeOrderedInboxRules()
+		if (!this.inboxRuleModel.isUsingLegacyInboxRules()) {
+			const [rulesById, rulesOrder] = await Promise.all([this.inboxRuleModel.getInboxRulesMap(), this.inboxRuleModel.getInboxRuleOrder()])
+			this.inboxRulesById = rulesById
+			this.inboxRulesOrder = rulesOrder
+			this.computeOrderedInboxRules()
+		}
 	}
 
 	private computeOrderedInboxRules() {
