@@ -71,4 +71,9 @@ export class InboxRuleModel {
 		mailboxProperties.inboxRuleOrder = newOrder.map((rule) => createIdTupleWrapper({ listId: getListId(rule), listElementId: getElementId(rule) }))
 		await this.entityClient.update(mailboxProperties)
 	}
+
+	isUsingLegacyInboxRules() {
+		// FIXME: this function should actually check something, will be done with the migration issue
+		return false
+	}
 }

@@ -28,7 +28,7 @@ import { PinchZoom } from "../../../../ui/PinchZoom.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../../ui/cards.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { createNewContact, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
-import { getExistingRuleForType } from "../model/MailUtils.js"
+import { getExistingInboxRuleForType, getExistingLegacyInboxRuleForType } from "../model/MailUtils.js"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
 import { WindowSizeListener } from "../../../../ui/utils/WindowUtils"
@@ -661,23 +661,43 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				// Only allow the addition of inbox and spam rules if it is not a shared mailbox
 				// Shared mailboxes currently do not support inbox rules
 				if (defaultInboxRuleField && !locator.logins.isEnabled(FeatureType.InternalCommunication)) {
-					const rule = getExistingRuleForType(
-						await this.viewModel.inboxRuleModel.getOrderedInboxRules(),
-						mailAddress.address.trim().toLowerCase(),
-						defaultInboxRuleField,
-					)
-					buttons.push({
-						label: rule ? "editInboxRule_action" : "addInboxRule_action",
-						click: async () => {
-							const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
-							if (mailboxDetails == null) {
-								return
-							}
-							const { show } = await import("../../settings/AddInboxRuleDialog")
+					if (this.viewModel.inboxRuleModel.isUsingLegacyInboxRules()) {
+						const rule = getExistingLegacyInboxRuleForType(
+							locator.logins.getUserController().props,
+							mailAddress.address.trim().toLowerCase(),
+							defaultInboxRuleField,
+						)
+						buttons.push({
+							label: rule ? "editInboxRule_action" : "addInboxRule_action",
+							click: async () => {
+								const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+								if (mailboxDetails == null) {
+									return
+								}
+								const { show, createLegacyInboxRuleTemplate } = await import("../../settings/AddLegacyInboxRuleDialog")
 
-							show(mailboxDetails, this.viewModel.inboxRuleModel, rule, [{ type: defaultInboxRuleField, value: mailAddress.address }])
-						},
-					})
+								show(mailboxDetails, rule ?? createLegacyInboxRuleTemplate(defaultInboxRuleField, mailAddress.address))
+							},
+						})
+					} else {
+						const rule = getExistingInboxRuleForType(
+							await this.viewModel.inboxRuleModel.getOrderedInboxRules(),
+							mailAddress.address.trim().toLowerCase(),
+							defaultInboxRuleField,
+						)
+						buttons.push({
+							label: rule ? "editInboxRule_action" : "addInboxRule_action",
+							click: async () => {
+								const mailboxDetails = await this.viewModel.mailModel.getMailboxDetailsForMail(this.viewModel.mail)
+								if (mailboxDetails == null) {
+									return
+								}
+								const { show } = await import("../../settings/AddInboxRuleDialog")
+
+								show(mailboxDetails, this.viewModel.inboxRuleModel, rule, [{ type: defaultInboxRuleField, value: mailAddress.address }])
+							},
+						})
+					}
 				}
 
 				if (this.viewModel.canCreateSpamRule()) {
