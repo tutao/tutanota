@@ -9,6 +9,9 @@ import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.TaggedSqlValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.invoke
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Call
 import okhttp3.Request
@@ -16,6 +19,7 @@ import java.io.IOException
 import java.io.Reader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
+import kotlin.coroutines.coroutineContext
 import kotlin.time.TimeSource
 
 class AndroidArchiveDownloaderFacade (
@@ -37,8 +41,6 @@ class AndroidArchiveDownloaderFacade (
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
 				val start = TimeSource.Monotonic.markNow()
-				var j = 0
-				iter@for (i in 0..<50) {
 					Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
@@ -66,10 +68,7 @@ class AndroidArchiveDownloaderFacade (
 						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
 
 						if (response.code == 200) {
-							j = i + 1
 							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
-						} else {
-							break@iter
 						}
 					}
 				} catch (e: IOException) {
@@ -79,11 +78,6 @@ class AndroidArchiveDownloaderFacade (
 						throw e
 					}
 				}
-			}
-			val end = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
-				val av = end.floorDiv(j)
-				Log.d(TAG, "Took $end ms ($av ms on average)")
-				Log.d(TAG, "Successfully stored $j of 50 archives")
 			}
 		}
 
@@ -122,9 +116,12 @@ class AndroidArchiveDownloaderFacade (
 		reader.forEachLine { line ->
 			val split = line.split(";", limit = 2)
 			if (split[0] == "id") {
+				// skip first line
 				return@forEachLine
 			} else {
-				// FIXME actually save
+				runBlocking {
+					storage.storeBlob(split[0], split[1].toByteArray(Charsets.UTF_8))
+				}
 			}
 		}
 		// fully stored archive -> store that information as well
@@ -181,9 +178,6 @@ class AndroidArchiveDownloaderFacade (
 		}
 
 		private suspend fun store() {
-			Log.d(TAG, "Started storing at least $byteCountCurrent bytes")
-			val start = TimeSource.Monotonic.markNow()
-
 			val archiveId = TaggedSqlValue.Str(archiveId)
 			val typeref = TaggedSqlValue.Str(typeref)
 			val modelVersion = TaggedSqlValue.Num(modelVersion)
@@ -204,9 +198,6 @@ class AndroidArchiveDownloaderFacade (
 
 			byteCountCurrent = 0
 			blobs.clear()
-
-			val time = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
-			Log.d(TAG, "Finished storing data (took $time ms)")
 		}
 	}
 
