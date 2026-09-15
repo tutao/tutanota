@@ -37,13 +37,15 @@ class AndroidArchiveDownloaderFacade (
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
 				val start = TimeSource.Monotonic.markNow()
-				//for (i in 0..<50) {
+				var j = 0
+				iter@for (i in 0..<50) {
 					Log.d(TAG, "Started downloading archive with id $archiveId")
 				val startDownload = TimeSource.Monotonic.markNow()
 
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
+					.header("Accept", "application/csv")
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
 
@@ -64,7 +66,10 @@ class AndroidArchiveDownloaderFacade (
 						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
 
 						if (response.code == 200) {
+							j = i + 1
 							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
+						} else {
+							break@iter
 						}
 					}
 				} catch (e: IOException) {
@@ -74,10 +79,11 @@ class AndroidArchiveDownloaderFacade (
 						throw e
 					}
 				}
-			//}
+			}
 			val end = TimeSource.Monotonic.markNow().minus(start).inWholeMilliseconds
-				val av = end.floorDiv(50)
+				val av = end.floorDiv(j)
 				Log.d(TAG, "Took $end ms ($av ms on average)")
+				Log.d(TAG, "Successfully stored $j of 50 archives")
 			}
 		}
 
