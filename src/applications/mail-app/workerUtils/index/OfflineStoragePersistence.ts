@@ -359,6 +359,11 @@ VALUES (
 		}
 	}
 
+	async markArchiveAsStored(archiveId: Id): Promise<void> {
+		const { query, params } = sql`INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (${archiveId})`
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	private pendingEncryptedMailDetailsBlobRetrieval: Promise<Map<Id, IncomingServerJson>> | null = null
 	private pendingEncryptedMailDetailsBlobItems: Set<Id> = new Set()
 
