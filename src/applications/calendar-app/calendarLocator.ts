@@ -126,6 +126,9 @@ import type { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
+import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
+import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 
 EnvProvider.assertMainOrNode()
 
@@ -191,6 +194,7 @@ class CalendarLocator implements CommonLocator {
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
+	private pluginManager!: PluginManager
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -690,6 +694,11 @@ class CalendarLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
+			const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
+			this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
+			this.pluginManager = new PluginManager(new PluginHost(pluginConfigurationProvider))
+			pluginConfigurationProvider.setPluginManager(this.pluginManager)
+
 			// TODO: it would be nice to move this facade out of the ApplicationWindow
 			this.imapImporter = {} as ImapSyncFacade
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
@@ -1023,6 +1032,7 @@ class CalendarLocator implements CommonLocator {
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
+			this.pluginManager,
 		)
 	})
 

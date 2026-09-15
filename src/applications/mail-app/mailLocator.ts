@@ -951,10 +951,10 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
-		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient)
+		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
 		this.pluginManager = new PluginManager(new PluginHost(pluginConfigurationProvider))
-		await this.pluginManager.loadPlugins()
+		pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
@@ -1367,6 +1367,7 @@ class MailLocator implements CommonLocator {
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
+			this.pluginManager,
 		)
 	})
 
