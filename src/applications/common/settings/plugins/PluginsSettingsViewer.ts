@@ -19,7 +19,7 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private readonly model: PluginSettingsModel
 
 	constructor() {
-		this.model = new PluginSettingsModel(mailLocator.pluginConfigurationProvider)
+		this.model = new PluginSettingsModel(mailLocator.pluginConfigurationProvider, mailLocator.pluginManager)
 		this.model.loadAll().then(() => m.redraw())
 	}
 
@@ -56,20 +56,25 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 		const query = this.searchQuery.toLowerCase()
 		const filtered = PLUGIN_REGISTRY.filter((entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query))
 
-		if (filtered.length === 0) {
-			return m(ColumnEmptyMessageBox, {
-				color: theme.on_surface_variant,
-				icon: Icons.Search,
-				message: "noEntries_msg",
-			})
-		}
-
-		return filtered.map((entry) =>
-			m(PluginListRow, {
-				key: entry.id,
-				entry,
-				model: this.model,
-			}),
+		// wrapped in a single container so this slot is always exactly one (unkeyed) vnode at the outer view()'s
+		// array position — mithril requires every vnode within one fragment to be either all-keyed or all-unkeyed,
+		// and returning a bare array of keyed PluginListRows here would sit alongside the outer array's unkeyed
+		// headers/search bar, corrupting the diff (duplicated/missing DOM nodes).
+		return m(
+			".plugin-list",
+			filtered.length === 0
+				? m(ColumnEmptyMessageBox, {
+						color: theme.on_surface_variant,
+						icon: Icons.Search,
+						message: "noEntries_msg",
+					})
+				: filtered.map((entry) =>
+						m(PluginListRow, {
+							key: entry.id,
+							entry,
+							model: this.model,
+						}),
+					),
 		)
 	}
 

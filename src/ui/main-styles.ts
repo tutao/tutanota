@@ -1524,6 +1524,14 @@ export class MainStyles {
 					height: px(size.icon_80),
 					width: px(size.icon_80),
 				},
+				".icon-128": {
+					height: px(size.icon_128),
+					width: px(size.icon_128),
+				},
+				".icon-128 > svg": {
+					height: px(size.icon_128),
+					width: px(size.icon_128),
+				},
 				".icon-progress > svg": {
 					"animation-name": "rotate-icon",
 					"animation-duration": "2s",

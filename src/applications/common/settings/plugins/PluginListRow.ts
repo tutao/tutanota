@@ -6,9 +6,14 @@ import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import type { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
 import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
+import { ConfigFieldConfiguration, PluginLanguageCode } from "../../../../plugin-kit/sdk/PluginHostApi.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
+
+function configFieldLabelText(field: ConfigFieldConfiguration): string {
+	const preferredCode = lang.code.startsWith("de") ? PluginLanguageCode.de : PluginLanguageCode.en
+	return field.text[preferredCode] ?? field.text[PluginLanguageCode.en] ?? field.text[PluginLanguageCode.de] ?? field.configFieldId
+}
 
 export type PluginListRowAttrs = {
 	entry: PluginRegistryEntry
@@ -32,8 +37,10 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 
 		return m(".plugin-row", [
 			m(".flex.items-center.gap-8.pt-8.pb-8", [
-				m("img.icon-32", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
-				m(".flex.flex-column.flex-grow.min-width-0", [
+				// every sibling in this array needs a key once one of them (the Switch) does -
+				// mithril requires a fragment's vnodes to be either all keyed or all unkeyed
+				m("img.icon-32", { key: "logo", src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
+				m(".flex.flex-column.flex-grow.min-width-0", { key: "text" }, [
 					m(".b.text-ellipsis", entry.name),
 					m(".smaller.text-ellipsis.on-surface-variant", entry.description),
 				]),
@@ -62,12 +69,12 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 	private renderConfigPanel(entry: PluginRegistryEntry, model: PluginSettingsModel): Children {
 		const draft = this.draftConfig ?? {}
 		return m(".pb-16.pl-32.flex.flex-column.gap-8", [
-			...entry.configFields.map((field) =>
+			...model.getConfigFields(entry.id).map((field) =>
 				m(LegacyTextField, {
-					label: field.label as TranslationKeyType,
-					value: draft[field.key] ?? "",
+					label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
+					value: draft[field.configFieldId] ?? "",
 					oninput: (value: string) => {
-						draft[field.key] = value
+						draft[field.configFieldId] = value
 					},
 				} satisfies LegacyTextFieldAttrs),
 			),

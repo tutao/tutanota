@@ -45,7 +45,7 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
-import { ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
+import { ExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -687,7 +687,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
 				attachmentExtensionClickActions: viewModel.pluginManager
-					.getRegisteredButtonsByExtensionPoint(ButtonExtensionPoint.SaveAttachmentDialog)
+					.getRegisteredButtonsByExtensionPoint(ExtensionPoint.SaveAttachmentDialog)
 					.map((attachmentExtension) => {
 						return () =>
 							viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginName, viewModel.attachmentAsPluginDataFile(attachment))

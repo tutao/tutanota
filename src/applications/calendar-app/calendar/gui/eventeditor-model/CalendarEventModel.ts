@@ -102,6 +102,7 @@ import { getDefaultSender } from "../../../../common/mailFunctionality/SharedMai
 import { CalendarInviteHandler } from "../../view/CalendarInvites"
 import { NotFoundError, PayloadTooLargeError } from "@tutao/rest-client/error"
 import { clone, IDENTITY_FIELDS, TECHNICAL_FIELDS } from "@tutao/meta"
+import { PluginManager } from "../../../../../plugin-kit/plugin-manager/PluginManager"
 
 /** the type of the event determines which edit operations are available to us. */
 export const enum EventType {
@@ -191,6 +192,7 @@ export async function makeCalendarEventModel(
 	entityClient: EntityClient,
 	responseTo: Mail | null,
 	calendarInviteHandler: CalendarInviteHandler,
+	pluginManager: PluginManager,
 	calendarTimeZone: string = getTimeZone(),
 	showProgress: ShowProgressCallback = identity,
 	uiUpdateCallback: () => void = m.redraw,
@@ -272,7 +274,10 @@ export async function makeCalendarEventModel(
 		createCalendarEvent(initialOrDefaultValues),
 		cleanInitialValues,
 	)
-	return strategy && new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendarInfos)
+	return (
+		strategy &&
+		new CalendarEventModel(strategy, eventType, operation, logins.getUserController(), notificationSender, entityClient, calendarInfos, pluginManager)
+	)
 }
 
 async function selectStrategy(
@@ -380,6 +385,7 @@ export class CalendarEventModel {
 		private readonly distributor: CalendarNotificationSender,
 		private readonly entityClient: EntityClient,
 		private readonly calendars: ReadonlyMap<Id, CalendarInfo>,
+		public readonly pluginManager: PluginManager,
 	) {
 		this.calendars = calendars
 	}

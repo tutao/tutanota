@@ -1,5 +1,7 @@
 import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider.js"
 import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
+import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager.js"
+import { ConfigFieldConfiguration } from "../../../../plugin-kit/sdk/PluginHostApi.js"
 
 export type PluginState = {
 	enabled: boolean
@@ -23,7 +25,10 @@ function parseConfig(configJson: string | undefined): Record<string, string> {
 export class PluginSettingsModel {
 	private readonly state: Map<string, PluginState> = new Map()
 
-	constructor(private readonly provider: PluginConfigurationProvider) {}
+	constructor(
+		private readonly provider: PluginConfigurationProvider,
+		private readonly pluginManager: PluginManager,
+	) {}
 
 	async loadAll(): Promise<void> {
 		const customerPluginConfigs = await this.provider.getCustomerPluginConfigs()
@@ -38,6 +43,11 @@ export class PluginSettingsModel {
 
 	getState(pluginId: string): PluginState {
 		return this.state.get(pluginId) ?? { enabled: false, config: {} }
+	}
+
+	/** Config fields are defined by the plugin itself and only registered once its bundle has been loaded, i.e. while it's enabled. */
+	getConfigFields(pluginId: string): ReadonlyArray<ConfigFieldConfiguration> {
+		return this.pluginManager.getRegisteredConfigFieldsByPluginId(pluginId).map((c) => c.config)
 	}
 
 	async setEnabled(pluginId: string, enabled: boolean): Promise<void> {

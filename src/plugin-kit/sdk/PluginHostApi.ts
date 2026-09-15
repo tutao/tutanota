@@ -1,6 +1,9 @@
-export enum ButtonExtensionPoint {
+import { Nullable } from "@tutao/utils"
+
+export enum ExtensionPoint {
 	SaveAttachmentDialog = 0,
-	EventLocationButton = 1, // Nextcloud Talk or MS Teams link
+	EventLocationButton = 1, // e.g. Nextcloud Talk or MS Teams link generated for the event location field
+	ConfigField = 2,
 }
 
 export enum PluginLanguageCode {
@@ -9,7 +12,13 @@ export enum PluginLanguageCode {
 }
 
 export interface ButtonConfiguration {
-	extensionPoint: ButtonExtensionPoint
+	extensionPoint: ExtensionPoint
+	text: Partial<Record<PluginLanguageCode, string>>
+}
+
+export interface ConfigFieldConfiguration {
+	extensionPoint: ExtensionPoint.ConfigField
+	configFieldId: string
 	text: Partial<Record<PluginLanguageCode, string>>
 }
 
@@ -18,7 +27,8 @@ export type ButtonRef = {
 }
 export interface PluginHostApi {
 	registerButton(config: ButtonConfiguration): ButtonRef
+	registerConfigField(config: ConfigFieldConfiguration): void
 	storeUserConfig(configJson: string): Promise<void>
-	getUserConfig(): Promise<string>
-	getCustomerConfig(): Promise<string>
+	getUserConfig(): Promise<Nullable<string>>
+	getCustomerConfig(): Promise<Nullable<string>>
 }

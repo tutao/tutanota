@@ -2551,5 +2551,6 @@ export default {
 		"pluginsFeatured_label": "Featured",
 		"saveToNextcloud_action": "Save to Nextcloud",
 		"nextcloudLoginError_msg": "Something went wrong when logging in to your Nextcloud account",
+		"eventLocationLinkFailed_msg": "Could not generate a meeting link. Please try again.",
 	}
 }

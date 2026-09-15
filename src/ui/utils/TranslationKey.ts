@@ -2548,3 +2548,4 @@ export type TranslationKeyType =
 	| "confirmDisablePlugin_msg"
 	| "pluginNextcloudServerUrl_label"
 	| "saveToNextcloud_action"
+	| "eventLocationLinkFailed_msg"

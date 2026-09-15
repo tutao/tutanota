@@ -194,7 +194,7 @@ class CalendarLocator implements CommonLocator {
 	private nativeInterfaces: NativeInterfaces | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
-	private pluginManager!: PluginManager
+	pluginManager!: PluginManager
 
 	readonly recipientsModel: lazyAsync<RecipientsModel> = lazyMemoized(async () => {
 		const { RecipientsModel } = await import("../common/api/main/RecipientsModel.js")
@@ -364,6 +364,7 @@ class CalendarLocator implements CommonLocator {
 			this.entityClient,
 			responseTo,
 			await this.calendarInviteHandler(),
+			this.pluginManager,
 			getTimeZone(),
 		)
 	}
@@ -676,6 +677,11 @@ class CalendarLocator implements CommonLocator {
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
 
+		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
+		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
+		this.pluginManager = new PluginManager(pluginConfigurationProvider)
+		pluginConfigurationProvider.setPluginManager(this.pluginManager)
+
 		this.Const = Const
 		if (!EnvProvider.get().isBrowser()) {
 			const { WebDesktopFacade } = await import("../common/native/WebDesktopFacade")
@@ -694,11 +700,6 @@ class CalendarLocator implements CommonLocator {
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
 
 			this.transferProgressDispatcher = new TransferProgressDispatcher()
-
-			const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
-			this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-			this.pluginManager = new PluginManager(pluginConfigurationProvider)
-			pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 			// TODO: it would be nice to move this facade out of the ApplicationWindow
 			this.imapImporter = {} as ImapSyncFacade
