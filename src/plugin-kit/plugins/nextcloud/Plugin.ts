@@ -2,6 +2,9 @@ import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ButtonExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { default as ncAxios } from "@nextcloud/axios"
+import { isNotNull } from "../../../platform-kit/utils"
+import { TransferId } from "../../../entities/drive/Utils"
+import { DownloadReturn } from "../../../applications/common/file/FileController"
 
 type NextcloudCredentials = {
 	appPassword: string
@@ -32,7 +35,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
 		//FIXME get the server url from somewhere
-		const url = "http://nextcloud.tuta"
+		const url = "http://nextcloud.local"
 		console.log("data file " + dataFile.name)
 
 		let config = await this.pluginHost.getUserConfig()
@@ -40,24 +43,25 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension {
 		config += "M"
 		await this.pluginHost.storeUserConfig(config)
 
-		// const davFileName = `dav/files/admin/tuta/${dataFile.name}`
-		// const davUrl = `http://nextcloud.tuta/remote.php/${davFileName}`
-		//
-		// const nextcloudCredentials = await loginToNextcloud(url)
-		// if (isNotNull(nextcloudCredentials)) {
-		// 	const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
-		// 	const { transferIds, promise } = await makePutRequestToNextcloud(url, dataFile.data, token)
-		// 	await promise
-		// } else {
-		// 	await Dialog.message("nextcloudLoginError_msg")
-		// }
+		const nextcloudCredentials = await loginToNextcloud(url)
+		if (isNotNull(nextcloudCredentials)) {
+			const davFileName = `dav/files/${nextcloudCredentials.loginName}/tuta/${dataFile.name}`
+			const davUrl = proxiedUrl(url, `/remote.php/${davFileName}`)
+			const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
+			const { transferIds, promise } = await makePutRequestToNextcloud(davUrl, dataFile.data, token)
+			await promise
+		} else {
+			// await  Dialog.message("nextcloudLoginError_msg")
+		}
 	}
 }
 
 async function loginToNextcloud(nextcloudServerUrl: string): Promise<NextcloudCredentials | null> {
-	const url = `${nextcloudServerUrl}/index.php/login/v2`
-
-	const nextcloudResponse = await ncAxios.post(url)
+	const nextcloudResponse = await ncAxios.post(proxiedUrl(nextcloudServerUrl, "/index.php/login/v2"), undefined, {
+		headers: {
+			"OCS-APIRequest": "true",
+		},
+	})
 	const poll = nextcloudResponse.data.poll
 
 	const userLoginUrl = nextcloudResponse.data.login
@@ -65,9 +69,10 @@ async function loginToNextcloud(nextcloudServerUrl: string): Promise<NextcloudCr
 	window.open(userLoginUrl)
 
 	while (true) {
-		const pollResponse = await fetch(poll.endpoint, {
+		const pollResponse = await fetch(proxiedUrl(nextcloudServerUrl, "/index.php/login/v2/poll"), {
 			method: "POST",
 			headers: {
+				"OCS-APIRequest": "true",
 				"Content-Type": "application/x-www-form-urlencoded",
 			},
 			body: new URLSearchParams({
@@ -91,22 +96,26 @@ async function loginToNextcloud(nextcloudServerUrl: string): Promise<NextcloudCr
 	}
 }
 
-// async function makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<DownloadReturn> {
-// 	const filePutHeaders = {
-// 		headers: {
-// 			"If-None-Match": "*", // do not override already existing files,
-// 			"OCS-APIRequest": "true",
-// 			Authorization: `Basic ${authToken}`,
-// 		},
-// 	}
-// 	const transferIds: TransferId[] = []
-// 	const promise = ncAxios
-// 		.put(saveDirUri, fileContent, filePutHeaders)
-// 		.then((_) => {
-// 			Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
-// 		})
-// 		.catch((err) => {
-// 			Dialog.message(LanguageViewModel.makeTranslation("nextcloud-err-msg", "You attachment could not be saved to nextcloud"))
-// 		})
-// 	return { transferIds, promise }
-// }
+async function makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<DownloadReturn> {
+	const filePutHeaders = {
+		headers: {
+			// "If-None-Match": "*", // do not override already existing files,
+			"OCS-APIRequest": "true",
+			Authorization: `Basic ${authToken}`,
+		},
+	}
+	const transferIds: TransferId[] = []
+	const promise = ncAxios
+		.put(saveDirUri, fileContent, filePutHeaders)
+		.then((_) => {
+			// Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
+		})
+		.catch((err) => {
+			// Dialog.message(LanguageViewModel.makeTranslation("nextcloud-err-msg", "You attachment could not be saved to nextcloud"))
+		})
+	return { transferIds, promise }
+}
+
+function proxiedUrl(nextcloudServerUrl: string, targetUrl: string): string {
+	return `${nextcloudServerUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
+}

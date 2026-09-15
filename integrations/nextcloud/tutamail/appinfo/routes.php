@@ -1,21 +1,44 @@
 <?php
 return [
-    'routes' => [
-        // SPA entry point
-        [
-            'name' => 'page#index',
-            'url' => '/',
-            'verb' => 'GET',
-        ],
-
-        // SPA history-mode fallback: redirects deep links back to the entry point with ?r=<path>
-        [
-            'name' => 'page#spaFallback',
-            'url' => '/{path}',
-            'verb' => 'GET',
-            'requirements' => [
-                'path' => '.+',
-            ],
-        ],
-    ],
+		'routes' => [
+			// SPA entry point
+				[
+						'name' => 'page#index',
+						'url' => '/',
+						'verb' => 'GET',
+				],
+				[
+						'name' => 'proxy#handleCors',
+						'url' => '/api/v1/proxy/{path}',
+						'verb' => 'OPTIONS',
+						'requirements' => ['path' => '.*']
+				],
+				[
+						'name' => 'proxy#proxyGET',
+						'url' => '/api/v1/proxy/{targetUrl}',
+						'verb' => 'GET',
+						'requirements' => ['targetUrl' => '.+'],
+				],
+				[
+						'name' => 'proxy#proxyPUT',
+						'url' => '/api/v1/proxy/{targetUrl}',
+						'verb' => 'PUT',
+						'requirements' => ['targetUrl' => '.+'],
+				],
+				[
+						'name' => 'proxy#proxyPOST',
+						'url' => '/api/v1/proxy/{targetUrl}',
+						'verb' => 'POST',
+						'requirements' => ['targetUrl' => '.+'],
+				],
+			// SPA history-mode fallback: redirects deep links back to the entry point with ?r=<path>
+				[
+						'name' => 'page#spaFallback',
+						'url' => '/{path}',
+						'verb' => 'GET',
+						'requirements' => [
+								'path' => '.+',
+						],
+				],
+		],
 ];
