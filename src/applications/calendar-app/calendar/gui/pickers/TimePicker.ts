@@ -1,7 +1,7 @@
-import m, { ChildArray, Children, Component, Vnode } from "mithril"
+import m, { ChildArray, Children, Component, Vnode, VnodeDOM } from "mithril"
 import { LegacyTextFieldAttrs, LegacyTextField, LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
-import { Time } from "../../../../common/calendar/date/Time.js"
+import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
 import { font_size, px } from "../../../../../ui/size.js"
@@ -33,6 +33,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private inputText: string = ""
 	private inputTextIsValid: boolean = true
 	private inputIsFocused: boolean = false
+	private nativeInputDOMElement: HTMLInputElement | null = null
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
 		this.selectedTime = attrs.time
@@ -71,6 +72,8 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderInputFields(attrs: TimePickerAttrs): Children {
+		const useNativeTimePicker = EnvProvider.get().isApp()
+
 		let returnValue: ChildArray = []
 		if (attrs.forMailSendTime) {
 			returnValue.push(
@@ -91,6 +94,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						this.inputIsFocused = true
 					},
 					onblur: () => this.onConfirmInput(attrs),
+					onclick: (event: Event) => {
+						if (useNativeTimePicker) {
+							if (this.nativeInputDOMElement) {
+								event.preventDefault()
+								event.stopPropagation()
+								this.nativeInputDOMElement.click()
+							} else {
+								console.warn("No native input DOM input field to click!")
+							}
+						}
+					},
 				} satisfies LegacyTextFieldAttrs),
 			)
 		} else {
@@ -113,23 +127,57 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					},
 					onblur: () => this.onConfirmInput(attrs),
 					type: TextFieldType.Text,
+					onclick: (event: Event) => {
+						if (useNativeTimePicker) {
+							if (this.nativeInputDOMElement) {
+								event.preventDefault()
+								event.stopPropagation()
+								this.nativeInputDOMElement.click()
+							} else {
+								console.warn("No native input DOM input field to click!")
+							}
+						}
+					},
 				} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
 			)
 		}
 
-		if (EnvProvider.get().isApp()) {
+		if (useNativeTimePicker) {
 			// On mobile, we use native time pickers to select the time. To achieve this, we add an
 			// invisible time input field, covering the other input fields. The invisible input has
 			// type="time", so it will display the native time picker when clicked.
 			returnValue.push(
-				m("input.invisible.abs.full-width.full-height", {
+				m("input.invisible.abs.full-width.full-height.pd-0", {
 					type: TextFieldType.Time,
-					oninput: (event: InputEvent) => {
+					disabled: attrs.disabled,
+					value: this.selectedTime.to24HourString(),
+					oncreate: (vnode: VnodeDOM) => {
+						this.nativeInputDOMElement = vnode.dom as unknown as HTMLInputElement
+					},
+					onremove: () => {
+						this.nativeInputDOMElement = null
+					},
+					oninput: (event: EventRedraw<InputEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
 						const inputElement = event.target! as HTMLInputElement
 						this.handleTextInput(inputElement.value, attrs)
-						m.redraw()
 					},
-					onchange: (event: InputEvent) => {
+					onchange: (event: EventRedraw<InputEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
 						const inputElement = event.target! as HTMLInputElement
 						const parsedTime = Time.parseFromString(inputElement.value)
 						if (parsedTime) {
@@ -138,7 +186,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 							m.redraw()
 						}
 					},
-					onclick: (event: MouseEvent) => event.stopPropagation(),
+					onclick: (event: EventRedraw<MouseEvent>) => {
+						// Do nothing if disabled
+						if (attrs.disabled) {
+							event.preventDefault()
+							event.stopPropagation()
+							event.redraw = false
+							return
+						}
+
+						event.stopPropagation()
+					},
 				}),
 			)
 		}

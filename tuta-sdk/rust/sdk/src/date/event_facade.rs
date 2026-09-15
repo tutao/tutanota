@@ -562,13 +562,15 @@ impl EventFacade {
 				};
 
 				if frequency == &RepeatPeriod::Weekly {
+					let (iso_year, iso_week_number, _) = date.to_iso_week_date();
+
 					let week_start = PrimitiveDateTime::new(
-						Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::Monday)
+						Date::from_iso_week_date(iso_year, iso_week_number, Weekday::Monday)
 							.unwrap(),
 						date.time(),
 					);
 					let week_end = PrimitiveDateTime::new(
-						Date::from_iso_week_date(date.year(), date.iso_week(), Weekday::Sunday)
+						Date::from_iso_week_date(iso_year, iso_week_number, Weekday::Sunday)
 							.unwrap(),
 						date.time(),
 					);
@@ -671,13 +673,9 @@ impl EventFacade {
 
 					week_diff
 				} else {
+					let (iso_year, _, weekday) = new_date.to_iso_week_date();
 					new_date = new_date.replace_date(
-						Date::from_iso_week_date(
-							new_date.year(),
-							parsed_week as u8,
-							new_date.weekday(),
-						)
-						.unwrap(),
+						Date::from_iso_week_date(iso_year, parsed_week as u8, weekday).unwrap(),
 					);
 					parsed_week as u8
 				};
@@ -1109,13 +1107,14 @@ impl EventFacade {
 				return Ok(());
 			}
 
+			let (iso_year, iso_week_number, _) = date.to_iso_week_date();
 			let parsed_weekday = Weekday::from_short(target_week_day.unwrap().as_str());
 			let new_date = date.replace_date(
-				Date::from_iso_week_date(date.year(), date.iso_week(), parsed_weekday).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
 			);
 
 			let interval_start = date.replace_date(
-				Date::from_iso_week_date(date.year(), date.iso_week(), week_start).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, week_start).unwrap(),
 			);
 
 			let Some(week_ahead) = interval_start.checked_add(Duration::days(7)) else {
@@ -1158,8 +1157,10 @@ impl EventFacade {
 			};
 
 			let stop_condition = date.replace_date(stop_date);
+
+			let (iso_year, iso_week_number, _) = day_one.to_iso_week_date();
 			let mut current_date = date.replace_date(
-				Date::from_iso_week_date(date.year(), day_one.iso_week(), parsed_weekday).unwrap(),
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
 			);
 
 			if current_date.assume_utc().unix_timestamp() >= day_one.assume_utc().unix_timestamp() {
@@ -1316,18 +1317,19 @@ impl EventFacade {
 			}
 		} else {
 			// If there's no week change, just iterate to the target day
-			let mut current_date = base_date;
-			while current_date.assume_utc().unix_timestamp()
-				< stop_condition.assume_utc().unix_timestamp()
-			{
-				let new_date = current_date.replace_date(
-					Date::from_iso_week_date(
-						current_date.year(),
-						current_date.iso_week(),
-						parsed_weekday,
-					)
-					.unwrap(),
-				);
+			let (iso_year, iso_week_number, _) = base_date.to_iso_week_date();
+			let mut occurrence_date = base_date.replace_date(
+				Date::from_iso_week_date(iso_year, iso_week_number, parsed_weekday).unwrap(),
+			);
+
+			let stop_stop_condition_timestamp = stop_condition.assume_utc().unix_timestamp();
+			loop {
+				let occurrence_timestamp = occurrence_date.assume_utc().unix_timestamp();
+				if occurrence_timestamp >= stop_stop_condition_timestamp {
+					break;
+				}
+
+				let new_date = occurrence_date;
 				if new_date.assume_utc().unix_timestamp() >= base_date.assume_utc().unix_timestamp()
 					&& is_allowed_in_month_day(new_date.day())
 					&& ((!valid_months.is_empty()
@@ -1337,7 +1339,7 @@ impl EventFacade {
 					Self::safe_expand_dates(new_dates, new_date)?
 				}
 
-				current_date = match new_date.checked_add(Duration::days(7)) {
+				occurrence_date = match new_date.checked_add(Duration::days(7)) {
 					Some(new_date) => new_date,
 					None => {
 						return Err(ApiCallError::internal(format!(
@@ -1519,7 +1521,6 @@ impl EventFacade {
 				.cmp(&b.assume_utc().unix_timestamp())
 		});
 		clean_dates.dedup();
-
 		clean_dates
 	}
 
@@ -4513,6 +4514,83 @@ mod event_facade_unit_tests {
 				date.replace_day(28).unwrap().to_date_time()
 			]
 		);
+	}
+
+	#[test]
+	fn test_monthly_recurrence_on_first_wednesday_using_setpos() {
+		let event_facade = EventFacade::new();
+
+		let event_start = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::August, 1)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let event_end = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::August, 1)
+				.unwrap()
+				.with_time(Time::from_hms(18, 30, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::September, 30)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Monthly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "WE".to_string(),
+				},
+				ByRule {
+					by_rule: ByRuleType::BySetPos,
+					interval: "1".to_string(),
+				},
+			],
+		};
+
+		let occurrence_dates = event_facade
+			.calculate_event_occurrences(
+				event_start,
+				event_end,
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"UTC".to_string(),
+			)
+			.unwrap();
+
+		let occurrence_timestamps: Vec<_> = occurrence_dates
+			.iter()
+			.map(|event_occurrence_date| event_occurrence_date.as_seconds() as i64)
+			.collect();
+
+		let expected_timestamps = vec![
+			Date::from_calendar_date(2026, Month::August, 5)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp(),
+			Date::from_calendar_date(2026, Month::September, 2)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp(),
+		];
+
+		assert_eq!(occurrence_timestamps, expected_timestamps);
 	}
 
 	#[test]

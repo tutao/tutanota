@@ -1118,9 +1118,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		}
 		const handleUpdateBirthdayCalendar = (dialog: Dialog, newColor: string) => {
 			this.viewModel.handleBirthdayCalendarUpdate(newColor)
-			if (ClientDetector.get().isCalendarApp()) {
-				calendarLocator.systemFacade.requestWidgetRefresh()
-			}
 			dialog.close()
 		}
 		showEditBirthdayCalendarDialog({
@@ -1130,7 +1127,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private handleModifiedCalendar(dialog: Dialog, properties: CalendarProperties, calendarInfo: CalendarInfo, existingGroupSettings?: GroupSettings) {
-		const { groupInfo, hasMultipleMembers, userIsOwner } = calendarInfo
+		const { groupInfo, userIsOwner } = calendarInfo
 		if (userIsOwner) {
 			// if it is a shared calendar and the shared name has been changed the entity needs to be updated
 			// the name on the entity is what is shared with everyone
@@ -1160,10 +1157,6 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					})
 			})
 			.catch(ofClass(LockedError, noOp))
-
-		if (ClientDetector.get().isCalendarApp()) {
-			calendarLocator.systemFacade.requestWidgetRefresh()
-		}
 
 		dialog.close()
 	}

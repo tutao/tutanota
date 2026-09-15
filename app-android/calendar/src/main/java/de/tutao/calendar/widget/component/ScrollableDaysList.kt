@@ -11,7 +11,7 @@ import androidx.glance.layout.Row
 import androidx.glance.layout.padding
 import de.tutao.calendar.widget.component.otherDayCard.OtherDayCard
 import de.tutao.calendar.widget.component.todayCard.TodayCard
-import de.tutao.calendar.widget.data.WidgetUIData
+import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.model.openCalendarAgenda
 import de.tutao.calendar.widget.style.Dimensions
 import java.time.LocalDate
@@ -20,7 +20,7 @@ import java.time.LocalTime
 
 @Composable
 fun ScrollableDaysList(
-	data: WidgetUIData,
+	data: WidgetUIState.Available,
 	onNewEvent: Action,
 	userId: String?
 ) {
