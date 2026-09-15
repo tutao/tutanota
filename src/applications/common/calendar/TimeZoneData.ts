@@ -1,4 +1,4 @@
-// Generated from the IANA Time Zone Database v2026c.
+// Generated from the IANA Time Zone Database v2026d.
 // See script generate-time-zones.js in admin-client helpers.
 export const availableIANATimeZones = [
 	"Africa/Abidjan",
@@ -541,13 +541,6 @@ export const windowsToIANATimeZones: Record<string, string> = {
 	"Ulaanbaatar Standard Time": "Asia/Ulaanbaatar",
 	"US Eastern Standard Time": "America/Indianapolis",
 	"US Mountain Standard Time": "America/Phoenix",
-	UTC: "Etc/GMT",
-	"UTC-02": "Etc/GMT+2",
-	"UTC-08": "Etc/GMT+8",
-	"UTC-09": "Etc/GMT+9",
-	"UTC-11": "Etc/GMT+11",
-	"UTC+12": "Etc/GMT-12",
-	"UTC+13": "Etc/GMT-13",
 	"Venezuela Standard Time": "America/Caracas",
 	"Vladivostok Standard Time": "Asia/Vladivostok",
 	"W. Australia Standard Time": "Australia/Perth",

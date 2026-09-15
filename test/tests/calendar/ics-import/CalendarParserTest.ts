@@ -1420,12 +1420,23 @@ END:VCALENDAR`
 				// Windows time zones
 				["Argentina Standard Time", "America/Buenos_Aires"],
 				["Central Europe Standard Time", "Europe/Budapest"],
+				["GMT Standard Time", "Europe/London"],
 
 				// Windows UTC[+-]<offset> time zones.
 				//
 				//    Beware, 'Etc/GMT+<offset>' flip the sign of the GMT-offset because they were standardized
 				//    in an old POSIX standard; i.e. Etc/GMT+1 != UTC+1 && Etc/GMT+1 == UTC-1!
+				["UTC+1", "Etc/GMT-1"],
+				["UTC-1", "Etc/GMT+1"],
 				["UTC-02", "Etc/GMT+2"],
+
+				// UTC offset that can come from outlook
+				["UTC-02", "Etc/GMT+2"],
+				["UTC-08", "Etc/GMT+8"],
+				["UTC-09", "Etc/GMT+9"],
+				["UTC-11", "Etc/GMT+11"],
+				["UTC+12", "Etc/GMT-12"],
+				["UTC+13", "Etc/GMT-13"],
 
 				// Irregular ETC/UTC timezones that we don't let users select but are technically correct.
 				["UTC+13", "Etc/GMT-13"],
