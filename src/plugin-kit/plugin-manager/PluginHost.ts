@@ -11,7 +11,7 @@ export type PluginConfigJson = string
 
 export interface ConfigurationAdapter {
 	storeUserConfig(pluginId: string, configJson: string): Promise<void>
-	getUserConfig(pluginId: string): Promise<string>
+	getUserConfig(pluginId: string): Promise<Nullable<string>>
 	getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>>
 }
 
@@ -36,11 +36,11 @@ export class PluginHost implements PluginHostApi {
 	async storeUserConfig(configJson: string): Promise<void> {
 		await this.pluginManager.configurationAdapter.storeUserConfig(this.pluginId, configJson)
 	}
-	async getUserConfig(): Promise<string> {
+	async getUserConfig(): Promise<Nullable<string>> {
 		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
 	}
 
-	async getCustomerConfig(): Promise<string> {
+	async getCustomerConfig(): Promise<Nullable<string>> {
 		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
 	}
 }

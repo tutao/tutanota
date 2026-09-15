@@ -61,9 +61,9 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 			await this.entityClient.setup(this.pluginListId, pluginConfig)
 		}
 	}
-	async getUserConfig(pluginId: string): Promise<string> {
+	async getUserConfig(pluginId: string): Promise<Nullable<string>> {
 		const pluginConfig = await this.fetchUserConfig(pluginId)
-		return isNotNull(pluginConfig) ? pluginConfig.configJson : ""
+		return pluginConfig?.configJson ?? null
 	}
 
 	async fetchUserConfig(pluginId: string): Promise<Nullable<PluginConfiguration>> {
