@@ -28,9 +28,9 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"abortDownloadAndStoreArchive" -> {
-				val archive: String = json.decodeFromString(arg[0])
+				val archiveId: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.abortDownloadAndStoreArchive(
-					archive,
+					archiveId,
 				)
 				return json.encodeToString(result)
 			}

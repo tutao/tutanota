@@ -16,6 +16,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
+		// FIXME add csv header
 		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
@@ -49,6 +50,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	}
 
 	public func clearStoredArchives() async throws {
+	    // FIXME cleanup map as well
 		try await sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
 		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}

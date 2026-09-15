@@ -47,7 +47,7 @@ class AndroidArchiveDownloaderFacade (
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
-					.header("Accept", "application/csv")
+					.header("Accept", "text/csv;charset=utf8")
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
 
