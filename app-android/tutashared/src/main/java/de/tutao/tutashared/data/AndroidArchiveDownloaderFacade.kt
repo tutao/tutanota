@@ -47,7 +47,7 @@ class AndroidArchiveDownloaderFacade (
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
-					.header("Accept", "text/csv;charset=utf8")
+					.header("Accept", "text/csv;charset=utf-8")
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
 
@@ -146,7 +146,6 @@ class AndroidArchiveDownloaderFacade (
 		private val sqlCipherFacade: SqlCipherFacade
 	) {
 		// store when 8 mb of data reached
-		private val BYTE_COUNT_LIMIT = 4 * 1024 * 1024
 		private var byteCountCurrent = 0
 		private val blobs = mutableListOf<StoreBlob>()
 		private var closed = false
@@ -198,6 +197,10 @@ class AndroidArchiveDownloaderFacade (
 
 			byteCountCurrent = 0
 			blobs.clear()
+		}
+
+		companion object {
+			const val BYTE_COUNT_LIMIT = 4 * 1024 * 1024
 		}
 	}
 
