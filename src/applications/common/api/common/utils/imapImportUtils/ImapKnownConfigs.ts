@@ -34,7 +34,7 @@ const wellKnownConfigs = {
 		authType: ImapAuthType.Oauth2, //Find out a way to communicate Oauth Need?
 		oauthConfig: {
 			server: "https://accounts.google.com",
-			clientId: "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com", // webapp id
+			clientId: "397205111573-me3bs8q166tgsrpjb7jg5k89ghb3jlm7.apps.googleusercontent.com", // webapp id
 			redirectUri: "http://localhost/",
 			scope: "https://mail.google.com/",
 			providerSpecificParams: {

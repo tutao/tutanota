@@ -18,7 +18,7 @@ EnvProvider.assertMainOrNode()
 export class ImapImportProviderSelectionPage implements WizardPageN<ImapImportData> {
 	private selectedProvider: ImapProvider = ImapProvider.Gmail
 	private titleSectionParams = {
-		icon: Icons.MailFilled,
+		icon: Icons.DownloadFilled,
 		iconOptions: { color: theme.on_surface_variant },
 		subTitle: lang.getTranslationText("migrationChooseProvider_msg"),
 	}
