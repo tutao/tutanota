@@ -1,4 +1,4 @@
-import { elementIdPart, GENERATED_MAX_ID, GENERATED_MIN_ID, idToElementId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "@tutao/meta"
+import { elementIdPart, GENERATED_MAX_ID, idToElementId, isSameTypeRef, ITypeInfo, PersistentEntity, TypeRef } from "@tutao/meta"
 import {
 	cryptoUtils,
 	CryptoWrapper,
@@ -22,13 +22,8 @@ import {
 	createInstanceKeyPermissionServicePostIn,
 	createInstanceReferenceData,
 	createTypeInfo,
-	Customer,
-	CustomerTypeRef,
 	FormerInstanceKeyData,
-	GroupInfo,
 	GroupInfoTypeRef,
-	GroupMemberTypeRef,
-	GroupRootTypeRef,
 	GroupTypeRef,
 	InstanceKey,
 	InstanceKeyInstanceData,
@@ -37,20 +32,20 @@ import {
 	InstanceKeysRef,
 	InstanceKeyTypeRef,
 	InstanceReferenceData,
-	KeyRotation,
 	KeyRotationTypeRef,
 	Permission,
 	PermissionTypeRef,
-	SentGroupInvitationTypeRef,
 	User,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
 import { assertNotNull, groupBy, KeyVersion, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient"
-import { GroupType, isShareableGroupType } from "../../../entities/sys/Utils"
+import { GroupType } from "../../../entities/sys/Utils"
 import { CryptoFacade } from "./CryptoFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { IServiceExecutor } from "../../network/ServiceRequest"
+
+const formerInstanceKeysProperty = "_formerInstanceKeys"
 
 export class InstanceKeyFacade {
 	constructor(
@@ -62,6 +57,11 @@ export class InstanceKeyFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
 	) {}
+
+	async loadAndProcessPendingInstanceKeySharing(user: User) {
+		const pendingInstanceKeySharing = await this.loadPendingInstanceKeySharing(user)
+		await this.processPendingInstanceKeySharing(pendingInstanceKeySharing)
+	}
 
 	async getCurrentInstanceKey(instance: PersistentEntity): Promise<VersionedAes256Key> {
 		return this.getInstanceKeyImpl(instance, null)
@@ -92,15 +92,45 @@ export class InstanceKeyFacade {
 		return deriveInstanceKey(groupKey, kdfNonce)
 	}
 
-	private async confirmInstancesForInstanceKeySharing(
-		instanceReferenceDataList: InstanceReferenceData[],
-		instanceKeySharingType: Nullable<GroupKeyRotationType>,
-	): Promise<InstanceReferenceData[]> {
+	async confirmAndPostInstanceKeysForSharedInstances(instances: PersistentEntity[]) {
+		const instanceReferenceDataList: InstanceReferenceData[] = []
+		for (const instance of instances) {
+			instanceReferenceDataList.push(this.getInstanceReferenceData(instance))
+		}
+		const confirmedInstancesToMigrate = await this.confirmInstancesForInstanceKeySharing(instanceReferenceDataList)
+		//Filter for instances that actually need migration
+		const instancesToMigrate = instances.filter((instance) => confirmedInstancesToMigrate.includes(this.getInstanceReferenceData(instance)))
+		return await this.migrateConfirmedInstances(instancesToMigrate, null)
+	}
+
+	async executeInstanceKeySharing(instanceKeySharingType: GroupKeyRotationType) {
+		const instancesToMigrateReferenceData = await this.requestInstancesForInstanceKeySharing(instanceKeySharingType)
+		const groupedReferenceData = groupBy(instancesToMigrateReferenceData, (referenceData) => {
+			const groupingKey = [referenceData.typeInfo.application, referenceData.typeInfo.typeId]
+			if (referenceData.instanceListId != null) {
+				groupingKey.push(referenceData.instanceListId)
+			}
+			return groupingKey.join("/")
+		})
+		const instancesForMigration: PersistentEntity[] = []
+		for (const [_, instanceReferenceDataList] of groupedReferenceData) {
+			const firstInstanceReferenceData = instanceReferenceDataList[0]
+			const instances = await this.entityClient.loadMultiple(
+				typeInfoModelToTypeRef(firstInstanceReferenceData.typeInfo) as TypeRef<PersistentEntity>, // TODOis this ok?
+				firstInstanceReferenceData.instanceListId,
+				instanceReferenceDataList.map((ird) => ird.instanceElementId),
+			)
+			instancesForMigration.push(...instances)
+		}
+		return await this.migrateConfirmedInstances(instancesForMigration, instanceKeySharingType)
+	}
+
+	private async requestInstancesForInstanceKeySharing(instanceKeySharingType: GroupKeyRotationType): Promise<InstanceReferenceData[]> {
 		return (
 			await this.serviceExecutor.get(
 				InstanceKeyPermissionService,
 				createInstanceKeyPermissionServiceGetIn({
-					potentialInstancesToMigrate: instanceReferenceDataList,
+					potentialInstancesToMigrate: [],
 					keyRotationType: instanceKeySharingType,
 				}),
 				null,
@@ -108,16 +138,21 @@ export class InstanceKeyFacade {
 		).confirmedInstancesToMigrate
 	}
 
-	async confirmAndPostInstanceKeysForSharedInstances(instances: PersistentEntity[], instanceKeySharingType: Nullable<GroupKeyRotationType>) {
-		const permissionDataPerInstanceList: InstanceKeyInstanceData[] = []
-		//Filter for instances that actually need migration
-		const instanceReferenceDataList: InstanceReferenceData[] = []
-		for (const instance of instances) {
-			instanceReferenceDataList.push(this.getInstanceReferenceData(instance))
-		}
-		const confirmedInstancesToMigrate = await this.confirmInstancesForInstanceKeySharing(instanceReferenceDataList, instanceKeySharingType)
-		const instancesToMigrate = instances.filter((instance) => confirmedInstancesToMigrate.includes(this.getInstanceReferenceData(instance)))
+	private async confirmInstancesForInstanceKeySharing(instanceReferenceDataList: InstanceReferenceData[]): Promise<InstanceReferenceData[]> {
+		return (
+			await this.serviceExecutor.get(
+				InstanceKeyPermissionService,
+				createInstanceKeyPermissionServiceGetIn({
+					potentialInstancesToMigrate: instanceReferenceDataList,
+					keyRotationType: null,
+				}),
+				null,
+			)
+		).confirmedInstancesToMigrate
+	}
 
+	private async migrateConfirmedInstances(instancesToMigrate: PersistentEntity[], instanceKeySharingType: Nullable<GroupKeyRotationType>) {
+		const permissionDataPerInstanceList: InstanceKeyInstanceData[] = []
 		for (const instance of instancesToMigrate) {
 			const instanceKeyInstanceData = await this.prepareInstanceKeysForSharedInstance(instance)
 			permissionDataPerInstanceList.push(instanceKeyInstanceData)
@@ -125,13 +160,16 @@ export class InstanceKeyFacade {
 		if (permissionDataPerInstanceList.length > 0) {
 			return this.serviceExecutor.post(
 				InstanceKeyPermissionService,
-				createInstanceKeyPermissionServicePostIn({ permissionDataPerInstance: permissionDataPerInstanceList, keyRotationType: instanceKeySharingType }),
+				createInstanceKeyPermissionServicePostIn({
+					permissionDataPerInstance: permissionDataPerInstanceList,
+					keyRotationType: instanceKeySharingType,
+				}),
 				null,
 			)
 		}
 	}
 
-	getInstanceReferenceData(instance: PersistentEntity) {
+	private getInstanceReferenceData(instance: PersistentEntity) {
 		let instanceListId: Nullable<Id> = null
 		let instanceElementId: Id
 		if (instance._id instanceof Array) {
@@ -146,6 +184,9 @@ export class InstanceKeyFacade {
 		return createInstanceReferenceData({ instanceElementId, instanceListId, typeInfo })
 	}
 
+	/**
+	 * @VisibleForTesting
+	 */
 	async prepareInstanceKeysForSharedInstance(instance: PersistentEntity): Promise<InstanceKeyInstanceData> {
 		const sharedInstanceReferenceData = this.getInstanceReferenceData(instance)
 
@@ -158,7 +199,6 @@ export class InstanceKeyFacade {
 			permissionData,
 		})
 
-		let formerInstanceKeysProperty = "_formerInstanceKeys"
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
 		if (!Object.values(clientTypeModel.associations).some((a) => a.name === formerInstanceKeysProperty)) {
 			throw new ProgrammingError("instance is of type that is not shared.")
@@ -170,25 +210,11 @@ export class InstanceKeyFacade {
 			throw new ProgrammingError("permissions missing for instance.")
 		}
 		const ownerGroup = await this.entityClient.load(GroupTypeRef, idToElementId(instance._ownerGroup))
-		let currentInstanceKey = await this.getCurrentInstanceKey(instance)
-		let currentGroupKeyVersion = cryptoUtils.parseKeyVersion(ownerGroup.groupKeyVersion)
+		const currentInstanceKey = await this.getCurrentInstanceKey(instance)
+		const currentGroupKeyVersion = cryptoUtils.parseKeyVersion(ownerGroup.groupKeyVersion)
 
 		// TODO maybe avoid loading if initial migration is set?!
-
-		// @ts-ignore
-		const formerInstanceKeysRef: Nullable<InstanceKeysRef> = (instance[formerInstanceKeysProperty] as InstanceKeysRef) ?? null
-		let numberOfExistingFormerInstanceKeys = 0
-		if (formerInstanceKeysRef != null) {
-			let listOfLastFormerKey: InstanceKey[] = await this.entityClient.loadRange(
-				InstanceKeyTypeRef,
-				formerInstanceKeysRef.list,
-				GENERATED_MAX_ID,
-				1,
-				true,
-			)
-			// symKeyVersion = instanceKeyVersion + 1; versions start with 0
-			numberOfExistingFormerInstanceKeys = listOfLastFormerKey.length === 0 ? 0 : cryptoUtils.parseKeyVersion(listOfLastFormerKey[0].symKeyVersion)
-		}
+		const numberOfExistingFormerInstanceKeys = await this.getNumberOfExistingInstanceKeys(instance)
 		await this.addFormerInstanceKeys(currentInstanceKey, currentGroupKeyVersion, instance, formerInstanceKeys, numberOfExistingFormerInstanceKeys)
 		// TODO check default resource, because we only return filtered permissions?!
 		//  we need a way to load all. option: implement a GET on InstanceKeyPermissionService?
@@ -198,7 +224,7 @@ export class InstanceKeyFacade {
 			if (permission.instanceKeyVersion != null && cryptoUtils.parseKeyVersion(permission.instanceKeyVersion) === currentGroupKeyVersion) {
 				continue //there's nothing to do
 			}
-			let permissionOwnerGroupId = permission._ownerGroup ?? elementIdPart(permission._id)
+			const permissionOwnerGroupId = permission._ownerGroup ?? elementIdPart(permission._id)
 			let permissionOwnerGroupKey: Nullable<VersionedKey> = null
 			//TODO do we want to keep this?
 			if (isSameTypeRef(instance._type, AccountingInfoTypeRef)) {
@@ -229,57 +255,22 @@ export class InstanceKeyFacade {
 		return instanceKeyInstanceData
 	}
 
-	async shareInstanceKeysWithExternalUsers(user: User) {
-		// external [user|mail] groupInfos are owned by the internal mail group and instance keys will change and might need to be re-shared
-		const externalGroupInfos = []
-		const groupRoot = await this.entityClient.loadRoot(GroupRootTypeRef, user.userGroup.group)
-		const externalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, groupRoot.externalGroupInfos)
-		const externalMailGroupInfos = (await this.entityClient.loadAll(GroupInfoTypeRef, assertNotNull(groupRoot.externalUserAreaGroupInfos).list)).filter(
-			(groupInfo) => groupInfo.groupType === GroupType.Mail,
-		)
-		externalGroupInfos.push(...externalUserGroupInfos, ...externalMailGroupInfos)
-		await this.confirmAndPostInstanceKeysForSharedInstances(externalGroupInfos, GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation)
-	}
-
-	async shareInstanceKeysForInternalGroupInfos(user: User) {
-		const groupInfos: GroupInfo[] = []
-		const customerId = assertNotNull(user.customer)
-		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(customerId))
-		if (user.memberships.some((m) => m.groupType === GroupType.Admin)) {
-			const allInternalUserGroupInfos = await this.entityClient.loadAll(GroupInfoTypeRef, customer.userGroups)
-			groupInfos.push(...allInternalUserGroupInfos)
-		} else {
-			const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, user.userGroup.groupInfo)
-			groupInfos.push(userGroupInfo)
+	private async getNumberOfExistingInstanceKeys(instance: PersistentEntity) {
+		// @ts-ignore
+		const formerInstanceKeysRef: Nullable<InstanceKeysRef> = (instance[formerInstanceKeysProperty] as InstanceKeysRef) ?? null
+		let numberOfExistingFormerInstanceKeys = 0
+		if (formerInstanceKeysRef != null) {
+			const listOfLastFormerKey: InstanceKey[] = await this.entityClient.loadRange(
+				InstanceKeyTypeRef,
+				formerInstanceKeysRef.list,
+				GENERATED_MAX_ID,
+				1,
+				true,
+			)
+			// symKeyVersion = instanceKeyVersion + 1; versions start with 0
+			numberOfExistingFormerInstanceKeys = listOfLastFormerKey.length === 0 ? 0 : cryptoUtils.parseKeyVersion(listOfLastFormerKey[0].symKeyVersion)
 		}
-		const sharedUserAreaGroupInfos = await this.prepareSharedAreaGroupInfosUserIsMemberOf(user, customer)
-		groupInfos.push(...sharedUserAreaGroupInfos)
-		await this.confirmAndPostInstanceKeysForSharedInstances(groupInfos, GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation)
-	}
-
-	private async prepareSharedAreaGroupInfosUserIsMemberOf(user: User, customer: Customer) {
-		const userAreaGroupIdsFromMemberships: Id[] = user.memberships
-			.filter((m) => isShareableGroupType(m.groupType as GroupType) && isSameSingleId(m.groupInfo[0], assertNotNull(customer.userAreaGroups).list))
-			.map((m) => m.group)
-		if (userAreaGroupIdsFromMemberships.length < 1) {
-			return []
-		}
-		const userAreaGroupsFromMemberships = await this.entityClient.loadMultiple(GroupTypeRef, null, userAreaGroupIdsFromMemberships)
-		const sharedUserAreaGroups = userAreaGroupsFromMemberships.filter(async (group) => {
-			const members = await this.entityClient.loadRange(GroupMemberTypeRef, group.members, GENERATED_MIN_ID, 2, false)
-			if (members.length > 1) {
-				return true
-			} else {
-				const pendingInvitations = await this.entityClient.loadRange(SentGroupInvitationTypeRef, group.invitations, GENERATED_MIN_ID, 1, false)
-				return pendingInvitations.length > 0
-			}
-		})
-
-		return await this.entityClient.loadMultiple(
-			GroupInfoTypeRef,
-			assertNotNull(customer.userAreaGroups).list,
-			sharedUserAreaGroups.map((group) => group.groupInfo[1]),
-		)
+		return numberOfExistingFormerInstanceKeys
 	}
 
 	private async addAsymmetricPermissionData(
@@ -379,32 +370,25 @@ export class InstanceKeyFacade {
 		}
 	}
 
-	async loadAndProcessPendingInstanceKeySharing(user: User) {
-		const pendingInstanceKeySharing = await this.loadPendingInstanceKeySharing(user)
-		await this.processPendingInstanceKeySharing(pendingInstanceKeySharing, user)
-	}
-
-	private async loadPendingInstanceKeySharing(user: User) {
+	private async loadPendingInstanceKeySharing(user: User): Promise<GroupKeyRotationType[]> {
 		const userGroupRoot = await this.entityClient.load(UserGroupRootTypeRef, idToElementId(user.userGroup.group))
-		const pendingInstanceKeySharing = (await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list)).filter((kr) =>
-			[GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation, GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation].includes(
-				kr.groupKeyRotationType as GroupKeyRotationType,
-			),
-		)
-		return groupBy(pendingInstanceKeySharing, (keyRotation) => keyRotation.groupKeyRotationType)
+		return (await this.entityClient.loadAll(KeyRotationTypeRef, userGroupRoot.keyRotations.list))
+			.filter((kr) =>
+				[
+					GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation,
+					GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation,
+				].includes(kr.groupKeyRotationType as GroupKeyRotationType),
+			)
+			.map((keyRotation) => keyRotation.groupKeyRotationType as GroupKeyRotationType)
 	}
 
-	private async processPendingInstanceKeySharing(pendingInstanceKeySharing: Map<string, Array<KeyRotation>>, user: User) {
-		const pendingInstanceKeySharingAfterCustomerKeyRotation =
-			pendingInstanceKeySharing.get(GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation) || []
-		const pendingInstanceKeySharingAfterInternalMailGroupRotation =
-			pendingInstanceKeySharing.get(GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation) || []
-		//TODO any validation here?
-		if (pendingInstanceKeySharingAfterCustomerKeyRotation.length > 0) {
-			await this.shareInstanceKeysForInternalGroupInfos(user)
-		}
-		if (pendingInstanceKeySharingAfterInternalMailGroupRotation.length > 0) {
-			await this.shareInstanceKeysWithExternalUsers(user)
+	private async processPendingInstanceKeySharing(pendingInstanceKeySharing: GroupKeyRotationType[]) {
+		for (const instanceKeySharingType of pendingInstanceKeySharing) {
+			await this.executeInstanceKeySharing(instanceKeySharingType)
 		}
 	}
+}
+
+function typeInfoModelToTypeRef<T>(typeInfo: ITypeInfo): TypeRef<T> {
+	return new TypeRef(typeInfo.application, Number(typeInfo.typeId))
 }

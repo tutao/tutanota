@@ -1,4 +1,4 @@
-import { AppName, isSameTypeRef, TypeRef } from "@tutao/meta"
+import { AppName, isSameTypeRef, ITypeInfo, TypeRef } from "@tutao/meta"
 import type { IndexUpdate, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
 import { FULL_INDEXED_TIMESTAMP, isOfflineStorageAvailable, isTest, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { GroupMembership, User } from "@tutao/entities/sys"
