@@ -66,7 +66,6 @@ import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ArchiveEnumerationService_GET, createArchiveEnumerationGetIn } from "@tutao/entities/storage"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 import { locator } from "../worker/WorkerLocator"
-import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -316,35 +315,19 @@ export class OfflineMailIndexer implements MailIndexer {
 			const everythingStart = performance.now()
 			for (const archiveId of archivesToLoad) {
 				console.log(TAG, `Downloading archive ${archiveId}...`)
-				if (ClientDetector.get().isMobileDevice()) {
-					await abortAwareWithCleanup(
-						this.abortController,
-						async () => {
-							const downloadAndStoreBlobsStart = performance.now()
-							await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader)
-							const downloadAndStoreBlobsEnd = performance.now()
-							console.log(
-								TAG,
-								`Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`,
-							)
-						},
-						async () => archiveDownloader.abortDownloadAndStoreArchive(archiveId),
-					)
-				} else {
-					await abortAware(this.abortController, async () => {
-						const downloadStart = performance.now()
-						const blobs = await this.blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)
-						const downloadEnd = performance.now()
+				await abortAwareWithCleanup(
+					this.abortController,
+					async () => {
+						const downloadAndStoreBlobsStart = performance.now()
+						await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader)
+						const downloadAndStoreBlobsEnd = performance.now()
 						console.log(
 							TAG,
-							`Finished downloading archive ${archiveId} (${blobs.length} blob(s), took ${downloadEnd - downloadStart} ms), storing in offline db...`,
+							`Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`,
 						)
-						await this.offlineStoragePersistence.storeEncryptedMailDetailsBlobs(await this.mailDetailsBlobTypeModel.getAsync(), blobs)
-						await this.offlineStoragePersistence.markArchiveAsStored(archiveId)
-						const storeEnd = performance.now()
-						console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${storeEnd - downloadEnd} ms)`)
-					})
-				}
+					},
+					async () => archiveDownloader.abortDownloadAndStoreArchive(archiveId),
+				)
 			}
 
 			const everythingEnd = performance.now()

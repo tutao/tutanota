@@ -2,7 +2,7 @@
 	"name": "ArchiveDownloaderFacade",
 	"doc": "download archives and write them to the database.",
 	"type": "facade",
-	"receivers": ["ios", "android"],
+	"receivers": ["ios", "desktop", "android"],
 	"senders": ["web"],
 	"methods": {
 		"downloadAndStoreArchive": {

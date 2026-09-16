@@ -638,6 +638,8 @@ export class BlobFacade {
 		archiveId: Id,
 		archiveDownloader: ArchiveDownloaderFacade,
 	): Promise<void> {
+		console.log("Apfelkuchen")
+
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)

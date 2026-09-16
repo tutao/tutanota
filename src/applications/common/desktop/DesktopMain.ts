@@ -93,6 +93,7 @@ import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListen
 import { createImapSync } from "./imapimport/imapsync/ImapSync"
 import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
+import { DesktopArchiveDownloaderFacade } from "./DesktopArchiveDownloaderFacade"
 
 mp()
 
@@ -394,6 +395,7 @@ async function createComponents(): Promise<Components> {
 			return createImapSync(noopListener, certificateProvider)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
+			new DesktopArchiveDownloaderFacade(customFetch, sqlCipherFacade),
 			desktopCommonSystemFacade,
 			new DesktopDesktopSystemFacade(wm, window, sock),
 			new DesktopExportFacade(tfs, electron, conf, window, dragIcons, mailboxExportPersistence, fs, dateProvider, desktopExportLock),
