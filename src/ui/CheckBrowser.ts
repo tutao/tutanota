@@ -1,7 +1,7 @@
 import { AppType, EnvProvider } from "@tutao/app-env"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
 import { BrowserType } from "../platform-kit/app-env/boot/ClientConstants"
-import { TsString, TypeChecks } from "@tutao/lang-api"
+import { assertNotNull, TypeChecks } from "@tutao/lang-api"
 
 export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
@@ -137,7 +137,8 @@ export class CheckBrowser {
 	}
 
 	public static isSupportedBrowserVersion(client: ClientDetector): boolean {
-		return CheckBrowser.notOldFirefox(client.browser, client.browserVersion) && CheckBrowser.notOldChrome(client.browser, client.browserVersion)
+		const browserVersion = assertNotNull(client.browserVersion)
+		return CheckBrowser.notOldFirefox(client.browser, browserVersion) && CheckBrowser.notOldChrome(client.browser, browserVersion)
 	}
 
 	private static notOldFirefox(browser: BrowserType, browserVersion: number): boolean {
