@@ -7,6 +7,7 @@ import { spawnSync } from "node:child_process"
 dumpResolvedModuleVersions()
 await tryToUpdateLibs()
 updateSubmodules()
+initializeNextcloudPlugin()
 
 /**
  * Dumps the dependency tree into `node_modules/.npm-deps-resolved`.
@@ -34,4 +35,8 @@ async function tryToUpdateLibs() {
 function updateSubmodules() {
 	const command = "git submodule update --init"
 	spawnSync(command, { shell: true, stdio: "inherit" })
+}
+
+function initializeNextcloudPlugin() {
+	spawnSync("npm ci", { shell: true, stdio: "inherit", cwd: "src/plugin-kit/plugins/nextcloud" })
 }
