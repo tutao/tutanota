@@ -174,7 +174,7 @@ class AndroidArchiveDownloaderFacade (
 			val modelVersion = TaggedSqlValue.Num(modelVersion)
 
 			if (!closed) {
-				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " + "(?, ?, ?, ?, ?), ".repeat(blobs.size - 1) + "(?, ?, ?, ?, ?)"
+				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)".repeat(blobs.size - 1)
 				val params = Array(blobs.size, { _ -> 0 })
 					.flatMapIndexed { i, _ -> listOf(TaggedSqlValue.Str(blobs[i].blobId), archiveId, TaggedSqlValue.Bytes(DataWrapper(blobs[i].bytesToStore)), typeref, modelVersion) }
 				sqlCipherFacade.run(query, params)
@@ -185,7 +185,7 @@ class AndroidArchiveDownloaderFacade (
 		}
 
 		private companion object {
-			const val BYTE_COUNT_LIMIT = 4 * 1024 * 1024
+			const val BYTE_COUNT_LIMIT = 2 * 1024 * 1024
 		}
 	}
 
