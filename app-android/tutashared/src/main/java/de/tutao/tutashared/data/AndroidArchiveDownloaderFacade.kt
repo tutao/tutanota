@@ -9,8 +9,6 @@ import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.TaggedSqlValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.invoke
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.Call
@@ -19,7 +17,6 @@ import java.io.IOException
 import java.io.Reader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
-import kotlin.coroutines.coroutineContext
 import kotlin.time.TimeSource
 
 class AndroidArchiveDownloaderFacade (
@@ -40,7 +37,7 @@ class AndroidArchiveDownloaderFacade (
 		return coroutineScope {
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
-				Log.d(TAG, "Started downloading archive with id $archiveId")
+				Log.d(TAG, "Downloading archive with id $archiveId")
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
@@ -187,7 +184,7 @@ class AndroidArchiveDownloaderFacade (
 			blobs.clear()
 		}
 
-		companion object {
+		private companion object {
 			const val BYTE_COUNT_LIMIT = 4 * 1024 * 1024
 		}
 	}

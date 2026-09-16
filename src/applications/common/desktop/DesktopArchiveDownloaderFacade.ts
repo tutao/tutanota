@@ -34,6 +34,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 		const abortController = new AbortController()
 		this.activeRequests.set(archiveId, abortController)
 		try {
+			console.log(TAG, `Downloading archive with id ${archiveId}`)
 			const { status, body } = toGlobalResponse(
 				await this.fetch(sourceUrl, {
 					method: "GET",

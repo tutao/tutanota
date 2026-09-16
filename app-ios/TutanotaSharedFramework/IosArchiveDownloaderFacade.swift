@@ -33,15 +33,17 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		do { (bytes, response) = try await self.urlSession.bytes(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate) } catch let error
 			as URLError where error.code == URLError.cancelled
 		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
-		TUTSLog("Finished downloading archive with id \(archiveId)")
 
 		let httpResponse = response as! HTTPURLResponse
 		if httpResponse.statusCode == 200 {
-			do { try await storeArchive(bytes, archiveId, typeref, modelVersion) } catch { TUTSLog("Storing archive \(archiveId) failed") }
+			do { try await storeArchive(bytes, archiveId, typeref, modelVersion) } catch { TUTSLog("Storing archive with id \(archiveId) failed") }
 		}
 	}
 
-	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws { self.activeJobsLock.withLock { $0[archiveId]?.cancel() } }
+	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws {
+	    self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
+	    TUTSLog("Aborted storing archive with id \(archiveId)")
+	}
 
 	public func clearStoredArchives() async throws {
 		self.activeJobsLock.withLock {
@@ -53,7 +55,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	}
 
 	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
-		TUTSLog("Storing archive with id \(archiveId)")
+		TUTSLog("Started storing archive with id \(archiveId)")
 		var iterator = bytes.lines.makeAsyncIterator()
 
 		// everything we need for chunking the saves
