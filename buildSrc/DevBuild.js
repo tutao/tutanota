@@ -14,6 +14,7 @@ import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import { execSync } from "node:child_process"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
+import babel from "@rolldown/plugin-babel"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -110,6 +111,20 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	}
 }
 
+function decoratorPreset(options) {
+	return {
+		preset: () => ({
+			plugins: [["@babel/plugin-proposal-decorators", options]],
+		}),
+		rolldown: {
+			// Only run this transform if the file contains a decorator.
+			filter: {
+				code: "@",
+			},
+		},
+	}
+}
+
 /**
  * @param p {object}
  * @param p.stage {string}
@@ -147,7 +162,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 				},
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
-			plugins: [resolveLibs()],
+			plugins: [resolveLibs(), babel({ presets: [decoratorPreset({ version: "2023-11" })] })],
 		})
 		await bundle.write({
 			dir: `./${buildDir}/`,
@@ -203,6 +218,7 @@ async function buildDesktopPart({ version, networkDebugging }) {
 			],
 			plugins: [
 				resolveLibs(),
+				babel({ presets: [decoratorPreset({ version: "2023-11" })] }),
 				nodeGypPlugin({
 					rootDir: projectRoot,
 					platform,

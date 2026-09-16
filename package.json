@@ -102,7 +102,9 @@
 		"typescript-eslint": "8.66.0",
 		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3",
 		"xhr2": "0.2.1",
-		"zx": "8.5.5"
+		"zx": "8.5.5",
+		"@rolldown/plugin-babel": "0.2.4",
+		"@babel/plugin-proposal-decorators": "8.0.2"
 	},
 	"workspaces": [
 		"./src/licc"
