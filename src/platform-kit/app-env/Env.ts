@@ -233,10 +233,6 @@ export class EnvProvider {
 		return !this.isBrowser() && !this.isAdminClient()
 	}
 
-	public isFullArchiveSearchAvailable(): boolean {
-		return this.isOfflineStorageAvailable() && this.isDesktop()
-	}
-
 	public static bootFinished(): void {
 		this.boot = false
 	}
