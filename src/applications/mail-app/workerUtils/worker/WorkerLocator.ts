@@ -194,10 +194,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const mailFacade = await locator.mail()
 		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.base.cachingEntityClient, mailFacade)
 
-		const isOfflineStorage = EnvProvider.get().isOfflineStorageAvailable()
-		const isFullArchiveSearch = EnvProvider.get().isFullArchiveSearchAvailable()
-
-		if (isOfflineStorage && isFullArchiveSearch) {
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
@@ -215,25 +212,15 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()
-
-			let mailIndexerBackendProvider: (userId: Id) => MailIndexerBackend
-			if (isOfflineStorage) {
-				const persistence = await offlineStorageIndexerPersistence()
-				const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend.js")
-				mailIndexerBackendProvider = () => new OfflineStorageMailIndexerBackend(persistence)
-			} else {
-				const core = await indexerCore()
-				const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend.js")
-				mailIndexerBackendProvider = (userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver)
-			}
-
+			const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
 			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
+			const core = await indexerCore()
 			return new WebMailIndexer(
 				mainInterface.infoMessageHandler,
 				locator.bulkMailLoader,
 				locator.base.cachingEntityClient,
 				dateProvider,
-				mailIndexerBackendProvider,
+				(userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
 				newMailDownloader,
 			)
 		}
