@@ -35,6 +35,7 @@ import {
 	isExternalPaymentMethod,
 	LegacyPlans,
 	NewPaidPlans,
+	PaymentMethodType,
 	PlanType,
 	SubscriptionProvider,
 } from "../../../../entities/sys/Utils"
@@ -425,7 +426,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						".flex.justify-end.gap-8",
 						m(PrimaryButton, {
 							label:
-								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+								paymentMethod === PaymentMethodType.AppStore
 									? "subscriptionSettingAppleWebsite_action"
 									: "subscriptionSettingGoogleWebsite_action",
 							width: "flex",
