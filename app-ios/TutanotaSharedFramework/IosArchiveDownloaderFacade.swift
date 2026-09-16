@@ -1,4 +1,5 @@
 import Combine
+import os
 
 public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let sqlCipherFacade: IosSqlCipherFacade
@@ -16,41 +17,37 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
-		// FIXME add csv header
+		request.allHTTPHeaderFields = ["Accept": "text/csv;charset=utf-8", "Content-Type": "application/json", "Cache-Control": "no-cache"]
 		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
 			private let taskCreated: (_ task: URLSessionTask) -> Void
-			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void) {
-				self.taskCreated = taskCreated
-			}
-			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) {
-				taskCreated(task)
-			}
+			init(taskCreated: @escaping (_ task: URLSessionTask) -> Void) { self.taskCreated = taskCreated }
+			func urlSession(_ session: URLSession, didCreateTask task: URLSessionTask) { taskCreated(task) }
 		}
-		let downloadDelegate = DownloadDelegate(
-			taskCreated: { task in self.activeJobsLock.withLock { $0[archiveId] = task } }
-		)
+		let downloadDelegate = DownloadDelegate(taskCreated: { task in self.activeJobsLock.withLock { $0[archiveId] = task } })
 		var response: URLResponse
 		var bytes: URLSession.AsyncBytes
 		TUTSLog("Downloading archive with id \(archiveId)")
-		do { (bytes, response) = try await self.urlSession.bytes(for: self.schemeHandler.rewriteRequest(request)) } catch let error as URLError
-			where error.code == URLError.cancelled
+		do { (bytes, response) = try await self.urlSession.bytes(for: self.schemeHandler.rewriteRequest(request), delegate: downloadDelegate) } catch let error
+			as URLError where error.code == URLError.cancelled
 		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
 		TUTSLog("Finished downloading archive with id \(archiveId)")
 
 		let httpResponse = response as! HTTPURLResponse
-		if httpResponse.statusCode == 200 { try await storeArchive(bytes, archiveId, typeref, modelVersion) catch let error
-		{ TUTSLog("Storing archive \(archiveId) failed") }
+		if httpResponse.statusCode == 200 {
+			do { try await storeArchive(bytes, archiveId, typeref, modelVersion) } catch { TUTSLog("Storing archive \(archiveId) failed") }
+		}
 	}
 
-	public func abortDownloadAndStoreArchive(_ archive: String) async throws {
-		self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
-	}
+	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws { self.activeJobsLock.withLock { $0[archiveId]?.cancel() } }
 
 	public func clearStoredArchives() async throws {
-	    // FIXME cleanup map as well
+		self.activeJobsLock.withLock {
+			$0.values.forEach { $0.cancel() }
+			$0.removeAll()
+		}
 		try await sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
 		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
