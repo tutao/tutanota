@@ -28,9 +28,7 @@ export const enum PrimaryNavigationType {
 	// theoretically pen is also an option
 }
 
-// global, in case we have multiple instances for some reason
 /** What we infer to be the user's preferred navigation type. */
-export let currentNavigationType: PrimaryNavigationType = EnvProvider.get().isApp() ? PrimaryNavigationType.Touch : PrimaryNavigationType.Mouse
 
 /**
  * View which wraps anything that we render.
@@ -38,6 +36,7 @@ export let currentNavigationType: PrimaryNavigationType = EnvProvider.get().isAp
  */
 export class RootView implements ClassComponent {
 	private dom: HTMLElement | null = null
+	public static currentNavigationType: PrimaryNavigationType = null!
 
 	constructor() {
 		// still "old-style" component, we don't want to lose "this" reference
@@ -86,16 +85,16 @@ export class RootView implements ClassComponent {
 	}
 
 	private switchNavType(newType: PrimaryNavigationType) {
-		if (currentNavigationType === newType) {
+		if (RootView.currentNavigationType === newType) {
 			return
 		}
 		this.dom?.classList.remove(this.classForType())
-		currentNavigationType = newType
+		RootView.currentNavigationType = newType
 		this.dom?.classList.add(this.classForType())
 	}
 
 	private classForType() {
-		switch (currentNavigationType) {
+		switch (RootView.currentNavigationType) {
 			case PrimaryNavigationType.Keyboard:
 				return "keyboard-nav"
 			case PrimaryNavigationType.Mouse:

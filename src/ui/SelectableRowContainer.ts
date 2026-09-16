@@ -3,7 +3,7 @@ import { theme } from "./theme.js"
 import { Styles } from "./styles.js"
 import { px, size } from "./size.js"
 import { DefaultAnimationTime } from "./animation/Animations.js"
-import { currentNavigationType, PrimaryNavigationType } from "./base/RootView.js"
+import { PrimaryNavigationType, RootView } from "./base/RootView.js"
 
 /** A function that can adjust the style of the selectable row. */
 export type SelectableRowSelectedSetter = (selected: boolean, isInMultiselect: boolean) => unknown
@@ -72,7 +72,7 @@ export class SelectableRowContainer implements ClassComponent<SelectableRowConta
 	}
 
 	private static isUsingKeyboard() {
-		return currentNavigationType === PrimaryNavigationType.Keyboard
+		return RootView.currentNavigationType === PrimaryNavigationType.Keyboard
 	}
 
 	private updateDomBg = () => {

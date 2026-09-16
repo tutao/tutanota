@@ -324,7 +324,7 @@ export async function openDataFileInBrowser(dataFile: DataFile): Promise<void> {
 		// It's unclear to me why target=_blank is being ignored. If there is a way to ensure that it always opens a new tab,
 		// Then we should do that instead of this, because it's preferable to keep the mime type.
 		const needsPdfWorkaround =
-			dataFile.mimeType === "application/pdf" && ClientDetector.get().browser === BrowserType.FIREFOX && ClientDetector.get().browserVersion >= 98
+			dataFile.mimeType === "application/pdf" && ClientDetector.get().browser === BrowserType.FIREFOX && ClientDetector.get().browserVersion! >= 98
 
 		const mimeType = needsPdfWorkaround ? "application/octet-stream" : dataFile.mimeType
 

@@ -250,7 +250,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
-	if (isIn("src/platform-kit/app-env/boot")) {
+	if (isIn("src/platform-kit/app-env/boot") || isIn("src/platform-kit/lang-api/external-packages/fingerprintJs")) {
 		return "boot"
 	} else if (code.includes("@bundleInto:common-min") || isIn("libs/stream") || isIn("src/platform-kit/app-env")) {
 		// if detecting this does not work even though the comment is there, add a blank line after the annotation.
@@ -265,6 +265,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("libs/mithril") ||
 		isIn("src/applications/mail-app/app.ts") ||
 		isIn("src/applications/calendar-app/calendar-app.ts") ||
+		isIn("src/ui/CheckBrowser.ts") ||
 		code.includes("@bundleInto:boot") ||
 		moduleId.includes("libs/botd.mjs")
 	) {
@@ -430,7 +431,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "qr"
 	} else if (isIn("src/applications/drive-app")) {
 		return "drive"
-	} else if (isIn("src/platform-kit/utils")) {
+	} else if (isIn("src/platform-kit/utils") || isIn("src/platform-kit/lang-api/common")) {
 		return "common-min"
 	} else if (
 		isIn("src/platform-kit/meta") ||

@@ -3,7 +3,7 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
 import { root } from "../../ui/base/RootView.js"
-import { assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
+import { assertNonNull, assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -91,6 +91,7 @@ if (isSessionStorageAvailable()) {
 		}
 	}
 }
+assertNonNull(env)
 
 assignEnvPlatformId(urlQueryParams)
 replaceNativeLogger(window, new Logger())
