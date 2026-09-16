@@ -95,20 +95,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 			let wrappedTypeRef = TaggedSqlValue.string(value: typeref)
 			let wrappedModelVersion = TaggedSqlValue.number(value: modelVersion)
 
-			var params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: 5 * blobIds.count)
-			for i in 0..<blobIds.count {
-				switch i % 5 {
-				case 0: params[i] = TaggedSqlValue.string(value: blobIds[i])
-				case 1: params[i] = wrappedArchiveId
-				case 2: params[i] = TaggedSqlValue.bytes(value: DataWrapper(data: data[i]))
-				case 3: params[i] = wrappedTypeRef
-				default: params[i] = wrappedModelVersion
-				}
-			}
+			let params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: blobIds.count).enumerated()
 			try await sqlCipherFacade.run(
 				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
 					+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
-				params
+				params.flatMap { offset, record in [
+                    TaggedSqlValue.string(value: blobIds[offset]), wrappedArchiveId, TaggedSqlValue.bytes(value: DataWrapper(data: data[offset])), wrappedTypeRef, wrappedModelVersion
+				]}
 			)
 		} catch { throw error }
 	}
