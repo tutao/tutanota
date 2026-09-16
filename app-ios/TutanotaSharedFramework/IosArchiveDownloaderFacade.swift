@@ -41,8 +41,8 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	}
 
 	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws {
-	    self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
-	    TUTSLog("Aborted storing archive with id \(archiveId)")
+		self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
+		TUTSLog("Aborted storing archive with id \(archiveId)")
 	}
 
 	public func clearStoredArchives() async throws {
@@ -97,11 +97,14 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 			let params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: blobIds.count).enumerated()
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
-					+ String(repeating: "(?, ?, ?, ?, ?), ", count: blobIds.count - 1) + "(?, ?, ?, ?, ?)",
-				params.flatMap { offset, record in [
-                    TaggedSqlValue.string(value: blobIds[offset]), wrappedArchiveId, TaggedSqlValue.bytes(value: DataWrapper(data: data[offset])), wrappedTypeRef, wrappedModelVersion
-				]}
+				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
+					+ String(repeating: ", (?, ?, ?, ?, ?)", count: blobIds.count - 1),
+				params.flatMap { offset, _ in
+					[
+						TaggedSqlValue.string(value: blobIds[offset]), wrappedArchiveId, TaggedSqlValue.bytes(value: DataWrapper(data: data[offset])),
+						wrappedTypeRef, wrappedModelVersion,
+					]
+				}
 			)
 		} catch { throw error }
 	}
