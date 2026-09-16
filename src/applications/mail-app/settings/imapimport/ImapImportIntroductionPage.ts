@@ -26,7 +26,6 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 	private titleSectionParams: Partial<TitleSectionAttrs> = {
 		icon: Icons.MailFilled,
 		iconOptions: { color: theme.on_surface_variant },
-		subTitle: lang.getTranslationText("migrationImapCredentials_title"),
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
@@ -56,8 +55,8 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider))
 		return m(".mt-24", [
 			m(TitleSection, {
-				subTitle: lang.getTranslation("migrationIntroductionInfo_msg", { "{provider}": providerTranslationText }).text,
 				...this.titleSectionParams,
+				subTitle: lang.getTranslation("migrationIntroductionInfo_msg", { "{provider}": providerTranslationText }).text,
 				title: "",
 				style: {
 					marginTop: px(size.spacing_16),
