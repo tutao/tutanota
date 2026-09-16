@@ -1,11 +1,23 @@
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { EntityClient, loadMultipleFromLists } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
-import { ProgrammingError } from "@tutao/app-env"
+import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { aes256RandomKey, CryptoWrapper, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
-import { assertNotNull, base64ToUint8Array, filterInt, first, groupBy, isEmpty, partition, promiseMap, Require, uint8ArrayToBase64 } from "@tutao/utils"
+import {
+	assertNotNull,
+	base64ToBase64Url,
+	base64ToUint8Array,
+	filterInt,
+	first,
+	groupBy,
+	isEmpty,
+	partition,
+	promiseMap,
+	Require,
+	uint8ArrayToBase64,
+} from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -105,6 +117,7 @@ export class DriveFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cacheStorage: ExposedCacheStorage,
+		private readonly domainConfig: DomainConfig,
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -396,9 +409,16 @@ export class DriveFacade {
 	}
 
 	async getShareInfo(file: DriveFile): Promise<DriveShareInfo> {
+		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
+		const appUrl = this.domainConfig.apiUrl
+
 		const share = assertNotNull(file.share)
 		const key = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(file))
-		const publicLink = `http://localhost:9000/drivefile/${getListId(file)}/${getElementId(file)}?nonce=${uint8ArrayToBase64(share.nonce)}#${uint8ArrayToBase64(key)}`
+
+		const urlSafeNonce = base64ToBase64Url(uint8ArrayToBase64(share.nonce))
+		const urlSafeKey = base64ToBase64Url(uint8ArrayToBase64(key))
+
+		const publicLink = `${appUrl}/drivefile/${getListId(file)}/${getElementId(file)}?nonce=${urlSafeNonce}#${urlSafeKey}`
 
 		return { share, key, publicLink }
 	}

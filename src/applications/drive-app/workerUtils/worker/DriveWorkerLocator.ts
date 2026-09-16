@@ -358,6 +358,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.base.crypto,
 			locator.base.cryptoWrapper,
 			locator.cacheStorage,
+			domainConfig,
 		)
 	})
 }

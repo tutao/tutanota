@@ -7,12 +7,13 @@ import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
+import { base64UrlToBase64 } from "@tutao/utils"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {}
 
 export class DriveFileShareView extends BaseTopLevelView implements Component<DriveFileShareViewAttrs> {
 	private file: DriveFile | null = null
-	private base64Key = location.hash.slice(1)
+	private base64UrlKey = location.hash.slice(1)
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
 		const file = this.file
 		if (file) {
@@ -47,14 +48,16 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	}
 
 	private async downloadFile(file: DriveFile) {
-		const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.base64Key)
+		const dataFile = await locator.driveFacade.downloadBlobsForShare(file, base64UrlToBase64(this.base64UrlKey))
 		await locator.fileController.saveDataFile(dataFile)
 	}
 
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		const { listId, elementId, nonce } = m.route.param()
-		const base64Key = location.hash.slice(1)
-		this.file = await locator.driveFacade.downloadFileForShare([listId, elementId], nonce, base64Key)
+
+		const base64UrlKey = location.hash.slice(1)
+
+		this.file = await locator.driveFacade.downloadFileForShare([listId, elementId], base64UrlToBase64(nonce), base64UrlToBase64(base64UrlKey))
 		m.redraw()
 	}
 }
