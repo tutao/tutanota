@@ -27,7 +27,7 @@ class AndroidArchiveDownloaderFacade (
 ): ArchiveDownloaderFacade {
 
 	private val activeRequests = ConcurrentHashMap<String, Call>()
-	private val storageForArchive = ConcurrentHashMap<String, StoreArchive>()
+	private val storageForArchive = ConcurrentHashMap<String, ArchiveStorageHelper>()
 
 	override suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
@@ -40,10 +40,7 @@ class AndroidArchiveDownloaderFacade (
 		return coroutineScope {
 			// Start the network request with IO context (on IO thread pool)
 			withContext(Dispatchers.IO) {
-				val start = TimeSource.Monotonic.markNow()
-					Log.d(TAG, "Started downloading archive with id $archiveId")
-				val startDownload = TimeSource.Monotonic.markNow()
-
+				Log.d(TAG, "Started downloading archive with id $archiveId")
 				val requestBuilder = Request.Builder()
 					.url(sourceUrl)
 					.method("GET", null)
@@ -63,12 +60,10 @@ class AndroidArchiveDownloaderFacade (
 
 					// By this point we got the response header but we might not have read the body yet.
 					response.use { response ->
-						val endDownload = TimeSource.Monotonic.markNow()
-						val timeToDownload = endDownload.minus(startDownload).inWholeMilliseconds
-						Log.d(TAG, "Finished downloading archive with id $archiveId (took $timeToDownload ms)")
-
 						if (response.code == 200) {
 							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
+						} else {
+							Log.d(TAG, "Received status code ${response.code} when trying to download archive with id $archiveId, aborting.")
 						}
 					}
 				} catch (e: IOException) {
@@ -103,25 +98,25 @@ class AndroidArchiveDownloaderFacade (
 		// delete saved blobs of not fully stored archive & close storage
 		storageForArchive[archiveId]?.close()
 		storageForArchive.remove(archiveId)
-		Log.d(TAG, "Cleaned up state of archive download with id $archiveId, kept the blobs.")
+		Log.d(TAG, "Cleaned up state of archive with id $archiveId, kept the blobs.")
 	}
 
 	private suspend fun storeBytes(reader: Reader, archiveId: String, typeref: String, modelVersion: Long) {
 		Log.d(TAG, "Started storing archive with id $archiveId")
 
 		val startTime = TimeSource.Monotonic.markNow()
-		val storage = StoreArchive(archiveId, typeref, modelVersion, sqlCipherFacade)
+		val storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, sqlCipherFacade)
 
-		// while we're not cancelled or finished ...
+		var skippedHeader = false
 		reader.forEachLine { line ->
-			val split = line.split(";", limit = 2)
-			if (split[0] == "id") {
-				// skip first line
+			if (!skippedHeader) {
+				skippedHeader = true
 				return@forEachLine
-			} else {
-				runBlocking {
-					storage.storeBlob(split[0], split[1].toByteArray(Charsets.UTF_8))
-				}
+			}
+
+			val split = line.split(";", limit = 2)
+			runBlocking {
+				storage.storeBlob(split[0], split[1].toByteArray(Charsets.UTF_8))
 			}
 		}
 		// fully stored archive -> store that information as well
@@ -139,13 +134,13 @@ class AndroidArchiveDownloaderFacade (
 		const val HTTP_TIMEOUT = 15L
 	}
 
-	private class StoreArchive(
+	private class ArchiveStorageHelper(
 		private val archiveId: String,
 		private val typeref: String,
 		private val modelVersion: Long,
 		private val sqlCipherFacade: SqlCipherFacade
 	) {
-		// store when 8 mb of data reached
+		// store when 4 mb of data reached (see companion object)
 		private var byteCountCurrent = 0
 		private val blobs = mutableListOf<StoreBlob>()
 		private var closed = false
@@ -183,15 +178,8 @@ class AndroidArchiveDownloaderFacade (
 
 			if (!closed) {
 				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " + "(?, ?, ?, ?, ?), ".repeat(blobs.size - 1) + "(?, ?, ?, ?, ?)"
-				val params = List<TaggedSqlValue>(blobs.size * 5) init@{ i ->
-					return@init when (i % 5) {
-						0 -> TaggedSqlValue.Str(blobs[i/5].blobId)
-						1 -> archiveId
-						2 -> TaggedSqlValue.Bytes(DataWrapper(blobs[i/5].bytesToStore))
-						3 -> typeref
-						else -> modelVersion
-					}
-				}
+				val params = Array(blobs.size, { _ -> 0 })
+					.flatMapIndexed { i, _ -> listOf(TaggedSqlValue.Str(blobs[i].blobId), archiveId, TaggedSqlValue.Bytes(DataWrapper(blobs[i].bytesToStore)), typeref, modelVersion) }
 				sqlCipherFacade.run(query, params)
 			}
 

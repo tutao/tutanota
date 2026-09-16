@@ -1,6 +1,5 @@
 import { ArchiveDownloaderFacade, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { FetchImpl, toGlobalResponse } from "./net/NetAgent"
-import { log } from "./DesktopLog"
 import { tagSqlValue } from "../../../app-kit/local-store/SqlValue"
 import { first, isNotEmpty } from "@tutao/utils"
 
@@ -15,16 +14,20 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 	) {}
 
 	async abortDownloadAndStoreArchive(archiveId: string): Promise<void> {
+		if (this.activeRequests.has(archiveId)) {
+			await this.cleanState(archiveId)
+			console.log(TAG, `Aborted storing archive with id ${archiveId}`)
+		}
+	}
+
+	async clearStoredArchives(): Promise<void> {
 		for (const key of this.activeRequests.keys()) {
 			this.activeRequests.get(key)?.abort()
 			this.activeRequests.delete(key)
 		}
-		// TODO clear sql table
-		return Promise.resolve(undefined)
-	}
 
-	async clearStoredArchives(): Promise<void> {
-		return Promise.resolve(undefined)
+		await this.sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
+		await this.sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
 
 	async downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number): Promise<void> {
@@ -43,6 +46,9 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				const decoder = new TextDecoder()
 				const storage = new ArchiveStorageHelper(archiveId, typeref, modelVersion, this.sqlCipherFacade)
 
+				const startTime = new Date().getTime()
+				console.log(TAG, `Started storing archive with id ${archiveId}`)
+
 				let currentChunkString = ""
 				let skippedHeader = false
 				for await (const chunk of body) {
@@ -55,7 +61,10 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 						if (!skippedHeader) {
 							skippedHeader = true
 							continue
+						} else if (!this.activeRequests.has(archiveId)) {
+							return
 						}
+
 						// do the parsing
 						const [blobId, json] = line.split(";", 2)
 						await storage.storeBlob(blobId, json)
@@ -67,16 +76,22 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				await storage.storeBlob(blobId, json)
 
 				await storage.success()
+
+				const timeToStore = new Date().getTime() - startTime
+				console.log(TAG, `Finished storing archive with id ${archiveId} (took ${timeToStore} ms)`)
+			} else {
+				console.log(TAG, `Received status code ${status} when trying to download archive with id ${archiveId}, aborting.`)
 			}
-			log.info(TAG, "Download finished")
 		} finally {
-			this.activeRequests.delete(archiveId)
+			await this.cleanState(archiveId)
 		}
 	}
-}
-interface StoreBlob {
-	blobId: string
-	bytesToStore: string
+
+	private async cleanState(archiveId: string) {
+		this.activeRequests.get(archiveId)?.abort()
+		this.activeRequests.delete(archiveId)
+		console.log(TAG, `Cleaned up state of archive with id ${archiveId}, kept the blobs.`)
+	}
 }
 
 class ArchiveStorageHelper {
@@ -86,6 +101,7 @@ class ArchiveStorageHelper {
 		private readonly modelVersion: number,
 		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {}
+
 	// store when 8 mb of data reached
 	private readonly BYTE_COUNT_LIMIT = 4 * 1024 * 1024
 	private byteCountCurrent = 0
@@ -96,7 +112,7 @@ class ArchiveStorageHelper {
 		if (this.closed) return
 
 		this.blobs.push({ blobId, bytesToStore })
-		this.byteCountCurrent += bytesToStore.length * 2
+		this.byteCountCurrent += bytesToStore.length
 
 		if (this.byteCountCurrent > this.BYTE_COUNT_LIMIT) {
 			await this.store()
@@ -125,22 +141,9 @@ class ArchiveStorageHelper {
 				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES " +
 				"(?, ?, ?, ?, ?), ".repeat(this.blobs.length - 1) +
 				"(?, ?, ?, ?, ?)"
-			const params = Array(this.blobs.length * 5)
+			const params = Array(this.blobs.length)
 				.fill(null)
-				.map((_, i) => {
-					switch (i % 5) {
-						case 0:
-							return tagSqlValue(this.blobs[i / 5].blobId)
-						case 1:
-							return archiveId
-						case 2:
-							return tagSqlValue(this.blobs[i / 5].bytesToStore)
-						case 3:
-							return typeref
-						case 4:
-							return modelVersion
-					}
-				})
+				.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), archiveId, tagSqlValue(this.blobs[i].bytesToStore), typeref, modelVersion])
 
 			await this.sqlCipherFacade.run(query, params)
 		}
@@ -148,4 +151,9 @@ class ArchiveStorageHelper {
 		this.byteCountCurrent = 0
 		this.blobs = []
 	}
+}
+
+interface StoreBlob {
+	blobId: string
+	bytesToStore: string
 }
