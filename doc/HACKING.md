@@ -12,10 +12,11 @@
 * [`resources/`](../resources): some resources (mostly images) which are used in the project. Most of the are embedded
   to the code.
 * [`test/`](../test): test code
-* [`android.js`](../android.js): script for building Android app
+* [`buildSrc/main.ts`](../buildSrc/main.ts): Collection of tools required to build & release the apps
+* [`../buildSrc/android.ts`](../buildSrc/android.ts): script for building Android app
 * [`make.js`](../make.js): script for building dev version
-* [`desktop.js`](../desktop.js): script for building the release version of the desktop clients
-* [`webapp.js`](../webapp.js): script for building release versions of the web application
+* [`../buildSrc/desktop.ts`](../buildSrc/desktop.ts): script for building the release version of the desktop clients
+* [`../buildSrc/webapp.ts`](../buildSrc/webapp.ts): script for building release versions of the web application
 * [`fdroid-metadata-workaround`](../fdroid-metadata-workaround): is a link inside app-android so that F-Droid can find
   our metadata because our Android project is not in the root. Can be removed once it's fixed in F-Droid.
 * [`tutao-pub.pem`](../tutao-pub.pem): public key which is used to verify desktop clients
@@ -60,9 +61,9 @@ but it's actually quite simple.
 #### Defining a new Mithril component
 
 Our preferred way of making Mithril components is through the ES6 classes. Before we've been creating instances of these
-classes manually but that's not how Mithril should be used. Preferred way is to pass class and attributes
-("props" if you come from React) to hyperscript and let it do its thing. Because of that we sometimes have two versions
-of the components, newer one has "N" suffix like `ButtonN`. It is almost always preferable to use new-style components.
+classes manually but that's not how Mithril should be used. Preferred way is to pass class and attributes ("props" if
+you come from React) to hyperscript and let it do its thing. Because of that we sometimes have two versions of the
+components, newer one has "N" suffix like `ButtonN`. It is almost always preferable to use new-style components.
 
 Current preferred way looks roughly like that:
 
@@ -145,8 +146,8 @@ Prerequisites:
 You need to have Android SDK and NDK (28.2.13676358). The simplest way it to use Android studio but anything that can
 run Gradle will do.
 
-To build Android app against production server you first need to build webapp (like `node make prod`) and then build
-the Android app like you would normally (e.g. import the project under `android-app` in Android Studio, run the `app`
+To build Android app against production server you first need to build webapp (like `node make prod`) and then build the
+Android app like you would normally (e.g. import the project under `android-app` in Android Studio, run the `app`
 target for the mail app).
 
 For building calendar app run `node make prod -a calendar instead.
@@ -155,9 +156,7 @@ For building calendar app run `node make prod -a calendar instead.
 
 Prerequisites:
 
-You need XCode, xcodegen.
-You might need swiftlint swift-format.
-You can install them through homebrew.
+You need XCode, xcodegen. You might need swiftlint swift-format. You can install them through homebrew.
 
 To build iOS app, build the web part (`node make prod`). Then generate iOS projects:
 

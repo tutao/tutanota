@@ -6,7 +6,7 @@
  */
 import fs from "node:fs"
 import path from "node:path"
-import { fileExists } from "./buildUtils.js"
+import { fileExists } from "./buildUtils.ts"
 import { sign } from "./installerSigner.js"
 
 console.log("Sign Desktop Clients")

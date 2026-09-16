@@ -29,6 +29,6 @@ fs.writeFileSync("package.json", JSON.stringify(packageJson, null, "\t"))
 
 // The project doesn't typecheck because removing dependencies also removes type definitions that are required by TS
 // SO we just ignore that
-const tsConfig = JSON.parse(fs.readFileSync("./tsconfig.json", "utf8"))
+const tsConfig = JSON.parse(fs.readFileSync("./tsconfig.buildSrc.json", "utf8"))
 tsConfig.compilerOptions.noEmitOnError = false
-fs.writeFileSync("./tsconfig.json", JSON.stringify(tsConfig, null, "\t"))
+fs.writeFileSync("./tsconfig.buildSrc.json", JSON.stringify(tsConfig, null, "\t"))

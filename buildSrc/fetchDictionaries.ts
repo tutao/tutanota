@@ -3,37 +3,41 @@
  */
 import path from "node:path"
 import { exitOnFail, getDefaultDistDirectory } from "./buildUtils.js"
-import { program } from "commander"
 import { spawnSync } from "node:child_process"
-import { fileURLToPath } from "node:url"
 import fs from "fs-extra"
 import "zx/globals"
 import { getElectronVersion } from "./getInstalledModuleVersion.js"
+import { Command } from "commander"
+import * as JSZip from "jszip"
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	program
-		.usage("[options]")
-		.description("Utility to update the app dictionaries")
-		.option("--out-dir <outDir>", "Base dir of client build")
-		.option("--publish", "Build and publish .deb package for dictionaries.")
-		.action(async (options) => {
-			const outDir = typeof options.outDir !== "undefined" ? options.outDir : getDefaultDistDirectory()
-			const publishDictionaries = typeof options.publish !== "undefined" ? options.publish : false
+type FetchDictionariesOptions = {
+	outDir: string
+	publish: boolean
+}
+export const fetchDictionariesCmd = new Command("fetch-dictionaries")
+	.usage("[options]")
+	.description("Utility to update the app dictionaries")
+	.option("--out-dir <outDir>", "Base dir of client build")
+	.option("--publish", "Build and publish .deb package for dictionaries.")
+	.action(run)
+	.parse(process.argv)
 
-			await getDictionaries(outDir)
-				.then(async (v) => {
-					console.log("Dictionaries updated successfully")
-					if (publishDictionaries) {
-						await publishDebPackage()
-					}
-					process.exit()
-				})
-				.catch((e) => {
-					console.log("Fetching dictionaries failed: ", e)
-					process.exit(1)
-				})
+async function run(options: FetchDictionariesOptions) {
+	const outDir = typeof options.outDir !== "undefined" ? options.outDir : getDefaultDistDirectory()
+	const publishDictionaries = typeof options.publish !== "undefined" ? options.publish : false
+
+	await getDictionaries(outDir)
+		.then(async () => {
+			console.log("Dictionaries updated successfully")
+			if (publishDictionaries) {
+				await publishDebPackage()
+			}
+			process.exit()
 		})
-		.parse(process.argv)
+		.catch((e) => {
+			console.log("Fetching dictionaries failed: ", e)
+			process.exit(1)
+		})
 }
 
 /**
@@ -41,7 +45,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
  * @param outDir
  * @returns {Promise<*>}
  */
-async function getDictionaries(outDir) {
+async function getDictionaries(outDir: string) {
 	const electronVersion = await getElectronVersion()
 	const targetPath = path.join(outDir, "dictionaries")
 	return fetchDictionaries(electronVersion, targetPath)
@@ -85,22 +89,22 @@ async function publishDebPackage() {
  * @param target the target folder for the dictionaries
  * @returns {Promise<*>}
  */
-export async function fetchDictionaries(electronVersion, target) {
+export async function fetchDictionaries(electronVersion: string, target: string) {
 	console.log("downloading dictionaries into:", target)
 	const url = `https://github.com/electron/electron/releases/download/v${electronVersion}/hunspell_dictionaries.zip`
 	const jszip = await import("jszip")
 	await fs.promises.mkdir(target, { recursive: true })
-	const zipArchive = await fetch(url).then(jszip.default.loadAsync)
+	const zipArchive: JSZip = await fetch(url).then(jszip.default.loadAsync as any)
 	for (const name of Object.keys(zipArchive.files)) {
 		const contents = await zipArchive.files[name].async("nodebuffer")
 		await fs.promises.writeFile(path.join(target, name.toLowerCase()), contents)
 	}
 }
 
-async function fetch(url) {
+async function fetch(url: string) {
 	const https = await import("node:https")
 	return new Promise((resolve, reject) => {
-		const data = []
+		const data = new Array<Uint8Array>()
 
 		// using setTimeout because .on('timeout', handler) is
 		// a connection timeout, once the connection stands it
@@ -113,7 +117,7 @@ async function fetch(url) {
 		const request = https
 			.get(url, (response) => {
 				if (response.statusCode === 302) {
-					fetch(response.headers.location)
+					fetch(response.headers.location!)
 						.then((...args) => {
 							clearTimeout(to)
 							resolve(...args)

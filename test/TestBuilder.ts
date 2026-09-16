@@ -3,20 +3,21 @@ import { preludeEnvPlugin } from "../buildSrc/env.js"
 import fs from "fs-extra"
 import path, { dirname } from "node:path"
 import { renderHtml } from "../buildSrc/LaunchHtml.js"
-import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils.js"
-import { domainConfigs } from "../buildSrc/DomainConfigs.js"
+import { getTutanotaAppVersion, runStep, writeFile } from "../buildSrc/buildUtils"
+import { domainConfigs } from "../buildSrc/DomainConfigs"
 import { rolldown } from "rolldown"
-import { resolveLibs, tsImportAliases } from "../buildSrc/RollupConfig.js"
+import { emptyTsImportAliases, resolveLibs } from "../buildSrc/RollupConfig"
 import { nodeGypPlugin } from "../buildSrc/nodeGypPlugin.js"
 import { fileURLToPath } from "node:url"
 import { $ } from "zx"
 import { execSync, spawnSync } from "node:child_process"
-import { buildArgon2, buildLibOqs } from "../buildSrc/buildWasm.js"
+import { buildArgon2, buildLibOqs } from "../buildSrc/buildWasm"
+import { EnvType } from "../src/platform-kit/app-env"
 
 const currentDir = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(currentDir, ".."))
 
-export async function runTestBuild({ networkDebugging = false, clean, ci }) {
+export async function runTestBuild({ networkDebugging = false, clean, ci }: { networkDebugging?: boolean; clean: boolean; ci: boolean }) {
 	const buildDir = path.resolve("build")
 	const version = await getTutanotaAppVersion()
 	const localEnv = env.create({
@@ -65,7 +66,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 		await buildArgon2(resolvedBuildDir)
 		await buildLibOqs(resolvedBuildDir)
 
-		for (const key of Object.keys(tsImportAliases)) delete tsImportAliases[key] // See: devbuild.js
+		emptyTsImportAliases() // See: devbuild.js
 		const bundle = await rolldown({
 			input: ["tests/testInBrowser.ts", "tests/testInNode.ts", "../src/applications/common/api/common/pow-worker.ts"],
 			platform: "neutral",
@@ -111,8 +112,8 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 				resolveLibs(".."),
 				nodeGypPlugin({
 					rootDir: projectRoot,
-					platform: process.platform,
-					architecture: process.arch,
+					platform: process.platform as any,
+					architecture: process.arch as any,
 					nodeModule: "@signalapp/sqlcipher",
 					environment: "node",
 					targetName: "node_sqlcipher",
@@ -141,7 +142,7 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 	})
 }
 
-async function createUnitTestHtml(localEnv) {
+async function createUnitTestHtml(localEnv: EnvType) {
 	const imports = [{ src: `./testInBrowser.js`, type: "module" }]
 	const htmlFilePath = inBuildDir("test.html")
 
@@ -151,6 +152,6 @@ async function createUnitTestHtml(localEnv) {
 	await writeFile(htmlFilePath, html)
 }
 
-function inBuildDir(...files) {
+function inBuildDir(...files: Array<string>) {
 	return path.join("build", ...files)
 }

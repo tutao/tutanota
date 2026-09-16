@@ -108,7 +108,7 @@ pipeline {
 
 					writeFile file: "notes.txt", text: params.releaseNotes
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh """node buildSrc/createReleaseDraft.js --name '[Calendar] ${VERSION} (Android)' \
+						sh """npm run build-tools create-release-draft --name '[Calendar] ${VERSION} (Android)' \
 															   --tag 'tuta-calendar-android-release-${VERSION}' \
 															   --uploadFile '${WORKSPACE}/${PROD_APK_FILE_PATH}' \
 															   --notes notes.txt"""

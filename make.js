@@ -1,5 +1,5 @@
 import { Argument, Option, program } from "commander"
-import { runDevBuild } from "./buildSrc/DevBuild.js"
+import { runDevBuild } from "./buildSrc/DevBuild.ts"
 import { spawn } from "node:child_process"
 import { chalk } from "zx"
 

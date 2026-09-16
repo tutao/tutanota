@@ -169,7 +169,7 @@ void buildWebapp(String stage) {
 		sh "echo $PATH"
 		sh "npm ci"
 		sh "node --max-old-space-size=8192 webapp ${stage} --app drive"
-		sh "node buildSrc/prepareMobileBuild.js --app drive"
+		sh "npm run build-tools prepare-mobile-build --app drive"
 	}
 }
 

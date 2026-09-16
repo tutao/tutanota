@@ -1,22 +1,25 @@
 /**
  * Script to build desktop release versions of the app.
  */
-import * as env from "./buildSrc/env.js"
+import * as env from "./env.js"
 import os from "node:os"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
-import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
+import { buildWebapp } from "./buildWebapp"
+import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildUtils.js"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
-import { createHtml } from "./buildSrc/createHtml.js"
-import { Argument, Option, program } from "commander"
-import { domainConfigs } from "./buildSrc/DomainConfigs.js"
+import { createHtml } from "./createHtml"
+import { Argument, Command, Option, program } from "commander"
+import { domainConfigs } from "./DomainConfigs"
 import { BlockList } from "node:net"
+import { AppName, BuildStage } from "./DevBuild"
+import { DesktopBuilderOpts } from "./DesktopBuilder"
+import { InputArch } from "./nativeLibraryProvider.js"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const tutaTestUrl = new URL("https://app.test.tuta.com")
-const tutaAppUrl = new URL("https://app.tuta.com")
+const tutaTestUrl = new URL("https://app.test.tuta.com").toString()
+const tutaAppUrl = new URL("https://app.tuta.com").toString()
 
-await program
+export const desktopCmd = new Command("desktop")
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.description("Main build tool for distributable tuta desktop artifacts.")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("release").argOptional())
@@ -32,7 +35,7 @@ await program
 	.option("-d,--disable-minify", "disable minification", false)
 	.option("-u,--unpacked", "don't pack the app into an installer")
 	.option("-o,--out-dir <outDir>", "where to copy the client")
-	.action(async (stage, host, opts) => {
+	.action(async (stage, host, opts: BuildDesktopOpts) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
 			program.outputHelp()
 			process.exit(1)
@@ -56,9 +59,21 @@ await program
 
 		await doBuild(opts)
 	})
-	.parseAsync(process.argv)
 
-async function doBuild(opts) {
+export type BuildDesktopOpts = {
+	stage: BuildStage
+	host: null | string
+	app: AppName
+	existing: boolean
+	platform: NodeJS.Platform
+	architecture: NodeJS.Architecture
+	webClient: "make" | null
+	disableMinify: boolean
+	outDir: string
+	unpacked: boolean
+	customDesktopRelease: boolean
+}
+async function doBuild(opts: BuildDesktopOpts) {
 	try {
 		measure()
 		const version = await getTutanotaAppVersion()
@@ -91,16 +106,19 @@ async function doBuild(opts) {
 	}
 }
 
-async function buildDesktopClient(version, { stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify }) {
-	const { buildDesktop } = await import("./buildSrc/DesktopBuilder.js")
+async function buildDesktopClient(
+	version: string,
+	{ stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify }: BuildDesktopOpts,
+) {
+	const { buildDesktop } = await import("./DesktopBuilder.js")
 	const updateUrl = new URL(tutaAppUrl)
 	updateUrl.pathname = "desktop"
-	const desktopBaseOpts = {
+	const desktopBaseOpts: DesktopBuilderOpts = {
 		dirname: __dirname,
 		version,
 		platform: platform,
-		architecture,
-		updateUrl: customDesktopRelease ? "" : updateUrl,
+		architecture: architecture as InputArch,
+		updateUrl: customDesktopRelease ? "" : updateUrl.toString(),
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,
@@ -128,7 +146,7 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 	} else if (stage === "local") {
 		// this is the only way to contact the local server from localhost, a VM and
 		// from other machines in the LAN with the same url.
-		const addr = privateIpv4Address() ?? Object.values(os.networkInterfaces())[0]?.address
+		const addr = privateIpv4Address() ?? Object.values(os.networkInterfaces())[0]![0]?.address
 		if (addr == null) {
 			throw new Error("Unable to pick auto-update address, please specify manually with 'host'")
 		}
@@ -174,11 +192,7 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 	}
 }
 
-/**
- * @param address {string}
- * @return {boolean}
- */
-function isPrivateIpv4Address(address) {
+function isPrivateIpv4Address(address: string): boolean {
 	const privateRanges = new BlockList()
 	privateRanges.addRange("10.0.0.0", "10.255.255.255")
 	privateRanges.addRange("172.16.0.0", "172.31.255.255")
@@ -187,9 +201,12 @@ function isPrivateIpv4Address(address) {
 }
 
 /** @return {string|undefined} */
-function privateIpv4Address() {
-	return Object.values(os.networkInterfaces())
-		.map((net) => net.find((a) => a.family === "IPv4"))
-		.filter(Boolean)
-		.filter((net) => !net.internal && isPrivateIpv4Address(net.address))[0]?.address
+function privateIpv4Address(): string | null {
+	return (
+		Object.values(os.networkInterfaces())
+			.filter((net) => net != null)
+			.map((net) => net.find((a) => a.family === "IPv4"))
+			.filter((net) => net != null)
+			.filter((net) => !net.internal && isPrivateIpv4Address(net.address))[0]?.address ?? null
+	)
 }

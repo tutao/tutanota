@@ -132,7 +132,7 @@ pipeline {
 
                             writeFile file: "notes.txt", text: params.releaseNotes
 							withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-								sh """node buildSrc/createReleaseDraft.js --name '${VERSION} (Desktop)' \
+								sh """npm run build-tools create-release-draft --name '${VERSION} (Desktop)' \
 																	   --tag 'tutanota-desktop-release-${VERSION}' \
 																	   --uploadFile '${WORKSPACE}/${desktopLinux}' \
 																	   --uploadFile '${WORKSPACE}/${desktopWin}' \

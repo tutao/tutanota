@@ -5,26 +5,25 @@ import fs from "node:fs/promises"
 import path, { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 import stream from "node:stream"
+import { SpawnSyncReturns } from "node:child_process"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 /** global used by the measure() function to mark the start of measurement **/
-var measureStartTime
+let measureStartTime: number
 
 /**
  * Returns tutanota app version (as in package.json).
- * @returns {Promise<string>}
  */
-export async function getTutanotaAppVersion() {
+export async function getTutanotaAppVersion(): Promise<string> {
 	const packageJson = JSON.parse(await fs.readFile(path.join(__dirname, "..", "package.json"), "utf8"))
 	return packageJson.version.trim()
 }
 
 /**
  * Returns the elapsed time between the last and current call of measure().
- * @returns {number}
  */
-export function measure() {
+export function measure(): number {
 	if (!measureStartTime) {
 		measureStartTime = Date.now()
 	}
@@ -33,14 +32,13 @@ export function measure() {
 
 /**
  * Returns the (absolute) path to the default dist directory/prefix.
- * @returns {string}
  */
-export function getDefaultDistDirectory() {
+export function getDefaultDistDirectory(): string {
 	return path.resolve("build")
 }
 
 /** Throws if result has a value other than 0. **/
-export function exitOnFail(result) {
+export function exitOnFail(result: SpawnSyncReturns<any>) {
 	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
 	}
@@ -50,10 +48,7 @@ export function exitOnFail(result) {
  * Utility for writing to a logging function when a Writable is expected
  */
 export class LogWriter extends stream.Writable {
-	/**
-	 * @param logger {(string) => void}
-	 */
-	constructor(logger) {
+	constructor(logger: (_: string) => void) {
 		super({
 			autoDestroy: true,
 			write(chunk, encoding, callback) {
@@ -66,10 +61,8 @@ export class LogWriter extends stream.Writable {
 
 /**
  * Check if a file exists and is a normal file
- * @param filePath {string}
- * @returns {Promise<boolean>}
  */
-export async function fileExists(filePath) {
+export async function fileExists(filePath: string): Promise<boolean> {
 	return fs
 		.stat(filePath)
 		.then((stats) => stats.isFile())
@@ -79,10 +72,8 @@ export async function fileExists(filePath) {
 /**
  * There are various possibilities for how a given platform could be identified
  * We need to make sure to be consistent at certain points, such as when caching files or processing CLI args
- * @param platformName {string}
- * @returns {"darwin"|"win32"|"linux"}
  */
-export function getCanonicalPlatformName(platformName) {
+export function getCanonicalPlatformName(platformName: string): "darwin" | "win32" | "linux" {
 	switch (platformName) {
 		case "mac":
 		case "darwin":
@@ -99,11 +90,11 @@ export function getCanonicalPlatformName(platformName) {
 
 /**
  * Checks whether the combination of OS & architecture is supported by the build system
- * @param platformName {NodeJS.Platform}
- * @param architecture {NodeJS.Architecture|"universal"}
- * @returns {architecture is "x64"|"arm64"|"universal"}
  */
-export function checkArchitectureIsSupported(platformName, architecture) {
+export function checkArchitectureIsSupported(
+	platformName: NodeJS.Platform,
+	architecture: NodeJS.Architecture | "universal",
+): architecture is "x64" | "arm64" | "universal" {
 	switch (architecture) {
 		case "x64":
 			return true
@@ -115,50 +106,41 @@ export function checkArchitectureIsSupported(platformName, architecture) {
 	}
 }
 
-/**
- *
- * @param platformName {NodeJS.Platform}
- * @param architecture {NodeJS.Architecture|"universal"}
- * @return {"x64"|"arm64"|"universal"}
- */
-export function getValidArchitecture(platformName, architecture) {
+export function getValidArchitecture(platformName: NodeJS.Platform, architecture: NodeJS.Architecture | "universal"): "x64" | "arm64" | "universal" {
 	if (!checkArchitectureIsSupported(platformName, architecture)) {
 		throw new Error(`Unsupported architecture: ${platformName} ${architecture}`)
 	}
 	return architecture
 }
 
-export async function runStep(name, cmd) {
+export async function runStep(name: string, cmd: () => void | Promise<void>): Promise<void> {
 	const before = Date.now()
 	console.log("Build >", name)
 	await cmd()
 	console.log("Build >", name, "took", Date.now() - before, "ms")
 }
 
-export function writeFile(targetFile, content) {
-	return fs.mkdir(path.dirname(targetFile), { recursive: true }).then(() => fs.writeFile(targetFile, content, "utf-8"))
+export async function writeFile(targetFile: string, content: string) {
+	await fs.mkdir(path.dirname(targetFile), { recursive: true })
+	return await fs.writeFile(targetFile, content, "utf-8")
 }
 
-export function normalizeCopyTarget(target) {
+export function normalizeCopyTarget(target: string) {
 	return removeNpmNamespacePrefix(changeHypenToUnderscore(target))
 }
 
-export function changeHypenToUnderscore(target) {
+export function changeHypenToUnderscore(target: string) {
 	// because its name is used as a C identifier
 	return target.replace("-", "_")
 }
 
-export function removeNpmNamespacePrefix(target) {
+export function removeNpmNamespacePrefix(target: string) {
 	// linear complexity Array.last(), wth not?
 	// gets us the moduleName out of @tutao/moduleName
-	return target.split("/").reduce((p, c) => c, null)
+	return target.split("/").reduce((p, c) => c, null!)
 }
 
-/**
- * @param arch {NodeJS.Architecture|"universal"}
- * @returns {Array<import("./nativeLibraryProvider.js").BuildArch>}
- */
-export function resolveArch(arch) {
+export function resolveArch(arch: NodeJS.Architecture | "universal"): Array<import("./nativeLibraryProvider.js").BuildArch> {
 	if (arch === "universal") {
 		return ["x64", "arm64"]
 	} else if (arch === "x64" || arch === "arm64") {
@@ -173,10 +155,8 @@ export function resolveArch(arch) {
  *
  * NOTE: this is not a triple as in "target triple" known to rust, it is a "tuple" with Clib appended to it.
  *
- * @param platform {NodeJS.Platform}
- * @param architecture {NodeJS.Architecture}
  */
-export function getTargetTupleWithLibc(platform, architecture) {
+export function getTargetTupleWithLibc(platform: NodeJS.Platform, architecture: NodeJS.Architecture) {
 	if (platform === "linux") {
 		return `${platform}-${architecture}-gnu`
 	} else if (platform === "win32") {

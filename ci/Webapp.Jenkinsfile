@@ -64,7 +64,7 @@ pipeline {
                 sh 'node -v'
 
             	sh 'npm ci'
-				sh 'node webapp.js release'
+				sh 'npm run build-tools webapp release'
 
 			    script {
                     if (params.UPLOAD) {

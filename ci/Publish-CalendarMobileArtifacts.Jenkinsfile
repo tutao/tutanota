@@ -276,7 +276,7 @@ pipeline {
 platform must be one of the strings "ios", "android"
 */
 def pregenerateReleaseNotes(platform, version) {
-        return sh(returnStdout: true, script: """node buildSrc/releaseNotes.js --platform ${platform} --milestone ${version} """)
+        return sh(returnStdout: true, script: """npm run build-tools create-release-notes --platform ${platform} --milestone ${version} """)
 }
 
 /**
@@ -289,7 +289,7 @@ def writeReleaseNotes(String platform, String displayName, String version, Strin
 			sh "npm ci"
 			writeFile file: "notes.txt", text: platform == "ios" ? releaseNotes.ios : releaseNotes.android
 			withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-				def releaseDraftCommand = """node buildSrc/createReleaseDraft.js --name '[Calendar] ${version} (${displayName})' \
+				def releaseDraftCommand = """npm run build-tools create-release-draft --name '[Calendar] ${version} (${displayName})' \
 																					  --tag 'tuta-calendar-${platform}-release-${version}' \
 																					  --notes notes.txt"""
 				// We don't upload iOS artifacts to GitHub

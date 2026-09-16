@@ -2,10 +2,11 @@
  * Utility to create the HTML landing page for the app.
  */
 import fs from "fs-extra"
-import { renderHtml } from "./LaunchHtml.js"
+import { renderHtml } from "./LaunchHtml"
 import { mkdir } from "node:fs/promises"
 import path from "node:path"
-import { buildDirForApp } from "./DevBuild.js"
+import { AppName, buildDirForApp } from "./DevBuild"
+import { EnvType } from "../src/platform-kit/app-env"
 
 /**
  *
@@ -17,9 +18,9 @@ import { buildDirForApp } from "./DevBuild.js"
  * @param app App to be built, defaults to mail app {String}
  * @returns {Promise<Awaited<void>[]>}
  */
-export async function createHtml(env, app = "mail") {
-	let jsFileName
-	let htmlFileName
+export async function createHtml(env: EnvType, app: AppName = "mail") {
+	let jsFileName: string
+	let htmlFileName: string
 	const buildDir = buildDirForApp(app)
 	switch (env.mode) {
 		case "App":
@@ -33,6 +34,9 @@ export async function createHtml(env, app = "mail") {
 		case "Desktop":
 			jsFileName = "index-desktop.js"
 			htmlFileName = "index-desktop.html"
+			break
+		default:
+			throw new Error("unexpected mode")
 	}
 	// We need to import bluebird early as it Promise must be replaced before any of our code is executed
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
@@ -47,7 +51,7 @@ ${indexTemplate}`
 	])
 }
 
-async function _writeFile(targetFile, content) {
+async function _writeFile(targetFile: string, content: string) {
 	await mkdir(path.dirname(targetFile), { recursive: true })
 	await fs.writeFile(targetFile, content, "utf-8")
 }

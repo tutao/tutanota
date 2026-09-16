@@ -1,4 +1,4 @@
-import { bundleDependencyCheckPlugin, resolveLibs } from "./RollupConfig.js"
+import { resolveLibs } from "./RollupConfig"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
@@ -10,31 +10,33 @@ import { create as createEnv, preludeEnvPlugin } from "./env.js"
 import cp from "node:child_process"
 import util from "node:util"
 import { fileURLToPath } from "node:url"
-import { getCanonicalPlatformName } from "./buildUtils.js"
-import { domainConfigs } from "./DomainConfigs.js"
+import { getCanonicalPlatformName } from "./buildUtils"
+import { domainConfigs } from "./DomainConfigs"
 import commonjs from "@rollup/plugin-commonjs"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
-import { napiPlugin } from "./napiPlugin.js"
+import { napiPlugin } from "./napiPlugin"
 import replace from "@rollup/plugin-replace"
 import typescript from "@rollup/plugin-typescript"
+import { InputArch } from "./nativeLibraryProvider"
 
 const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
-/**
- * @param dirname directory this was called from
- * @param version application version that gets built
- * @param platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
- * @param architecture {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
- * @param updateUrl where the client should pull its updates from, if any
- * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
- * @param notarize {boolean} for the macOS notarization feature
- * @param outDir where copy the finished artifacts
- * @param unpacked output desktop client without packing it into an installer
- * @param [disableMinify] {boolean} whether to disible code minified
- * @returns {Promise<void>}
- */
+export type DesktopBuilderOpts = {
+	platform: NodeJS.Platform
+	architecture: InputArch
+	outDir: string
+	unpacked: boolean
+	disableMinify: boolean
+	dirname: string
+	version: string
+	updateUrl: string
+	nameSuffix: string
+	notarize?: boolean
+	networkDebugging?: boolean
+}
+
 export async function buildDesktop({
 	dirname,
 	version,
@@ -47,7 +49,7 @@ export async function buildDesktop({
 	unpacked,
 	disableMinify,
 	networkDebugging,
-}) {
+}: DesktopBuilderOpts): Promise<void> {
 	// The idea is that we
 	// - build desktop code into build/desktop
 	// - package the whole dist directory into the app
@@ -86,14 +88,14 @@ export async function buildDesktop({
 	// prepare files
 	try {
 		await fs.promises.rm(path.join(distDir, updateSubDir), { recursive: true })
-	} catch (e) {
+	} catch (e: any) {
 		if (e.code !== "ENOENT") {
 			throw e
 		}
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture as InputArch, disableMinify, networkDebugging ?? false)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -147,7 +149,15 @@ export async function buildDesktop({
 	])
 }
 
-async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
+async function rollupDesktop(
+	dirname: string,
+	outDir: string,
+	version: string,
+	platform: NodeJS.Platform,
+	architecture: InputArch,
+	disableMinify: boolean,
+	networkDebugging: boolean,
+) {
 	platform = getCanonicalPlatformName(platform)
 
 	const mainFiles = ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"]
@@ -218,10 +228,8 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
  * get the DLL that's needed for the windows client to handle "Send as Mail..." context
  * menu actions.
  * Tries to get a locally built version before delegating to downloadLatestMapirs
- * @param distDir the directory to put the DLL
- * @returns {Promise<void>}
  */
-async function getMapirs(distDir) {
+async function getMapirs(distDir: string) {
 	const dllName = "mapirs.dll"
 	const dllSrc =
 		process.platform === "win32"
@@ -239,11 +247,8 @@ async function getMapirs(distDir) {
 
 /**
  * get the latest mapirs.dll release from github.
- * @param dllName {string} name of the file that should be downloaded from the latest release
- * @param dllTrg {string} path to put the downloaded file
- * @returns {Promise<void>}
  */
-async function downloadLatestMapirs(dllName, dllTrg) {
+async function downloadLatestMapirs(dllName: string, dllTrg: string): Promise<void> {
 	try {
 		const { Octokit } = await import("@octokit/rest")
 		const octokit = new Octokit()
@@ -254,7 +259,7 @@ async function downloadLatestMapirs(dllName, dllTrg) {
 		console.log("getting latest mapirs release")
 		const res = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", opts)
 		console.log("latest mapirs release", res.url)
-		const asset_id = res.data.assets.find((a) => a.name.startsWith(dllName)).id
+		const asset_id = res.data.assets.find((a) => a.name.startsWith(dllName))!.id
 		console.log("Downloading mapirs asset", asset_id)
 		const assetResponse = await octokit.repos.getReleaseAsset({
 			...opts,

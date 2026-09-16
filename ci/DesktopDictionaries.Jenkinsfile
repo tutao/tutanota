@@ -43,9 +43,9 @@ pipeline {
 
 				script {
 					if (params.RELEASE) {
-						sh 'node buildSrc/fetchDictionaries.js --publish'
+						sh 'npm run build-tools fetch-dictionaries --publish'
 					} else {
-						sh 'node buildSrc/fetchDictionaries.js'
+						sh 'npm run build-tools fetch-dictionaries'
 					}
 				}
 

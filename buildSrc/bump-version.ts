@@ -1,27 +1,18 @@
-#!/usr/bin/env node
-// @ts-check
-
-import { Option, program } from "commander"
 import fs from "node:fs"
 import { $ } from "zx"
-import { calculateClientVersions } from "./versionUtils.js"
+import { calculateClientVersions } from "./versionUtils"
+import { Command, Option } from "commander"
 
-await program
-	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump").choices(["all", "webdesktop", "android", "ios"]).default("all"))
+const platformChoices = ["all", "webdesktop", "android", "ios"] as const
+type BumpVersionOptions = {
+	platform: (typeof platformChoices)[number]
+}
+export const bumpVersionCmd = new Command("bump-version")
+	.description("Bump version")
+	.addOption(new Option("-p, --platform <platform>", "version for which platform to bump").choices(platformChoices).default("all"))
 	.action(run)
-	.parseAsync(process.argv)
 
-/**
- * @typedef {"major" | "minor" | "patch"} Which
- * @typedef {{name: string, directory: string}} Workspace
- */
-
-/**
- * @param params {object}
- * @param params.platform {undefined | "webdesktop" | "android" | "ios" | "all"}
- * @return {Promise<void>}
- */
-async function run({ platform }) {
+async function run({ platform }: BumpVersionOptions) {
 	console.log(`bumping version for ${platform ?? "all"}`)
 	const { currentVersion, currentVersionString, newVersionString } = await calculateClientVersions()
 	await bumpVersionInCargoWorkspace(newVersionString)
@@ -54,11 +45,7 @@ async function run({ platform }) {
 	console.log(`Bumped version ${currentVersionString} -> ${newVersionString}`)
 }
 
-/**
- * @param newVersionString {string}
- * @return {Promise<void>}
- */
-async function bumpVersionInCargoWorkspace(newVersionString) {
+async function bumpVersionInCargoWorkspace(newVersionString: string) {
 	const workspaceFilePath = "Cargo.toml"
 	const versionRegex = /\[workspace\.package]\nversion = ".*"/
 	const contents = await fs.promises.readFile(workspaceFilePath, "utf8")
@@ -78,10 +65,7 @@ async function bumpVersionInCargoWorkspace(newVersionString) {
 	}
 }
 
-/**
- * @param newVersionString {string}
- */
-async function bumpIosVersion(newVersionString) {
+async function bumpIosVersion(newVersionString: string) {
 	const plists = [
 		"app-ios/calendar/Info.plist",
 		"app-ios/tutanota/Info.plist",
@@ -95,10 +79,7 @@ async function bumpIosVersion(newVersionString) {
 	}
 }
 
-/**
- * @param {string} filePath
- */
-async function replaceCfBundleVersion(filePath, newVersionString) {
+async function replaceCfBundleVersion(filePath: string, newVersionString: string) {
 	const infoPlistContents = await fs.promises.readFile(filePath, "utf8")
 	let found = 0
 	const newInfoPlistContents = infoPlistContents.replaceAll(
@@ -117,11 +98,7 @@ async function replaceCfBundleVersion(filePath, newVersionString) {
 	}
 }
 
-/**
- * @param buildGradlePath {string}
- * @return {Promise<void>}
- */
-async function bumpAndroidVersion(buildGradlePath) {
+async function bumpAndroidVersion(buildGradlePath: string) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
 
 	const kotlinRegex = /versionCode = (\d+)/
@@ -148,13 +125,7 @@ async function bumpAndroidVersion(buildGradlePath) {
 	await fs.promises.writeFile(buildGradlePath, newBuildGradleString)
 }
 
-/**
- * @param currentVersion {number[]}
- * @param newVersionString {string}
- * @param buildGradlePath {string}
- * @return {Promise<void>}
- */
-async function bumpAndroidVersionName(currentVersion, newVersionString, buildGradlePath) {
+async function bumpAndroidVersionName(currentVersion: Array<number>, newVersionString: string, buildGradlePath: string) {
 	const buildGradleString = await fs.promises.readFile(buildGradlePath, "utf8")
 	const newBuildGradleString = buildGradleString.replace(new RegExp(currentVersion.join("\\.")), newVersionString)
 	console.log(`Bumped Android versionName: ${currentVersion.join("\\.")} -> ${newVersionString} (${buildGradlePath})`)

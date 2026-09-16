@@ -8,8 +8,8 @@
 	},
 	"type": "module",
 	"scripts": {
+		"build-tools": "cd buildSrc && tsc --build tsconfig.buildSrc.json && node --enable-source-maps make.ts && node --enable-source-maps ../build/buildSrc/main.js ",
 		"start": "./start-desktop.sh",
-		"build-packages": "echo '>>>> You no longer need to execute this <<<<<'",
 		"test-ci": "cd test && node test --ci",
 		"test": "cd test && node --enable-source-maps test",
 		"mail:types": "tsc --build --incremental true tsconfig.json",
@@ -18,7 +18,7 @@
 		"test:types": "tsc --build --incremental true test/tsconfig.json",
 		"preinstall": "node buildSrc/preinstall.js",
 		"postinstall": "node buildSrc/postinstall.js",
-		"bump-version": "node buildSrc/bump-version.js",
+		"bump-version": "npm run build-tools bump-version",
 		"generate-ipc": "tsc --build buildSrc/licc/tsconfig.licc.json && node build/licc/cli.js ipc-schema && npm run style:fix",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",

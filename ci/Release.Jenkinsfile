@@ -494,7 +494,7 @@ pipeline {
  */
 def pregenerateReleaseNotes(platform) {
 	def milestone = params.milestone.trim().equals("") ? VERSION : params.milestone
-	return sh(returnStdout: true, script: """node buildSrc/releaseNotes.js --platform ${platform} --milestone ${milestone} """)
+	return sh(returnStdout: true, script: """npm run build-tools prepare-release-notes --platform ${platform} --milestone ${milestone} """)
 }
 
 def shouldBuild() {

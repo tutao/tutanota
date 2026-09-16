@@ -1,7 +1,7 @@
 import fs from "node:fs/promises"
 import path from "node:path"
 import { spawnSync } from "node:child_process"
-import { fileExists } from "./buildUtils.js"
+import { fileExists } from "./buildUtils.ts"
 
 /**
  * Returns the version of electron used by the app (as in package.json).
