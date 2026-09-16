@@ -117,6 +117,7 @@ class ProxyController extends Controller
 		// 4. Set up the options for the new client
 		$options = [
 				'headers' => $headers,
+				'nextcloud' => ['allow_local_address' => true]
 		];
 
 		// 5. Attach query parameters or raw body depending on the method
