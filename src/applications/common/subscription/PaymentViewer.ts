@@ -152,9 +152,9 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 		}
 
 		const paymentMethod =
-			this.accountingInfo != null && getPaymentMethodType(this.accountingInfo) != null
+			this.accountingInfo != null
 				? getPaymentMethodName(neverNull(getPaymentMethodType(this.accountingInfo))) + " " + getPaymentMethodInfoText(neverNull(this.accountingInfo))
-				: lang.get("loading_msg")
+				: lang.getTranslationText("loading_msg")
 
 		return m(LegacyTextField, {
 			label: "paymentMethod_label",

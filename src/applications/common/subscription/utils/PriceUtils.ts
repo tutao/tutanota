@@ -49,7 +49,7 @@ export function asPaymentInterval(paymentInterval: string | number): PaymentInte
 	}
 }
 
-export function getPaymentMethodName(paymentMethod: PaymentMethodType): string {
+export function getPaymentMethodName(paymentMethod: PaymentMethodType | null): string {
 	if (paymentMethod === PaymentMethodType.Invoice) {
 		return lang.get("paymentMethodOnAccount_label")
 	} else if (paymentMethod === PaymentMethodType.CreditCard) {
