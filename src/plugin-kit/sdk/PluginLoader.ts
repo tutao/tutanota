@@ -3,22 +3,19 @@ import { assertNotNull, downcast } from "@tutao/utils"
 import { PluginHostApi } from "./PluginHostApi"
 import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDispatcher"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
-import { Request, Response } from "../../app-kit/native-bridge/shared/MessageTypes"
+import { Commands, Request, RequestError, Response } from "../../app-kit/native-bridge/shared/MessageTypes"
 
 self.onmessage = function (msg): void {
-	console.log(">>> plugin loader first message :)")
-
 	const data = msg.data
 	const methodName: MessageToPluginFromHostApiCommandNames = data.requestType
 	const args: Array<any> = data.args
 	if (methodName === "load") {
-		Promise.resolve().then(async () => {
-			const pluginUrl = args[0]
-			const customerConfig = args[1]
-			await new PluginWorkerImpl(self as DedicatedWorkerGlobalScope).init(pluginUrl, customerConfig)
-		})
-		const response = new Response(data.id, {})
-		self.postMessage(response)
+		const pluginUrl = args[0]
+		const customerConfig = args[1]
+		new PluginWorkerImpl(self as DedicatedWorkerGlobalScope).init(pluginUrl, customerConfig).then(
+			() => self.postMessage(new Response(data.id, {})),
+			(error) => self.postMessage(new RequestError(data.id, error)),
+		)
 	} else {
 		debugger
 	}
@@ -34,34 +31,60 @@ class PluginWorkerImpl {
 	}
 
 	public async init(pluginUrl: string, customerConfig: string) {
+		// the loaded plugin instance is only available once `pluginApi.load()` below has been called;
+		// the commands proxy captures it by reference so calls arriving after load() are dispatched correctly.
+		let pluginApi: PluginApi | null = null
+
+		// Outgoing (plugin -> host) calls now go through the dispatcher's postRequest, so they are properly
+		// id-correlated to their Response/RequestError instead of firing a bare postMessage with id: null.
 		const pluginHostProxy = new Proxy(
 			{},
 			{
 				get: (_: object, property: string) => {
-					return async (...args: Array<any>): Promise<any> => {
+					return (...args: Array<any>): Promise<any> => {
 						const methodName = downcast<keyof PluginHostApi>(property)
-						self.postMessage(new Request(methodName, args))
+						return assertNotNull(this._dispatcher).postRequest(new Request(methodName, args))
 					}
 				},
 			},
 		)
 		const pluginHost = downcast<PluginHostApi>(pluginHostProxy)
 
-		const loadedPluginModule = await import(pluginUrl)
-		const pluginClass = assertNotNull(loadedPluginModule.Plugin, "All plugin should have a public constructor for class `Plugin`")
+		// Incoming (host -> plugin) calls are dispatched generically to whatever method exists on the
+		// loaded pluginApi instance, instead of a hardcoded load/unload/getMetadata map, so extension
+		// points like attachmentButtonClicked/eventLocationButtonClicked/receiveFileReference reach the plugin.
+		const commands = downcast<Commands<keyof PluginApi>>(
+			new Proxy(
+				{},
+				{
+					get: (_: object, property: string) => {
+						return async (message: Request<keyof PluginApi>): Promise<any> => {
+							const method = (pluginApi as any)?.[property]
+							if (typeof method !== "function") {
+								throw new Error(`unsupported plugin api method: ${String(property)}`)
+							}
+							return method.apply(pluginApi, message.args)
+						}
+					},
+				},
+			),
+		)
 
-		const pluginApi: PluginApi = new pluginClass(pluginHost)
-		await pluginApi.load(pluginUrl, customerConfig)
-
+		// Built BEFORE pluginApi.load() runs (unlike before), so host calls made from inside load()
+		// (registerButton, getUserConfig, storeUserConfig, registerConfigField) have a real dispatcher/
+		// transport to correlate their responses against.
 		this._dispatcher = new MessageDispatcher<keyof PluginHostApi, keyof PluginApi>(
 			new WebWorkerTransport(this._scope),
-			{
-				load: async () => pluginApi.load,
-				unload: async () => pluginApi.unload,
-				getMetadata: async () => pluginApi.getMetadata,
-			},
+			commands,
 			"plugin-worker-main",
 			objToError,
 		)
+
+		const loadedPluginModule = await import(pluginUrl)
+		const pluginClass = assertNotNull(loadedPluginModule.Plugin, "All plugin should have a public constructor for class `Plugin`")
+
+		const loadedPluginApi: PluginApi = new pluginClass(pluginHost)
+		pluginApi = loadedPluginApi
+		await loadedPluginApi.load(pluginUrl, customerConfig)
 	}
 }
