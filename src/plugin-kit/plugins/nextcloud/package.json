@@ -6,7 +6,6 @@
 	"dependencies": {
 		"@nextcloud/typings": "1.10.0",
 		"@nextcloud/axios": "2.5.2",
-		"@nextcloud/router": "3.1.0",
-		"@nextcloud/auth": "2.5.3"
+		"axios": "1.20.0"
 	}
 }

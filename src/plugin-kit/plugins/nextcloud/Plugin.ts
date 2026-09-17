@@ -2,12 +2,10 @@ import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
-// import { default as ncAxios } from "@nextcloud/axios"
-import { assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
+import type { Axios } from "axios"
+import { assertNotNull, isNotNull } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
-
-const ncAxios: any = null!
 
 type UserPluginConfig = {
 	credentials: NextcloudCredentials
@@ -23,8 +21,10 @@ type NextcloudCredentials = {
 	server: string
 }
 export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension {
-	private userConfig: Nullable<UserPluginConfig> = null
+	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
+	private axiosClient: Axios = null!
+
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
 	}
@@ -38,15 +38,22 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 
 	async load(_pluginUrl: string, customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
+		await this.loadAxiosClient()
 		await this.loadUserConfig()
+		await this.applyConfigExtensionPoints()
+		await this.applyAppExtensionPoints()
+	}
 
+	private async applyConfigExtensionPoints() {
 		const configFieldConfig: ConfigFieldConfiguration = {
 			extensionPoint: ExtensionPoint.ConfigField,
 			configFieldId: "nextCloudUrl",
 			text: { en: "Nextcloud instance URI" },
 		}
 		await this.pluginHost.registerConfigField(configFieldConfig)
+	}
 
+	private async applyAppExtensionPoints() {
 		let saveAttachmentBtnConfig: ButtonConfiguration = {
 			extensionPoint: ExtensionPoint.SaveAttachmentDialog,
 			text: { de: "Nextcloud attachment anhaengen" },
@@ -84,7 +91,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 
 	private async createTalkRoom(nextcloudCredentials: NextcloudCredentials): Promise<string> {
 		const authToken = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
-		const response = await ncAxios.post(
+		const response = await this.axiosClient.post(
 			this.proxiedUrl("/ocs/v2.php/apps/spreed/api/v4/room"),
 			new URLSearchParams({
 				roomType: "3", // public conversation, so external event guests without a Nextcloud account can join via the link
@@ -112,7 +119,10 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 	}
 
 	private async loginToNextcloud(): Promise<NextcloudCredentials | null> {
-		const nextcloudResponse = await ncAxios.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
+		// TODO:
+		// we do not need to do this when we are inside the nextcloud window?
+
+		const nextcloudResponse = await this.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
 			headers: {
 				"OCS-APIRequest": "true",
 			},
@@ -164,6 +174,17 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		return `${this.customerConfig.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
 	}
 
+	private async loadAxiosClient() {
+		// when tuta is running inside nextcloud, we will not spawn thread for plugin
+		// then we can use @nextcloud/axios client, which handles the authentication for us
+		// when not, we will always have an authentaciation token when needed.
+		if (typeof window !== "undefined") {
+			this.axiosClient = (await import("@nextcloud/axios")).default
+		} else {
+			this.axiosClient = new (await import("axios")).Axios()
+		}
+	}
+
 	async makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<void> {
 		const filePutHeaders = {
 			headers: {
@@ -173,7 +194,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 			},
 		}
 
-		return ncAxios
+		return this.axiosClient
 			.put(saveDirUri, fileContent, filePutHeaders)
 			.then((_: any) => {
 				// Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
