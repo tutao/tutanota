@@ -536,7 +536,7 @@ export type UserParams = {
 	pushIdentifierList: null | PushIdentifierList
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
-	plugins: null | PluginsRef
+	plugins: null | UserPlugins
 }
 
 export type User = {
@@ -566,7 +566,7 @@ export type User = {
 	pushIdentifierList: null | PushIdentifierList
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
-	plugins: null | PluginsRef
+	plugins: null | UserPlugins
 
 	//== some entities have these and some don't
 
@@ -920,6 +920,7 @@ export type CustomerInfoParams = {
 	managedByPartner: null | Id
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
+	storeNotificationLog: null | Id
 }
 
 export type CustomerInfo = {
@@ -967,6 +968,7 @@ export type CustomerInfo = {
 	managedByPartner: null | Id
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
+	storeNotificationLog: null | Id
 
 	//== some entities have these and some don't
 
@@ -3024,6 +3026,7 @@ export type InvoiceInfoParams = {
 	discountPercentage: null | NumberString
 
 	paymentErrorInfo: null | PaymentErrorInfo
+	discountEligiblePlans: PlanTypeWrapper[]
 }
 
 export type InvoiceInfo = {
@@ -3049,6 +3052,7 @@ export type InvoiceInfo = {
 	// == associations
 
 	paymentErrorInfo: null | PaymentErrorInfo
+	discountEligiblePlans: PlanTypeWrapper[]
 
 	//== some entities have these and some don't
 
@@ -5175,6 +5179,7 @@ export type PlanPricesParams = {
 	customDomains: NumberString
 	planName: string
 	businessPlan: boolean
+	bonusMonthsForYearlyPlan: NumberString
 
 	planConfiguration: PlanConfiguration
 }
@@ -5195,6 +5200,7 @@ export type PlanPrices = {
 	customDomains: NumberString
 	planName: string
 	businessPlan: boolean
+	bonusMonthsForYearlyPlan: NumberString
 
 	// == associations
 
@@ -10439,7 +10445,40 @@ export type SubscriptionRevocationServicePostIn = {
 	_original: Nullable<SubscriptionRevocationServicePostIn>
 	isAdapter: false
 }
-export const PluginConfigurationTypeRef: TypeRef<PluginConfiguration> = new TypeRef("sys", 2783)
+export const PlanTypeWrapperTypeRef: TypeRef<PlanTypeWrapper> = new TypeRef("sys", 2783)
+
+export function createPlanTypeWrapper(values: PlanTypeWrapperParams): PlanTypeWrapper {
+	return Object.assign(create(typeModels[PlanTypeWrapperTypeRef.typeId], PlanTypeWrapperTypeRef), values)
+}
+
+export type PlanTypeWrapperParams = {
+	plan: NumberString
+}
+
+export type PlanTypeWrapper = {
+	// == values
+
+	_id: Id
+	plan: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<PlanTypeWrapper>
+	_original: Nullable<PlanTypeWrapper>
+	isAdapter: false
+}
+export const PluginConfigurationTypeRef: TypeRef<PluginConfiguration> = new TypeRef("sys", 2798)
 
 export function createPluginConfiguration(values: PluginConfigurationParams): PluginConfiguration {
 	return Object.assign(create(typeModels[PluginConfigurationTypeRef.typeId], PluginConfigurationTypeRef), values)
@@ -10476,17 +10515,17 @@ export type PluginConfiguration = {
 	_original: Nullable<PluginConfiguration>
 	isAdapter: false
 }
-export const PluginsRefTypeRef: TypeRef<PluginsRef> = new TypeRef("sys", 2793)
+export const UserPluginsTypeRef: TypeRef<UserPlugins> = new TypeRef("sys", 2808)
 
-export function createPluginsRef(values: PluginsRefParams): PluginsRef {
-	return Object.assign(create(typeModels[PluginsRefTypeRef.typeId], PluginsRefTypeRef), values)
+export function createUserPlugins(values: UserPluginsParams): UserPlugins {
+	return Object.assign(create(typeModels[UserPluginsTypeRef.typeId], UserPluginsTypeRef), values)
 }
 
-export type PluginsRefParams = {
+export type UserPluginsParams = {
 	pluginConfigs: Id
 }
 
-export type PluginsRef = {
+export type UserPlugins = {
 	// == values
 
 	_id: Id
@@ -10506,11 +10545,11 @@ export type PluginsRef = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<PluginsRef>
-	_original: Nullable<PluginsRef>
+	_type: TypeRef<UserPlugins>
+	_original: Nullable<UserPlugins>
 	isAdapter: false
 }
-export const CustomerPluginsTypeRef: TypeRef<CustomerPlugins> = new TypeRef("sys", 2797)
+export const CustomerPluginsTypeRef: TypeRef<CustomerPlugins> = new TypeRef("sys", 2812)
 
 export function createCustomerPlugins(values: CustomerPluginsParams): CustomerPlugins {
 	return Object.assign(create(typeModels[CustomerPluginsTypeRef.typeId], CustomerPluginsTypeRef), values)
