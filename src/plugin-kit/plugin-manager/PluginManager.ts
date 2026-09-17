@@ -2,9 +2,10 @@ import { PluginApi } from "../sdk/PluginApi"
 import { ExtensionPoint } from "../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
-import { ButtonExtension, ConfigExtension, ConfigurationAdapter, PluginHost } from "./PluginHost"
+import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginHost } from "./PluginHost"
 import { assertNotNull, downcast } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
+import { FileImportExtension, PluginFileReference } from "../sdk/FileImportExtensionPoint"
 
 export type EnabledPlugin = {
 	pluginId: string
@@ -23,7 +24,10 @@ export class PluginManager {
 	public readonly buttonRegistry: Array<ButtonExtension> = []
 	public readonly configFieldRegistry: Array<ConfigExtension> = []
 
-	constructor(public readonly configurationAdapter: ConfigurationAdapter) {}
+	constructor(
+		public readonly configurationAdapter: ConfigurationAdapter,
+		public readonly mailIntegrationAdapter?: MailIntegrationAdapter,
+	) {}
 
 	async loadPlugins(enabledPlugins: Array<EnabledPlugin>): Promise<void> {
 		if (EnvProvider.get().isAdminClient()) {
@@ -56,5 +60,8 @@ export class PluginManager {
 	}
 	async eventLocationButtonClicked(pluginName: string): Promise<string> {
 		return downcast<EventLocationButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).eventLocationButtonClicked()
+	}
+	async receiveFileReference(pluginName: string, fileReference: PluginFileReference): Promise<void> {
+		return downcast<FileImportExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).receiveFileReference(fileReference)
 	}
 }

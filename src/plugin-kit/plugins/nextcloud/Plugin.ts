@@ -6,6 +6,7 @@ import type { Axios } from "axios"
 import { assertNotNull, isNotNull } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
+import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 
 type UserPluginConfig = {
 	credentials: NextcloudCredentials
@@ -20,7 +21,7 @@ type NextcloudCredentials = {
 	loginName: string
 	server: string
 }
-export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension {
+export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension, FileImportExtension {
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
 	private axiosClient: Axios = null!
@@ -77,6 +78,16 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		const davUrl = this.proxiedUrl(`/remote.php/${davFileName}`)
 		const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
 		await this.makePutRequestToNextcloud(davUrl, dataFile.data, token)
+	}
+
+	async receiveFileReference(fileReference: PluginFileReference): Promise<void> {
+		const { credentials: nextcloudCredentials } = await this.getOrMakeUserConfig()
+		const davPath = fileReference.path.replace(/^\/+/, "")
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${davPath}`)
+		const token = btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
+		const fileName = davPath.split("/").pop() ?? "attachment"
+		const dataFile = await this.makeGetRequestToNextcloud(davUrl, token, fileName)
+		await this.pluginHost.openMailEditor(dataFile)
 	}
 
 	updateCustomerConfig(globalConfigJson: string): void {
@@ -190,6 +201,26 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 					return (response.data = JSON.parse(response.data))
 				}
 			}, null)
+		}
+	}
+
+	private async makeGetRequestToNextcloud(fileUri: string, authToken: string, fileName: string): Promise<PluginDataFile> {
+		const fileGetHeaders = {
+			headers: {
+				"OCS-APIRequest": "true",
+				Authorization: `Basic ${authToken}`,
+			},
+			responseType: "arraybuffer" as const,
+		}
+
+		const response = await this.axiosClient.get(fileUri, fileGetHeaders)
+		const data = new Uint8Array(response.data)
+		const contentType = response.headers["content-type"]
+		return {
+			name: fileName,
+			mimeType: typeof contentType === "string" ? contentType : "application/octet-stream",
+			data,
+			size: data.byteLength,
 		}
 	}
 
