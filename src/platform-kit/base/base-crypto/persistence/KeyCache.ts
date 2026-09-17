@@ -50,13 +50,18 @@ export class KeyCache {
 	 * @param groupId MUST NOT be the user group id
 	 * @param keyLoader a function to load and decrypt the group key if it is not cached
 	 */
-	getCurrentGroupKey(groupId: Id, keyLoader: () => Promise<VersionedKey>): Promise<VersionedKey> {
-		return getFromMap(this.currentGroupKeys, groupId, async () => {
-			const loadedKey = await keyLoader()
-			// we need to make sure that the versions returned from the server are non-negative integers, because we rely on that in key verification
-			cryptoUtils.checkKeyVersionConstraints(loadedKey.version)
-			return loadedKey
-		})
+	async getCurrentGroupKey(groupId: Id, keyLoader: () => Promise<VersionedKey>): Promise<VersionedKey> {
+		try {
+			return await getFromMap(this.currentGroupKeys, groupId, async () => {
+				const loadedKey = await keyLoader()
+				// we need to make sure that the versions returned from the server are non-negative integers, because we rely on that in key verification
+				cryptoUtils.checkKeyVersionConstraints(loadedKey.version)
+				return loadedKey
+			})
+		} catch (e) {
+			this.currentGroupKeys.delete(groupId) // make sure we do not persistently cache a failed promise, e.g. if not yet fully logged-in.
+			throw e
+		}
 	}
 
 	reset(): void {
