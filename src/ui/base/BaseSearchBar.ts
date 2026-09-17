@@ -32,7 +32,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 
 	view({ attrs }: Vnode<BaseSearchBarAttrs>) {
 		return m(
-			".flex-end.items-center.border-radius.plr-4.pt-4.pb-4.search-bar.flex-grow.click",
+			".flex-end.items-center.border-radius.plr-12.pt-4.pb-4.search-bar.flex-grow.click",
 			{
 				focused: String(this.isFocused),
 				...landmarkAttrs(AriaLandmarks.Search),
