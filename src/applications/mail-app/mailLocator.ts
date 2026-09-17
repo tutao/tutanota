@@ -174,6 +174,7 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { ConfigurationAdapter, PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { PostLoginAction } from "../../app-kit/native-bridge/common/PostLoginAction"
 
 EnvProvider.assertMainOrNode()
@@ -956,7 +957,7 @@ class MailLocator implements CommonLocator {
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
-		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter)
+		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter, new MailPluginIntegrationAdapter(this.mailboxModel))
 		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
 		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider as PostLoginAction)
 

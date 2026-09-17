@@ -1,6 +1,7 @@
 import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../sdk/PluginHostApi"
 import { Nullable } from "@tutao/utils"
 import { PluginManager } from "./PluginManager"
+import { PluginDataFile } from "../sdk/PluginDataFile"
 
 export type ButtonExtension = {
 	config: ButtonConfiguration
@@ -18,6 +19,10 @@ export interface ConfigurationAdapter {
 	storeUserConfig(pluginId: string, configJson: string): Promise<void>
 	getUserConfig(pluginId: string): Promise<Nullable<string>>
 	getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>>
+}
+
+export interface MailIntegrationAdapter {
+	openMailEditor(dataFile: PluginDataFile, subject?: string, recipientAddresses?: string[]): Promise<void>
 }
 
 export class PluginHost implements PluginHostApi {
@@ -56,5 +61,12 @@ export class PluginHost implements PluginHostApi {
 
 	async getCustomerConfig(): Promise<Nullable<string>> {
 		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
+	}
+
+	async openMailEditor(dataFile: PluginDataFile, subject?: string, recipientAddresses?: string[]): Promise<void> {
+		if (this.pluginManager.mailIntegrationAdapter == null) {
+			throw new Error("openMailEditor is not supported in this application")
+		}
+		await this.pluginManager.mailIntegrationAdapter.openMailEditor(dataFile, subject, recipientAddresses)
 	}
 }

@@ -1,4 +1,5 @@
 import { Nullable } from "@tutao/utils"
+import { PluginDataFile } from "./PluginDataFile"
 
 export enum ExtensionPoint {
 	SaveAttachmentDialog = 0,
@@ -31,4 +32,5 @@ export interface PluginHostApi {
 	storeUserConfig(configJson: string): Promise<void>
 	getUserConfig(): Promise<Nullable<string>>
 	getCustomerConfig(): Promise<Nullable<string>>
+	openMailEditor(dataFile: PluginDataFile, subject?: string, recipientAddresses?: string[]): Promise<void>
 }
