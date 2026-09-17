@@ -37,6 +37,7 @@ export abstract class PluginApi {
 			registerConfigField: (message) => pluginHost.registerConfigField(message.args[0]),
 			storeUserConfig: (message) => pluginHost.storeUserConfig(message.args[0]),
 			registerButton: (message) => pluginHost.registerButton(message.args[0]),
+			openMailEditor: (message) => pluginHost.openMailEditor(message.args[0], message.args[1], message.args[2]),
 		}
 
 		const pluginMessageDispatcher = new MessageDispatcher<keyof PluginApi, keyof PluginHostApi>(
