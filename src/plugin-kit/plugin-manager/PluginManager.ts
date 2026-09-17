@@ -32,13 +32,12 @@ export class PluginManager {
 		console.log("loading plugins", enabledPlugins)
 		for (const enabledPlugin of enabledPlugins) {
 			const { pluginId, customerConfigJson } = enabledPlugin
-			//new Worker(`../plugins/${pluginName}.js`)
-			const pluginModule = await import(`${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`)
-			let pluginHost = new PluginHost(this, pluginId)
-			const plugin: PluginApi = new pluginModule.Plugin(pluginHost)
+			const pluginHost = new PluginHost(this, pluginId)
+			const pluginApi = PluginApi.newPluginFromFile(pluginId, pluginHost)
+			const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
+			await pluginApi.load(pluginFilePath, customerConfigJson)
 
-			await plugin.load(enabledPlugin.customerConfigJson)
-			this.loadedPlugins[pluginId] = { pluginId, globalConfigJson: customerConfigJson, api: plugin, pluginHost: pluginHost }
+			this.loadedPlugins[pluginId] = { pluginId, globalConfigJson: customerConfigJson, api: pluginApi, pluginHost }
 		}
 	}
 	getRegisteredButtonsByExtensionPoint(extensionPoint: ExtensionPoint): ButtonExtension[] {

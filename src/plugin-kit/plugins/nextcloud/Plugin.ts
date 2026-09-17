@@ -2,10 +2,12 @@ import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
-import { default as ncAxios } from "@nextcloud/axios"
-import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
+// import { default as ncAxios } from "@nextcloud/axios"
+import { assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
+
+const ncAxios: any = null!
 
 type UserPluginConfig = {
 	credentials: NextcloudCredentials
@@ -34,7 +36,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		}
 	}
 
-	async load(customerConfigJson: string): Promise<void> {
+	async load(_pluginUrl: string, customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
 		await this.loadUserConfig()
 
@@ -43,19 +45,19 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 			configFieldId: "nextCloudUrl",
 			text: { en: "Nextcloud instance URI" },
 		}
-		this.pluginHost.registerConfigField(configFieldConfig)
+		await this.pluginHost.registerConfigField(configFieldConfig)
 
 		let saveAttachmentBtnConfig: ButtonConfiguration = {
 			extensionPoint: ExtensionPoint.SaveAttachmentDialog,
 			text: { de: "Nextcloud attachment anhaengen" },
 		}
-		this.pluginHost.registerButton(saveAttachmentBtnConfig)
+		await this.pluginHost.registerButton(saveAttachmentBtnConfig)
 
 		let eventLocationBtnConfig: ButtonConfiguration = {
 			extensionPoint: ExtensionPoint.EventLocationButton,
 			text: { en: "Start Nextcloud Talk meeting", de: "Nextcloud Talk Meeting starten" },
 		}
-		this.pluginHost.registerButton(eventLocationBtnConfig)
+		await this.pluginHost.registerButton(eventLocationBtnConfig)
 	}
 
 	async unload(): Promise<void> {}
@@ -173,10 +175,10 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 
 		return ncAxios
 			.put(saveDirUri, fileContent, filePutHeaders)
-			.then((_) => {
+			.then((_: any) => {
 				// Dialog.message(LanguageViewModel.makeTranslation("nextcloud-ok-msg", "Your attachment is saved to nextcloud"))
 			})
-			.catch((err) => {
+			.catch((err: any) => {
 				// Dialog.message(LanguageViewModel.makeTranslation("nextcloud-err-msg", "You attachment could not be saved to nextcloud"))
 			})
 	}
