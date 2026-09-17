@@ -1,5 +1,5 @@
-import { ButtonConfiguration, ExtensionPoint, ButtonRef, PluginHostApi, ConfigFieldConfiguration } from "../sdk/PluginHostApi"
-import { assertNotNull, Nullable } from "@tutao/utils"
+import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../sdk/PluginHostApi"
+import { Nullable } from "@tutao/utils"
 import { PluginManager } from "./PluginManager"
 
 export type ButtonExtension = {
@@ -26,7 +26,7 @@ export class PluginHost implements PluginHostApi {
 		private readonly pluginId: string,
 	) {}
 
-	registerConfigField(config: ConfigFieldConfiguration): void {
+	async registerConfigField(config: ConfigFieldConfiguration): Promise<void> {
 		switch (config.extensionPoint) {
 			case ExtensionPoint.ConfigField: {
 				this.pluginManager.configFieldRegistry.push({ config, pluginName: this.pluginId })
@@ -36,7 +36,7 @@ export class PluginHost implements PluginHostApi {
 		throw new Error(`unsupported config field extension point ${config.extensionPoint}`)
 	}
 
-	registerButton(config: ButtonConfiguration): ButtonRef {
+	async registerButton(config: ButtonConfiguration): Promise<ButtonRef> {
 		switch (config.extensionPoint) {
 			case ExtensionPoint.SaveAttachmentDialog:
 			case ExtensionPoint.EventLocationButton: {

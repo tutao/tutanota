@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./sdk", "../../types/*.d.ts"],
+	"include": ["./sdk", "../types/*.d.ts"],
 	"compilerOptions": {
 		"rootDir": "./sdk",
 		"outDir": "../../build/plugin-kit/sdk",

@@ -26,8 +26,8 @@ export type ButtonRef = {
 	id: string
 }
 export interface PluginHostApi {
-	registerButton(config: ButtonConfiguration): ButtonRef
-	registerConfigField(config: ConfigFieldConfiguration): void
+	registerButton(config: ButtonConfiguration): Promise<ButtonRef>
+	registerConfigField(config: ConfigFieldConfiguration): Promise<void>
 	storeUserConfig(configJson: string): Promise<void>
 	getUserConfig(): Promise<Nullable<string>>
 	getCustomerConfig(): Promise<Nullable<string>>
