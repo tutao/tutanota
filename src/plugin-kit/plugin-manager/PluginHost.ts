@@ -57,4 +57,8 @@ export class PluginHost implements PluginHostApi {
 	async getCustomerConfig(): Promise<Nullable<string>> {
 		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
 	}
+
+	async openWindow(url: string): Promise<void> {
+		window.open(url)
+	}
 }
