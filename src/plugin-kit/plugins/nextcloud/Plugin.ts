@@ -36,7 +36,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 
 	async load(customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
-		await this.reloadUserConfig()
+		await this.loadUserConfig()
 
 		const configFieldConfig: ConfigFieldConfiguration = {
 			extensionPoint: ExtensionPoint.ConfigField,
@@ -103,6 +103,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		if (isNull(this.userConfig)) {
 			const credentials = await this.loginToNextcloud()
 			this.userConfig = { credentials: assertNotNull(credentials, "Failed to obtain nextcloud credentials") }
+			await this.storeUserConfig()
 		}
 
 		return this.userConfig
@@ -148,16 +149,20 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		}
 	}
 
-	private async reloadUserConfig(): Promise<void> {
+	protected async loadUserConfig(): Promise<void> {
 		const configString = await this.pluginHost.getUserConfig()
 		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : null
+	}
+
+	protected async storeUserConfig(): Promise<void> {
+		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
 	}
 
 	private proxiedUrl(targetUrl: string): string {
 		return `${this.customerConfig.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
 	}
 
-	makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<void> {
+	async makePutRequestToNextcloud(saveDirUri: string, fileContent: Uint8Array, authToken: string): Promise<void> {
 		const filePutHeaders = {
 			headers: {
 				// "If-None-Match": "*", // do not override already existing files,
