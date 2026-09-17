@@ -31,4 +31,5 @@ export interface PluginHostApi {
 	storeUserConfig(configJson: string): Promise<void>
 	getUserConfig(): Promise<Nullable<string>>
 	getCustomerConfig(): Promise<Nullable<string>>
+	openWindow(url: string): Promise<void>
 }
