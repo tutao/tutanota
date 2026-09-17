@@ -8,7 +8,11 @@ export class WebWorkerTransport<OutgoingCommandType, IncomingCommandType> implem
 	constructor(private readonly worker: Worker | DedicatedWorkerGlobalScope) {}
 
 	postMessage(message: Message<OutgoingCommandType>): void {
-		return this.worker.postMessage(message)
+		try {
+			return this.worker.postMessage(message)
+		} catch (e) {
+			debugger
+		}
 	}
 
 	setMessageHandler(handler: (message: Message<IncomingCommandType>) => unknown) {

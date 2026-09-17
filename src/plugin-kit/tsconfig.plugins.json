@@ -5,7 +5,8 @@
 		"rootDir": "./plugins/",
 		"outDir": "../../build/plugin-kit/plugins",
 		"tsBuildInfoFile": "../../build/plugin-kit/plugins/tsbuildinfo",
-		"composite": true
+		"composite": true,
+		"paths": {}
 	},
 	"references": [
 		{

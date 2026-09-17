@@ -121,7 +121,7 @@ export class WorkerImpl implements NativeInterface {
 		// 	// await module.default("wasm/tutasdk.wasm")
 		// 	const entityClient = new module.EntityClient()
 		// 	const typeRef = new module.TypeRef("tutanota", "Mail")
-		// 	console.log("result from rust: ", awai t entityClient.load_element(typeRef, "myId"))
+		// 	console.log("result from rust: ", await entityClient.load_element(typeRef, "myId"))
 		// 	typeRef.free()
 		// 	entityClient.free()
 		// })
