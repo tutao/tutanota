@@ -106,7 +106,7 @@ export class ProcessInboxHandler {
 		)
 
 		let targetFolder = sourceFolder
-		let applyInboxRuleResultActions = false
+		let applyInboxRuleActions = false
 		let matchingInboxRule: SomeInboxRule | null = null
 		const processInboxDatum: UnencryptedProcessInboxDatum = {
 			mailId: mail._id,
@@ -141,14 +141,14 @@ export class ProcessInboxHandler {
 			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
-				const excludeFromSpam = inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)
+				const excludeFromSpam = inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)
 				const ruleMoveTarget =
-					(await inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)) ??
+					(await inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)) ??
 					assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
 
-				// We only apply result actions if: excludedFromSpam, marked as HAM, or marked as SPAM but inbox rule also moves to Spam
-				applyInboxRuleResultActions = excludeFromSpam || targetFolder.folderType === MailSetKind.INBOX || ruleMoveTarget.folderType === MailSetKind.SPAM
-				if (applyInboxRuleResultActions) {
+				// We only apply actions if: excludedFromSpam, marked as HAM, or marked as SPAM but inbox rule also moves to Spam
+				applyInboxRuleActions = excludeFromSpam || targetFolder.folderType === MailSetKind.INBOX || ruleMoveTarget.folderType === MailSetKind.SPAM
+				if (applyInboxRuleActions) {
 					targetFolder = ruleMoveTarget
 					processInboxDatum.classifierType = ClientClassifierType.CUSTOMER_INBOX_RULES
 					if (!this.usingLegacyInboxRules) {
@@ -164,14 +164,14 @@ export class ProcessInboxHandler {
 		}
 
 		if (!isLeaderClient) {
-			// For non-leader clients, we don't apply the processing result, but we process to find the target folder
+			// For non-leader clients, we don't apply the inbox rule actions, but we process to find the target folder
 			// in order to hide mails that will be moved once processed from the list when loading it.
 			return targetFolder
 		}
 
 		// Update targetMoveFolder after client spam classification and inbox rule handling
 		processInboxDatum.targetMoveFolder = targetFolder._id
-		// The ProcessInboxService is updating sessionKeys for mail and files on the server by calling UpdateSessionKeyService
+		// The ProcessInboxService is updating sessionKeys for mail and files on the server by caling UpdateSessionKeyService
 		processInboxDatum.ownerEncMailSessionKeys = instanceSessionKeys
 
 		const mailGroupId = assertNotNull(mail._ownerGroup)
@@ -202,7 +202,7 @@ export class ProcessInboxHandler {
 			const inboxRuleHandler = this.inboxRuleHandler()
 			const matchingRule = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder, true)
 			if (matchingRule) {
-				moveToFolder = (await inboxRuleHandler.getMoveResultValue(matchingRule, mailboxDetail)) ?? sourceFolder
+				moveToFolder = (await inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail)) ?? sourceFolder
 			}
 		}
 

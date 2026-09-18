@@ -5,7 +5,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.j
 import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailModel, MoveMode } from "./MailModel"
 import { ExpandedInboxRule, Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleActionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, getElementId } from "@tutao/meta"
 import { getMailHeaders } from "./MailUtils"
 import { _checkContainsRuleCondition, _checkEmailAddresses, _shouldApplyRule, InboxRuleHandler } from "./InboxRuleHandler"
@@ -45,33 +45,33 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		)
 	}
 
-	async getMoveResultValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {
-		const moveToFolderResult = inboxRule.results.find((result) => result.type === InboxRuleResultType.MOVE)?.value
-		if (moveToFolderResult == null) {
+	async getMoveActionValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {
+		const moveToFolderAction = inboxRule.actions.find((action) => action.type === InboxRuleActionType.MOVE)?.value
+		if (moveToFolderAction == null) {
 			return null
 		}
 
 		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-		return folders.getFolderById(elementIdPart(moveToFolderResult))
+		return folders.getFolderById(elementIdPart(moveToFolderAction))
 	}
 
-	async getLabelResultValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet[]> {
-		const labelResult =
-			inboxRule.results.filter((result) => result.type === InboxRuleResultType.LABEL && result.value != null).map((result) => result.value) ?? []
-		if (labelResult.length === 0) {
+	async getLabelActionValue(inboxRule: ExpandedInboxRule, mailboxDetail: MailboxDetail): Promise<MailSet[]> {
+		const labelAction =
+			inboxRule.actions.filter((action) => action.type === InboxRuleActionType.LABEL && action.value != null).map((action) => action.value) ?? []
+		if (labelAction.length === 0) {
 			return []
 		}
 
 		const labels = this.mailModel.getLabelsByGroupId(assertNotNull(mailboxDetail.mailbox._ownerGroup))
-		return labelResult.map((labelId) => labels.get(elementIdPart(labelId!))).filter(isNotNull)
+		return labelAction.map((labelId) => labels.get(elementIdPart(labelId!))).filter(isNotNull)
 	}
 
-	getReadResultValue(inboxRule: ExpandedInboxRule): boolean {
-		return inboxRule.results.some((result) => result.type === InboxRuleResultType.READ)
+	getReadActionValue(inboxRule: ExpandedInboxRule): boolean {
+		return inboxRule.actions.some((action) => action.type === InboxRuleActionType.READ)
 	}
 
-	getExcludeSpamResultValue(inboxRule: ExpandedInboxRule): boolean {
-		return inboxRule.results.some((result) => result.type === InboxRuleResultType.EXCLUDE_SPAM)
+	getExcludeSpamActionValue(inboxRule: ExpandedInboxRule): boolean {
+		return inboxRule.actions.some((action) => action.type === InboxRuleActionType.EXCLUDE_SPAM)
 	}
 
 	private async checkInboxRuleConditions(mail: Mail, conditions: readonly InboxRuleConditionTuple[]): Promise<boolean> {
@@ -215,7 +215,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		return mailsToActUpon.length
 	}
 
-	// The excludeMove option is because ProcessInboxHandler handles the move along with the spam classifier, but other inbox rule results need to be handled
+	// The excludeMove option is because ProcessInboxHandler handles the move along with the spam classifier, but other inbox rule actions need to be handled
 	async applyRules(list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>, mailboxDetail: MailboxDetail, excludeMove: boolean = false) {
 		const moveToFolderMap: Map<Id, { mailIds: IdTuple[]; mailSet: MailSet }> = new Map()
 		// index is sorted array of label's element ids joined
@@ -223,7 +223,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		const mailsToMarkRead: Array<IdTuple> = []
 
 		for (const item of list) {
-			await this.gatherInboxRuleResults(item.mail, item.inboxRule, mailboxDetail, moveToFolderMap, labelsToMailsMap, mailsToMarkRead)
+			await this.gatherInboxRuleActions(item.mail, item.inboxRule, mailboxDetail, moveToFolderMap, labelsToMailsMap, mailsToMarkRead)
 		}
 
 		// Apply moves
@@ -246,7 +246,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		}
 	}
 
-	async gatherInboxRuleResults(
+	async gatherInboxRuleActions(
 		mail: Mail,
 		inboxRule: ExpandedInboxRule,
 		mailboxDetail: MailboxDetail,
@@ -255,10 +255,10 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 		mailsToMarkRead: Array<IdTuple>,
 	) {
 		let handledLabels = false
-		for (const result of inboxRule.results) {
-			switch (result.type) {
-				case InboxRuleResultType.MOVE: {
-					const targetFolder = await this.getMoveResultValue(inboxRule, mailboxDetail)
+		for (const action of inboxRule.actions) {
+			switch (action.type) {
+				case InboxRuleActionType.MOVE: {
+					const targetFolder = await this.getMoveActionValue(inboxRule, mailboxDetail)
 					if (targetFolder) {
 						const targetFolderId = getElementId(targetFolder)
 						if (moveToFolderMap.has(targetFolderId)) {
@@ -269,13 +269,13 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 					}
 					break
 				}
-				case InboxRuleResultType.READ:
+				case InboxRuleActionType.READ:
 					mailsToMarkRead.push(mail._id)
 					break
-				case InboxRuleResultType.LABEL: {
+				case InboxRuleActionType.LABEL: {
 					if (handledLabels) break
 					handledLabels = true
-					const labels = await this.getLabelResultValue(inboxRule, mailboxDetail)
+					const labels = await this.getLabelActionValue(inboxRule, mailboxDetail)
 					const key = labels
 						.map((l) => getElementId(l))
 						.sort()
@@ -287,7 +287,7 @@ export class ExpandedInboxRuleHandler implements InboxRuleHandler<ExpandedInboxR
 					}
 					break
 				}
-				case InboxRuleResultType.EXCLUDE_SPAM:
+				case InboxRuleActionType.EXCLUDE_SPAM:
 					// Exclude spam does not need to be handled here. It only is checked in conjunction with SpamClassifier in ProcessInboxHandler
 					break
 			}
