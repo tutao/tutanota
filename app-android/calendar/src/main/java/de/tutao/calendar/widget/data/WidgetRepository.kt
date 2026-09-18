@@ -85,7 +85,7 @@ abstract class WidgetRepository() {
 		calendars: List<GeneratedId>,
 		credentials: UnencryptedCredentials,
 		loggedInSdk: LoggedInSdk,
-		cryptoFacade: AndroidNativeCryptoFacade
+		cryptoFacade: AndroidNativeCryptoFacade,
 	): Map<GeneratedId, CalendarEventListDao> {
 		throw NotImplementedError()
 	}
