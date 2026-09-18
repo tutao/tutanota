@@ -1374,6 +1374,7 @@ class MailLocator implements CommonLocator {
 			this.customerFacade,
 			this.themeController,
 			this.syncTracker,
+			this.configFacade,
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
