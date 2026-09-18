@@ -84,7 +84,7 @@ class AndroidArchiveDownloaderFacade (
 
 	override suspend fun clearStoredArchives(typeref: String) {
 		sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE typeref = ?", typeref)
-		sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", listOf())
+		sqlCipherFacade.run("DELETE FROM fully_persisted_encrypted_blob_archives", listOf())
 	}
 
 	private suspend fun cleanState(archiveId: String) {
@@ -164,7 +164,7 @@ class AndroidArchiveDownloaderFacade (
 		suspend fun success() {
 			flushAndClose()
 			sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)",
+				"INSERT OR REPLACE INTO fully_persisted_encrypted_blob_archives VALUES (?)",
 				listOf(archiveId)
 			)
 		}

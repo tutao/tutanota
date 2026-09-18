@@ -30,7 +30,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 			const { query, params } = sql`DELETE FROM encrypted_blobs WHERE typeref = ${typeref}`
 			await this.sqlCipherFacade.run(query, params)
 		}
-		await this.sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
+		await this.sqlCipherFacade.run("DELETE FROM fully_persisted_encrypted_blob_archives", [])
 	}
 
 	async downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number): Promise<void> {
@@ -142,7 +142,7 @@ class ArchiveStorageHelper {
 
 	async success() {
 		await this.flushAndClose()
-		await this.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)", [this.archiveId])
+		await this.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_encrypted_blob_archives VALUES (?)", [this.archiveId])
 	}
 
 	private async store() {

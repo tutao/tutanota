@@ -50,7 +50,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 	public func clearStoredArchives(_ typeref: String) async throws {
 		try await sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE typeref = ?", typeref)
-		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
+		try await sqlCipherFacade.run("DELETE FROM fully_persisted_encrypted_blob_archives", [])
 	}
 
 	private func cancelRequest(_ archiveId: String) { self.activeJobsLock.withLock { $0[archiveId]?.cancel() } }
@@ -113,7 +113,7 @@ private final class ArchiveStorageHelper {
 
 	func success() async throws {
 		try await self.flushAndClose()
-		try await self.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)", [self.archiveId])
+		try await self.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_encrypted_blob_archives VALUES (?)", [self.archiveId])
 	}
 
 	private func store() async throws {

@@ -94,12 +94,12 @@ mailAddresses
 		purgedWithCache: true,
 	},
 
-	// All successfully downloaded and stored mail details blobs archives, that are not finished indexing yet.
+	// All successfully downloaded and stored encrypted blob archives.
 	//
-	// This is temporary and will be cleared once indexing is finished
-	fully_persisted_mail_details_archives: {
+	// This is for temporary storage and should be kept in sync with encrypted_blobs table.
+	fully_persisted_encrypted_blob_archives: {
 		// FIXME make generic archives
-		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_encrypted_blob_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
 		purgedWithCache: true,
 	},
 
@@ -320,7 +320,7 @@ VALUES (
 	}
 
 	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
-		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_mail_details_archives", [])
+		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_encrypted_blob_archives", [])
 		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
 	}
 
@@ -352,7 +352,7 @@ VALUES (
 	}
 
 	async markArchiveAsStored(archiveId: Id): Promise<void> {
-		const { query, params } = sql`INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (${archiveId})`
+		const { query, params } = sql`INSERT OR REPLACE INTO fully_persisted_encrypted_blob_archives VALUES (${archiveId})`
 		await this.sqlCipherFacade.run(query, params)
 	}
 
