@@ -1,4 +1,5 @@
 import { ExternalCalendarFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { customFetch } from "../net/NetAgent.js"
 
 /**
  * this receives inter window events and dispatches them to all other windows
@@ -14,7 +15,7 @@ export class DesktopExternalCalendarFacade implements ExternalCalendarFacade {
 				"Accept-Language": "en",
 			},
 		}
-		const response = await fetch(url, requestHeaders)
+		const response = await customFetch(url, requestHeaders)
 		if (!response.ok) throw new Error(`Failed to fetch external calendar statusCode: ${response.status} message: ${response.statusText}`)
 		return await response.text()
 	}
