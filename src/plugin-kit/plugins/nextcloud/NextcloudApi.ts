@@ -1,0 +1,217 @@
+import { Axios, AxiosResponse } from "axios"
+import { PluginHostApi } from "../../sdk/PluginHostApi"
+import { assert, assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
+import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
+import { PluginDataFile } from "../../sdk/PluginDataFile"
+import { assertNull } from "../../../platform-kit/utils/Utils"
+
+export type NextcloudCredentials = {
+	appPassword: string
+	loginName: string
+	server: string
+}
+
+export class NextcloudApi {
+	private axiosClient: Axios
+	private nextCloudCredentials: Nullable<NextcloudCredentials>
+
+	public constructor(
+		private readonly nextCloudUrl: string,
+		private readonly hostApi: PluginHostApi,
+	) {
+		this.nextCloudCredentials = null
+		this.axiosClient = new Axios()
+
+		// to convert all `.data` in response to json
+		this.axiosClient.interceptors.response.use((response) => {
+			if (
+				typeof response.data === "string" &&
+				(response.data.startsWith("{") || response.data.startsWith("[")) &&
+				(response.data.endsWith("}") || response.data.startsWith("]"))
+			) {
+				response.data = JSON.parse(response.data)
+			}
+			return response
+		}, null)
+	}
+
+	public async credentialsHasChanged(other: NextcloudCredentials): Promise<boolean> {
+		const current = await this.getNextcloudCredentials()
+		return current.appPassword !== other.appPassword || current.loginName !== other.loginName || current.server !== other.server
+	}
+
+	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials) {
+		assertNull(this.nextCloudCredentials, "Already have NextcloudCredentials")
+		this.nextCloudCredentials = nextcloudCredentials
+	}
+
+	public async getNextcloudCredentials(): Promise<NextcloudCredentials> {
+		if (isNotNull(this.nextCloudCredentials)) {
+			return this.nextCloudCredentials
+		}
+
+		const nextcloudResponse = await this.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
+			headers: {
+				"OCS-APIRequest": "true",
+			},
+		})
+
+		const poll = nextcloudResponse.data.poll
+		const userLoginUrl = nextcloudResponse.data.login
+		await this.hostApi.openWindow(userLoginUrl)
+
+		while (true) {
+			const pollResponse = await this.axiosClient.post(
+				this.proxiedUrl(`/index.php/login/v2/poll?token=${poll.token}`),
+				new URLSearchParams({
+					token: poll.token,
+				}),
+				{
+					headers: {
+						"OCS-APIRequest": "true",
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				},
+			)
+
+			if (pollResponse.status === 404) {
+				await new Promise((resolve) => setTimeout(resolve, 2000))
+				console.log("Waiting for user to finish Nextcloud login")
+				continue
+			}
+
+			this.throwErrorIfNotOk(pollResponse, "During login flow")
+			this.nextCloudCredentials = {
+				loginName: assertNotNull(pollResponse.data.loginName),
+				server: assertNotNull(pollResponse.data.server),
+				appPassword: assertNotNull(pollResponse.data.appPassword),
+			}
+			await this.ensureCredentialsIsOfExpectedUrl()
+			return this.nextCloudCredentials
+		}
+	}
+
+	private async ensureCredentialsIsOfExpectedUrl() {
+		const creds = await this.getNextcloudCredentials()
+		assert(creds.server === this.nextCloudUrl, "Nextcloud url mismatch")
+	}
+
+	async downloadFile(fileReference: PluginFileReference): Promise<PluginDataFile> {
+		const nextcloudCredentials = await this.getNextcloudCredentials()
+		const davPath = fileReference.path.replace(/^\/+/, "")
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${davPath}`)
+		const name = davUrl.split("/").pop()!
+		const authToken = await this.getAuthToken()
+
+		const getOptions = {
+			headers: {
+				Authorization: `Basic ${authToken}`,
+				"OCS-APIRequest": "true",
+			},
+			responseType: "arraybuffer" as const,
+		}
+
+		let response: AxiosResponse
+		try {
+			response = await this.axiosClient.get(davUrl, getOptions)
+			this.throwErrorIfNotOk(response, `While downloading file: "${name}"`)
+		} catch (err) {
+			console.error(`Error while downloading file file:....`)
+			console.error(err)
+			throw err
+		}
+		const contentType = response.headers["Content-Type"]
+
+		const mimeType = typeof contentType === "string" ? contentType : "application/octet-stream"
+		const data = new Uint8Array(assertNotNull(response.data, "Got no content of files"))
+		const size = data.byteLength
+
+		return {
+			name,
+			size,
+			data,
+			mimeType,
+		}
+	}
+
+	async uploadFile(dataFile: PluginDataFile): Promise<{ filesUiUrl: string }> {
+		const nextcloudCredentials = await this.getNextcloudCredentials()
+		const targetDirectory = `tuta`
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${targetDirectory}/${dataFile.name}`)
+		const authToken = await this.getAuthToken()
+
+		const putOptions = {
+			headers: {
+				// "If-None-Match": "*", // do not override already existing files,
+				Authorization: `Basic ${authToken}`,
+				"OCS-APIRequest": "true",
+			},
+		}
+
+		try {
+			const putResponse = await this.axiosClient.put(davUrl, dataFile.data, putOptions)
+			this.throwErrorIfNotOk(putResponse, `While uploading file: "${dataFile.name}"`)
+		} catch (err) {
+			console.error(`Error while uploading file:....`)
+			console.error(err)
+			throw err
+		}
+
+		return { filesUiUrl: `${this.nextCloudUrl}/index.php/apps/files/files?dir=${targetDirectory}` }
+	}
+
+	public async createTalkRoom(roomName: string): Promise<{ joinUrl: string }> {
+		const authToken = await this.getAuthToken()
+		const postOptions = {
+			headers: {
+				"OCS-APIRequest": "true",
+				Accept: "application/json",
+				Authorization: `Basic ${authToken}`,
+			},
+		}
+
+		const roomCreationUrl = this.proxiedUrl("/ocs/v2.php/apps/spreed/api/v4/room")
+		try {
+			const postResponse = await this.axiosClient.post(
+				roomCreationUrl,
+				new URLSearchParams({
+					roomName,
+					roomType: "3", // public conversation, so external event guests without a Nextcloud account can join via the link
+				}),
+				postOptions,
+			)
+
+			this.throwErrorIfNotOk(postResponse, `While creating room: "${roomName}"`)
+
+			const joinToken: string = assertNotNull(postResponse.data?.ocs?.data?.token ?? null, "Did not found token after creating talk room")
+			return {
+				joinUrl: `${this.nextCloudUrl}/index.php/call/${joinToken}`,
+			}
+
+			// response.data.ocs.data.token
+		} catch (err) {
+			console.error(`Error while creating meeting room:....`)
+			console.error(err)
+			throw err
+		}
+	}
+
+	private throwErrorIfNotOk(response: AxiosResponse, context: string) {
+		const isOkStatus = response.status >= 200 && response.status < 300
+		if (!isOkStatus) {
+			const msg = `${context}: ${response.status}(${response.statusText})`
+			console.error(msg)
+			console.error(response)
+			throw new Error(msg)
+		}
+	}
+
+	private async getAuthToken(): Promise<string> {
+		const nextcloudCredentials = await this.getNextcloudCredentials()
+		return btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
+	}
+
+	private proxiedUrl(targetUrl: string): string {
+		return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
+	}
+}
