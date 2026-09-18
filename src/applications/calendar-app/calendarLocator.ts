@@ -72,7 +72,7 @@ import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -1020,6 +1020,7 @@ class CalendarLocator implements CommonLocator {
 			this.customerFacade,
 			this.themeController,
 			this.syncTracker,
+			this.configFacade,
 			() => this.showSetupWizard(),
 			() => this.updateClients(),
 			this.loginFacade,
