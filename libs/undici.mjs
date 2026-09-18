@@ -1,3 +1,5 @@
+import { createRequire } from "node:module"
+const require = createRequire(import.meta.url)
 import require$$0$2 from 'node:assert';
 import require$$1 from 'node:net';
 import require$$2 from 'node:http';
