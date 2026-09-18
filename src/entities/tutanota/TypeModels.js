@@ -11395,7 +11395,7 @@ const typeModels = {
 		associations: {},
 	},
 	1999: {
-		name: "InboxRuleResult",
+		name: "InboxRuleAction",
 		app: "tutanota",
 		version: 115,
 		since: 115,
@@ -11532,7 +11532,7 @@ const typeModels = {
 			},
 			2015: {
 				final: false,
-				name: "results",
+				name: "actions",
 				id: 2015,
 				type: "AGGREGATION",
 				cardinality: "Any",

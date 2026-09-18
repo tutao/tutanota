@@ -4886,7 +4886,7 @@ impl Entity for InboxRuleCondition {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct InboxRuleResult {
+pub struct InboxRuleAction {
 	#[serde(rename = "2000")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "2001")]
@@ -4898,7 +4898,7 @@ pub struct InboxRuleResult {
 	pub _errors: Errors,
 }
 
-impl Entity for InboxRuleResult {
+impl Entity for InboxRuleAction {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
@@ -4933,7 +4933,7 @@ pub struct ExpandedInboxRule {
 	#[serde(rename = "2014")]
 	pub conditions: Vec<InboxRuleCondition>,
 	#[serde(rename = "2015")]
-	pub results: Vec<InboxRuleResult>,
+	pub actions: Vec<InboxRuleAction>,
 
 	#[serde(default)]
 	pub _errors: Errors,

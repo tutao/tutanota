@@ -2,7 +2,7 @@ import { ExpandedInboxRule, InboxRule, Mail, MailSet } from "@tutao/entities/tut
 import type { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isDomainName, isRegularExpression } from "@tutao/utils"
 import type { SelectorItemList } from "../../../../ui/base/DropDownSelector"
-import { InboxRuleConditionType, InboxRuleResultType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleActionType, MailSetKind, ProcessingState } from "../../../../entities/tutanota/Utils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 
@@ -18,13 +18,13 @@ export interface InboxRuleHandler<T extends SomeInboxRule = SomeInboxRule> {
 	 */
 	findMatchingInboxRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState?: boolean): Promise<T | null>
 	/** Get the move target folder of the inbox rule, if any */
-	getMoveResultValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet | null>
+	getMoveActionValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet | null>
 	/** Get the inbox rule's labels to be applied, if any */
-	getLabelResultValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet[]>
+	getLabelActionValue(inboxRule: T, mailboxDetail: MailboxDetail): Promise<MailSet[]>
 	/** Get whether or not the inbox rule marks emails as read */
-	getReadResultValue(inboxRule: T): boolean
+	getReadActionValue(inboxRule: T): boolean
 	/** Get whether or not the inbox rule excludes emails from spam */
-	getExcludeSpamResultValue(inboxRule: T): boolean
+	getExcludeSpamActionValue(inboxRule: T): boolean
 }
 
 export function _shouldApplyRule(mail: Readonly<Mail>, sourceFolder: MailSet, ignoreProcessingState = false): boolean {
@@ -51,6 +51,10 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 			name: lang.getTranslationText("inboxRuleSenderEquals_action"),
 		},
 		{
+			value: InboxRuleConditionType.RECIPIENT_ANY_EQUALS,
+			name: lang.getTranslationText("inboxRuleRecipientEquals_action"),
+		},
+		{
 			value: InboxRuleConditionType.RECIPIENT_TO_EQUALS,
 			name: lang.getTranslationText("inboxRuleToRecipientEquals_action"),
 		},
@@ -61,10 +65,6 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 		{
 			value: InboxRuleConditionType.RECIPIENT_BCC_EQUALS,
 			name: lang.getTranslationText("inboxRuleBCCRecipientEquals_action"),
-		},
-		{
-			value: InboxRuleConditionType.RECIPIENT_ANY_EQUALS,
-			name: lang.getTranslationText("inboxRuleAnyRecipientEquals_action"),
 		},
 		{
 			value: InboxRuleConditionType.SUBJECT_CONTAINS,
@@ -85,22 +85,22 @@ export function getInboxRuleConditionTypeNameMapping(): SelectorItemList<string>
 	]
 }
 
-export function getInboxRuleResultTypeNameMapping(): SelectorItemList<InboxRuleResultType> {
+export function getInboxRuleActionTypeNameMapping(): SelectorItemList<InboxRuleActionType> {
 	return [
 		{
-			value: InboxRuleResultType.MOVE,
+			value: InboxRuleActionType.MOVE,
 			name: lang.getTranslationText("inboxRuleTargetFolder_label"),
 		},
 		{
-			value: InboxRuleResultType.EXCLUDE_SPAM,
+			value: InboxRuleActionType.EXCLUDE_SPAM,
 			name: lang.getTranslationText("inboxRuleExcludedFromSpamFilter_msg"),
 		},
 		{
-			value: InboxRuleResultType.READ,
+			value: InboxRuleActionType.READ,
 			name: lang.getTranslationText("markRead_action"),
 		},
 		{
-			value: InboxRuleResultType.LABEL,
+			value: InboxRuleActionType.LABEL,
 			name: lang.getTranslationText("assignLabel_action"),
 		},
 	]

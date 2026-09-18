@@ -148,7 +148,7 @@ export const enum InboxRuleConditionType {
 	HAS_NO_ATTACHMENT = "8",
 }
 
-export const enum InboxRuleResultType {
+export const enum InboxRuleActionType {
 	// Results that apply Mail Set - value will be a Mail Set
 	MOVE = "0",
 	LABEL = "1",
