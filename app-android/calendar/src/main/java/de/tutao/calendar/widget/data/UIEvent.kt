@@ -2,6 +2,7 @@ package de.tutao.calendar.widget.data
 
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutashared.IdTuple
+import java.time.format.DateTimeFormatter
 
 
 /**
@@ -14,8 +15,14 @@ data class UIEvent(
 	val eventId: IdTuple?,
 	val calendarColor: String,
 	val summary: String,
-	val formattedStartTime: String,
+	val formattedStartTime: String, // formatted to what??
 	val formattedEndTime: String,
 	val isDisplayedAsAllDay: Boolean,
-	val isBirthday: Boolean = false
-)
+	val displayedTimes: String,
+	val isBirthday: Boolean = false,
+	val continuesOnNextDay: Boolean = false
+) {
+	companion object {
+		val dateFormatter = DateTimeFormatter.ofPattern("HH:mm")
+	}
+}

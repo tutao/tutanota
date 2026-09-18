@@ -12,8 +12,8 @@ import WidgetKit
 struct OtherDayCard: View {
 	var userId: String
 	var date: Date
-	var allDayEventsOnDay: SimpleLongEventsData
-	var normalEvents: [CalendarEventData]
+	var allDayEventsOnDay: [UIEvent]
+	var normalEvents: [UIEvent]
 
 	var body: some View {
 		let hasAllDayEvents = allDayEventsOnDay.count > 0
