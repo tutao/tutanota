@@ -119,6 +119,15 @@ class Animations {
 		const promise = newPromise((resolve) => {
 			let start = this.activeAnimations.length ? false : true
 
+			const onFinish = () => {
+				for (const t of targetsArray) {
+					// we no longer need to optimize for animations, and some browsers (like Safari) have some side effects
+					// see https://github.com/tutao/tutanota/issues/11513 for an example
+					t.style.willChange = ""
+				}
+				resolve(null)
+			}
+
 			for (let i = 0; i < targetsArray.length; i++) {
 				let delay = verifiedOptions.delay
 
@@ -129,7 +138,7 @@ class Animations {
 				const animation = new Animation(
 					targetsArray[i],
 					targetMutations,
-					i === targetsArray.length - 1 ? resolve : null,
+					i === targetsArray.length - 1 ? onFinish : null,
 					delay,
 					verifiedOptions.easing,
 					verifiedOptions.duration,
