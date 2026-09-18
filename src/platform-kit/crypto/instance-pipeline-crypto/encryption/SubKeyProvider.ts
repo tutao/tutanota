@@ -19,6 +19,12 @@ export abstract class SubKeyInfo extends SubKeyFactory {
 	}
 }
 
+export class PartialSubKeyInfo extends SubKeyInfo {
+	constructor(public override readonly cipherVersion: SymmetricCipherVersion) {
+		super()
+	}
+}
+
 abstract class SubKeyInfoWithSessionKey extends SubKeyInfo {
 	protected constructor(public readonly sessionKey: AesKey) {
 		super()
@@ -71,6 +77,9 @@ export class SubKeyProvider extends SubKeyFactory {
 	}
 
 	getSubKeys = lazyMemoized((): SymmetricSubKeys => {
+		if (this.subKeyInfo instanceof PartialSubKeyInfo) {
+			throw new ProgrammingError(`Encrypting with missing sub-key information`)
+		}
 		switch (this.subKeyInfo.cipherVersion) {
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyCbcThenHmac) {
