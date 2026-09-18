@@ -3,10 +3,10 @@ import {
 	ExpandedInboxRule,
 	ExpandedInboxRuleTypeRef,
 	HeaderTypeRef,
+	InboxRuleAction,
+	InboxRuleActionTypeRef,
 	InboxRuleCondition,
 	InboxRuleConditionTypeRef,
-	InboxRuleResult,
-	InboxRuleResultTypeRef,
 	Mail,
 	MailAddressTypeRef,
 	MailDetails,
@@ -16,7 +16,7 @@ import {
 	MailTypeRef,
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../../src/entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleActionType, MailSetKind } from "../../../../src/entities/tutanota/Utils"
 import { createTestEntity } from "../../TestUtils"
 import { ExpandedInboxRuleHandler } from "../../../../src/applications/mail-app/mail/model/ExpandedInboxRuleHandler"
 import { matchers, object, when } from "testdouble"
@@ -93,7 +93,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("sender is checked for FROM_EQUALS condition and matching rule is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "sender@tuta.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
@@ -105,7 +105,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("differentEnvelopeSender is checked for FROM_EQUALS condition and matching rule is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.FROM_EQUALS, "differentenvelopsender@something.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
@@ -117,7 +117,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for RECIPIENT_TO_EQUALS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_TO_EQUALS, "to-recipient@tuta.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -132,7 +132,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for RECIPIENT_CC_EQUALS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "cc-recipient@tuta.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -147,7 +147,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for RECIPIENT_BCC_EQUALS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_BCC_EQUALS, "bcc-recipient@tuta.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -166,7 +166,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 					_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "cc-recipient@tuta.com"),
 					_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "bcc-recipient@tuta.com"),
 				],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -181,7 +181,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("sender is not checked for RECIPIENT_ANY_EQUALS condition", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.RECIPIENT_ANY_EQUALS, "sender@tuta.com")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -196,7 +196,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for SUBJECT_CONTAINS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
 			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
@@ -207,7 +207,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for SUBJECT_CONTAINS condition is found when value is a RegEx string", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "/end$/")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
 			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
@@ -219,7 +219,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("matching rule for MAIL_HEADER_CONTAINS condition is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails({
@@ -237,7 +237,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("no rule is found for MAIL_HEADER_CONTAINS condition and mail without headers", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			const mailDetails = _createMailDetails()
@@ -252,12 +252,12 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.spec("findMatchingInboxRule_attachment_conditions", () => {
 			const ruleHas = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.HAS_ATTACHMENT, "")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 
 			const ruleHasNot = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.HAS_NO_ATTACHMENT, "")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 
 			const mailWithAttachments = _createMailWithDifferentEnvelopeSender({ attachments: [["a", "b"]] })
@@ -306,7 +306,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 					_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "cc-recipient@tuta.com"),
 					_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID"),
 				],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
 			const mailDetails = _createMailDetails({
@@ -329,7 +329,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 					_createRuleCondition(InboxRuleConditionType.RECIPIENT_CC_EQUALS, "non-matching-cc@tuta.com"),
 					_createRuleCondition(InboxRuleConditionType.MAIL_HEADER_CONTAINS, "X-Some-ID"),
 				],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
 			const mailDetails = _createMailDetails({
@@ -349,7 +349,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const rule = _createRule(
 				// @ts-ignore
 				[_createRuleCondition("UNKNOWN_CONDITION", "something")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 			)
 			const mail = _createMailWithDifferentEnvelopeSender()
 			when(inboxRuleModel.getOrderedInboxRules()).thenResolve([rule])
@@ -361,7 +361,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("disabled rule is not found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 				"no-name",
 				false,
 			)
@@ -378,7 +378,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("enabled rule is found", async () => {
 			const rule = _createRule(
 				[_createRuleCondition(InboxRuleConditionType.SUBJECT_CONTAINS, "fri")],
-				[_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])],
+				[_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])],
 				"no-name",
 				true,
 			)
@@ -395,8 +395,8 @@ o.spec("ExpandedInboxRuleHandler", () => {
 
 	o.spec("getMoveResultValue", () => {
 		o.test("return null when inbox rule does not have a MOVE result", async () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
-			const moveResultValue = await ruleHandler.getMoveResultValue(rule, object<MailboxDetail>())
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.READ, null)])
+			const moveResultValue = await ruleHandler.getMoveActionValue(rule, object<MailboxDetail>())
 			o.check(moveResultValue).equals(null)
 		})
 
@@ -405,13 +405,13 @@ o.spec("ExpandedInboxRuleHandler", () => {
 				_id: ["listId", "folderId"],
 				folderType: MailSetKind.CUSTOM,
 			})
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolder._id)])
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.MOVE, moveTargetFolder._id)])
 
 			const folders = object<FolderSystem>()
 			when(folders.getFolderById(getElementId(moveTargetFolder))).thenReturn(moveTargetFolder)
 			when(mailModel.getMailboxFoldersForId(anything())).thenResolve(folders)
 
-			const moveResultValue = await ruleHandler.getMoveResultValue(rule, object<MailboxDetail>())
+			const moveResultValue = await ruleHandler.getMoveActionValue(rule, object<MailboxDetail>())
 
 			o.check(moveResultValue).deepEquals(moveTargetFolder)
 		})
@@ -429,22 +429,22 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		})
 
 		o.test("return an empty array when inbox rule does not have a LABEL result", async () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
-			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.READ, null)])
+			const labelResultValue = await ruleHandler.getLabelActionValue(rule, object<MailboxDetail>())
 			o.check(labelResultValue).deepEquals([])
 		})
 
 		o.test("ignore null values in LABEL results", async () => {
 			const rule = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.LABEL, null), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"])],
+				[_createRuleResult(InboxRuleActionType.LABEL, null), _createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"])],
 			)
 
 			const labels = object<Map<string, MailSet>>()
 			when(labels.get(labelA._id[1])).thenReturn(labelA)
 			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
 
-			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			const labelResultValue = await ruleHandler.getLabelActionValue(rule, object<MailboxDetail>())
 			o.check(labelResultValue).deepEquals([labelA])
 		})
 
@@ -452,9 +452,9 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			const rule = _createRule(
 				[],
 				[
-					_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]),
-					_createRuleResult(InboxRuleResultType.READ, null),
-					_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"]),
+					_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"]),
+					_createRuleResult(InboxRuleActionType.READ, null),
+					_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelBid"]),
 				],
 			)
 
@@ -463,30 +463,30 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			when(labels.get(labelB._id[1])).thenReturn(labelB)
 			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
 
-			const labelResultValue = await ruleHandler.getLabelResultValue(rule, object<MailboxDetail>())
+			const labelResultValue = await ruleHandler.getLabelActionValue(rule, object<MailboxDetail>())
 			o.check(labelResultValue).deepEquals([labelA, labelB])
 		})
 	})
 
 	o.spec("getReadResultValue", () => {
 		o.test("return true when rule has a READ result", () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
-			o.check(ruleHandler.getReadResultValue(rule)).equals(true)
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.READ, null)])
+			o.check(ruleHandler.getReadActionValue(rule)).equals(true)
 		})
 		o.test("return false when rule does not have a READ result", () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])])
-			o.check(ruleHandler.getReadResultValue(rule)).equals(false)
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])])
+			o.check(ruleHandler.getReadActionValue(rule)).equals(false)
 		})
 	})
 
 	o.spec("getExcludeSpamResultValue", () => {
 		o.test("return true when inbox rule has an EXCLUDE_SPAM result", () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.EXCLUDE_SPAM, null)])
-			o.check(ruleHandler.getExcludeSpamResultValue(rule)).equals(true)
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.EXCLUDE_SPAM, null)])
+			o.check(ruleHandler.getExcludeSpamActionValue(rule)).equals(true)
 		})
 		o.test("return false when inbox rule does not have EXCLUDE_SPAM result", () => {
-			const rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, ["listId", "folderId"])])
-			o.check(ruleHandler.getExcludeSpamResultValue(rule)).equals(false)
+			const rule = _createRule([], [_createRuleResult(InboxRuleActionType.MOVE, ["listId", "folderId"])])
+			o.check(ruleHandler.getExcludeSpamActionValue(rule)).equals(false)
 		})
 	})
 
@@ -540,8 +540,8 @@ o.spec("ExpandedInboxRuleHandler", () => {
 			when(labels.get(labelC._id[1])).thenReturn(labelC)
 			when(mailModel.getLabelsByGroupId(anything())).thenReturn(labels)
 
-			rule = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolder._id)])
-			ruleTwo = _createRule([], [_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolderTwo._id)])
+			rule = _createRule([], [_createRuleResult(InboxRuleActionType.MOVE, moveTargetFolder._id)])
+			ruleTwo = _createRule([], [_createRuleResult(InboxRuleActionType.MOVE, moveTargetFolderTwo._id)])
 		})
 
 		o.test("moveMails is called once when multiple mails are moved to the same folder", async () => {
@@ -581,7 +581,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		})
 
 		o.test("all mails are mark read together", async () => {
-			const readRule = _createRule([], [_createRuleResult(InboxRuleResultType.READ, null)])
+			const readRule = _createRule([], [_createRuleResult(InboxRuleActionType.READ, null)])
 
 			const mailOne = _createMailWithDifferentEnvelopeSender({ subject: "hello friend" })
 			const mailTwo = _createMailWithDifferentEnvelopeSender({ subject: "hello friend 2" })
@@ -602,11 +602,11 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("multiple mails receiving different labels are applied separately", async () => {
 			const ruleAB = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"])],
+				[_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelBid"])],
 			)
 			const ruleAC = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelCid"])],
+				[_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelCid"])],
 			)
 
 			const matchedList = [
@@ -624,11 +624,11 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("multiple mails receiving the same label combination get them applied together", async () => {
 			const ruleAB = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"])],
+				[_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"]), _createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelBid"])],
 			)
 			const ruleBA = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelBid"]), _createRuleResult(InboxRuleResultType.LABEL, ["listId", "labelAid"])],
+				[_createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelBid"]), _createRuleResult(InboxRuleActionType.LABEL, ["listId", "labelAid"])],
 			)
 
 			const matchedList = [
@@ -645,7 +645,7 @@ o.spec("ExpandedInboxRuleHandler", () => {
 		o.test("all results on a rule are applied", async () => {
 			const multiRule = _createRule(
 				[],
-				[_createRuleResult(InboxRuleResultType.MOVE, moveTargetFolder._id), _createRuleResult(InboxRuleResultType.READ, null)],
+				[_createRuleResult(InboxRuleActionType.MOVE, moveTargetFolder._id), _createRuleResult(InboxRuleActionType.READ, null)],
 			)
 
 			const matchedList = [{ mail: mailOne, inboxRule: multiRule }]
@@ -698,18 +698,18 @@ function _createRuleCondition(type: InboxRuleConditionType, value: InboxRuleCond
 	})
 }
 
-function _createRuleResult(type: InboxRuleResultType, value: InboxRuleResult["value"] = null): InboxRuleResult {
-	return createTestEntity(InboxRuleResultTypeRef, {
+function _createRuleResult(type: InboxRuleActionType, value: InboxRuleAction["value"] = null): InboxRuleAction {
+	return createTestEntity(InboxRuleActionTypeRef, {
 		type,
 		value,
 	})
 }
 
-function _createRule(conditions: InboxRuleCondition[], results: InboxRuleResult[], name?: string, enabled?: boolean): ExpandedInboxRule {
+function _createRule(conditions: InboxRuleCondition[], actions: InboxRuleAction[], name?: string, enabled?: boolean): ExpandedInboxRule {
 	return createTestEntity(ExpandedInboxRuleTypeRef, {
 		name: name ?? "no-name",
 		conditions,
-		results,
+		actions,
 		enabled: enabled ?? true,
 	})
 }

@@ -246,7 +246,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 								},
 							},
 							m(
-								"",
+								".flex.center-vertically",
 								{
 									// title for tooltip
 									title: lang.getTranslationText("move_action"),
@@ -273,7 +273,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						),
 						// toggle button
 						m(
-							"",
+							".mr-8",
 							{
 								// don't context menu on input element, that feels weird
 								oncontextmenu: (e: MouseEvent) => {
@@ -294,7 +294,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						m(IconButton, {
 							label: "edit_action",
 							icon: Icons.More,
-							size: ButtonSize.Normal,
+							size: ButtonSize.Small,
 							click: createDropdown({
 								lazyButtons: () => this.getActionsForRule(index, rule),
 								width: 260,

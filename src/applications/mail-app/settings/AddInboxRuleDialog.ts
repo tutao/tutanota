@@ -16,14 +16,14 @@ import { assertSystemFolderOfType, getIndentedFolderNameForDropdown, getMailSetN
 import type { IndentedMailSet } from "../../common/api/common/mail/FolderSystem.js"
 import {
 	createExpandedInboxRule,
+	createInboxRuleAction,
 	createInboxRuleCondition,
-	createInboxRuleResult,
 	ExpandedInboxRule,
+	InboxRuleAction,
 	InboxRuleCondition,
-	InboxRuleResult,
 	MailSet,
 } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, InboxRuleResultType, MailSetKind } from "../../../entities/tutanota/Utils"
+import { InboxRuleConditionType, InboxRuleActionType, MailSetKind } from "../../../entities/tutanota/Utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { Card } from "../../../ui/base/Card"
 import { Icon, IconSize } from "../../../ui/base/Icon"
@@ -36,7 +36,7 @@ import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../.
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
-import { getInboxRuleConditionTypeNameMapping, getInboxRuleResultTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getInboxRuleConditionTypeNameMapping, getInboxRuleActionTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
 import { LabelsDropDownSelector } from "../mail/view/LabelsDropDownSelector"
@@ -55,8 +55,8 @@ interface InboxRuleConditionField {
 	valid: boolean | null
 }
 
-interface InboxRuleResultField {
-	type: Stream<InboxRuleResultType>
+interface InboxRuleActionField {
+	type: Stream<InboxRuleActionType>
 	valueFolder: Stream<MailSet | null>
 	valueLabels: Stream<MailSet[]>
 
@@ -109,49 +109,49 @@ export async function show(
 			return { type: stream(condition.type as InboxRuleConditionType), value: stream(condition.value), key: currentRowKey++, valid: null }
 		})
 
-		const inboxRuleResults: InboxRuleResultField[] = originalInboxRule
-			? originalInboxRule.results
-					.map((result): InboxRuleResultField => {
+		const inboxRuleActions: InboxRuleActionField[] = originalInboxRule
+			? originalInboxRule.actions
+					.map((action): InboxRuleActionField => {
 						const value =
-							result.value == null
+							action.value == null
 								? null
-								: result.type === InboxRuleResultType.LABEL
-									? (labels.get(elementIdPart(result.value)) ?? null)
-									: folders.getFolderById(elementIdPart(result.value))
+								: action.type === InboxRuleActionType.LABEL
+									? (labels.get(elementIdPart(action.value)) ?? null)
+									: folders.getFolderById(elementIdPart(action.value))
 						return {
-							type: stream(result.type as InboxRuleResultType),
+							type: stream(action.type as InboxRuleActionType),
 							valueFolder: stream(value),
 							valueLabels: stream([]),
 							key: currentRowKey++,
 							valid: null,
 						}
 					})
-					.reduce((results, result) => {
-						// merge label results so there's only one dropdown
-						if (result.type() === InboxRuleResultType.LABEL) {
-							const otherLabelResult = results.find((r) => r.type() === InboxRuleResultType.LABEL)
+					.reduce((actions, action) => {
+						// merge label actions so there's only one dropdown
+						if (action.type() === InboxRuleActionType.LABEL) {
+							const otherLabelAction = actions.find((r) => r.type() === InboxRuleActionType.LABEL)
 
-							const assignedLabel = result.valueFolder()
+							const assignedLabel = action.valueFolder()
 							if (assignedLabel != null) {
-								if (otherLabelResult != null) {
-									otherLabelResult.valueLabels([...otherLabelResult.valueLabels(), assignedLabel])
+								if (otherLabelAction != null) {
+									otherLabelAction.valueLabels([...otherLabelAction.valueLabels(), assignedLabel])
 								} else {
-									// first label result clause, make it an array!
-									results.push({
-										type: stream(InboxRuleResultType.LABEL),
+									// first label action clause, make it an array!
+									actions.push({
+										type: stream(InboxRuleActionType.LABEL),
 										valueLabels: stream([assignedLabel]),
 										valueFolder: stream(null),
-										key: result.key,
+										key: action.key,
 										valid: null,
 									})
 								}
 							}
 						} else {
 							// non-labels stay as they are
-							results.push(result)
+							actions.push(action)
 						}
-						return results
-					}, [] as InboxRuleResultField[])
+						return actions
+					}, [] as InboxRuleActionField[])
 			: []
 
 		// HAS and HAS_NO Attachment are mutually exclusive and should only be selected once per inbox rule
@@ -165,14 +165,14 @@ export async function show(
 			return selectableConditions
 		}
 
-		// Only allow one result of each type
-		const allRuleResults = getInboxRuleResultTypeNameMapping()
-		let availableRuleResults: Set<SelectorItem<InboxRuleResultType>>
+		// Only allow one action of each type
+		const allRuleActions = getInboxRuleActionTypeNameMapping()
+		let availableRuleActions: Set<SelectorItem<InboxRuleActionType>>
 
-		if (isEmpty(inboxRuleResults)) {
-			// If there are no results yet, add the default value of Move to Archive
-			inboxRuleResults.push({
-				type: stream(InboxRuleResultType.MOVE),
+		if (isEmpty(inboxRuleActions)) {
+			// If there are no actions yet, add the default value of Move to Archive
+			inboxRuleActions.push({
+				type: stream(InboxRuleActionType.MOVE),
 				valueFolder: stream(assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)),
 				valueLabels: stream([]),
 				key: currentRowKey++,
@@ -205,7 +205,7 @@ export async function show(
 
 		const renderConditionRow = (condition: InboxRuleConditionField, conditionIndex: number, allConditions: InboxRuleConditionField[]) => {
 			const isFirstCondition = conditionIndex === 0
-			const conditionLabel: TranslationKey = isFirstCondition ? "whenCondition_label" : "and_label"
+			const conditionLabel: TranslationKey | null = isFirstCondition ? null : "and_label"
 			const conditionInput = getRuleConditionValueInputByType(condition)
 
 			return m(
@@ -217,11 +217,14 @@ export async function show(
 				},
 				[
 					m(".flex.items-center", [
-						m(`.smaller.no-wrap.mr-16 ${isFirstCondition ? ".capitalize" : ".lowercase"}`, lang.getTranslationText(conditionLabel)),
+						conditionLabel ? m(".smaller.no-wrap.mr-16.ml-8", lang.getTranslationText(conditionLabel)) : null,
 						m(DropDownSelectorNew, {
 							items: selectableInboxRuleConditions(condition.type()),
 							selectedValue: condition.type(),
-							selectionChangedHandler: condition.type,
+							selectionChangedHandler: (newValue: InboxRuleConditionType) => {
+								condition.valid = null
+								condition.type(newValue)
+							},
 						}),
 					]),
 					m(".flex", [
@@ -255,7 +258,7 @@ export async function show(
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
+					m(".flex.items-center.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
@@ -273,8 +276,8 @@ export async function show(
 			)
 		}
 
-		const defaultResultOfType = (type: InboxRuleResultType): MailSet | null => {
-			if (type === InboxRuleResultType.MOVE) {
+		const defaultActionOfType = (type: InboxRuleActionType): MailSet | null => {
+			if (type === InboxRuleActionType.MOVE) {
 				// set to default folder of Archive
 				return assertSystemFolderOfType(folders, MailSetKind.ARCHIVE)
 			} else {
@@ -282,16 +285,16 @@ export async function show(
 			}
 		}
 
-		const renderResultRow = (ruleResult: InboxRuleResultField, resultIndex: number, allResults: InboxRuleResultField[]) => {
-			const resultLabel: TranslationKey = resultIndex === 0 ? "then_label" : "and_label"
-			const ruleValueInput = getRuleResultValueInputByType(ruleResult)
+		const renderActionRow = (ruleAction: InboxRuleActionField, actionIndex: number, allActions: InboxRuleActionField[]) => {
+			const actionLabel: TranslationKey | null = actionIndex === 0 ? null : "and_label"
+			const ruleValueInput = getRuleActionValueInputByType(ruleAction)
 
 			return m(
 				"",
 				{
 					oncreate: (vnode) => oncreateExpandAnimation(vnode.dom as HTMLElement),
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
-					key: ruleResult.key,
+					key: ruleAction.key,
 				},
 				[
 					m(".inbox-rule-wrapping-row.items-center.row-gap-8.mt-16", [
@@ -303,22 +306,22 @@ export async function show(
 								},
 							},
 							[
-								m(".smaller.lowercase.no-wrap.mr-16", lang.getTranslationText(resultLabel)),
+								actionLabel ? m(".smaller.lowercase.no-wrap.mr-16.ml-8", lang.getTranslationText(actionLabel)) : null,
 								m(DropDownSelectorNew, {
-									items: allRuleResults.filter((rule) => rule.value === ruleResult.type() || availableRuleResults.has(rule)),
-									selectedValue: ruleResult.type(),
-									selectionChangedHandler: (newValue: InboxRuleResultType) => {
-										ruleResult.type(newValue)
-										ruleResult.valueFolder(defaultResultOfType(newValue))
+									items: allRuleActions.filter((rule) => rule.value === ruleAction.type() || availableRuleActions.has(rule)),
+									selectedValue: ruleAction.type(),
+									selectionChangedHandler: (newValue: InboxRuleActionType) => {
+										ruleAction.type(newValue)
+										ruleAction.valueFolder(defaultActionOfType(newValue))
 									},
 								}),
 							],
 						),
 						m(".flex", [
 							ruleValueInput !== null
-								? [m(".mlr-16.mt-16", "="), ruleValueInput(ruleResult.type() === InboxRuleResultType.LABEL ? targetLabels : targetFolders)]
+								? [m(".mlr-8", ""), ruleValueInput(ruleAction.type() === InboxRuleActionType.LABEL ? targetLabels : targetFolders)]
 								: null,
-							allResults.length > 1
+							allActions.length > 1
 								? m(
 										".ml-4",
 										m(IconButton, {
@@ -329,24 +332,24 @@ export async function show(
 											},
 											label: "delete_action",
 											click: () => {
-												inboxRuleResults.splice(resultIndex, 1)
+												inboxRuleActions.splice(actionIndex, 1)
 											},
 										}),
 									)
 								: null,
 						]),
 					]),
-					ruleResult.type() === InboxRuleResultType.LABEL && ruleResult.valueLabels().length
+					ruleAction.type() === InboxRuleActionType.LABEL && ruleAction.valueLabels().length
 						? m(
-								".flex.wrap.ml-32.mt-16.mr-between-8.row-gap-8",
-								ruleResult.valueLabels().map((value) =>
+								".flex.wrap.ml-48.mt-16.mr-between-8.row-gap-8",
+								ruleAction.valueLabels().map((value) =>
 									m(Label, {
 										text: prependParentLabelNamesToLabel(value, labels),
 										color: value.color ?? theme.primary,
 										cancelable: true,
 										cancelAction: () => {
-											const newValue = ruleResult.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
-											ruleResult.valueLabels(newValue)
+											const newValue = ruleAction.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
+											ruleAction.valueLabels(newValue)
 										},
 									}),
 								),
@@ -356,8 +359,8 @@ export async function show(
 			)
 		}
 
-		const renderAddResultRow = (): Children => {
-			if (availableRuleResults.size === 0) {
+		const renderAddActionRow = (): Children => {
+			if (availableRuleActions.size === 0) {
 				return null
 			}
 			return m(
@@ -367,17 +370,17 @@ export async function show(
 					onbeforeremove: (vnode) => onbeforeremoveColapseAnimation(vnode.dom as HTMLElement),
 				},
 				[
-					m(".flex.items-center.mr-16.smaller", lang.getTranslationText("and_label")),
+					m(".flex.items-center.mr-16.ml-8.smaller", lang.getTranslationText("and_label")),
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
-						label: "addResult_action",
+						label: "addAction_action",
 						onclick: () => {
-							const firstAvailable: SelectorItem<InboxRuleResultType> = assertNotNull(availableRuleResults.values().next().value)
+							const firstAvailable: SelectorItem<InboxRuleActionType> = assertNotNull(availableRuleActions.values().next().value)
 
-							inboxRuleResults.push({
+							inboxRuleActions.push({
 								type: stream(firstAvailable.value),
-								valueFolder: stream(defaultResultOfType(firstAvailable.value)),
+								valueFolder: stream(defaultActionOfType(firstAvailable.value)),
 								valueLabels: stream([]),
 								key: currentRowKey++,
 								valid: null,
@@ -389,7 +392,7 @@ export async function show(
 		}
 
 		const form = () => {
-			availableRuleResults = new Set(allRuleResults.filter((rule) => !inboxRuleResults.some((result) => result.type() === rule.value)))
+			availableRuleActions = new Set(allRuleActions.filter((rule) => !inboxRuleActions.some((action) => action.type() === rule.value)))
 
 			return [
 				m(Card, { classes: ["mt-16 center"], style: { padding: px(size.spacing_16) } }, [
@@ -406,9 +409,9 @@ export async function show(
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleConditions_label")),
 				inboxRuleConditions.map(renderConditionRow),
 				renderAddConditionRow(),
-				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleResults_label")),
-				inboxRuleResults.map(renderResultRow),
-				renderAddResultRow(),
+				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleActions_label")),
+				inboxRuleActions.map(renderActionRow),
+				renderAddActionRow(),
 				m(
 					".flex-end.wrap.mt-24.gap-16",
 					m(SecondaryButton, {
@@ -425,18 +428,18 @@ export async function show(
 			]
 		}
 
-		const prepareRule = (validatedName: string, ruleConditions: InboxRuleCondition[], ruleResults: InboxRuleResult[]): ExpandedInboxRule => {
+		const prepareRule = (validatedName: string, ruleConditions: InboxRuleCondition[], ruleActions: InboxRuleAction[]): ExpandedInboxRule => {
 			if (originalInboxRule) {
 				const rule = clone(originalInboxRule)
 				rule.name = validatedName
 				rule.conditions = ruleConditions
-				rule.results = ruleResults
+				rule.actions = ruleActions
 				return rule
 			} else {
 				return createExpandedInboxRule({
 					name: validatedName,
 					conditions: ruleConditions,
-					results: ruleResults,
+					actions: ruleActions,
 					enabled: true,
 				})
 			}
@@ -467,24 +470,24 @@ export async function show(
 				ruleConditions.push(createInboxRuleCondition({ type: condition.type(), value: condition.value() }))
 			}
 
-			const ruleResults: InboxRuleResult[] = []
+			const ruleActions: InboxRuleAction[] = []
 
-			for (const result of inboxRuleResults) {
-				if (result.type() === InboxRuleResultType.LABEL) {
-					if (result.valueLabels().length === 0) {
-						result.valid = false
+			for (const action of inboxRuleActions) {
+				if (action.type() === InboxRuleActionType.LABEL) {
+					if (action.valueLabels().length === 0) {
+						action.valid = false
 						if (!alreadyMessaged) {
 							Dialog.message("labelMustBeSelected_msg")
 							alreadyMessaged = true
 						}
 					}
-					for (const label of result.valueLabels()) {
-						const labelId = validateInboxRuleResult(result.type(), label)
-						ruleResults.push(createInboxRuleResult({ type: result.type(), value: labelId }))
+					for (const label of action.valueLabels()) {
+						const labelId = validateInboxRuleAction(action.type(), label)
+						ruleActions.push(createInboxRuleAction({ type: action.type(), value: labelId }))
 					}
 				} else {
-					const valueId = validateInboxRuleResult(result.type(), result.valueFolder())
-					ruleResults.push(createInboxRuleResult({ type: result.type(), value: valueId }))
+					const valueId = validateInboxRuleAction(action.type(), action.valueFolder())
+					ruleActions.push(createInboxRuleAction({ type: action.type(), value: valueId }))
 				}
 			}
 
@@ -493,7 +496,7 @@ export async function show(
 				return
 			}
 
-			const rule = prepareRule(validatedName, ruleConditions, ruleResults)
+			const rule = prepareRule(validatedName, ruleConditions, ruleActions)
 			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
 
 			savePromise
@@ -560,7 +563,7 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 		case InboxRuleConditionType.RECIPIENT_BCC_EQUALS:
 		case InboxRuleConditionType.RECIPIENT_ANY_EQUALS:
 			return [
-				m(".mlr-16.mt-16", "="),
+				m(".mlr-8", ""),
 				m(TextField, {
 					label: "emailSenderPlaceholder_label",
 					autocapitalize: Autocapitalize.none,
@@ -588,44 +591,44 @@ function getRuleConditionValueInputByType(ruleCondition: InboxRuleConditionField
 	}
 }
 
-function getRuleResultValueInputByType(ruleResult: InboxRuleResultField) {
-	switch (ruleResult.type()) {
-		case InboxRuleResultType.MOVE:
+function getRuleActionValueInputByType(ruleAction: InboxRuleActionField) {
+	switch (ruleAction.type()) {
+		case InboxRuleActionType.MOVE:
 			return (targetFolders: TargetMailSet[]) =>
 				m(DropDownSelectorNew, {
 					items: targetFolders,
-					selectedValue: ruleResult.valueFolder(),
-					selectedValueDisplay: getMailSetName(assertNotNull(ruleResult.valueFolder())),
-					selectionChangedHandler: ruleResult.valueFolder,
+					selectedValue: ruleAction.valueFolder(),
+					selectedValueDisplay: getMailSetName(assertNotNull(ruleAction.valueFolder())),
+					selectionChangedHandler: ruleAction.valueFolder,
 					class: "",
 				})
-		case InboxRuleResultType.LABEL:
+		case InboxRuleActionType.LABEL:
 			return (labels: TargetMailSet[]) =>
 				m(LabelsDropDownSelector, {
 					label: "selectLabel_action",
 					items: labels.map((label) => ({
 						...label,
-						applied: ruleResult.valueLabels().some((l) => isSameId(l._id, label.value._id)),
+						applied: ruleAction.valueLabels().some((l) => isSameId(l._id, label.value._id)),
 					})),
 					icon: {
 						icon: Icons.LabelFilled,
 						color: theme.on_surface_variant,
 					},
-					onLabelsApplied: ruleResult.valueLabels,
+					onLabelsApplied: ruleAction.valueLabels,
 					onModalClosed: () => {
-						if (ruleResult.valid === false) {
-							ruleResult.valid = !!ruleResult.valueLabels().length
+						if (ruleAction.valid === false) {
+							ruleAction.valid = !!ruleAction.valueLabels().length
 						}
 					},
-					class: ruleResult.valid === false ? "error-text-field" : undefined,
-					helpLabel: ruleResult.valid === false ? () => lang.getTranslationText("labelMustBeSelected_msg") : undefined,
+					class: ruleAction.valid === false ? "error-text-field" : undefined,
+					helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("labelMustBeSelected_msg") : undefined,
 				})
 
-		case InboxRuleResultType.EXCLUDE_SPAM:
-		case InboxRuleResultType.READ:
+		case InboxRuleActionType.EXCLUDE_SPAM:
+		case InboxRuleActionType.READ:
 			return null
 		default:
-			throw new ProgrammingError(`No Input specified for rule result of type: ${ruleResult.type()}`)
+			throw new ProgrammingError(`No Input specified for rule action of type: ${ruleAction.type()}`)
 	}
 }
 
@@ -653,12 +656,12 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 	}
 }
 
-function validateInboxRuleResult(type: InboxRuleResultType, value: MailSet | null): IdTuple | null {
-	if (type === InboxRuleResultType.EXCLUDE_SPAM || type === InboxRuleResultType.READ) {
+function validateInboxRuleAction(type: InboxRuleActionType, value: MailSet | null): IdTuple | null {
+	if (type === InboxRuleActionType.EXCLUDE_SPAM || type === InboxRuleActionType.READ) {
 		if (value != null) {
 			// throw an error instead of informing user, as the user should not be able to choose a value here
 			// if a value is here something else has gone wrong
-			throw new ProgrammingError("Boolean InboxRuleResultType has value!")
+			throw new ProgrammingError("Boolean InboxRuleActionType has value!")
 		}
 		return null
 	} else {
