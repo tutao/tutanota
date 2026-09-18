@@ -69,4 +69,8 @@ export class PluginHost implements PluginHostApi {
 		}
 		await this.pluginManager.mailIntegrationAdapter.openMailEditor(dataFile, subject, recipientAddresses)
 	}
+
+	async openWindow(url: string): Promise<void> {
+		window.open(url)
+	}
 }

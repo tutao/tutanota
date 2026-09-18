@@ -142,23 +142,26 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 				"OCS-APIRequest": "true",
 			},
 		})
-		const poll = nextcloudResponse.data.poll
+		const data: any = typeof nextcloudResponse.data
+		const poll = data.poll
 
-		const userLoginUrl = nextcloudResponse.data.login
+		const userLoginUrl = data.login
 
-		window.open(userLoginUrl)
+		await this.pluginHost.openWindow(userLoginUrl)
 
 		while (true) {
-			const pollResponse = await fetch(this.proxiedUrl("/index.php/login/v2/poll"), {
-				method: "POST",
-				headers: {
-					"OCS-APIRequest": "true",
-					"Content-Type": "application/x-www-form-urlencoded",
-				},
-				body: new URLSearchParams({
+			const pollResponse = await this.axiosClient.post(
+				this.proxiedUrl("/index.php/login/v2/poll"),
+				new URLSearchParams({
 					token: poll.token,
 				}),
-			})
+				{
+					headers: {
+						"OCS-APIRequest": "true",
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				},
+			)
 
 			if (pollResponse.status === 404) {
 				await new Promise((resolve) => setTimeout(resolve, 2000))
@@ -166,13 +169,13 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 				continue
 			}
 
-			if (!pollResponse.ok) {
+			if (pollResponse.status > 299 || pollResponse.status < 200) {
 				console.error(`Error in Nextcloud login flow. Response code: ${pollResponse.status}`)
-				console.error(pollResponse.body)
+				console.error(pollResponse.data)
 				return null
 			}
 
-			return await pollResponse.json()
+			return await pollResponse.data
 		}
 	}
 
@@ -197,6 +200,11 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 			this.axiosClient = (await import("@nextcloud/axios")).default
 		} else {
 			this.axiosClient = new (await import("axios")).Axios()
+			this.axiosClient.interceptors.response.use((response) => {
+				if (typeof response.data === "string") {
+					return (response.data = JSON.parse(response.data))
+				}
+			}, null)
 		}
 	}
 
