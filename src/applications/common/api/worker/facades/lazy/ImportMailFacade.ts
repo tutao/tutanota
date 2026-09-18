@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { BlobFacade } from "./BlobFacade"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { aes256RandomKey, AesKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, aes256RandomKey, AesKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import {
 	createFileTransferAggregatedType,
 	createImportAttachment,
@@ -179,11 +179,13 @@ export class ImportMailFacade {
 				references: importMailParams.references.map(referenceToImportMailDataMailReference),
 			})
 
-			const untypedInstance = await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(
+			const untypedInstance = await this.instancePipeline.mapAndEncryptForDataTransferType(
 				ImportMailData2TypeRef,
 				importMailData2,
 				sk,
 				mailGroupKey,
+				AeadCipherVersion.WithSessionKey,
+				null,
 			)
 
 			const encImport2 = createStringWrapper({

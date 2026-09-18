@@ -1,5 +1,5 @@
 import { Nullable } from "@tutao/utils"
-import { AesKey, OwnerKeyProvider, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, AesKey, KdfNonce, OwnerKeyProvider, VersionedKey } from "@tutao/crypto"
 import { RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
 
 export interface EntityRestClientSetupOptions {
@@ -93,6 +93,8 @@ export interface ExtraServiceParams {
 	/** override origin for the request */
 	baseUrl: Nullable<string>
 	ownerKey: Nullable<VersionedKey>
+	aeadCipherVersion: Nullable<AeadCipherVersion>
+	kdfNonce: Nullable<KdfNonce>
 }
 
 export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
@@ -102,4 +104,6 @@ export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
 	suspensionBehavior: null,
 	baseUrl: null,
 	ownerKey: null,
+	aeadCipherVersion: null,
+	kdfNonce: null,
 }

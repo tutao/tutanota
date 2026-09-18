@@ -45,12 +45,14 @@ import {
 	OwnerKeyProvider,
 	SubKeyFactory,
 	SubKeyInfo,
+	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SubKeyInfoWithSessionKeyAead,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SubKeyProvider,
 	SymmetricCipherFacade,
 	SymmetricCipherVersion,
 	SymmetricEncryptionScheme,
+	validateKdfNonceLength,
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
@@ -344,32 +346,40 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: DecryptedParsedInstance,
 		ownerKey: Nullable<VersionedKey>,
-	) {
-		const parsedValueOwnerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")
-		let ownerEncSessionKey = null
-		if (parsedValueOwnerEncSessionKey != null && !parsedValueOwnerEncSessionKey.isNull()) {
-			ownerEncSessionKey = parsedValueOwnerEncSessionKey.asByteArray()
-		}
+	): SubKeyProvider {
 		let newSubKeyInfo: Nullable<SubKeyInfo> = null
-		if (ownerEncSessionKey) {
-			if (ownerKey == null) {
-				throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
-			}
-			const newSessionKey: Aes256Key = decryptKey(ownerKey.object, ownerEncSessionKey, AesKeyLength.Aes256)
 
-			switch (subKeyProvider.subKeyInfo.cipherVersion) {
-				case SymmetricCipherVersion.AeadWithSessionKey:
+		switch (subKeyProvider.subKeyInfo.cipherVersion) {
+			case SymmetricCipherVersion.AeadWithSessionKey:
+			case SymmetricCipherVersion.AesCbcThenHmac: {
+				const parsedValueOwnerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")
+				if (parsedValueOwnerEncSessionKey == null || parsedValueOwnerEncSessionKey.isNull()) {
+					break
+				}
+				if (ownerKey == null) {
+					throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
+				}
+				const ownerEncSessionKey = parsedValueOwnerEncSessionKey.asByteArray()
+				const newSessionKey: Aes256Key = decryptKey(ownerKey.object, ownerEncSessionKey, AesKeyLength.Aes256)
+				if (subKeyProvider.subKeyInfo.cipherVersion === SymmetricCipherVersion.AeadWithSessionKey)
 					newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey)
-					break
-				case SymmetricCipherVersion.AesCbcThenHmac:
-					newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
-					break
-				default:
-					throw new ProgrammingError(
-						"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
-							subKeyProvider.subKeyInfo.cipherVersion,
-					)
+				else newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
+				break
 			}
+			case SymmetricCipherVersion.AeadWithInstanceKey: {
+				const parsedValueKdfNonce = parsedInstance.getAttributeByNameIfPresentOrNull("_kdfNonce")
+				if (parsedValueKdfNonce == null || parsedValueKdfNonce.isNull()) {
+					break
+				}
+				if (ownerKey == null) {
+					throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
+				}
+				const kdfNonce = validateKdfNonceLength(parsedValueKdfNonce.asByteArray())
+				newSubKeyInfo = new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
+				break
+			}
+			default:
+				throw new ProgrammingError("Unexpected cipher version: " + subKeyProvider.subKeyInfo.cipherVersion)
 		}
 
 		return this.symmetricCipherFacade.getSubKeyProvider(

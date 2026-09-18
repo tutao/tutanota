@@ -22,6 +22,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
+import { AeadCipherVersion } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -145,13 +146,32 @@ export class ServiceExecutor implements IServiceExecutor {
 			}
 
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(methodDefinition.data)
-			if (requestTypeModel.encrypted && params?.sessionKey == null) {
-				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.app}/${service.name}`)
+			if (requestTypeModel.encrypted && params?.sessionKey == null && (params?.ownerKey == null || params?.kdfNonce == null)) {
+				throw new ProgrammingError(
+					`Must provide a session key or an owner key and KDF nonce for an encrypted data transfer type!: ${service.app}/${service.name}`,
+				)
 			}
 
 			const sessionKey = params?.sessionKey ?? null
 			const ownerKey = params?.ownerKey ?? null
-			return await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(requestEntity._type, requestEntity, sessionKey, ownerKey)
+			let aeadCipherVersion: AeadCipherVersion
+			if (requestTypeModel.encrypted) {
+				aeadCipherVersion = params?.aeadCipherVersion ?? AeadCipherVersion.WithInstanceKey
+				if (aeadCipherVersion === AeadCipherVersion.Unencrypted) {
+					throw new ProgrammingError(`Invalid cipher version for encrypted data transfer type`)
+				}
+			} else {
+				aeadCipherVersion = AeadCipherVersion.Unencrypted
+			}
+			const kdfNonce = params?.kdfNonce ?? null
+			return await this.instancePipeline.mapAndEncryptForDataTransferType(
+				requestEntity._type,
+				requestEntity,
+				sessionKey,
+				ownerKey,
+				aeadCipherVersion,
+				kdfNonce,
+			)
 		} else {
 			return null
 		}
