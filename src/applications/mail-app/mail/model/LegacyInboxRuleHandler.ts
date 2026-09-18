@@ -26,20 +26,20 @@ export class LegacyInboxRuleHandler implements InboxRuleHandler<InboxRule> {
 		return await _findMatchingRule(this.mailFacade, mail, this.logins.getUserController().props.inboxRules)
 	}
 
-	async getMoveResultValue(inboxRule: InboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {
+	async getMoveActionValue(inboxRule: InboxRule, mailboxDetail: MailboxDetail): Promise<MailSet | null> {
 		const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 		return folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 	}
 
-	getExcludeSpamResultValue(inboxRule: InboxRule): boolean {
+	getExcludeSpamActionValue(inboxRule: InboxRule): boolean {
 		return inboxRule.excludeFromSpamFilter ?? false
 	}
 
-	async getLabelResultValue(_inboxRule: InboxRule, _mailboxDetail: MailboxDetail): Promise<MailSet[]> {
+	async getLabelActionValue(_inboxRule: InboxRule, _mailboxDetail: MailboxDetail): Promise<MailSet[]> {
 		return []
 	}
 
-	getReadResultValue(_inboxRule: InboxRule): boolean {
+	getReadActionValue(_inboxRule: InboxRule): boolean {
 		return false
 	}
 }

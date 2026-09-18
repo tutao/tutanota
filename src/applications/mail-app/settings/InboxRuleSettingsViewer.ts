@@ -10,6 +10,7 @@ import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import * as AddLegacyInboxRuleDialog from "./AddLegacyInboxRuleDialog"
+import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -42,7 +43,6 @@ import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
-import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -60,6 +60,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly inboxRuleHandler: ExpandedInboxRuleHandler | LegacyInboxRuleHandler,
 	) {
 		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
+		this.model.init().then(m.redraw)
 		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			this.renderLegacyInboxRules()
 		}
@@ -213,6 +214,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							contextDropdown(e, this.getActionsForRule(index, rule))
 						}
 					},
+					role: "listitem",
 				},
 				m(
 					Card,
@@ -246,7 +248,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 								},
 							},
 							m(
-								"",
+								".flex.center-vertically",
 								{
 									// title for tooltip
 									title: lang.getTranslationText("move_action"),
@@ -273,7 +275,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						),
 						// toggle button
 						m(
-							"",
+							".mr-8",
 							{
 								// don't context menu on input element, that feels weird
 								oncontextmenu: (e: MouseEvent) => {
@@ -294,7 +296,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						m(IconButton, {
 							label: "edit_action",
 							icon: Icons.More,
-							size: ButtonSize.Normal,
+							size: ButtonSize.Small,
 							click: createDropdown({
 								lazyButtons: () => this.getActionsForRule(index, rule),
 								width: 260,
@@ -471,8 +473,6 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const rules = await this.inboxRuleModel.getOrderedInboxRules()
-
 		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			const progress = stream(0)
 			const abort = new AbortController()
@@ -495,6 +495,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			})
 			await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
 		} else {
+			const rules = await this.inboxRuleModel.getOrderedInboxRules()
 			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>this.inboxRuleHandler)
 		}
 	}
