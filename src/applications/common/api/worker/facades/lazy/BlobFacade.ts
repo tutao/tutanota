@@ -28,7 +28,12 @@ import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha25
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
-import { BlobAccessTokenFacade, BlobLoadOptions, DEFAULT_BLOB_LOAD_OPTIONS } from "../../../../../../platform-kit/network/BlobAccessTokenFacade.js"
+import {
+	BlobAccessTokenFacade,
+	BlobLoadOptions,
+	DEFAULT_BLOB_LOAD_OPTIONS,
+	SingleBlobLoadOptions,
+} from "../../../../../../platform-kit/network/BlobAccessTokenFacade.js"
 import { InstancePipeline, TypeModelResolver } from "@tutao/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { TransferProgressDispatcher } from "../../../main/TransferProgressDispatcher"
@@ -517,7 +522,7 @@ export class BlobFacade {
 		archiveDataType: ArchiveDataType,
 		referencingInstance: BlobReferencingInstance,
 		transferId: TransferId,
-		blobLoadOptions: Nullable<BlobLoadOptions> = null,
+		blobLoadOptions: Nullable<SingleBlobLoadOptions> = null,
 	): Promise<Uint8Array<ArrayBuffer>> {
 		const sessionKey = blobLoadOptions?.sessionKey ?? (await this.resolveSessionKey(referencingInstance.entity))
 
@@ -744,8 +749,6 @@ export class BlobFacade {
 					extraHeaders: null,
 					suspensionBehavior: null,
 					baseUrl: null,
-					accessTokenProvider: null,
-					sessionKey: null,
 				}
 				const blobServerAccessInfos = await this.blobAccessTokenFacade.requestReadTokenBlobs(archiveDataType, referencingInstance, blobLoadOpt)
 

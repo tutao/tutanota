@@ -19,16 +19,18 @@ export type AccessTokenProvider = (archiveDataType: ArchiveDataType, referencing
 export interface BlobLoadOptions {
 	extraHeaders: Nullable<Dict>
 	suspensionBehavior: Nullable<SuspensionBehavior>
-	accessTokenProvider: Nullable<AccessTokenProvider>
-	sessionKey: Nullable<AesKey>
 	/** override origin for the request */
 	baseUrl: Nullable<string>
 }
+
+export interface SingleBlobLoadOptions extends BlobLoadOptions {
+	accessTokenProvider: Nullable<AccessTokenProvider>
+	sessionKey: Nullable<AesKey>
+}
+
 export const DEFAULT_BLOB_LOAD_OPTIONS: BlobLoadOptions = {
 	extraHeaders: null,
 	suspensionBehavior: null,
-	accessTokenProvider: null,
-	sessionKey: null,
 	baseUrl: null,
 }
 
