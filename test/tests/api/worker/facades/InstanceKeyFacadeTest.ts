@@ -158,12 +158,10 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 		o.test("success - kdfNonce must be created", async function () {
 			instance._kdfNonce = null
-			when(cryptoFacade.postUpdateKdfNonceService(anything())).thenResolve(
-				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: generateKdfNonce() }),
-			)
+			when(entityClient.ensureKdfNonce(anything())).thenResolve(generateKdfNonce())
 			const instanceKey = await instanceKeyFacade.getCurrentInstanceKey(instance)
 			o.check(instanceKey).deepEquals(versionedDerivedInstanceKey)
-			verify(cryptoFacade.postUpdateKdfNonceService(anything()), { times: 1 })
+			verify(entityClient.ensureKdfNonce(anything()), { times: 1 })
 		})
 	})
 

@@ -1,5 +1,6 @@
 import { EntityClient } from "../../network/EntityClient.js"
 import {
+	AeadCipherVersion,
 	AesKey,
 	AsymmetricKeyPair,
 	cryptoUtils,
@@ -12,12 +13,13 @@ import {
 	EncryptedRsaKeyPairs,
 	EncryptedRsaX25519KeyPairs,
 	isRsaOrRsaX25519KeyPair,
+	SessionKeyDecryptor,
 	VersionedKey,
 } from "@tutao/crypto"
 import { assertNotNull, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { elementIdToId, getElementId, idToElementId, isSameSingleId } from "../../meta"
+import { elementIdToId, Entity, getElementId, idToElementId, isSameSingleId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
@@ -275,6 +277,41 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
 			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
 		}
+	}
+
+	public async assembleServiceEncryptionParamsForPut(
+		ownerGroup: string,
+		entity: Entity,
+		aeadCipherVersion: AeadCipherVersion = AeadCipherVersion.WithInstanceKey,
+	): Promise<{ ownerKey: Nullable<VersionedKey>; sessionKeyDecryptor: SessionKeyDecryptor; aeadCipherVersion: AeadCipherVersion }> {
+		const ownerKeyVersion: KeyVersion = cryptoUtils.parseKeyVersion(entity._ownerKeyVersion ?? "0")
+		const ownerKeyToDecryptSessionKey = {
+			object: await this.loadSymGroupKey(ownerGroup, ownerKeyVersion),
+			version: ownerKeyVersion,
+		}
+
+		let currentOwnerKey: Nullable<VersionedKey> = null
+		if (aeadCipherVersion === AeadCipherVersion.WithInstanceKey) {
+			currentOwnerKey = await this.getCurrentSymGroupKey(ownerGroup)
+		}
+
+		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey)
+		return { ownerKey: currentOwnerKey, sessionKeyDecryptor, aeadCipherVersion }
+	}
+
+	public async assembleServiceEncryptionParamsForPost(
+		ownerGroup: string,
+		aeadCipherVersion: AeadCipherVersion = AeadCipherVersion.WithInstanceKey,
+	): Promise<{ ownerKey: Nullable<VersionedKey>; sessionKeyDecryptor: SessionKeyDecryptor; aeadCipherVersion: AeadCipherVersion }> {
+		const ownerKeyToDecryptSessionKey = await this.getCurrentSymGroupKey(ownerGroup)
+
+		let currentOwnerKey: Nullable<VersionedKey> = null
+		if (aeadCipherVersion === AeadCipherVersion.WithInstanceKey) {
+			currentOwnerKey = ownerKeyToDecryptSessionKey
+		}
+
+		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey)
+		return { ownerKey: currentOwnerKey, sessionKeyDecryptor, aeadCipherVersion }
 	}
 }
 

@@ -36,7 +36,8 @@ o.spec("TypeMapperTest", function () {
 	"14:_ownerEncSessionKey": null,
 	"16:_kdfNonce": null,
 	"17:testZeroOrOneListElementAssociation": [],
-	"15:testFinalBoolean": "encryptedFinalBool"
+	"15:testFinalBoolean": "encryptedFinalBool",
+	"21:_ownerKeyVersion": null
 }`
 
 		jsonInstance = `{
@@ -59,7 +60,8 @@ o.spec("TypeMapperTest", function () {
 	"14": null,
 	"16": null,
 	"17": [],
-	"15": "encryptedFinalBool"
+	"15": "encryptedFinalBool",
+	"21": null
 }`
 
 		encryptedParsedInstance = EncryptedParsedInstance.outgoingToServer(testTypeModel as ClientTypeModel)
@@ -85,6 +87,7 @@ o.spec("TypeMapperTest", function () {
 			.addAttributeById(16, ParsedValue.fromNull())
 			.addAttributeById(15, ParsedValue.fromString("encryptedFinalBool"))
 			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
+			.addAttributeById(21, ParsedValue.fromNull())
 	})
 
 	o.afterEach(() => {

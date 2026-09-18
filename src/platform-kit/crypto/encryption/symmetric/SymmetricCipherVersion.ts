@@ -11,6 +11,12 @@ export enum SymmetricCipherVersion {
 	AeadWithSessionKey = 3, // Authenticated encryption with associated data using session key derived sub-keys based on AES-CTR-then-BLAKE3, where BLAKE3 is also computed over the associated data
 }
 
+export enum AeadCipherVersion {
+	Unencrypted,
+	WithInstanceKey,
+	WithSessionKey,
+}
+
 /**
  * Get the SymmetricCipherVersion from either the version byte or the full ciphertext
  */

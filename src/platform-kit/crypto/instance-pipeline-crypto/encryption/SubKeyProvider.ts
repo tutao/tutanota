@@ -6,6 +6,7 @@ import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { AesKey } from "../../encryption/symmetric/AesKey"
 import { KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
+import { SessionKeyDecryptor } from "./SessionKeyDecryptor"
 
 /**
  * Dummy class that can either hold SubKeyInfo or SubKeyProvider. As both are suitable to get the actual subkeys.
@@ -15,6 +16,53 @@ export abstract class SubKeyFactory {}
 export abstract class SubKeyInfo extends SubKeyFactory {
 	public abstract readonly cipherVersion: SymmetricCipherVersion
 	protected constructor() {
+		super()
+	}
+}
+
+export abstract class PartialSubKeyInfo extends SubKeyInfo {
+	protected constructor() {
+		super()
+	}
+}
+
+export abstract class PartialSubKeyInfoWithSessionKey extends PartialSubKeyInfo {
+	protected constructor(private readonly sessionKeyDecryptor: SessionKeyDecryptor) {
+		super()
+	}
+
+	protected decryptSessionKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>): AesKey {
+		return this.sessionKeyDecryptor.decryptSessionKey(ownerEncSessionKey)
+	}
+
+	abstract complete(ownerEncSessionKey: Uint8Array<ArrayBuffer>): SubKeyInfoWithSessionKey
+}
+
+export class PartialSubKeyInfoAesCbcThenHmac extends PartialSubKeyInfoWithSessionKey {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AesCbcThenHmac = SymmetricCipherVersion.AesCbcThenHmac
+	constructor(sessionKeyDecryptor: SessionKeyDecryptor) {
+		super(sessionKeyDecryptor)
+	}
+
+	override complete(ownerEncSessionKey: Uint8Array<ArrayBuffer>): SubKeyInfoWithSessionKeyCbcThenHmac {
+		return new SubKeyInfoWithSessionKeyCbcThenHmac(this.decryptSessionKey(ownerEncSessionKey))
+	}
+}
+
+export class PartialSubKeyInfoAeadWithSessionKey extends PartialSubKeyInfoWithSessionKey {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithSessionKey = SymmetricCipherVersion.AeadWithSessionKey
+	constructor(sessionKeyDecryptor: SessionKeyDecryptor) {
+		super(sessionKeyDecryptor)
+	}
+
+	override complete(ownerEncSessionKey: Uint8Array<ArrayBuffer>): SubKeyInfoWithSessionKeyAead {
+		return new SubKeyInfoWithSessionKeyAead(this.decryptSessionKey(ownerEncSessionKey))
+	}
+}
+
+export class PartialSubKeyInfoAeadWithInstanceKey extends PartialSubKeyInfo {
+	public override readonly cipherVersion: typeof SymmetricCipherVersion.AeadWithInstanceKey = SymmetricCipherVersion.AeadWithInstanceKey
+	constructor() {
 		super()
 	}
 }
@@ -71,6 +119,9 @@ export class SubKeyProvider extends SubKeyFactory {
 	}
 
 	getSubKeys = lazyMemoized((): SymmetricSubKeys => {
+		if (this.subKeyInfo instanceof PartialSubKeyInfo) {
+			throw new ProgrammingError(`Encrypting with missing sub-key information`)
+		}
 		switch (this.subKeyInfo.cipherVersion) {
 			case SymmetricCipherVersion.AesCbcThenHmac: {
 				if (this.subKeyInfo instanceof SubKeyInfoWithSessionKeyCbcThenHmac) {

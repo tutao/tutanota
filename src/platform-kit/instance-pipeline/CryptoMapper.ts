@@ -36,23 +36,23 @@ import {
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	AeadSubKeys,
-	Aes256Key,
 	AesKey,
-	AesKeyLength,
 	AsymmetricKeyPair,
-	decryptKey,
 	InstanceDecryptor,
 	InstanceKeyProvider,
 	KdfNonce,
 	OwnerKeyProvider,
+	PartialSubKeyInfo,
+	PartialSubKeyInfoAeadWithInstanceKey,
+	PartialSubKeyInfoWithSessionKey,
 	SubKeyFactory,
 	SubKeyInfo,
-	SubKeyInfoWithSessionKeyAead,
-	SubKeyInfoWithSessionKeyCbcThenHmac,
+	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SubKeyProvider,
 	SymmetricCipherFacade,
 	SymmetricCipherVersion,
 	SymmetricEncryptionScheme,
+	validateKdfNonceLength,
 	VersionedKey,
 } from "@tutao/crypto"
 import { EntityAdapter } from "./EntityAdapter.js"
@@ -357,36 +357,40 @@ export class CryptoMapper {
 		clientTypeModel: ClientTypeModel,
 		parsedInstance: DecryptedParsedInstance,
 		ownerKey: Nullable<VersionedKey>,
-	) {
-		const parsedValueOwnerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")
-		let ownerEncSessionKey = null
-		if (parsedValueOwnerEncSessionKey != null && !parsedValueOwnerEncSessionKey.isNull()) {
-			ownerEncSessionKey = parsedValueOwnerEncSessionKey.asByteArray()
+	): Nullable<SubKeyProvider> {
+		const partialSubKeyInfo = subKeyProvider.subKeyInfo
+		if (!(partialSubKeyInfo instanceof PartialSubKeyInfo)) {
+			// We implemented transfer aggregated types with the assumption that they only get used within data transfer types.
+			// If using them within other types lead you here, think about if this really makes sense for your use case.
+			// If it makes sense, adapt this method to not only handle PartialSubKeyInfo.
+			throw new ProgrammingError("expected partial sub-key info")
 		}
-		let newSubKeyInfo: Nullable<SubKeyInfo> = null
-		if (ownerEncSessionKey) {
+
+		let newSubKeyInfo: SubKeyInfo
+
+		if (partialSubKeyInfo instanceof PartialSubKeyInfoWithSessionKey) {
+			const parsedValueOwnerEncSessionKey = parsedInstance.getAttributeByNameIfPresentOrNull("_ownerEncSessionKey")
+			if (parsedValueOwnerEncSessionKey == null || parsedValueOwnerEncSessionKey.isNull()) {
+				return null
+			}
+			const ownerEncSessionKey = parsedValueOwnerEncSessionKey.asByteArray()
+			newSubKeyInfo = partialSubKeyInfo.complete(ownerEncSessionKey)
+		} else if (partialSubKeyInfo instanceof PartialSubKeyInfoAeadWithInstanceKey) {
+			const parsedValueKdfNonce = parsedInstance.getAttributeByNameIfPresentOrNull("_kdfNonce")
+			if (parsedValueKdfNonce == null || parsedValueKdfNonce.isNull()) {
+				return null
+			}
 			if (ownerKey == null) {
 				throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
 			}
-			const newSessionKey: Aes256Key = decryptKey(ownerKey.object, ownerEncSessionKey, AesKeyLength.Aes256)
-
-			switch (subKeyProvider.subKeyInfo.cipherVersion) {
-				case SymmetricCipherVersion.AeadWithSessionKey:
-					newSubKeyInfo = new SubKeyInfoWithSessionKeyAead(newSessionKey)
-					break
-				case SymmetricCipherVersion.AesCbcThenHmac:
-					newSubKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(newSessionKey)
-					break
-				default:
-					throw new ProgrammingError(
-						"Transfer aggregated types should only be encrypted for data transfer types using session keys. Unexpected cipher version: " +
-							subKeyProvider.subKeyInfo.cipherVersion,
-					)
-			}
+			const kdfNonce = validateKdfNonceLength(parsedValueKdfNonce.asByteArray())
+			newSubKeyInfo = new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
+		} else {
+			throw new ProgrammingError("Unexpected cipher version: " + partialSubKeyInfo.cipherVersion)
 		}
 
 		return this.symmetricCipherFacade.getSubKeyProvider(
-			newSubKeyInfo ?? subKeyProvider.subKeyInfo,
+			newSubKeyInfo,
 			makeKeyDerivationContext({
 				app: clientTypeModel.app,
 				id: assertNotNull(clientTypeModel.targetTypeId),

@@ -6799,6 +6799,7 @@ export type GiftCardTransferAggregatedTypeParams = {
 
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	value: NumberString;
 	message: string;
 }
@@ -6810,10 +6811,11 @@ export type GiftCardTransferAggregatedType = {
 	_id: Id;
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	value: NumberString;
 	message: string;
 }
-export const GiftCardRedeemTransferAggregatedTypeTypeRef: TypeRef<GiftCardRedeemTransferAggregatedType> = new TypeRef("sys", 2789)
+export const GiftCardRedeemTransferAggregatedTypeTypeRef: TypeRef<GiftCardRedeemTransferAggregatedType> = new TypeRef("sys", 2790)
 
 export function createGiftCardRedeemTransferAggregatedType(values: GiftCardRedeemTransferAggregatedTypeParams): GiftCardRedeemTransferAggregatedType {
     return Object.assign(create(typeModels[GiftCardRedeemTransferAggregatedTypeTypeRef.typeId], GiftCardRedeemTransferAggregatedTypeTypeRef), values)
@@ -6822,6 +6824,9 @@ export function createGiftCardRedeemTransferAggregatedType(values: GiftCardRedee
 export type GiftCardRedeemTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	value: NumberString;
 	message: string;
 }
@@ -6831,10 +6836,13 @@ export type GiftCardRedeemTransferAggregatedType = {
 	_original?: GiftCardRedeemTransferAggregatedType
 
 	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 	value: NumberString;
 	message: string;
 }
-export const InstanceKeyTypeRef: TypeRef<InstanceKey> = new TypeRef("sys", 2796)
+export const InstanceKeyTypeRef: TypeRef<InstanceKey> = new TypeRef("sys", 2800)
 
 export function createInstanceKey(values: InstanceKeyParams): InstanceKey {
     return Object.assign(create(typeModels[InstanceKeyTypeRef.typeId], InstanceKeyTypeRef), values)
@@ -6858,7 +6866,7 @@ export type InstanceKey = {
 	symEncInstanceKey: Uint8Array<ArrayBuffer>;
 	symKeyVersion: NumberString;
 }
-export const InstanceKeysRefTypeRef: TypeRef<InstanceKeysRef> = new TypeRef("sys", 2804)
+export const InstanceKeysRefTypeRef: TypeRef<InstanceKeysRef> = new TypeRef("sys", 2808)
 
 export function createInstanceKeysRef(values: InstanceKeysRefParams): InstanceKeysRef {
     return Object.assign(create(typeModels[InstanceKeysRefTypeRef.typeId], InstanceKeysRefTypeRef), values)
@@ -6879,7 +6887,7 @@ export type InstanceKeysRef = {
 
 	list: Id;
 }
-export const InstanceKeyPermissionDataTypeRef: TypeRef<InstanceKeyPermissionData> = new TypeRef("sys", 2807)
+export const InstanceKeyPermissionDataTypeRef: TypeRef<InstanceKeyPermissionData> = new TypeRef("sys", 2811)
 
 export function createInstanceKeyPermissionData(values: InstanceKeyPermissionDataParams): InstanceKeyPermissionData {
     return Object.assign(create(typeModels[InstanceKeyPermissionDataTypeRef.typeId], InstanceKeyPermissionDataTypeRef), values)
@@ -6910,7 +6918,7 @@ export type InstanceKeyPermissionData = {
 	sharingPermission: IdTuple;
 	pubEncKeyData: null | PubEncKeyData;
 }
-export const FormerInstanceKeyDataTypeRef: TypeRef<FormerInstanceKeyData> = new TypeRef("sys", 2815)
+export const FormerInstanceKeyDataTypeRef: TypeRef<FormerInstanceKeyData> = new TypeRef("sys", 2819)
 
 export function createFormerInstanceKeyData(values: FormerInstanceKeyDataParams): FormerInstanceKeyData {
     return Object.assign(create(typeModels[FormerInstanceKeyDataTypeRef.typeId], FormerInstanceKeyDataTypeRef), values)
@@ -6933,7 +6941,7 @@ export type FormerInstanceKeyData = {
 	symKeyVersion: NumberString;
 	instanceKeyVersion: NumberString;
 }
-export const InstanceReferenceDataTypeRef: TypeRef<InstanceReferenceData> = new TypeRef("sys", 2820)
+export const InstanceReferenceDataTypeRef: TypeRef<InstanceReferenceData> = new TypeRef("sys", 2824)
 
 export function createInstanceReferenceData(values: InstanceReferenceDataParams): InstanceReferenceData {
     return Object.assign(create(typeModels[InstanceReferenceDataTypeRef.typeId], InstanceReferenceDataTypeRef), values)
@@ -6958,7 +6966,7 @@ export type InstanceReferenceData = {
 
 	typeInfo: TypeInfo;
 }
-export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2825)
+export const InstanceKeyInstanceDataTypeRef: TypeRef<InstanceKeyInstanceData> = new TypeRef("sys", 2829)
 
 export function createInstanceKeyInstanceData(values: InstanceKeyInstanceDataParams): InstanceKeyInstanceData {
     return Object.assign(create(typeModels[InstanceKeyInstanceDataTypeRef.typeId], InstanceKeyInstanceDataTypeRef), values)
@@ -6983,7 +6991,7 @@ export type InstanceKeyInstanceData = {
 	formerInstanceKeys: FormerInstanceKeyData[];
 	permissionData: InstanceKeyPermissionData[];
 }
-export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2830)
+export const InstanceKeyPermissionServicePostInTypeRef: TypeRef<InstanceKeyPermissionServicePostIn> = new TypeRef("sys", 2834)
 
 export function createInstanceKeyPermissionServicePostIn(values: InstanceKeyPermissionServicePostInParams): InstanceKeyPermissionServicePostIn {
     return Object.assign(create(typeModels[InstanceKeyPermissionServicePostInTypeRef.typeId], InstanceKeyPermissionServicePostInTypeRef), values)
@@ -7006,7 +7014,7 @@ export type InstanceKeyPermissionServicePostIn = {
 
 	permissionDataPerInstance: InstanceKeyInstanceData[];
 }
-export const InstanceKeyPermissionServiceGetInTypeRef: TypeRef<InstanceKeyPermissionServiceGetIn> = new TypeRef("sys", 2834)
+export const InstanceKeyPermissionServiceGetInTypeRef: TypeRef<InstanceKeyPermissionServiceGetIn> = new TypeRef("sys", 2838)
 
 export function createInstanceKeyPermissionServiceGetIn(values: InstanceKeyPermissionServiceGetInParams): InstanceKeyPermissionServiceGetIn {
     return Object.assign(create(typeModels[InstanceKeyPermissionServiceGetInTypeRef.typeId], InstanceKeyPermissionServiceGetInTypeRef), values)
@@ -7029,7 +7037,7 @@ export type InstanceKeyPermissionServiceGetIn = {
 
 	potentialInstancesToMigrate: InstanceReferenceData[];
 }
-export const InstanceKeyPermissionServiceGetOutTypeRef: TypeRef<InstanceKeyPermissionServiceGetOut> = new TypeRef("sys", 2838)
+export const InstanceKeyPermissionServiceGetOutTypeRef: TypeRef<InstanceKeyPermissionServiceGetOut> = new TypeRef("sys", 2842)
 
 export function createInstanceKeyPermissionServiceGetOut(values: InstanceKeyPermissionServiceGetOutParams): InstanceKeyPermissionServiceGetOut {
     return Object.assign(create(typeModels[InstanceKeyPermissionServiceGetOutTypeRef.typeId], InstanceKeyPermissionServiceGetOutTypeRef), values)
@@ -7050,7 +7058,7 @@ export type InstanceKeyPermissionServiceGetOut = {
 
 	confirmedInstancesToMigrate: InstanceReferenceData[];
 }
-export const DateWrapperTransferAggregatedTypeTypeRef: TypeRef<DateWrapperTransferAggregatedType> = new TypeRef("sys", 2846)
+export const DateWrapperTransferAggregatedTypeTypeRef: TypeRef<DateWrapperTransferAggregatedType> = new TypeRef("sys", 2850)
 
 export function createDateWrapperTransferAggregatedType(values: DateWrapperTransferAggregatedTypeParams): DateWrapperTransferAggregatedType {
     return Object.assign(create(typeModels[DateWrapperTransferAggregatedTypeTypeRef.typeId], DateWrapperTransferAggregatedTypeTypeRef), values)
@@ -7069,7 +7077,7 @@ export type DateWrapperTransferAggregatedType = {
 	_id: Id;
 	date: Date;
 }
-export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2849)
+export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2853)
 
 export function createCalendarEventRefTransferAggregatedType(values: CalendarEventRefTransferAggregatedTypeParams): CalendarEventRefTransferAggregatedType {
     return Object.assign(create(typeModels[CalendarEventRefTransferAggregatedTypeTypeRef.typeId], CalendarEventRefTransferAggregatedTypeTypeRef), values)
@@ -7090,7 +7098,7 @@ export type CalendarEventRefTransferAggregatedType = {
 	elementId: Id;
 	listId: Id;
 }
-export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2853)
+export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2857)
 
 export function createAlarmInfoTransferAggregatedType(values: AlarmInfoTransferAggregatedTypeParams): AlarmInfoTransferAggregatedType {
     return Object.assign(create(typeModels[AlarmInfoTransferAggregatedTypeTypeRef.typeId], AlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -7115,7 +7123,7 @@ export type AlarmInfoTransferAggregatedType = {
 
 	calendarRef: CalendarEventRefTransferAggregatedType;
 }
-export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2858)
+export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2862)
 
 export function createUserAlarmInfoTransferAggregatedType(values: UserAlarmInfoTransferAggregatedTypeParams): UserAlarmInfoTransferAggregatedType {
     return Object.assign(create(typeModels[UserAlarmInfoTransferAggregatedTypeTypeRef.typeId], UserAlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -7124,9 +7132,10 @@ export function createUserAlarmInfoTransferAggregatedType(values: UserAlarmInfoT
 export type UserAlarmInfoTransferAggregatedTypeParams = {
 
 
-	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	_ownerGroup: null | Id;
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 }
@@ -7136,13 +7145,14 @@ export type UserAlarmInfoTransferAggregatedType = {
 	_original?: UserAlarmInfoTransferAggregatedType
 
 	_id: Id;
-	_ownerGroup: null | Id;
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	_ownerGroup: null | Id;
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 }
-export const CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType> = new TypeRef("sys", 2864)
+export const CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType> = new TypeRef("sys", 2869)
 
 export function createCalendarAdvancedRepeatRuleTransferAggregatedType(values: CalendarAdvancedRepeatRuleTransferAggregatedTypeParams): CalendarAdvancedRepeatRuleTransferAggregatedType {
     return Object.assign(create(typeModels[CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef.typeId], CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef), values)
@@ -7163,7 +7173,7 @@ export type CalendarAdvancedRepeatRuleTransferAggregatedType = {
 	ruleType: NumberString;
 	interval: string;
 }
-export const RepeatRuleTransferAggregatedTypeTypeRef: TypeRef<RepeatRuleTransferAggregatedType> = new TypeRef("sys", 2868)
+export const RepeatRuleTransferAggregatedTypeTypeRef: TypeRef<RepeatRuleTransferAggregatedType> = new TypeRef("sys", 2873)
 
 export function createRepeatRuleTransferAggregatedType(values: RepeatRuleTransferAggregatedTypeParams): RepeatRuleTransferAggregatedType {
     return Object.assign(create(typeModels[RepeatRuleTransferAggregatedTypeTypeRef.typeId], RepeatRuleTransferAggregatedTypeTypeRef), values)
@@ -7196,7 +7206,7 @@ export type RepeatRuleTransferAggregatedType = {
 	excludedDates: DateWrapperTransferAggregatedType[];
 	advancedRules: CalendarAdvancedRepeatRuleTransferAggregatedType[];
 }
-export const NotificationSessionKeyTransferAggregatedTypeTypeRef: TypeRef<NotificationSessionKeyTransferAggregatedType> = new TypeRef("sys", 2877)
+export const NotificationSessionKeyTransferAggregatedTypeTypeRef: TypeRef<NotificationSessionKeyTransferAggregatedType> = new TypeRef("sys", 2882)
 
 export function createNotificationSessionKeyTransferAggregatedType(values: NotificationSessionKeyTransferAggregatedTypeParams): NotificationSessionKeyTransferAggregatedType {
     return Object.assign(create(typeModels[NotificationSessionKeyTransferAggregatedTypeTypeRef.typeId], NotificationSessionKeyTransferAggregatedTypeTypeRef), values)
@@ -7219,7 +7229,7 @@ export type NotificationSessionKeyTransferAggregatedType = {
 
 	pushIdentifier: IdTuple;
 }
-export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2881)
+export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2886)
 
 export function createAlarmNotificationTransferAggregatedType(values: AlarmNotificationTransferAggregatedTypeParams): AlarmNotificationTransferAggregatedType {
     return Object.assign(create(typeModels[AlarmNotificationTransferAggregatedTypeTypeRef.typeId], AlarmNotificationTransferAggregatedTypeTypeRef), values)
@@ -7254,7 +7264,7 @@ export type AlarmNotificationTransferAggregatedType = {
 	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[];
 	user: Id;
 }
-export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2891)
+export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2896)
 
 export function createNotificationTransferAggregatedType(values: NotificationTransferAggregatedTypeParams): NotificationTransferAggregatedType {
     return Object.assign(create(typeModels[NotificationTransferAggregatedTypeTypeRef.typeId], NotificationTransferAggregatedTypeTypeRef), values)
@@ -7263,6 +7273,9 @@ export function createNotificationTransferAggregatedType(values: NotificationTra
 export type NotificationTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	alarms: AlarmNotificationTransferAggregatedType[];
 }
@@ -7272,6 +7285,9 @@ export type NotificationTransferAggregatedType = {
 	_original?: NotificationTransferAggregatedType
 
 	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
 
 	alarms: AlarmNotificationTransferAggregatedType[];
 }

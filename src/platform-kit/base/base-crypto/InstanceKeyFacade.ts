@@ -12,7 +12,6 @@ import {
 } from "@tutao/crypto"
 import { KeyLoaderFacade } from "./KeyLoaderFacade"
 import { GroupKeyRotationType, ProgrammingError } from "@tutao/app-env"
-import { createAndSetOrGetKdfNonce } from "../../network/EntityRestClient"
 import { TypeModelResolver } from "@tutao/instance-pipeline"
 import {
 	createFormerInstanceKeyData,
@@ -77,7 +76,7 @@ export class InstanceKeyFacade {
 			throw new ProgrammingError("owner group missing for instance.")
 		}
 		// we may have to create the kdfNonce here if we are sharing an old instance that has not been updated in a while
-		const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this.cryptoFacade, instance)
+		const kdfNonce = await this.entityClient.ensureKdfNonce(instance)
 
 		let groupKey: VersionedKey
 		if (version == null) {

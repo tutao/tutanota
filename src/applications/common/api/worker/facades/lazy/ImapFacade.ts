@@ -7,7 +7,7 @@
 import { CryptoWrapper } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull, Nullable } from "@tutao/utils"
 import {
 	createImapAccountSyncStateTransferAggregatedType,
 	createImapAccountTransferAggregatedType,
@@ -18,6 +18,7 @@ import {
 	createImapPostIn,
 	createImapPutIn,
 	createOAuthTokenEndpointResponseTransferAggregatedType,
+	createUpdateImapAccountSyncStateTransferAggregatedType,
 	DeduplicatedImportedAttachment,
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccountSyncState,
@@ -31,6 +32,7 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailSetTypeRef,
+	UpdateImapAccountSyncStateTransferAggregatedType,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
@@ -44,7 +46,6 @@ import {
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { getElementId, idToElementId } from "@tutao/meta"
-import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 import { randomHexColor } from "../../../common/utils/imapImportUtils/ImapImportUtils"
 import { ImapProvider } from "../../../common/utils/imapImportUtils/ImapKnownConfigs"
 
@@ -84,8 +85,8 @@ export class ImapFacade {
 		}
 
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-		const sk = this.cryptoWrapper.aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const sessionKey = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const token = initializeParams.imapAccount.oAuthTokenEndpointResponse
 		const oAuthTokenEndpointResponse =
@@ -101,6 +102,7 @@ export class ImapFacade {
 			_ownerGroup: mailGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
 			rootImportMailSet: rootImportMailSetId,
@@ -118,7 +120,6 @@ export class ImapFacade {
 		})
 
 		const imapPostIn = createImapPostIn({
-			imapAccount: initializeParams.imapAccount,
 			imapAccountSyncState,
 
 			// These are now contained in the imapAccountSyncState
@@ -126,6 +127,7 @@ export class ImapFacade {
 			ownerGroup: null,
 			ownerEncSessionKey: null,
 			ownerKeyVersion: null,
+			imapAccount: null,
 			maxQuota: null,
 			postponedUntil: null,
 			rootImportMailSet: null,
@@ -135,8 +137,7 @@ export class ImapFacade {
 
 		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey: sk,
-			ownerKey: mailGroupKey,
+			...(await this.keyLoader.assembleServiceEncryptionParamsForPost(mailGroupId)),
 		})
 		const loadedImapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
 
@@ -169,18 +170,32 @@ export class ImapFacade {
 		newImapFolderSyncStatus: ImapFolderSyncStatus,
 		newPostponedUntil?: string,
 	) {
-		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
-		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
+		let imapAccountSyncStateWithNewPostponedUntil: Nullable<UpdateImapAccountSyncStateTransferAggregatedType> = null
+		if (newPostponedUntil != null) {
+			const kdfNonce = await this.entityClient.ensureKdfNonce(imapAccountSyncState)
+			imapAccountSyncStateWithNewPostponedUntil = createUpdateImapAccountSyncStateTransferAggregatedType({
+				_ownerEncSessionKey: imapAccountSyncState._ownerEncSessionKey,
+				_ownerKeyVersion: imapAccountSyncState._ownerKeyVersion,
+				_kdfNonce: kdfNonce,
+				postponedUntil: newPostponedUntil,
+			})
+		}
+
 		const imapPutIn = createImapPutIn({
 			imapAccountSyncState: imapAccountSyncState._id,
 			newImapAccountSyncStatus,
 			newImapFolderSyncStatus,
-			newPostponedUntil: newPostponedUntil ?? null,
+			imapAccountSyncStateWithNewPostponedUntil,
+
+			// no longer used
+
+			newPostponedUntil: null,
 		})
-		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
+
+		const ownerGroup = assertNotNull(imapAccountSyncState._ownerGroup)
 		await this.serviceExecutor.put(ImapService, imapPutIn, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
+			...(await this.keyLoader.assembleServiceEncryptionParamsForPut(ownerGroup, imapAccountSyncState)),
 		})
 	}
 
@@ -199,13 +214,14 @@ export class ImapFacade {
 		const imapFolderSyncStates: ImapFolderSyncState[] = []
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync, specialUse }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = this.cryptoWrapper.aes256RandomKey()
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const sessionKey = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
 				_ownerGroup: mailGroupId,
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				imapSpecialUse: specialUse,
 				path: imapMailboxPath,
@@ -227,8 +243,7 @@ export class ImapFacade {
 			})
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: sk,
-				ownerKey: mailGroupKey,
+				...(await this.keyLoader.assembleServiceEncryptionParamsForPost(mailGroupId)),
 			})
 			const loadedImapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
 			imapFolderSyncStates.push(loadedImapFolderSyncState)
@@ -265,13 +280,14 @@ export class ImapFacade {
 				mailSetId = shouldSync ? await this.mailFacade.createMailFolder(name, parentMailSetId, mailGroupId) : null
 			}
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = this.cryptoWrapper.aes256RandomKey()
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const sessionKey = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
 				_ownerGroup: mailGroupId,
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 				mailSet: mailSetId,
 				imapSpecialUse: imapMailbox.specialUse ?? null,
 				path: imapMailbox.path,
@@ -294,8 +310,7 @@ export class ImapFacade {
 
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: sk,
-				ownerKey: mailGroupKey,
+				...(await this.keyLoader.assembleServiceEncryptionParamsForPost(mailGroupId)),
 			})
 			return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
 		}

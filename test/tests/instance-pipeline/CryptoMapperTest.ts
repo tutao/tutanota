@@ -8,7 +8,9 @@ import {
 	generateKdfNonce,
 	InstanceKeyProvider,
 	KdfNonce,
+	PartialSubKeyInfoAesCbcThenHmac,
 	random,
+	SessionKeyDecryptor,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SubKeyInfoAeadWithInstanceKeyFromInstanceKey,
 	SubKeyInfoWithSessionKeyAead,
@@ -97,6 +99,7 @@ o.spec("CryptoMapperTest", () => {
 			.addAttributeById(14, ParsedValue.fromNull())
 			.addAttributeById(16, ParsedValue.fromNull())
 			.addAttributeById(17, ParsedValue.fromIdTupleList([]))
+			.addAttributeById(21, ParsedValue.fromString("0"))
 	}
 
 	o.beforeEach(async () => {
@@ -449,19 +452,18 @@ o.spec("CryptoMapperTest", () => {
 	})
 
 	o.test("encryptParsedInstance transfer aggregated type works", async () => {
-		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
-
-		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(
-			new SubKeyInfoWithSessionKeyCbcThenHmac(sk),
-			makeKeyDerivationContext(testTransferAggregatedTypeModel),
-		)
 		const ownerKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 		const sessionKeyForTransferAT = aes256RandomKey()
 		const ownerEncSessionKey = encryptKey(ownerKey.object, sessionKeyForTransferAT)
+		const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(
+			new PartialSubKeyInfoAesCbcThenHmac(new SessionKeyDecryptor(ownerKey)),
+			makeKeyDerivationContext(testTransferAggregatedTypeModel),
+		)
 		const decryptedTransferATInstance = DecryptedParsedInstance.outgoingToServer(testTransferAggregatedTypeModel as ClientTypeModel)
 			.addAttributeById(18, ParsedValue.fromNull())
 			.addAttributeById(19, ParsedValue.fromString("seven"))
 			.addAttributeById(20, ParsedValue.fromByteArray(ownerEncSessionKey))
+			.addAttributeById(22, ParsedValue.fromString(ownerKey.version.toString()))
 
 		const path = new RootPath(app)
 		const encryptedInstance = await cryptoMapper.encryptParsedInstance(decryptedTransferATInstance, subKeyProvider, path, ownerKey)
@@ -638,4 +640,5 @@ function makeDecryptedParsedInstance(typeModel: ClientTypeModel) {
 		.addAttributeById(15, ParsedValue.fromBoolean(true))
 		.addAttributeById(16, ParsedValue.fromNull())
 		.addAttributeById(17, ParsedValue.fromIdTupleList([]))
+		.addAttributeById(21, ParsedValue.fromNull())
 }

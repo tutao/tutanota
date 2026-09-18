@@ -2,11 +2,15 @@ import { CryptoMapper, EncryptedParsedInstance, InstanceKeyProviderMakerInterfac
 import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
 import {
+	AeadCipherVersion,
 	AesKey,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
+	PartialSubKeyInfo,
+	PartialSubKeyInfoAeadWithInstanceKey,
+	PartialSubKeyInfoAeadWithSessionKey,
+	PartialSubKeyInfoAesCbcThenHmac,
+	SessionKeyDecryptor,
 	SubKeyInfo,
-	SubKeyInfoWithSessionKeyAead,
-	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SymmetricCipherFacade,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
@@ -49,14 +53,30 @@ export class InstancePipeline {
 		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null, instanceKeyProviderMaker)
 	}
 
-	private getSubKeyInfo(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfo> {
-		if (sessionKey == null) return null
+	private getSubKeyInfoForDataTransferType(
+		aeadCipherVersion: AeadCipherVersion,
+		sessionKeyDecryptor: Nullable<SessionKeyDecryptor>,
+	): Nullable<PartialSubKeyInfo> {
+		if (aeadCipherVersion === AeadCipherVersion.Unencrypted) {
+			return null
+		}
 		if (this.loggedInUserProvider == null) throw new ProgrammingError("missing loggedInUserProvider")
 		switch (this.loggedInUserProvider.getDefaultSymmetricEncryptionScheme()) {
-			case SymmetricEncryptionScheme.AesCbc:
-				return new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
+			case SymmetricEncryptionScheme.AesCbc: {
+				if (sessionKeyDecryptor == null) return null
+				return new PartialSubKeyInfoAesCbcThenHmac(sessionKeyDecryptor)
+			}
 			case SymmetricEncryptionScheme.Aead:
-				return new SubKeyInfoWithSessionKeyAead(sessionKey)
+				switch (aeadCipherVersion) {
+					case AeadCipherVersion.WithInstanceKey:
+						return new PartialSubKeyInfoAeadWithInstanceKey()
+					case AeadCipherVersion.WithSessionKey: {
+						if (sessionKeyDecryptor == null) return null
+						return new PartialSubKeyInfoAeadWithSessionKey(sessionKeyDecryptor)
+					}
+					default:
+						throw new CryptoError("missing or unknown AEAD cipher version")
+				}
 			default:
 				throw new CryptoError("missing or unknown symmetric encryption scheme")
 		}
@@ -67,13 +87,14 @@ export class InstancePipeline {
 		return this.typeMapper.makeServerJson(encryptedInstance)
 	}
 
-	async mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys<T extends Entity>(
+	async mapAndEncryptForDataTransferType<T extends Entity>(
 		_typeRef: TypeRef<T>,
 		instance: T,
-		sessionKey: Nullable<AesKey>,
 		ownerKey: Nullable<VersionedKey>,
+		aeadCipherVersion: AeadCipherVersion,
+		sessionKeyDecryptor: Nullable<SessionKeyDecryptor>,
 	): Promise<OutgoingServerJson> {
-		let subKeyInfo = this.getSubKeyInfo(sessionKey)
+		const subKeyInfo = this.getSubKeyInfoForDataTransferType(aeadCipherVersion, sessionKeyDecryptor)
 		return await this.mapAndEncryptWithSubKeyInfo(_typeRef, instance, subKeyInfo, ownerKey)
 	}
 
