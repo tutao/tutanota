@@ -7,7 +7,7 @@ import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { newPromise } from "../../../../platform-kit/utils"
 import { reverse } from "../../misc/EnumUtils"
 import { ConnectionError } from "@tutao/rest-client/error"
-import { CONNECTION_TIMEOUT_MS } from "../net/HappyEyeballsConnector.js"
+import { CONNECTION_TIMEOUT_MS } from "./SseConstants.js"
 
 const log = makeTaggedLogger("[SSE]")
 

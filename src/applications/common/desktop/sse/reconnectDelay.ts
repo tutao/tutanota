@@ -1,5 +1,5 @@
 import type { SseDelay } from "./SseClient.js"
-import { CONNECTION_TIMEOUT_MS } from "../net/HappyEyeballsConnector.js"
+import { CONNECTION_TIMEOUT_MS } from "./SseConstants.js"
 import { randomInt } from "node:crypto"
 
 const MAX_SSE_RECONNECT_INTERVAL_MS = 120_000

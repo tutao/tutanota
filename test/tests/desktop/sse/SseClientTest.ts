@@ -7,7 +7,7 @@ import http from "node:http"
 import { assertNotNull, defer, getFirstOrThrow } from "../../../../src/platform-kit/utils"
 import { SchedulerMock } from "../../TestUtils.js"
 import * as restError from "../../../../src/platform-kit/rest-client/error"
-import { CONNECTION_TIMEOUT_MS } from "../../../../src/applications/common/desktop/net/HappyEyeballsConnector.js"
+import { CONNECTION_TIMEOUT_MS } from "../../../../src/applications/common/desktop/sse/SseConstants.js"
 import { DesktopSseDelay } from "../../../../src/applications/common/desktop/sse/reconnectDelay.js"
 
 o.spec("SseClient", function () {
