@@ -10,8 +10,8 @@ import TutanotaSharedFramework
 import WidgetKit
 
 struct TodayCard: View {
-	var allDayEvents: SimpleLongEventsData
-	var normalEventsOnDay: [CalendarEventData]
+	var allDayEvents: [UIEvent]
+	var normalEventsOnDay: [UIEvent]
 	var userId: String
 	var parsedDay: Date
 

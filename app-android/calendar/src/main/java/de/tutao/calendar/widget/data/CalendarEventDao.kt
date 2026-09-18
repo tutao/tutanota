@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class CalendarEventDao(
 	val id: IdTuple?,
-	val startTime: ULong,
+	val startTime: ULong, /* are these seconds or milis?? */
 	val endTime: ULong,
 	val summary: String
 )
