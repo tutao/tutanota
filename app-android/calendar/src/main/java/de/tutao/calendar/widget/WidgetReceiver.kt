@@ -36,7 +36,10 @@ const val WIDGET_LAST_SYNC_PREFIX = "calendar_widget_last_sync"
 const val WIDGET_CACHE_DATE_PREFIX = "calendar_widget_cache_date"
 const val WIDGET_SETTINGS_DATASTORE_FILE = "tuta_calendar_widget_settings"
 const val WIDGET_EVENTS_CACHE = "calendar_widget_cache"
-const val WIDGET_CACHE_DATASTORE_FILE = "tuta_calendar_widget_cache"
+const val WIDGET_CACHE_DATASTORE_FILE =
+	"tuta_calendar_widget_cache_2" // changing the name so new data structure doesnt conflict with old data structure.
+
+const val WIDGET_CACHE_DATA_VERSION = 2 // starting with 2 for consistency
 
 val Context.widgetDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_SETTINGS_DATASTORE_FILE)
 val Context.widgetCacheDataStore: DataStore<Preferences> by preferencesDataStore(WIDGET_CACHE_DATASTORE_FILE)

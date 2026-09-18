@@ -73,8 +73,7 @@ class WidgetUIViewModel(
 		now: LocalDateTime
 	): WidgetUIState {
 		Log.i(TAG, "[$widgetId] Init loadUIState")
-		val allDayEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
-		val normalEvents: HashMap<LocalDate, List<UIEvent>> = HashMap()
+		val uiEventsMap: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
@@ -105,8 +104,8 @@ class WidgetUIViewModel(
 		)
 
 		val startOfToday = now.toLocalDate()
-		normalEvents[startOfToday] = listOf() // The first day should always be included even if there are no events
-		allDayEvents[startOfToday] = listOf()
+		val daysAndEvents: Array<List<UIEvent>> =
+			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
 
 		val todayMidnight = startOfToday.atStartOfDay(zoneId).toInstant()
 		val tomorrowMidnight = startOfToday
@@ -114,17 +113,14 @@ class WidgetUIViewModel(
 			.atStartOfDay(zoneId)
 			.toInstant()
 
-
-		// if a multiday event continues onto the next day, create a day entry for the next day and insert the event into it. (unless the next day is outside of the loaded widget range)
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
+			val shortAndLongEvents: List<CalendarEventDao> = eventList.shortEvents.plus(eventList.longEvents)
 
-			val shortAndLongEvents = eventList.shortEvents.plus(eventList.longEvents)
+			for (eventDao in shortAndLongEvents) {
 
-			// at this point, only one CalendarEventDao exists for each event, even if the event progenitor continues for multiple days.
-			shortAndLongEvents.forEach { loadedEvent ->
 				val uiEvent = this.makeUiEvent(
-					loadedEvent,
+					eventDao,
 					todayMidnight,
 					tomorrowMidnight,
 					zoneId,
@@ -132,107 +128,59 @@ class WidgetUIViewModel(
 					settings
 				)
 
-				val eventStartAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
-				val eventStartDate = if (uiEvent.isDisplayedAsAllDay) {
-					eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
+				if (uiEvent.isDisplayedAsAllDay) {
+					val eventStartDate = Instant.ofEpochMilli(eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
+						.toLocalDate()
+					val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
+
+					daysAndEvents[index.toInt()].plus(uiEvent)
 				} else {
+					val eventStartDate = Instant.ofEpochMilli(eventDao.startTime.toLong()).atZone(zoneId)
+						.toLocalDate()
+					val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
+
+					daysAndEvents[index.toInt()].plus(uiEvent)
+				}
+
+				eventList.birthdayEvents.forEach { birthdayEventDao ->
+					val eventStartAsInstant = Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong())
+
 					val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
-					eventLocalStartTime.toLocalDate()
-				}
+					val eventLocalEndTime =
+						LocalDateTime.ofInstant(
+							Instant.ofEpochMilli(birthdayEventDao.eventDao.endTime.toLong()),
+							zoneId
+						)
+					val formatter = DateTimeFormatter.ofPattern("HH:mm")
+					val uiEvent = UIEvent(
+						calendarId,
+						birthdayEventDao.eventDao.id,
+						calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
+						summary = buildBirthdayEventTitle(birthdayEventDao),
+						eventLocalStartTime.format(formatter),
+						eventLocalEndTime.format(formatter),
+						isDisplayedAsAllDay = true,
+						isBirthday = true
+					)
 
-				if (!eventStartDate.isBefore(startOfToday)) {
-					if (!normalEvents.containsKey(eventStartDate)) {
-						normalEvents[eventStartDate] = listOf()
-						allDayEvents[eventStartDate] = listOf()
-					}
-
-					if (uiEvent.isDisplayedAsAllDay) {
-						allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plusElement(uiEvent)
-					} else {
-						normalEvents[eventStartDate] = normalEvents[eventStartDate]!!.plusElement(uiEvent)
-
-						// create UI events for widget in days on which the multiday event continues, until reaching a point where the event does not continue tomorrow, or the widget range does not continue tomorrow.
-						var tempTomorrowMidnight = tomorrowMidnight
-						val widgetEndRange = this.calendar.toInstant().plus(8, ChronoUnit.DAYS)
-						val loadedEventEndInstant = Instant.ofEpochMilli(loadedEvent.endTime.toLong())
-						while (tempTomorrowMidnight.isBefore(loadedEventEndInstant) && tempTomorrowMidnight < widgetEndRange) {
-							Log.i(
-								TAG,
-								"looping for temp tomorrow midnight $tempTomorrowMidnight and loadedEventEndInstant $loadedEventEndInstant endRange $widgetEndRange and loadedEvent.endTime ${loadedEvent.endTime}"
-							)
-							val tomorrowKey = tempTomorrowMidnight.atZone(zoneId).toLocalDate()
-							var uiEvents = normalEvents[tomorrowKey]
-							if (uiEvents == null) {
-								uiEvents = listOf()
-								normalEvents[tomorrowKey] = uiEvents
-							}
-
-							val nextDayMidnight = tempTomorrowMidnight.plus(1, ChronoUnit.DAYS)
-							uiEvents.plus(
-								this.makeUiEvent(
-									loadedEvent,
-									tempTomorrowMidnight,
-									nextDayMidnight,
-									zoneId,
-									calendarId,
-									settings
-								)
-							)
-
-							tempTomorrowMidnight = nextDayMidnight
-						}
-					}
-				}
-			}
-
-			Log.d(TAG, "[$widgetId] EventsList after processing short and long events for calendar $calendarId:")
-			normalEvents.entries.forEach { (day, events) ->
-				Log.d(
-					TAG,
-					"[$widgetId] Day: $day has ${events.size} normal events and ${allDayEvents[day]?.size ?: 0} All-day events"
-				)
-			}
-
-			eventList.birthdayEvents.map {
-				val eventStartAsInstant = Instant.ofEpochMilli(it.eventDao.startTime.toLong())
-
-				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
-				val eventLocalEndTime =
-					LocalDateTime.ofInstant(Instant.ofEpochMilli(it.eventDao.endTime.toLong()), zoneId)
-				val formatter = DateTimeFormatter.ofPattern("HH:mm")
-				val event = UIEvent(
-					calendarId,
-					it.eventDao.id,
-					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
-					summary = buildBirthdayEventTitle(it),
-					eventLocalStartTime.format(formatter),
-					eventLocalEndTime.format(formatter),
-					isDisplayedAsAllDay = true,
-					isBirthday = true
-				)
-
-				val eventStartDate = eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
-				if (!eventStartDate.isBefore(startOfToday)) {
-					if (!allDayEvents.containsKey(eventStartDate)) {
-						normalEvents[eventStartDate] = listOf()
-						allDayEvents[eventStartDate] = listOf()
-					}
-					allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plus(event)
+					val eventStartDate =
+						Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
+							.toLocalDate()
+					val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
+					daysAndEvents[index.toInt()].plus(uiEvent)
 				}
 			}
 		}
 
 		Log.d(TAG, "[$widgetId] Sorting events by start time")
-		normalEvents.forEach() { (startOfDay, events) ->
-			val sorted = events.sortedWith(Comparator<UIEvent> { a, b ->
+		daysAndEvents.forEach { eventList ->
+			eventList.sortedWith(Comparator<UIEvent> { a, b -> // does this sort in-place or no?
 				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
 			})
-
-			normalEvents[startOfDay] = sorted
 		}
 
 		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
-		_uiState.value = WidgetUIState.Available(normalEvents, allDayEvents)
+		_uiState.value = WidgetUIState.Available(daysAndEvents)
 
 		return uiState.value
 	}
