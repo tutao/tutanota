@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, getTypeString, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -671,6 +671,7 @@ export class BlobFacade {
 		archiveDownloader: ArchiveDownloaderFacade,
 	): Promise<void> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+		const typeRefString = getTypeString(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
@@ -686,7 +687,7 @@ export class BlobFacade {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, serverTypeModel.type, serverTypeModel.version)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version)
 				},
 				`can't load instances from server `,
 			)

@@ -18,7 +18,8 @@ export class ArchiveDownloaderFacadeReceiveDispatcher {
 				return this.facade.abortDownloadAndStoreArchive(archiveId)
 			}
 			case "clearStoredArchives": {
-				return this.facade.clearStoredArchives()
+				const typeref: string = arg[0]
+				return this.facade.clearStoredArchives(typeref)
 			}
 		}
 	}

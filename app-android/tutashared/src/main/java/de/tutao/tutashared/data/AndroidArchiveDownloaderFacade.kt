@@ -82,8 +82,8 @@ class AndroidArchiveDownloaderFacade (
 		}
 	}
 
-	override suspend fun clearStoredArchives() {
-		sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", listOf())
+	override suspend fun clearStoredArchives(typeref: String) {
+		sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE typeref = ?", typeref)
 		sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", listOf())
 	}
 
@@ -171,7 +171,7 @@ class AndroidArchiveDownloaderFacade (
 
 		private suspend fun store() {
 			if (!closed) {
-				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)".repeat(blobs.size - 1)
+				val query = "INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)".repeat(blobs.size - 1)
 				val params = Array(blobs.size) { _ -> 0 }
 					.flatMapIndexed { i, _ -> listOf(TaggedSqlValue.Str(blobs[i].blobId), archiveId, TaggedSqlValue.Bytes(DataWrapper(blobs[i].bytesToStore)), typeref, modelVersion) }
 				sqlCipherFacade.run(query, params)

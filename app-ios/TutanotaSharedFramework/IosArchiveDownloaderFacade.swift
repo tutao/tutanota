@@ -48,8 +48,8 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		TUTSLog("Aborted storing archive with id \(archiveId)")
 	}
 
-	public func clearStoredArchives() async throws {
-		try await sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
+	public func clearStoredArchives(_ typeref: String) async throws {
+		try await sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE typeref = ?", typeref)
 		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
 
@@ -120,7 +120,7 @@ private final class ArchiveStorageHelper {
 		if !self.closed {
 			let params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: self.blobs.count).enumerated()
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
+				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
 					+ String(repeating: ", (?, ?, ?, ?, ?)", count: self.blobs.count - 1),
 				params.flatMap { offset, _ in
 					[

@@ -34,7 +34,11 @@
 		},
 		"clearStoredArchives": {
 			"doc": "remove all cached blobs and archives, for example when finished indexing",
-			"arg": [],
+			"arg": [
+				{
+					"typeref": "string"
+				}
+			],
 			"ret": "void"
 		}
 	}

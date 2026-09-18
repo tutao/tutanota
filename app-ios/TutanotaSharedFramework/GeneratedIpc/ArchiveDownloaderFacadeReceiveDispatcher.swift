@@ -29,7 +29,9 @@ public final class ArchiveDownloaderFacadeReceiveDispatcher: Sendable {
 			)
 			return "null"
 		case "clearStoredArchives":
+			let typeref = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
 			try await self.facade.clearStoredArchives(
+				typeref
 			)
 			return "null"
 		default:

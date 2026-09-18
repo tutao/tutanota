@@ -17,5 +17,5 @@ export interface ArchiveDownloaderFacade {
 	/**
 	 * remove all cached blobs and archives, for example when finished indexing
 	 */
-	clearStoredArchives(): Promise<void>
+	clearStoredArchives(typeref: string): Promise<void>
 }

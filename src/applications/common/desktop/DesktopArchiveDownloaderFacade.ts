@@ -3,10 +3,12 @@ import { FetchImpl, toGlobalResponse } from "./net/NetAgent"
 import { tagSqlValue } from "../../../app-kit/local-store/SqlValue"
 import { first, isNotEmpty } from "@tutao/utils"
 import { TaggedSqlValue } from "../../../app-kit/local-store/Types"
+import { sql } from "../../../app-kit/local-store/Sql"
 
 const TAG = "[DesktopArchiveDownloaderFacade]"
 
 export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
+	// FIXME maybe combine maps
 	private activeRequests: Map<string, AbortController> = new Map()
 	private storageForArchive: Map<string, ArchiveStorageHelper> = new Map()
 
@@ -23,8 +25,11 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 		}
 	}
 
-	async clearStoredArchives(): Promise<void> {
-		await this.sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
+	async clearStoredArchives(typeref: string): Promise<void> {
+		{
+			const { query, params } = sql`DELETE FROM encrypted_blobs WHERE typeref = ${typeref}`
+			await this.sqlCipherFacade.run(query, params)
+		}
 		await this.sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
 
@@ -143,7 +148,7 @@ class ArchiveStorageHelper {
 	private async store() {
 		if (!this.closed) {
 			const query =
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" +
+				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" +
 				", (?, ?, ?, ?, ?)".repeat(this.blobs.length - 1)
 			const params = Array(this.blobs.length)
 				.fill(null)

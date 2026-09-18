@@ -26,5 +26,6 @@ public protocol ArchiveDownloaderFacade : Sendable {
 	 * remove all cached blobs and archives, for example when finished indexing
 	 */
 	func clearStoredArchives(
+		_ typeref: String
 	) async throws -> Void
 }

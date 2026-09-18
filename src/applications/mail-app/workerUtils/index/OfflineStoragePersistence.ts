@@ -19,12 +19,12 @@ import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
 import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
 import { GroupType } from "../../../../entities/sys/Utils"
-import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
+import { Contact, ContactTypeRef, Mail, MailAddress, MailGroupPostOutTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { deduplicate, delay, isEmpty, splitInChunks } from "@tutao/utils"
+import { delay, isEmpty, splitInChunks } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -84,12 +84,13 @@ mailAddresses
 		purgedWithCache: true,
 	},
 
-	// Encrypted, encoded mail details blobs.
+	// Encrypted, encoded blobs.
 	//
-	// This is for temporary storage to avoid storing all of the user's archives in RAM (which can potentially fail).
-	encrypted_mail_details_blobs: {
+	// This is for temporary storage when downloading entire archives (like when indexing mails for example) to avoid
+	// storing too many blobs in RAM (which can potentially fail).
+	encrypted_blobs: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_mail_details_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
 		purgedWithCache: true,
 	},
 
@@ -97,6 +98,7 @@ mailAddresses
 	//
 	// This is temporary and will be cleared once indexing is finished
 	fully_persisted_mail_details_archives: {
+		// FIXME make generic archives
 		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
 		purgedWithCache: true,
 	},
@@ -105,6 +107,7 @@ mailAddresses
 	//
 	// This is saved to prevent redownloading entire archives.
 	cached_mail_details_archives: {
+		// FIXME make generic archives
 		definition: "CREATE TABLE IF NOT EXISTS cached_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
 		purgedWithCache: true,
 	},
@@ -325,7 +328,7 @@ VALUES (
 		if (isEmpty(blobs)) {
 			return
 		}
-		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
+		const typeref = `${serverTypeModel.app}/${serverTypeModel.id}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
 		}
@@ -333,7 +336,7 @@ VALUES (
 		const versionParam = tagSqlValue(serverTypeModel.version)
 
 		for (const blobsChunked of splitInChunks(100, blobs)) {
-			let insertQuery = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
+			let insertQuery = "INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
 			let insertParameters = []
 			for (const blob of blobsChunked) {
 				const [archiveId, blobId] = blob.getValueByName("_id").asIdTuple()
@@ -357,7 +360,7 @@ VALUES (
 	private pendingEncryptedMailDetailsBlobItems: Set<Id> = new Set()
 
 	retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
-		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
+		const typeref = `${serverTypeModel.app}/${serverTypeModel.id}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
 		}
@@ -380,7 +383,7 @@ VALUES (
 				const blobItemsArray = Array.from(blobItems)
 				const blobIdQuery = "blobId = ?"
 				const baseQuery = `SELECT data, blobId
-							 FROM encrypted_mail_details_blobs
+							 FROM encrypted_blobs
 							 WHERE typeref = ?
 							   AND modelVersion = ?
 							   AND (${blobItemsArray.map((_) => blobIdQuery).join(" OR ")})`
@@ -416,19 +419,14 @@ VALUES (
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
 	}
 
-	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs WHERE blobId = ${blobId}`
-			await this.sqlCipherFacade.run(query, params)
-		}
-	}
-
 	async clearEncryptedMailDetailsBlobs(): Promise<void> {
+		const mailDetailsBlobTypeRef = getTypeString(MailGroupPostOutTypeRef)
+
 		// Prevent redownloading any archives we downloaded in this.
 		{
 			const { query, params } = sql`SELECT DISTINCT archiveId
-										  FROM encrypted_mail_details_blobs`
+										  FROM encrypted_blobs
+										  WHERE typeref = ${mailDetailsBlobTypeRef} `
 			const rows = await this.sqlCipherFacade.all(query, params)
 			const archives = rows.map(untagSqlObject).map(({ archiveId }) => archiveId as Id)
 			for (const archive of archives) {
@@ -439,7 +437,7 @@ VALUES (
 		// Now delete
 		{
 			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs`
+										  FROM encrypted_blobs WHERE typeref = ${mailDetailsBlobTypeRef}`
 			await this.sqlCipherFacade.run(query, params)
 		}
 	}
@@ -479,7 +477,7 @@ VALUES (
 
 			// First, let's get the preloaded count
 			{
-				const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_mail_details_blobs WHERE archiveId = ${archive}`
+				const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs WHERE archiveId = ${archive}`
 				const result = await this.sqlCipherFacade.get(query, params)
 				if (result != null) {
 					estimatedCount = untagSqlValue(result["total"]) as number

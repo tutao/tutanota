@@ -35,7 +35,9 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"clearStoredArchives" -> {
+				val typeref: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.clearStoredArchives(
+					typeref,
 				)
 				return json.encodeToString(result)
 			}
