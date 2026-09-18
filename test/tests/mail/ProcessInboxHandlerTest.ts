@@ -235,7 +235,7 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, false)
@@ -318,7 +318,7 @@ o.spec("ProcessInboxHandler", function () {
 				uploadableVector,
 				skipPredictionReason: SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier,
 			})
-			when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
@@ -356,7 +356,7 @@ o.spec("ProcessInboxHandler", function () {
 			o.check(targetFolder).deepEquals(inboxFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(anything(), anything()), { times: 0 })
+			verify(inboxRuleHandler.getMoveActionValue(anything(), anything()), { times: 0 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
 				classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
@@ -381,7 +381,7 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
@@ -389,7 +389,7 @@ o.spec("ProcessInboxHandler", function () {
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
+			verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
 				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -414,7 +414,7 @@ o.spec("ProcessInboxHandler", function () {
 				skipPredictionReason: SkipClientSpamClassificationReason.None,
 			})
 			when(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup))).thenResolve(false)
-			when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+			when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(matchingInboxRule)
 
 			const targetFolder = await processInboxHandler.handleIncomingMail(mail, inboxFolder, mailboxDetail, folderSystem, true)
@@ -422,7 +422,7 @@ o.spec("ProcessInboxHandler", function () {
 			o.check(targetFolder).deepEquals(trashFolder)
 			verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
+			verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 			const processInboxDatum: UnencryptedProcessInboxDatum = {
 				classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -454,14 +454,14 @@ o.spec("ProcessInboxHandler", function () {
 			})
 
 			o.test("when the inbox rule moves to Spam, keep mail in Spam and apply other result actions", async () => {
-				when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(spamFolder)
+				when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(spamFolder)
 
 				const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
-				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -476,16 +476,16 @@ o.spec("ProcessInboxHandler", function () {
 				verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]), { times: 1 })
 			})
 			o.test("when the inbox rule moves to a folder and doesn't have an ExcludeSpam result, don't apply inbox rule", async () => {
-				when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-				when(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)).thenReturn(false)
+				when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+				when(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)).thenReturn(false)
 
 				const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
-				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
-				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
@@ -500,16 +500,16 @@ o.spec("ProcessInboxHandler", function () {
 				verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]), { times: 1 })
 			})
 			o.test("when the inbox rule doesn't have a Move result nor an ExcludeSpam result, don't apply inbox rule", async () => {
-				when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(null)
-				when(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)).thenReturn(false)
+				when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(null)
+				when(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)).thenReturn(false)
 
 				const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 				o.check(targetFolder).deepEquals(spamFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
-				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
-				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
@@ -524,16 +524,16 @@ o.spec("ProcessInboxHandler", function () {
 				verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]), { times: 1 })
 			})
 			o.test("when the inbox rule moves to a folder and has an ExcludeSpam result, apply inbox rule", async () => {
-				when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
-				when(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)).thenReturn(true)
+				when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(trashFolder)
+				when(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)).thenReturn(true)
 
 				const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 				o.check(targetFolder).deepEquals(trashFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
-				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
-				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -548,16 +548,16 @@ o.spec("ProcessInboxHandler", function () {
 				verify(mailFacade.processNewMails(assertNotNull(mail._ownerGroup), [processInboxDatum]), { times: 1 })
 			})
 			o.test("when the inbox rule doesn't have a Move result but has an ExcludeSpam result, move mail to inbox and apply inbox rule", async () => {
-				when(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail)).thenResolve(null)
-				when(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule)).thenReturn(true)
+				when(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail)).thenResolve(null)
+				when(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule)).thenReturn(true)
 
 				const targetFolder = await processInboxHandler.handleIncomingMail(mail, spamFolder, mailboxDetail, folderSystem, true)
 
 				o.check(targetFolder).deepEquals(inboxFolder)
 				verify(spamHandler.predictSpamForNewMail(modelInput, assertNotNull(mail._ownerGroup)), { times: 1 })
 				verify(inboxRuleHandler.findMatchingInboxRule(mail, spamFolder), { times: 1 })
-				verify(inboxRuleHandler.getMoveResultValue(matchingInboxRule, mailboxDetail), { times: 1 })
-				verify(inboxRuleHandler.getExcludeSpamResultValue(matchingInboxRule), { times: 1 })
+				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
+				verify(inboxRuleHandler.getExcludeSpamActionValue(matchingInboxRule), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
@@ -619,7 +619,7 @@ o.spec("ProcessInboxHandler", function () {
 
 			o.check(targetFolder).deepEquals(inboxFolder)
 			verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything()), { times: 0 })
-			verify(inboxRuleHandler.getMoveResultValue(anything(), anything()), { times: 0 })
+			verify(inboxRuleHandler.getMoveActionValue(anything(), anything()), { times: 0 })
 		})
 
 		o.test("when there's a matching rule with a MOVE result, return the rule's move target", async function () {
@@ -627,13 +627,13 @@ o.spec("ProcessInboxHandler", function () {
 			mail.processNeeded = false
 
 			const matchingRule = object<SomeInboxRule>()
-			when(inboxRuleHandler.getMoveResultValue(matchingRule, mailboxDetail)).thenResolve(trashFolder)
+			when(inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail)).thenResolve(trashFolder)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, true)).thenResolve(matchingRule)
 
 			const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, true), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(matchingRule, mailboxDetail), { times: 1 })
+			verify(inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail), { times: 1 })
 			o.check(targetFolder).deepEquals(trashFolder)
 		})
 
@@ -642,13 +642,13 @@ o.spec("ProcessInboxHandler", function () {
 			mail.processNeeded = false
 
 			const matchingRule = object<SomeInboxRule>()
-			when(inboxRuleHandler.getMoveResultValue(matchingRule, mailboxDetail)).thenResolve(null)
+			when(inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail)).thenResolve(null)
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, true)).thenResolve(matchingRule)
 
 			const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, true), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(matchingRule, mailboxDetail), { times: 1 })
+			verify(inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail), { times: 1 })
 			o.check(targetFolder).deepEquals(inboxFolder)
 		})
 
@@ -661,7 +661,7 @@ o.spec("ProcessInboxHandler", function () {
 			const targetFolder = await processInboxHandler.getInboxRuleMoveTarget(mail, inboxFolder, mailboxDetail)
 
 			verify(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder, true), { times: 1 })
-			verify(inboxRuleHandler.getMoveResultValue(anything(), anything()), { times: 0 })
+			verify(inboxRuleHandler.getMoveActionValue(anything(), anything()), { times: 0 })
 			o.check(targetFolder).deepEquals(inboxFolder)
 		})
 	})

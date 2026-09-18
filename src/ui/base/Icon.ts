@@ -60,7 +60,7 @@ export class Icon implements Component<IconAttrs> {
 				title: vnode.attrs.title ?? null,
 				"aria-hidden": "true",
 				class: this.getClass(vnode.attrs),
-				icon: Icons.EyeFilled,
+				icon: vnode.attrs.icon,
 				style: this.getStyle(vnode.attrs.style ?? null),
 				// mithril lets us mute the normal redraw that occurs after
 				// event callbacks, but TS doesn't know
@@ -71,6 +71,7 @@ export class Icon implements Component<IconAttrs> {
 						e.redraw = false
 					}
 				},
+				"data-testid": `icon:${vnode.attrs.icon}`,
 			},
 			icon ? m.trust(icon) : null,
 			vnode.attrs.hoverText &&
