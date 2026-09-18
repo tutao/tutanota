@@ -2550,6 +2550,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"businessPlansNotAvailableForExternal_msg": "Abonnements für Geschäftskunden sind für Nutzer mit einer externen Zahlungsmethode nicht verfügbar."
 	}
 }

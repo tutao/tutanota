@@ -2549,3 +2549,4 @@ export type TranslationKeyType =
 	| "eventLocationLinkFailed_msg"
 	| "searchPlugins_placeholder"
 	| "emptyString_msg"
+	| "businessPlansNotAvailableForExternal_msg"
