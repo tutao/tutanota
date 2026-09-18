@@ -14,7 +14,7 @@ data class UIEvent(
 	val eventId: IdTuple?,
 	val calendarColor: String,
 	val summary: String,
-	val formattedStartTime: String,
+	val formattedStartTime: String, // formatted to what??
 	val formattedEndTime: String,
 	val isDisplayedAsAllDay: Boolean,
 	val isBirthday: Boolean = false,

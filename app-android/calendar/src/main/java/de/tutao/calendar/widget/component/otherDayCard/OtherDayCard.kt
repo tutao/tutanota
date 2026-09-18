@@ -19,11 +19,15 @@ import java.time.LocalDateTime
 @Composable
 fun OtherDayCard(
 	userId: String?,
-	normalEvents: List<UIEvent>,
-	allDayEvents: List<UIEvent>,
+	events: List<UIEvent>,
 	clickAction: Action,
 	currentDate: LocalDateTime
 ) {
+
+	// this is not yet possible
+	val normalEvents: List<UIEvent> = events.filter { uiEvent -> !uiEvent.isDisplayedAsAllDay }
+	val allDayEvents: List<UIEvent> = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay }
+
 
 	Card(clickAction) {
 		if (normalEvents.isEmpty() && allDayEvents.isNotEmpty()) {

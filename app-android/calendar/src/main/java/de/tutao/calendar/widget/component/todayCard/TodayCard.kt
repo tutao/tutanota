@@ -29,12 +29,14 @@ import java.time.LocalDateTime
 @Composable
 fun TodayCard(
 	userId: String?,
-	normalEvents: List<UIEvent>,
-	allDayEvents: List<UIEvent>,
+	events: List<UIEvent>,
 	cardAction: Action,
 	currentDay: LocalDateTime,
 	onNewEvent: Action
 ) {
+
+	val normalEvents = events.filter { uiEvent -> !uiEvent.isDisplayedAsAllDay }
+	val allDayEvents = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay }
 
 	Card(cardAction) {
 		Box(modifier = GlanceModifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
