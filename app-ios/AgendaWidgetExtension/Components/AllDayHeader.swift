@@ -9,7 +9,7 @@ import TutanotaSharedFramework
 import WidgetKit
 
 struct AllDayHeader: View {
-	var allDayEventsData: SimpleLongEventsData
+	var allDayEventsData: [UIEvent]
 
 	var body: some View {
 		HStack(alignment: .center) {

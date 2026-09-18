@@ -14,29 +14,18 @@ import TutanotaSharedFramework
  Keys are the epoch milliseconds (or seconds?) representing the start of a day.
  Values are an array of CalendarEventData for events occurring on that day.
  */
-typealias EventMap = [Double: [CalendarEventData]]
+typealias DaysToEventsList = [[UIEvent]]
 
-typealias LongEventsDataMap = [Double: SimpleLongEventsData]
-
-struct CalendarEventData: Equatable, Hashable, Encodable {
+struct UIEvent: Equatable, Hashable, Encodable {
+	var calendarId: String
 	var id: String
 	var summary: String
 	var startDate: Date
 	var endDate: Date
 	var calendarColor: String
 	var isBirthdayEvent: Bool
-}
-
-/**
- 	Data representing the Long Events and All Day events that will be displayed in the widget.
- 	(This may have been done to handle memory constraints due to how iOS Timeline functions.)
-
- 	- Parameter event: The *only* event that will have its data displayed in the widget.
- 	- Parameter count: The total number of events of this type, not all of which will have their info displayed.
- */
-struct SimpleLongEventsData: Equatable, Hashable, Encodable {
-	var event: CalendarEventData?
-	var count: Int
+	var isDisplayedAsAllDay: Bool
+	var timeString: String
 }
 
 struct WidgetModel {
@@ -46,6 +35,7 @@ struct WidgetModel {
 	init(userId: String) async throws { self.sdk = try await SdkFactory.createSdk(userId: userId) }
 
 	func replaceDateTimeZone(date: Date) -> Date {
+		// UTC would be better to use here but Apple's APIs don't provide it, so we use GMT here.
 		var gmtCalendar = Calendar.current
 		gmtCalendar.timeZone = TimeZone(secondsFromGMT: 0)!
 
@@ -67,88 +57,162 @@ struct WidgetModel {
 		return eventMidnightAtCurrentZone
 	}
 
-	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> (EventMap, LongEventsDataMap) {
+	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> DaysToEventsList {
 		printLog("Fetching \(calendars.count) calendars")
-		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
-		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
+		let dateInSeconds = UInt64(date.timeIntervalSince1970)
+		let endSeconds = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970)
 		let calendarFacade = self.sdk.calendarFacade()
 
-		let startOfToday = Calendar.current.startOfDay(for: date).timeIntervalSince1970
+		let currentCalendar = Calendar.current
 
-		var normalEvents: EventMap = [startOfToday: []]
-		var longEvents: LongEventsDataMap = [startOfToday: SimpleLongEventsData(event: nil, count: 0)]
+		// create a separate calendar that uses UTC times so we can get the UTC dates for all-day event calculations
+		var utcCalendar = Calendar.init(identifier: .gregorian)
+		// UTC would be better to use here but Apple's APIs don't provide it, so we use GMT here.  It is functionally the same.
+		utcCalendar.timeZone = TimeZone.gmt
+
+		// an array representing the current day and the next six days, to fill with events that appear on each day.
+		var daysAndEvents: DaysToEventsList = [[], [], [], [], [], [], []]
+
+		let widgetStartDate = date
+		let widgetStartDateComponents = currentCalendar.dateComponents([.day, .month, .year], from: widgetStartDate)
 
 		for calendar in calendars {
-			let eventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
-			eventsList.birthdayEvents.forEach { event in
-				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
-				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
-				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(
+				calendarId: calendar.id,
+				start: dateInSeconds * 1000, // getCalendarEvents requires start and end in milliseconds
+				end: endSeconds * 1000
+			)
 
-				let startOfEventDay = Calendar.current.startOfDay(for: self.replaceDateTimeZone(date: eventStart)).timeIntervalSince1970
+			let shortAndLongEvents = eventsList.shortEvents + eventsList.longEvents
 
-				let eventData = CalendarEventData(
-					id: eventId,
-					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
-					startDate: eventStart,
-					endDate: eventEnd,
-					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-					isBirthdayEvent: true
-				)
+			let dateFormatter = DateFormatter()
+			dateFormatter.setLocalizedDateFormatFromTemplate("HH:mm")
 
-				if longEvents.index(forKey: startOfEventDay) == nil || longEvents[startOfEventDay]?.event == nil {
-					longEvents.updateValue(SimpleLongEventsData(event: eventData, count: 1), forKey: startOfEventDay)
-					if normalEvents.index(forKey: startOfEventDay) == nil { normalEvents.updateValue([], forKey: startOfEventDay) }
-					return
-				}
+			for calendarEvent in shortAndLongEvents {
 
-				longEvents[startOfEventDay]?.count += 1
-			}
+				for dayIndex in stride(from: 0, to: daysAndEvents.count, by: 1) {
+					let currentDayMidnightDateInstant = currentCalendar.startOfDay(
+						for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!
+					)
+					let nextDayMidnightDateInstant = currentCalendar.startOfDay(
+						for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!
+					)
 
-			var normalEventCount = 0
-			(eventsList.shortEvents + eventsList.longEvents).sorted(by: { $0.startTime < $1.startTime })
-				.forEach { event in
-					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
-					let eventEnd = Date(timeIntervalSince1970: Double(event.endTime) / 1000)
-					let isAllDay =
-						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
-						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
+					let currentDayMidnightInstantMs = currentDayMidnightDateInstant.timeIntervalSince1970 * 1000
+					let nextDayMidnightInstantMs = nextDayMidnightDateInstant.timeIntervalSince1970 * 1000
 
-					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
+					let currentDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
+					let nextDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex + 1, to: widgetStartDate)!)
 
-					var referenceDate: Date
+					let calendarEventStartTimeMs = Double(calendarEvent.startTime)
+					let calendarEventEndTimeMs = Double(calendarEvent.endTime)
 
-					if isAllDay { referenceDate = self.replaceDateTimeZone(date: eventStart) } else { referenceDate = eventStart }
+					let calendarEventStartDate = Date.init(timeIntervalSince1970: calendarEventStartTimeMs / 1000)
+					let calendarEventEndDate = Date.init(timeIntervalSince1970: calendarEventEndTimeMs / 1000)
 
-					let startOfEventDay = Calendar.current.startOfDay(for: referenceDate).timeIntervalSince1970
-					if startOfEventDay >= startOfToday {
-						let eventData = CalendarEventData(
-							id: eventId,
-							summary: event.summary,
-							startDate: eventStart,
-							endDate: eventEnd,
-							calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-							isBirthdayEvent: false
-						)
+					var uiEventStartMax: Double
+					var uiEventEndMin: Double
 
-						if longEvents.index(forKey: startOfEventDay) == nil {
-							longEvents.updateValue(SimpleLongEventsData(event: nil, count: 0), forKey: startOfEventDay)
-							normalEvents.updateValue([], forKey: startOfEventDay)
-						}
+					// for each day in the days to events list, check and see if this event overlaps with the represented day.
+					if isAllDayEvent(startDate: calendarEventStartDate, endDate: calendarEventEndDate) {
+						// We consider the "start of day" as midnight UTC if the event is an all day event
+						uiEventStartMax = max(currentDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventStartTimeMs)
+						uiEventEndMin = min(nextDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventEndTimeMs)
+					} else {
+						// We consider the "start of day" as midnight in the device's configured time zone if it is a normal event.
+						uiEventStartMax = max(currentDayMidnightInstantMs, calendarEventStartTimeMs)
+						uiEventEndMin = min(nextDayMidnightInstantMs, calendarEventEndTimeMs)
+					}
 
-						if isAllDay {
-							if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
-							longEvents[startOfEventDay]?.count += 1
-						} else if normalEventCount <= 8 {
-							normalEvents[startOfEventDay]?.append(eventData)
-							normalEventCount += 1
+					let eventStartsAfterCurrentDay = uiEventStartMax >= uiEventEndMin
+					let eventEndsBeforeCurrentDay = uiEventEndMin <= uiEventStartMax
+
+					// if the event ends before today or starts after today, this means we don't add an entry for it in the current day.
+					// but there might be other days where we must add it.
+					if eventEndsBeforeCurrentDay || eventStartsAfterCurrentDay { continue }
+
+					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime) / 1000)
+					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime) / 1000)
+
+					let eventTakesEntireDay =
+						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
+
+					let eventStartsTodayAndEndsLater =
+						Double(calendarEvent.startTime) >= currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
+
+					let eventStartsBeforeTodayAndEndsToday =
+						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) < nextDayMidnightInstantMs
+
+					let isConsideredAllDay = isAllDayEvent(startDate: eventStartDate, endDate: eventEndDate) || eventTakesEntireDay
+
+					// Based on the above calculations, if the event is continuing from a previous day OR continues onto the next day we should say so.
+					var timeString: String {
+						if eventStartsBeforeTodayAndEndsToday {
+							return "Ends at " + eventEndDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
+						} else if eventStartsTodayAndEndsLater {
+							return "Starts at " + eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
+						} else {
+							// if the event starts and ends on the current day, display times normally
+							return eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)) + " - "
+								+ eventEndDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
 						}
 					}
+
+					// this eventId is used to find the event in tuta calendar if the user taps on the event in the widget.
+					let eventId = if let id = calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+
+					let uiEvent = UIEvent(
+						calendarId: calendar.id,
+						id: eventId,
+						summary: calendarEvent.summary,
+						startDate: eventStartDate,
+						endDate: eventEndDate,
+						calendarColor: calendar.color,
+						isBirthdayEvent: false,
+						isDisplayedAsAllDay: isConsideredAllDay,
+						timeString: timeString
+					)
+
+					daysAndEvents[dayIndex].append(uiEvent)
 				}
+			}
+
+			for birthdayEvent in eventsList.birthdayEvents {
+
+				let eventStartDate = Date.init(timeIntervalSince1970: Double(birthdayEvent.calendarEvent.startTime) / 1000)
+				let eventEndDate = Date.init(timeIntervalSince1970: Double(birthdayEvent.calendarEvent.endTime) / 1000)
+
+				let eventId = if let id = birthdayEvent.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+
+				let uiEvent = UIEvent(
+					calendarId: calendar.id,
+					id: eventId,
+					summary: getBirthdayEventTitle(name: birthdayEvent.contact.firstName, age: parseContactAge(birthdayIso: birthdayEvent.contact.birthdayIso)),
+					startDate: eventStartDate,
+					endDate: eventEndDate,
+					calendarColor: calendar.color,
+					isBirthdayEvent: true,
+					isDisplayedAsAllDay: true,
+					timeString: ""
+				)
+
+				// Needs to calculate based on only day month year of UTC date (i.e. all day event date).
+				let widgetStartDateComponents = currentCalendar.dateComponents([.day, .month, .year], from: widgetStartDate)
+				let widgetStartDateStartOfDayUTC = currentCalendar.date(from: widgetStartDateComponents)!
+
+				// calculate index differently here because we know birthday events only ever happen on one day.
+				// so there is no need to do much of the logic that was necessary for the non-birthday events.
+				let index = utcCalendar.dateComponents([.day], from: widgetStartDateStartOfDayUTC, to: eventStartDate).day!
+				daysAndEvents[index].append(uiEvent)
+
+			}
 		}
 
-		normalEvents.forEach { key, value in normalEvents[key] = value.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 } }
-		return (normalEvents, longEvents)
+		// sort all of the events so that they appear in chronological order within a widget day, regardless of what calendar they are in.
+		for (index, day) in daysAndEvents.enumerated() {
+			daysAndEvents[index] = day.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 }
+		}
+		return daysAndEvents
 	}
 
 	private func parseContactAge(birthdayIso: String?) -> Int? {
