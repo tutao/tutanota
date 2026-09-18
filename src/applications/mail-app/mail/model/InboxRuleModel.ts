@@ -1,7 +1,7 @@
 import {
 	createExpandedInboxRule,
+	createInboxRuleAction,
 	createInboxRuleCondition,
-	createInboxRuleResult,
 	ExpandedInboxRule,
 	ExpandedInboxRuleTypeRef,
 	InboxRule,
@@ -13,11 +13,12 @@ import { ProgrammingError } from "@tutao/app-env"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { createIdTupleWrapper, IdTupleWrapper } from "@tutao/entities/sys"
-import { InboxRuleResultType } from "../../../../entities/tutanota/Utils"
+import { InboxRuleActionType } from "../../../../entities/tutanota/Utils"
 import { mailLocator } from "../../mailLocator"
 import { getMailSetName } from "./MailUtils"
 import { MailModel } from "./MailModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 
 export class InboxRuleModel {
 	private usingLegacyInboxRules: boolean = true
@@ -61,16 +62,18 @@ export class InboxRuleModel {
 			// If targetFolder is Null, the folder had been deleted
 			const inboxRuleName = `${legacyInboxRule.value} -> ${isNotNull(targetFolder) ? getMailSetName(targetFolder) : lang.getTranslationText("deletedFolder_label")}`
 
-			const inboxRuleResults = [createInboxRuleResult({ type: InboxRuleResultType.MOVE, value: legacyInboxRule.targetFolder })]
+			const inboxRuleActions = [
+				createInboxRuleAction({ type: InboxRuleActionType.MOVE, value: isNull(targetFolder) ? null : legacyInboxRule.targetFolder }),
+			]
 			if (legacyInboxRule.excludeFromSpamFilter) {
-				inboxRuleResults.push(createInboxRuleResult({ type: InboxRuleResultType.EXCLUDE_SPAM, value: null }))
+				inboxRuleActions.push(createInboxRuleAction({ type: InboxRuleActionType.EXCLUDE_SPAM, value: null }))
 			}
 
 			const inboxRule = createExpandedInboxRule({
 				name: inboxRuleName,
 				conditions: [createInboxRuleCondition({ type: legacyInboxRule.type, value: legacyInboxRule.value })],
-				results: inboxRuleResults,
-				enabled: true,
+				actions: inboxRuleActions,
+				enabled: isNotNull(targetFolder),
 			})
 
 			await this.createInboxRule(inboxRule)
