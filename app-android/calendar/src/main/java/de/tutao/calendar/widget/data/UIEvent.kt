@@ -17,5 +17,6 @@ data class UIEvent(
 	val formattedStartTime: String,
 	val formattedEndTime: String,
 	val isDisplayedAsAllDay: Boolean,
-	val isBirthday: Boolean = false
+	val isBirthday: Boolean = false,
+	val continuesOnNextDay: Boolean = false
 )

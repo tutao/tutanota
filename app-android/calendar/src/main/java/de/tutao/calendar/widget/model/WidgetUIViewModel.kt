@@ -45,6 +45,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 import java.util.Calendar
 import java.util.Date
 import kotlin.time.measureTimedValue
@@ -113,13 +114,16 @@ class WidgetUIViewModel(
 			.atStartOfDay(zoneId)
 			.toInstant()
 
+
+		// if a multiday event continues onto the next day, create a day entry for the next day and insert the event into it. (unless the next day is outside of the loaded widget range)
 		calendarToEventsListMap.forEach { (calendarId, eventList) ->
 			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
 
 			val shortAndLongEvents = eventList.shortEvents.plus(eventList.longEvents)
 
+			// at this point, only one CalendarEventDao exists for each event, even if the event progenitor continues for multiple days.
 			shortAndLongEvents.forEach { loadedEvent ->
-				val event = this.makeUiEvent(
+				val uiEvent = this.makeUiEvent(
 					loadedEvent,
 					todayMidnight,
 					tomorrowMidnight,
@@ -129,7 +133,7 @@ class WidgetUIViewModel(
 				)
 
 				val eventStartAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
-				val eventStartDate = if (event.isDisplayedAsAllDay) {
+				val eventStartDate = if (uiEvent.isDisplayedAsAllDay) {
 					eventStartAsInstant.atZone(ZoneId.of(ZoneOffset.UTC.id)).toLocalDate()
 				} else {
 					val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
@@ -142,10 +146,41 @@ class WidgetUIViewModel(
 						allDayEvents[eventStartDate] = listOf()
 					}
 
-					if (event.isDisplayedAsAllDay) {
-						allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plusElement(event)
+					if (uiEvent.isDisplayedAsAllDay) {
+						allDayEvents[eventStartDate] = allDayEvents[eventStartDate]!!.plusElement(uiEvent)
 					} else {
-						normalEvents[eventStartDate] = normalEvents[eventStartDate]!!.plusElement(event)
+						normalEvents[eventStartDate] = normalEvents[eventStartDate]!!.plusElement(uiEvent)
+
+						// create UI events for widget in days on which the multiday event continues, until reaching a point where the event does not continue tomorrow, or the widget range does not continue tomorrow.
+						var tempTomorrowMidnight = tomorrowMidnight
+						val widgetEndRange = this.calendar.toInstant().plus(8, ChronoUnit.DAYS)
+						val loadedEventEndInstant = Instant.ofEpochMilli(loadedEvent.endTime.toLong())
+						while (tempTomorrowMidnight.isBefore(loadedEventEndInstant) && tempTomorrowMidnight < widgetEndRange) {
+							Log.i(
+								TAG,
+								"looping for temp tomorrow midnight $tempTomorrowMidnight and loadedEventEndInstant $loadedEventEndInstant endRange $widgetEndRange and loadedEvent.endTime ${loadedEvent.endTime}"
+							)
+							val tomorrowKey = tempTomorrowMidnight.atZone(zoneId).toLocalDate()
+							var uiEvents = normalEvents[tomorrowKey]
+							if (uiEvents == null) {
+								uiEvents = listOf()
+								normalEvents[tomorrowKey] = uiEvents
+							}
+
+							val nextDayMidnight = tempTomorrowMidnight.plus(1, ChronoUnit.DAYS)
+							uiEvents.plus(
+								this.makeUiEvent(
+									loadedEvent,
+									tempTomorrowMidnight,
+									nextDayMidnight,
+									zoneId,
+									calendarId,
+									settings
+								)
+							)
+
+							tempTomorrowMidnight = nextDayMidnight
+						}
 					}
 				}
 			}
@@ -219,7 +254,11 @@ class WidgetUIViewModel(
 			Log.i(TAG, "[$widgetId] Widget last sync at $lastSync")
 
 			sdk?.let { sdk ->
-				syncCalendarsColors(widgetDataStore, sdk, settings) // Silently fails so it doens't prevent events loading
+				syncCalendarsColors(
+					widgetDataStore,
+					sdk,
+					settings
+				) // Silently fails so it doens't prevent events loading
 			}
 			calendars = settings.calendars.keys.toList()
 		} catch (e: Exception) {
@@ -261,7 +300,7 @@ class WidgetUIViewModel(
 		tomorrowMidnight: Instant?,
 		zoneId: ZoneId?,
 		calendarId: GeneratedId,
-		settings: SettingsDao
+		settings: SettingsDao,
 	): UIEvent {
 		val eventStartAsInstant = Instant.ofEpochMilli(loadedEvent.startTime.toLong())
 		val eventEndAsInstant = Instant.ofEpochMilli(loadedEvent.endTime.toLong())
@@ -308,7 +347,7 @@ class WidgetUIViewModel(
 						calendars,
 						credentials,
 						loggedInSdk,
-						cryptoFacade
+						cryptoFacade,
 					)
 				}
 				Log.d(TAG, "[$widgetId] LoadEvents time: $time")
@@ -319,7 +358,8 @@ class WidgetUIViewModel(
 				// to the user.
 				Log.e(
 					TAG,
-					"[$widgetId] Missing credentials for user ${settings.userId} when trying to load widget content}", e
+					"[$widgetId] Missing credentials for user ${settings.userId} when trying to load widget content}",
+					e
 				)
 				return repository.loadEventsFromCache(
 					widgetCacheDataStore,
@@ -357,7 +397,11 @@ class WidgetUIViewModel(
 		val lastSync: LastSyncDao?,
 	)
 
-	private suspend fun syncCalendarsColors(widgetDataStore: DataStore<Preferences>, sdk: Sdk, settings: SettingsDao) {
+	private suspend fun syncCalendarsColors(
+		widgetDataStore: DataStore<Preferences>,
+		sdk: Sdk,
+		settings: SettingsDao
+	) {
 		try {
 			Log.i(TAG, "[$widgetId] Fetching new calendar data from server")
 			val loadedCalendars = repository.loadCalendars(settings.userId, credentialsFacade, sdk)
