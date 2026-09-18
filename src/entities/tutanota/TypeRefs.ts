@@ -7272,19 +7272,19 @@ export type InboxRuleCondition = {
 	_original: Nullable<InboxRuleCondition>
 	isAdapter: false
 }
-export const InboxRuleResultTypeRef: TypeRef<InboxRuleResult> = new TypeRef("tutanota", 1999)
+export const InboxRuleActionTypeRef: TypeRef<InboxRuleAction> = new TypeRef("tutanota", 1999)
 
-export function createInboxRuleResult(values: InboxRuleResultParams): InboxRuleResult {
-	return Object.assign(create(typeModels[InboxRuleResultTypeRef.typeId], InboxRuleResultTypeRef), values)
+export function createInboxRuleAction(values: InboxRuleActionParams): InboxRuleAction {
+	return Object.assign(create(typeModels[InboxRuleActionTypeRef.typeId], InboxRuleActionTypeRef), values)
 }
 
-export type InboxRuleResultParams = {
+export type InboxRuleActionParams = {
 	type: string
 
 	value: null | IdTuple
 }
 
-export type InboxRuleResult = {
+export type InboxRuleAction = {
 	// == values
 
 	_id: Id
@@ -7305,8 +7305,8 @@ export type InboxRuleResult = {
 	ownerEncSessionKeyVersion: null
 
 	// === these are not present in metamodel
-	_type: TypeRef<InboxRuleResult>
-	_original: Nullable<InboxRuleResult>
+	_type: TypeRef<InboxRuleAction>
+	_original: Nullable<InboxRuleAction>
 	isAdapter: false
 }
 export const ExpandedInboxRuleTypeRef: TypeRef<ExpandedInboxRule> = new TypeRef("tutanota", 2003)
@@ -7320,7 +7320,7 @@ export type ExpandedInboxRuleParams = {
 	enabled: boolean
 
 	conditions: InboxRuleCondition[]
-	results: InboxRuleResult[]
+	actions: InboxRuleAction[]
 }
 
 export type ExpandedInboxRule = {
@@ -7339,7 +7339,7 @@ export type ExpandedInboxRule = {
 	// == associations
 
 	conditions: InboxRuleCondition[]
-	results: InboxRuleResult[]
+	actions: InboxRuleAction[]
 
 	//== some entities have these and some don't
 

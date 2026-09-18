@@ -166,6 +166,7 @@ class LabelsDropdown implements ModalComponent {
 							"label-item.flex.items-center.plr-12.state-bg.cursor-pointer",
 
 							{
+								title: name,
 								"data-labelid": getElementId(value),
 								role: AriaRole.MenuItemCheckbox,
 								tabindex: TabIndex.Default,
