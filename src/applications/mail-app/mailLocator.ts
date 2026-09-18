@@ -57,7 +57,7 @@ import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivity
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, onceAsync } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -78,7 +78,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -171,6 +171,7 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
+import { DriveFileShareDialog } from "../drive-app/drive/view/DriveFileShareDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -1604,6 +1605,11 @@ class MailLocator implements CommonLocator {
 		const { ContactEditor } = await import("./contacts/ContactEditor.js")
 		return new ContactEditor(this.entityClient, contact)
 	}
+
+	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
+		const { DriveFileShareDialog } = await import("../drive-app/drive/view/DriveFileShareDialog.js")
+		return new DriveFileShareDialog(this.driveFacade)
+	})
 }
 
 export type IMailLocator = Readonly<MailLocator>

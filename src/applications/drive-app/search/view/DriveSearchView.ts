@@ -14,7 +14,7 @@ import { createDropdown } from "../../../../ui/base/Dropdown"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatDate } from "../../../../ui/utils/Formatter"
-import { isEmpty, isNotEmpty, isNotNull, isSameDayOfDate, lazyMemoized } from "@tutao/utils"
+import { isEmpty, isNotEmpty, isNotNull, isSameDayOfDate, lazyAsync, lazyMemoized } from "@tutao/utils"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -60,7 +60,7 @@ import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { DriveFilePicker } from "../../drive/view/DriveFilePicker"
 import { FileType } from "../../drive/model/DriveMimeUtils"
-import { showFileShareDialog } from "../../drive/view/DriveFileShareDialog"
+import { DriveFileShareDialog } from "../../drive/view/DriveFileShareDialog"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -70,6 +70,7 @@ export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	filePicker: DriveFilePicker
 	bottomNav?: () => Children
 	sendFileViaMail: MailFileSender | null
+	fileShareDialog: lazyAsync<DriveFileShareDialog>
 }
 
 /**
@@ -85,17 +86,17 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 	private startOfTheWeekOffset: number
 	private operationUpdatesSubscription: Stream<unknown> | null = null
 
-	constructor(vnode: Vnode<DriveSearchViewAttrs>) {
+	constructor({ attrs }: Vnode<DriveSearchViewAttrs>) {
 		super()
-		this.searchViewModel = vnode.attrs.makeViewModel()
-		this.showMoveItemDialog = vnode.attrs.showMoveItemDialog
-		this.filePicker = vnode.attrs.filePicker
+		this.searchViewModel = attrs.makeViewModel()
+		this.showMoveItemDialog = attrs.showMoveItemDialog
+		this.filePicker = attrs.filePicker
 		this.startOfTheWeekOffset = this.searchViewModel.getStartOfTheWeekOffset()
 		this.filtersColumn = new ViewColumn(
 			{
 				view: () => {
 					return m(FolderColumnView, {
-						drawer: vnode.attrs.drawerAttrs,
+						drawer: attrs.drawerAttrs,
 						button: isMobileDriveLayout()
 							? null
 							: {
@@ -137,7 +138,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 						backgroundColor: theme.surface_container,
 						desktopToolbar: () => [],
 						columnLayout: [
-							this.renderFolderView(listState, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail),
+							this.renderFolderView(listState, attrs.showMoveItemDialog, attrs.sendFileViaMail, attrs.fileShareDialog),
 							m(DriveTransferStack, {
 								driveTransfers: this.searchViewModel.transfers(),
 								cancelTransfer: (transferId) => this.searchViewModel.cancelTransfer(transferId),
@@ -146,7 +147,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 								retryFailedTransfers: () => this.searchViewModel.retryFailedTransfers(),
 							} satisfies DriveTransferStackAttrs),
 						],
-						mobileHeader: () => this.renderMobileListHeader(vnode.attrs.header),
+						mobileHeader: () => this.renderMobileListHeader(attrs.header),
 					})
 				},
 			},
@@ -523,6 +524,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		listState: ListState<FolderItem>,
 		showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown,
 		sendFileViaMail: MailFileSender | null,
+		fileShareDialog: lazyAsync<DriveFileShareDialog>,
 	) {
 		const selectionEvents = this.searchViewModel.selectionEvents
 		const fileActions: FileActions = {
@@ -549,7 +551,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 					this.searchViewModel.moveItems(items, destinationFolder._id),
 				),
 			onSendAsEmail: sendFileViaMail ? (item) => sendFileViaMail(item.file) : null,
-			onShare: (item) => showFileShareDialog(item),
+			onShare: async (item) => (await fileShareDialog()).show(item),
 		}
 		return m(
 			"div.col.flex.plr-8.fill-absolute..overflow-y-scroll",

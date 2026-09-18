@@ -41,7 +41,7 @@ import { EnterMultiselectIconButton } from "../../../../ui/EnterMultiselectIconB
 import { FolderFolderItem, FolderItem, FolderItemId, folderItemToId, OperationUpdate, toFolderItem } from "./DriveUtils"
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import Stream from "mithril/stream"
-import { isNotEmpty, isNotNull } from "@tutao/utils"
+import { isNotEmpty, isNotNull, lazyAsync } from "@tutao/utils"
 import { PickedDestinationAction } from "./DriveItemPicker"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
@@ -60,7 +60,7 @@ import { DriveMobileSortButton } from "./DriveMobileSortButton"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { showFileShareDialog } from "./DriveFileShareDialog"
+import { DriveFileShareDialog } from "./DriveFileShareDialog"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -72,6 +72,7 @@ export interface DriveViewAttrs extends TopLevelAttrs {
 	bottomNav?: () => Children
 	filePicker: DriveFilePicker
 	sendFileViaMail: MailFileSender | null
+	fileShareDialog: lazyAsync<DriveFileShareDialog>
 }
 
 export class DriveView extends BaseTopLevelView implements TopLevelView<DriveViewAttrs> {
@@ -137,7 +138,12 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 			this.driveViewModel.moveItems(items, destinationId)
 		}
 		this.driveNavColumn = this.createDriveNavColumn(vnode.attrs.drawerAttrs, onTrash, onMove) // this is where we see the left bar
-		this.currentFolderColumn = this.createCurrentFolderColumn(vnode.attrs.header, vnode.attrs.showMoveItemDialog, vnode.attrs.sendFileViaMail) // this where we see the files of the selected folder being listed
+		this.currentFolderColumn = this.createCurrentFolderColumn(
+			vnode.attrs.header,
+			vnode.attrs.showMoveItemDialog,
+			vnode.attrs.sendFileViaMail,
+			vnode.attrs.fileShareDialog,
+		) // this where we see the files of the selected folder being listed
 		this.viewSlider = new ViewSlider([this.driveNavColumn, this.currentFolderColumn], windowFacade)
 
 		this.shortcuts = [
@@ -393,6 +399,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		headerAttrs: AppHeaderAttrs,
 		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
 		sendFileAsMail: MailFileSender | null,
+		fileShareDialog: lazyAsync<DriveFileShareDialog>,
 	) {
 		return new ViewColumn(
 			{
@@ -406,7 +413,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 						},
 						desktopToolbar: () => [],
 						columnLayout: [
-							this.renderFolderView(listState, showMoveItemDialog, sendFileAsMail),
+							this.renderFolderView(listState, showMoveItemDialog, sendFileAsMail, fileShareDialog),
 							m(DriveTransferStack, {
 								driveTransfers: this.driveViewModel.transfers(),
 								cancelTransfer: (transferId) => this.driveViewModel.cancelTransfer(transferId),
@@ -506,6 +513,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 		listState: ListState<FolderItem>,
 		showMoveItemDialog: DriveViewAttrs["showMoveItemDialog"],
 		sendFileAsMail: MailFileSender | null,
+		fileShareDialog: lazyAsync<DriveFileShareDialog>,
 	): Children {
 		return m(DriveFolderView, {
 			selectedItemsActions: this.selectedItemsActions(listState, showMoveItemDialog),
@@ -561,7 +569,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 					})
 				},
 				onSendAsEmail: sendFileAsMail ? (item) => sendFileAsMail(item.file) : null,
-				onShare: (item) => showFileShareDialog(item),
+				onShare: async (item) => (await fileShareDialog()).show(item),
 			},
 			onMove: (items: FolderItemId[], into: FolderFolderItem) => {
 				this.driveViewModel.moveItems(items, into.folder._id)

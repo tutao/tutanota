@@ -10,16 +10,24 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { locator } from "../../../common/api/main/CommonLocator"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
-import type { DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { DriveFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
+import { progressIcon } from "../../../../ui/base/Icon"
 
-export async function showFileShareDialog(item: FileFolderItem) {
-	const cryptoFacade = locator.cryptoFacade
-	const driveFacade = locator.driveFacade
+type ShareDialogState = "busy" | "done"
 
+export class DriveFileShareDialog {
+	constructor(private readonly driveFacade: DriveFacade) {}
+
+	show(item: FileFolderItem) {
+		void showFileShareDialog(this.driveFacade, item)
+	}
+}
+
+async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderItem) {
 	let shareInfo: DriveShareInfo | null = item.file.share ? await driveFacade.getShareInfo(item.file) : null
+	let state: ShareDialogState = "done"
 
 	const dialog = new Dialog(
 		DialogType.EditMedium,
@@ -34,20 +42,18 @@ export async function showFileShareDialog(item: FileFolderItem) {
 						shareInfo == null
 							? [
 									m(
-										"",
-										m(PrimaryButton, {
-											style: {
-												margin: "8px auto 0 auto",
-											},
-											width: "flex",
-											// FIXME
-											label: lang.makeTranslation("createLink_action", "Create a share link"),
-											onclick: async () => {
-												// FIXME: show progress
-												shareInfo = await driveFacade.createShareLink(item.file)
-												m.redraw()
-											},
-										}),
+										".flex.col.items-center",
+										state === "busy"
+											? progressIcon()
+											: m(PrimaryButton, {
+													style: {
+														margin: "8px auto 0 auto",
+													},
+													width: "flex",
+													// FIXME
+													label: lang.makeTranslation("createLink_action", "Create a share link"),
+													onclick: () => void this.createShareLink(),
+												}),
 									),
 								]
 							: m(".flex.col", [
@@ -89,6 +95,15 @@ export async function showFileShareDialog(item: FileFolderItem) {
 								]),
 					]),
 				])
+			}
+			private async createShareLink() {
+				state = "busy"
+				try {
+					shareInfo = await driveFacade.createShareLink(item.file)
+				} finally {
+					state = "done"
+					m.redraw()
+				}
 			}
 		},
 	)

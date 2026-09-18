@@ -27,7 +27,7 @@ import { PageContextLoginListener } from "../common/api/main/PageContextLoginLis
 import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivityModel.js"
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
-import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp, onceAsync } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -128,6 +128,7 @@ import { SearchRouter } from "../common/search/view/SearchRouter"
 import { DriveModel } from "./drive/model/DriveModel"
 import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
+import { DriveFileShareDialog } from "./drive/view/DriveFileShareDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -1091,6 +1092,11 @@ class DriveLocator implements CommonLocator {
 				driveOperations,
 			)
 	}
+
+	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
+		const { DriveFileShareDialog } = await import("./drive/view/DriveFileShareDialog")
+		return new DriveFileShareDialog(this.driveFacade)
+	})
 }
 
 export type IDriveLocator = Readonly<DriveLocator>

@@ -723,6 +723,7 @@ import("../../ui/translations/en.js")
 							bottomNav: cache.bottomNav,
 							filePicker: cache.filePicker,
 							sendFileViaMail: sendDriveFileViaMail,
+							fileShareDialog: mailLocator.driveFileShareDialog,
 						}
 					},
 				},
@@ -812,6 +813,7 @@ import("../../ui/translations/en.js")
 						showMoveItemDialog: (items, moveItems) => mailLocator.showMoveItemDialog(items, moveItems),
 						filePicker,
 						sendFileViaMail: sendDriveFileViaMail,
+						fileShareDialog: mailLocator.driveFileShareDialog,
 					}),
 				},
 				mailLocator.logins,
