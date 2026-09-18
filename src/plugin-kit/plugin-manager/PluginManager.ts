@@ -38,8 +38,7 @@ export class PluginManager {
 			const { pluginId, customerConfigJson } = enabledPlugin
 			const pluginHost = new PluginHost(this, pluginId)
 			const pluginApi = PluginApi.newPluginFromFile(pluginId, pluginHost)
-			const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
-			await pluginApi.load(pluginFilePath, customerConfigJson)
+			await pluginApi.load(customerConfigJson)
 
 			this.loadedPlugins[pluginId] = { pluginId, globalConfigJson: customerConfigJson, api: pluginApi, pluginHost }
 		}

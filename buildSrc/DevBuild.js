@@ -140,7 +140,6 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 				app: entry,
 				worker,
 				"pow-worker": "src/applications/common/api/common/pow-worker.ts",
-				"plugin-loader": "src/plugin-kit/sdk/PluginLoader.ts",
 			},
 			transform: {
 				define: {
@@ -178,7 +177,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 
 async function buildPlugins(buildDir) {
 	const bundle = await rolldown({
-		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/Plugin.js" },
+		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js" },
 	})
 	await bundle.write({
 		dir: `./${buildDir}/plugin-kit/plugins/`,
