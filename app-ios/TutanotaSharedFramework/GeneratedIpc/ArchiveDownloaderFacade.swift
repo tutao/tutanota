@@ -4,27 +4,23 @@
 import Foundation
 
 /**
- * download archives and write them to the database.
+ * Download archives and write them to offline database.
  */
 public protocol ArchiveDownloaderFacade : Sendable {
 	/**
-	 * download an archive and store it to the local db
+	 * Download an archive and store it (without decryption) in offline DB
 	 */
 	func downloadAndStoreArchive(
 		_ sourceUrl: String,
 		_ archiveId: String,
 		_ typeref: String,
-		_ modelVersion: Int
+		_ modelVersion: Int,
+		_ rangeHeader: ArchiveDownloadRangeHeader?
 	) async throws -> Void
 	/**
-	 * abort downloading or storing an archive
+	 * Abort downloading or storing an archive
 	 */
 	func abortDownloadAndStoreArchive(
 		_ archiveId: String
-	) async throws -> Void
-	/**
-	 * remove all cached blobs and archives, for example when finished indexing
-	 */
-	func clearStoredArchives(
 	) async throws -> Void
 }

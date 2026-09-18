@@ -23,7 +23,7 @@ import {
 	uint8ArrayToString,
 } from "@tutao/utils"
 import { CancelledError, EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { BlobElementEntity, getTypeString, PersistentEntity, TypeRef } from "@tutao/meta"
 import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
@@ -50,8 +50,9 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
-import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeader } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { ArchiveDownloadResumeParams } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -669,13 +670,26 @@ export class BlobFacade {
 		typeRef: TypeRef<T>,
 		archiveId: Id,
 		archiveDownloader: ArchiveDownloaderFacade,
+		resumeParams: ArchiveDownloadResumeParams | null,
 	): Promise<void> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+		const typeRefString = getTypeString(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
-		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
 		const serversToTry = blobServerAccessInfo.servers
 
+		let rangeHeader: ArchiveDownloadRangeHeader | null = null
+		if (resumeParams != null) {
+			// try to resume from the last-used server first
+			const resumeServerIndex = blobServerAccessInfo.servers.findIndex(({ url }) => new URL(url).hostname === resumeParams.serverHostname)
+			if (resumeServerIndex !== -1) {
+				rangeHeader = resumeParams.rangeHeader
+				const resumeServer = getFirstOrThrow(serversToTry.splice(resumeServerIndex, 1))
+				serversToTry.unshift(resumeServer)
+			}
+		}
+
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
 		// blob element types are accessed with a specific rest path
 		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
 
@@ -686,7 +700,7 @@ export class BlobFacade {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, serverTypeModel.type, serverTypeModel.version)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, rangeHeader)
 				},
 				`can't load instances from server `,
 			)

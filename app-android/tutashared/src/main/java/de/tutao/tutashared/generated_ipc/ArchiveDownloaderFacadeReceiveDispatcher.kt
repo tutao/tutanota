@@ -19,11 +19,13 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 				val archiveId: String = json.decodeFromString(arg[1])
 				val typeref: String = json.decodeFromString(arg[2])
 				val modelVersion: Long = json.decodeFromString(arg[3])
+				val rangeHeader: ArchiveDownloadRangeHeader? = json.decodeFromString(arg[4])
 				val result: Unit = this.facade.downloadAndStoreArchive(
 					sourceUrl,
 					archiveId,
 					typeref,
 					modelVersion,
+					rangeHeader,
 				)
 				return json.encodeToString(result)
 			}
@@ -31,11 +33,6 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 				val archiveId: String = json.decodeFromString(arg[0])
 				val result: Unit = this.facade.abortDownloadAndStoreArchive(
 					archiveId,
-				)
-				return json.encodeToString(result)
-			}
-			"clearStoredArchives" -> {
-				val result: Unit = this.facade.clearStoredArchives(
 				)
 				return json.encodeToString(result)
 			}

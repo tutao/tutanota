@@ -13,11 +13,26 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		self.urlSession = urlSession
 	}
 
-	public func downloadAndStoreArchive(_ sourceUrl: String, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
+	public func downloadAndStoreArchive(
+		_ sourceUrl: String,
+		_ archiveId: String,
+		_ typeref: String,
+		_ modelVersion: Int,
+		_ rangeHeader: ArchiveDownloadRangeHeader?
+	) async throws {
 		let urlStruct = URL(string: sourceUrl)!
 		var request = URLRequest(url: urlStruct)
 		request.httpMethod = "GET"
-		request.allHTTPHeaderFields = ["Accept": "text/csv;charset=utf-8", "Content-Type": "application/json", "Cache-Control": "no-cache"]
+		var headers = ["Accept": "text/csv;charset=utf-8", "Content-Type": "application/json", "Cache-Control": "no-cache"]
+		if rangeHeader != nil {
+			TUTSLog("Trying to resume downloading archive with id \(archiveId) from row \(rangeHeader!.rangeStart)")
+			headers["Range"] = "rows=\(rangeHeader!.rangeStart)-"
+			headers["Repr-Digest"] = "sha-256=:\(rangeHeader!.reprDigest):"
+		} else {
+			TUTSLog("Not trying to resume downloading archive with id \(archiveId); starting from first row instead")
+		}
+
+		request.allHTTPHeaderFields = headers
 		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
@@ -35,8 +50,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		{ throw CancelledError(message: "Download task was canceled", underlyingError: error) }
 
 		let httpResponse = response as! HTTPURLResponse
-		if httpResponse.statusCode == 200 {
-			do { try await storeArchive(bytes, archiveId, typeref, modelVersion) } catch {
+		if httpResponse.statusCode == 200 || httpResponse.statusCode == 206 {
+			if httpResponse.statusCode == 200 {
+				TUTSLog("Received status code 200, clearing cached blobs for archive with id \(archiveId)")
+				try await sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE archiveId = ?", [TaggedSqlValue.string(value: archiveId)])
+			}
+
+			do { try await storeArchive(bytes, archiveId, typeref, modelVersion, urlStruct.host()!) } catch {
 				TUTSLog("Storing archive with id \(archiveId) failed, cancelling request")
 				self.cancelRequest(archiveId)
 			}
@@ -44,34 +64,36 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	}
 
 	public func abortDownloadAndStoreArchive(_ archiveId: String) async throws {
-		self.activeJobsLock.withLock { $0[archiveId]?.cancel() }
+		self.activeJobsLock.withLock {
+			if $0[archiveId] != nil && $0[archiveId]!.state != URLSessionTask.State.canceling && $0[archiveId]!.state != URLSessionTask.State.completed {
+				do { $0[archiveId]!.cancel() }
+			}
+		}
 		TUTSLog("Aborted storing archive with id \(archiveId)")
 	}
 
-	public func clearStoredArchives() async throws {
-		try await sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
-		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
-	}
+	private func cancelRequest(_ archiveId: String) { self.activeJobsLock.withLock { do { $0[archiveId]?.cancel() } } }
 
-	private func cancelRequest(_ archiveId: String) { self.activeJobsLock.withLock { $0[archiveId]?.cancel() } }
-
-	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
+	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ typeref: String, _ modelVersion: Int, _ serverHostname: String)
+		async throws
+	{
 		TUTSLog("Started storing archive with id \(archiveId)")
 		var iterator = bytes.lines.makeAsyncIterator()
 
-		let storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, self.sqlCipherFacade)
+		let storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, serverHostname, self.sqlCipherFacade)
+		try await storage.initialize()
 
 		// skip first line
-		try await iterator.next()
+		_ = try await iterator.next()
 		var line = try await iterator.next()
 
 		while line != nil {
 			let split = line!.split(separator: ";", maxSplits: 1)
-			try await storage.storeBlob(blobId: String(split[0]), bytesToStore: Data([UInt8](split[1].utf8)))
+			try await storage.storeBlob(blobId: String(split[0]), json: String(split[1]))
 			line = try await iterator.next()
 		}
 
-		try await storage.success()
+		try await storage.flushAndClose()
 		TUTSLog("Finished storing archive with id \(archiveId)")
 	}
 }
@@ -81,14 +103,16 @@ private final class ArchiveStorageHelper {
 	private let rawArchiveId: String
 	private let typeref: TaggedSqlValue
 	private let modelVersion: TaggedSqlValue
+	private let serverHostname: TaggedSqlValue
 	private let sqlCipherFacade: IosSqlCipherFacade
 	static private let CACHE_BUFFER_SIZE = 4 * 1024 * 1024
 
-	init(_ archiveId: String, _ typeref: String, _ modelVersion: Int, _ sqlCipherFacade: IosSqlCipherFacade) {
+	init(_ archiveId: String, _ typeref: String, _ modelVersion: Int, _ serverHostname: String, _ sqlCipherFacade: IosSqlCipherFacade) {
 		self.archiveId = TaggedSqlValue.string(value: archiveId)
 		self.rawArchiveId = archiveId
 		self.typeref = TaggedSqlValue.string(value: typeref)
 		self.modelVersion = TaggedSqlValue.number(value: modelVersion)
+		self.serverHostname = TaggedSqlValue.string(value: serverHostname)
 		self.sqlCipherFacade = sqlCipherFacade
 	}
 
@@ -97,35 +121,36 @@ private final class ArchiveStorageHelper {
 	private var blobs: [StoreBlob] = []
 	private var closed = false
 
-	func storeBlob(blobId: String, bytesToStore: Data) async throws {
+	func initialize() async throws {
+		try await sqlCipherFacade.run(
+			"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeref, modelVersion, serverHostname) VALUES (?, ?, ?, ?)",
+			[self.archiveId, self.typeref, self.modelVersion, self.serverHostname]
+		)
+	}
+
+	func storeBlob(blobId: String, json: String) async throws {
 		if self.closed { return }
 
-		self.blobs.append(StoreBlob(blobId: blobId, bytesToStore: bytesToStore))
-		self.unstoredBytes += bytesToStore.count
+		self.blobs.append(StoreBlob(blobId: blobId, json: json))
+		self.unstoredBytes += json.utf8.count
 
 		if self.unstoredBytes > ArchiveStorageHelper.CACHE_BUFFER_SIZE { try await self.store() }
 	}
 
 	func flushAndClose() async throws {
-		if !self.blobs.isEmpty { try await self.store() }
+		try await self.store()
 		self.closed = true
 	}
 
-	func success() async throws {
-		try await self.flushAndClose()
-		try await self.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)", [self.archiveId])
-	}
-
 	private func store() async throws {
-		if !self.closed {
-			let params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: self.blobs.count).enumerated()
+		if !self.closed && !self.blobs.isEmpty {
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
+				"INSERT OR REPLACE INTO encrypted_blobs (typeref, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)"
 					+ String(repeating: ", (?, ?, ?, ?, ?)", count: self.blobs.count - 1),
-				params.flatMap { offset, _ in
+				self.blobs.indices.flatMap { i in
 					[
-						TaggedSqlValue.string(value: self.blobs[offset].blobId), self.archiveId,
-						TaggedSqlValue.bytes(value: DataWrapper(data: self.blobs[offset].bytesToStore)), self.typeref, self.modelVersion,
+						self.typeref, self.archiveId, TaggedSqlValue.string(value: self.blobs[i].blobId), self.modelVersion,
+						TaggedSqlValue.string(value: self.blobs[i].json),
 					]
 				}
 			)
@@ -138,5 +163,5 @@ private final class ArchiveStorageHelper {
 
 private struct StoreBlob {
 	let blobId: String
-	let bytesToStore: Data
+	let json: String
 }

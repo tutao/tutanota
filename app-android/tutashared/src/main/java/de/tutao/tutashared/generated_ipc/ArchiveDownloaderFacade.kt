@@ -7,27 +7,23 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 /**
- * download archives and write them to the database.
+ * Download archives and write them to offline database.
  */
 interface ArchiveDownloaderFacade {
 	/**
-	 * download an archive and store it to the local db
+	 * Download an archive and store it (without decryption) in offline DB
 	 */
 	suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
 		archiveId: String,
 		typeref: String,
 		modelVersion: Long,
+		rangeHeader: ArchiveDownloadRangeHeader?,
 	): Unit
 	/**
-	 * abort downloading or storing an archive
+	 * Abort downloading or storing an archive
 	 */
 	suspend fun abortDownloadAndStoreArchive(
 		archiveId: String,
-	): Unit
-	/**
-	 * remove all cached blobs and archives, for example when finished indexing
-	 */
-	suspend fun clearStoredArchives(
 	): Unit
 }

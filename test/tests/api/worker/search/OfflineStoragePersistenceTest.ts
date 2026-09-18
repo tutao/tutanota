@@ -128,7 +128,7 @@ o.spec("OfflineStoragePersistence", () => {
 		for (let a = 10; a < 15; a++) {
 			for (let b = 100; b < 105; b++) {
 				const { query, params } = sql`INSERT
-				OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
 				${`${a + b}`},
 				${`${b}`},
 				${new Uint8Array([1, 2, 3, 4])},
