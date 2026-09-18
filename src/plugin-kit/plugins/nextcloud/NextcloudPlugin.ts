@@ -7,6 +7,7 @@ import { assertNotNull, isNotNull } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
 import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportExtensionPoint"
+import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 
 type UserPluginConfig = {
 	credentials: NextcloudCredentials
@@ -21,7 +22,9 @@ type NextcloudCredentials = {
 	loginName: string
 	server: string
 }
-export class Plugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension, FileImportExtension {
+
+export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension, FileImportExtension {
+	public static readonly PLUGIN_ID: string = "nextcloud"
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
 	private axiosClient: Axios = null!
@@ -29,6 +32,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
 	}
+
 	getMetadata(): PluginMetadata {
 		return {
 			name: "Nextcloud Plugin",
@@ -37,7 +41,7 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 		}
 	}
 
-	async load(_pluginUrl: string, customerConfigJson: string): Promise<void> {
+	async load(customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
 		await this.loadAxiosClient()
 		await this.loadUserConfig()
@@ -243,3 +247,6 @@ export class Plugin extends PluginApi implements AttachmentButtonExtension, Conf
 			})
 	}
 }
+
+const pluginFactory: PluginFactory = (factoryParams) => new NextcloudPlugin(factoryParams.pluginHost)
+initTutaPluginWorker(NextcloudPlugin.PLUGIN_ID, pluginFactory)
