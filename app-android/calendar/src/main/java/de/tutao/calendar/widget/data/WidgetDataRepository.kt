@@ -183,6 +183,8 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 							events.longEvents.toDao(),
 							events.birthdayEvents.asDao()
 						)
+
+
 					} catch (e: ApiCallException.InternalSdkException) {
 						if (e.message?.contains("Missing membership") == true) {
 							Log.w(
