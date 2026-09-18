@@ -48,11 +48,6 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		TUTSLog("Aborted storing archive with id \(archiveId)")
 	}
 
-	public func clearStoredArchives() async throws {
-		try await sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
-		try await sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
-	}
-
 	private func cancelRequest(_ archiveId: String) { self.activeJobsLock.withLock { $0[archiveId]?.cancel() } }
 
 	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ typeref: String, _ modelVersion: Int) async throws {
@@ -62,16 +57,16 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 		let storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, self.sqlCipherFacade)
 
 		// skip first line
-		try await iterator.next()
+		_ = try await iterator.next()
 		var line = try await iterator.next()
 
 		while line != nil {
 			let split = line!.split(separator: ";", maxSplits: 1)
-			try await storage.storeBlob(blobId: String(split[0]), bytesToStore: Data([UInt8](split[1].utf8)))
+			try await storage.storeBlob(blobId: String(split[0]), json: String(split[1]))
 			line = try await iterator.next()
 		}
 
-		try await storage.success()
+		try await storage.flushAndClose()
 		TUTSLog("Finished storing archive with id \(archiveId)")
 	}
 }
@@ -97,37 +92,36 @@ private final class ArchiveStorageHelper {
 	private var blobs: [StoreBlob] = []
 	private var closed = false
 
-	func storeBlob(blobId: String, bytesToStore: Data) async throws {
+	func storeBlob(blobId: String, json: String) async throws {
 		if self.closed { return }
 
-		self.blobs.append(StoreBlob(blobId: blobId, bytesToStore: bytesToStore))
-		self.unstoredBytes += bytesToStore.count
+		self.blobs.append(StoreBlob(blobId: blobId, json: json))
+		self.unstoredBytes += json.utf8.count
 
 		if self.unstoredBytes > ArchiveStorageHelper.CACHE_BUFFER_SIZE { try await self.store() }
 	}
 
 	func flushAndClose() async throws {
-		if !self.blobs.isEmpty { try await self.store() }
+		try await self.store()
 		self.closed = true
 	}
 
-	func success() async throws {
-		try await self.flushAndClose()
-		try await self.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)", [self.archiveId])
-	}
-
 	private func store() async throws {
-		if !self.closed {
-			let params = [TaggedSqlValue](repeating: TaggedSqlValue.null, count: self.blobs.count).enumerated()
+		if !self.closed && !self.blobs.isEmpty {
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)"
+				"INSERT OR REPLACE INTO encrypted_blobs (typeref, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)"
 					+ String(repeating: ", (?, ?, ?, ?, ?)", count: self.blobs.count - 1),
-				params.flatMap { offset, _ in
+				self.blobs.indices.flatMap { i in
 					[
-						TaggedSqlValue.string(value: self.blobs[offset].blobId), self.archiveId,
-						TaggedSqlValue.bytes(value: DataWrapper(data: self.blobs[offset].bytesToStore)), self.typeref, self.modelVersion,
+						self.typeref, self.archiveId, TaggedSqlValue.string(value: self.blobs[i].blobId), self.modelVersion,
+						TaggedSqlValue.string(value: self.blobs[i].json),
 					]
 				}
+			)
+
+			try await sqlCipherFacade.run(
+				"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion) VALUES (?, ?, ?, ?)",
+				[self.archiveId, TaggedSqlValue.string(value: self.blobs.last!.blobId), self.typeref, self.modelVersion]
 			)
 		}
 
@@ -138,5 +132,5 @@ private final class ArchiveStorageHelper {
 
 private struct StoreBlob {
 	let blobId: String
-	let bytesToStore: Data
+	let json: String
 }

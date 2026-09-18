@@ -4,6 +4,7 @@ import { tagSqlValue, untagSqlObject, untagSqlValue } from "../../../../app-kit/
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
 import { MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import {
+	BlobElementEntity,
 	CUSTOM_MIN_ID,
 	elementIdPart,
 	EntityTypeEnum,
@@ -17,14 +18,13 @@ import {
 } from "@tutao/meta"
 import { htmlToText } from "../../../common/api/common/utils/IndexUtils"
 import { getMailBodyText } from "../../../common/api/common/CommonMailUtils"
-import { customTypeDecoders, customTypeEncoders, OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
+import { OfflineStorageTable } from "../../../../app-kit/local-store/OfflineStorage"
 import { GroupType } from "../../../../entities/sys/Utils"
-import { Contact, ContactTypeRef, Mail, MailAddress, MailTypeRef } from "@tutao/entities/tutanota"
+import { Contact, ContactTypeRef, Mail, MailAddress, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { SqlValue } from "../../../../app-kit/local-store/Types"
-import { decode, encode } from "cborg"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { deduplicate, delay, isEmpty, splitInChunks } from "@tutao/utils"
+import { delay, isEmpty } from "@tutao/utils"
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -84,28 +84,19 @@ mailAddresses
 		purgedWithCache: true,
 	},
 
-	// Encrypted, encoded mail details blobs.
+	// Encrypted, encoded blobs.
 	//
-	// This is for temporary storage to avoid storing all of the user's archives in RAM (which can potentially fail).
-	encrypted_mail_details_blobs: {
+	// This is for temporary storage when downloading entire archives (like when indexing mails for example) to avoid
+	// storing too many blobs in RAM (which can potentially fail).
+	encrypted_blobs: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_mail_details_blobs (blobId TEXT NOT NULL PRIMARY KEY, archiveId TEXT NOT NULL, data BLOB NOT NULL, typeref STRING NOT NULL, modelVersion NUMBER NOT NULL)",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs (typeref STRING NOT NULL, archiveId TEXT NOT NULL, blobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, data BLOB NOT NULL, PRIMARY KEY (typeref, archiveId, blobId, modelVersion))",
 		purgedWithCache: true,
 	},
 
-	// All successfully downloaded and stored mail details blobs archives, that are not finished indexing yet.
-	//
-	// This is temporary and will be cleared once indexing is finished
-	fully_persisted_mail_details_archives: {
-		definition: "CREATE TABLE IF NOT EXISTS fully_persisted_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
-		purgedWithCache: true,
-	},
-
-	// All successfully indexed mail details blobs archives.
-	//
-	// This is saved to prevent redownloading entire archives.
-	cached_mail_details_archives: {
-		definition: "CREATE TABLE IF NOT EXISTS cached_mail_details_archives (archiveId TEXT NOT NULL PRIMARY KEY)",
+	encrypted_blobs_metadata: {
+		definition:
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeref STRING NOT NULL, archiveId TEXT NOT NULL, loadedMaxBlobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, PRIMARY KEY (typeref, archiveId))",
 		purgedWithCache: true,
 	},
 })
@@ -116,6 +107,11 @@ export interface IndexedGroupData {
 	indexedTimestamp: number
 	lastIndexedEntityListId: string
 	lastIndexedEntityElementId: string
+}
+
+export type LoadedArchiveMaxBlobId = {
+	archiveId: Id
+	loadedMaxBlobId: Id
 }
 
 /**
@@ -316,48 +312,12 @@ VALUES (
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getEncryptedMailDetailsBlobsArchives(): Promise<Id[]> {
-		const archives = await this.sqlCipherFacade.all("SELECT DISTINCT archiveId FROM fully_persisted_mail_details_archives", [])
-		return archives.map(({ archiveId }) => untagSqlValue(archiveId) as Id)
-	}
-
-	async storeEncryptedMailDetailsBlobs(serverTypeModel: ServerTypeModel, blobs: readonly IncomingServerJson[]): Promise<void> {
-		if (isEmpty(blobs)) {
-			return
-		}
-		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
-		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
-			throw new ProgrammingError(`cannot use OfflineStoragePersistence#storeEncryptedBlobs with ${serverTypeModel.type} (${typeref})`)
-		}
-
-		const versionParam = tagSqlValue(serverTypeModel.version)
-
-		for (const blobsChunked of splitInChunks(100, blobs)) {
-			let insertQuery = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES "
-			let insertParameters = []
-			for (const blob of blobsChunked) {
-				const [archiveId, blobId] = blob.getValueByName("_id").asIdTuple()
-
-				const blobJson = blob.getInnerJson()
-				const encodedBlob = encode(blobJson, { typeEncoders: customTypeEncoders })
-				insertParameters.push([tagSqlValue(blobId), tagSqlValue(archiveId), tagSqlValue(encodedBlob), tagSqlValue(typeref), versionParam])
-			}
-
-			insertQuery += insertParameters.map((array) => `(${array.map((_) => "?").join(", ")})`).join(", ")
-			await this.sqlCipherFacade.run(insertQuery, insertParameters.flat())
-		}
-	}
-
-	async markArchiveAsStored(archiveId: Id): Promise<void> {
-		const { query, params } = sql`INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (${archiveId})`
-		await this.sqlCipherFacade.run(query, params)
-	}
-
 	private pendingEncryptedMailDetailsBlobRetrieval: Promise<Map<Id, IncomingServerJson>> | null = null
 	private pendingEncryptedMailDetailsBlobItems: Set<Id> = new Set()
 
+	// FIXME use blobIdTuple to retrieve
 	retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
-		const typeref = `${serverTypeModel.app}/${serverTypeModel.name}`
+		const typeref = `${serverTypeModel.app}/${serverTypeModel.id}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
 			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeref})`)
 		}
@@ -380,10 +340,10 @@ VALUES (
 				const blobItemsArray = Array.from(blobItems)
 				const blobIdQuery = "blobId = ?"
 				const baseQuery = `SELECT data, blobId
-							 FROM encrypted_mail_details_blobs
-							 WHERE typeref = ?
-							   AND modelVersion = ?
-							   AND (${blobItemsArray.map((_) => blobIdQuery).join(" OR ")})`
+						   FROM encrypted_blobs
+						   WHERE typeref = ?
+							 AND modelVersion = ?
+							 AND (${blobItemsArray.map((_) => blobIdQuery).join(" OR ")})`
 
 				const blobs = await this.sqlCipherFacade.all(baseQuery, [
 					tagSqlValue(typeref),
@@ -399,12 +359,11 @@ VALUES (
 
 				for (const blob of blobs) {
 					const { data, blobId } = untagSqlObject(blob)
-					if (!(data instanceof Uint8Array) || typeof blobId !== "string") {
+					if (typeof data !== "string" || typeof blobId !== "string") {
 						continue
 					}
 
-					const blobJson = decode(data, { tags: customTypeDecoders })
-					map.set(blobId, IncomingServerJson.expectSingleMailDetailsBlob(blobJson, serverTypeModel))
+					map.set(blobId, IncomingServerJson.expectSingleInstance(data, serverTypeModel))
 				}
 
 				return map
@@ -416,32 +375,23 @@ VALUES (
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
 	}
 
-	async deleteEncryptedMailDetailsBlob(blobId: Id): Promise<void> {
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs WHERE blobId = ${blobId}`
-			await this.sqlCipherFacade.run(query, params)
-		}
+	async clearEncryptedMailDetailsBlobs(): Promise<void> {
+		const mailDetailsBlobTypeRef = getTypeString(MailDetailsBlobTypeRef)
+		const { query, params } = sql`DELETE
+		                              FROM encrypted_blobs
+		                              WHERE typeref = ${mailDetailsBlobTypeRef}`
+
+		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async clearEncryptedMailDetailsBlobs(): Promise<void> {
-		// Prevent redownloading any archives we downloaded in this.
-		{
-			const { query, params } = sql`SELECT DISTINCT archiveId
-										  FROM encrypted_mail_details_blobs`
-			const rows = await this.sqlCipherFacade.all(query, params)
-			const archives = rows.map(untagSqlObject).map(({ archiveId }) => archiveId as Id)
-			for (const archive of archives) {
-				await this.markArchiveAsDownloaded(archive)
-			}
-		}
+	async getLastLoadedBlobForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<LoadedArchiveMaxBlobId | null> {
+		const { query, params } = sql`SELECT archiveId, loadedMaxBlobId
+									  FROM encrypted_blobs_metadata
+									  WHERE typeref = ${getTypeString(typeRef)}
+									  ORDER BY archiveId DESC LIMIT 1`
 
-		// Now delete
-		{
-			const { query, params } = sql`DELETE
-										  FROM encrypted_mail_details_blobs`
-			await this.sqlCipherFacade.run(query, params)
-		}
+		const row = await this.sqlCipherFacade.get(query, params)
+		return row != null ? (untagSqlObject(row) as LoadedArchiveMaxBlobId) : null
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
@@ -479,7 +429,7 @@ VALUES (
 
 			// First, let's get the preloaded count
 			{
-				const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_mail_details_blobs WHERE archiveId = ${archive}`
+				const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs WHERE archiveId = ${archive}`
 				const result = await this.sqlCipherFacade.get(query, params)
 				if (result != null) {
 					estimatedCount = untagSqlValue(result["total"]) as number
@@ -538,21 +488,6 @@ VALUES (
 		${mailImportType}
 		)`
 		await this.sqlCipherFacade.run(query, params)
-	}
-
-	async markArchiveAsDownloaded(archiveId: Id): Promise<void> {
-		const { query, params } = sql`INSERT
-		OR REPLACE INTO cached_mail_details_archives VALUES (
-		${archiveId}
-		)`
-		await this.sqlCipherFacade.run(query, params)
-	}
-
-	async getDownloadedArchives(): Promise<Id[]> {
-		const { query, params } = sql`SELECT archiveId
-									  FROM cached_mail_details_archives`
-		const rows = await this.sqlCipherFacade.all(query, params)
-		return rows.map(untagSqlObject).map(({ archiveId }) => archiveId as Id)
 	}
 
 	async enqueueImport(importedMails: Id, mailImportType: MailImportType) {

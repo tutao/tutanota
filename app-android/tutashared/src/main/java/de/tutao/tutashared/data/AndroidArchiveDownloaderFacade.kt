@@ -4,7 +4,6 @@ import android.util.Log
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils.Companion.defaultClient
 import de.tutao.tutashared.ipc.ArchiveDownloaderFacade
-import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.TaggedSqlValue
 import kotlinx.coroutines.Dispatchers
@@ -18,9 +17,9 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
 
-class AndroidArchiveDownloaderFacade (
+class AndroidArchiveDownloaderFacade(
 	private val sqlCipherFacade: SqlCipherFacade
-): ArchiveDownloaderFacade {
+) : ArchiveDownloaderFacade {
 
 	private val activeRequests = ConcurrentHashMap<String, Call>()
 	private val storageForArchive = ConcurrentHashMap<String, ArchiveStorageHelper>()
@@ -59,7 +58,10 @@ class AndroidArchiveDownloaderFacade (
 						if (response.code == 200) {
 							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
 						} else {
-							Log.d(TAG, "Received status code ${response.code} when trying to download archive with id $archiveId, aborting.")
+							Log.d(
+								TAG,
+								"Received status code ${response.code} when trying to download archive with id $archiveId, aborting."
+							)
 						}
 					}
 				} catch (e: IOException) {
@@ -80,11 +82,6 @@ class AndroidArchiveDownloaderFacade (
 			cleanState(archiveId)
 			Log.d(TAG, "Aborted storing archive with id $archiveId")
 		}
-	}
-
-	override suspend fun clearStoredArchives() {
-		sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", listOf())
-		sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", listOf())
 	}
 
 	private suspend fun cleanState(archiveId: String) {
@@ -110,11 +107,11 @@ class AndroidArchiveDownloaderFacade (
 			iterator.next()
 			while (iterator.hasNext() && activeRequests.containsKey(archiveId)) {
 				val (blobId, json) = iterator.next().split(";", limit = 2)
-				storage.storeBlob(blobId, json.toByteArray(Charsets.UTF_8))
+				storage.storeBlob(blobId, json)
 			}
 		}
 		// fully read & stored archive -> store that information as well
-		storage.success()
+		storage.flushAndClose()
 		// exit and cleanup map
 		cleanState(archiveId)
 
@@ -143,11 +140,11 @@ class AndroidArchiveDownloaderFacade (
 		private val blobs = mutableListOf<StoreBlob>()
 		private var closed = false
 
-		suspend fun storeBlob(blobId: String, bytesToStore: ByteArray) {
+		suspend fun storeBlob(blobId: String, json: String) {
 			if (closed) return
 
-			blobs.add(StoreBlob(blobId, bytesToStore))
-			unstoredBytes += bytesToStore.size
+			blobs.add(StoreBlob(blobId, json))
+			unstoredBytes += json.length
 
 			if (unstoredBytes > CACHE_BUFFER_SIZE) {
 				store()
@@ -155,26 +152,31 @@ class AndroidArchiveDownloaderFacade (
 		}
 
 		suspend fun flushAndClose() {
-			if (blobs.isNotEmpty()) {
-				store()
-			}
+			store()
 			closed = true
 		}
 
-		suspend fun success() {
-			flushAndClose()
-			sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)",
-				listOf(archiveId)
-			)
-		}
-
 		private suspend fun store() {
-			if (!closed) {
-				val query = "INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)".repeat(blobs.size - 1)
-				val params = Array(blobs.size) { _ -> 0 }
-					.flatMapIndexed { i, _ -> listOf(TaggedSqlValue.Str(blobs[i].blobId), archiveId, TaggedSqlValue.Bytes(DataWrapper(blobs[i].bytesToStore)), typeref, modelVersion) }
-				sqlCipherFacade.run(query, params)
+			if (!closed && blobs.isNotEmpty()) {
+				sqlCipherFacade.run(
+					"INSERT OR REPLACE INTO encrypted_blobs (typeref, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)"
+						.repeat(blobs.size - 1),
+					Array(blobs.size) { _ -> 0 }
+						.flatMapIndexed { i, _ ->
+							listOf(
+								typeref,
+								archiveId,
+								TaggedSqlValue.Str(blobs[i].blobId),
+								modelVersion,
+								TaggedSqlValue.Str(blobs[i].json)
+							)
+						}
+				)
+
+				sqlCipherFacade.run(
+					"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion) VALUES (?, ?, ?, ?)",
+					listOf(archiveId, TaggedSqlValue.Str(blobs.last().blobId), typeref, modelVersion)
+				)
 			}
 
 			unstoredBytes = 0
@@ -188,7 +190,7 @@ class AndroidArchiveDownloaderFacade (
 
 	private class StoreBlob(
 		val blobId: String,
-		val bytesToStore: ByteArray,
+		val json: String,
 	)
 
 }

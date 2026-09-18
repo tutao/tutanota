@@ -1,21 +1,16 @@
 /* generated file, don't edit. */
 
 /**
- * download archives and write them to the database.
+ * Download entire archives and write them to offline database.
  */
 export interface ArchiveDownloaderFacade {
 	/**
-	 * download an archive and store it to the local db
+	 * Download an archive and store it (without decryption) in offline DB
 	 */
 	downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number): Promise<void>
 
 	/**
-	 * abort downloading or storing an archive
+	 * Abort downloading or storing an archive
 	 */
 	abortDownloadAndStoreArchive(archiveId: string): Promise<void>
-
-	/**
-	 * remove all cached blobs and archives, for example when finished indexing
-	 */
-	clearStoredArchives(): Promise<void>
 }

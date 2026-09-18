@@ -1,12 +1,12 @@
 {
 	"name": "ArchiveDownloaderFacade",
-	"doc": "download archives and write them to the database.",
+	"doc": "Download archives and write them to offline database.",
 	"type": "facade",
 	"receivers": ["ios", "desktop", "android"],
 	"senders": ["web"],
 	"methods": {
 		"downloadAndStoreArchive": {
-			"doc": "download an archive and store it to the local db",
+			"doc": "Download an archive and store it (without decryption) in offline DB",
 			"arg": [
 				{
 					"sourceUrl": "string"
@@ -24,17 +24,12 @@
 			"ret": "void"
 		},
 		"abortDownloadAndStoreArchive": {
-			"doc": "abort downloading or storing an archive",
+			"doc": "Abort downloading or storing an archive",
 			"arg": [
 				{
 					"archiveId": "string"
 				}
 			],
-			"ret": "void"
-		},
-		"clearStoredArchives": {
-			"doc": "remove all cached blobs and archives, for example when finished indexing",
-			"arg": [],
 			"ret": "void"
 		}
 	}

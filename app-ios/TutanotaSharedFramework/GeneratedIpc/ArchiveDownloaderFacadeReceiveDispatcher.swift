@@ -28,10 +28,6 @@ public final class ArchiveDownloaderFacadeReceiveDispatcher: Sendable {
 				archiveId
 			)
 			return "null"
-		case "clearStoredArchives":
-			try await self.facade.clearStoredArchives(
-			)
-			return "null"
 		default:
 			fatalError("licc messed up! \(method)")
 		}

@@ -1,7 +1,7 @@
 import { ArchiveDownloaderFacade, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { FetchImpl, toGlobalResponse } from "./net/NetAgent"
 import { tagSqlValue } from "../../../app-kit/local-store/SqlValue"
-import { first, isNotEmpty } from "@tutao/utils"
+import { first, isNotEmpty, lastThrow } from "@tutao/utils"
 import { TaggedSqlValue } from "../../../app-kit/local-store/Types"
 
 const TAG = "[DesktopArchiveDownloaderFacade]"
@@ -21,11 +21,6 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 			await this.cleanState(archiveId)
 			console.log(TAG, `Aborted storing archive with id ${archiveId}`)
 		}
-	}
-
-	async clearStoredArchives(): Promise<void> {
-		await this.sqlCipherFacade.run("DELETE FROM encrypted_mail_details_blobs", [])
-		await this.sqlCipherFacade.run("DELETE FROM fully_persisted_mail_details_archives", [])
 	}
 
 	async downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number): Promise<void> {
@@ -50,7 +45,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				console.log(TAG, `Started storing archive with id ${archiveId}`)
 
 				let currentChunkString = ""
-				let skippedHeader = false
+				let isParsingBlobs = false
 				for await (const chunk of body) {
 					currentChunkString += decoder.decode(chunk.buffer)
 					const lines = currentChunkString.split("\n")
@@ -58,24 +53,27 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 					currentChunkString = first(lines.splice(-1)) ?? ""
 
 					for (const line of lines) {
-						if (!skippedHeader) {
-							skippedHeader = true
-							continue
-						} else if (!this.activeRequests.has(archiveId)) {
+						if (!this.activeRequests.has(archiveId)) {
 							return
 						}
 
-						// do the parsing
-						const [blobId, json] = line.split(";", 2)
-						await storage.storeBlob(blobId, json)
+						if (!isParsingBlobs) {
+							// skip the first line (header)
+							isParsingBlobs = true
+						} else {
+							await storage.storeBlob(line)
+						}
 					}
 				}
 
-				// last line is just appended to currentChunkString, so after the last chunk came in this will just have another blob
-				const [blobId, json] = currentChunkString.split(";", 2)
-				await storage.storeBlob(blobId, json)
+				// an empty response contains only one line (the header).
+				// In such cases, lines will be empty with currentChunkString containing the header
+				if (isParsingBlobs) {
+					// last line is always appended to currentChunkString, and is only guaranteed to be complete when the entire body is received
+					await storage.storeBlob(currentChunkString)
+				}
 
-				await storage.success()
+				await storage.flushAndClose()
 
 				const timeToStore = new Date().getTime() - startTime
 				console.log(TAG, `Finished storing archive with id ${archiveId} (took ${timeToStore} ms)`)
@@ -89,7 +87,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 
 	private async cleanState(archiveId: string) {
 		this.activeRequests.delete(archiveId)
-		this.storageForArchive.get(archiveId)?.flushAndClose()
+		await this.storageForArchive.get(archiveId)?.flushAndClose()
 		this.storageForArchive.delete(archiveId)
 		console.log(TAG, `Cleaned up state of archive with id ${archiveId}, kept the blobs.`)
 	}
@@ -117,11 +115,16 @@ class ArchiveStorageHelper {
 	private blobs: StoreBlob[] = []
 	private closed = false
 
-	async storeBlob(blobId: string, bytesToStore: string) {
+	private parseLine(line: string): StoreBlob {
+		const separatorIndex = line.indexOf(";")
+		return { blobId: line.slice(0, separatorIndex), json: line.slice(separatorIndex + 1) }
+	}
+
+	async storeBlob(line: string) {
 		if (this.closed) return
 
-		this.blobs.push({ blobId, bytesToStore })
-		this.unstoredBytes += bytesToStore.length
+		this.unstoredBytes += line.length
+		this.blobs.push(this.parseLine(line))
 
 		if (this.unstoredBytes > this.CACHE_BUFFER_SIZE) {
 			await this.store()
@@ -129,33 +132,28 @@ class ArchiveStorageHelper {
 	}
 
 	async flushAndClose() {
-		if (isNotEmpty(this.blobs)) {
-			await this.store()
-		}
+		await this.store()
 		this.closed = true
 	}
 
-	async success() {
-		await this.flushAndClose()
-		await this.sqlCipherFacade.run("INSERT OR REPLACE INTO fully_persisted_mail_details_archives VALUES (?)", [this.archiveId])
-	}
-
 	private async store() {
-		if (!this.closed) {
-			const query =
-				"INSERT OR REPLACE INTO encrypted_mail_details_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" +
-				", (?, ?, ?, ?, ?)".repeat(this.blobs.length - 1)
-			const params = Array(this.blobs.length)
-				.fill(null)
-				.flatMap((_, i) => [
-					tagSqlValue(this.blobs[i].blobId),
-					this.archiveId,
-					tagSqlValue(this.blobs[i].bytesToStore),
-					this.typeref,
-					this.modelVersion,
-				])
+		if (!this.closed && isNotEmpty(this.blobs)) {
+			{
+				const query =
+					"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" +
+					", (?, ?, ?, ?, ?)".repeat(this.blobs.length - 1)
+				const params = Array(this.blobs.length)
+					.fill(null)
+					.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), this.archiveId, tagSqlValue(this.blobs[i].json), this.typeref, this.modelVersion])
 
-			await this.sqlCipherFacade.run(query, params)
+				await this.sqlCipherFacade.run(query, params)
+			}
+			{
+				const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion) VALUES (?, ?, ?, ?)"
+				const params: TaggedSqlValue[] = [this.archiveId, tagSqlValue(lastThrow(this.blobs).blobId), this.typeref, this.modelVersion]
+
+				await this.sqlCipherFacade.run(query, params)
+			}
 		}
 
 		this.unstoredBytes = 0
@@ -165,5 +163,5 @@ class ArchiveStorageHelper {
 
 interface StoreBlob {
 	blobId: string
-	bytesToStore: string
+	json: string
 }
