@@ -833,6 +833,7 @@ export function createDriveFolderTransferAggregatedType(values: DriveFolderTrans
 export type DriveFolderTransferAggregatedTypeParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 
 	parent: null | IdTuple
@@ -844,6 +845,7 @@ export type DriveFolderTransferAggregatedType = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 
 	// == associations
@@ -855,7 +857,6 @@ export type DriveFolderTransferAggregatedType = {
 	bucketKey: null
 	_ownerGroup: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -864,13 +865,16 @@ export type DriveFolderTransferAggregatedType = {
 	_original: Nullable<DriveFolderTransferAggregatedType>
 	isAdapter: false
 }
-export const DriveFolderNameTransferAggregatedTypeTypeRef: TypeRef<DriveFolderNameTransferAggregatedType> = new TypeRef("drive", 129)
+export const DriveFolderNameTransferAggregatedTypeTypeRef: TypeRef<DriveFolderNameTransferAggregatedType> = new TypeRef("drive", 130)
 
 export function createDriveFolderNameTransferAggregatedType(values: DriveFolderNameTransferAggregatedTypeParams): DriveFolderNameTransferAggregatedType {
 	return Object.assign(create(typeModels[DriveFolderNameTransferAggregatedTypeTypeRef.typeId], DriveFolderNameTransferAggregatedTypeTypeRef), values)
 }
 
 export type DriveFolderNameTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 }
 
@@ -878,6 +882,9 @@ export type DriveFolderNameTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 
 	// == associations
@@ -886,9 +893,7 @@ export type DriveFolderNameTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -897,7 +902,7 @@ export type DriveFolderNameTransferAggregatedType = {
 	_original: Nullable<DriveFolderNameTransferAggregatedType>
 	isAdapter: false
 }
-export const DriveFileTransferAggregatedTypeTypeRef: TypeRef<DriveFileTransferAggregatedType> = new TypeRef("drive", 132)
+export const DriveFileTransferAggregatedTypeTypeRef: TypeRef<DriveFileTransferAggregatedType> = new TypeRef("drive", 136)
 
 export function createDriveFileTransferAggregatedType(values: DriveFileTransferAggregatedTypeParams): DriveFileTransferAggregatedType {
 	return Object.assign(create(typeModels[DriveFileTransferAggregatedTypeTypeRef.typeId], DriveFileTransferAggregatedTypeTypeRef), values)
@@ -906,6 +911,7 @@ export function createDriveFileTransferAggregatedType(values: DriveFileTransferA
 export type DriveFileTransferAggregatedTypeParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	mimeType: string
 }
@@ -916,6 +922,7 @@ export type DriveFileTransferAggregatedType = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	mimeType: string
 
@@ -926,7 +933,6 @@ export type DriveFileTransferAggregatedType = {
 	bucketKey: null
 	_ownerGroup: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -935,13 +941,16 @@ export type DriveFileTransferAggregatedType = {
 	_original: Nullable<DriveFileTransferAggregatedType>
 	isAdapter: false
 }
-export const DriveFileNameTransferAggregatedTypeTypeRef: TypeRef<DriveFileNameTransferAggregatedType> = new TypeRef("drive", 138)
+export const DriveFileNameTransferAggregatedTypeTypeRef: TypeRef<DriveFileNameTransferAggregatedType> = new TypeRef("drive", 143)
 
 export function createDriveFileNameTransferAggregatedType(values: DriveFileNameTransferAggregatedTypeParams): DriveFileNameTransferAggregatedType {
 	return Object.assign(create(typeModels[DriveFileNameTransferAggregatedTypeTypeRef.typeId], DriveFileNameTransferAggregatedTypeTypeRef), values)
 }
 
 export type DriveFileNameTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 }
 
@@ -949,6 +958,9 @@ export type DriveFileNameTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 
 	// == associations
@@ -957,9 +969,7 @@ export type DriveFileNameTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
