@@ -31,6 +31,7 @@ import {
 	EntityRestClientUpdateOptions,
 } from "../instance-pipeline/RestClientOptions"
 import { isNull } from "../utils/Utils"
+import { KdfNonce } from "@tutao/crypto"
 
 export class EntityClient {
 	_target: EntityRestInterface
@@ -169,6 +170,10 @@ export class EntityClient {
 		const rootId: ListElementId = [groupId, typeModel.rootId]
 		const root = await this.load<RootInstance>(RootInstanceTypeRef, rootId, opts)
 		return this.load<T>(typeRef, idToElementId(root.reference), opts)
+	}
+
+	async ensureKdfNonce(instance: PersistentEntity): Promise<KdfNonce> {
+		return await this._target.ensureKdfNonce(instance)
 	}
 }
 
