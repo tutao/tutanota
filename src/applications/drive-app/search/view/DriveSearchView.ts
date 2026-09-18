@@ -577,6 +577,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 							clipboard: this.searchViewModel.clipboard,
 							displayLocation: true,
 							highlightedStrings: this.searchViewModel.getHighlightedStrings(),
+							viewMode: "list",
 						}),
 			),
 		)
@@ -587,7 +588,8 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 
 	private renderActionBar(showMoveItemDialog: (items: FolderItem[], moveItems: PickedDestinationAction) => unknown): Children {
 		const actions = this.selectedItemsActions(this.searchViewModel.listState(), showMoveItemDialog)
-		return m(DriveActionBar, actions)
+		// FIXME
+		return m(DriveActionBar, { actions, viewMode: "list", selectViewMode: () => {} })
 	}
 
 	async deleteItems(item?: FolderItem) {

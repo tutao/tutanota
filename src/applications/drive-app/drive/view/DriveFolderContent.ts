@@ -18,6 +18,8 @@ import { ClipboardAction, DriveClipboard } from "../model/DriveModel"
 import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { DriveViewMode } from "./DriveActionBar"
+import { DriveGridItem } from "./DriveGridItem"
 
 export interface DriveFolderContentAttrs {
 	sortOrder: SortingPreference
@@ -30,6 +32,7 @@ export interface DriveFolderContentAttrs {
 	clipboard: DriveClipboard | null
 	displayLocation: boolean
 	highlightedStrings?: readonly SearchToken[]
+	viewMode: DriveViewMode
 }
 
 const columnStyle = {
@@ -69,6 +72,7 @@ function serializeDragItems(items: readonly FolderItemId[]): string {
 export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private dragImageEl: Element | null = null
 	private selectAllDom: HTMLElement | null = null
+
 	/**
 	 *  Keep track of whether we are actually focused in the table contents or outside of it.
 	 *  When we are in the content tab key is overridden and focus tracks active element.
@@ -78,7 +82,19 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 	private focusedOnMoreActions: boolean = false
 
 	view({
-		attrs: { sortOrder, onSort, fileActions, selectionEvents, listState, clipboard, onDropInto, onEntryContextMenu, displayLocation, highlightedStrings },
+		attrs: {
+			sortOrder,
+			onSort,
+			fileActions,
+			selectionEvents,
+			listState,
+			clipboard,
+			onDropInto,
+			onEntryContextMenu,
+			displayLocation,
+			highlightedStrings,
+			viewMode,
+		},
 	}: Vnode<DriveFolderContentAttrs>): Children {
 		return m(
 			"div.flex.col.overflow-hidden.column-gap-12",
@@ -123,80 +139,95 @@ export class DriveFolderContent implements Component<DriveFolderContentAttrs> {
 					})
 				: [
 						this.renderHeader(listState, sortOrder, onSort, selectionEvents.selectAll, selectionEvents.selectNone, displayLocation),
-
-						m(
-							".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
-							{
-								role: "grid",
-								"data-testid": "grid:folderContent",
-								style: {
-									"grid-column-start": "1",
-									"grid-column-end": displayLocation ? "9" : "8",
-									display: "grid",
-									"grid-template-columns": "subgrid",
-								},
-							},
-							listState.items.map((item, index) =>
-								m(DriveFolderContentEntry, {
-									key: getElementId(folderItemEntity(item)),
-									item: item,
-									selected: listState.selectedItems.has(item),
-									onSingleSelection: selectionEvents.onSingleSelection,
-									onRangeSelectionTowards: selectionEvents.onRangeSelectionTowards,
-									onSingleInclusiveSelection: selectionEvents.onSingleInclusiveSelection,
-									onSingleExclusiveSelection: selectionEvents.onSingleExclusiveSelection,
-									checked: listState.inMultiselect && listState.selectedItems.has(item),
-									multiselect: listState.inMultiselect,
-									isCut:
-										clipboard != null &&
-										clipboard.action === ClipboardAction.Cut &&
-										clipboard.items.some((clipboardItem) => isSameId(clipboardItem.id, folderItemEntity(item)._id)),
-									fileActions,
-									onDomUpdated: (dom, moreActionsDom) => {
-										// While we are focused on the content we forcefully focus on the element for the active
-										// index on every redraw. We do it every time in case the list structure changes.
-										// It is not possible to tab through the table rows, users must use up-down keys.
-										if (this.focusedInContent && (index === listState.activeIndex || (listState.activeIndex == null && index === 0))) {
-											if (!this.focusedOnMoreActions) {
-												dom.focus()
-											} else {
-												moreActionsDom.focus()
-											}
-										}
+						viewMode === "list"
+							? m(
+									".flex.col.scroll.scrollbar-gutter-stable-or-fallback",
+									{
+										role: "grid",
+										"data-testid": "grid:folderContent",
+										style: {
+											"grid-column-start": "1",
+											"grid-column-end": displayLocation ? "9" : "8",
+											display: "grid",
+											"grid-template-columns": "subgrid",
+										},
 									},
-									onDragStart: (item, event) => {
-										const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
+									listState.items.map((item, index) =>
+										m(DriveFolderContentEntry, {
+											key: getElementId(folderItemEntity(item)),
+											item: item,
+											selected: listState.selectedItems.has(item),
+											onSingleSelection: selectionEvents.onSingleSelection,
+											onRangeSelectionTowards: selectionEvents.onRangeSelectionTowards,
+											onSingleInclusiveSelection: selectionEvents.onSingleInclusiveSelection,
+											onSingleExclusiveSelection: selectionEvents.onSingleExclusiveSelection,
+											checked: listState.inMultiselect && listState.selectedItems.has(item),
+											multiselect: listState.inMultiselect,
+											isCut:
+												clipboard != null &&
+												clipboard.action === ClipboardAction.Cut &&
+												clipboard.items.some((clipboardItem) => isSameId(clipboardItem.id, folderItemEntity(item)._id)),
+											fileActions,
+											onDomUpdated: (dom, moreActionsDom) => {
+												// While we are focused on the content we forcefully focus on the element for the active
+												// index on every redraw. We do it every time in case the list structure changes.
+												// It is not possible to tab through the table rows, users must use up-down keys.
+												if (
+													this.focusedInContent &&
+													(index === listState.activeIndex || (listState.activeIndex == null && index === 0))
+												) {
+													if (!this.focusedOnMoreActions) {
+														dom.focus()
+													} else {
+														moreActionsDom.focus()
+													}
+												}
+											},
+											onDragStart: (item, event) => {
+												const itemsToDrag = listState.selectedItems.has(item) ? Array.from(listState.selectedItems) : [item]
 
-										// provide the element that will be displayed as a dragged item
-										// it has to be in the DOM
-										const name = item.type === "folder" ? item.folder.name : item.file.name
-										const icon: Icons =
-											item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(getDisplayType(item.file.mimeType)))
-										const el = renderDragElement(name, icon, itemsToDrag.length)
-										event.dataTransfer?.setDragImage(el, 10, 10)
-										this.dragImageEl = el
+												// provide the element that will be displayed as a dragged item
+												// it has to be in the DOM
+												const name = item.type === "folder" ? item.folder.name : item.file.name
+												const icon: Icons =
+													item.type === "folder" ? Icons.FolderFilled : getFileIcon(assertNotNull(getDisplayType(item.file.mimeType)))
+												const el = renderDragElement(name, icon, itemsToDrag.length)
+												event.dataTransfer?.setDragImage(el, 10, 10)
+												this.dragImageEl = el
 
-										const dragItems: FolderItemId[] = itemsToDrag.map((item) => {
-											return {
-												type: item.type,
-												id: folderItemEntity(item)._id,
-											}
-										})
-										event.dataTransfer?.setData(DropType.DriveItems, serializeDragItems(dragItems))
+												const dragItems: FolderItemId[] = itemsToDrag.map((item) => {
+													return {
+														type: item.type,
+														id: folderItemEntity(item)._id,
+													}
+												})
+												event.dataTransfer?.setData(DropType.DriveItems, serializeDragItems(dragItems))
+											},
+											onDragEnd: () => {
+												if (this.dragImageEl) {
+													this.dragImageEl.remove()
+													this.dragImageEl = null
+												}
+											},
+											onDropInto,
+											onContextMenu: onEntryContextMenu,
+											displayLocation,
+											highlightedStrings,
+										} satisfies DriveFolderContentEntryAttrs & CommonAttributes<DriveFolderContentEntryAttrs, DriveFolderContentEntry>),
+									),
+								)
+							: m(
+									".flex.gap-8.flex-wrap",
+									{
+										style: {
+											"grid-column-start": "1",
+											"grid-column-end": displayLocation ? "9" : "8",
+										},
 									},
-									onDragEnd: () => {
-										if (this.dragImageEl) {
-											this.dragImageEl.remove()
-											this.dragImageEl = null
-										}
-									},
-									onDropInto,
-									onContextMenu: onEntryContextMenu,
-									displayLocation,
-									highlightedStrings,
-								} satisfies DriveFolderContentEntryAttrs & CommonAttributes<DriveFolderContentEntryAttrs, DriveFolderContentEntry>),
-							),
-						),
+									listState.items.map((item, index) => {
+										return m(DriveGridItem, { item })
+									}),
+								),
 					],
 		)
 	}

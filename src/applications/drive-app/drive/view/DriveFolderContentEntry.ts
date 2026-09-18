@@ -167,7 +167,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 				m(
 					"div.text-ellipsis",
-					{ "data-testid": "drivecontententry:name", role: "gridcell" },
+					{ "data-testid": "drivecontententry:", role: "gridcell" },
 					this.renderItemName(item.type === "file" ? item.file.name : item.folder.name, highlightedStrings),
 				),
 				displayLocation ? m("div.text-ellipsis", { role: "gridcell" }, item.parentFolder ? driveFolderName(item.parentFolder).text : null) : null,

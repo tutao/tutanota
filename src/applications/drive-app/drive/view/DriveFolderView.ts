@@ -19,6 +19,7 @@ import { FolderFolderItem, FolderItem, FolderItemId, SortColumn, SortingPreferen
 import { DriveFolderType } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { DriveClipboard } from "../model/DriveModel"
 import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
+import { DriveViewMode } from "./DriveActionBar"
 
 export interface DriveFolderViewAttrs {
 	selectedItemsActions: DriveSelectedItemsActions
@@ -49,7 +50,7 @@ function isValidDataTransferItem(item: DataTransferItem): boolean {
 
 export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 	private draggedOver: boolean = false
-
+	private viewMode: DriveViewMode = "list"
 	view({
 		attrs: {
 			selectedItemsActions,
@@ -137,6 +138,8 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						parents,
 						loadParents,
 						onDropInto,
+						viewMode: this.viewMode,
+						selectViewMode: (viewMode) => (this.viewMode = viewMode),
 					}),
 			listState.loadingStatus === ListLoadingState.Done && isEmpty(listState.items)
 				? this.renderEmptyView(currentFolder)
@@ -149,6 +152,7 @@ export class DriveFolderView implements Component<DriveFolderViewAttrs> {
 						selectionEvents,
 						clipboard,
 						displayLocation: false,
+						viewMode: this.viewMode,
 						onEntryContextMenu: (item, event) => driveItemContextMenu(selectionEvents, selectedItemsActions, fileActions, listState, item, event),
 					} satisfies DriveFolderContentAttrs),
 		)
