@@ -2536,6 +2536,8 @@ export default {
 		"yourFolders_action": "DINA MAPPAR",
 		"yourMessage_label": "Ditt meddelande",
 		"zoomIn_action": "Zooma in",
-		"zoomOut_action": "Zooma ut"
+		"zoomOut_action": "Zooma ut",
+		"giftCardNotAvailableApple_msg": "Presentkortsköp är inte tillgängliga medan du har en aktiv prenumeration via App Store",
+		"giftCardNotAvailableGoogle_msg": "Presentkortsköp är inte tillgängliga medan du har en aktiv prenumeration via Google Play Store"
 	}
 }
