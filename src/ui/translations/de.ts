@@ -2539,5 +2539,6 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"giftCardNotAvailableApple_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives App-Store-Abonnement hast.",
 		"giftCardNotAvailableGoogle_msg": "Der Kauf von Gutscheinen ist nicht möglich, da du ein aktives Google Play Store-Abonnement hast.",
+		"businessPlansNotAvailableForExternal_msg": "Abonnements für Geschäftskunden sind für Nutzer mit einer externen Zahlungsmethode nicht verfügbar."
 	}
 }

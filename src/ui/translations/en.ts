@@ -2539,5 +2539,7 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"giftCardNotAvailableApple_msg": "Gift card purchases aren’t available while you have an active App Store subscription",
 		"giftCardNotAvailableGoogle_msg": "Gift card purchases aren’t available while you have an active Google Play Store subscription",
+		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users with an external payment method."
+
 	}
 }
