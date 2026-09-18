@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { BlobFacade } from "./BlobFacade"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { aes256RandomKey, AesKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, aes256RandomKey, AesKey, CryptoWrapper, SessionKeyDecryptor, VersionedKey } from "@tutao/crypto"
 import {
 	createFileTransferAggregatedType,
 	createImportAttachment,
@@ -101,9 +101,9 @@ export class ImportMailFacade {
 		let currentEstimatedCallSize = 0
 		const chunkedEncImports2: Array<Array<StringWrapper>> = []
 		for (const importMailParams of importMailsParamsList) {
-			const sk = aes256RandomKey()
-
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const sessionKey = aes256RandomKey()
+			const kdfNonce = this.cryptoWrapper.generateKdfNonce()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const firstPartialRecipient: Nullable<PartialRecipient> =
 				importMailParams.toRecipients[0] ?? importMailParams.ccRecipients[0] ?? importMailParams.bccRecipients[0] ?? null
@@ -117,6 +117,7 @@ export class ImportMailFacade {
 			const importedMail = createImportedMail({
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: kdfNonce,
 				subject: importMailParams.subject,
 				method: importMailParams.method,
 				confidential: false,
@@ -133,6 +134,42 @@ export class ImportMailFacade {
 				unread: importMailParams.unread,
 			})
 
+			const importedMailDetailsBlob = createImportedMailDetailsBlob({
+				_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sessionKey),
+				_ownerKeyVersion: mailGroupKey.version.toString(),
+				_kdfNonce: kdfNonce,
+				details: createImportedMailDetails({
+					body: createImportedBody({
+						compressedText: importMailParams.bodyText,
+					}),
+					headers: createImportedHeader({
+						compressedHeaders: importMailParams.headers,
+					}),
+					recipients: createImportedRecipients({
+						toRecipients: importMailParams.toRecipients.map((recipient) =>
+							createImportedMailAddress({
+								name: recipient.name ?? "",
+								address: recipient.address,
+							}),
+						),
+						ccRecipients: importMailParams.ccRecipients.map((recipient) =>
+							createImportedMailAddress({
+								name: recipient.name ?? "",
+								address: recipient.address,
+							}),
+						),
+						bccRecipients: importMailParams.bccRecipients.map((recipient) =>
+							createImportedMailAddress({
+								name: recipient.name ?? "",
+								address: recipient.address,
+							}),
+						),
+					}),
+					replyTos: importMailParams.replyTos.map(recipientToEncryptedMailAddress),
+					sentDate: importMailParams.sentDate,
+				}),
+			})
+
 			const importMailData2 = createImportMailData2({
 				importAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
 				importedImapMail: createImportedImportedImapMail({
@@ -142,47 +179,17 @@ export class ImportMailFacade {
 				mail: importedMail,
 				inReplyTo: importMailParams.inReplyTo,
 				labels: importMailParams.labels,
-				mailDetailsBlob: createImportedMailDetailsBlob({
-					details: createImportedMailDetails({
-						body: createImportedBody({
-							compressedText: importMailParams.bodyText,
-						}),
-						headers: createImportedHeader({
-							compressedHeaders: importMailParams.headers,
-						}),
-						recipients: createImportedRecipients({
-							toRecipients: importMailParams.toRecipients.map((recipient) =>
-								createImportedMailAddress({
-									name: recipient.name ?? "",
-									address: recipient.address,
-								}),
-							),
-							ccRecipients: importMailParams.ccRecipients.map((recipient) =>
-								createImportedMailAddress({
-									name: recipient.name ?? "",
-									address: recipient.address,
-								}),
-							),
-							bccRecipients: importMailParams.bccRecipients.map((recipient) =>
-								createImportedMailAddress({
-									name: recipient.name ?? "",
-									address: recipient.address,
-								}),
-							),
-						}),
-						replyTos: importMailParams.replyTos.map(recipientToEncryptedMailAddress),
-						sentDate: importMailParams.sentDate,
-					}),
-				}),
+				mailDetailsBlob: importedMailDetailsBlob,
 				messageId: importMailParams.messageId,
 				references: importMailParams.references.map(referenceToImportMailDataMailReference),
 			})
 
-			const untypedInstance = await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(
+			const untypedInstance = await this.instancePipeline.mapAndEncryptForDataTransferType(
 				ImportMailData2TypeRef,
 				importMailData2,
-				sk,
 				mailGroupKey,
+				AeadCipherVersion.WithInstanceKey,
+				new SessionKeyDecryptor(mailGroupKey),
 			)
 
 			const encImport2 = createStringWrapper({
@@ -208,8 +215,8 @@ export class ImportMailFacade {
 			})
 			await this.serviceExecutor.execute(ImportMailService_POST, importMailPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
+				...(await this.keyLoader.assembleServiceEncryptionParamsForPost(mailGroupId)),
 				suspensionBehavior: SuspensionBehavior.Throw,
-				ownerKey: mailGroupKey,
 			})
 		}
 	}
@@ -260,7 +267,7 @@ export class ImportMailFacade {
 		const fileDataForUpload = await promiseMap(filesToUpload, async ({ key, file }) => ({
 			key,
 			data: file.data,
-			sessionKey: aes256RandomKey(),
+			sessionKey: this.cryptoWrapper.aes256RandomKey(),
 			original: file,
 		}))
 
@@ -292,24 +299,20 @@ export class ImportMailFacade {
 		mailGroupKey: VersionedKey,
 	): ImportAttachment {
 		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
-
-		const importAttachment = createImportAttachment({
-			ownerEncFileSessionKey: ownerEncFileSessionKey.key,
-			ownerFileKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
-			newAttachment: null,
-			existingAttachmentFile: null,
-		})
+		const fileKdfNonce = this.cryptoWrapper.generateKdfNonce()
 
 		const fileHash = newFile.fileHash
 
 		const fileHashSessionKey = aes256RandomKey()
 		const ownerEncFileHashSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileHashSessionKey)
+		const fileHashKdfNonce = this.cryptoWrapper.generateKdfNonce()
 
 		let deduplicatedImportedAttachment: Nullable<ImportedDeduplicatedImportedAttachment> = null
 		if (fileHash) {
 			deduplicatedImportedAttachment = createImportedDeduplicatedImportedAttachment({
 				_ownerEncSessionKey: ownerEncFileHashSessionKey.key,
 				_ownerKeyVersion: ownerEncFileHashSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: fileHashKdfNonce,
 				attachmentHash: fileHash,
 			})
 		}
@@ -317,12 +320,13 @@ export class ImportMailFacade {
 		const file = createFileTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncFileSessionKey.key,
 			_ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
+			_kdfNonce: fileKdfNonce,
 			cid: newFile.cid ?? null,
 			name: newFile.name,
 			mimeType: newFile.mimeType,
 		})
 
-		importAttachment.newAttachment = createNewImportAttachment({
+		const newAttachment = createNewImportAttachment({
 			referenceTokens: referenceTokens,
 			deduplicatedImportedAttachment,
 			file,
@@ -337,7 +341,12 @@ export class ImportMailFacade {
 			encMimeType: null,
 		})
 
-		return importAttachment
+		return createImportAttachment({
+			ownerEncFileSessionKey: ownerEncFileSessionKey.key,
+			ownerFileKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
+			newAttachment,
+			existingAttachmentFile: null,
+		})
 	}
 }
 

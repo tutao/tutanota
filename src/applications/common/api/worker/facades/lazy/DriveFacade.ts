@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, Nullable, partition, promiseMap, Require, stringToUtf8Uint8Array } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
@@ -103,13 +103,14 @@ export class DriveFacade {
 	 * @throws NameTooLongError
 	 */
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
-
 		ensureValidNameLength(newName)
 
 		let fileWithNewName: Nullable<DriveFileNameTransferAggregatedType> = null
 		if (isDriveFile(item)) {
 			fileWithNewName = createDriveFileNameTransferAggregatedType({
+				_ownerEncSessionKey: item._ownerEncSessionKey,
+				_ownerKeyVersion: item._ownerKeyVersion,
+				_kdfNonce: item._kdfNonce,
 				name: newName,
 			})
 		}
@@ -117,6 +118,9 @@ export class DriveFacade {
 		let folderWithNewName: Nullable<DriveFolderNameTransferAggregatedType> = null
 		if (isDriveFolder(item)) {
 			folderWithNewName = createDriveFolderNameTransferAggregatedType({
+				_ownerEncSessionKey: item._ownerEncSessionKey,
+				_ownerKeyVersion: item._ownerKeyVersion,
+				_kdfNonce: item._kdfNonce,
 				name: newName,
 			})
 		}
@@ -132,7 +136,14 @@ export class DriveFacade {
 			newName: null,
 		})
 
-		await this.serviceExecutor.execute(DriveItemService_PUT, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		await this.serviceExecutor.execute(DriveItemService_PUT, data, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			...(await this.keyLoaderFacade.assembleServiceEncryptionParamsForPut(
+				this.userFacade.getGroupId(GroupType.File),
+				item,
+				AeadCipherVersion.WithSessionKey,
+			)),
+		})
 	}
 
 	public async moveToTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
@@ -261,6 +272,7 @@ export class DriveFacade {
 		const transferFile = createDriveFileTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncSessionKey,
 			_ownerKeyVersion: String(fileGroupKey.version),
+			_kdfNonce: null,
 			name: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
 		})
@@ -278,8 +290,10 @@ export class DriveFacade {
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
 		const response = await this.serviceExecutor.execute(DriveItemService_POST, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
-			ownerKey: fileGroupKey,
+			...(await this.keyLoaderFacade.assembleServiceEncryptionParamsForPost(
+				this.userFacade.getGroupId(GroupType.File),
+				AeadCipherVersion.WithSessionKey,
+			)),
 		})
 
 		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
@@ -301,6 +315,7 @@ export class DriveFacade {
 		const folder = createDriveFolderTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncSessionKey,
 			_ownerKeyVersion: String(fileGroupKey.version),
+			_kdfNonce: null,
 			name: folderName,
 			parent: parentFolder,
 		})
@@ -316,8 +331,10 @@ export class DriveFacade {
 		})
 		const response = await this.serviceExecutor.execute(DriveFolderService_POST, newFolder, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
-			ownerKey: fileGroupKey,
+			...(await this.keyLoaderFacade.assembleServiceEncryptionParamsForPost(
+				this.userFacade.getGroupId(GroupType.File),
+				AeadCipherVersion.WithSessionKey,
+			)),
 		})
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}

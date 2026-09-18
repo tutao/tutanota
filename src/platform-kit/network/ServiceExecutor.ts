@@ -9,6 +9,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
+import { AeadCipherVersion } from "@tutao/crypto"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -88,13 +89,29 @@ export class ServiceExecutor implements IServiceExecutor {
 			}
 
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)
-			if (requestTypeModel.encrypted && params?.sessionKey == null) {
-				throw new ProgrammingError(`Must provide a session key for an encrypted data transfer type!: ${service.fullServiceName}`)
+			if (requestTypeModel.encrypted && params?.sessionKeyDecryptor == null) {
+				throw new ProgrammingError(`Must provide a session key decryptor for an encrypted data transfer type!: ${service.fullServiceName}`)
 			}
 
-			const sessionKey = params?.sessionKey ?? null
 			const ownerKey = params?.ownerKey ?? null
-			return await this.instancePipeline.mapAndEncryptWithSessionKeyAndOwnerEncSessionKeys(requestEntity._type, requestEntity, sessionKey, ownerKey)
+			let aeadCipherVersion: AeadCipherVersion
+			if (requestTypeModel.encrypted) {
+				aeadCipherVersion = params?.aeadCipherVersion ?? AeadCipherVersion.WithInstanceKey
+				if (aeadCipherVersion === AeadCipherVersion.Unencrypted) {
+					throw new ProgrammingError(`Invalid cipher version for encrypted data transfer type`)
+				}
+			} else {
+				aeadCipherVersion = AeadCipherVersion.Unencrypted
+			}
+			const sessionKeyDecryptor = params?.sessionKeyDecryptor ?? null
+
+			return await this.instancePipeline.mapAndEncryptForDataTransferType(
+				requestEntity._type,
+				requestEntity,
+				ownerKey,
+				aeadCipherVersion,
+				sessionKeyDecryptor,
+			)
 		} else {
 			return null
 		}
