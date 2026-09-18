@@ -2539,6 +2539,15 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users subscribed through Google or Apple.",
+		"upgradingFeedbackDialogThankYouTitle_msg": "Thanks for upgrading!",
+		"upgradingFeedbackDialogThankYouPlaceholder_msg": "Your feedback will make Tuta better",
+		"upgradingFeedbackDialogInput_msg": "What made you decide to upgrade today?",
+		"declinedFeedbackDialogBeforeYouGoTitle_msg": "Before you go",
+		"declinedFeedbackDialogBeforeYouGoPlaceholder_msg": "We'd love your honest feedback",
+		"declinedFeedbackDialogInput_msg": "What stopped you from upgrading today?",
+		"sendFeedback_action": "Send feedback",
+		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us improve Tuta."
 	}
 }

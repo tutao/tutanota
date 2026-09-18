@@ -294,7 +294,13 @@ function createPlanButton(
 		label: "buy_action",
 		...(shouldApplyDiscount && { class: "go-european-button" }),
 		onclick: async () => {
+			//Business plans are not available for external payment methods
 			if (
+				isExternalPaymentMethod(accountingInfo.paymentMethod as PaymentMethodType) &&
+				NewBusinessPlans.includes(targetSubscription as AvailablePlanType)
+			) {
+				await Dialog.message(lang.getTranslation("businessPlansNotAvailableForExternal_msg"))
+			} else if (
 				await Dialog.confirm(
 					lang.getTranslation("switchPlan_msg", {
 						"{plan}": PlanTypeToName[targetSubscription],
