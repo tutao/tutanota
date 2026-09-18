@@ -737,7 +737,9 @@ export class MailViewerViewModel {
 	}
 
 	canPersistBlockingStatus(): boolean {
-		return this.mailModel.indexingSupported
+		// we need to be fully logged in to persist the status, as ConfigurationDatabase currently requires being fully
+		// logged for group key
+		return this.mailModel.indexingSupported && this.logins.isFullyLoggedIn()
 	}
 
 	async exportMail(): Promise<void> {
