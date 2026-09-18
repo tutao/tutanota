@@ -1406,8 +1406,8 @@ export function createNewDraftAttachment(values: NewDraftAttachmentParams): NewD
 }
 
 export type NewDraftAttachmentParams = {
-	encFileName: Uint8Array<ArrayBuffer>
-	encMimeType: Uint8Array<ArrayBuffer>
+	encFileName: null | Uint8Array<ArrayBuffer>
+	encMimeType: null | Uint8Array<ArrayBuffer>
 	encCid: null | Uint8Array<ArrayBuffer>
 
 	referenceTokens: BlobReferenceTokenWrapper[]
@@ -1418,8 +1418,8 @@ export type NewDraftAttachment = {
 	// == values
 
 	_id: Id
-	encFileName: Uint8Array<ArrayBuffer>
-	encMimeType: Uint8Array<ArrayBuffer>
+	encFileName: null | Uint8Array<ArrayBuffer>
+	encMimeType: null | Uint8Array<ArrayBuffer>
 	encCid: null | Uint8Array<ArrayBuffer>
 
 	// == associations
@@ -1490,12 +1490,12 @@ export function createDraftData(values: DraftDataParams): DraftData {
 }
 
 export type DraftDataParams = {
-	subject: string
-	bodyText: string
-	senderMailAddress: string
-	senderName: string
-	confidential: boolean
-	method: NumberString
+	subject: null | string
+	bodyText: null | string
+	senderMailAddress: null | string
+	senderName: null | string
+	confidential: null | boolean
+	method: null | NumberString
 	compressedBodyText: null | string
 
 	toRecipients: DraftRecipient[]
@@ -1512,12 +1512,12 @@ export type DraftData = {
 	// == values
 
 	_id: Id
-	subject: string
-	bodyText: string
-	senderMailAddress: string
-	senderName: string
-	confidential: boolean
-	method: NumberString
+	subject: null | string
+	bodyText: null | string
+	senderMailAddress: null | string
+	senderName: null | string
+	confidential: null | boolean
+	method: null | NumberString
 	compressedBodyText: null | string
 
 	// == associations
@@ -1555,8 +1555,8 @@ export function createDraftCreateData(values: DraftCreateDataParams): DraftCreat
 export type DraftCreateDataParams = {
 	previousMessageId: null | string
 	conversationType: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	draftData: DraftData
 }
@@ -1567,8 +1567,8 @@ export type DraftCreateData = {
 	_format: NumberString
 	previousMessageId: null | string
 	conversationType: NumberString
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -7279,6 +7279,7 @@ export type ImapPutInParams = {
 	newPostponedUntil: null | string
 
 	imapAccountSyncState: IdTuple
+	imapAccountSyncStateWithNewPostponedUntil: null | UpdateImapAccountSyncStateTransferAggregatedType
 }
 
 export type ImapPutIn = {
@@ -7295,6 +7296,7 @@ export type ImapPutIn = {
 	// == associations
 
 	imapAccountSyncState: IdTuple
+	imapAccountSyncStateWithNewPostponedUntil: null | UpdateImapAccountSyncStateTransferAggregatedType
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -7469,22 +7471,24 @@ export function createFileTransferAggregatedType(values: FileTransferAggregatedT
 }
 
 export type FileTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	mimeType: null | string
 	cid: null | string
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
-	_ownerKeyVersion: null | NumberString
 }
 
 export type FileTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	mimeType: null | string
 	cid: null | string
-	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
-	_ownerKeyVersion: null | NumberString
 
 	// == associations
 
@@ -7493,7 +7497,6 @@ export type FileTransferAggregatedType = {
 	bucketKey: null
 	_ownerGroup: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7502,7 +7505,7 @@ export type FileTransferAggregatedType = {
 	_original: Nullable<FileTransferAggregatedType>
 	isAdapter: false
 }
-export const MailAddressTransferAggregatedTypeTypeRef: TypeRef<MailAddressTransferAggregatedType> = new TypeRef("tutanota", 2028)
+export const MailAddressTransferAggregatedTypeTypeRef: TypeRef<MailAddressTransferAggregatedType> = new TypeRef("tutanota", 2029)
 
 export function createMailAddressTransferAggregatedType(values: MailAddressTransferAggregatedTypeParams): MailAddressTransferAggregatedType {
 	return Object.assign(create(typeModels[MailAddressTransferAggregatedTypeTypeRef.typeId], MailAddressTransferAggregatedTypeTypeRef), values)
@@ -7541,7 +7544,7 @@ export type MailAddressTransferAggregatedType = {
 	_original: Nullable<MailAddressTransferAggregatedType>
 	isAdapter: false
 }
-export const EncryptedMailAddressTransferAggregatedTypeTypeRef: TypeRef<EncryptedMailAddressTransferAggregatedType> = new TypeRef("tutanota", 2033)
+export const EncryptedMailAddressTransferAggregatedTypeTypeRef: TypeRef<EncryptedMailAddressTransferAggregatedType> = new TypeRef("tutanota", 2034)
 
 export function createEncryptedMailAddressTransferAggregatedType(
 	values: EncryptedMailAddressTransferAggregatedTypeParams,
@@ -7581,7 +7584,7 @@ export type EncryptedMailAddressTransferAggregatedType = {
 	_original: Nullable<EncryptedMailAddressTransferAggregatedType>
 	isAdapter: false
 }
-export const BodyTransferAggregatedTypeTypeRef: TypeRef<BodyTransferAggregatedType> = new TypeRef("tutanota", 2037)
+export const BodyTransferAggregatedTypeTypeRef: TypeRef<BodyTransferAggregatedType> = new TypeRef("tutanota", 2038)
 
 export function createBodyTransferAggregatedType(values: BodyTransferAggregatedTypeParams): BodyTransferAggregatedType {
 	return Object.assign(create(typeModels[BodyTransferAggregatedTypeTypeRef.typeId], BodyTransferAggregatedTypeTypeRef), values)
@@ -7616,7 +7619,7 @@ export type BodyTransferAggregatedType = {
 	_original: Nullable<BodyTransferAggregatedType>
 	isAdapter: false
 }
-export const RecipientsTransferAggregatedTypeTypeRef: TypeRef<RecipientsTransferAggregatedType> = new TypeRef("tutanota", 2041)
+export const RecipientsTransferAggregatedTypeTypeRef: TypeRef<RecipientsTransferAggregatedType> = new TypeRef("tutanota", 2042)
 
 export function createRecipientsTransferAggregatedType(values: RecipientsTransferAggregatedTypeParams): RecipientsTransferAggregatedType {
 	return Object.assign(create(typeModels[RecipientsTransferAggregatedTypeTypeRef.typeId], RecipientsTransferAggregatedTypeTypeRef), values)
@@ -7654,7 +7657,7 @@ export type RecipientsTransferAggregatedType = {
 	_original: Nullable<RecipientsTransferAggregatedType>
 	isAdapter: false
 }
-export const MailDetailsTransferAggregatedTypeTypeRef: TypeRef<MailDetailsTransferAggregatedType> = new TypeRef("tutanota", 2046)
+export const MailDetailsTransferAggregatedTypeTypeRef: TypeRef<MailDetailsTransferAggregatedType> = new TypeRef("tutanota", 2047)
 
 export function createMailDetailsTransferAggregatedType(values: MailDetailsTransferAggregatedTypeParams): MailDetailsTransferAggregatedType {
 	return Object.assign(create(typeModels[MailDetailsTransferAggregatedTypeTypeRef.typeId], MailDetailsTransferAggregatedTypeTypeRef), values)
@@ -7692,13 +7695,17 @@ export type MailDetailsTransferAggregatedType = {
 	_original: Nullable<MailDetailsTransferAggregatedType>
 	isAdapter: false
 }
-export const MailDetailsBlobTransferAggregatedTypeTypeRef: TypeRef<MailDetailsBlobTransferAggregatedType> = new TypeRef("tutanota", 2051)
+export const MailDetailsBlobTransferAggregatedTypeTypeRef: TypeRef<MailDetailsBlobTransferAggregatedType> = new TypeRef("tutanota", 2052)
 
 export function createMailDetailsBlobTransferAggregatedType(values: MailDetailsBlobTransferAggregatedTypeParams): MailDetailsBlobTransferAggregatedType {
 	return Object.assign(create(typeModels[MailDetailsBlobTransferAggregatedTypeTypeRef.typeId], MailDetailsBlobTransferAggregatedTypeTypeRef), values)
 }
 
 export type MailDetailsBlobTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+
 	details: MailDetailsTransferAggregatedType
 }
 
@@ -7706,6 +7713,9 @@ export type MailDetailsBlobTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -7715,9 +7725,7 @@ export type MailDetailsBlobTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7726,13 +7734,16 @@ export type MailDetailsBlobTransferAggregatedType = {
 	_original: Nullable<MailDetailsBlobTransferAggregatedType>
 	isAdapter: false
 }
-export const MailTransferAggregatedTypeTypeRef: TypeRef<MailTransferAggregatedType> = new TypeRef("tutanota", 2054)
+export const MailTransferAggregatedTypeTypeRef: TypeRef<MailTransferAggregatedType> = new TypeRef("tutanota", 2058)
 
 export function createMailTransferAggregatedType(values: MailTransferAggregatedTypeParams): MailTransferAggregatedType {
 	return Object.assign(create(typeModels[MailTransferAggregatedTypeTypeRef.typeId], MailTransferAggregatedTypeTypeRef), values)
 }
 
 export type MailTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	subject: string
 	confidential: boolean
 	method: NumberString
@@ -7745,6 +7756,9 @@ export type MailTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	subject: string
 	confidential: boolean
 	method: NumberString
@@ -7758,9 +7772,7 @@ export type MailTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7769,7 +7781,7 @@ export type MailTransferAggregatedType = {
 	_original: Nullable<MailTransferAggregatedType>
 	isAdapter: false
 }
-export const MailSetTransferAggregatedTypeTypeRef: TypeRef<MailSetTransferAggregatedType> = new TypeRef("tutanota", 2064)
+export const MailSetTransferAggregatedTypeTypeRef: TypeRef<MailSetTransferAggregatedType> = new TypeRef("tutanota", 2071)
 
 export function createMailSetTransferAggregatedType(values: MailSetTransferAggregatedTypeParams): MailSetTransferAggregatedType {
 	return Object.assign(create(typeModels[MailSetTransferAggregatedTypeTypeRef.typeId], MailSetTransferAggregatedTypeTypeRef), values)
@@ -7778,6 +7790,7 @@ export function createMailSetTransferAggregatedType(values: MailSetTransferAggre
 export type MailSetTransferAggregatedTypeParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	name: string
 
@@ -7790,6 +7803,7 @@ export type MailSetTransferAggregatedType = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	name: string
 
@@ -7801,7 +7815,6 @@ export type MailSetTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7810,13 +7823,16 @@ export type MailSetTransferAggregatedType = {
 	_original: Nullable<MailSetTransferAggregatedType>
 	isAdapter: false
 }
-export const LabelPutTransferAggregatedTypeTypeRef: TypeRef<LabelPutTransferAggregatedType> = new TypeRef("tutanota", 2072)
+export const LabelPutTransferAggregatedTypeTypeRef: TypeRef<LabelPutTransferAggregatedType> = new TypeRef("tutanota", 2080)
 
 export function createLabelPutTransferAggregatedType(values: LabelPutTransferAggregatedTypeParams): LabelPutTransferAggregatedType {
 	return Object.assign(create(typeModels[LabelPutTransferAggregatedTypeTypeRef.typeId], LabelPutTransferAggregatedTypeTypeRef), values)
 }
 
 export type LabelPutTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	color: null | string
 
@@ -7827,6 +7843,9 @@ export type LabelPutTransferAggregatedType = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	name: string
 	color: null | string
 
@@ -7838,9 +7857,7 @@ export type LabelPutTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7849,7 +7866,7 @@ export type LabelPutTransferAggregatedType = {
 	_original: Nullable<LabelPutTransferAggregatedType>
 	isAdapter: false
 }
-export const LabelPostTransferAggregatedTypeTypeRef: TypeRef<LabelPostTransferAggregatedType> = new TypeRef("tutanota", 2077)
+export const LabelPostTransferAggregatedTypeTypeRef: TypeRef<LabelPostTransferAggregatedType> = new TypeRef("tutanota", 2088)
 
 export function createLabelPostTransferAggregatedType(values: LabelPostTransferAggregatedTypeParams): LabelPostTransferAggregatedType {
 	return Object.assign(create(typeModels[LabelPostTransferAggregatedTypeTypeRef.typeId], LabelPostTransferAggregatedTypeTypeRef), values)
@@ -7858,6 +7875,7 @@ export function createLabelPostTransferAggregatedType(values: LabelPostTransferA
 export type LabelPostTransferAggregatedTypeParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	name: string
 	color: null | string
@@ -7871,6 +7889,7 @@ export type LabelPostTransferAggregatedType = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	name: string
 	color: null | string
@@ -7883,7 +7902,6 @@ export type LabelPostTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7892,7 +7910,7 @@ export type LabelPostTransferAggregatedType = {
 	_original: Nullable<LabelPostTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2099)
+export const ImapFolderSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapFolderSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2111)
 
 export function createImapFolderSyncStateTransferAggregatedType(
 	values: ImapFolderSyncStateTransferAggregatedTypeParams,
@@ -7901,9 +7919,10 @@ export function createImapFolderSyncStateTransferAggregatedType(
 }
 
 export type ImapFolderSyncStateTransferAggregatedTypeParams = {
-	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	_ownerGroup: null | Id
 	path: string
 	imapSpecialUse: null | string
 
@@ -7914,9 +7933,10 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	// == values
 
 	_id: Id
-	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	_ownerGroup: null | Id
 	path: string
 	imapSpecialUse: null | string
 
@@ -7928,7 +7948,6 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -7937,7 +7956,7 @@ export type ImapFolderSyncStateTransferAggregatedType = {
 	_original: Nullable<ImapFolderSyncStateTransferAggregatedType>
 	isAdapter: false
 }
-export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2108)
+export const OAuthTokenEndpointResponseTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenEndpointResponseTransferAggregatedType> = new TypeRef("tutanota", 2121)
 
 export function createOAuthTokenEndpointResponseTransferAggregatedType(
 	values: OAuthTokenEndpointResponseTransferAggregatedTypeParams,
@@ -7981,7 +8000,7 @@ export type OAuthTokenEndpointResponseTransferAggregatedType = {
 	_original: Nullable<OAuthTokenEndpointResponseTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2114)
+export const ImapAccountTransferAggregatedTypeTypeRef: TypeRef<ImapAccountTransferAggregatedType> = new TypeRef("tutanota", 2127)
 
 export function createImapAccountTransferAggregatedType(values: ImapAccountTransferAggregatedTypeParams): ImapAccountTransferAggregatedType {
 	return Object.assign(create(typeModels[ImapAccountTransferAggregatedTypeTypeRef.typeId], ImapAccountTransferAggregatedTypeTypeRef), values)
@@ -8030,7 +8049,7 @@ export type ImapAccountTransferAggregatedType = {
 	_original: Nullable<ImapAccountTransferAggregatedType>
 	isAdapter: false
 }
-export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2124)
+export const ImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<ImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2137)
 
 export function createImapAccountSyncStateTransferAggregatedType(
 	values: ImapAccountSyncStateTransferAggregatedTypeParams,
@@ -8042,9 +8061,10 @@ export function createImapAccountSyncStateTransferAggregatedType(
 }
 
 export type ImapAccountSyncStateTransferAggregatedTypeParams = {
-	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	_ownerGroup: null | Id
 	maxQuota: NumberString
 	postponedUntil: NumberString
 	provider: NumberString
@@ -8058,9 +8078,10 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	// == values
 
 	_id: Id
-	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	_ownerGroup: null | Id
 	maxQuota: NumberString
 	postponedUntil: NumberString
 	provider: NumberString
@@ -8075,7 +8096,6 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	_permissions: null
 	bucketKey: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -8084,7 +8104,7 @@ export type ImapAccountSyncStateTransferAggregatedType = {
 	_original: Nullable<ImapAccountSyncStateTransferAggregatedType>
 	isAdapter: false
 }
-export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2136)
+export const ImportedMailAddressTypeRef: TypeRef<ImportedMailAddress> = new TypeRef("tutanota", 2150)
 
 export function createImportedMailAddress(values: ImportedMailAddressParams): ImportedMailAddress {
 	return Object.assign(create(typeModels[ImportedMailAddressTypeRef.typeId], ImportedMailAddressTypeRef), values)
@@ -8119,7 +8139,7 @@ export type ImportedMailAddress = {
 	_original: Nullable<ImportedMailAddress>
 	isAdapter: false
 }
-export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2140)
+export const ImportedRecipientsTypeRef: TypeRef<ImportedRecipients> = new TypeRef("tutanota", 2154)
 
 export function createImportedRecipients(values: ImportedRecipientsParams): ImportedRecipients {
 	return Object.assign(create(typeModels[ImportedRecipientsTypeRef.typeId], ImportedRecipientsTypeRef), values)
@@ -8157,7 +8177,7 @@ export type ImportedRecipients = {
 	_original: Nullable<ImportedRecipients>
 	isAdapter: false
 }
-export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2145)
+export const ImportedHeaderTypeRef: TypeRef<ImportedHeader> = new TypeRef("tutanota", 2159)
 
 export function createImportedHeader(values: ImportedHeaderParams): ImportedHeader {
 	return Object.assign(create(typeModels[ImportedHeaderTypeRef.typeId], ImportedHeaderTypeRef), values)
@@ -8190,7 +8210,7 @@ export type ImportedHeader = {
 	_original: Nullable<ImportedHeader>
 	isAdapter: false
 }
-export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2148)
+export const ImportedBodyTypeRef: TypeRef<ImportedBody> = new TypeRef("tutanota", 2162)
 
 export function createImportedBody(values: ImportedBodyParams): ImportedBody {
 	return Object.assign(create(typeModels[ImportedBodyTypeRef.typeId], ImportedBodyTypeRef), values)
@@ -8223,7 +8243,7 @@ export type ImportedBody = {
 	_original: Nullable<ImportedBody>
 	isAdapter: false
 }
-export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2151)
+export const ImportedMailDetailsTypeRef: TypeRef<ImportedMailDetails> = new TypeRef("tutanota", 2165)
 
 export function createImportedMailDetails(values: ImportedMailDetailsParams): ImportedMailDetails {
 	return Object.assign(create(typeModels[ImportedMailDetailsTypeRef.typeId], ImportedMailDetailsTypeRef), values)
@@ -8266,13 +8286,17 @@ export type ImportedMailDetails = {
 	_original: Nullable<ImportedMailDetails>
 	isAdapter: false
 }
-export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2158)
+export const ImportedMailDetailsBlobTypeRef: TypeRef<ImportedMailDetailsBlob> = new TypeRef("tutanota", 2172)
 
 export function createImportedMailDetailsBlob(values: ImportedMailDetailsBlobParams): ImportedMailDetailsBlob {
 	return Object.assign(create(typeModels[ImportedMailDetailsBlobTypeRef.typeId], ImportedMailDetailsBlobTypeRef), values)
 }
 
 export type ImportedMailDetailsBlobParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+
 	details: ImportedMailDetails
 }
 
@@ -8280,6 +8304,9 @@ export type ImportedMailDetailsBlob = {
 	// == values
 
 	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -8289,9 +8316,7 @@ export type ImportedMailDetailsBlob = {
 	_permissions: null
 	bucketKey: null
 	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
+
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -8300,7 +8325,7 @@ export type ImportedMailDetailsBlob = {
 	_original: Nullable<ImportedMailDetailsBlob>
 	isAdapter: false
 }
-export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2161)
+export const ImportedMailTypeRef: TypeRef<ImportedMail> = new TypeRef("tutanota", 2178)
 
 export function createImportedMail(values: ImportedMailParams): ImportedMail {
 	return Object.assign(create(typeModels[ImportedMailTypeRef.typeId], ImportedMailTypeRef), values)
@@ -8309,6 +8334,7 @@ export function createImportedMail(values: ImportedMailParams): ImportedMail {
 export type ImportedMailParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	subject: string
 	receivedDate: Date
 	state: NumberString
@@ -8329,6 +8355,7 @@ export type ImportedMail = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	subject: string
 	receivedDate: Date
 	state: NumberString
@@ -8349,7 +8376,6 @@ export type ImportedMail = {
 	bucketKey: null
 	_ownerGroup: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -8358,7 +8384,7 @@ export type ImportedMail = {
 	_original: Nullable<ImportedMail>
 	isAdapter: false
 }
-export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2176)
+export const ImportedImportedImapMailTypeRef: TypeRef<ImportedImportedImapMail> = new TypeRef("tutanota", 2194)
 
 export function createImportedImportedImapMail(values: ImportedImportedImapMailParams): ImportedImportedImapMail {
 	return Object.assign(create(typeModels[ImportedImportedImapMailTypeRef.typeId], ImportedImportedImapMailTypeRef), values)
@@ -8393,7 +8419,7 @@ export type ImportedImportedImapMail = {
 	_original: Nullable<ImportedImportedImapMail>
 	isAdapter: false
 }
-export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2180)
+export const ImportedDeduplicatedImportedAttachmentTypeRef: TypeRef<ImportedDeduplicatedImportedAttachment> = new TypeRef("tutanota", 2198)
 
 export function createImportedDeduplicatedImportedAttachment(values: ImportedDeduplicatedImportedAttachmentParams): ImportedDeduplicatedImportedAttachment {
 	return Object.assign(create(typeModels[ImportedDeduplicatedImportedAttachmentTypeRef.typeId], ImportedDeduplicatedImportedAttachmentTypeRef), values)
@@ -8402,6 +8428,7 @@ export function createImportedDeduplicatedImportedAttachment(values: ImportedDed
 export type ImportedDeduplicatedImportedAttachmentParams = {
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	attachmentHash: string
 }
 
@@ -8411,6 +8438,7 @@ export type ImportedDeduplicatedImportedAttachment = {
 	_id: Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
 	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	attachmentHash: string
 
 	// == associations
@@ -8420,7 +8448,6 @@ export type ImportedDeduplicatedImportedAttachment = {
 	bucketKey: null
 	_ownerGroup: null
 
-	_kdfNonce: null
 	ownerEncSessionKey: null
 	ownerEncSessionKeyVersion: null
 
@@ -8429,7 +8456,7 @@ export type ImportedDeduplicatedImportedAttachment = {
 	_original: Nullable<ImportedDeduplicatedImportedAttachment>
 	isAdapter: false
 }
-export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2187)
+export const ImportMailData2TypeRef: TypeRef<ImportMailData2> = new TypeRef("tutanota", 2206)
 
 export function createImportMailData2(values: ImportMailData2Params): ImportMailData2 {
 	return Object.assign(create(typeModels[ImportMailData2TypeRef.typeId], ImportMailData2TypeRef), values)
@@ -8479,5 +8506,47 @@ export type ImportMailData2 = {
 	// === these are not present in metamodel
 	_type: TypeRef<ImportMailData2>
 	_original: Nullable<ImportMailData2>
+	isAdapter: false
+}
+export const UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<UpdateImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2217)
+
+export function createUpdateImapAccountSyncStateTransferAggregatedType(
+	values: UpdateImapAccountSyncStateTransferAggregatedTypeParams,
+): UpdateImapAccountSyncStateTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef.typeId], UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type UpdateImapAccountSyncStateTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	postponedUntil: NumberString
+}
+
+export type UpdateImapAccountSyncStateTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	postponedUntil: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UpdateImapAccountSyncStateTransferAggregatedType>
+	_original: Nullable<UpdateImapAccountSyncStateTransferAggregatedType>
 	isAdapter: false
 }

@@ -1,5 +1,5 @@
 import { Nullable } from "@tutao/utils"
-import { AesKey, OwnerKeyProvider, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, AesKey, OwnerKeyProvider, SessionKeyDecryptor, VersionedKey } from "@tutao/crypto"
 import { RestClientOptions, SuspensionBehavior } from "@tutao/rest-client/types"
 
 export interface EntityRestClientSetupOptions {
@@ -98,6 +98,11 @@ export const DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS: EntityRestClientLoadOptions
 	ownerKeyProvider: null,
 	cacheMode: CacheMode.ReadAndWrite,
 }
+export interface ServiceEncryptionParams {
+	ownerKey: Nullable<VersionedKey>
+	sessionKeyDecryptor: SessionKeyDecryptor
+	aeadCipherVersion: AeadCipherVersion
+}
 
 export interface ExtraServiceParams {
 	queryParams: Nullable<Dict>
@@ -107,6 +112,8 @@ export interface ExtraServiceParams {
 	/** override origin for the request */
 	baseUrl: Nullable<string>
 	ownerKey: Nullable<VersionedKey>
+	aeadCipherVersion: Nullable<AeadCipherVersion>
+	sessionKeyDecryptor: Nullable<SessionKeyDecryptor>
 }
 
 export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
@@ -116,4 +123,6 @@ export const DEFAULT_EXTRA_SERVICE_PARAMS: ExtraServiceParams = {
 	suspensionBehavior: null,
 	baseUrl: null,
 	ownerKey: null,
+	aeadCipherVersion: null,
+	sessionKeyDecryptor: null,
 }

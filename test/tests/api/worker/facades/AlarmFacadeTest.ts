@@ -90,6 +90,8 @@ o.spec("AlarmFacadeTest", function () {
 		const encryptedTrigger = new Uint8Array(1)
 
 		o.beforeEach(function () {
+			userGroupKey.version = 0
+
 			when(userFacadeMock.getUserGroupId()).thenReturn(user.userGroup.group)
 			when(userFacadeMock.getCurrentUserGroupKey()).thenReturn(userGroupKey)
 
@@ -114,6 +116,9 @@ o.spec("AlarmFacadeTest", function () {
 				trigger: personalAlarmInfoTemplate.trigger,
 			})
 			const notification = createNotificationTransferAggregatedType({
+				_ownerKeyVersion: userGroupKey.version.toString(),
+				_ownerEncSessionKey: ownerEncSessionKey,
+				_kdfNonce: null,
 				alarms: [
 					createAlarmNotificationTransferAggregatedType({
 						alarmInfo,
@@ -132,6 +137,7 @@ o.spec("AlarmFacadeTest", function () {
 					_ownerGroup: userGroupMembership.group,
 					_ownerEncSessionKey: ownerEncSessionKey,
 					_ownerKeyVersion: userGroupKey.version.toString(),
+					_kdfNonce: null,
 					alarmInfo,
 				}),
 			]
