@@ -32,6 +32,7 @@ import { Dialog } from "../../../ui/base/Dialog"
 import { ButtonType } from "../../../ui/base/Button"
 import { GENERATED_MIN_ID } from "@tutao/meta"
 import { PluginManager } from "../../../plugin-kit/plugin-manager/PluginManager"
+import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase"
 
 /**
  * This is a collection of all things that need to be initialized/global state to be set after a user has logged in successfully.
@@ -49,6 +50,7 @@ export class PostLoginActions implements PostLoginAction {
 		private readonly customerFacade: CustomerFacade,
 		private readonly themeController: ThemeController,
 		private readonly syncTracker: SyncTracker,
+		private readonly configDb: ConfigurationDatabase,
 		private readonly showSetupWizard: () => unknown,
 		private readonly updateClient: () => unknown,
 		private readonly loginFacade: LoginFacade,
@@ -105,6 +107,9 @@ export class PostLoginActions implements PostLoginAction {
 	}
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
+		// allow config db to load so that anything needing it will work now
+		await this.configDb.onFullyLoggedIn()
+
 		if (loggedInEvent.sessionType === SessionType.Temporary || !this.logins.getUserController().isInternalUser()) {
 			return
 		}
