@@ -1,7 +1,7 @@
 {
 	"name": "tutamail",
-	"version": "1.2.2",
-	"license": "AGPL-3.0-or-later",
+	"version": "1.3.0",
+	"license": "GPL-3.0-or-later",
 	"type": "module",
 	"scripts": {
 		"build": "vite build",

@@ -1,7 +1,7 @@
 {
 	"name": "nextcloud/tutamail",
 	"description": "Seamless integration of Tuta Mail into nextcloud.",
-	"license": "AGPL-3.0-or-later",
+	"license": "GPL-3.0-or-later",
 	"authors": [
 		{
 			"name": "Tutao GmbH",
