@@ -110,7 +110,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.updateCredsConfigIfNeeded()
 
 		const { joinUrl } = await this.nextcloudApi.createTalkRoom("TutaRoom")
-		await this.pluginHost.openWindow(joinUrl)
 
 		return joinUrl
 	}
