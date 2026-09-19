@@ -5,7 +5,7 @@
     <name>Tuta Mail</name>
     <summary>Tuta Mail for Nextcloud</summary>
     <description>Seamless integration of Tuta Mail into Nextcloud.</description>
-    <version>1.2.2</version>
+    <version>1.3.0</version>
     <licence>GPL-3.0-or-later</licence>
     <author mail="nextcloud@tutao.de" homepage="https://tuta.com">Tutao GmbH</author>
     <namespace>TutaMail</namespace>
@@ -13,8 +13,10 @@
     <category>organization</category>
     <category>security</category>
     <bugs>https://github.com/tutao/tutanota/issues</bugs>
+    <screenshot>https://tuta.com/assets/desktop-mail-e2ee-screen.dKV6JEx-_Z2tpGxT.webp</screenshot>
+    <screenshot>https://tuta.com/assets/desktop-calendar-integrated-screen.xyqm8R_f_Z1hEkQG.webp</screenshot>
     <dependencies>
-        <nextcloud min-version="33" max-version="34"/>
+        <nextcloud min-version="33" max-version="36"/>
     </dependencies>
     <navigations>
         <navigation>
