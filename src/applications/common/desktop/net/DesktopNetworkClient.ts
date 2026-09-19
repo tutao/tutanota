@@ -4,8 +4,10 @@ import { ConnectionError } from "@tutao/rest-client/error"
 import { log } from "../DesktopLog.js"
 import type { ReadStream } from "node:fs"
 import { newPromise } from "@tutao/utils"
+import { HappyEyeballsHttpsAgent } from "./HappyEyeballsAgents.js"
 
 const TAG = "[DesktopNetworkClient]"
+const httpsAgent = new HappyEyeballsHttpsAgent()
 
 /**
  * Manually re-doing http$requestOptions because built-in definition is crap.
@@ -29,7 +31,7 @@ export type ClientRequestOptions = {
 
 export class DesktopNetworkClient {
 	request(url: URL, opts: ClientRequestOptions): http.ClientRequest {
-		return this.getModule(url).request(url, opts)
+		return this.getModule(url).request(url, url.protocol === "https:" ? { ...opts, agent: httpsAgent } : opts)
 	}
 
 	/**

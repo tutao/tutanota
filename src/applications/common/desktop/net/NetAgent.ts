@@ -1,5 +1,6 @@
 import type { HeadersInit, RequestInit, Response } from "undici"
 import { Agent, fetch as undiciFetch, Headers } from "undici"
+import { createHappyEyeballsConnector } from "./HappyEyeballsAgents.js"
 
 export type UndiciResponse = Response
 export type UndiciRequestInit = RequestInit
@@ -17,13 +18,9 @@ const agent = new Agent({
 	keepAliveTimeout: SOCKET_IDLE_TIMEOUT_MS,
 	bodyTimeout: READ_TIMEOUT_MS,
 	headersTimeout: READ_TIMEOUT_MS,
-	connectTimeout: READ_TIMEOUT_MS,
-	// this is needed to address issues in some cases where IPv6 does not really work
-	autoSelectFamily: true,
-	// We do not enable HTTP2 yet, it was buggy in the past and does not work in dist builds still
-	//
-	// see tutanota#11428
-	allowH2: false,
+	connect: createHappyEyeballsConnector(),
+	// Packaged builds require the Undici HTTP/2 fix in tutanota#11432.
+	allowH2: true,
 })
 
 export const customFetch: FetchImpl = async (target: string | URL, init?: UndiciRequestInit): Promise<UndiciResponse> => {

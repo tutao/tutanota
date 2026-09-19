@@ -18,6 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 
 export async function updateLibs() {
 	await copyToLibs(clientDependencies)
+	await fs.copyFile(path.join(__dirname, "../node_modules/compliant-eyeballs/LICENSE"), path.join(__dirname, "../libs/compliant-eyeballs.LICENSE"))
 }
 
 /**
@@ -45,6 +46,7 @@ const clientDependencies = [
 	{ src: "../node_modules/electron-updater/out/main.js", target: "electron-updater.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@signalapp/sqlcipher/dist/index.mjs", target: "node-sqlcipher.mjs", bundling: "copy" },
 	{ src: "../node_modules/undici/index.js", target: "undici.mjs", bundling: "rollupDesktop" },
+	{ src: "./compliantEyeballs.js", target: "compliant-eyeballs.mjs", bundling: "rollupDesktop" },
 	{ src: "../node_modules/@fingerprintjs/botd/dist/botd.esm.js", target: "botd.mjs", bundling: "rollupWeb", patch: "./libs/botd.patch" },
 	{ src: "../src/applications/mail-app/workerUtils/spamClassification/tensorflow-custom.js", target: "tensorflow.js", bundling: "rollupTF" },
 	{ src: "../src/applications/common/desktop/imapimport/imapsync/imapflow-custom.js", target: "imapflow.js", bundling: "rollupImap" },
