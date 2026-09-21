@@ -26,6 +26,7 @@ export class BannerButton implements Component<BannerButtonAttrs> {
 				color: attrs.disabled ? theme.on_surface : attrs.color,
 				padding: px(size.spacing_8),
 				minWidth: "60px",
+				width: "fit-content",
 			},
 			disabled: attrs.disabled,
 			onclick: attrs.click,
