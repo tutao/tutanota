@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
-import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { composeRestClientOptionsToGetAllPermissions, InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import {
 	createFormerInstanceKeyData,
 	FormerInstanceKeyData,
@@ -175,7 +175,9 @@ o.spec("InstanceKeyFacadeTest", function () {
 			instancePermissions = []
 			instanceGroup = createTestEntity(GroupTypeRef, { groupKeyVersion: currentInstanceGroupKey.version.toString() })
 			when(entityClient.load(GroupTypeRef, idToElementId(instanceGroupId))).thenResolve(instanceGroup)
-			when(entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions))).thenResolve(instancePermissions)
+			when(
+				entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions), undefined, composeRestClientOptionsToGetAllPermissions(instance)),
+			).thenResolve(instancePermissions)
 			sessionKey = object()
 			when(cryptoFacade.resolveSessionKey(instance)).thenResolve(sessionKey)
 		})

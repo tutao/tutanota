@@ -1,4 +1,4 @@
-import { elementIdPart, GENERATED_MAX_ID, idToElementId, isSameTypeRef, ITypeInfo, PersistentEntity, TypeRef } from "@tutao/meta"
+import { elementIdPart, GENERATED_MAX_ID, getTypeString, idToElementId, isSameTypeRef, ITypeInfo, PersistentEntity, stringifyId, TypeRef } from "@tutao/meta"
 import {
 	cryptoUtils,
 	CryptoWrapper,
@@ -44,6 +44,7 @@ import { GroupType } from "../../../entities/sys/Utils"
 import { CryptoFacade } from "./CryptoFacade"
 import { AdminKeyLoaderFacade } from "./AdminKeyLoaderFacade"
 import { IServiceExecutor } from "../../network/ServiceRequest"
+import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../instance-pipeline/RestClientOptions"
 
 const formerInstanceKeysProperty = "_formerInstanceKeys"
 
@@ -216,9 +217,10 @@ export class InstanceKeyFacade {
 		// TODO maybe avoid loading if initial migration is set?!
 		const numberOfExistingFormerInstanceKeys = await this.getNumberOfExistingInstanceKeys(instance)
 		await this.addFormerInstanceKeys(currentInstanceKey, currentGroupKeyVersion, instance, formerInstanceKeys, numberOfExistingFormerInstanceKeys)
-		// TODO check default resource, because we only return filtered permissions?!
-		//  we need a way to load all. option: implement a GET on InstanceKeyPermissionService?
-		const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+		// we need to set permissionParentInstanceReference so that the server can authorize our request and return ALL permissions
+		// instead of a filtered list that only contains permissions owned by groups we are a member of
+		const opts = composeRestClientOptionsToGetAllPermissions(instance)
+		const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions, undefined, opts)
 
 		for (const permission of permissions) {
 			if (permission.instanceKeyVersion != null && cryptoUtils.parseKeyVersion(permission.instanceKeyVersion) === currentGroupKeyVersion) {
@@ -387,6 +389,19 @@ export class InstanceKeyFacade {
 			await this.executeInstanceKeySharing(instanceKeySharingType)
 		}
 	}
+}
+
+/**
+ *
+ * @VisibleForTesting
+ */
+export function composeRestClientOptionsToGetAllPermissions(instance: PersistentEntity): EntityRestClientLoadOptions {
+	const opts = { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS }
+	if (opts.queryParams == null) {
+		opts.queryParams = {}
+	}
+	opts.queryParams = { ...opts.queryParams, permissionParentInstanceReference: `${getTypeString(instance._type)}/${stringifyId(instance._id)}` }
+	return opts
 }
 
 function typeInfoModelToTypeRef<T>(typeInfo: ITypeInfo): TypeRef<T> {
