@@ -152,7 +152,7 @@ export class NextcloudApi {
 			const putResponse = await this.axiosClient.put(davUrl, dataFile.data, putOptions)
 			if (putResponse.status === 401) {
 				this.nextCloudCredentials = null
-				return await this.uploadFile(dataFile)
+				return await this.uploadFile(dataFile, targetFolder)
 			}
 			this.throwErrorIfNotOk(putResponse, `While uploading file: "${dataFile.name}"`)
 		} catch (err) {
