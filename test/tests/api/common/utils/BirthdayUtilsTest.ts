@@ -1,10 +1,9 @@
 import o from "@tutao/otest"
 
-import { birthdayToIsoDate, isoDateToBirthday } from "../../../../../src/applications/common/api/common/utils/BirthdayUtils.js"
-import { ParsingError } from "../../../../../src/applications/common/api/common/error/ParsingError.js"
 import { TutanotaError } from "../../../../../src/platform-kit/app-env"
 import { createTestEntity } from "../../../TestUtils.js"
-import { BirthdayTypeRef, createBirthday } from "@tutao/entities/tutanota"
+import { BirthdayTypeRef } from "@tutao/entities/tutanota"
+import { birthdayToIsoDate, parseContactIsoDate } from "../../../../../src/applications/common/contactsFunctionality/ContactUtils"
 
 o.spec("BirthdayUtils", function () {
 	o("birthdayToIsoDate", function () {
@@ -23,51 +22,55 @@ o.spec("BirthdayUtils", function () {
 		bday.day = "5"
 		o(birthdayToIsoDate(bday)).equals("2019-01-05")
 	})
-	o("isoDateToBirthday", function () {
-		o(isoDateToBirthday("--10-12")).deepEquals(
-			createBirthday({
-				day: "12",
-				month: "10",
+	o.spec("parseBirthdayIsoDate", function () {
+		o.test("valid cases", function () {
+			o(parseContactIsoDate("--10-12")).deepEquals({
+				isValid: true,
+				day: 12,
+				month: 10,
 				year: null,
-			}),
-		)
-		o(isoDateToBirthday("2009-10-12")).deepEquals(
-			createBirthday({
-				day: "12",
-				month: "10",
-				year: "2009",
-			}),
-		)
-		o(isoDateToBirthday("2009-12-31")).deepEquals(
-			createBirthday({
-				day: "31",
-				month: "12",
-				year: "2009",
-			}),
-		)
-		o(isoDateToBirthday("2009-01-01")).deepEquals(
-			createBirthday({
-				day: "01",
-				month: "01",
-				year: "2009",
-			}),
-		)
-	})
-	o("parsing error", function () {
-		assertFail(() => isoDateToBirthday(""), new ParsingError("invalid birthday: "))
-		assertFail(() => isoDateToBirthday("-"), new ParsingError("invalid birthday: -"))
-		assertFail(() => isoDateToBirthday("31"), new ParsingError("invalid birthday: 31"))
-		assertFail(() => isoDateToBirthday("31-wq."), new ParsingError("invalid birthday: 31-wq."))
-		assertFail(() => isoDateToBirthday("--"), new ParsingError("invalid birthday without year: --"))
-		assertFail(() => isoDateToBirthday("---10-12"), new ParsingError("invalid birthday without year: ---10-12"))
-		assertFail(() => isoDateToBirthday("aaaa-bb-cc"), new ParsingError("Invalid birthday format: aaaa-bb-cc"))
-		assertFail(() => isoDateToBirthday("aaaa-bb-01"), new ParsingError("Invalid birthday format: aaaa-bb-01"))
-		assertFail(() => isoDateToBirthday("aaaa-01-01"), new ParsingError("Invalid birthday format: aaaa-01-01"))
-		assertFail(() => isoDateToBirthday("0000-01-01"), new ParsingError("Invalid birthday format: 0000-01-01"))
-		assertFail(() => isoDateToBirthday("2019-00-01"), new ParsingError("Invalid birthday format: 2019-00-01"))
-		assertFail(() => isoDateToBirthday("2019-01-00"), new ParsingError("Invalid birthday format: 2019-01-00"))
-		assertFail(() => isoDateToBirthday("2019-13-31"), new ParsingError("Invalid birthday format: 2019-13-31"))
-		assertFail(() => isoDateToBirthday("2019-12-32"), new ParsingError("Invalid birthday format: 2019-12-32"))
+			})
+			o(parseContactIsoDate("2009-10-12")).deepEquals({
+				isValid: true,
+				day: 12,
+				month: 10,
+				year: 2009,
+			})
+			o(parseContactIsoDate("2009-12-31")).deepEquals({
+				isValid: true,
+				day: 31,
+				month: 12,
+				year: 2009,
+			})
+			o(parseContactIsoDate("2009-01-01")).deepEquals({
+				isValid: true,
+				day: 1,
+				month: 1,
+				year: 2009,
+			})
+			o.check(parseContactIsoDate("0099-01-01")).deepEquals({
+				isValid: true,
+				year: 99,
+				month: 1,
+				day: 1,
+			})
+		})
+		o.test("invalid cases", function () {
+			o.check(parseContactIsoDate("")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("-")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("31")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("31-wq.")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("--")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("---10-12")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("aaaa-bb-cc")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("aaaa-bb-01")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("aaaa-01-01")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("0000-01-01")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("2019-00-01")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("2019-01-00")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("2019-13-31")).deepEquals({ isValid: false, year: null, month: null, day: null })
+			o.check(parseContactIsoDate("2019-12-32")).deepEquals({ isValid: false, year: null, month: null, day: null })
+		})
 	})
 })
 

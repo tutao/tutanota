@@ -464,6 +464,29 @@ o.spec("CalendarEventsRepository", function () {
 				}
 			}
 		})
+		o.test("handleContactEvent creates birthday without year", async function () {
+			const birthdayMonth = 6
+			const birthdayDay = 16
+			const newContact = testContact(`--0${birthdayMonth}-${birthdayDay}`, "New", "Contact")
+			when(contactModelMock.loadContactFromId(newContact._id)).thenResolve(newContact)
+
+			await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+			for (let year = 2000; year <= 2030; ++year) {
+				await calendarEventsRepository.loadMonthsIfNeeded([new Date(year, birthdayMonth - 1, 1)], abortController.signal, null)
+
+				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
+
+				// Check that a reoccurrence of the birthday event exists for this year
+				const dayKey = new Date(year, birthdayMonth - 1, birthdayDay).getTime()
+				const event = daysToEvents.get(dayKey)![0].event
+				o.check(daysToEvents.get(dayKey)!.length).equals(1)
+				// Check that the birthday event is at the correct time
+				o.check(event.startTime.getTime()).equals(Date.UTC(year, birthdayMonth - 1, birthdayDay))
+				// Check the summary is correct, not containing age
+				o.check(event.summary).equals(`New's birthday`)
+			}
+		})
 		o.test("handleContactEvent removes the old birthday event when updating an existing contact's birthday", async function () {
 			//
 			// Setup

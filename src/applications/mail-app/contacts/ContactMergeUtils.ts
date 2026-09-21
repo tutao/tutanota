@@ -1,7 +1,7 @@
-import { neverNull } from "../../../platform-kit/utils"
-import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import { ContactComparisonResult, IndifferentContactComparisonResult } from "../../../platform-kit/app-env"
-import { Birthday, Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "@tutao/entities/tutanota"
+import { neverNull } from "@tutao/utils"
+import { ContactComparisonResult, IndifferentContactComparisonResult } from "@tutao/app-env"
+import { Contact, ContactAddress, ContactMailAddress, ContactPhoneNumber, ContactSocialId } from "@tutao/entities/tutanota"
+import { parseContactIsoDate } from "../../common/contactsFunctionality/ContactUtils"
 
 /**
  * returns all contacts that are deletable because another contact exists that is exactly the same, and all contacts that look similar and therfore may be merged.
@@ -325,11 +325,10 @@ export function _getMergedAddresses(addresses1: ContactAddress[], addresses2: Co
  * Export for testing
  */
 export function _compareBirthdays(contact1: Contact, contact2: Contact): ContactComparisonResult | IndifferentContactComparisonResult {
-	const b1 = _convertIsoBirthday(contact1.birthdayIso)
+	const b1 = parseContactIsoDate(contact1.birthdayIso)
+	const b2 = parseContactIsoDate(contact2.birthdayIso)
 
-	const b2 = _convertIsoBirthday(contact2.birthdayIso)
-
-	if (b1 && b2) {
+	if (b1.isValid && b2.isValid) {
 		if (b1.day === b2.day && b1.month === b2.month) {
 			if (b1.year === b2.year) {
 				return ContactComparisonResult.Equal
@@ -346,19 +345,6 @@ export function _compareBirthdays(contact1: Contact, contact2: Contact): Contact
 		return IndifferentContactComparisonResult.OneEmpty
 	} else {
 		return IndifferentContactComparisonResult.BothEmpty
-	}
-}
-
-function _convertIsoBirthday(isoBirthday: string | null): Birthday | null {
-	if (isoBirthday) {
-		try {
-			return isoDateToBirthday(isoBirthday)
-		} catch (e) {
-			console.log("failed to parse birthday", e)
-			return null
-		}
-	} else {
-		return null
 	}
 }
 
@@ -420,11 +406,11 @@ export function _getMergedOtherField(otherAttribute1: string | null, otherAttrib
  * Export for testing
  */
 export function _getMergedBirthdays(birthday1: string | null, birthday2: string | null): string | null {
-	const b1 = _convertIsoBirthday(birthday1)
+	const b1 = parseContactIsoDate(birthday1)
 
-	const b2 = _convertIsoBirthday(birthday2)
+	const b2 = parseContactIsoDate(birthday2)
 
-	if (b1 && b2) {
+	if (b1.isValid && b2.isValid) {
 		if (b1.year) {
 			return birthday1
 		} else if (b2.year) {

@@ -8,10 +8,9 @@ import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.
 import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
 import { getLocationUrl } from "./EventPreviewView.js"
-import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
-import { getContactTitle } from "../../../../common/contactsFunctionality/ContactUtils"
+import { getContactTitle, parseContactIsoDate } from "../../../../common/contactsFunctionality/ContactUtils"
 import { CalendarEvent, Contact } from "@tutao/entities/tutanota"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatEventDuration } from "../DateTimeTextFormatterUtils"
@@ -33,8 +32,22 @@ export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
 		const { event, contact } = vnode.attrs
 		const eventTitle = getContactTitle(contact)
 
-		const birthYear = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
-		const age = birthYear && calculateContactsAge(parseInt(birthYear) ?? 1970, event.startTime.getFullYear())
+		const childComponents: Children = [
+			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
+			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),
+		]
+
+		let birthYear: number | null = null
+		if (contact.birthdayIso) {
+			const parseResult = parseContactIsoDate(contact.birthdayIso)
+			if (parseResult.isValid) {
+				birthYear = parseResult.year
+			} else {
+				console.warn(`Contact has invalid birthday ISO date "${contact.birthdayIso}"! Will not display contact age.`)
+			}
+		}
+
+		const age = birthYear && calculateContactsAge(birthYear ?? null, event.startTime.getFullYear())
 		const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
 
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [

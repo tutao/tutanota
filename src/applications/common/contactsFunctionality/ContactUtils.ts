@@ -1,10 +1,8 @@
 import { EnvProvider } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { isoDateToBirthday } from "../api/common/utils/BirthdayUtils.js"
 import {
 	StructuredAddress,
-	StructuredContact,
 	StructuredCustomDate,
 	StructuredMailAddress,
 	StructuredMessengerHandle,
@@ -34,6 +32,7 @@ import {
 	ContactSocialType,
 	ContactWebsiteType,
 } from "../../../entities/tutanota/Utils"
+import { isValidDateYearMonthDay } from "../calendar/date/CalendarUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -57,13 +56,70 @@ export function getContactListName(contact: Contact): string {
 	return name
 }
 
-export function formatBirthdayNumeric(birthday: Birthday): string {
-	if (birthday.year) {
-		return formatDate(new Date(Number(birthday.year), Number(birthday.month) - 1, Number(birthday.day)))
-	} else {
-		//if no year is specified a leap year is used to allow 2/29 as birthday
-		return lang.formats.simpleDateWithoutYear.format(new Date(Number(2016), Number(birthday.month) - 1, Number(birthday.day)))
+/**
+ * Converts the birthday object to iso Date format (yyyy-mm-dd) or iso Date without year (--mm-dd)
+ */
+export function birthdayToIsoDate(birthday: Birthday): string {
+	const month = ("0" + birthday.month).slice(-2)
+	const day = ("0" + birthday.day).slice(-2)
+	const year = birthday.year ? ("0000" + birthday.year).slice(-4) : "-"
+	return `${year}-${month}-${day}`
+}
+
+export function parseContactIsoDate(
+	birthdayIso: string | null,
+): { isValid: true; year: number | null; month: number; day: number } | { isValid: false; year: null; month: null; day: null } {
+	if (typeof birthdayIso !== "string") {
+		return { isValid: false, year: null, month: null, day: null }
 	}
+
+	let year: number | null
+	let month: number
+	let day: number
+
+	if (birthdayIso.startsWith("--")) {
+		const monthAndDay = birthdayIso.substring(2).split("-")
+
+		if (monthAndDay.length !== 2) {
+			return { isValid: false, year: null, month: null, day: null }
+		}
+
+		month = parseInt(monthAndDay[0])
+		day = parseInt(monthAndDay[1])
+		year = null
+	} else {
+		const yearMonthAndDay = birthdayIso.split("-")
+
+		if (yearMonthAndDay.length !== 3) {
+			return { isValid: false, year: null, month: null, day: null }
+		}
+
+		year = parseInt(yearMonthAndDay[0])
+		month = parseInt(yearMonthAndDay[1])
+		day = parseInt(yearMonthAndDay[2])
+	}
+
+	if (!isValidContactYearMonthDay(year, month, day)) {
+		return { isValid: false, year: null, month: null, day: null }
+	}
+
+	return { isValid: true, year, month, day }
+}
+
+export function isValidContactYearMonthDay(year: number | null, month: number, day: number) {
+	// We use a leap year as a fallback year to allow Feb. 29 to be valid
+	return (
+		(year === null || !Number.isNaN(year)) && !Number.isNaN(month) && !Number.isNaN(day) && isValidDateYearMonthDay(year === null ? 2004 : year, month, day)
+	)
+}
+
+export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthday {
+	return (
+		birthday.year !== undefined &&
+		birthday.month !== undefined &&
+		birthday.day !== undefined &&
+		isValidContactYearMonthDay(birthday.year === null ? null : parseInt(birthday.year), parseInt(birthday.month), parseInt(birthday.day))
+	)
 }
 
 /**
@@ -72,14 +128,17 @@ export function formatBirthdayNumeric(birthday: Birthday): string {
  * If there is no date or an invalid birthday format an empty string returns.
  */
 export function formatContactDate(isoDate: string | null): string {
-	if (isoDate) {
-		try {
-			return formatBirthdayNumeric(isoDateToBirthday(isoDate))
-		} catch (e) {
-			// cant format, cant do anything
+	const parseResult = parseContactIsoDate(isoDate)
+	if (parseResult.isValid) {
+		if (parseResult.year) {
+			return formatDate(new Date(parseResult.year, parseResult.month - 1, parseResult.day))
+		} else {
+			//if no year is specified a leap year is used to allow 2/29 as birthday
+			return lang.formats.simpleDateWithoutYear.format(new Date(2016, parseResult.month - 1, parseResult.day))
 		}
 	}
 
+	// cant format, cant do anything
 	return ""
 }
 
@@ -204,18 +263,6 @@ export function extractStructuredMessengerHandle(handles: ContactMessengerHandle
 	}))
 }
 
-export function validateBirthdayOfContact(contact: StructuredContact) {
-	if (contact.birthday != null) {
-		try {
-			isoDateToBirthday(contact.birthday)
-			return contact.birthday
-		} catch (_) {
-			return null
-		}
-	} else {
-		return null
-	}
-}
 export function getContactTitle(contact: Contact) {
 	const title = contact.title ? `${contact.title} ` : ""
 	const middleName = contact.middleName != null ? ` ${contact.middleName} ` : " "

@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { lang, languageCodeToTag, languages } from "../../../src/ui/utils/LanguageViewModel.js"
 import { formatDate } from "../../../src/ui/utils/Formatter.js"
 
-import { _getNumDaysInMonth, parseBirthday, parseDate } from "../../../src/applications/common/misc/DateParser.js"
+import { parseBirthday, parseDate } from "../../../src/applications/common/misc/DateParser.js"
 import { createTestEntity } from "../TestUtils.js"
 import { BirthdayTypeRef } from "@tutao/entities/tutanota"
 
@@ -185,33 +185,6 @@ o.spec("Formatter", function () {
 			_checkparseBirthdayWithFormatter("1/1/50", 1, 1, 1950)
 		}),
 	)
-
-	o("days of month", function () {
-		o(_getNumDaysInMonth(1, 2021)).equals(31)
-		o(_getNumDaysInMonth(1, 2020)).equals(31)
-		o(_getNumDaysInMonth(2, 2021)).equals(28)
-		o(_getNumDaysInMonth(2, 2020)).equals(29)
-		o(_getNumDaysInMonth(3, 2021)).equals(31)
-		o(_getNumDaysInMonth(3, 2020)).equals(31)
-		o(_getNumDaysInMonth(4, 2021)).equals(30)
-		o(_getNumDaysInMonth(4, 2020)).equals(30)
-		o(_getNumDaysInMonth(5, 2021)).equals(31)
-		o(_getNumDaysInMonth(5, 2020)).equals(31)
-		o(_getNumDaysInMonth(6, 2021)).equals(30)
-		o(_getNumDaysInMonth(6, 2020)).equals(30)
-		o(_getNumDaysInMonth(7, 2021)).equals(31)
-		o(_getNumDaysInMonth(7, 2020)).equals(31)
-		o(_getNumDaysInMonth(8, 2021)).equals(31)
-		o(_getNumDaysInMonth(8, 2020)).equals(31)
-		o(_getNumDaysInMonth(9, 2021)).equals(30)
-		o(_getNumDaysInMonth(9, 2020)).equals(30)
-		o(_getNumDaysInMonth(10, 2021)).equals(31)
-		o(_getNumDaysInMonth(10, 2020)).equals(31)
-		o(_getNumDaysInMonth(11, 2021)).equals(30)
-		o(_getNumDaysInMonth(11, 2020)).equals(30)
-		o(_getNumDaysInMonth(12, 2021)).equals(31)
-		o(_getNumDaysInMonth(12, 2020)).equals(31)
-	})
 
 	function _checkparseBirthdayWithFormatter(text: string, expectedDay: number, expectedMonth: number, expectedYear: number | null | undefined) {
 		let expected = createTestEntity(BirthdayTypeRef)

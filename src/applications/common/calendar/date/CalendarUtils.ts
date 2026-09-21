@@ -34,7 +34,7 @@ import {
 	neverNull,
 	TIMESTAMP_ZERO_YEAR,
 } from "@tutao/utils"
-import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, RepeatPeriod, WeekStart } from "@tutao/app-env"
+import { BIRTHDAY_CALENDAR_BASE_ID, EndType, EventTextTimeOption, ProgrammingError, RepeatPeriod, WeekStart } from "@tutao/app-env"
 import { DateTime, DurationLikeObject, FixedOffsetZone, IANAZone, MonthNumbers, WeekdayNumbers } from "luxon"
 import {
 	CalendarEventDateTimeFields,
@@ -49,11 +49,11 @@ import { CalendarInfo } from "../../../calendar-app/calendar/model/CalendarModel
 import { ResolvedUidIndexEntry } from "../../api/worker/facades/lazy/CalendarFacade.js"
 import { ParserError } from "../../misc/parsing/ParserCombinator.js"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel.js"
-import { isoDateToBirthday } from "../../api/common/utils/BirthdayUtils"
 import { EventWrapper, type EventWrapperFlags } from "../../../calendar-app/calendar/view/CalendarViewModel.js"
 import { AllIcons } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
+import { MAX_SANE_YEAR } from "../../../../platform-kit/utils/DateUtils"
 
 export type CalendarTimeRange = {
 	start: number
@@ -160,6 +160,45 @@ export function getAllDayDateForTimezone(utcDate: Date, zone: string): Date {
 		.setZone(zone, { keepLocalTime: true })
 		.set({ hour: 0, minute: 0, second: 0, millisecond: 0 })
 		.toJSDate()
+}
+
+/**
+ * Returns true if the year is a leap year in the Gregorian calendar.
+ * @param year a positive integer in the signed 32-bit range [0;2^31)
+ */
+export function isLeapYear(year: number): boolean {
+	const yearInteger = year | 0
+	if (yearInteger !== year) {
+		console.error(`isLeapYear called with non-integer year=${year}!`)
+	}
+	// See https://en.wikipedia.org/wiki/Leap_year#Gregorian_calendar
+	return yearInteger % 4 === 0 && (yearInteger % 100 !== 0 || yearInteger % 400 === 0)
+}
+
+/**
+ * Returns the number of days in a month.
+ *
+ * @param year A positive integer in the signed 32-bit range [0;2^31).
+ *     The `year` argument is needed because February has 29 days on leap years, instead of 28
+ * @param month 1 to 12 (inclusive)
+ */
+export function getNumDaysInMonth(year: number, month: number): number {
+	const monthInteger = month | 0
+	if (monthInteger !== month) {
+		console.error(`daysInMonth called with non-integer month=${month}!`)
+	}
+	if (month === 2) {
+		return 28 + (isLeapYear(year) ? 1 : 0)
+	} else if (month === 4 || month === 6 || month === 9 || month === 11) {
+		return 30
+	} else if (1 <= month && month <= 12) {
+		return 31
+	}
+	throw new Error(`daysInMonth called with invalid month=${month}! Month must be between 1 and 12.`)
+}
+
+export function isValidDateYearMonthDay(year: number, month: number, day: number): boolean {
+	return TIMESTAMP_ZERO_YEAR <= year && year <= MAX_SANE_YEAR && 1 <= month && month <= 12 && 1 <= day && day <= getNumDaysInMonth(year, month)
 }
 
 /**
@@ -1741,23 +1780,6 @@ export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
-export function extractYearFromBirthday(birthday: string | null): number | null {
-	if (!birthday) {
-		return null
-	}
-
-	const dateParts = birthday.split("-")
-	const partsLength = dateParts.length
-
-	// A valid ISO date should contain 3 parts:
-	// YYYY-mm-dd => [yyyy, mm, dd]
-	if (partsLength !== 3) {
-		return null
-	}
-
-	return Number.parseInt(dateParts[0])
-}
-
 export function calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
 	if (!birthYear) {
 		return null
@@ -1786,45 +1808,6 @@ export function birthdayCalendarEventContactId(calendarEventId: IdTuple): IdTupl
 		return null
 	}
 	return [contactIdParts[0], contactIdParts[1]]
-}
-
-/**
- * Converts a birthday ISO string into UTC start and end dates
- * representing a full-day event in the given time zone.
- *
- * This is useful for recurring dates like birthdays where you want the
- * "all-day" event range in UTC that corresponds to the local calendar day.
- *
- * @param {string} isoDateString - The desired date as an ISO date string (e.g., "1999-05-12").
- * @param {string} zone - The IANA time zone identifier (e.g., "Europe/Berlin", "America/New_York").
- * @returns {{ startDate: Date; endDate: Date }} An object containing:
- * - `startDate`: The UTC `Date` representing the start of the day (00:00 UTC converted to local time).
- * - `endDate`: The UTC `Date` representing the end of the day (00:00 UTC of the following day converted to local time).
- *
- * @example
- * // For a birthday on May 12 in Berlin time
- * const { startDate, endDate } = getAllDayDatesUTCFromIso("1999-05-12", "Europe/Berlin");
- * console.log(startDate); // 1999-05-11T22:00:00.000Z (depending on DST)
- * console.log(endDate);   // 1999-05-12T22:00:00.000Z (depending on DST)
- */
-export function getAllDayDatesUTCFromIso(isoDateString: string, zone: string): { startDate: Date; endDate: Date } {
-	const birthday = isoDateToBirthday(isoDateString)
-	// We use Luxon to create a JsDate in the same day as the ISO string but in the specified timezone
-	const birthdayDateInTimezone = DateTime.fromObject(
-		{
-			year: parseInt(birthday.year ?? "1970"),
-			month: parseInt(birthday.month),
-			day: parseInt(birthday.day),
-		},
-		{ zone },
-	).toJSDate()
-
-	const startDateUtc = getAllDayDateUTCFromZone(birthdayDateInTimezone, zone)
-	const endDateUtc = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(birthdayDateInTimezone, zone), zone)
-	return {
-		startDate: startDateUtc,
-		endDate: endDateUtc,
-	}
 }
 
 export enum ByRule {

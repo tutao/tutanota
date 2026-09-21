@@ -19,6 +19,8 @@ export const YEAR_IN_MILLIS = TimeConstants.daysToMillis(365)
  */
 export const TIMESTAMP_ZERO_YEAR = 0
 
+export const MAX_SANE_YEAR = 10000
+
 /**
  * Provides a date representing the beginning of the next day of the given date in local time.
  */

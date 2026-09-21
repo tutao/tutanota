@@ -3,13 +3,12 @@ import { Dialog } from "../../../ui/base/Dialog"
 import type { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { isMailAddress } from "../../../platform-kit/utils/FormatUtils"
-import { formatBirthdayNumeric, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
+import { birthdayToIsoDate, formatContactDate } from "../../common/contactsFunctionality/ContactUtils.js"
 import { assertNotNull, downcast, findAndRemove, lastIndex, lastThrow, noOp, typedEntries } from "../../../platform-kit/utils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { LockedError, NotFoundError, PayloadTooLargeError } from "../../../platform-kit/rest-client/error"
 import type { ButtonAttrs } from "../../../ui/base/Button.js"
 import { ButtonType } from "../../../ui/base/Button.js"
-import { birthdayToIsoDate } from "../../common/api/common/utils/BirthdayUtils"
 import {
 	ContactCustomDateTypeToLabel,
 	ContactCustomWebsiteTypeToLabel,
@@ -396,25 +395,18 @@ export class ContactEditor {
 	}
 
 	private renderCustomDatesEditor(id: Id, allowCancel: boolean, date: CompleteCustomDate): Children {
-		let dateHelpText = (): Translation => {
-			let bday = createBirthday({
-				day: "22",
-				month: "9",
-				year: "2000",
-			})
-			return !date.isValid
-				? lang.getTranslation("invalidDateFormat_msg", {
-						"{1}": formatBirthdayNumeric(bday),
-					})
-				: lang.getTranslation("emptyString_msg")
-		}
+		const dateHelpText: Translation = !date.isValid
+			? lang.getTranslation("invalidDateFormat_msg", {
+					"{1}": formatDate(new Date(2000, 9 - 1, 22)),
+				})
+			: lang.getTranslation("emptyString_msg")
 
 		const typeLabels: Array<[ContactCustomDateType, TranslationKey]> = typedEntries(ContactCustomDateTypeToLabel)
 		return m(ContactAggregateEditor, {
 			value: date.date,
 			fieldType: LegacyTextFieldType.Text,
 			label: getContactCustomDateTypeToLabel(downcast(date.type), date.customTypeName),
-			helpLabel: dateHelpText(),
+			helpLabel: dateHelpText,
 			cancelAction: () => {
 				findAndRemove(this.customDates, (t) => t[1] === id)
 			},
@@ -675,14 +667,9 @@ export class ContactEditor {
 
 	private renderBirthdayField(): Children {
 		let birthdayHelpText = () => {
-			let bday = createBirthday({
-				day: "22",
-				month: "9",
-				year: "2000",
-			})
 			return this.hasInvalidBirthday
 				? lang.get("invalidDateFormat_msg", {
-						"{1}": formatBirthdayNumeric(bday),
+						"{1}": formatDate(new Date(2000, 9 - 1, 22)),
 					})
 				: ""
 		}

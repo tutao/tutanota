@@ -5,11 +5,11 @@ import {
 	extractStructuredAddresses,
 	extractStructuredMailAddresses,
 	extractStructuredPhoneNumbers,
-	formatBirthdayNumeric,
+	formatContactDate,
 } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
 
 import { ContactAddressType, ContactPhoneNumberType } from "../../../src/entities/tutanota/Utils"
-import { BirthdayTypeRef, ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
+import { ContactAddressTypeRef, ContactMailAddressTypeRef, ContactPhoneNumberTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 import { compareContacts } from "../../../src/applications/mail-app/contacts/ContactUtils"
 
 o.spec("ContactUtilsTest", function () {
@@ -124,63 +124,40 @@ o.spec("ContactUtilsTest", function () {
 
 		compare("ma", "p", "aa", "Gump", "Forrest", "aa", false, 1) // reverse id
 	})
-	o("formatNewBirthdayTest", function () {
+
+	o("formatContactDate", function () {
 		lang.setLanguage({
 			code: "en",
 			languageTag: "en",
 		})
 		lang.updateFormats({})
-		let bday = createTestEntity(BirthdayTypeRef)
-		bday.day = "12"
-		bday.month = "10"
-		bday.year = "2009"
-		o(formatBirthdayNumeric(bday)).equals("10/12/2009")
-		bday.day = "9"
-		bday.month = "07"
-		bday.year = null
-		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday.day = "09"
-		bday.month = "7"
-		bday.year = null
-		o(formatBirthdayNumeric(bday)).equals("7/9")
-		bday = createTestEntity(BirthdayTypeRef)
-		bday.day = "12"
-		bday.month = "10"
-		bday.year = "2009"
-	})
 
-	o("formatBirthdayNumeric", function () {
-		const leapYearBirthday = createTestEntity(BirthdayTypeRef)
-		leapYearBirthday.year = "2016"
-		leapYearBirthday.month = "2"
-		leapYearBirthday.day = "29"
-
-		const leapYearBirthdayNoYear = createTestEntity(BirthdayTypeRef)
-		leapYearBirthdayNoYear.month = "2"
-		leapYearBirthdayNoYear.day = "29"
+		o.check(formatContactDate("2009-10-12")).equals("10/12/2009")
+		o.check(formatContactDate("2009-10-12")).equals("10/12/2009")
+		o.check(formatContactDate("--07-09")).equals("7/9")
+		o.check(formatContactDate("--07-09")).equals("7/9")
 
 		// Chrome date bug issue: https://github.com/tutao/tutanota/issues/414
-		const chromeBugBirthday = createTestEntity(BirthdayTypeRef)
-		chromeBugBirthday.year = "1911"
-		chromeBugBirthday.month = "8"
-		chromeBugBirthday.day = "15"
-
 		lang._setLanguageTag("en")
-		o(formatBirthdayNumeric(leapYearBirthday)).equals("2/29/2016")
-		o(formatBirthdayNumeric(leapYearBirthdayNoYear)).equals("2/29")
-		o(formatBirthdayNumeric(chromeBugBirthday)).equals("8/15/1911")
+		o.check(formatContactDate("--02-29")).equals("2/29")
+		o.check(formatContactDate("2016-02-29")).equals("2/29/2016")
+		o.check(formatContactDate("1911-08-15")).equals("8/15/1911")
+		o.check(formatContactDate("0099-01-01")).equals("8/15/99")
 
 		lang._setLanguageTag("de")
-		o(formatBirthdayNumeric(leapYearBirthday)).equals("29.2.2016")
-		o(formatBirthdayNumeric(chromeBugBirthday)).equals("15.8.1911")
+		o.check(formatContactDate("2016-02-29")).equals("29.2.2016")
+		o.check(formatContactDate("--02-29")).equals("29.2.")
+		o.check(formatContactDate("1911-08-15")).equals("15.8.1911")
 
 		lang._setLanguageTag("ja")
-		o(formatBirthdayNumeric(leapYearBirthday)).equals("2016/2/29")
-		o(formatBirthdayNumeric(chromeBugBirthday)).equals("1911/8/15")
+		o.check(formatContactDate("2016-02-29")).equals("2016/2/29")
+		o.check(formatContactDate("--02-29")).equals("2/29")
+		o.check(formatContactDate("1911-08-15")).equals("1911/8/15")
 
 		lang._setLanguageTag("pt")
-		o(formatBirthdayNumeric(leapYearBirthday)).equals("29/02/2016")
-		o(formatBirthdayNumeric(chromeBugBirthday)).equals("15/08/1911")
+		o.check(formatContactDate("2016-02-29")).equals("29/02/2016")
+		o.check(formatContactDate("--02-29")).equals("29/02")
+		o.check(formatContactDate("1911-08-15")).equals("15/08/1911")
 	})
 
 	o("extractStructuredEmailAddress", function () {

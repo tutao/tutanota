@@ -6,6 +6,7 @@ import {
 	AlarmIntervalUnit,
 	AlarmOccurrence,
 	ByRule,
+	getNumDaysInMonth,
 	calendarEventHasMoreThanOneOccurrencesLeft,
 	CalendarEventValidity,
 	CalendarMonth,
@@ -15,7 +16,6 @@ import {
 	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
-	getAllDayDatesUTCFromIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
@@ -26,6 +26,7 @@ import {
 	getWeekNumber,
 	incrementByRepeatPeriod,
 	isEventBetweenDays,
+	isLeapYear,
 	parseAlarmInterval,
 	StandardAlarmInterval,
 } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
@@ -275,29 +276,53 @@ o.spec("CalendarUtilsTest", function () {
 		})
 	})
 
-	o.spec("getAllDayDatesUTCFromIso", function () {
-		o("get all day in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
+	o.spec("isLeapYear", function () {
+		o.test("works", function () {
+			for (const [year, expected] of [
+				[1979, false],
+				[1980, true],
+				[2000, true],
+				[2026, false],
+				[2023, false],
+				[2028, true],
+				[2100, false],
+				[2400, true],
+				[-400, true],
+				[-300, false],
+				[-200, false],
+				[-100, false],
+				[0, true],
+			] as [number, boolean][]) {
+				o.check(isLeapYear(year)).equals(expected)
+			}
 		})
-
-		o("get all day at 1985-09-29 in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
+		o.test("implementation matches behavior of JS Date object", function () {
+			const JS_DATE_MARCH_MONTH_INDEX = 2
+			for (let year = -1000; year <= 3000; ++year) {
+				const jsDate = new Date(0)
+				// We need to use setFullYear instead of directly using the JS-Date constructor because the constructor
+				// reinterprets years 0-99 as 1900-1999.
+				// We set the day to 0 because the "0th" day of March is the last day of February.
+				jsDate.setFullYear(year, JS_DATE_MARCH_MONTH_INDEX, 0)
+				const lastDayOfFebruary = jsDate.getDate()
+				o.check(isLeapYear(year)).equals(lastDayOfFebruary === 29)
+			}
 		})
-
-		o("get all day in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
-		})
-
-		o("get all day at 1985-09-29 in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
+	})
+	o.spec("getNumDaysInMonth", function () {
+		o.test("implementation matches behavior of JS Date object", function () {
+			for (let year = -1000; year <= 3000; ++year) {
+				for (let month = 1; month <= 12; ++month) {
+					const jsDateNextMonthIndex = month
+					const jsDate = new Date(0)
+					// We need to use setFullYear instead of directly using the JS-Date constructor because the constructor
+					// reinterprets years 0-99 as 1900-1999.
+					// We set the day to 0 because the "0th" day of March is the last day of February.
+					jsDate.setFullYear(year, jsDateNextMonthIndex, 0)
+					const daysInMonthFromJsDate = jsDate.getDate()
+					o.check(getNumDaysInMonth(year, month)).equals(daysInMonthFromJsDate)
+				}
+			}
 		})
 	})
 

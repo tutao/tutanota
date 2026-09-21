@@ -1,5 +1,5 @@
-import { DateTime } from "luxon"
 import { Birthday, createBirthday } from "@tutao/entities/tutanota"
+import { getNumDaysInMonth } from "../calendar/date/CalendarUtils"
 import { ProgrammingError } from "@tutao/app-env"
 
 /**
@@ -86,7 +86,7 @@ export function parseDate(dateString: string, referenceDateRenderer: (refdate: D
 	}
 
 	// maybe do better day clamping based on the month
-	if (day < 1 || day > _getNumDaysInMonth(month, year)) {
+	if (day < 1 || day > getNumDaysInMonth(year, month)) {
 		throw new Error(`Invalid value ${day} for day in ${dateString}`)
 	}
 
@@ -97,26 +97,6 @@ export function parseDate(dateString: string, referenceDateRenderer: (refdate: D
 	}
 
 	return date
-}
-
-/**
- * Get the number of days in a month in a given year
- * @param month as a number between 1 and 12
- * @param year
- * @return the number of days in the month
- * @private
- */
-export function _getNumDaysInMonth(month: number, year: number): number {
-	const { daysInMonth } = DateTime.fromObject({
-		month,
-		year,
-	})
-
-	if (!daysInMonth) {
-		throw new ProgrammingError(`could not get daysInMonth for month-year ${month}-${year}`)
-	}
-
-	return daysInMonth
 }
 
 /**

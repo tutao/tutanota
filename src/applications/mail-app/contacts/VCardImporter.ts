@@ -1,9 +1,6 @@
 import { decodeBase64, decodeQuotedPrintable } from "../../../platform-kit/utils"
-import { birthdayToIsoDate, isValidBirthday } from "../../common/api/common/utils/BirthdayUtils"
-import { ParsingError } from "../../common/api/common/error/ParsingError"
 import { EnvProvider } from "../../../platform-kit/app-env"
 import {
-	Birthday,
 	Contact,
 	ContactAddress,
 	ContactMailAddress,
@@ -12,7 +9,6 @@ import {
 	ContactPronouns,
 	ContactRelationship,
 	ContactWebsite,
-	createBirthday,
 	createContact,
 	createContactAddress,
 	createContactMailAddress,
@@ -218,45 +214,18 @@ export function vCardListToContacts(vCardList: string[], ownerGroupId: Id): Cont
 					break
 
 				case "BDAY": {
-					let indexOfT = tagValue.indexOf("T")
-					let bDayDetails: Birthday | null = null
-
-					if (tagValue.match(/--\d{4}/g)) {
-						bDayDetails = createBirthday({
-							month: tagValue.substring(2, 4),
-							day: tagValue.substring(4, 6),
-							year: null,
-						})
-					} else if (tagValue.match(/\d{4}-\d{2}-\d{2}/g)) {
-						let bDay = tagValue.substring(0, indexOfT !== -1 ? indexOfT : tagValue.length).split("-")
-						bDayDetails = createBirthday({
-							year: bDay[0].trim(),
-							month: bDay[1].trim(),
-							day: bDay[2].trim(),
-						})
-					} else if (tagValue.match(/\d{8}/g)) {
-						bDayDetails = createBirthday({
-							year: tagValue.substring(0, 4),
-							month: tagValue.substring(4, 6),
-							day: tagValue.substring(6, 8),
-						})
+					let matches = tagValue.match(/(\d\d\d\d)-(\d\d)-(\d\d)/)
+					if (!matches) {
+						matches = tagValue.match(/(\d\d\d\d|--)(\d\d)(\d\d)/)
+					}
+					if (!matches) {
+						console.warn(`BDAY value "${tagValue}" does not match formatYYYY-MM-DD, YYYYMMDD, nor --MMDD!`)
+						break
 					}
 
-					if (bDayDetails && bDayDetails.year === "1111") {
-						// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
-						bDayDetails.year = null
-					}
-
-					try {
-						birthdayIso = bDayDetails && isValidBirthday(bDayDetails) ? birthdayToIsoDate(bDayDetails) : null
-					} catch (e) {
-						if (e instanceof ParsingError) {
-							console.log("failed to parse birthday", e)
-						} else {
-							throw e
-						}
-					}
-
+					const [_, yearString, monthString, dayString] = matches
+					// we use 1111 as marker if no year has been defined as vcard 3.0 does not support dates without year
+					birthdayIso = `${yearString === "--" || yearString === "1111" ? "-" : yearString}-${monthString}-${dayString}`
 					break
 				}
 

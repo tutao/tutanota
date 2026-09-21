@@ -10,7 +10,6 @@ import { UserError } from "../../common/api/main/UserError.js"
 import { ImportNativeContactBooksDialog } from "./view/ImportNativeContactBooksDialog.js"
 import { ContactBook, MobileContactsFacade, StructuredContact } from "@tutao/native-bridge/generatedIpc/types"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
-import { isoDateToBirthday } from "../../common/api/common/utils/BirthdayUtils.js"
 import { SystemPermissionHandler } from "../../common/native/SystemPermissionHandler.js"
 import { mailLocator } from "../mailLocator.js"
 import { AttachmentType, getAttachmentType } from "../../../ui/AttachmentBubble.js"
@@ -32,6 +31,8 @@ import {
 	createContactWebsite,
 } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../entities/tutanota/Utils"
+import { ParsingError } from "../../common/api/common/error/ParsingError"
+import { parseContactIsoDate } from "../../common/contactsFunctionality/ContactUtils"
 
 export class ContactImporter {
 	constructor(
@@ -268,10 +269,13 @@ export class ContactImporter {
 	private validateBirthdayOfContact(contact: StructuredContact) {
 		if (contact.birthday != null) {
 			try {
-				isoDateToBirthday(contact.birthday)
+				parseContactIsoDate(contact.birthday)
 				return contact.birthday
-			} catch (_) {
-				return null
+			} catch (error) {
+				if (error instanceof ParsingError) {
+					return null
+				}
+				throw error
 			}
 		} else {
 			return null
