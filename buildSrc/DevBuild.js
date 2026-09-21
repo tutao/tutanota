@@ -177,7 +177,10 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 
 async function buildPlugins(buildDir) {
 	const bundle = await rolldown({
-		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js" },
+		input: {
+			nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js",
+			"local-llm": "src/plugin-kit/plugins/local-llm/LocalLLMPlugin.js",
+		},
 	})
 	await bundle.write({
 		dir: `./${buildDir}/plugin-kit/plugins/`,

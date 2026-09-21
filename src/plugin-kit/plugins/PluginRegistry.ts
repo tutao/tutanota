@@ -21,4 +21,10 @@ export const PLUGIN_REGISTRY: ReadonlyArray<PluginRegistryEntry> = [
 		description: "Save email attachments directly to your Nextcloud server.",
 		logoSvg: NEXTCLOUD_LOGO_SVG,
 	},
+	{
+		id: "local-llm",
+		name: "Local LMM",
+		description: "Summarize a mail body using a local LMM",
+		logoSvg: NEXTCLOUD_LOGO_SVG,
+	},
 ]

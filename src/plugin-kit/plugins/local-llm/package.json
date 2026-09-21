@@ -1,0 +1,7 @@
+{
+	"name": "tutanota-local-llm-plugin",
+	"version": "1",
+	"license": "GPL-3.0",
+	"type": "module",
+	"dependencies": {}
+}
