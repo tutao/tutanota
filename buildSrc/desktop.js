@@ -1,9 +1,9 @@
 /**
  * Script to build desktop release versions of the app.
  */
+import "./ts6-preload.js"
 import * as env from "./env.js"
 import os from "node:os"
-import { buildWebapp } from "./buildWebapp.js"
 import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildUtils.js"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -11,6 +11,9 @@ import { createHtml } from "./createHtml.js"
 import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./DomainConfigs.js"
 import { BlockList } from "node:net"
+
+// dynamic import so it's executed after ts6-preload
+const { buildWebapp } = await import("./buildWebapp.js")
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.join(__dirname, "..")

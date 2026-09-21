@@ -22,8 +22,8 @@
 		"generate-ipc": "tsc --build buildSrc/licc/tsconfig.licc.json && node build/licc/cli.js ipc-schema && npm run style:fix",
 		"style:check": "prettier -c \"**/*.(ts|js|json|json5)\" --cache --cache-location cache/prettier",
 		"style:fix": "prettier -w \"**/*.(ts|js|json|json5)\"",
-		"lint:check": "eslint . --cache --cache-location cache/eslint",
-		"lint:fix": "eslint --fix .",
+		"lint:check": "NODE_OPTIONS='-r \"./buildSrc/ts6-preload.js\"' eslint . --cache --cache-location cache/eslint",
+		"lint:fix": "NODE_OPTIONS='-r \"./buildSrc/ts6-preload.js\"' eslint --fix .",
 		"check": "npm run style:check && npm run lint:check",
 		"fix": "npm run style:fix && npm run lint:fix",
 		"trace-imports": "node --import ./buildSrc/review/import-hooks.js",
@@ -98,11 +98,15 @@
 		"rollup": "4.60.0",
 		"rollup-plugin-visualizer": "6.0.3",
 		"testdouble": "3.20.2",
-		"typescript": "6.0.3",
+		"typescript": "7.0.2",
+		"typescript-6": "npm:typescript@6.0.3",
 		"typescript-eslint": "8.66.0",
 		"wasm-pack": "git+https://github.com/tutao/wasm-pack.git#b1e0e982fee26803ba6b8a8c29197d2a8cdd93f3",
 		"xhr2": "0.2.1",
 		"zx": "8.5.5"
+	},
+	"overrides": {
+		"typescript": "7.0.2"
 	},
 	"workspaces": [
 		"./src/licc"

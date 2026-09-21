@@ -162,7 +162,9 @@ export default defineConfig([
 		extends: [],
 		languageOptions: {
 			parserOptions: {
-				projectService: true,
+				projectService: {
+					allowDefaultProject: ["src/platform-kit/network/types.d.ts"],
+				},
 			},
 		},
 		rules: {
