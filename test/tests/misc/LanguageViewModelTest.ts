@@ -1,6 +1,5 @@
 import o from "@tutao/otest"
 import { getAvailableLanguageCode, getSubstitutedLanguageCode, lang } from "../../../src/ui/utils/LanguageViewModel.js"
-// @ts-ignore[untyped-import]
 import en from "../../../src/ui/translations/en.js"
 
 o.spec("LanguageViewModelTests", function () {

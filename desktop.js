@@ -1,9 +1,9 @@
 /**
  * Script to build desktop release versions of the app.
  */
+import "./buildSrc/ts6-preload.js"
 import * as env from "./buildSrc/env.js"
 import os from "node:os"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { checkArchitectureIsSupported, getCanonicalPlatformName, getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { dirname } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -11,6 +11,9 @@ import { createHtml } from "./buildSrc/createHtml.js"
 import { Argument, Option, program } from "commander"
 import { domainConfigs } from "./buildSrc/DomainConfigs.js"
 import { BlockList } from "node:net"
+
+// dynamic import so it's executed after ts6-preload
+const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 const tutaTestUrl = new URL("https://app.test.tuta.com")

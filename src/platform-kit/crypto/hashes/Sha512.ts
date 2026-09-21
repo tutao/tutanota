@@ -1,4 +1,3 @@
-// @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 
 const sha512 = new sjcl.hash.sha512()

@@ -1,4 +1,3 @@
-// @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 
 const sha256 = new sjcl.hash.sha256()

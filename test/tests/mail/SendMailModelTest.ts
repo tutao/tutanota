@@ -1,5 +1,4 @@
 import o, { assertThrows, verify } from "@tutao/otest"
-// @ts-ignore[untyped-import]
 import en from "../../../src/ui/translations/en.js"
 import type { UserController } from "../../../src/applications/common/api/main/UserController.js"
 import type { LoginController } from "../../../src/applications/common/api/main/LoginController.js"

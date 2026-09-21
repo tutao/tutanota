@@ -2,7 +2,6 @@ import o from "@tutao/otest"
 
 import { neverNull } from "../../../src/platform-kit/utils"
 import { vCardFileToVCards, vCardListToContacts } from "../../../src/applications/mail-app/contacts/VCardImporter.js"
-// @ts-ignore[untyped-import]
 import en from "../../../src/ui/translations/en.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import { createContact, createContactAddress, createContactMailAddress, createContactPhoneNumber } from "@tutao/entities/tutanota"
