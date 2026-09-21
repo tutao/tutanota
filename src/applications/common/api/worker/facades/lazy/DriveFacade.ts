@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, Nullable, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
@@ -129,7 +129,11 @@ export class DriveFacade {
 			newName: null,
 		})
 
-		await this.serviceExecutor.put(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
+		await this.serviceExecutor.put(DriveItemService, data, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey,
+			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
+		})
 	}
 
 	public async moveToTrash(fileIds: readonly IdTuple[], folderIds: readonly IdTuple[]) {
@@ -267,7 +271,12 @@ export class DriveFacade {
 			mimeType: null,
 		})
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
-		const response = await this.serviceExecutor.post(DriveItemService, data, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey, ownerKey: fileGroupKey })
+		const response = await this.serviceExecutor.post(DriveItemService, data, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey,
+			ownerKey: fileGroupKey,
+			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
+		})
 
 		return await this.entityClient.load(DriveFileTypeRef, response.createdFile)
 	}
@@ -298,7 +307,12 @@ export class DriveFacade {
 			folderName: null,
 			parent: null,
 		})
-		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey, ownerKey: fileGroupKey })
+		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey,
+			ownerKey: fileGroupKey,
+			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
+		})
 		return this.entityClient.load(DriveFolderTypeRef, response.folder)
 	}
 
