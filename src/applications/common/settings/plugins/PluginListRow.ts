@@ -58,14 +58,12 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 	}
 
 	private async handleToggle(pluginId: string, model: PluginSettingsModel, newChecked: boolean): Promise<void> {
-		Dialog.message({ testId: "-do-not-install", text: "Plugin will be ready in a couple days, please try again later. :-)" })
-		return
-		// const confirmed = await Dialog.confirm(newChecked ? "confirmEnablePlugin_msg" : "confirmDisablePlugin_msg")
-		// if (confirmed) {
-		// 	await model.setEnabled(pluginId, newChecked)
-		// }
-		// this.switchRenderKey++
-		// m.redraw()
+		const confirmed = await Dialog.confirm(newChecked ? "confirmEnablePlugin_msg" : "confirmDisablePlugin_msg")
+		if (confirmed) {
+			await model.setEnabled(pluginId, newChecked)
+		}
+		this.switchRenderKey++
+		m.redraw()
 	}
 
 	private renderConfigPanel(entry: PluginRegistryEntry, model: PluginSettingsModel): Children {
