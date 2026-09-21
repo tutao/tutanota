@@ -2539,7 +2539,14 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"giftCardNotAvailableApple_msg": "Gift card purchases aren’t available while you have an active App Store subscription",
 		"giftCardNotAvailableGoogle_msg": "Gift card purchases aren’t available while you have an active Google Play Store subscription",
-		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users with an external payment method."
-
+		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users with an external payment method.",
+		"upgradingFeedbackDialogThankYouTitle_msg": "Thanks for upgrading!",
+		"upgradingFeedbackDialogThankYouPlaceholder_msg": "Your feedback will make Tuta better",
+		"upgradingFeedbackDialogInput_msg": "What made you decide to upgrade today?",
+		"declinedFeedbackDialogBeforeYouGoTitle_msg": "Before you go",
+		"declinedFeedbackDialogBeforeYouGoPlaceholder_msg": "We'd love your honest feedback",
+		"declinedFeedbackDialogInput_msg": "What stopped you from upgrading today?",
+		"sendFeedback_action": "Send feedback",
+		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us improve Tuta."
 	}
 }

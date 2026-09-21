@@ -84,6 +84,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
 import { InfoIconAttrs } from "../../../../ui/base/InfoIcon"
+import { showUserUpgradedDeclinedDialog } from "../../ratings/UserUpgradedDeclinedDialog"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -365,7 +366,19 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					label: "subscriptionSettingsMoreFeatures_action",
 					width: "flex",
 					onclick: () => {
-						this.handleUpgradeSubscription()
+						this.handleUpgradeSubscription().then(() => {
+							if (!this._customerInfo?.plan) {
+								return
+							}
+							//Check if the customer upgraded in the upgrade dialog
+							if (this._customerInfo.plan === PlanType.Free) {
+								//Not upgraded
+								void showUserUpgradedDeclinedDialog("DeclineUpgrade")
+							} else {
+								//Upgraded
+								void showUserUpgradedDeclinedDialog("DidUpgrade")
+							}
+						})
 					},
 				}),
 			),
