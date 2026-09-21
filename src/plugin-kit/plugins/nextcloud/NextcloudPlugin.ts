@@ -112,10 +112,10 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.pluginHost.openMailEditor(downloadedFile)
 	}
 
-	async eventLocationButtonClicked(): Promise<string> {
+	async eventLocationButtonClicked(roomName: string): Promise<string> {
 		await this.updateCredsConfigIfNeeded()
 
-		const { joinUrl } = await this.nextcloudApi.createTalkRoom("TutaRoom")
+		const { joinUrl } = await this.nextcloudApi.createTalkRoom(roomName)
 
 		return joinUrl
 	}

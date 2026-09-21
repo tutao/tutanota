@@ -71,8 +71,8 @@ export class PluginManager {
 		downcast<AttachmentButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).attachmentButtonClicked(await dataFile)
 	}
 
-	async eventLocationButtonClicked(pluginName: string): Promise<Readonly<string>> {
-		return downcast<EventLocationButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).eventLocationButtonClicked()
+	async eventLocationButtonClicked(pluginName: string, roomName: string): Promise<Readonly<string>> {
+		return downcast<EventLocationButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).eventLocationButtonClicked(roomName)
 	}
 
 	async receiveFileReference(pluginName: string, fileReference: PluginFileReference): Promise<void> {
