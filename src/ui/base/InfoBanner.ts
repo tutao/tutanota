@@ -49,7 +49,7 @@ export class InfoBanner implements Component<InfoBannerAttrs> {
 				style: {
 					border: `solid 2px ${type === BannerType.Warning ? theme.warning : theme.outline}`,
 					// keep the distance to the bottom of the banner the same in the case that buttons aren't present
-					minHeight: buttons.length > 0 ? undefined : px(37),
+					minHeight: buttons.length > 0 || type === BannerType.SettingsInfo ? undefined : px(37),
 				},
 			},
 			[
