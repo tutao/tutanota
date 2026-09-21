@@ -284,11 +284,11 @@ export class MainStyles {
 				".nota-bg": {
 					background: theme.tuta_color_nota,
 				},
-				".border-nota": {
-					"border-color": theme.tuta_color_nota,
-				},
-				".border-accent": {
+				".border-color-accent": {
 					"border-color": theme.primary,
+				},
+				".border-color-container-high": {
+					"border-color": theme.surface_container_high,
 				},
 				".border-sm": {
 					"border-style": "solid",
@@ -3485,6 +3485,38 @@ export class MainStyles {
 				},
 				".mr-auto": {
 					"margin-left": "auto",
+				},
+				".event-banner-grid-guest": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title title" 
+							"sidebar middle timeoverview";
+							`,
+					"grid-template-columns": "110px 2fr 3fr;",
+					"grid-template-rows": "auto 1fr;",
+					"max-width": px(900),
+				},
+
+				".event-banner-grid-guest-mobile": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title" 
+							"sidebar middle"
+							"sidebar timeoverview";
+							`,
+					"grid-template-columns": "110px 1fr;",
+					"grid-template-rows": "auto auto 1fr;",
+				},
+
+				".event-banner-grid-organizer": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title" 
+							"sidebar middle"							
+							`,
+					"grid-template-columns": "110px 1fr;",
+					"grid-template-rows": "auto 1fr;",
+					"max-width": px(900),
 				},
 			}
 		})
