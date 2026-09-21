@@ -126,6 +126,19 @@ export class ProcessInboxHandler {
 
 			processInboxDatum.classifierType = ClientClassifierType.CLIENT_CLASSIFICATION
 		} else {
+			const moveToSpam =
+				skipPredictionReason === SkipClientSpamClassificationReason.MarkedAsPhishing ||
+				skipPredictionReason === SkipClientSpamClassificationReason.SpoofedSender
+			const moveToInbox = skipPredictionReason === SkipClientSpamClassificationReason.FromTrustedSender
+
+			if (moveToSpam && targetFolder.folderType === MailSetKind.INBOX) {
+				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM))
+				processInboxDatum.classifierType = ClientClassifierType.CLIENT_CLASSIFICATION
+			} else if (moveToInbox && targetFolder.folderType === MailSetKind.SPAM) {
+				targetFolder = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX))
+				processInboxDatum.classifierType = ClientClassifierType.CLIENT_CLASSIFICATION
+			}
+
 			const serverClassifiers = extractServerClassifiers(assertNotNull(mail.serverClassificationData))
 			console.log(
 				`skipped spam classification for new mail ${mail._id.join("/")}. reason: ${skipPredictionReason} , serverClassifiers: ${serverClassifiers}`,
