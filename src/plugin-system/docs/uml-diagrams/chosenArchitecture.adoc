@@ -1,0 +1,46 @@
+[plantuml, puml, svg]
+----
+@startuml
+
+[Proto Interface Definition] as IDL
+[Custom Protobuf Plugin] as CustomGen
+() "Host API" as HostAPI
+() "Worker API" as WorkerAPI
+
+CustomGen -up-> IDL: parses
+CustomGen -left-> HostAPI: generates
+CustomGen -right-> WorkerAPI: generates
+
+package "Tuta Client" {
+    [Adapter]
+    [Business Logic] as Logic
+    [Host RPC Stub] as HostRPC
+    [Plugin Manager] as Manager
+    [Plugin Loader] as Loader
+
+    Adapter <--> Logic
+    HostRPC <--> Adapter
+
+    package "Web Worker" as Worker {
+        [Plugin]
+        [SDK]
+        [Worker RPC Stub] as WorkerRPC
+
+        SDK <-up-> WorkerRPC
+        Plugin <-up-> SDK
+    }
+
+    Manager -up-> Worker: spawnes
+    Loader -up-> Plugin: loads
+    Manager --> Loader
+
+    HostRPC -up-> HostAPI: implements
+    WorkerRPC -up-> WorkerAPI: implements
+    HostRPC <-left-> WorkerRPC: MessagePort
+}
+@enduml
+----
+
+//     note "Provided by Cap'n Web" as CapnWeb
+//     HostRPC .. CapnWeb
+//     WorkerRPC .. CapnWeb

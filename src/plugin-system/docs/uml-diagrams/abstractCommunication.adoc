@@ -6,25 +6,12 @@ top to bottom direction
 
 package "Host Application" {
     [Plugin Manager]
-    interface "Plugin API" as API
+    interface "Host-Plugin API" as API
     interface "Transport" as Transport
 
     [Plugin Manager] --> API
     API -down-> Transport
 }
-
-package "Plugins" {
-    [Plugin A]
-    [Plugin B]
-    [Plugin C]
-
-    [Plugin A] -[hidden]down-> [Plugin B]
-    [Plugin B] -[hidden]down-> [Plugin C]
-}
-
-[Plugin A] -right-> API
-[Plugin B] -right-> API
-[Plugin C] -right-> API
 
 package "Desktop" {
     [Process Transport]
@@ -43,8 +30,6 @@ package "Browser" {
 [Process Transport] --> [Host Services]
 [Worker Transport] --> [Host Services]
 [WebWorker Transport] --> [Host Services]
-
-note right of API: In realitiy there is probably need for\nDesktop/ Browser specific APIs
 
 @enduml
 ----

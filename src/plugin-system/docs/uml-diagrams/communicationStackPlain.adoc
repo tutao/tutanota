@@ -5,10 +5,10 @@
 skinparam ranksep 1
 
 package "Host" {
-    [Application API] as HostAPI #LightBlue
-    [Wire Protocol] as HostProtocol #LightGreen
-    [Serilization] as HostSerialization #LightGreen
-    [Channel] as HostChannel
+    [Application API] as HostAPI 
+    [Wire Protocol] as HostProtocol 
+    [Serilization] as HostSerialization 
+    [Transport] as HostChannel
 
     HostAPI -[hidden]down- HostProtocol
     HostProtocol -[hidden]down- HostSerialization
@@ -16,10 +16,10 @@ package "Host" {
 }
 
 package "Plugin" {
-    [Application API] as PluginAPI #LightBlue
-    [Wire Protocol] as PluginProtocol #LightGreen
-    [Serilization] as PluginSerialization #LightGreen
-    [Channel] as PluginChannel
+    [Application API] as PluginAPI
+    [Wire Protocol] as PluginProtocol 
+    [Serilization] as PluginSerialization 
+    [Transport] as PluginChannel
 
     PluginAPI -[hidden]down- PluginProtocol
     PluginProtocol -[hidden]down- PluginSerialization
