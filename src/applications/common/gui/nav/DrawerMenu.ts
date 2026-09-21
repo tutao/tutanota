@@ -99,7 +99,20 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							label: "upgradePremium_label",
-							click: () => showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON),
+							click: async () => {
+								//Only shown for free user, so check for paid plan is not necessary
+								await showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON)
+								const { showUserUpgradedDeclinedDialog } = await import("../../ratings/UserUpgradedDeclinedDialog")
+
+								//Check if the customer upgraded in the upgrade dialog
+								if (logins.getUserController().isFreeAccount()) {
+									//Not upgraded
+									void showUserUpgradedDeclinedDialog("DeclineUpgrade")
+								} else {
+									//Upgraded
+									void showUserUpgradedDeclinedDialog("DidUpgrade")
+								}
+							},
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,

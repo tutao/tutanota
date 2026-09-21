@@ -2571,6 +2571,14 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"upgradingFeedbackDialogThankYouTitle_msg": "Danke für's Abonnieren!",
+		"upgradingFeedbackDialogThankYouPlaceholder_msg": "Ihr Feedback wird Tuta besser machen",
+		"upgradingFeedbackDialogInput_msg": "Was hat Sie heute dazu gebracht, zu abonnieren?",
+		"declinedFeedbackDialogBeforeYouGoTitle_msg": "Bevor Sie gehen",
+		"declinedFeedbackDialogBeforeYouGoPlaceholder_msg": "Wir hätten gerne Ihr ehrliches Feedback",
+		"declinedFeedbackDialogInput_msg": "Was hat Sie heute vom abonnieren abgehalten?",
+		"sendFeedback_action": "Feedback senden",
+		"feedbackAnonymousAndHelpUs_label": "Ihr Feedback ist anonym und hilft uns, Tuta zu verbessern."
 	}
 }
