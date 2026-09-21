@@ -153,7 +153,7 @@ import("../../ui/translations/en.js")
 			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
 		}
 
-		await mailLocator.init(initClientModels(apps), EnvProvider.get().env.shadowDomAppRoot)
+		await mailLocator.init(initClientModels(apps))
 		initCommonLocator(mailLocator)
 		await initUiSingletons(windowFacade, mailLocator.themeController)
 
