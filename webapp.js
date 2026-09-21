@@ -9,12 +9,14 @@
  * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
+import "./buildSrc/ts6-preload.js"
 import { Argument, Option, program } from "commander"
 import fs from "fs-extra"
 import path, { dirname } from "node:path"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import { fileURLToPath } from "node:url"
+// dynamic import so it's executed after ts6-preload
+const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 

@@ -1,4 +1,3 @@
-// @ts-ignore[untyped-import]
 import { x25519 } from "../internal/noble-curves-1.3.0.js"
 import { random } from "../random/Randomizer.js"
 
