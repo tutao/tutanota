@@ -429,11 +429,21 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			placeholder: lang.get("searchEmails_placeholder"),
 			text: this.searchViewModel.getCurrentQuery(),
 			busy: this.searchViewModel.busy,
-			onInput: (text: string) => {
-				this.searchViewModel.onSearchQueryUpdated(text)
-			},
+			onInput: (text: string) => this.search(text),
 			onClear: () => this.searchViewModel.onSearchQueryUpdated(""),
 		})
+	}
+
+	private async search(query: string) {
+		const needsToEnableSearch = !(await mailLocator.mailSearchModel()).indexState().mailIndexEnabled
+		if (needsToEnableSearch) {
+			const confirmed = await Dialog.confirm("enableSearchMailbox_msg", "search_label")
+			if (!confirmed) {
+				return
+			}
+			void mailLocator.indexerFacade.enableMailIndexing()
+		}
+		this.searchViewModel.onSearchQueryUpdated(query)
 	}
 
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
