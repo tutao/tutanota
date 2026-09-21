@@ -61,6 +61,7 @@ export type BaseLocator = {
 	kyberFacade: KyberFacade
 	pqFacade: PQFacade
 	ed25519Facade: Ed25519Facade
+	argon2idFacade: Argon2idFacade
 	publicKeySignatureFacade: PublicKeySignatureFacade
 	asymmetricCrypto: AsymmetricCryptoFacade
 
@@ -452,5 +453,6 @@ export async function createBaseLocator({
 		nonCachingEntityClient,
 		typeModelResolver,
 		lastProcessedEventBatchStorageFacade,
+		argon2idFacade,
 	}
 }

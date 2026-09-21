@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, CryptoWrapper, generateRandomSalt, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -47,6 +47,7 @@ import {
 	DriveFileRef,
 	DriveFileRefTypeRef,
 	DriveFileShare,
+	DriveFileShareTypeRef,
 	DriveFileTypeRef,
 	DriveFolder,
 	DriveFolderService_DELETE,
@@ -71,6 +72,7 @@ import { CacheMode, DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platf
 import { isDriveFile } from "../../../common/drive/DriveUtils"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
+import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -118,6 +120,7 @@ export class DriveFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cacheStorage: ExposedCacheStorage,
 		private readonly domainConfig: DomainConfig,
+		private readonly argon2idFacade: Argon2idFacade,
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -388,10 +391,23 @@ export class DriveFacade {
 	}
 
 	async createShareLink(file: DriveFile): Promise<DriveShareInfo> {
+		const { fileGroupKey } = await this.getCryptoInfo()
+		const filePassword = "asdf" // FIXME
+
+		const salt = generateRandomSalt()
+		const shareKey = await this.argon2idFacade.generateKeyFromPassphrase(filePassword, salt)
+		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+		const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
+		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, filePassword)
+
 		await this.serviceExecutor.execute(
 			DriveShareService_POST,
 			createDriveShareServicePostIn({
 				file: file._id,
+				expirationDate: null,
+				shareKeyEncFileSessionKey,
+				salt,
+				ownerEncPassword,
 			}),
 			null,
 		)
@@ -412,7 +428,7 @@ export class DriveFacade {
 		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
 		const appUrl = this.domainConfig.apiUrl
 
-		const share = assertNotNull(file.share)
+		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
 		const key = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(file))
 
 		const urlSafeNonce = base64ToBase64Url(uint8ArrayToBase64(share.nonce))
@@ -473,7 +489,8 @@ export class DriveFacade {
 			suspensionBehavior: null,
 			sessionKey: uint8ArrayTo256Key(base64ToUint8Array(key)),
 			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
-				const nonce = uint8ArrayToBase64(assertNotNull(file.share).nonce)
+				const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
+				const nonce = uint8ArrayToBase64(share.nonce)
 				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
 					extraHeaders: { nonce: nonce },
 					sessionKey: null,

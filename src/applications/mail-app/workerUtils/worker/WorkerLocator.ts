@@ -736,6 +736,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 			locator.cacheStorage,
 			domainConfig,
+			locator.base.argon2idFacade,
 		)
 	})
 }
