@@ -49,7 +49,7 @@ jobs:
           java-version: ${{ env.java-version }}
           distribution: ${{ env.java-distribution }}
       - name: Setup Android SDK
-        uses: android-actions/setup-android@07976c6290703d34c16d382cb36445f98bb43b1f #3.2.0
+        uses: android-actions/setup-android@be39fa834029ff78f1a44aa3bb0819b8fc2bd8fd #)4.0.4
       - name: Setup Android NDK
         run: sdkmanager "ndk;28.2.13676358"
       - uses: ./.github/shared/setup-rust
