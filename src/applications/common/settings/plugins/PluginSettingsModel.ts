@@ -1,6 +1,6 @@
 import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider.js"
 import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
-import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager.js"
+import { EnabledPlugin, PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager.js"
 import { ConfigFieldConfiguration } from "../../../../plugin-kit/sdk/PluginHostApi.js"
 
 export type PluginState = {
@@ -55,9 +55,16 @@ export class PluginSettingsModel {
 			const config = this.getState(pluginId).config
 			await this.provider.setCustomerPluginConfig(pluginId, JSON.stringify(config))
 			this.state.set(pluginId, { enabled: true, config })
+			const enabledPlugin: EnabledPlugin = {
+				pluginId,
+				customerConfigJson: "{}",
+			}
+			await this.pluginManager.loadPlugins([enabledPlugin])
 		} else {
 			await this.provider.removeCustomerPluginConfig(pluginId)
 			this.state.set(pluginId, { enabled: false, config: {} })
+
+			await this.pluginManager.unloadPlugins(pluginId)
 		}
 	}
 

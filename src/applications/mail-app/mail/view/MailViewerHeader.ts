@@ -690,7 +690,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					.getRegisteredButtonsByExtensionPoint(ExtensionPoint.SaveAttachmentDialog)
 					.map((attachmentExtension) => {
 						return () =>
-							viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginName, viewModel.attachmentAsPluginDataFile(attachment))
+							viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginId, viewModel.attachmentAsPluginDataFile(attachment))
 					}),
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,
