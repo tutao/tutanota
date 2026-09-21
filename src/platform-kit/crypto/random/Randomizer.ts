@@ -1,4 +1,3 @@
-// @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
 
