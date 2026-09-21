@@ -5,13 +5,14 @@ import {
 	ExpandedInboxRule,
 	ExpandedInboxRuleTypeRef,
 	InboxRule,
+	MailSet,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
-import { elementIdPart, elementIdToId, getElementId, getListId } from "@tutao/meta"
+import { elementIdPart, elementIdToId, getElementId, getListId, isSameId } from "@tutao/meta"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, isNotNull } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotNull } from "@tutao/utils"
 import { createIdTupleWrapper, IdTupleWrapper } from "@tutao/entities/sys"
 import { InboxRuleActionType } from "../../../../entities/tutanota/Utils"
 import { mailLocator } from "../../mailLocator"
@@ -96,13 +97,16 @@ export class InboxRuleModel {
 		return mailboxProperties.inboxRuleOrder
 	}
 
-	async getInboxRulesMap(): Promise<Map<Id, ExpandedInboxRule>> {
+	private async getUnsortedInboxRules(): Promise<ExpandedInboxRule[]> {
 		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		const unsortedInboxRules = await this.entityClient.loadAll(
+		return await this.entityClient.loadAll(
 			ExpandedInboxRuleTypeRef,
 			assertNotNull(userMailboxGroupRoot.inboxRules, "expanded inbox rules list missing from mailboxGroupRoot").list,
 		)
+	}
 
+	async getInboxRulesMap(): Promise<Map<Id, ExpandedInboxRule>> {
+		const unsortedInboxRules = await this.getUnsortedInboxRules()
 		const inboxRulesById = new Map<Id, ExpandedInboxRule>()
 		for (const rule of unsortedInboxRules) {
 			inboxRulesById.set(getElementId(rule), rule)
@@ -142,5 +146,36 @@ export class InboxRuleModel {
 
 	isUsingLegacyInboxRules() {
 		return this.usingLegacyInboxRules
+	}
+
+	async getInboxRulesThatReferenceMailSets(sets: readonly MailSet[]): Promise<ExpandedInboxRule[]> {
+		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
+		const relevantLabels = sets.filter((label) => label._ownerGroup === userMailboxGroupRoot._ownerGroup)
+		if (isEmpty(relevantLabels)) {
+			return []
+		}
+
+		const unsortedInboxRules = await this.getUnsortedInboxRules()
+		return unsortedInboxRules.filter((rule) => {
+			for (const action of rule.actions) {
+				if (sets.some((label) => isSameId(action.value, label._id))) {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	async deactivateInboxRulesThatReferenceMailSets(sets: readonly MailSet[]): Promise<void> {
+		const rules = await this.getInboxRulesThatReferenceMailSets(sets)
+		for (const rule of rules) {
+			rule.enabled = false
+			for (const action of rule.actions) {
+				if (sets.some((label) => isSameId(action.value, label._id))) {
+					action.value = null
+				}
+			}
+			await this.updateInboxRule(rule)
+		}
 	}
 }

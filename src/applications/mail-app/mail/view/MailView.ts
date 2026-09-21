@@ -85,7 +85,7 @@ import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { MailLabelsView } from "./MailLabelsView"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
@@ -1495,13 +1495,27 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async showLabelDeleteDialog(label: MailSet) {
 		const labelSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(label._ownerGroup))
 		if (labelSystem == null) return
-		const hasSublabels = isNotEmpty(labelSystem.getDescendantFoldersOfParent(label._id))
+
+		const descendants = labelSystem.getDescendantFoldersOfParent(label._id)
+		const allLabelsBeingDeleted = [...descendants.map((set) => set.mailSet), label]
+		const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSets(allLabelsBeingDeleted)
+
+		if (!isEmpty(allInboxRulesBeingModified)) {
+			const confirmed = await Dialog.confirm(
+				lang.makeTranslation("sdfjhgkdfsajlkhfsdalhjkasfd", "Whoa, dang, your inbox rules are gonna be toast! Are you sure you want that?"),
+			)
+			if (!confirmed) return
+		}
+
+		const hasSublabels = isNotEmpty(descendants)
 		const confirmed = await Dialog.confirm(
 			lang.getTranslation(hasSublabels ? "confirmDeleteLabelWithSublabels_msg" : "confirmDeleteLabel_msg", {
 				"{1}": label.name,
 			}),
 		)
 		if (!confirmed) return
+
+		await mailLocator.inboxRuleModel.deactivateInboxRulesThatReferenceMailSets(allLabelsBeingDeleted)
 		await this.mailViewModel.deleteLabel(label).catch(ofClass(NotFoundError, () => console.log("label already deleted")))
 	}
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {
