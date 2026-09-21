@@ -334,6 +334,10 @@ function adminSettings(router: Router) {
 			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_action")} ${lang.getTranslationText("giftCards_label")}`,
 			exec: () => routeToFolderSection(router, "invoice", "giftcards"),
 		},
+		{
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("plugins_label")}`,
+			exec: () => routeToFolder(router, "plugins"),
+		},
 	]
 }
 
