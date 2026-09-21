@@ -1,4 +1,4 @@
-import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../sdk/PluginHostApi"
+import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, PluginHostApi } from "../sdk/PluginHostApi"
 import { Nullable } from "@tutao/utils"
 import { PluginManager } from "./PluginManager"
 import { PluginDataFile } from "../sdk/PluginDataFile"
@@ -51,7 +51,7 @@ export class PluginHost implements PluginHostApi {
 	}
 
 	async getCustomerConfig(): Promise<Nullable<string>> {
-		return await this.pluginManager.configurationAdapter.getUserConfig(this.pluginId)
+		return (await this.pluginManager.configurationAdapter.getCustomerPluginConfigs()).get(this.pluginId) ?? null
 	}
 
 	async openWindow(url: string): Promise<void> {
