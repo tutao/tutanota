@@ -1,6 +1,4 @@
 import m, { Children } from "mithril"
-import { UpdatableSettingsViewer } from "../Interfaces.js"
-import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar.js"
 import { theme } from "../../../../ui/theme.js"
@@ -11,6 +9,8 @@ import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.j
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { PluginFeaturedCard } from "./PluginFeaturedCard.js"
 import { PluginListRow } from "./PluginListRow.js"
+import { UpdatableSettingsViewer } from "../Interfaces"
+import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 
 const FEATURED_COUNT = 3
 
@@ -78,8 +78,7 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 		)
 	}
 
-	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<unknown> {
-		// no-op: plugin config is fetched imperatively via PluginConfigurationProvider, not EntityClient list subscriptions
-		return Promise.resolve()
+	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		// no-op
 	}
 }

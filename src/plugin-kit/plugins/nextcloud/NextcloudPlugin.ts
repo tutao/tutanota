@@ -28,7 +28,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	public static readonly PLUGIN_ID: string = "nextcloud"
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
-	private axiosClient: Axios = null!
 	private nextcloudApi: NextcloudApi = null!
 
 	constructor(pluginHost: PluginHostApi) {
@@ -45,7 +44,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	async load(customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
-		await this.loadOrCreateEmptyConfig()
+		await this.loadUserConfig()
 		await this.applyConfigExtensionPoints()
 		await this.applyAppExtensionPoints()
 
@@ -114,17 +113,21 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		return joinUrl
 	}
 
-	private async loadOrCreateEmptyConfig() {
-		await this.loadUserConfig()
+	private async loadUserConfig() {
+		const configString = await this.pluginHost.getUserConfig()
+		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : null
 
 		if (isNull(this.userConfig)) {
 			this.userConfig = { credentials: null }
 		}
 	}
 
-	protected async loadUserConfig(): Promise<void> {
-		const configString = await this.pluginHost.getUserConfig()
-		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : null
+	private async loadCustomerConfig(): Promise<void> {
+		const configString = await this.pluginHost.getCustomerConfig()
+		if (isNull(configString)) {
+			throw new Error("Deletion of customer plugin config should have unloaded the plugin")
+		}
+		this.customerConfig = isNotNull(configString) ? JSON.parse(configString) : null
 	}
 
 	updateCustomerConfig(globalConfigJson: string): void {
@@ -133,6 +136,12 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	protected async updateUserConfig(): Promise<void> {
 		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
+	}
+
+	async onConfigChange(): Promise<void> {
+		await this.loadUserConfig()
+		await this.loadCustomerConfig()
+		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost)
 	}
 }
 
