@@ -2338,7 +2338,7 @@ var Squire = class {
 	fireEvent(type, detail) {
 		let handlers = this._events.get(type);
 		if (/^(?:focus|blur)/.test(type)) {
-			const isFocused = this._root === document.activeElement;
+			const isFocused = this._root === this._getSelectionRoot().activeElement;
 			if (type === "focus") {
 				if (!isFocused || this._isFocused) {
 					return this;
@@ -2516,8 +2516,13 @@ var Squire = class {
 		return range || null;
 	}
 
+	// Tutao: squire is mounted in shadow-dom for the nextcloud integration. Therefore we can't rely on window selection
+	_getSelectionRoot() {
+		return this._root.getRootNode();
+	}
+
 	getSelection() {
-		const selection = window.getSelection();
+		const selection = this._getSelectionRoot().getSelection();
 		const root = this._root;
 		let range = null;
 		if (this._isFocused && selection && selection.rangeCount) {
@@ -2535,7 +2540,7 @@ var Squire = class {
 			this._lastSelection = range;
 		} else {
 			range = this._lastSelection;
-			if (!document.contains(range.commonAncestorContainer)) {
+			if (!this._getSelectionRoot().contains(range.commonAncestorContainer)) {
 				range = null;
 			}
 		}
@@ -2550,7 +2555,7 @@ var Squire = class {
 		if (!this._isFocused) {
 			this._enableRestoreSelection();
 		} else {
-			const selection = window.getSelection();
+			const selection = this._getSelectionRoot().getSelection();
 			if (selection) {
 				if ("setBaseAndExtent" in Selection.prototype) {
 					selection.setBaseAndExtent(
