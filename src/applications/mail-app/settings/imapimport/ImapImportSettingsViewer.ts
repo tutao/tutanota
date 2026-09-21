@@ -52,7 +52,7 @@ class ImapImportSettingsViewer implements UpdatableSettingsViewer {
 		const hasActiveSync = this.imapImportController().hasActiveSync()
 		const hasCanceledSync = this.imapImportController().hasCanceledSync()
 		return m(
-			".fill-absolute.scroll.plr-24.pb-48",
+			".fill-absolute.scroll.plr-24.pb-48.scrollbar-gutter-stable-or-fallback",
 			{
 				style: {
 					backgroundColor: theme.surface_container,
