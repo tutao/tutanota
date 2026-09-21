@@ -4,12 +4,8 @@ import { CalendarEventsRepository } from "../../../common/calendar/date/Calendar
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { base64ToBase64Url, getStartOfDay, isNotNull, partition, stringToBase64 } from "@tutao/utils"
 import { theme } from "../../../../ui/theme"
-import { Styles } from "../../../../ui/styles"
-import { layout_size, px } from "../../../../ui/size"
-import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
 import { isRepliedTo } from "../../mail/model/MailUtils"
@@ -20,17 +16,27 @@ import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewMo
 import { fromStrippedCalendarEventAttendee, makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
 import { CalendarEvent, createCalendarEventAttendee, Mail } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../../entities/tutanota/Utils"
-import { EventTextTimeOption, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getCalendarEventDurationInMinutes, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
-import { formatEventTime } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
+import { Styles } from "../../../../ui/styles"
 import { TimeOverview } from "./TimeOverview"
+import { EventBannerTitleArea } from "./EventBannerTitleArea"
+import { EventBannerMiddleArea } from "./EventBannerMiddleArea"
+import { EventBannerSidebarArea } from "./EventBannerSidebarArea"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
 	sendResponse: (event: IcsCalendarEvent, recipient: string, status: CalendarAttendeeStatus, previousMail: Mail, comment?: string) => Promise<boolean>
 	usesAmPmTimeFormat: boolean
+}
+
+export const enum EventBannerAreas {
+	Sidebar = "sidebar",
+	Title = "title",
+	Middle = "middle",
+	TimeOverview = "timeoverview",
 }
 
 /**
@@ -82,78 +88,43 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			.filter(isNotNull)
 
 		return eventsReplySection.map(({ event, replySection }) => {
-			return this.buildEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection, usesAmPmTimeFormat)
+			return this.renderEventBanner(event, agenda.get(event.uid ?? "") ?? null, recipient, replySection, usesAmPmTimeFormat)
 		}) as Children
 	}
 
-	private buildEventBanner(icsCalendarEvent: IcsCalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
+	private renderEventBanner(icsCalendarEvent: IcsCalendarEvent, agenda: InviteAgenda | null, recipient: string, replySection: Children, amPm: boolean) {
 		const event = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 		const recipientIsOrganizer = recipient === event.organizer?.address
 
 		if (!agenda) {
 			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
-
 		const calendarTimeZone = getTimeZone()
-
-		/* Event Banner */
-		return m(
-			".border-radius-8.border-sm.grid.full-width.mb-8",
-			{
-				style: Styles.get().isSingleColumnLayout()
-					? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "auto 1fr",
-							"max-width": "100%",
-							"border-color": theme.surface_container_high,
-						}
-					: {
-							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
-							"max-width": recipientIsOrganizer ? "max-content" : px(layout_size.two_column_layout_width),
-							"border-color": theme.surface_container_high,
-						},
-			},
-			[
-				/* Date Column */
-				m(
-					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
-					{
-						class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
-						style: {
-							"background-color": theme.surface_container_high,
-							color: theme.on_surface,
-						},
-					},
-					[
-						m("span.normal-font-size", event.startTime.toLocaleString("default", { month: "short" })),
-						m("span.big.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
-						m("span.normal-font-size", event.startTime.toLocaleString("default", { year: "numeric" })),
-					],
-				),
-				/* Invite Column */
-				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
-					m(".flex", [
-						m(Icon, {
-							icon: Icons.CalendarFilled,
-							container: "div",
-							class: "mr-4",
-							style: { fill: theme.on_surface },
-							size: IconSize.PX24,
-						}),
-						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
-					]),
-					event.organizer?.address
-						? m(".flex.items-center.small.mt-8", [
-								m("span.b", lang.getTranslation("when_label").text),
-								m("span.ml-4", formatEventTime(event, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)),
-							])
-						: null,
+		const eventBannerBorder = ".border-sm.border-radius-8.border-color-container-high.mb-8"
+		if (recipientIsOrganizer) {
+			return m(".event-banner-grid-organizer" + eventBannerBorder, [
+				m(EventBannerSidebarArea, { event: icsCalendarEvent }),
+				m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
+				m(EventBannerMiddleArea, {
+					event: icsCalendarEvent,
+					calendarTimeZone,
 					replySection,
-				]),
-				/* Time Overview */
-				!recipientIsOrganizer ? m(TimeOverview, { agenda, amPm }) : null,
-			],
-		)
+				}),
+			])
+		} else {
+			// As a guest we show the time overview section containing the conflicts
+			const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-guest-mobile" : ".event-banner-grid-guest"
+			return m(eventBannerGrid + eventBannerBorder, [
+				m(EventBannerSidebarArea, { event: icsCalendarEvent }),
+				m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
+				m(EventBannerMiddleArea, {
+					event: icsCalendarEvent,
+					calendarTimeZone,
+					replySection,
+				}),
+				m(TimeOverview, { agenda, amPm }),
+			])
+		}
 	}
 
 	private buildReplySection(
@@ -207,11 +178,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("alreadyReplied_msg").text))
+				children.push(m(".align-self-start.start.small.lh", lang.getTranslation("alreadyReplied_msg").text))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("eventNotificationUpdated_msg").text))
+			children.push(m(".align-self-start.start.small.lh", lang.getTranslation("eventNotificationUpdated_msg").text))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
@@ -222,7 +193,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private renderCommentInputBox(): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-8"],
 			variant: "outlined",
 			value: this.comment,
 			oninput: (newValue: string) => {
