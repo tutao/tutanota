@@ -3,7 +3,7 @@ import { PluginHostApi } from "../../sdk/PluginHostApi"
 import { assert, assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
 import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"
-import { assertNull } from "../../../platform-kit/utils/Utils"
+import { NextcloudPlugin } from "./NextcloudPlugin"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -18,6 +18,7 @@ export class NextcloudApi {
 	public constructor(
 		private readonly nextCloudUrl: string,
 		private readonly hostApi: PluginHostApi,
+		private readonly nextcloudPlugin: NextcloudPlugin,
 	) {
 		this.nextCloudCredentials = null
 		this.axiosClient = new Axios()
@@ -35,19 +36,13 @@ export class NextcloudApi {
 		}, null)
 	}
 
-	public async credentialsHasChanged(other: NextcloudCredentials): Promise<boolean> {
-		const current = await this.getNextcloudCredentials()
-		return current.appPassword !== other.appPassword || current.loginName !== other.loginName || current.server !== other.server
-	}
-
 	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials) {
-		assertNull(this.nextCloudCredentials, "Already have NextcloudCredentials")
 		this.nextCloudCredentials = nextcloudCredentials
 	}
 
-	public async getNextcloudCredentials(): Promise<NextcloudCredentials> {
+	public async loginAndCreateAppToken(): Promise<void> {
 		if (isNotNull(this.nextCloudCredentials)) {
-			return this.nextCloudCredentials
+			return
 		}
 
 		const nextcloudResponse = await this.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
@@ -87,19 +82,20 @@ export class NextcloudApi {
 				appPassword: assertNotNull(pollResponse.data.appPassword),
 			}
 			await this.ensureCredentialsIsOfExpectedUrl()
-			return this.nextCloudCredentials
+			await this.nextcloudPlugin.credentialsUpdated(this.nextCloudCredentials)
+			return
 		}
 	}
 
 	private async ensureCredentialsIsOfExpectedUrl() {
-		const creds = await this.getNextcloudCredentials()
-		assert(creds.server === this.nextCloudUrl, "Nextcloud url mismatch")
+		await this.loginAndCreateAppToken()
+		assert(assertNotNull(this.nextCloudCredentials).server === this.nextCloudUrl, "Nextcloud url mismatch")
 	}
 
 	async downloadFile(fileReference: PluginFileReference): Promise<PluginDataFile> {
-		const nextcloudCredentials = await this.getNextcloudCredentials()
+		await this.loginAndCreateAppToken()
 		const davPath = fileReference.path.replace(/^\/+/, "")
-		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${davPath}`)
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${davPath}`)
 		const name = davUrl.split("/").pop()!
 		const authToken = await this.getAuthToken()
 
@@ -114,6 +110,10 @@ export class NextcloudApi {
 		let response: AxiosResponse
 		try {
 			response = await this.axiosClient.get(davUrl, getOptions)
+			if (response.status === 401) {
+				this.nextCloudCredentials = null
+				return await this.downloadFile(fileReference)
+			}
 			this.throwErrorIfNotOk(response, `While downloading file: "${name}"`)
 		} catch (err) {
 			console.error(`Error while downloading file file:....`)
@@ -135,8 +135,8 @@ export class NextcloudApi {
 	}
 
 	async uploadFile(dataFile: PluginDataFile, targetFolder: string): Promise<{ filesUiUrl: string }> {
-		const nextcloudCredentials = await this.getNextcloudCredentials()
-		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${targetFolder}/${dataFile.name}`)
+		await this.loginAndCreateAppToken()
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${targetFolder}/${dataFile.name}`)
 		const authToken = await this.getAuthToken()
 
 		const putOptions = {
@@ -150,6 +150,10 @@ export class NextcloudApi {
 
 		try {
 			const putResponse = await this.axiosClient.put(davUrl, dataFile.data, putOptions)
+			if (putResponse.status === 401) {
+				this.nextCloudCredentials = null
+				return await this.uploadFile(dataFile)
+			}
 			this.throwErrorIfNotOk(putResponse, `While uploading file: "${dataFile.name}"`)
 		} catch (err) {
 			console.error(`Error while uploading file:....`)
@@ -180,6 +184,10 @@ export class NextcloudApi {
 				}),
 				postOptions,
 			)
+			if (postResponse.status === 401) {
+				this.nextCloudCredentials = null
+				return await this.createTalkRoom(roomName)
+			}
 
 			this.throwErrorIfNotOk(postResponse, `While creating room: "${roomName}"`)
 
@@ -207,7 +215,8 @@ export class NextcloudApi {
 	}
 
 	private async getAuthToken(): Promise<string> {
-		const nextcloudCredentials = await this.getNextcloudCredentials()
+		await this.loginAndCreateAppToken()
+		const nextcloudCredentials = assertNotNull(this.nextCloudCredentials)
 		return btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
 	}
 
