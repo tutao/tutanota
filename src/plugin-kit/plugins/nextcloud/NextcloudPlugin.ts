@@ -48,22 +48,16 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.applyConfigExtensionPoints()
 		await this.applyAppExtensionPoints()
 
-		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost)
+		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost, this)
 		if (isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
 		}
 	}
 
-	private async updateCredsConfigIfNeeded() {
-		const needToUpdateCreds =
-			// 1) if config had no creds
-			isNull(this.userConfig.credentials) ||
-			// 2) if config had old one
-			(await this.nextcloudApi.credentialsHasChanged(this.userConfig.credentials))
-		if (needToUpdateCreds) {
-			this.userConfig.credentials = await this.nextcloudApi.getNextcloudCredentials()
-			await this.updateUserConfig()
-		}
+	public async credentialsUpdated(updatedCredentials: NextcloudCredentials) {
+		this.userConfig.credentials = updatedCredentials
+		console.log("@@@@@@", this.userConfig.credentials)
+		await this.updateUserConfig()
 	}
 
 	private async applyConfigExtensionPoints() {
@@ -98,7 +92,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	async unload(): Promise<void> {}
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
-		await this.updateCredsConfigIfNeeded()
 		const targetFolder = isNotNull(this.customerConfig.targetAttachmentFolder) ? this.customerConfig.targetAttachmentFolder : "TutaMailAttachments"
 
 		const { filesUiUrl } = await this.nextcloudApi.uploadFile(dataFile, targetFolder)
@@ -106,15 +99,11 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	}
 
 	async receiveFileReference(fileReference: PluginFileReference): Promise<void> {
-		await this.updateCredsConfigIfNeeded()
-
 		const downloadedFile = await this.nextcloudApi.downloadFile(fileReference)
 		await this.pluginHost.openMailEditor(downloadedFile)
 	}
 
 	async eventLocationButtonClicked(roomName: string): Promise<string> {
-		await this.updateCredsConfigIfNeeded()
-
 		const { joinUrl } = await this.nextcloudApi.createTalkRoom(roomName)
 
 		return joinUrl
@@ -148,7 +137,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	async onConfigChange(): Promise<void> {
 		await this.loadUserConfig()
 		await this.loadCustomerConfig()
-		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost)
+		if (this.userConfig.credentials) {
+			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
+		}
 	}
 }
 
