@@ -144,6 +144,15 @@ import("../../ui/translations/en.js")
 			{ app: "usage", clientModel: usageTypeModels, modelInfo: usageModelInfo },
 			{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
 		]
+		let shadowRoot: ShadowRoot | null = null
+		if (EnvProvider.get().isNextCloudPlugin()) {
+			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
+			const appRoot = assertNotNull(htmlContainer.getAttribute("app-root"))
+			const prefix = new URL(appRoot).pathname.split("/")[1]
+			EnvProvider.get().env.shadowDomAppRoot = `/${prefix}/tutamail/js`
+			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
+		}
+
 		await mailLocator.init(initClientModels(apps))
 		initCommonLocator(mailLocator)
 		await initUiSingletons(windowFacade, mailLocator.themeController)
@@ -355,12 +364,6 @@ import("../../ui/translations/en.js")
 					},
 				}
 			})
-		}
-
-		let shadowRoot: ShadowRoot | null = null
-		if (EnvProvider.get().isNextCloudPlugin()) {
-			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
-			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
 		}
 
 		Styles.get().init(mailLocator.themeController, shadowRoot)

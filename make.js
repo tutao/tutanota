@@ -47,6 +47,7 @@ await program
 				networkDebugging,
 				app,
 				integrationPlatform: integrateNextcloud ? "Nextcloud" : null,
+				shadowDomAppRoot: null,
 			})
 
 			if (startDesktop) {

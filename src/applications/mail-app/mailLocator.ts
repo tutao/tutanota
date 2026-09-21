@@ -958,6 +958,7 @@ class MailLocator implements CommonLocator {
 
 		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter, new MailPluginIntegrationAdapter(this.mailboxModel))
+		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
 		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider as PostLoginAction)
 

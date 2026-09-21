@@ -2521,8 +2521,14 @@ var Squire = class {
 		return this._root.getRootNode();
 	}
 
+	// Tutao: ShadowRoot.getSelection() is only supported by chromium, not Firefox.
+	_getSelection() {
+		const root = this._getSelectionRoot();
+		return typeof root.getSelection === "function" ? root.getSelection() : window.getSelection();
+	}
+
 	getSelection() {
-		const selection = this._getSelectionRoot().getSelection();
+		const selection = this._getSelection();
 		const root = this._root;
 		let range = null;
 		if (this._isFocused && selection && selection.rangeCount) {
@@ -2555,7 +2561,7 @@ var Squire = class {
 		if (!this._isFocused) {
 			this._enableRestoreSelection();
 		} else {
-			const selection = this._getSelectionRoot().getSelection();
+			const selection = this._getSelection();
 			if (selection) {
 				if ("setBaseAndExtent" in Selection.prototype) {
 					selection.setBaseAndExtent(

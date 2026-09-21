@@ -18,10 +18,15 @@ export type MessageToPluginFromHostApiCommandNames = keyof PluginApi
 export type MessageToHostApiFromPluginCommandNames = keyof PluginHostApi
 export type PluginApiMessageDispatcher = MessageDispatcher<MessageToPluginFromHostApiCommandNames, MessageToHostApiFromPluginCommandNames>
 
+type PluginWorker = {
+	pluginApi: PluginApi
+	pluginAsWorker: Worker
+}
+
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: string, pluginHost: PluginHostApi): PluginApi {
+	public static newPluginFromFile(pluginId: string, pluginHost: PluginHostApi): PluginWorker {
 		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {
@@ -65,14 +70,19 @@ export abstract class PluginApi {
 			},
 		)
 
-		return downcast<PluginApi>(pluginApiAsProxy)
+		return {
+			pluginApi: downcast<PluginApi>(pluginApiAsProxy),
+			pluginAsWorker,
+		}
 	}
 
 	abstract getMetadata(): PluginMetadata
+
 	abstract load(customerConfigJson: string): Promise<void>
+
 	abstract unload(): Promise<void>
-	protected abstract loadUserConfig(): Promise<void>
-	protected abstract updateUserConfig(): Promise<void>
+
+	abstract onConfigChange(configs: { customerConfig: string; userConfig: string }): Promise<void>
 }
 
 export type PluginMetadata = {
