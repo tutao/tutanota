@@ -143,7 +143,7 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 	We track how and if the user would like to support Tuta.
  */
 
-export type TriggerType = "Mail" | "Calendar" | "Upgrade"
+export type TriggerType = "Mail" | "Calendar" | "Upgrade" | "DidUpgrade" | "DeclineUpgrade"
 type EvaluationButtonType = "LoveIt" | "NeedsWork" | "NotNow"
 type RatingButtonType = "RateUs" | "MaybeLater"
 export type SupportTutaButtonType = "Upgrade" | "Donate" | "Refer"
