@@ -3470,6 +3470,15 @@ export class MainStyles {
 				".mr-auto": {
 					"margin-left": "auto",
 				},
+				".event-banner-grid-layout": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title title" 
+							"sidebar middle conflicts";
+							`,
+					"grid-template-columns": "120px 1fr 1fr;",
+					"grid-template-rows": "auto 1fr;",
+				},
 			}
 		})
 	}

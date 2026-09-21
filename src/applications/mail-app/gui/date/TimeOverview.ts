@@ -14,13 +14,11 @@ import {
 	CalendarTimeGridAttributes,
 	getIntervalAsMinutes,
 	SUBROWS_PER_INTERVAL,
-	TIME_SCALE_BASE_VALUE,
 	TimeRange,
 	TimeScale,
-	TimeScaleTuple,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
 import { filterNull, getStartOfDay, getStartOfNextDay, isSameDay } from "@tutao/utils"
-import { InviteAgenda } from "./EventBannerImpl"
+import { EventBannerAreas, InviteAgenda } from "./EventBannerImpl"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { layout_size, px, size } from "../../../../ui/size"
 import { isAllDayEvent, isBefore } from "../../../common/api/common/utils/CommonCalendarUtils"
@@ -84,23 +82,13 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 			{
 				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				style: {
+					gridArea: EventBannerAreas.Conflicts,
 					"border-color": theme.surface_container_high,
 					color: theme.on_surface,
 				},
 			},
 			[
-				m(".flex.flex-column.mb-8", [
-					m(".flex.items-center.gap-4", [
-						m(Icon, {
-							icon: Icons.ClockOutlines,
-							container: "div",
-							style: { fill: theme.on_surface },
-							size: IconSize.PX24,
-						}),
-						m("span.b.h5", lang.getTranslation("timeOverview_title").text),
-					]),
-					attrs.agenda ? this.renderConflictSummary(attrs.agenda) : this.renderMisingAgendaError(),
-				]),
+				m(".flex.flex-column.mb-8", [attrs.agenda ? this.renderConflictSummary(attrs.agenda) : this.renderMisingAgendaError()]),
 				attrs.agenda && this.gridParams
 					? m(".flex.rel", [
 							m(CalendarTimeColumn, {
@@ -331,7 +319,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
 		}
 
-		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
+		const timeScale = 1
 		const timeInterval = getIntervalAsMinutes(timeScale)
 		const timeRange: TimeRange = TimeOverview.getTimeRange(eventFocusBound, timeInterval)
 
@@ -400,24 +388,6 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 			start: Time.fromDate(startDate),
 			end: Time.fromDate(endDate),
 		}
-	}
-
-	/**
-	 * @param eventDuration - Duration in minutes
-	 * @private
-	 */
-	private getTimeScaleAccordingToEventDuration(eventDuration: number): TimeScale {
-		const scalesInMinutes: Array<TimeScaleTuple> = [
-			[1, TIME_SCALE_BASE_VALUE],
-			[2, TIME_SCALE_BASE_VALUE / 2],
-			[4, TIME_SCALE_BASE_VALUE / 4],
-		]
-		const entry = scalesInMinutes.reduce((smallestScale, currentScale) => {
-			const [_, scaleInMinutes] = currentScale
-			if (eventDuration <= scaleInMinutes) return currentScale
-			return smallestScale
-		}, scalesInMinutes[0])
-		return (entry ? entry[0] : 1) as TimeScale
 	}
 
 	/**
