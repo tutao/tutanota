@@ -30,10 +30,6 @@ export interface DrawerMenuAttrs {
 }
 
 export class DrawerMenu implements Component<DrawerMenuAttrs> {
-	accountingInfo: AccountingInfo | null = null
-	constructor() {
-		this.loadData()
-	}
 	view(vnode: Vnode<DrawerMenuAttrs>): Children {
 		const { logins, newsModel, desktopSystemFacade, isPartnerEnabled } = vnode.attrs
 		const liveNewsCount = newsModel.liveNewsIds.length
@@ -81,8 +77,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							label: "buyGiftCard_label",
 							click: () => {
 								m.route.set("/settings/invoice")
-								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(({ showPurchaseGiftCardDialog }) => {
-									return showPurchaseGiftCardDialog(this.accountingInfo?.paymentMethod as PaymentMethodType)
+								import("../../subscription/giftcards/PurchaseGiftCardDialog").then(async ({ showPurchaseGiftCardDialog }) => {
+									const accountingInfo = await this.loadData()
+									return showPurchaseGiftCardDialog(accountingInfo.paymentMethod as PaymentMethodType)
 								})
 							},
 							colors: ButtonColor.DrawerNav,
@@ -153,11 +150,9 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 		)
 	}
 
-	private async loadData() {
-		const customer = await locator.logins.getUserController().reloadCustomer()
+	private async loadData(): Promise<AccountingInfo> {
 		const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
-		this.accountingInfo = await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
-		m.redraw()
+		return await locator.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
 	}
 }
 
