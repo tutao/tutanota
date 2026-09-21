@@ -21,6 +21,7 @@ import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
+import { showUserUpgradedDeclinedDialog } from "../../ratings/UserUpgradedDeclinedDialog"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -99,7 +100,18 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							label: "upgradePremium_label",
-							click: () => showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON),
+							click: () =>
+								//Only shown for free user, so check for paid plan is not necessary
+								showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON).then(() => {
+									//Check if the customer upgraded in the upgrade dialog
+									if (logins.getUserController().isFreeAccount()) {
+										//Not upgraded
+										void showUserUpgradedDeclinedDialog("DeclineUpgrade")
+									} else {
+										//Upgraded
+										void showUserUpgradedDeclinedDialog("DidUpgrade")
+									}
+								}),
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
