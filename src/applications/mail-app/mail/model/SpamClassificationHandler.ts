@@ -24,7 +24,14 @@ export const enum SkipClientSpamClassificationReason {
 	None, // no reason to skip, do client spam classification
 	MarkedAsPhishing,
 	FromTrustedSender,
+	SpoofedSender,
 	ClassifiedByTrustedServerClassifier,
+}
+
+export const enum MailFromSelfPossibilities {
+	MailFromSelfAuthenticated,
+	MailFromSelfSpoofed,
+	MailNotFromSelf,
 }
 
 export class SpamClassificationHandler {
@@ -55,10 +62,13 @@ export class SpamClassificationHandler {
 	}
 
 	private async getSkipClientClassificationReason(mail: Mail, mailDetails: MailDetails): Promise<SkipClientSpamClassificationReason> {
+		const mailFromSelfResult = await this.isMailFromSelf(mail, mailDetails)
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			return SkipClientSpamClassificationReason.MarkedAsPhishing
-		} else if (await this.isMailFromTrustedSender(mail, mailDetails)) {
+		} else if (mailFromSelfResult === MailFromSelfPossibilities.MailFromSelfAuthenticated || (await this.isMailFromTrustedSender(mail, mailDetails))) {
 			return SkipClientSpamClassificationReason.FromTrustedSender
+		} else if (mailFromSelfResult === MailFromSelfPossibilities.MailFromSelfSpoofed) {
+			return SkipClientSpamClassificationReason.SpoofedSender
 		} else if (this.isMailClassifiedByTrustedServerClassifier(mail)) {
 			return SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier
 		} else {
@@ -76,10 +86,9 @@ export class SpamClassificationHandler {
 	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
 		// check if phishingStatus is not suspicious and if the sender is a trusted sender
 		const isMailFromContact = await this.isMailFromContacts(mail, mailDetails)
-		const isMailFromSelf = await this.isMailFromSelf(mail, mailDetails)
 		const isMailFromTutaTeam = isTutaTeamMail(mail)
 
-		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && (isMailFromSelf || isMailFromTutaTeam || isMailFromContact)
+		return mail.phishingStatus !== MailPhishingStatus.SUSPICIOUS && (isMailFromTutaTeam || isMailFromContact)
 	}
 
 	private async isMailFromContacts(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
@@ -96,9 +105,17 @@ export class SpamClassificationHandler {
 	 * yet updated at the point this check is performed.
 	 *
 	 */
-	private async isMailFromSelf(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
+	private async isMailFromSelf(mail: Mail, mailDetails: MailDetails): Promise<MailFromSelfPossibilities> {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
-		return mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED && isMailFromSelf
+		if (isMailFromSelf) {
+			if (mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+				return MailFromSelfPossibilities.MailFromSelfAuthenticated
+			} else {
+				return MailFromSelfPossibilities.MailFromSelfSpoofed
+			}
+		} else {
+			return MailFromSelfPossibilities.MailNotFromSelf
+		}
 	}
 }
