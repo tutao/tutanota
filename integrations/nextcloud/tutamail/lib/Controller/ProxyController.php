@@ -95,10 +95,11 @@ class ProxyController extends Controller
 	/**
 	 * @throws ForbiddenProxyPathException
 	 */
-	private function proxyRedirect(string $targetUrl): Response
+	private function proxyRedirect(string $targetUrl): DataResponse
 	{
 
 		$this->ensureAllowedProxyUrl($targetUrl);
+		$origin = $this->request->getHeader('Origin');
 
 		// 1. Change the URL to your new destination
 		$baseUrl = $this->urlGenerator->getAbsoluteURL('');
@@ -112,7 +113,8 @@ class ProxyController extends Controller
 		$headers = $this->getAllRequestHeaders();
 
 		// Remove headers that shouldn't be proxied verbatim
-		unset($headers['Host'], $headers['Content-Length'], $headers['Accept-Encoding'], $headers['Origin']);
+		unset($headers['Host'], $headers['Origin']);
+		$headers['User-Agent'] = 'Tuta App';
 
 		// 4. Set up the options for the new client
 		$options = [
@@ -154,10 +156,14 @@ class ProxyController extends Controller
 				$body = (string)$response->getBody();
 			}
 
-			return new DataResponse($body, $response->getStatusCode());
+			$dataResponse = new DataResponse($body, $response->getStatusCode());
+			$dataResponse->addHeader('Access-Control-Allow-Origin', $origin);
+			return $dataResponse;
 
 		} catch (\Exception $e) {
-			return new DataResponse(['error' => 'Proxy request failed', 'message' => $e->getMessage()], 502);
+			$dataResponse = new DataResponse(['error' => 'Proxy request failed', 'message' => $e->getMessage()], 502);
+			$dataResponse->addHeader('Access-Control-Allow-Origin', $origin);
+			return $dataResponse;
 		}
 	}
 
