@@ -35,6 +35,7 @@ import { CalendarRepeatRule } from "@tutao/entities/tutanota"
 import { elementIdToId } from "@tutao/meta"
 import { TimeZoneSelectionPage, TimeZoneSelectionPageAttrs } from "./TimeZoneSelectionPage"
 import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
+import { isNull } from "../../../../../platform-kit/utils/Utils"
 
 export type CalendarEventEditViewAttrs = {
 	model: CalendarEventModel
@@ -482,7 +483,9 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 				this.inProgressLocationButtons.add(pluginName)
 				m.redraw()
 				try {
-					model.editModels.location.content = await model.pluginManager.eventLocationButtonClicked(pluginName)
+					const roomName =
+						model.editModels.summary.content === "" || isNull(model.editModels.summary.content) ? "TutaRoom" : model.editModels.summary.content
+					model.editModels.location.content = await model.pluginManager.eventLocationButtonClicked(pluginName, roomName)
 				} catch (e) {
 					console.error(e)
 					await Dialog.message("eventLocationLinkFailed_msg")
