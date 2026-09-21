@@ -31,6 +31,7 @@ import {
 	MailBoxTypeRef,
 	MailDetails,
 	MailDetailsTypeRef,
+	MailSetEntryTypeRef,
 	MailSetRefTypeRef,
 	MailSetTypeRef,
 	MailTypeRef,
@@ -89,6 +90,7 @@ o.spec("SpamClassifierDataDealer", () => {
 		_id: ["folderListId", "inbox"],
 		_ownerGroup: "owner",
 		folderType: MailSetKind.INBOX,
+		entries: "inboxMailSetEntriesId",
 	})
 	const trashFolder = createTestEntity(MailSetTypeRef, {
 		_id: ["folderListId", "trash"],
@@ -99,6 +101,7 @@ o.spec("SpamClassifierDataDealer", () => {
 		_id: ["folderListId", "spam"],
 		_ownerGroup: "owner",
 		folderType: MailSetKind.SPAM,
+		entries: "spamMailSetEntriesId",
 	})
 
 	o.beforeEach(function () {
@@ -230,11 +233,12 @@ o.spec("SpamClassifierDataDealer", () => {
 		o("uploads training data when clientSpamTrainingData is empty", async () => {
 			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
+			const startDate = new Date()
 			const mails = Array.from({ length: 10 }, (_, index) =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, new Date(), mailDetails._id),
+				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId" + index], inboxFolder._id, startDate, mailDetails._id),
 			).concat(
 				Array.from({ length: 10 }, (_, index) =>
-					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, new Date(), mailDetails._id),
+					createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "spamMailId" + index], spamFolder._id, startDate, mailDetails._id),
 				),
 			)
 			const spamTrainingData = Array.from({ length: 10 }, (_, index) =>
@@ -254,8 +258,14 @@ o.spec("SpamClassifierDataDealer", () => {
 				createClientSpamTrainingDatumIndexEntryByClientSpamTrainingDatumElementId(getElementId(data)),
 			)
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumTypeRef, mailBox.clientSpamTrainingData)).thenResolve([], spamTrainingData)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadMultiple(MailTypeRef, "mailListId", anything())).thenResolve(mails)
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "inboxMailSetEntriesId", anything())).thenResolve(
+				mails.map((m) => createTestEntity(MailSetEntryTypeRef, { mail: m._id })),
+			)
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "spamMailSetEntriesId", anything())).thenResolve(
+				mails.map((m) => createTestEntity(MailSetEntryTypeRef, { mail: m._id })),
+			)
+
 			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
@@ -352,8 +362,10 @@ o.spec("SpamClassifierDataDealer", () => {
 				existingSpamTrainingData,
 				updatedSpamTrainingData,
 			)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "inboxMailSetEntriesId", anything())).thenResolve(
+				relevantMails.map((m) => createTestEntity(MailSetEntryTypeRef, { mail: m._id })),
+			)
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "spamMailSetEntriesId", anything())).thenResolve([])
 			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
@@ -363,6 +375,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			const expectedUploadMailsSpam = relevantMails.slice(60, 80)
 			const expectUploadMailsTotal = expectedUploadMailsHam.concat(expectedUploadMailsSpam)
 
+			when(entityClientMock.loadMultiple(MailTypeRef, "mailListId", anything())).thenResolve(expectUploadMailsTotal)
 			when(bulkMailLoaderMock.loadMailDetails(expectUploadMailsTotal)).thenResolve(
 				expectUploadMailsTotal.map((mail) => {
 					return { mail, mailDetails }
@@ -455,8 +468,11 @@ o.spec("SpamClassifierDataDealer", () => {
 				existingSpamTrainingData,
 				updatedSpamTrainingData,
 			)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(relevantMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.archivedMailBags[0].mails, anything())).thenResolve([])
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "inboxMailSetEntriesId", anything())).thenResolve(
+				relevantMails.map((m) => createTestEntity(MailSetEntryTypeRef, { mail: m._id })),
+			)
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, "spamMailSetEntriesId", anything())).thenResolve([])
+
 			when(entityClientMock.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)).thenResolve([inboxFolder, spamFolder, trashFolder])
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
@@ -468,6 +484,7 @@ o.spec("SpamClassifierDataDealer", () => {
 
 			const expectedFirstChunk = expectUploadMailsTotal.slice(0, MAX_NBR_OF_MAILS_SYNC_OPERATION)
 			const expectedSecondChunk = expectUploadMailsTotal.slice(MAX_NBR_OF_MAILS_SYNC_OPERATION, expectUploadMailsTotal.length)
+			when(entityClientMock.loadMultiple(MailTypeRef, "mailListId", anything())).thenResolve(expectedFirstChunk, expectedSecondChunk)
 			when(bulkMailLoaderMock.loadMailDetails(expectedFirstChunk)).thenResolve(
 				expectedFirstChunk.map((mail) => {
 					return { mail, mailDetails }
@@ -536,6 +553,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			when(entityClientMock.loadAll(ClientSpamTrainingDatumIndexEntryTypeRef, mailBox.modifiedClientSpamTrainingDataIndex)).thenResolve(
 				modifiedIndicesSinceStart,
 			)
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, anything(), anything())).thenResolve([])
 
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
@@ -561,6 +579,7 @@ o.spec("SpamClassifierDataDealer", () => {
 			when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId("owner"))).thenResolve(mailboxGroupRoot)
 			when(entityClientMock.load(MailBoxTypeRef, idToElementId("mailbox"))).thenResolve(mailBox)
 			when(entityClientMock.loadAll(MailTypeRef, anything(), anything())).thenResolve([])
+			when(entityClientMock.loadAll(MailSetEntryTypeRef, anything(), anything())).thenResolve([])
 
 			const spamTrainingData = [noneDecisionData, zeroConfData, validSpamData, validHamData]
 			const modifiedIndicesSinceStart = spamTrainingData.map((data) =>
@@ -648,32 +667,6 @@ o.spec("SpamClassifierDataDealer", () => {
 			o(trainingDataset.hamCount).equals(10)
 			o(trainingDataset.spamCount).equals(10)
 			o(trainingDataset.lastTrainingDataIndexId).equals(getElementId(last(modifiedIndicesSinceStart)!))
-		})
-	})
-
-	o.spec("fetchMailsByMailbagAfterDate", () => {
-		o("correctly filters mails with received date greater than start date", async () => {
-			const startDate = new Date(2020, 11, 30)
-			const dayBeforeStart = new Date(2020, 11, 29)
-			const recentMails = Array.from({ length: 10 }, () =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId"], inboxFolder._id, new Date(2025, 11, 17), mailDetails._id),
-			)
-			const oldMails = Array.from({ length: 10 }, () =>
-				createMailByFolderAndReceivedDate([mailBox.currentMailBag!.mails, "inboxMailId"], inboxFolder._id, dayBeforeStart, mailDetails._id),
-			)
-			const mails = recentMails.concat(oldMails)
-			when(entityClientMock.loadAll(MailTypeRef, mailBox.currentMailBag!.mails, anything())).thenResolve(mails)
-			when(bulkMailLoaderMock.loadMailDetails(recentMails)).thenResolve(
-				recentMails.map((mail) => {
-					return { mail, mailDetails }
-				}),
-			)
-			const result = await spamClassificationDataDealer.fetchMailsByMailbagAfterDate(
-				mailBox.currentMailBag!,
-				[inboxFolder, spamFolder, trashFolder],
-				startDate,
-			)
-			o(result.length).equals(10)
 		})
 	})
 })
