@@ -134,15 +134,15 @@ export class NextcloudApi {
 		}
 	}
 
-	async uploadFile(dataFile: PluginDataFile): Promise<{ filesUiUrl: string }> {
+	async uploadFile(dataFile: PluginDataFile, targetFolder: string): Promise<{ filesUiUrl: string }> {
 		const nextcloudCredentials = await this.getNextcloudCredentials()
-		const targetDirectory = `tuta`
-		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${targetDirectory}/${dataFile.name}`)
+		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${nextcloudCredentials.loginName}/${targetFolder}/${dataFile.name}`)
 		const authToken = await this.getAuthToken()
 
 		const putOptions = {
 			headers: {
-				// "If-None-Match": "*", // do not override already existing files,
+				"If-None-Match": "*", // do not override already existing files,
+				"X-NC-WebDAV-Auto-Mkcol": 1, // auto create parent folder
 				Authorization: `Basic ${authToken}`,
 				"OCS-APIRequest": "true",
 			},
@@ -157,7 +157,7 @@ export class NextcloudApi {
 			throw err
 		}
 
-		return { filesUiUrl: `${this.nextCloudUrl}/index.php/apps/files/files?dir=${targetDirectory}` }
+		return { filesUiUrl: `${this.nextCloudUrl}/index.php/apps/files/files?dir=${targetFolder}` }
 	}
 
 	public async createTalkRoom(roomName: string): Promise<{ joinUrl: string }> {

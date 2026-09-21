@@ -33,8 +33,10 @@ export class PluginHost implements PluginHostApi {
 		private readonly pluginId: string,
 	) {}
 
-	async registerConfigField(config: ConfigFieldConfiguration): Promise<void> {
-		this.pluginManager.registerConfigField(this.pluginId, config)
+	async registerConfigFields(configs: ConfigFieldConfiguration[]): Promise<void> {
+		for (const config of configs) {
+			this.pluginManager.registerConfigField(this.pluginId, config)
+		}
 	}
 
 	async registerButton(config: ButtonConfiguration): Promise<ButtonRef> {
