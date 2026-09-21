@@ -72,7 +72,7 @@ import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -128,7 +128,6 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
 
 EnvProvider.assertMainOrNode()
 
@@ -680,6 +679,7 @@ class CalendarLocator implements CommonLocator {
 		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
 		this.pluginManager = new PluginManager(pluginConfigurationProvider)
+		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 		this.Const = Const

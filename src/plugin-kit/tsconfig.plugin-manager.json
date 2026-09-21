@@ -1,6 +1,6 @@
 {
 	"extends": "../../tsconfig_common.json",
-	"include": ["./plugin-manager/", "../../types/"],
+	"include": ["./plugin-manager/", "../types/"],
 	"compilerOptions": {
 		"rootDir": "./plugin-manager/",
 		"outDir": "../../build/plugin-kit/plugin-manager",
