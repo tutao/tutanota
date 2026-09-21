@@ -11,11 +11,11 @@ import {
 	CalendarMonth,
 	checkEventValidity,
 	createRepeatRuleWithValues,
+	calcDaysInMonth,
 	eventEndsBefore,
 	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
-	getAllDayDatesUTCFromIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
@@ -26,6 +26,7 @@ import {
 	getWeekNumber,
 	incrementByRepeatPeriod,
 	isEventBetweenDays,
+	isLeapYear,
 	parseAlarmInterval,
 	StandardAlarmInterval,
 } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
@@ -275,29 +276,42 @@ o.spec("CalendarUtilsTest", function () {
 		})
 	})
 
-	o.spec("getAllDayDatesUTCFromIso", function () {
-		o("get all day in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
+	const yearsToTest: [number, boolean][] = [
+		[1979, false], // Not a leap year
+		[1980, true], // Leap year
+		[2000, true], // Leap year
+		[2026, false], // Not a leap year
+		[2023, false], // Odd-numbered non-leap year
+		[2028, true], // Leap year
+		[2100, false], // Not a leap year
+		[2400, true], // Leap year
+	]
+	o.spec("isLeapYear", function () {
+		o.test("works", function () {
+			for (const [year, expected] of yearsToTest) {
+				o.check(isLeapYear(year)).equals(expected)
+			}
 		})
-
-		o("get all day at 1985-09-29 in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "Europe/Berlin")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
+		o.test("implementation matches behavior of JS Date object", function () {
+			for (const [year, _] of yearsToTest) {
+				const jsDateMarchMonthIndex = 2
+				// The "0th" day of March is the last day of February
+				const lastDayOfFebruary = new Date(year, jsDateMarchMonthIndex, 0).getDate()
+				o.check(isLeapYear(year)).equals(lastDayOfFebruary === 29)
+			}
 		})
-
-		o("get all day in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(1759104000000)
-			o(endDate.getTime()).equals(1759190400000)
-		})
-
-		o("get all day at 1985-09-29 in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "America/Los_Angeles")
-			o(startDate.getTime()).equals(496800000000)
-			o(endDate.getTime()).equals(496886400000)
+	})
+	o.spec("daysInMonth", function () {
+		o.test("implementation matches behavior of JS Date object", function () {
+			for (const [year, _] of yearsToTest) {
+				for (let month = 1; month <= 12; ++month) {
+					const jsDateNextMonthIndex = month
+					// The "0th" day of the next month is the last day of the previous month.
+					// The last day of the month equals the number of days in a month.
+					const daysInMonthFromJsDate = new Date(year, jsDateNextMonthIndex, 0).getDate()
+					o.check(calcDaysInMonth(year, month)).equals(daysInMonthFromJsDate)
+				}
+			}
 		})
 	})
 

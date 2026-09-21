@@ -1,5 +1,6 @@
 import { ParsingError } from "../error/ParsingError"
-import { Birthday, createBirthday } from "@tutao/entities/tutanota"
+import { Birthday } from "@tutao/entities/tutanota"
+import { isValidDateYearMonthDay } from "../../../calendar/date/CalendarUtils"
 
 /**
  * Converts the birthday object to iso Date format (yyyy-mm-dd) or iso Date without year (--mm-dd)
@@ -11,17 +12,10 @@ export function birthdayToIsoDate(birthday: Birthday): string {
 	return `${year}-${month}-${day}`
 }
 
-/**
- * Converts iso Date (yyyy-mm-dd) or Date without year (--mm-dd) into Birthday object.
- */
-export function isoDateToBirthday(birthdayIso: string): Birthday {
-	return createBirthday(parseBirthdayIsoDate(birthdayIso))
-}
-
-export function parseBirthdayIsoDate(birthdayIso: string): { year: string | null; month: string; day: string } {
-	let year: string | null
-	let month: string
-	let day: string
+export function parseBirthdayIsoDate(birthdayIso: string): { year: number | null; month: number; day: number } {
+	let year: number | null
+	let month: number
+	let day: number
 
 	if (birthdayIso.startsWith("--")) {
 		const monthAndDay = birthdayIso.substring(2).split("-")
@@ -30,8 +24,8 @@ export function parseBirthdayIsoDate(birthdayIso: string): { year: string | null
 			throw new ParsingError("invalid birthday without year: " + birthdayIso)
 		}
 
-		month = monthAndDay[0]
-		day = monthAndDay[1]
+		month = parseInt(monthAndDay[0])
+		day = parseInt(monthAndDay[1])
 		year = null
 	} else {
 		const yearMonthAndDay = birthdayIso.split("-")
@@ -40,23 +34,30 @@ export function parseBirthdayIsoDate(birthdayIso: string): { year: string | null
 			throw new ParsingError("invalid birthday: " + birthdayIso)
 		}
 
-		year = yearMonthAndDay[0]
-		month = yearMonthAndDay[1]
-		day = yearMonthAndDay[2]
+		year = parseInt(yearMonthAndDay[0])
+		month = parseInt(yearMonthAndDay[1])
+		day = parseInt(yearMonthAndDay[2])
 	}
 
-	const parseResult = { year, month, day }
-
-	if (!isValidBirthday(parseResult)) {
+	if (isValidBirthdayYearMonthDay(year, month, day)) {
 		throw new ParsingError("Invalid birthday format: " + birthdayIso)
 	}
 
-	return parseResult
+	return { year, month, day }
+}
+
+export function isValidBirthdayYearMonthDay(year: number | null, month: number, day: number) {
+	// We use a leap year as a fallback year to allow Feb. 29 to be valid
+	return (
+		(year === null || !Number.isNaN(year)) && !Number.isNaN(month) && !Number.isNaN(day) && isValidDateYearMonthDay(year === null ? 2004 : year, month, day)
+	)
 }
 
 export function isValidBirthday(birthday: Partial<Birthday>): birthday is Birthday {
-	const day = Number(birthday.day)
-	const month = Number(birthday.month)
-	const year = birthday.year ? Number(birthday.year) : null
-	return day > 0 && day < 32 && month > 0 && month < 13 && (year === null || (year > 0 && year < 10000))
+	return (
+		birthday.year !== undefined &&
+		birthday.month !== undefined &&
+		birthday.day !== undefined &&
+		isValidBirthdayYearMonthDay(birthday.year === null ? null : parseInt(birthday.year), parseInt(birthday.month), parseInt(birthday.day))
+	)
 }
