@@ -1,4 +1,3 @@
-// @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 import { hexToUint8Array } from "@tutao/utils"
 import { random } from "../random/Randomizer.js"

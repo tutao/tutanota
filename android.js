@@ -8,14 +8,17 @@
  *  'APK_SIGN_STORE'
  *  'ANDROID_HOME'
  */
+import "./buildSrc/ts6-preload.js"
 import { Argument, Option, program } from "commander"
 import { buildDirForApp, runDevBuild } from "./buildSrc/DevBuild.js"
 import { prepareMobileBuild } from "./buildSrc/prepareMobileBuild.js"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
 import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
 import path from "node:path"
 import { $ } from "zx"
 import fs from "node:fs/promises"
+
+// dynamic import so it's executed after ts6-preload
+const { buildWebapp } = await import("./buildSrc/buildWebapp.js")
 
 // chalk is in scope because of zx
 const log = (...messages) => console.log(chalk.green("\nBUILD:"), ...messages, "\n")
