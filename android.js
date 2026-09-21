@@ -88,6 +88,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				networkDebugging: false,
 				app,
 				integrationPlatform: null,
+				shadowDomAppRoot: null,
 			})
 		} else {
 			const version = await getTutanotaAppVersion()
