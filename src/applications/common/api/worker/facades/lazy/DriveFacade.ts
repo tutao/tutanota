@@ -476,11 +476,30 @@ export class DriveFacade {
 		await this.serviceExecutor.execute(DriveService_POST, data, null)
 		return this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
 	}
-	downloadFileForShare(fileId: IdTuple, nonce: string, key: Base64): Promise<DriveFile> {
-		return this.entityClient.load(DriveFileTypeRef, fileId, {
+
+	async downloadFileForShare(
+		shareId: Id,
+		nonce: string,
+		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string },
+	): Promise<DriveFile> {
+		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
+			extraHeaders: { nonce },
+			ownerKeyProvider: null,
+			sessionKey: null,
+			baseUrl: null,
+			cacheMode: null,
+			queryParams: null,
+			suspensionBehavior: null,
+		})
+		const fileSessionKey =
+			encParam.type === "key"
+				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
+				: await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, share.salt)
+
+		return await this.entityClient.load(DriveFileTypeRef, share.file, {
 			extraHeaders: { nonce: nonce },
 			ownerKeyProvider: null,
-			sessionKey: uint8ArrayTo256Key(base64ToUint8Array(key)),
+			sessionKey: fileSessionKey,
 			baseUrl: null,
 			cacheMode: null,
 			queryParams: null,

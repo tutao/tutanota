@@ -90,7 +90,7 @@ export function applicationPaths({
 		"/giftcard/": giftcard,
 		"/webauthn": webauthn,
 		"/webauthnmobile": webauthnmobile,
-		"/drivefile/:listId/:elementId": driveFileShare,
+		"/drivefile/:shareId": driveFileShare,
 	}
 }
 

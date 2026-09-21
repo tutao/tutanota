@@ -10,6 +10,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
+import { TextField } from "../../../../ui/base/TextField"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {}
 
@@ -20,6 +21,10 @@ type DriveFileShareViewState =
 	  }
 	| {
 			status: "loading"
+	  }
+	| {
+			status: "password"
+			password: string
 	  }
 	| {
 			status: "error"
@@ -40,12 +45,15 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	}
 
 	private renderForState(state: DriveFileShareViewState) {
-		if (state.status === "loading") {
-			return this.renderLoading()
-		} else if (state.status === "error") {
-			return this.renderError(state.type)
-		} else if (state.status === "success") {
-			return this.renderFile(state.file)
+		switch (state.status) {
+			case "loading":
+				return this.renderLoading()
+			case "password":
+				return this.renderPassword(state)
+			case "error":
+				return this.renderError(state.type)
+			case "success":
+				return this.renderFile(state.file)
 		}
 	}
 
@@ -100,14 +108,29 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 		await locator.fileController.saveDataFile(dataFile)
 	}
 
-	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
-		const { listId, elementId, nonce } = m.route.param()
+	protected async onNewUrl() {
+		const { shareId, nonce } = m.route.param()
 
+		if (location.hash !== "") {
+			void this.downloadFileWithKey(shareId, nonce)
+		} else {
+			this.state = {
+				status: "password",
+				password: "",
+			}
+		}
+	}
+
+	private async downloadFileWithKey(shareId: Id, nonce: string) {
+		// FIXME: assuming the key is there for now
 		const base64UrlKey = location.hash.slice(1)
 
 		try {
 			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const file = await locator.driveFacade.downloadFileForShare([listId, elementId], base64UrlToBase64(nonce), base64UrlToBase64(base64UrlKey))
+			const file = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+				type: "key",
+				sharedKey: base64UrlToBase64(base64UrlKey),
+			})
 			this.state = {
 				status: "success",
 				file,
@@ -121,5 +144,45 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 			}
 		}
 		m.redraw()
+	}
+
+	private async downloadFileWithPassword(shareId: Id, nonce: string, password: string) {
+		try {
+			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
+			const file = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+				type: "password",
+				password,
+			})
+			this.state = {
+				status: "success",
+				file,
+			}
+		} catch (e) {
+			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
+				this.state = { status: "error", type: "notFound" }
+			} else {
+				this.state = { status: "error", type: "generic" }
+				handleUncaughtError(e) // FIXME: do we want this?
+			}
+		}
+		m.redraw()
+	}
+
+	private renderPassword(state: { status: "password"; password: string }): Children {
+		return m(".flex.col", [
+			m(TextField, {
+				value: state.password,
+				oninput: (value) => (state.password = value),
+				label: "password_label",
+			}),
+			m(PrimaryButton, {
+				label: "ok_action",
+				onclick: () => {
+					const { shareId, nonce } = m.route.param()
+					this.state = { status: "loading" }
+					void this.downloadFileWithPassword(shareId, nonce, state.password)
+				},
+			}),
+		])
 	}
 }
