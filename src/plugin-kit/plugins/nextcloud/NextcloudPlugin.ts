@@ -2,7 +2,6 @@ import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
-import type { Axios } from "axios"
 import { isNotNull, Nullable } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
@@ -16,6 +15,7 @@ type UserPluginConfig = {
 
 type CustomerPluginConfig = {
 	nextCloudUrl: string
+	targetAttachmentFolder: string
 }
 
 type NextcloudCredentials = {
@@ -72,7 +72,13 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 			configFieldId: "nextCloudUrl",
 			text: { en: "Nextcloud instance URI" },
 		}
-		await this.pluginHost.registerConfigField(configFieldConfig)
+
+		const defaultFolderConfig: ConfigFieldConfiguration = {
+			configFieldId: "targetAttachmentFolder",
+			extensionPoint: ExtensionPoint.ConfigField,
+			text: { en: "Folder to store attachments" },
+		}
+		await this.pluginHost.registerConfigFields([configFieldConfig, defaultFolderConfig])
 	}
 
 	private async applyAppExtensionPoints() {
@@ -93,8 +99,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
 		await this.updateCredsConfigIfNeeded()
+		const targetFolder = isNotNull(this.customerConfig.targetAttachmentFolder) ? this.customerConfig.targetAttachmentFolder : "TutaMailAttachments"
 
-		const { filesUiUrl } = await this.nextcloudApi.uploadFile(dataFile)
+		const { filesUiUrl } = await this.nextcloudApi.uploadFile(dataFile, targetFolder)
 		await this.pluginHost.openWindow(filesUiUrl)
 	}
 
