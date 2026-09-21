@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, generateRandomSalt, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, CryptoWrapper, generateRandomSalt, keyToUint8Array, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -18,7 +18,7 @@ import {
 	Require,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -73,6 +73,8 @@ import { isDriveFile } from "../../../common/drive/DriveUtils"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
 import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
+
+export const STATIC_FILE_SHARE_PASSWORD = "penguin-on-snowboard"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -392,7 +394,7 @@ export class DriveFacade {
 
 	async createShareLink(file: DriveFile): Promise<DriveShareInfo> {
 		const { fileGroupKey } = await this.getCryptoInfo()
-		const filePassword = "asdf" // FIXME
+		const filePassword = STATIC_FILE_SHARE_PASSWORD // FIXME
 
 		const salt = generateRandomSalt()
 		const shareKey = await this.argon2idFacade.generateKeyFromPassphrase(filePassword, salt)
@@ -429,12 +431,16 @@ export class DriveFacade {
 		const appUrl = this.domainConfig.apiUrl
 
 		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
-		const key = assertNotNull(await this.cryptoFacade.resolveSessionKeyForInstanceBinary(file))
+		const shareId = elementIdToId(share._id)
+
+		const filePassword = STATIC_FILE_SHARE_PASSWORD // FIXME
+
+		const key = keyToUint8Array(await this.argon2idFacade.generateKeyFromPassphrase(filePassword, share.salt))
 
 		const urlSafeNonce = base64ToBase64Url(uint8ArrayToBase64(share.nonce))
 		const urlSafeKey = base64ToBase64Url(uint8ArrayToBase64(key))
 
-		const publicLink = `${appUrl}/drivefile/${getListId(file)}/${getElementId(file)}?nonce=${urlSafeNonce}#${urlSafeKey}`
+		const publicLink = `${appUrl}/drivefile/${shareId}?nonce=${urlSafeNonce}#${urlSafeKey}`
 
 		return { share, key, publicLink }
 	}
