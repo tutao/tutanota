@@ -133,4 +133,6 @@ export enum SurveyDataType {
 	TERMINATION = 2, // used when terminating from the website form.
 	REVOKE = 3,
 	SATISFACTION_EVALUATION = 4,
+	UPGRADED = 5,
+	DECLINED = 6,
 }
