@@ -31,13 +31,19 @@ import {
 	ModelMapper,
 	SymmetricGroupKeyLoader,
 } from "../../../src/platform-kit/instance-pipeline"
-import { createEncryptedValueType, testAggregateModel, testAggregateOnAggregateModel, testTypeModel } from "./InstancePipelineTestUtils"
+import {
+	changeInstanceDirection,
+	createEncryptedValueType,
+	testAggregateModel,
+	testAggregateOnAggregateModel,
+	testTypeModel,
+} from "./InstancePipelineTestUtils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
 import { InstanceDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/InstanceDecryptor"
 import { ValueDecryptor } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/decryption/ValueDecryptor"
 import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { aesDecrypt, aesEncrypt } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("CryptoMapperTest", () => {
 	const symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE
@@ -502,16 +508,55 @@ o.spec("CryptoMapperTest", () => {
 			verify(instanceDecryptor.getValueDecryptor(matchers.anything(), "3/someCustomId/9/anotherCustomId/17"))
 		})
 	})
-	o.test("encryptParsedInstance assembles correct field paths", async () => {
-		const sessionKey = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
-		const encryptBytesWithAead = (symmetricCipherFacade.encryptBytesWithAead = spy(symmetricCipherFacade.encryptBytesWithAead))
+	for (const keyType of ["session", "group"]) {
+		o.test(`encryptParsedInstance assembles correct field paths with ${keyType} key AEAD`, async () => {
+			const key = aes256RandomKey()
+			const kdfNonce = generateKdfNonce()
+			const subKeyInfo =
+				keyType === "session" ? new SubKeyInfoWithSessionKeyAead(key) : new SubKeyInfoWithGroupKeyAead({ object: key, version: 0 }, kdfNonce)
+			const encryptBytesWithAead = spy(symmetricCipherFacade.encryptBytesWithAead)
+			replace(symmetricCipherFacade, "encryptBytesWithAead", encryptBytesWithAead)
 
-		const subKeyInfo = new SubKeyInfoWithSessionKeyAead(sessionKey)
-		await cryptoMapper.encryptParsedInstance(decryptedParsedInstance, subKeyInfo)
-		o.check(
-			encryptBytesWithAead.invocations.some((invocationParameters) =>
-				arrayEquals(stringToUtf8Uint8Array("attributeEncSK3/aggregateId/9/anotherCustomId/17"), invocationParameters[2]),
-			),
-		).equals(true)
-	})
+			const aggregates = ["first", "second"].map((aggregateId) =>
+				DecryptedParsedInstance.outgoingToServer(testAggregateModel as ClientTypeModel)
+					.addAttributeById(2, ParsedValue.fromString("123"))
+					.addAttributeById(6, ParsedValue.fromId(aggregateId))
+					.addAttributeById(
+						9,
+						ParsedValue.fromNestedItems(
+							["child1", "child2"].map((childId, index) =>
+								DecryptedParsedInstance.outgoingToServer(testAggregateOnAggregateModel as ClientTypeModel)
+									.addAttributeById(17, ParsedValue.fromByteArray(Uint8Array.of(index + 1)))
+									.addAttributeById(10, ParsedValue.fromNull())
+									.addAttributeById(11, ParsedValue.fromId(childId)),
+							),
+						),
+					)
+					.addAttributeById(10, ParsedValue.fromNestedItems([])),
+			)
+			decryptedParsedInstance.addAttributeById(3, ParsedValue.fromNestedItems(aggregates))
+
+			const encryptedInstance = await cryptoMapper.encryptParsedInstance(decryptedParsedInstance, subKeyInfo)
+			const domain = keyType === "session" ? "attributeEncSK\u001f" : "attributeEncGK\u001f"
+			for (const fieldPath of ["3/first/9/child1/17", "3/first/9/child2/17", "3/second/9/child1/17", "3/second/9/child2/17"]) {
+				o.check(
+					encryptBytesWithAead.invocations.some((invocationParameters) =>
+						arrayEquals(stringToUtf8Uint8Array(domain + fieldPath), invocationParameters[2]),
+					),
+				).equals(true)
+			}
+
+			const decryptedInstance = await cryptoMapper.decryptParsedInstance(
+				changeInstanceDirection(encryptedInstance, InstanceDirection.IncomingFromServer),
+				keyType === "session" ? key : null,
+				keyType === "group" ? kdfNonce : null,
+				async () => key,
+			)
+			o.check(decryptedInstance.getErrors()).deepEquals({})
+			for (const aggregate of decryptedInstance.getAttributeById(3).asNestedObjList()) {
+				const children = aggregate.getAttributeById(9).asNestedObjList()
+				o.check(children.map((child) => Array.from(child.getAttributeById(17).asByteArray()))).deepEquals([[1], [2]])
+			}
+		})
+	}
 })

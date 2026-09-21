@@ -341,8 +341,8 @@ export class CryptoMapper {
 		let encryptedAggregates = new Array<EncryptedParsedInstance>()
 		for (const aggregate of aggregateValues) {
 			const entityId = aggregate.getAttributeByName("_id").asId()
-			fieldPathPrefix = `${fieldPathPrefix}${entityId}/`
-			encryptedAggregates.push(await this.encryptParsedInstance(aggregate, subKeyProvider, fieldPathPrefix))
+			const fieldPathPrefixForThisAssociation = `${fieldPathPrefix}${entityId}/`
+			encryptedAggregates.push(await this.encryptParsedInstance(aggregate, subKeyProvider, fieldPathPrefixForThisAssociation))
 		}
 
 		return encryptedAggregates
