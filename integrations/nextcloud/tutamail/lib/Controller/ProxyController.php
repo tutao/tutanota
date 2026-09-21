@@ -85,7 +85,7 @@ class ProxyController extends Controller
 				'GET, POST, PUT, DELETE, OPTIONS, PROPFIND, MKCOL, MOVE, COPY');
 		$response->addHeader('Access-Control-Allow-Headers',
 				'Authorization, Content-Type, Depth, Destination, Overwrite, '
-				. 'OCS-APIRequest, X-Requested-With, requesttoken');
+				. 'OCS-APIRequest, X-Requested-With, requesttoken, if-none-match, X-NC-WebDAV-Auto-Mkcol');
 		$response->addHeader('Access-Control-Max-Age', '3600');
 		$response->addHeader('Vary', 'Origin');
 		$response->setStatus(Http::STATUS_NO_CONTENT);
