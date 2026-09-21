@@ -99,6 +99,7 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
+import { ExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
 
 EnvProvider.assertMainOrNode()
 
@@ -410,6 +411,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				reply: this.getReplyAction(viewModel, false),
 				replyAll: this.getReplyAction(viewModel, true),
 				forward: this.getForwardAction(viewModel),
+				mailExtension: this.getMailExtensionAction(viewModel.primaryViewModel()),
 			},
 			mailViewerMoreActions: getMailViewerMoreActions({
 				exportAction: this.getExportAction(),
@@ -1570,5 +1572,15 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			label: "edit_action",
 			click: onEditMailbox,
 		})
+	}
+
+	private getMailExtensionAction(viewModel: MailViewerViewModel): () => void {
+		return () => {
+			viewModel.pluginManager.getRegisteredButtonsByExtensionPoint(ExtensionPoint.MailButton).map((mailExtension) => {
+				return () => {
+					viewModel.pluginManager.mailButtonClicked(mailExtension.pluginId, viewModel.mailAsPluginMail(viewModel.mail))
+				}
+			})
+		}
 	}
 }

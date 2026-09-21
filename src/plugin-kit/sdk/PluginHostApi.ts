@@ -5,6 +5,7 @@ export enum ExtensionPoint {
 	SaveAttachmentDialog = 0,
 	EventLocationButton = 1, // e.g. Nextcloud Talk or MS Teams link generated for the event location field
 	ConfigField = 2,
+	MailButton = 3,
 }
 
 export enum PluginLanguageCode {

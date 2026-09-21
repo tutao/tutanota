@@ -96,6 +96,7 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
+import { PluginMail } from "../../../../plugin-kit/sdk/PluginMail"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1324,6 +1325,12 @@ export class MailViewerViewModel {
 		const dataFile = await this.fileController.getAsDataFile(file, ArchiveDataType.Attachments)
 		const { name, mimeType, data, size } = dataFile
 		return { name, mimeType, data, size }
+	}
+
+	async mailAsPluginMail(mail: Mail): Promise<PluginMail> {
+		return {
+			body: mail.subject,
+		}
 	}
 
 	async downloadAndOpenAttachment(file: File, postDownload: DownloadPostProcessing) {

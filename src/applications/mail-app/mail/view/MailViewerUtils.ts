@@ -58,6 +58,7 @@ export type MailViewerToolbarActions = {
 	unread?: (() => unknown) | null
 	markSpam?: (() => unknown) | null
 	markNotSpam?: (() => unknown) | null
+	mailExtension?: (() => unknown) | null
 }
 
 // There are actions that should only show in the more actions section of the toolbar

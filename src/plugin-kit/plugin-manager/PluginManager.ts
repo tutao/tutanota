@@ -8,6 +8,8 @@ import { EnvProvider } from "@tutao/app-env"
 import { FileImportExtension, PluginFileReference } from "../sdk/FileImportExtensionPoint"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { MailButtonExtension } from "../sdk/MailButtonExtensionPoint"
+import { PluginMail } from "../sdk/PluginMail"
 
 export type EnabledPlugin = {
 	pluginId: string
@@ -69,6 +71,10 @@ export class PluginManager {
 
 	async attachmentButtonClicked(pluginName: string, dataFile: Promise<PluginDataFile>): Promise<void> {
 		downcast<AttachmentButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).attachmentButtonClicked(await dataFile)
+	}
+
+	async mailButtonClicked(pluginName: string, mail: Promise<PluginMail>): Promise<void> {
+		downcast<MailButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).mailButtonClicked(await mail)
 	}
 
 	async eventLocationButtonClicked(pluginName: string): Promise<Readonly<string>> {
