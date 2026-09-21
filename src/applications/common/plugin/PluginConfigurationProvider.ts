@@ -21,15 +21,8 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	) {}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {}
+
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
-		return this.init(loggedInEvent.userId)
-	}
-
-	setPluginManager(pm: PluginManager): void {
-		this.pluginManager = pm
-	}
-
-	public async init(userId: Id): Promise<void> {
 		const loggedInUser = this.logins.getUserController().user
 		this.userOwnerGroup = assertNotNull(loggedInUser._ownerGroup)
 		this.pluginListId = assertNotNull(loggedInUser.plugins).pluginConfigs
@@ -49,6 +42,10 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 		}
 	}
 
+	setPluginManager(pm: PluginManager): void {
+		this.pluginManager = pm
+	}
+
 	async storeUserConfig(pluginId: string, configJson: string): Promise<void> {
 		let pluginConfig = await this.fetchUserConfig(pluginId)
 		if (isNotNull(pluginConfig)) {
@@ -61,6 +58,7 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 			await this.entityClient.setup(this.pluginListId, pluginConfig)
 		}
 	}
+
 	async getUserConfig(pluginId: string): Promise<Nullable<string>> {
 		const pluginConfig = await this.fetchUserConfig(pluginId)
 		return pluginConfig?.configJson ?? null
