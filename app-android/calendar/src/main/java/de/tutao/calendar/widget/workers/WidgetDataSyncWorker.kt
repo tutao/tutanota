@@ -6,9 +6,10 @@ import androidx.glance.appwidget.updateAll
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import de.tutao.calendar.widget.Agenda
-import de.tutao.calendar.widget.WidgetViewModelProvider
+import de.tutao.calendar.widget.model.WidgetUIViewModel
 import de.tutao.calendar.widget.widgetCacheDataStore
 import de.tutao.calendar.widget.widgetDataStore
+import de.tutao.calendar.widget.widgetIdToViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
@@ -26,9 +27,7 @@ class WidgetDataSyncWorker(
 	override suspend fun doWork(): Result {
 		val widgetId: Int = inputData.keyValueMap[APP_WIDGET_ID_KEY]!! as Int
 
-		Log.i(TAG, "[$widgetId] Getting existing ViewModel")
-		val model = WidgetViewModelProvider.getModelFor(widgetId)
-			?: throw Exception("Worker could not find a ViewModel for widget $widgetId")
+		val model = appContext.widgetIdToViewModel.getOrPut(widgetId) { WidgetUIViewModel.init(appContext, widgetId) }
 
 		Log.i(TAG, "[$widgetId] Dispatching UI state load to IO thread")
 		withContext(Dispatchers.IO) {

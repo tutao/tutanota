@@ -66,16 +66,14 @@ class Agenda : GlanceAppWidget() {
 		repository.eraseSettingsForWidget(context, glanceId)
 
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(glanceId)
-		WidgetViewModelProvider.deleteModelFor(appWidgetId)
+		context.widgetIdToViewModel.remove(appWidgetId)
 	}
 
 	override suspend fun provideGlance(context: Context, id: GlanceId) {
 		val appWidgetId = GlanceAppWidgetManager(context).getAppWidgetId(id)
 		Log.d(TAG, "[$appWidgetId] provideGlance called")
 
-		val widgetUIViewModel: WidgetUIViewModel =
-			WidgetViewModelProvider.getModelFor(appWidgetId)
-				?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+		val widgetUIViewModel = context.widgetIdToViewModel.getOrPut(appWidgetId) { WidgetUIViewModel.init(context, appWidgetId) }
 
 		val userId = widgetUIViewModel.getLoggedInUser(context)
 

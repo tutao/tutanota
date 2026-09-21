@@ -10,6 +10,7 @@ import androidx.glance.action.Action
 import androidx.glance.appwidget.action.actionStartActivity
 import androidx.lifecycle.ViewModel
 import de.tutao.calendar.MainActivity
+import de.tutao.calendar.R
 import de.tutao.calendar.widget.WidgetUpdateTrigger
 import de.tutao.calendar.widget.data.BirthdayEventDao
 import de.tutao.calendar.widget.data.CalendarEventDao
@@ -21,23 +22,32 @@ import de.tutao.calendar.widget.data.WidgetRepository
 import de.tutao.calendar.widget.data.WidgetUIState
 import de.tutao.calendar.widget.error.WidgetError
 import de.tutao.calendar.widget.error.WidgetErrorType
+import de.tutao.calendar.widget.widgetDataRepository
 import de.tutao.calendar.widget.widgetDataStore
 import de.tutao.tutasdk.GeneratedId
 import de.tutao.tutasdk.LoginException
 import de.tutao.tutasdk.Sdk
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.IdTuple
+import de.tutao.tutashared.SdkFileClient
+import de.tutao.tutashared.SdkRestClient
+import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.base64ToBase64Url
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
+import de.tutao.tutashared.data.AppDatabase
+import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.ipc.UnencryptedCredentials
 import de.tutao.tutashared.isAllDayEventByTimes
 import de.tutao.tutashared.push.toSdkCredentials
+import de.tutao.tutashared.remote.RemoteStorage
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import java.security.SecureRandom
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -59,12 +69,45 @@ class WidgetUIViewModel(
 	private val birthdayStrings: BirthdayStrings
 ) : ViewModel() {
 
-	private val _uiState = MutableStateFlow<WidgetUIState>(WidgetUIState.NewlyCreated)
-	val uiState: StateFlow<WidgetUIState> = _uiState.asStateFlow()
-
 	companion object {
 		private const val TAG = "WidgetUIViewModel"
+
+		fun init(context: Context, widgetId: Int): WidgetUIViewModel {
+			Log.d(this.TAG, "[$widgetId] Creating new widgetUiViewModel")
+			val db = AppDatabase.getDatabase(context, true)
+			val remoteStorage = RemoteStorage(db)
+			val tempDir = TempDir(context)
+			val tempFs = TempFs(context, SecureRandom(), tempDir)
+			val crypto = AndroidNativeCryptoFacade(context, tempFs)
+			val nativeCredentialsFacade = CredentialsEncryptionFactory.create(context, crypto, db)
+			val birthdayStrings = BirthdayStrings(
+				context.getString(R.string.birthdayEvent_title),
+				context.getString(R.string.birthdayEventAge_title)
+			)
+			val sdk = try {
+				Sdk(remoteStorage.getRemoteUrl()!!, SdkRestClient(), SdkFileClient(context.filesDir))
+			} catch (e: Exception) {
+				Log.e(
+					this.TAG,
+					"[$widgetId] Failed to initialize SDK, falling back to cached events if available. $e"
+				)
+				null
+			}
+
+			return WidgetUIViewModel(
+				context.widgetDataRepository,
+				widgetId,
+				nativeCredentialsFacade,
+				crypto,
+				sdk,
+				Calendar.getInstance(),
+				birthdayStrings
+			)
+		}
 	}
+
+	private val _uiState = MutableStateFlow<WidgetUIState>(WidgetUIState.NewlyCreated)
+	val uiState: StateFlow<WidgetUIState> = _uiState.asStateFlow()
 
 	suspend fun loadUIState(
 		widgetDataStore: DataStore<Preferences>,

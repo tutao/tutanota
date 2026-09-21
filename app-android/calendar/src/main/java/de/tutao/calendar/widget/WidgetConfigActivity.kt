@@ -269,9 +269,7 @@ class WidgetConfigActivity : AppCompatActivity() {
 									viewModel.storeSettings(this@WidgetConfigActivity, appWidgetId).join()
 
 									Log.d(TAG, "[$appWidgetId] Getting existing ViewModel")
-									val model: WidgetUIViewModel =
-										WidgetViewModelProvider.getModelFor(appWidgetId)
-											?: throw Exception("Missing WidgetUIViewModel, it should have been initialized earlier...")
+									val model: WidgetUIViewModel = context.widgetIdToViewModel.getOrPut(appWidgetId) { WidgetUIViewModel.init(context, appWidgetId) }
 									model.setAsConfigured()
 
 									val uniqueWorkName = "${LOAD_EVENTS_AFTER_CONFIG_WORK}_$appWidgetId"
