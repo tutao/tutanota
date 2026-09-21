@@ -1,3 +1,3 @@
 export interface EventLocationButtonExtension {
-	eventLocationButtonClicked(): Promise<string>
+	eventLocationButtonClicked(roomName: string): Promise<string>
 }
