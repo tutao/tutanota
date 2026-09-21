@@ -460,7 +460,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 
 	private renderLocationButtonExtension(vnode: Vnode<CalendarEventEditViewAttrs>, buttonExtension: ButtonExtension): Children {
 		const { model } = vnode.attrs
-		const pluginName = buttonExtension.pluginName
+		const pluginName = buttonExtension.pluginId
 
 		if (this.inProgressLocationButtons.has(pluginName)) {
 			return m(".flex-center.items-center.button-height", { key: pluginName }, progressIcon())
