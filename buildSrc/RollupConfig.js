@@ -20,6 +20,8 @@ export const dependencyMap = {
 	// below this, the modules are only running in the desktop main thread.
 	"electron-updater": path.normalize("./libs/electron-updater.mjs"),
 	undici: path.normalize("./libs/undici.mjs"),
+	"compliant-eyeballs/undici": path.normalize("./libs/compliant-eyeballs.mjs"),
+	"compliant-eyeballs/agents": path.normalize("./libs/compliant-eyeballs.mjs"),
 	jsqr: path.normalize("./libs/jsQR.js"),
 	"@signalapp/sqlcipher": path.normalize("./libs/node-sqlcipher.mjs"),
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
