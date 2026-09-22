@@ -2,7 +2,7 @@ import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
 import m, { Children, Component, Vnode } from "mithril"
 import { TopLevelAttrs } from "../../../../ui/base/TopLevelView"
 import { locator } from "../../../common/api/main/CommonLocator"
-import { DriveFile } from "@tutao/entities/drive"
+import { DriveFile, DriveFileShare } from "@tutao/entities/drive"
 import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
@@ -11,6 +11,7 @@ import { base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { TextField } from "../../../../ui/base/TextField"
+import { formatDate } from "../../../../ui/utils/Formatter"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {}
 
@@ -19,6 +20,7 @@ type DriveFileShareViewState =
 			status: "success"
 			file: DriveFile
 			fileSessionKey: Uint8Array<ArrayBuffer>
+			share: DriveFileShare
 	  }
 	| {
 			status: "loading"
@@ -33,7 +35,6 @@ type DriveFileShareViewState =
 	  }
 
 export class DriveFileShareView extends BaseTopLevelView implements Component<DriveFileShareViewAttrs> {
-	private base64UrlKey = location.hash.slice(1)
 	private state: DriveFileShareViewState = { status: "loading" }
 
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
@@ -86,7 +87,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	private renderFile(file: DriveFile): Children {
 		return [
 			m(
-				".flex.items-center",
+				".flex.items-center.gap-8",
 				m(Icon, {
 					icon: Icons.EmptyDocumentFilled,
 					title: "emptyString_msg",
@@ -101,6 +102,9 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 					this.downloadFile(file)
 				}, //FIXME,
 			}),
+			this.state.status === "success" && this.state.share.expirationDate
+				? m("", `This link expires on ${formatDate(this.state.share.expirationDate)}`) //FIXME
+				: null,
 		]
 	}
 
@@ -131,7 +135,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 		try {
 			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const { file, fileSessionKey } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
 				type: "key",
 				sharedKey: base64UrlToBase64(base64UrlKey),
 			})
@@ -139,6 +143,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 				status: "success",
 				file,
 				fileSessionKey,
+				share,
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
@@ -153,7 +158,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 	private async downloadFileWithPassword(shareId: Id, nonce: string, password: string) {
 		try {
-			const { file, fileSessionKey } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
 				type: "password",
 				password,
 			})
@@ -161,6 +166,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 				status: "success",
 				file,
 				fileSessionKey,
+				share,
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {

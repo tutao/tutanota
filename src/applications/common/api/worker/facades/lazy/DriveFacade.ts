@@ -401,7 +401,7 @@ export class DriveFacade {
 		return this.userFacade.getGroupId(GroupType.File)
 	}
 
-	async createShareLink(file: DriveFile, password: string | null): Promise<DriveShareInfo> {
+	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 		const filePassword = password ?? STATIC_FILE_SHARE_PASSWORD
 
@@ -415,7 +415,7 @@ export class DriveFacade {
 			DriveShareService_POST,
 			createDriveShareServicePostIn({
 				file: file._id,
-				expirationDate: null,
+				expirationDate,
 				shareKeyEncFileSessionKey,
 				salt,
 				ownerEncPassword,
@@ -492,7 +492,7 @@ export class DriveFacade {
 		shareId: Id,
 		nonce: string,
 		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string },
-	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer> }> {
+	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }> {
 		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
 			extraHeaders: { nonce },
 			ownerKeyProvider: null,
@@ -521,6 +521,7 @@ export class DriveFacade {
 		return {
 			file,
 			fileSessionKey: bitArrayToUint8Array(fileSessionKey.bits),
+			share,
 		}
 	}
 

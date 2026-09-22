@@ -17,6 +17,7 @@ import { progressIcon } from "../../../../ui/base/Icon"
 import { PasswordField, PasswordFieldAttrs } from "../../../common/misc/passwords/PasswordField"
 import { UserError } from "../../../common/api/main/UserError"
 import { Switch } from "../../../../ui/base/Switch"
+import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 
 type ShareDialogState = "busy" | "done"
 
@@ -36,7 +37,9 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 		DialogType.EditMedium,
 		class DriveFileShareDialog implements Component {
 			private doPassword: boolean = false
+			private doExpiry: boolean = false
 			private passwordValue: string = ""
+			private expirationDate: Date | null = null
 			view(): Children {
 				return m(".flex.col", {}, [
 					m(DialogHeaderBar, {
@@ -68,6 +71,37 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 																oninput: (passwordValue) => (this.passwordValue = passwordValue),
 															} satisfies PasswordFieldAttrs)
 														: null,
+
+													m(
+														Switch,
+														{
+															checked: this.doExpiry,
+															ariaLabel: "Set an expiration date for the link", //FIXME
+															onclick: (toggled) => (this.doExpiry = toggled),
+														},
+														"Set an expiration date for the link",
+													),
+													this.doExpiry
+														? m(DatePicker, {
+																date: this.expirationDate,
+																label: lang.makeTranslation("", "Select expiry date"),
+																onDateSelected: (selectedDate) => {
+																	//FIXME : this function triggers twice for some reason
+																	if (selectedDate.getDate() < new Date().getDate()) {
+																		throw new UserError(
+																			lang.makeTranslation(
+																				"",
+																				"Expiration date is in the past. Please select another date",
+																			),
+																		)
+																	} else {
+																		this.expirationDate = selectedDate
+																	}
+																},
+																startOfTheWeekOffset: 0, //FIXME
+															})
+														: null,
+
 													m(PrimaryButton, {
 														style: {
 															margin: "8px auto 0 auto",
@@ -75,7 +109,11 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 														width: "flex",
 														// FIXME
 														label: lang.makeTranslation("createLink_action", "Create a share link"),
-														onclick: () => void this.createShareLink(this.doPassword ? this.passwordValue : null),
+														onclick: () =>
+															void this.createShareLink(
+																this.doPassword ? this.passwordValue : null,
+																this.doExpiry ? this.expirationDate : null,
+															),
 													}),
 												],
 									),
@@ -120,13 +158,13 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 					]),
 				])
 			}
-			private async createShareLink(password: string | null) {
+			private async createShareLink(password: string | null, expirationDate: Date | null) {
 				state = "busy"
 				if (password?.trim() === "") {
 					throw new UserError(lang.makeTranslation("password", "Please enter a password to continue"))
 				}
 				try {
-					shareInfo = await driveFacade.createShareLink(item.file, password)
+					shareInfo = await driveFacade.createShareLink(item.file, password, expirationDate)
 				} finally {
 					state = "done"
 					m.redraw()
