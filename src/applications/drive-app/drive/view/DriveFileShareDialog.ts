@@ -14,6 +14,9 @@ import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { DriveFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { progressIcon } from "../../../../ui/base/Icon"
+import { PasswordField, PasswordFieldAttrs } from "../../../common/misc/passwords/PasswordField"
+import { UserError } from "../../../common/api/main/UserError"
+import { Switch } from "../../../../ui/base/Switch"
 
 type ShareDialogState = "busy" | "done"
 
@@ -32,6 +35,8 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 	const dialog = new Dialog(
 		DialogType.EditMedium,
 		class DriveFileShareDialog implements Component {
+			private doPassword: boolean = false
+			private passwordValue: string = ""
 			view(): Children {
 				return m(".flex.col", {}, [
 					m(DialogHeaderBar, {
@@ -42,18 +47,37 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 						shareInfo == null
 							? [
 									m(
-										".flex.col.items-center",
+										".flex.col.items-center.gap-8",
 										state === "busy"
 											? progressIcon()
-											: m(PrimaryButton, {
-													style: {
-														margin: "8px auto 0 auto",
-													},
-													width: "flex",
-													// FIXME
-													label: lang.makeTranslation("createLink_action", "Create a share link"),
-													onclick: () => void this.createShareLink(),
-												}),
+											: [
+													m(
+														Switch,
+														{
+															checked: this.doPassword,
+															ariaLabel: "Secure the file with a password", // FIXME
+															onclick: (toggled) => {
+																this.doPassword = toggled
+															},
+														},
+														"Secure the file with a password",
+													),
+													this.doPassword
+														? m(PasswordField, {
+																value: this.passwordValue,
+																oninput: (passwordValue) => (this.passwordValue = passwordValue),
+															} satisfies PasswordFieldAttrs)
+														: null,
+													m(PrimaryButton, {
+														style: {
+															margin: "8px auto 0 auto",
+														},
+														width: "flex",
+														// FIXME
+														label: lang.makeTranslation("createLink_action", "Create a share link"),
+														onclick: () => void this.createShareLink(this.doPassword ? this.passwordValue : null),
+													}),
+												],
 									),
 								]
 							: m(".flex.col", [
@@ -96,10 +120,13 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 					]),
 				])
 			}
-			private async createShareLink() {
+			private async createShareLink(password: string | null) {
 				state = "busy"
+				if (password?.trim() === "") {
+					throw new UserError(lang.makeTranslation("password", "Please enter a password to continue"))
+				}
 				try {
-					shareInfo = await driveFacade.createShareLink(item.file)
+					shareInfo = await driveFacade.createShareLink(item.file, password)
 				} finally {
 					state = "done"
 					m.redraw()

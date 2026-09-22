@@ -401,9 +401,9 @@ export class DriveFacade {
 		return this.userFacade.getGroupId(GroupType.File)
 	}
 
-	async createShareLink(file: DriveFile): Promise<DriveShareInfo> {
+	async createShareLink(file: DriveFile, password: string | null): Promise<DriveShareInfo> {
 		const { fileGroupKey } = await this.getCryptoInfo()
-		const filePassword = STATIC_FILE_SHARE_PASSWORD // FIXME
+		const filePassword = password ?? STATIC_FILE_SHARE_PASSWORD
 
 		const salt = generateRandomSalt()
 		const shareKey = await this.argon2idFacade.generateKeyFromPassphrase(filePassword, salt)
@@ -442,14 +442,16 @@ export class DriveFacade {
 		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
 		const shareId = elementIdToId(share._id)
 
-		const filePassword = STATIC_FILE_SHARE_PASSWORD // FIXME
-
-		const key = keyToUint8Array(await this.argon2idFacade.generateKeyFromPassphrase(filePassword, share.salt))
+		const { fileGroupKey } = await this.getCryptoInfo()
+		const password = this.cryptoWrapper.decryptString(fileGroupKey.object, share.ownerEncPassword)
+		const key = keyToUint8Array(await this.argon2idFacade.generateKeyFromPassphrase(password, share.salt))
 
 		const urlSafeNonce = base64ToBase64Url(uint8ArrayToBase64(share.nonce))
 		const urlSafeKey = base64ToBase64Url(uint8ArrayToBase64(key))
-
-		const publicLink = `${appUrl}/drivefile/${shareId}?nonce=${urlSafeNonce}#${urlSafeKey}`
+		const isStaticPassword = password === STATIC_FILE_SHARE_PASSWORD
+		const publicLink = isStaticPassword
+			? `${appUrl}/drivefile/${shareId}?nonce=${urlSafeNonce}#${urlSafeKey}`
+			: `${appUrl}/drivefile/${shareId}?nonce=${urlSafeNonce}`
 
 		return { share, key, publicLink }
 	}
