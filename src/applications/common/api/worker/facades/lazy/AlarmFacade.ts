@@ -120,11 +120,11 @@ export class AlarmFacade {
 					trigger: alarmInfoTemplate.trigger,
 				})
 				const userAlarmInfo = createUserAlarmInfoTransferAggregatedType({
+					_ownerGroup: ownerGroup,
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
+					_ownerKeyVersion: userGroupKey.version.toString(),
 					alarmInfo: alarmInfoTransferAggregatedType,
 				})
-				userAlarmInfo._ownerGroup = ownerGroup
-				userAlarmInfo._ownerEncSessionKey = this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey)
-				userAlarmInfo._ownerKeyVersion = userGroupKey.version.toString()
 				alarmServicePost.userAlarmInfo.push(userAlarmInfo)
 
 				// one session key is used for all notifications of a single alarmInfo, but is encrypted separately for each device.
