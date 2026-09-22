@@ -251,6 +251,7 @@ export class MailFacade {
 			_ownerGroup: ownerGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 			name,
 			parentFolder: parent,
 		})
@@ -1326,6 +1327,7 @@ export class MailFacade {
 			_ownerGroup: mailGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: String(ownerEncSessionKey.encryptingKeyVersion),
+			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 			name: labelData.name,
 			parentFolder: labelData.parentLabelId ?? null,
 			color: labelData.color,
@@ -1365,6 +1367,7 @@ export class MailFacade {
 		const isNameChange = label.name !== name
 
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
+			await this.entityClient.ensureKdfNonce(label)
 			const mailSet = createLabelPutTransferAggregatedType({
 				name,
 				parentFolder: parentLabelId ?? null,

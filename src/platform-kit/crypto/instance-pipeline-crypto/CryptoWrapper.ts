@@ -1,6 +1,6 @@
 import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { aes256RandomKey, generateKdfNonce, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
 import { decryptKey, decryptKeyPair, encryptKey, encryptKyberKey, encryptX25519Key } from "./KeyEncryption.js"
 import { deriveX25519PublicKey, generateX25519KeyPair, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
@@ -12,7 +12,7 @@ import {
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 } from "../encryption/Liboqs/KyberKeyPair.js"
-import { RsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
+import { RsaKeyPair, RsaPublicKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { Aes256Key, AesKey, AesKeyLength, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
@@ -153,6 +153,10 @@ export class CryptoWrapper {
 			throw new CryptoError("Extracted public key does not match the provided public key")
 		}
 		return providedPublicKey
+	}
+
+	generateKdfNonce(): KdfNonce {
+		return generateKdfNonce()
 	}
 }
 

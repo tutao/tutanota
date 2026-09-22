@@ -4,6 +4,7 @@ import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestC
 import { CacheSyncStatus, EntityUpdateData } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/utils"
 import { EntityRestClientLoadOptions } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { KdfNonce } from "@tutao/crypto"
 
 export class AdminClientDummyEntityRestCache implements EntityRestCache {
 	async entityEventsReceived(events: readonly EntityUpdateData[], batchId: Id, groupId: Id): Promise<readonly EntityUpdateData[]> {
@@ -76,5 +77,9 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 
 	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
 		// no-op
+	}
+
+	ensureKdfNonce(instance: PersistentEntity): Promise<KdfNonce> {
+		throw new ProgrammingError("ensureKdfNonce not implemented")
 	}
 }
