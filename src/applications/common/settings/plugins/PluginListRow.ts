@@ -9,6 +9,8 @@ import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 import { ConfigFieldConfiguration, PluginLanguageCode } from "../../../../plugin-kit/sdk/PluginHostApi.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
+import { isEmpty, isNotNull, Nullable } from "@tutao/utils"
+import { PluginId } from "../../../../plugin-kit/sdk/PluginId"
 
 function configFieldLabelText(field: ConfigFieldConfiguration): string {
 	const preferredCode = lang.code.startsWith("de") ? PluginLanguageCode.de : PluginLanguageCode.en
@@ -57,7 +59,7 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 		])
 	}
 
-	private async handleToggle(pluginId: string, model: PluginSettingsModel, newChecked: boolean): Promise<void> {
+	private async handleToggle(pluginId: PluginId, model: PluginSettingsModel, newChecked: boolean): Promise<void> {
 		const confirmed = await Dialog.confirm(newChecked ? "confirmEnablePlugin_msg" : "confirmDisablePlugin_msg")
 		if (confirmed) {
 			await model.setEnabled(pluginId, newChecked)
@@ -66,18 +68,25 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 		m.redraw()
 	}
 
-	private renderConfigPanel(entry: PluginRegistryEntry, model: PluginSettingsModel): Children {
+	private renderConfigPanel(entry: PluginRegistryEntry, model: PluginSettingsModel): Nullable<Children> {
 		const draft = this.draftConfig ?? {}
+		const configFields = model.getConfigFields(entry.id)
+		if (isEmpty(configFields)) {
+			return null
+		}
+
+		const configFieldInputs = configFields.map((field) =>
+			m(LegacyTextField, {
+				label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
+				value: draft[field.configFieldId] ?? "",
+				oninput: (value: string) => {
+					draft[field.configFieldId] = value
+				},
+			} satisfies LegacyTextFieldAttrs),
+		)
+
 		return m(".pb-16.pl-32.flex.flex-column.gap-8", [
-			...model.getConfigFields(entry.id).map((field) =>
-				m(LegacyTextField, {
-					label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
-					value: draft[field.configFieldId] ?? "",
-					oninput: (value: string) => {
-						draft[field.configFieldId] = value
-					},
-				} satisfies LegacyTextFieldAttrs),
-			),
+			...configFieldInputs,
 			m(
 				".flex",
 				m(Button, {
@@ -89,8 +98,8 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 		])
 	}
 
-	private async saveConfig(pluginId: string, model: PluginSettingsModel): Promise<void> {
-		if (this.draftConfig != null) {
+	private async saveConfig(pluginId: PluginId, model: PluginSettingsModel): Promise<void> {
+		if (isNotNull(this.draftConfig)) {
 			await model.updateConfig(pluginId, this.draftConfig)
 			showInfoSnackbar("pluginConfigUpdated_msg")
 			m.redraw()

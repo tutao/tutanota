@@ -1,6 +1,8 @@
+import { PluginId } from "../sdk/PluginId"
+
 export type PluginRegistryEntry = {
 	/** matches the pluginId encoded into the customer-level PluginConfiguration's element id */
-	id: string
+	id: PluginId
 	name: string
 	description: string
 	logoSvg: string
@@ -14,11 +16,11 @@ const NEXTCLOUD_LOGO_SVG = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:svg="h
  * *available to enable*, including disabled ones, without pulling in plugin runtime bundles just to
  * render a name/description/logo.
  */
-export const PLUGIN_REGISTRY: ReadonlyArray<PluginRegistryEntry> = [
-	{
+export const PLUGIN_REGISTRY: Readonly<Record<PluginId, PluginRegistryEntry>> = Object.freeze({
+	nextcloud: {
 		id: "nextcloud",
 		name: "Nextcloud",
 		description: "Save email attachments directly to your Nextcloud server.",
 		logoSvg: NEXTCLOUD_LOGO_SVG,
 	},
-]
+})

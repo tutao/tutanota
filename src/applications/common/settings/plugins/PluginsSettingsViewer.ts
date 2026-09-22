@@ -11,8 +11,7 @@ import { PluginFeaturedCard } from "./PluginFeaturedCard.js"
 import { PluginListRow } from "./PluginListRow.js"
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
-
-const FEATURED_COUNT = 3
+import { KNOWN_PLUGINS } from "../../../../plugin-kit/sdk/PluginId"
 
 export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
@@ -28,7 +27,7 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			m(".h4.mt-32", lang.get("pluginsFeatured_label")),
 			m(
 				".flex.flex-wrap.gap-16",
-				PLUGIN_REGISTRY.slice(0, FEATURED_COUNT).map((entry) => m(PluginFeaturedCard, { entry, key: entry.id })),
+				[PLUGIN_REGISTRY.nextcloud].map((entry) => m(PluginFeaturedCard, { entry, key: entry.id })),
 			),
 			m(".h4.mt-32", lang.get("pluginsAll_label")),
 			this.renderSearchBar(),
@@ -54,7 +53,9 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderPluginList(): Children {
 		const query = this.searchQuery.toLowerCase()
-		const filtered = PLUGIN_REGISTRY.filter((entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query))
+		const filtered = KNOWN_PLUGINS.map((pluginId) => PLUGIN_REGISTRY[pluginId]).filter(
+			(entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query),
+		)
 
 		// wrapped in a single container so this slot is always exactly one (unkeyed) vnode at the outer view()'s
 		// array position — mithril requires every vnode within one fragment to be either all-keyed or all-unkeyed,
@@ -79,6 +80,6 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		// no-op
+		await this.model.onEntityUpdatesReceived(updates)
 	}
 }
