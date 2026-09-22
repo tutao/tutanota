@@ -82,7 +82,7 @@ export abstract class PluginApi {
 
 	abstract unload(): Promise<void>
 
-	abstract onConfigChange(configs: { customerConfig: string; userConfig: string }): Promise<void>
+	abstract onConfigChange(): Promise<void>
 }
 
 export type PluginMetadata = {

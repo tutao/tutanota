@@ -5,12 +5,13 @@ import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensio
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginHost } from "./PluginHost"
 import { assertNotNull, base64UrlCustomIdToString, downcast } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
-import { FileImportExtension, PluginFileReference } from "../sdk/FileImportExtensionPoint"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { OperationType } from "@tutao/meta"
+import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 
 export type EnabledPlugin = {
-	pluginId: string
+	pluginId: PluginId
 	customerConfigJson: string
 }
 
@@ -22,10 +23,8 @@ type PluginWrapper = {
 	pluginAsWorker: Worker
 }
 
-type PluginId = string
-
 export class PluginManager {
-	private readonly loadedPlugins: Record<string, PluginWrapper> = {}
+	private readonly loadedPlugins: Partial<Record<PluginId, PluginWrapper>> = {}
 	private readonly extensionPointToButtonExtension: Map<ExtensionPoint, Array<ButtonExtension>> = new Map()
 	private readonly pluginToConfigFieldExtension: Map<PluginId, Array<ConfigExtension>> = new Map()
 
@@ -63,23 +62,19 @@ export class PluginManager {
 		return this.extensionPointToButtonExtension.get(extensionPoint) ?? []
 	}
 
-	getRegisteredConfigFieldsByPluginId(pluginId: string): ReadonlyArray<ConfigExtension> {
+	getRegisteredConfigFieldsByPluginId(pluginId: PluginId): ReadonlyArray<ConfigExtension> {
 		return this.pluginToConfigFieldExtension.get(pluginId) ?? []
 	}
 
-	async attachmentButtonClicked(pluginName: string, dataFile: Promise<PluginDataFile>): Promise<void> {
-		downcast<AttachmentButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).attachmentButtonClicked(await dataFile)
+	async attachmentButtonClicked(pluginId: PluginId, dataFile: Promise<PluginDataFile>): Promise<void> {
+		downcast<AttachmentButtonExtension>(assertNotNull(this.loadedPlugins[pluginId]).api).attachmentButtonClicked(await dataFile)
 	}
 
-	async eventLocationButtonClicked(pluginName: string, roomName: string): Promise<Readonly<string>> {
-		return downcast<EventLocationButtonExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).eventLocationButtonClicked(roomName)
+	async eventLocationButtonClicked(pluginId: PluginId, roomName: string): Promise<Readonly<string>> {
+		return downcast<EventLocationButtonExtension>(assertNotNull(this.loadedPlugins[pluginId]).api).eventLocationButtonClicked(roomName)
 	}
 
-	async receiveFileReference(pluginName: string, fileReference: PluginFileReference): Promise<void> {
-		return downcast<FileImportExtension>(assertNotNull(this.loadedPlugins[pluginName]).api).receiveFileReference(fileReference)
-	}
-
-	async unloadPlugins(pluginId: string): Promise<void> {
+	async unloadPlugins(pluginId: PluginId): Promise<void> {
 		const loadedPlugin = this.loadedPlugins[pluginId]
 		if (loadedPlugin == null) {
 			throw new Error(`Plugin ${pluginId} is not yet loaded. Call .load() first`)
@@ -104,7 +99,7 @@ export class PluginManager {
 		delete this.loadedPlugins[pluginId]
 	}
 
-	registerConfigField(pluginId: string, config: ConfigFieldConfiguration) {
+	registerConfigField(pluginId: PluginId, config: ConfigFieldConfiguration) {
 		const existingExtensions = this.pluginToConfigFieldExtension.get(pluginId) ?? []
 		existingExtensions.push({ config, pluginId })
 		this.pluginToConfigFieldExtension.set(pluginId, existingExtensions)
@@ -122,17 +117,23 @@ export class PluginManager {
 
 	public readonly entityUpdatesListener: EntityUpdatesListener = {
 		id: "PluginManager",
-		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>, eventOwnerGroupId: Id): Promise<void> => {
+		onEntityUpdatesReceived: async (updates: ReadonlyArray<EntityUpdateData>): Promise<void> => {
 			for (const update of updates) {
-				const isUpdateForCustomer = true
-
 				if (isUpdateForTypeRef(PluginConfigurationTypeRef, update)) {
-					const pluginId = base64UrlCustomIdToString(update.instanceId)
-					let loadedPlugin = this.loadedPlugins[pluginId]
-					if (loadedPlugin) {
-						const customerConfig = (await this.configurationAdapter.getUserConfig(pluginId)) ?? "{}"
-						const userConfig = (await this.configurationAdapter.getUserConfig(pluginId)) ?? "{}"
-						await loadedPlugin.api.onConfigChange({ customerConfig, userConfig })
+					const pluginId = pluginIdFromString(base64UrlCustomIdToString(update.instanceId))
+
+					if (update.operation === OperationType.CREATE) {
+						const customerConfigJson = assertNotNull((await this.configurationAdapter.getCustomerPluginConfigs()).get(pluginId))
+						const pluginToLoad: EnabledPlugin = { pluginId, customerConfigJson: customerConfigJson }
+						await this.loadPlugins([pluginToLoad])
+					} else if (update.operation === OperationType.UPDATE) {
+						const loadedPlugin = assertNotNull(
+							this.loadedPlugins[pluginId],
+							`Got UPDATE for config for plugin ${pluginId}. But the plugin is not yet loaded`,
+						)
+						await loadedPlugin.api.onConfigChange()
+					} else if (update.operation === OperationType.DELETE) {
+						await this.unloadPlugins(pluginId)
 					}
 				}
 			}
