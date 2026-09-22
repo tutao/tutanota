@@ -5,6 +5,7 @@ import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"
 import { NextcloudPlugin } from "./NextcloudPlugin"
 import { isNull } from "../../../platform-kit/utils/Utils"
+import { GeneralPluginError } from "../../sdk/PluginError"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -163,6 +164,8 @@ export class NextcloudApi {
 			if (putResponse.status === 401) {
 				this.nextCloudCredentials = null
 				return await this.uploadFile(dataFile, targetFolder)
+			} else if (putResponse.status === 412) {
+				throw new GeneralPluginError(`File with name: "${dataFile.name}" already exists in directory: "${targetFolder}"`)
 			}
 			this.throwErrorIfNotOk(putResponse, `While uploading file: "${dataFile.name}"`)
 		} catch (err) {

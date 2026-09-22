@@ -4,10 +4,16 @@ import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTyp
 import { assert, downcast } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { EnvProvider } from "@tutao/app-env"
+import { GeneralPluginError } from "./PluginError"
 
-// FIXME: resuse from threading/WebTransport
+const ErrorNameToType = {
+	GeneralPluginError,
+}
+
 export function objToError(o: Record<string, any>): Error {
-	let e = new Error(o.message) as any
+	// @ts-ignore
+	let errorType = ErrorNameToType[o.name]
+	let e = (errorType != null ? new errorType(o.message) : new Error(o.message)) as any
 	e.name = o.name
 	e.stack = o.stack || e.stack
 	e.data = o.data
@@ -23,10 +29,14 @@ type PluginWorker = {
 	pluginAsWorker: Worker
 }
 
+export interface DialogAdapter {
+	showDialog(message: string): Promise<void>
+}
+
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: string, pluginHost: PluginHostApi): PluginWorker {
+	public static newPluginFromFile(pluginId: string, pluginHost: PluginHostApi, dialogAdapter: DialogAdapter): PluginWorker {
 		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {
@@ -62,9 +72,17 @@ export abstract class PluginApi {
 			{},
 			{
 				get: (_: object, property: string) => {
-					return (...args: Array<any>): Promise<any> => {
+					return async (...args: Array<any>): Promise<any> => {
 						const methodName = downcast<keyof PluginApi>(property)
-						return dispatchToHostApi.postRequest(new Request(methodName, args))
+						try {
+							return dispatchToHostApi.postRequest(new Request(methodName, args))
+						} catch (e) {
+							if (e instanceof GeneralPluginError) {
+								await dialogAdapter.showDialog(e.message)
+							} else {
+								await dialogAdapter.showDialog(e.message)
+							}
+						}
 					}
 				},
 			},

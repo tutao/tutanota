@@ -1,9 +1,9 @@
-import { PluginApi } from "../sdk/PluginApi"
+import { DialogAdapter, PluginApi } from "../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint } from "../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginHost } from "./PluginHost"
-import { assertNotNull, base64UrlCustomIdToString, downcast } from "@tutao/utils"
+import { assertNotNull, base64UrlCustomIdToString, downcast, Nullable } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfigurationTypeRef } from "@tutao/entities/sys"
@@ -30,7 +30,8 @@ export class PluginManager {
 
 	constructor(
 		public readonly configurationAdapter: ConfigurationAdapter,
-		public readonly mailIntegrationAdapter?: MailIntegrationAdapter,
+		private readonly dialogAdapter: DialogAdapter,
+		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
 	) {}
 
 	async loadPlugins(enabledPlugins: Array<EnabledPlugin>): Promise<void> {
@@ -45,7 +46,7 @@ export class PluginManager {
 			}
 
 			const pluginHost = new PluginHost(this, pluginId)
-			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginId, pluginHost)
+			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginId, pluginHost, this.dialogAdapter)
 			await pluginApi.load(customerConfigJson)
 
 			this.loadedPlugins[pluginId] = {
