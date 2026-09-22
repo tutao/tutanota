@@ -18,6 +18,7 @@ type DriveFileShareViewState =
 	| {
 			status: "success"
 			file: DriveFile
+			fileSessionKey: Uint8Array<ArrayBuffer>
 	  }
 	| {
 			status: "loading"
@@ -104,8 +105,11 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	}
 
 	private async downloadFile(file: DriveFile) {
-		const dataFile = await locator.driveFacade.downloadBlobsForShare(file, base64UrlToBase64(this.base64UrlKey))
-		await locator.fileController.saveDataFile(dataFile)
+		if (this.state.status === "success") {
+			const nonce = base64UrlToBase64(m.route.param("nonce"))
+			const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.state.fileSessionKey, nonce)
+			await locator.fileController.saveDataFile(dataFile)
+		}
 	}
 
 	protected async onNewUrl() {
@@ -127,13 +131,14 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 		try {
 			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const file = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
 				type: "key",
 				sharedKey: base64UrlToBase64(base64UrlKey),
 			})
 			this.state = {
 				status: "success",
 				file,
+				fileSessionKey,
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {
@@ -148,14 +153,14 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 	private async downloadFileWithPassword(shareId: Id, nonce: string, password: string) {
 		try {
-			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const file = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
 				type: "password",
 				password,
 			})
 			this.state = {
 				status: "success",
 				file,
+				fileSessionKey,
 			}
 		} catch (e) {
 			if (e instanceof NotAuthorizedError || e instanceof NotFoundError) {

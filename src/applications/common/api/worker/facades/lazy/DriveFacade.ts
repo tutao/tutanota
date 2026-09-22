@@ -4,7 +4,16 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { aes256RandomKey, CryptoWrapper, generateRandomSalt, keyToUint8Array, uint8ArrayTo256Key, VersionedKey } from "@tutao/crypto"
+import {
+	aes256RandomKey,
+	bitArrayToUint8Array,
+	CryptoWrapper,
+	generateRandomSalt,
+	keyToUint8Array,
+	uint8ArrayTo256Key,
+	uint8ArrayToKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import {
 	assertNotNull,
 	base64ToBase64Url,
@@ -481,7 +490,7 @@ export class DriveFacade {
 		shareId: Id,
 		nonce: string,
 		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string },
-	): Promise<DriveFile> {
+	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer> }> {
 		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
 			extraHeaders: { nonce },
 			ownerKeyProvider: null,
@@ -498,7 +507,7 @@ export class DriveFacade {
 
 		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
 
-		return await this.entityClient.load(DriveFileTypeRef, share.file, {
+		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
 			extraHeaders: { nonce: nonce },
 			ownerKeyProvider: null,
 			sessionKey: fileSessionKey,
@@ -507,18 +516,19 @@ export class DriveFacade {
 			queryParams: null,
 			suspensionBehavior: null,
 		})
+		return {
+			file,
+			fileSessionKey: bitArrayToUint8Array(fileSessionKey.bits),
+		}
 	}
 
-	async downloadBlobsForShare(file: DriveFile, shareKey: Base64): Promise<DataFile> {
-		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
-		const sessionKey = this.cryptoWrapper.decryptKey(uint8ArrayTo256Key(base64ToUint8Array(shareKey)), share.shareKeyEncFileSessionKey)
+	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, nonce: Base64): Promise<DataFile> {
 		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
 			baseUrl: null,
 			extraHeaders: null,
 			suspensionBehavior: null,
-			sessionKey: sessionKey,
+			sessionKey: uint8ArrayToKey(fileSessionKey),
 			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
-				const nonce = uint8ArrayToBase64(share.nonce)
 				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
 					extraHeaders: { nonce: nonce },
 					sessionKey: null,
