@@ -1,8 +1,9 @@
 import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, PluginHostApi } from "../sdk/PluginHostApi"
-import { Nullable } from "@tutao/utils"
+import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
 import { PluginManager } from "./PluginManager"
 import { PluginDataFile } from "../sdk/PluginDataFile"
 import { PluginId } from "../sdk/PluginId"
+import { isNull } from "../../platform-kit/utils/Utils"
 
 export type ButtonExtension = {
 	config: ButtonConfiguration
@@ -29,6 +30,9 @@ export interface MailIntegrationAdapter {
 }
 
 export class PluginHost implements PluginHostApi {
+	private nextWindowId = 0
+	private readonly openedWindows: Map<number, Window> = new Map()
+
 	constructor(
 		private readonly pluginManager: PluginManager,
 		private readonly pluginId: PluginId,
@@ -68,7 +72,25 @@ export class PluginHost implements PluginHostApi {
 		await this.pluginManager.mailIntegrationAdapter.openMailEditor(dataFile, subject, recipientAddresses)
 	}
 
-	async openWindow(url: string): Promise<void> {
-		window.open(url)
+	async openWindow(url: string): Promise<Nullable<number>> {
+		const win = window.open(url)
+		if (isNull(win)) {
+			return null
+		}
+		const windowId = this.nextWindowId++
+		if (isNotNull(win)) {
+			this.openedWindows.set(windowId, win)
+		}
+		return windowId
+	}
+
+	async closeWindow(windowId: number): Promise<void> {
+		const win = assertNotNull(this.openedWindows.get(windowId), `WindowId ${windowId} does not exist`)
+		win.close()
+	}
+
+	async isWindowOpen(windowId: number): Promise<boolean> {
+		const win = assertNotNull(this.openedWindows.get(windowId), `WindowId ${windowId} does not exist`)
+		return win && !win.closed
 	}
 }
