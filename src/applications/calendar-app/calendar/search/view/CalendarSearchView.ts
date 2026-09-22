@@ -144,12 +144,14 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private getMainButton(): {
 		label: TranslationKey
 		click: ClickHandler
+		icon: Icons
 	} | null {
 		return {
 			click: () => {
 				this.createNewEventDialog()
 			},
 			label: "newEvent_action",
+			icon: Icons.Plus,
 		}
 	}
 	private async createNewEventDialog(): Promise<void> {

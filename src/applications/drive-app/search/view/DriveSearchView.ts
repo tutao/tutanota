@@ -107,6 +107,7 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 												}),
 										})(ev, ev.target as HTMLElement)
 									},
+									icon: Icons.Plus,
 								},
 						content: [
 							m(SidebarSection, {

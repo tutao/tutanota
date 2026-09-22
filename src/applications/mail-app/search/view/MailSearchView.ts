@@ -142,8 +142,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 			ColumnType.Foreground,
 			{
 				minWidth: layout_size.first_col_min_width,
-				maxWidth: layout_size.first_col_max_width,
+				maxWidth: deviceConfig.getFolderListSize(this.searchViewModel.getUserId()) ?? layout_size.first_col_max_width,
 				headerCenter: "search_label",
+				resizeCallback: (size) => {
+					deviceConfig.setFolderListSize(this.searchViewModel.getUserId(), size)
+				},
 			},
 		)
 		this.resultListColumn = new ViewColumn(
@@ -227,6 +230,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 	private getMainButton(): {
 		label: TranslationKey
 		click: ClickHandler
+		icon: Icons
 	} | null {
 		if (Styles.get().isUsingBottomNavigation()) {
 			return null
@@ -239,6 +243,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 							.catch(ofClass(PermissionError, noOp))
 					},
 					label: "newMail_action",
+					icon: Icons.Write,
 				}
 			} else return null
 		}
