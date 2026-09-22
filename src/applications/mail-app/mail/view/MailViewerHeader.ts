@@ -7,13 +7,13 @@ import { BannerButtonAttrs, BannerType, InfoBanner } from "../../../../ui/base/I
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { RecipientButton } from "../../../../ui/base/RecipientButton.js"
 import { createAsyncDropdown, createDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown.js"
-import { EnvProvider, MailAuthenticationStatus, TabIndex, TimeFormat } from "../../../../platform-kit/app-env"
+import { EnvProvider, MailAuthenticationStatus, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Icon, progressIcon } from "../../../../ui/base/Icon.js"
 import { formatDateWithWeekday, formatDateWithWeekdayAndYear, formatStorageSize, formatTime } from "../../../../ui/utils/Formatter.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import Badge from "../../../../ui/base/Badge.js"
 import { ContentBlockingStatus, FailureBannerType, MailViewerViewModel } from "./MailViewerViewModel.js"
-import { assertNotNull, isEmpty, isNotNull } from "../../../../platform-kit/utils"
+import { assertNotNull, isEmpty, isNotNull } from "@tutao/utils"
 import { resolveMaybeLazy } from "../../../../ui/base/MaybeLazy"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { getConfidentialIcon, getFolderIconByType } from "./MailGuiUtils.js"
@@ -46,6 +46,7 @@ import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
 import { ExtensionPoint, PluginLanguageCode } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
+import { SpamFilterBehavior } from "../model/SpamClassificationHandler"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -759,8 +760,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		const warningMsg = lang.getTranslationText("mailAuthFailed_msg")
+
+		const displayedMessage =
+			viewModel.getSpamFilterBehaviorSetting() === SpamFilterBehavior.STRICT ? lang.getTranslationText("mailAuthSuggestSettings_msg") : null
 		return m(InfoBanner, {
-			message: "mailAuthFailed_msg",
+			message: () => {
+				return displayedMessage ? `${warningMsg}\n\n${displayedMessage}` : warningMsg
+			},
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			type: BannerType.Warning,
@@ -769,24 +776,42 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					label: "close_alt",
 					click: () => viewModel.setWarningDismissed(true),
 				},
+				displayedMessage
+					? {
+							label: "openSpamSettings_action",
+							click: () => {
+								viewModel.openSpamFilterSettings()
+							},
+						}
+					: null,
 			],
 		})
 	}
 
 	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		const message = viewModel.mail.differentEnvelopeSender
+			? lang.getTranslation("mailAuthMissingWithTechnicalSender_msg", {
+					"{sender}": viewModel.mail.differentEnvelopeSender,
+				}).text
+			: lang.getTranslationText("mailAuthMissing_label")
+		const displayedSettingsMsg =
+			viewModel.getSpamFilterBehaviorSetting() === SpamFilterBehavior.STRICT ? lang.getTranslationText("mailAuthSuggestSettings_msg") : null
 		const buttons: ReadonlyArray<BannerButtonAttrs | null> = [
 			{
 				label: "close_alt",
 				click: () => viewModel.setWarningDismissed(true),
 			},
+			displayedSettingsMsg
+				? {
+						label: "openSpamSettings_action",
+						click: () => {
+							viewModel.openSpamFilterSettings()
+						},
+					}
+				: null,
 		]
 		return m(InfoBanner, {
-			message: () =>
-				viewModel.mail.differentEnvelopeSender
-					? lang.getTranslation("mailAuthMissingWithTechnicalSender_msg", {
-							"{sender}": viewModel.mail.differentEnvelopeSender,
-						}).text
-					: lang.getTranslationText("mailAuthMissing_label"),
+			message: () => (displayedSettingsMsg ? `${message}\n\n${displayedSettingsMsg}` : message),
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			buttons: buttons,
