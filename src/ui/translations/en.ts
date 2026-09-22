@@ -2625,6 +2625,14 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"toggleSpamStrictMode_label": "Enable strict spam filter",
+		"toggleSpamStrictMode_msg": "Always mark mails that have failed authentication(Mails with warning banners about it) as spam.",
+		"spamFiltering_label": "Spam filtering",
+		"retrainSpamFilter_action": "Retrain spam filter",
+		"retrainSpamFilter_msg": "Drop the currently existing filter(s) and retrain from scratch for all mailboxes",
+		"retrainSpamFilterConfirm_msg": "Retraining the filter will take a short while. Continue?",
+		"mailAuthSuggestSettings_msg": "These mails are always delivered to spam because of your current filtering settings. You can click below to change it.",
+		"mailAuthSuggestSettingsOff_msg": "These mails are handled by the spam filter, meaning they can end in inbox or spam depending on the content. You can click below to change this.",
 	}
 }

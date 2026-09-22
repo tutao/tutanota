@@ -23,7 +23,7 @@ import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { InboxRulesSettingsViewerModel } from "./InboxRulesSettingsViewerModel"
+import { FilteringRulesSettingsViewerModel } from "./FilteringRulesSettingsViewerModel"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Switch } from "../../../ui/base/Switch"
@@ -43,11 +43,13 @@ import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
+import { px, size } from "../../../ui/size"
+import { SpamFilterBehavior } from "../mail/model/SpamClassificationHandler"
 
 EnvProvider.assertMainOrNode()
 
-export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
-	private model: InboxRulesSettingsViewerModel
+export class FilteringRulesSettingsViewer implements UpdatableSettingsViewer {
+	private model: FilteringRulesSettingsViewerModel
 	private draggingOverRuleIndex: number | null = null
 	private draggingOverRule2ndHalf: boolean | null = null
 
@@ -60,7 +62,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
 		readonly inboxRuleHandler: lazyAsync<ExpandedInboxRuleHandler | LegacyInboxRuleHandler>,
 	) {
-		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
+		this.model = new FilteringRulesSettingsViewerModel(entityClient, inboxRuleModel, mailboxModel)
 		this.model.init().then(async () => {
 			this.isUsingLegacyInboxRules = (await this.inboxRuleModel()).isUsingLegacyInboxRules()
 			m.redraw()
@@ -89,16 +91,11 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const tableLines = this.isUsingLegacyInboxRules ? this.legacyInboxRuleTableLines() : this.renderInboxRuleTableLines()
-		const isMobile = ClientDetector.get().isMobileDevice()
-
-		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
-		const inboxRuleSectionClasses = `.overflow-hidden.flex-v-start${isMobile ? ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback" : ""}`
-		// no gap to make drag&drop between the lines work, the components have padding that makes up for it
-		const inboxRuleListClasses = `.mt-12.flex-v-start${isMobile ? "" : ".overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback"}`
-
 		return m("", [
 			m(
-				".fill-absolute.plr-24.pb-48.flex-v-start",
+				// A single scroll container for the whole page keeps the inbox rules and spam filtering sections coupled:
+				// on small heights the page scrolls instead of squeezing either section.
+				".fill-absolute.plr-24.pb-48.overflow-y-scroll-inbox-rules.scrollbar-gutter-stable-or-fallback",
 				{
 					style: {
 						backgroundColor: theme.surface_container,
@@ -106,7 +103,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 				},
 				[
 					m(
-						inboxRuleSectionClasses,
+						"",
 						m(TitleSection, {
 							icon: Icons.FunnelOutline,
 							title: lang.getTranslationText("inboxRuleManagement_label"),
@@ -115,7 +112,8 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						m(".mt-24", m(MenuTitle, { content: lang.get("inboxRulesSettings_action") })),
 						tableLines.length > 0
 							? m(
-									inboxRuleListClasses,
+									// no gap to make drag&drop between the lines work, the components have padding that makes up for it
+									".mt-12.flex-v-start",
 									this.isUsingLegacyInboxRules
 										? m(
 												".skeleton-bg-2.border-radius",
@@ -159,6 +157,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							},
 						}),
 					),
+					this.renderSpamSettings(),
 				],
 			),
 		])
@@ -525,6 +524,74 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			const rules = await inboxRuleModel.getOrderedInboxRules()
 			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>await this.inboxRuleHandler())
 		}
+	}
+
+	private renderSpamSettings() {
+		return m("", [
+			m(".mt-24", m(MenuTitle, { content: lang.get("spamFiltering_label") })),
+			this.renderStrictModeSwitch(),
+			this.renderRetrainSpamFilterButton(),
+		])
+	}
+
+	private renderRetrainSpamFilterButton() {
+		return m("", [
+			m(
+				".mt-16.",
+				m(PrimaryButton, {
+					label: "retrainSpamFilter_action",
+					width: "flex",
+					onclick: () => this.confirmRetrainSpamFilter(),
+				}),
+			),
+			m("small.mt-12", lang.getTranslationText("retrainSpamFilter_msg")),
+		])
+	}
+
+	private async confirmRetrainSpamFilter(): Promise<void> {
+		const confirm = await Dialog.confirm(lang.getTranslation("retrainSpamFilterConfirm_msg"))
+		if (confirm) {
+			await showProgressDialog("retrainSpamFilter_action", mailLocator.spamClassifier.retrainAllModels())
+		}
+	}
+
+	private renderStrictModeSwitch() {
+		return m(
+			Card,
+			{
+				style: {
+					marginTop: px(size.spacing_16),
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "stretch",
+					paddingLeft: px(size.spacing_16),
+					paddingRight: px(size.spacing_16),
+				},
+			},
+			[
+				m(".flex.row.gap-24.items-center.justify-between", [
+					m("label.text-ellipsis.noselect.z1.pr-4", lang.getTranslationText("toggleSpamStrictMode_label")),
+					m(Switch, {
+						ariaLabel: "toggleSpamStrictMode_label",
+						checked: this.model.getSpamFilterBehavior() === SpamFilterBehavior.STRICT,
+						onclick: async (checked: boolean) => {
+							if (checked) {
+								this.model.updateSpamFilterBehavior(SpamFilterBehavior.STRICT)
+							} else {
+								this.model.updateSpamFilterBehavior(SpamFilterBehavior.DEFAULT)
+							}
+							m.redraw()
+						},
+					}),
+				]),
+				m(
+					"small.mt-12",
+					lang.getTranslation("toggleSpamStrictMode_msg", {
+						"{mailAuthMissing}": lang.getTranslationText("mailAuthMissing_label"),
+					}).text,
+				),
+			],
+		)
 	}
 }
 

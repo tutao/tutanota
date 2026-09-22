@@ -80,7 +80,7 @@ import { createUserAreaGroupDeleteData, TemplateGroupService_DELETE, UserSetting
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
-import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
+import { FilteringRulesSettingsViewer } from "./FilteringRulesSettingsViewer"
 
 EnvProvider.assertMainOrNode()
 
@@ -127,7 +127,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => "inboxRulesSettings_action",
 				() => Icons.FunnelFilled,
 				"inboxrules",
-				() => new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler),
+				() =>
+					new FilteringRulesSettingsViewer(
+						mailLocator.mailboxModel,
+						mailLocator.entityClient,
+						mailLocator.inboxRuleModel,
+						mailLocator.inboxRuleHandler,
+					),
 				undefined,
 			),
 			new SettingsFolder(
