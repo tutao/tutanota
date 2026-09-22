@@ -394,16 +394,16 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
-									cryptoWrapper,
-									user,
-									keyLoader,
-									cachingEntityClient,
-									serviceExecutor,
-									typeModelResolver,
-									instancePipeline,
-									restClient,
-									crypto,
-								}) =>
+			cryptoWrapper,
+			user,
+			keyLoader,
+			cachingEntityClient,
+			serviceExecutor,
+			typeModelResolver,
+			instancePipeline,
+			restClient,
+			crypto,
+		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
 				user,
@@ -564,7 +564,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		locator.spamClassifierStorageFacade = lazyMemoized(async () => {
 			const { OfflineStorageSpamClassifierStorageFacade } = await import(
 				"../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js"
-				)
+			)
 			return new OfflineStorageSpamClassifierStorageFacade(locator.sqlCipherFacade)
 		})
 	} else {

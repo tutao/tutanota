@@ -78,7 +78,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -171,8 +171,9 @@ import { registerIndexingNotAvailableHandler } from "../common/misc/ErrorHandler
 import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
-import { PluginManager } from "../plugin-manager/PluginManager"
-import { PluginHost } from "../plugin-manager/PluginHost"
+import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
+import { PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
+import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 
 EnvProvider.assertMainOrNode()
 
@@ -950,7 +951,9 @@ class MailLocator implements CommonLocator {
 		this.spamClassifier = spamClassifier
 
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
-		this.pluginManager = new PluginManager(new PluginHost())
+		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient)
+		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
+		this.pluginManager = new PluginManager(new PluginHost(pluginConfigurationProvider))
 		await this.pluginManager.loadPlugins()
 
 		if (!EnvProvider.get().isBrowser()) {

@@ -94,11 +94,8 @@ import { EncryptionAuthStatus, EnvProvider, FeatureType, MailAuthenticationStatu
 import { OperationProgressTracker } from "../../../common/api/main/OperationProgressTracker"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
+import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
-import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
-import { PluginManager } from "../../../plugin-manager/PluginManager"
-import { ButtonConfiguration, ButtonExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
-import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
 
 export const enum ContentBlockingStatus {
 	Block = "0",

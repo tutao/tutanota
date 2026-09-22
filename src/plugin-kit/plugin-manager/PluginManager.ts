@@ -1,8 +1,9 @@
-import { PluginApi } from "../../plugin-kit/sdk/PluginApi"
-import { ButtonExtensionPoint } from "../../plugin-kit/sdk/PluginHostApi"
-import { AttachmentButtonExtension, PluginDataFile } from "../../plugin-kit/sdk/AttachmentButtonExtensionPoint"
+import { PluginApi } from "../sdk/PluginApi"
+import { ButtonExtensionPoint } from "../sdk/PluginHostApi"
+import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { PluginButtonConfiguration, PluginHost } from "./PluginHost"
 import { assertNotNull, downcast } from "@tutao/utils"
+import { EnvProvider } from "@tutao/app-env"
 
 export class PluginManager {
 	private registeredPlugins: string[] = ["nextcloud"]
@@ -11,6 +12,9 @@ export class PluginManager {
 	constructor(private readonly pluginHost: PluginHost) {}
 
 	async loadPlugins(): Promise<void> {
+		if (EnvProvider.get().isAdminClient()) {
+			return
+		}
 		console.log("loading plugins")
 		for (const pluginName of this.registeredPlugins) {
 			//new Worker(`../plugins/${pluginName}.js`)

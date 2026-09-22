@@ -1,4 +1,4 @@
-import { ButtonConfiguration, ButtonExtensionPoint, ButtonRef, PluginHostApi } from "./PluginHostApi"
+import { PluginHostApi } from "./PluginHostApi"
 
 export abstract class PluginApi {
 	constructor(public readonly pluginHost: PluginHostApi) {}
@@ -6,7 +6,6 @@ export abstract class PluginApi {
 	abstract getMetadata(): PluginMetadata
 	abstract load(): Promise<void>
 	abstract unload(): Promise<void>
-	buttonClicked(button: ButtonRef): void {}
 }
 
 export type PluginMetadata = {

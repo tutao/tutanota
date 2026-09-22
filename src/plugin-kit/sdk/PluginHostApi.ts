@@ -1,5 +1,6 @@
 export enum ButtonExtensionPoint {
 	SaveAttachmentDialog = 0,
+	EventLocationButton = 0, // Nextcloud Talk or MS Teams link
 }
 
 export enum PluginLanguageCode {
@@ -17,4 +18,6 @@ export type ButtonRef = {
 }
 export interface PluginHostApi {
 	registerButton(config: ButtonConfiguration): ButtonRef
+	storeConfig(configJson: string): Promise<void>
+	getConfig(): Promise<string>
 }

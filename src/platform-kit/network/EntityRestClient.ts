@@ -434,7 +434,7 @@ export class EntityRestClient implements EntityRestInterface {
 	async setup<T extends PersistentEntity>(
 		listId: Id | null,
 		instance: T,
-		extraHeaders: Nullable<Dict>,
+		extraHeaders: Nullable<Dict> = null,
 		options: Nullable<EntityRestClientSetupOptions> = null,
 	): Promise<Id | null> {
 		const typeRef = instance._type
