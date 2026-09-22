@@ -30,6 +30,7 @@ export interface PluginHostApi {
 	registerButton(config: ButtonConfiguration): Promise<ButtonRef>
 	registerConfigFields(config: ConfigFieldConfiguration[]): Promise<void>
 	storeUserConfig(configJson: string): Promise<void>
+	storeCustomerConfig(configJson: string): Promise<void>
 	getUserConfig(): Promise<Nullable<string>>
 	getCustomerConfig(): Promise<Nullable<string>>
 	openWindow(url: string): Promise<void>

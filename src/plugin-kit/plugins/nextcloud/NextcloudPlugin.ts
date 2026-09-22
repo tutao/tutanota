@@ -4,10 +4,10 @@ import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentB
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
 import { isNotNull, Nullable } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
-import { ConfigFieldExtension } from "../../sdk/ConfigFieldExtensionPoint"
 import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
+import { PluginId } from "../../sdk/PluginId"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -24,8 +24,8 @@ type NextcloudCredentials = {
 	server: string
 }
 
-export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtension, ConfigFieldExtension, EventLocationButtonExtension, FileImportExtension {
-	public static readonly PLUGIN_ID: string = "nextcloud"
+export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtension, EventLocationButtonExtension, FileImportExtension {
+	public static readonly PLUGIN_ID: PluginId = "nextcloud"
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
 	private nextcloudApi: NextcloudApi = null!
@@ -56,7 +56,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	public async credentialsUpdated(updatedCredentials: NextcloudCredentials) {
 		this.userConfig.credentials = updatedCredentials
-		console.log("@@@@@@", this.userConfig.credentials)
 		await this.updateUserConfig()
 	}
 
@@ -126,11 +125,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		this.customerConfig = isNotNull(configString) ? JSON.parse(configString) : null
 	}
 
-	updateCustomerConfig(globalConfigJson: string): void {
-		console.log("updated Config")
-	}
-
-	protected async updateUserConfig(): Promise<void> {
+	private async updateUserConfig(): Promise<void> {
 		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
 	}
 

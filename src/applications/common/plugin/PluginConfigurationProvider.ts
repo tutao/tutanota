@@ -1,19 +1,22 @@
 import { ConfigurationAdapter, PluginConfigJson } from "../../../plugin-kit/plugin-manager/PluginHost"
-import { assertNotNull, base64UrlCustomIdToString, isNotNull, Nullable, ofClass, stringToBase64UrlCustomId } from "@tutao/utils"
+import { assert, assertNotNull, base64UrlCustomIdToString, isNotNull, Nullable, ofClass, stringToBase64UrlCustomId } from "@tutao/utils"
 import { createPluginConfiguration, PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
-import { elementIdPart, ListElementId } from "@tutao/meta"
+import { elementIdPart, idToElementId, isSameId, ListElementId } from "@tutao/meta"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { LoggedInEvent, PostLoginAction } from "../../../app-kit/native-bridge/common/PostLoginAction"
 import { EnabledPlugin, PluginManager } from "../../../plugin-kit/plugin-manager/PluginManager"
 import { LoginController } from "../api/main/LoginController"
+import { PluginId, pluginIdFromString } from "../../../plugin-kit/sdk/PluginId"
+import { isNull } from "../../../platform-kit/utils/Utils"
 
 export class PluginConfigurationProvider implements ConfigurationAdapter, PostLoginAction {
-	private pluginListId: Id = null!
+	private userPluginListId: Id = null!
+	private customerPluginConfigsList: Id = null!
 	private userOwnerGroup: Id = null!
+	private customerGroup: Id = null!
 	private pluginManager: Nullable<PluginManager> = null
-	private customerPluginConfigsList: Nullable<Id> = null
-	private customerPluginConfigs: Nullable<Map<string, PluginConfigJson>> = null
+	private customerPluginConfigs: Nullable<Map<PluginId, PluginConfigJson>> = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -24,12 +27,15 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 
 	async onFullLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {
 		const loggedInUser = this.logins.getUserController().user
+		assert(isSameId(loggedInUser._id, idToElementId(loggedInEvent.userId)), "UserId mismatch in loggedIn event and loggedInUser")
+
 		this.userOwnerGroup = assertNotNull(loggedInUser._ownerGroup)
-		this.pluginListId = assertNotNull(loggedInUser.plugins).pluginConfigs
+		this.userPluginListId = assertNotNull(loggedInUser.plugins).pluginConfigs
 
 		const customer = this.logins.getUserController().getCustomer()
-		if (customer && customer.plugins) {
+		if (isNotNull(customer) && isNotNull(customer.plugins)) {
 			this.customerPluginConfigsList = customer.plugins.pluginConfigs
+			this.customerGroup = assertNotNull(customer.customerGroup)
 			const pluginConfigs = await this.entityClient.loadAll(PluginConfigurationTypeRef, this.customerPluginConfigsList)
 
 			const enabledPlugins = pluginConfigs.map((pc) => {
@@ -46,62 +52,69 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 		this.pluginManager = pm
 	}
 
-	async storeUserConfig(pluginId: string, configJson: string): Promise<void> {
-		let pluginConfig = await this.fetchUserConfig(pluginId)
-		if (isNotNull(pluginConfig)) {
-			pluginConfig.configJson = configJson
-			return await this.entityClient.update(pluginConfig)
+	async storeUserConfig(pluginId: PluginId, configJson: string): Promise<void> {
+		const existingPluginConfig = await this.fetchUserConfig(pluginId)
+		if (isNotNull(existingPluginConfig)) {
+			existingPluginConfig.configJson = configJson
+			return await this.entityClient.update(existingPluginConfig)
 		} else {
-			pluginConfig = createPluginConfiguration({ configJson })
-			pluginConfig._id = [this.pluginListId, stringToBase64UrlCustomId(pluginId)]
-			pluginConfig._ownerGroup = this.userOwnerGroup
-			await this.entityClient.setup(this.pluginListId, pluginConfig)
+			const newPluginConfig = createPluginConfiguration({ configJson })
+			newPluginConfig._id = [this.userPluginListId, stringToBase64UrlCustomId(pluginId)]
+			newPluginConfig._ownerGroup = this.userOwnerGroup
+			await this.entityClient.setup(this.userPluginListId, newPluginConfig)
 		}
 	}
 
-	async getUserConfig(pluginId: string): Promise<Nullable<string>> {
+	async getUserConfig(pluginId: PluginId): Promise<Nullable<string>> {
 		const pluginConfig = await this.fetchUserConfig(pluginId)
 		return pluginConfig?.configJson ?? null
 	}
 
-	async fetchUserConfig(pluginId: string): Promise<Nullable<PluginConfiguration>> {
-		const userPluginConfigId: ListElementId = [this.pluginListId, stringToBase64UrlCustomId(pluginId)]
+	async fetchUserConfig(pluginId: PluginId): Promise<Nullable<PluginConfiguration>> {
+		const userPluginConfigId: ListElementId = [this.userPluginListId, stringToBase64UrlCustomId(pluginId)]
+		return await this.entityClient.load(PluginConfigurationTypeRef, userPluginConfigId).catch(ofClass(NotFoundError, () => null))
+	}
+
+	async fetchCustomerConfig(pluginId: PluginId): Promise<Nullable<PluginConfiguration>> {
+		const userPluginConfigId: ListElementId = [this.customerPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
 		return await this.entityClient.load(PluginConfigurationTypeRef, userPluginConfigId).catch(ofClass(NotFoundError, () => null))
 	}
 
 	/**
 	 * Customer-scoped plugin configuration used by the plugin settings page.
 	 */
-	async getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>> {
+	async getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>> {
 		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
 		const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
-		this.customerPluginConfigs = new Map(configs.map((pc) => [base64UrlCustomIdToString(elementIdPart(pc._id)), pc.configJson]))
+		this.customerPluginConfigs = new Map(configs.map((pc) => [pluginIdFromString(base64UrlCustomIdToString(elementIdPart(pc._id))), pc.configJson]))
 		return this.customerPluginConfigs
 	}
 
-	async setCustomerPluginConfig(pluginId: string, configJson: string): Promise<void> {
-		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
-		try {
-			const existing = await this.entityClient.load(PluginConfigurationTypeRef, [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)])
-			existing.configJson = configJson
-			await this.entityClient.update(existing)
-		} catch (e) {
-			if (e instanceof NotFoundError) {
-				const pluginConfig = createPluginConfiguration({ configJson })
-				pluginConfig._id = [globalPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
-				pluginConfig._ownerGroup = assertNotNull(this.logins.getUserController().getCustomer(), "customer not loaded").customerGroup
-				await this.entityClient.setup(globalPluginConfigsList, pluginConfig)
-				return
-			}
+	async storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void> {
+		assert(isNotNull(this.customerPluginConfigsList), "Current user dont have a customer")
+
+		const existingPluginConfig = await this.fetchCustomerConfig(pluginId)
+		if (isNotNull(existingPluginConfig)) {
+			existingPluginConfig.configJson = configJson
+			return await this.entityClient.update(existingPluginConfig)
+		} else {
+			const newPluginConfig = createPluginConfiguration({ configJson })
+			newPluginConfig._id = [this.customerPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
+			newPluginConfig._ownerGroup = this.customerGroup
+			await this.entityClient.setup(this.customerPluginConfigsList, newPluginConfig)
 		}
 	}
 
-	async removeCustomerPluginConfig(pluginId: string): Promise<void> {
+	async removeCustomerPluginConfig(pluginId: PluginId): Promise<void> {
 		const customer = await this.logins.getUserController().reloadCustomer()
-		if (!customer.plugins) return
+		if (isNull(customer.plugins)) {
+			return
+		}
 		const existing = await this.entityClient
 			.load(PluginConfigurationTypeRef, [customer.plugins.pluginConfigs, stringToBase64UrlCustomId(pluginId)])
 			.catch(ofClass(NotFoundError, () => null))
-		if (isNotNull(existing)) await this.entityClient.erase(existing)
+		if (isNotNull(existing)) {
+			await this.entityClient.erase(existing)
+		}
 	}
 }

@@ -2,10 +2,11 @@ import { ButtonConfiguration, ButtonRef, ConfigFieldConfiguration, PluginHostApi
 import { Nullable } from "@tutao/utils"
 import { PluginManager } from "./PluginManager"
 import { PluginDataFile } from "../sdk/PluginDataFile"
+import { PluginId } from "../sdk/PluginId"
 
 export type ButtonExtension = {
 	config: ButtonConfiguration
-	pluginId: string
+	pluginId: PluginId
 }
 
 export type ConfigExtension = {
@@ -17,10 +18,10 @@ export type PluginConfigJson = string
 
 export interface ConfigurationAdapter {
 	storeUserConfig(pluginId: string, configJson: string): Promise<void>
+	storeCustomerConfig(pluginId: string, configJson: string): Promise<void>
 
 	getUserConfig(pluginId: string): Promise<Nullable<string>>
-
-	getCustomerPluginConfigs(): Promise<Map<string, PluginConfigJson>>
+	getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>>
 }
 
 export interface MailIntegrationAdapter {
@@ -30,7 +31,7 @@ export interface MailIntegrationAdapter {
 export class PluginHost implements PluginHostApi {
 	constructor(
 		private readonly pluginManager: PluginManager,
-		private readonly pluginId: string,
+		private readonly pluginId: PluginId,
 	) {}
 
 	async registerConfigFields(configs: ConfigFieldConfiguration[]): Promise<void> {
@@ -46,6 +47,10 @@ export class PluginHost implements PluginHostApi {
 
 	async storeUserConfig(configJson: string): Promise<void> {
 		await this.pluginManager.configurationAdapter.storeUserConfig(this.pluginId, configJson)
+	}
+
+	async storeCustomerConfig(configJson: string): Promise<void> {
+		await this.pluginManager.configurationAdapter.storeCustomerConfig(this.pluginId, configJson)
 	}
 
 	async getUserConfig(): Promise<Nullable<string>> {
