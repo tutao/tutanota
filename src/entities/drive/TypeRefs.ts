@@ -1,9 +1,8 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
-import { Blob } from '../sys/TypeRefs.js'
-import { BlobReferenceTokenWrapper } from '../sys/TypeRefs.js'
+import { Blob, BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 
@@ -196,6 +195,8 @@ export type DriveUploadedFileParams = {
 
 	fileName: null | string;
 	mimeType: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 	file: null | DriveFileTransferAggregatedType;
@@ -225,6 +226,7 @@ export type DrivePostInParams = {
 
 	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
 
 	fileGroupId: Id;
 }
@@ -348,6 +350,8 @@ export type DriveFolderServicePostInParams = {
 
 
 	folderName: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	parent: null | IdTuple;
 	folder: null | DriveFolderTransferAggregatedType;
@@ -530,6 +534,8 @@ export function createDriveFolderTransferAggregatedType(values: DriveFolderTrans
 export type DriveFolderTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 	name: string;
 
 	parent: null | IdTuple;
@@ -574,6 +580,8 @@ export function createDriveFileTransferAggregatedType(values: DriveFileTransferA
 export type DriveFileTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 	name: string;
 	mimeType: string;
 }

@@ -28,7 +28,6 @@ import {
 	MailSet,
 	MailSetTypeRef,
 	MailTypeRef,
-	PopulateClientSpamTrainingDatum,
 	PopulateClientSpamTrainingDatumParams,
 } from "@tutao/entities/tutanota"
 import { MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, SpamDecision } from "../../../../entities/tutanota/Utils"
@@ -48,7 +47,7 @@ export type TrainingDataset = {
 
 export type UnencryptedPopulateClientSpamTrainingDatum = Omit<
 	PopulateClientSpamTrainingDatumParams,
-	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"
+	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey" | "ownerKeyVersion"
 > & {
 	vector: Uint8Array<ArrayBuffer>
 	vectorNewFormat: Uint8Array<ArrayBuffer>

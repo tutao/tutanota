@@ -55,17 +55,19 @@ export class GiftCardFacade {
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
 		const giftCardTransferAggregatedType = createGiftCardTransferAggregatedType({
+			_ownerEncSessionKey: ownerEncSessionKey.key,
+			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			message,
 			value,
 		})
-		giftCardTransferAggregatedType._ownerEncSessionKey = ownerEncSessionKey.key
-		giftCardTransferAggregatedType._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		const data = createGiftCardCreateData({
 			keyHash: sha256Hash(keyToUint8Array(sessionKey)),
 			giftCard: giftCardTransferAggregatedType,
 
 			// no longer used
 
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			message: null,
 			value: null,
 		})

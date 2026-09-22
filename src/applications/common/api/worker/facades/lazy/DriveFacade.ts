@@ -250,17 +250,19 @@ export class DriveFacade {
 		}
 
 		const transferFile = createDriveFileTransferAggregatedType({
+			_ownerEncSessionKey: ownerEncSessionKey,
+			_ownerKeyVersion: String(fileGroupKey.version),
 			name: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
 		})
-		transferFile._ownerEncSessionKey = ownerEncSessionKey
-		transferFile._ownerKeyVersion = String(fileGroupKey.version)
 		const uploadedFile = createDriveUploadedFile({
 			referenceTokens: blobRefTokens,
 			file: transferFile,
 
 			// no longer used
 
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			fileName: null,
 			mimeType: null,
 		})
@@ -281,16 +283,18 @@ export class DriveFacade {
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
 		const folder = createDriveFolderTransferAggregatedType({
+			_ownerEncSessionKey: ownerEncSessionKey,
+			_ownerKeyVersion: String(fileGroupKey.version),
 			name: folderName,
 			parent: parentFolder,
 		})
-		folder._ownerEncSessionKey = ownerEncSessionKey
-		folder._ownerKeyVersion = String(fileGroupKey.version)
 		const newFolder = createDriveFolderServicePostIn({
 			folder,
 
 			// no longer used
 
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			folderName: null,
 			parent: null,
 		})
@@ -414,10 +418,10 @@ export class DriveFacade {
 		const encTrashFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, trashFolderSessionKey)
 		const data = createDrivePostIn({
 			fileGroupId: fileGroupId,
+			ownerKeyVersion: String(fileGroupKey.version),
 			ownerEncRootFolderSessionKey: encRootFolderSessionKey,
 			ownerEncTrashFolderSessionKey: encTrashFolderSessionKey,
 		})
-		data.ownerKeyVersion = String(fileGroupKey.version)
 		await this.serviceExecutor.post(DriveService, data, null)
 		return this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
 	}
