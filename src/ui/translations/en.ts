@@ -2538,5 +2538,10 @@ export default {
 		"inboxRuleToRecipientEquals_action": "\"To\" recipient is",
 		"inboxRuleBCCRecipientEquals_action": "\"Bcc\" recipient is",
 		"inboxRuleCCRecipientEquals_action": "\"Cc\" recipient is",
+		"toggleSpamStrictMode_label": "Enable strict spam filter",
+		"toggleSpamStrictMode_msg": "Always mark mails that have failed authentication(Mails with the warning banner '{mailAuthMissing}') as spam.",
+		"retrainSpamFilter_action": "Retrain spam filter",
+		"retrainSpamFilter_msg": "Drop the currently existing filter and retrain from scratch",
+		"retrainSpamFilterConfirm_msg": "Retraining the filter will take a short while. Continue?",
 	}
 }

@@ -31,6 +31,11 @@ export type LastExternalCalendarSyncEntry = {
 	lastSyncStatus: SyncStatus
 }
 
+export const enum SpamFilterBehavior {
+	DEFAULT,
+	STRICT,
+}
+
 /**
  * Definition of the config object that will be saved to local storage
  */
@@ -72,6 +77,7 @@ interface ConfigObject {
 	/** Map from user id to the size of the list */
 	mailListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
+	spamFilterBehavior: SpamFilterBehavior
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -101,7 +107,7 @@ interface ConfigObject {
  * Device config for internal user auto login. Only one config per device is stored.
  */
 export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeConfigurator {
-	public static readonly Version = 9
+	public static readonly Version = 10
 	public static readonly LocalStorageKey = "tutanotaConfig"
 
 	private config!: ConfigObject
@@ -165,6 +171,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
 			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
+			spamFilterBehavior: loadedConfig.spamFilterBehavior ?? SpamFilterBehavior.DEFAULT,
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -519,6 +526,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	setIsUndoSendEnabled(status: boolean) {
 		this.config.isUndoSendEnabled = status
+		this.writeToStorage()
+	}
+
+	getSpamFilterBehavior(): SpamFilterBehavior {
+		return this.config.spamFilterBehavior
+	}
+
+	setSpamFilterBehavior(behavior: SpamFilterBehavior) {
+		this.config.spamFilterBehavior = behavior
 		this.writeToStorage()
 	}
 

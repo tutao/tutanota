@@ -2537,3 +2537,8 @@ export type TranslationKeyType =
 	| "inboxRuleActions_label"
 	| "selectLabel_action"
 	| "labelMustBeSelected_msg"
+	| "toggleSpamStrictMode_label"
+	| "toggleSpamStrictMode_msg"
+	| "retrainSpamFilter_action"
+	| "retrainSpamFilter_msg"
+	| "retrainSpamFilterConfirm_msg"

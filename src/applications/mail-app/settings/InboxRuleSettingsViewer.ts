@@ -10,6 +10,7 @@ import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import * as AddLegacyInboxRuleDialog from "./AddLegacyInboxRuleDialog"
+import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -42,7 +43,8 @@ import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
-import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
+import { deviceConfig, SpamFilterBehavior } from "../../common/misc/DeviceConfig"
+import { px, size } from "../../../ui/size"
 
 EnvProvider.assertMainOrNode()
 
@@ -150,6 +152,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							},
 						}),
 					),
+					this.renderSpamSettings(),
 				],
 			),
 		])
@@ -497,6 +500,74 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>this.inboxRuleHandler)
 		}
+	}
+
+	private renderSpamSettings() {
+		return m("", [m(".mt-24", m(MenuTitle, { content: "Spam filtering" })), this.renderStrictModeSwitch(), this.renderRetrainSpamFilterButton()])
+	}
+
+	private renderRetrainSpamFilterButton() {
+		return m("", [
+			m(
+				".mt-16.",
+				m(PrimaryButton, {
+					label: "retrainSpamFilter_action",
+					width: "flex",
+					onclick: () => this.confirmRetrainSpamFilter(),
+				}),
+			),
+			m("small.mt-12", lang.getTranslationText("retrainSpamFilter_msg")),
+		])
+	}
+
+	private async confirmRetrainSpamFilter(): Promise<void> {
+		const confirm = await Dialog.confirm(lang.getTranslation("retrainSpamFilterConfirm_msg"))
+		if (confirm) {
+			await showProgressDialog(
+				"retrainSpamFilter_action",
+				Promise.resolve().then(async () => {
+					console.log("TODO: retrain. ")
+				}),
+			)
+		}
+	}
+
+	private renderStrictModeSwitch() {
+		return m(
+			Card,
+			{
+				style: {
+					marginTop: px(size.spacing_16),
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "stretch",
+					paddingLeft: px(size.spacing_16),
+					paddingRight: px(size.spacing_16),
+				},
+			},
+			[
+				m(".flex.row.gap-24.items-center.justify-between", [
+					m("label.text-ellipsis.noselect.z1.pr-4", lang.getTranslationText("toggleSpamStrictMode_label")),
+					m(Switch, {
+						ariaLabel: "toggleSpamStrictMode_label",
+						checked: deviceConfig.getSpamFilterBehavior() === SpamFilterBehavior.STRICT,
+						onclick: async (checked: boolean) => {
+							if (checked) {
+								deviceConfig.setSpamFilterBehavior(SpamFilterBehavior.STRICT)
+							} else {
+								deviceConfig.setSpamFilterBehavior(SpamFilterBehavior.DEFAULT)
+							}
+						},
+					}),
+				]),
+				m(
+					"small.mt-12",
+					lang.getTranslation("toggleSpamStrictMode_msg", {
+						"{mailAuthMissing}": lang.getTranslationText("mailAuthMissing_label"),
+					}).text,
+				),
+			],
+		)
 	}
 }
 
