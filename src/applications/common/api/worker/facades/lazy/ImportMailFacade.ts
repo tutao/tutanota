@@ -115,6 +115,8 @@ export class ImportMailFacade {
 				})
 
 			const importedMail = createImportedMail({
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				subject: importMailParams.subject,
 				method: importMailParams.method,
 				confidential: false,
@@ -130,8 +132,6 @@ export class ImportMailFacade {
 				state: importMailParams.state,
 				unread: importMailParams.unread,
 			})
-			importedMail._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-			importedMail._ownerEncSessionKey = ownerEncSessionKey.key
 
 			const importMailData2 = createImportMailData2({
 				importAttachments: imapUidsToImportAttachments.get(importMailParams.imapUid) ?? [],
@@ -308,19 +308,19 @@ export class ImportMailFacade {
 		let deduplicatedImportedAttachment: Nullable<ImportedDeduplicatedImportedAttachment> = null
 		if (fileHash) {
 			deduplicatedImportedAttachment = createImportedDeduplicatedImportedAttachment({
+				_ownerEncSessionKey: ownerEncFileHashSessionKey.key,
+				_ownerKeyVersion: ownerEncFileHashSessionKey.encryptingKeyVersion.toString(),
 				attachmentHash: fileHash,
 			})
-			deduplicatedImportedAttachment._ownerEncSessionKey = ownerEncFileHashSessionKey.key
-			deduplicatedImportedAttachment._ownerKeyVersion = ownerEncFileHashSessionKey.encryptingKeyVersion.toString()
 		}
 
 		const file = createFileTransferAggregatedType({
+			_ownerEncSessionKey: ownerEncFileSessionKey.key,
+			_ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
 			cid: newFile.cid ?? null,
 			name: newFile.name,
 			mimeType: newFile.mimeType,
 		})
-		file._ownerEncSessionKey = ownerEncFileSessionKey.key
-		file._ownerKeyVersion = ownerEncFileSessionKey.encryptingKeyVersion.toString()
 
 		importAttachment.newAttachment = createNewImportAttachment({
 			referenceTokens: referenceTokens,
@@ -331,6 +331,7 @@ export class ImportMailFacade {
 
 			encFileHash: null,
 			ownerEncFileHashSessionKey: null,
+			ownerKeyVersion: null,
 			encFileName: null,
 			encCid: null,
 			encMimeType: null,

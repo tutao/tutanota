@@ -1,10 +1,9 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
+import { DataTransferId, ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
-import { Blob } from "../sys/TypeRefs.js"
-import { BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
+import { Blob, BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
 
 export const DriveFolderTypeRef: TypeRef<DriveFolder> = new TypeRef("drive", 0)
 
@@ -269,6 +268,8 @@ export function createDriveUploadedFile(values: DriveUploadedFileParams): DriveU
 export type DriveUploadedFileParams = {
 	fileName: null | string
 	mimeType: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	referenceTokens: BlobReferenceTokenWrapper[]
 	file: null | DriveFileTransferAggregatedType
@@ -312,6 +313,7 @@ export function createDrivePostIn(values: DrivePostInParams): DrivePostIn {
 export type DrivePostInParams = {
 	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>
 	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 
 	fileGroupId: Id
 }
@@ -517,6 +519,8 @@ export function createDriveFolderServicePostIn(values: DriveFolderServicePostInP
 
 export type DriveFolderServicePostInParams = {
 	folderName: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	parent: null | IdTuple
 	folder: null | DriveFolderTransferAggregatedType
@@ -827,6 +831,8 @@ export function createDriveFolderTransferAggregatedType(values: DriveFolderTrans
 }
 
 export type DriveFolderTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	name: string
 
 	parent: null | IdTuple
@@ -898,6 +904,8 @@ export function createDriveFileTransferAggregatedType(values: DriveFileTransferA
 }
 
 export type DriveFileTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	name: string
 	mimeType: string
 }
