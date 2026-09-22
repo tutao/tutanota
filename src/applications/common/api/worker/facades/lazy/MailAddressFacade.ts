@@ -41,6 +41,7 @@ import {
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "@tutao/meta"
 import { ReportMovedMailsType } from "../../../../../../entities/tutanota/Utils"
+import { SpamFilterBehavior } from "../../../../../mail-app/mail/model/SpamClassificationHandler"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -321,6 +322,7 @@ export class MailAddressFacade {
 			reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 			mailAddressProperties: [],
 			inboxRuleOrder: [],
+			spamFilterBehavior: SpamFilterBehavior.DEFAULT,
 		})
 		// Using non-caching entityClient because we are not a member of the user's mail group and we won't receive updates for it
 		return assertNotNull(

@@ -5,15 +5,19 @@ import { assertNotNull, isNotNull, lazyAsync } from "@tutao/utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { IdTupleWrapper } from "@tutao/entities/sys"
+import { SpamFilterBehavior } from "../mail/model/SpamClassificationHandler"
+import type { MailboxModel } from "../../common/mailFunctionality/MailboxModel"
 
-export class InboxRulesSettingsViewerModel {
+export class FilteringRulesSettingsViewerModel {
 	private inboxRulesById: Map<Id, ExpandedInboxRule> = new Map()
 	private inboxRulesOrder: IdTupleWrapper[] = []
 	private _orderedInboxRules: ExpandedInboxRule[] = []
+	private spamFilterBehavior: string = SpamFilterBehavior.DEFAULT
 
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
+		private readonly mailboxModel: MailboxModel,
 	) {}
 
 	async init(): Promise<void> {
@@ -23,6 +27,10 @@ export class InboxRulesSettingsViewerModel {
 			this.inboxRulesById = rulesById
 			this.inboxRulesOrder = rulesOrder
 			this.computeOrderedInboxRules()
+
+			const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
+			const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
+			this.spamFilterBehavior = mailboxProperties.spamFilterBehavior || SpamFilterBehavior.DEFAULT
 		}
 	}
 
@@ -55,6 +63,8 @@ export class InboxRulesSettingsViewerModel {
 				const mailboxProperties = await this.entityClient.load(MailboxPropertiesTypeRef, [null, update.instanceId])
 				this.inboxRulesOrder = mailboxProperties.inboxRuleOrder
 				this.computeOrderedInboxRules()
+
+				this.spamFilterBehavior = mailboxProperties.spamFilterBehavior || SpamFilterBehavior.DEFAULT
 			}
 		}
 	}
@@ -103,5 +113,18 @@ export class InboxRulesSettingsViewerModel {
 		this.orderedInboxRules.splice(insertAtIndex, 0, rule)
 		this.orderedInboxRules.splice(currentIndex > insertAtIndex ? currentIndex + 1 : currentIndex, 1)
 		await this.saveInboxRuleOrder()
+	}
+
+	getSpamFilterBehavior() {
+		return this.spamFilterBehavior
+	}
+
+	async updateSpamFilterBehavior(newBehavior: SpamFilterBehavior) {
+		this.spamFilterBehavior = newBehavior
+		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
+
+		mailboxProperties.spamFilterBehavior = newBehavior
+		await this.entityClient.update(mailboxProperties)
 	}
 }
