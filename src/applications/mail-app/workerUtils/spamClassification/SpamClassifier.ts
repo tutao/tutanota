@@ -518,4 +518,11 @@ export class SpamClassifier {
 			})
 		})
 	}
+
+	async retrainAllModels() {
+		console.log("Retraining all models due user request.")
+		for (const ownerGroup of this.classifierByMailGroup.keys()) {
+			await this.trainFromScratch(ownerGroup)
+		}
+	}
 }

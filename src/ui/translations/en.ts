@@ -2538,5 +2538,12 @@ export default {
 		"inboxRuleToRecipientEquals_action": "\"To\" recipient is",
 		"inboxRuleBCCRecipientEquals_action": "\"Bcc\" recipient is",
 		"inboxRuleCCRecipientEquals_action": "\"Cc\" recipient is",
+		"toggleSpamStrictMode_label": "Enable strict spam filter",
+		"toggleSpamStrictMode_msg": "Always mark mails that have failed authentication(Mails with warning banners about it) as spam.",
+		"retrainSpamFilter_action": "Retrain spam filter",
+		"retrainSpamFilter_msg": "Drop the currently existing filter(s) and retrain from scratch for all mailboxes",
+		"retrainSpamFilterConfirm_msg": "Retraining the filter will take a short while. Continue?",
+		"mailAuthSuggestSettings_msg": "These mails are always delivered to spam because of your current filtering settings. You can click below to change it.",
+		"mailAuthSuggestSettingsOff_msg": "These mails are handled by the spam filter, meaning they can end in inbox or spam depending on the content. You can click below to change this.",
 	}
 }

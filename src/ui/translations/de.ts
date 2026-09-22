@@ -2537,6 +2537,13 @@ export default {
 		"markUnread_action": "Ungelesen markieren",
 		"inboxRuleSenderEquals_action": "Absenderadresse",
 		"selectLabel_action": "Label(s) auswählen",
-		"labelMustBeSelected_msg": "Mindestens ein Label muss ausgewählt werden."
+		"labelMustBeSelected_msg": "Mindestens ein Label muss ausgewählt werden.",
+		"toggleSpamStrictMode_label": "Enable strict spam filter",
+		"toggleSpamStrictMode_msg": "Always mark mails that have failed authentication(Mails with the warning banner '{mailAuthMissing}') as spam.",
+		"retrainSpamFilter_action": "Retrain spam filter",
+		"retrainSpamFilter_msg": "Drop the currently existing filter and retrain from scratch",
+		"retrainSpamFilterConfirm_msg": "Retraining the filter will take a short while. Continue?",
+		"mailAuthSuggestSettings_msg": "This message is delivered to the {folder} folder because of your current filtering settings. You can click below to change it.",
+		"mailAuthSuggestSettingsOff_msg": "These mails are handled by the spam filter, meaning they can end in inbox or spam. You can click below to change it.",
 	}
 }

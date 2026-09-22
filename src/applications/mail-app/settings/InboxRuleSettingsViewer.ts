@@ -10,6 +10,7 @@ import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import * as AddLegacyInboxRuleDialog from "./AddLegacyInboxRuleDialog"
+import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -22,7 +23,7 @@ import { MenuTitle } from "../../../ui/titles/MenuTitle"
 import { Card } from "../../../ui/base/Card"
 import { getMailSetName } from "../mail/model/MailUtils"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { InboxRulesSettingsViewerModel } from "./InboxRulesSettingsViewerModel"
+import { FilteringRulesSettingsViewerModel } from "./FilteringRulesSettingsViewerModel"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { Switch } from "../../../ui/base/Switch"
@@ -42,12 +43,13 @@ import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
-import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
+import { px, size } from "../../../ui/size"
+import { SpamFilterBehavior } from "../mail/model/SpamClassificationHandler"
 
 EnvProvider.assertMainOrNode()
 
 export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
-	private model: InboxRulesSettingsViewerModel
+	private model: FilteringRulesSettingsViewerModel
 	private draggingOverRuleIndex: number | null = null
 	private draggingOverRule2ndHalf: boolean | null = null
 
@@ -59,10 +61,11 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly inboxRuleModel: InboxRuleModel,
 		readonly inboxRuleHandler: ExpandedInboxRuleHandler | LegacyInboxRuleHandler,
 	) {
-		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
+		this.model = new FilteringRulesSettingsViewerModel(entityClient, inboxRuleModel, mailboxModel)
 		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			this.renderLegacyInboxRules()
 		}
+		m.redraw()
 	}
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
@@ -150,6 +153,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							},
 						}),
 					),
+					this.renderSpamSettings(),
 				],
 			),
 		])
@@ -497,6 +501,75 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		} else {
 			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>this.inboxRuleHandler)
 		}
+	}
+
+	private renderSpamSettings() {
+		return m("", [m(".mt-24", m(MenuTitle, { content: "Spam filtering" })), this.renderStrictModeSwitch(), this.renderRetrainSpamFilterButton()])
+	}
+
+	private renderRetrainSpamFilterButton() {
+		return m("", [
+			m(
+				".mt-16.",
+				m(PrimaryButton, {
+					label: "retrainSpamFilter_action",
+					width: "flex",
+					onclick: () => this.confirmRetrainSpamFilter(),
+				}),
+			),
+			m("small.mt-12", lang.getTranslationText("retrainSpamFilter_msg")),
+		])
+	}
+
+	private async confirmRetrainSpamFilter(): Promise<void> {
+		const confirm = await Dialog.confirm(lang.getTranslation("retrainSpamFilterConfirm_msg"))
+		if (confirm) {
+			await showProgressDialog(
+				"retrainSpamFilter_action",
+				Promise.resolve().then(async () => {
+					mailLocator.spamClassifier.retrainAllModels()
+				}),
+			)
+		}
+	}
+
+	private renderStrictModeSwitch() {
+		return m(
+			Card,
+			{
+				style: {
+					marginTop: px(size.spacing_16),
+					display: "flex",
+					flexDirection: "column",
+					alignItems: "stretch",
+					paddingLeft: px(size.spacing_16),
+					paddingRight: px(size.spacing_16),
+				},
+			},
+			[
+				m(".flex.row.gap-24.items-center.justify-between", [
+					m("label.text-ellipsis.noselect.z1.pr-4", lang.getTranslationText("toggleSpamStrictMode_label")),
+					m(Switch, {
+						ariaLabel: "toggleSpamStrictMode_label",
+						checked: this.model.getSpamHandlingMode() === SpamFilterBehavior.STRICT,
+						onclick: async (checked: boolean) => {
+							if (checked) {
+								this.model.updateSpamHandlingMode(SpamFilterBehavior.STRICT)
+							} else {
+								this.model.updateSpamHandlingMode(SpamFilterBehavior.DEFAULT)
+							}
+							m.redraw()
+						},
+					}),
+				]),
+				m(
+					"small.mt-12",
+					lang.getTranslation("toggleSpamStrictMode_msg", {
+						"{mailAuthMissing}": lang.getTranslationText("mailAuthMissing_label"),
+					}).text,
+				),
+			],
+		)
 	}
 }
 

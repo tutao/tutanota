@@ -345,6 +345,7 @@ class MailLocator implements CommonLocator {
 			this.spamClassificationHandler,
 			this.inboxRuleHandler,
 			this.inboxRuleModel.isUsingLegacyInboxRules(),
+			this.mailboxModel,
 		)
 	})
 
