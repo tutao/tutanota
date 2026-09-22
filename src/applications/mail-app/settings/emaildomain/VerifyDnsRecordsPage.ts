@@ -2,21 +2,22 @@ import { DomainDnsStatus } from "../DomainDnsStatus"
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { CustomDomainCheckResult, DnsRecordType, DnsRecordValidation, EnvProvider } from "../../../../platform-kit/app-env"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import type { AddDomainData, ValidatedDnSRecord } from "./AddDomainWizard"
+import type { AddDomainData } from "./AddDomainWizard"
 import { ActionDialogProps, Dialog } from "../../../../ui/base/Dialog"
 import type { WizardPageAttrs } from "../../../../ui/base/WizardDialog.js"
 import { emitWizardEvent, WizardEventType, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { downcast } from "../../../../platform-kit/utils"
 import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
-import { IconButtonAttrs } from "../../../../ui/base/IconButton.js"
-import { ColumnWidth, Table } from "../../../../ui/base/Table.js"
-import { DnsRecordTable } from "./DnsRecordTable.js"
+import { renderDnsRecordsCard } from "./DnsRecordTable.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { MoreInfoLink } from "../../../common/misc/news/MoreInfoLink.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { assertEnumValue } from "../../../../platform-kit/meta"
 import { DnsRecord } from "@tutao/entities/sys"
+import { TitleSection } from "../../../../ui/TitleSection.js"
+import { theme } from "../../../../ui/theme"
+import { px, size } from "../../../../ui/size"
 
 EnvProvider.assertMainOrNode()
 
@@ -31,26 +32,38 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>) {
 		const a = vnode.attrs
-		return [
-			m("h4.mt-32.text-center", lang.get("verifyDNSRecords_title")),
-			m("p", lang.get("verifyDNSRecords_msg")),
+		return m(".mt-24", [
+			m(TitleSection, {
+				icon: Icons.GlobeFilled,
+				iconOptions: { color: theme.on_surface_variant },
+				title: lang.get("verifyDNSRecords_title"),
+				subTitle: lang.get("verifyDNSRecords_msg"),
+				style: {
+					marginTop: px(size.spacing_16),
+					borderRadius: px(size.radius_16),
+				},
+			}),
 			a.data.domainStatus.status.isLoaded()
 				? m("", [
 						renderCheckResult(a.data.domainStatus),
 						m(
-							".flex-center.full-width.pt-32.mb-32",
-							m(PrimaryButton, {
-								label: "finish_action",
-								class: "small-login-button",
-								// We check if all DNS records are set correctly and let the user confirm before leaving if not
-								onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
-							}),
+							".flex-end.full-width.pt-32.mb-32",
+							m(
+								"",
+								{ style: { width: "260px" } },
+								m(PrimaryButton, {
+									label: "finish_action",
+									class: "wizard-next-button",
+									// We check if all DNS records are set correctly and let the user confirm before leaving if not
+									onclick: () => this._finishDialog(a.data, (downcast<VnodeDOM>(vnode)?.dom as HTMLElement | null) ?? null),
+								}),
+							),
 						),
 					])
-				: m("", [
+				: m(".mt-16", [
 						lang.get("loadingDNSRecords_msg"),
 						m(
-							".flex-center.full-width.pt-32.mb-32",
+							".flex-end.full-width.pt-32.mb-32",
 							m(Button, {
 								type: ButtonType.Secondary,
 								label: "refresh_action",
@@ -58,7 +71,7 @@ export class VerifyDnsRecordsPage implements WizardPageN<AddDomainData> {
 							}),
 						),
 					]),
-		]
+		])
 	}
 
 	_finishDialog(data: AddDomainData, dom: HTMLElement | null): Promise<void> {
@@ -103,31 +116,6 @@ function _getDisplayableRecordValue(record: DnsRecord): string {
 	return record.value
 }
 
-export function createDnsRecordTableN(records: ValidatedDnSRecord[], refreshButtonAttrs: IconButtonAttrs | null): Children {
-	return m(Table, {
-		columnHeading: ["type_label", "dnsRecordHostOrName_label", "dnsRecordValueOrPointsTo_label"],
-		addButtonAttrs: refreshButtonAttrs,
-		columnWidths: [ColumnWidth.Small, ColumnWidth.Small, ColumnWidth.Largest],
-		showActionButtonColumn: true,
-		lines: records.map((r) => {
-			return {
-				cells: () => [
-					{
-						main: DnsRecordTable[r.record.type as DnsRecordType],
-					},
-					{
-						main: r.record.subdomain ? r.record.subdomain : "@",
-					},
-					{
-						main: r.record.value,
-						info: r.helpInfo,
-					},
-				],
-			}
-		}),
-	})
-}
-
 export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButton: boolean = false): Children {
 	const checkReturn = domainStatus.getLoadedCustomDomainCheckGetOut()
 	const { requiredRecords, missingRecords, invalidRecords } = checkReturn
@@ -168,10 +156,9 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 			}
 		})
 		return [
-			m(".mt-12.mb-8", lang.get("setDnsRecords_msg")),
-			createDnsRecordTableN(
-				validatedRecords,
-				hideRefreshButton
+			renderDnsRecordsCard(validatedRecords, {
+				titleText: lang.get("setDnsRecords_msg"),
+				refreshButtonAttrs: hideRefreshButton
 					? null
 					: {
 							label: "refresh_action",
@@ -179,7 +166,7 @@ export function renderCheckResult(domainStatus: DomainDnsStatus, hideRefreshButt
 							size: ButtonSize.Compact,
 							click: () => _updateDnsStatus(domainStatus),
 						},
-			),
+			}),
 			m(MoreInfoLink, { link: InfoLink.DomainInfo, class: "mt-12", isSmall: true }),
 		]
 	} else {
@@ -207,6 +194,8 @@ export class VerifyDnsRecordsPageAttrs implements WizardPageAttrs<AddDomainData>
 	headerTitle(): TranslationKey {
 		return "domainSetup_title"
 	}
+
+	stepTitle = "domainSetupStepDns_title" as TranslationKey
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		// No need to do anything, as we are leaving the wizard

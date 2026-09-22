@@ -17,6 +17,10 @@ import { assertEnumValue } from "../../../../platform-kit/meta"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { CustomDomainType, CustomDomainTypeCount } from "../../../../entities/sys/Utils"
 import { ofClassAsync } from "../../../../platform-kit/utils/PromiseUtils"
+import { TitleSection } from "../../../../ui/TitleSection.js"
+import { theme } from "../../../../ui/theme"
+import { px, size } from "../../../../ui/size"
+import { Icons } from "../../../../ui/base/icons/Icons"
 
 EnvProvider.assertMainOrNode()
 
@@ -40,25 +44,39 @@ export class VerifyOwnershipPage implements WizardPageN<AddDomainData> {
 
 	view(vnode: Vnode<WizardPageAttrs<AddDomainData>>): Children {
 		const a = vnode.attrs
-		return [
-			m("h4.mt-32.text-center", lang.get("verifyDomainOwnership_title")),
-			m(
-				"p",
-				lang.get("verifyDomainOwnershipExplanation_msg", {
-					"{domain}": a.data.domain(),
-				}),
-			),
-			m("p", lang.get("verifyOwnershipTXTrecord_msg")),
+		return m(".mt-24", [
+			m(TitleSection, {
+				icon: Icons.GlobeFilled,
+				iconOptions: { color: theme.on_surface_variant },
+				title: lang.get("verifyDomainOwnership_title"),
+				subTitle: [
+					m(
+						"",
+						lang.get("verifyDomainOwnershipExplanation_msg", {
+							"{domain}": a.data.domain(),
+						}),
+					),
+					m(".mt-8", lang.get("verifyOwnershipTXTrecord_msg")),
+				],
+				style: {
+					marginTop: px(size.spacing_16),
+					borderRadius: px(size.radius_16),
+				},
+			}),
 			createDnsRecordTable([vnode.attrs.data.expectedVerificationRecord]),
 			m(
-				".flex-center.full-width.pt-32.mb-32",
-				m(PrimaryButton, {
-					label: "next_action",
-					class: "small-login-button",
-					onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
-				}),
+				".flex-end.full-width.pt-32.mb-32",
+				m(
+					"",
+					{ style: { width: "260px" } },
+					m(PrimaryButton, {
+						label: "continue_action",
+						class: "wizard-next-button",
+						onclick: () => emitWizardEvent(this.dom, WizardEventType.SHOW_NEXT_PAGE),
+					}),
+				),
 			),
-		]
+		])
 	}
 }
 
@@ -72,6 +90,8 @@ export class VerifyOwnershipPageAttrs implements WizardPageAttrs<AddDomainData> 
 	headerTitle(): TranslationKey {
 		return "domainSetup_title"
 	}
+
+	stepTitle = "domainSetupStepVerify_title" as TranslationKey
 
 	nextAction(showErrorDialog: boolean = true): Promise<boolean> {
 		return showProgressDialog(

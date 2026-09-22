@@ -21,6 +21,9 @@ import { showPlanUpgradeRequiredDialog } from "../../../common/misc/Subscription
 import { CustomerTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { idToElementId } from "@tutao/meta"
+import { TitleSection } from "../../../../ui/TitleSection.js"
+import { theme } from "../../../../ui/theme"
+import { px, size } from "../../../../ui/size"
 
 EnvProvider.assertMainOrNode()
 
@@ -74,18 +77,30 @@ export class AddEmailAddressesPage implements Component<AddEmailAddressesPageAtt
 					}),
 			},
 		}
-		return m("", [
-			m("h4.mt-32.text-center", lang.get("addCustomDomainAddresses_title")),
-			m(".mt-16.mb-16", lang.get("addCustomDomainAddAdresses_msg")),
-			m(SelectMailAddressForm, mailFormAttrs),
+		return m(".mt-24", [
+			m(TitleSection, {
+				icon: Icons.MailFilled,
+				iconOptions: { color: theme.on_surface_variant },
+				title: lang.get("addCustomDomainAddresses_title"),
+				subTitle: lang.get("addCustomDomainAddAdresses_msg"),
+				style: {
+					marginTop: px(size.spacing_16),
+					borderRadius: px(size.radius_16),
+				},
+			}),
+			m(".mt-16", m(SelectMailAddressForm, mailFormAttrs)),
 			locator.logins.getUserController().userGroupInfo.mailAddressAliases.length ? m(Table, aliasesTableAttrs) : null,
 			m(
-				".flex-center.full-width.pt-32.mb-32",
-				m(PrimaryButton, {
-					label: "next_action",
-					class: "small-login-button",
-					onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
-				}),
+				".flex-end.full-width.pt-32.mb-32",
+				m(
+					"",
+					{ style: { width: "260px" } },
+					m(PrimaryButton, {
+						label: "continue_action",
+						class: "wizard-next-button",
+						onclick: () => emitWizardEvent((vnode as VnodeDOM<AddEmailAddressesPageAttrs>).dom as HTMLElement, WizardEventType.SHOW_NEXT_PAGE),
+					}),
+				),
 			),
 		])
 	}
@@ -107,6 +122,8 @@ export class AddEmailAddressesPageAttrs implements WizardPageAttrs<AddDomainData
 	headerTitle(): TranslationKey {
 		return "domainSetup_title"
 	}
+
+	stepTitle = "domainSetupStepAddresses_title" as TranslationKey
 
 	nextAction(showErrorDialog: boolean): Promise<boolean> {
 		if (this.isMailVerificationBusy) return Promise.resolve(false)

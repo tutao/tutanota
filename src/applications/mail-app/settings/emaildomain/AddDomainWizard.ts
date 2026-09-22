@@ -60,7 +60,7 @@ export function showAddDomainWizard(domain: string, customerInfo: CustomerInfo, 
 				resolve()
 				return Promise.resolve()
 			},
-			dialogType: DialogType.EditLarge,
+			dialogType: DialogType.SetupWizard,
 			windowFacade,
 		})
 		const wizard = wizardBuilder.dialog

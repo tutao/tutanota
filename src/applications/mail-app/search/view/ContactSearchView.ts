@@ -219,6 +219,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 	private getMainButton(): {
 		label: TranslationKey
 		click: ClickHandler
+		icon: Icons
 	} | null {
 		if (Styles.get().isUsingBottomNavigation()) {
 			return null
@@ -230,6 +231,7 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 					})
 				},
 				label: "newContact_action",
+				icon: Icons.Plus,
 			}
 	}
 
