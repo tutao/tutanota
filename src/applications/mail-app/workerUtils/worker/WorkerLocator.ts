@@ -697,7 +697,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")
-		return new GiftCardFacade(locator.base.user, await locator.customer(), locator.base.serviceExecutor, locator.base.crypto, locator.base.keyLoader)
+		return new GiftCardFacade(
+			locator.base.user,
+			await locator.customer(),
+			locator.base.serviceExecutor,
+			locator.base.crypto,
+			locator.base.keyLoader,
+			locator.base.cryptoWrapper,
+		)
 	})
 
 	locator.contactFacade = lazyMemoized(async () => {

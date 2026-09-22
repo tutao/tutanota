@@ -98,6 +98,7 @@ export class AlarmFacade {
 		notificationSessionKey: AesKey,
 	): Promise<AlarmServicePost> {
 		const notification = createNotificationTransferAggregatedType({
+			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 			alarms: [],
 		})
 		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo: [] })
@@ -123,6 +124,7 @@ export class AlarmFacade {
 					_ownerGroup: ownerGroup,
 					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
 					_ownerKeyVersion: userGroupKey.version.toString(),
+					_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 					alarmInfo: alarmInfoTransferAggregatedType,
 				})
 				alarmServicePost.userAlarmInfo.push(userAlarmInfo)

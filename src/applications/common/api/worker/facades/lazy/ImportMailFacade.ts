@@ -313,6 +313,7 @@ export class ImportMailFacade {
 			deduplicatedImportedAttachment = createImportedDeduplicatedImportedAttachment({
 				_ownerEncSessionKey: ownerEncFileHashSessionKey.key,
 				_ownerKeyVersion: ownerEncFileHashSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 				attachmentHash: fileHash,
 			})
 		}

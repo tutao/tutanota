@@ -8,13 +8,17 @@ import { createTestEntity } from "../../../TestUtils"
 import { PersistentEntity } from "../../../../../src/platform-kit/meta"
 import { generateKdfNonce, KdfNonce, VersionedAes256Key, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
+import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 
-const { anything, argThat, captor } = matchers
+const { anything } = matchers
 
 o.spec("InstanceKeyFacadeTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 	let cryptoNetworkHelper: CryptoNetworkHelper
 	let typeModelResolver: TypeModelResolver
+	let entityRestClient: EntityRestClient
+	let entityClient: EntityClient
 
 	let instanceKeyFacade: InstanceKeyFacade
 
@@ -28,7 +32,10 @@ o.spec("InstanceKeyFacadeTest", function () {
 		cryptoNetworkHelper = object()
 		typeModelResolver = object()
 
-		instanceKeyFacade = new InstanceKeyFacade(keyLoaderFacade, cryptoNetworkHelper, typeModelResolver)
+		entityRestClient = new EntityRestClient(object(), object(), () => cryptoNetworkHelper, object(), object(), typeModelResolver, object(), object())
+		entityClient = new EntityClient(entityRestClient, typeModelResolver)
+
+		instanceKeyFacade = new InstanceKeyFacade(keyLoaderFacade, entityClient)
 
 		instanceGroupId = "instanceGroupId"
 		instance = createTestEntity(GroupInfoTypeRef, { _kdfNonce: generateKdfNonce(), _ownerGroup: instanceGroupId })

@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, base64ToKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { AesKey, base64ToKey, validateKdfNonceLength, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -105,6 +105,13 @@ o.spec("AlarmFacadeTest", function () {
 		})
 
 		o.test("successful scenario", async function () {
+			let kdfNonce = validateKdfNonceLength(
+				new Uint8Array([
+					2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131,
+				]),
+			)
+			when(cryptoWrapperMock.generateKdfNonce()).thenReturn(kdfNonce)
+
 			const alarmInfo = createAlarmInfoTransferAggregatedType({
 				alarmIdentifier: personalAlarmInfoTemplate.alarmIdentifier,
 				calendarRef: createCalendarEventRefTransferAggregatedType({
@@ -114,6 +121,7 @@ o.spec("AlarmFacadeTest", function () {
 				trigger: personalAlarmInfoTemplate.trigger,
 			})
 			const notification = createNotificationTransferAggregatedType({
+				_kdfNonce: kdfNonce,
 				alarms: [
 					createAlarmNotificationTransferAggregatedType({
 						alarmInfo,
@@ -132,6 +140,7 @@ o.spec("AlarmFacadeTest", function () {
 					_ownerGroup: userGroupMembership.group,
 					_ownerEncSessionKey: ownerEncSessionKey,
 					_ownerKeyVersion: userGroupKey.version.toString(),
+					_kdfNonce: kdfNonce,
 					alarmInfo,
 				}),
 			]

@@ -102,8 +102,6 @@ export class DriveFacade {
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(item))
-
 		let fileWithNewName: Nullable<DriveFileNameTransferAggregatedType> = null
 		if (isDriveFile(item)) {
 			fileWithNewName = createDriveFileNameTransferAggregatedType({
@@ -131,7 +129,6 @@ export class DriveFacade {
 
 		await this.serviceExecutor.put(DriveItemService, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
 			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
 		})
 	}
@@ -273,7 +270,6 @@ export class DriveFacade {
 		const data = createDriveItemPostIn({ uploadedFile: uploadedFile, parent: to })
 		const response = await this.serviceExecutor.post(DriveItemService, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
 			ownerKey: fileGroupKey,
 			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
 		})
@@ -309,7 +305,6 @@ export class DriveFacade {
 		})
 		const response = await this.serviceExecutor.post(DriveFolderService, newFolder, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
 			ownerKey: fileGroupKey,
 			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
 		})

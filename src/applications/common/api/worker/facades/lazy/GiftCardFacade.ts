@@ -10,7 +10,7 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
-import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
+import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, CryptoWrapper, keyToUint8Array, sha256Hash } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
@@ -40,6 +40,7 @@ export class GiftCardFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
@@ -57,6 +58,7 @@ export class GiftCardFacade {
 		const giftCardTransferAggregatedType = createGiftCardTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
 			message,
 			value,
 		})

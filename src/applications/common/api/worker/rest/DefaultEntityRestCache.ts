@@ -69,6 +69,7 @@ import {
 	EntityRestClientSetupOptions,
 	getCacheModeBehavior,
 } from "../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { KdfNonce } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -841,6 +842,10 @@ export class DefaultEntityRestCache implements EntityRestCache {
 
 		// if a specific version is requested we have to load again and do not want to store it in the cache
 		return opts?.queryParams?.version == null
+	}
+
+	async ensureKdfNonce(instance: PersistentEntity): Promise<KdfNonce> {
+		return await this.entityRestClient.ensureKdfNonce(instance)
 	}
 }
 
