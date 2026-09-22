@@ -172,10 +172,11 @@ import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
-import { ConfigurationAdapter, PluginHost } from "../../plugin-kit/plugin-manager/PluginHost"
+import { ConfigurationAdapter } from "../../plugin-kit/plugin-manager/PluginHost"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { PostLoginAction } from "../../app-kit/native-bridge/common/PostLoginAction"
+import { DialogProvider } from "../common/app-common"
 
 EnvProvider.assertMainOrNode()
 
@@ -957,7 +958,11 @@ class MailLocator implements CommonLocator {
 		this.transferProgressDispatcher = new TransferProgressDispatcher()
 
 		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
-		this.pluginManager = new PluginManager(this.pluginConfigurationProvider as ConfigurationAdapter, new MailPluginIntegrationAdapter(this.mailboxModel))
+		this.pluginManager = new PluginManager(
+			this.pluginConfigurationProvider as ConfigurationAdapter,
+			new DialogProvider(),
+			new MailPluginIntegrationAdapter(this.mailboxModel),
+		)
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		this.pluginConfigurationProvider.setPluginManager(this.pluginManager)
 		this.logins.addPostLoginAction(async () => this.pluginConfigurationProvider as PostLoginAction)
