@@ -41,7 +41,10 @@ public final class ApiSchemeHandler: NSObject, WKURLSchemeHandler, Sendable {
 				urlSchemeTask.didFinish()
 			} catch is CancellationError {
 				// Not allowed to interact with a task if it's canceled
-			} catch { urlSchemeTask.didFailWithError(error) }
+			} catch {
+				// Need to account for potential weirdness where something is cancelled but a different error was thrown
+				if self.dictLock.withLock({ dict in dict.removeValue(forKey: taskIdentifier) }) != nil { urlSchemeTask.didFailWithError(error) }
+			}
 		}
 		self.dictLock.withLock { dict in dict[taskIdentifier] = task }
 	}
