@@ -98,6 +98,9 @@ export class ImapFacade {
 			})
 
 		const imapAccountSyncState = createImapAccountSyncStateTransferAggregatedType({
+			_ownerGroup: mailGroupId,
+			_ownerEncSessionKey: ownerEncSessionKey.key,
+			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
 			rootImportMailSet: rootImportMailSetId,
@@ -113,9 +116,6 @@ export class ImapFacade {
 				oAuthTokenEndpointResponse,
 			}),
 		})
-		imapAccountSyncState._ownerEncSessionKey = ownerEncSessionKey.key
-		imapAccountSyncState._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-		imapAccountSyncState._ownerGroup = mailGroupId
 
 		const imapPostIn = createImapPostIn({
 			imapAccount: initializeParams.imapAccount,
@@ -123,6 +123,9 @@ export class ImapFacade {
 
 			// These are now contained in the imapAccountSyncState
 
+			ownerGroup: null,
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			maxQuota: null,
 			postponedUntil: null,
 			rootImportMailSet: null,
@@ -200,13 +203,13 @@ export class ImapFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
+				_ownerGroup: mailGroupId,
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				imapSpecialUse: specialUse,
 				path: imapMailboxPath,
 			})
-			imapFolderSyncState._ownerEncSessionKey = ownerEncSessionKey.key
-			imapFolderSyncState._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-			imapFolderSyncState._ownerGroup = mailGroupId
 
 			const imapFolderPostIn = createImapFolderPostIn({
 				imapAccountSyncState: imapAccountSyncState._id,
@@ -215,6 +218,9 @@ export class ImapFacade {
 
 				// These are now contained in the imapFolderSyncState
 
+				ownerGroup: null,
+				ownerEncSessionKey: null,
+				ownerKeyVersion: null,
 				path: null,
 				mailSet: null,
 				imapSpecialUse: null,
@@ -263,13 +269,13 @@ export class ImapFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
+				_ownerGroup: mailGroupId,
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				mailSet: mailSetId,
 				imapSpecialUse: imapMailbox.specialUse ?? null,
 				path: imapMailbox.path,
 			})
-			imapFolderSyncState._ownerEncSessionKey = ownerEncSessionKey.key
-			imapFolderSyncState._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
-			imapFolderSyncState._ownerGroup = mailGroupId
 
 			const imapFolderPostIn = createImapFolderPostIn({
 				imapAccountSyncState: imapAccountSyncState._id,
@@ -278,6 +284,9 @@ export class ImapFacade {
 
 				// These are now contained in the imapFolderSyncState
 
+				ownerGroup: null,
+				ownerEncSessionKey: null,
+				ownerKeyVersion: null,
 				path: null,
 				mailSet: null,
 				imapSpecialUse: null,

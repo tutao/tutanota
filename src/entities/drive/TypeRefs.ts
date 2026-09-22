@@ -196,6 +196,8 @@ export type DriveUploadedFileParams = {
 
 	fileName: null | string;
 	mimeType: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
 	file: null | DriveFileTransferAggregatedType;
@@ -225,6 +227,7 @@ export type DrivePostInParams = {
 
 	ownerEncRootFolderSessionKey: Uint8Array<ArrayBuffer>;
 	ownerEncTrashFolderSessionKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
 
 	fileGroupId: Id;
 }
@@ -348,6 +351,8 @@ export type DriveFolderServicePostInParams = {
 
 
 	folderName: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	parent: null | IdTuple;
 	folder: null | DriveFolderTransferAggregatedType;
@@ -530,6 +535,8 @@ export function createDriveFolderTransferAggregatedType(values: DriveFolderTrans
 export type DriveFolderTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 	name: string;
 
 	parent: null | IdTuple;
@@ -574,6 +581,8 @@ export function createDriveFileTransferAggregatedType(values: DriveFileTransferA
 export type DriveFileTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 	name: string;
 	mimeType: string;
 }

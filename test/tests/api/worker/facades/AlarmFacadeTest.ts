@@ -127,10 +127,14 @@ o.spec("AlarmFacadeTest", function () {
 					}),
 				],
 			})
-			const userAlarmInfo = [createUserAlarmInfoTransferAggregatedType({ alarmInfo })]
-			userAlarmInfo[0]._ownerGroup = userGroupMembership.group
-			userAlarmInfo[0]._ownerEncSessionKey = ownerEncSessionKey
-			userAlarmInfo[0]._ownerKeyVersion = userGroupKey.version.toString()
+			const userAlarmInfo = [
+				createUserAlarmInfoTransferAggregatedType({
+					_ownerGroup: userGroupMembership.group,
+					_ownerEncSessionKey: ownerEncSessionKey,
+					_ownerKeyVersion: userGroupKey.version.toString(),
+					alarmInfo,
+				}),
+			]
 			const alarmServicePostData = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo })
 
 			const eventAlarmsTuple: EventAlarmInfoTemplatesTuple = {

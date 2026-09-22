@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ElementId, ListElementId } from "@tutao/meta"
+import { ListElementId, ElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -499,6 +499,7 @@ export type BucketPermissionParams = {
 	pubKeyVersion: null | NumberString;
 	ownerEncBucketKey: null | Uint8Array<ArrayBuffer>;
 	protocolVersion: NumberString;
+	ownerKeyVersion: null | NumberString;
 	symKeyVersion: null | NumberString;
 	senderKeyVersion: null | NumberString;
 
@@ -1240,6 +1241,8 @@ export function createUpdatePermissionKeyData(values: UpdatePermissionKeyDataPar
 export type UpdatePermissionKeyDataParams = {
 
 
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
 
 	permission: IdTuple;
 	bucketPermission: IdTuple;
@@ -4459,8 +4462,10 @@ export type GiftCardCreateDataParams = {
 
 
 	message: null | string;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
 	value: null | NumberString;
 	keyHash: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	giftCard: null | GiftCardTransferAggregatedType;
 }
@@ -5336,6 +5341,7 @@ export type GroupKeyParams = {
 
 
 	ownerEncGKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
 	adminGroupEncGKey: null | Uint8Array<ArrayBuffer>;
 	adminGroupKeyVersion: null | NumberString;
 
@@ -6594,6 +6600,8 @@ export function createUserAlarmInfoData(values: UserAlarmInfoDataParams): UserAl
 export type UserAlarmInfoDataParams = {
 
 
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: NumberString;
 	encryptedTrigger: Uint8Array<ArrayBuffer>;
 	alarmIdentifier: string;
 
@@ -6789,6 +6797,8 @@ export function createGiftCardTransferAggregatedType(values: GiftCardTransferAgg
 export type GiftCardTransferAggregatedTypeParams = {
 
 
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 	value: NumberString;
 	message: string;
 }
@@ -7114,6 +7124,9 @@ export function createUserAlarmInfoTransferAggregatedType(values: UserAlarmInfoT
 export type UserAlarmInfoTransferAggregatedTypeParams = {
 
 
+	_ownerGroup: null | Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 }
