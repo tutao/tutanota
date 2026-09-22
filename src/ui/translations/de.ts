@@ -2641,6 +2641,20 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"toggleSpamStrictMode_label": "Strengen Spam-Filter aktivieren",
+		"toggleSpamStrictMode_msg": "Nachrichten, bei denen die Authentifizierung fehlgeschlagen ist (Nachrichten mit Warnhinweis), immer als Spam markieren.",
+		"spamFiltering_label": "Spam-Filter",
+		"strictSpamFiltering_label": "Strenge Spam-Filterung",
+		"spamFilteringSettingsInfo_msg": "Alle eingehenden Nachrichten werden von einem selbstlernenden Spam-Filter geprüft. Du kannst den Filter verbessern, indem du Nachrichten in den oder aus dem Spam-Ordner verschiebst. Der Spam-Filter wird mit der Zeit besser, wenn du Fehler meldest. Weitere Informationen findest du <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support#spam\">hier</a>.",
+		"spamFilterLastRetrained_msg": "Zuletzt neu trainiert am {date}",
+		"retrainSpamFilter_action": "Spam-Filter neu trainieren",
+		"retrainSpamFilter_msg": "Das Neutrainieren deines Spam-Filters betrifft nur dieses Gerät.",
+		"retrainingSpamFilter_msg": "Spam-Filter wird neu trainiert…",
+		"retrainSpamFilterConfirmTitle_label": "Bevor du deinen Filter trainierst, stelle sicher, dass du deine E-Mails richtig sortiert hast",
+		"retrainSpamFilterConfirm_msg": "Wenn sich in anderen Ordnern als Spam noch Spam-E-Mails befinden, wird die Qualität des Spam-Filters schlecht sein. Beim erneuten Trainieren wird der vorhandene Filter verworfen und für alle Postfächer anhand deiner E-Mails von Grund auf neu trainiert, was einen Moment dauert. Hast du deine E-Mails richtig sortiert und bist du bereit zum erneuten Trainieren?",
+		"retrainSpamFilterNotYet_action": "Noch nicht",
+		"mailAuthSuggestSettings_msg": "Da der strenge Spam-Filter aktiviert ist, wird diese Nachricht immer in den Spam-Ordner verschoben.",
+		"openSpamSettings_action": "Spam-Einstellungen öffnen",
 	}
 }

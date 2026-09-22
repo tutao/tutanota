@@ -518,4 +518,15 @@ export class SpamClassifier {
 			})
 		})
 	}
+
+	async getLastTrainedFromScratchTime(ownerGroup: Id): Promise<number | null> {
+		return this.classifierByMailGroup.get(ownerGroup)?.metaData.lastTrainedFromScratchTime ?? null
+	}
+
+	async retrainAllModels() {
+		console.log("Retraining all spam models ...")
+		for (const ownerGroup of this.classifierByMailGroup.keys()) {
+			await this.trainFromScratch(ownerGroup)
+		}
+	}
 }

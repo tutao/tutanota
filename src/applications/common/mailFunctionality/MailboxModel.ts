@@ -21,6 +21,8 @@ import {
 import { Group, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef } from "@tutao/entities/sys"
 import m from "mithril"
 import { ProgrammingError } from "@tutao/app-env"
+import { SpamFilterBehavior } from "../../mail-app/mail/model/SpamClassificationHandler"
+import { ReportMovedMailsType } from "../../../entities/tutanota/Utils"
 
 export type MailboxDetail = {
 	mailbox: MailBox
@@ -182,9 +184,10 @@ export class MailboxModel {
 	async loadOrCreateMailboxProperties(mailboxGroupRoot: MailboxGroupRoot): Promise<MailboxProperties> {
 		if (!mailboxGroupRoot.mailboxProperties) {
 			const properties = createMailboxProperties({
-				reportMovedMails: "0",
+				reportMovedMails: ReportMovedMailsType.ALWAYS_ASK,
 				mailAddressProperties: [],
 				inboxRuleOrder: [],
+				spamFilterBehavior: SpamFilterBehavior.DEFAULT,
 			})
 			properties._ownerGroup = mailboxGroupRoot._ownerGroup ?? ""
 			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, properties).catch(

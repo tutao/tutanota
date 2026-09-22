@@ -2641,6 +2641,20 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"toggleSpamStrictMode_label": "Strengen Spam-Filter aktivieren",
+		"toggleSpamStrictMode_msg": "Nachrichten, bei denen die Authentifizierung fehlgeschlagen ist (Nachrichten mit Warnhinweis), immer als Spam markieren.",
+		"spamFiltering_label": "Spam-Filter",
+		"openSpamSettings_action": "Spam-Einstellungen öffnen",
+		"spamFilterLastRetrained_msg": "Zuletzt neu trainiert am {date}",
+		"spamFilteringSettingsInfo_msg": "Alle eingehenden Nachrichten werden von einem selbstlernenden Spam-Filter geprüft. Sie können den Filter verbessern, indem Sie Nachrichten in den oder aus dem Spam-Ordner verschieben. Der Spam-Filter wird mit der Zeit besser, wenn Sie Fehler melden. Weitere Informationen finden Sie <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support#spam\">hier</a>.",
+		"strictSpamFiltering_label": "Strenge Spam-Filterung",
+		"retrainSpamFilter_action": "Spam-Filter neu trainieren",
+		"retrainSpamFilter_msg": "Das Neutrainieren Ihres Spam-Filters betrifft nur dieses Gerät.",
+		"retrainingSpamFilter_msg": "Spam-Filter wird neu trainiert…",
+		"retrainSpamFilterConfirmTitle_label": "Bevor Sie Ihren Filter trainieren, stellen Sie sicher, dass Sie Ihre E-Mails richtig sortiert haben",
+		"retrainSpamFilterConfirm_msg": "Wenn sich in anderen Ordnern als Spam noch Spam-E-Mails befinden, wird die Qualität des Spam-Filters schlecht sein. Beim erneuten Trainieren wird der vorhandene Filter verworfen und für alle Postfächer anhand Ihrer E-Mails von Grund auf neu trainiert, was einen Moment dauert. Haben Sie Ihre E-Mails richtig sortiert und sind Sie bereit zum erneuten Trainieren?",
+		"retrainSpamFilterNotYet_action": "Noch nicht",
+		"mailAuthSuggestSettings_msg": "Da der strenge Spam-Filter aktiviert ist, wird diese Nachricht immer in den Spam-Ordner verschoben.",
 	}
 }

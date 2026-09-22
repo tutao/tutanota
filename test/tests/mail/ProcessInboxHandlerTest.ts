@@ -3,11 +3,15 @@ import { matchers, object, verify, when } from "testdouble"
 import { assertNotNull, delay } from "../../../src/platform-kit/utils"
 import { MailFacade } from "../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { createTestEntity } from "../TestUtils"
-import { SkipClientSpamClassificationReason, SpamClassificationHandler } from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
+import {
+	SkipClientSpamClassificationReason,
+	SpamClassificationHandler,
+	SpamFilterBehavior,
+} from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
 import { FolderSystem } from "../../../src/applications/common/api/common/mail/FolderSystem"
 import { InboxRuleHandler, SomeInboxRule } from "../../../src/applications/mail-app/mail/model/InboxRuleHandler"
 import { ProcessInboxHandler, UnencryptedProcessInboxDatum } from "../../../src/applications/mail-app/mail/model/ProcessInboxHandler"
-import { MailboxDetail } from "../../../src/applications/common/mailFunctionality/MailboxModel"
+import { MailboxDetail, MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel"
 import { LoginController } from "../../../src/applications/common/api/main/LoginController"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { MailSetKind, ProcessingState, SpamDecision } from "../../../src/entities/tutanota/Utils"
@@ -16,6 +20,8 @@ import {
 	BodyTypeRef,
 	ClientSpamClassifierResultTypeRef,
 	Mail,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
 	MailDetails,
 	MailDetailsTypeRef,
 	MailSetTypeRef,
@@ -40,6 +46,8 @@ o.spec("ProcessInboxHandler", function () {
 	let spamHandler: SpamClassificationHandler
 	let folderSystem: FolderSystem
 	let mailboxDetail: MailboxDetail
+	let mailboxModel: MailboxModel
+	let mailboxProperties: MailboxProperties
 	let mailDetails: MailDetails
 	let inboxRuleHandler: InboxRuleHandler = object<InboxRuleHandler>()
 	let processInboxHandler: ProcessInboxHandler
@@ -72,6 +80,8 @@ o.spec("ProcessInboxHandler", function () {
 		})
 		folderSystem = object<FolderSystem>()
 		mailboxDetail = object()
+		mailboxModel = object<MailboxModel>()
+		mailboxProperties = createTestEntity(MailboxPropertiesTypeRef, { spamFilterBehavior: null })
 
 		when(folderSystem.getSystemFolderByType(MailSetKind.INBOX)).thenReturn(inboxFolder)
 		when(folderSystem.getSystemFolderByType(MailSetKind.SPAM)).thenReturn(spamFolder)
@@ -83,6 +93,7 @@ o.spec("ProcessInboxHandler", function () {
 				}),
 			),
 		).thenDo(async () => mailDetails)
+		when(mailboxModel.getMailboxProperties(anything())).thenResolve(mailboxProperties)
 		processInboxHandler = new ProcessInboxHandler(
 			logins,
 			mailFacade,
@@ -90,6 +101,7 @@ o.spec("ProcessInboxHandler", function () {
 			() => spamHandler,
 			async () => inboxRuleHandler,
 			true,
+			mailboxModel,
 			new Map(),
 			new Map(),
 			0,
@@ -100,7 +112,7 @@ o.spec("ProcessInboxHandler", function () {
 		o.test("send instanceSessionKeys with processInboxDatum", async function () {
 			mail.sets = [inboxFolder._id]
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -141,7 +153,7 @@ o.spec("ProcessInboxHandler", function () {
 		o.test("no instanceSessionKeys sent if isLeaderClient == false", async function () {
 			mail.sets = [inboxFolder._id]
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -182,7 +194,7 @@ o.spec("ProcessInboxHandler", function () {
 		// set the bucketKey to null, as it has already been resolved by e.g. another client
 		mail.bucketKey = null
 
-		when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+		when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 			modelInput,
 			uploadableVectorLegacy,
 			uploadableVector,
@@ -216,7 +228,7 @@ o.spec("ProcessInboxHandler", function () {
 
 			o.check(targetFolder).deepEquals(inboxFolder)
 			verify(mailFacade.loadMailDetailsBlob(anything()), { times: 0 })
-			verify(spamHandler.preparePredictSpamForNewMail(anything(), anything()), { times: 0 })
+			verify(spamHandler.preparePredictSpamForNewMail(anything(), anything(), anything()), { times: 0 })
 			verify(spamHandler.predictSpamForNewMail(anything(), anything()), { times: 0 })
 			verify(inboxRuleHandler.findMatchingInboxRule(anything(), anything(), anything()), { times: 0 })
 
@@ -228,7 +240,7 @@ o.spec("ProcessInboxHandler", function () {
 			mail.sets = [inboxFolder._id]
 			const matchingInboxRule = object<SomeInboxRule>()
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -252,7 +264,7 @@ o.spec("ProcessInboxHandler", function () {
 			mail.sets = [spamFolder._id]
 			mail.serverClassificationData = "1,2"
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -282,7 +294,7 @@ o.spec("ProcessInboxHandler", function () {
 			mail.sets = [spamFolder._id]
 			mail.serverClassificationData = "1,2"
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -312,7 +324,7 @@ o.spec("ProcessInboxHandler", function () {
 			const matchingInboxRule = object<SomeInboxRule>()
 			mail.serverClassificationData = "1,2"
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -342,7 +354,7 @@ o.spec("ProcessInboxHandler", function () {
 		o.test("when mail is classified as SPAM by the server, but as HAM by the client, move mail to Inbox", async () => {
 			mail.sets = [spamFolder._id]
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -374,7 +386,7 @@ o.spec("ProcessInboxHandler", function () {
 			mail.sets = [spamFolder._id]
 			const matchingInboxRule = object<SomeInboxRule>()
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -407,7 +419,7 @@ o.spec("ProcessInboxHandler", function () {
 			mail.sets = [inboxFolder._id]
 			const matchingInboxRule = object<SomeInboxRule>()
 
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,
@@ -443,7 +455,7 @@ o.spec("ProcessInboxHandler", function () {
 				mail.sets = [inboxFolder._id]
 				matchingInboxRule = object()
 
-				when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+				when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 					modelInput,
 					uploadableVectorLegacy,
 					uploadableVector,
@@ -576,7 +588,7 @@ o.spec("ProcessInboxHandler", function () {
 		o.test("retry in case of locked error", async function () {
 			let throwError = true
 			when(inboxRuleHandler.findMatchingInboxRule(mail, inboxFolder)).thenResolve(null)
-			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails)).thenResolve({
+			when(spamHandler.preparePredictSpamForNewMail(mail, mailDetails, SpamFilterBehavior.DEFAULT)).thenResolve({
 				modelInput,
 				uploadableVectorLegacy,
 				uploadableVector,

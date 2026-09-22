@@ -87,7 +87,17 @@ import { locator } from "../../../common/api/main/CommonLocator"
 import { CALENDAR_MIME_TYPE } from "../../../../platform-kit/utils/FileConstants"
 import { SanitizedFragment } from "../../../../ui/utils/HtmlSanitizerInterface"
 import { ArchiveDataType } from "../../../../entities/sys/Utils"
-import { createMailAddress, EncryptedMailAddress, File, Mail, MailAddress, MailDetails, MailTypeRef } from "@tutao/entities/tutanota"
+import {
+	createMailAddress,
+	EncryptedMailAddress,
+	File,
+	Mail,
+	MailAddress,
+	MailboxProperties,
+	MailboxPropertiesTypeRef,
+	MailDetails,
+	MailTypeRef,
+} from "@tutao/entities/tutanota"
 import {
 	ConversationType,
 	ExternalImageRule,
@@ -117,6 +127,8 @@ import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExten
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { InboxRuleModel } from "../model/InboxRuleModel"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
+import { SETTINGS_PREFIX } from "../../../../ui/utils/RouteChange"
+import { SpamFilterBehavior } from "../model/SpamClassificationHandler"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -191,6 +203,7 @@ export class MailViewerViewModel {
 
 	private mailDetails: MailDetails | null = null
 	private mailboxDetails: MailboxDetail | null = null
+	private mailboxProperties: MailboxProperties | null = null
 
 	constructor(
 		private _mail: Mail,
@@ -243,6 +256,10 @@ export class MailViewerViewModel {
 								throw e
 							}
 						}
+					}
+				} else if (isUpdateForTypeRef(MailboxPropertiesTypeRef, update)) {
+					if (this.mailboxDetails?.mailboxGroupRoot) {
+						this.mailboxProperties = await this.mailboxModel.getMailboxProperties(this.mailboxDetails?.mailboxGroupRoot)
 					}
 				}
 			}
@@ -989,6 +1006,9 @@ export class MailViewerViewModel {
 		try {
 			this.mailDetails = await loadMailDetails(this.mailFacade, this.mail)
 			this.mailboxDetails = await this.getMailboxDetails()
+			if (this.mailboxDetails?.mailboxGroupRoot) {
+				this.mailboxProperties = await this.mailboxModel.getMailboxProperties(this.mailboxDetails?.mailboxGroupRoot)
+			}
 			this.errorOccurredWhileLoadingMailDetails = typeof downcast(this.mailDetails)._errors !== "undefined"
 		} catch (e) {
 			if (e instanceof NotFoundError) {
@@ -1656,5 +1676,14 @@ export class MailViewerViewModel {
 		}
 
 		return actions
+	}
+
+	openSpamFilterSettings() {
+		const router = mailLocator.throttledRouter()
+		router.routeTo(`${SETTINGS_PREFIX}/spamfiltering`, {})
+	}
+
+	getSpamFilterBehaviorSetting() {
+		return (this.mailboxProperties?.spamFilterBehavior ?? SpamFilterBehavior.DEFAULT) as SpamFilterBehavior
 	}
 }

@@ -1,4 +1,4 @@
-import { EnvProvider, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
+import { EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -7,6 +7,7 @@ import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { Mail, MailDetails } from "@tutao/entities/tutanota"
 import { MailPhishingStatus } from "../../../../entities/tutanota/Utils"
+import { first } from "@tutao/utils"
 
 EnvProvider.assertMainOrNode()
 
@@ -26,6 +27,7 @@ export const enum SkipClientSpamClassificationReason {
 	FromTrustedSender,
 	SpoofedSender,
 	ClassifiedByTrustedServerClassifier,
+	StrictSpamFilter,
 }
 
 export const enum MailFromSelfPossibilities {
@@ -33,6 +35,13 @@ export const enum MailFromSelfPossibilities {
 	MailFromSelfSpoofed,
 	MailNotFromSelf,
 }
+
+export const enum SpamFilterBehavior {
+	DEFAULT = "0",
+	STRICT = "1",
+}
+
+const CUSTOMER_SPAM_RULES_CLASSIFIER: number = 5
 
 export class SpamClassificationHandler {
 	public constructor(
@@ -49,38 +58,47 @@ export class SpamClassificationHandler {
 	public async preparePredictSpamForNewMail(
 		mail: Mail,
 		mailDetails: MailDetails,
+		spamFilterBehavior: SpamFilterBehavior,
 	): Promise<{
 		modelInput: number[]
 		uploadableVectorLegacy: Uint8Array<ArrayBuffer>
 		uploadableVector: Uint8Array<ArrayBuffer>
 		skipPredictionReason: SkipClientSpamClassificationReason
 	}> {
-		const skipPredictionReason = await this.getSkipClientClassificationReason(mail, mailDetails)
+		const skipPredictionReason = await this.getSkipClientClassificationReason(mail, mailDetails, spamFilterBehavior)
 		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
 
 		return { skipPredictionReason, modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 
-	private async getSkipClientClassificationReason(mail: Mail, mailDetails: MailDetails): Promise<SkipClientSpamClassificationReason> {
+	private async getSkipClientClassificationReason(
+		mail: Mail,
+		mailDetails: MailDetails,
+		spamFilterBehavior: SpamFilterBehavior,
+	): Promise<SkipClientSpamClassificationReason> {
 		const mailFromSelfResult = await this.isMailFromSelf(mail, mailDetails)
+
+		let serverClassificationData = null
+		if (mail.serverClassificationData) {
+			serverClassificationData = first(extractServerClassifiers(mail.serverClassificationData))
+		}
+
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			return SkipClientSpamClassificationReason.MarkedAsPhishing
+		} else if (serverClassificationData && serverClassificationData === CUSTOMER_SPAM_RULES_CLASSIFIER) {
+			// CustomerSpamRule classifier needs to have priority over others
+			return SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier
 		} else if (mailFromSelfResult === MailFromSelfPossibilities.MailFromSelfAuthenticated || (await this.isMailFromTrustedSender(mail, mailDetails))) {
 			return SkipClientSpamClassificationReason.FromTrustedSender
 		} else if (mailFromSelfResult === MailFromSelfPossibilities.MailFromSelfSpoofed) {
 			return SkipClientSpamClassificationReason.SpoofedSender
-		} else if (this.isMailClassifiedByTrustedServerClassifier(mail)) {
+		} else if (spamFilterBehavior === SpamFilterBehavior.STRICT && mailDetails.authStatus !== MailAuthenticationStatus.AUTHENTICATED) {
+			return SkipClientSpamClassificationReason.StrictSpamFilter
+		} else if (serverClassificationData && SERVER_CLASSIFIERS_TO_TRUST.has(serverClassificationData)) {
 			return SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier
 		} else {
 			return SkipClientSpamClassificationReason.None
 		}
-	}
-
-	private isMailClassifiedByTrustedServerClassifier(mail: Mail): boolean {
-		if (!mail.serverClassificationData) {
-			return false
-		}
-		return extractServerClassifiers(mail.serverClassificationData).some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
 	}
 
 	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
@@ -109,7 +127,10 @@ export class SpamClassificationHandler {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
 		if (isMailFromSelf) {
-			if (mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+			if (
+				mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED &&
+				mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+			) {
 				return MailFromSelfPossibilities.MailFromSelfAuthenticated
 			} else {
 				return MailFromSelfPossibilities.MailFromSelfSpoofed

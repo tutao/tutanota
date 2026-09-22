@@ -2641,6 +2641,20 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"toggleSpamStrictMode_label": "Enable strict spam filter",
+		"toggleSpamStrictMode_msg": "Always mark mails that have failed authentication (Mails with warning banners) as spam.",
+		"spamFiltering_label": "Spam filtering",
+		"strictSpamFiltering_label": "Strict spam filtering",
+		"spamFilteringSettingsInfo_msg": "All incoming mails are checked by a self-learning spam filter. You can improve the filter by moving mails to or from the spam folder. The spam filter gets better over time as you report mistakes.More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support#spam\">here</a>.",
+		"spamFilterLastRetrained_msg": "Last retrained on {date}",
+		"retrainSpamFilter_action": "Retrain spam filter",
+		"retrainSpamFilter_msg": "Retraining your spam filter only effects this device.",
+		"retrainingSpamFilter_msg": "Retraining spam filter…",
+		"retrainSpamFilterConfirmTitle_label": "Before training your filter, make sure you've sorted your mails correctly",
+		"retrainSpamFilterConfirm_msg": "If there are spam mails in folders other than Spam, the quality of the spam filter will be bad. Retraining drops the existing filter and learns from scratch from your mails in all mailboxes, which will take a short while. Have you properly sorted your mail and are you ready to retrain?",
+		"retrainSpamFilterNotYet_action": "Not yet",
+		"mailAuthSuggestSettings_msg": "Because strict spam filtering is enabled, this mail is always delivered to the spam folder.",
+		"openSpamSettings_action": "Open spam settings",
 	}
 }
