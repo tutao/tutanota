@@ -4,6 +4,7 @@ import { assert, assertNotNull, isNotNull, Nullable } from "../../../platform-ki
 import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"
 import { NextcloudPlugin } from "./NextcloudPlugin"
+import { isNull } from "../../../platform-kit/utils/Utils"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -53,7 +54,10 @@ export class NextcloudApi {
 
 		const poll = nextcloudResponse.data.poll
 		const userLoginUrl = nextcloudResponse.data.login
-		await this.hostApi.openWindow(userLoginUrl)
+		const windowId = await this.hostApi.openWindow(userLoginUrl)
+		if (isNull(windowId)) {
+			throw new Error("Failed to open the Nextcloud login page")
+		}
 
 		while (true) {
 			const pollResponse = await this.axiosClient.post(
@@ -70,11 +74,17 @@ export class NextcloudApi {
 			)
 
 			if (pollResponse.status === 404) {
-				await new Promise((resolve) => setTimeout(resolve, 2000))
-				console.log("Waiting for user to finish Nextcloud login")
-				continue
+				if (await this.hostApi.isWindowOpen(windowId)) {
+					await new Promise((resolve) => setTimeout(resolve, 2000))
+					console.log("Waiting for user to finish Nextcloud login")
+					continue
+				} else {
+					console.error("Nextcloud login flow is not completed")
+					throw new Error("Nextcloud login flow is not completed")
+				}
 			}
 
+			await this.hostApi.closeWindow(windowId)
 			this.throwErrorIfNotOk(pollResponse, "During login flow")
 			this.nextCloudCredentials = {
 				loginName: assertNotNull(pollResponse.data.loginName),
