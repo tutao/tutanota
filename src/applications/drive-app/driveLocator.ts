@@ -130,6 +130,7 @@ import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { DialogProvider } from "../common/app-common"
 
 EnvProvider.assertMainOrNode()
 
@@ -667,7 +668,7 @@ class DriveLocator implements CommonLocator {
 
 			const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 			this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-			this.pluginManager = new PluginManager(pluginConfigurationProvider)
+			this.pluginManager = new PluginManager(pluginConfigurationProvider, new DialogProvider())
 			this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 			pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
