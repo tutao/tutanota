@@ -185,6 +185,7 @@ export class MailboxModel {
 				reportMovedMails: "0",
 				mailAddressProperties: [],
 				inboxRuleOrder: [],
+				spamFilterBehavior: "0",
 			})
 			properties._ownerGroup = mailboxGroupRoot._ownerGroup ?? ""
 			mailboxGroupRoot.mailboxProperties = await this.entityClient.setup(null, properties).catch(

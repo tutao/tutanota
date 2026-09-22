@@ -81,6 +81,7 @@ import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
 import { InboxRuleSettingsViewer } from "./InboxRuleSettingsViewer"
+import { SpamFilteringSettingsViewer } from "./SpamFilteringSettingsViewer"
 
 EnvProvider.assertMainOrNode()
 
@@ -128,6 +129,13 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => Icons.FunnelFilled,
 				"inboxrules",
 				() => new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler),
+				undefined,
+			),
+			new SettingsFolder(
+				() => "spamFiltering_label",
+				() => Icons.BugFilled,
+				"spamfiltering",
+				() => new SpamFilteringSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient),
 				undefined,
 			),
 			new SettingsFolder(

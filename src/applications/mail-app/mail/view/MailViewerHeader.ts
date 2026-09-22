@@ -46,6 +46,7 @@ import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
 import { ExtensionPoint, PluginLanguageCode } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
+import { SpamFilterBehavior } from "../model/SpamClassificationHandler"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -69,6 +70,13 @@ export interface MailViewerHeaderAttrs {
 export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	private detailsExpanded = false
 	private filesExpanded = false
+	private spamBehaviorSetting = SpamFilterBehavior.DEFAULT.toString()
+
+	async oninit({ attrs }: Vnode<MailViewerHeaderAttrs>) {
+		this.spamBehaviorSetting = await attrs.viewModel.getSpamBehaviorSetting()
+
+		m.redraw()
+	}
 
 	view({ attrs }: Vnode<MailViewerHeaderAttrs>): Children {
 		const { viewModel } = attrs
@@ -759,8 +767,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		const warningMsg = lang.getTranslationText("mailAuthFailed_msg")
+		const settingsMsgOn = lang.getTranslationText("mailAuthSuggestSettings_msg")
+		const settingsMsgOff = lang.getTranslationText("mailAuthSuggestSettingsOff_msg")
+
+		const displayedMessage = this.spamBehaviorSetting === SpamFilterBehavior.DEFAULT ? settingsMsgOff : settingsMsgOn
 		return m(InfoBanner, {
-			message: "mailAuthFailed_msg",
+			message: () => {
+				return `${warningMsg}\n\n${displayedMessage}`
+			},
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			type: BannerType.Warning,
@@ -769,24 +784,40 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 					label: "close_alt",
 					click: () => viewModel.setWarningDismissed(true),
 				},
+				{
+					label: "settingsView_action",
+					click: () => {
+						viewModel.openFilterSettings()
+					},
+				},
 			],
 		})
 	}
 
 	private renderSoftAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		const message = viewModel.mail.differentEnvelopeSender
+			? lang.getTranslation("mailAuthMissingWithTechnicalSender_msg", {
+					"{sender}": viewModel.mail.differentEnvelopeSender,
+				}).text
+			: lang.getTranslationText("mailAuthMissing_label")
+		const settingsMsgOn = lang.getTranslationText("mailAuthSuggestSettings_msg")
+		const settingsMsgOff = lang.getTranslationText("mailAuthSuggestSettingsOff_msg")
+
+		const displayedSettingsMsg = this.spamBehaviorSetting === SpamFilterBehavior.DEFAULT ? settingsMsgOff : settingsMsgOn
 		const buttons: ReadonlyArray<BannerButtonAttrs | null> = [
 			{
 				label: "close_alt",
 				click: () => viewModel.setWarningDismissed(true),
 			},
+			{
+				label: "settingsView_action",
+				click: () => {
+					viewModel.openFilterSettings()
+				},
+			},
 		]
 		return m(InfoBanner, {
-			message: () =>
-				viewModel.mail.differentEnvelopeSender
-					? lang.getTranslation("mailAuthMissingWithTechnicalSender_msg", {
-							"{sender}": viewModel.mail.differentEnvelopeSender,
-						}).text
-					: lang.getTranslationText("mailAuthMissing_label"),
+			message: () => `${message}\n\n${displayedSettingsMsg}`,
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			buttons: buttons,

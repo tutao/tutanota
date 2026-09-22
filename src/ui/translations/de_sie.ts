@@ -2625,6 +2625,17 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"toggleSpamStrictMode_label": "Strengen Spam-Filter aktivieren",
+		"toggleSpamStrictMode_msg": "Nachrichten, bei denen die Authentifizierung fehlgeschlagen ist (Nachrichten mit entsprechendem Warnhinweis), immer als Spam markieren.",
+		"spamFiltering_label": "Spam-Filter",
+		"retrainSpamFilter_action": "Spam-Filter neu trainieren",
+		"retrainSpamFilter_msg": "Die vorhandenen Filter verwerfen und für alle Postfächer von Grund auf neu trainieren",
+		"retrainingSpamFilter_msg": "Spam-Filter wird neu trainiert…",
+		"retrainSpamFilterConfirmTitle_label": "Bevor Sie Ihren Filter trainieren, stellen Sie sicher, dass Sie Ihre E-Mails richtig sortiert haben",
+		"retrainSpamFilterConfirm_msg": "Wenn sich in anderen Ordnern als Spam noch Spam-E-Mails befinden, wird die Qualität des Spam-Filters schlecht sein. Beim erneuten Trainieren wird der vorhandene Filter verworfen und für alle Postfächer anhand Ihrer E-Mails von Grund auf neu trainiert, was einen Moment dauert. Haben Sie Ihre E-Mails richtig sortiert und sind Sie bereit zum erneuten Trainieren?",
+		"retrainSpamFilterNotYet_action": "Noch nicht",
+		"mailAuthSuggestSettings_msg": "Diese Nachrichten werden aufgrund Ihrer aktuellen Filtereinstellungen immer in den Spam-Ordner verschoben. Sie können dies über die Schaltfläche unten ändern.",
+		"mailAuthSuggestSettingsOff_msg": "Diese Nachrichten werden vom Spam-Filter behandelt und können je nach Inhalt im Posteingang oder im Spam-Ordner landen. Sie können dies über die Schaltfläche unten ändern.",
 	}
 }
