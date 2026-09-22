@@ -491,10 +491,12 @@ export class DriveFacade {
 			queryParams: null,
 			suspensionBehavior: null,
 		})
-		const fileSessionKey =
+		const shareKey =
 			encParam.type === "key"
 				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
 				: await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, share.salt)
+
+		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
 
 		return await this.entityClient.load(DriveFileTypeRef, share.file, {
 			extraHeaders: { nonce: nonce },
@@ -507,14 +509,15 @@ export class DriveFacade {
 		})
 	}
 
-	async downloadBlobsForShare(file: DriveFile, key: Base64): Promise<DataFile> {
+	async downloadBlobsForShare(file: DriveFile, shareKey: Base64): Promise<DataFile> {
+		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
+		const sessionKey = this.cryptoWrapper.decryptKey(uint8ArrayTo256Key(base64ToUint8Array(shareKey)), share.shareKeyEncFileSessionKey)
 		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
 			baseUrl: null,
 			extraHeaders: null,
 			suspensionBehavior: null,
-			sessionKey: uint8ArrayTo256Key(base64ToUint8Array(key)),
+			sessionKey: sessionKey,
 			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
-				const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
 				const nonce = uint8ArrayToBase64(share.nonce)
 				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
 					extraHeaders: { nonce: nonce },
