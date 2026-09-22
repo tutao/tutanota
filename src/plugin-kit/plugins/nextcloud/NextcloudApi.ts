@@ -20,6 +20,7 @@ export class NextcloudApi {
 	public constructor(
 		private readonly nextCloudUrl: string,
 		private readonly hostApi: PluginHostApi,
+		private readonly host: string,
 		private readonly nextcloudPlugin: NextcloudPlugin,
 	) {
 		this.nextCloudCredentials = null
@@ -234,6 +235,10 @@ export class NextcloudApi {
 	}
 
 	private proxiedUrl(targetUrl: string): string {
-		return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
+		if (["app.tuta.com", "app.test.tuta.com", "app.local.tuta.com", "localhost"].includes(this.host)) {
+			return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
+		} else {
+			return `${this.nextCloudUrl}${targetUrl}`
+		}
 	}
 }
