@@ -776,11 +776,11 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 			// instances shared via permissions (e.g. body)
 			const encryptedKey = this.cryptoWrapper.encryptKeyWithVersionedKey(permissionOwnerGroupKey, sessionKey)
 			let updateService = createUpdatePermissionKeyData({
+				ownerEncSessionKey: encryptedKey.key,
+				ownerKeyVersion: String(encryptedKey.encryptingKeyVersion),
 				permission: permission._id,
 				bucketPermission: bucketPermission._id,
 			})
-			updateService.ownerKeyVersion = String(encryptedKey.encryptingKeyVersion)
-			updateService.ownerEncSessionKey = encryptedKey.key
 			await this.serviceExecutor.execute(UpdatePermissionKeyService_POST, updateService, null)
 		}
 	}

@@ -1,16 +1,18 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
+import { DataTransferId, ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
-import { Blob } from "../sys/TypeRefs.js"
-import { BucketKey } from "../sys/TypeRefs.js"
-import { BlobReferenceTokenWrapper } from "../sys/TypeRefs.js"
-import { DateWrapper } from "../sys/TypeRefs.js"
-import { IdTupleWrapper } from "../sys/TypeRefs.js"
-import { StringWrapper } from "../sys/TypeRefs.js"
-import { GeneratedIdWrapper } from "../sys/TypeRefs.js"
-import { InstanceSessionKey } from "../sys/TypeRefs.js"
+import {
+	Blob,
+	BlobReferenceTokenWrapper,
+	BucketKey,
+	DateWrapper,
+	GeneratedIdWrapper,
+	IdTupleWrapper,
+	InstanceSessionKey,
+	StringWrapper,
+} from "../sys/TypeRefs.js"
 
 export const SubfilesTypeRef: TypeRef<Subfiles> = new TypeRef("tutanota", 11)
 
@@ -1203,6 +1205,9 @@ export function createCreateMailFolderData(values: CreateMailFolderDataParams): 
 
 export type CreateMailFolderDataParams = {
 	folderName: null | string
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerGroup: null | Id
+	ownerKeyVersion: null | NumberString
 
 	parentFolder: null | IdTuple
 	mailSet: null | MailSetTransferAggregatedType
@@ -1445,6 +1450,7 @@ export function createDraftAttachment(values: DraftAttachmentParams): DraftAttac
 
 export type DraftAttachmentParams = {
 	ownerEncFileSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	newFile: null | NewDraftAttachment
 	existingFile: null | IdTuple
@@ -1549,6 +1555,8 @@ export function createDraftCreateData(values: DraftCreateDataParams): DraftCreat
 export type DraftCreateDataParams = {
 	previousMessageId: null | string
 	conversationType: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 
 	draftData: DraftData
 }
@@ -1755,6 +1763,7 @@ export type SecureExternalRecipientKeyDataParams = {
 	pwEncCommunicationKey: null | Uint8Array<ArrayBuffer>
 	ownerEncBucketKey: Uint8Array<ArrayBuffer>
 	kdfVersion: NumberString
+	ownerKeyVersion: NumberString
 	userGroupKeyVersion: NumberString
 }
 
@@ -2142,6 +2151,7 @@ export type InternalGroupDataParams = {
 	pubKyberKey: null | Uint8Array<ArrayBuffer>
 	groupEncPrivKyberKey: null | Uint8Array<ArrayBuffer>
 	adminKeyVersion: NumberString
+	ownerKeyVersion: NumberString
 
 	adminGroup: null | Id
 }
@@ -5054,6 +5064,10 @@ export function createManageLabelServicePostIn(values: ManageLabelServicePostInP
 }
 
 export type ManageLabelServicePostInParams = {
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
+
 	data: null | ManageLabelServiceLabelData
 	mailSet: null | LabelPostTransferAggregatedType
 }
@@ -5292,6 +5306,7 @@ export type NewImportAttachmentParams = {
 	encFileName: null | Uint8Array<ArrayBuffer>
 	encMimeType: null | Uint8Array<ArrayBuffer>
 	encCid: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
 
 	referenceTokens: BlobReferenceTokenWrapper[]
 	deduplicatedImportedAttachment: null | ImportedDeduplicatedImportedAttachment
@@ -5378,6 +5393,8 @@ export function createImportMailData(values: ImportMailDataParams): ImportMailDa
 }
 
 export type ImportMailDataParams = {
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 	subject: string
 	compressedBodyText: string
 	date: Date
@@ -5619,6 +5636,9 @@ export function createImportMailGetIn(values: ImportMailGetInParams): ImportMail
 }
 
 export type ImportMailGetInParams = {
+	ownerGroup: Id
+	ownerKeyVersion: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
 	newImportedMailSetName: string
 	totalMails: NumberString
 
@@ -6370,6 +6390,7 @@ export function createProcessInboxDatum(values: ProcessInboxDatumParams): Proces
 
 export type ProcessInboxDatumParams = {
 	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 	classifierType: null | NumberString
 	encVectorLegacy: Uint8Array<ArrayBuffer>
 	encVectorWithServerClassifiers: null | Uint8Array<ArrayBuffer>
@@ -6458,6 +6479,7 @@ export function createPopulateClientSpamTrainingDatum(values: PopulateClientSpam
 
 export type PopulateClientSpamTrainingDatumParams = {
 	ownerEncVectorSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
 	isSpam: boolean
 	confidence: NumberString
 	encVectorLegacy: Uint8Array<ArrayBuffer>
@@ -6922,6 +6944,9 @@ export function createImapFolderPostIn(values: ImapFolderPostInParams): ImapFold
 }
 
 export type ImapFolderPostInParams = {
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
 	path: null | string
 	shouldSync: boolean
 	imapSpecialUse: null | string
@@ -7048,6 +7073,9 @@ export function createImapPostIn(values: ImapPostInParams): ImapPostIn {
 }
 
 export type ImapPostInParams = {
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: null | NumberString
+	ownerGroup: null | Id
 	maxQuota: null | NumberString
 	postponedUntil: null | NumberString
 	provider: null | NumberString
@@ -7444,6 +7472,8 @@ export type FileTransferAggregatedTypeParams = {
 	name: string
 	mimeType: null | string
 	cid: null | string
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 }
 
 export type FileTransferAggregatedType = {
@@ -7746,6 +7776,9 @@ export function createMailSetTransferAggregatedType(values: MailSetTransferAggre
 }
 
 export type MailSetTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_ownerGroup: null | Id
 	name: string
 
 	parentFolder: null | IdTuple
@@ -7823,6 +7856,9 @@ export function createLabelPostTransferAggregatedType(values: LabelPostTransferA
 }
 
 export type LabelPostTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_ownerGroup: null | Id
 	name: string
 	color: null | string
 
@@ -7865,6 +7901,9 @@ export function createImapFolderSyncStateTransferAggregatedType(
 }
 
 export type ImapFolderSyncStateTransferAggregatedTypeParams = {
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	path: string
 	imapSpecialUse: null | string
 
@@ -8003,6 +8042,9 @@ export function createImapAccountSyncStateTransferAggregatedType(
 }
 
 export type ImapAccountSyncStateTransferAggregatedTypeParams = {
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	maxQuota: NumberString
 	postponedUntil: NumberString
 	provider: NumberString
@@ -8265,6 +8307,8 @@ export function createImportedMail(values: ImportedMailParams): ImportedMail {
 }
 
 export type ImportedMailParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	subject: string
 	receivedDate: Date
 	state: NumberString
@@ -8356,6 +8400,8 @@ export function createImportedDeduplicatedImportedAttachment(values: ImportedDed
 }
 
 export type ImportedDeduplicatedImportedAttachmentParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
 	attachmentHash: string
 }
 
