@@ -7,6 +7,7 @@ import {
 	SERVER_CLASSIFIERS_TO_TRUST,
 	SkipClientSpamClassificationReason,
 	SpamClassificationHandler,
+	SpamFilterBehavior,
 } from "../../../src/applications/mail-app/mail/model/SpamClassificationHandler"
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
@@ -116,6 +117,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -126,11 +128,14 @@ o.spec("SpamClassificationHandler", function () {
 
 		o.test("skip spam classification when mail is from user themselves", async function () {
 			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+			mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 			mailDetails.recipients.toRecipients.push(mail.sender)
+			mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
 
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -148,16 +153,19 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
 			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
 			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
-			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.None)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.SpoofedSender)
 		})
 
 		o.test("skip spam classification when sender is one of the aliases of the user", async function () {
 			mail.sender = createTestEntity(MailAddressTypeRef, { address: "alias@tuta.com", name: "Name" })
+			mailDetails.authStatus = MailAuthenticationStatus.AUTHENTICATED
+			mail.encryptionAuthStatus = EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED
 			mailDetails.recipients.toRecipients.push(
 				createTestEntity(MailAddressTypeRef, {
 					address: "user@tuta.com",
@@ -169,6 +177,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -189,12 +198,35 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
 			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
 			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
 			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.FromTrustedSender)
+		})
+
+		o.test("classifier 5 has priority over other classifiers from a contact", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "user@tuta.com", name: "Tuta User" })
+			when(contactModel.searchForContact(mail.sender.address)).thenResolve(
+				createTestEntity(ContactTypeRef, {
+					mailAddresses: [createTestEntity(ContactMailAddressTypeRef, { address: mail.sender.address })],
+				}),
+			)
+			mail.serverClassificationData = "0,5"
+			mailDetails.recipients.toRecipients.push(mail.sender)
+
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+				null,
+			)
+
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.ClassifiedByTrustedServerClassifier)
 		})
 
 		o.test("skip spam classification when mail is suspected of phishing", async function () {
@@ -205,12 +237,30 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
 			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
 			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
 			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.MarkedAsPhishing)
+		})
+
+		o.test("skip spam classification when mail is non auth and spam filter is strict", async function () {
+			mail.sender = createTestEntity(MailAddressTypeRef, { address: "strict@email.com", name: "Mr Phish" })
+			mailDetails.recipients.toRecipients.push(mail.sender)
+			mailDetails.authStatus = MailAuthenticationStatus.HARD_FAIL
+
+			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
+				mail,
+				mailDetails,
+				SpamFilterBehavior.STRICT,
+			)
+
+			o.check(modelInput).deepEquals([0, 1])
+			o.check(uploadableVectorLegacy).deepEquals(compressedUnencryptedTestVector)
+			o.check(uploadableVector).deepEquals(compressedUnencryptedTestVector)
+			o.check(skipPredictionReason).equals(SkipClientSpamClassificationReason.StrictSpamFilter)
 		})
 
 		o.test("skip spam classification when mail is classified by trusted serverClassifier", async function () {
@@ -220,6 +270,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])

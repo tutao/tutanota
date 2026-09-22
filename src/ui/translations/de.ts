@@ -2625,6 +2625,14 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"toggleSpamStrictMode_label": "Strengen Spam-Filter aktivieren",
+		"toggleSpamStrictMode_msg": "Nachrichten, bei denen die Authentifizierung fehlgeschlagen ist (Nachrichten mit entsprechendem Warnhinweis), immer als Spam markieren.",
+		"spamFiltering_label": "Spam-Filter",
+		"retrainSpamFilter_action": "Spam-Filter neu trainieren",
+		"retrainSpamFilter_msg": "Die vorhandenen Filter verwerfen und für alle Postfächer von Grund auf neu trainieren",
+		"retrainSpamFilterConfirm_msg": "Das erneute Trainieren des Filters dauert einen Moment. Fortfahren?",
+		"mailAuthSuggestSettings_msg": "Diese Nachrichten werden aufgrund deiner aktuellen Filtereinstellungen immer in den Spam-Ordner verschoben. Du kannst dies über die Schaltfläche unten ändern.",
+		"mailAuthSuggestSettingsOff_msg": "Diese Nachrichten werden vom Spam-Filter behandelt und können je nach Inhalt im Posteingang oder im Spam-Ordner landen. Du kannst dies über die Schaltfläche unten ändern.",
 	}
 }

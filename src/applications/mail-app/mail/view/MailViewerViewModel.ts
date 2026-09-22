@@ -117,6 +117,8 @@ import { PluginDataFile } from "../../../../plugin-kit/sdk/AttachmentButtonExten
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager"
 import { InboxRuleModel } from "../model/InboxRuleModel"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
+import { SETTINGS_PREFIX } from "../../../../ui/utils/RouteChange"
+import { SpamFilterBehavior } from "../model/SpamClassificationHandler"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1656,5 +1658,17 @@ export class MailViewerViewModel {
 		}
 
 		return actions
+	}
+
+	openFilterSettings() {
+		const router = mailLocator.throttledRouter()
+		router.routeTo(`${SETTINGS_PREFIX}/inboxrules`, {})
+	}
+
+	async getSpamBehaviorSetting() {
+		const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
+
+		return mailboxProperties.spamFilterBehavior || SpamFilterBehavior.DEFAULT
 	}
 }
