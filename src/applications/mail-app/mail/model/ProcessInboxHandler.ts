@@ -15,7 +15,10 @@ import { LockedError } from "../../../../platform-kit/rest-client/error"
 
 assertMainOrNode()
 
-export type UnencryptedProcessInboxDatum = Omit<ProcessInboxDatumParams, "encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey"> & {
+export type UnencryptedProcessInboxDatum = Omit<
+	ProcessInboxDatumParams,
+	"encVectorLegacy" | "encVectorWithServerClassifiers" | "ownerEncVectorSessionKey" | "ownerKeyVersion"
+> & {
 	vectorLegacy: Uint8Array<ArrayBuffer>
 	vectorWithServerClassifiers: Uint8Array<ArrayBuffer>
 }

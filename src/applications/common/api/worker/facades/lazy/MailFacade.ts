@@ -248,17 +248,20 @@ export class MailFacade {
 		const sessionKey = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 		const mailSet = createMailSetTransferAggregatedType({
+			_ownerGroup: ownerGroupId,
+			_ownerEncSessionKey: ownerEncSessionKey.key,
+			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			name,
 			parentFolder: parent,
 		})
-		mailSet._ownerGroup = ownerGroupId
-		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
-		mailSet._ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		const newFolder = createCreateMailFolderData({
 			mailSet,
 
 			// no longer used
 
+			ownerGroup: null,
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			folderName: null,
 			parentFolder: null,
 		})
@@ -343,6 +346,8 @@ export class MailFacade {
 		const sk = aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 		const service = createDraftCreateData({
+			ownerEncSessionKey: ownerEncSessionKey.key,
+			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			draftData: createDraftData({
@@ -388,8 +393,6 @@ export class MailFacade {
 				}),
 			}),
 		})
-		service.ownerEncSessionKey = ownerEncSessionKey.key
-		service.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey: sk,
@@ -441,12 +444,12 @@ export class MailFacade {
 		mailGroupKey: VersionedKey,
 	): NewDraftAttachment {
 		const transferFile = createFileTransferAggregatedType({
+			_ownerEncSessionKey: encryptKey(mailGroupKey.object, fileSessionKey),
+			_ownerKeyVersion: mailGroupKey.version.toString(),
 			name: providedFile.name,
 			mimeType: providedFile.mimeType,
 			cid: providedFile.cid ?? null,
 		})
-		transferFile._ownerEncSessionKey = encryptKey(mailGroupKey.object, fileSessionKey)
-		transferFile._ownerKeyVersion = mailGroupKey.version.toString()
 
 		return createNewDraftAttachment({
 			// deprecated attributes, use file instead
@@ -674,25 +677,23 @@ export class MailFacade {
 		return promiseMap(providedFiles, async (providedFile) => {
 			// check if this is a new attachment or an existing one
 			if (!isTutanotaFile(providedFile)) {
-				const draftAttachment = createDraftAttachment({
-					existingFile: null,
+				return createDraftAttachment({
 					ownerEncFileSessionKey: null, // this is now set in the newFile, but still needed for the case of existingFile
+					ownerKeyVersion: null, // this is now set in the newFile, but still needed for the case of existingFile
+					existingFile: null,
 					newFile: await this.uploadAttachments(providedFile, senderMailGroupId, mailGroupKey),
 				})
-				draftAttachment.ownerKeyVersion = null // this is now set in the newFile, but still needed for the case of existingFile
-				return draftAttachment
 			} else if (!containsId(existingFileIds, getLetId(providedFile))) {
 				// forwarded attachment which was not in the draft before
 				return this.crypto.resolveSessionKey(providedFile).then((fileSessionKey) => {
 					const sessionKey = assertNotNull(fileSessionKey, "file session key was not resolved")
 					const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
-					const attachment = createDraftAttachment({
-						existingFile: getLetId(providedFile),
+					return createDraftAttachment({
 						ownerEncFileSessionKey: ownerEncFileSessionKey.key,
+						ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
+						existingFile: getLetId(providedFile),
 						newFile: null,
 					})
-					attachment.ownerKeyVersion = ownerEncFileSessionKey.encryptingKeyVersion.toString()
-					return attachment
 				})
 			} else {
 				return null
@@ -951,13 +952,13 @@ export class MailFacade {
 					mailAddress: recipient.address,
 					kdfVersion: kdfType,
 					ownerEncBucketKey: ownerEncBucketKey.key,
+					ownerKeyVersion: ownerEncBucketKey.encryptingKeyVersion.toString(),
 					passwordVerifier: passwordVerifier,
 					salt: salt,
 					saltHash: sha256Hash(salt),
 					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
 					userGroupKeyVersion: String(externalGroupKeys.currentExternalUserGroupKey.version),
 				})
-				data.ownerKeyVersion = ownerEncBucketKey.encryptingKeyVersion.toString()
 				sendDraftParameters.secureExternalRecipientKeyData.push(data)
 			} else {
 				const keyData = await this.crypto.encryptBucketKeyForInternalRecipient(
@@ -1322,19 +1323,22 @@ export class MailFacade {
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const mailSet = createLabelPostTransferAggregatedType({
+			_ownerGroup: mailGroupId,
+			_ownerEncSessionKey: ownerEncSessionKey.key,
+			_ownerKeyVersion: String(ownerEncSessionKey.encryptingKeyVersion),
 			name: labelData.name,
 			parentFolder: labelData.parentLabelId ?? null,
 			color: labelData.color,
 		})
-		mailSet._ownerGroup = mailGroupId
-		mailSet._ownerEncSessionKey = ownerEncSessionKey.key
-		mailSet._ownerKeyVersion = String(ownerEncSessionKey.encryptingKeyVersion)
 
 		const data = createManageLabelServicePostIn({
 			mailSet,
 
 			// no longer used
 
+			ownerGroup: null,
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
 			data: null,
 		})
 
@@ -1436,6 +1440,7 @@ export class MailFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const processInboxDatum = createProcessInboxDatum({
 				ownerEncVectorSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				encVectorLegacy: aesEncrypt(sk, vectorLegacy),
 				encVectorWithServerClassifiers: aesEncrypt(sk, vectorWithServerClassifiers),
 				classifierType,
@@ -1443,7 +1448,6 @@ export class MailFacade {
 				targetMoveFolder,
 				ownerEncMailSessionKeys: unencryptedProcessInboxDatum.ownerEncMailSessionKeys,
 			})
-			processInboxDatum.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			processInboxData.push(processInboxDatum)
 		}
 		return processInboxData
@@ -1478,13 +1482,13 @@ export class MailFacade {
 			const { isSpam, confidence, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
 			const populateClientSpamTrainingDatum = createPopulateClientSpamTrainingDatum({
 				ownerEncVectorSessionKey: ownerEncSessionKey.key,
+				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 				encVectorLegacy: aesEncrypt(sk, vector),
 				encVectorWithServerClassifiers: aesEncrypt(sk, vectorNewFormat),
 				isSpam,
 				mailId,
 				confidence,
 			})
-			populateClientSpamTrainingDatum.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
 			populateClientSpamTrainingData.push(populateClientSpamTrainingDatum)
 		}
 		return populateClientSpamTrainingData
