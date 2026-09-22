@@ -1,4 +1,4 @@
-import { downcast, lazy, typedEntries } from "../../platform-kit/utils"
+import { downcast, DurationFormatStub, lazy, typedEntries } from "../../platform-kit/utils"
 import type { TranslationKeyType } from "./TranslationKey"
 import { getWhitelabelCustomizations } from "./WhitelabelUtils"
 import { EnvProvider } from "../../platform-kit/app-env"
@@ -511,9 +511,12 @@ export class LanguageViewModel {
 				month: "2-digit",
 				year: "2-digit",
 			}),
-			durationNarrow: new Intl.DurationFormat(tag, {
-				style: "narrow",
-			}),
+			durationNarrow:
+				typeof Intl.DurationFormat === "undefined"
+					? new DurationFormatStub()
+					: new Intl.DurationFormat(tag, {
+							style: "narrow",
+						}),
 		}
 	}
 

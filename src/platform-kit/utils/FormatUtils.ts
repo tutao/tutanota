@@ -145,3 +145,45 @@ export function stripControlCharacters(text: string): string {
 	// In Unicode, "Control-characters" are U+0000—U+001F (C0 controls), U+007F (delete), and U+0080—U+009F (C1 controls).
 	return text.replace(/[\x00-\x1F\x7F\x80-\x9F]/g, "")
 }
+
+/**
+ * DurationFormat is currently only used to show remaining time for Drive transfers.
+ * As the feature is available since 2025, this stub exists to not exclude
+ * users with slightly older phones that cannot get updates anymore.
+ *
+ * It only supports calls to `format()` and only implements a very limited way
+ * of printing hours, minutes, seconds in English. No other language is supported.
+ *
+ * Consider removing this in 2028 or something.
+ *
+ *   -- martin, sep 2026
+ */
+export class DurationFormatStub implements Intl.DurationFormat {
+	constructor() {
+		console.warn("Initialized DurationFormatStub. Please make sure this is intended (shouldn't happen on recent browsers).")
+	}
+
+	format({ hours, minutes, seconds }: Partial<Record<Intl.DurationFormatUnit, number>>): string {
+		let result = ""
+
+		if (hours != null && hours > 0) {
+			result += `${hours}h `
+		}
+		if (minutes != null && minutes > 0) {
+			result += `${minutes}m `
+		}
+		if (seconds != null && seconds > 0) {
+			result += `${seconds}s`
+		}
+
+		return result.trim()
+	}
+
+	formatToParts(duration: Partial<Record<Intl.DurationFormatUnit, number>>): Intl.DurationFormatPart[] {
+		throw new Error("formatToParts() called on DurationFormatStub: not implemented")
+	}
+
+	resolvedOptions(): Intl.ResolvedDurationFormatOptions {
+		throw new Error("resolvedOptions() called on DurationFormatStub: not implemented")
+	}
+}
