@@ -1,7 +1,7 @@
 import { PluginHostApi } from "./PluginHostApi"
 import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDispatcher"
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
-import { assert, downcast } from "@tutao/utils"
+import { assert, downcast, ofClass } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { EnvProvider } from "@tutao/app-env"
 import { GeneralPluginError } from "./PluginError"
@@ -74,15 +74,10 @@ export abstract class PluginApi {
 				get: (_: object, property: string) => {
 					return async (...args: Array<any>): Promise<any> => {
 						const methodName = downcast<keyof PluginApi>(property)
-						try {
-							return dispatchToHostApi.postRequest(new Request(methodName, args))
-						} catch (e) {
-							if (e instanceof GeneralPluginError) {
-								await dialogAdapter.showDialog(e.message)
-							} else {
-								await dialogAdapter.showDialog(e.message)
-							}
-						}
+						return dispatchToHostApi
+							.postRequest(new Request(methodName, args))
+							.catch(ofClass(GeneralPluginError, (e) => dialogAdapter.showDialog(e.message)))
+							.catch((e) => dialogAdapter.showDialog(`An unhandled error occured while Plugin '${pluginId}' was executed: ${e.message}`))
 					}
 				},
 			},
