@@ -91,10 +91,18 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	async unload(): Promise<void> {}
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
-		const targetFolder = isNotNull(this.customerConfig.targetAttachmentFolder) ? this.customerConfig.targetAttachmentFolder : "TutaMailAttachments"
+		const targetFolder = await this.getAttachmentFolder()
 
 		const { filesUiUrl } = await this.nextcloudApi.uploadFile(dataFile, targetFolder)
 		await this.pluginHost.openWindow(filesUiUrl)
+	}
+
+	private async getAttachmentFolder(): Promise<string> {
+		if (isNull(this.customerConfig.targetAttachmentFolder)) {
+			this.customerConfig.targetAttachmentFolder = "Tuta Mail Attachments"
+			await this.pluginHost.storeCustomerConfig(JSON.stringify(this.customerConfig))
+		}
+		return this.customerConfig.targetAttachmentFolder
 	}
 
 	async receiveFileReference(fileReference: PluginFileReference): Promise<void> {
