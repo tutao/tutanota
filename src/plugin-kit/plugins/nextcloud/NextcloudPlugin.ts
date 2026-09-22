@@ -48,7 +48,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.applyConfigExtensionPoints()
 		await this.applyAppExtensionPoints()
 
-		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost, this)
+		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost, await this.pluginHost.getHost(), this)
 		if (isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
 		}

@@ -93,4 +93,7 @@ export class PluginHost implements PluginHostApi {
 		const win = assertNotNull(this.openedWindows.get(windowId), `WindowId ${windowId} does not exist`)
 		return win && !win.closed
 	}
+	async getHost(): Promise<string> {
+		return new URL(window.origin).hostname
+	}
 }

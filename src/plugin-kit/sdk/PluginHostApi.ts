@@ -37,4 +37,5 @@ export interface PluginHostApi {
 	openWindow(url: string): Promise<Nullable<number>>
 	closeWindow(windowId: number): Promise<void>
 	isWindowOpen(windowId: number): Promise<boolean>
+	getHost(): Promise<string>
 }
