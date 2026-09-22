@@ -33,6 +33,8 @@ export interface PluginHostApi {
 	storeCustomerConfig(configJson: string): Promise<void>
 	getUserConfig(): Promise<Nullable<string>>
 	getCustomerConfig(): Promise<Nullable<string>>
-	openWindow(url: string): Promise<void>
 	openMailEditor(dataFile: PluginDataFile, subject?: string, recipientAddresses?: string[]): Promise<void>
+	openWindow(url: string): Promise<Nullable<number>>
+	closeWindow(windowId: number): Promise<void>
+	isWindowOpen(windowId: number): Promise<boolean>
 }
