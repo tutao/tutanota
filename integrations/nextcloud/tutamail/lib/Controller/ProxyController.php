@@ -30,10 +30,11 @@ class ProxyController extends Controller
 			'POST' => [
 					'/^index\.php\/login\/v2/',
 					'/^index\.php\/login\/v2\/poll/',
-					'/^ocs\/v2\.php\/apps\/spreed\/api\/v4\/room/'
+					'/^ocs\/v2\.php\/apps\/spreed\/api\/v4\/room/',
 			],
 			'PUT' => [
-					'/^remote\.php\/dav\/files\/[a-z_0-9A-Z]*\/.*/',
+			        // valid characters for user names: alphabets,numerics,dot(.), hyphen(-), space( )
+					'/^remote\.php\/dav\/files\/[a-z_0-9A-Z -\.]*\/.*/',
 			]
 	];
 

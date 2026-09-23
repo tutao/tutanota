@@ -37,13 +37,11 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		super(pluginHost)
 	}
 
-	getManifest(): Promise<Readonly<PluginManifest>> {
+	override getManifest(): Promise<Readonly<PluginManifest>> {
 		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIFEST)
 	}
 
-	async load(customerConfigJson: string): Promise<void> {
-		debugger
-		console.log(">>>> initial load function call")
+	override async load(customerConfigJson: string): Promise<void> {
 		this.customerConfig = JSON.parse(customerConfigJson)
 		await this.loadUserConfig()
 		await this.applyConfigExtensionPoints()
@@ -89,7 +87,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.pluginHost.registerButton(eventLocationBtnConfig)
 	}
 
-	async unload(): Promise<void> {}
+	override async unload(): Promise<void> {}
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
 		const targetFolder = await this.getAttachmentFolder()
@@ -139,23 +137,21 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	}
 
 	override async onCustomerChange(): Promise<void> {
-		console.log(">>>>>> On customer config change: ")
-		const previousNextcloudUrl = this.customerConfig.nextCloudUrl
 		await this.loadCustomerConfig()
+		this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
+	}
 
-		if (previousNextcloudUrl !== this.customerConfig.nextCloudUrl) {
-			this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
-			const installedVersion = await this.nextcloudApi.getInstalledVersion()
-			if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
-				throw new CustomerConfigPluginError(
-					`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
-				)
-			}
+	override async verifyCustomerConfiguration(newCustomerConfig: string): Promise<void> {
+		const newUrl = JSON.parse(newCustomerConfig).nextCloudUrl
+		const installedVersion = await this.nextcloudApi.getInstalledVersion(newUrl)
+		if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
+			throw new CustomerConfigPluginError(
+				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
+			)
 		}
 	}
 
 	override async onUserConfigChange(): Promise<void> {
-		console.log(">>>>>> On user config change: ")
 		await this.loadUserConfig()
 		if (isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)

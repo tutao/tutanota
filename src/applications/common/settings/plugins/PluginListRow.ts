@@ -100,8 +100,9 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 
 	private async saveConfig(pluginId: PluginId, model: PluginSettingsModel): Promise<void> {
 		if (isNotNull(this.draftConfig)) {
-			await model.updateConfig(pluginId, this.draftConfig)
-			showInfoSnackbar("pluginConfigUpdated_msg")
+			if (await model.updateConfig(pluginId, this.draftConfig)) {
+				showInfoSnackbar("pluginConfigUpdated_msg")
+			}
 			m.redraw()
 		}
 	}

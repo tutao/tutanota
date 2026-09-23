@@ -82,7 +82,13 @@ export abstract class PluginApi {
 							.postRequest(new Request(methodName, args))
 							.catch(ofClass(GeneralPluginError, showDialogWithMessage))
 							.catch(ofClass(HostApiPermissionDenied, showDialogWithMessage))
-							.catch((e) => dialogAdapter.showDialog(`An unhandled error occured while Plugin '${pluginId}' was executed: ${e.message}`))
+							.catch((e) => {
+								if (e instanceof CustomerConfigPluginError) {
+									throw e // handled by PluginConfigurationProvider
+								} else {
+									dialogAdapter.showDialog(`An unhandled error occured while Plugin '${pluginId}' was executed: ${e.message}`)
+								}
+							})
 					}
 				},
 			},
@@ -101,6 +107,7 @@ export abstract class PluginApi {
 
 	abstract unload(): Promise<void>
 
+	abstract verifyCustomerConfiguration(newCustomerConfig: string): Promise<void>
 	abstract onUserConfigChange(): Promise<void>
 	abstract onCustomerChange(): Promise<void>
 }

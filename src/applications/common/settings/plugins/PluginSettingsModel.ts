@@ -66,11 +66,11 @@ export class PluginSettingsModel {
 	}
 
 	/** Persists a full config object for an already-enabled plugin, e.g. when the admin clicks "Update" in the config panel. */
-	async updateConfig(pluginId: PluginId, config: Record<string, string>): Promise<void> {
+	async updateConfig(pluginId: PluginId, config: Record<string, string>): Promise<boolean> {
 		if (!this.getState(pluginId).enabled) {
-			return
+			return false
 		}
-		await this.provider.storeCustomerConfig(pluginId, JSON.stringify(config))
+		return await this.provider.storeCustomerConfig(pluginId, JSON.stringify(config))
 	}
 
 	public readonly onEntityUpdatesReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
