@@ -367,6 +367,9 @@ export class MailFacade {
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				removedAttachments: [],
 				mail: createMailTransferAggregatedType({
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerKeyVersion: mailGroupKey.version.toString(),
+					_kdfNonce: null,
 					subject,
 					sender: createMailAddressTransferAggregatedType({
 						name: senderName,
@@ -378,6 +381,9 @@ export class MailFacade {
 					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerKeyVersion: mailGroupKey.version.toString(),
+					_kdfNonce: null,
 					details: createMailDetailsTransferAggregatedType({
 						body: createBodyTransferAggregatedType({
 							compressedText: bodyText,
@@ -446,6 +452,7 @@ export class MailFacade {
 		const transferFile = createFileTransferAggregatedType({
 			_ownerEncSessionKey: encryptKey(mailGroupKey.object, fileSessionKey),
 			_ownerKeyVersion: mailGroupKey.version.toString(),
+			_kdfNonce: null,
 			name: providedFile.name,
 			mimeType: providedFile.mimeType,
 			cid: providedFile.cid ?? null,
@@ -523,6 +530,9 @@ export class MailFacade {
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				mail: createMailTransferAggregatedType({
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerKeyVersion: mailGroupKey.version.toString(),
+					_kdfNonce: null,
 					subject,
 					sender: createMailAddressTransferAggregatedType({
 						name: senderName,
@@ -534,6 +544,9 @@ export class MailFacade {
 					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerKeyVersion: mailGroupKey.version.toString(),
+					_kdfNonce: null,
 					details: createMailDetailsTransferAggregatedType({
 						body: createBodyTransferAggregatedType({
 							compressedText: body,
@@ -1367,6 +1380,9 @@ export class MailFacade {
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
 			const kdfNonce = await this.entityClient.ensureKdfNonce(label)
 			const mailSet = createLabelPutTransferAggregatedType({
+				_ownerEncSessionKey: label._ownerEncSessionKey,
+				_ownerKeyVersion: label._ownerKeyVersion,
+				_kdfNonce: kdfNonce,
 				name,
 				parentFolder: parentLabelId ?? null,
 				color: assertNotNull(color),
@@ -1384,12 +1400,9 @@ export class MailFacade {
 				ownerKeyVersion == null
 					? await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(label._ownerGroup))
 					: { object: await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion), version: ownerKeyVersion }
-			const sessionKey = label._ownerEncSessionKey && this.cryptoWrapper.decryptKey(mailGroupKey.object, label._ownerEncSessionKey)
 			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey,
 				ownerKey: mailGroupKey,
-				kdfNonce,
 			})
 		}
 	}

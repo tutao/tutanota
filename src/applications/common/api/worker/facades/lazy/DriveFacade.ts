@@ -105,6 +105,9 @@ export class DriveFacade {
 		let fileWithNewName: Nullable<DriveFileNameTransferAggregatedType> = null
 		if (isDriveFile(item)) {
 			fileWithNewName = createDriveFileNameTransferAggregatedType({
+				_ownerEncSessionKey: item._ownerEncSessionKey,
+				_ownerKeyVersion: item._ownerKeyVersion,
+				_kdfNonce: item._kdfNonce,
 				name: newName,
 			})
 		}
@@ -112,6 +115,9 @@ export class DriveFacade {
 		let folderWithNewName: Nullable<DriveFolderNameTransferAggregatedType> = null
 		if (isDriveFolder(item)) {
 			folderWithNewName = createDriveFolderNameTransferAggregatedType({
+				_ownerEncSessionKey: item._ownerEncSessionKey,
+				_ownerKeyVersion: item._ownerKeyVersion,
+				_kdfNonce: item._kdfNonce,
 				name: newName,
 			})
 		}
@@ -130,6 +136,7 @@ export class DriveFacade {
 		await this.serviceExecutor.put(DriveItemService, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
+			ownerKey: (await this.getCryptoInfo()).fileGroupKey,
 		})
 	}
 
@@ -253,6 +260,7 @@ export class DriveFacade {
 		const transferFile = createDriveFileTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncSessionKey,
 			_ownerKeyVersion: String(fileGroupKey.version),
+			_kdfNonce: null,
 			name: fileName,
 			mimeType: getCleanedMimeType(isWebFile(file) ? file.file.type : file.mimeType),
 		})
@@ -290,6 +298,7 @@ export class DriveFacade {
 		const folder = createDriveFolderTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncSessionKey,
 			_ownerKeyVersion: String(fileGroupKey.version),
+			_kdfNonce: null,
 			name: folderName,
 			parent: parentFolder,
 		})

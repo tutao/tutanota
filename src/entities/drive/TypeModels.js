@@ -615,13 +615,13 @@ const typeModels = {
 				"dependency": "sys",
 				"transferredAttributeId": null
 			},
-			"141": {
+			"149": {
 				"final": true,
 				"name": "file",
-				"id": 141,
+				"id": 149,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 132,
+				"refTypeId": 136,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -825,23 +825,23 @@ const typeModels = {
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"142": {
+			"150": {
 				"final": true,
 				"name": "fileWithNewName",
-				"id": 142,
+				"id": 150,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 138,
+				"refTypeId": 143,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"143": {
+			"151": {
 				"final": true,
 				"name": "folderWithNewName",
-				"id": 143,
+				"id": 151,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 129,
+				"refTypeId": 130,
 				"dependency": null,
 				"transferredAttributeId": null
 			}
@@ -954,10 +954,10 @@ const typeModels = {
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"144": {
+			"152": {
 				"final": true,
 				"name": "folder",
-				"id": 144,
+				"id": 152,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 123,
@@ -1314,8 +1314,17 @@ const typeModels = {
 			},
 			"127": {
 				"final": true,
-				"name": "name",
+				"name": "_kdfNonce",
 				"id": 127,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 121
+			},
+			"128": {
+				"final": true,
+				"name": "name",
+				"id": 128,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
@@ -1323,10 +1332,10 @@ const typeModels = {
 			}
 		},
 		"associations": {
-			"128": {
+			"129": {
 				"final": true,
 				"name": "parent",
-				"id": 128,
+				"id": 129,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 0,
@@ -1335,32 +1344,59 @@ const typeModels = {
 			}
 		}
 	},
-	"129": {
+	"130": {
 		"name": "DriveFolderNameTransferAggregatedType",
 		"app": "drive",
 		"version": 5,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
-		"id": 129,
-		"rootId": "BWRyaXZlAACB",
+		"id": 130,
+		"rootId": "BWRyaXZlAACC",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 0,
 		"values": {
-			"130": {
+			"131": {
 				"final": true,
 				"name": "_id",
-				"id": 130,
+				"id": 131,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"131": {
+			"132": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 132,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 6
+			},
+			"133": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 133,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 7
+			},
+			"134": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 134,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 121
+			},
+			"135": {
 				"final": true,
 				"name": "name",
-				"id": 131,
+				"id": 135,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
@@ -1369,59 +1405,68 @@ const typeModels = {
 		},
 		"associations": {}
 	},
-	"132": {
+	"136": {
 		"name": "DriveFileTransferAggregatedType",
 		"app": "drive",
 		"version": 5,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
-		"id": 132,
-		"rootId": "BWRyaXZlAACE",
+		"id": 136,
+		"rootId": "BWRyaXZlAACI",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 14,
 		"values": {
-			"133": {
+			"137": {
 				"final": true,
 				"name": "_id",
-				"id": 133,
+				"id": 137,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"134": {
+			"138": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 134,
+				"id": 138,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 20
 			},
-			"135": {
+			"139": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 135,
+				"id": 139,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 21
 			},
-			"136": {
+			"140": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 140,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 122
+			},
+			"141": {
 				"final": true,
 				"name": "name",
-				"id": 136,
+				"id": 141,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 22
 			},
-			"137": {
+			"142": {
 				"final": true,
 				"name": "mimeType",
-				"id": 137,
+				"id": 142,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
@@ -1430,32 +1475,59 @@ const typeModels = {
 		},
 		"associations": {}
 	},
-	"138": {
+	"143": {
 		"name": "DriveFileNameTransferAggregatedType",
 		"app": "drive",
 		"version": 5,
 		"since": 5,
 		"type": "AGGREGATED_TYPE",
-		"id": 138,
-		"rootId": "BWRyaXZlAACK",
+		"id": 143,
+		"rootId": "BWRyaXZlAACP",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 14,
 		"values": {
-			"139": {
+			"144": {
 				"final": true,
 				"name": "_id",
-				"id": 139,
+				"id": 144,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"140": {
+			"145": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 145,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 20
+			},
+			"146": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 146,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 21
+			},
+			"147": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 147,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 122
+			},
+			"148": {
 				"final": true,
 				"name": "name",
-				"id": 140,
+				"id": 148,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
