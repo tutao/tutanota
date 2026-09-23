@@ -34,6 +34,11 @@ export const enum MailFromSelfPossibilities {
 	MailNotFromSelf,
 }
 
+export const enum SpamFilterBehavior {
+	DEFAULT = "0",
+	STRICT = "1",
+}
+
 export class SpamClassificationHandler {
 	public constructor(
 		private readonly spamClassifier: SpamClassifier,
@@ -63,6 +68,7 @@ export class SpamClassificationHandler {
 
 	private async getSkipClientClassificationReason(mail: Mail, mailDetails: MailDetails): Promise<SkipClientSpamClassificationReason> {
 		const mailFromSelfResult = await this.isMailFromSelf(mail, mailDetails)
+		console.log("#####DURING GET SKIP REASON, is auth? ", mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED)
 		if (mail.phishingStatus === MailPhishingStatus.SUSPICIOUS) {
 			return SkipClientSpamClassificationReason.MarkedAsPhishing
 		} else if (mailFromSelfResult === MailFromSelfPossibilities.MailFromSelfAuthenticated || (await this.isMailFromTrustedSender(mail, mailDetails))) {
@@ -80,7 +86,23 @@ export class SpamClassificationHandler {
 		if (!mail.serverClassificationData) {
 			return false
 		}
-		return extractServerClassifiers(mail.serverClassificationData).some((c) => SERVER_CLASSIFIERS_TO_TRUST.has(c))
+		let classifiersToTrust = SERVER_CLASSIFIERS_TO_TRUST
+		// console.log("the trust:", classifiersToTrust)
+		// if (deviceConfig.getSpamFilterBehavior() === SpamFilterBehavior.STRICT) {
+		// 	classifiersToTrust = new Set(classifiersToTrust.values())
+		// 	classifiersToTrust.add(7)
+		// }
+		// //mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		// //mail.differentEnvelopeSender check?
+		// //"mailAuthFailed_msg": "Be careful when trusting this message! The verification of the sender or contents has failed, so this message might be forged!",
+		//
+		// console.log("afterwards?", classifiersToTrust)
+		// console.log(
+		// 	"passes?",
+		// 	extractServerClassifiers(mail.serverClassificationData).some((c) => classifiersToTrust.has(c)),
+		// )
+		// console.log("EHHH?", mail.serverClassificationData)
+		return extractServerClassifiers(mail.serverClassificationData).some((c) => classifiersToTrust.has(c))
 	}
 
 	private async isMailFromTrustedSender(mail: Mail, mailDetails: MailDetails): Promise<boolean> {
