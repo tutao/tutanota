@@ -1,6 +1,6 @@
 import { PluginManifest } from "../../sdk/PluginManifest"
 
-export const NEXTCLOUD_PLUGIN_MANIGEST: PluginManifest = {
+export const NEXTCLOUD_PLUGIN_MANIFEST: PluginManifest = {
 	id: "nextcloud",
 	name: "Nextcloud",
 	version: { major: 0, minor: 1, patch: 0 },

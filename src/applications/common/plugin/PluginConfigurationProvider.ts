@@ -1,4 +1,4 @@
-import { ConfigurationAdapter, PluginConfigJson } from "../../../plugin-kit/plugin-manager/PluginHost"
+import { ConfigurationAdapter, PluginConfigJson, PluginConfigurationOwner } from "../../../plugin-kit/plugin-manager/PluginHost"
 import { assert, assertNotNull, base64UrlCustomIdToString, isNotNull, Nullable, ofClass, stringToBase64UrlCustomId } from "@tutao/utils"
 import { createPluginConfiguration, PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
 import { elementIdPart, idToElementId, isSameId, ListElementId } from "@tutao/meta"
@@ -22,11 +22,11 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 		private readonly logins: LoginController,
 	) {}
 
-	getConfigOwner(configListId: Id): "user" | "customer" {
+	getConfigOwner(configListId: Id): PluginConfigurationOwner {
 		if (configListId === this.userPluginListId) {
-			return "user"
+			return PluginConfigurationOwner.User
 		} else if (configListId === this.customerPluginConfigsList) {
-			return "customer"
+			return PluginConfigurationOwner.Customer
 		} else {
 			throw new Error(`Neither user nor customer? configListId is not a listID of ${PluginConfigurationTypeRef.toString()}?`)
 		}

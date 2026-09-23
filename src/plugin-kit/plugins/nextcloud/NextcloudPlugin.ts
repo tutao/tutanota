@@ -9,7 +9,8 @@ import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
 import { PluginManifest } from "../../sdk/PluginManifest"
-import { NEXTCLOUD_PLUGIN_MANIGEST } from "./manifest"
+import { NEXTCLOUD_PLUGIN_MANIFEST } from "./manifest"
+import { CustomerConfigPluginError } from "../../sdk/PluginError"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -37,10 +38,12 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	}
 
 	getManifest(): Promise<Readonly<PluginManifest>> {
-		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIGEST)
+		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIFEST)
 	}
 
 	async load(customerConfigJson: string): Promise<void> {
+		debugger
+		console.log(">>>> initial load function call")
 		this.customerConfig = JSON.parse(customerConfigJson)
 		await this.loadUserConfig()
 		await this.applyConfigExtensionPoints()
@@ -135,11 +138,25 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
 	}
 
-	async onConfigChange(): Promise<void> {
-		await this.loadUserConfig()
+	override async onCustomerChange(): Promise<void> {
+		console.log(">>>>>> On customer config change: ")
+		const previousNextcloudUrl = this.customerConfig.nextCloudUrl
 		await this.loadCustomerConfig()
 
-		this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
+		if (previousNextcloudUrl !== this.customerConfig.nextCloudUrl) {
+			this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
+			const installedVersion = await this.nextcloudApi.getInstalledVersion()
+			if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
+				throw new CustomerConfigPluginError(
+					`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
+				)
+			}
+		}
+	}
+
+	override async onUserConfigChange(): Promise<void> {
+		console.log(">>>>>> On user config change: ")
+		await this.loadUserConfig()
 		if (isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
 		}

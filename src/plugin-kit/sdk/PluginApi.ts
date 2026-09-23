@@ -4,12 +4,13 @@ import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTyp
 import { assert, downcast, ofClass } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { EnvProvider, TutanotaError } from "@tutao/app-env"
-import { GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
+import { CustomerConfigPluginError, GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
 import { PluginManifest } from "./PluginManifest"
 
 const ErrorNameToType = {
 	GeneralPluginError,
 	HostApiPermissionDenied,
+	CustomerConfigPluginError,
 }
 
 export function objToError(o: Record<string, any>): Error {
@@ -86,9 +87,10 @@ export abstract class PluginApi {
 				},
 			},
 		)
+		const pluginApi = downcast<PluginApi>(pluginApiAsProxy)
 
 		return {
-			pluginApi: downcast<PluginApi>(pluginApiAsProxy),
+			pluginApi,
 			pluginAsWorker,
 		}
 	}
@@ -99,5 +101,6 @@ export abstract class PluginApi {
 
 	abstract unload(): Promise<void>
 
-	abstract onConfigChange(): Promise<void>
+	abstract onUserConfigChange(): Promise<void>
+	abstract onCustomerChange(): Promise<void>
 }

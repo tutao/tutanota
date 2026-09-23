@@ -2,13 +2,14 @@ import { DialogAdapter, PluginApi } from "../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint } from "../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
-import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginHost } from "./PluginHost"
-import { assertNotNull, base64UrlCustomIdToString, downcast, Nullable } from "@tutao/utils"
+import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginConfigurationOwner, PluginHost } from "./PluginHost"
+import { assertNotNull, base64UrlCustomIdToString, downcast, Nullable, ofClass } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfigurationTypeRef } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
+import { CustomerConfigPluginError } from "../sdk/PluginError"
 
 export type EnabledPlugin = {
 	pluginId: PluginId
@@ -47,8 +48,8 @@ export class PluginManager {
 
 			const pluginHost = new PluginHost(this, pluginId)
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginId, pluginHost, this.dialogAdapter)
-			await pluginApi.load(customerConfigJson)
 			pluginHost.setPluginManifest(await pluginApi.getManifest())
+			await pluginApi.load(customerConfigJson)
 
 			this.loadedPlugins[pluginId] = {
 				pluginId,
@@ -125,11 +126,11 @@ export class PluginManager {
 					const pluginId = pluginIdFromString(base64UrlCustomIdToString(update.instanceId))
 					const configOwner = this.configurationAdapter.getConfigOwner(assertNotNull(update.instanceListId))
 
-					if (update.operation === OperationType.CREATE && configOwner === "customer") {
+					if (update.operation === OperationType.CREATE && configOwner === PluginConfigurationOwner.Customer) {
 						const customerConfigJson = assertNotNull((await this.configurationAdapter.getCustomerPluginConfigs()).get(pluginId))
 						const pluginToLoad: EnabledPlugin = { pluginId, customerConfigJson: customerConfigJson }
 						await this.loadPlugins([pluginToLoad])
-					} else if (update.operation === OperationType.DELETE && configOwner === "customer") {
+					} else if (update.operation === OperationType.DELETE && configOwner === PluginConfigurationOwner.User) {
 						// FIXME: also delete this pluginConfig from user( better to do from serverside ) ?
 						await this.unloadPlugins(pluginId)
 					} else {
@@ -137,7 +138,15 @@ export class PluginManager {
 							this.loadedPlugins[pluginId],
 							`Got UPDATE for config for plugin ${pluginId}. But the plugin is not yet loaded`,
 						)
-						await loadedPlugin.api.onConfigChange()
+						if (configOwner === PluginConfigurationOwner.Customer) {
+							await loadedPlugin.api.onCustomerChange().catch(
+								ofClass(CustomerConfigPluginError, (e) => {
+									this.dialogAdapter.showDialog(`Error while updating config: ${e.message}`)
+								}),
+							)
+						} else if (configOwner === PluginConfigurationOwner.User) {
+							await loadedPlugin.api.onUserConfigChange()
+						}
 					}
 				}
 			}
