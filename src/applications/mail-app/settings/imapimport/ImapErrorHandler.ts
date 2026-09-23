@@ -193,16 +193,20 @@ export class ImapErrorHandler {
 		return {}
 	}
 
+	isImapError(e: any) {
+		return !Number.isNaN(e.data?.cause)
+	}
+
 	isAuthError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.AUTH_FAILED
+		return this.isImapError(e) && e.data.cause === ImapErrorCause.AUTH_FAILED
 	}
 
 	isCertificateError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.CERT_ERROR
+		return this.isImapError(e) && e.data.cause === ImapErrorCause.CERT_ERROR
 	}
 
 	isGmailAllMailsIMAPDisabledError(e: ImapError) {
-		return e.data.cause === ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED
+		return this.isImapError(e) && e.data.cause === ImapErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED
 	}
 
 	private async requestCredentialUpdate(imapAccountSyncState: ImapAccountSyncState) {
