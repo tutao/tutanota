@@ -41,6 +41,8 @@ import {
 	BookingTypeRef,
 	createDebitServicePutData,
 	Customer,
+	CustomerInfo,
+	CustomerInfoTypeRef,
 	CustomerTypeRef,
 	DebitService_PUT,
 	GiftCard,
@@ -54,7 +56,7 @@ import { getByAbbreviation } from "../gui/CountryList"
 import { CustomerAccountPosting, CustomerAccountService_GET } from "@tutao/entities/accounting"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { BadGatewayError, LockedError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
+import { BadGatewayError, LockedError, NotFoundError, PreconditionFailedError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { windowFacade } from "../misc/WindowFacade"
 import { showPurchaseGiftCardDialog } from "./giftcards/PurchaseGiftCardDialog"
 import { GiftCardStatus, loadGiftCards, showGiftCardToShare } from "./giftcards/GiftCardUtils"
@@ -473,7 +475,27 @@ export class PaymentViewer implements UpdatableSettingsViewer {
 			const giftCard = await locator.entityClient.load(GiftCardTypeRef, giftCardId)
 			this._giftCards.set(elementIdPart(giftCard._id), giftCard)
 			if (update.operation === OperationType.CREATE) this._giftCardsExpanded(true)
+		} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
+			await this.updateBookings()
+			m.redraw()
 		}
+	}
+
+	private async updateBookings(): Promise<void> {
+		const userController = locator.logins.getUserController()
+		let customerInfo: CustomerInfo
+		try {
+			customerInfo = await userController.loadCustomerInfo()
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.log("could not update bookings as customer info does not exist (moved between free/premium lists)")
+				return
+			} else {
+				throw e
+			}
+		}
+		const bookings = await locator.entityClient.loadRange(BookingTypeRef, neverNull(customerInfo.bookings).items, GENERATED_MAX_ID, 1, true)
+		this.lastBooking = bookings.length > 0 ? bookings[bookings.length - 1] : null
 	}
 
 	private isPayButtonVisible(): boolean {
