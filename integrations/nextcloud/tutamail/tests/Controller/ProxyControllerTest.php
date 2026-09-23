@@ -32,12 +32,13 @@ class ProxyControllerTest extends TestCase
 		$this->controller = new ProxyController('tutamail', $this->request, $this->clientService, $this->urlGenerator);
 	}
 
-	private function configureRequest(string $method, string $origin, array $server = []): void
+	private function configureRequest(string $method, string $origin, array $server = [], string $remoteAddress = '203.0.113.9'): void
 	{
 		$this->request->method('getMethod')->willReturn($method);
 		$this->request->method('getHeader')->willReturnCallback(
 			fn(string $name) => $name === 'Origin' ? $origin : ''
 		);
+		$this->request->method('getRemoteAddress')->willReturn($remoteAddress);
 		// OCP\IRequest exposes $_SERVER via a magic property; PHPUnit test
 		// doubles don't implement that magic, so this is a plain dynamic property.
 		$this->request->server = $server;
@@ -190,10 +191,11 @@ class ProxyControllerTest extends TestCase
 		$this->configureRequest('POST', 'https://app.tuta.com', [
 			'HTTP_HOST' => 'nextcloud.example.com',
 			'HTTP_ORIGIN' => 'https://app.tuta.com',
-			'HTTP_X_FORWARDED_FOR' => '203.0.113.5',
+			// Might be spoofed; replaced by resolved remote address.
+			'HTTP_X_FORWARDED_FOR' => '198.51.100.1',
 			'CONTENT_TYPE' => 'application/json',
 			'CONTENT_LENGTH' => '2',
-		]);
+		], remoteAddress: '203.0.113.5');
 
 		$capturedOptions = null;
 		$client = $this->createStub(IClient::class);

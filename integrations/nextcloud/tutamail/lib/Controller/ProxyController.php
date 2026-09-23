@@ -126,6 +126,11 @@ class ProxyController extends Controller
 		// Remove headers that shouldn't be proxied verbatim
 		unset($headers['Host'], $headers['Origin']);
 		$headers['User-Agent'] = 'Tuta App';
+		// Overwrite client-supplied X-Forwarded-For. getRemoteAddress() resolves through this
+		// Nextcloud instance's own trusted_proxies config when present; without
+		// that config it degrades to REMOTE_ADDR, which is still not
+		// attacker-controlled.
+		$headers['X-Forwarded-For'] = $this->request->getRemoteAddress();
 
 		// 4. Set up the options for the new client
 		$options = [
