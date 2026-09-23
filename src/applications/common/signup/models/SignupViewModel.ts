@@ -4,7 +4,7 @@ import { InfoLink, lang, Translation, TranslationKey } from "../../../../ui/util
 import { NewAccountData, ReferralData } from "../../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "../../subscription/utils/PriceUtils"
+import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, OfferPrice } from "../../subscription/utils/PriceUtils"
 import {
 	canSubscribeToPlan,
 	getDefaultPaymentMethod,
@@ -43,8 +43,8 @@ export class SignupViewModel {
 	public invoiceData: InvoiceData
 	public paymentData: PaymentData
 	public targetPlanType: PlanType
-	public price: SubscriptionPrice | null
-	public nextYearPrice: SubscriptionPrice | null
+	public price: OfferPrice | null
+	public nextYearPrice: OfferPrice | null
 	public accountingInfo: AccountingInfo | null
 	public customer: Customer | null
 	public newAccountData: NewAccountData | null

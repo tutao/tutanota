@@ -144,7 +144,7 @@ export function getPriceFromPriceData(priceData: PriceData | null, featureType: 
 }
 
 // Contains the price of a subscription as both formatted and unformatted strings
-export type SubscriptionPrice = {
+export type OfferPrice = {
 	// The locale formatted price of a description in the local currency on iOS and in Euro elsewhere
 	displayPrice: string
 	// The raw price in the local currency on iOS and in Euro elsewhere as a float
@@ -202,11 +202,7 @@ export class PriceAndConfigProvider {
 	/**
 	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
 	 */
-	getSubscriptionPriceWithCurrency(
-		paymentInterval: PaymentInterval,
-		type: UpgradePriceType,
-		data: UpgradeSubscriptionData | SignupViewModel,
-	): SubscriptionPrice {
+	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData | SignupViewModel): OfferPrice {
 		const subscription = data.targetPlanType
 
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
