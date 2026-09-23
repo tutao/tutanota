@@ -1,6 +1,6 @@
 import { Axios, AxiosResponse } from "axios"
 import { PluginHostApi } from "../../sdk/PluginHostApi"
-import { assert, assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
+import { assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
 import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"
 import { NextcloudPlugin } from "./NextcloudPlugin"
@@ -107,7 +107,10 @@ export class NextcloudApi {
 
 	private async ensureCredentialsIsOfExpectedUrl() {
 		await this.loginAndCreateAppToken()
-		assert(assertNotNull(this.nextCloudCredentials).server === this.nextCloudUrl, "Nextcloud url mismatch")
+		if (assertNotNull(this.nextCloudCredentials).server !== this.nextCloudUrl) {
+			this.nextCloudCredentials = null
+			throw new Error("Nextcloud url mismatch")
+		}
 	}
 
 	async downloadFile(fileReference: PluginFileReference): Promise<PluginDataFile> {

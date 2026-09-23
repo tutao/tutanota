@@ -16,12 +16,21 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	private userOwnerGroup: Id = null!
 	private customerGroup: Id = null!
 	private pluginManager: Nullable<PluginManager> = null
-	private customerPluginConfigs: Nullable<Map<PluginId, PluginConfigJson>> = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly logins: LoginController,
 	) {}
+
+	getConfigOwner(configListId: Id): "user" | "customer" {
+		if (configListId === this.userPluginListId) {
+			return "user"
+		} else if (configListId === this.customerPluginConfigsList) {
+			return "customer"
+		} else {
+			throw new Error(`Neither user nor customer? configListId is not a listID of ${PluginConfigurationTypeRef.toString()}?`)
+		}
+	}
 
 	async onPartialLoginSuccess(loggedInEvent: LoggedInEvent): Promise<void> {}
 
@@ -86,8 +95,12 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 	async getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>> {
 		const globalPluginConfigsList = assertNotNull(this.customerPluginConfigsList, "customerPluginConfigsList not initialized")
 		const configs = await this.entityClient.loadAll(PluginConfigurationTypeRef, globalPluginConfigsList)
-		this.customerPluginConfigs = new Map(configs.map((pc) => [pluginIdFromString(base64UrlCustomIdToString(elementIdPart(pc._id))), pc.configJson]))
-		return this.customerPluginConfigs
+
+		const mappedConfigs = configs.map((pc) => {
+			const pluginId = pluginIdFromString(base64UrlCustomIdToString(elementIdPart(pc._id)))
+			return [pluginId, pc.configJson] as const
+		})
+		return new Map(mappedConfigs)
 	}
 
 	async storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void> {
