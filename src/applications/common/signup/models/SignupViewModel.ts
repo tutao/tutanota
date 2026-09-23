@@ -71,7 +71,6 @@ export class SignupViewModel {
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	public globalCampaignName: string | null
 	public personalPlansAvailable: boolean
-	public readonly isFreeOnly: boolean
 
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
@@ -87,7 +86,6 @@ export class SignupViewModel {
 		const subscriptionParams = getSubscriptionParameters(urlParams)
 		this.acceptedPlans = getAvailablePlansFromSubscriptionParameters(subscriptionParams).filter(canSubscribeToPlan)
 		const subscriptionType = stringToSubscriptionType(subscriptionParams?.type ?? "private")
-		this.isFreeOnly = subscriptionType === SubscriptionType.FreeOnly
 
 		const paymentInterval = asPaymentInterval(PaymentInterval.Yearly)
 		this.options = {
