@@ -54,7 +54,6 @@ import { CalendarSearchListView, CalendarSearchListViewAttrs } from "./CalendarS
 import { AppPromo } from "../../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../../common/search/SearchViewSearchBar"
 import { isSameSingleId } from "@tutao/meta"
-import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 import { Styles } from "../../../../../ui/styles"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector"
@@ -186,7 +185,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				selected: true,
 				chevron: false,
 				onClick: (_) => {
-					if (isFreeSignupOnly() && !this.searchViewModel.canSelectTimePeriod()) {
+					if (!this.searchViewModel.canSelectTimePeriod()) {
 						return
 					}
 
