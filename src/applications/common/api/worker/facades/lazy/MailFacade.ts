@@ -268,7 +268,6 @@ export class MailFacade {
 		})
 		const postReturn = await this.serviceExecutor.post(MailFolderService, newFolder, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
 			ownerKey: mailGroupKey,
 		})
 		return postReturn.newFolder
@@ -1346,7 +1345,6 @@ export class MailFacade {
 
 		const manageLabelPostOut = await this.serviceExecutor.post(ManageLabelService, data, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey,
 			ownerKey: mailGroupKey,
 		})
 		return manageLabelPostOut.label
@@ -1367,7 +1365,7 @@ export class MailFacade {
 		const isNameChange = label.name !== name
 
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
-			await this.entityClient.ensureKdfNonce(label)
+			const kdfNonce = await this.entityClient.ensureKdfNonce(label)
 			const mailSet = createLabelPutTransferAggregatedType({
 				name,
 				parentFolder: parentLabelId ?? null,
@@ -1381,12 +1379,17 @@ export class MailFacade {
 
 				data: null,
 			})
-			const ownerKeyVersion = parseKeyVersion(assertNotNull(label._ownerKeyVersion))
-			const mailGroupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion)
-			const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(label._ownerEncSessionKey))
+			const ownerKeyVersion = label._ownerKeyVersion == null ? null : parseKeyVersion(label._ownerKeyVersion)
+			const mailGroupKey =
+				ownerKeyVersion == null
+					? await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(label._ownerGroup))
+					: { object: await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion), version: ownerKeyVersion }
+			const sessionKey = label._ownerEncSessionKey && this.cryptoWrapper.decryptKey(mailGroupKey.object, label._ownerEncSessionKey)
 			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey,
+				ownerKey: mailGroupKey,
+				kdfNonce,
 			})
 		}
 	}
