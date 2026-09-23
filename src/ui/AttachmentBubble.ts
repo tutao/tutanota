@@ -295,7 +295,9 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			)
 		}
 		// for very short attachment bubbles, we need to set a min width so the buttons fit.
-		const targetWidth = Math.max(targetRect.width, 300)
+		// we estimate 150px for each button using the _shortcuts array
+		const targetMinWidth = (this._shortcuts.length - 3) * 150
+		const targetWidth = Math.max(targetRect.width, targetMinWidth)
 		domPanel.style.width = px(targetRect.width)
 		domPanel.style.height = px(initialHeight)
 		// add half the difference between .button height of 44px and 30px for pixel-perfect positioning
