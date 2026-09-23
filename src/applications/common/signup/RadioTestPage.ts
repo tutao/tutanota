@@ -1,6 +1,6 @@
 import m, { ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
-import { SignupViewModel } from "./SignupView"
+import { SignupViewModel } from "./models/SignupViewModel"
 import { PrimaryButton, SecondaryButton, TertiaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../ui/size"

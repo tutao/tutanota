@@ -21,7 +21,7 @@ import { TextField } from "../../../../ui/base/TextField"
 import { SelectMailAddressFormAttrs, SelectMailAddressFormNew } from "./SelectMailAddressFormNew"
 import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
 import { Styles } from "../../../../ui/styles"
-import { SignupViewModel } from "../SignupView"
+import { SignupViewModel } from "../models/SignupViewModel"
 import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/WhitelabelUtils"
 
 import { PlanType } from "../../../../entities/sys/Utils"

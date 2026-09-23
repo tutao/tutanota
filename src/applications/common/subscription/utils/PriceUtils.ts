@@ -7,7 +7,7 @@ import { UserError } from "../../api/main/UserError.js"
 import { MobilePlanPrice } from "@tutao/native-bridge/generatedIpc/types"
 import { locator } from "../../api/main/CommonLocator.js"
 import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
-import { SignupViewModel } from "../../signup/SignupView"
+import { SignupViewModel } from "../../signup/models/SignupViewModel"
 import {
 	AccountingInfo,
 	createUpgradePriceServiceData,
