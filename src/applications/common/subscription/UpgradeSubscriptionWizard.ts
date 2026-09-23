@@ -22,7 +22,6 @@ import type { UsageTest } from "@tutao/usagetests"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, NewPaidPlans, PlanType } from "../../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { isFreeSignupOnly } from "../misc/LoginUtils"
 import { InvoiceData } from "./utils/PaymentUtils"
 import { Dialog } from "../../../ui/base/Dialog"
 
@@ -86,12 +85,6 @@ export async function showUpgradeWizard({
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
-	/* Temporarely restricting to free only to get accepted by Google Play Store */
-	if (isFreeSignupOnly()) {
-		Dialog.message("notAvailableInApp_msg")
-		return
-	}
-
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
 
 	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
