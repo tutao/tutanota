@@ -121,7 +121,9 @@ o.spec("AlarmFacadeTest", function () {
 				trigger: personalAlarmInfoTemplate.trigger,
 			})
 			const notification = createNotificationTransferAggregatedType({
-				_kdfNonce: kdfNonce,
+				_ownerEncSessionKey: null,
+				_ownerKeyVersion: null,
+				_kdfNonce: null,
 				alarms: [
 					createAlarmNotificationTransferAggregatedType({
 						alarmInfo,

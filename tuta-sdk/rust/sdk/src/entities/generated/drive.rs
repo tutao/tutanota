@@ -208,7 +208,7 @@ pub struct DriveUploadedFile {
 	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "60")]
 	pub referenceTokens: Vec<super::sys::BlobReferenceTokenWrapper>,
-	#[serde(rename = "141")]
+	#[serde(rename = "149")]
 	pub file: Option<DriveFileTransferAggregatedType>,
 
 	#[serde(default)]
@@ -302,9 +302,9 @@ pub struct DriveItemPutIn {
 	pub file: Option<IdTupleGenerated>,
 	#[serde(rename = "78")]
 	pub folder: Option<IdTupleGenerated>,
-	#[serde(rename = "142")]
+	#[serde(rename = "150")]
 	pub fileWithNewName: Option<DriveFileNameTransferAggregatedType>,
-	#[serde(rename = "143")]
+	#[serde(rename = "151")]
 	pub folderWithNewName: Option<DriveFolderNameTransferAggregatedType>,
 
 	#[serde(default)]
@@ -354,7 +354,7 @@ pub struct DriveFolderServicePostIn {
 	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "88")]
 	pub parent: Option<IdTupleGenerated>,
-	#[serde(rename = "144")]
+	#[serde(rename = "152")]
 	pub folder: Option<DriveFolderTransferAggregatedType>,
 
 	#[serde(default)]
@@ -520,8 +520,11 @@ pub struct DriveFolderTransferAggregatedType {
 	#[serde(rename = "126")]
 	pub _ownerKeyVersion: Option<i64>,
 	#[serde(rename = "127")]
-	pub name: String,
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
 	#[serde(rename = "128")]
+	pub name: String,
+	#[serde(rename = "129")]
 	pub parent: Option<IdTupleGenerated>,
 
 	#[serde(default)]
@@ -540,9 +543,17 @@ impl Entity for DriveFolderTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFolderNameTransferAggregatedType {
-	#[serde(rename = "130")]
-	pub _id: Option<CustomId>,
 	#[serde(rename = "131")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "132")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "133")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "134")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "135")]
 	pub name: String,
 
 	#[serde(default)]
@@ -553,7 +564,7 @@ impl Entity for DriveFolderNameTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(129),
+			type_id: TypeId::from(130),
 		}
 	}
 }
@@ -561,16 +572,19 @@ impl Entity for DriveFolderNameTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFileTransferAggregatedType {
-	#[serde(rename = "133")]
+	#[serde(rename = "137")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "134")]
+	#[serde(rename = "138")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "135")]
+	#[serde(rename = "139")]
 	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "136")]
+	#[serde(rename = "140")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "141")]
 	pub name: String,
-	#[serde(rename = "137")]
+	#[serde(rename = "142")]
 	pub mimeType: String,
 
 	#[serde(default)]
@@ -581,7 +595,7 @@ impl Entity for DriveFileTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(132),
+			type_id: TypeId::from(136),
 		}
 	}
 }
@@ -589,9 +603,17 @@ impl Entity for DriveFileTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveFileNameTransferAggregatedType {
-	#[serde(rename = "139")]
+	#[serde(rename = "144")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "140")]
+	#[serde(rename = "145")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "146")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "147")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "148")]
 	pub name: String,
 
 	#[serde(default)]
@@ -602,7 +624,7 @@ impl Entity for DriveFileNameTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(138),
+			type_id: TypeId::from(143),
 		}
 	}
 }

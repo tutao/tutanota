@@ -118,6 +118,7 @@ export class ImportMailFacade {
 			const importedMail = createImportedMail({
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: null,
 				subject: importMailParams.subject,
 				method: importMailParams.method,
 				confidential: false,
@@ -144,6 +145,9 @@ export class ImportMailFacade {
 				inReplyTo: importMailParams.inReplyTo,
 				labels: importMailParams.labels,
 				mailDetailsBlob: createImportedMailDetailsBlob({
+					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerKeyVersion: mailGroupKey.version.toString(),
+					_kdfNonce: null,
 					details: createImportedMailDetails({
 						body: createImportedBody({
 							compressedText: importMailParams.bodyText,
@@ -321,6 +325,7 @@ export class ImportMailFacade {
 		const file = createFileTransferAggregatedType({
 			_ownerEncSessionKey: ownerEncFileSessionKey.key,
 			_ownerKeyVersion: ownerEncFileSessionKey.encryptingKeyVersion.toString(),
+			_kdfNonce: null,
 			cid: newFile.cid ?? null,
 			name: newFile.name,
 			mimeType: newFile.mimeType,

@@ -147,6 +147,7 @@ export class ServiceExecutor implements IServiceExecutor {
 
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(methodDefinition.data)
 			if (requestTypeModel.encrypted && params?.sessionKey == null && params?.ownerKey == null) {
+				// TODO: should we only check for ownerKey and not expect session keys here instead?
 				throw new ProgrammingError(`Must provide a session key or an owner key for an encrypted data transfer type!: ${service.app}/${service.name}`)
 			}
 
