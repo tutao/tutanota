@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { SignupViewModel } from "../SignupView"
+import { SignupViewModel } from "../models/SignupViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BusinessPlanBox } from "../../subscription/components/BusinessPlanBox"
 import { PlanConfig } from "../../subscription/components/BusinessPlanContainer"

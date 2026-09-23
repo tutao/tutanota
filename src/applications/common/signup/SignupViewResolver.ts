@@ -2,7 +2,8 @@ import { LoginController } from "../api/main/LoginController"
 import { RouteResolver } from "mithril"
 import { CredentialFormatMigrator } from "../misc/credentials/CredentialFormatMigrator"
 import { ProgrammingError } from "@tutao/app-env"
-import { SignupView, SignupViewAttrs, SignupViewModel } from "./SignupView"
+import type { SignupView, SignupViewAttrs } from "./SignupView"
+import type { SignupViewModel } from "./models/SignupViewModel"
 import { UsageTestModel } from "../misc/UsageTestModel"
 import { UsageTestController } from "@tutao/usagetests"
 import { identity } from "@tutao/utils"
@@ -29,7 +30,7 @@ export function makeSignupViewResolver(
 				actualResolver = makeViewResolver<SignupViewAttrs, SignupView, SignupViewRouteCache>(
 					{
 						prepareRoute: async () => {
-							const { SignupView, SignupViewModel } = await import("./SignupView")
+							const [{ SignupView }, { SignupViewModel }] = await Promise.all([import("./SignupView"), import("./models/SignupViewModel")])
 							const migrator = await credentialFormatMigrator()
 							await migrator.migrate()
 							return {
