@@ -9,13 +9,15 @@ import { EnabledPlugin, PluginManager } from "../../../plugin-kit/plugin-manager
 import { LoginController } from "../api/main/LoginController"
 import { PluginId, pluginIdFromString } from "../../../plugin-kit/sdk/PluginId"
 import { isNull } from "../../../platform-kit/utils/Utils"
+import { CustomerConfigPluginError } from "../../../plugin-kit/sdk/PluginError"
+import { Dialog } from "../../../ui/base/Dialog"
 
 export class PluginConfigurationProvider implements ConfigurationAdapter, PostLoginAction {
 	private userPluginListId: Id = null!
 	private customerPluginConfigsList: Id = null!
 	private userOwnerGroup: Id = null!
 	private customerGroup: Id = null!
-	private pluginManager: Nullable<PluginManager> = null
+	private pluginManager: PluginManager = null!
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -103,19 +105,31 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 		return new Map(mappedConfigs)
 	}
 
-	async storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void> {
+	async storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<boolean> {
 		assert(isNotNull(this.customerPluginConfigsList), "Current user dont have a customer")
+		const successful = await this.pluginManager
+			.verifyCustomerConfiguration(pluginId, configJson)
+			.then(async () => {
+				const existingPluginConfig = await this.fetchCustomerConfig(pluginId)
+				if (isNotNull(existingPluginConfig)) {
+					existingPluginConfig.configJson = configJson
+					await this.entityClient.update(existingPluginConfig)
+				} else {
+					const newPluginConfig = createPluginConfiguration({ configJson })
+					newPluginConfig._id = [this.customerPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
+					newPluginConfig._ownerGroup = this.customerGroup
+					await this.entityClient.setup(this.customerPluginConfigsList, newPluginConfig)
+				}
+				return true
+			})
+			.catch(
+				ofClass(CustomerConfigPluginError, (e) => {
+					Dialog.message({ testId: "customer-config-plugin-err-dialog", text: `Error while updating config: ${e.message}` })
+					return false
+				}),
+			)
 
-		const existingPluginConfig = await this.fetchCustomerConfig(pluginId)
-		if (isNotNull(existingPluginConfig)) {
-			existingPluginConfig.configJson = configJson
-			return await this.entityClient.update(existingPluginConfig)
-		} else {
-			const newPluginConfig = createPluginConfiguration({ configJson })
-			newPluginConfig._id = [this.customerPluginConfigsList, stringToBase64UrlCustomId(pluginId)]
-			newPluginConfig._ownerGroup = this.customerGroup
-			await this.entityClient.setup(this.customerPluginConfigsList, newPluginConfig)
-		}
+		return successful
 	}
 
 	async removeCustomerPluginConfig(pluginId: PluginId): Promise<void> {

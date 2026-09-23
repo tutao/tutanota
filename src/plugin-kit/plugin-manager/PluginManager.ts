@@ -153,4 +153,9 @@ export class PluginManager {
 		},
 		priority: ListenerPriority.NORMAL,
 	}
+
+	async verifyCustomerConfiguration(pluginId: PluginId, newCustomerConfig: string): Promise<void> {
+		const loadedPlugin = assertNotNull(this.loadedPlugins[pluginId], `Got config for plugin that is not loaded: ${pluginId}`)
+		return loadedPlugin.api.verifyCustomerConfiguration(newCustomerConfig)
+	}
 }

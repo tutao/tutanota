@@ -7,6 +7,8 @@ return [
 						'url' => '/',
 						'verb' => 'GET',
 				],
+
+				// == proxy related
 				[
 						'name' => 'proxy#handleCors',
 						'url' => '/api/v1/proxy/{path}',
@@ -31,7 +33,18 @@ return [
 						'verb' => 'POST',
 						'requirements' => ['targetUrl' => '.+'],
 				],
-			// SPA history-mode fallback: redirects deep links back to the entry point with ?r=<path>
+
+				//== InAppController
+				[
+				    'name' => 'InApp#version',
+					'url' => '/api/v1/version',
+					'verb' => 'GET',
+				],
+
+
+
+				//== SPA history-mode fallback: redirects deep links back to the entry point with ?r=<path>
+				// ATTENTION: put this at last as every path that does not match above will match this
 				[
 						'name' => 'page#spaFallback',
 						'url' => '/{path}',

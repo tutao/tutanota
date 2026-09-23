@@ -25,7 +25,7 @@ export const enum PluginConfigurationOwner {
 }
 export interface ConfigurationAdapter {
 	storeUserConfig(pluginId: PluginId, configJson: string): Promise<void>
-	storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void>
+	storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<boolean>
 
 	getUserConfig(pluginId: PluginId): Promise<Nullable<string>>
 	getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>>
