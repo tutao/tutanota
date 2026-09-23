@@ -200,32 +200,32 @@ export class PriceAndConfigProvider {
 	}
 
 	/**
-	 * Returns the subscription price with the currency formatting on iOS and as a plain period seperated number on other platforms
+	 * Returns the subscription price with the currency formatting on iOS/google and as a plain period seperated number on other platforms
 	 */
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData | SignupViewModel): OfferPrice {
 		const subscription = data.targetPlanType
 
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
-			return this.getAppStorePaymentsSubscriptionPrice(subscription, paymentInterval)
+			return this.getExternalPaymentsSubscriptionPrice(subscription, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
 			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }
 		}
 	}
 
-	private getAppStorePaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval) {
+	private getExternalPaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval) {
 		const planName = PlanTypeToName[subscription]
-		const applePrices = this.getMobilePrices().get(planName.toLowerCase())
+		const externalSubscriptionPrices = this.getMobilePrices().get(planName.toLowerCase())
 
-		if (!applePrices) {
+		if (!externalSubscriptionPrices) {
 			throw new Error(`no such iOS plan ${planName}`)
 		}
 
 		switch (paymentInterval) {
 			case PaymentInterval.Monthly:
-				return { displayPrice: applePrices.displayMonthlyPerMonth, rawPrice: applePrices.rawMonthlyPerMonth.toString() }
+				return { displayPrice: externalSubscriptionPrices.displayMonthlyPerMonth, rawPrice: externalSubscriptionPrices.rawMonthlyPerMonth.toString() }
 			case PaymentInterval.Yearly: {
-				return { displayPrice: applePrices.displayYearlyPerYear, rawPrice: applePrices.rawYearlyPerYear.toString() }
+				return { displayPrice: externalSubscriptionPrices.displayYearlyPerYear, rawPrice: externalSubscriptionPrices.rawYearlyPerYear.toString() }
 			}
 		}
 	}
