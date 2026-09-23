@@ -7,7 +7,6 @@ import { NoSolutionSectionButton } from "../NoSolutionSectionButton.js"
 import { getSupportUsageTestStage } from "../SupportUsageTestUtils.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { AllIcons } from "../../../../ui/base/Icon"
-import { isFreeSignupOnly } from "../../misc/LoginUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { windowFacade } from "../../misc/WindowFacade"
 
@@ -44,7 +43,7 @@ export class SupportCategoryPage implements Component<Props> {
 						},
 					}),
 				),
-				isFreeSignupOnly() && !canHaveEmailSupport
+				!canHaveEmailSupport
 					? m(SectionButton, {
 							text: { text: "Tuta FAQ", testId: "" },
 							leftIcon: { icon: Icons.TutaFavicon, title: "supportMenu_label" },

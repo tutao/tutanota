@@ -89,53 +89,12 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 								color: theme.on_surface_variant,
 							} satisfies InfoMessaggeBoxAttrs),
 						)
-					: this.renderSignupPages(attrs),
+					: this.renderSignupPages(),
 			],
 		)
 	}
 
-	renderSignupPages(attrs: SignupViewAttrs): Children {
-		return attrs.viewModel.isFreeOnly ? this.renderFreeOnlySignupPages(attrs) : this.renderDefaultSignupPages(attrs)
-	}
-
-	renderFreeOnlySignupPages(attrs: SignupViewAttrs): Children {
-		return m(this.SignupWizard, {
-			layout: SignupWizardLayout,
-			steps: [
-				{
-					title: "Create Account",
-					content: SignupFormPage,
-					isBackButtonEnabled: () => true,
-					onNext: () => {
-						SignupFlowUsageTestController.completeStage(
-							SignupFlowStage.CREATE_ACCOUNT,
-							this.wizardViewModel.targetPlanType,
-							this.wizardViewModel.options.paymentInterval(),
-						)
-						SignupFlowUsageTestController.completeStage(
-							SignupFlowStage.SELECT_PAYMENT_METHOD,
-							this.wizardViewModel.targetPlanType,
-							this.wizardViewModel.options.paymentInterval(),
-							this.wizardViewModel.paymentData.paymentMethod,
-						)
-					},
-					onPrev: (ctx) => {
-						m.route.set("/")
-					},
-				},
-				{
-					title: "Recovery Kit",
-					content: RecoveryKitPage,
-					onNext: () => this.unregisterListener(),
-					onPrev: () => {},
-					isBackButtonEnabled: () => false,
-				},
-			],
-			viewModel: this.wizardViewModel,
-		} satisfies WizardAttrs<SignupViewModel>)
-	}
-
-	renderDefaultSignupPages(attrs: SignupViewAttrs): Children {
+	renderSignupPages(): Children {
 		return m(this.SignupWizard, {
 			layout: SignupWizardLayout,
 			steps: [
