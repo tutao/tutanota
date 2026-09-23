@@ -204,8 +204,6 @@ export function getAvailablePlansFromSubscriptionParameters(params: Subscription
 			case SubscriptionType.Personal:
 			case SubscriptionType.PaidPersonal:
 				return AvailablePlans
-			case SubscriptionType.FreeOnly:
-				return [PlanType.Free]
 		}
 	} catch (e) {
 		// If params.type is not a valid subscription type, return the default value
@@ -221,8 +219,6 @@ export function stringToSubscriptionType(string: string): SubscriptionType {
 			return SubscriptionType.Personal
 		case "privatepaid":
 			return SubscriptionType.PaidPersonal
-		case "freeonly":
-			return SubscriptionType.FreeOnly
 		default:
 			throw new Error(`Failed to get subscription type: ${string}`)
 	}
@@ -281,7 +277,4 @@ export async function showGiftCardDialog(urlHash: string) {
 export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
 	const dialog = await import("../login/recover/RecoverLoginDialog")
 	dialog.show(mailAddress, resetAction)
-}
-export function isFreeSignupOnly() {
-	return ClientDetector.get().getClientPlatform() === ClientPlatform.ANDROID_CALENDAR_APP
 }
