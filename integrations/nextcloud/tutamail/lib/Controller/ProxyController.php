@@ -18,6 +18,12 @@ class ProxyController extends Controller
 
 	private IClientService $clientService;
 	private IURLGenerator $urlGenerator;
+	private array $ALLOWED_ORIGINS = [
+			'app.tuta.com',
+			'app.test.tuta.com',
+			'app.local.tuta.com',
+			'localhost',
+	];
 	private array $ALLOWED_PROXIES = [
 			'GET' => [
 			],
@@ -68,6 +74,7 @@ class ProxyController extends Controller
 	/**
 	 * @throws ForbiddenProxyPathException
 	 * @throws PreflightException
+	 * @throws ForbiddenOriginException
 	 */
 	#[PublicPage]
 	#[NoCSRFRequired]
@@ -78,6 +85,7 @@ class ProxyController extends Controller
 		if ($origin === '') {
 			throw new PreflightException("Origin header not set");
 		}
+		$this->ensureAllowedOrigin($origin);
 		$response = new Response();
 		$response->addHeader('Access-Control-Allow-Origin', $origin);
 		$response->addHeader('Access-Control-Allow-Credentials', 'true');
@@ -94,12 +102,14 @@ class ProxyController extends Controller
 
 	/**
 	 * @throws ForbiddenProxyPathException
+	 * @throws ForbiddenOriginException
 	 */
 	private function proxyRedirect(string $targetUrl): DataResponse
 	{
 
 		$this->ensureAllowedProxyUrl($targetUrl);
 		$origin = $this->request->getHeader('Origin');
+		$this->ensureAllowedOrigin($origin);
 
 		// 1. Change the URL to your new destination
 		$baseUrl = $this->urlGenerator->getAbsoluteURL('');
@@ -221,6 +231,17 @@ class ProxyController extends Controller
 		}
 
 	}
+
+	/**
+	 * @throws ForbiddenOriginException
+	 */
+	private function ensureAllowedOrigin(string $origin): void
+	{
+		$host = parse_url($origin, PHP_URL_HOST);
+		if (!in_array($host, $this->ALLOWED_ORIGINS, true)) {
+			throw new ForbiddenOriginException($origin);
+		}
+	}
 }
 
 class PreflightException extends \Exception
@@ -229,7 +250,7 @@ class PreflightException extends \Exception
 			string $message,
 	)
 	{
-		parent::__construct($message, Http::STATUS_INTERNAL_SERVER_ERROR);
+		parent::__construct($message, Http::STATUS_BAD_REQUEST);
 	}
 }
 
@@ -237,6 +258,14 @@ class ForbiddenProxyPathException extends \Exception
 {
 	public function __construct(string $method, string $path)
 	{
-		parent::__construct("Forbidden Proxy Path requested: ${method}::${path}", Http::STATUS_FORBIDDEN);
+		parent::__construct("Forbidden Proxy Path requested: {$method}::{$path}", Http::STATUS_FORBIDDEN);
+	}
+}
+
+class ForbiddenOriginException extends \Exception
+{
+	public function __construct(string $origin)
+	{
+		parent::__construct("Forbidden Origin requested: {$origin}", Http::STATUS_FORBIDDEN);
 	}
 }

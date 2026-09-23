@@ -16,7 +16,8 @@
 	},
 	"autoload-dev": {
 		"psr-4": {
-			"OCA\\TutaMail\\Tests\\": "tests/"
+			"OCA\\TutaMail\\Tests\\": "tests/",
+			"OCP\\": "vendor/nextcloud/ocp/OCP/"
 		}
 	},
 	"scripts": {
@@ -36,7 +37,7 @@
 	},
 	"require": {
 		"bamarni/composer-bin-plugin": "^1.8",
-		"php": "^8.5",
+		"php": "^8.4",
 		"guzzle/http": "*"
 	},
 	"require-dev": {
@@ -51,7 +52,7 @@
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"platform": {
-			"php": "8.5"
+			"php": "8.4"
 		}
 	}
 }
