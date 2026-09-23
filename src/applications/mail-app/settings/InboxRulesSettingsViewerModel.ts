@@ -14,11 +14,9 @@ export class InboxRulesSettingsViewerModel {
 	constructor(
 		private readonly entityClient: EntityClient,
 		private readonly inboxRuleModel: InboxRuleModel,
-	) {
-		void this.init()
-	}
+	) {}
 
-	private async init(): Promise<void> {
+	async init(): Promise<void> {
 		if (!this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			const [rulesById, rulesOrder] = await Promise.all([this.inboxRuleModel.getInboxRulesMap(), this.inboxRuleModel.getInboxRuleOrder()])
 			this.inboxRulesById = rulesById
