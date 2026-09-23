@@ -5,7 +5,8 @@ import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"
 import { NextcloudPlugin } from "./NextcloudPlugin"
 import { isNull } from "../../../platform-kit/utils/Utils"
-import { GeneralPluginError } from "../../sdk/PluginError"
+import { CustomerConfigPluginError, GeneralPluginError } from "../../sdk/PluginError"
+import { PluginVersion } from "../../sdk/PluginManifest"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -248,6 +249,28 @@ export class NextcloudApi {
 			return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
 		} else {
 			return `${this.nextCloudUrl}${targetUrl}`
+		}
+	}
+
+	public async getInstalledVersion(): Promise<PluginVersion> {
+		let versionResponse: AxiosResponse
+		try {
+			versionResponse = await this.axiosClient.get(this.proxiedUrl(`/ocs/v2.php/apps/tutamail/api/v1/version`), {
+				headers: {
+					"OCS-APIRequest": "true",
+					Accept: "application/json",
+				},
+			})
+		} catch (e) {
+			throw new CustomerConfigPluginError(`Nextcloud URL is wrong: "${this.nextCloudUrl}"`)
+		}
+
+		if (versionResponse.status === 200) {
+			return versionResponse.data
+		} else if (versionResponse.status === 404) {
+			throw new CustomerConfigPluginError(`Tutamail is not installed in Nextcloud instance: "${this.nextCloudUrl}"`)
+		} else {
+			throw new CustomerConfigPluginError(`Nextcloud URL is wrong: "${this.nextCloudUrl}"`)
 		}
 	}
 }

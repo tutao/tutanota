@@ -19,6 +19,10 @@ export type ConfigExtension = {
 
 export type PluginConfigJson = string
 
+export const enum PluginConfigurationOwner {
+	Customer,
+	User,
+}
 export interface ConfigurationAdapter {
 	storeUserConfig(pluginId: PluginId, configJson: string): Promise<void>
 	storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void>
@@ -26,7 +30,7 @@ export interface ConfigurationAdapter {
 	getUserConfig(pluginId: PluginId): Promise<Nullable<string>>
 	getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>>
 
-	getConfigOwner(configListId: Id): "user" | "customer"
+	getConfigOwner(configListId: Id): PluginConfigurationOwner
 }
 
 export interface MailIntegrationAdapter {

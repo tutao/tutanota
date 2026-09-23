@@ -17,3 +17,11 @@ export class HostApiPermissionDenied extends TutanotaError {
 		super(HostApiPermissionDenied.ERROR_NAME, message)
 	}
 }
+
+export class CustomerConfigPluginError extends TutanotaError {
+	public static readonly ERROR_NAME: Readonly<string> = "CustomerConfigPluginError"
+
+	constructor(message: string) {
+		super(CustomerConfigPluginError.ERROR_NAME, message)
+	}
+}
