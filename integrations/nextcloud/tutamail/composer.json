@@ -14,6 +14,11 @@
 			"OCA\\TutaMail\\": "lib/"
 		}
 	},
+	"autoload-dev": {
+		"psr-4": {
+			"OCA\\TutaMail\\Tests\\": "tests/"
+		}
+	},
 	"scripts": {
 		"post-install-cmd": [
 			"@composer bin all install --ansi"
@@ -31,11 +36,12 @@
 	},
 	"require": {
 		"bamarni/composer-bin-plugin": "^1.8",
-		"php": "^8.1",
+		"php": "^8.5",
 		"guzzle/http": "*"
 	},
 	"require-dev": {
 		"nextcloud/ocp": "dev-stable31",
+		"phpunit/phpunit": "^12.0",
 		"roave/security-advisories": "dev-latest"
 	},
 	"config": {
@@ -45,7 +51,7 @@
 		"optimize-autoloader": true,
 		"sort-packages": true,
 		"platform": {
-			"php": "8.1"
+			"php": "8.5"
 		}
 	}
 }
