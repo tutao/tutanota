@@ -10,3 +10,10 @@ export class GeneralPluginError extends TutanotaError {
 		super(GeneralPluginError.ERROR_NAME, message)
 	}
 }
+
+export class HostApiPermissionDenied extends TutanotaError {
+	public static readonly ERROR_NAME: Readonly<string> = "HostApiPermissionDenied"
+	constructor(message: string) {
+		super(HostApiPermissionDenied.ERROR_NAME, message)
+	}
+}

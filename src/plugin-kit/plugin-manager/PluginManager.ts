@@ -48,6 +48,7 @@ export class PluginManager {
 			const pluginHost = new PluginHost(this, pluginId)
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginId, pluginHost, this.dialogAdapter)
 			await pluginApi.load(customerConfigJson)
+			pluginHost.setPluginManifest(await pluginApi.getManifest())
 
 			this.loadedPlugins[pluginId] = {
 				pluginId,
