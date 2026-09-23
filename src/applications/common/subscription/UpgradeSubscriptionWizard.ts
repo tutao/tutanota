@@ -8,7 +8,7 @@ import { locator } from "../api/main/CommonLocator"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
 import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
-import { asPaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
+import { asPaymentInterval, PriceAndConfigProvider, OfferPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { DialogType } from "../../../ui/base/Dialog.js"
@@ -43,8 +43,8 @@ export type UpgradeSubscriptionData = {
 	invoiceData: InvoiceData
 	paymentData: PaymentData
 	targetPlanType: PlanType
-	price: SubscriptionPrice | null
-	nextYearPrice: SubscriptionPrice | null
+	price: OfferPrice | null
+	nextYearPrice: OfferPrice | null
 	accountingInfo: AccountingInfo | null
 	// not initially set for signup but loaded in InvoiceAndPaymentDataPage
 	customer: Customer | null
