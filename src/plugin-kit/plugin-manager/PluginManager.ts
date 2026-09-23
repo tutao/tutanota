@@ -122,19 +122,21 @@ export class PluginManager {
 			for (const update of updates) {
 				if (isUpdateForTypeRef(PluginConfigurationTypeRef, update)) {
 					const pluginId = pluginIdFromString(base64UrlCustomIdToString(update.instanceId))
+					const configOwner = this.configurationAdapter.getConfigOwner(assertNotNull(update.instanceListId))
 
-					if (update.operation === OperationType.CREATE) {
+					if (update.operation === OperationType.CREATE && configOwner === "customer") {
 						const customerConfigJson = assertNotNull((await this.configurationAdapter.getCustomerPluginConfigs()).get(pluginId))
 						const pluginToLoad: EnabledPlugin = { pluginId, customerConfigJson: customerConfigJson }
 						await this.loadPlugins([pluginToLoad])
-					} else if (update.operation === OperationType.UPDATE) {
+					} else if (update.operation === OperationType.DELETE && configOwner === "customer") {
+						// FIXME: also delete this pluginConfig from user( better to do from serverside ) ?
+						await this.unloadPlugins(pluginId)
+					} else {
 						const loadedPlugin = assertNotNull(
 							this.loadedPlugins[pluginId],
 							`Got UPDATE for config for plugin ${pluginId}. But the plugin is not yet loaded`,
 						)
 						await loadedPlugin.api.onConfigChange()
-					} else if (update.operation === OperationType.DELETE) {
-						await this.unloadPlugins(pluginId)
 					}
 				}
 			}

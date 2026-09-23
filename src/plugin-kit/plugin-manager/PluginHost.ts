@@ -12,17 +12,19 @@ export type ButtonExtension = {
 
 export type ConfigExtension = {
 	config: ConfigFieldConfiguration
-	pluginId: string
+	pluginId: PluginId
 }
 
 export type PluginConfigJson = string
 
 export interface ConfigurationAdapter {
-	storeUserConfig(pluginId: string, configJson: string): Promise<void>
-	storeCustomerConfig(pluginId: string, configJson: string): Promise<void>
+	storeUserConfig(pluginId: PluginId, configJson: string): Promise<void>
+	storeCustomerConfig(pluginId: PluginId, configJson: string): Promise<void>
 
-	getUserConfig(pluginId: string): Promise<Nullable<string>>
+	getUserConfig(pluginId: PluginId): Promise<Nullable<string>>
 	getCustomerPluginConfigs(): Promise<Map<PluginId, PluginConfigJson>>
+
+	getConfigOwner(configListId: Id): "user" | "customer"
 }
 
 export interface MailIntegrationAdapter {
