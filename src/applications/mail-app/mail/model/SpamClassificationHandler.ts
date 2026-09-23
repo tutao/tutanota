@@ -1,4 +1,4 @@
-import { EnvProvider, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
+import { EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus } from "../../../../platform-kit/app-env"
 import { SpamClassifier } from "../../workerUtils/spamClassification/SpamClassifier"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel"
@@ -109,7 +109,10 @@ export class SpamClassificationHandler {
 		const allMailAddressesOfUser = await this.mailFacade.getAllMailAddressesForUser(this.loginController.getUserController().user)
 		const isMailFromSelf = allMailAddressesOfUser.includes(mail.sender.address)
 		if (isMailFromSelf) {
-			if (mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED) {
+			if (
+				mail.encryptionAuthStatus === EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED &&
+				mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+			) {
 				return MailFromSelfPossibilities.MailFromSelfAuthenticated
 			} else {
 				return MailFromSelfPossibilities.MailFromSelfSpoofed
