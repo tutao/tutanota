@@ -48,7 +48,7 @@ export class PluginSettingsModel {
 		}
 	}
 
-	getState(pluginId: string): PluginState {
+	getState(pluginId: PluginId): PluginState {
 		return this.state.get(pluginId) ?? { enabled: false, config: {} }
 	}
 
