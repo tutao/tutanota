@@ -60,6 +60,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 		readonly inboxRuleHandler: ExpandedInboxRuleHandler | LegacyInboxRuleHandler,
 	) {
 		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
+		this.model.init().then(m.redraw)
 		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			this.renderLegacyInboxRules()
 		}
