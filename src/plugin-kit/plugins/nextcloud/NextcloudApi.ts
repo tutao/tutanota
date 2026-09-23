@@ -18,9 +18,9 @@ export class NextcloudApi {
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
 	public constructor(
-		private readonly nextCloudUrl: string,
+		private nextCloudUrl: Readonly<string>,
 		private readonly hostApi: PluginHostApi,
-		private readonly host: string,
+		private readonly host: Readonly<string>,
 		private readonly nextcloudPlugin: NextcloudPlugin,
 	) {
 		this.nextCloudCredentials = null
@@ -39,8 +39,14 @@ export class NextcloudApi {
 		}, null)
 	}
 
-	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials) {
+	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials): this {
 		this.nextCloudCredentials = nextcloudCredentials
+		return this
+	}
+
+	public setNextcloudUrl(nextcloudUrl: string): this {
+		this.nextCloudUrl = nextcloudUrl
+		return this
 	}
 
 	public async loginAndCreateAppToken(): Promise<void> {

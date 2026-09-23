@@ -140,7 +140,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	async onConfigChange(): Promise<void> {
 		await this.loadUserConfig()
 		await this.loadCustomerConfig()
-		if (this.userConfig.credentials) {
+
+		this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
+		if (isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
 		}
 	}
