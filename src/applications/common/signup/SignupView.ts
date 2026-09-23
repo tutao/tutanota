@@ -147,18 +147,6 @@ export class SignupViewModel {
 		this.personalPlansAvailable = !getBusinessOnly(urlParams)
 	}
 
-	private cleanupCalled = false
-
-	private beforeUnloadHandler = (_event: BeforeUnloadEvent) => {
-		this.runBeforeUnload()
-	}
-
-	private runBeforeUnload() {
-		if (this.cleanupCalled) return
-		this.cleanupCalled = true
-		locator.logins.logout(true)
-	}
-
 	public updatePrice() {
 		if (this.targetPlanType === PlanType.Free) {
 			this.price = null
@@ -225,19 +213,13 @@ export class SignupViewModel {
 export class SignupView extends BaseTopLevelView implements TopLevelView<SignupViewAttrs> {
 	private bottomMargin = 0
 
-	private wizardViewModel: SignupViewModel
+	private readonly wizardViewModel: SignupViewModel
 	private unregisterListener: (...args: Array<any>) => any = noOp
 	private SignupWizard = createWizard<SignupViewModel>()
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
 		this.wizardViewModel = attrs.viewModel
-	}
-
-	async onbeforeremove() {}
-
-	private closeListener = async (event: Event) => {
-		event.preventDefault()
 	}
 
 	async oncreate({ attrs }: Vnode<SignupViewAttrs>) {
