@@ -3,11 +3,13 @@ import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDis
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
 import { assert, downcast, ofClass } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
-import { EnvProvider } from "@tutao/app-env"
-import { GeneralPluginError } from "./PluginError"
+import { EnvProvider, TutanotaError } from "@tutao/app-env"
+import { GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
+import { PluginManifest } from "./PluginManifest"
 
 const ErrorNameToType = {
 	GeneralPluginError,
+	HostApiPermissionDenied,
 }
 
 export function objToError(o: Record<string, any>): Error {
@@ -22,7 +24,6 @@ export function objToError(o: Record<string, any>): Error {
 
 export type MessageToPluginFromHostApiCommandNames = keyof PluginApi
 export type MessageToHostApiFromPluginCommandNames = keyof PluginHostApi
-export type PluginApiMessageDispatcher = MessageDispatcher<MessageToPluginFromHostApiCommandNames, MessageToHostApiFromPluginCommandNames>
 
 type PluginWorker = {
 	pluginApi: PluginApi
@@ -68,6 +69,8 @@ export abstract class PluginApi {
 			objToError,
 		)
 
+		const showDialogWithMessage = (e: TutanotaError) => dialogAdapter.showDialog(e.message)
+
 		const pluginApiAsProxy = new Proxy(
 			{},
 			{
@@ -76,7 +79,8 @@ export abstract class PluginApi {
 						const methodName = downcast<keyof PluginApi>(property)
 						return dispatchToHostApi
 							.postRequest(new Request(methodName, args))
-							.catch(ofClass(GeneralPluginError, (e) => dialogAdapter.showDialog(e.message)))
+							.catch(ofClass(GeneralPluginError, showDialogWithMessage))
+							.catch(ofClass(HostApiPermissionDenied, showDialogWithMessage))
 							.catch((e) => dialogAdapter.showDialog(`An unhandled error occured while Plugin '${pluginId}' was executed: ${e.message}`))
 					}
 				},
@@ -89,17 +93,11 @@ export abstract class PluginApi {
 		}
 	}
 
-	abstract getMetadata(): PluginMetadata
+	abstract getManifest(): Promise<Readonly<PluginManifest>>
 
 	abstract load(customerConfigJson: string): Promise<void>
 
 	abstract unload(): Promise<void>
 
 	abstract onConfigChange(): Promise<void>
-}
-
-export type PluginMetadata = {
-	name: string
-	description: string
-	version: string
 }

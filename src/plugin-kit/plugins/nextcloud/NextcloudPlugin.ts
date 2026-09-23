@@ -1,4 +1,4 @@
-import { PluginApi, PluginMetadata } from "../../sdk/PluginApi"
+import { PluginApi } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
@@ -8,6 +8,8 @@ import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportEx
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
+import { PluginManifest } from "../../sdk/PluginManifest"
+import { NEXTCLOUD_PLUGIN_MANIGEST } from "./manifest"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -34,12 +36,8 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		super(pluginHost)
 	}
 
-	getMetadata(): PluginMetadata {
-		return {
-			name: "Nextcloud Plugin",
-			description: "Save attachments to your Nextcloud server",
-			version: "1",
-		}
+	getManifest(): Promise<Readonly<PluginManifest>> {
+		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIGEST)
 	}
 
 	async load(customerConfigJson: string): Promise<void> {
