@@ -4517,7 +4517,7 @@ mod event_facade_unit_tests {
 	}
 
 	#[test]
-	fn test_monthly_recurrence_on_first_wednesday_using_setpos() {
+	fn test_flow_monthly_with_by_day_and_set_pos() {
 		let event_facade = EventFacade::new();
 
 		let event_start = DateTime::from_seconds(
@@ -4578,12 +4578,82 @@ mod event_facade_unit_tests {
 			.collect();
 
 		let expected_timestamps = vec![
-			Date::from_calendar_date(2026, Month::August, 5)
+			Date::from_calendar_date(2026, Month::December, 25)
 				.unwrap()
 				.with_time(Time::from_hms(18, 0, 0).unwrap())
 				.assume_utc()
 				.unix_timestamp(),
-			Date::from_calendar_date(2026, Month::September, 2)
+			Date::from_calendar_date(2027, Month::January, 1)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp(),
+		];
+
+		assert_eq!(occurrence_timestamps, expected_timestamps);
+	}
+
+	#[test]
+	fn test_monthly_byday_recurrence_on_week_53_in_next_year_works() {
+		let event_facade = EventFacade::new();
+
+		let event_start = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::December, 25)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let event_end = DateTime::from_seconds(
+			Date::from_calendar_date(2026, Month::December, 25)
+				.unwrap()
+				.with_time(Time::from_hms(18, 30, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let max_date = DateTime::from_seconds(
+			Date::from_calendar_date(2027, Month::January, 2)
+				.unwrap()
+				.midnight()
+				.assume_utc()
+				.unix_timestamp() as u64,
+		);
+		let repeat_rule = EventRepeatRule {
+			frequency: RepeatPeriod::Monthly,
+			by_rules: vec![
+				ByRule {
+					by_rule: ByRuleType::ByDay,
+					interval: "FR".to_string(),
+				},
+			],
+		};
+
+		let occurrence_dates = event_facade
+			.calculate_event_occurrences(
+				event_start,
+				event_end,
+				repeat_rule,
+				1,
+				EndType::Never,
+				None,
+				vec![],
+				max_date,
+				"UTC".to_string(),
+			)
+			.unwrap();
+
+		let occurrence_timestamps: Vec<_> = occurrence_dates
+			.iter()
+			.map(|event_occurrence_date| event_occurrence_date.as_seconds() as i64)
+			.collect();
+
+		let expected_timestamps = vec![
+			Date::from_calendar_date(2026, Month::December, 25)
+				.unwrap()
+				.with_time(Time::from_hms(18, 0, 0).unwrap())
+				.assume_utc()
+				.unix_timestamp(),
+			Date::from_calendar_date(2027, Month::January, 1)
 				.unwrap()
 				.with_time(Time::from_hms(18, 0, 0).unwrap())
 				.assume_utc()
