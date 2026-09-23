@@ -171,7 +171,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			{
 				class: bubbleButtonPadding(),
 				style: {
-					width: px(this.targetWidth),
+					minWidth: px(this.targetWidth),
 					// see hack description below. if #5587 persists, we might try visibility: hidden instead?
 					opacity: "0",
 				},
