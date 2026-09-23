@@ -195,7 +195,9 @@ export class DriveModel {
 			if (choice === "cancel") {
 				break
 			} else if (isNotNull(choice)) {
-				if (choice === "keepBoth") {
+				if (choice === "skip") {
+					continue
+				} else if (choice === "keepBoth") {
 					fileName = pickNewFileName(fileName, takenFileNames)
 				} else {
 					const itemToReplace = assertNotNull(
@@ -224,7 +226,6 @@ export class DriveModel {
 				const createdFolder = await this.driveFacade.createFolder(currentFolder.name, parent)
 				for (const childFile of currentFolder.files) {
 					const fileName = isWebFile(childFile) ? childFile.file.name : childFile.name
-
 					this.ensureWindowCloseListener()
 					await this.transferController.upload(childFile, fileName, createdFolder._id)
 				}

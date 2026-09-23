@@ -123,7 +123,7 @@ export async function showRenameDialog(item: FolderItem, rename: (newName: strin
 export const DUPLICATE_FILES_KEEP_CHOICE = 0
 
 export interface DuplicateFilesDialogDecision {
-	choice: "cancel" | "keepBoth" | "replace"
+	choice: "cancel" | "keepBoth" | "replace" | "skip"
 	applyToAll: boolean
 }
 export async function showDuplicateFilesChoiceDialog(fileName: string, fileCount: number): Promise<DuplicateFilesDialogDecision> {
@@ -136,6 +136,7 @@ export async function showDuplicateFilesChoiceDialog(fileName: string, fileCount
 		lang.getTranslation("duplicateFileName_msg", { "{fileName}": fileName }),
 		[
 			{ text: lang.getTranslation("cancel_action"), value: "cancel" },
+			{ text: lang.getTranslation("skip_action"), value: "skip" },
 			{ text: lang.getTranslation("keepBothFiles_action"), value: "keepBoth" },
 			{ text: lang.getTranslation("replaceFile_action"), value: "replace" },
 		],

@@ -2531,6 +2531,6 @@ export default {
 		"savingAttachmentToDrive_Label": "Saving file to Drive",
 		"sendDriveFileWithMail_action": "Send via Email",
 		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
-		"nameTooLong_msg": "This filename is too long."
+		"nameTooLong_msg": "This filename is too long.",
 	}
 }
