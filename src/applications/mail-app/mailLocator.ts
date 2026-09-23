@@ -106,7 +106,7 @@ import { SearchIndexStateInfo } from "../common/api/worker/search/SearchTypes.js
 import { MAIL_PREFIX } from "../../ui/utils/RouteChange.js"
 import { getDisplayedSender } from "../common/api/common/CommonMailUtils.js"
 import { MailModel } from "./mail/model/MailModel.js"
-import type { CommonLocator } from "../common/api/main/CommonLocator.js"
+import { CommonLocator, DialogProvider } from "../common/api/main/CommonLocator.js"
 import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import { WorkerInterface } from "./workerUtils/worker/WorkerImpl.js"
 import { isEditableDraft, isMailInSpamOrTrash } from "./mail/model/MailChecks.js"
@@ -176,7 +176,6 @@ import { ConfigurationAdapter } from "../../plugin-kit/plugin-manager/PluginHost
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { PostLoginAction } from "../../app-kit/native-bridge/common/PostLoginAction"
-import { DialogProvider } from "../common/app-common"
 
 EnvProvider.assertMainOrNode()
 

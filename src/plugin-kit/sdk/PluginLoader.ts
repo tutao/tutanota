@@ -16,7 +16,7 @@ export function initTutaPluginWorker(pluginId: string, pluginFactory: PluginFact
 		console.log(errMessage)
 		throw new Error(errMessage)
 	}
-	;(globalThis as any).tutaPluginWorkerImpl = new PluginWorkerImpl(self as DedicatedWorkerGlobalScope, pluginId, pluginFactory)
+	;(globalThis as any).tutaPluginWorkerImpl = new PluginWorkerImpl(self as unknown as DedicatedWorkerGlobalScope, pluginId, pluginFactory)
 }
 
 class PluginWorkerImpl {

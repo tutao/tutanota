@@ -18,7 +18,7 @@ import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
-import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
+import { appTypeForApp, buildDirForApp, buildPlugins, entryPointsForApp } from "./DevBuild.js"
 
 /**
  * Builds the web app for production.
@@ -108,6 +108,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				tsconfig: "./tsconfig-dist-rollup.json",
 				compilerOptions: {
 					outDir: buildDir,
+					noEmit: true,
 				},
 			}),
 			resolveLibs(),
@@ -183,6 +184,7 @@ import "./worker.js"`,
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)
+	await buildPlugins(buildDir)
 }
 
 /**
@@ -214,6 +216,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 				tsconfig: "tsconfig-dist-rollup.json",
 				compilerOptions: {
 					outDir: buildDir,
+					noEmit: true,
 				},
 			}),
 			// bundleDependencyCheckPlugin(),

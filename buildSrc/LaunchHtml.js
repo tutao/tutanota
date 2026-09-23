@@ -76,7 +76,7 @@ function csp(env) {
 			const cspContent =
 				"default-src 'none';" +
 				" script-src 'self' 'wasm-unsafe-eval';" +
-				" worker-src 'self';" +
+				" worker-src *;" +
 				" frame-src 'none';" +
 				" font-src 'self';" +
 				" img-src http: blob: data: *;" +
