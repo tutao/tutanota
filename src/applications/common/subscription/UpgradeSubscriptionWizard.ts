@@ -1,4 +1,4 @@
-import { defer } from "@tutao/utils"
+import { defer, filterInt } from "@tutao/utils"
 import { EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
 import stream from "mithril/stream"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
@@ -70,6 +70,7 @@ export type UpgradeSubscriptionData = {
 	passwordInputStore?: string
 	upgradeUsageTest: UsageTest | null
 	upgradePromptType: UpgradePromptType | null
+	bonusMonthsForYearlyPlans: number
 }
 
 export async function showUpgradeWizard({
@@ -112,6 +113,8 @@ export async function showUpgradeWizard({
 	const prices = priceDataProvider.getRawPricingData()
 	const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 	const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
+	const bonusMonths = filterInt(prices.bonusMonthsForYearlyPlan)
+
 	const upgradeData: UpgradeSubscriptionData = {
 		options: {
 			businessUse: stream(!isPersonalPlanAvailable(acceptedPlans) ? true : prices.business),
@@ -147,6 +150,7 @@ export async function showUpgradeWizard({
 		isCalledBySatisfactionDialog,
 		upgradeUsageTest,
 		upgradePromptType,
+		bonusMonthsForYearlyPlans: Number.isNaN(bonusMonths) ? 0 : bonusMonths,
 	}
 
 	let { pageClass: planPageClass, attrs: planPageAttrs } = { pageClass: SubscriptionPage, attrs: new SubscriptionPageAttrs(upgradeData) }

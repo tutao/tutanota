@@ -8,7 +8,7 @@ import { LoginController } from "../../api/main/LoginController.js"
  */
 export async function showUpgradeDialog(upgradePromptType: UpgradePromptType, isCalledBySatisfactionDialog = false): Promise<void> {
 	await (
-		await import("../../subscription/UpgradeSubscriptionWizard.js")
+		await import("../../subscription/upgrade/NewUpgradeSubscriptionWizard.js")
 	).showUpgradeWizard({
 		upgradePromptType,
 		logins: locator.logins,

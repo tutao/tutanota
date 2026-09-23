@@ -50,6 +50,7 @@ import { UsageTestController } from "@tutao/usagetests"
 import { InvoiceData } from "../subscription/utils/PaymentUtils"
 import { Country } from "../gui/CountryList"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { PlanSelectorWizardStep } from "./PlanSelectorWizardStep"
 
 EnvProvider.assertMainOrNode()
 
@@ -340,7 +341,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 			steps: [
 				{
 					title: "Select Plan",
-					content: PlanSelectorPage,
+					content: PlanSelectorWizardStep,
 					onNext: () =>
 						SignupFlowUsageTestController.completeStage(
 							SignupFlowStage.SELECT_PLAN,

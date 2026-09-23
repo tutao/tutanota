@@ -1,5 +1,4 @@
 import m, { ClassComponent, Vnode } from "mithril"
-import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { SignupViewModel } from "./SignupView"
 import { getCurrentPaymentInterval, PlanTypeToName, shouldShowExternalStorePrices, UpgradeType } from "../subscription/utils/SubscriptionUtils"
 import { getDiscountDetails, getPlanSelectorSubtitle, getPlanSelectorTitle } from "../subscription/utils/PlanSelectorUtils"
@@ -13,12 +12,22 @@ import { Styles } from "../../../ui/styles"
 import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
+import { UpgradeSubscriptionData } from "../subscription/UpgradeSubscriptionWizard"
+import { Thunk } from "@tutao/utils"
 
-export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
-	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+export type PlanSelectorPageAttrs = {
+	viewModel: UpgradeSubscriptionData
+	ctx: {
+		setLabel: (label: string) => void
+		goNext: Thunk
+	}
+}
+
+export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
+	view(vnode: Vnode<PlanSelectorPageAttrs>) {
 		const ctx = vnode.attrs.ctx
-		const data = ctx.viewModel
-		const { planPrices, acceptedPlans, accountingInfo } = data
+		const data = vnode.attrs.viewModel
+		const { planPrices, acceptedPlans, accountingInfo, bonusMonthsForYearlyPlans } = data
 		let availablePlans = acceptedPlans
 		const isApplePrice = shouldShowExternalStorePrices(accountingInfo ?? null)
 		const discountDetails = getDiscountDetails(isApplePrice, planPrices!)
@@ -39,7 +48,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			[PlanType.Revolutionary]: getAsLazy(button),
 			[PlanType.Legend]: getAsLazy(button),
 		}
-		const isBusiness = ctx.viewModel.options.businessUse()
+		const isBusiness = data.options.businessUse()
 
 		return m(
 			`.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`,
@@ -58,7 +67,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 				},
 				[
 					this.renderHeadline(data),
-					this.renderSubtitle(data),
+					this.renderSubtitle(data.globalCampaignName, bonusMonthsForYearlyPlans),
 					m(
 						`.flex.gap-64.full-width${isBusiness ? ".justify-center" : ""}`,
 						m(
@@ -95,8 +104,8 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 			),
 		)
 	}
-	private renderSubtitle(data: SignupViewModel) {
-		const subtitleTranslationKey = getPlanSelectorSubtitle(data.globalCampaignName, data.bonusMonthForYearlyPlans > 0)
+	private renderSubtitle(globalCampaignName: string, bonusMonthForYearlyPlans: number) {
+		const subtitleTranslationKey = getPlanSelectorSubtitle(globalCampaignName, bonusMonthForYearlyPlans > 0)
 		return m(`p.mb-32`, lang.getTranslationText(subtitleTranslationKey))
 	}
 
