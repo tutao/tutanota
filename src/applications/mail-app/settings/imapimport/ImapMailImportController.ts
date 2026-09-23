@@ -326,8 +326,7 @@ export class ImapMailImportController {
 				imapCredentials,
 			}
 		} catch (e) {
-			const isImapError = !Number.isNaN(e.data?.cause) && e.data?.code
-			if (!isImapError) {
+			if (!this.imapErrorHandler.isImapError(e)) {
 				throw e
 			}
 			const imapErrorHandlerResult = await this.imapErrorHandler.handleImapError(e, imapCredentials)
