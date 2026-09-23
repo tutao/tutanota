@@ -18,7 +18,7 @@ import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
-import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
+import { appTypeForApp, buildDirForApp, buildPlugins, entryPointsForApp } from "./DevBuild.js"
 
 /**
  * Builds the web app for production.
@@ -108,6 +108,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 				tsconfig: "./tsconfig-dist-rollup.json",
 				compilerOptions: {
 					outDir: buildDir,
+					noEmit: true,
 				},
 			}),
 			resolveLibs(),
@@ -215,6 +216,7 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
 				tsconfig: "tsconfig-dist-rollup.json",
 				compilerOptions: {
 					outDir: buildDir,
+					noEmit: true,
 				},
 			}),
 			// bundleDependencyCheckPlugin(),
@@ -273,19 +275,4 @@ function analyzer(projectDir, buildDir) {
 			await fs.writeFile(`${buildDir}/bundles.dot`, buffer)
 		},
 	}
-}
-
-async function buildPlugins(buildDir) {
-	const bundle = await rollup({
-		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js" },
-	})
-	await bundle.write({
-		dir: `./${buildDir}/plugin-kit/plugins/`,
-		format: "esm",
-		// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
-		// intercepted, so we can't serve the files.
-		sourcemap: "inline",
-		// overwrite the files rather than keeping all versions in the build folder
-		chunkFileNames: "[name].js",
-	})
 }
