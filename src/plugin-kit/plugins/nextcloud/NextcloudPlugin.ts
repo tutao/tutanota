@@ -7,6 +7,7 @@ import { isNull } from "../../../platform-kit/utils/Utils"
 import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
+import { PluginId } from "../../sdk/PluginId"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -24,7 +25,7 @@ type NextcloudCredentials = {
 }
 
 export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtension, EventLocationButtonExtension, FileImportExtension {
-	public static readonly PLUGIN_ID: string = "nextcloud"
+	public static readonly PLUGIN_ID: PluginId = "nextcloud"
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
 	private nextcloudApi: NextcloudApi = null!
