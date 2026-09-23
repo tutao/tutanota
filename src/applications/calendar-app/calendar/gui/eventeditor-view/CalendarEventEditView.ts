@@ -34,7 +34,6 @@ import { SectionButton } from "../../../../../ui/base/buttons/SectionButton.js"
 import { CalendarRepeatRule } from "@tutao/entities/tutanota"
 import { elementIdToId } from "@tutao/meta"
 import { TimeZoneSelectionPage, TimeZoneSelectionPageAttrs } from "./TimeZoneSelectionPage"
-import { isFreeSignupOnly } from "../../../../common/misc/LoginUtils"
 import { isNull } from "../../../../../platform-kit/utils/Utils"
 
 export type CalendarEventEditViewAttrs = {
@@ -541,7 +540,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							this.renderCalendarPicker(vnode),
 							this.renderRepeatRuleNavButton(vnode.attrs),
 							this.renderRemindersEditor(vnode),
-							isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount() ? null : this.renderGuestsNavButton(vnode.attrs),
+							locator.logins.getUserController().isFreeAccount() ? null : this.renderGuestsNavButton(vnode.attrs),
 							this.renderLocationField(vnode),
 						])
 					: null,

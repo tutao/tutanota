@@ -123,7 +123,6 @@ import { CalendarImporter } from "../../../common/calendar/import/CalendarImport
 import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInteractionHandler"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { reverse } from "../../../common/misc/EnumUtils"
-import { isFreeSignupOnly } from "../../../common/misc/LoginUtils"
 import { CalendarQuickSearchBar } from "./CalendarQuickSearchBar"
 
 export type GroupColors = Map<Id, string>
@@ -192,40 +191,37 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 								SidebarSection,
 								{
 									name: "yourCalendars_label",
-									button:
-										isFreeSignupOnly() && locator.logins.getUserController().isFreeAccount()
-											? null
-											: m(IconButton, {
-													label: "addCalendar_action",
-													colors: ButtonColor.Nav,
-													click:
-														(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) &&
-														findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
-															? createDropdown({
-																	lazyButtons: () => [
-																		{
-																			label: "addCalendar_action",
-																			colors: ButtonColor.Nav,
-																			click: () => this.onPressedAddCalendar(CalendarType.Private),
-																			icon: Icons.Plus,
-																			size: ButtonSize.Compact,
-																		},
-																		{
-																			label: "addCalendarFromURL_action",
-																			icon: Icons.Chainlink,
-																			size: ButtonSize.Compact,
-																			click: () => this.onPressedAddCalendar(CalendarType.External),
-																		},
-																	],
-																})
-															: () => this.onPressedAddCalendar(CalendarType.Private),
-													icon: Icons.Plus,
-													size: ButtonSize.Compact,
-												}),
+									button: m(IconButton, {
+										label: "addCalendar_action",
+										colors: ButtonColor.Nav,
+										click:
+											(EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) &&
+											findFirstPrivateCalendar(attrs.calendarViewModel.calendarInfos)
+												? createDropdown({
+														lazyButtons: () => [
+															{
+																label: "addCalendar_action",
+																colors: ButtonColor.Nav,
+																click: () => this.onPressedAddCalendar(CalendarType.Private),
+																icon: Icons.Plus,
+																size: ButtonSize.Compact,
+															},
+															{
+																label: "addCalendarFromURL_action",
+																icon: Icons.Chainlink,
+																size: ButtonSize.Compact,
+																click: () => this.onPressedAddCalendar(CalendarType.External),
+															},
+														],
+													})
+												: () => this.onPressedAddCalendar(CalendarType.Private),
+										icon: Icons.Plus,
+										size: ButtonSize.Compact,
+									}),
 									hideIfEmpty: true,
 								},
 								this.renderCalendars(CalendarType.Private),
-								(!isFreeSignupOnly() || !locator.logins.getUserController().isFreeAccount()) && this.renderBirthdayCalendar(),
+								!locator.logins.getUserController().isFreeAccount() && this.renderBirthdayCalendar(),
 							),
 							m(
 								SidebarSection,
@@ -1424,7 +1420,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 		]
 
-		if (this.canShare(isExternal) && (!isFreeSignupOnly() || !locator.logins.getUserController().isFreeAccount())) {
+		if (this.canShare(isExternal) && !locator.logins.getUserController().isFreeAccount()) {
 			actions.push({
 				label: "sharing_label",
 				icon: Icons.PersonAddFilled,

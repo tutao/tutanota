@@ -11,7 +11,7 @@ import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } f
 import { asPaymentInterval, PriceAndConfigProvider, SubscriptionPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { DialogType } from "../../../ui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { Styles } from "../../../ui/styles.js"
 import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
@@ -22,7 +22,6 @@ import type { UsageTest } from "@tutao/usagetests"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, NewPaidPlans, PlanType } from "../../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
-import { isFreeSignupOnly } from "../misc/LoginUtils"
 import { InvoiceData } from "./utils/PaymentUtils"
 
 EnvProvider.assertMainOrNode()
@@ -85,12 +84,6 @@ export async function showUpgradeWizard({
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
-	/* Temporarely restricting to free only to get accepted by Google Play Store */
-	if (isFreeSignupOnly()) {
-		Dialog.message("notAvailableInApp_msg")
-		return
-	}
-
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
 
 	let upgradeUsageTest: UsageTest | null = null

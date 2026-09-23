@@ -146,7 +146,6 @@ function isRelevantNewPlanName(planName: string, subscriptionType: SubscriptionT
 	}
 
 	switch (subscriptionType) {
-		case SubscriptionType.FreeOnly:
 		case SubscriptionType.Personal:
 		case SubscriptionType.PaidPersonal:
 			return NewPersonalPlans.includes(planType)

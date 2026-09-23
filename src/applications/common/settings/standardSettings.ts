@@ -20,7 +20,6 @@ import { ThemeController } from "../../../ui/ThemeController"
 import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { UserController } from "../api/main/UserController"
-import { isFreeSignupOnly } from "../misc/LoginUtils"
 
 export function calendarSettings(entityClient: EntityClient, userController: UserController): SettingsFolder<void> {
 	return new SettingsFolder(
@@ -121,9 +120,7 @@ export function adminSettingsSection(
 			undefined,
 		).setIsVisibleHandler(() => logins.getUserController().isGlobalAdmin()),
 	]
-	if (!isFreeSignupOnly()) {
-		settings.push(whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator))
-	}
+	settings.push(whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator))
 	return {
 		name: lang.getTranslation("adminSettings_label"),
 		settings,
