@@ -2745,6 +2745,8 @@ pub struct MailboxProperties {
 	#[serde(rename = "1846")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2021")]
+	pub spamFilterBehavior: Option<i64>,
 	#[serde(rename = "1267")]
 	pub mailAddressProperties: Vec<MailAddressProperties>,
 	#[serde(rename = "2020")]

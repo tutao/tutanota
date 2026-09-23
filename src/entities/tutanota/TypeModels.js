@@ -6654,6 +6654,14 @@ const typeModels = {
 				cardinality: "ZeroOrOne",
 				encrypted: false,
 			},
+			2021: {
+				final: false,
+				name: "spamFilterBehavior",
+				id: 2021,
+				type: "Number",
+				cardinality: "ZeroOrOne",
+				encrypted: true,
+			},
 		},
 		associations: {
 			1267: {
