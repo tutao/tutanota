@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
-import { SignupViewModel } from "./SignupView"
+import { SignupViewModel } from "./models/SignupViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog } from "../../../ui/base/Dialog"

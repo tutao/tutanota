@@ -25,7 +25,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { DateTime } from "luxon"
 import { formatDate } from "../../../ui/utils/Formatter.js"
 import { WizardStepContext } from "../../../ui/base/wizard/WizardController"
-import { SignupViewModel } from "../signup/SignupView"
+import { SignupViewModel } from "../signup/models/SignupViewModel"
 import { theme } from "../../../ui/theme"
 import { TextField } from "../../../ui/base/TextField"
 import { Icons } from "../../../ui/base/icons/Icons"
