@@ -6,7 +6,7 @@ import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { assertNotNull, isEmpty, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
-import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
+import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -34,8 +34,15 @@ export class ProcessInboxHandler {
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
 		private readonly usingLegacyInboxRules: boolean,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
-		private processedMailsAndInboxRules: Map<Id, { list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>; mailboxDetail: MailboxDetail }> = new Map(),
+		private processedMailsAndInboxRules: Map<
+			Id,
+			{
+				list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>
+				mailboxDetail: MailboxDetail
+			}
+		> = new Map(),
 		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
+		private readonly mailboxModel: MailboxModel,
 	) {
 		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
 			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
@@ -97,9 +104,11 @@ export class ProcessInboxHandler {
 		}
 
 		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
 		const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await this.spamHandler().preparePredictSpamForNewMail(
 			mail,
 			mailDetails,
+			mailboxProperties.spamFilterBehavior,
 		)
 
 		let targetFolder = sourceFolder
@@ -128,7 +137,8 @@ export class ProcessInboxHandler {
 		} else {
 			const moveToSpam =
 				skipPredictionReason === SkipClientSpamClassificationReason.MarkedAsPhishing ||
-				skipPredictionReason === SkipClientSpamClassificationReason.SpoofedSender
+				skipPredictionReason === SkipClientSpamClassificationReason.SpoofedSender ||
+				skipPredictionReason === SkipClientSpamClassificationReason.StrictSpamFilter
 			const moveToInbox = skipPredictionReason === SkipClientSpamClassificationReason.FromTrustedSender
 
 			if (moveToSpam && targetFolder.folderType === MailSetKind.INBOX) {

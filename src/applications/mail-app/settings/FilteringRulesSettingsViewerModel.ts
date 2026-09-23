@@ -31,9 +31,7 @@ export class FilteringRulesSettingsViewerModel {
 
 			const { mailboxGroupRoot } = await this.mailboxModel.getUserMailboxDetails()
 			const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxGroupRoot)
-			console.log("on init...", mailboxProperties.spamFilterBehavior)
 			this.spamFilterBehavior = mailboxProperties.spamFilterBehavior || SpamFilterBehavior.DEFAULT
-			console.log("after init set to...", this.spamFilterBehavior)
 		}
 	}
 
