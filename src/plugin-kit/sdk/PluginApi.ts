@@ -6,6 +6,7 @@ import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading
 import { EnvProvider, TutanotaError } from "@tutao/app-env"
 import { CustomerConfigPluginError, GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
 import { PluginManifest } from "./PluginManifest"
+import { PluginId } from "./PluginId"
 
 const ErrorNameToType = {
 	GeneralPluginError,
@@ -38,7 +39,7 @@ export interface DialogAdapter {
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: string, pluginHost: PluginHostApi, dialogAdapter: DialogAdapter): PluginWorker {
+	public static newPluginFromFile(pluginId: PluginId, pluginHost: PluginHostApi, dialogAdapter: DialogAdapter): PluginWorker {
 		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {

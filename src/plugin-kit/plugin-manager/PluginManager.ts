@@ -17,7 +17,7 @@ export type EnabledPlugin = {
 }
 
 type PluginWrapper = {
-	pluginId: string
+	pluginId: PluginId
 	globalConfigJson: string
 	api: PluginApi
 	pluginHost: PluginHost

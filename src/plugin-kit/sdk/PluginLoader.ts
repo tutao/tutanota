@@ -4,13 +4,14 @@ import { PluginHostApi } from "./PluginHostApi"
 import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDispatcher"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
+import { PluginId } from "./PluginId"
 
 export type PluginFactoryParams = {
 	pluginHost: PluginHostApi
 }
 export type PluginFactory = (pluginHost: PluginFactoryParams) => PluginApi
 ;(globalThis as any).tutaPluginWorkerImpl = null
-export function initTutaPluginWorker(pluginId: string, pluginFactory: PluginFactory) {
+export function initTutaPluginWorker(pluginId: PluginId, pluginFactory: PluginFactory) {
 	if ((globalThis as any).tutaPluginWorkerImpl != null) {
 		const errMessage = "Tried to initialize plugin twice?"
 		console.log(errMessage)
@@ -23,7 +24,7 @@ class PluginWorkerImpl {
 	private readonly _scope: DedicatedWorkerGlobalScope
 	private _dispatcher: MessageDispatcher<keyof PluginHostApi, keyof PluginApi> | null
 
-	constructor(self: DedicatedWorkerGlobalScope, pluginId: string, pluginFactory: PluginFactory) {
+	constructor(self: DedicatedWorkerGlobalScope, pluginId: PluginId, pluginFactory: PluginFactory) {
 		this._scope = self
 
 		const pluginApi = this.getPluginApiRedirector(pluginFactory)
