@@ -44,7 +44,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 		return m(
 			`.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`,
 			// Headline for general messages -- currently only used when a user tries to manage multiple subscriptions on ios (which is not possible)
-			data.msg && m(MessageBanner, { translation: data.msg, type: "error" }),
+			data.messageBoxMessage && m(MessageBanner, { translation: data.messageBoxMessage, type: "error" }),
 			// Headline for promotional messages
 			message && m(MessageBanner, { translation: message, type: "base" }),
 
