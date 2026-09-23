@@ -1,6 +1,6 @@
 import m, { Children, Vnode } from "mithril"
 import { EnvProvider, PaymentSetup } from "@tutao/app-env"
-import { InfoLink, lang, MaybeTranslation, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
+import { InfoLink, lang, Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { createWizard, WizardAttrs } from "../../../ui/base/wizard/Wizard"
@@ -82,7 +82,7 @@ export class SignupViewModel {
 	public referralData: null | ReferralData
 	public multipleUsersAllowed: boolean
 	public acceptedPlans: AvailablePlanType[] = []
-	public msg?: Translation | null
+	public messageBoxMessage?: Translation | null
 	public firstMonthForFreeOfferActive?: boolean
 	public bonusMonthForYearlyPlans: number = 0
 	public isCalledBySatisfactionDialog: boolean
@@ -185,8 +185,19 @@ export class SignupViewModel {
 		this.globalCampaignName = prices.globalCampaignName
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
 		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
-		let message: MaybeTranslation | null = null
 		this.options.businessUse(prices.business)
+
+		this.priceInfoTextId = priceDataProvider.getPriceInfoMessage()
+		this.planPrices = priceDataProvider
+		this.featureListProvider = featureListProvider
+		this.messageBoxMessage = await this.resolveMessageBox()
+		this.firstMonthForFreeOfferActive = prices.firstMonthForFreeForYearlyPlan
+		const bonusMonths = filterInt(prices.bonusMonthsForYearlyPlan)
+		this.bonusMonthForYearlyPlans = Number.isNaN(bonusMonths) ? 0 : bonusMonths
+		this._isInitialized = true
+	}
+
+	private async resolveMessageBox(): Promise<Translation | null> {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
@@ -195,18 +206,10 @@ export class SignupViewModel {
 				this.acceptedPlans = this.acceptedPlans.filter((plan) => plan === PlanType.Free)
 			}
 			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
-				message = lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+				return lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
 			}
 		}
-
-		this.priceInfoTextId = priceDataProvider.getPriceInfoMessage()
-		this.planPrices = priceDataProvider
-		this.featureListProvider = featureListProvider
-		this.msg = message
-		this.firstMonthForFreeOfferActive = prices.firstMonthForFreeForYearlyPlan
-		const bonusMonths = filterInt(prices.bonusMonthsForYearlyPlan)
-		this.bonusMonthForYearlyPlans = Number.isNaN(bonusMonths) ? 0 : bonusMonths
-		this._isInitialized = true
+		return null
 	}
 }
 
