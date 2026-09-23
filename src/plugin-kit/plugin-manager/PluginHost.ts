@@ -87,7 +87,7 @@ export class PluginHost implements PluginHostApi {
 
 	async openWindow(url: string): Promise<Nullable<number>> {
 		const targetUrl = new URL(url)
-		if (targetUrl.protocol !== "https" && targetUrl.protocol !== "http") {
+		if (targetUrl.protocol !== "https:" && targetUrl.protocol !== "http:") {
 			throw new HostApiPermissionDenied(`Only https url are supported. Found: ${targetUrl.protocol}`)
 		}
 
