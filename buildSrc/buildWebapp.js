@@ -183,6 +183,7 @@ import "./worker.js"`,
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)
+	await buildPlugins(buildDir)
 }
 
 /**
@@ -272,4 +273,19 @@ function analyzer(projectDir, buildDir) {
 			await fs.writeFile(`${buildDir}/bundles.dot`, buffer)
 		},
 	}
+}
+
+async function buildPlugins(buildDir) {
+	const bundle = await rollup({
+		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js" },
+	})
+	await bundle.write({
+		dir: `./${buildDir}/plugin-kit/plugins/`,
+		format: "esm",
+		// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
+		// intercepted, so we can't serve the files.
+		sourcemap: "inline",
+		// overwrite the files rather than keeping all versions in the build folder
+		chunkFileNames: "[name].js",
+	})
 }

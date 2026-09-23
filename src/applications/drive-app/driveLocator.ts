@@ -88,7 +88,7 @@ import {
 } from "@tutao/native-bridge/generatedIpc/types"
 import { notifications } from "../../ui/Notifications"
 import { EntityClient } from "../../platform-kit/network/EntityClient"
-import { CommonLocator } from "../common/api/main/CommonLocator"
+import { CommonLocator, DialogProvider } from "../common/api/main/CommonLocator"
 import { LoginFacade } from "../../platform-kit/base/facades/LoginFacade"
 import { AppHeaderAttrs, Header } from "../../ui/Header"
 import { GroupManagementFacade } from "../../platform-kit/base/facades/lazy/GroupManagementFacade"
@@ -130,7 +130,6 @@ import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { DialogProvider } from "../common/app-common"
 
 EnvProvider.assertMainOrNode()
 

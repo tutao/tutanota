@@ -103,7 +103,7 @@ import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import PublicEncryptionKeyProvider from "../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
-import { CommonLocator } from "../common/api/main/CommonLocator"
+import { CommonLocator, DialogProvider } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
 import { IdentityKeyCreator } from "../../platform-kit/base/base-crypto/IdentityKeyCreator"
@@ -128,7 +128,6 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { DialogProvider } from "../common/app-common"
 
 EnvProvider.assertMainOrNode()
 

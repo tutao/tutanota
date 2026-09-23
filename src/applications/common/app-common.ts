@@ -4,8 +4,6 @@ import type { BaseThemeProvider } from "../../ui/theme"
 import { TopLevelAttrs, TopLevelView } from "../../ui/base/TopLevelView"
 import { LoginController } from "./api/main/LoginController"
 import { RouteResolver } from "mithril"
-import { DialogAdapter } from "../../plugin-kit/sdk/PluginApi"
-import { Dialog } from "../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -58,9 +56,3 @@ export type MakeViewResolver = <FullAttrs extends TopLevelAttrs = never, Compone
 	options: MakeViewResolverOptions<FullAttrs, ComponentType, RouteCache>,
 	logins: LoginController,
 ) => RouteResolver
-
-export class DialogProvider implements DialogAdapter {
-	async showDialog(message: string): Promise<void> {
-		return await Dialog.message({ testId: "plugin_error_msg", text: message })
-	}
-}
