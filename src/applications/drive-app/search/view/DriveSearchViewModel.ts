@@ -52,9 +52,9 @@ import { ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 import { listItemSelectionCallbacksFor } from "../../../common/misc/ListModelUtils"
 import { createDriveRestriction, getDriveRestriction } from "../model/DriveSearchUtils"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
-import { DuplicateFilesDialogDecision } from "../../drive/view/DriveGuiUtils"
 import { FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { FileType, getDisplayType } from "../../drive/model/DriveMimeUtils"
+import { DuplicateFilesDialogDecision } from "../../drive/view/DriveDuplicateFileDialog"
 
 const SEARCH_PAGE_SIZE = 100
 
