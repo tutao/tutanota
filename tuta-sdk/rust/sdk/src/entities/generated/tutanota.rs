@@ -1038,10 +1038,10 @@ pub struct NewDraftAttachment {
 	pub _id: Option<CustomId>,
 	#[serde(rename = "488")]
 	#[serde(with = "serde_bytes")]
-	pub encFileName: Vec<u8>,
+	pub encFileName: Option<Vec<u8>>,
 	#[serde(rename = "489")]
 	#[serde(with = "serde_bytes")]
-	pub encMimeType: Vec<u8>,
+	pub encMimeType: Option<Vec<u8>>,
 	#[serde(rename = "925")]
 	#[serde(with = "serde_bytes")]
 	pub encCid: Option<Vec<u8>>,
@@ -1091,17 +1091,17 @@ pub struct DraftData {
 	#[serde(rename = "497")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "498")]
-	pub subject: String,
+	pub subject: Option<String>,
 	#[serde(rename = "499")]
-	pub bodyText: String,
+	pub bodyText: Option<String>,
 	#[serde(rename = "500")]
-	pub senderMailAddress: String,
+	pub senderMailAddress: Option<String>,
 	#[serde(rename = "501")]
-	pub senderName: String,
+	pub senderName: Option<String>,
 	#[serde(rename = "502")]
-	pub confidential: bool,
+	pub confidential: Option<bool>,
 	#[serde(rename = "1116")]
-	pub method: i64,
+	pub method: Option<i64>,
 	#[serde(rename = "1194")]
 	pub compressedBodyText: Option<String>,
 	#[serde(rename = "503")]
@@ -1145,9 +1145,9 @@ pub struct DraftCreateData {
 	pub conversationType: i64,
 	#[serde(rename = "512")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncSessionKey: Vec<u8>,
+	pub ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "1427")]
-	pub ownerKeyVersion: i64,
+	pub ownerKeyVersion: Option<i64>,
 	#[serde(rename = "515")]
 	pub draftData: DraftData,
 

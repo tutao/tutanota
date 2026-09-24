@@ -996,8 +996,8 @@ export function createNewDraftAttachment(values: NewDraftAttachmentParams): NewD
 export type NewDraftAttachmentParams = {
 
 
-	encFileName: Uint8Array<ArrayBuffer>;
-	encMimeType: Uint8Array<ArrayBuffer>;
+	encFileName: null | Uint8Array<ArrayBuffer>;
+	encMimeType: null | Uint8Array<ArrayBuffer>;
 	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -1009,8 +1009,8 @@ export type NewDraftAttachment = {
 	_original?: NewDraftAttachment
 
 	_id: Id;
-	encFileName: Uint8Array<ArrayBuffer>;
-	encMimeType: Uint8Array<ArrayBuffer>;
+	encFileName: null | Uint8Array<ArrayBuffer>;
+	encMimeType: null | Uint8Array<ArrayBuffer>;
 	encCid: null | Uint8Array<ArrayBuffer>;
 
 	referenceTokens: BlobReferenceTokenWrapper[];
@@ -1052,12 +1052,12 @@ export function createDraftData(values: DraftDataParams): DraftData {
 export type DraftDataParams = {
 
 
-	subject: string;
-	bodyText: string;
-	senderMailAddress: string;
-	senderName: string;
-	confidential: boolean;
-	method: NumberString;
+	subject: null | string;
+	bodyText: null | string;
+	senderMailAddress: null | string;
+	senderName: null | string;
+	confidential: null | boolean;
+	method: null | NumberString;
 	compressedBodyText: null | string;
 
 	toRecipients: DraftRecipient[];
@@ -1075,12 +1075,12 @@ export type DraftData = {
 	_original?: DraftData
 
 	_id: Id;
-	subject: string;
-	bodyText: string;
-	senderMailAddress: string;
-	senderName: string;
-	confidential: boolean;
-	method: NumberString;
+	subject: null | string;
+	bodyText: null | string;
+	senderMailAddress: null | string;
+	senderName: null | string;
+	confidential: null | boolean;
+	method: null | NumberString;
 	compressedBodyText: null | string;
 
 	toRecipients: DraftRecipient[];
@@ -1103,8 +1103,8 @@ export type DraftCreateDataParams = {
 
 	previousMessageId: null | string;
 	conversationType: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	draftData: DraftData;
 }
@@ -1117,8 +1117,8 @@ export type DraftCreateData = {
 	_format: NumberString;
 	previousMessageId: null | string;
 	conversationType: NumberString;
-	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
-	ownerKeyVersion: NumberString;
+	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerKeyVersion: null | NumberString;
 
 	draftData: DraftData;
 }

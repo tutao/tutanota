@@ -2959,7 +2959,7 @@ const typeModels = {
 				"name": "encFileName",
 				"id": 488,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -2968,7 +2968,7 @@ const typeModels = {
 				"name": "encMimeType",
 				"id": 489,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -3096,7 +3096,7 @@ const typeModels = {
 				"name": "subject",
 				"id": 498,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -3105,7 +3105,7 @@ const typeModels = {
 				"name": "bodyText",
 				"id": 499,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -3114,7 +3114,7 @@ const typeModels = {
 				"name": "senderMailAddress",
 				"id": 500,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -3123,7 +3123,7 @@ const typeModels = {
 				"name": "senderName",
 				"id": 501,
 				"type": "String",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -3132,7 +3132,7 @@ const typeModels = {
 				"name": "confidential",
 				"id": 502,
 				"type": "Boolean",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -3141,7 +3141,7 @@ const typeModels = {
 				"name": "method",
 				"id": 1116,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": true,
 				"transferredAttributeId": null
 			},
@@ -3283,7 +3283,7 @@ const typeModels = {
 				"name": "ownerEncSessionKey",
 				"id": 512,
 				"type": "Bytes",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
@@ -3292,7 +3292,7 @@ const typeModels = {
 				"name": "ownerKeyVersion",
 				"id": 1427,
 				"type": "Number",
-				"cardinality": "One",
+				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": null
 			}
