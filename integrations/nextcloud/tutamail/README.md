@@ -1,6 +1,23 @@
 # Tuta Mail
 
-This is the official Tuta Mail plugin for nextcloud.
+The official Tuta Mail App for Nextcloud!
+
+It allows you to use the Tuta web client inside Nextcloud. Additionally it offer a couple of integrations
+
+## Tuta integrations with Nextcloud
+
+Currently, there are two integrations with Nextcloud with more to come. You can
+
+- save an attachment to your Nextcloud server
+- generate a Nextcloud Talk room link in the location field of a Tuta calendar event.
+
+These integrations work whether you use your Tuta account inside Nextcloud or on desktop/mobile/web.
+
+In order to activate these integrations, you need to enable the Nextcloud plugin _from within your Tuta_ account:
+
+- Go to Settings -> Plugins (Under Admin Settings)
+- Enable the Nextcloud plugin
+- Enter your Nextcloud URL and the folder name for saving attachments
 
 ## Setting up nextcloud container for development
 
@@ -15,48 +32,26 @@ This is the official Tuta Mail plugin for nextcloud.
 
 1) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/`nextcloud-docker-dev
 2) In `nextcloud-docker-dev` run the`./bootstart.sh` script.
-3) In `docker-compose.yml` add these two lines under services>nextcloud>volumes,
-   and make sure to replace
+3) In `docker-compose.yml` add these two lines under services>nextcloud>volumes, and make sure to replace
    `/path/to/tutanota/repository` with the correct path:
    ```yaml
        - '${HOME}/dev/repositories/tutanota/integrations/nextcloud/tutamail:/var/www/html/apps/tutamail'
-       - '${HOME}/home/map/dev/repositories/tutanota/build/:/var/www/html/apps/tutamail/js'
+       - '${HOME}/dev/repositories/tutanota/build/:/var/www/html/apps/tutamail/js'
    ```
 4) Start the nextcloud container:
     * `docker compose up -d nextcloud` to start nextcloud
     * `rm .env` and run `./bootstrap.sh` again if something goes wrong.
 5) Visit `http://nextcloud.local` from your browser
-6) Under Admin Settings in Nextcloud, activate install the "manual_install" deploy daemon.
 
-## How to build the plugin (Local Dev)
+## PHP IDE Setup (PhpStorm)
 
-1. [Setup](#setting-up-nextcloud-container-for-development) the nextcloud-docker-dev environment
-2. Clone this repo into `nextcloud-docker-dev/workspace/server/apps-extra/` and name it `tutamail`
-3. Build the Tuta Web App in `nextcloud-docker-dev/workspace/server/apps-extra/tutamail`
-
-```bash
-npm ci
-node make
-```
-4. Run the ExApp Proxy:
-```bash
-cd `/path/to/nextcloud-docker-dev/workspace/server/apps-extra/tutamail/`
-go run main.go -targetHost "https://app.tuta.com"
-```
-
-
-
-## PHP IDE Setup
-
-1. Use phpStorm ( You can download from your jetbrains toolbox)
-2. Make sure [docker_dev setup is up and running](#setting-up-nextcloud-container-for-development)
-3. Add php interpreter from running `php-dev` container
+1. Make sure [docker_dev setup is up and running](#setting-up-nextcloud-container-for-development)
+2. Add php interpreter from running `php-dev` container
     * Goto Settings > PHP > Composer
-    * In execution section, Click the three-dot icon and a new dialog will appear to add
-      a php cli interpreter
+    * In execution section, Click the three-dot icon and a new dialog will appear to add a php cli interpreter
     * Add new interpreter from docker image: `ghcr.io/juliusknorr/nextcloud-dev-php82:latest`
     * Apply and close the interpreter dialog
-4. Specify path to composer executable
+3. Specify path to composer executable
     * In Settings > Php > Composer > Execution section,
     * Select `ghcr.io/juliusknorr/nextcloud-dev-php82:latest` from dropdown for CLI interpreter
     * Put `/usr/local/bin/composer` as the composer executable path
