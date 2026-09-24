@@ -14,6 +14,7 @@ import {
 } from "@tutao/meta"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, isApp, isDesktop, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
+	AeadCipherVersion,
 	Aes256Key,
 	aes256RandomKey,
 	AesKey,
@@ -343,31 +344,17 @@ export class MailFacade {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
 
-		const sk = aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const sessionKey = aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
+
 		const service = createDraftCreateData({
-			ownerEncSessionKey: ownerEncSessionKey.key,
-			ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
 			draftData: createDraftData({
-				// deprecated attributes, use mail and mailDetailsBlob instead
-				subject: "",
-				compressedBodyText: null,
-				senderMailAddress: "",
-				senderName: "",
-				confidential,
-				method,
-				toRecipients: [],
-				ccRecipients: [],
-				bccRecipients: [],
-				replyTos: [],
-				bodyText: "",
-				// end of deprecated attributes
 				addedAttachments: await this._createAddedAttachments(attachments, [], senderMailGroupId, mailGroupKey),
 				removedAttachments: [],
 				mail: createMailTransferAggregatedType({
-					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerEncSessionKey: ownerEncSessionKey.key,
 					_ownerKeyVersion: mailGroupKey.version.toString(),
 					_kdfNonce: null,
 					subject,
@@ -381,7 +368,7 @@ export class MailFacade {
 					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
-					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
+					_ownerEncSessionKey: ownerEncSessionKey.key,
 					_ownerKeyVersion: mailGroupKey.version.toString(),
 					_kdfNonce: null,
 					details: createMailDetailsTransferAggregatedType({
@@ -397,12 +384,31 @@ export class MailFacade {
 						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
 				}),
+
+				// deprecated attributes, use mail and mailDetailsBlob instead
+				subject: null,
+				compressedBodyText: null,
+				senderMailAddress: null,
+				senderName: null,
+				confidential: null,
+				method: null,
+				toRecipients: [],
+				ccRecipients: [],
+				bccRecipients: [],
+				replyTos: [],
+				bodyText: null,
+				// end of deprecated attributes
 			}),
+
+			// deprecated attributes, use mail and mailDetailsBlob instead
+			ownerEncSessionKey: null,
+			ownerKeyVersion: null,
+			// end of deprecated attributes
 		})
 		const createDraftReturn = await this.serviceExecutor.post(DraftService, service, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey: sk,
 			ownerKey: mailGroupKey,
+			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
 		})
 		return this.entityClient.load(MailTypeRef, createDraftReturn.draft)
 	}
@@ -459,13 +465,14 @@ export class MailFacade {
 		})
 
 		return createNewDraftAttachment({
-			// deprecated attributes, use file instead
-			encCid: null,
-			encFileName: new Uint8Array(0),
-			encMimeType: new Uint8Array(0),
-			// end of deprecated attributes
 			file: transferFile,
 			referenceTokens,
+
+			// deprecated attributes, use file instead
+			encCid: null,
+			encFileName: null,
+			encMimeType: null,
+			// end of deprecated attributes
 		})
 	}
 
@@ -510,29 +517,15 @@ export class MailFacade {
 		const currentAttachments = await this.getAttachmentIds(draft)
 		const replyTos = await this.getReplyTos(draft)
 
-		const sk = decryptKey(mailGroupKey.object, assertNotNull(draft._ownerEncSessionKey))
 		const service = createDraftUpdateData({
 			draft: draft._id,
 			draftData: createDraftData({
-				// deprecated attributes, use mail and mailDetailsBlob instead
-				subject: "",
-				compressedBodyText: null,
-				senderMailAddress: "",
-				senderName: "",
-				confidential,
-				method: draft.method,
-				toRecipients: [],
-				ccRecipients: [],
-				bccRecipients: [],
-				replyTos: [],
-				bodyText: "",
-				// end of deprecated attributes
 				removedAttachments: this._getRemovedAttachments(attachments, currentAttachments),
 				addedAttachments: await this._createAddedAttachments(attachments, currentAttachments, senderMailGroupId, mailGroupKey),
 				mail: createMailTransferAggregatedType({
-					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
-					_ownerKeyVersion: mailGroupKey.version.toString(),
-					_kdfNonce: null,
+					_ownerEncSessionKey: draft._ownerEncSessionKey,
+					_ownerKeyVersion: draft._ownerKeyVersion,
+					_kdfNonce: draft._kdfNonce,
 					subject,
 					sender: createMailAddressTransferAggregatedType({
 						name: senderName,
@@ -544,9 +537,9 @@ export class MailFacade {
 					firstRecipient: recipientToTransferMailAddress(toRecipients.at(0) ?? ccRecipients.at(0) ?? bccRecipients.at(0) ?? null),
 				}),
 				mailDetailsBlob: createMailDetailsBlobTransferAggregatedType({
-					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(mailGroupKey.object, sk),
-					_ownerKeyVersion: mailGroupKey.version.toString(),
-					_kdfNonce: null,
+					_ownerEncSessionKey: draft._ownerEncSessionKey,
+					_ownerKeyVersion: draft._ownerKeyVersion,
+					_kdfNonce: draft._kdfNonce,
 					details: createMailDetailsTransferAggregatedType({
 						body: createBodyTransferAggregatedType({
 							compressedText: body,
@@ -560,6 +553,20 @@ export class MailFacade {
 						replyTos: replyTos.map(recipientToTransferEncryptedMailAddress),
 					}),
 				}),
+
+				// deprecated attributes, use mail and mailDetailsBlob instead
+				subject: null,
+				compressedBodyText: null,
+				senderMailAddress: null,
+				senderName: null,
+				confidential: null,
+				method: null,
+				toRecipients: [],
+				ccRecipients: [],
+				bccRecipients: [],
+				replyTos: [],
+				bodyText: null,
+				// end of deprecated attributes
 			}),
 		})
 		this.deferredDraftId = draft._id
@@ -567,7 +574,11 @@ export class MailFacade {
 		this.deferredDraftUpdate = defer()
 		// use a local reference here because this._deferredDraftUpdate is set to null when the event is received async
 		const deferredUpdatePromiseWrapper = this.deferredDraftUpdate
-		await this.serviceExecutor.put(DraftService, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: sk, ownerKey: mailGroupKey })
+		await this.serviceExecutor.put(DraftService, service, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			ownerKey: mailGroupKey,
+			aeadCipherVersion: AeadCipherVersion.WithSessionKey,
+		})
 		return deferredUpdatePromiseWrapper.promise
 	}
 
