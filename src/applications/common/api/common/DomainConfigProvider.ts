@@ -1,6 +1,7 @@
-import { DomainConfig } from "@tutao/app-env"
+import { DomainConfig, EnvProvider } from "@tutao/app-env"
+import { PluginSourceHostServer } from "../../../../plugin-kit/plugin-manager/PluginManager"
 
-export interface DomainConfigProvider {
+export interface DomainConfigProvider extends PluginSourceHostServer {
 	/** Get domain config for the current domain (staticUrl or the one the app is running on). */
 	getCurrentDomainConfig(): DomainConfig
 
@@ -9,17 +10,20 @@ export interface DomainConfigProvider {
 
 class DomainConfigProviderImpl implements DomainConfigProvider {
 	/** Get domain config for the current domain (staticUrl or the one the app is running on). */
-	getCurrentDomainConfig(): DomainConfig {
+	public getCurrentDomainConfig(): DomainConfig {
 		// It is ambiguous what to do when we run website on one domain but have static URL for another
 		// one but this actually shouldn't happen.
-		const url = new URL(env.staticUrl ?? location.href)
+		let url: URL = new URL(env.staticUrl ?? location.href)
+		// replace with targetUrl when inside nextcloud
+		url = new URL(EnvProvider.get().ifNextcloudGetArgs()?.targetTutaHost ?? url)
+
 		const port = url.port
 		const hostname = url.hostname
 		const protocol = url.protocol
 		return this.getDomainConfigForHostname(hostname, protocol, port)
 	}
 
-	getDomainConfigForHostname(hostname: string, protocol: string = "https:", port?: string): DomainConfig {
+	public getDomainConfigForHostname(hostname: string, protocol: string = "https:", port?: string): DomainConfig {
 		const staticConfig = env.domainConfigs[hostname]
 		if (staticConfig) {
 			return staticConfig
@@ -32,6 +36,10 @@ class DomainConfigProviderImpl implements DomainConfigProvider {
 			})
 			return Object.fromEntries(entries)
 		}
+	}
+
+	public getPluginSourceHostUrl(): string {
+		return this.getCurrentDomainConfig().apiUrl + "/plugin-kit/plugins"
 	}
 }
 

@@ -123,7 +123,7 @@ if (!ClientDetector.get().isSupported()) {
 setupExceptionHandling()
 
 const startRoute = getStartUrl(urlQueryParams)
-const nextCloudPrefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
+const nextCloudPrefix = EnvProvider.get().ifNextcloudGetArgs() ? NEXTCLOUD_PREFIX : ""
 history.replaceState(null, "", nextCloudPrefix + startRoute)
 
 registerForMailto()
@@ -146,7 +146,7 @@ import("../../ui/translations/en.js")
 			{ app: "accounting", clientModel: accountingTypeModels, modelInfo: accountingModelInfo },
 		]
 		let shadowRoot: ShadowRoot | null = null
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (EnvProvider.get().ifNextcloudGetArgs()) {
 			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
 			const appRoot = assertNotNull(htmlContainer.getAttribute("app-root"))
 			const prefix = new URL(appRoot).pathname.split("/")[1]
@@ -900,7 +900,7 @@ import("../../ui/translations/en.js")
 			),
 		})
 		// We set the prefix to empty string intentionally here. See (https://mithril.js.org/route.html?utm_source=chatgpt.com#routing-strategies)
-		m.route.prefix = EnvProvider.get().isNextCloudPlugin() ? NEXTCLOUD_PREFIX : ""
+		m.route.prefix = EnvProvider.get().ifNextcloudGetArgs() ? NEXTCLOUD_PREFIX : ""
 
 		// keep in sync with RewriteAppResourceUrlHandler.java
 		const resolvers: RouteDefs = {
@@ -923,7 +923,7 @@ import("../../ui/translations/en.js")
 			},
 		}
 
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (EnvProvider.get().ifNextcloudGetArgs()) {
 			const mountPoint = document.createElement("div")
 			assertNotNull(shadowRoot).appendChild(mountPoint)
 			m.route(mountPoint, startRoute, resolvers)

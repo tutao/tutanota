@@ -151,7 +151,7 @@ export class Styles {
 	private updateDomStyle(id: StyleSheetId, styleCreator: (...args: Array<any>) => any) {
 		const styleSheet = this.getDomStyleSheet(`css-${id}`)
 		let prepend = ""
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (EnvProvider.get().ifNextcloudGetArgs()) {
 			// ignore nextcloud styles for our plugin
 			prepend = `#nextcloud-tutamail {
 				all: unset;

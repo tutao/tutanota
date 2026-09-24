@@ -40,7 +40,7 @@ export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
 const scrollbarWidthHeight = px(18)
 
 async function loadFonts() {
-	if (!EnvProvider.get().isNextCloudPlugin()) return
+	if (!EnvProvider.get().ifNextcloudGetArgs()) return
 
 	const fonts = [
 		new FontFace("Ionicons", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/font.ttf')`),

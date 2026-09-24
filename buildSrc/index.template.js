@@ -56,13 +56,23 @@ function unsupported(e) {
 	div.appendChild(err)
 }
 
-if (document.getElementById("nextcloud-tutamail")) {
+const rootDivInsideNextcloud = document.getElementById("nextcloud-tutamail")
+if (rootDivInsideNextcloud != null) {
 	// present only when this page is served embedded in the Nextcloud tutamail app
-	window.env.integrationPlatform = "Nextcloud"
+	const targetTutaHost = rootDivInsideNextcloud.getAttribute("targetTutaHost")
+	window.env.integrationPlatform = { nextCloud: { targetTutaHost } }
 }
-
-try {
-	import("./app.js").catch(unsupported)
-} catch (e) {
-	unsupported(e)
+if (window.tutaoDevBuild) {
+	if (window.env.staticUrl == null && window.tutaoDefaultApiUrl) {
+		// overriden by js dev server
+		window.env.staticUrl = window.tutaoDefaultApiUrl
+	}
+	window.whitelabelCustomizations = null
+	import("./app.js")
+} else {
+	try {
+		import("./app.js").catch(unsupported)
+	} catch (e) {
+		unsupported(e)
+	}
 }

@@ -5,9 +5,12 @@ import { TypeChecks } from "./TsTypeChecks"
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
-export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
-	Nextcloud: "Nextcloud",
-})
+export type NextcloudIntegrationArgs = {
+	targetTutaHost: string
+}
+export type IntegrationPlatform = {
+	nextCloud: NextcloudIntegrationArgs | null
+}
 
 export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
 
@@ -23,7 +26,7 @@ export type EnvType = {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: string | null
-	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
+	integrationPlatform: IntegrationPlatform | null
 	shadowDomAppRoot: string | null
 }
 
@@ -154,8 +157,8 @@ export class EnvProvider {
 		return this.isApp() && this.env.platformId === PlatformId.Ios
 	}
 
-	public isNextCloudPlugin(): boolean {
-		return env.integrationPlatform === IntegrationPlatform.Nextcloud
+	public ifNextcloudGetArgs(): NextcloudIntegrationArgs | null {
+		return this.env.integrationPlatform?.nextCloud ?? null
 	}
 
 	public getPathPrefix(): string {

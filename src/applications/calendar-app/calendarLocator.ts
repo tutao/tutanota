@@ -679,7 +679,7 @@ class CalendarLocator implements CommonLocator {
 
 		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-		this.pluginManager = new PluginManager(pluginConfigurationProvider, new DialogProvider(), PLUGIN_REGISTRY)
+		this.pluginManager = new PluginManager(pluginConfigurationProvider, new DialogProvider(), PLUGIN_REGISTRY, this.domainConfigProvider())
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		pluginConfigurationProvider.setPluginManager(this.pluginManager)
 

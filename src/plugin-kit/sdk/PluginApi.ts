@@ -3,7 +3,7 @@ import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDis
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
 import { assert, downcast, isNotNull, ofClass } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
-import { EnvProvider, TutanotaError } from "@tutao/app-env"
+import { TutanotaError } from "@tutao/app-env"
 import { CustomerConfigPluginError, GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
 import { PluginManifest } from "./PluginManifest"
 import { PluginId } from "./PluginId"
@@ -40,8 +40,13 @@ export interface DialogAdapter {
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: PluginId, pluginHost: PluginHostApiCollection, dialogAdapter: DialogAdapter): PluginWorker {
-		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
+	public static newPluginFromFile(
+		pluginId: PluginId,
+		pluginHost: PluginHostApiCollection,
+		dialogAdapter: DialogAdapter,
+		pluginSourceHostServer: string,
+	): PluginWorker {
+		const pluginFilePath = `${pluginSourceHostServer}/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {
 			const msg = `could not setup plugin ${pluginId} worker: ${e.name} ${e.stack} ${e.message} ${e}`

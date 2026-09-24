@@ -299,17 +299,11 @@ async function createBootstrap(env, buildDir) {
 	}
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 
-	const template = `window.whitelabelCustomizations = null
+	const indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
+	const template = `window.tutaoDevBuild = true
 window.env = ${JSON.stringify(env, null, 2)}
-if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
-    // overriden by js dev server
-    window.env.staticUrl = window.tutaoDefaultApiUrl
-}
-if (document.getElementById("nextcloud-tutamail")) {
-    // present only when this page is served embedded in the Nextcloud tutamail app
-    window.env.integrationPlatform = "Nextcloud"
-}
-import('./app.js')`
+
+${indexTemplate}`
 	await writeFile(`./${buildDir}/${jsFileName}`, template)
 	const html = await LaunchHtml.renderHtml(imports, env)
 	await writeFile(`./${buildDir}/${htmlFileName}`, html)

@@ -26,15 +26,21 @@ class PageController extends Controller {
 	) {
 		parent::__construct($appName, $request);
 	}
-
-	#[NoCSRFRequired]
+    /**
+     * @return TemplateResponse
+     */
+    #[NoCSRFRequired]
 	#[NoAdminRequired]
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function index(): TemplateResponse {
-		$response = new TemplateResponse(Application::APP_ID, 'index');
+		$response = new TemplateResponse(
+		    Application::APP_ID,
+			'index'
+        );
 
 		$csp = new ContentSecurityPolicy();
 		$csp->addAllowedConnectDomain('tuta.com');
+		$csp->addAllowedScriptDomain('http://localhost:9000');
 
 		$response->setContentSecurityPolicy($csp);
 

@@ -21,6 +21,10 @@ type PluginWrapper = {
 	draftConfig: Record<string, string>
 }
 
+export interface PluginSourceHostServer {
+	getPluginSourceHostUrl(): string
+}
+
 export class PluginManager {
 	private readonly loadedPlugins: Partial<Record<PluginId, PluginWrapper>> = {}
 	private readonly extensionPointToButtonExtension: Map<ExtensionPoint, Array<ButtonExtension>> = new Map()
@@ -31,6 +35,7 @@ export class PluginManager {
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
 		private readonly PLUGIN_REGISTRY: Readonly<Record<PluginId, PluginManifest>>,
+		private readonly pluginSourceHostServer: PluginSourceHostServer,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
 	) {
 		this.configChangeListener = () => {}
@@ -62,7 +67,12 @@ export class PluginManager {
 			}
 
 			const pluginHost = new PluginHost(this, pluginIdToEnable)
-			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
+			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(
+				pluginIdToEnable,
+				pluginHost,
+				this.dialogAdapter,
+				this.pluginSourceHostServer.getPluginSourceHostUrl(),
+			)
 			pluginHost.initialize(await pluginApi.getManifest())
 			const customerConfigJson = await this.loadCustomerConfigOrDefault(pluginIdToEnable, pluginHost.pluginManifest)
 			await pluginApi.load(customerConfigJson)

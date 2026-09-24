@@ -385,7 +385,7 @@ export class RestClient implements RestClientInterface {
 			headers["Accept"] = responseType
 		}
 
-		if (EnvProvider.get().isNextCloudPlugin()) {
+		if (EnvProvider.get().ifNextcloudGetArgs()) {
 			headers["OCS-APIRequest"] = String(true)
 		}
 

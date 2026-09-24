@@ -960,6 +960,7 @@ class MailLocator implements CommonLocator {
 			this.pluginConfigurationProvider,
 			new DialogProvider(),
 			PLUGIN_REGISTRY,
+			this.domainConfigProvider(),
 			new MailPluginIntegrationAdapter(this.mailboxModel),
 		)
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
