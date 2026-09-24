@@ -15,6 +15,7 @@ pipeline {
         stage('Build') {
             steps {
                 sh '''
+                    #!/usr/bin/env bash
                     set -euo pipefail
                     # Replace with your actual build commands
                     npm ci
