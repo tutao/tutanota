@@ -33,6 +33,8 @@ import { getPreselectedPlanType } from "../../subscription/SubscriptionPage"
 import { InvoiceData } from "../../subscription/utils/PaymentUtils"
 import { Country } from "../../gui/CountryList"
 import { NotFoundError } from "@tutao/rest-client/error"
+import { OfferModel } from "./OfferModel"
+import { SignupModel } from "./SignupModel"
 
 export class SignupViewModel {
 	get isInitialized(): boolean {
@@ -71,6 +73,7 @@ export class SignupViewModel {
 	public ccViewModel: SimplifiedCreditCardViewModel = new SimplifiedCreditCardViewModel(lang)
 	public globalCampaignName: string | null
 	public personalPlansAvailable: boolean
+	public readonly offerModel: OfferModel
 
 	constructor() {
 		const urlParams = m.parseQueryString(location.search.substring(1) + "&" + location.hash.substring(1))
@@ -118,6 +121,7 @@ export class SignupViewModel {
 		this.inlinePlanSelectorToggleSteps = [1, 2, 3]
 		this.globalCampaignName = null
 		this.personalPlansAvailable = !getBusinessOnly(urlParams)
+		this.offerModel = new OfferModel()
 	}
 
 	public updatePrice() {
