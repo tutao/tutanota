@@ -1,7 +1,7 @@
 import { ExpandedInboxRule, ExpandedInboxRuleTypeRef, MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { getElementId, isSameId, OperationType } from "@tutao/meta"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
-import { assertNotNull, isNotNull } from "@tutao/utils"
+import { assertNotNull, isNotNull, lazyAsync } from "@tutao/utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { IdTupleWrapper } from "@tutao/entities/sys"
@@ -13,12 +13,13 @@ export class InboxRulesSettingsViewerModel {
 
 	constructor(
 		private readonly entityClient: EntityClient,
-		private readonly inboxRuleModel: InboxRuleModel,
+		private readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
 	) {}
 
 	async init(): Promise<void> {
-		if (!this.inboxRuleModel.isUsingLegacyInboxRules()) {
-			const [rulesById, rulesOrder] = await Promise.all([this.inboxRuleModel.getInboxRulesMap(), this.inboxRuleModel.getInboxRuleOrder()])
+		const inboxRuleModel = await this.inboxRuleModel()
+		if (!inboxRuleModel.isUsingLegacyInboxRules()) {
+			const [rulesById, rulesOrder] = await Promise.all([inboxRuleModel.getInboxRulesMap(), inboxRuleModel.getInboxRuleOrder()])
 			this.inboxRulesById = rulesById
 			this.inboxRulesOrder = rulesOrder
 			this.computeOrderedInboxRules()
@@ -59,15 +60,15 @@ export class InboxRulesSettingsViewerModel {
 	}
 
 	async saveInboxRuleOrder() {
-		await this.inboxRuleModel.updateInboxRuleOrder(this.orderedInboxRules)
+		await (await this.inboxRuleModel()).updateInboxRuleOrder(this.orderedInboxRules)
 	}
 
 	async saveInboxRule(rule: ExpandedInboxRule) {
-		await this.inboxRuleModel.updateInboxRule(rule)
+		await (await this.inboxRuleModel()).updateInboxRule(rule)
 	}
 
 	async deleteInboxRule(rule: ExpandedInboxRule) {
-		await this.inboxRuleModel.deleteInboxRule(rule)
+		await (await this.inboxRuleModel()).deleteInboxRule(rule)
 	}
 
 	async moveRuleToFirst(rule: ExpandedInboxRule, index: number) {

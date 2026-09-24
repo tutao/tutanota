@@ -24,6 +24,8 @@ import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 export class InboxRuleModel {
 	private usingLegacyInboxRules: boolean = true
+	private hasLegacyInboxRules: boolean | null = null
+	private ableToUseExpandedInboxRules: boolean | null = null
 
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -34,20 +36,25 @@ export class InboxRuleModel {
 
 	async init() {
 		const mailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		this.usingLegacyInboxRules = !isNotNull(mailboxGroupRoot.inboxRules)
+		const props = await this.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
+		this.hasLegacyInboxRules = !isEmpty(props.inboxRules)
+		this.ableToUseExpandedInboxRules = isNotNull(mailboxGroupRoot.inboxRules)
+		this.usingLegacyInboxRules = !this.ableToUseExpandedInboxRules || this.hasLegacyInboxRules
 	}
 
 	async triggerInboxRuleMigration() {
-		if (!this.usingLegacyInboxRules) {
+		if (this.ableToUseExpandedInboxRules && this.hasLegacyInboxRules) {
 			const props = await this.entityClient.load(TutanotaPropertiesTypeRef, mailLocator.logins.getUserController().props._id)
 			if (props.inboxRules.length > 0) {
-				console.log("Migrating Inbox Rules!!!!")
+				console.log(`Migrating ${props.inboxRules.length} inbox rules`)
 				await this.migrateInboxRules(props.inboxRules)
 
 				props.inboxRules = []
 
 				await this.entityClient.update(props)
 			}
+			this.usingLegacyInboxRules = false
+			this.hasLegacyInboxRules = false
 		}
 	}
 
@@ -203,12 +210,5 @@ export class InboxRuleModel {
 			}
 			await this.updateInboxRule(rule)
 		}
-	}
-
-	isInboxRuleValid(rule: ExpandedInboxRule) {
-		// a rule may become invalid when a folder or label is deleted
-		return !rule.actions.some(
-			(action) => action.value == null && [InboxRuleActionType.MOVE, InboxRuleActionType.LABEL].includes(action.type as InboxRuleActionType),
-		)
 	}
 }
