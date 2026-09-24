@@ -35,29 +35,14 @@ pipeline {
                 }
             }
         }
-        stage('download tuta wasm tools') {
-            steps {
-                script {
-                    def util = load "ci/jenkins-lib/util.groovy"
-                    util.downloadFromNexus(groupId: "lib",
-                                           artifactId: "tuta-wasm-tools",
-                                           version: params.wasmToolsVersion,
-                                           fileExtension: 'deb',
-                                           outFile: "${env.WORKSPACE}/ci/containers/${env.WASM_TOOLS_FILE_PATH}")
-                }
-            }
-        }
         stage('Build') {
-			agent {
-				dockerfile {
-					filename 'linux-build.dockerfile'
-					label 'master'
-					dir 'ci/containers'
-					additionalBuildArgs '--format docker'
-					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z"
-					reuseNode true
-				} // docker
-		    }
+		    agent {
+                docker {
+                    image "tuta-wasm:${params.wasmToolsVersion}" // this image is build with TutaWasmDockerImage.Jenkinsfile
+                    reuseNode true
+                    args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z"
+                } // docker
+            } // agent
 
             steps {
                 sh 'npm -v'

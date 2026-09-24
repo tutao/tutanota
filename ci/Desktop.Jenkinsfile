@@ -66,29 +66,16 @@ pipeline {
 				}
 			}
 		} // stage check github
-		stage('download tuta wasm tools') {
-			steps {
-				script {
-					def util = load "ci/jenkins-lib/util.groovy"
-					util.downloadFromNexus(groupId: "lib",
-							artifactId: "tuta-wasm-tools",
-							version: params.wasmToolsVersion,
-							fileExtension: 'deb',
-							outFile: "${env.WORKSPACE}/ci/containers/${env.WASM_TOOLS_FILE_PATH}")
-				}
-			}
-		} // stage download tuta wasm tools
+
 		stage('Build webapp') {
-			agent {
-				dockerfile {
-					filename 'linux-build.dockerfile'
-					label 'master'
-					dir 'ci/containers'
-					additionalBuildArgs "--format docker --squash"
-					args '--network host'
-					reuseNode true
-				} // docker
-			} // agent
+		    agent {
+                docker {
+                    image "tuta-wasm:${params.wasmToolsVersion}" // this image is build with TutaWasmDockerImage.Jenkinsfile
+                    reuseNode true
+                    args '--network host'
+                } // docker
+            } // agent
+
 			steps {
 				sh 'npm ci'
 				sh 'node webapp.js release'
@@ -193,16 +180,15 @@ pipeline {
 
 				stage('Linux') {
 					when { expression { return params.LINUX } }
-					agent {
-						dockerfile {
-							filename 'linux-build.dockerfile'
-							label 'master'
-							dir 'ci/containers'
-							additionalBuildArgs "--format docker"
-							args '--network host'
-							reuseNode true
-						} // docker
-					}
+
+                    agent {
+                        docker {
+                            image "tuta-wasm:${params.wasmToolsVersion}" // this image is build with TutaWasmDockerImage.Jenkinsfile
+                            reuseNode true
+                            args '--network host'
+                        } // docker
+                    } // agent
+
 					steps {
 						initBuildArea()
 
@@ -229,16 +215,15 @@ pipeline {
 		}
 		stage('Sign clients and upload to Nexus') {
 			when { expression { return params.UPLOAD } }
-			agent {
-				dockerfile {
-					filename 'linux-build.dockerfile'
-					label 'master'
-					dir 'ci/containers'
-					additionalBuildArgs '--format docker'
-					args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
-					reuseNode true
-				} // docker
-			}
+
+            agent {
+                docker {
+                    image "tuta-wasm:${params.wasmToolsVersion}" // this image is build with TutaWasmDockerImage.Jenkinsfile
+                    reuseNode true
+                    args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
+                } // docker
+            } // agent
+
 			environment {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
