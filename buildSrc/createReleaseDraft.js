@@ -24,11 +24,12 @@ if (wasRunFromCli) {
 				.default([]),
 		)
 		.option("--dryRun", "Don't make any changes to github")
+		.option("--release", "Make a public release")
 		.action((options) => run(options))
 		.parseAsync(process.argv)
 }
 
-async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
+async function run({ name, tag, notes, uploadFile, dryRun, toFile, release }) {
 	notes = renderCompleteNotes({ notes: await fs.promises.readFile(notes, { encoding: "utf8" }), files: uploadFile })
 
 	if (toFile) {
@@ -48,7 +49,7 @@ async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
 			userAgent: "tuta-github-release-v0.0.1",
 		})
 
-		const draftResponse = await createReleaseDraft(octokit, name, tag, notes)
+		const draftResponse = release ? await createRelease(octokit, name, tag, notes) : await createReleaseDraft(octokit, name, tag, notes)
 
 		const { upload_url, id } = draftResponse.data
 		for (const filePath of uploadFile) {
@@ -83,6 +84,17 @@ async function createReleaseDraft(octokit, name, tag, body) {
 		owner: "tutao",
 		repo: "tutanota",
 		draft: true,
+		name,
+		tag_name: tag,
+		body,
+	})
+}
+
+async function createRelease(octokit, name, tag, body) {
+	return octokit.repos.createRelease({
+		owner: "tutao",
+		repo: "tutanota",
+		draft: false,
 		name,
 		tag_name: tag,
 		body,
