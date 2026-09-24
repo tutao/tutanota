@@ -27,6 +27,7 @@ import { PaymentMethodType } from "../../../entities/sys/Utils"
 import { renderCountryDropdownNew } from "../gui/CountryDropdown"
 import { Countries, Country, CountryType } from "../gui/CountryList"
 import { NULL_ENTITY } from "@tutao/meta"
+import { windowFacade } from "../misc/WindowFacade"
 
 class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
 	private _hasClickedNext: boolean = false
@@ -223,9 +224,9 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 
 	private onPaypalButtonClick = async () => {
 		if (this.paypalRequestUrl.isLoaded()) {
-			window.open(this.paypalRequestUrl.getLoaded())
+			windowFacade.openLink(this.paypalRequestUrl.getLoaded())
 		} else {
-			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => window.open(url))
+			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => windowFacade.openLink(url))
 		}
 	}
 	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {

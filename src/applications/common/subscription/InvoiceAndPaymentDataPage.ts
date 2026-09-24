@@ -29,6 +29,7 @@ import { PaypalButton } from "./PaypalButton"
 import { idToElementId } from "@tutao/meta"
 import { Country } from "../gui/CountryList"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
+import { windowFacade } from "../misc/WindowFacade"
 
 /**
  * Wizard page for editing invoice and payment data.
@@ -198,9 +199,9 @@ export class InvoiceAndPaymentDataPage implements WizardPageN<UpgradeSubscriptio
 	}
 	private onPaypalButtonClick = async (data: UpgradeSubscriptionData) => {
 		if (this.paypalRequestUrl.isLoaded()) {
-			window.open(this.paypalRequestUrl.getLoaded())
+			windowFacade.openLink(this.paypalRequestUrl.getLoaded())
 		} else {
-			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => window.open(url))
+			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => windowFacade.openLink(url))
 		}
 	}
 }
@@ -444,7 +445,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
 			const paymentUrl = new URL(paymentUrlString)
 			paymentUrl.hash += params
-			window.open(paymentUrl)
+			windowFacade.openLink(paymentUrl.href)
 			progressDialog.show()
 		})
 		return progressDialogPromise.finally(() => locator.eventController.removeEntityUpdatesListener(entityUpdatesListener))
