@@ -825,6 +825,7 @@ export type DriveFileShareParams = {
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
 	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
 	nonce: Uint8Array<ArrayBuffer>
 
 	file: IdTuple
@@ -841,7 +842,7 @@ export type DriveFileShare = {
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
 	ownerEncPassword: null | Uint8Array<ArrayBuffer>
-	ownerKeyVersion: NumberString
+	groupKeyVersion: NumberString
 	nonce: Uint8Array<ArrayBuffer>
 
 	// == associations

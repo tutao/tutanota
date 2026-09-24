@@ -1204,7 +1204,7 @@ const typeModels = {
 			},
 			134: {
 				final: true,
-				name: "ownerKeyVersion",
+				name: "groupKeyVersion",
 				id: 134,
 				type: "Number",
 				cardinality: "One",

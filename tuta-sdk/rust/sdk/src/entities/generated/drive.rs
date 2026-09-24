@@ -526,7 +526,7 @@ pub struct DriveFileShare {
 	#[serde(with = "serde_bytes")]
 	pub ownerEncPassword: Option<Vec<u8>>,
 	#[serde(rename = "134")]
-	pub ownerKeyVersion: i64,
+	pub groupKeyVersion: i64,
 	#[serde(rename = "135")]
 	#[serde(with = "serde_bytes")]
 	pub nonce: Vec<u8>,
