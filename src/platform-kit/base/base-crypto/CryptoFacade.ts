@@ -746,7 +746,6 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			let updateService = createUpdatePermissionKeyData({
 				permission: permission._id,
 				bucketPermission: bucketPermission._id,
-				//TODO
 				instanceKeyVersion: null,
 				ownerEncInstanceKey: null,
 			})
@@ -912,12 +911,11 @@ export function toInternalRecipientKeyData(pubEncKeyData: PubEncKeyData) {
 	if (pubEncKeyData.recipientIdentifierType !== PublicKeyIdentifierType.MAIL_ADDRESS) {
 		throw new ProgrammingError("only supports mail address")
 	}
-	const internalRecipientKeyData = createInternalRecipientKeyData({
+	return createInternalRecipientKeyData({
 		recipientKeyVersion: pubEncKeyData.recipientKeyVersion,
 		pubEncBucketKey: pubEncKeyData.pubEncSymKey,
 		senderKeyVersion: pubEncKeyData.senderKeyVersion,
 		mailAddress: pubEncKeyData.recipientIdentifier,
 		protocolVersion: pubEncKeyData.protocolVersion,
 	})
-	return internalRecipientKeyData
 }

@@ -1,5 +1,6 @@
 import { elementIdPart, GENERATED_MAX_ID, getTypeString, idToElementId, isSameTypeRef, ITypeInfo, PersistentEntity, stringifyId, TypeRef } from "@tutao/meta"
 import {
+	AesKey,
 	cryptoUtils,
 	CryptoWrapper,
 	deriveInstanceKey,
@@ -14,7 +15,6 @@ import { GroupKeyRotationType, ProgrammingError } from "@tutao/app-env"
 import { createAndSetOrGetKdfNonce } from "../../network/EntityRestClient"
 import { TypeModelResolver } from "@tutao/instance-pipeline"
 import {
-	AccountingInfoTypeRef,
 	createFormerInstanceKeyData,
 	createInstanceKeyInstanceData,
 	createInstanceKeyPermissionData,
@@ -105,6 +105,12 @@ export class InstanceKeyFacade {
 	}
 
 	async executeInstanceKeySharing(instanceKeySharingType: GroupKeyRotationType) {
+		if (
+			instanceKeySharingType !== GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation &&
+			instanceKeySharingType !== GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation
+		) {
+			throw new ProgrammingError("invalid type for instance key sharing")
+		}
 		const instancesToMigrateReferenceData = await this.requestInstancesForInstanceKeySharing(instanceKeySharingType)
 		const groupedReferenceData = groupBy(instancesToMigrateReferenceData, (referenceData) => {
 			const groupingKey = [referenceData.typeInfo.application, referenceData.typeInfo.typeId]
@@ -117,7 +123,7 @@ export class InstanceKeyFacade {
 		for (const [_, instanceReferenceDataList] of groupedReferenceData) {
 			const firstInstanceReferenceData = instanceReferenceDataList[0]
 			const instances = await this.entityClient.loadMultiple(
-				typeInfoModelToTypeRef(firstInstanceReferenceData.typeInfo) as TypeRef<PersistentEntity>, // TODOis this ok?
+				typeInfoModelToTypeRef(firstInstanceReferenceData.typeInfo) as TypeRef<PersistentEntity>,
 				firstInstanceReferenceData.instanceListId,
 				instanceReferenceDataList.map((ird) => ird.instanceElementId),
 			)
@@ -153,16 +159,16 @@ export class InstanceKeyFacade {
 	}
 
 	private async migrateConfirmedInstances(instancesToMigrate: PersistentEntity[], instanceKeySharingType: Nullable<GroupKeyRotationType>) {
-		const permissionDataPerInstanceList: InstanceKeyInstanceData[] = []
+		const instanceKeyDataPerInstanceList: InstanceKeyInstanceData[] = []
 		for (const instance of instancesToMigrate) {
 			const instanceKeyInstanceData = await this.prepareInstanceKeysForSharedInstance(instance)
-			permissionDataPerInstanceList.push(instanceKeyInstanceData)
+			instanceKeyDataPerInstanceList.push(instanceKeyInstanceData)
 		}
-		if (permissionDataPerInstanceList.length > 0) {
+		if (instanceKeyDataPerInstanceList.length > 0) {
 			return this.serviceExecutor.post(
 				InstanceKeyPermissionService,
 				createInstanceKeyPermissionServicePostIn({
-					permissionDataPerInstance: permissionDataPerInstanceList,
+					permissionDataPerInstance: instanceKeyDataPerInstanceList,
 					keyRotationType: instanceKeySharingType,
 				}),
 				null,
@@ -214,7 +220,6 @@ export class InstanceKeyFacade {
 		const currentInstanceKey = await this.getCurrentInstanceKey(instance)
 		const currentGroupKeyVersion = cryptoUtils.parseKeyVersion(ownerGroup.groupKeyVersion)
 
-		// TODO maybe avoid loading if initial migration is set?!
 		const numberOfExistingFormerInstanceKeys = await this.getNumberOfExistingInstanceKeys(instance)
 		await this.addFormerInstanceKeys(currentInstanceKey, currentGroupKeyVersion, instance, formerInstanceKeys, numberOfExistingFormerInstanceKeys)
 		// we need to set permissionParentInstanceReference so that the server can authorize our request and return ALL permissions
@@ -228,13 +233,6 @@ export class InstanceKeyFacade {
 			}
 			const permissionOwnerGroupId = permission._ownerGroup ?? elementIdPart(permission._id)
 			let permissionOwnerGroupKey: Nullable<VersionedKey> = null
-			//TODO do we want to keep this?
-			if (isSameTypeRef(instance._type, AccountingInfoTypeRef)) {
-				// the system customer has a permission to decrypt the accounting info, but we do not have access to the symmetric system customer group key
-				// so we use asymmetric encryption to provide access to new instance keys.
-				await this.addAsymmetricPermissionData(instance._ownerGroup, currentInstanceKey, permissionOwnerGroupId, permission, permissionData)
-				continue
-			}
 			// we just try getting the symmetric key:
 			// 1. a) regular group membership
 			// 1. b) via adminEncGKey
@@ -246,14 +244,13 @@ export class InstanceKeyFacade {
 			} catch (e) {
 				permissionOwnerGroupKey = await this.tryGettingPermissionOwnerGroupKeyForExternalGroupInfo(instance._type, permissionOwnerGroupId)
 			}
+			const sessionKey = await this.cryptoFacade.resolveSessionKey(instance)
 			if (permissionOwnerGroupKey != null) {
-				await this.addSymmetricPermissionData(permissionOwnerGroupKey, currentInstanceKey, instance, permission, permissionData)
+				await this.addSymmetricPermissionData(permissionOwnerGroupKey, currentInstanceKey, instance, permission, permissionData, sessionKey)
 			} else {
-				// known cases should be handled in the first if statement above (see AccountingInfo)
-				await this.addAsymmetricPermissionData(instance._ownerGroup, currentInstanceKey, permissionOwnerGroupId, permission, permissionData)
+				await this.addAsymmetricPermissionData(instance._ownerGroup, currentInstanceKey, permissionOwnerGroupId, permission, permissionData, sessionKey)
 			}
 		}
-
 		return instanceKeyInstanceData
 	}
 
@@ -281,9 +278,11 @@ export class InstanceKeyFacade {
 		permissionOwnerGroupId: Id,
 		permission: Permission,
 		permissionData: InstanceKeyPermissionData[],
+		sessionKey: Nullable<AesKey>,
 	) {
 		const bucketKey = this.cryptoWrapper.aes256RandomKey()
 		const bucketEncInstanceKey = this.cryptoWrapper.encryptKey(bucketKey, currentInstanceKey.object)
+		const bucketEncSessionKey = sessionKey == null ? null : this.cryptoWrapper.encryptKey(bucketKey, sessionKey)
 
 		const recipientIdentifier: PublicKeyIdentifier = { identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID }
 		const recipientKeyData = await this.cryptoFacade.encryptBucketKeyForInternalRecipient(
@@ -301,7 +300,7 @@ export class InstanceKeyFacade {
 					symKeyVersion: null,
 					pubEncKeyData: recipientKeyData.pubEncRecipientKeyData,
 					sharingPermission: permission._id,
-					symEncSessionKey: null,
+					symEncSessionKey: bucketEncSessionKey,
 				}),
 			)
 		} else {
@@ -315,9 +314,9 @@ export class InstanceKeyFacade {
 		instance: PersistentEntity,
 		permission: Permission,
 		permissionData: InstanceKeyPermissionData[],
+		sessionKey: Nullable<AesKey>,
 	) {
 		const symEncInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(permissionOwnerGroupKey, currentInstanceKey.object)
-		const sessionKey = await this.cryptoFacade.resolveSessionKey(instance)
 		// at some point we will only use instance keys
 		const symEncSessionKey = sessionKey == null ? null : this.cryptoWrapper.encryptKey(permissionOwnerGroupKey.object, sessionKey)
 		permissionData.push(
@@ -357,6 +356,9 @@ export class InstanceKeyFacade {
 		formerInstanceKeys: FormerInstanceKeyData[],
 		numberOfExistingFormerInstanceKeys: number,
 	) {
+		if (currentInstanceKey.version !== currentGroupKeyVersion) {
+			throw new ProgrammingError("inconsistent key versions")
+		}
 		let succeedingInstanceKey = currentInstanceKey
 		for (let i = currentGroupKeyVersion - 1; i >= numberOfExistingFormerInstanceKeys; i--) {
 			const instanceKey = await this.getInstanceKey(instance, cryptoUtils.checkKeyVersionConstraints(i))
