@@ -97,7 +97,8 @@ export async function showEditFolderDialog(
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
 				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
-					const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
+					const inboxRuleModel = await mailLocator.inboxRuleModel()
+					const allInboxRulesBeingModified = await inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
 					const confirmed = await showDeleteFolderPopup(
 						getMailSetName(editedFolder),
 						allInboxRulesBeingModified.map((rule) => rule.name),
@@ -109,7 +110,8 @@ export async function showEditFolderDialog(
 					await mailLocator.mailModel.trashFolderAndSubfolders(editedFolder)
 				} else if (selectedParentFolder?.folderType === MailSetKind.SPAM && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
-					const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
+					const inboxRuleModel = await mailLocator.inboxRuleModel()
+					const allInboxRulesBeingModified = await inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
 					const confirmed = await showDeleteFolderPopup(
 						getMailSetName(editedFolder),
 						allInboxRulesBeingModified.map((rule) => rule.name),
