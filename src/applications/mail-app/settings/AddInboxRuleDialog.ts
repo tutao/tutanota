@@ -500,9 +500,9 @@ export async function show(
 			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
 
 			savePromise
-				.then(() => {
+				.then(async () => {
 					if (applyRule) {
-						return applyRuleWithProgress([rule], <ExpandedInboxRuleHandler>mailLocator.inboxRuleHandler())
+						return applyRuleWithProgress([rule], <ExpandedInboxRuleHandler>await mailLocator.inboxRuleHandler())
 					}
 				})
 				.then(() => {

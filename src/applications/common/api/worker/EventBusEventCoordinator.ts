@@ -151,11 +151,17 @@ export class EventBusEventCoordinator implements EventBusListener {
 			}
 			await this.rolloutFacade.configureRollout(RolloutType.GroupKeyUpdatePending, processGroupKeyUpdates)
 
+			const migrateInboxRules = {
+				execute: async () => await (await this.mailFacade?.())?.triggerInboxRuleMigration(),
+			}
+			await this.rolloutFacade.configureRollout(RolloutType.ExpandedInboxRuleMigration, migrateInboxRules)
+
 			await this.rolloutFacade.processRollout(RolloutType.GroupKeyUpdatePending)
 			await this.rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.SharedMailboxIdentityKeyCreation)
 			await this.rolloutFacade.processRollout(RolloutType.AdminOrUserGroupKeyRotation)
 			await this.rolloutFacade.processRollout(RolloutType.OtherGroupKeyRotation)
+			await this.rolloutFacade.processRollout(RolloutType.ExpandedInboxRuleMigration)
 		}
 
 		const useAead = {
