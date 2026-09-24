@@ -171,6 +171,8 @@ export class TutaSseFacade implements SseEventHandler {
 			const operation = downcast<OperationType>(encryptedAlarmNotification.getOperation())
 			if (operation === OperationType.CREATE) {
 				const sessionKeys = await this.alarmStorage.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
+				const kdfNonce = encryptedAlarmNotification.getNotificationKdfNonce()
+				const ownerGroup = encryptedAlarmNotification.getNotificationOwnerGroup()
 				if (sessionKeys == null) {
 					// none of the NotificationSessionKeys worked.
 					// this is indicative of a serious problem with the stored keys.
@@ -188,6 +190,8 @@ export class TutaSseFacade implements SseEventHandler {
 					sessionKeys.sessionKey,
 					notificationTypeModel,
 					instancePath,
+					kdfNonce,
+					ownerGroup,
 				)
 				if (hasError(alarmNotification)) {
 					// some property of the AlarmNotification couldn't be decrypted with the selected key

@@ -163,6 +163,8 @@ o.spec("TutaSseFacadeTest", () => {
 						pushIdentifierSessionEncSessionKey: stringToUtf8Uint8Array("sk"),
 					}),
 				],
+				notificationKdfNonce: null,
+				notificationOwnerGroup: null,
 				user: "userId",
 			})
 			const notificationInfo = createTestEntity(NotificationInfoTypeRef, {

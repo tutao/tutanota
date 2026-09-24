@@ -3822,6 +3822,8 @@ export type AlarmNotificationParams = {
 	summary: string;
 	eventStart: Date;
 	eventEnd: Date;
+	notificationKdfNonce: null | Uint8Array<ArrayBuffer>;
+	notificationOwnerGroup: null | Id;
 
 	alarmInfo: AlarmInfo;
 	repeatRule: null | RepeatRule;
@@ -3838,6 +3840,8 @@ export type AlarmNotification = {
 	summary: string;
 	eventStart: Date;
 	eventEnd: Date;
+	notificationKdfNonce: null | Uint8Array<ArrayBuffer>;
+	notificationOwnerGroup: null | Id;
 
 	alarmInfo: AlarmInfo;
 	repeatRule: null | RepeatRule;
@@ -7166,7 +7170,7 @@ export type NotificationSessionKeyTransferAggregatedType = {
 
 	pushIdentifier: IdTuple;
 }
-export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2877)
+export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2879)
 
 export function createAlarmNotificationTransferAggregatedType(values: AlarmNotificationTransferAggregatedTypeParams): AlarmNotificationTransferAggregatedType {
     return Object.assign(create(typeModels[AlarmNotificationTransferAggregatedTypeTypeRef.typeId], AlarmNotificationTransferAggregatedTypeTypeRef), values)
@@ -7179,6 +7183,8 @@ export type AlarmNotificationTransferAggregatedTypeParams = {
 	summary: string;
 	eventStart: Date;
 	eventEnd: Date;
+	notificationKdfNonce: null | Uint8Array<ArrayBuffer>;
+	notificationOwnerGroup: null | Id;
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 	repeatRule: null | RepeatRuleTransferAggregatedType;
@@ -7195,13 +7201,15 @@ export type AlarmNotificationTransferAggregatedType = {
 	summary: string;
 	eventStart: Date;
 	eventEnd: Date;
+	notificationKdfNonce: null | Uint8Array<ArrayBuffer>;
+	notificationOwnerGroup: null | Id;
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 	repeatRule: null | RepeatRuleTransferAggregatedType;
 	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[];
 	user: Id;
 }
-export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2887)
+export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2891)
 
 export function createNotificationTransferAggregatedType(values: NotificationTransferAggregatedTypeParams): NotificationTransferAggregatedType {
     return Object.assign(create(typeModels[NotificationTransferAggregatedTypeTypeRef.typeId], NotificationTransferAggregatedTypeTypeRef), values)

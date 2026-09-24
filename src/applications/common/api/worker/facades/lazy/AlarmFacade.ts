@@ -1,4 +1,4 @@
-import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
+import { aes256RandomKey, AesKey, CryptoWrapper, KdfNonce, keyToBase64, VersionedKey } from "@tutao/crypto"
 import { elementIdPart, elementIdToId, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
@@ -53,7 +53,6 @@ export class AlarmFacade {
 	) {}
 
 	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
-		const notificationSessionKey = aes256RandomKey()
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
 			elementIdToId(loggedInUser._id),
@@ -61,16 +60,16 @@ export class AlarmFacade {
 			userGroupKey,
 			eventAlarmsTuples,
 			pushIdentifiers,
-			notificationSessionKey,
 		)
-		await this.postAlarmServiceRequest(notificationSessionKey, alarmServicePostRequestData, userGroupKey)
+		await this.postAlarmServiceRequest(alarmServicePostRequestData, userGroupKey)
 	}
 
 	public async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier, eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>): Promise<void> {
 		const user = this.userFacade.getLoggedInUser()
+		const kdfNonce = this.cryptoWrapper.generateKdfNonce()
 
 		const alarmNotifications = flatMap(eventsWithAlarmInfos, ({ event, userAlarmInfos }) =>
-			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, elementIdToId(user._id))),
+			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, elementIdToId(user._id), kdfNonce)),
 		)
 
 		const sessionKey = aes256RandomKey()
@@ -95,15 +94,24 @@ export class AlarmFacade {
 		userGroupKey: VersionedKey,
 		eventAlarmTuples: Array<EventAlarmInfoTemplatesTuple>,
 		pushIdentifiers: PushIdentifier[],
-		notificationSessionKey: AesKey,
 	): Promise<AlarmServicePost> {
+		const notificationSessionKey = aes256RandomKey()
+		const notificationKdfNonce = this.cryptoWrapper.generateKdfNonce()
 		const notification = createNotificationTransferAggregatedType({
-			_kdfNonce: null, // TODO: is this okay?
-			_ownerKeyVersion: null,
-			_ownerEncSessionKey: null,
+			_ownerKeyVersion: userGroupKey.version.toString(),
+			_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, notificationSessionKey),
+			_kdfNonce: notificationKdfNonce,
 			alarms: [],
 		})
-		const alarmServicePost = createAlarmServicePost({ alarmNotifications: [], notification, userAlarmInfoData: [], userAlarmInfo: [] })
+		const alarmServicePost = createAlarmServicePost({
+			notification,
+			userAlarmInfo: [],
+
+			// no longer used
+
+			alarmNotifications: [],
+			userAlarmInfoData: [],
+		})
 
 		for (const { event, alarmInfoTemplates } of eventAlarmTuples) {
 			const eventRef = createCalendarEventRef({
@@ -113,6 +121,7 @@ export class AlarmFacade {
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
 				const userAlarmInfoSessionKey = aes256RandomKey()
+				const userAlarmInfoKdfNonce = this.cryptoWrapper.generateKdfNonce()
 				const calendarEventRefTransferAggregatedType = createCalendarEventRefTransferAggregatedType({
 					listId: eventRef.listId,
 					elementId: eventRef.elementId,
@@ -126,7 +135,7 @@ export class AlarmFacade {
 					_ownerGroup: ownerGroup,
 					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
 					_ownerKeyVersion: userGroupKey.version.toString(),
-					_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+					_kdfNonce: userAlarmInfoKdfNonce,
 					alarmInfo: alarmInfoTransferAggregatedType,
 				})
 				alarmServicePost.userAlarmInfo.push(userAlarmInfo)
@@ -151,6 +160,8 @@ export class AlarmFacade {
 							),
 						}),
 					notificationSessionKeys: [],
+					notificationKdfNonce,
+					notificationOwnerGroup: ownerGroup,
 					operation: OperationType.CREATE,
 					summary: event.summary,
 					eventStart: event.startTime,
@@ -166,11 +177,10 @@ export class AlarmFacade {
 		return alarmServicePost
 	}
 
-	private async postAlarmServiceRequest(notificationSessionKey: AesKey, alarmServicePostData: AlarmServicePost, userGroupKey: VersionedKey): Promise<void> {
+	private async postAlarmServiceRequest(alarmServicePostData: AlarmServicePost, userGroupKey: VersionedKey): Promise<void> {
 		try {
 			await this.serviceExecutor.post(AlarmService, alarmServicePostData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: notificationSessionKey,
 				ownerKey: userGroupKey,
 			})
 		} catch (e) {
@@ -252,11 +262,13 @@ export class AlarmFacade {
 		})
 	}
 
-	private createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id): AlarmNotification {
+	private createAlarmNotificationForEvent(event: CalendarEvent, alarmInfo: AlarmInfo, userId: Id, kdfNonce: KdfNonce): AlarmNotification {
 		return createAlarmNotification({
 			alarmInfo: this.cloneAlarmInfo(alarmInfo),
 			repeatRule: event.repeatRule && this.createRepeatRuleForCalendarRepeatRule(event.repeatRule),
 			notificationSessionKeys: [],
+			notificationKdfNonce: kdfNonce,
+			notificationOwnerGroup: this.userFacade.getUserGroupId(),
 			operation: OperationType.CREATE,
 			summary: event.summary,
 			eventStart: event.startTime,

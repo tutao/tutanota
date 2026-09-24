@@ -135,25 +135,27 @@ export class InstancePipeline {
 	/**
 	 * Decrypts an object literal as received from the server and maps it to an entity instance (e.g. Mail)
 	 * @param instance The object literal as received from the DB
-	 * @param sk The session key, must be provided for encrypted instances
+	 * @param sessionKey The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: AesKey | null): Promise<T> {
-		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
+	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sessionKey: AesKey | null): Promise<T> {
+		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sessionKey)
 	}
 
 	async decryptAndMapEncryptedInstance<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sk: AesKey | null,
+		sessionKey: Nullable<AesKey>,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
+		kdfNonce: Nullable<KdfNonce> = null,
+		ownerGroup: Nullable<Id> = null,
 	): Promise<T> {
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedParsedInstance, this.modelMapper, this.cryptoMapper)
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(
 			encryptedParsedInstance,
-			sk,
-			validateKdfNonceLength(entityAdapter._kdfNonce),
-			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+			sessionKey,
+			kdfNonce ?? validateKdfNonceLength(entityAdapter._kdfNonce),
+			this.cryptoMapper.makeOwnerKeyProvider(ownerGroup ?? entityAdapter._ownerGroup),
 			instanceTypeId,
 			instancePath,
 		)

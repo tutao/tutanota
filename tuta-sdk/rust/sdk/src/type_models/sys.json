@@ -10334,6 +10334,24 @@
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": null
+			},
+			"2877": {
+				"final": true,
+				"name": "notificationKdfNonce",
+				"id": 2877,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2878": {
+				"final": true,
+				"name": "notificationOwnerGroup",
+				"id": 2878,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": null
 			}
 		},
 		"associations": {
@@ -10423,20 +10441,20 @@
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2893": {
+			"2897": {
 				"final": true,
 				"name": "notification",
-				"id": 2893,
+				"id": 2897,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
-				"refTypeId": 2887,
+				"refTypeId": 2891,
 				"dependency": null,
 				"transferredAttributeId": null
 			},
-			"2894": {
+			"2898": {
 				"final": true,
 				"name": "userAlarmInfo",
-				"id": 2894,
+				"id": 2898,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2853,
@@ -18275,100 +18293,118 @@
 			}
 		}
 	},
-	"2877": {
+	"2879": {
 		"name": "AlarmNotificationTransferAggregatedType",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "AGGREGATED_TYPE",
-		"id": 2877,
-		"rootId": "A3N5cwALPQ",
+		"id": 2879,
+		"rootId": "A3N5cwALPw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1564,
 		"values": {
-			"2878": {
+			"2880": {
 				"final": true,
 				"name": "_id",
-				"id": 2878,
+				"id": 2880,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2879": {
+			"2881": {
 				"final": true,
 				"name": "operation",
-				"id": 2879,
+				"id": 2881,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": 1566
 			},
-			"2880": {
+			"2882": {
 				"final": true,
 				"name": "summary",
-				"id": 2880,
+				"id": 2882,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 1567
 			},
-			"2881": {
+			"2883": {
 				"final": true,
 				"name": "eventStart",
-				"id": 2881,
+				"id": 2883,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 1568
 			},
-			"2882": {
+			"2884": {
 				"final": true,
 				"name": "eventEnd",
-				"id": 2882,
+				"id": 2884,
 				"type": "Date",
 				"cardinality": "One",
 				"encrypted": true,
 				"transferredAttributeId": 1569
+			},
+			"2888": {
+				"final": true,
+				"name": "notificationKdfNonce",
+				"id": 2888,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 2877
+			},
+			"2889": {
+				"final": true,
+				"name": "notificationOwnerGroup",
+				"id": 2889,
+				"type": "GeneratedId",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 2878
 			}
 		},
 		"associations": {
-			"2883": {
+			"2885": {
 				"final": true,
 				"name": "alarmInfo",
-				"id": 2883,
+				"id": 2885,
 				"type": "AGGREGATION",
 				"cardinality": "One",
 				"refTypeId": 2848,
 				"dependency": null,
 				"transferredAttributeId": 1570
 			},
-			"2884": {
+			"2886": {
 				"final": true,
 				"name": "repeatRule",
-				"id": 2884,
+				"id": 2886,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 2864,
 				"dependency": null,
 				"transferredAttributeId": 1571
 			},
-			"2885": {
+			"2887": {
 				"final": true,
 				"name": "notificationSessionKeys",
-				"id": 2885,
+				"id": 2887,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
 				"refTypeId": 2873,
 				"dependency": null,
 				"transferredAttributeId": 1572
 			},
-			"2886": {
+			"2890": {
 				"final": true,
 				"name": "user",
-				"id": 2886,
+				"id": 2890,
 				"type": "ELEMENT_ASSOCIATION",
 				"cardinality": "One",
 				"refTypeId": 84,
@@ -18377,50 +18413,50 @@
 			}
 		}
 	},
-	"2887": {
+	"2891": {
 		"name": "NotificationTransferAggregatedType",
 		"app": "sys",
 		"version": 155,
 		"since": 155,
 		"type": "AGGREGATED_TYPE",
-		"id": 2887,
-		"rootId": "A3N5cwALRw",
+		"id": 2891,
+		"rootId": "A3N5cwALSw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"targetTypeId": 1706,
 		"values": {
-			"2888": {
+			"2892": {
 				"final": true,
 				"name": "_id",
-				"id": 2888,
+				"id": 2892,
 				"type": "CustomId",
 				"cardinality": "One",
 				"encrypted": false,
 				"transferredAttributeId": null
 			},
-			"2889": {
+			"2893": {
 				"final": true,
 				"name": "_ownerEncSessionKey",
-				"id": 2889,
+				"id": 2893,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 1712
 			},
-			"2890": {
+			"2894": {
 				"final": true,
 				"name": "_ownerKeyVersion",
-				"id": 2890,
+				"id": 2894,
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
 				"transferredAttributeId": 2237
 			},
-			"2891": {
+			"2895": {
 				"final": true,
 				"name": "_kdfNonce",
-				"id": 2891,
+				"id": 2895,
 				"type": "Bytes",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false,
@@ -18428,13 +18464,13 @@
 			}
 		},
 		"associations": {
-			"2892": {
+			"2896": {
 				"final": false,
 				"name": "alarms",
-				"id": 2892,
+				"id": 2896,
 				"type": "AGGREGATION",
 				"cardinality": "Any",
-				"refTypeId": 2877,
+				"refTypeId": 2879,
 				"dependency": null,
 				"transferredAttributeId": 1714
 			}

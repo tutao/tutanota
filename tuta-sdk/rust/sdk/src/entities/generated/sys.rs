@@ -3764,6 +3764,11 @@ pub struct AlarmNotification {
 	pub eventStart: DateTime,
 	#[serde(rename = "1569")]
 	pub eventEnd: DateTime,
+	#[serde(rename = "2877")]
+	#[serde(with = "serde_bytes")]
+	pub notificationKdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2878")]
+	pub notificationOwnerGroup: Option<GeneratedId>,
 	#[serde(rename = "1570")]
 	pub alarmInfo: AlarmInfo,
 	#[serde(rename = "1571")]
@@ -3795,9 +3800,9 @@ pub struct AlarmServicePost {
 	pub alarmNotifications: Vec<AlarmNotification>,
 	#[serde(rename = "2730")]
 	pub userAlarmInfoData: Vec<UserAlarmInfoData>,
-	#[serde(rename = "2893")]
+	#[serde(rename = "2897")]
 	pub notification: Option<NotificationTransferAggregatedType>,
-	#[serde(rename = "2894")]
+	#[serde(rename = "2898")]
 	pub userAlarmInfo: Vec<UserAlarmInfoTransferAggregatedType>,
 
 	#[serde(default)]
@@ -7013,23 +7018,28 @@ impl Entity for NotificationSessionKeyTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct AlarmNotificationTransferAggregatedType {
-	#[serde(rename = "2878")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2879")]
-	pub operation: i64,
 	#[serde(rename = "2880")]
-	pub summary: String,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "2881")]
-	pub eventStart: DateTime,
+	pub operation: i64,
 	#[serde(rename = "2882")]
-	pub eventEnd: DateTime,
+	pub summary: String,
 	#[serde(rename = "2883")]
-	pub alarmInfo: AlarmInfoTransferAggregatedType,
+	pub eventStart: DateTime,
 	#[serde(rename = "2884")]
-	pub repeatRule: Option<RepeatRuleTransferAggregatedType>,
+	pub eventEnd: DateTime,
+	#[serde(rename = "2888")]
+	#[serde(with = "serde_bytes")]
+	pub notificationKdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2889")]
+	pub notificationOwnerGroup: Option<GeneratedId>,
 	#[serde(rename = "2885")]
-	pub notificationSessionKeys: Vec<NotificationSessionKeyTransferAggregatedType>,
+	pub alarmInfo: AlarmInfoTransferAggregatedType,
 	#[serde(rename = "2886")]
+	pub repeatRule: Option<RepeatRuleTransferAggregatedType>,
+	#[serde(rename = "2887")]
+	pub notificationSessionKeys: Vec<NotificationSessionKeyTransferAggregatedType>,
+	#[serde(rename = "2890")]
 	pub user: GeneratedId,
 
 	#[serde(default)]
@@ -7040,7 +7050,7 @@ impl Entity for AlarmNotificationTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2877),
+			type_id: TypeId::from(2879),
 		}
 	}
 }
@@ -7048,17 +7058,17 @@ impl Entity for AlarmNotificationTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct NotificationTransferAggregatedType {
-	#[serde(rename = "2888")]
+	#[serde(rename = "2892")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "2889")]
+	#[serde(rename = "2893")]
 	#[serde(with = "serde_bytes")]
 	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2890")]
+	#[serde(rename = "2894")]
 	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2891")]
+	#[serde(rename = "2895")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
-	#[serde(rename = "2892")]
+	#[serde(rename = "2896")]
 	pub alarms: Vec<AlarmNotificationTransferAggregatedType>,
 }
 
@@ -7066,7 +7076,7 @@ impl Entity for NotificationTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2887),
+			type_id: TypeId::from(2891),
 		}
 	}
 }
