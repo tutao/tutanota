@@ -116,6 +116,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -131,6 +132,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -148,6 +150,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -169,6 +172,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -189,6 +193,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -205,6 +210,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
@@ -220,6 +226,7 @@ o.spec("SpamClassificationHandler", function () {
 			const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await spamHandler.preparePredictSpamForNewMail(
 				mail,
 				mailDetails,
+				null,
 			)
 
 			o.check(modelInput).deepEquals([0, 1])
