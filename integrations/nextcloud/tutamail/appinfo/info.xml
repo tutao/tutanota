@@ -5,7 +5,7 @@
     <name>Tuta Mail</name>
     <summary>Tuta Mail for Nextcloud</summary>
     <description>Seamless integration of Tuta Mail into Nextcloud.</description>
-    <version>1.3.0</version>
+    <version>1.0.0-tuta.361.20260925.0</version>
     <licence>GPL-3.0-or-later</licence>
     <author mail="nextcloud@tutao.de" homepage="https://tuta.com">Tutao GmbH</author>
     <namespace>TutaMail</namespace>
