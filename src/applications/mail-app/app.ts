@@ -215,7 +215,7 @@ import("../../ui/translations/en.js")
 					}
 					await mailLocator.mailboxModel.init()
 					await mailLocator.mailModel.init()
-					await mailLocator.inboxRuleModel.init()
+					await (await mailLocator.inboxRuleModel()).init()
 				},
 				async onFullLoginSuccess({ sessionType }) {
 					if (sessionType === SessionType.Temporary) {
@@ -249,8 +249,6 @@ import("../../ui/translations/en.js")
 								})
 						}
 					}
-
-					await mailLocator.inboxRuleModel.triggerInboxRuleMigration()
 				},
 			}
 		})

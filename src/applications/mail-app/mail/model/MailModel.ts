@@ -9,6 +9,7 @@ import {
 	groupBy,
 	groupByAndMap,
 	isNotNull,
+	lazyAsync,
 	lazyMemoized,
 	Nullable,
 	ofClass,
@@ -81,9 +82,9 @@ export class MailModel {
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
-		private readonly processInboxHandler: () => ProcessInboxHandler,
+		private readonly processInboxHandler: lazyAsync<ProcessInboxHandler>,
 		private readonly bulkMailLoader: BulkMailLoader,
-		private readonly inboxRuleModel: () => InboxRuleModel,
+		private readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
 		private readonly registerIndexingNotAvailableHandler: (handler: () => unknown) => unknown,
 	) {}
 
@@ -217,7 +218,8 @@ export class MailModel {
 
 				let targetFolder = sourceMailFolder
 				if (this.isInternalUser() && mailboxDetail && folderSystem) {
-					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
+					const processInboxHandler = await this.processInboxHandler()
+					targetFolder = await processInboxHandler.handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
 				if (EnvProvider.get().isBrowser()) {
 					this._showNotification(targetFolder, mail)
@@ -625,7 +627,8 @@ export class MailModel {
 		const descendants = labelSystem.getDescendantFoldersOfParent(label._id).map(({ mailSet }) => mailSet)
 		const labels = [...descendants, label]
 
-		await this.inboxRuleModel().deactivateInboxRulesThatReferenceLabels(labels)
+		const inboxRuleModel = await this.inboxRuleModel()
+		await inboxRuleModel.deactivateInboxRulesThatReferenceLabels(labels)
 	}
 
 	private async deactivateInboxRulesOnFolderDeletion(folder: MailSet): Promise<void> {
@@ -637,7 +640,8 @@ export class MailModel {
 		const descendants = folderSystem.getDescendantFoldersOfParent(folder._id).map(({ mailSet }) => mailSet)
 		const folders = [...descendants, folder]
 
-		await this.inboxRuleModel().deactivateInboxRulesThatReferenceFolders(folders)
+		const inboxRuleModel = await this.inboxRuleModel()
+		await inboxRuleModel.deactivateInboxRulesThatReferenceFolders(folders)
 	}
 
 	async getMailSetById(folderElementId: Id): Promise<MailSet | null> {
