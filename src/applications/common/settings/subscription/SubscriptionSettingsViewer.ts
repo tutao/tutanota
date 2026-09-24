@@ -620,7 +620,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			// User has no ongoing subscription, the old subscription is expired.
 			// We should allow them to downgrade their accounts or resubscribe and
 			// restart an Apple/Google subscription flow
-			const isResubscribe = await showDowngradeOrResubscribeDialog("storeDowngradeOrResubscribe_msg", { "{AppStoreDowngrade}": InfoLink.AppStorePayment })
+			const term =
+				getPaymentMethodType(accountingInfo) === PaymentMethodType.AppStore ? "storeDowngradeOrResubscribe_msg" : "storeDowngradeOrResubscribe_msg"
+			const isResubscribe = await showDowngradeOrResubscribeDialog(term, { "{AppStoreDowngrade}": InfoLink.AppStorePayment })
 			// User decided to resubscribe to the old plan
 			if (isResubscribe) {
 				const planType = await locator.logins.getUserController().getPlanType()
