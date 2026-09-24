@@ -97,10 +97,10 @@ o.spec("ProcessInboxHandler", function () {
 			() => spamHandler,
 			() => inboxRuleHandler,
 			true,
+			mailboxModel,
 			new Map(),
 			new Map(),
 			0,
-			mailboxModel,
 		)
 	})
 

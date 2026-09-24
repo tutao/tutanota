@@ -33,6 +33,7 @@ export class ProcessInboxHandler {
 		private spamHandler: () => SpamClassificationHandler,
 		private readonly inboxRuleHandler: () => InboxRuleHandler,
 		private readonly usingLegacyInboxRules: boolean,
+		private readonly mailboxModel: MailboxModel,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
 		private processedMailsAndInboxRules: Map<
 			Id,
@@ -42,7 +43,6 @@ export class ProcessInboxHandler {
 			}
 		> = new Map(),
 		private readonly throttleTimeout: number = DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS,
-		private readonly mailboxModel: MailboxModel,
 	) {
 		this.sendProcessInboxServiceRequest = throttle(this.throttleTimeout, async (mailFacade: MailFacade) => {
 			// we debounce the requests to a rate of DEFAULT_THROTTLE_PROCESS_INBOX_SERVICE_REQUESTS_MS
