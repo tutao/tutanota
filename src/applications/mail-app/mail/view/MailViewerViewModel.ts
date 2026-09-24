@@ -756,8 +756,12 @@ export class MailViewerViewModel {
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		const inboxRuleHandler = <ExpandedInboxRuleHandler>mailLocator.inboxRuleHandler()
-		await inboxRuleHandler.applyRulesToGivenMails([mail], mailboxDetail)
+		if (mailLocator.inboxRuleModel.isUsingLegacyInboxRules()) {
+			return this.reapplyLegacyInboxRuleForMail()
+		} else {
+			const inboxRuleHandler = mailLocator.inboxRuleHandler() as ExpandedInboxRuleHandler
+			await inboxRuleHandler.applyRulesToGivenMails([mail], mailboxDetail)
+		}
 	}
 
 	canExport(): boolean {

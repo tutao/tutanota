@@ -10,6 +10,7 @@ import type { MailboxDetail, MailboxModel } from "../../common/mailFunctionality
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import * as AddInboxRuleDialog from "./AddInboxRuleDialog"
 import * as AddLegacyInboxRuleDialog from "./AddLegacyInboxRuleDialog"
+import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons"
 import { showNotAvailableForFreeDialog } from "../../common/misc/SubscriptionDialogs"
@@ -42,7 +43,6 @@ import { contextDropdown } from "../../../ui/base/GuiUtils"
 import { ColumnWidth, createRowActions, Table, TableLineAttrs } from "../../../ui/base/Table"
 import { getInboxRuleConditionTypeName } from "../mail/model/InboxRuleHandler"
 import { LegacyInboxRuleHandler } from "../mail/model/LegacyInboxRuleHandler"
-import { createLegacyInboxRuleTemplate } from "./AddLegacyInboxRuleDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -471,8 +471,6 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const rules = await this.inboxRuleModel.getOrderedInboxRules()
-
 		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
 			const progress = stream(0)
 			const abort = new AbortController()
@@ -495,6 +493,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			})
 			await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
 		} else {
+			const rules = await this.inboxRuleModel.getOrderedInboxRules()
 			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>this.inboxRuleHandler)
 		}
 	}
