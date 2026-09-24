@@ -4,7 +4,7 @@ import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SkipClientSpamClassificationReason, SpamClassificationHandler } from "./SpamClassificationHandler"
 import { getElementId, isSameId } from "../../../../platform-kit/meta"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { assertNotNull, isEmpty, throttle } from "../../../../platform-kit/utils"
+import { assertNotNull, isEmpty, lazyAsync, throttle } from "../../../../platform-kit/utils"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -31,7 +31,7 @@ export class ProcessInboxHandler {
 		private readonly mailFacade: MailFacade,
 		private readonly cryptoFacade: CryptoFacade,
 		private spamHandler: () => SpamClassificationHandler,
-		private readonly inboxRuleHandler: () => InboxRuleHandler,
+		private readonly inboxRuleHandler: lazyAsync<InboxRuleHandler>,
 		private readonly usingLegacyInboxRules: boolean,
 		private processedMailsByMailGroup: Map<Id, UnencryptedProcessInboxDatum[]> = new Map(),
 		private processedMailsAndInboxRules: Map<Id, { list: Array<{ mail: Mail; inboxRule: ExpandedInboxRule }>; mailboxDetail: MailboxDetail }> = new Map(),
@@ -66,7 +66,7 @@ export class ProcessInboxHandler {
 				const listAndDetails = this.processedMailsAndInboxRules.values()
 				this.processedMailsAndInboxRules = new Map()
 				for (const { list, mailboxDetail } of listAndDetails) {
-					const inboxRuleHandler = <ExpandedInboxRuleHandler>this.inboxRuleHandler()
+					const inboxRuleHandler = <ExpandedInboxRuleHandler>await this.inboxRuleHandler()
 					await inboxRuleHandler.applyRules(list, mailboxDetail, true)
 				}
 			}
@@ -134,7 +134,7 @@ export class ProcessInboxHandler {
 
 		if (targetFolder.folderType === MailSetKind.INBOX || skipPredictionReason === SkipClientSpamClassificationReason.None) {
 			// mail landed in Inbox or was moved to Spam folder by client side classification
-			const inboxRuleHandler = this.inboxRuleHandler()
+			const inboxRuleHandler = await this.inboxRuleHandler()
 			matchingInboxRule = await inboxRuleHandler.findMatchingInboxRule(mail, targetFolder)
 
 			if (matchingInboxRule != null) {
@@ -196,7 +196,7 @@ export class ProcessInboxHandler {
 
 		// when processNeeded, the mail should be in process by the regular handler and be eventually processed
 		if (!mail.processNeeded) {
-			const inboxRuleHandler = this.inboxRuleHandler()
+			const inboxRuleHandler = await this.inboxRuleHandler()
 			const matchingRule = await inboxRuleHandler.findMatchingInboxRule(mail, sourceFolder, true)
 			if (matchingRule) {
 				moveToFolder = (await inboxRuleHandler.getMoveActionValue(matchingRule, mailboxDetail)) ?? sourceFolder

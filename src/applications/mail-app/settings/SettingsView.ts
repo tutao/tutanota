@@ -126,8 +126,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				() => "inboxRulesSettings_action",
 				() => Icons.FunnelFilled,
 				"inboxrules",
-				() =>
-					new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler()),
+				() => new InboxRuleSettingsViewer(mailLocator.mailboxModel, mailLocator.entityClient, mailLocator.inboxRuleModel, mailLocator.inboxRuleHandler),
 				undefined,
 			),
 			new SettingsFolder(
