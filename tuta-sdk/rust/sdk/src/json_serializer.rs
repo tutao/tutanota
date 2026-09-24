@@ -74,6 +74,12 @@ impl JsonSerializer {
 
 			let mapped_value = match (&value_type.cardinality, value) {
 				(Cardinality::ZeroOrOne, JsonElement::Null) => ElementValue::Null,
+				(Cardinality::ZeroOrOne, JsonElement::String(v))
+					if value_type.encrypted && v.is_empty() =>
+				{
+					// Cardinality changes can leave empty strings in optional encrypted fields.
+					ElementValue::Null
+				},
 				(Cardinality::One, JsonElement::String(v))
 					if value_type.encrypted && v.is_empty() =>
 				{
@@ -619,7 +625,7 @@ mod tests {
 	use crate::bindings::rest_client::MockRestClient;
 	use crate::entities::entity_facade::EntityFacadeImpl;
 	use crate::entities::generated::sys::{GroupMembership, User};
-	use crate::entities::generated::tutanota::Mail;
+	use crate::entities::generated::tutanota::{Body, Mail};
 	use crate::entities::Entity;
 	use crate::instance_mapper::InstanceMapper;
 	use crate::util::test_utils::*;
@@ -661,6 +667,36 @@ mod tests {
 		json_serializer
 			.parse(&Mail::type_ref(), raw_entity)
 			.unwrap();
+	}
+
+	#[test]
+	fn test_parse_empty_optional_encrypted_value_is_null() {
+		let type_model_provider = Arc::new(TypeModelProvider::new_test(
+			Arc::new(MockRestClient::new()),
+			Arc::new(MockFileClient::new()),
+			"localhost:9000".to_string(),
+		));
+		let json_serializer = JsonSerializer {
+			type_model_provider,
+		};
+		// Body.text (1275) and Body.compressedText (1276) are optional and encrypted.
+		let raw_entity: RawEntity =
+			serde_json::from_str(r#"{"1274":"body","1275":"","1276":"AQEBAQEBAQEBAQEBAQEBAQ=="}"#)
+				.unwrap();
+		let parsed = json_serializer
+			.parse(&Body::type_ref(), raw_entity)
+			.unwrap();
+		assert_eq!(parsed["1275"], ElementValue::Null);
+		assert_eq!(parsed["1276"], ElementValue::Bytes(vec![1; 16]));
+
+		let raw_entity: RawEntity =
+			serde_json::from_str(r#"{"1274":"body","1275":"AQEBAQEBAQEBAQEBAQEBAQ==","1276":""}"#)
+				.unwrap();
+		let parsed = json_serializer
+			.parse(&Body::type_ref(), raw_entity)
+			.unwrap();
+		assert_eq!(parsed["1275"], ElementValue::Bytes(vec![1; 16]));
+		assert_eq!(parsed["1276"], ElementValue::Null);
 	}
 
 	#[test]
