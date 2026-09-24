@@ -16,7 +16,7 @@ export class PluginFeaturedCard implements Component<PluginFeaturedCardAttrs> {
 		return m(
 			Card,
 			{ classes: ["flex", "flex-column", "items-center", "gap-8"], style: { padding: "16px" } },
-			m("img.icon-128", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvg)}` }),
+			m("img.icon-128", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvgUrl)}` }),
 			m(".b", entry.name),
 		)
 	}

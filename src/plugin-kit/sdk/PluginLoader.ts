@@ -1,6 +1,6 @@
 import { objToError, PluginApi } from "./PluginApi"
 import { assert, assertNotNull, downcast } from "@tutao/utils"
-import { PluginHostApi } from "./PluginHostApi"
+import { PluginHostApi } from "./hostApi/PluginHostApi"
 import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDispatcher"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
@@ -38,18 +38,14 @@ class PluginWorkerImpl {
 	}
 
 	private getPluginHostApiProxy(): PluginHostApi {
-		const pluginHostProxy = new Proxy(
-			{},
-			{
-				get: (_: object, property: string) => {
-					return (...args: Array<any>): Promise<any> => {
-						const methodName = downcast<keyof PluginHostApi>(property)
-						return assertNotNull(this._dispatcher).postRequest(new Request(methodName, args))
-					}
-				},
+		return new Proxy(downcast<PluginHostApi>({}), {
+			get: (_: PluginHostApi, property: string) => {
+				return (...args: Array<any>): Promise<any> => {
+					const methodName = downcast<keyof PluginHostApi>(property)
+					return assertNotNull(this._dispatcher).postRequest(new Request(methodName, args))
+				}
 			},
-		)
-		return downcast<PluginHostApi>(pluginHostProxy)
+		})
 	}
 
 	private getPluginApiRedirector(pluginFactory: PluginFactory): PluginApi {
@@ -58,19 +54,15 @@ class PluginWorkerImpl {
 		}
 		const pluginApi = pluginFactory(factoryParams)
 
-		const proxy = new Proxy(
-			{},
-			{
-				get: (_: object, property: string) => {
-					return (messageArgs: Request<keyof PluginApi>): Promise<any> => {
-						assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
-						const targetMethod = pluginApi[messageArgs.requestType] as (...args: any) => Promise<any>
-						const bindedMethod = targetMethod.bind(pluginApi)
-						return bindedMethod(...messageArgs.args)
-					}
-				},
+		return new Proxy(downcast<PluginApi>({}), {
+			get: (_: PluginApi, property: string) => {
+				return (messageArgs: Request<keyof PluginApi>): Promise<any> => {
+					assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
+					const targetMethod = pluginApi[messageArgs.requestType] as (...args: any) => Promise<any>
+					const bindedMethod = targetMethod.bind(pluginApi)
+					return bindedMethod(...messageArgs.args)
+				}
 			},
-		)
-		return downcast<PluginApi>(proxy)
+		})
 	}
 }

@@ -1,10 +1,12 @@
 import { PluginId } from "./PluginId"
 
 export type PluginVersion = { major: number; minor: number; patch: number }
-export type PluginManifest = {
+export type InitialCustomerConfigFields = Array<{ fieldId: string; defaultValue: string }>
+export type PluginManifest = Readonly<{
 	id: PluginId
 	name: string
 	description: string
+	logoSvgUrl: string
 	tags: Array<string>
 	homePage: string
 	version: PluginVersion
@@ -18,4 +20,5 @@ export type PluginManifest = {
 		 */
 		getHost: boolean
 	}
-}
+	initialCustomerConfigFields: InitialCustomerConfigFields
+}>

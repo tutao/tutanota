@@ -1,5 +1,5 @@
 import { PluginApi } from "../../sdk/PluginApi"
-import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/PluginHostApi"
+import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/hostApi/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
 import { isNotNull, Nullable } from "../../../platform-kit/utils"
@@ -37,7 +37,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		super(pluginHost)
 	}
 
-	override getManifest(): Promise<Readonly<PluginManifest>> {
+	override getManifest(): Promise<PluginManifest> {
 		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIFEST)
 	}
 
@@ -90,18 +90,10 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	override async unload(): Promise<void> {}
 
 	async attachmentButtonClicked(dataFile: PluginDataFile): Promise<void> {
-		const targetFolder = await this.getAttachmentFolder()
+		const targetFolder = this.customerConfig.targetAttachmentFolder
 
 		const { filesUiUrl } = await this.nextcloudApi.uploadFile(dataFile, targetFolder)
 		await this.pluginHost.openWindow(filesUiUrl)
-	}
-
-	private async getAttachmentFolder(): Promise<string> {
-		if (isNull(this.customerConfig.targetAttachmentFolder)) {
-			this.customerConfig.targetAttachmentFolder = "Tuta Mail Attachments"
-			await this.pluginHost.storeCustomerConfig(JSON.stringify(this.customerConfig))
-		}
-		return this.customerConfig.targetAttachmentFolder
 	}
 
 	async receiveFileReference(fileReference: PluginFileReference): Promise<void> {
@@ -136,18 +128,24 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.pluginHost.storeUserConfig(JSON.stringify(this.userConfig))
 	}
 
-	override async onCustomerChange(): Promise<void> {
+	override async onCustomerConfigChange(): Promise<void> {
 		await this.loadCustomerConfig()
 		this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
 	}
 
 	override async verifyCustomerConfiguration(newCustomerConfig: string): Promise<void> {
-		const newUrl = JSON.parse(newCustomerConfig).nextCloudUrl
+		const customerConfig: CustomerPluginConfig = JSON.parse(newCustomerConfig)
+
+		const newUrl = customerConfig.nextCloudUrl
 		const installedVersion = await this.nextcloudApi.getInstalledVersion(newUrl)
 		if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
 			throw new CustomerConfigPluginError(
 				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
 			)
+		}
+
+		if (customerConfig.targetAttachmentFolder.trim().length === 0) {
+			throw new CustomerConfigPluginError(`Need a non-empty folder name`)
 		}
 	}
 

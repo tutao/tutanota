@@ -1,7 +1,7 @@
-import { PluginHostApi } from "./PluginHostApi"
+import { PluginHostApi, PluginHostApiCollection } from "./hostApi/PluginHostApi"
 import { MessageDispatcher } from "../../app-kit/native-bridge/shared/MessageDispatcher"
 import { Commands, Request } from "../../app-kit/native-bridge/shared/MessageTypes"
-import { assert, downcast, ofClass } from "@tutao/utils"
+import { assert, downcast, isNotNull, ofClass } from "@tutao/utils"
 import { WebWorkerTransport } from "../../app-kit/native-bridge/common/threading/WebTransport"
 import { EnvProvider, TutanotaError } from "@tutao/app-env"
 import { CustomerConfigPluginError, GeneralPluginError, HostApiPermissionDenied } from "./PluginError"
@@ -26,6 +26,7 @@ export function objToError(o: Record<string, any>): Error {
 
 export type MessageToPluginFromHostApiCommandNames = keyof PluginApi
 export type MessageToHostApiFromPluginCommandNames = keyof PluginHostApi
+export type MessageDispatcherToHostApiFromPlugin = MessageDispatcher<MessageToPluginFromHostApiCommandNames, MessageToHostApiFromPluginCommandNames>
 
 type PluginWorker = {
 	pluginApi: PluginApi
@@ -39,7 +40,7 @@ export interface DialogAdapter {
 export abstract class PluginApi {
 	protected constructor(protected readonly pluginHost: PluginHostApi) {}
 
-	public static newPluginFromFile(pluginId: PluginId, pluginHost: PluginHostApi, dialogAdapter: DialogAdapter): PluginWorker {
+	public static newPluginFromFile(pluginId: PluginId, pluginHost: PluginHostApiCollection, dialogAdapter: DialogAdapter): PluginWorker {
 		const pluginFilePath = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}.js`
 		const pluginAsWorker = new Worker(pluginFilePath, { type: "module", name: `plugin:${pluginId}` })
 		pluginAsWorker.onerror = (e: any) => {
@@ -48,25 +49,11 @@ export abstract class PluginApi {
 			throw new Error(msg)
 		}
 
-		const pluginHostApiRedirector = downcast<PluginHostApi>(
-			new Proxy(
-				{},
-				{
-					get: (_: object, property: string) => {
-						return (messageArgs: Request<keyof PluginHostApi>): Promise<any> => {
-							assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
-							const targetMethod = pluginHost[messageArgs.requestType] as (...args: any) => Promise<any>
-							const bindedMethod = targetMethod.bind(pluginHost)
-							return bindedMethod(...messageArgs.args)
-						}
-					},
-				},
-			),
-		)
+		const pluginHostApiRedirector = this.getPluginHostApiProxy(pluginHost)
 
-		const dispatchToHostApi = new MessageDispatcher<keyof PluginApi, keyof PluginHostApi>(
+		const dispatchToHostApi: MessageDispatcherToHostApiFromPlugin = new MessageDispatcher(
 			new WebWorkerTransport(pluginAsWorker),
-			downcast<Commands<keyof PluginHostApi>>(pluginHostApiRedirector),
+			downcast<Commands<MessageToHostApiFromPluginCommandNames>>(pluginHostApiRedirector),
 			`plugin:${pluginId}:`,
 			objToError,
 		)
@@ -78,7 +65,7 @@ export abstract class PluginApi {
 			{
 				get: (_: object, property: string) => {
 					return async (...args: Array<any>): Promise<any> => {
-						const methodName = downcast<keyof PluginApi>(property)
+						const methodName = downcast<MessageToPluginFromHostApiCommandNames>(property)
 						return dispatchToHostApi
 							.postRequest(new Request(methodName, args))
 							.catch(ofClass(GeneralPluginError, showDialogWithMessage))
@@ -102,7 +89,44 @@ export abstract class PluginApi {
 		}
 	}
 
-	abstract getManifest(): Promise<Readonly<PluginManifest>>
+	private static getPluginHostApiProxy(pluginHost: PluginHostApiCollection): PluginHostApi {
+		type PluginHostApiMethod = (...args: any) => Promise<any>
+
+		const findMethodInPluginHost = (methodName: string): PluginHostApiMethod => {
+			const allHostApi = Object.values(pluginHost).filter(isNotNull)
+
+			for (const hostApi of allHostApi) {
+				if (methodName in hostApi) {
+					const method = Reflect.get(hostApi, methodName)
+					if (typeof method === "function") {
+						return method.bind(hostApi)
+					}
+				}
+			}
+
+			return (...args: any[]) => {
+				const methodNotMemberMsg = `Method: ${methodName} is not member of pluginHostApi?`
+				console.error(methodNotMemberMsg)
+				console.error("available hostApi: ", pluginHost)
+				throw new Error(methodNotMemberMsg)
+			}
+		}
+
+		return new Proxy(downcast<PluginHostApi>({}), {
+			get: (_: PluginHostApi, methodName: string) => {
+				return (messageArgs: Request<MessageToHostApiFromPluginCommandNames>): Promise<any> => {
+					assert(
+						methodName === messageArgs.requestType,
+						`For request type: ${String(messageArgs.requestType)}. Calling ${methodName} might be a mistake`,
+					)
+					const targetMethod = findMethodInPluginHost(methodName)
+					return targetMethod(...messageArgs.args)
+				}
+			},
+		})
+	}
+
+	abstract getManifest(): Promise<PluginManifest>
 
 	abstract load(customerConfigJson: string): Promise<void>
 
@@ -110,5 +134,5 @@ export abstract class PluginApi {
 
 	abstract verifyCustomerConfiguration(newCustomerConfig: string): Promise<void>
 	abstract onUserConfigChange(): Promise<void>
-	abstract onCustomerChange(): Promise<void>
+	abstract onCustomerConfigChange(): Promise<void>
 }

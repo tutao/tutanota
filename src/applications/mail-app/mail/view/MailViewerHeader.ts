@@ -45,7 +45,7 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
-import { ExtensionPoint } from "../../../../plugin-kit/sdk/PluginHostApi"
+import { ExtensionPoint } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
