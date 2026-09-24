@@ -107,6 +107,9 @@ export class WorkerClient {
 				async uploadProgressListener() {
 					return locator.transferProgressDispatcher
 				},
+				async inboxRuleModel() {
+					return locator.inboxRuleModel()
+				},
 			}),
 		}
 	}

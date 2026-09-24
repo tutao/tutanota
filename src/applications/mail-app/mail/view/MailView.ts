@@ -1441,7 +1441,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const folders = await this.mailViewModel.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 
 		if (isSpamOrTrashFolder(folders, folder)) {
-			const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
+			const inboxRuleModel = await mailLocator.inboxRuleModel()
+			const allInboxRulesBeingModified = await inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
 			const confirmed = await showDeleteFolderPopup(
 				getMailSetName(folder),
 				allInboxRulesBeingModified.map((rule) => rule.name),
@@ -1450,7 +1451,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			if (!confirmed) return
 			await this.mailViewModel.mailModel.finallyDeleteCustomMailFolder(folder)
 		} else {
-			const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
+			const inboxRuleModel = await mailLocator.inboxRuleModel()
+			const allInboxRulesBeingModified = await inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
 			const confirmed = await showDeleteFolderPopup(
 				getMailSetName(folder),
 				allInboxRulesBeingModified.map((rule) => rule.name),
@@ -1523,7 +1525,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const labelSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(label._ownerGroup))
 		if (labelSystem == null) return
 
-		const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(label, labelSystem)
+		const inboxRuleModel = await mailLocator.inboxRuleModel()
+		const allInboxRulesBeingModified = await inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(label, labelSystem)
 
 		const confirmed = await showDeleteFolderPopup(
 			getMailSetName(label),

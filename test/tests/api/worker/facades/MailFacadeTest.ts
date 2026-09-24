@@ -51,6 +51,7 @@ import { MAX_NBR_OF_MAILS_SYNC_OPERATION, Recipient, ReportedMailFieldType } fro
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { InboxRuleModel } from "../../../../../src/applications/mail-app/mail/model/InboxRuleModel"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -64,6 +65,7 @@ o.spec("MailFacade test", function () {
 	let loginFacade: LoginFacade
 	let keyLoaderFacade: KeyLoaderFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
+	let inboxRuleModel: InboxRuleModel
 	let cacheStorage: CacheStorage
 	let spamClassifier: SpamClassifier
 
@@ -78,6 +80,7 @@ o.spec("MailFacade test", function () {
 		loginFacade = object()
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
+		inboxRuleModel = object()
 		facade = new MailFacade(
 			userFacade,
 			entityClient,
@@ -89,6 +92,7 @@ o.spec("MailFacade test", function () {
 			loginFacade,
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
+			inboxRuleModel,
 		)
 	})
 

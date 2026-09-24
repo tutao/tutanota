@@ -343,6 +343,9 @@ class DriveLocator implements CommonLocator {
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
 	}
 
+	async inboxRuleModel(): Promise<null> {
+		return null
+	}
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
 		if (EnvProvider.get().isApp()) {
 			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")

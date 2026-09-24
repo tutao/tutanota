@@ -43,6 +43,7 @@ import {
 	isEmpty,
 	isNotNull,
 	noOp,
+	Nullable,
 	ofClass,
 	parseUrl,
 	promiseFilter,
@@ -182,6 +183,7 @@ import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipel
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { InboxRuleModel } from "../../../../../mail-app/mail/model/InboxRuleModel"
 
 EnvProvider.assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -232,6 +234,9 @@ export class MailFacade {
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
+
+		// this is just for migrations; we can remove this afterwards
+		private readonly inboxRuleModel: Nullable<InboxRuleModel>,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
@@ -1468,6 +1473,10 @@ export class MailFacade {
 				encryptingKeyVersion: cryptoUtils.parseKeyVersion(keyData.symKeyVersion),
 			}
 		}
+	}
+
+	async triggerInboxRuleMigration() {
+		await this.inboxRuleModel?.triggerInboxRuleMigration()
 	}
 }
 
