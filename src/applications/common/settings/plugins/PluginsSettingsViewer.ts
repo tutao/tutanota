@@ -4,14 +4,14 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearc
 import { theme } from "../../../../ui/theme.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
-import { mailLocator } from "../../../mail-app/mailLocator.js"
 import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { PluginFeaturedCard } from "./PluginFeaturedCard.js"
 import { PluginListRow } from "./PluginListRow.js"
 import { UpdatableSettingsViewer } from "../Interfaces"
-import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils.js"
 import { KNOWN_PLUGINS } from "../../../../plugin-kit/sdk/PluginId"
+import { mailLocator } from "../../../mail-app/mailLocator"
+import { isEmpty } from "@tutao/utils"
 
 export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
@@ -19,7 +19,6 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 
 	constructor() {
 		this.model = new PluginSettingsModel(mailLocator.pluginConfigurationProvider, mailLocator.pluginManager)
-		this.model.loadAll().then(() => m.redraw())
 	}
 
 	view(): Children {
@@ -27,12 +26,20 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			m(".h4.mt-32", lang.get("pluginsFeatured_label")),
 			m(
 				".flex.flex-wrap.gap-16",
-				[PLUGIN_REGISTRY.nextcloud].map((entry) => m(PluginFeaturedCard, { entry, key: entry.id })),
+				[PLUGIN_REGISTRY.nextcloud].map((pluginManifest) => m(PluginFeaturedCard, { entry: pluginManifest, key: pluginManifest.id })),
 			),
 			m(".h4.mt-32", lang.get("pluginsAll_label")),
 			this.renderSearchBar(),
 			this.renderPluginList(),
 		])
+	}
+
+	oncreate(): void {
+		this.model.setConfigChangeListener(() => m.redraw())
+	}
+
+	onremove(): void {
+		this.model.setConfigChangeListener(() => {})
 	}
 
 	private renderSearchBar(): Children {
@@ -53,9 +60,9 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderPluginList(): Children {
 		const query = this.searchQuery.toLowerCase()
-		const filtered = KNOWN_PLUGINS.map((pluginId) => PLUGIN_REGISTRY[pluginId]).filter(
-			(entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query),
-		)
+		const filteredPluginIds = KNOWN_PLUGINS.map((pluginId) => PLUGIN_REGISTRY[pluginId])
+			.filter((entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query))
+			.map((manifest) => manifest.id)
 
 		// wrapped in a single container so this slot is always exactly one (unkeyed) vnode at the outer view()'s
 		// array position — mithril requires every vnode within one fragment to be either all-keyed or all-unkeyed,
@@ -63,23 +70,24 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 		// headers/search bar, corrupting the diff (duplicated/missing DOM nodes).
 		return m(
 			".plugin-list",
-			filtered.length === 0
+			isEmpty(filteredPluginIds)
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
 						icon: Icons.Search,
 						message: "noEntries_msg",
 					})
-				: filtered.map((entry) =>
+				: filteredPluginIds.map((pluginId) =>
 						m(PluginListRow, {
-							key: entry.id,
-							entry,
+							key: pluginId,
+							pluginId,
 							model: this.model,
 						}),
 					),
 		)
 	}
 
-	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		await this.model.onEntityUpdatesReceived(updates)
+	async onEntityUpdatesReceived(): Promise<void> {
+		// noop
+		// entity events related to plugin is handeled by pluginManager
 	}
 }

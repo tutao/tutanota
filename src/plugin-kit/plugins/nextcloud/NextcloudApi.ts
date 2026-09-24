@@ -1,5 +1,5 @@
 import { Axios, AxiosResponse } from "axios"
-import { PluginHostApi } from "../../sdk/PluginHostApi"
+import { PluginHostApi } from "../../sdk/hostApi/PluginHostApi"
 import { assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
 import { PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { PluginDataFile } from "../../sdk/PluginDataFile"

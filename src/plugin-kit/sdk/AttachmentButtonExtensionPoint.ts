@@ -1,4 +1,4 @@
-import { ButtonConfiguration, ButtonRef } from "./PluginHostApi"
+import { ButtonConfiguration, ButtonRef } from "./hostApi/PluginHostApi"
 import type { PluginDataFile } from "./PluginDataFile"
 
 export type { PluginDataFile } from "./PluginDataFile"

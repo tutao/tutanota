@@ -1,26 +1,8 @@
-import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider.js"
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager.js"
-import { ConfigFieldConfiguration } from "../../../../plugin-kit/sdk/PluginHostApi.js"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { PluginConfigurationTypeRef } from "@tutao/entities/sys"
-import { assertNotNull, base64UrlCustomIdToString, Nullable } from "@tutao/utils"
-import { PLUGIN_REGISTRY, PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry"
-import { isNull } from "../../../../platform-kit/utils/Utils"
-import { PluginId, pluginIdFromString } from "../../../../plugin-kit/sdk/PluginId"
-import { OperationType } from "@tutao/meta"
-
-export type PluginState = {
-	enabled: boolean
-	config: Record<string, string>
-}
-
-function parseConfig(configJson: string): Record<string, string> {
-	try {
-		return JSON.parse(configJson)
-	} catch (e) {
-		return {}
-	}
-}
+import { ConfigFieldConfiguration } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi.js"
+import { Nullable } from "@tutao/utils"
+import { PluginId } from "../../../../plugin-kit/sdk/PluginId"
+import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider"
 
 /**
  * Loads/saves the org-wide (customer-scoped) enabled-state and config for each known plugin.
@@ -28,28 +10,25 @@ function parseConfig(configJson: string): Record<string, string> {
  * plugin list is the only enabled signal (delete = disabled), matching PluginConfigurationProvider.init().
  */
 export class PluginSettingsModel {
-	private readonly state: Map<string, PluginState> = new Map()
-
 	constructor(
-		private readonly provider: PluginConfigurationProvider,
+		private readonly configProvider: PluginConfigurationProvider,
 		private readonly pluginManager: PluginManager,
 	) {}
 
-	async loadAll(): Promise<void> {
-		const customerPluginConfigs = await this.provider.getCustomerPluginConfigs()
-		for (const [pluginId, customerConfigJson] of customerPluginConfigs.entries()) {
-			const pluginRegisterEntry: Nullable<PluginRegistryEntry> = PLUGIN_REGISTRY[pluginId as keyof typeof PLUGIN_REGISTRY]
-			if (isNull(pluginRegisterEntry)) {
-				console.error(`Could not load plugin of id: ${pluginId} as it is not in the registry`)
-				continue
-			}
-
-			this.state.set(pluginId, { enabled: true, config: parseConfig(customerConfigJson) })
-		}
+	public setConfigChangeListener(listener: () => void) {
+		this.pluginManager.setConfigChangeListener(listener)
 	}
 
-	getState(pluginId: PluginId): PluginState {
-		return this.state.get(pluginId) ?? { enabled: false, config: {} }
+	public pluginIsLoaded(pluginId: PluginId): boolean {
+		return this.pluginManager.pluginIsLoaded(pluginId)
+	}
+
+	public setConfigField(pluginId: PluginId, fieldName: string, value: string) {
+		this.pluginManager.setConfigField(pluginId, fieldName, value)
+	}
+
+	public getConfigFieldValue(pluginId: PluginId, fieldName: string): Nullable<string> {
+		return this.pluginManager.getConfigFieldValue(pluginId, fieldName)
 	}
 
 	/** Config fields are defined by the plugin itself and only registered once its bundle has been loaded, i.e. while it's enabled. */
@@ -59,37 +38,20 @@ export class PluginSettingsModel {
 
 	async setEnabled(pluginId: PluginId, enabled: boolean): Promise<void> {
 		if (enabled) {
-			await this.provider.storeCustomerConfig(pluginId, "{}")
+			await this.pluginManager.loadPlugins(pluginId)
 		} else {
-			await this.provider.removeCustomerPluginConfig(pluginId)
+			const configRemovedFromServer = await this.configProvider.removeCustomerPluginConfig(pluginId)
+			if (!configRemovedFromServer) {
+				// when configProvider does not erase the entity from server ( if it was never created )
+				// we wont get DELETE entity event which means pluginManager will never unload the plugin,
+				// so lemme do it by myself
+				await this.pluginManager.unloadPlugin(pluginId)
+			}
 		}
 	}
 
 	/** Persists a full config object for an already-enabled plugin, e.g. when the admin clicks "Update" in the config panel. */
-	async updateConfig(pluginId: PluginId, config: Record<string, string>): Promise<boolean> {
-		if (!this.getState(pluginId).enabled) {
-			return false
-		}
-		return await this.provider.storeCustomerConfig(pluginId, JSON.stringify(config))
-	}
-
-	public readonly onEntityUpdatesReceived = async (updates: ReadonlyArray<EntityUpdateData>) => {
-		for (const update of updates) {
-			if (isUpdateForTypeRef(PluginConfigurationTypeRef, update)) {
-				const pluginId = pluginIdFromString(base64UrlCustomIdToString(update.instanceId))
-
-				if (update.operation === OperationType.CREATE) {
-					const updatedConfig = assertNotNull(await this.provider.fetchCustomerConfig(pluginId))
-					this.state.set(pluginId, { enabled: true, config: parseConfig(updatedConfig.configJson) })
-				} else if (update.operation === OperationType.UPDATE) {
-					if (this.state.get(pluginId)?.enabled) {
-						const updatedConfig = assertNotNull(await this.provider.fetchCustomerConfig(pluginId))
-						this.state.set(pluginId, { enabled: true, config: parseConfig(updatedConfig.configJson) })
-					}
-				} else if (update.operation === OperationType.DELETE) {
-					this.state.delete(pluginId)
-				}
-			}
-		}
+	async updateConfig(pluginId: PluginId): Promise<boolean> {
+		return await this.pluginManager.persistCustomerConfig(pluginId)
 	}
 }

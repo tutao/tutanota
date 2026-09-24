@@ -1,4 +1,4 @@
-import { PluginLanguageCode } from "./PluginHostApi"
+import { PluginLanguageCode } from "./hostApi/PluginHostApi"
 import { TutanotaError } from "@tutao/app-env"
 
 export class GeneralPluginError extends TutanotaError {

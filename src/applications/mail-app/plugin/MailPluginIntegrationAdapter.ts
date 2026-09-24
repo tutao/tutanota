@@ -1,4 +1,4 @@
-import { MailIntegrationAdapter } from "../../../plugin-kit/plugin-manager/PluginHost"
+import { MailIntegrationAdapter } from "../../../plugin-kit/plugin-manager/hostApi/PluginHost"
 import { PluginDataFile } from "../../../plugin-kit/sdk/PluginDataFile"
 import { MailboxModel } from "../../common/mailFunctionality/MailboxModel.js"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
