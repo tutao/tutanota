@@ -517,6 +517,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.aes,
 			locator.base.keyEncryption,
 			locator.base.bcrypt,
+			mainInterface.inboxRuleModel,
 		)
 	})
 

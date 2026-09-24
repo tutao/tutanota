@@ -196,6 +196,8 @@ import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { InstanceKeyFacade } from "../../../../../../platform-kit/base/base-crypto/InstanceKeyFacade"
+import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { InboxRuleModel } from "../../../../../mail-app/mail/model/InboxRuleModel"
 
 EnvProvider.assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -252,6 +254,9 @@ export class MailFacade {
 		private readonly aes: Aes,
 		private readonly keyEncryption: KeyEncryption,
 		private readonly bcrypt: Bcrypt,
+
+		// this is just for migrations; we can remove this afterwards
+		private readonly inboxRuleModel: Nullable<InboxRuleModel>,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
@@ -1623,6 +1628,10 @@ export class MailFacade {
 				encryptingKeyVersion: cryptoUtils.parseKeyVersion(keyData.symKeyVersion),
 			}
 		}
+	}
+
+	async triggerInboxRuleMigration() {
+		await this.inboxRuleModel?.triggerInboxRuleMigration()
 	}
 }
 

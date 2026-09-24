@@ -320,6 +320,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.aes,
 			locator.base.keyEncryption,
 			locator.base.bcrypt,
+			mainInterface.inboxRuleModel,
 		)
 	})
 
