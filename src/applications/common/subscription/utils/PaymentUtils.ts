@@ -27,6 +27,7 @@ import { getClientType, PaymentDataResultType } from "@tutao/app-env"
 import { Country, CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { windowFacade } from "../../misc/WindowFacade"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -144,7 +145,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
 			const paymentUrl = new URL(paymentUrlString)
 			paymentUrl.hash += params
-			window.open(paymentUrl)
+			windowFacade.openLink(paymentUrl.href)
 			progressDialog.show()
 		})
 		return progressDialogPromise.finally(() => locator.eventController.removeEntityUpdatesListener(entityUpdatesListener))
