@@ -56,6 +56,11 @@ function unsupported(e) {
 	div.appendChild(err)
 }
 
+if (document.getElementById("nextcloud-tutamail")) {
+	// present only when this page is served embedded in the Nextcloud tutamail app
+	window.env.integrationPlatform = "Nextcloud"
+}
+
 try {
 	import("./app.js").catch(unsupported)
 } catch (e) {

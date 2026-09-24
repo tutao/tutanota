@@ -87,7 +87,6 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				serve: false,
 				networkDebugging: false,
 				app,
-				integrationPlatform: null,
 				shadowDomAppRoot: null,
 			})
 		} else {

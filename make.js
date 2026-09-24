@@ -15,7 +15,6 @@ await program
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
 	.option("-D, --dev-tools", "Start the desktop client with DevTools open")
-	.option("--integrate-nextcloud", "Adjust build & webapp for nextcloud integration")
 	.action(async (stage, host, options) => {
 		await removeDistDirs("src")
 
@@ -30,7 +29,7 @@ await program
 			host = "https://app.local.tuta.com:9000"
 		}
 
-		const { clean, watch, serve, startDesktop, desktopBuildOnly, app, networkDebugging, devTools, integrateNextcloud } = options
+		const { clean, watch, serve, startDesktop, desktopBuildOnly, app, networkDebugging, devTools } = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -46,7 +45,6 @@ await program
 				desktop: startDesktop || desktopBuildOnly,
 				networkDebugging,
 				app,
-				integrationPlatform: integrateNextcloud ? "Nextcloud" : null,
 				shadowDomAppRoot: null,
 			})
 
@@ -58,21 +56,6 @@ await program
 					stdio: "inherit",
 					env: options.verbose ? Object.assign({}, env, { ELECTRON_ENABLE_LOGGING: 1 }) : env,
 				})
-			} else if (integrateNextcloud && false) {
-				// for local development, register the app to nextcloud container,
-				// and also start go proxy server with correct targetHost
-				const appRegistered = spawn(`make`, ["register"], {
-					cwd: "integrations/nextcloud/tutamail",
-					stdio: "inherit",
-					timeout: 5,
-				})
-				appRegistered.unref()
-				const proxybackend = spawn(`go`, ["run", "main.go", "--targetHost", host ?? "http://localhost:9000"], {
-					cwd: "integrations/nextcloud/tutamail/ex_app",
-					stdio: "inherit",
-				})
-
-				process.exit(proxybackend.exitCode)
 			} else if (!watch) {
 				// Don't wait for spawned child processes to exit (because they never will)
 				process.exit(0)
