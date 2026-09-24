@@ -56,7 +56,7 @@ import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
 import { MailAddressTableModel, MailAddressTableInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
-import { lazy } from "@tutao/utils"
+import { lazy, Nullable } from "@tutao/utils"
 import { NativeInterfaceMain } from "../../native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../../native/NativePushServiceApp.js"
 
@@ -89,6 +89,7 @@ import { Header } from "../../../../ui/Header"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
+import { InboxRuleModel } from "../../../mail-app/mail/model/InboxRuleModel"
 
 export interface CommonLocator {
 	clientModelInfo: ClientModelInfo
@@ -175,6 +176,8 @@ export interface CommonLocator {
 	recipientsModel(): Promise<RecipientsModel>
 
 	recipientsSearchModel(): Promise<RecipientsSearchModel>
+
+	inboxRuleModel(): Promise<Nullable<InboxRuleModel>>
 
 	readonly groupSettingsModel: lazy<Promise<GroupSettingsModel>>
 
