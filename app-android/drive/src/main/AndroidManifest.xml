@@ -44,7 +44,7 @@ which might still be served or HTTP. The only alternative is to proxy all of it.
 		<!-- we do not want to restart activity for most of the things. uiMode changes with dark mode. -->
 		<activity
 				android:name=".MainActivity"
-				android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|uiMode"
+				android:configChanges="orientation|keyboardHidden|keyboard|screenSize|locale|uiMode|screenLayout|smallestScreenSize"
 				android:launchMode="singleInstance"
 				android:theme="@style/SplashTheme"
 				android:exported="true">
