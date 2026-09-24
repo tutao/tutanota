@@ -7,7 +7,7 @@ import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { base64UrlToBase64 } from "@tutao/utils"
+import { assertNotNull, base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { TextField } from "../../../../ui/base/TextField"
@@ -110,17 +110,18 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 	private async downloadFile(file: DriveFile) {
 		if (this.state.status === "success") {
-			const nonce = base64UrlToBase64(m.route.param("nonce"))
-			const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.state.fileSessionKey, nonce)
+			const authToken = base64UrlToBase64(m.route.param("authToken"))
+			const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.state.fileSessionKey, authToken)
 			await locator.fileController.saveDataFile(dataFile)
 		}
 	}
 
 	protected async onNewUrl() {
-		const { shareId, nonce } = m.route.param()
+		const { shareId, authToken } = m.route.param()
 
-		if (location.hash !== "") {
-			void this.downloadFileWithKey(shareId, nonce)
+		const fragmentParams = new URLSearchParams(location.hash.slice(1))
+		if (fragmentParams.get("salt") == null) {
+			void this.downloadFileWithKey(shareId, authToken)
 		} else {
 			this.state = {
 				status: "password",
@@ -129,13 +130,13 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 		}
 	}
 
-	private async downloadFileWithKey(shareId: Id, nonce: string) {
+	private async downloadFileWithKey(shareId: Id, authToken: string) {
 		// FIXME: assuming the key is there for now
-		const base64UrlKey = location.hash.slice(1)
+		const base64UrlKey = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("shareKey"))
 
 		try {
 			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
 				type: "key",
 				sharedKey: base64UrlToBase64(base64UrlKey),
 			})
@@ -156,11 +157,15 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 		m.redraw()
 	}
 
-	private async downloadFileWithPassword(shareId: Id, nonce: string, password: string) {
+	private async downloadFileWithPassword(shareId: Id, authToken: string, salt: string, password: string) {
+		const base64UrlKey = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("shareKey"))
+
 		try {
-			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(nonce), {
+			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
 				type: "password",
 				password,
+				salt,
+				sharedKey: base64UrlToBase64(base64UrlKey),
 			})
 			this.state = {
 				status: "success",
@@ -189,9 +194,10 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 			m(PrimaryButton, {
 				label: "ok_action",
 				onclick: () => {
-					const { shareId, nonce } = m.route.param()
+					const { shareId, authToken } = m.route.param()
+					const salt = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("salt"))
 					this.state = { status: "loading" }
-					void this.downloadFileWithPassword(shareId, nonce, state.password)
+					void this.downloadFileWithPassword(shareId, authToken, salt, state.password)
 				},
 			}),
 		])

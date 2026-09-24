@@ -7,6 +7,8 @@ import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFaca
 import {
 	Aes256Key,
 	aes256RandomKey,
+	AesKey,
+	bitArrayToUint8Array,
 	blake3Kdf,
 	CryptoWrapper,
 	generateKdfNonce,
@@ -17,7 +19,20 @@ import {
 	uint8ArrayToKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { assertNotNull, concat, filterInt, first, groupBy, isEmpty, isNotNull, partition, promiseMap, Require, uint8ArrayToBase64 } from "@tutao/utils"
+import {
+	assertNotNull,
+	base64ToUint8Array,
+	concat,
+	filterInt,
+	first,
+	groupBy,
+	isEmpty,
+	isNotNull,
+	partition,
+	promiseMap,
+	Require,
+	uint8ArrayToBase64,
+} from "@tutao/utils"
 import { elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
@@ -542,43 +557,45 @@ export class DriveFacade {
 
 	async downloadFileForShare(
 		shareId: Id,
-		nonce: string,
-		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string },
+		authToken: string,
+		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
 	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }> {
-		throw new ProgrammingError("fix this")
-		// const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
-		// 	extraHeaders: { nonce },
-		// 	ownerKeyProvider: null,
-		// 	sessionKey: null,
-		// 	baseUrl: null,
-		// 	cacheMode: null,
-		// 	queryParams: null,
-		// 	suspensionBehavior: null,
-		// })
-		// const shareKey =
-		// 	encParam.type === "key"
-		// 		? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
-		// 		: await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, share.salt)
-		//
-		// const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
-		//
-		// const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
-		// 	extraHeaders: { nonce: nonce },
-		// 	ownerKeyProvider: null,
-		// 	sessionKey: fileSessionKey,
-		// 	baseUrl: null,
-		// 	cacheMode: null,
-		// 	queryParams: null,
-		// 	suspensionBehavior: null,
-		// })
-		// return {
-		// 	file,
-		// 	fileSessionKey: bitArrayToUint8Array(fileSessionKey.bits),
-		// 	share,
-		// }
+		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
+			extraHeaders: { authToken: authToken },
+			ownerKeyProvider: null,
+			sessionKey: null,
+			baseUrl: null,
+			cacheMode: null,
+			queryParams: null,
+			suspensionBehavior: null,
+		})
+		let shareKey: AesKey
+		if (encParam.type === "password") {
+			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, base64ToUint8Array(encParam.salt))
+			shareKey = await this.cryptoWrapper.decryptKey(passwordKey, base64ToUint8Array(encParam.sharedKey))
+		} else {
+			shareKey = uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
+		}
+
+		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
+
+		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
+			extraHeaders: { authToken: authToken },
+			ownerKeyProvider: null,
+			sessionKey: fileSessionKey,
+			baseUrl: null,
+			cacheMode: null,
+			queryParams: null,
+			suspensionBehavior: null,
+		})
+		return {
+			file,
+			fileSessionKey: bitArrayToUint8Array(fileSessionKey.bits),
+			share,
+		}
 	}
 
-	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, nonce: Base64): Promise<DataFile> {
+	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64): Promise<DataFile> {
 		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
 			baseUrl: null,
 			extraHeaders: null,
@@ -586,7 +603,7 @@ export class DriveFacade {
 			sessionKey: uint8ArrayToKey(fileSessionKey),
 			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
 				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
-					extraHeaders: { nonce: nonce },
+					extraHeaders: { authToken: authToken },
 					sessionKey: null,
 					baseUrl: null,
 					queryParams: null,
