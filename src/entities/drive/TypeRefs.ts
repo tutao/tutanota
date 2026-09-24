@@ -821,11 +821,11 @@ export function createDriveFileShare(values: DriveFileShareParams): DriveFileSha
 }
 
 export type DriveFileShareParams = {
-	nonce: Uint8Array<ArrayBuffer>
+	authToken: Uint8Array<ArrayBuffer>
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
-	salt: Uint8Array<ArrayBuffer>
-	ownerEncPassword: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	nonce: Uint8Array<ArrayBuffer>
 
 	file: IdTuple
 }
@@ -837,11 +837,12 @@ export type DriveFileShare = {
 	_permissions: Id
 	_format: NumberString
 	_ownerGroup: null | Id
-	nonce: Uint8Array<ArrayBuffer>
+	authToken: Uint8Array<ArrayBuffer>
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
-	salt: Uint8Array<ArrayBuffer>
-	ownerEncPassword: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
+	nonce: Uint8Array<ArrayBuffer>
 
 	// == associations
 
@@ -862,7 +863,7 @@ export type DriveFileShare = {
 	_original: Nullable<DriveFileShare>
 	isAdapter: false
 }
-export const DriveShareServicePostInTypeRef: TypeRef<DriveShareServicePostIn> = new TypeRef("drive", 136)
+export const DriveShareServicePostInTypeRef: TypeRef<DriveShareServicePostIn> = new TypeRef("drive", 137)
 
 export function createDriveShareServicePostIn(values: DriveShareServicePostInParams): DriveShareServicePostIn {
 	return Object.assign(create(typeModels[DriveShareServicePostInTypeRef.typeId], DriveShareServicePostInTypeRef), values)
@@ -871,8 +872,9 @@ export function createDriveShareServicePostIn(values: DriveShareServicePostInPar
 export type DriveShareServicePostInParams = {
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
-	salt: Uint8Array<ArrayBuffer>
-	ownerEncPassword: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	nonce: Uint8Array<ArrayBuffer>
 
 	file: IdTuple
 }
@@ -883,8 +885,9 @@ export type DriveShareServicePostIn = {
 	_format: NumberString
 	expirationDate: null | Date
 	shareKeyEncFileSessionKey: Uint8Array<ArrayBuffer>
-	salt: Uint8Array<ArrayBuffer>
-	ownerEncPassword: Uint8Array<ArrayBuffer>
+	ownerEncPassword: null | Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+	nonce: Uint8Array<ArrayBuffer>
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -908,7 +911,7 @@ export type DriveShareServicePostIn = {
 	_original: Nullable<DriveShareServicePostIn>
 	isAdapter: false
 }
-export const DriveShareServicePutInTypeRef: TypeRef<DriveShareServicePutIn> = new TypeRef("drive", 143)
+export const DriveShareServicePutInTypeRef: TypeRef<DriveShareServicePutIn> = new TypeRef("drive", 145)
 
 export function createDriveShareServicePutIn(values: DriveShareServicePutInParams): DriveShareServicePutIn {
 	return Object.assign(create(typeModels[DriveShareServicePutInTypeRef.typeId], DriveShareServicePutInTypeRef), values)
@@ -940,7 +943,7 @@ export type DriveShareServicePutIn = {
 	_original: Nullable<DriveShareServicePutIn>
 	isAdapter: false
 }
-export const DriveShareServiceDeleteInTypeRef: TypeRef<DriveShareServiceDeleteIn> = new TypeRef("drive", 145)
+export const DriveShareServiceDeleteInTypeRef: TypeRef<DriveShareServiceDeleteIn> = new TypeRef("drive", 147)
 
 export function createDriveShareServiceDeleteIn(values: DriveShareServiceDeleteInParams): DriveShareServiceDeleteIn {
 	return Object.assign(create(typeModels[DriveShareServiceDeleteInTypeRef.typeId], DriveShareServiceDeleteInTypeRef), values)
@@ -977,7 +980,7 @@ export type DriveShareServiceDeleteIn = {
 	_original: Nullable<DriveShareServiceDeleteIn>
 	isAdapter: false
 }
-export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 149)
+export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 151)
 
 export function createBlobServerUrl(values: BlobServerUrlParams): BlobServerUrl {
 	return Object.assign(create(typeModels[BlobServerUrlTypeRef.typeId], BlobServerUrlTypeRef), values)
@@ -1010,7 +1013,7 @@ export type BlobServerUrl = {
 	_original: Nullable<BlobServerUrl>
 	isAdapter: false
 }
-export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 152)
+export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 154)
 
 export function createBlobServerAccessInfo(values: BlobServerAccessInfoParams): BlobServerAccessInfo {
 	return Object.assign(create(typeModels[BlobServerAccessInfoTypeRef.typeId], BlobServerAccessInfoTypeRef), values)
@@ -1051,7 +1054,7 @@ export type BlobServerAccessInfo = {
 	_original: Nullable<BlobServerAccessInfo>
 	isAdapter: false
 }
-export const DriveShareTokenServicePostInTypeRef: TypeRef<DriveShareTokenServicePostIn> = new TypeRef("drive", 158)
+export const DriveShareTokenServicePostInTypeRef: TypeRef<DriveShareTokenServicePostIn> = new TypeRef("drive", 160)
 
 export function createDriveShareTokenServicePostIn(values: DriveShareTokenServicePostInParams): DriveShareTokenServicePostIn {
 	return Object.assign(create(typeModels[DriveShareTokenServicePostInTypeRef.typeId], DriveShareTokenServicePostInTypeRef), values)
@@ -1088,7 +1091,7 @@ export type DriveShareTokenServicePostIn = {
 	_original: Nullable<DriveShareTokenServicePostIn>
 	isAdapter: false
 }
-export const DriveShareTokenServicePostOutTypeRef: TypeRef<DriveShareTokenServicePostOut> = new TypeRef("drive", 161)
+export const DriveShareTokenServicePostOutTypeRef: TypeRef<DriveShareTokenServicePostOut> = new TypeRef("drive", 163)
 
 export function createDriveShareTokenServicePostOut(values: DriveShareTokenServicePostOutParams): DriveShareTokenServicePostOut {
 	return Object.assign(create(typeModels[DriveShareTokenServicePostOutTypeRef.typeId], DriveShareTokenServicePostOutTypeRef), values)

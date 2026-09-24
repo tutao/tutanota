@@ -11,6 +11,8 @@ export const enum HkdfKeyDerivationDomains {
 	NewUserGroupKeyAuthKeyForRotationAsNonAdminUser = "newUserGroupKeyAuthKeyForRotationAsNonAdminUser",
 	VersionedUserGroupKeyDistributionKey = "versionedUserGroupKeyDistributionKey",
 	PublicIdentityKey = "publicIdentityKey",
+	DriveFileShareKey = "driveFileShareKey",
+	DriveFileSharePassword = "driveFileSharePassword",
 }
 class MacTagBrand extends TsBrand {
 	protected __brand: Nullable<never> = null

@@ -86,7 +86,7 @@ pub struct DriveFile {
 	pub blobs: Vec<super::sys::Blob>,
 	#[serde(rename = "29")]
 	pub originalParent: Option<IdTupleGenerated>,
-	#[serde(rename = "135")]
+	#[serde(rename = "136")]
 	pub share: Option<GeneratedId>,
 
 	#[serde(default)]
@@ -516,7 +516,7 @@ pub struct DriveFileShare {
 	pub _ownerGroup: Option<GeneratedId>,
 	#[serde(rename = "130")]
 	#[serde(with = "serde_bytes")]
-	pub nonce: Vec<u8>,
+	pub authToken: Vec<u8>,
 	#[serde(rename = "131")]
 	pub expirationDate: Option<DateTime>,
 	#[serde(rename = "132")]
@@ -524,10 +524,12 @@ pub struct DriveFileShare {
 	pub shareKeyEncFileSessionKey: Vec<u8>,
 	#[serde(rename = "133")]
 	#[serde(with = "serde_bytes")]
-	pub salt: Vec<u8>,
+	pub ownerEncPassword: Option<Vec<u8>>,
 	#[serde(rename = "134")]
+	pub ownerKeyVersion: i64,
+	#[serde(rename = "135")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncPassword: Vec<u8>,
+	pub nonce: Vec<u8>,
 	#[serde(rename = "129")]
 	pub file: IdTupleGenerated,
 }
@@ -544,20 +546,22 @@ impl Entity for DriveFileShare {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareServicePostIn {
-	#[serde(rename = "137")]
+	#[serde(rename = "138")]
 	pub _format: i64,
-	#[serde(rename = "139")]
-	pub expirationDate: Option<DateTime>,
 	#[serde(rename = "140")]
-	#[serde(with = "serde_bytes")]
-	pub shareKeyEncFileSessionKey: Vec<u8>,
+	pub expirationDate: Option<DateTime>,
 	#[serde(rename = "141")]
 	#[serde(with = "serde_bytes")]
-	pub salt: Vec<u8>,
+	pub shareKeyEncFileSessionKey: Vec<u8>,
 	#[serde(rename = "142")]
 	#[serde(with = "serde_bytes")]
-	pub ownerEncPassword: Vec<u8>,
-	#[serde(rename = "138")]
+	pub ownerEncPassword: Option<Vec<u8>>,
+	#[serde(rename = "143")]
+	pub groupKeyVersion: i64,
+	#[serde(rename = "144")]
+	#[serde(with = "serde_bytes")]
+	pub nonce: Vec<u8>,
+	#[serde(rename = "139")]
 	pub file: IdTupleGenerated,
 }
 
@@ -565,7 +569,7 @@ impl Entity for DriveShareServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(136),
+			type_id: TypeId::from(137),
 		}
 	}
 }
@@ -573,29 +577,11 @@ impl Entity for DriveShareServicePostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareServicePutIn {
-	#[serde(rename = "144")]
+	#[serde(rename = "146")]
 	pub _format: i64,
 }
 
 impl Entity for DriveShareServicePutIn {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Drive,
-			type_id: TypeId::from(143),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveShareServiceDeleteIn {
-	#[serde(rename = "146")]
-	pub _format: i64,
-	#[serde(rename = "147")]
-	pub file: IdTupleGenerated,
-}
-
-impl Entity for DriveShareServiceDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
@@ -606,10 +592,28 @@ impl Entity for DriveShareServiceDeleteIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveShareServiceDeleteIn {
+	#[serde(rename = "148")]
+	pub _format: i64,
+	#[serde(rename = "149")]
+	pub file: IdTupleGenerated,
+}
+
+impl Entity for DriveShareServiceDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(147),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerUrl {
-	#[serde(rename = "150")]
+	#[serde(rename = "152")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "151")]
+	#[serde(rename = "153")]
 	pub url: String,
 }
 
@@ -617,7 +621,7 @@ impl Entity for BlobServerUrl {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(149),
+			type_id: TypeId::from(151),
 		}
 	}
 }
@@ -625,15 +629,15 @@ impl Entity for BlobServerUrl {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerAccessInfo {
-	#[serde(rename = "153")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "154")]
-	pub blobAccessToken: String,
 	#[serde(rename = "155")]
-	pub expires: DateTime,
+	pub _id: Option<CustomId>,
 	#[serde(rename = "156")]
-	pub tokenKind: i64,
+	pub blobAccessToken: String,
 	#[serde(rename = "157")]
+	pub expires: DateTime,
+	#[serde(rename = "158")]
+	pub tokenKind: i64,
+	#[serde(rename = "159")]
 	pub servers: Vec<BlobServerUrl>,
 }
 
@@ -641,7 +645,7 @@ impl Entity for BlobServerAccessInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(152),
+			type_id: TypeId::from(154),
 		}
 	}
 }
@@ -649,9 +653,9 @@ impl Entity for BlobServerAccessInfo {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareTokenServicePostIn {
-	#[serde(rename = "159")]
+	#[serde(rename = "161")]
 	pub _format: i64,
-	#[serde(rename = "160")]
+	#[serde(rename = "162")]
 	pub file: IdTupleGenerated,
 }
 
@@ -659,7 +663,7 @@ impl Entity for DriveShareTokenServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(158),
+			type_id: TypeId::from(160),
 		}
 	}
 }
@@ -667,9 +671,9 @@ impl Entity for DriveShareTokenServicePostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareTokenServicePostOut {
-	#[serde(rename = "162")]
+	#[serde(rename = "164")]
 	pub _format: i64,
-	#[serde(rename = "163")]
+	#[serde(rename = "165")]
 	pub blobAccessInfo: BlobServerAccessInfo,
 }
 
@@ -677,7 +681,7 @@ impl Entity for DriveShareTokenServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(161),
+			type_id: TypeId::from(163),
 		}
 	}
 }

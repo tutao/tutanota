@@ -5,10 +5,13 @@ import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import {
+	Aes256Key,
 	aes256RandomKey,
 	bitArrayToUint8Array,
+	blake3Kdf,
 	CryptoWrapper,
-	generateRandomSalt,
+	generateKdfNonce,
+	KdfNonce,
 	keyToUint8Array,
 	uint8ArrayTo256Key,
 	uint8ArrayToKey,
@@ -18,6 +21,7 @@ import {
 	assertNotNull,
 	base64ToBase64Url,
 	base64ToUint8Array,
+	concat,
 	filterInt,
 	first,
 	groupBy,
@@ -115,6 +119,11 @@ export interface DriveShareInfo {
 	share: DriveFileShare
 	key: Uint8Array<ArrayBuffer>
 	publicLink: string
+}
+
+function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
+	const keyBytes = blake3Kdf(concat(keyToUint8Array(fileGroupKey.object), nonce), "driveFileShareShareKey", 32)
+	return uint8ArrayTo256Key(keyBytes)
 }
 
 /**
@@ -403,25 +412,59 @@ export class DriveFacade {
 
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
 		const { fileGroupKey } = await this.getCryptoInfo()
-		const filePassword = password ?? STATIC_FILE_SHARE_PASSWORD
 
-		const salt = generateRandomSalt()
-		const shareKey = await this.argon2idFacade.generateKeyFromPassphrase(filePassword, salt)
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-		const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
-		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, filePassword)
+		if (password == null) {
+			// 1. Generate a random nonce (N).
+			const nonce = generateKdfNonce()
+			// 2. Derive a share key (SHK) using the nonce (N), a domain separator and the owner key.
+			const shareKey = deriveFileShareKey(fileGroupKey, nonce)
+			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
+			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
+			// 4. Create a share with the N, the ENCFSK, and the owner key version.
+			await this.serviceExecutor.execute(
+				DriveShareService_POST,
+				createDriveShareServicePostIn({
+					file: file._id,
+					expirationDate,
+					nonce,
+					ownerEncPassword: null,
+					shareKeyEncFileSessionKey,
+					groupKeyVersion: String(fileGroupKey.version),
+				}),
+				null,
+			)
+		} else {
+			// 1. Generate a random nonce (N)
+			const nonce = generateKdfNonce()
+			// 2. Derive a share key (SHK) using the nonce (N), a domain separator, and the owner key.
+			const shareKey = deriveFileShareKey(fileGroupKey, nonce)
+			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
+			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
+			// 4. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
+			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
+			// 	5. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
+			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
+			// 	6. Encrypt the share key (SHK) with the password key (PWK) producing the ENCSHK.
+			const encryptedShareKey = this.cryptoWrapper.encryptKey(passwordKey, shareKey)
+			// 	7. Encrypt the PWD with the owner key producing the ENCPWD.
+			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
+			// 	8. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
+			await this.serviceExecutor.execute(
+				DriveShareService_POST,
+				createDriveShareServicePostIn({
+					file: file._id,
+					expirationDate,
+					shareKeyEncFileSessionKey,
+					nonce,
+					ownerEncPassword,
+					groupKeyVersion: String(fileGroupKey.version),
+				}),
+				null,
+			)
+			// 	Create a link with the ID of the share, the SLT, and the ENCSHK.
+		}
 
-		await this.serviceExecutor.execute(
-			DriveShareService_POST,
-			createDriveShareServicePostIn({
-				file: file._id,
-				expirationDate,
-				shareKeyEncFileSessionKey,
-				salt,
-				ownerEncPassword,
-			}),
-			null,
-		)
 		const updatedFile = await this.entityClient.load(DriveFileTypeRef, file._id, {
 			queryParams: null,
 			baseUrl: null,
@@ -431,7 +474,6 @@ export class DriveFacade {
 			suspensionBehavior: null,
 			cacheMode: CacheMode.WriteOnly,
 		})
-
 		return this.getShareInfo(updatedFile)
 	}
 
