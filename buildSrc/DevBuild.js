@@ -236,7 +236,6 @@ async function buildDesktopPart({ version, networkDebugging }) {
 						dist: false,
 						domainConfigs,
 						networkDebugging,
-						integrationPlatform: null,
 					}),
 				),
 			],
