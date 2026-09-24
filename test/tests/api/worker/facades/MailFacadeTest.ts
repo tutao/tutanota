@@ -64,6 +64,7 @@ import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/inst
 import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { InboxRuleModel } from "../../../../../src/applications/mail-app/mail/model/InboxRuleModel"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -78,6 +79,7 @@ o.spec("MailFacade test", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	let instanceKeyFacade: InstanceKeyFacade
+	let inboxRuleModel: InboxRuleModel
 	let cacheStorage: CacheStorage
 	let spamClassifier: SpamClassifier
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -103,6 +105,7 @@ o.spec("MailFacade test", function () {
 		)
 		const aes = new Aes(symmetricCipherFacade)
 		const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		inboxRuleModel = object()
 		facade = new MailFacade(
 			userFacade,
 			entityClient,
@@ -120,6 +123,7 @@ o.spec("MailFacade test", function () {
 			aes,
 			keyEncryption,
 			new Bcrypt(random),
+			inboxRuleModel,
 		)
 	})
 
