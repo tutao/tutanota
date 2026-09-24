@@ -36,7 +36,7 @@ This is the official Tuta Mail plugin for nextcloud.
 
 ```bash
 npm ci
-node make --integrate-nextcloud
+node make
 ```
 4. Run the ExApp Proxy:
 ```bash
