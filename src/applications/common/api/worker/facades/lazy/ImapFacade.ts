@@ -84,8 +84,8 @@ export class ImapFacade {
 		}
 
 		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-		const sk = this.cryptoWrapper.aes256RandomKey()
-		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+		const sessionKey = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const token = initializeParams.imapAccount.oAuthTokenEndpointResponse
 		const oAuthTokenEndpointResponse =
@@ -119,7 +119,6 @@ export class ImapFacade {
 		})
 
 		const imapPostIn = createImapPostIn({
-			imapAccount: initializeParams.imapAccount,
 			imapAccountSyncState,
 
 			// These are now contained in the imapAccountSyncState
@@ -127,6 +126,7 @@ export class ImapFacade {
 			ownerGroup: null,
 			ownerEncSessionKey: null,
 			ownerKeyVersion: null,
+			imapAccount: null,
 			maxQuota: null,
 			postponedUntil: null,
 			rootImportMailSet: null,
@@ -136,7 +136,6 @@ export class ImapFacade {
 
 		const imapPostOut = await this.serviceExecutor.post(ImapService, imapPostIn, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			sessionKey: sk,
 			ownerKey: mailGroupKey,
 		})
 		const loadedImapAccountSyncState = await this.entityClient.load(ImapAccountSyncStateTypeRef, imapPostOut.imapAccountSyncState)
@@ -200,8 +199,8 @@ export class ImapFacade {
 		const imapFolderSyncStates: ImapFolderSyncState[] = []
 		for (const [imapMailboxPath, { mailSetElementId, shouldSync, specialUse }] of imapMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = this.cryptoWrapper.aes256RandomKey()
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const sessionKey = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
 				_ownerGroup: mailGroupId,
@@ -229,7 +228,6 @@ export class ImapFacade {
 			})
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: sk,
 				ownerKey: mailGroupKey,
 			})
 			const loadedImapFolderSyncState = await this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
@@ -267,8 +265,8 @@ export class ImapFacade {
 				mailSetId = shouldSync ? await this.mailFacade.createMailFolder(name, parentMailSetId, mailGroupId) : null
 			}
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
-			const sk = this.cryptoWrapper.aes256RandomKey()
-			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+			const sessionKey = this.cryptoWrapper.aes256RandomKey()
+			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const imapFolderSyncState = createImapFolderSyncStateTransferAggregatedType({
 				_ownerGroup: mailGroupId,
@@ -297,7 +295,6 @@ export class ImapFacade {
 
 			const imapFolderPostOut = await this.serviceExecutor.post(ImapFolderService, imapFolderPostIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKey: sk,
 				ownerKey: mailGroupKey,
 			})
 			return this.entityClient.load(ImapFolderSyncStateTypeRef, imapFolderPostOut.imapFolderSyncState)
