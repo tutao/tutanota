@@ -18,6 +18,7 @@ import { MessageBox } from "../../../ui/base/MessageBox"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { PaymentMethodType } from "../../../entities/sys/Utils"
 import { Country, getByAbbreviation } from "../gui/CountryList"
+import { windowFacade } from "../misc/WindowFacade"
 
 function renderCCInput(ccViewModel: SimplifiedCreditCardViewModel): Children {
 	return m(SimplifiedCreditCardInput, { viewModel: ccViewModel })
@@ -33,9 +34,9 @@ function renderPaypalInput(
 		data: paypalButtonData,
 		onclick: () => {
 			if (payPalRequestUrl.isLoaded()) {
-				window.open(payPalRequestUrl.getLoaded())
+				windowFacade.openLink(payPalRequestUrl.getLoaded())
 			} else {
-				showProgressDialog("payPalRedirect_msg", payPalRequestUrl.getAsync()).then((url) => window.open(url))
+				showProgressDialog("payPalRedirect_msg", payPalRequestUrl.getAsync()).then((url) => windowFacade.openLink(url))
 			}
 		},
 	})
