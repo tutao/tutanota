@@ -168,25 +168,25 @@ export class TutaSseFacade implements SseEventHandler {
 			const alarmIdentifier = encryptedAlarmNotification.getAlarmId()
 			const operation = downcast<OperationType>(encryptedAlarmNotification.getOperation())
 			if (operation === OperationType.CREATE) {
-				while (true) {
-					const sk = await this.alarmStorage.getNotificationSessionKey(encryptedMissedNotification.getNotificationSessionKeys())
-					if (!sk) {
-						// none of the NotificationSessionKeys in the AlarmNotification worked.
-						// this is indicative of a serious problem with the stored keys.
-						// therefore, we should invalidate the sseInfo and throw away
-						// our pushEncSessionKeys.
-						throw new CryptoError("could not find session key to decrypt alarm notification")
-					}
-					const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
-						alarmNotificationUntyped,
-						assertNotNull(sk).sessionKey,
-					)
-					if (hasError(alarmNotification)) {
-						// some property of the AlarmNotification couldn't be decrypted with the selected key
-						// throw away the key that caused the error and try the next one
-						await this.alarmStorage.removePushIdentifierKey(elementIdPart(sk.notificationSessionKey.pushIdentifier))
-						continue
-					}
+				const sk = await this.alarmStorage.getNotificationSessionKey(encryptedAlarmNotification.getNotificationSessionKeys())
+				if (!sk) {
+					// none of the NotificationSessionKeys in the AlarmNotification worked.
+					// this is indicative of a serious problem with the stored keys.
+					// therefore, we should invalidate the sseInfo and throw away
+					// our pushEncSessionKeys.
+					throw new CryptoError("could not find session key to decrypt alarm notification")
+				}
+				const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
+					alarmNotificationUntyped,
+					assertNotNull(sk).sessionKey,
+				)
+				if (hasError(alarmNotification)) {
+					// some property of the AlarmNotification couldn't be decrypted with the selected key
+					// throw away the key that caused the error and try the next one
+					await this.alarmStorage.removePushIdentifierKey(elementIdPart(sk.notificationSessionKey.pushIdentifier))
+					// TODO do we really want to throw now? Or first decrypt all notifications that we can?
+					throw new CryptoError("could not find session key to decrypt alarm notification")
+				} else {
 					return await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 				}
 			} else if (operation === OperationType.DELETE) {
