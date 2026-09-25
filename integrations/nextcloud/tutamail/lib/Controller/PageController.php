@@ -34,7 +34,9 @@ class PageController extends Controller {
 		$response = new TemplateResponse(Application::APP_ID, 'index');
 
 		$csp = new ContentSecurityPolicy();
-		$csp->addAllowedConnectDomain('tuta.com');
+		$csp->addAllowedConnectDomain('https://tuta.com');
+		$csp->addAllowedConnectDomain('https://app.test.tuta.com');
+		$csp->addAllowedConnectDomain('https://app.local.tuta.com');
 
 		$response->setContentSecurityPolicy($csp);
 

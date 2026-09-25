@@ -128,7 +128,8 @@ export abstract class PluginApi {
 
 	abstract getManifest(): Promise<PluginManifest>
 
-	abstract load(customerConfigJson: string): Promise<void>
+	abstract load(): Promise<void>
+	abstract applyConfigExtensionPoints(): Promise<void>
 
 	abstract unload(): Promise<void>
 

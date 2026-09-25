@@ -1,7 +1,6 @@
 import { PluginId } from "./PluginId"
 
 export type PluginVersion = { major: number; minor: number; patch: number }
-export type InitialCustomerConfigFields = Array<{ fieldId: string; defaultValue: string }>
 export type PluginManifest = Readonly<{
 	id: PluginId
 	name: string
@@ -20,5 +19,4 @@ export type PluginManifest = Readonly<{
 		 */
 		getHost: boolean
 	}
-	initialCustomerConfigFields: InitialCustomerConfigFields
 }>

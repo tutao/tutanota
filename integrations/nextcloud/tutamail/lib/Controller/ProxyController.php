@@ -26,6 +26,7 @@ class ProxyController extends Controller
 	];
 	private array $ALLOWED_PROXIES = [
 			'GET' => [
+			    "/^ocs\/v2\.php\/apps\/tutamail\/api\/v1\/version/",
 			],
 			'POST' => [
 					'/^index\.php\/login\/v2/',

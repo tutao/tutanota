@@ -3,11 +3,11 @@ import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint } from ".
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginConfigurationOwner, PluginHost } from "./hostApi/PluginHost"
-import { assert, assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, Nullable, ofClass } from "@tutao/utils"
+import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, Nullable, ofClass } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
-import { isSameSingleId, OperationType } from "@tutao/meta"
+import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
@@ -61,39 +61,29 @@ export class PluginManager {
 				throw new Error(`Could not load plugin: ${pluginIdToEnable} as it is already loaded. Call unload() first`)
 			}
 
+			const customerConfigJson = await this.configurationAdapter.getCustomerConfig(pluginIdToEnable)
 			const pluginHost = new PluginHost(this, pluginIdToEnable)
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
 			pluginHost.initialize(await pluginApi.getManifest())
-			const customerConfigJson = await this.loadCustomerConfigOrDefault(pluginIdToEnable, pluginHost.pluginManifest)
-			await pluginApi.load(customerConfigJson)
+
+			// FIXME:
+			const thisUserIsAdminOfCustomer = true
+			if (thisUserIsAdminOfCustomer) {
+				await pluginApi.applyConfigExtensionPoints()
+			}
+
+			if (isNotNull(customerConfigJson)) {
+				await pluginApi.load()
+			}
 
 			this.loadedPlugins[pluginIdToEnable] = {
 				pluginId: pluginIdToEnable,
 				api: pluginApi,
 				pluginHost,
 				pluginAsWorker,
-				draftConfig: JSON.parse(customerConfigJson),
+				draftConfig: JSON.parse(customerConfigJson ?? "{}"),
 			}
 		}
-	}
-
-	public async loadCustomerConfigOrDefault(pluginId: PluginId, pluginManifest: Nullable<PluginManifest>): Promise<string> {
-		const customerConfigInServer = await this.configurationAdapter.getCustomerConfig(pluginId)
-		if (isNotNull(customerConfigInServer)) {
-			return customerConfigInServer
-		}
-
-		const manifest = assertNotNull(pluginManifest, `Customer config for ${pluginId} does not exists in server. Need manifest to create default`)
-		assert(isSameSingleId(manifest.id, pluginId), "pluginId and manifestId mismatch")
-
-		const defaultConfig = manifest.initialCustomerConfigFields.reduce(
-			(config, { fieldId, defaultValue }) => {
-				config[fieldId] = defaultValue
-				return config
-			},
-			{} as Record<string, string>,
-		)
-		return JSON.stringify(defaultConfig)
 	}
 
 	getRegisteredButtonsByExtensionPoint(extensionPoint: ExtensionPoint): ReadonlyArray<ButtonExtension> {

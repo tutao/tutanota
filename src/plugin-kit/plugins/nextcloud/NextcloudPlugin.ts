@@ -2,7 +2,7 @@ import { PluginApi } from "../../sdk/PluginApi"
 import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint, PluginHostApi } from "../../sdk/hostApi/PluginHostApi"
 import { AttachmentButtonExtension, PluginDataFile } from "../../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../../sdk/EventLocationButtonExtensionPoint"
-import { isNotNull, Nullable } from "../../../platform-kit/utils"
+import { assertNotNull, isNotNull, Nullable } from "../../../platform-kit/utils"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportExtensionPoint"
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
@@ -41,14 +41,18 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIFEST)
 	}
 
-	override async load(customerConfigJson: string): Promise<void> {
-		this.customerConfig = JSON.parse(customerConfigJson)
+	override async load(): Promise<void> {
+		await this.loadCustomerConfig()
 		await this.loadUserConfig()
-		await this.applyConfigExtensionPoints()
 		await this.applyAppExtensionPoints()
+		await this.initializeNextcloudApi()
+	}
 
-		this.nextcloudApi = new NextcloudApi(this.customerConfig.nextCloudUrl, this.pluginHost, await this.pluginHost.getHost(), this)
-		if (isNotNull(this.userConfig.credentials)) {
+	private async initializeNextcloudApi(): Promise<void> {
+		const currentHost = await this.pluginHost.getHost()
+		const customerConfig = assertNotNull(this.customerConfig, "No customerConfig to get nextCloud url from")
+		this.nextcloudApi = new NextcloudApi(customerConfig.nextCloudUrl, this.pluginHost, currentHost, this)
+		if (isNotNull(this.userConfig) && isNotNull(this.userConfig.credentials)) {
 			this.nextcloudApi.setNextcloudCredentials(this.userConfig.credentials)
 		}
 	}
@@ -58,7 +62,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.updateUserConfig()
 	}
 
-	private async applyConfigExtensionPoints() {
+	public override async applyConfigExtensionPoints() {
 		const configFieldConfig: ConfigFieldConfiguration = {
 			extensionPoint: ExtensionPoint.ConfigField,
 			configFieldId: "nextCloudUrl",
@@ -109,11 +113,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	private async loadUserConfig() {
 		const configString = await this.pluginHost.getUserConfig()
-		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : null
-
-		if (isNull(this.userConfig)) {
-			this.userConfig = { credentials: null }
-		}
+		this.userConfig = isNotNull(configString) ? JSON.parse(configString) : { credentials: null }
 	}
 
 	private async loadCustomerConfig(): Promise<void> {
@@ -121,6 +121,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		if (isNull(configString)) {
 			throw new Error("Deletion of customer plugin config should have unloaded the plugin")
 		}
+		await this.verifyCustomerConfiguration(configString)
 		this.customerConfig = isNotNull(configString) ? JSON.parse(configString) : null
 	}
 
@@ -130,6 +131,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	override async onCustomerConfigChange(): Promise<void> {
 		await this.loadCustomerConfig()
+		if (isNull(this.nextcloudApi)) {
+			await this.initializeNextcloudApi()
+		}
 		this.nextcloudApi.setNextcloudUrl(this.customerConfig.nextCloudUrl)
 	}
 
@@ -137,7 +141,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		const customerConfig: CustomerPluginConfig = JSON.parse(newCustomerConfig)
 
 		const newUrl = customerConfig.nextCloudUrl
-		const installedVersion = await this.nextcloudApi.getInstalledVersion(newUrl)
+		const installedVersion = await NextcloudApi.getInstalledVersion(newUrl)
 		if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
 			throw new CustomerConfigPluginError(
 				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,

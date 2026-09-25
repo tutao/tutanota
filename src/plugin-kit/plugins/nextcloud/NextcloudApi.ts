@@ -15,18 +15,10 @@ export type NextcloudCredentials = {
 }
 
 export class NextcloudApi {
-	private axiosClient: Axios
+	private static axiosClient: Axios = new Axios()
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
-	public constructor(
-		private nextCloudUrl: Readonly<string>,
-		private readonly hostApi: PluginHostApi,
-		private readonly host: Readonly<string>,
-		private readonly nextcloudPlugin: NextcloudPlugin,
-	) {
-		this.nextCloudCredentials = null
-		this.axiosClient = new Axios()
-
+	private static initializeAxiosClient() {
 		// to convert all `.data` in response to json
 		this.axiosClient.interceptors.response.use((response) => {
 			if (
@@ -38,6 +30,16 @@ export class NextcloudApi {
 			}
 			return response
 		}, null)
+	}
+
+	public constructor(
+		private nextCloudUrl: Readonly<string>,
+		private readonly hostApi: PluginHostApi,
+		private readonly host: Readonly<string>,
+		private readonly nextcloudPlugin: NextcloudPlugin,
+	) {
+		this.nextCloudCredentials = null
+		NextcloudApi.initializeAxiosClient()
 	}
 
 	public setNextcloudCredentials(nextcloudCredentials: NextcloudCredentials): this {
@@ -55,7 +57,7 @@ export class NextcloudApi {
 			return
 		}
 
-		const nextcloudResponse = await this.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
+		const nextcloudResponse = await NextcloudApi.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
 			headers: {
 				"OCS-APIRequest": "true",
 			},
@@ -69,7 +71,7 @@ export class NextcloudApi {
 		}
 
 		while (true) {
-			const pollResponse = await this.axiosClient.post(
+			const pollResponse = await NextcloudApi.axiosClient.post(
 				this.proxiedUrl(`/index.php/login/v2/poll?token=${poll.token}`),
 				new URLSearchParams({
 					token: poll.token,
@@ -131,7 +133,7 @@ export class NextcloudApi {
 
 		let response: AxiosResponse
 		try {
-			response = await this.axiosClient.get(davUrl, getOptions)
+			response = await NextcloudApi.axiosClient.get(davUrl, getOptions)
 			if (response.status === 401) {
 				this.nextCloudCredentials = null
 				return await this.downloadFile(fileReference)
@@ -171,7 +173,7 @@ export class NextcloudApi {
 		}
 
 		try {
-			const putResponse = await this.axiosClient.put(davUrl, dataFile.data, putOptions)
+			const putResponse = await NextcloudApi.axiosClient.put(davUrl, dataFile.data, putOptions)
 			if (putResponse.status === 401) {
 				this.nextCloudCredentials = null
 				return await this.uploadFile(dataFile, targetFolder)
@@ -200,7 +202,7 @@ export class NextcloudApi {
 
 		const roomCreationUrl = this.proxiedUrl("/ocs/v2.php/apps/spreed/api/v4/room")
 		try {
-			const postResponse = await this.axiosClient.post(
+			const postResponse = await NextcloudApi.axiosClient.post(
 				roomCreationUrl,
 				new URLSearchParams({
 					roomName,
@@ -252,10 +254,10 @@ export class NextcloudApi {
 		}
 	}
 
-	public async getInstalledVersion(newUrl: string): Promise<PluginVersion> {
+	public static async getInstalledVersion(newUrl: string): Promise<PluginVersion> {
 		let versionResponse: AxiosResponse
 		try {
-			versionResponse = await this.axiosClient.get(`${newUrl}/index.php/apps/tutamail/api/v1/version`)
+			versionResponse = await NextcloudApi.axiosClient.get(`${newUrl}/ocs/v2.php/apps/tutamail/api/v1/version`)
 		} catch (e) {
 			throw new CustomerConfigPluginError(`Nextcloud URL is wrong: "${newUrl}"`)
 		}
