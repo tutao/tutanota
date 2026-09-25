@@ -976,7 +976,8 @@ export class MailViewerViewModel {
 
 			try {
 				const files = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, await this.mailFacade.loadAttachments(mail))
-
+				// FIXME: Some .ics files have the wrong MIME type here... application/x-awk instead of text/calendar for some reason
+				// QUESTION: Can we simply rely on the extension as the source of truth?
 				this.handleCalendarFile(files, mail)
 
 				this.attachments = files
