@@ -119,9 +119,7 @@ o.spec("ImportMailFacade", () => {
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve(mailGroupKeyMock)
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: new Uint8Array([1, 2, 3]), encryptingKeyVersion: 0 })
 		when(instancePipelineMock.mapAndEncrypt(anything(), anything(), anything())).thenResolve(serverJson)
-		when(instancePipelineMock.mapAndEncryptForDataTransferType(anything(), anything(), anything(), anything(), anything(), anything())).thenResolve(
-			serverJson,
-		)
+		when(instancePipelineMock.mapAndEncryptForDataTransferType(anything(), anything(), anything(), anything(), anything())).thenResolve(serverJson)
 	})
 
 	o.test("importMails - successfully imports a single mail without attachments", async () => {
@@ -137,7 +135,7 @@ o.spec("ImportMailFacade", () => {
 		).thenDo(() => Promise.resolve(createTestEntity(ImportMailPostOutTypeRef)))
 
 		await facade.importMails(paramsList, mailGroupId)
-		verify(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything(), anything()), {
+		verify(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything()), {
 			times: 1,
 		})
 
@@ -163,12 +161,10 @@ o.spec("ImportMailFacade", () => {
 		const paramsList = [params1, params2]
 
 		let callCount = 0
-		when(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything(), anything())).thenDo(
-			async () => {
-				callCount++
-				return OutgoingServerJson.newFromRecord({ data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) })
-			},
-		)
+		when(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything())).thenDo(async () => {
+			callCount++
+			return OutgoingServerJson.newFromRecord({ data: "x".repeat(IMPORT_MAIL_SERVICE_SIZE_LIMIT / 2) })
+		})
 
 		let postCalls: any[] = []
 		when(
@@ -209,7 +205,7 @@ o.spec("ImportMailFacade", () => {
 		when(cryptoWrapperMock.encryptString(anything(), dataFileMock.mimeType!)).thenReturn(new Uint8Array([10, 11, 12]))
 
 		let capturedImportMailData: Nullable<ImportMailData2> = null
-		when(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything(), anything())).thenDo(
+		when(instancePipelineMock.mapAndEncryptForDataTransferType(ImportMailData2TypeRef, anything(), anything(), anything(), anything())).thenDo(
 			async (_: TypeRef<ImportMailData2>, data: ImportMailData2) => {
 				capturedImportMailData = data
 				return OutgoingServerJson.newFromRecord({ enc: "data" })

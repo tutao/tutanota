@@ -102,9 +102,8 @@ export class InstancePipeline {
 		sessionKey: Nullable<AesKey>,
 		ownerKey: Nullable<VersionedKey>,
 		aeadCipherVersion: AeadCipherVersion,
-		kdfNonce: Nullable<KdfNonce>,
 	): Promise<OutgoingServerJson> {
-		let subKeyInfo = this.getSubKeyInfoForDataTransferType(sessionKey, ownerKey, aeadCipherVersion, kdfNonce)
+		let subKeyInfo = this.getSubKeyInfoForDataTransferType(sessionKey, ownerKey, aeadCipherVersion, null)
 		return await this.mapAndEncryptWithSubKeyInfo(_typeRef, instance, subKeyInfo, ownerKey)
 	}
 

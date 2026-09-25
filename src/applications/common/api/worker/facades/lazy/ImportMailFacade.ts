@@ -189,7 +189,6 @@ export class ImportMailFacade {
 				sk,
 				mailGroupKey,
 				AeadCipherVersion.WithSessionKey,
-				null,
 			)
 
 			const encImport2 = createStringWrapper({

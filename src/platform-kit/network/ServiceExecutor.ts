@@ -146,12 +146,11 @@ export class ServiceExecutor implements IServiceExecutor {
 			}
 
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(methodDefinition.data)
-			if (requestTypeModel.encrypted && params?.sessionKey == null && params?.ownerKey == null) {
+			if (requestTypeModel.encrypted && params?.ownerKey == null) {
 				// TODO: should we only check for ownerKey and not expect session keys here instead?
 				throw new ProgrammingError(`Must provide a session key or an owner key for an encrypted data transfer type!: ${service.app}/${service.name}`)
 			}
 
-			const sessionKey = params?.sessionKey ?? null
 			const ownerKey = params?.ownerKey ?? null
 			let aeadCipherVersion: AeadCipherVersion
 			if (requestTypeModel.encrypted) {
@@ -162,15 +161,8 @@ export class ServiceExecutor implements IServiceExecutor {
 			} else {
 				aeadCipherVersion = AeadCipherVersion.Unencrypted
 			}
-			const kdfNonce = params?.kdfNonce ?? null
-			return await this.instancePipeline.mapAndEncryptForDataTransferType(
-				requestEntity._type,
-				requestEntity,
-				sessionKey,
-				ownerKey,
-				aeadCipherVersion,
-				kdfNonce,
-			)
+
+			return await this.instancePipeline.mapAndEncryptForDataTransferType(requestEntity._type, requestEntity, null, ownerKey, aeadCipherVersion)
 		} else {
 			return null
 		}
