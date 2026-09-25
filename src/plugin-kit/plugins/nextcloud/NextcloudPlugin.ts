@@ -121,7 +121,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		if (isNull(configString)) {
 			throw new Error("Deletion of customer plugin config should have unloaded the plugin")
 		}
-		await this.verifyCustomerConfiguration(configString)
 		this.customerConfig = isNotNull(configString) ? JSON.parse(configString) : null
 	}
 
