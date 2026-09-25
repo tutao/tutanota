@@ -675,7 +675,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderAttachmentContainer(viewModel: MailViewerViewModel, attachments: File[], importFile: (file: File) => void): Children {
 		return attachments.map((attachment) => {
-			const attachmentType = getAttachmentType(attachment.mimeType ?? "")
+			const attachmentType = getAttachmentType(attachment.mimeType ?? "", attachment.name)
 			return m(AttachmentBubble, {
 				attachment,
 				remove: null,

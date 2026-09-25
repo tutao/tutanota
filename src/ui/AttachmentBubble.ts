@@ -89,13 +89,17 @@ function getAttachmentIcon(type: AttachmentType): AllIcons {
 	}
 }
 
-export function getAttachmentType(mimeType: string) {
+export function getAttachmentType(mimeType: string, name: string) {
 	if (Object.values<string>(VCARD_MIME_TYPES).includes(mimeType)) {
 		return AttachmentType.CONTACT
 	} else if (mimeType === CALENDAR_MIME_TYPE) {
 		return AttachmentType.CALENDAR
 	} else if (Object.values<string>(MAIL_MIME_TYPES).includes(mimeType)) {
 		return AttachmentType.MAIL
+	}
+
+	if (name.toLowerCase().trim().endsWith(".ics")) {
+		return AttachmentType.CALENDAR
 	}
 
 	return AttachmentType.GENERIC

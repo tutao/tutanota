@@ -282,7 +282,7 @@ export class ContactImporter {
 export async function parseContacts(fileList: FileReference[], fileApp: NativeFileApp) {
 	const rawContacts: string[] = []
 	for (const file of fileList) {
-		if (getAttachmentType(file.mimeType) === AttachmentType.CONTACT) {
+		if (getAttachmentType(file.mimeType, file.name) === AttachmentType.CONTACT) {
 			const dataFile = await fileApp.readDataFile(file.location)
 			if (dataFile == null) continue
 
