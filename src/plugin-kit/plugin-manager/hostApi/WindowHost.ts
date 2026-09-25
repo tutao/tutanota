@@ -1,4 +1,4 @@
-import { assertNotNull, isNotNull, Nullable } from "@tutao/utils"
+import { isNotNull, Nullable } from "@tutao/utils"
 import { HostApiPermissionDenied } from "../../sdk/PluginError"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { PluginManifest } from "../../sdk/PluginManifest"
@@ -6,7 +6,7 @@ import { WindowHostApi } from "../../sdk/hostApi/WindowHostApi"
 
 export class WindowHost implements WindowHostApi {
 	private nextWindowId = 0
-	private readonly openedWindows: Map<number, Window> = new Map()
+	private readonly openedWindows: Map<number, Nullable<Window>> = new Map()
 
 	constructor(private readonly manifest: PluginManifest) {}
 
@@ -21,10 +21,11 @@ export class WindowHost implements WindowHostApi {
 		}
 
 		const win = window.open(url)
-		if (isNull(win)) {
-			return null
-		}
 		const windowId = this.nextWindowId++
+		if (isNull(win)) {
+			this.openedWindows.set(windowId, null)
+			return windowId
+		}
 		if (isNotNull(win)) {
 			this.openedWindows.set(windowId, win)
 		}
@@ -32,13 +33,25 @@ export class WindowHost implements WindowHostApi {
 	}
 
 	async closeWindow(windowId: number): Promise<void> {
-		const win = assertNotNull(this.openedWindows.get(windowId), `WindowId ${windowId} does not exist`)
-		win.close()
+		const win = this.openedWindows.get(windowId)
+
+		if (!this.openedWindows.has(windowId)) {
+			throw Error(`WindowId ${windowId} does not exist`)
+		}
+
+		if (isNotNull(win)) {
+			win.close()
+		}
 	}
 
 	async isWindowOpen(windowId: number): Promise<boolean> {
-		const win = assertNotNull(this.openedWindows.get(windowId), `WindowId ${windowId} does not exist`)
-		return win && !win.closed
+		const win = this.openedWindows.get(windowId)
+
+		if (!this.openedWindows.has(windowId)) {
+			throw Error(`WindowId ${windowId} does not exist`)
+		}
+
+		return (isNotNull(win) && !win.closed) || isNull(win)
 	}
 	async getHost(): Promise<string> {
 		if (!this.manifest.permissions.getHost) {
