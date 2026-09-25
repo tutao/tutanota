@@ -114,6 +114,7 @@ import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { PosRect } from "../../../../ui/utils/PosRect"
 import { InboxRuleModel } from "../model/InboxRuleModel"
 import { ExpandedInboxRuleHandler } from "../model/ExpandedInboxRuleHandler"
+import { SETTINGS_PREFIX } from "../../../../ui/utils/RouteChange"
 
 export const enum ContentBlockingStatus {
 	Block = "0",
@@ -1638,5 +1639,10 @@ export class MailViewerViewModel {
 		}
 
 		return actions
+	}
+
+	async openFilterSettings() {
+		const router = await mailLocator.throttledRouter()
+		router.routeTo(`${SETTINGS_PREFIX}/inboxrules`, {})
 	}
 }

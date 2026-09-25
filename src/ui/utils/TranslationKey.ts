@@ -2542,3 +2542,4 @@ export type TranslationKeyType =
 	| "retrainSpamFilter_action"
 	| "retrainSpamFilter_msg"
 	| "retrainSpamFilterConfirm_msg"
+	| "mailAuthSuggestSettings_msg"

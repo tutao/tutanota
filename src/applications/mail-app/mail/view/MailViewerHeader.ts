@@ -735,8 +735,14 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 	}
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
+		const warningMsg = lang.getTranslationText("mailAuthFailed_msg")
+		const settingsMsg = lang.getTranslation("mailAuthSuggestSettings_msg", {
+			"{folder}": viewModel.getFolderInfo()?.name || "",
+		}).text
 		return m(InfoBanner, {
-			message: "mailAuthFailed_msg",
+			message: () => {
+				return `${warningMsg}\n\n${settingsMsg}`
+			},
 			icon: Icons.ExclamationFilled,
 			helpLink: canSeeTutaLinks(viewModel.logins) ? InfoLink.MailAuth : null,
 			type: BannerType.Warning,
@@ -744,6 +750,12 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				{
 					label: "close_alt",
 					click: () => viewModel.setWarningDismissed(true),
+				},
+				{
+					label: "settingsView_action",
+					click: () => {
+						viewModel.openFilterSettings()
+					},
 				},
 			],
 		})
