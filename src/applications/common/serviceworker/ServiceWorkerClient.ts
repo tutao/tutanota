@@ -62,7 +62,13 @@ export function init(domainConfig: DomainConfig) {
 
 	if (serviceWorker) {
 		// We don't want service worker in certain environments
-		if (env.dist && !EnvProvider.get().isApp() && !EnvProvider.get().isDesktop() && window.nativeAppWebDialog == null) {
+		if (
+			env.dist &&
+			!EnvProvider.get().isApp() &&
+			!EnvProvider.get().isDesktop() &&
+			window.nativeAppWebDialog == null &&
+			!EnvProvider.get().isNextCloudPlugin()
+		) {
 			console.log("Registering ServiceWorker")
 			serviceWorker
 				.register("/sw.js")
