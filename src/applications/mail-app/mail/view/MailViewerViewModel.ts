@@ -979,7 +979,6 @@ export class MailViewerViewModel {
 
 			try {
 				const files = await this.cryptoFacade.enforceSessionKeyUpdateIfNeeded(this._mail, await this.mailFacade.loadAttachments(mail))
-
 				this.handleCalendarFile(files, mail)
 
 				this.attachments = files
@@ -1333,7 +1332,7 @@ export class MailViewerViewModel {
 	}
 
 	async importAttachment(file: File) {
-		const attachmentType = getAttachmentType(file.mimeType ?? "")
+		const attachmentType = getAttachmentType(file.mimeType ?? "", file.name)
 		if (attachmentType === AttachmentType.CONTACT) {
 			await this.importContacts(file)
 		} else if (attachmentType === AttachmentType.CALENDAR) {
@@ -1401,7 +1400,7 @@ export class MailViewerViewModel {
 		if (!this.logins.isInternalUserLoggedIn() || file.mimeType == null) {
 			return false
 		}
-		const attachmentType = getAttachmentType(file.mimeType)
+		const attachmentType = getAttachmentType(file.mimeType, file.name)
 		return attachmentType === AttachmentType.CONTACT || attachmentType === AttachmentType.CALENDAR
 	}
 
