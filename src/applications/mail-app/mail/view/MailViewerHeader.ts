@@ -736,9 +736,7 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 
 	private renderHardAuthenticationFailWarning(viewModel: MailViewerViewModel): Children {
 		const warningMsg = lang.getTranslationText("mailAuthFailed_msg")
-		const settingsMsg = lang.getTranslation("mailAuthSuggestSettings_msg", {
-			"{folder}": viewModel.getFolderInfo()?.name || "",
-		}).text
+		const settingsMsg = lang.getTranslationText("mailAuthSuggestSettings_msg")
 		return m(InfoBanner, {
 			message: () => {
 				return `${warningMsg}\n\n${settingsMsg}`

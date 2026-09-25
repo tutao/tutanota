@@ -2543,6 +2543,6 @@ export default {
 		"retrainSpamFilter_action": "Retrain spam filter",
 		"retrainSpamFilter_msg": "Drop the currently existing filter and retrain from scratch",
 		"retrainSpamFilterConfirm_msg": "Retraining the filter will take a short while. Continue?",
-		"mailAuthSuggestSettings_msg": "This mail was delivered to the {folder} folder because of your current filtering settings. You can click below to change it.",
+		"mailAuthSuggestSettings_msg": "This mail was delivered to this folder because of your current filtering settings. You can click below to change it.",
 	}
 }
