@@ -89,9 +89,9 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 			} else {
 				const fileApp = await this.fileApp()
 				const files = await fileApp.getFilesMetaData(filesUris)
-				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CONTACT)
-				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.CALENDAR)
-				const allFilesAreMail = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType) === AttachmentType.MAIL)
+				const allFilesAreVCards = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType, file.name) === AttachmentType.CONTACT)
+				const allFilesAreICS = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType, file.name) === AttachmentType.CALENDAR)
+				const allFilesAreMail = files.length > 0 && files.every((file) => getAttachmentType(file.mimeType, file.name) === AttachmentType.MAIL)
 
 				if (this.appType === AppType.Calendar) {
 					if (!allFilesAreICS) {
