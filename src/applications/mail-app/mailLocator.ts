@@ -926,6 +926,7 @@ class MailLocator implements CommonLocator {
 			this.connectivityModel,
 			this.processInboxHandler,
 			this.bulkMailLoader,
+			() => this.inboxRuleModel,
 			registerIndexingNotAvailableHandler,
 		)
 		this.inboxRuleModel = new InboxRuleModel(this.entityClient, this.mailboxModel, this.mailModel)

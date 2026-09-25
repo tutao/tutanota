@@ -1515,7 +1515,6 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		)
 		if (!confirmed) return
 
-		await mailLocator.inboxRuleModel.deactivateInboxRulesThatReferenceMailSets(allLabelsBeingDeleted)
 		await this.mailViewModel.deleteLabel(label).catch(ofClass(NotFoundError, () => console.log("label already deleted")))
 	}
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {

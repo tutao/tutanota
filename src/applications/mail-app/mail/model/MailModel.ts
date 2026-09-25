@@ -32,7 +32,7 @@ import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
 import { BulkMailLoader, MailWithMailDetails } from "../../workerUtils/index/BulkMailLoader"
 import {
-	ExpandedInboxRuleTypeRef,
+	ExpandedInboxRule,
 	Mail,
 	MailboxGroupRoot,
 	MailboxProperties,
@@ -42,18 +42,12 @@ import {
 	MailTypeRef,
 	MovedMails,
 } from "@tutao/entities/tutanota"
-import {
-	InboxRuleActionType,
-	MailReportType,
-	MailSetKind,
-	MAX_NBR_OF_MAILS_SYNC_OPERATION,
-	ReportMovedMailsType,
-	SystemFolderType,
-} from "../../../../entities/tutanota/Utils"
+import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { WebsocketCounterData } from "@tutao/entities/sys"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
+import type { InboxRuleModel } from "./InboxRuleModel"
 
 interface MailboxSets {
 	folders: FolderSystem
@@ -99,6 +93,7 @@ export class MailModel {
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
 		private readonly processInboxHandler: () => ProcessInboxHandler,
 		private readonly bulkMailLoader: BulkMailLoader,
+		private readonly inboxRuleModel: () => InboxRuleModel,
 		private readonly registerIndexingNotAvailableHandler: (handler: () => unknown) => unknown,
 	) {}
 
@@ -418,6 +413,7 @@ export class MailModel {
 		if (folderSystem == null) return
 		const deletedFolder = await this.removeAllEmpty(folderSystem, folder)
 		if (!deletedFolder) {
+			await this.deactivateInboxRulesOnMailSetDeletion(folder)
 			return this.mailFacade.updateMailFolderParent(folder, assertSystemFolderOfType(folderSystem, MailSetKind.SPAM)._id)
 		}
 	}
@@ -527,6 +523,7 @@ export class MailModel {
 
 		const deletedFolder = await this.removeAllEmpty(folderSystem, folder)
 		if (!deletedFolder) {
+			await this.deactivateInboxRulesOnMailSetDeletion(folder)
 			const trash = assertSystemFolderOfType(folderSystem, MailSetKind.TRASH)
 			return this.mailFacade.updateMailFolderParent(folder, trash._id)
 		}
@@ -580,6 +577,7 @@ export class MailModel {
 			throw new ProgrammingError("Cannot delete non-custom folder: " + String(folder._id))
 		}
 
+		await this.deactivateInboxRulesOnMailSetDeletion(folder)
 		return await this.mailFacade
 			.deleteFolder(folder._id)
 			.catch(ofClass(NotFoundError, () => console.log("mail folder already deleted")))
@@ -624,7 +622,33 @@ export class MailModel {
 	}
 
 	async deleteLabel(label: MailSet) {
+		await this.deactivateInboxRulesOnMailSetDeletion(label)
 		await this.mailFacade.deleteLabel(label)
+	}
+
+	private async deactivateInboxRulesOnMailSetDeletion(set: MailSet): Promise<void> {
+		await this.cleanupMailSetToDelete(set, async (mailsets) => {
+			await this.inboxRuleModel().deactivateInboxRulesThatReferenceMailSets(mailsets)
+		})
+	}
+
+	async getDeactivatedInboxRulesOnMailSetDeletion(set: MailSet): Promise<ExpandedInboxRule[]> {
+		return (
+			(await this.cleanupMailSetToDelete(set, async (mailsets) => {
+				return await this.inboxRuleModel().getInboxRulesThatReferenceMailSets(mailsets)
+			})) ?? []
+		)
+	}
+
+	private async cleanupMailSetToDelete<T>(set: MailSet, cleanupFn: (mailsets: MailSet[]) => Promise<T>): Promise<T | null> {
+		const folderSystem = this.getFolderSystemByGroupId(assertNotNull(set._ownerGroup))
+		if (folderSystem == null) {
+			return null
+		}
+
+		const descendents = folderSystem.getDescendantFoldersOfParent(set._id).map(({ mailSet }) => mailSet)
+		const mailsets = [...descendents, set]
+		return await cleanupFn(mailsets)
 	}
 
 	async getMailSetById(folderElementId: Id): Promise<MailSet | null> {
