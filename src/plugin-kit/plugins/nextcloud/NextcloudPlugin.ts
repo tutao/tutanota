@@ -148,7 +148,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 			)
 		}
 
-		if (customerConfig.targetAttachmentFolder.trim().length === 0) {
+		if (isNull(customerConfig.targetAttachmentFolder) || customerConfig.targetAttachmentFolder.trim().length === 0) {
 			throw new CustomerConfigPluginError(`Need a non-empty folder name`)
 		}
 	}
