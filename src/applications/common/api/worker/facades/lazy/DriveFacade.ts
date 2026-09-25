@@ -7,9 +7,9 @@ import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFaca
 import {
 	Aes256Key,
 	aes256RandomKey,
-	AesKey,
 	bitArrayToUint8Array,
 	blake3Kdf,
+	createAuthVerifier,
 	CryptoWrapper,
 	generateKdfNonce,
 	KdfNonce,
@@ -28,6 +28,7 @@ import {
 	groupBy,
 	isEmpty,
 	isNotNull,
+	Nullable,
 	partition,
 	promiseMap,
 	Require,
@@ -430,6 +431,7 @@ export class DriveFacade {
 					expirationDate,
 					nonce,
 					ownerEncPassword: null,
+					verifier: null,
 					shareKeyEncFileSessionKey,
 					groupKeyVersion: String(fileGroupKey.version),
 				}),
@@ -442,15 +444,12 @@ export class DriveFacade {
 			const shareKey = deriveFileShareKey(fileGroupKey, nonce)
 			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
 			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
-			// 4. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
-			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
-			// 	5. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
-			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
-			// 	6. Encrypt the share key (SHK) with the password key (PWK) producing the ENCSHK.
-			// const encryptedShareKey = this.cryptoWrapper.encryptKey(passwordKey, shareKey)
-			// 	7. Encrypt the PWD with the owner key producing the ENCPWD.
+			// 	4. Encrypt the PWD with the owner key producing the ENCPWD.
 			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
-			// 	8. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
+			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
+			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
+			const verifier = createAuthVerifier(passwordKey)
+			// 	5. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
 			await this.serviceExecutor.execute(
 				DriveShareService_POST,
 				createDriveShareServicePostIn({
@@ -459,11 +458,11 @@ export class DriveFacade {
 					shareKeyEncFileSessionKey,
 					nonce,
 					ownerEncPassword,
+					verifier,
 					groupKeyVersion: String(fileGroupKey.version),
 				}),
 				null,
 			)
-			// 	Create a link with the ID of the share, the SLT, and the ENCSHK.
 		}
 
 		const updatedFile = await this.entityClient.load(DriveFileTypeRef, file._id, {
@@ -490,14 +489,14 @@ export class DriveFacade {
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 		if (isNotNull(share.ownerEncPassword)) {
 			// share is protected with a password
+			// 1. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
 			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
-
-			// FIXME: Fetch the correct version of the group key
-			const password = this.cryptoWrapper.decryptString(fileGroupKey.object, share.ownerEncPassword)
-
+			const password = this.cryptoWrapper.decryptString(fileGroupKey.object, share.ownerEncPassword) // FIXME: Fetch the correct version of the group key
+			// 	2. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
 			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
+			// 	3. Encrypt the share key (SHK) with the password key (PWK) producing the ENCSHK.
 			const encryptedShareKey = this.cryptoWrapper.encryptKey(passwordKey, shareKey)
-
+			// 4. Create a link with shareId, authToken, encryptedShareKey (ENCSHK), and salt (SLT)
 			const queryParams = new URLSearchParams({
 				authToken: uint8ArrayToBase64(share.authToken),
 			})
@@ -510,7 +509,7 @@ export class DriveFacade {
 			return { share, publicLink }
 		} else {
 			// share is publicly available
-
+			// 1. Create a link with shareId, authToken, shareKey (SHK)
 			const queryParams = new URLSearchParams({
 				authToken: uint8ArrayToBase64(share.authToken),
 			})
@@ -560,8 +559,18 @@ export class DriveFacade {
 		authToken: string,
 		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
 	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }> {
+		const loadFileShareHeaders: Nullable<Dict> = {
+			authToken: authToken,
+		}
+		let passwordKey
+		if (encParam.type === "password") {
+			passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, base64ToUint8Array(encParam.salt))
+
+			const verifier = uint8ArrayToBase64(createAuthVerifier(passwordKey))
+			loadFileShareHeaders["verifier"] = verifier
+		}
 		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
-			extraHeaders: { authToken: authToken },
+			extraHeaders: loadFileShareHeaders,
 			ownerKeyProvider: null,
 			sessionKey: null,
 			baseUrl: null,
@@ -569,16 +578,12 @@ export class DriveFacade {
 			queryParams: null,
 			suspensionBehavior: null,
 		})
-		let shareKey: AesKey
-		if (encParam.type === "password") {
-			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, base64ToUint8Array(encParam.salt))
-			shareKey = await this.cryptoWrapper.decryptKey(passwordKey, base64ToUint8Array(encParam.sharedKey))
-		} else {
-			shareKey = uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
-		}
+		const shareKey =
+			encParam.type === "key"
+				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
+				: await this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), base64ToUint8Array(encParam.sharedKey))
 
 		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
-
 		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
 			extraHeaders: { authToken: authToken },
 			ownerKeyProvider: null,
