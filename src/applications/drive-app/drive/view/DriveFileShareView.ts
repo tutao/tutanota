@@ -1,7 +1,6 @@
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView"
 import m, { Children, Component, Vnode } from "mithril"
 import { TopLevelAttrs } from "../../../../ui/base/TopLevelView"
-import { locator } from "../../../common/api/main/CommonLocator"
 import { DriveFile, DriveFileShare } from "@tutao/entities/drive"
 import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -12,8 +11,17 @@ import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { TextField } from "../../../../ui/base/TextField"
 import { formatDate } from "../../../../ui/utils/Formatter"
+import { DataFile } from "../../../../entities/tutanota/Utils"
 
-export interface DriveFileShareViewAttrs extends TopLevelAttrs {}
+export interface DriveFileShareViewAttrs extends TopLevelAttrs {
+	downloadFileForShare: (
+		shareId: Id,
+		authToken: string,
+		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
+	) => Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }>
+	downloadBlobsForShare: (file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64) => Promise<DataFile>
+	saveDataFile: (file: DataFile) => Promise<void>
+}
 
 type DriveFileShareViewState =
 	| {
@@ -36,10 +44,15 @@ type DriveFileShareViewState =
 
 export class DriveFileShareView extends BaseTopLevelView implements Component<DriveFileShareViewAttrs> {
 	private state: DriveFileShareViewState = { status: "loading" }
+	private attrs: DriveFileShareViewAttrs
+
+	constructor(vnode: Vnode<DriveFileShareViewAttrs>) {
+		super()
+		this.attrs = vnode.attrs
+	}
 
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
 		const state = this.state
-
 		return m(".flex.mlr-64.mt-64.mb-64.fill-absolute", [
 			m(".flex.col.flex-space-between", [m(".logo-height", m.trust(theme.logo)), m(".flex.col.gap-8", this.renderForState(state)), m("")]),
 			m(".flex.col", ""),
@@ -111,8 +124,8 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	private async downloadFile(file: DriveFile) {
 		if (this.state.status === "success") {
 			const authToken = base64UrlToBase64(m.route.param("authToken"))
-			const dataFile = await locator.driveFacade.downloadBlobsForShare(file, this.state.fileSessionKey, authToken)
-			await locator.fileController.saveDataFile(dataFile)
+			const dataFile = await this.attrs.downloadBlobsForShare(file, this.state.fileSessionKey, authToken)
+			await this.attrs.saveDataFile(dataFile)
 		}
 	}
 
@@ -136,7 +149,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 		try {
 			// FIXME: I'd expect CryptoError to be thrown if key does not match. However, we receive a "valid" file with an empty name. Why?
-			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
+			const { file, fileSessionKey, share } = await this.attrs.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
 				type: "key",
 				sharedKey: base64UrlToBase64(base64UrlKey),
 			})
@@ -161,7 +174,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 		const base64UrlKey = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("shareKey"))
 
 		try {
-			const { file, fileSessionKey, share } = await locator.driveFacade.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
+			const { file, fileSessionKey, share } = await this.attrs.downloadFileForShare(shareId, base64UrlToBase64(authToken), {
 				type: "password",
 				password,
 				salt,

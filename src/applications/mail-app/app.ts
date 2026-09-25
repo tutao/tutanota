@@ -42,7 +42,7 @@ import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
-import { DriveFile, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { DriveFile, DriveFileShare, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
@@ -63,6 +63,7 @@ import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewMo
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
 import { DriveFileShareView, DriveFileShareViewAttrs } from "../drive-app/drive/view/DriveFileShareView"
+import { DataFile } from "../../entities/tutanota/Utils"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -729,18 +730,38 @@ import("../../ui/translations/en.js")
 				},
 				mailLocator.logins,
 			),
-			driveFileShare: makeViewResolver<DriveFileShareViewAttrs, DriveFileShareView, {}>(
+			driveFileShare: makeViewResolver<
+				DriveFileShareViewAttrs,
+				DriveFileShareView,
+				{
+					downloadFileForShare: (
+						shareId: Id,
+						authToken: string,
+						encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
+					) => Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }>
+					downloadBlobsForShare: (file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64) => Promise<DataFile>
+					saveDataFile: (file: DataFile) => Promise<void>
+				}
+			>(
 				{
 					requireLogin: false,
 					prepareRoute: async () => {
 						const { DriveFileShareView } = await import("../drive-app/drive/view/DriveFileShareView.js")
 						return {
 							component: DriveFileShareView,
-							cache: {},
+							cache: {
+								downloadFileForShare: mailLocator.driveFacade.downloadFileForShare,
+								downloadBlobsForShare: mailLocator.driveFacade.downloadBlobsForShare,
+								saveDataFile: mailLocator.fileController.saveDataFile,
+							},
 						}
 					},
 					prepareAttrs: (cache) => {
-						return {}
+						return {
+							downloadFileForShare: cache.downloadFileForShare,
+							downloadBlobsForShare: cache.downloadBlobsForShare,
+							saveDataFile: cache.saveDataFile,
+						}
 					},
 				},
 				mailLocator.logins,
