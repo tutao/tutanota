@@ -13,7 +13,7 @@ import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfir
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
-import SignupWizardLayout from "./SignupWizardLayout"
+import { SignupWizardLayout } from "./SignupWizardLayout"
 import { noOp } from "@tutao/utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { PlanType } from "../../../entities/sys/Utils"

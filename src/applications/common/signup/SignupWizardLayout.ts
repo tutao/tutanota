@@ -28,7 +28,7 @@ const SIGNUP_PROGRESS_LABEL_MAX_LENGTH = 24
 const CHECK_INFO_ICON = { icon: Icons.Checkmark, color: theme.success }
 const CROSS_INFO_ICON = { icon: Icons.X, color: theme.error }
 
-class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TViewModel>> {
+export class SignupWizardLayout implements Component<WizardLayoutAttrs<SignupViewModel>> {
 	private lastSeenTransitionSeq = 0
 	readonly infoBox = new SignupWizardInfoBoxController()
 
@@ -112,20 +112,20 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		this.updateInfoItems(viewModel, to)
 	}
 
-	onbeforeupdate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
+	onbeforeupdate(vnode: Vnode<WizardLayoutAttrs<SignupViewModel>>) {
 		const { transitionSeq, transitionFrom, transitionTo } = vnode.attrs
 
 		if (transitionSeq !== this.lastSeenTransitionSeq && transitionSeq > 0) {
 			this.lastSeenTransitionSeq = transitionSeq
-			const viewModel = vnode.attrs.ctx.viewModel as SignupViewModel
+			const viewModel = vnode.attrs.ctx.viewModel
 			this.onTransition(viewModel, transitionFrom, transitionTo)
 		}
 
 		return true
 	}
 
-	oncreate(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
-		const campaignName = (vnode.attrs.ctx.viewModel as SignupViewModel).globalCampaignName
+	oncreate(vnode: Vnode<WizardLayoutAttrs<SignupViewModel>>) {
+		const campaignName = vnode.attrs.ctx.viewModel.globalCampaignName
 		if (campaignName && campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 			this.stepIllustrations = [
 				"signup-before-click-birthday.svg",
@@ -145,10 +145,10 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		this.transitionIllustrationName = null
 	}
 
-	view(vnode: Vnode<WizardLayoutAttrs<TViewModel>>) {
+	view(vnode: Vnode<WizardLayoutAttrs<SignupViewModel>>) {
 		const { showProgress, progressState, backButton, ctx } = vnode.attrs
 		const { controller, index } = ctx
-		const viewModel = ctx.viewModel as SignupViewModel
+		const viewModel = ctx.viewModel
 		const illustrationName = this.transitionIllustrationName ?? this.getStepIllustrationName(index, viewModel.globalCampaignName)
 		const showIllustration = Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !viewModel.options.businessUse()
 		const canTogglePlanSelector = showIllustration && this.isInlinePlanSelectorToggleEnabled(viewModel, index)
@@ -430,5 +430,3 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 		this.shouldFixButtonPos = shouldFixButtonPosition()
 	}
 }
-
-export default SignupWizardLayout
