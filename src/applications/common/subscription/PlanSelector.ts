@@ -34,6 +34,7 @@ export type PlanSelectorAttr = {
 	onContinue?: any
 	newSignupFlow?: boolean
 	personalPlansAvailable: boolean
+	forceMobileBusinessLayout?: boolean
 }
 
 export class PlanSelector implements Component<PlanSelectorAttr> {
@@ -68,6 +69,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 			onContinue,
 			newSignupFlow = false,
 			personalPlansAvailable = true,
+			forceMobileBusinessLayout,
 		},
 	}: Vnode<PlanSelectorAttr>): Children {
 		const isYearly = options.paymentInterval() === PaymentInterval.Yearly
@@ -161,6 +163,7 @@ export class PlanSelector implements Component<PlanSelectorAttr> {
 					selectedSubscriptionOptions: options,
 					showMultiUser,
 					discountDetails,
+					forceMobileLayout: forceMobileBusinessLayout,
 				}),
 				m(
 					`#continue-wrapper.flex-v-start.items-center.pt-16${newSignupFlow ? "" : ".plr-16"}`,

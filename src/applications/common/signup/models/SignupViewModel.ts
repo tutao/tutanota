@@ -4,7 +4,7 @@ import { InfoLink, lang, Translation, TranslationKey } from "../../../../ui/util
 import { NewAccountData, ReferralData } from "../../subscription/UpgradeSubscriptionWizard"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
-import { asPaymentInterval, PaymentInterval, PriceAndConfigProvider, OfferPrice } from "../../subscription/utils/PriceUtils"
+import { asPaymentInterval, OfferPrice, PaymentInterval, PriceAndConfigProvider } from "../../subscription/utils/PriceUtils"
 import {
 	canSubscribeToPlan,
 	getDefaultPaymentMethod,
@@ -29,12 +29,14 @@ import { SimplifiedCreditCardViewModel } from "../../subscription/SimplifiedCred
 import { filterInt } from "@tutao/utils"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, PlanType, SubscriptionType } from "../../../../entities/sys/Utils"
-import { getPreselectedPlanType } from "../../subscription/SubscriptionPage"
-import { InvoiceData } from "../../subscription/utils/PaymentUtils"
+import { getPreselectedPlanType, InvoiceData } from "../../subscription/utils/PaymentUtils"
 import { Country } from "../../gui/CountryList"
 import { NotFoundError } from "@tutao/rest-client/error"
+import type { PlanSelectionModel } from "../../subscription/PlanSelectionModel"
+import type { PaymentDetailsModel } from "../../subscription/PaymentDetailsModel"
+import type { OrderConfirmationModel } from "../../subscription/OrderConfirmationModel"
 
-export class SignupViewModel {
+export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel, OrderConfirmationModel {
 	get isInitialized(): boolean {
 		return this._isInitialized
 	}
@@ -126,8 +128,12 @@ export class SignupViewModel {
 			this.nextYearPrice = null
 			return
 		}
-		this.price = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this)
-		const nextYear = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, this)
+		this.price = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this.targetPlanType)
+		const nextYear = this.planPrices!.getSubscriptionPriceWithCurrency(
+			this.options.paymentInterval(),
+			UpgradePriceType.PlanNextYearsPrice,
+			this.targetPlanType,
+		)
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 	}
 

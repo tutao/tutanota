@@ -357,7 +357,14 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 				},
 				onfocus: (e: FocusEvent) => this.focus(e, a),
 				onblur: (e: FocusEvent) => this.blur(e, a),
-				onkeydown: (e: KeyboardEvent) => useKeyHandler(e, a.keyHandler),
+				onkeydown: (e: KeyboardEvent) => {
+					const handled = useKeyHandler(e, a.keyHandler)
+					if (!isKeyPressed(e.key, Keys.F1, Keys.TAB, Keys.ESC) && !(e.ctrlKey || e.metaKey)) {
+						// When we are in a text field we don't want keys propagated up to act as hotkeys
+						e.stopPropagation()
+					}
+					return handled
+				},
 				oninput: () => {
 					this.domInput.style.height = "0px"
 					this.domInput.style.height = px(Math.max(this.domInput.scrollHeight, (a.minLineCount ?? 1) * font_size.line_height_input))
