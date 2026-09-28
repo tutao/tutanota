@@ -22,10 +22,11 @@ export interface RadioSelectorItemAttrs<T> {
 	option: RadioSelectorOption<T>
 	optionClass?: string
 	onOptionSelected: (arg0: T) => unknown
+	compact?: boolean
 }
 
 export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>> {
-	view({ attrs: { groupName, isSelected, option, optionClass, onOptionSelected } }: Vnode<RadioSelectorItemAttrs<T>>) {
+	view({ attrs: { groupName, isSelected, option, optionClass, onOptionSelected, compact } }: Vnode<RadioSelectorItemAttrs<T>>) {
 		const valueString = String(option.value)
 
 		// IDs used to link the label and description for accessibility
@@ -77,7 +78,7 @@ export class RadioSelectorItem<T> implements Component<RadioSelectorItemAttrs<T>
 						style: { cursor },
 					}),
 					option.icon ? option.icon : null,
-					m("label.left.pt-4.pb-4", { for: optionId, style: { cursor } }, lang.getTranslationText(option.name)),
+					m("label.left" + compact ? "" : ".pt-4.pb-4", { for: optionId, style: { cursor } }, lang.getTranslationText(option.name)),
 				],
 			),
 			option.renderChild &&

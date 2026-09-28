@@ -10,15 +10,17 @@ export type RadioSelectorAttrs<T> = {
 	selectedOption: T
 	onOptionSelected: (arg0: T) => unknown
 	horizontalLayout?: boolean
+	compact?: boolean
 }
 
 /**
  * Component which shows selection for a single choice.
  */
 export class RadioSelector<T> implements Component<RadioSelectorAttrs<T>> {
-	view({ attrs: { options, groupName, optionClass, selectedOption, onOptionSelected, horizontalLayout } }: Vnode<RadioSelectorAttrs<T>>): Children {
+	view({ attrs: { options, groupName, optionClass, selectedOption, onOptionSelected, horizontalLayout, compact } }: Vnode<RadioSelectorAttrs<T>>): Children {
+		const gap = compact ? "8" : "12"
 		return m(
-			horizontalLayout ? ".flex.row.gap-12" : ".flex-start.col.gap-12",
+			horizontalLayout ? ".flex.row.gap-" + gap : ".flex-start.col.gap-" + gap,
 			options.map((option) =>
 				m(RadioSelectorItem, {
 					groupName,

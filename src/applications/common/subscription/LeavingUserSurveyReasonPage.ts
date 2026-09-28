@@ -44,8 +44,9 @@ export class LeavingUserSurveyReasonPage implements WizardPageN<LeavingUserSurve
 					vnode.attrs.data.submitted = true
 					this.closeDialog()
 				},
+				skipAction: () => this.closeDialog(),
 				nextButtonLabel: "submit_action",
-				nextButtonEnabled: !vnode.attrs.data.reason,
+				nextButtonEnabled: Boolean(vnode.attrs.data.reason),
 				image: CATEGORY_TO_IMAGE.get(getCategoryType(vnode.attrs.data.category!))?.image!,
 				imageStyle: {
 					paddingBottom: "60px",
