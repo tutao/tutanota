@@ -184,13 +184,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 				),
 				selected: true,
 				chevron: false,
-				onClick: (_) => {
-					if (!this.searchViewModel.canSelectTimePeriod()) {
-						return
-					}
-
-					this.onCalendarDateRangeSelect()
-				},
+				onClick: (_) => this.onCalendarDateRangeSelect(),
 			}),
 			m(FilterChip, {
 				label: selectedCalendar

@@ -168,9 +168,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				? m(Button, {
 						label: "register_label",
 						type: ButtonType.Secondary,
-						click: () => {
-							m.route.set("/signup")
-						},
+						click: () => m.route.set("/signup"),
 					})
 				: null,
 			this._switchThemeLinkVisible()

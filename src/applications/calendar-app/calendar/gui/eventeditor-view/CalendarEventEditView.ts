@@ -540,7 +540,7 @@ export class CalendarEventEditView implements Component<CalendarEventEditViewAtt
 							this.renderCalendarPicker(vnode),
 							this.renderRepeatRuleNavButton(vnode.attrs),
 							this.renderRemindersEditor(vnode),
-							locator.logins.getUserController().isFreeAccount() ? null : this.renderGuestsNavButton(vnode.attrs),
+							this.renderGuestsNavButton(vnode.attrs),
 							this.renderLocationField(vnode),
 						])
 					: null,

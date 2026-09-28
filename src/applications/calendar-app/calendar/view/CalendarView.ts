@@ -221,7 +221,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									hideIfEmpty: true,
 								},
 								this.renderCalendars(CalendarType.Private),
-								!locator.logins.getUserController().isFreeAccount() && this.renderBirthdayCalendar(),
+								this.renderBirthdayCalendar(),
 							),
 							m(
 								SidebarSection,
@@ -1420,7 +1420,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			},
 		]
 
-		if (this.canShare(isExternal) && !locator.logins.getUserController().isFreeAccount()) {
+		if (this.canShare(isExternal)) {
 			actions.push({
 				label: "sharing_label",
 				icon: Icons.PersonAddFilled,
