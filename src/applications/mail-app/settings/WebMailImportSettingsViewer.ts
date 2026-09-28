@@ -19,6 +19,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderNoImportOnWebText() {
+		const pathPrefix = EnvProvider.get().getPathPrefix()
 		return [
 			m(
 				".flex-column.mt-16",
@@ -44,7 +45,7 @@ export class WebMailImportSettingsViewer implements UpdatableSettingsViewer {
 				m(
 					".flex-v-center.full-width.mt-48",
 					m("img", {
-						src: `/images/mail-import/email-import-webapp.svg`,
+						src: `${pathPrefix}/images/mail-import/email-import-webapp.svg`,
 						alt: "",
 						rel: "noreferrer",
 						loading: "lazy",
