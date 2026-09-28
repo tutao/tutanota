@@ -12739,6 +12739,16 @@
 				"refTypeId": 1911,
 				"dependency": null,
 				"transferredAttributeId": null
+			},
+			"2193": {
+				"final": true,
+				"name": "imapAccountSyncStateWithNewPostponedUntil",
+				"id": 2193,
+				"type": "AGGREGATION",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 2187,
+				"dependency": null,
+				"transferredAttributeId": null
 			}
 		}
 	},
@@ -14514,5 +14524,66 @@
 				"transferredAttributeId": null
 			}
 		}
+	},
+	"2187": {
+		"name": "UpdateImapAccountSyncStateTransferAggregatedType",
+		"app": "tutanota",
+		"version": 114,
+		"since": 114,
+		"type": "AGGREGATED_TYPE",
+		"id": 2187,
+		"rootId": "CHR1dGFub3RhAAiL",
+		"versioned": false,
+		"encrypted": false,
+		"isPublic": true,
+		"targetTypeId": 1911,
+		"values": {
+			"2188": {
+				"final": true,
+				"name": "_id",
+				"id": 2188,
+				"type": "CustomId",
+				"cardinality": "One",
+				"encrypted": false,
+				"transferredAttributeId": null
+			},
+			"2189": {
+				"final": true,
+				"name": "_ownerEncSessionKey",
+				"id": 2189,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1917
+			},
+			"2190": {
+				"final": true,
+				"name": "_ownerKeyVersion",
+				"id": 2190,
+				"type": "Number",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1918
+			},
+			"2191": {
+				"final": true,
+				"name": "_kdfNonce",
+				"id": 2191,
+				"type": "Bytes",
+				"cardinality": "ZeroOrOne",
+				"encrypted": false,
+				"transferredAttributeId": 1919
+			},
+			"2192": {
+				"final": false,
+				"name": "postponedUntil",
+				"id": 2192,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true,
+				"transferredAttributeId": 1921
+			}
+		},
+		"associations": {}
 	}
 }

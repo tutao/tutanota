@@ -7,7 +7,7 @@
 import { CryptoWrapper } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
-import { assertNotNull } from "@tutao/utils"
+import { assertNotNull, Nullable } from "@tutao/utils"
 import {
 	createImapAccountSyncStateTransferAggregatedType,
 	createImapAccountTransferAggregatedType,
@@ -18,6 +18,7 @@ import {
 	createImapPostIn,
 	createImapPutIn,
 	createOAuthTokenEndpointResponseTransferAggregatedType,
+	createUpdateImapAccountSyncStateTransferAggregatedType,
 	DeduplicatedImportedAttachment,
 	DeduplicatedImportedAttachmentTypeRef,
 	ImapAccountSyncState,
@@ -31,6 +32,7 @@ import {
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
 	MailSetTypeRef,
+	UpdateImapAccountSyncStateTransferAggregatedType,
 } from "@tutao/entities/tutanota"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
@@ -171,11 +173,27 @@ export class ImapFacade {
 	) {
 		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
 		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
+
+		let imapAccountSyncStateWithNewPostponedUntil: Nullable<UpdateImapAccountSyncStateTransferAggregatedType> = null
+		if (newPostponedUntil != null) {
+			const kdfNonce = await this.entityClient.ensureKdfNonce(imapAccountSyncState)
+			imapAccountSyncStateWithNewPostponedUntil = createUpdateImapAccountSyncStateTransferAggregatedType({
+				_ownerEncSessionKey: imapAccountSyncState._ownerEncSessionKey,
+				_ownerKeyVersion: imapAccountSyncState._ownerKeyVersion,
+				_kdfNonce: kdfNonce,
+				postponedUntil: newPostponedUntil,
+			})
+		}
+
 		const imapPutIn = createImapPutIn({
 			imapAccountSyncState: imapAccountSyncState._id,
 			newImapAccountSyncStatus,
 			newImapFolderSyncStatus,
-			newPostponedUntil: newPostponedUntil ?? null,
+			imapAccountSyncStateWithNewPostponedUntil,
+
+			// no longer used
+
+			newPostponedUntil: null,
 		})
 		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
 		await this.serviceExecutor.put(ImapService, imapPutIn, {

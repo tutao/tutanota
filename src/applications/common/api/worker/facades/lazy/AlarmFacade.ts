@@ -132,7 +132,7 @@ export class AlarmFacade {
 					_ownerGroup: ownerGroup,
 					_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, userAlarmInfoSessionKey),
 					_ownerKeyVersion: userGroupKey.version.toString(),
-					_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+					_kdfNonce: null,
 					alarmInfo: alarmInfoTransferAggregatedType,
 				})
 				alarmServicePost.userAlarmInfo.push(userAlarmInfo)

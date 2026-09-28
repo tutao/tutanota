@@ -4817,6 +4817,7 @@ export type ImapPutInParams = {
 	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
+	imapAccountSyncStateWithNewPostponedUntil: null | UpdateImapAccountSyncStateTransferAggregatedType;
 }
 
 export type ImapPutIn = {
@@ -4829,6 +4830,7 @@ export type ImapPutIn = {
 	newPostponedUntil: null | string;
 
 	imapAccountSyncState: IdTuple;
+	imapAccountSyncStateWithNewPostponedUntil: null | UpdateImapAccountSyncStateTransferAggregatedType;
 }
 export const FileTransferAggregatedTypeTypeRef: TypeRef<FileTransferAggregatedType> = new TypeRef("tutanota", 1994)
 
@@ -5530,4 +5532,29 @@ export type ImportMailData2 = {
 	mailDetailsBlob: ImportedMailDetailsBlob;
 	importAttachments: ImportAttachment[];
 	importedImapMail: null | ImportedImportedImapMail;
+}
+export const UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef: TypeRef<UpdateImapAccountSyncStateTransferAggregatedType> = new TypeRef("tutanota", 2187)
+
+export function createUpdateImapAccountSyncStateTransferAggregatedType(values: UpdateImapAccountSyncStateTransferAggregatedTypeParams): UpdateImapAccountSyncStateTransferAggregatedType {
+    return Object.assign(create(typeModels[UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef.typeId], UpdateImapAccountSyncStateTransferAggregatedTypeTypeRef), values)
+}
+
+export type UpdateImapAccountSyncStateTransferAggregatedTypeParams = {
+
+
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	postponedUntil: NumberString;
+}
+
+export type UpdateImapAccountSyncStateTransferAggregatedType = {
+	_type: TypeRef<UpdateImapAccountSyncStateTransferAggregatedType>;
+	_original?: UpdateImapAccountSyncStateTransferAggregatedType
+
+	_id: Id;
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	_ownerKeyVersion: null | NumberString;
+	_kdfNonce: null | Uint8Array<ArrayBuffer>;
+	postponedUntil: NumberString;
 }

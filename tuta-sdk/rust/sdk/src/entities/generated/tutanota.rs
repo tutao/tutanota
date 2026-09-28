@@ -4888,6 +4888,9 @@ pub struct ImapPutIn {
 	pub newPostponedUntil: Option<String>,
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
+	#[serde(rename = "2193")]
+	pub imapAccountSyncStateWithNewPostponedUntil:
+		Option<UpdateImapAccountSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5616,6 +5619,35 @@ impl Entity for ImportMailData2 {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2176),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UpdateImapAccountSyncStateTransferAggregatedType {
+	#[serde(rename = "2188")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2189")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2190")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2191")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2192")]
+	pub postponedUntil: i64,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for UpdateImapAccountSyncStateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2187),
 		}
 	}
 }

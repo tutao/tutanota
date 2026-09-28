@@ -44,6 +44,7 @@ import {
 	groupBy,
 	isEmpty,
 	isNotNull,
+	KeyVersion,
 	noOp,
 	Nullable,
 	ofClass,
@@ -1389,11 +1390,10 @@ export class MailFacade {
 		const isNameChange = label.name !== name
 
 		if (!isOwnParent && (isDifferentParent || isNewParent || isUnsettingParent || isColorChange || isNameChange)) {
-			const kdfNonce = await this.entityClient.ensureKdfNonce(label)
 			const mailSet = createLabelPutTransferAggregatedType({
 				_ownerEncSessionKey: label._ownerEncSessionKey,
 				_ownerKeyVersion: label._ownerKeyVersion,
-				_kdfNonce: kdfNonce,
+				_kdfNonce: await this.entityClient.ensureKdfNonce(label),
 				name,
 				parentFolder: parentLabelId ?? null,
 				color: assertNotNull(color),
@@ -1406,11 +1406,19 @@ export class MailFacade {
 
 				data: null,
 			})
-			const ownerKeyVersion = label._ownerKeyVersion == null ? null : parseKeyVersion(label._ownerKeyVersion)
-			const mailGroupKey =
-				ownerKeyVersion == null
-					? await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(label._ownerGroup))
-					: { object: await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion), version: ownerKeyVersion }
+
+			// If there already is a key version, keep using it. Otherwise, use the most recent one.
+			let mailGroupKey: VersionedKey
+			if (label._ownerKeyVersion != null) {
+				const ownerKeyVersion: KeyVersion = parseKeyVersion(label._ownerKeyVersion)
+				mailGroupKey = {
+					object: await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(label._ownerGroup), ownerKeyVersion),
+					version: ownerKeyVersion,
+				}
+			} else {
+				mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(assertNotNull(label._ownerGroup))
+			}
+
 			await this.serviceExecutor.put(ManageLabelService, manageLabelServicePutIn, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				ownerKey: mailGroupKey,
