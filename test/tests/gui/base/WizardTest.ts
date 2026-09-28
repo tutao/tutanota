@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import m from "mithril"
 import { createWizard, WizardLayoutAttrs } from "../../../../src/ui/base/wizard/Wizard.js"
-import { WizardController } from "../../../../src/ui/base/wizard/WizardController.js"
 import type { WizardStepContext } from "../../../../src/ui/base/wizard/WizardController.js"
+import { WizardController } from "../../../../src/ui/base/wizard/WizardController.js"
 
 interface ViewModel {
 	isInitialized: boolean
@@ -22,7 +22,6 @@ function renderWizard(controller?: WizardController, isFirstStepEnabled: (ctx: W
 			steps: [{ content: FirstStep, isEnabled: isFirstStepEnabled }, { content: SecondStep }],
 			viewModel: { isInitialized: true },
 			layout: Layout,
-			controller,
 		}),
 	)
 
@@ -52,12 +51,5 @@ o.spec("Wizard", function () {
 		})
 
 		o(stepCount).equals(2)
-	})
-
-	o("skips a disabled first step with a preinitialized controller", function () {
-		const controller = new WizardController(["first", "second"])
-
-		o(renderWizard(controller)).equals("second")
-		o(controller.currentStep).equals(1)
 	})
 })
