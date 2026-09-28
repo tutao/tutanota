@@ -1,7 +1,7 @@
 import { createWizardDialog, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
 import { LeavingUserSurveyCategoryPage, LeavingUserSurveyPageAttrs } from "./LeavingUserSurveyCategoryPage.js"
 import { defer } from "@tutao/utils"
-import { LeavingUserSurveyReasonPage } from "./LeavingUserSurveyReasonPage.js"
+import { LeavingUserSurveyFeedbackPage } from "./LeavingUserSurveyFeedbackPage.js"
 import { DialogType } from "../../../ui/base/Dialog.js"
 import { windowFacade } from "../misc/WindowFacade"
 
@@ -9,9 +9,13 @@ export type LeavingUserSurveyData = {
 	category: NumberString | null
 	reason: NumberString | null
 	details: string | null
-	submitted: boolean // we need a separate submit flag, because the user might go back from page 2 and cancel the dialog, in which case the values will be set
-	showPriceCategory: boolean // whether the dropdown should include the 'price' category
-	showDowngradeMessage: boolean // whether the message displayed below the image should address a downgrading or deleting user
+	// we need a separate submit flag, because the user might go back from page 2 and cancel the dialog,
+	// in which case the values will be set
+	submitted: boolean
+	// whether the dropdown should include the 'price' category
+	showPriceCategory: boolean
+	// whether the message displayed below the image should address a downgrading or deleting user
+	showDowngradeMessage: boolean
 }
 
 export async function showLeavingUserSurveyWizard(showPriceCategory: boolean, showDowngradeMessage: boolean): Promise<LeavingUserSurveyData> {
@@ -31,7 +35,8 @@ export async function showLeavingUserSurveyWizard(showPriceCategory: boolean, sh
 
 	const wizardPages = [
 		wizardPageWrapper(LeavingUserSurveyCategoryPage, new LeavingUserSurveyPageAttrs(leavingUserSurveyData)),
-		wizardPageWrapper(LeavingUserSurveyReasonPage, new LeavingUserSurveyPageAttrs(leavingUserSurveyData)),
+		//wizardPageWrapper(LeavingUserSurveyReasonPage, new LeavingUserSurveyPageAttrs(leavingUserSurveyData)),
+		wizardPageWrapper(LeavingUserSurveyFeedbackPage, new LeavingUserSurveyPageAttrs(leavingUserSurveyData)),
 	]
 	const deferred = defer<LeavingUserSurveyData>()
 

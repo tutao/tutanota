@@ -209,6 +209,7 @@ export class MainStyles {
 				},
 				"small, .small": {
 					"font-size": px(font_size.small),
+					"line-height": "1.2",
 				},
 				".smaller": {
 					"font-size": px(font_size.smaller),
