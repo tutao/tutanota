@@ -10,10 +10,12 @@ import {
 	base64ToBase64Ext,
 	collectionSum,
 	concat,
+	deduplicate,
 	filterInt,
 	getFirstOrThrow,
 	groupBy,
 	isEmpty,
+	isNotEmpty,
 	neverNull,
 	noOp,
 	Nullable,
@@ -52,6 +54,7 @@ import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipe
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
+import { ArchiveDownloadResumeParams } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -670,20 +673,29 @@ export class BlobFacade {
 		archiveId: Id,
 		startIdExclusive: Id,
 		archiveDownloader: ArchiveDownloaderFacade,
+		resumeParams: ArchiveDownloadResumeParams | null,
 	): Promise<void> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const typeRefString = getTypeString(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
-		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, { start: startIdExclusive }, typeRef)
 		const serversToTry = blobServerAccessInfo.servers
+
+		const resumeServers = resumeParams ? blobServerAccessInfo.servers.filter(({ url }) => url === resumeParams.serverUrl) : []
+		let params: Dict = {}
+		if (isNotEmpty(resumeServers)) {
+			const resumeParamsAgain = assertNotNull(resumeParams)
+			params = { start: resumeParamsAgain.start, resumeHash: resumeParamsAgain.statusHash }
+		}
+
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, params, typeRef)
 
 		// blob element types are accessed with a specific rest path
 		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
 
 		const t = () =>
 			tryServers(
-				serversToTry,
+				deduplicate([...resumeServers, ...serversToTry]),
 				async (serverUrl) => {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path

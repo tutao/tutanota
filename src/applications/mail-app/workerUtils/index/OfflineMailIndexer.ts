@@ -1,4 +1,4 @@
-import { IndexedGroupData, LoadedArchiveMaxBlobId, OfflineStoragePersistence } from "./OfflineStoragePersistence"
+import { ArchiveDownloadResumeParams, IndexedGroupData, LoadedArchiveMaxBlobId, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, abortAwareWithCleanup, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
@@ -322,6 +322,11 @@ export class OfflineMailIndexer implements MailIndexer {
 		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
 		const preloadStart = performance.now()
 
+		let resumeParams: ArchiveDownloadResumeParams | null = null
+		if (lastLoadedArchive != null) {
+			resumeParams = await this.offlineStoragePersistence.getArchiveResumeParams(lastLoadedArchive.archiveId, MailDetailsBlobTypeRef)
+		}
+
 		const archiveDownloader = await locator.archiveDownloader()
 		for (const { archiveId, loadedMaxBlobId } of archivesToLoad) {
 			console.log(TAG, `Downloading archive ${archiveId} starting from ${loadedMaxBlobId}...`)
@@ -334,6 +339,7 @@ export class OfflineMailIndexer implements MailIndexer {
 						archiveId,
 						loadedMaxBlobId,
 						archiveDownloader,
+						resumeParams,
 					)
 					const downloadAndStoreBlobsEnd = performance.now()
 					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)

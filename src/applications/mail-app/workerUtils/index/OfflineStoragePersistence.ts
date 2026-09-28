@@ -24,7 +24,10 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailDetailsBlobTypeRef, Mai
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty } from "@tutao/utils"
+import { delay, isEmpty, lastThrow, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { sha256Hash } from "@tutao/crypto"
+
+export type ArchiveDownloadResumeParams = { serverUrl: string; start: Id; statusHash: string }
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -96,7 +99,7 @@ mailAddresses
 
 	encrypted_blobs_metadata: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeref STRING NOT NULL, archiveId TEXT NOT NULL, loadedMaxBlobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, PRIMARY KEY (typeref, archiveId))",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeref STRING NOT NULL, archiveId TEXT NOT NULL, loadedMaxBlobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, serverUrl TEXT NOT NULL, PRIMARY KEY (typeref, archiveId))",
 		purgedWithCache: true,
 	},
 })
@@ -392,6 +395,42 @@ VALUES (
 
 		const row = await this.sqlCipherFacade.get(query, params)
 		return row != null ? (untagSqlObject(row) as LoadedArchiveMaxBlobId) : null
+	}
+
+	async getArchiveResumeParams<T extends BlobElementEntity>(archiveId: Id, typeRef: TypeRef<T>): Promise<ArchiveDownloadResumeParams | null> {
+		const { query, params } = sql`SELECT serverUrl
+								  FROM encrypted_blobs_metadata
+								  WHERE typeref = ${getTypeString(typeRef)}
+		                            AND archiveId = ${archiveId}`
+
+		const row = await this.sqlCipherFacade.get(query, params)
+		if (row == null) {
+			return null
+		}
+
+		const serverUrl = untagSqlValue(row["serverUrl"]) as string
+
+		let blobIds: Id[]
+		{
+			const { query, params } = sql`SELECT blobId
+								  FROM encrypted_blobs
+								  WHERE typeref = ${getTypeString(typeRef)}
+								  AND archiveId = ${archiveId}
+								  ORDER BY rowid ASC`
+
+			const rows = await this.sqlCipherFacade.all(query, params)
+			blobIds = rows.map((row) => untagSqlValue(row["blobId"]) as Id)
+		}
+
+		if (isEmpty(blobIds)) {
+			return null
+		}
+
+		return {
+			serverUrl,
+			start: lastThrow(blobIds),
+			statusHash: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(blobIds.join("")))),
+		}
 	}
 
 	private async getRowid<T extends ListElementEntity>(typeRef: TypeRef<T>, id: IdTuple): Promise<SqlValue | null> {
