@@ -42,10 +42,13 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	}
 
 	override async load(): Promise<void> {
+		await this.applyConfigExtensionPoints()
 		await this.loadCustomerConfig()
 		await this.loadUserConfig()
 		await this.applyAppExtensionPoints()
-		await this.initializeNextcloudApi()
+		if (isNotNull(this.customerConfig)) {
+			await this.initializeNextcloudApi()
+		}
 	}
 
 	private async initializeNextcloudApi(): Promise<void> {
@@ -62,7 +65,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		await this.updateUserConfig()
 	}
 
-	public override async applyConfigExtensionPoints() {
+	public async applyConfigExtensionPoints() {
 		const configFieldConfig: ConfigFieldConfiguration = {
 			extensionPoint: ExtensionPoint.ConfigField,
 			configFieldId: "nextCloudUrl",
@@ -123,9 +126,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	private async loadCustomerConfig(): Promise<void> {
 		const configString = await this.pluginHost.getCustomerConfig()
-		if (isNull(configString)) {
-			throw new Error("Deletion of customer plugin config should have unloaded the plugin")
-		}
 		this.customerConfig = isNotNull(configString) ? JSON.parse(configString) : null
 	}
 

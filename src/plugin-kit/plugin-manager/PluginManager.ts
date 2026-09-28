@@ -10,8 +10,6 @@ import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities
 import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
-import { PluginManifest } from "../sdk/PluginManifest"
-import { isNull } from "../../platform-kit/utils/Utils"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -60,15 +58,8 @@ export class PluginManager {
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
 			pluginHost.initialize(await pluginApi.getManifest())
 
-			// FIXME:
-			const thisUserIsAdminOfCustomer = true
-			if (thisUserIsAdminOfCustomer) {
-				await pluginApi.applyConfigExtensionPoints()
-			}
+			await pluginApi.load()
 
-			if (isNotNull(customerConfigJson)) {
-				await pluginApi.load()
-			}
 			let draftConfig: Record<string, any>
 			if (isNotNull(customerConfigJson)) {
 				draftConfig = JSON.parse(customerConfigJson)
