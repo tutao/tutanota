@@ -16,9 +16,9 @@ export class WindowHost implements WindowHostApi {
 			throw new HostApiPermissionDenied(`Only https url are supported. Found: ${targetUrl.protocol}`)
 		}
 
-		if (this.manifest.permissions.windowOpen.allowedDomains.includes(targetUrl.host)) {
-			throw new HostApiPermissionDenied(`Hostname: ${targetUrl.host} is not included in manifest permissions.windowOpen.allowedDomains`)
-		}
+		// if (!this.manifest.permissions.windowOpen.allowedDomains.includes(targetUrl.host)) {
+		// 	throw new HostApiPermissionDenied(`Hostname: ${targetUrl.host} is not included in manifest permissions.windowOpen.allowedDomains`)
+		// }
 
 		const win = window.open(url)
 		const windowId = this.nextWindowId++
