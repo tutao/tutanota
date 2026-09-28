@@ -28,7 +28,6 @@ import { Customer } from "@tutao/entities/sys"
 import { AvailablePlans, AvailablePlanType, NewBusinessPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
-import { ClientDetector, ClientPlatform } from "../../../platform-kit/app-env/boot/ClientDetector"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(elementIdToId(customer._id))

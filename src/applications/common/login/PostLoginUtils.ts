@@ -13,10 +13,9 @@ export const reminderCutoffDate = new Date("2023-09-20T13:00:00.000Z")
 export async function shouldShowUpgradeReminder(userController: UserController, date: Date): Promise<boolean> {
 	// * do not show to normal users, they can't upgrade their account
 	// * do not show to new plans, they already switched
-	// * do not show in ios or android app, they can't upgrade there.
+	// * do not show in ios app, users can't upgrade there.
 	// * do not show while a user is signing up.
-	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())
-		return false
+	if (!userController.isGlobalAdmin() || (await userController.isNewPaidPlan()) || EnvProvider.get().isIOSApp()) return false
 
 	const customerInfo = await userController.loadCustomerInfo()
 	const customerProperties = await userController.loadCustomerProperties()

@@ -95,7 +95,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
-				!EnvProvider.get().isIOSApp() && !EnvProvider.get().isAndroidApp() && isLoggedIn && userController.isFreeAccount()
+				isLoggedIn && userController.isFreeAccount()
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							label: "upgradePremium_label",
