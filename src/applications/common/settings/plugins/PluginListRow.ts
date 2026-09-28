@@ -1,8 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Switch } from "../../../../ui/base/Switch.js"
 import { ExpanderPanel } from "../../../../ui/base/Expander.js"
-import { LegacyTextField, LegacyTextFieldAttrs } from "../../../../ui/base/LegacyTextField.js"
-import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
@@ -11,6 +9,8 @@ import { ConfigFieldConfiguration, PluginLanguageCode } from "../../../../plugin
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { Nullable } from "@tutao/utils"
 import { PluginId } from "../../../../plugin-kit/sdk/PluginId"
+import { TextField, TextFieldAttrs } from "../../../../ui/base/TextField"
+import { PrimaryButton, PrimaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
 
 function configFieldLabelText(field: ConfigFieldConfiguration): string {
 	const preferredCode = lang.code.startsWith("de") ? PluginLanguageCode.de : PluginLanguageCode.en
@@ -60,24 +60,26 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 		const configFields = model.getConfigFields(entry.id)
 
 		const configFieldInputs = configFields.map((field) =>
-			m(LegacyTextField, {
+			m(TextField, {
 				label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
 				value: model.getConfigFieldValue(entry.id, field.configFieldId),
 				oninput: (value: string) => {
 					model.setConfigField(entry.id, field.configFieldId, value)
 				},
-			} satisfies LegacyTextFieldAttrs),
+			} satisfies TextFieldAttrs),
 		)
 
 		return m(".pb-16.pl-32.flex.flex-column.gap-8", [
 			...configFieldInputs,
 			m(
-				".flex",
-				m(Button, {
-					label: "update_action",
-					type: ButtonType.Secondary,
-					click: () => this.saveConfig(entry.id, model),
-				} satisfies ButtonAttrs),
+				".flex-start.mt-8",
+				m(
+					".flex",
+					m(PrimaryButton, {
+						label: "update_action",
+						onclick: () => this.saveConfig(entry.id, model),
+					} satisfies PrimaryButtonAttrs),
+				),
 			),
 		])
 	}
