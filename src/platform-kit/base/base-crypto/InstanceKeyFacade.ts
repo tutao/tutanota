@@ -111,6 +111,7 @@ export class InstanceKeyFacade {
 		) {
 			throw new ProgrammingError("invalid type for instance key sharing")
 		}
+		console.log(`InstanceKeyFacade: execute instance key sharing of groupKeyRotationType: ${instanceKeySharingType}`)
 		const instancesToMigrateReferenceData = await this.requestInstancesForInstanceKeySharing(instanceKeySharingType)
 		const groupedReferenceData = groupBy(instancesToMigrateReferenceData, (referenceData) => {
 			const groupingKey = [referenceData.typeInfo.application, referenceData.typeInfo.typeId]
