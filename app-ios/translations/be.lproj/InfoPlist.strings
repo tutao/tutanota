@@ -1,6 +1,6 @@
 NSCameraUsageDescription = "Зрабі фота ці відэа, каб далучыць яго да ліста.";
 NSPhotoLibraryUsageDescription = "Дадайце відарыс са сваёй бібліятэкі ў якасці далучэння.";
-NSMicrophoneUsageDescription = "Патрэбна для запісу відэа.";
+NSMicrophoneUsageDescription = "Патрэбна для запісу відэа для далучэння.";
 NSContactsUsageDescription = "Знайсьці імэйл-адрас атрымальніка ў кантактах.";
 NSRemindersUsageDescription = "Паказваць апавяшчэнні пры атрыманні новага ліста.";
 TutaoShowCameraAction = "Камера";
@@ -21,7 +21,7 @@ TutaoWidgetUnexpectedErrorMsg = "Ой-ёй! Штось пайшло не так.
 TutaoWidgetSendLogsAction = "Даслаць журнал";
 TutaoWidgetNoEventsMsg = "Падзей няма";
 TutaoWidgetNoEventsTodayMsg = "Сёння няма падзей";
-TutaoWidgetCredentialsErrorMsg = "Няма дадзеных уваходу";
+TutaoWidgetCredentialsErrorMsg = "Няма даных уваходу";
 TutaoAccountLabel = "Карыстальнік";
 TutaoCalendarsLabel = "Календары";
 TutaoNoTitleLabel = "<Няма назвы>";
