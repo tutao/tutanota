@@ -1,8 +1,6 @@
 import m, { ComponentTypes, Vnode } from "mithril"
 import { WizardStepAttrs } from "./WizardStep"
 import { WizardController, WizardProgressViewItem, WizardStepContext } from "./WizardController"
-import { WizardProgress } from "./WizardProgress"
-import { component_size, layout_size, px, size } from "../../size"
 import { TertiaryButton } from "../buttons/VariantButtons.js"
 import { lang } from "../../utils/LanguageViewModel"
 import { Icons } from "../icons/Icons"
@@ -27,7 +25,7 @@ export interface WizardAttrs<TViewModel> {
 	viewModel: TViewModel
 	onComplete?: (viewModel: TViewModel) => void
 
-	layout?: ComponentTypes<WizardLayoutAttrs<TViewModel>>
+	layout: ComponentTypes<WizardLayoutAttrs<TViewModel>>
 }
 
 /**
@@ -176,67 +174,18 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 							width: "flex",
 						}))
 
-			if (attrs.layout) {
-				return m(
-					attrs.layout,
-					{
-						ctx,
-						progressState,
-						showProgress: showProgress(controller.currentStep),
-						backButton,
-						transitionSeq,
-						transitionFrom,
-						transitionTo,
-					},
-					m(currentStep.content, { ctx }),
-				)
-			}
-
 			return m(
-				`.full-width.${Styles.get().isMobileLayout() ? "" : "height-100p"}`,
+				attrs.layout,
 				{
-					style: {
-						margin: Styles.get().isMobileLayout() ? `${px(size.spacing_24)} 0` : "auto",
-						"max-height": px(layout_size.wizard_max_height),
-						"max-width": px(layout_size.wizard_max_width),
-					},
+					ctx,
+					progressState,
+					showProgress: showProgress(controller.currentStep),
+					backButton,
+					transitionSeq,
+					transitionFrom,
+					transitionTo,
 				},
-				m(
-					`.flex.height-100p.full-width.${Styles.get().isMobileLayout() ? ".col.gap-8" : ".gap-32"}`,
-					{
-						style: {
-							"padding-inline": "5vw",
-							"padding-block": Styles.get().isMobileLayout() ? undefined : "7vh",
-						},
-					},
-					[
-						m(".flex.flex-column.flex-space-between", [
-							!Styles.get().isMobileLayout() &&
-								showProgress(controller.currentStep) &&
-								m(WizardProgress, {
-									progressState,
-									onClick: (index) => {
-										signalTransition(controller.currentStep, index)
-										controller.setStep(index)
-									},
-								}),
-							m(
-								"",
-								{
-									style: {
-										height: px(component_size.button_height),
-										"margin-inline": showProgress(controller.currentStep) ? "initial" : "auto",
-									},
-								},
-								backButton,
-							),
-						]),
-						m(
-							`.wizard-page.flex.height-100p.full-width${controller.isInTransition ? ".wizard-page-transition" : ""}`,
-							m(currentStep.content, { ctx }),
-						),
-					],
-				),
+				m(currentStep.content, { ctx }),
 			)
 		},
 	}
