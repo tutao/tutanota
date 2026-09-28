@@ -27,7 +27,7 @@ export class PluginSettingsModel {
 		this.pluginManager.setConfigField(pluginId, fieldName, value)
 	}
 
-	public getConfigFieldValue(pluginId: PluginId, fieldName: string): Nullable<string> {
+	public getConfigFieldValue(pluginId: PluginId, fieldName: string): string {
 		return this.pluginManager.getConfigFieldValue(pluginId, fieldName)
 	}
 

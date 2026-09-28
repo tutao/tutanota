@@ -67,12 +67,14 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 			extensionPoint: ExtensionPoint.ConfigField,
 			configFieldId: "nextCloudUrl",
 			text: { en: "Nextcloud instance URI" },
+			defaultValue: "",
 		}
 
 		const defaultFolderConfig: ConfigFieldConfiguration = {
 			configFieldId: "targetAttachmentFolder",
 			extensionPoint: ExtensionPoint.ConfigField,
 			text: { en: "Folder to store attachments" },
+			defaultValue: "tutaAttachments",
 		}
 		await this.pluginHost.registerConfigFields([configFieldConfig, defaultFolderConfig])
 	}

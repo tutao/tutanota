@@ -75,13 +75,22 @@ export class PluginManager {
 			if (isNotNull(customerConfigJson)) {
 				await pluginApi.load()
 			}
+			let draftConfig: Record<string, any>
+			if (isNotNull(customerConfigJson)) {
+				draftConfig = JSON.parse(customerConfigJson)
+			} else {
+				draftConfig = {}
+				for (const draftConfigElement of this.pluginToConfigFieldExtension.get(pluginIdToEnable) ?? []) {
+					draftConfig[draftConfigElement.config.configFieldId] = draftConfigElement.config.defaultValue
+				}
+			}
 
 			this.loadedPlugins[pluginIdToEnable] = {
 				pluginId: pluginIdToEnable,
 				api: pluginApi,
 				pluginHost,
 				pluginAsWorker,
-				draftConfig: JSON.parse(customerConfigJson ?? "{}"),
+				draftConfig,
 			}
 		}
 	}
@@ -200,8 +209,8 @@ export class PluginManager {
 		this.getLoadedPlugin(pluginId).draftConfig[fieldName] = value
 	}
 
-	public getConfigFieldValue(pluginId: PluginId, fieldName: string): Nullable<string> {
-		return this.getLoadedPlugin(pluginId).draftConfig[fieldName] ?? null
+	public getConfigFieldValue(pluginId: PluginId, fieldName: string): string {
+		return assertNotNull(this.getLoadedPlugin(pluginId).draftConfig[fieldName])
 	}
 
 	public async persistCustomerConfig(pluginId: PluginId): Promise<boolean> {

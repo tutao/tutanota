@@ -24,6 +24,7 @@ export interface ConfigFieldConfiguration {
 	extensionPoint: ExtensionPoint.ConfigField
 	configFieldId: string
 	text: Partial<Record<PluginLanguageCode, string>>
+	defaultValue: string
 }
 
 export type ButtonRef = {

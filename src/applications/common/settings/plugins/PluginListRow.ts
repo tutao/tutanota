@@ -62,7 +62,7 @@ export class PluginListRow implements Component<PluginListRowAttrs> {
 		const configFieldInputs = configFields.map((field) =>
 			m(LegacyTextField, {
 				label: lang.makeTranslation(field.configFieldId, configFieldLabelText(field)),
-				value: model.getConfigFieldValue(entry.id, field.configFieldId) ?? "",
+				value: model.getConfigFieldValue(entry.id, field.configFieldId),
 				oninput: (value: string) => {
 					model.setConfigField(entry.id, field.configFieldId, value)
 				},
