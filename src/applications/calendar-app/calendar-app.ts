@@ -24,7 +24,7 @@ import { CalendarViewModel } from "./calendar/view/CalendarViewModel.js"
 import { LoginController } from "../common/api/main/LoginController.js"
 import { MobileSettingsViewAttrs, SettingsViewSection } from "../common/settings/Interfaces.js"
 import type { MobileSettingsView } from "../common/settings/MobileSettingsView.js"
-import { AppType, DomainConfig, EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { AppType, DomainConfig, EnvProvider, PaymentSetup, ProgrammingError } from "@tutao/app-env"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
 import { initUiSingletons, MakeViewResolverOptions } from "../common/app-common"
 import { NamedClientModel } from "@tutao/instance-pipeline"
@@ -49,6 +49,7 @@ EnvProvider.bootFinished()
 const urlQueryParams = m.parseQueryString(location.search)
 
 assignEnvPlatformId(urlQueryParams)
+assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
@@ -648,6 +649,24 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 		} else {
 			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
 		}
+	}
+}
+
+// PaymentSetup is passed by the native part in the URL
+function assignEnvPaymentSetup(urlQueryParams: Mithril.Params) {
+	const paymentSetup = urlQueryParams["paymentSetup"]
+
+	switch (paymentSetup) {
+		case PaymentSetup.Appstore:
+			env.paymentSetup = PaymentSetup.Appstore
+			break
+		case PaymentSetup.Playstore:
+			env.paymentSetup = PaymentSetup.Playstore
+			break
+		case undefined:
+			break
+		default:
+			throw new ProgrammingError(`Invalid payment setup: ${String(paymentSetup)}`)
 	}
 }
 
