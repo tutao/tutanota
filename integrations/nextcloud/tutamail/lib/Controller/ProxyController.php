@@ -18,7 +18,7 @@ class ProxyController extends Controller
 
 	private IClientService $clientService;
 	private IURLGenerator $urlGenerator;
-	private array $ALLOWED_ORIGINS = [
+	public static array $ALLOWED_ORIGINS = [
 			'app.tuta.com',
 			'app.test.tuta.com',
 			'app.local.tuta.com',
@@ -87,7 +87,7 @@ class ProxyController extends Controller
 		if ($origin === '') {
 			throw new PreflightException("Origin header not set");
 		}
-		$this->ensureAllowedOrigin($origin);
+		ProxyController::ensureAllowedOrigin($origin);
 		$response = new Response();
 		$response->addHeader('Access-Control-Allow-Origin', $origin);
 		$response->addHeader('Access-Control-Allow-Credentials', 'true');
@@ -111,7 +111,7 @@ class ProxyController extends Controller
 
 		$this->ensureAllowedProxyUrl($targetUrl);
 		$origin = $this->request->getHeader('Origin');
-		$this->ensureAllowedOrigin($origin);
+		ProxyController::ensureAllowedOrigin($origin);
 
 		// 1. Change the URL to your new destination
 		$baseUrl = $this->urlGenerator->getAbsoluteURL('');
@@ -242,10 +242,10 @@ class ProxyController extends Controller
 	/**
 	 * @throws ForbiddenOriginException
 	 */
-	private function ensureAllowedOrigin(string $origin): void
+	public static function ensureAllowedOrigin(string $origin): void
 	{
 		$host = parse_url($origin, PHP_URL_HOST);
-		if (!in_array($host, $this->ALLOWED_ORIGINS, true)) {
+		if (!in_array($host, ProxyController::$ALLOWED_ORIGINS, true)) {
 			throw new ForbiddenOriginException($origin);
 		}
 	}
