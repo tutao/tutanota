@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { ListElementId, ElementId } from "@tutao/meta"
+import { ElementId, ListElementId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 
 
@@ -1240,8 +1240,6 @@ export function createUpdatePermissionKeyData(values: UpdatePermissionKeyDataPar
 export type UpdatePermissionKeyDataParams = {
 
 
-	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>;
-	instanceKeyVersion: null | NumberString;
 
 	permission: IdTuple;
 	bucketPermission: IdTuple;
@@ -1252,10 +1250,8 @@ export type UpdatePermissionKeyData = {
 	_original?: UpdatePermissionKeyData
 
 	_format: NumberString;
-	ownerEncSessionKey: null | Uint8Array<ArrayBuffer>;
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>;
 	ownerKeyVersion: NumberString;
-	ownerEncInstanceKey: null | Uint8Array<ArrayBuffer>;
-	instanceKeyVersion: null | NumberString;
 
 	permission: IdTuple;
 	bucketPermission: IdTuple;
@@ -7044,7 +7040,7 @@ export type InstanceKeyPermissionServiceGetOut = {
 
 	confirmedInstancesToMigrate: InstanceReferenceData[];
 }
-export const DateWrapperTransferAggregatedTypeTypeRef: TypeRef<DateWrapperTransferAggregatedType> = new TypeRef("sys", 2848)
+export const DateWrapperTransferAggregatedTypeTypeRef: TypeRef<DateWrapperTransferAggregatedType> = new TypeRef("sys", 2846)
 
 export function createDateWrapperTransferAggregatedType(values: DateWrapperTransferAggregatedTypeParams): DateWrapperTransferAggregatedType {
     return Object.assign(create(typeModels[DateWrapperTransferAggregatedTypeTypeRef.typeId], DateWrapperTransferAggregatedTypeTypeRef), values)
@@ -7063,7 +7059,7 @@ export type DateWrapperTransferAggregatedType = {
 	_id: Id;
 	date: Date;
 }
-export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2851)
+export const CalendarEventRefTransferAggregatedTypeTypeRef: TypeRef<CalendarEventRefTransferAggregatedType> = new TypeRef("sys", 2849)
 
 export function createCalendarEventRefTransferAggregatedType(values: CalendarEventRefTransferAggregatedTypeParams): CalendarEventRefTransferAggregatedType {
     return Object.assign(create(typeModels[CalendarEventRefTransferAggregatedTypeTypeRef.typeId], CalendarEventRefTransferAggregatedTypeTypeRef), values)
@@ -7084,7 +7080,7 @@ export type CalendarEventRefTransferAggregatedType = {
 	elementId: Id;
 	listId: Id;
 }
-export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2855)
+export const AlarmInfoTransferAggregatedTypeTypeRef: TypeRef<AlarmInfoTransferAggregatedType> = new TypeRef("sys", 2853)
 
 export function createAlarmInfoTransferAggregatedType(values: AlarmInfoTransferAggregatedTypeParams): AlarmInfoTransferAggregatedType {
     return Object.assign(create(typeModels[AlarmInfoTransferAggregatedTypeTypeRef.typeId], AlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -7109,7 +7105,7 @@ export type AlarmInfoTransferAggregatedType = {
 
 	calendarRef: CalendarEventRefTransferAggregatedType;
 }
-export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2860)
+export const UserAlarmInfoTransferAggregatedTypeTypeRef: TypeRef<UserAlarmInfoTransferAggregatedType> = new TypeRef("sys", 2858)
 
 export function createUserAlarmInfoTransferAggregatedType(values: UserAlarmInfoTransferAggregatedTypeParams): UserAlarmInfoTransferAggregatedType {
     return Object.assign(create(typeModels[UserAlarmInfoTransferAggregatedTypeTypeRef.typeId], UserAlarmInfoTransferAggregatedTypeTypeRef), values)
@@ -7133,7 +7129,7 @@ export type UserAlarmInfoTransferAggregatedType = {
 
 	alarmInfo: AlarmInfoTransferAggregatedType;
 }
-export const CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType> = new TypeRef("sys", 2866)
+export const CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef: TypeRef<CalendarAdvancedRepeatRuleTransferAggregatedType> = new TypeRef("sys", 2864)
 
 export function createCalendarAdvancedRepeatRuleTransferAggregatedType(values: CalendarAdvancedRepeatRuleTransferAggregatedTypeParams): CalendarAdvancedRepeatRuleTransferAggregatedType {
     return Object.assign(create(typeModels[CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef.typeId], CalendarAdvancedRepeatRuleTransferAggregatedTypeTypeRef), values)
@@ -7154,7 +7150,7 @@ export type CalendarAdvancedRepeatRuleTransferAggregatedType = {
 	ruleType: NumberString;
 	interval: string;
 }
-export const RepeatRuleTransferAggregatedTypeTypeRef: TypeRef<RepeatRuleTransferAggregatedType> = new TypeRef("sys", 2870)
+export const RepeatRuleTransferAggregatedTypeTypeRef: TypeRef<RepeatRuleTransferAggregatedType> = new TypeRef("sys", 2868)
 
 export function createRepeatRuleTransferAggregatedType(values: RepeatRuleTransferAggregatedTypeParams): RepeatRuleTransferAggregatedType {
     return Object.assign(create(typeModels[RepeatRuleTransferAggregatedTypeTypeRef.typeId], RepeatRuleTransferAggregatedTypeTypeRef), values)
@@ -7187,7 +7183,7 @@ export type RepeatRuleTransferAggregatedType = {
 	excludedDates: DateWrapperTransferAggregatedType[];
 	advancedRules: CalendarAdvancedRepeatRuleTransferAggregatedType[];
 }
-export const NotificationSessionKeyTransferAggregatedTypeTypeRef: TypeRef<NotificationSessionKeyTransferAggregatedType> = new TypeRef("sys", 2879)
+export const NotificationSessionKeyTransferAggregatedTypeTypeRef: TypeRef<NotificationSessionKeyTransferAggregatedType> = new TypeRef("sys", 2877)
 
 export function createNotificationSessionKeyTransferAggregatedType(values: NotificationSessionKeyTransferAggregatedTypeParams): NotificationSessionKeyTransferAggregatedType {
     return Object.assign(create(typeModels[NotificationSessionKeyTransferAggregatedTypeTypeRef.typeId], NotificationSessionKeyTransferAggregatedTypeTypeRef), values)
@@ -7210,7 +7206,7 @@ export type NotificationSessionKeyTransferAggregatedType = {
 
 	pushIdentifier: IdTuple;
 }
-export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2883)
+export const AlarmNotificationTransferAggregatedTypeTypeRef: TypeRef<AlarmNotificationTransferAggregatedType> = new TypeRef("sys", 2881)
 
 export function createAlarmNotificationTransferAggregatedType(values: AlarmNotificationTransferAggregatedTypeParams): AlarmNotificationTransferAggregatedType {
     return Object.assign(create(typeModels[AlarmNotificationTransferAggregatedTypeTypeRef.typeId], AlarmNotificationTransferAggregatedTypeTypeRef), values)
@@ -7245,7 +7241,7 @@ export type AlarmNotificationTransferAggregatedType = {
 	notificationSessionKeys: NotificationSessionKeyTransferAggregatedType[];
 	user: Id;
 }
-export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2893)
+export const NotificationTransferAggregatedTypeTypeRef: TypeRef<NotificationTransferAggregatedType> = new TypeRef("sys", 2891)
 
 export function createNotificationTransferAggregatedType(values: NotificationTransferAggregatedTypeParams): NotificationTransferAggregatedType {
     return Object.assign(create(typeModels[NotificationTransferAggregatedTypeTypeRef.typeId], NotificationTransferAggregatedTypeTypeRef), values)

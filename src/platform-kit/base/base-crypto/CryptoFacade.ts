@@ -746,8 +746,6 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			let updateService = createUpdatePermissionKeyData({
 				permission: permission._id,
 				bucketPermission: bucketPermission._id,
-				instanceKeyVersion: null,
-				ownerEncInstanceKey: null,
 			})
 			updateService.ownerKeyVersion = String(encryptedKey.encryptingKeyVersion)
 			updateService.ownerEncSessionKey = encryptedKey.key
