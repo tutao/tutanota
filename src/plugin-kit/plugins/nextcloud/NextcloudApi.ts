@@ -102,17 +102,8 @@ export class NextcloudApi {
 				server: assertNotNull(pollResponse.data.server),
 				appPassword: assertNotNull(pollResponse.data.appPassword),
 			}
-			await this.ensureCredentialsIsOfExpectedUrl()
 			await this.nextcloudPlugin.credentialsUpdated(this.nextCloudCredentials)
 			return
-		}
-	}
-
-	private async ensureCredentialsIsOfExpectedUrl() {
-		await this.loginAndCreateAppToken()
-		if (assertNotNull(this.nextCloudCredentials).server !== this.nextCloudUrl) {
-			this.nextCloudCredentials = null
-			throw new Error("Nextcloud url mismatch")
 		}
 	}
 
