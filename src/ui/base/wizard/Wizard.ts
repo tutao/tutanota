@@ -21,7 +21,6 @@ export interface WizardLayoutAttrs<TViewModel> {
 
 export interface WizardAttrs<TViewModel> {
 	steps: WizardStepAttrs<TViewModel>[]
-	controller?: WizardController
 	viewModel: TViewModel
 	onComplete?: (viewModel: TViewModel) => void
 
@@ -32,7 +31,7 @@ export interface WizardAttrs<TViewModel> {
  * this indirection allows us to pass a Component type with a generic parameter to mithril without TS complaining.
  */
 export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>> {
-	let internalController: WizardController | undefined
+	let controller: WizardController
 	let isFirstView = true
 
 	let transitionSeq = 0
@@ -48,15 +47,10 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 	return {
 		oninit({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
 			isFirstView = true
-			if (!attrs.controller) {
-				internalController = new WizardController(attrs.steps.map((step) => step.title ?? ""))
-			} else if (attrs.controller.stepCount === 0) {
-				attrs.controller.initSteps(attrs.steps.map((step) => step.title ?? ""))
-			}
+			controller = new WizardController(attrs.steps.map((step) => step.title ?? ""))
 		},
 		view({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
 			const { steps, viewModel, onComplete } = attrs
-			const controller = attrs.controller || internalController!
 			let currentIndex = controller.currentStep
 			let currentStep = steps[currentIndex]
 
