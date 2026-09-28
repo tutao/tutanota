@@ -44,8 +44,8 @@ fun ScrollableDaysList(
 			}
 
 			val currentDayAction = openCalendarAgenda(LocalContext.current, userId, currentDay)
-			Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
-				if (isFirstDay) {
+			if (isFirstDay) {
+				Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
 					TodayCard(
 						userId,
 						data.daysAndEvents[dayIndex],
@@ -53,15 +53,17 @@ fun ScrollableDaysList(
 						currentDay,
 						onNewEvent
 					)
-				} else {
-					if (data.daysAndEvents[dayIndex].isNotEmpty())
+				}
+			} else {
+				if (data.daysAndEvents[dayIndex].isNotEmpty())
+					Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
 						OtherDayCard(
 							userId,
 							data.daysAndEvents[dayIndex],
 							currentDayAction,
 							currentDay
 						)
-				}
+					}
 			}
 		}
 	}
