@@ -36,6 +36,7 @@ export interface DatePickerAttrs {
 	useInputButton?: boolean
 	position?: PickerPosition
 	classes?: Array<string>
+	noPadding?: boolean
 }
 
 /**
@@ -149,7 +150,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		])
 	}
 
-	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled }: DatePickerAttrs): Children {
+	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled, noPadding }: DatePickerAttrs): Children {
 		return m(
 			"",
 			{
@@ -160,6 +161,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 			},
 			m(LegacyTextField, {
+				class: noPadding ? "" : undefined,
 				value: this.inputText,
 				label,
 				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),

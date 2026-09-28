@@ -582,12 +582,20 @@ impl Entity for DriveShareServicePostIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveShareServicePutIn {
+pub struct DriveShareServicePasswordUpdate {
 	#[serde(rename = "148")]
-	pub _format: i64,
+	pub _id: Option<CustomId>,
+	#[serde(rename = "149")]
+	#[serde(with = "serde_bytes")]
+	pub verifier: Vec<u8>,
+	#[serde(rename = "150")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncPassword: Vec<u8>,
+	#[serde(rename = "151")]
+	pub groupKeyVersion: i64,
 }
 
-impl Entity for DriveShareServicePutIn {
+impl Entity for DriveShareServicePasswordUpdate {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
@@ -598,10 +606,32 @@ impl Entity for DriveShareServicePutIn {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct DriveShareServiceDeleteIn {
-	#[serde(rename = "150")]
+pub struct DriveShareServicePutIn {
+	#[serde(rename = "153")]
 	pub _format: i64,
-	#[serde(rename = "151")]
+	#[serde(rename = "156")]
+	pub expirationDate: Option<DateTime>,
+	#[serde(rename = "154")]
+	pub share: GeneratedId,
+	#[serde(rename = "155")]
+	pub passwordUpdate: Option<DriveShareServicePasswordUpdate>,
+}
+
+impl Entity for DriveShareServicePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Drive,
+			type_id: TypeId::from(152),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct DriveShareServiceDeleteIn {
+	#[serde(rename = "158")]
+	pub _format: i64,
+	#[serde(rename = "159")]
 	pub file: IdTupleGenerated,
 }
 
@@ -609,7 +639,7 @@ impl Entity for DriveShareServiceDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(149),
+			type_id: TypeId::from(157),
 		}
 	}
 }
@@ -617,9 +647,9 @@ impl Entity for DriveShareServiceDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerUrl {
-	#[serde(rename = "154")]
+	#[serde(rename = "162")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "155")]
+	#[serde(rename = "163")]
 	pub url: String,
 }
 
@@ -627,7 +657,7 @@ impl Entity for BlobServerUrl {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(153),
+			type_id: TypeId::from(161),
 		}
 	}
 }
@@ -635,15 +665,15 @@ impl Entity for BlobServerUrl {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct BlobServerAccessInfo {
-	#[serde(rename = "157")]
+	#[serde(rename = "165")]
 	pub _id: Option<CustomId>,
-	#[serde(rename = "158")]
+	#[serde(rename = "166")]
 	pub blobAccessToken: String,
-	#[serde(rename = "159")]
+	#[serde(rename = "167")]
 	pub expires: DateTime,
-	#[serde(rename = "160")]
+	#[serde(rename = "168")]
 	pub tokenKind: i64,
-	#[serde(rename = "161")]
+	#[serde(rename = "169")]
 	pub servers: Vec<BlobServerUrl>,
 }
 
@@ -651,7 +681,7 @@ impl Entity for BlobServerAccessInfo {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(156),
+			type_id: TypeId::from(164),
 		}
 	}
 }
@@ -659,9 +689,9 @@ impl Entity for BlobServerAccessInfo {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareTokenServicePostIn {
-	#[serde(rename = "163")]
+	#[serde(rename = "171")]
 	pub _format: i64,
-	#[serde(rename = "164")]
+	#[serde(rename = "172")]
 	pub file: IdTupleGenerated,
 }
 
@@ -669,7 +699,7 @@ impl Entity for DriveShareTokenServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(162),
+			type_id: TypeId::from(170),
 		}
 	}
 }
@@ -677,9 +707,9 @@ impl Entity for DriveShareTokenServicePostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct DriveShareTokenServicePostOut {
-	#[serde(rename = "166")]
+	#[serde(rename = "174")]
 	pub _format: i64,
-	#[serde(rename = "167")]
+	#[serde(rename = "175")]
 	pub blobAccessInfo: BlobServerAccessInfo,
 }
 
@@ -687,7 +717,7 @@ impl Entity for DriveShareTokenServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Drive,
-			type_id: TypeId::from(165),
+			type_id: TypeId::from(173),
 		}
 	}
 }

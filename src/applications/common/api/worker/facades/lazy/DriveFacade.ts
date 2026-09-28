@@ -23,6 +23,7 @@ import {
 	assertNotNull,
 	base64ToUint8Array,
 	concat,
+	delay,
 	filterInt,
 	first,
 	groupBy,
@@ -55,7 +56,9 @@ import {
 	createDrivePostIn,
 	createDriveRenameData,
 	createDriveShareServiceDeleteIn,
+	createDriveShareServicePasswordUpdate,
 	createDriveShareServicePostIn,
+	createDriveShareServicePutIn,
 	createDriveShareTokenServicePostIn,
 	createDriveUploadedFile,
 	DriveCopyService_POST,
@@ -79,6 +82,7 @@ import {
 	DriveService_POST,
 	DriveShareService_DELETE,
 	DriveShareService_POST,
+	DriveShareService_PUT,
 	DriveShareTokenService_POST,
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
@@ -121,6 +125,11 @@ export const enum DriveFolderType {
 export interface DriveShareInfo {
 	share: DriveFileShare
 	publicLink: string
+}
+export interface PasswordUpdate {
+	verifier: Uint8Array<ArrayBuffer>
+	ownerEncPassword: Uint8Array<ArrayBuffer>
+	groupKeyVersion: string
 }
 
 function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
@@ -413,6 +422,7 @@ export class DriveFacade {
 	}
 
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
+		await delay(1000)
 		const { fileGroupKey } = await this.getCryptoInfo()
 		// Set the expiration time to the end of the day
 		if (isNotNull(expirationDate)) {
@@ -479,6 +489,42 @@ export class DriveFacade {
 			cacheMode: CacheMode.WriteOnly,
 		})
 		return this.getShareInfo(updatedFile)
+	}
+
+	async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
+		const { fileGroupKey } = await this.getCryptoInfo()
+		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
+		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
+		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
+		const verifier = createAuthVerifier(passwordKey)
+		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
+		const groupKeyVersion = String(fileGroupKey.version)
+		return { verifier, ownerEncPassword, groupKeyVersion }
+	}
+
+	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null): Promise<DriveFileShare> {
+		let passwordUpdate: PasswordUpdate | null = null
+		if (password != null) {
+			passwordUpdate = await this.constructPasswordUpdate(share, password)
+		}
+
+		await this.serviceExecutor.execute(
+			DriveShareService_PUT,
+			createDriveShareServicePutIn({
+				share: elementIdToId(share._id),
+				passwordUpdate: passwordUpdate
+					? createDriveShareServicePasswordUpdate({
+							verifier: passwordUpdate.verifier,
+							ownerEncPassword: passwordUpdate.ownerEncPassword,
+							groupKeyVersion: passwordUpdate.groupKeyVersion,
+						})
+					: null,
+				expirationDate,
+			}),
+			null,
+		)
+		const updatedShare = await this.entityClient.load(DriveFileShareTypeRef, share._id)
+		return updatedShare
 	}
 
 	async getShareInfo(file: DriveFile): Promise<DriveShareInfo> {

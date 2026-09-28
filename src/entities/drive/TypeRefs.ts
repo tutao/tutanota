@@ -916,22 +916,69 @@ export type DriveShareServicePostIn = {
 	_original: Nullable<DriveShareServicePostIn>
 	isAdapter: false
 }
-export const DriveShareServicePutInTypeRef: TypeRef<DriveShareServicePutIn> = new TypeRef("drive", 147)
+export const DriveShareServicePasswordUpdateTypeRef: TypeRef<DriveShareServicePasswordUpdate> = new TypeRef("drive", 147)
+
+export function createDriveShareServicePasswordUpdate(values: DriveShareServicePasswordUpdateParams): DriveShareServicePasswordUpdate {
+	return Object.assign(create(typeModels[DriveShareServicePasswordUpdateTypeRef.typeId], DriveShareServicePasswordUpdateTypeRef), values)
+}
+
+export type DriveShareServicePasswordUpdateParams = {
+	verifier: Uint8Array<ArrayBuffer>
+	ownerEncPassword: Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+}
+
+export type DriveShareServicePasswordUpdate = {
+	// == values
+
+	_id: Id
+	verifier: Uint8Array<ArrayBuffer>
+	ownerEncPassword: Uint8Array<ArrayBuffer>
+	groupKeyVersion: NumberString
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<DriveShareServicePasswordUpdate>
+	_original: Nullable<DriveShareServicePasswordUpdate>
+	isAdapter: false
+}
+export const DriveShareServicePutInTypeRef: TypeRef<DriveShareServicePutIn> = new TypeRef("drive", 152)
 
 export function createDriveShareServicePutIn(values: DriveShareServicePutInParams): DriveShareServicePutIn {
 	return Object.assign(create(typeModels[DriveShareServicePutInTypeRef.typeId], DriveShareServicePutInTypeRef), values)
 }
 
-export type DriveShareServicePutInParams = {}
+export type DriveShareServicePutInParams = {
+	expirationDate: null | Date
+
+	share: Id
+	passwordUpdate: null | DriveShareServicePasswordUpdate
+}
 
 export type DriveShareServicePutIn = {
 	// == values
 
 	_format: NumberString
+	expirationDate: null | Date
+
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
 
 	// == associations
+
+	share: Id
+	passwordUpdate: null | DriveShareServicePasswordUpdate
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -948,7 +995,7 @@ export type DriveShareServicePutIn = {
 	_original: Nullable<DriveShareServicePutIn>
 	isAdapter: false
 }
-export const DriveShareServiceDeleteInTypeRef: TypeRef<DriveShareServiceDeleteIn> = new TypeRef("drive", 149)
+export const DriveShareServiceDeleteInTypeRef: TypeRef<DriveShareServiceDeleteIn> = new TypeRef("drive", 157)
 
 export function createDriveShareServiceDeleteIn(values: DriveShareServiceDeleteInParams): DriveShareServiceDeleteIn {
 	return Object.assign(create(typeModels[DriveShareServiceDeleteInTypeRef.typeId], DriveShareServiceDeleteInTypeRef), values)
@@ -985,7 +1032,7 @@ export type DriveShareServiceDeleteIn = {
 	_original: Nullable<DriveShareServiceDeleteIn>
 	isAdapter: false
 }
-export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 153)
+export const BlobServerUrlTypeRef: TypeRef<BlobServerUrl> = new TypeRef("drive", 161)
 
 export function createBlobServerUrl(values: BlobServerUrlParams): BlobServerUrl {
 	return Object.assign(create(typeModels[BlobServerUrlTypeRef.typeId], BlobServerUrlTypeRef), values)
@@ -1018,7 +1065,7 @@ export type BlobServerUrl = {
 	_original: Nullable<BlobServerUrl>
 	isAdapter: false
 }
-export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 156)
+export const BlobServerAccessInfoTypeRef: TypeRef<BlobServerAccessInfo> = new TypeRef("drive", 164)
 
 export function createBlobServerAccessInfo(values: BlobServerAccessInfoParams): BlobServerAccessInfo {
 	return Object.assign(create(typeModels[BlobServerAccessInfoTypeRef.typeId], BlobServerAccessInfoTypeRef), values)
@@ -1059,7 +1106,7 @@ export type BlobServerAccessInfo = {
 	_original: Nullable<BlobServerAccessInfo>
 	isAdapter: false
 }
-export const DriveShareTokenServicePostInTypeRef: TypeRef<DriveShareTokenServicePostIn> = new TypeRef("drive", 162)
+export const DriveShareTokenServicePostInTypeRef: TypeRef<DriveShareTokenServicePostIn> = new TypeRef("drive", 170)
 
 export function createDriveShareTokenServicePostIn(values: DriveShareTokenServicePostInParams): DriveShareTokenServicePostIn {
 	return Object.assign(create(typeModels[DriveShareTokenServicePostInTypeRef.typeId], DriveShareTokenServicePostInTypeRef), values)
@@ -1096,7 +1143,7 @@ export type DriveShareTokenServicePostIn = {
 	_original: Nullable<DriveShareTokenServicePostIn>
 	isAdapter: false
 }
-export const DriveShareTokenServicePostOutTypeRef: TypeRef<DriveShareTokenServicePostOut> = new TypeRef("drive", 165)
+export const DriveShareTokenServicePostOutTypeRef: TypeRef<DriveShareTokenServicePostOut> = new TypeRef("drive", 173)
 
 export function createDriveShareTokenServicePostOut(values: DriveShareTokenServicePostOutParams): DriveShareTokenServicePostOut {
 	return Object.assign(create(typeModels[DriveShareTokenServicePostOutTypeRef.typeId], DriveShareTokenServicePostOutTypeRef), values)

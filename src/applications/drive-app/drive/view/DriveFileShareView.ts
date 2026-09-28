@@ -10,7 +10,7 @@ import { assertNotNull, base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { TextField } from "../../../../ui/base/TextField"
-import { formatDate } from "../../../../ui/utils/Formatter"
+import { formatDateWithWeekdayAndYearLong } from "../../../../ui/utils/Formatter"
 import { DataFile } from "../../../../entities/tutanota/Utils"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {
@@ -116,7 +116,7 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 				}, //FIXME,
 			}),
 			this.state.status === "success" && this.state.share.expirationDate
-				? m("", `This link expires on ${formatDate(this.state.share.expirationDate)}`) //FIXME
+				? m("", `This file is available until ${formatDateWithWeekdayAndYearLong(this.state.share.expirationDate)}`) //FIXME
 				: null,
 		]
 	}

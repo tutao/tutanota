@@ -9,14 +9,15 @@ import { isNotNull } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
-import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
 import { DriveFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
-import { progressIcon } from "../../../../ui/base/Icon"
-import { PasswordField, PasswordFieldAttrs } from "../../../common/misc/passwords/PasswordField"
+import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { UserError } from "../../../common/api/main/UserError"
+import { theme } from "../../../../ui/theme"
+import { PrimaryButton, SecondaryButton, SecondaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
 import { Switch } from "../../../../ui/base/Switch"
+import { PasswordField, PasswordFieldAttrs } from "../../../common/misc/passwords/PasswordField"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 
 type ShareDialogState = "busy" | "done"
@@ -30,94 +31,50 @@ export class DriveFileShareDialog {
 }
 
 async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderItem) {
-	let shareInfo: DriveShareInfo | null = item.file.share ? await driveFacade.getShareInfo(item.file) : null
-	let state: ShareDialogState = "done"
+	let shareInfo: DriveShareInfo | null = null
+	// item.file.share
+	// 	? await driveFacade.getShareInfo(item.file)
+	// 	: await driveFacade.createShareLink(item.file, null, null)
+
+	let state: ShareDialogState = "busy"
+	if (item.file.share) {
+		// load share information
+		driveFacade.getShareInfo(item.file).then((info) => {
+			shareInfo = info
+			state = "done"
+			m.redraw()
+		})
+	} else {
+		// no share, create it
+		driveFacade.createShareLink(item.file, null, null).then((info) => {
+			shareInfo = info
+			state = "done"
+			m.redraw()
+		})
+	}
 
 	const dialog = new Dialog(
 		DialogType.EditMedium,
 		class DriveFileShareDialog implements Component {
-			private doPassword: boolean = false
-			private doExpiry: boolean = false
-			private passwordValue: string = ""
-			private expirationDate: Date | null = null
 			view(): Children {
 				return m(".flex.col", {}, [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => dialog.close(), type: ButtonType.Secondary }],
+						middle: "share_action", // FIXME: Introduce translation key that says "Share a link"
 					}),
-					m(".flex.col.mlr-16.mt-8.mb-16", [
-						m(".b.text-ellipsis", item.file.name),
+					m(".flex.col.mlr-16.mt-16.mb-16", [
+						m(".flex.gap-12", [
+							m(Icon, {
+								icon: Icons.PersonAddFilled,
+								size: IconSize.PX24,
+								style: {
+									fill: theme.on_surface_variant,
+								},
+							}),
+							m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, item.file.name),
+						]),
 						shareInfo == null
-							? [
-									m(
-										".flex.col.items-center.gap-8",
-										state === "busy"
-											? progressIcon()
-											: [
-													m(
-														Switch,
-														{
-															checked: this.doPassword,
-															ariaLabel: "Secure the file with a password", // FIXME
-															onclick: (toggled) => {
-																this.doPassword = toggled
-															},
-														},
-														"Secure the file with a password",
-													),
-													this.doPassword
-														? m(PasswordField, {
-																value: this.passwordValue,
-																oninput: (passwordValue) => (this.passwordValue = passwordValue),
-															} satisfies PasswordFieldAttrs)
-														: null,
-
-													m(
-														Switch,
-														{
-															checked: this.doExpiry,
-															ariaLabel: "Set an expiration date for the link", //FIXME
-															onclick: (toggled) => (this.doExpiry = toggled),
-														},
-														"Set an expiration date for the link",
-													),
-													this.doExpiry
-														? m(DatePicker, {
-																date: this.expirationDate,
-																label: lang.makeTranslation("", "Select expiry date"),
-																onDateSelected: (selectedDate) => {
-																	//FIXME : this function triggers twice for some reason
-																	if (selectedDate.getDate() < new Date().getDate()) {
-																		throw new UserError(
-																			lang.makeTranslation(
-																				"",
-																				"Expiration date is in the past. Please select another date",
-																			),
-																		)
-																	} else {
-																		this.expirationDate = selectedDate
-																	}
-																},
-																startOfTheWeekOffset: 0, //FIXME
-															})
-														: null,
-
-													m(PrimaryButton, {
-														style: {
-															margin: "8px auto 0 auto",
-														},
-														width: "flex",
-														// FIXME
-														label: lang.makeTranslation("createLink_action", "Create a share link"),
-														onclick: () =>
-															void this.createShareLink(
-																this.doPassword ? this.passwordValue : null,
-																this.doExpiry ? this.expirationDate : null,
-															),
-													}),
-												],
-									),
-								]
+							? [m(".flex.col.items-center.gap-8", state === "busy" ? progressIcon() : null)]
 							: m(".flex.col", [
 									m(".flex.gap-8.items-center", [
 										m(TextField, {
@@ -143,17 +100,30 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 											},
 										}),
 									]),
-									m(Button, {
-										class: ["align-self-end"],
-										type: ButtonType.Secondary,
-										label: lang.makeTranslation("deleteLink_action", "Delete link"),
-										click: () => {
-											// FIXME show progress
-											driveFacade.deleteShareLink(item.file)
-											shareInfo = null
-											m.redraw()
-										},
-									}),
+									m(".flex.row.mt-16.justify-between", [
+										m(SecondaryButton, {
+											label: lang.makeTranslation("", "Set password and expiration date"), // FIXME
+											onclick: () => {
+												showFileShareDetailsDialog(item.file.name)
+											},
+											style: {
+												border: `1px solid ${theme.outline}`,
+												color: theme.on_surface_variant,
+											},
+											width: "flex",
+										} satisfies SecondaryButtonAttrs),
+										m(Button, {
+											class: ["align-self-end"],
+											type: ButtonType.Secondary,
+											label: lang.makeTranslation("deleteLink_action", "Delete link"), // FIXME
+											click: () => {
+												// FIXME show progress
+												driveFacade.deleteShareLink(item.file)
+												shareInfo = null
+												m.redraw()
+											},
+										}),
+									]),
 								]),
 					]),
 				])
@@ -169,6 +139,107 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 					state = "done"
 					m.redraw()
 				}
+			}
+		},
+	)
+	dialog.show()
+}
+
+async function showFileShareDetailsDialog(fileName: string) {
+	const dialog = new Dialog(
+		DialogType.EditMedium,
+		class DriveFileShareDialog implements Component {
+			private doPassword: boolean = false
+			private doExpiry: boolean = false
+			private passwordValue: string = ""
+			private expirationDate: Date | null = null
+
+			view(): Children {
+				return m(".flex.col", {}, [
+					m(DialogHeaderBar, {
+						left: [{ label: `close_alt`, click: () => dialog.close(), type: ButtonType.Secondary }],
+						middle: "share_action", // FIXME: Introduce translation key that says "Share a link"
+					}),
+					m(".flex.col.mlr-16.mt-16.mb-16.gap-16", [
+						m(".flex.gap-12", [
+							m(Icon, {
+								icon: Icons.PersonAddFilled,
+								size: IconSize.PX24,
+								style: {
+									fill: theme.on_surface_variant,
+								},
+							}),
+							m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, fileName),
+						]),
+						m(
+							".flex.col.gap-8",
+							m(
+								Switch,
+								{
+									checked: this.doPassword,
+									ariaLabel: "Secure the file with a password", // FIXME
+									onclick: (toggled) => {
+										this.doPassword = toggled
+									},
+									togglePillPosition: "left",
+								},
+								"Secure the file with a password",
+							),
+							this.doPassword
+								? m(PasswordField, {
+										class: "",
+										value: this.passwordValue,
+										oninput: (passwordValue) => (this.passwordValue = passwordValue),
+									} satisfies PasswordFieldAttrs)
+								: null,
+						),
+
+						m(
+							".flex.col.gap-8",
+							m(
+								Switch,
+								{
+									checked: this.doExpiry,
+									ariaLabel: "Set an expiration date for the link", //FIXME
+									onclick: (toggled) => (this.doExpiry = toggled),
+									togglePillPosition: "left",
+								},
+								"Set an expiration date for the link",
+							),
+							this.doExpiry
+								? m(DatePicker, {
+										date: this.expirationDate,
+										label: lang.makeTranslation("", "Select expiry date"),
+										onDateSelected: (selectedDate) => {
+											//FIXME : this function triggers twice for some reason
+											if (selectedDate.getDate() < new Date().getDate()) {
+												throw new UserError(lang.makeTranslation("", "Expiration date is in the past. Please select another date"))
+											} else {
+												this.expirationDate = selectedDate
+											}
+										},
+										startOfTheWeekOffset: 0, //FIXME
+										noPadding: true,
+									})
+								: null,
+						),
+
+						m(
+							".flex.row.align-self-end",
+							m(PrimaryButton, {
+								style: {
+									margin: "8px auto 0 auto",
+								},
+								width: "flex",
+								// FIXME
+								label: lang.makeTranslation("updateLink_action", "Update share link"),
+								onclick: () => {
+									alert("loser")
+								},
+							}),
+						),
+					]),
+				])
 			}
 		},
 	)
