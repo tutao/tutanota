@@ -405,7 +405,9 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/common/ratings") ||
 		isIn("src/applications/common/termination") ||
 		isIn("src/applications/common/revocation") ||
-		isIn("src/applications/common/partner")
+		isIn("src/applications/common/partner") ||
+		isIn("src/plugin-kit/plugins/nextcloud/manifest.ts") ||
+		isIn("src/plugin-kit/plugins/PluginRegistry.ts")
 	) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
@@ -501,8 +503,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "calendar-importer"
 	} else if (isIn("src/applications/common/calendar/")) {
 		return "common"
-	} else if (moduleId.includes("PluginRegistry")) {
-		return "main"
 	} else if (isIn("src/plugin-kit/sdk")) {
 		return `plugin-sdk`
 	} else if (isIn("src/plugin-kit/plugin-manager")) {

@@ -30,7 +30,6 @@ export class PluginManager {
 	constructor(
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
-		private readonly PLUGIN_REGISTRY: Readonly<Record<PluginId, PluginManifest>>,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
 	) {
 		this.configChangeListener = () => {}
@@ -43,12 +42,7 @@ export class PluginManager {
 	async loadAllPlugins(): Promise<void> {
 		const allPluginIdsForCustomer = await this.configurationAdapter.getEnabledPluginIdsForCustomer()
 
-		const unknownPlugins = allPluginIdsForCustomer.filter((pluginId) => isNull(this.PLUGIN_REGISTRY[pluginId as PluginId]))
-		const knownPlugins = allPluginIdsForCustomer
-			.filter((pluginId) => isNotNull(this.PLUGIN_REGISTRY[pluginId as PluginId]))
-			.map((pluginId) => pluginIdFromString(pluginId))
-		console.log("Could not load these plugin as they do not exists in registry: ", unknownPlugins)
-		await this.loadPlugins(...knownPlugins)
+		await this.loadPlugins(...allPluginIdsForCustomer.map(pluginIdFromString))
 	}
 
 	async loadPlugins(...pluginIdsToLoad: Array<PluginId>): Promise<void> {
