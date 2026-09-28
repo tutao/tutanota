@@ -2256,7 +2256,7 @@ export default {
 		"surveyOtherReasonProvideDetails_label": "Other reason (please specify below)",
 		"surveyOtherReasonWrongEmailAddress_label": "I picked the wrong email address",
 		"surveyParticipate_action": "Participate in survey",
-		"surveyPrice_label": "Price",
+		"surveyPrice_label": "Problems with the price",
 		"surveyPriceReasonAutoRenewal_label": "The auto-renewal is annoying",
 		"surveyPriceReasonFamilyDiscount_label": "I can only afford a family plan",
 		"surveyPriceReasonPaidFeatures_label": "I don't need the paid features",
