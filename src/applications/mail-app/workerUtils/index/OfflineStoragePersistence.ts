@@ -24,7 +24,7 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailDetailsBlobTypeRef, Mai
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, lastThrow, stringToUtf8Uint8Array, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
+import { delay, isEmpty, lastThrow, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 
 export type ArchiveDownloadResumeParams = { serverUrl: string; start: Id; statusHash: string }
@@ -326,7 +326,7 @@ VALUES (
 		}
 
 		// if there is a pending request, build onto it (but not too much because we don't want to blow up MAX_SAFE_SQL_VARS or our RAM)
-		if (this.pendingEncryptedMailDetailsBlobRetrieval == null || this.pendingEncryptedMailDetailsBlobItems.size > 100) {
+		if (this.pendingEncryptedMailDetailsBlobRetrieval == null || this.pendingEncryptedMailDetailsBlobItems.size > 10) {
 			this.pendingEncryptedMailDetailsBlobItems = new Set()
 
 			const blobItems = this.pendingEncryptedMailDetailsBlobItems
@@ -426,6 +426,8 @@ VALUES (
 			return null
 		}
 
+		console.log(`BANANA INCOMING! MAKE HASTE! ${blobIds.length}`)
+		console.log(`For the nerd peoples: ${blobIds.join()}`)
 		return {
 			serverUrl,
 			start: lastThrow(blobIds),

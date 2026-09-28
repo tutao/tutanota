@@ -4,7 +4,7 @@
 import Foundation
 
 /**
- * Download entire archives and write them to offline database.
+ * Download archives and write them to offline database.
  */
 public protocol ArchiveDownloaderFacade : Sendable {
 	/**
@@ -14,7 +14,8 @@ public protocol ArchiveDownloaderFacade : Sendable {
 		_ sourceUrl: String,
 		_ archiveId: String,
 		_ typeref: String,
-		_ modelVersion: Int
+		_ modelVersion: Int,
+		_ serverIdentifier: String
 	) async throws -> Void
 	/**
 	 * Abort downloading or storing an archive

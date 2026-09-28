@@ -28,7 +28,8 @@ class AndroidArchiveDownloaderFacade(
 		sourceUrl: String,
 		archiveId: String,
 		typeref: String,
-		modelVersion: Long
+		modelVersion: Long,
+		serverIdentifier: String,
 	) {
 		// Create a new child coroutine scope so that if the request fails it cancels our progress job as well
 		// Also if the whole operation is canceled the child scope also gets canceled
@@ -56,7 +57,7 @@ class AndroidArchiveDownloaderFacade(
 					// By this point we got the response header but we might not have read the body yet.
 					response.use { response ->
 						if (response.code == 200) {
-							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion)
+							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion, serverIdentifier)
 						} else {
 							Log.d(
 								TAG,
@@ -128,12 +129,14 @@ class AndroidArchiveDownloaderFacade(
 		_archiveId: String,
 		_typeref: String,
 		_modelVersion: Long,
+		_serverIdentifier: String,
 		private val sqlCipherFacade: SqlCipherFacade
 	) {
 
 		private val archiveId = TaggedSqlValue.Str(_archiveId)
 		private val typeref = TaggedSqlValue.Str(_typeref)
 		private val modelVersion = TaggedSqlValue.Num(_modelVersion)
+		private val serverIdentifier = TaggedSqlValue.Str(_serverIdentifier)
 
 		// store when 4 mb of data reached (see companion object)
 		private var unstoredBytes = 0
@@ -174,8 +177,8 @@ class AndroidArchiveDownloaderFacade(
 				)
 
 				sqlCipherFacade.run(
-					"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion) VALUES (?, ?, ?, ?)",
-					listOf(archiveId, TaggedSqlValue.Str(blobs.last().blobId), typeref, modelVersion)
+					"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion, serverUrl) VALUES (?, ?, ?, ?, ?)",
+					listOf(archiveId, TaggedSqlValue.Str(blobs.last().blobId), typeref, modelVersion, serverIdentifier)
 				)
 			}
 

@@ -15,11 +15,13 @@ public final class ArchiveDownloaderFacadeReceiveDispatcher: Sendable {
 			let archiveId = try! JSONDecoder().decode(String.self, from: arg[1].data(using: .utf8)!)
 			let typeref = try! JSONDecoder().decode(String.self, from: arg[2].data(using: .utf8)!)
 			let modelVersion = try! JSONDecoder().decode(Int.self, from: arg[3].data(using: .utf8)!)
+			let serverIdentifier = try! JSONDecoder().decode(String.self, from: arg[4].data(using: .utf8)!)
 			try await self.facade.downloadAndStoreArchive(
 				sourceUrl,
 				archiveId,
 				typeref,
-				modelVersion
+				modelVersion,
+				serverIdentifier
 			)
 			return "null"
 		case "abortDownloadAndStoreArchive":

@@ -7,7 +7,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 
 /**
- * Download entire archives and write them to offline database.
+ * Download archives and write them to offline database.
  */
 interface ArchiveDownloaderFacade {
 	/**
@@ -18,6 +18,7 @@ interface ArchiveDownloaderFacade {
 		archiveId: String,
 		typeref: String,
 		modelVersion: Long,
+		serverIdentifier: String,
 	): Unit
 	/**
 	 * Abort downloading or storing an archive

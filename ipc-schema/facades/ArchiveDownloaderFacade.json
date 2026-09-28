@@ -19,6 +19,9 @@
 				},
 				{
 					"modelVersion": "number"
+				},
+				{
+					"serverIdentifier": "string"
 				}
 			],
 			"ret": "void"

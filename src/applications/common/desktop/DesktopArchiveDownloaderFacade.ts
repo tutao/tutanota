@@ -23,7 +23,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 		}
 	}
 
-	async downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number): Promise<void> {
+	async downloadAndStoreArchive(sourceUrl: string, archiveId: string, typeref: string, modelVersion: number, serverIdentifier: string): Promise<void> {
 		const abortController = new AbortController()
 		this.activeRequests.set(archiveId, abortController)
 		try {
@@ -38,7 +38,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 
 			if (status === 200 && body != null) {
 				const decoder = new TextDecoder()
-				const storage = new ArchiveStorageHelper(archiveId, typeref, modelVersion, this.sqlCipherFacade)
+				const storage = new ArchiveStorageHelper(archiveId, typeref, modelVersion, serverIdentifier, this.sqlCipherFacade)
 				this.storageForArchive.set(archiveId, storage)
 
 				const startTime = new Date().getTime()
@@ -97,16 +97,19 @@ class ArchiveStorageHelper {
 	private readonly archiveId: TaggedSqlValue
 	private readonly typeref: TaggedSqlValue
 	private readonly modelVersion: TaggedSqlValue
+	private readonly serverIdentifier: TaggedSqlValue
 
 	constructor(
 		_archiveId: string,
 		_typeref: string,
 		_modelVersion: number,
+		_serverIdentifier: string,
 		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {
 		this.archiveId = tagSqlValue(_archiveId)
 		this.typeref = tagSqlValue(_typeref)
 		this.modelVersion = tagSqlValue(_modelVersion)
+		this.serverIdentifier = tagSqlValue(_serverIdentifier)
 	}
 
 	// store when 8 mb of data reached
@@ -149,9 +152,15 @@ class ArchiveStorageHelper {
 				await this.sqlCipherFacade.run(query, params)
 			}
 			{
-				const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion) VALUES (?, ?, ?, ?)"
-				const params: TaggedSqlValue[] = [this.archiveId, tagSqlValue(lastThrow(this.blobs).blobId), this.typeref, this.modelVersion]
-
+				const query =
+					"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion, serverUrl) VALUES (?, ?, ?, ?, ?)"
+				const params: TaggedSqlValue[] = [
+					this.archiveId,
+					tagSqlValue(lastThrow(this.blobs).blobId),
+					this.typeref,
+					this.modelVersion,
+					this.serverIdentifier,
+				]
 				await this.sqlCipherFacade.run(query, params)
 			}
 		}
