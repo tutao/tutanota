@@ -146,9 +146,6 @@ export class PluginManager {
 			await this.loadPlugins(pluginId)
 		} else if (update.operation === OperationType.DELETE) {
 			await this.unloadPlugin(pluginId)
-			if (configOwner === PluginConfigurationOwner.Customer) {
-				// FIXME: also delete this pluginConfig from user( better to do from serverside ) ?
-			}
 		} else {
 			const loadedPlugin = assertNotNull(this.loadedPlugins[pluginId], `Got updated config for plugin ${pluginId}. But the plugin is not yet loaded`)
 			if (configOwner === PluginConfigurationOwner.Customer) {
