@@ -508,7 +508,7 @@ export class CalendarEventsRepository {
 		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
 			if (newEvent) {
-				this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+				this.pushClientOnlyEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 			}
 		}
 
@@ -537,14 +537,14 @@ export class CalendarEventsRepository {
 			return
 		}
 
-		const currentBirthdayDate = new Date(newEvent.startTime)
+		const currentBirthdayDate = getEventStart(newEvent, this.zone)
 		currentBirthdayDate.setFullYear(new Date().getFullYear())
 
 		if (removeIfExists) {
 			this.removeBirthdayEventsForContact(contactId.join("/"), currentBirthdayDate.getMonth())
 		}
 
-		this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+		this.pushClientOnlyEvent(currentBirthdayDate.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 
 		const monthRange = getMonthRange(currentBirthdayDate, this.zone)
 		this.addBirthdaysEventsIfNeeded(currentBirthdayDate, monthRange, true)
