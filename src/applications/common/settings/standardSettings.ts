@@ -87,7 +87,7 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 				"invoice",
 				() => new PaymentViewer(),
 				undefined,
-			).setIsVisibleHandler(() => shouldShowSubscriptionSetting() && !logins.getUserController().isFreeAccount()),
+			).setIsVisibleHandler(() => shouldShowSubscriptionSetting()),
 			new SettingsFolder(
 				() => "referralSettings_label",
 				() => Icons.ShareFilled,
@@ -111,18 +111,17 @@ export function adminSettingsSection(
 	whitelabelThemeGenerator: WhitelabelThemeGenerator,
 	customerFacade: CustomerFacade,
 ): SettingsViewSection {
-	const settings = [
-		new SettingsFolder(
-			() => "globalSettings_label",
-			() => Icons.GearWheelFilled,
-			"global",
-			() => new MobileGlobalSettingsViewer(entityClient, logins, customerFacade),
-			undefined,
-		).setIsVisibleHandler(() => logins.getUserController().isGlobalAdmin()),
-	]
-	settings.push(whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator))
 	return {
 		name: lang.getTranslation("adminSettings_label"),
-		settings,
+		settings: [
+			new SettingsFolder(
+				() => "globalSettings_label",
+				() => Icons.GearWheelFilled,
+				"global",
+				() => new MobileGlobalSettingsViewer(entityClient, logins, customerFacade),
+				undefined,
+			).setIsVisibleHandler(() => logins.getUserController().isGlobalAdmin()),
+			whitelabelSettings(entityClient, logins, themeController, whitelabelThemeGenerator),
+		],
 	}
 }
