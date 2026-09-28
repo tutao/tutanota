@@ -508,7 +508,7 @@ export class CalendarEventsRepository {
 		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
 			if (newEvent) {
-				this.pushClientOnlyEvent(newEvent.startTime.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+				this.pushClientOnlyEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 			}
 		}
 
