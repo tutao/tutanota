@@ -3,6 +3,7 @@ import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypt
 import { matchers, object, verify, when } from "testdouble"
 import { composeRestClientOptionsToGetAllPermissions, InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import {
+	AccountingInfoTypeRef,
 	createFormerInstanceKeyData,
 	FormerInstanceKeyData,
 	Group,
@@ -35,13 +36,14 @@ import {
 	CryptoWrapper,
 	generateKdfNonce,
 	KdfNonce,
+	PublicKeyIdentifierType,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
 } from "../../../../../src/platform-kit/crypto"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
+import { CryptoFacade, RecipientKeyData } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { ProgrammingError, RolloutType, SessionType } from "../../../../../src/platform-kit/app-env"
 import { assertNotNull, KeyVersion, Nullable } from "../../../../../src/platform-kit/utils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
@@ -354,45 +356,45 @@ o.spec("InstanceKeyFacadeTest", function () {
 			when(cryptoWrapper.encryptKey(currentPermissionOwnerGroupKey.object, sessionKey)).thenReturn(symEncSessionKey)
 			return { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey }
 		}
-	})
 
-	o.spec("asymmetricEncryption", function () {
-		//TODO make AccountingInfo shared or delete this
-		// let permissionOwnerGroup: Group
-		// const bucketEncInstanceKey: Uint8Array<ArrayBuffer> = object()
-		// const pubEncRecipientKeyData: PubEncKeyData = object()
-		//
-		// o.beforeEach(function () {
-		// 	instance = createTestEntity(AccountingInfoTypeRef, {
-		// 		_kdfNonce: generateKdfNonce(),
-		// 		_ownerGroup: instanceGroupId,
-		// 		_permissions: instancePermissionsId,
-		// 	})
-		// 	const permissionOwnerGroupId = "permissionOwnerGroupId"
-		// 	permissionOwnerGroup = createTestEntity(GroupTypeRef, { _id: idToElementId(permissionOwnerGroupId) })
-		// 	const permission = createTestEntity(PermissionTypeRef, {
-		// 		_id: [instancePermissionsId, permissionOwnerGroupId],
-		// 		_ownerGroup: permissionOwnerGroupId,
-		// 	})
-		// 	instancePermissions.push(permission)
-		//
-		// 	when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(permissionOwnerGroupId)).thenReject(new Error("should not be called"))
-		// 	when(cryptoWrapper.encryptKey(anything(), derivedInstanceKey.object)).thenReturn(bucketEncInstanceKey)
-		// 	when(
-		// 		cryptoFacade.encryptBucketKeyForInternalRecipient(
-		// 			assertNotNull(instance._ownerGroup),
-		// 			anything(),
-		// 			{ identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID },
-		// 			[],
-		// 			[],
-		// 		),
-		// 	).thenResolve(new RecipientKeyData(pubEncRecipientKeyData, null))
-		// })
-		// o.test("accountingInfo success", async function () {
-		// 	const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
-		// 	checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, derivedInstanceKey.version, [], pubEncRecipientKeyData)
-		// 	verify(entityClient.load(GroupTypeRef, permissionOwnerGroup._id), { times: 0 })
-		// })
+		o.spec("asymmetricEncryption", function () {
+			//TODO make AccountingInfo shared or delete this
+			let permissionOwnerGroup: Group
+			const bucketEncInstanceKey: Uint8Array<ArrayBuffer> = object()
+			const pubEncRecipientKeyData: PubEncKeyData = object()
+
+			o.beforeEach(function () {
+				instance = createTestEntity(AccountingInfoTypeRef, {
+					_kdfNonce: generateKdfNonce(),
+					_ownerGroup: instanceGroupId,
+					_permissions: instancePermissionsId,
+				})
+				const permissionOwnerGroupId = "permissionOwnerGroupId"
+				permissionOwnerGroup = createTestEntity(GroupTypeRef, { _id: idToElementId(permissionOwnerGroupId) })
+				const permission = createTestEntity(PermissionTypeRef, {
+					_id: [instancePermissionsId, permissionOwnerGroupId],
+					_ownerGroup: permissionOwnerGroupId,
+				})
+				instancePermissions.push(permission)
+
+				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(permissionOwnerGroupId)).thenReject(new Error("should not be called"))
+				when(cryptoWrapper.encryptKey(anything(), derivedInstanceKey.object)).thenReturn(bucketEncInstanceKey)
+				when(
+					cryptoFacade.encryptBucketKeyForInternalRecipient(
+						assertNotNull(instance._ownerGroup),
+						anything(),
+						{ identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID },
+						[],
+						[],
+					),
+				).thenResolve(new RecipientKeyData(pubEncRecipientKeyData, null))
+			})
+			o.test("accountingInfo success", async function () {
+				const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
+				checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, derivedInstanceKey.version, [], pubEncRecipientKeyData)
+				verify(entityClient.load(GroupTypeRef, permissionOwnerGroup._id), { times: 0 })
+			})
+		})
 	})
 
 	function checkInstanceKeyData(
