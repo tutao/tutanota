@@ -26,12 +26,12 @@ export enum AttachmentType {
 	CALENDAR,
 	MAIL,
 }
-
+export type AttachmentExtensionButton = { label: string; attachmentButtonClicked: Thunk }
 export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
-	attachmentExtensionClickActions: Array<Thunk>
+	attachmentExtensionButton: Array<AttachmentExtensionButton>
 	remove: Thunk | null
 	fileImport: Thunk | null
 	type: AttachmentType
@@ -191,7 +191,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 	private renderContent(): Children {
 		// We are trying to make some contents look like the attachment button to make the transition look smooth.
 		// It is somewhat harder as it looks different with mobile layout.
-		const { remove, open, download, attachment, fileImport, type, attachmentExtensionClickActions } = this.attrs
+		const { remove, open, download, attachment, fileImport, type, attachmentExtensionButton } = this.attrs
 		return m(
 			".flex.mb-8.pr-12",
 			{
@@ -200,7 +200,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 			[
 				m(Icon, {
 					icon: getAttachmentIcon(type),
-					class: "pr-4 flex items-center",
+					class: "flex items-center",
 					style: {
 						fill: theme.on_surface,
 						"background-color": "initial",
@@ -217,11 +217,15 @@ export class AttachmentDetailsPopup implements ModalComponent {
 							lineHeight: px(bubbleButtonHeight()),
 						},
 					},
-					m(".span.break-all.smaller", attachment.name),
+					[
+						m(".smaller.flex.row.justify-between.items-center", [
+							m(".span.break-all.plr-8", attachment.name),
+							m(".span", `${formatStorageSize(Number(attachment.size))}`),
+						]),
+					],
 					// bottom info is inside the same column as file text to align them
 					m(".flex.row.justify-between.items-center", [
-						m("span.smaller", `${formatStorageSize(Number(attachment.size))}`),
-						m(".flex.no-wrap", [
+						m("", [
 							remove
 								? m(Button, {
 										type: ButtonType.Secondary,
@@ -250,11 +254,11 @@ export class AttachmentDetailsPopup implements ModalComponent {
 										click: () => this.thenClose(download),
 									})
 								: null,
-							attachmentExtensionClickActions.map((attachmentExtension) => {
+							attachmentExtensionButton.map((attachmentExtensionButton, i) => {
 								return m(Button, {
 									type: ButtonType.Secondary,
-									label: "saveToNextcloud_action",
-									click: () => this.thenClose(attachmentExtension),
+									label: { testId: "attachment_plugin_ext" + i, text: attachmentExtensionButton.label },
+									click: () => this.thenClose(attachmentExtensionButton.attachmentButtonClicked),
 								})
 							}),
 						]),

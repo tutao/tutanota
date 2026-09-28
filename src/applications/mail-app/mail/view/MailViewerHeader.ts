@@ -27,7 +27,7 @@ import {
 } from "./MailViewerUtils.js"
 import { liveDataAttrs } from "../../../../ui/AriaUtils.js"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager.js"
-import { AttachmentBubble, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
+import { AttachmentBubble, AttachmentExtensionButton, getAttachmentType } from "../../../../ui/AttachmentBubble.js"
 import { responsiveCardHMargin, responsiveCardHPadding } from "../../../../ui/cards.js"
 import { companyTeamLabel } from "../../../../platform-kit/app-env/boot/ClientConstants.js"
 import { getMailAddressDisplayText, isTutaTeamMail } from "../../../common/mailFunctionality/SharedMailUtils.js"
@@ -45,7 +45,7 @@ import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { elementIdToId } from "@tutao/meta"
 import { contextDropdown } from "../../../../ui/base/GuiUtils"
-import { ExtensionPoint } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
+import { ExtensionPoint, PluginLanguageCode } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi"
 
 export type MailAddressDropdownCreator = (args: {
 	mailAddress: MailAddressAndName
@@ -686,11 +686,15 @@ export class MailViewerHeader implements Component<MailViewerHeaderAttrs> {
 				open: viewModel.attachmentDownloader.canOpenAttachment(attachment)
 					? () => viewModel.downloadAndOpenAttachment(attachment, DownloadPostProcessing.Open)
 					: null,
-				attachmentExtensionClickActions: viewModel.pluginManager
+				attachmentExtensionButton: viewModel.pluginManager
 					.getRegisteredButtonsByExtensionPoint(ExtensionPoint.SaveAttachmentDialog)
 					.map((attachmentExtension) => {
-						return () =>
-							viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginId, viewModel.attachmentAsPluginDataFile(attachment))
+						let text = attachmentExtension.config.text
+						return {
+							label: assertNotNull(text[lang.code as PluginLanguageCode] ?? attachmentExtension.config.text.en),
+							attachmentButtonClicked: () =>
+								viewModel.pluginManager.attachmentButtonClicked(attachmentExtension.pluginId, viewModel.attachmentAsPluginDataFile(attachment)),
+						} as AttachmentExtensionButton
 					}),
 				fileImport: viewModel.canImportFile(attachment) ? () => importFile(attachment) : null,
 				type: attachmentType,

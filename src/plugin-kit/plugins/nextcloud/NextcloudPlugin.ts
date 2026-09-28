@@ -66,15 +66,15 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 		const configFieldConfig: ConfigFieldConfiguration = {
 			extensionPoint: ExtensionPoint.ConfigField,
 			configFieldId: "nextCloudUrl",
-			text: { en: "Nextcloud instance URI" },
+			text: { en: "Nextcloud instance URL", de: "URL der Nextcloud Instanz" },
 			defaultValue: "",
 		}
 
 		const defaultFolderConfig: ConfigFieldConfiguration = {
 			configFieldId: "targetAttachmentFolder",
 			extensionPoint: ExtensionPoint.ConfigField,
-			text: { en: "Folder to store attachments" },
-			defaultValue: "tutaAttachments",
+			text: { en: "Folder name for attachments", de: "Ordnername für Anhänge" },
+			defaultValue: "TutaAttachments",
 		}
 		await this.pluginHost.registerConfigFields([configFieldConfig, defaultFolderConfig])
 	}
@@ -82,13 +82,16 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	private async applyAppExtensionPoints() {
 		let saveAttachmentBtnConfig: ButtonConfiguration = {
 			extensionPoint: ExtensionPoint.SaveAttachmentDialog,
-			text: { de: "Nextcloud attachment anhaengen" },
+			text: {
+				en: "Save to Nextcloud",
+				de: "In Nextcloud speichern",
+			},
 		}
 		await this.pluginHost.registerButton(saveAttachmentBtnConfig)
 
 		let eventLocationBtnConfig: ButtonConfiguration = {
 			extensionPoint: ExtensionPoint.EventLocationButton,
-			text: { en: "Start Nextcloud Talk meeting", de: "Nextcloud Talk Meeting starten" },
+			text: { en: "Generate Nextcloud Talk meeting", de: "Nextcloud Talk Meeting anlegen" },
 		}
 		await this.pluginHost.registerButton(eventLocationBtnConfig)
 	}

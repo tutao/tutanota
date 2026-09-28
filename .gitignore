@@ -45,3 +45,4 @@ fdroid-metadata-workaround
 integrations/nextcloud/tutamail/vendor
 integrations/nextcloud/tutamail/vendor-bin
 integrations/nextcloud/tutamail/tests/.phpunit.result.cache
+integrations/nextcloud/tutamail/js

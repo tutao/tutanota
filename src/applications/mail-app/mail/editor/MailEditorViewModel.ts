@@ -97,7 +97,7 @@ export function createAttachmentBubbleAttrs(
 
 			m.redraw()
 		},
-		attachmentExtensionClickActions: [],
+		attachmentExtensionButton: [],
 		fileImport: null,
 		type: AttachmentType.GENERIC,
 	}))
