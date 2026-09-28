@@ -1,10 +1,9 @@
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../ui/base/WizardDialog.js"
 import { LeavingUserSurveyData } from "./LeavingUserSurveyWizard.js"
 import m, { Vnode, VnodeDOM } from "mithril"
-import { DropDownSelector, type DropDownSelectorAttrs } from "../../../ui/base/DropDownSelector.js"
 import { lang, type TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
-import { theme } from "../../../ui/theme.js"
 import { SetupLeavingUserSurveyPage } from "./SetupLeavingUserSurveyPage.js"
+import { RadioSelector, RadioSelectorAttrs } from "../../../ui/base/RadioSelector"
 
 export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSurveyData> {
 	private _dom: HTMLElement | null = null
@@ -18,55 +17,57 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 			SetupLeavingUserSurveyPage,
 			{
 				closeAction: () => this.showNextPage(),
+				skipAction: () => this.closeDialog(),
 				nextButtonLabel: "next_action",
-				nextButtonEnabled: !vnode.attrs.data.category,
+				nextButtonEnabled: Boolean(vnode.attrs.data.category),
 				image: "main",
 				mainMessage: "surveyMainMessageDelete_label",
 				secondaryMessage: vnode.attrs.data.showDowngradeMessage ? "surveySecondaryMessageDowngrade_label" : "surveySecondaryMessageDelete_label",
 			},
 			[
-				m(DropDownSelector, {
-					style: { border: `2px solid ${theme.outline}`, borderRadius: "6px", padding: "4px 8px" },
-					doShowBorder: false,
-					label: "surveyUnhappy_label",
-					items: this.getCategoryDropdownItems(vnode.attrs.data.showPriceCategory),
-					selectedValue: vnode.attrs.data.category,
-					selectionChangedHandler: (category) => {
+				m(RadioSelector, {
+					groupName: "surveyUnhappy_label",
+					options: this.getCategoryItems(vnode.attrs.data.showPriceCategory),
+					selectedOption: vnode.attrs.data.category,
+					onOptionSelected: (category) => {
 						vnode.attrs.data.category = category
 					},
-					dropdownWidth: 350,
-				} satisfies DropDownSelectorAttrs<NumberString | null>),
-				// this currently "mocks" the helplabel of the dropdown. We have to take another look once we decide on applying the dropdown styling to the entire app.
-				m(".mlr-4.mt-4", m("small", lang.get("cancellationConfirmation_msg"))),
+					compact: true,
+				} satisfies RadioSelectorAttrs<NumberString | null>),
 			],
 		)
 	}
+	private closeDialog(): void {
+		if (this._dom) {
+			emitWizardEvent(this._dom, WizardEventType.CLOSE_DIALOG)
+		}
+	}
 
-	private getCategoryDropdownItems(showPriceCategory: boolean) {
+	private getCategoryItems(showPriceCategory: boolean) {
 		const items = [
 			{
-				name: lang.get("experienceSamplingAnswer_label"),
-				value: null,
-			},
-			{
-				name: lang.get("surveyPrice_label"),
+				name: lang.getTranslation("surveyPrice_label"),
 				value: "0",
 			},
 			{
-				name: lang.get("surveyAccountProblems_label"),
+				name: lang.getTranslation("surveyAccountProblems_label"),
 				value: "1",
 			},
 			{
-				name: lang.get("surveyMissingFeature_label"),
+				name: lang.getTranslation("surveyMissingFeature_label"),
 				value: "2",
 			},
 			{
-				name: lang.get("surveyFeatureDesignProblems_label"),
+				name: lang.getTranslation("surveySomethingNotWorking_label"),
 				value: "3",
 			},
 			{
-				name: lang.get("surveyOtherReason_label"),
+				name: lang.getTranslation("surveyFeatureDesignProblems_label"),
 				value: "4",
+			},
+			{
+				name: lang.getTranslation("surveyOtherReason_label"),
+				value: "5",
 			},
 		]
 		if (!showPriceCategory) items.splice(1, 1) // remove price category
@@ -82,6 +83,7 @@ export class LeavingUserSurveyCategoryPage implements WizardPageN<LeavingUserSur
 
 export class LeavingUserSurveyPageAttrs implements WizardPageAttrs<LeavingUserSurveyData> {
 	data: LeavingUserSurveyData
+	hideAllPagingButtons = true
 
 	constructor(leavingUserSurveyData: LeavingUserSurveyData) {
 		this.data = leavingUserSurveyData

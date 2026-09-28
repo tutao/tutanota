@@ -2537,7 +2537,6 @@ export type TranslationKeyType =
 	| "timesInHourSkippedWhenChangingToDSTError_msg"
 	| "giftCardNotAvailableApple_msg"
 	| "giftCardNotAvailableGoogle_msg"
-	| "businessPlansNotAvailableForExternal_msg"
 	| "storeDowngradeOrResubscribeGoogle_msg"
 	| "plugins_label"
 	| "confirmDisablePlugin_msg"
@@ -2558,3 +2557,5 @@ export type TranslationKeyType =
 	| "declinedFeedbackDialogInput_msg"
 	| "sendFeedback_action"
 	| "feedbackAnonymousAndHelpUs_label"
+	| "accessDeactivated_msg"
+	| "surveySomethingNotWorking_label"

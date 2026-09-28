@@ -2230,7 +2230,7 @@ export default {
 		"supportStartPage_title": "Wir helfen ihnen gerne",
 		"supportSuccess_msg": "Wir freuen uns, dass wir ihnen helfen konnten!",
 		"survey_label": "Umfrage",
-		"surveyAccountProblems_label": "Probleme mit meinem Account",
+		"surveyAccountProblems_label": "Account & Zugang",
 		"surveyAccountReasonAccountApproval_label": "Die Account-Freigabe dauert zu lange",
 		"surveyAccountReasonAccountBlocked_label": "Mein Account wurde ohne Grund blockiert",
 		"surveyAccountReasonCantAddUsers_label": "Ich kann keine Benutzer*innen hinzufügen",
@@ -2239,7 +2239,7 @@ export default {
 		"surveyAccountReasonServicesBlocked_label": "Anderer Service akzeptiert E-Mail-Adresse nicht",
 		"surveyAccountReasonSupportNoHelp_label": "Support konnte mir nicht helfen",
 		"surveyChooseReason_label": "Wählen Sie einen Grund",
-		"surveyFeatureDesignProblems_label": "Probleme mit Funktion oder Design",
+		"surveyFeatureDesignProblems_label": "Design & Funktion",
 		"surveyFeatureReasonAutoForward_label": "Automatische E-Mail-Weiterleitung fehlt",
 		"surveyFeatureReasonCloudStorage_label": "Cloud-Speicher / Drive fehlt",
 		"surveyFeatureReasonEmailTranslations_label": "E-Mail-Übersetzung fehlt",
@@ -2256,7 +2256,7 @@ export default {
 		"surveyOtherReasonProvideDetails_label": "Anderer Grund (bitte unten angeben)",
 		"surveyOtherReasonWrongEmailAddress_label": "Falsche E-Mail-Addresse gewählt",
 		"surveyParticipate_action": "An Umfrage teilnehmen",
-		"surveyPrice_label": "Preis",
+		"surveyPrice_label": "Preis und Wert",
 		"surveyPriceReasonAutoRenewal_label": "Die Abo-Verlängerung stört mich",
 		"surveyPriceReasonFamilyDiscount_label": "Tuta ist für Familien zu teuer",
 		"surveyPriceReasonPaidFeatures_label": "Ich brauche die bezahlten Funktionen nicht",
@@ -2551,6 +2551,15 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"businessPlansNotAvailableForExternal_msg": "Abonnements für Geschäftskunden sind für Nutzer mit einer externen Zahlungsmethode nicht verfügbar."
+		"surveySomethingNotWorking_label": "Irgendwas funktioniert nicht",
+		"accessDeactivated_msg": "Ihr Account wurde deaktiviert",
+		"upgradingFeedbackDialogThankYouTitle_msg": "Danke für Ihr Upgrade!",
+		"upgradingFeedbackDialogThankYouPlaceholder_msg": "Ihr Feedback macht Tuta besser.",
+		"upgradingFeedbackDialogInput_msg": "Was hat Sie heute überzeugt, ein Upgrade durchzuführen?",
+		"declinedFeedbackDialogBeforeYouGoTitle_msg": "Bevor Sie gehen",
+		"declinedFeedbackDialogBeforeYouGoPlaceholder_msg": "Wir würden uns über Ihr Feedback freuen.",
+		"declinedFeedbackDialogInput_msg": "Was hat Sie heute davon abgehalten, ein Upgrade durchzuführen?",
+		"sendFeedback_action": "Feedback senden",
+		"feedbackAnonymousAndHelpUs_label": "Ihr Feedback ist anonym und hilft uns, Tuta zu verbessern."
 	}
 }
