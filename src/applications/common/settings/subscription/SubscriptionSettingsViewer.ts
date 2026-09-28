@@ -1,12 +1,13 @@
 import m, { Children } from "mithril"
-import { ApprovalStatus, Const, EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
+import { ApprovalStatus, Const, EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, getDayShifted, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { asPaymentInterval, formatPriceDataWithInfo, PaymentInterval } from "../../subscription/utils/PriceUtils"
 import { formatDate, formatStorageSize } from "../../../../ui/utils/Formatter"
-import { showUpgradeWizard } from "../../subscription/UpgradeSubscriptionWizard"
+import { UpgradeView, UpgradeViewAttrs } from "../../subscription/UpgradeView"
+import { UpgradeViewModel } from "../../subscription/UpgradeViewModel"
 import { showConfirmDowngradingToFreeDialog, showSwitchDialog } from "../../subscription/SwitchSubscriptionDialog"
 import stream from "mithril/stream"
 import Stream from "mithril/stream"
@@ -109,6 +110,11 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 	private _orderAgreement: OrderProcessingAgreement | null = null
 	private currentPlanType: PlanType | null = null
 	private _shownSatisfactionDialog = false
+	private upgradeView: UpgradeViewAttrs | null = null
+
+	get isUpgradeVisible(): boolean {
+		return this.upgradeView !== null
+	}
 
 	constructor(private readonly mobilePaymentsFacade: MobilePaymentsFacade | null) {
 		locator.logins
@@ -120,6 +126,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			})
 
 		this.view = (): Children => {
+			if (this.upgradeView) {
+				return m(".fill-absolute.scroll.plr-24.pb-48.nav-bg", m(UpgradeView, this.upgradeView))
+			}
 			return m(
 				"#subscription-settings.fill-absolute.scroll.plr-24.pb-48",
 				{
@@ -365,7 +374,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 				m(PrimaryButton, {
 					label: "subscriptionSettingsMoreFeatures_action",
 					width: "flex",
-					onclick: () => {
+					onclick: async () => {
 						this.handleUpgradeSubscription().then(() => {
 							if (!this._customerInfo?.plan) {
 								return
@@ -570,7 +579,18 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			}
 		}
 
-		await showUpgradeWizard({ upgradePromptType: UpgradePromptType.SUBSCRIPTION_VIEWER, logins: locator.logins })
+		const viewModel = await showProgressDialog("pleaseWait_msg", UpgradeViewModel.create(locator.logins))
+		await new Promise<void>((resolve) => {
+			this.upgradeView = {
+				viewModel,
+				onClose: () => {
+					this.upgradeView = null
+					resolve()
+					m.redraw()
+				},
+			}
+			m.redraw()
+		})
 	}
 
 	private async handleExternalSubscriptionChange() {

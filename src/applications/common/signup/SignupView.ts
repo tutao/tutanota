@@ -1,8 +1,9 @@
 import m, { Children, Vnode } from "mithril"
-import { EnvProvider, PaymentSetup } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, SessionType } from "@tutao/app-env"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { createWizard, WizardAttrs } from "../../../ui/base/wizard/Wizard"
+import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
 import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
@@ -14,12 +15,16 @@ import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "..
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
 import { SignupWizardLayout } from "./SignupWizardLayout"
-import { noOp } from "@tutao/utils"
+import { assertNotNull, noOp } from "@tutao/utils"
 import { Icons } from "../../../ui/base/icons/Icons"
-import { PlanType } from "../../../entities/sys/Utils"
+import { isExternalPaymentMethod, PlanType } from "../../../entities/sys/Utils"
 import { UsageTestModel } from "../misc/UsageTestModel"
 import { UsageTestController } from "@tutao/usagetests"
 import { SignupViewModel } from "./models/SignupViewModel"
+import { Styles } from "../../../ui/styles"
+import { layout_size } from "../../../ui/size"
+import { locator } from "../api/main/CommonLocator"
+import { upgrade } from "../subscription/SubscriptionConfirmationUtils"
 
 EnvProvider.assertMainOrNode()
 
@@ -35,6 +40,37 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	private readonly wizardViewModel: SignupViewModel
 	private unregisterListener: (...args: Array<any>) => any = noOp
 	private SignupWizard = createWizard<SignupViewModel>()
+	private readonly ConfirmationPage: m.Component<WizardStepComponentAttrs<SignupViewModel>> = {
+		view: ({ attrs: { ctx } }) => {
+			const data = ctx.viewModel
+			return m(UpgradeConfirmSubscriptionPageNew, {
+				ctx,
+				onEditPlan: () => {
+					if (Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
+						data.inlinePlanSelectorOpen(!data.inlinePlanSelectorOpen())
+					} else {
+						ctx.controller.setStep(0)
+					}
+				},
+				onEditPayment: () => {
+					ctx.controller.setStepUnreachable(ctx.index)
+					ctx.controller.setStep(2)
+				},
+				onPaymentIntervalChanged: () => {
+					data.updatePrice()
+					SignupFlowUsageTestController.completeStage(SignupFlowStage.SELECT_PLAN, data.targetPlanType, data.options.paymentInterval())
+					SignupFlowUsageTestController.completeStage(SignupFlowStage.CREATE_ACCOUNT, data.targetPlanType, data.options.paymentInterval())
+				},
+				onConfirm: async () => {
+					if (isExternalPaymentMethod(data.paymentData.paymentMethod) && !locator.logins.isUserLoggedIn()) {
+						const account = assertNotNull(data.newAccountData)
+						await locator.logins.createSession(account.mailAddress, account.password, SessionType.Temporary)
+					}
+					return upgrade(data, data.referralData?.code ?? null)
+				},
+			})
+		},
+	}
 
 	constructor({ attrs }: Vnode<SignupViewAttrs>) {
 		super()
@@ -101,12 +137,14 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				{
 					title: "Select Plan",
 					content: PlanSelectorPage,
-					onNext: () =>
+					onNext: () => {
+						this.wizardViewModel.updatePrice()
 						SignupFlowUsageTestController.completeStage(
 							SignupFlowStage.SELECT_PLAN,
 							this.wizardViewModel.targetPlanType,
 							this.wizardViewModel.options.paymentInterval(),
-						),
+						)
+					},
 					onPrev: (ctx) => {
 						if (ctx.viewModel.options.businessUse() && ctx.viewModel.personalPlansAvailable) {
 							ctx.viewModel.options.businessUse(false)
@@ -151,7 +189,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				},
 				{
 					title: "Order Confirmation",
-					content: UpgradeConfirmSubscriptionPageNew,
+					content: this.ConfirmationPage,
 					onNext: () => {
 						let referralConversion: ReferralType = "not_referred"
 						if (this.wizardViewModel.referralData && this.wizardViewModel.referralData.isCalledBySatisfactionDialog)

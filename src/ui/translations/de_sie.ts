@@ -185,7 +185,6 @@ export default {
 		"boughtGiftCardPosting_label": "Gutschein gekauft",
 		"breakLink_action": "Hyperlink entfernen",
 		"brother_label": "Bruder",
-		"businessPlansNotAvailableForExternal_msg": "Abonnements für Geschäftskunden sind für Nutzer mit einer externen Zahlungsmethode nicht verfügbar.",
 		"businessUse_action": "Geschäftliche Nutzung",
 		"buy_action": "Kaufen",
 		"buyGiftCard_label": "Gutschein kaufen",
