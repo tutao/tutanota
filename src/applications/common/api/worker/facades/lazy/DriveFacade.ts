@@ -414,7 +414,10 @@ export class DriveFacade {
 
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
 		const { fileGroupKey } = await this.getCryptoInfo()
-
+		// Set the expiration time to the end of the day
+		if (isNotNull(expirationDate)) {
+			expirationDate.setHours(23, 59, 59)
+		}
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 		if (password == null) {
 			// 1. Generate a random nonce (N).
@@ -424,6 +427,7 @@ export class DriveFacade {
 			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
 			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
 			// 4. Create a share with the N, the ENCFSK, and the owner key version.
+
 			await this.serviceExecutor.execute(
 				DriveShareService_POST,
 				createDriveShareServicePostIn({
