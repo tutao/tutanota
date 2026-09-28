@@ -1571,6 +1571,9 @@ export class MainStyles {
 				".wizard-page-transition": {
 					opacity: 0,
 				},
+				"#upgrade-view .upgrade-dialog-content .plan-selector-wrapper": {
+					"justify-content": "center",
+				},
 				".wizard-next-button": {
 					"margin-top": "auto",
 					"margin-bottom": px(size.spacing_16),

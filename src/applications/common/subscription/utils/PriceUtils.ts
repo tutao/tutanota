@@ -6,8 +6,6 @@ import { IServiceExecutor } from "../../../../platform-kit/network/ServiceReques
 import { UserError } from "../../api/main/UserError.js"
 import { MobilePlanPrice } from "@tutao/native-bridge/generatedIpc/types"
 import { locator } from "../../api/main/CommonLocator.js"
-import { UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard.js"
-import { SignupViewModel } from "../../signup/models/SignupViewModel"
 import {
 	AccountingInfo,
 	createUpgradePriceServiceData,
@@ -202,13 +200,11 @@ export class PriceAndConfigProvider {
 	/**
 	 * Returns the subscription price with the currency formatting on iOS/google and as a plain period seperated number on other platforms
 	 */
-	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, data: UpgradeSubscriptionData | SignupViewModel): OfferPrice {
-		const subscription = data.targetPlanType
-
+	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, targetPlanType: PlanType): OfferPrice {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
-			return this.getExternalPaymentsSubscriptionPrice(subscription, paymentInterval)
+			return this.getExternalPaymentsSubscriptionPrice(targetPlanType, paymentInterval)
 		} else {
-			const price = this.getSubscriptionPrice(paymentInterval, subscription, type)
+			const price = this.getSubscriptionPrice(paymentInterval, targetPlanType, type)
 			return { displayPrice: formatPrice(price, true), rawPrice: price.toString() }
 		}
 	}

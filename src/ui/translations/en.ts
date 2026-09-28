@@ -185,7 +185,6 @@ export default {
 		"boughtGiftCardPosting_label": "Purchase gift card",
 		"breakLink_action": "Remove hyperlink",
 		"brother_label": "Brother",
-		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users with an external payment method.",
 		"businessUse_action": "Business use",
 		"buy_action": "Buy",
 		"buyGiftCard_label": "Buy a gift card",

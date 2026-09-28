@@ -138,6 +138,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 
 	view({ attrs }: Vnode<PlanBoxContainerAttrs>): Children {
 		const { currentPlan, priceAndConfigProvider, selectedPlan, selectedSubscriptionOptions, discountDetails } = attrs
+		const isMobileLayout = Styles.get().isMobileLayout() || attrs.forceMobileLayout
 
 		const isYearly = selectedSubscriptionOptions.paymentInterval() === PaymentInterval.Yearly
 		const anyPaidPlanHasCampaign =
@@ -152,12 +153,12 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 					transform: "translateX(-50%)",
 				}
 			: {
-					width: "fit-content",
+					width: attrs.forceMobileLayout ? "100%" : "fit-content",
 					marginInline: "auto",
 				}
 
 		return m(
-			`#plan-selector${Styles.get().isMobileLayout() ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
+			`#plan-selector${isMobileLayout ? ".flex.flex-column.gap-16" : ".flex.gap-16"}`,
 			{
 				"data-testid": "dialog:select-subscription-business",
 				style: { position: "relative", "margin-top": anyPaidPlanHasCampaign ? px(20) : "initial", ...container },
@@ -180,6 +181,7 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 					priceAndConfigProvider: priceAndConfigProvider,
 					discountDetail: discountDetails?.[planConfig.type],
 					selectedPaymentInterval: selectedSubscriptionOptions.paymentInterval,
+					forceMobileLayout: attrs.forceMobileLayout,
 				})
 			}),
 		)

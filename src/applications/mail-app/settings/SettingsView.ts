@@ -85,6 +85,7 @@ EnvProvider.assertMainOrNode()
 
 export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
+	private readonly standardViewSlider: ViewSlider
 
 	private readonly _settingsFoldersColumn: ViewColumn
 	private readonly _settingsColumn: ViewColumn
@@ -403,7 +404,10 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				headerCenter: "settings_label",
 			},
 		)
-		this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn], windowFacade)
+		this.viewSlider = this.standardViewSlider = new ViewSlider(
+			[this._settingsFoldersColumn, this._settingsColumn, this._settingsDetailsColumn],
+			windowFacade,
+		)
 
 		this._customDomains = new LazyLoaded(async () => {
 			const domainInfos = await getAvailableDomains(this.logins, true)
@@ -583,6 +587,14 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 	}
 
 	view({ attrs }: Vnode<SettingsViewAttrs>): Children {
+		const isUpgrading = this._currentViewer instanceof SubscriptionSettingsViewer && this._currentViewer.isUpgradeVisible
+		if (isUpgrading && this.viewSlider === this.standardViewSlider) {
+			// Give the shared plan selector room to position personal and business plans within the same page.
+			this.viewSlider = new ViewSlider([this._settingsFoldersColumn, this._settingsColumn], windowFacade)
+		} else if (!isUpgrading) {
+			this.viewSlider = this.standardViewSlider
+		}
+
 		return m(
 			"#settings.main-view",
 			m(this.viewSlider, {
@@ -590,7 +602,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					...attrs.header,
 					buttons: renderHeaderButtons(),
 				}),
-				bottomNav: m(BottomNav),
+				bottomNav: isUpgrading ? null : m(BottomNav),
 			}),
 		)
 	}
