@@ -36,6 +36,7 @@ export type PlanBoxContainerAttrs = {
 	selectedSubscriptionOptions: SelectedSubscriptionOptions
 	showMultiUser: boolean
 	discountDetails?: DiscountDetails
+	forceMobileLayout?: boolean
 }
 
 export type PlanBoxPosition = "left" | "right" | "bottom"

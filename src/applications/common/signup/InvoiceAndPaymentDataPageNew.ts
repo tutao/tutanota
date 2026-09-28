@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
-import { SignupViewModel } from "./models/SignupViewModel"
+import type { PaymentDetailsModel } from "../subscription/PaymentDetailsModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { Dialog } from "../../../ui/base/Dialog"
@@ -29,7 +29,7 @@ import { Countries, Country, CountryType } from "../gui/CountryList"
 import { NULL_ENTITY } from "@tutao/meta"
 import { windowFacade } from "../misc/WindowFacade"
 
-class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<SignupViewModel>> {
+class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<PaymentDetailsModel>> {
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
 	private readonly formGap = Styles.get().isMobileLayout() ? ".gap-16" : ".gap-24"
@@ -38,11 +38,11 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		attrs: {
 			ctx: { viewModel },
 		},
-	}: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+	}: Vnode<WizardStepComponentAttrs<PaymentDetailsModel>>) {
 		this.paypalRequestUrl = getLazyLoadedPayPalUrl()
 	}
 
-	oncreate(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>) {
+	oncreate(vnode: Vnode<WizardStepComponentAttrs<PaymentDetailsModel>>) {
 		locator.serviceExecutor.execute(LocationService_GET, NULL_ENTITY, null).then((location: LocationServiceGetReturn) => {
 			if (!vnode.attrs.ctx.viewModel.invoiceData.country) {
 				const country = Countries.find((c) => c.a === location.country)
@@ -56,7 +56,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		m.redraw()
 	}
 
-	view(vnode: Vnode<WizardStepComponentAttrs<SignupViewModel>>): Children {
+	view(vnode: Vnode<WizardStepComponentAttrs<PaymentDetailsModel>>): Children {
 		const ctx = vnode.attrs.ctx
 		const visiblePaymentMethods = getVisiblePaymentMethods({
 			isBusiness: ctx.viewModel.options.businessUse(),
@@ -71,17 +71,19 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		}))
 
 		return m(`.flex.flex-column.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`, [
-			m(
-				`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
-				{
-					style: {
-						position: "relative",
-						top: px(-6),
+			ctx.viewModel.upgradeType !== UpgradeType.Switch && [
+				m(
+					`h1.font-mdio${Styles.get().isMobileLayout() ? ".h2" : ".h1"}`,
+					{
+						style: {
+							position: "relative",
+							top: px(-6),
+						},
 					},
-				},
-				lang.get("payment_page_title"),
-			),
-			m(`p${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+					lang.get("payment_page_title"),
+				),
+				m(`p${Styles.get().isMobileLayout() ? ".mb-32" : ""}`, { style: { color: theme.on_surface_variant } }, lang.get("payment_page_subtitle")),
+			],
 			m(".flex.gap-16", [
 				m(
 					".flex-grow",
@@ -114,20 +116,22 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private renderPaymentMethodForm(ctx: WizardStepContext<SignupViewModel>, method: PaymentMethodType): Children {
+	private renderPaymentMethodForm(ctx: WizardStepContext<PaymentDetailsModel>, method: PaymentMethodType): Children {
 		switch (method) {
 			case PaymentMethodType.Invoice:
 				return this.renderInvoiceForm(ctx)
+			case PaymentMethodType.AccountBalance:
+				return this.renderInvoiceForm(ctx, false)
 			case PaymentMethodType.CreditCard:
 				return this.renderCreditCardForm(ctx)
 			case PaymentMethodType.Paypal:
 				return this.renderPaypalForm(ctx)
 			default:
-				throw new ProgrammingError(`unknown payment method for signup: ${method}`)
+				throw new ProgrammingError(`unknown payment method: ${method}`)
 		}
 	}
 
-	private renderCreditCardForm(ctx: WizardStepContext<SignupViewModel>): Children {
+	private renderCreditCardForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
 		return m(`.flex.col${this.formGap}`, [
 			m(CreditCardInput, {
 				viewModel: ctx.viewModel.ccViewModel,
@@ -165,7 +169,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private onAddPaymentData = async (ctx: WizardStepContext<SignupViewModel>) => {
+	private onAddPaymentData = async (ctx: WizardStepContext<PaymentDetailsModel>) => {
 		// const invoiceDataInput = assertNotNull(this._invoiceDataInput)
 
 		const data = ctx.viewModel
@@ -229,7 +233,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			showProgressDialog("payPalRedirect_msg", this.paypalRequestUrl.getAsync()).then((url) => windowFacade.openLink(url))
 		}
 	}
-	private renderPaypalForm(ctx: WizardStepContext<SignupViewModel>): Children {
+	private renderPaypalForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
 		const isPaypalConnected = !!ctx.viewModel.accountingInfo?.paypalBillingAgreement
 		return m(`.flex.col${this.formGap}`, [
 			m(`.flex.col${Styles.get().isMobileLayout() ? ".items-center" : ".items-end"}${this.formGap}`, [
@@ -302,7 +306,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private renderInvoiceForm(ctx: WizardStepContext<SignupViewModel>): Children {
+	private renderInvoiceForm(ctx: WizardStepContext<PaymentDetailsModel>, showBankTransferInfo: boolean = true): Children {
 		return m(`.flex.col${this.formGap}`, [
 			renderCountryDropdownNew({
 				selectedCountry: ctx.viewModel.invoiceData.country,
@@ -317,7 +321,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				label: "billingCountry_label",
 			}),
 			ctx.viewModel.options.businessUse() && this.renderBusinessAddressFields(ctx),
-			this.renderBankTransferInfo(),
+			showBankTransferInfo && this.renderBankTransferInfo(),
 			m(
 				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
 				m(PrimaryButton, {
@@ -354,7 +358,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		} satisfies InfoBannerAttrs)
 	}
 
-	private renderBusinessAddressFields(ctx: WizardStepContext<SignupViewModel>): Children {
+	private renderBusinessAddressFields(ctx: WizardStepContext<PaymentDetailsModel>): Children {
 		return m(".full-width", [
 			m(
 				"",
@@ -384,7 +388,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private isVatIdFieldVisible(ctx: WizardStepContext<SignupViewModel>): boolean {
+	private isVatIdFieldVisible(ctx: WizardStepContext<PaymentDetailsModel>): boolean {
 		const selectedCountry = ctx.viewModel.invoiceData.country
 		return ctx.viewModel.options.businessUse() && selectedCountry != null && selectedCountry.t === CountryType.EU
 	}
