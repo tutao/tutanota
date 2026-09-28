@@ -57,13 +57,19 @@ export class NextcloudApi {
 			return
 		}
 
-		const nextcloudResponse = await NextcloudApi.axiosClient.post(this.proxiedUrl("/index.php/login/v2"), undefined, {
+		// always proxy login flow in order to be able to define the device name displayed
+		// in http://nextcloud.local/index.php/settings/user/security
+		const loginUrl = this.proxy(`/index.php/login/v2`)
+		const nextcloudResponse = await NextcloudApi.axiosClient.post(loginUrl, undefined, {
 			headers: {
 				"OCS-APIRequest": "true",
 			},
 		})
 
 		const poll = nextcloudResponse.data.poll
+		if (nextcloudResponse.status !== 200) {
+			throw new Error("Nextcloud login flow failed.")
+		}
 		const userLoginUrl = nextcloudResponse.data.login
 		const windowId = await this.hostApi.openWindow(userLoginUrl)
 		if (isNull(windowId)) {
@@ -72,7 +78,7 @@ export class NextcloudApi {
 
 		while (true) {
 			const pollResponse = await NextcloudApi.axiosClient.post(
-				this.proxiedUrl(`/index.php/login/v2/poll?token=${poll.token}`),
+				this.proxy(`/index.php/login/v2/poll?token=${poll.token}`),
 				new URLSearchParams({
 					token: poll.token,
 				}),
@@ -110,7 +116,7 @@ export class NextcloudApi {
 	async downloadFile(fileReference: PluginFileReference): Promise<PluginDataFile> {
 		await this.loginAndCreateAppToken()
 		const davPath = fileReference.path.replace(/^\/+/, "")
-		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${davPath}`)
+		const davUrl = this.proxyIfNeeded(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${davPath}`)
 		const name = davUrl.split("/").pop()!
 		const authToken = await this.getAuthToken()
 
@@ -151,7 +157,7 @@ export class NextcloudApi {
 
 	async uploadFile(dataFile: PluginDataFile, targetFolder: string): Promise<{ filesUiUrl: string }> {
 		await this.loginAndCreateAppToken()
-		const davUrl = this.proxiedUrl(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${targetFolder}/${dataFile.name}`)
+		const davUrl = this.proxyIfNeeded(`/remote.php/dav/files/${assertNotNull(this.nextCloudCredentials).loginName}/${targetFolder}/${dataFile.name}`)
 		const authToken = await this.getAuthToken()
 
 		const putOptions = {
@@ -191,7 +197,7 @@ export class NextcloudApi {
 			},
 		}
 
-		const roomCreationUrl = this.proxiedUrl("/ocs/v2.php/apps/spreed/api/v4/room")
+		const roomCreationUrl = this.proxyIfNeeded("/ocs/v2.php/apps/spreed/api/v4/room")
 		try {
 			const postResponse = await NextcloudApi.axiosClient.post(
 				roomCreationUrl,
@@ -237,12 +243,16 @@ export class NextcloudApi {
 		return btoa(`${nextcloudCredentials.loginName}:${nextcloudCredentials.appPassword}`)
 	}
 
-	private proxiedUrl(targetUrl: string): string {
+	private proxyIfNeeded(targetUrl: string): string {
 		if (["app.tuta.com", "app.test.tuta.com", "app.local.tuta.com", "localhost"].includes(this.host)) {
 			return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
 		} else {
 			return `${this.nextCloudUrl}${targetUrl}`
 		}
+	}
+
+	private proxy(targetUrl: string): string {
+		return `${this.nextCloudUrl}/index.php/apps/tutamail/api/v1/proxy${targetUrl}`
 	}
 
 	public static async getInstalledVersion(newUrl: string): Promise<PluginVersion> {

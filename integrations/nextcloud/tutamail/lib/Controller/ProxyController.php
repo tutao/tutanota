@@ -82,12 +82,12 @@ class ProxyController extends Controller
 	#[NoCSRFRequired]
 	public function handleCors(string $path): Response
 	{
-		$this->ensureAllowedProxyUrl($path);
 		$origin = $this->request->getHeader('Origin');
 		if ($origin === '') {
 			throw new PreflightException("Origin header not set");
 		}
-		ProxyController::ensureAllowedOrigin($origin);
+ 		$this->ensureAllowedProxyUrl($path, $origin);
+
 		$response = new Response();
 		$response->addHeader('Access-Control-Allow-Origin', $origin);
 		$response->addHeader('Access-Control-Allow-Credentials', 'true');
@@ -109,9 +109,8 @@ class ProxyController extends Controller
 	private function proxyRedirect(string $targetUrl): DataResponse
 	{
 
-		$this->ensureAllowedProxyUrl($targetUrl);
-		$origin = $this->request->getHeader('Origin');
-		ProxyController::ensureAllowedOrigin($origin);
+		$origin = $this->request->getHeader('Origin') ?? "";
+		$this->ensureAllowedProxyUrl($targetUrl, $origin);
 
 		// 1. Change the URL to your new destination
 		$baseUrl = $this->urlGenerator->getAbsoluteURL('');
@@ -126,7 +125,7 @@ class ProxyController extends Controller
 
 		// Remove headers that shouldn't be proxied verbatim
 		unset($headers['Host'], $headers['Origin']);
-		$headers['User-Agent'] = 'Tuta App';
+		$headers['User-Agent'] = 'Tuta App'; // identify as Tuta for the AppToken
 		// Overwrite client-supplied X-Forwarded-For. getRemoteAddress() resolves through this
 		// Nextcloud instance's own trusted_proxies config when present; without
 		// that config it degrades to REMOTE_ADDR, which is still not
@@ -210,44 +209,29 @@ class ProxyController extends Controller
 	}
 
 	/**
-	 * @throws ForbiddenProxyPathException
+	 * @throws ForbiddenProxyPathException, ForbiddenOriginException
 	 */
-	private function ensureAllowedProxyUrl(string $targetUrl)
+	private function ensureAllowedProxyUrl(string $targetUrl, string $origin)
 	{
 		$method = $this->request->getMethod();
 		$normalizedUrl = trim($targetUrl, '/');
 
-		$isAllowed = false;
+        // Special case: allow Login Flow v2 POST
+        $login = ($method === 'POST' && str_starts_with($normalizedUrl, 'index.php/login/v2'));
+        $host = parse_url($origin, PHP_URL_HOST);
+        if (!in_array($host, ProxyController::$ALLOWED_ORIGINS, true) && !$login) {
+            throw new ForbiddenOriginException($origin);
+        }
 
-		// 1. Check if the HTTP method is allowed at all
 		if (isset($this->ALLOWED_PROXIES[$method])) {
-
-			// 2. Loop through the allowed regex patterns for this method
+			// Loop through the allowed regex patterns for this method
 			foreach ($this->ALLOWED_PROXIES[$method] as $pattern) {
-				// preg_match returns 1 if it matches, 0 if it doesn't
 				if (preg_match($pattern, $normalizedUrl) === 1) {
-					$isAllowed = true;
-					break; // Found a match, no need to keep checking
+					return;
 				}
 			}
 		}
-
-		// 3. Block if no match was found
-		if (!$isAllowed) {
-			throw new ForbiddenProxyPathException($method, $normalizedUrl);
-		}
-
-	}
-
-	/**
-	 * @throws ForbiddenOriginException
-	 */
-	public static function ensureAllowedOrigin(string $origin): void
-	{
-		$host = parse_url($origin, PHP_URL_HOST);
-		if (!in_array($host, ProxyController::$ALLOWED_ORIGINS, true)) {
-			throw new ForbiddenOriginException($origin);
-		}
+        throw new ForbiddenProxyPathException($method, $normalizedUrl);
 	}
 }
 

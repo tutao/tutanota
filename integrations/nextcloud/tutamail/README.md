@@ -30,7 +30,7 @@ In order to activate these integrations, you need to enable the Nextcloud plugin
 
 ### Setup and configure the nextcloud dev containers
 
-1) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/`nextcloud-docker-dev
+1) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/nextcloud-docker-dev
 2) In `nextcloud-docker-dev` run the`./bootstart.sh` script.
 3) In `docker-compose.yml` add these two lines under services>nextcloud>volumes, and make sure to replace
    `/path/to/tutanota/repository` with the correct path:
