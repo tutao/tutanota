@@ -151,6 +151,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
 			)
 		}
+		if (newUrl.endsWith("/")) {
+			throw new CustomerConfigPluginError("URL should not end in a trailing slash.")
+		}
 
 		if (isNull(customerConfig.targetAttachmentFolder) || customerConfig.targetAttachmentFolder.trim().length === 0) {
 			throw new CustomerConfigPluginError(`Need a non-empty folder name`)
