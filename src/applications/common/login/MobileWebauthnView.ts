@@ -72,6 +72,10 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 		if (typeof cbUrlTemplate !== "string") {
 			throw new Error("cbUrl is not passed")
 		}
+
+		if (!isValidCallbackUrl(cbUrlTemplate)) {
+			throw new Error("cbUrl is not valid: " + cbUrlTemplate)
+		}
 		return { challenge, cbUrlTemplate }
 	}
 
@@ -93,6 +97,7 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 
 	async authenticate(attrs: MobileWebauthnAttrs) {
 		const { challenge, cbUrlTemplate } = await this.getParams(attrs)
+		console.log(cbUrlTemplate)
 		try {
 			const { decodeValueFromNative } = await import("../../../app-kit/native-bridge/common/NativeLineProtocol.js")
 			const rawChallengeObj = decodeValueFromNative(challenge) as WebAuthnSignChallenge
@@ -125,4 +130,29 @@ export class MobileWebauthnView implements TopLevelView<MobileWebauthnAttrs> {
 			await this.sendFailure(e, cbUrlTemplate)
 		}
 	}
+}
+
+// checks that the callback URL that we'll use to pass the result back to the app is plausible.
+function isValidCallbackUrl(cbUrl: string): boolean {
+	// we could do fancy matches on staging level and client type, but it's not worth it.
+	const validUrls = [
+		// android prod
+		"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutacalendar;package=de.tutao.calendar;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutadrive;package=de.tutao.drive;S.result={result};end",
+		// android test
+		"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota.test;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutacalendar;package=de.tutao.calendar.test;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutadrive;package=de.tutao.drive.test;S.result={result};end",
+		// android drive
+		"intent://webauthn/#Intent;scheme=tutanota;package=de.tutao.tutanota.debug;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutacalendar;package=de.tutao.calendar.debug;S.result={result};end",
+		"intent://webauthn/#Intent;scheme=tutadrive;package=de.tutao.drive.debug;S.result={result};end",
+		// iOS
+		"tutanota://{result}",
+		"tutacalendar://{result}",
+		"tutadrive://{result}",
+	]
+
+	return validUrls.includes(cbUrl)
 }
