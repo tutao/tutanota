@@ -19,6 +19,8 @@ import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
 import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
 import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../../ui/base/InputButton.js"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { TextField } from "../../../../../ui/base/TextField"
+import { Icons } from "../../../../../ui/base/icons/Icons"
 
 export enum PickerPosition {
 	TOP,
@@ -37,6 +39,7 @@ export interface DatePickerAttrs {
 	position?: PickerPosition
 	classes?: Array<string>
 	noPadding?: boolean
+	useNewTextField?: boolean
 }
 
 /**
@@ -149,8 +152,57 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			} satisfies InputButtonAttributes),
 		])
 	}
+	private renderTextField(attrs: DatePickerAttrs): Children {
+		return attrs.useNewTextField ? this.renderNewTextField(attrs) : this.renderLegacyTextField(attrs)
+	}
 
-	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled, noPadding }: DatePickerAttrs): Children {
+	private renderNewTextField({ date, onDateSelected, label, nullSelectionText, disabled, noPadding }: DatePickerAttrs): Children {
+		return m(
+			"",
+			{
+				onclick: () => {
+					if (!disabled) {
+						this.showingDropdown = true
+					}
+				},
+			},
+			m(TextField, {
+				class: noPadding ? "" : undefined,
+				value: this.inputText,
+				label,
+				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
+				disabled,
+				hasPopup: AriaPopupType.Dialog,
+				oninput: (text) => {
+					// we want to hold on to the text for when we actually want to process it
+					this.inputText = text
+				},
+				onfocus: (_, input) => {
+					if (!disabled) {
+						this.showingDropdown = true
+					}
+					this.textFieldHasFocus = true
+				},
+				onDomInputCreated: (input) => {
+					if (this.domInput == null) {
+						this.domInput = input
+					}
+				},
+				onblur: () => {
+					this.textFieldHasFocus = false
+				},
+				keyHandler: (key) => {
+					return this.handleInputKeyEvents(key, disabled, onDateSelected)
+				},
+				leadingIcon: {
+					icon: Icons.CalendarFilled,
+					color: theme.on_surface_variant,
+				},
+			}),
+		)
+	}
+
+	private renderLegacyTextField({ date, onDateSelected, label, nullSelectionText, disabled, noPadding }: DatePickerAttrs): Children {
 		return m(
 			"",
 			{

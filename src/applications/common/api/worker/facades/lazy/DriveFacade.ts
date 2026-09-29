@@ -125,6 +125,7 @@ export const enum DriveFolderType {
 export interface DriveShareInfo {
 	share: DriveFileShare
 	publicLink: string
+	password?: string
 }
 export interface PasswordUpdate {
 	verifier: Uint8Array<ArrayBuffer>
@@ -424,10 +425,7 @@ export class DriveFacade {
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
 		await delay(1000)
 		const { fileGroupKey } = await this.getCryptoInfo()
-		// Set the expiration time to the end of the day
-		if (isNotNull(expirationDate)) {
-			expirationDate.setHours(23, 59, 59)
-		}
+		expirationDate = this.normalizeShareExpirationDate(expirationDate)
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 		if (password == null) {
 			// 1. Generate a random nonce (N).
@@ -491,6 +489,16 @@ export class DriveFacade {
 		return this.getShareInfo(updatedFile)
 	}
 
+	private normalizeShareExpirationDate(expirationDate: Date | null): Date | null {
+		// Set the expiration time to the end of the day
+		if (isNotNull(expirationDate)) {
+			expirationDate.setHours(23, 59, 59)
+			return expirationDate
+		} else {
+			return null
+		}
+	}
+
 	async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
@@ -504,9 +512,10 @@ export class DriveFacade {
 
 	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null): Promise<DriveFileShare> {
 		let passwordUpdate: PasswordUpdate | null = null
-		if (password != null) {
+		if (isNotNull(password)) {
 			passwordUpdate = await this.constructPasswordUpdate(share, password)
 		}
+		expirationDate = this.normalizeShareExpirationDate(expirationDate)
 
 		await this.serviceExecutor.execute(
 			DriveShareService_PUT,
@@ -556,7 +565,7 @@ export class DriveFacade {
 			})
 
 			const publicLink = `${appUrl}/drivefile/${shareId}?${queryParams.toString()}#${fragmentParams.toString()}`
-			return { share, publicLink }
+			return { share, publicLink, password }
 		} else {
 			// share is publicly available
 			// 1. Create a link with shareId, authToken, shareKey (SHK)

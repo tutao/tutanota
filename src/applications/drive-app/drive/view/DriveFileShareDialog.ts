@@ -5,7 +5,7 @@ import { Button, ButtonType } from "../../../../ui/base/Button"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { FileFolderItem } from "./DriveUtils"
 import { TextField } from "../../../../ui/base/TextField"
-import { isNotNull } from "@tutao/utils"
+import { assertNotNull, isNotNull } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
@@ -17,8 +17,10 @@ import { UserError } from "../../../common/api/main/UserError"
 import { theme } from "../../../../ui/theme"
 import { PrimaryButton, SecondaryButton, SecondaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
 import { Switch } from "../../../../ui/base/Switch"
-import { PasswordField, PasswordFieldAttrs } from "../../../common/misc/passwords/PasswordField"
+import { PasswordFieldNew } from "../../../common/signup/components/PasswordFieldNew"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { DriveFileShare } from "@tutao/entities/drive"
+import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 
 type ShareDialogState = "busy" | "done"
 
@@ -32,18 +34,20 @@ export class DriveFileShareDialog {
 
 async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderItem) {
 	let shareInfo: DriveShareInfo | null = null
-	// item.file.share
-	// 	? await driveFacade.getShareInfo(item.file)
-	// 	: await driveFacade.createShareLink(item.file, null, null)
-
 	let state: ShareDialogState = "busy"
+
+	const reloadShare = async () => {
+		state = "busy"
+		m.redraw()
+
+		shareInfo = await driveFacade.getShareInfo(item.file)
+		state = "done"
+		m.redraw()
+	}
+
 	if (item.file.share) {
-		// load share information
-		driveFacade.getShareInfo(item.file).then((info) => {
-			shareInfo = info
-			state = "done"
-			m.redraw()
-		})
+		// load existing share information
+		reloadShare()
 	} else {
 		// no share, create it
 		driveFacade.createShareLink(item.file, null, null).then((info) => {
@@ -104,7 +108,13 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 										m(SecondaryButton, {
 											label: lang.makeTranslation("", "Set password and expiration date"), // FIXME
 											onclick: () => {
-												showFileShareDetailsDialog(item.file.name)
+												showFileShareDetailsDialog(
+													driveFacade,
+													reloadShare,
+													assertNotNull(shareInfo).share,
+													item.file.name,
+													shareInfo?.password ?? null,
+												)
 											},
 											style: {
 												border: `1px solid ${theme.outline}`,
@@ -145,14 +155,25 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 	dialog.show()
 }
 
-async function showFileShareDetailsDialog(fileName: string) {
+async function showFileShareDetailsDialog(
+	driveFacade: DriveFacade,
+	reloadShare: () => Promise<unknown>,
+	share: DriveFileShare,
+	fileName: string,
+	password: string | null,
+) {
 	const dialog = new Dialog(
 		DialogType.EditMedium,
 		class DriveFileShareDialog implements Component {
-			private doPassword: boolean = false
-			private doExpiry: boolean = false
-			private passwordValue: string = ""
-			private expirationDate: Date | null = null
+			private doPassword: boolean = isNotNull(password)
+			private doExpiry: boolean = isNotNull(share.expirationDate)
+			private passwordValue: string = password ?? ""
+			private expirationDate: Date | null = share.expirationDate
+
+			async updateShareAndReload(password: string | null, expirationDate: Date | null): Promise<void> {
+				await driveFacade.updateShare(share, password, expirationDate)
+				await reloadShare()
+			}
 
 			view(): Children {
 				return m(".flex.col", {}, [
@@ -186,11 +207,11 @@ async function showFileShareDetailsDialog(fileName: string) {
 								"Secure the file with a password",
 							),
 							this.doPassword
-								? m(PasswordField, {
+								? m(PasswordFieldNew, {
 										class: "",
 										value: this.passwordValue,
 										oninput: (passwordValue) => (this.passwordValue = passwordValue),
-									} satisfies PasswordFieldAttrs)
+									})
 								: null,
 						),
 
@@ -211,15 +232,11 @@ async function showFileShareDetailsDialog(fileName: string) {
 										date: this.expirationDate,
 										label: lang.makeTranslation("", "Select expiry date"),
 										onDateSelected: (selectedDate) => {
-											//FIXME : this function triggers twice for some reason
-											if (selectedDate.getDate() < new Date().getDate()) {
-												throw new UserError(lang.makeTranslation("", "Expiration date is in the past. Please select another date"))
-											} else {
-												this.expirationDate = selectedDate
-											}
+											this.expirationDate = selectedDate
 										},
 										startOfTheWeekOffset: 0, //FIXME
 										noPadding: true,
+										useNewTextField: true,
 									})
 								: null,
 						),
@@ -234,7 +251,18 @@ async function showFileShareDetailsDialog(fileName: string) {
 								// FIXME
 								label: lang.makeTranslation("updateLink_action", "Update share link"),
 								onclick: () => {
-									alert("loser")
+									if (this.doPassword && this.passwordValue.trim() === "") {
+										throw new UserError(lang.makeTranslation("", "Password cannot be empty"))
+									}
+									if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
+										throw new UserError(lang.makeTranslation("", "Expiration date cannot be in  the past"))
+									}
+
+									dialog.close()
+									showProgressDialog(
+										lang.makeTranslation("", "Updating share link"), //FIXME
+										this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
+									)
 								},
 							}),
 						),
