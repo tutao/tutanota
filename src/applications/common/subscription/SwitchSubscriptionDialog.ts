@@ -28,7 +28,6 @@ import {
 	PlanType,
 } from "../../../entities/sys/Utils"
 import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason } from "@tutao/app-env"
-import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
@@ -52,7 +51,6 @@ import {
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
-import { getPrivateBusinessSwitchButton } from "./SubscriptionPage.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
 import { getDiscountDetails } from "./utils/PlanSelectorUtils"
 import { px } from "../../../ui/size"
@@ -62,7 +60,7 @@ import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetecto
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
 import { elementIdToId, GENERATED_MAX_ID } from "@tutao/meta"
-import { InvoiceData } from "./utils/PaymentUtils"
+import { getPrivateBusinessSwitchButton, InvoiceData, SubscriptionActionButtons } from "./utils/PaymentUtils"
 import { showManageSubscriptionThroughExternalStoreDialog } from "../misc/SubscriptionDialogs"
 
 /**
