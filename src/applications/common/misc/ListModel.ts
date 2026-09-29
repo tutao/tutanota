@@ -123,7 +123,7 @@ export class ListModel<ItemType, IdType> {
 		this.rawStateStream({ ...this.rawState, ...newStatePart })
 	}
 
-	private waitUtilInit(): Promise<unknown> {
+	private waitUntilInit(): Promise<unknown> {
 		const deferred = defer()
 		const subscription = this.rawStateStream.map(() => {
 			if (this.initialLoading != null) {
@@ -174,8 +174,7 @@ export class ListModel<ItemType, IdType> {
 			await this.loading
 		}
 
-		this.rawStateStream(this.defaultRawStateStream)
-		await this.doLoad()
+		await this.doReload()
 	}
 
 	updateLoadingStatus(status: ListLoadingState) {
@@ -212,6 +211,84 @@ export class ListModel<ItemType, IdType> {
 		return this.loading
 	}
 
+	private async doReload() {
+		this.updateLoadingStatus(ListLoadingState.Loading)
+		this.loading = Promise.resolve().then(async () => {
+			let lastFetchedItem = null
+			const oldUnfilteredItemCount = this.rawState.unfilteredItems.length
+			let updatedUnfilteredItemCount = 0
+			let updatedFilteredItemCount = 0
+			try {
+				do {
+					const { items: newItems, complete } = await this.config.fetch(lastFetchedItem, PageSize)
+					lastFetchedItem = last(newItems)
+
+					// if the loading was canceled in the meantime, don't insert anything so that it's not confusing
+					if (this.state.loadingStatus === ListLoadingState.ConnectionLost) {
+						return
+					}
+
+					const oldUnfilteredItems = [...this.rawState.unfilteredItems]
+					const unfilteredItemsBeforeCurrentPage = oldUnfilteredItems.slice(0, updatedUnfilteredItemCount)
+					const unfilteredItemsAfterCurrentPage = oldUnfilteredItems.slice(updatedUnfilteredItemCount + PageSize)
+					updatedUnfilteredItemCount += newItems.length
+					let updatedUnfilteredItems = unfilteredItemsBeforeCurrentPage.concat(newItems)
+					if (!complete) {
+						updatedUnfilteredItems = updatedUnfilteredItems.concat(unfilteredItemsAfterCurrentPage)
+					}
+					updatedUnfilteredItems.sort(this.config.sortCompare)
+
+					const oldFilteredItems = [...this.rawState.filteredItems]
+					const filteredItemsBeforeCurrentPage = oldFilteredItems.slice(0, updatedFilteredItemCount)
+					const filteredItemsAfterCurrentPage = oldFilteredItems.slice(updatedFilteredItemCount + PageSize)
+					const newFilteredItems = this.applyFilter(newItems)
+					updatedFilteredItemCount += newFilteredItems.length
+					let updatedFilteredItems = filteredItemsBeforeCurrentPage.concat(newFilteredItems)
+					if (!complete) {
+						updatedFilteredItems = updatedFilteredItems.concat(filteredItemsAfterCurrentPage)
+					}
+					updatedFilteredItems.sort(this.config.sortCompare)
+
+					const loadingStatus = complete ? ListLoadingState.Done : ListLoadingState.Idle
+					const oldActiveItem = this.rawState.activeItem
+					if (oldActiveItem) {
+						const newActiveItem = updatedFilteredItems.find((item) => this.hasSameId(item, oldActiveItem))
+						if (newActiveItem) {
+							const oldSelectedItems = [...this.rawState.selectedItems]
+							const newSelectedItems = updatedFilteredItems.filter((item) =>
+								oldSelectedItems.some((oldItem) => {
+									return this.hasSameId(oldItem, item)
+								}),
+							)
+							this.updateState({
+								loadingStatus,
+								unfilteredItems: updatedUnfilteredItems,
+								filteredItems: updatedFilteredItems,
+								activeItem: newActiveItem,
+								selectedItems: new Set(newSelectedItems),
+							})
+						} else {
+							this.selectNone()
+							this.updateState({ loadingStatus, unfilteredItems: updatedUnfilteredItems, filteredItems: updatedFilteredItems, activeItem: null })
+						}
+					} else {
+						this.updateState({ loadingStatus, unfilteredItems: updatedUnfilteredItems, filteredItems: updatedFilteredItems })
+					}
+
+					if (complete) {
+						break
+					}
+				} while (updatedUnfilteredItemCount < oldUnfilteredItemCount)
+			} catch (e) {
+				this.updateLoadingStatus(ListLoadingState.ConnectionLost)
+				if (!isOfflineError(e)) {
+					throw e
+				}
+			}
+		})
+		return this.loading
+	}
+
 	private applyFilter(newItems: ReadonlyArray<ItemType>): Array<ItemType> {
 		return newItems.filter(this.filter ?? (() => true))
 	}
@@ -234,7 +311,7 @@ export class ListModel<ItemType, IdType> {
 		this.rangeSelectionAnchorItem = item
 	}
 
-	/** An item was added to the selection. If multiselect was not on, discard previous single selection and only added selected item to the selection. */
+	/** An item was added to the selection. If multiselect was not on, discard the previous single selection and only added selected item to the selection. */
 	onSingleExclusiveSelection(item: ItemType): void {
 		if (!this.rawState.inMultiselect) {
 			this.updateState({ selectedItems: new Set([item]), inMultiselect: true, activeItem: item })
@@ -284,7 +361,7 @@ export class ListModel<ItemType, IdType> {
 	}
 
 	async loadAndSelect(finder: (item: ItemType) => boolean, shouldStop: () => boolean): Promise<ItemType | null> {
-		await this.waitUtilInit()
+		await this.waitUntilInit()
 		let foundItem: ItemType | undefined = undefined
 		while (
 			// if we did find the target mail, stop
