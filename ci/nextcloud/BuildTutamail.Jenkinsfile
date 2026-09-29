@@ -78,8 +78,8 @@ pipeline {
                     sh """node buildSrc/createReleaseDraft.js --name "[Nextcloud] TutaMail v${env.VERSION}" \
                                            --tag '${env.RELEASE_TAG}' \
                                            --uploadFile 'tutamail.tar.gz' \
-                                           --release
                                            --notes notes.txt
+                                           --release
                                            """
                     } // createReleaseDraft
 
