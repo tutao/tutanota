@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { ListModel, ListModelConfig } from "../../../src/applications/common/misc/ListModel.js"
 import { EntityIdEncoding, getElementId, sortCompareById, timestampToGeneratedId } from "../../../src/platform-kit/meta"
 import { defer, DeferredObject, getFirstOrThrow, lastThrow } from "../../../src/platform-kit/utils"
-import { ListFetchResult } from "../../../src/ui/base/ListUtils.js"
+import { ListFetchResult, PageSize } from "../../../src/ui/base/ListUtils.js"
 import { ListLoadingState } from "../../../src/ui/base/List.js"
 import * as restError from "../../../src/platform-kit/rest-client/error"
 import { createTestEntity } from "../TestUtils.js"
@@ -12,11 +12,13 @@ import { KnowledgeBaseEntry, KnowledgeBaseEntryTypeRef } from "@tutao/entities/t
 o.spec("ListModel", function () {
 	const listId = "listId"
 	const entityIdEncoding = EntityIdEncoding.Base64Ext
-	let fetchDefer: DeferredObject<ListFetchResult<KnowledgeBaseEntry>>
 	let listModel: ListModel<KnowledgeBaseEntry, Id>
 	let currentSelectBehavior = ListAutoSelectBehavior.OLDER
+	let fetchDefers: Array<DeferredObject<ListFetchResult<KnowledgeBaseEntry>>>
 	const defaultListConfig: ListModelConfig<KnowledgeBaseEntry, Id> = {
-		fetch: () => fetchDefer.promise,
+		fetch: () => {
+			return fetchDefers.length > 1 ? fetchDefers.shift()!.promise : fetchDefers[0].promise
+		},
 		sortCompare: (l, r) => l.title.localeCompare(r.title),
 		autoSelectBehavior: () => currentSelectBehavior,
 		getItemId: getElementId,
@@ -43,12 +45,12 @@ o.spec("ListModel", function () {
 	const items = Object.freeze([itemA, itemB, itemC, itemD])
 
 	async function setItems(items: readonly KnowledgeBaseEntry[]) {
-		fetchDefer.resolve({ items: items.slice(), complete: true })
+		fetchDefers[0].resolve({ items: items.slice(), complete: true })
 		await listModel.loadInitial()
 	}
 
 	o.beforeEach(function () {
-		fetchDefer = defer<ListFetchResult<KnowledgeBaseEntry>>()
+		fetchDefers = [defer<ListFetchResult<KnowledgeBaseEntry>>()]
 		listModel = new ListModel<KnowledgeBaseEntry, Id>(defaultListConfig)
 	})
 
@@ -56,7 +58,7 @@ o.spec("ListModel", function () {
 		o("when loading initially it will set state to loading", async function () {
 			const loading = listModel.loadInitial()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
-			fetchDefer.resolve({ items: [], complete: false })
+			fetchDefers[0].resolve({ items: [], complete: false })
 			await loading
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
 		})
@@ -64,7 +66,7 @@ o.spec("ListModel", function () {
 		o("when connection error occurs it wil set state to connectionLost", async function () {
 			const loading = listModel.loadInitial()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
-			fetchDefer.reject(new restError.ConnectionError("oops"))
+			fetchDefers[0].reject(new restError.ConnectionError("oops"))
 			await loading
 			o(listModel.state.loadingStatus).equals(ListLoadingState.ConnectionLost)
 		})
@@ -72,24 +74,24 @@ o.spec("ListModel", function () {
 		o("when complete it wil set state to done", async function () {
 			const loading = listModel.loadInitial()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
-			fetchDefer.resolve({ items: [], complete: true })
+			fetchDefers[0].resolve({ items: [], complete: true })
 			await loading
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 		})
 
 		o("when loadMore is called it will set state to loading and will fetch more", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.resolve({ items: [], complete: false })
+			fetchDefers[0].resolve({ items: [], complete: false })
 			await initialLoading
 
-			fetchDefer = defer()
+			fetchDefers[0] = defer()
 			const moreLoading = listModel.loadMore()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
 			const knowledgeBaseEntry = createTestEntity(KnowledgeBaseEntryTypeRef, {
 				_id: [listId, timestampToGeneratedId(10)],
 			})
-			fetchDefer.resolve({
+			fetchDefers[0].resolve({
 				items: [knowledgeBaseEntry],
 				complete: true,
 			})
@@ -99,14 +101,14 @@ o.spec("ListModel", function () {
 		})
 		o("when called with retryLoading after connection error it will set state to loading and will load again", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.reject(new restError.ConnectionError("oops"))
+			fetchDefers[0].reject(new restError.ConnectionError("oops"))
 			await initialLoading
 
-			fetchDefer = defer()
+			fetchDefers[0] = defer()
 			const retryLoading = listModel.retryLoading()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
-			fetchDefer.resolve({ items: [], complete: true })
+			fetchDefers[0].resolve({ items: [], complete: true })
 			await retryLoading
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
@@ -114,11 +116,11 @@ o.spec("ListModel", function () {
 
 		o("when reload is called it reloads if the list model is in Idle or Done state", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.resolve({ items: [], complete: false })
+			fetchDefers[0].resolve({ items: [], complete: false })
 			await initialLoading
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
-			fetchDefer = defer()
+			fetchDefers[0] = defer()
 			const reloading1 = listModel.reload()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
@@ -126,7 +128,7 @@ o.spec("ListModel", function () {
 				_id: [listId, timestampToGeneratedId(10)],
 			})
 
-			fetchDefer.resolve({
+			fetchDefers[0].resolve({
 				items: [knowledgeBaseEntry1],
 				complete: true,
 			})
@@ -136,7 +138,7 @@ o.spec("ListModel", function () {
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Done)
 			o(listModel.state.items).deepEquals([knowledgeBaseEntry1])
 
-			fetchDefer = defer()
+			fetchDefers[0] = defer()
 			const reloading2 = listModel.reload()
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
@@ -144,7 +146,7 @@ o.spec("ListModel", function () {
 				_id: [listId, timestampToGeneratedId(20)],
 			})
 
-			fetchDefer.resolve({
+			fetchDefers[0].resolve({
 				items: [knowledgeBaseEntry2],
 				complete: true,
 			})
@@ -155,9 +157,225 @@ o.spec("ListModel", function () {
 			o(listModel.state.items).deepEquals([knowledgeBaseEntry2])
 		})
 
+		o("when reload is called it reloads all items previously loaded", async function () {
+			const itemsOnServer = generateKnowledgeBaseEntries(PageSize * 3)
+			itemsOnServer.sort(defaultListConfig.sortCompare)
+
+			const firstChunk = itemsOnServer.slice(0, PageSize)
+			const secondChunk = itemsOnServer.slice(PageSize, PageSize * 2)
+			const thirdChunk = itemsOnServer.slice(PageSize * 2)
+
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: thirdChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.loadInitial()
+			await listModel.loadMore()
+
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+
+			// Reload should fetch exactly the pages that were previously loaded.
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+			]
+
+			await listModel.reload()
+
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+		})
+
+		o("when reload is called it reloads all items previously loaded and keeps selection if fetch results are the same", async function () {
+			const itemsOnServer = generateKnowledgeBaseEntries(PageSize * 3)
+			itemsOnServer.sort(defaultListConfig.sortCompare)
+
+			const firstChunk = itemsOnServer.slice(0, PageSize)
+			const secondChunk = itemsOnServer.slice(PageSize, PageSize * 2)
+			const thirdChunk = itemsOnServer.slice(PageSize * 2)
+
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: thirdChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.loadInitial()
+			const firstSelectedItem = firstChunk[1]
+			const secondSelectedItem = secondChunk[1]
+			listModel.onSingleSelection(firstSelectedItem)
+			listModel.onSingleInclusiveSelection(secondSelectedItem)
+			await listModel.loadMore()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(true)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(true)
+			o.check(listModel.state.inMultiselect).equals(true)
+			o.check(listModel.state.activeIndex).equals(PageSize + 1)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+
+			// Reload should fetch exactly the pages that were previously loaded.
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+			]
+
+			await listModel.reload()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(true)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(true)
+			o.check(listModel.state.inMultiselect).equals(true)
+			o.check(listModel.state.activeIndex).equals(PageSize + 1)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+		})
+
+		o("when reload is called it reloads all items previously loaded and keeps selection only for items that are still there", async function () {
+			const itemsOnServer = generateKnowledgeBaseEntries(PageSize * 3)
+			itemsOnServer.sort(defaultListConfig.sortCompare)
+
+			const firstChunk = itemsOnServer.slice(0, PageSize)
+			const secondChunk = itemsOnServer.slice(PageSize, PageSize * 2)
+			const thirdChunk = itemsOnServer.slice(PageSize * 2)
+
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: thirdChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.loadInitial()
+			const firstSelectedItem = firstChunk[1]
+			const secondSelectedItem = secondChunk[1]
+			listModel.onSingleSelection(firstSelectedItem)
+			listModel.onSingleInclusiveSelection(secondSelectedItem)
+			await listModel.loadMore()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(true)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(true)
+			o.check(listModel.state.inMultiselect).equals(true)
+			o.check(listModel.state.activeIndex).equals(PageSize + 1)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+
+			// Reload fetches because items have been deleted in the meantime
+			fetchDefers = [
+				createFetchDefer({
+					items: secondChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.reload()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(false)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(true)
+			o.check(listModel.state.inMultiselect).equals(true)
+			o.check(listModel.state.activeIndex).equals(1)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Done)
+			o.check(listModel.state.items).deepEquals(secondChunk)
+		})
+
+		o("when reload is called it reloads all items previously loaded and remove selection when activeItem is gone", async function () {
+			const itemsOnServer = generateKnowledgeBaseEntries(PageSize * 3)
+			itemsOnServer.sort(defaultListConfig.sortCompare)
+
+			const firstChunk = itemsOnServer.slice(0, PageSize)
+			const secondChunk = itemsOnServer.slice(PageSize, PageSize * 2)
+			const thirdChunk = itemsOnServer.slice(PageSize * 2)
+
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: secondChunk,
+					complete: false,
+				}),
+				createFetchDefer({
+					items: thirdChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.loadInitial()
+			const firstSelectedItem = firstChunk[1]
+			const secondSelectedItem = secondChunk[1]
+			listModel.onSingleSelection(firstSelectedItem)
+			listModel.onSingleInclusiveSelection(secondSelectedItem)
+			await listModel.loadMore()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(true)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(true)
+			o.check(listModel.state.inMultiselect).equals(true)
+			o.check(listModel.state.activeIndex).equals(PageSize + 1)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
+			o.check(listModel.state.items).deepEquals(firstChunk.concat(secondChunk))
+
+			// Reload fetches because items have been deleted in the meantime
+			fetchDefers = [
+				createFetchDefer({
+					items: firstChunk,
+					complete: true,
+				}),
+			]
+
+			await listModel.reload()
+
+			o.check(listModel.state.selectedItems.has(firstSelectedItem)).equals(false)
+			o.check(listModel.state.selectedItems.has(secondSelectedItem)).equals(false)
+			o.check(listModel.state.inMultiselect).equals(false)
+			o.check(listModel.state.activeIndex).equals(null)
+			o.check(listModel.state.loadingStatus).equals(ListLoadingState.Done)
+			o.check(listModel.state.items).deepEquals(firstChunk)
+		})
+
 		o("when reload is called and initialLoading is null it does do the initial load", async function () {
 			const result = listModel.reload()
-			fetchDefer.resolve({ items: [], complete: false })
+			fetchDefers[0].resolve({ items: [], complete: false })
 
 			await result
 
@@ -166,18 +384,18 @@ o.spec("ListModel", function () {
 
 		o("when reload is called on already loading list model it does start another load after the current one is done", async function () {
 			const initialLoading = listModel.loadInitial()
-			fetchDefer.resolve({ items: [], complete: false })
+			fetchDefers[0].resolve({ items: [], complete: false })
 			await initialLoading
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Idle)
-			fetchDefer = defer()
+			fetchDefers[0] = defer()
 
 			const reload1 = listModel.reload()
 			const reload2 = listModel.reload()
 
 			o(listModel.state.loadingStatus).equals(ListLoadingState.Loading)
 
-			fetchDefer.resolve({ items: [], complete: true })
+			fetchDefers[0].resolve({ items: [], complete: true })
 
 			await reload1
 			await reload2
@@ -188,6 +406,26 @@ o.spec("ListModel", function () {
 
 	function getSortedSelection() {
 		return listModel.getSelectedAsArray().sort((a, b) => sortCompareById(a, b, entityIdEncoding))
+	}
+
+	function generateKnowledgeBaseEntries(amount: number) {
+		return Array.from({ length: amount }, (_, i) => {
+			const elementId = timestampToGeneratedId(i * 10)
+			return createTestEntity(KnowledgeBaseEntryTypeRef, {
+				title: elementId,
+				_id: [listId, elementId],
+			})
+		})
+	}
+
+	function createFetchDefer(result?: ListFetchResult<KnowledgeBaseEntry>, error?: Error) {
+		const d = defer<ListFetchResult<KnowledgeBaseEntry>>()
+		if (result !== undefined) {
+			d.resolve(result)
+		} else if (error !== undefined) {
+			d.reject(error)
+		}
+		return d
 	}
 
 	o.spec("selection controls selectPrevious/selectNext", function () {
