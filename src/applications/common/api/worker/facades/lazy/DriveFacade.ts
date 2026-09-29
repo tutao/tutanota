@@ -35,7 +35,7 @@ import {
 	Require,
 	uint8ArrayToBase64,
 } from "@tutao/utils"
-import { elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { ElementId, elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -477,8 +477,9 @@ export class DriveFacade {
 			)
 		}
 
+		// FIXME: Do not reload the whole file maybe?
 		const updatedFile = await this.loadDriveFile(file._id)
-		return this.getShareInfo(updatedFile)
+		return this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))
 	}
 
 	async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {
@@ -514,7 +515,7 @@ export class DriveFacade {
 		return { verifier, ownerEncPassword, groupKeyVersion }
 	}
 
-	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null): Promise<DriveFileShare> {
+	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null) {
 		let passwordUpdate: PasswordUpdate | null = null
 		if (isNotNull(password)) {
 			passwordUpdate = await this.constructPasswordUpdate(share, password)
@@ -536,16 +537,13 @@ export class DriveFacade {
 			}),
 			null,
 		)
-		const updatedShare = await this.entityClient.load(DriveFileShareTypeRef, share._id)
-		return updatedShare
 	}
 
-	async getShareInfo(file: DriveFile): Promise<DriveShareInfo> {
+	async getShareInfo(shareId: ElementId): Promise<DriveShareInfo> {
 		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
 		const appUrl = this.domainConfig.apiUrl
 
-		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(assertNotNull(file.share)))
-		const shareId = elementIdToId(share._id)
+		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
 
 		const { fileGroupKey } = await this.getCryptoInfo()
 
@@ -568,7 +566,7 @@ export class DriveFacade {
 				salt: uint8ArrayToBase64(salt),
 			})
 
-			const publicLink = `${appUrl}/drivefile/${shareId}?${queryParams.toString()}#${fragmentParams.toString()}`
+			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
 			return { share, publicLink, password }
 		} else {
 			// share is publicly available
@@ -580,7 +578,7 @@ export class DriveFacade {
 				shareKey: keyToBase64(shareKey),
 			})
 
-			const publicLink = `${appUrl}/drivefile/${shareId}?${queryParams.toString()}#${fragmentParams.toString()}`
+			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
 			return { share, publicLink }
 		}
 	}

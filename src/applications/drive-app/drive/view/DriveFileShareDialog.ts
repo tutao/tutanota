@@ -19,8 +19,10 @@ import { PrimaryButton, SecondaryButton, SecondaryButtonAttrs } from "../../../.
 import { Switch } from "../../../../ui/base/Switch"
 import { PasswordFieldNew } from "../../../common/signup/components/PasswordFieldNew"
 import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
-import { DriveFileShare } from "@tutao/entities/drive"
+import { DriveFile, DriveFileShare } from "@tutao/entities/drive"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
+import { idToElementId } from "@tutao/meta"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 
 type ShareDialogState = "busy" | "done"
 
@@ -28,29 +30,26 @@ export class DriveFileShareDialog {
 	constructor(private readonly driveFacade: DriveFacade) {}
 
 	show(item: FileFolderItem) {
-		void showFileShareDialog(this.driveFacade, item)
+		const file = item.file
+
+		void showFileShareDialog(this.driveFacade, file)
 	}
 }
 
-async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderItem) {
+async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 	let shareInfo: DriveShareInfo | null = null
 	let state: ShareDialogState = "busy"
 
-	const reloadShare = async () => {
-		state = "busy"
-		m.redraw()
-		const updatedFile = await driveFacade.loadDriveFile(item.file._id)
-		shareInfo = await driveFacade.getShareInfo(updatedFile)
-		state = "done"
-		m.redraw()
-	}
-
-	if (item.file.share) {
-		// load existing share information
-		reloadShare()
+	if (file.share) {
+		// reload file in case we just created the share
+		driveFacade.getShareInfo(idToElementId(file.share)).then((info) => {
+			shareInfo = info
+			state = "done"
+			m.redraw()
+		})
 	} else {
 		// no share, create it
-		driveFacade.createShareLink(item.file, null, null).then((info) => {
+		driveFacade.createShareLink(file, null, null).then((info) => {
 			shareInfo = info
 			state = "done"
 			m.redraw()
@@ -75,7 +74,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 									fill: theme.on_surface_variant,
 								},
 							}),
-							m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, item.file.name),
+							m(".b.uppercase.text-ellipsis", { "data-testid": "test:fileShareDetailsLabel" }, file.name),
 						]),
 						shareInfo == null
 							? [m(".flex.col.items-center.gap-8", state === "busy" ? progressIcon() : null)]
@@ -110,9 +109,20 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 											onclick: () => {
 												showFileShareDetailsDialog(
 													driveFacade,
-													reloadShare,
+													async () => {
+														state = "busy"
+														m.redraw()
+														// This happens if we just created a share due to opening the dialog
+														// but file.share is not initialized yet
+														if (isNull(file.share)) {
+															file = await driveFacade.loadDriveFile(file._id)
+														}
+														shareInfo = await driveFacade.getShareInfo(idToElementId(assertNotNull(file.share)))
+														state = "done"
+														m.redraw()
+													},
 													assertNotNull(shareInfo).share,
-													item.file.name,
+													file.name,
 													shareInfo?.password ?? null,
 												)
 											},
@@ -128,10 +138,10 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 											label: lang.makeTranslation("deleteLink_action", "Delete link"), // FIXME
 											click: () => {
 												// FIXME show progress
-												driveFacade.deleteShareLink(item.file)
+												driveFacade.deleteShareLink(file)
 												shareInfo = null
 												dialog.close()
-												const message = lang.makeTranslation("", `Share link for ${item.file.name} has been deleted`) //FIXME
+												const message = lang.makeTranslation("", `Share link for ${file.name} has been deleted`) //FIXME
 												showSnackBar({ message })
 											},
 										}),
