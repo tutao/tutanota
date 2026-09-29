@@ -1,4 +1,4 @@
-FROM node:24.17-bullseye@sha256:33e8a4e2bde8dd8ac322c7c2310e524802e0f079c999bcea0a1695028c07354f
+FROM node:24.21-bookworm@sha256:64af3819f9275802414d7cdc38c27e9d82bd564dec4d4da87d008255d36c63b4
 WORKDIR /
 # this is only valid in dockerfiles, OCI compliant files don't support it.
 # ie you have to run podman build --format docker
