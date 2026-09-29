@@ -1143,6 +1143,7 @@ export default {
 		"loginAbuseDetected_msg": "Your account can not be used any more because the Tuta terms and conditions were violated, e.g. by sending spam emails.",
 		"loginCredentials_label": "Login credentials",
 		"loginFailed_msg": "Invalid login credentials. Please try again.",
+		"accessDeactivated_msg": "Your account has been deactivated.",
 		"loginFailedOften_msg": "Too many failed login attempts. Please try again in an hour.",
 		"loginNameInfoAdmin_msg": "Optional: the user's name.",
 		"loginOtherAccount_action": "Different account",
