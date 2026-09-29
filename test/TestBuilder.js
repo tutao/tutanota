@@ -123,6 +123,8 @@ export async function runTestBuild({ networkDebugging = false, clean, ci }) {
 				alias: {
 					// Take browser testdouble without funny require() magic
 					testdouble: path.resolve("../node_modules/testdouble/dist/testdouble.js"),
+					// TODO move plugin test code to src/plugin-kit/plugins
+					axios: path.resolve("../src/plugin-kit/plugins/nextcloud/node_modules/axios/dist/esm/axios.js"),
 				},
 			},
 			onwarn: (warning, defaultHandler) => {

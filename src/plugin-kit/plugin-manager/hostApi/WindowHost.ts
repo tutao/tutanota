@@ -25,8 +25,7 @@ export class WindowHost implements WindowHostApi {
 		if (isNull(win)) {
 			this.openedWindows.set(windowId, null)
 			return windowId
-		}
-		if (isNotNull(win)) {
+		} else if (isNotNull(win)) {
 			this.openedWindows.set(windowId, win)
 		}
 		return windowId

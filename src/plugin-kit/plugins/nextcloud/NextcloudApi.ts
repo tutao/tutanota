@@ -218,8 +218,6 @@ export class NextcloudApi {
 			return {
 				joinUrl: `${this.nextCloudUrl}/index.php/call/${joinToken}`,
 			}
-
-			// response.data.ocs.data.token
 		} catch (err) {
 			console.error(`Error while creating meeting room:....`)
 			console.error(err)
