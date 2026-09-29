@@ -84,7 +84,7 @@ pipeline {
 
 
                     def downloadURL = "https://github.com/tutao/tutanota/releases/download/${env.RELEASE_TAG}/tutamail.tar.gz"
-                    withCredentials({string(credentialsId: 'NEXTCLOUD_APP_STORE_AUTH_TOKEN', variable: "NC_TOKEN")}) {
+                    withCredentials([string(credentialsId: 'NEXTCLOUD_APP_STORE_AUTH_TOKEN', variable: "NC_TOKEN")]) {
                     sh """
                     curl -X POST https://apps.nextcloud.com/api/v1/apps/releases \
                                  -H "Authorization: Token ${NC_TOKEN}" \
