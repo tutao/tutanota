@@ -2579,3 +2579,4 @@ export type TranslationKeyType =
 	| "sendFeedback_action"
 	| "feedbackAnonymousAndHelpUs_label"
 	| "surveySomethingNotWorking_label"
+	| "accessDeactivated_msg"

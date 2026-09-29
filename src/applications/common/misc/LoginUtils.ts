@@ -115,8 +115,9 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Ma
 	switch (error.constructor) {
 		case BadRequestError:
 		case NotAuthenticatedError:
-		case AccessDeactivatedError:
 			return "loginFailed_msg"
+		case AccessDeactivatedError:
+			return "accessDeactivated_msg"
 
 		case AccessBlockedError:
 			return "loginFailedOften_msg"
@@ -172,6 +173,8 @@ export function getLoginErrorStateAndMessage(error: Error): { errorMessage: Mayb
 		state = LoginState.InvalidCredentials
 	} else if (error instanceof AccessExpiredError) {
 		state = LoginState.AccessExpired
+	} else if (error instanceof AccessDeactivatedError) {
+		state = LoginState.AccessDeactivated
 	} else {
 		state = LoginState.UnknownError
 	}
