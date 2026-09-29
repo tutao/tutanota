@@ -29,13 +29,12 @@ import { SimplifiedCreditCardViewModel } from "../../subscription/SimplifiedCred
 import { filterInt } from "@tutao/utils"
 import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { AvailablePlanType, PlanType, SubscriptionType } from "../../../../entities/sys/Utils"
-import { InvoiceData } from "../../subscription/utils/PaymentUtils"
+import { getPreselectedPlanType, InvoiceData } from "../../subscription/utils/PaymentUtils"
 import { Country } from "../../gui/CountryList"
 import { NotFoundError } from "@tutao/rest-client/error"
 import type { PlanSelectionModel } from "../../subscription/PlanSelectionModel"
 import type { PaymentDetailsModel } from "../../subscription/PaymentDetailsModel"
 import type { OrderConfirmationModel } from "../../subscription/OrderConfirmationModel"
-import { getPreselectedPlanType } from "../../subscription/SubscriptionPage"
 
 export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel, OrderConfirmationModel {
 	get isInitialized(): boolean {

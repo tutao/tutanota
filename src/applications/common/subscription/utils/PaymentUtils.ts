@@ -1,6 +1,6 @@
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { PowSolution } from "../../api/common/pow-worker"
-import { NewAccountData, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
+import { NewAccountData, type SubscriptionParameters, type UpgradeSubscriptionData } from "../UpgradeSubscriptionWizard"
 import { locator } from "../../api/main/CommonLocator"
 import { runCaptchaFlow } from "../captcha/Captcha"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
@@ -8,15 +8,15 @@ import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, Subscri
 import { SessionType } from "../../../../platform-kit/app-env/SessionType"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
-import { assertNotNull, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
+import { assertNotNull, lazy, neverNull, newPromise, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { SignupViewModel } from "../../signup/models/SignupViewModel"
 import { getPaymentMethodName, PaymentInterval } from "./PriceUtils"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import m from "mithril"
-import { Button, ButtonType } from "../../../../ui/base/Button"
-import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, InvoiceInfoTypeRef } from "@tutao/entities/sys"
-import { PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button"
+import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, CreditCard, InvoiceInfoTypeRef } from "@tutao/entities/sys"
+import { AvailablePlanType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
 	EntityUpdateData,
 	EntityUpdatesListener,
@@ -28,6 +28,13 @@ import { Country, CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { windowFacade } from "../../misc/WindowFacade"
+import type Stream from "mithril/stream"
+import { Styles } from "../../../../ui/styles"
+import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { Icons } from "../../../../ui/base/icons/Icons"
+import { theme } from "../../../../ui/theme"
+import type { PrimaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
+import { isPersonalPlanAvailable } from "./PlanSelectorUtils"
 
 export function isOnAccountAllowed(country: Country | null, accountingInfo: AccountingInfo, isBusiness: boolean): boolean {
 	if (!country) {
@@ -482,4 +489,73 @@ export async function createAccount(data: UpgradeSubscriptionData | SignupViewMo
 	// since the account will be PAID_SUBSCRIPTION_NEEDED state if the user selects free
 	data.acceptedPlans = data.acceptedPlans.filter((plan) => plan !== PlanType.Free)
 	return null
+}
+
+export interface CCViewModel {
+	validateCreditCardPaymentData(): TranslationKey | null
+
+	setCreditCardData(data: CreditCard | null): void
+
+	getCreditCardData(): CreditCard
+}
+
+export type SubscriptionActionButtons = Record<AvailablePlanType, lazy<PrimaryButtonAttrs>>
+
+/** Subscription type passed from the website */
+export const PlanTypeParameter = Object.freeze({
+	FREE: "free",
+	REVOLUTIONARY: "revolutionary",
+	LEGEND: "legend",
+	ESSENTIAL: "essential",
+	ADVANCED: "advanced",
+	UNLIMITED: "unlimited",
+})
+
+export function getPreselectedPlanType(subscriptionParams: SubscriptionParameters | null): PlanType {
+	if (subscriptionParams == null) {
+		return PlanType.Legend
+	}
+
+	switch (subscriptionParams.subscription) {
+		case PlanTypeParameter.FREE:
+			return PlanType.Free
+		case PlanTypeParameter.REVOLUTIONARY:
+			return PlanType.Revolutionary
+		case PlanTypeParameter.LEGEND:
+			return PlanType.Legend
+		case PlanTypeParameter.ESSENTIAL:
+			return PlanType.Essential
+		case PlanTypeParameter.ADVANCED:
+			return PlanType.Advanced
+		case PlanTypeParameter.UNLIMITED:
+			return PlanType.Unlimited
+		default:
+			console.log("Unknown subscription passed: ", subscriptionParams)
+			return PlanType.Legend
+	}
+}
+
+export function getPrivateBusinessSwitchButton(businessUse: Stream<boolean>, availablePlans: readonly AvailablePlanType[], update?: VoidFunction): ButtonAttrs {
+	const isBusiness = businessUse()
+	return {
+		label: isBusiness ? "privateUse_action" : "forBusiness_action",
+		type: ButtonType.Primary,
+		class: ["block"], // Use block class to override the `flex` class, thus allowing the button text to be wrapped using ellipses.
+		icon: Styles.get().isMobileLayout()
+			? null
+			: m(Icon, {
+					icon: isBusiness ? Icons.PersonFilled : Icons.SkyscraperOutline,
+					size: IconSize.PX20,
+					class: "mr-4",
+					style: {
+						fill: theme.primary,
+						"vertical-align": "sub",
+					},
+				}),
+		click: () => {
+			businessUse(!isBusiness)
+			update?.()
+		},
+		isDisabled: !isPersonalPlanAvailable(availablePlans),
+	}
 }
