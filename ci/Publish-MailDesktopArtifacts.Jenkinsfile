@@ -64,14 +64,6 @@ pipeline {
             }
         }
 		stage ('Build and publish') {
-		    agent {
-                docker {
-                    image "tuta-wasm:latest" // this image is build with TutaWasmDockerImage.Jenkinsfile
-                    reuseNode true
-                    args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
-                } // docker
-            } // agent
-
 	        stages {
                 stage('Build deb') {
                     when { expression { return params.DEB } }
