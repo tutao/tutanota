@@ -4,14 +4,13 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearc
 import { theme } from "../../../../ui/theme.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
-import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { PluginFeaturedCard } from "./PluginFeaturedCard.js"
 import { PluginListRow } from "./PluginListRow.js"
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { KNOWN_PLUGINS } from "../../../../plugin-kit/sdk/PluginId"
 import { mailLocator } from "../../../mail-app/mailLocator"
-import { isEmpty } from "@tutao/utils"
+import { isEmpty, isNotNull } from "@tutao/utils"
 
 export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 	private searchQuery: string = ""
@@ -23,15 +22,26 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 
 	view(): Children {
 		return m("#plugin-settings.fill-absolute.scroll.plr-24.pb-48", [
-			m(".h4.mt-32", lang.get("pluginsFeatured_label")),
-			m(
-				".flex.flex-wrap.gap-16",
-				[PLUGIN_REGISTRY.nextcloud].map((pluginManifest) => m(PluginFeaturedCard, { entry: pluginManifest, key: pluginManifest.id })),
-			),
+			this.renderFeaturedPlugins(),
 			m(".h4.mt-32", lang.get("pluginsAll_label")),
 			this.renderSearchBar(),
 			this.renderPluginList(),
 		])
+	}
+
+	private renderFeaturedPlugins(): Children {
+		return [
+			m(".h4.mt-32", lang.get("pluginsFeatured_label")),
+			m(
+				".flex.flex-wrap.gap-16",
+				this.model.featuredPlugins
+					.map((pluginId) => this.model.getPluginManifest(pluginId))
+					.filter(isNotNull)
+					.map((pluginManifest) =>
+						m(PluginFeaturedCard, { name: pluginManifest.name, logoSvgUrl: pluginManifest.logoSvgUrl, key: pluginManifest.id }),
+					),
+			),
+		]
 	}
 
 	oncreate(): void {
@@ -60,7 +70,8 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 
 	private renderPluginList(): Children {
 		const query = this.searchQuery.toLowerCase()
-		const filteredPluginIds = KNOWN_PLUGINS.map((pluginId) => PLUGIN_REGISTRY[pluginId])
+		const filteredPluginIds = KNOWN_PLUGINS.map((pluginId) => this.model.getPluginManifest(pluginId))
+			.filter(isNotNull)
 			.filter((entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query))
 			.map((manifest) => manifest.id)
 

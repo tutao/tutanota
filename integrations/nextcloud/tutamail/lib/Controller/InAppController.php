@@ -34,7 +34,10 @@ class InAppController extends OCSController {
 
 	    $origin = $this->request->getHeader('Origin');
 		if ( $origin != null && $origin != $this->request->getServerHost() ) {
-		    ProxyController::ensureAllowedOrigin($origin);
+		    $host = parse_url($origin, PHP_URL_HOST);
+    		if (!in_array($host, ProxyController::$ALLOWED_ORIGINS, true)) {
+                throw new ForbiddenOriginException($origin);
+            }
 			return new JSONResponse(json_encode($version), 200, ['Access-Control-Allow-Origin' => $origin]);
 		} else {
 		    return new JSONResponse(json_encode($version));

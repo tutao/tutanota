@@ -406,7 +406,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/common/termination") ||
 		isIn("src/applications/common/revocation") ||
 		isIn("src/applications/common/partner") ||
-		isIn("src/plugin-kit/plugins/nextcloud/manifest.ts") ||
+		isIn("src/plugin-kit/plugins/nextcloud/manifest.json") ||
 		isIn("src/plugin-kit/plugins/PluginRegistry.ts")
 	) {
 		// subscription and settings depend on each other right now.

@@ -8,8 +8,7 @@ import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportEx
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
-import { PluginManifest } from "../../sdk/PluginManifest"
-import { NEXTCLOUD_PLUGIN_MANIFEST } from "./manifest"
+import NEXTCLOUD_PLUGIN_MANIFEST from "./manifest.json"
 import { CustomerConfigPluginError } from "../../sdk/PluginError"
 
 type UserPluginConfig = {
@@ -35,10 +34,6 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
-	}
-
-	override getManifest(): Promise<PluginManifest> {
-		return Promise.resolve(NEXTCLOUD_PLUGIN_MANIFEST)
 	}
 
 	override async load(): Promise<void> {

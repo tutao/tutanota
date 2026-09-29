@@ -9,6 +9,9 @@
 	},
 	"references": [
 		{
+			"path": "../platform-kit/tsconfig.network.json"
+		},
+		{
 			"path": "tsconfig.sdk.json"
 		},
 		{

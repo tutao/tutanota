@@ -1,8 +1,9 @@
 import { PluginManager } from "../../../../plugin-kit/plugin-manager/PluginManager.js"
 import { ConfigFieldConfiguration } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi.js"
-import { Nullable } from "@tutao/utils"
-import { PluginId } from "../../../../plugin-kit/sdk/PluginId"
+import { PluginId, pluginIdFromString } from "../../../../plugin-kit/sdk/PluginId"
 import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider"
+import { PluginManifest } from "../../../../plugin-kit/sdk/PluginManifest"
+import { Nullable } from "@tutao/utils"
 
 /**
  * Loads/saves the org-wide (customer-scoped) enabled-state and config for each known plugin.
@@ -10,6 +11,8 @@ import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationPro
  * plugin list is the only enabled signal (delete = disabled), matching PluginConfigurationProvider.init().
  */
 export class PluginSettingsModel {
+	public readonly featuredPlugins: ReadonlyArray<PluginId> = Object.freeze([pluginIdFromString("nextcloud")])
+
 	constructor(
 		private readonly configProvider: PluginConfigurationProvider,
 		private readonly pluginManager: PluginManager,
@@ -48,6 +51,10 @@ export class PluginSettingsModel {
 				await this.pluginManager.unloadPlugin(pluginId)
 			}
 		}
+	}
+
+	public getPluginManifest(pluginId: PluginId): Nullable<PluginManifest> {
+		return this.pluginManager.getPluginManifest(pluginId)
 	}
 
 	/** Persists a full config object for an already-enabled plugin, e.g. when the admin clicks "Update" in the config panel. */

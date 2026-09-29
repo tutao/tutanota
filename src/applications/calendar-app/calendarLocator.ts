@@ -128,6 +128,7 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
+import { HttpClientJavascript } from "../../platform-kit/rest-client/HttpClientJavascript"
 
 EnvProvider.assertMainOrNode()
 
@@ -678,7 +679,7 @@ class CalendarLocator implements CommonLocator {
 
 		const pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.logins.addPostLoginAction(async () => pluginConfigurationProvider)
-		this.pluginManager = new PluginManager(pluginConfigurationProvider, new DialogProvider())
+		this.pluginManager = new PluginManager(new HttpClientJavascript(), pluginConfigurationProvider, new DialogProvider())
 		this.eventController.addEntityUpdatesListener(this.pluginManager.entityUpdatesListener)
 		pluginConfigurationProvider.setPluginManager(this.pluginManager)
 

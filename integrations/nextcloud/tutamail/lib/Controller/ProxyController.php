@@ -24,7 +24,7 @@ class ProxyController extends Controller
 			'app.local.tuta.com',
 			'localhost',
 	];
-	private array $ALLOWED_PROXIES = [
+	public static array $ALLOWED_PROXIES = [
 			'GET' => [
 			    "/^ocs\/v2\.php\/apps\/tutamail\/api\/v1\/version/",
 			],
@@ -45,8 +45,8 @@ class ProxyController extends Controller
 		$this->clientService = $clientService;
 		$this->urlGenerator = $urlGenerator;
 
-		$allPaths = array_merge(...array_values($this->ALLOWED_PROXIES));
-		$this->ALLOWED_PROXIES['OPTIONS'] = $allPaths;
+		$allPaths = array_merge(...array_values(ProxyController::$ALLOWED_PROXIES));
+		ProxyController::$ALLOWED_PROXIES['OPTIONS'] = $allPaths;
 	}
 
 	#[PublicPage]
@@ -223,9 +223,9 @@ class ProxyController extends Controller
             throw new ForbiddenOriginException($origin);
         }
 
-		if (isset($this->ALLOWED_PROXIES[$method])) {
+		if (isset(ProxyController::$ALLOWED_PROXIES[$method])) {
 			// Loop through the allowed regex patterns for this method
-			foreach ($this->ALLOWED_PROXIES[$method] as $pattern) {
+			foreach (ProxyController::$ALLOWED_PROXIES[$method] as $pattern) {
 				if (preg_match($pattern, $normalizedUrl) === 1) {
 					return;
 				}

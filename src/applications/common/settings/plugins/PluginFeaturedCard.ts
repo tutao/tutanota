@@ -1,9 +1,9 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "../../../../ui/base/Card.js"
-import { PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 
 export type PluginFeaturedCardAttrs = {
-	entry: PluginRegistryEntry
+	name: string
+	logoSvgUrl: string
 }
 
 /**
@@ -12,12 +12,12 @@ export type PluginFeaturedCardAttrs = {
  * name below it, no description (kept to the row/list section below).
  */
 export class PluginFeaturedCard implements Component<PluginFeaturedCardAttrs> {
-	view({ attrs: { entry } }: Vnode<PluginFeaturedCardAttrs>): Children {
+	view({ attrs }: Vnode<PluginFeaturedCardAttrs>): Children {
 		return m(
 			Card,
 			{ classes: ["flex", "flex-column", "items-center", "gap-8"], style: { padding: "16px" } },
-			m("img.icon-128", { src: `data:image/svg+xml;utf8,${encodeURIComponent(entry.logoSvgUrl)}` }),
-			m(".b", entry.name),
+			m("img.icon-128", { src: `data:image/svg+xml;utf8,${encodeURIComponent(attrs.logoSvgUrl)}` }),
+			m(".b", attrs.name),
 		)
 	}
 }

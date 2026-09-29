@@ -3,13 +3,17 @@ import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint } from ".
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginConfigurationOwner, PluginHost } from "./hostApi/PluginHost"
-import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, Nullable, ofClass } from "@tutao/utils"
-import { EnvProvider } from "@tutao/app-env"
+import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, LazyLoaded, Nullable, ofClass } from "@tutao/utils"
+import { EnvProvider, TimeConstants } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
+import { PluginManifest } from "../sdk/PluginManifest"
+import { HttpMethod, MediaType, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
+import { isNull } from "../../platform-kit/utils/Utils"
+import { HttpClient } from "../../platform-kit/rest-client/HttpClient"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -20,12 +24,14 @@ type PluginWrapper = {
 }
 
 export class PluginManager {
+	private readonly pluginManifest: Map<PluginId, LazyLoaded<PluginManifest>> = new Map()
 	private readonly loadedPlugins: Partial<Record<PluginId, PluginWrapper>> = {}
 	private readonly extensionPointToButtonExtension: Map<ExtensionPoint, Array<ButtonExtension>> = new Map()
 	private readonly pluginToConfigFieldExtension: Map<PluginId, Array<ConfigExtension>> = new Map()
 	private configChangeListener: () => void
 
 	constructor(
+		private readonly httpClient: HttpClient,
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
@@ -38,9 +44,8 @@ export class PluginManager {
 	}
 
 	async loadAllPlugins(): Promise<void> {
-		const allPluginIdsForCustomer = await this.configurationAdapter.getEnabledPluginIdsForCustomer()
-
-		await this.loadPlugins(...allPluginIdsForCustomer.map(pluginIdFromString))
+		const allPluginIdsForCustomer = (await this.configurationAdapter.getEnabledPluginIdsForCustomer()).map(pluginIdFromString)
+		await this.loadPlugins(...allPluginIdsForCustomer)
 	}
 
 	async loadPlugins(...pluginIdsToLoad: Array<PluginId>): Promise<void> {
@@ -53,10 +58,13 @@ export class PluginManager {
 				throw new Error(`Could not load plugin: ${pluginIdToEnable} as it is already loaded. Call unload() first`)
 			}
 
+			this._populatePluginManifestMap(pluginIdToEnable)
+			const pluginManifest = await assertNotNull(this.pluginManifest.get(pluginIdToEnable)).getAsync()
+
 			const customerConfigJson = await this.configurationAdapter.getCustomerConfig(pluginIdToEnable)
 			const pluginHost = new PluginHost(this, pluginIdToEnable)
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
-			pluginHost.initialize(await pluginApi.getManifest())
+			pluginHost.initialize(pluginManifest)
 
 			await pluginApi.load()
 
@@ -198,5 +206,49 @@ export class PluginManager {
 	public async persistCustomerConfig(pluginId: PluginId): Promise<boolean> {
 		const draftConfig = this.getLoadedPlugin(pluginId).draftConfig
 		return await this.configurationAdapter.storeCustomerConfig(pluginId, JSON.stringify(draftConfig))
+	}
+
+	private _populatePluginManifestMap(pluginId: PluginId) {
+		let lazyPluginManifest = this.pluginManifest.get(pluginId) ?? null
+		if (isNull(lazyPluginManifest)) {
+			lazyPluginManifest = new LazyLoaded<PluginManifest>(async () => await this._fetchPluginManifest(pluginId))
+			this.pluginManifest.set(pluginId, lazyPluginManifest)
+		}
+	}
+
+	public getPluginManifest(pluginId: PluginId): Nullable<PluginManifest> {
+		this._populatePluginManifestMap(pluginId)
+		const lazyPluginManifest = assertNotNull(this.pluginManifest.get(pluginId))
+		lazyPluginManifest.load()
+		if (lazyPluginManifest.isLoaded()) {
+			return lazyPluginManifest.getLoaded()
+		} else {
+			return null
+		}
+	}
+
+	private async _fetchPluginManifest(pluginId: PluginId): Promise<PluginManifest> {
+		const pluginManifestUrl = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}/manifest.json`
+		const manifestResponse = await this.httpClient.request(
+			pluginManifestUrl,
+			HttpMethod.GET,
+			null,
+			{},
+			MediaType.Json,
+			TimeConstants.secondsToMillis(5),
+			null,
+			true,
+			null,
+			null,
+		)
+		if (manifestResponse.status !== 200) {
+			throw new Error(`Could not fetch manifest file: ${manifestResponse.status}`)
+		}
+
+		if (manifestResponse.body?.bodyType === RestBodyType.Text) {
+			return JSON.parse(downcast<RestTextBody>(manifestResponse.body).payload)
+		} else {
+			throw new Error("Received non text response")
+		}
 	}
 }

@@ -4,11 +4,11 @@ import { ExpanderPanel } from "../../../../ui/base/Expander.js"
 import { Dialog } from "../../../../ui/base/Dialog.js"
 import { showInfoSnackbar } from "../../../../ui/base/SnackBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { PLUGIN_REGISTRY, PluginRegistryEntry } from "../../../../plugin-kit/plugins/PluginRegistry.js"
 import { ConfigFieldConfiguration, PluginLanguageCode } from "../../../../plugin-kit/sdk/hostApi/PluginHostApi.js"
 import { PluginSettingsModel } from "./PluginSettingsModel.js"
 import { Nullable } from "@tutao/utils"
-import { PluginId } from "../../../../plugin-kit/sdk/PluginId"
+import { PluginId, PluginRegistryEntry } from "../../../../plugin-kit/sdk/PluginId"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 import { TextField, TextFieldAttrs } from "../../../../ui/base/TextField"
 import { PrimaryButton, PrimaryButtonAttrs } from "../../../../ui/base/buttons/VariantButtons"
 
@@ -24,11 +24,15 @@ export type PluginListRowAttrs = {
 
 /** Single-line row: logo, name, description, enable Switch. The config panel is always shown while the plugin is enabled. */
 export class PluginListRow implements Component<PluginListRowAttrs> {
-	view({ attrs }: Vnode<PluginListRowAttrs>): Children {
+	view({ attrs }: Vnode<PluginListRowAttrs>): Nullable<Children> {
 		const { pluginId, model } = attrs
 
 		const pluginIsLoaded = model.pluginIsLoaded(pluginId)
-		const pluginManifest = PLUGIN_REGISTRY[pluginId]
+		const pluginManifest = model.getPluginManifest(pluginId)
+
+		if (isNull(pluginManifest)) {
+			return null
+		}
 
 		return m(".plugin-row", [
 			m(".flex.items-center.gap-8.pt-8.pb-8", [
