@@ -512,17 +512,18 @@ boolean extensionChanged(HashSet<String> changeset, String... exts) {
 	return changed || params.FORCE_RUN_ALL
 }
 
-boolean shouldRunNpmCi() {
-	def current = readFile(file: 'package.json')
+boolean isPackageJsonChanged(String packagePath) {
+	def current = readFile(file: packagePath)
 	def old
 	try {
-		old = readFile(file: 'cache/package.json')
+		old = readFile(file: 'cache/' + packagePath)
 	} catch (e) {
 		print "package.json not found in cache, re-caching."
 		print e
 		return true
 	} finally {
-		writeFile(file: 'cache/package.json', text: current)
+		sh "mkdir -p `dirname cache/${packagePath}`"
+		writeFile(file: 'cache/' + packagePath, text: current)
 	}
 	def json = new JsonSlurper()
 	def oldJson = json.parseText(old)
@@ -532,7 +533,6 @@ boolean shouldRunNpmCi() {
 	def oldWithUpdatedVersion = old.replaceAll(oldVersion, currentVersion)
 	def expectedJSON = json.parseText(oldWithUpdatedVersion)
 	if (expectedJSON.equals(currentJson)) {
-		print "skipping npm ci as package.json is unchanged"
 		return false
 	} else {
 		return true
@@ -591,7 +591,9 @@ void finalize(boolean dryRun) {
 }
 
 void installNpmPackages() {
-	if (shouldRunNpmCi()) {
+	if (isPackageJsonChanged("package.json") || isPackageJsonChanged("src/plugin-kit/plugins/nextcloud/package.json")) {
 		sh "npm ci"
+	} else {
+		print "skipping npm ci as none of the package.json files changed"
 	}
 }
