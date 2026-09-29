@@ -67,7 +67,7 @@ pipeline {
 
                     signature = sh(
                         returnStdout: true,
-                        script: 'openssl dgst -sha512 -sign /opt/nextcloud-keystore/tutamail.key src/integrations/nextcloud/tutamail.tar.gz | openssl base64'
+                        script: 'openssl dgst -sha512 -sign /opt/nextcloud-keystore/tutamail.key tutamail.tar.gz | openssl base64 -A'
                     )
 
                     env.RELEASE_TAG = "tutamail-nextcloud-release-${env.VERSION}"
@@ -78,7 +78,7 @@ pipeline {
                     sh """node buildSrc/createReleaseDraft.js --name "[Nextcloud] TutaMail v${env.VERSION}" \
                                            --tag '${env.RELEASE_TAG}' \
                                            --uploadFile 'tutamail.tar.gz' \
-                                           --notes notes.txt
+                                           --notes notes.txt \
                                            --release
                                            """
                     } // createReleaseDraft
