@@ -58,7 +58,7 @@ export const allowedImports = {
 	boot: ["polyfill-helpers", "common-min", "common"],
 	common: ["polyfill-helpers", "common-min"],
 	"gui-base": ["polyfill-helpers", "common-min", "common", "boot"],
-	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr", "plugin-sdk", "plugin-manager", ""],
+	main: ["polyfill-helpers", "common-min", "common", "boot", "gui-base", "date", "qr", "plugin-sdk", "plugin-manager"],
 	sanitizer: ["polyfill-helpers", "common-min", "common", "boot", "gui-base"],
 	date: ["polyfill-helpers", "common-min", "common"],
 	"date-gui": [
@@ -212,7 +212,7 @@ export const allowedImports = {
 	"openid-client": [],
 	pdf: ["common-min", "qr"],
 	"material-color-utilities": [],
-	drive: ["common-min", "common", "boot", "gui-base", "main"],
+	drive: ["common-min", "common", "boot", "gui-base", "main", "plugin-manager"],
 	"plugin-manager": ["common-min", "plugin-sdk", "common"],
 	"plugin-sdk": ["common-min", "common"],
 }
