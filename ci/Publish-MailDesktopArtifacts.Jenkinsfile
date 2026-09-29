@@ -43,6 +43,7 @@ pipeline {
 					}
 				}
 				echo "Params OKAY"
+				echo ">>>> PATH ${env.PATH}"
 			}
     	}
         stage('Check Github') {
