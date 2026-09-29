@@ -29,18 +29,16 @@ type ShareDialogState = "busy" | "done"
 export class DriveFileShareDialog {
 	constructor(private readonly driveFacade: DriveFacade) {}
 
-	show(item: FileFolderItem) {
-		const file = item.file
+	async show(item: FileFolderItem) {
+		let file = item.file
 		if (isNull(file.share)) {
-			showProgressDialog(
-				lang.makeTranslation("", "Creating share"), //FIXME
+			;[file] = await showProgressDialog(
+				lang.makeTranslation("", "Creating share link"), //FIXME
 				this.driveFacade.createShareLink(file, null, null),
-			).then(([file]) => {
-				showFileShareDialog(this.driveFacade, file)
-			})
-		} else {
-			showFileShareDialog(this.driveFacade, file)
+			)
 		}
+
+		showFileShareDialog(this.driveFacade, file)
 	}
 }
 
@@ -250,8 +248,11 @@ async function showFileShareDetailsDialog(
 									if (this.doPassword && this.passwordValue.trim() === "") {
 										throw new UserError(lang.makeTranslation("", "Password cannot be empty"))
 									}
+									if (this.doExpiry && isNull(this.expirationDate)) {
+										throw new UserError(lang.makeTranslation("", "Expiration date must be set"))
+									}
 									if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
-										throw new UserError(lang.makeTranslation("", "Expiration date cannot be in  the past"))
+										throw new UserError(lang.makeTranslation("", "Expiration date cannot be in the past"))
 									}
 
 									dialog.close()

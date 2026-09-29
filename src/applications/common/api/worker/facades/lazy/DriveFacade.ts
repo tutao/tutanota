@@ -23,7 +23,6 @@ import {
 	assertNotNull,
 	base64ToUint8Array,
 	concat,
-	delay,
 	filterInt,
 	first,
 	groupBy,
@@ -423,8 +422,8 @@ export class DriveFacade {
 	}
 
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<[DriveFile, DriveShareInfo]> {
-		await delay(1000)
 		const { fileGroupKey } = await this.getCryptoInfo()
+
 		expirationDate = this.normalizeShareExpirationDate(expirationDate)
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 		if (password == null) {
@@ -477,7 +476,7 @@ export class DriveFacade {
 			)
 		}
 
-		// FIXME: Do not reload the whole file maybe?
+		// FIXME: Do not reload the whole file maybe? Just get the share ID from DriveShareService_POST?
 		const updatedFile = await this.loadDriveFile(file._id)
 		return [updatedFile, await this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))]
 	}
@@ -540,12 +539,12 @@ export class DriveFacade {
 	}
 
 	async getShareInfo(shareId: ElementId): Promise<DriveShareInfo> {
+		const { fileGroupKey } = await this.getCryptoInfo()
+
 		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
 		const appUrl = this.domainConfig.apiUrl
 
 		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
-
-		const { fileGroupKey } = await this.getCryptoInfo()
 
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 		if (isNotNull(share.ownerEncPassword)) {
