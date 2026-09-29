@@ -1,4 +1,4 @@
-import { ArchiveDownloadResumeParams, IndexedGroupData, LoadedArchiveMaxBlobId, OfflineStoragePersistence } from "./OfflineStoragePersistence"
+import { ArchiveDownloadResumeParams, IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, abortAwareWithCleanup, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
@@ -31,7 +31,6 @@ import {
 	EntityIdEncoding,
 	firstBiggerThanSecondBase64Ext,
 	GENERATED_MAX_ID,
-	GENERATED_MIN_ID,
 	getElementId,
 	idToElementId,
 	isSameId,
@@ -309,27 +308,45 @@ export class OfflineMailIndexer implements MailIndexer {
 		// sort so we load oldest archive first
 		allArchives.sort((a, b) => compareOldestFirst(a, b, EntityIdEncoding.Base64Ext))
 
-		const lastLoadedArchive = await this.offlineStoragePersistence.getLastLoadedBlobForType(MailDetailsBlobTypeRef)
+		const lastLoadedArchive = await this.offlineStoragePersistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)
 		const neverLoadedArchives =
 			lastLoadedArchive == null ? allArchives : allArchives.filter((id) => firstBiggerThanSecondBase64Ext(id, lastLoadedArchive.archiveId))
 
-		const archivesToLoad: LoadedArchiveMaxBlobId[] = []
+		const archivesToLoad: {
+			archiveId: Id
+			resumeParams: ArchiveDownloadResumeParams | null
+		}[] = neverLoadedArchives.map((archiveId) => ({ archiveId, resumeParams: null }))
+
+		// try to resume the last-loaded archive; older ones are finished, newer ones haven't even started yet
 		if (lastLoadedArchive != null) {
-			archivesToLoad.push(lastLoadedArchive)
+			const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
+			const rangeHeader =
+				lastLoadedArchive.modelVersion === mailDetailsBlobTypeModel.version
+					? await this.offlineStoragePersistence.getArchiveDownloadRangeHeader(
+							lastLoadedArchive.archiveId,
+							MailDetailsBlobTypeRef,
+							lastLoadedArchive.modelVersion,
+						)
+					: null
+
+			archivesToLoad.unshift({
+				archiveId: lastLoadedArchive.archiveId,
+				resumeParams:
+					rangeHeader != null
+						? {
+								serverHostname: lastLoadedArchive.serverHostname,
+								rangeHeader,
+							}
+						: null,
+			})
 		}
-		archivesToLoad.push(...neverLoadedArchives.map((archiveId) => ({ archiveId, loadedMaxBlobId: GENERATED_MIN_ID })))
 
 		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
 		const preloadStart = performance.now()
 
-		let resumeParams: ArchiveDownloadResumeParams | null = null
-		if (lastLoadedArchive != null) {
-			resumeParams = await this.offlineStoragePersistence.getArchiveResumeParams(lastLoadedArchive.archiveId, MailDetailsBlobTypeRef)
-		}
-
 		const archiveDownloader = await locator.archiveDownloader()
-		for (const { archiveId, loadedMaxBlobId } of archivesToLoad) {
-			console.log(TAG, `Downloading archive ${archiveId} starting from ${loadedMaxBlobId}...`)
+		for (const { archiveId, resumeParams } of archivesToLoad) {
+			console.log(TAG, `Downloading archive ${archiveId} starting from row ${resumeParams?.rangeHeader.rangeStart ?? 0}...`)
 			await abortAwareWithCleanup(
 				this.abortController,
 				async () => {
@@ -337,7 +354,6 @@ export class OfflineMailIndexer implements MailIndexer {
 					await this.blobFacade.downloadAndStoreFullEncryptedBlobElementEntityArchive(
 						MailDetailsBlobTypeRef,
 						archiveId,
-						loadedMaxBlobId,
 						archiveDownloader,
 						resumeParams,
 					)

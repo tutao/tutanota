@@ -18,7 +18,7 @@ interface ArchiveDownloaderFacade {
 		archiveId: String,
 		typeref: String,
 		modelVersion: Long,
-		serverIdentifier: String,
+		rangeHeader: ArchiveDownloadRangeHeader?,
 	): Unit
 	/**
 	 * Abort downloading or storing an archive

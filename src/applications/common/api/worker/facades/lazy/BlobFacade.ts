@@ -10,12 +10,10 @@ import {
 	base64ToBase64Ext,
 	collectionSum,
 	concat,
-	deduplicate,
 	filterInt,
 	getFirstOrThrow,
 	groupBy,
 	isEmpty,
-	isNotEmpty,
 	neverNull,
 	noOp,
 	Nullable,
@@ -52,7 +50,7 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
-import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeader } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ArchiveDownloadResumeParams } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
@@ -671,7 +669,6 @@ export class BlobFacade {
 	async downloadAndStoreFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(
 		typeRef: TypeRef<T>,
 		archiveId: Id,
-		startIdExclusive: Id,
 		archiveDownloader: ArchiveDownloaderFacade,
 		resumeParams: ArchiveDownloadResumeParams | null,
 	): Promise<void> {
@@ -681,26 +678,29 @@ export class BlobFacade {
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 		const serversToTry = blobServerAccessInfo.servers
 
-		const resumeServers = resumeParams ? blobServerAccessInfo.servers.filter(({ url }) => url === resumeParams.serverUrl) : []
-		let params: Dict = {}
-		if (isNotEmpty(resumeServers)) {
-			const resumeParamsAgain = assertNotNull(resumeParams)
-			params = { start: resumeParamsAgain.start, resumeHash: resumeParamsAgain.statusHash }
+		let rangeHeader: ArchiveDownloadRangeHeader | null = null
+		if (resumeParams != null) {
+			// try to resume from the last-used server first
+			const resumeServerIndex = blobServerAccessInfo.servers.findIndex(({ url }) => new URL(url).hostname === resumeParams.serverHostname)
+			if (resumeServerIndex !== -1) {
+				rangeHeader = resumeParams.rangeHeader
+				const resumeServer = getFirstOrThrow(serversToTry.splice(resumeServerIndex, 1))
+				serversToTry.unshift(resumeServer)
+			}
 		}
 
-		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, params, typeRef)
-
+		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
 		// blob element types are accessed with a specific rest path
 		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
 
 		const t = () =>
 			tryServers(
-				deduplicate([...resumeServers, ...serversToTry]),
+				serversToTry,
 				async (serverUrl) => {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, serverUrl)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, rangeHeader)
 				},
 				`can't load instances from server `,
 			)

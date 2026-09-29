@@ -21,7 +21,7 @@
 					"modelVersion": "number"
 				},
 				{
-					"serverIdentifier": "string"
+					"rangeHeader": "ArchiveDownloadRangeHeader?"
 				}
 			],
 			"ret": "void"

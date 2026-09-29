@@ -15,7 +15,7 @@ public protocol ArchiveDownloaderFacade : Sendable {
 		_ archiveId: String,
 		_ typeref: String,
 		_ modelVersion: Int,
-		_ serverIdentifier: String
+		_ rangeHeader: ArchiveDownloadRangeHeader?
 	) async throws -> Void
 	/**
 	 * Abort downloading or storing an archive

@@ -1,4 +1,4 @@
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloadRangeHeader, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { sql } from "../../../../app-kit/local-store/Sql"
 import { tagSqlValue, untagSqlObject, untagSqlValue } from "../../../../app-kit/local-store/SqlValue"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "@tutao/app-env"
@@ -24,10 +24,8 @@ import { Contact, ContactTypeRef, Mail, MailAddress, MailDetailsBlobTypeRef, Mai
 import { SqlValue } from "../../../../app-kit/local-store/Types"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
-import { delay, isEmpty, lastThrow, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
+import { delay, isEmpty, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
-
-export type ArchiveDownloadResumeParams = { serverUrl: string; start: Id; statusHash: string }
 
 export const SearchTableDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	search_group_data: {
@@ -99,7 +97,7 @@ mailAddresses
 
 	encrypted_blobs_metadata: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeref STRING NOT NULL, archiveId TEXT NOT NULL, loadedMaxBlobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, serverUrl TEXT NOT NULL, PRIMARY KEY (typeref, archiveId))",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeref STRING NOT NULL, archiveId TEXT NOT NULL, modelVersion NUMBER NOT NULL, serverHostname TEXT NOT NULL, PRIMARY KEY (typeref, archiveId))",
 		purgedWithCache: true,
 	},
 })
@@ -112,10 +110,13 @@ export interface IndexedGroupData {
 	lastIndexedEntityElementId: string
 }
 
-export type LoadedArchiveMaxBlobId = {
+export type LoadedArchiveMetadata = {
 	archiveId: Id
-	loadedMaxBlobId: Id
+	modelVersion: number
+	serverHostname: string
 }
+
+export type ArchiveDownloadResumeParams = Pick<LoadedArchiveMetadata, "serverHostname"> & { rangeHeader: ArchiveDownloadRangeHeader }
 
 /**
  * Handles directly indexing mail data as well as storing mail groups' indexing timestamps.
@@ -387,51 +388,38 @@ VALUES (
 		await this.sqlCipherFacade.run(query, params)
 	}
 
-	async getLastLoadedBlobForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<LoadedArchiveMaxBlobId | null> {
-		const { query, params } = sql`SELECT archiveId, loadedMaxBlobId
-									  FROM encrypted_blobs_metadata
-									  WHERE typeref = ${getTypeString(typeRef)}
-									  ORDER BY archiveId DESC LIMIT 1`
-
-		const row = await this.sqlCipherFacade.get(query, params)
-		return row != null ? (untagSqlObject(row) as LoadedArchiveMaxBlobId) : null
-	}
-
-	async getArchiveResumeParams<T extends BlobElementEntity>(archiveId: Id, typeRef: TypeRef<T>): Promise<ArchiveDownloadResumeParams | null> {
-		const { query, params } = sql`SELECT serverUrl
+	async getLastLoadedArchiveForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<LoadedArchiveMetadata | null> {
+		const { query, params } = sql`SELECT archiveId, modelVersion, serverHostname
 								  FROM encrypted_blobs_metadata
 								  WHERE typeref = ${getTypeString(typeRef)}
-		                            AND archiveId = ${archiveId}`
+								  ORDER BY archiveId DESC LIMIT 1`
 
 		const row = await this.sqlCipherFacade.get(query, params)
-		if (row == null) {
-			return null
-		}
+		return row != null ? (untagSqlObject(row) as LoadedArchiveMetadata) : null
+	}
 
-		const serverUrl = untagSqlValue(row["serverUrl"]) as string
+	async getArchiveDownloadRangeHeader<T extends BlobElementEntity>(
+		archiveId: Id,
+		typeRef: TypeRef<T>,
+		modelVersion: number,
+	): Promise<ArchiveDownloadRangeHeader | null> {
+		const { query, params } = sql`SELECT blobId
+										  FROM encrypted_blobs
+										  WHERE typeref = ${getTypeString(typeRef)}
+											AND archiveId = ${archiveId}
+											AND modelVersion = ${modelVersion}
+										  ORDER BY rowid ASC`
 
-		let blobIds: Id[]
-		{
-			const { query, params } = sql`SELECT blobId
-								  FROM encrypted_blobs
-								  WHERE typeref = ${getTypeString(typeRef)}
-								  AND archiveId = ${archiveId}
-								  ORDER BY rowid ASC`
-
-			const rows = await this.sqlCipherFacade.all(query, params)
-			blobIds = rows.map((row) => untagSqlValue(row["blobId"]) as Id)
-		}
+		const rows = await this.sqlCipherFacade.all(query, params)
+		const blobIds = rows.map((row) => untagSqlValue(row["blobId"]) as Id)
 
 		if (isEmpty(blobIds)) {
 			return null
 		}
 
-		console.log(`BANANA INCOMING! MAKE HASTE! ${blobIds.length}`)
-		console.log(`For the nerd peoples: ${blobIds.join()}`)
 		return {
-			serverUrl,
-			start: lastThrow(blobIds),
-			statusHash: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(blobIds.join("")))),
+			rangeStart: blobIds.length,
+			reprDigest: uint8ArrayToBase64(sha256Hash(stringToUtf8Uint8Array(blobIds.join("")))),
 		}
 	}
 

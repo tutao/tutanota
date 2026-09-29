@@ -3,6 +3,7 @@ package de.tutao.tutashared.data
 import android.util.Log
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils.Companion.defaultClient
+import de.tutao.tutashared.ipc.ArchiveDownloadRangeHeader
 import de.tutao.tutashared.ipc.ArchiveDownloaderFacade
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.TaggedSqlValue
@@ -13,6 +14,7 @@ import okhttp3.Call
 import okhttp3.Request
 import java.io.IOException
 import java.io.Reader
+import java.net.URL
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
@@ -29,7 +31,7 @@ class AndroidArchiveDownloaderFacade(
 		archiveId: String,
 		typeref: String,
 		modelVersion: Long,
-		serverIdentifier: String,
+		rangeHeader: ArchiveDownloadRangeHeader?,
 	) {
 		// Create a new child coroutine scope so that if the request fails it cancels our progress job as well
 		// Also if the whole operation is canceled the child scope also gets canceled
@@ -44,6 +46,14 @@ class AndroidArchiveDownloaderFacade(
 					.header("Content-Type", "application/json")
 					.header("Cache-Control", "no-cache")
 
+				if (rangeHeader != null) {
+					Log.d(TAG, "Trying to resume downloading archive with id $archiveId from row ${rangeHeader.rangeStart}")
+					requestBuilder.addHeader("Range", "rows=${rangeHeader.rangeStart}-")
+					requestBuilder.addHeader("Repr-Digest", "sha-256=:${rangeHeader.reprDigest}:")
+				} else {
+					Log.d(TAG, "Not trying to resume downloading archive with id $archiveId; starting from first row instead")
+				}
+
 				val call = defaultClient.newBuilder()
 					.connectTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
 					.writeTimeout(HTTP_TIMEOUT, TimeUnit.SECONDS)
@@ -56,8 +66,12 @@ class AndroidArchiveDownloaderFacade(
 
 					// By this point we got the response header but we might not have read the body yet.
 					response.use { response ->
-						if (response.code == 200) {
-							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion, serverIdentifier)
+						if (response.code == 200 || response.code == 206) {
+							if (response.code == 200) {
+								Log.d(TAG, "Received status code 200, clearing cached blobs for archive with id $archiveId")
+								sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE archiveId = ?", listOf(TaggedSqlValue.Str(archiveId)))
+							}
+							storeBytes(response.body.charStream(), archiveId, typeref, modelVersion, URL(sourceUrl).host)
 						} else {
 							Log.d(
 								TAG,
@@ -93,12 +107,13 @@ class AndroidArchiveDownloaderFacade(
 		Log.d(TAG, "Cleaned up state of archive with id $archiveId, kept the blobs.")
 	}
 
-	private suspend fun storeBytes(reader: Reader, archiveId: String, typeref: String, modelVersion: Long) {
+	private suspend fun storeBytes(reader: Reader, archiveId: String, typeref: String, modelVersion: Long, serverHostname: String) {
 		Log.d(TAG, "Started storing archive with id $archiveId")
 
 		val startTime = TimeSource.Monotonic.markNow()
-		val storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, sqlCipherFacade)
+		val storage = ArchiveStorageHelper(archiveId, typeref, modelVersion, serverHostname, sqlCipherFacade)
 		storageForArchive[archiveId] = storage
+		storage.init()
 
 		reader.useLines { lines ->
 			val iterator = lines.iterator()
@@ -129,19 +144,23 @@ class AndroidArchiveDownloaderFacade(
 		_archiveId: String,
 		_typeref: String,
 		_modelVersion: Long,
-		_serverIdentifier: String,
+		_serverHostname: String,
 		private val sqlCipherFacade: SqlCipherFacade
 	) {
 
 		private val archiveId = TaggedSqlValue.Str(_archiveId)
 		private val typeref = TaggedSqlValue.Str(_typeref)
 		private val modelVersion = TaggedSqlValue.Num(_modelVersion)
-		private val serverIdentifier = TaggedSqlValue.Str(_serverIdentifier)
+		private val serverHostname = TaggedSqlValue.Str(_serverHostname)
 
 		// store when 4 mb of data reached (see companion object)
 		private var unstoredBytes = 0
 		private val blobs = mutableListOf<StoreBlob>()
 		private var closed = false
+
+		suspend fun init() {
+			sqlCipherFacade.run("INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeref, modelVersion, serverHostname) VALUES (?, ?, ?, ?)", listOf(archiveId, typeref, modelVersion, serverHostname))
+		}
 
 		suspend fun storeBlob(blobId: String, json: String) {
 			if (closed) return
@@ -174,11 +193,6 @@ class AndroidArchiveDownloaderFacade(
 								TaggedSqlValue.Str(blobs[i].json)
 							)
 						}
-				)
-
-				sqlCipherFacade.run(
-					"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, loadedMaxBlobId, typeref, modelVersion, serverUrl) VALUES (?, ?, ?, ?, ?)",
-					listOf(archiveId, TaggedSqlValue.Str(blobs.last().blobId), typeref, modelVersion, serverIdentifier)
 				)
 			}
 
