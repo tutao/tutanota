@@ -422,7 +422,7 @@ export class DriveFacade {
 		return this.userFacade.getGroupId(GroupType.File)
 	}
 
-	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<DriveShareInfo> {
+	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<[DriveFile, DriveShareInfo]> {
 		await delay(1000)
 		const { fileGroupKey } = await this.getCryptoInfo()
 		expirationDate = this.normalizeShareExpirationDate(expirationDate)
@@ -479,7 +479,7 @@ export class DriveFacade {
 
 		// FIXME: Do not reload the whole file maybe?
 		const updatedFile = await this.loadDriveFile(file._id)
-		return this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))
+		return [updatedFile, await this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))]
 	}
 
 	async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {

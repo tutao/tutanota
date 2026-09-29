@@ -31,8 +31,16 @@ export class DriveFileShareDialog {
 
 	show(item: FileFolderItem) {
 		const file = item.file
-
-		void showFileShareDialog(this.driveFacade, file)
+		if (isNull(file.share)) {
+			showProgressDialog(
+				lang.makeTranslation("", "Creating share"), //FIXME
+				this.driveFacade.createShareLink(file, null, null),
+			).then(([file]) => {
+				showFileShareDialog(this.driveFacade, file)
+			})
+		} else {
+			showFileShareDialog(this.driveFacade, file)
+		}
 	}
 }
 
@@ -40,21 +48,14 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 	let shareInfo: DriveShareInfo | null = null
 	let state: ShareDialogState = "busy"
 
-	if (file.share) {
-		// reload file in case we just created the share
-		driveFacade.getShareInfo(idToElementId(file.share)).then((info) => {
-			shareInfo = info
-			state = "done"
-			m.redraw()
-		})
-	} else {
-		// no share, create it
-		driveFacade.createShareLink(file, null, null).then((info) => {
-			shareInfo = info
-			state = "done"
-			m.redraw()
-		})
-	}
+	const shareId = idToElementId(assertNotNull(file.share))
+
+	// reload file in case we just created the share
+	driveFacade.getShareInfo(shareId).then((info) => {
+		shareInfo = info
+		state = "done"
+		m.redraw()
+	})
 
 	const dialog = new Dialog(
 		DialogType.EditMedium,
@@ -112,12 +113,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 													async () => {
 														state = "busy"
 														m.redraw()
-														// This happens if we just created a share due to opening the dialog
-														// but file.share is not initialized yet
-														if (isNull(file.share)) {
-															file = await driveFacade.loadDriveFile(file._id)
-														}
-														shareInfo = await driveFacade.getShareInfo(idToElementId(assertNotNull(file.share)))
+														shareInfo = await driveFacade.getShareInfo(shareId)
 														state = "done"
 														m.redraw()
 													},
