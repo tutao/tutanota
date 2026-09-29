@@ -189,6 +189,11 @@ export class ThemeController implements BaseThemeProvider {
 
 	private async resolveThemePreference(newThemePreference: ThemePreference): Promise<ThemeId> {
 		if (newThemePreference === "auto:light|dark") {
+			if (EnvProvider.get().isNextCloudPlugin()) {
+				const isNextcloudDark = document.body.dataset.themes === "dark"
+				return isNextcloudDark ? "dark" : "light"
+			}
+
 			return (await this.themeFacade.prefersDark()) ? "dark" : "light"
 		} else {
 			return newThemePreference
@@ -277,7 +282,7 @@ export class ThemeController implements BaseThemeProvider {
 	}
 
 	shouldAllowChangingTheme(): boolean {
-		return window.whitelabelCustomizations == null
+		return window.whitelabelCustomizations == null && !EnvProvider.get().isNextCloudPlugin()
 	}
 
 	/**
