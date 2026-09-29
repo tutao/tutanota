@@ -4,8 +4,6 @@ import {
 	AsymmetricKeyPair,
 	cryptoUtils,
 	CryptoWrapper,
-	decryptKey,
-	decryptKeyPair,
 	Ed25519PrivateKey,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
@@ -17,7 +15,7 @@ import {
 import { base64UrlCustomIdToString, downcast, KeyVersion, lazyAsync, Nullable, promiseMap, stringToBase64UrlCustomId, Versioned } from "@tutao/utils"
 import { UserFacade } from "../facades/UserFacade.js"
 import { NotFoundError } from "@tutao/rest-client/error"
-import { elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId } from "../../meta"
+import { elementIdToId, getElementId, idToElementId, isSameSingleId } from "../../meta"
 import { KeyCache } from "./persistence/KeyCache.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
@@ -229,7 +227,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		const requiredUserGroupKey = await this.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(groupMembership.symKeyVersion))
 		return {
 			version: cryptoUtils.parseKeyVersion(groupMembership.groupKeyVersion),
-			object: decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
+			object: this.cryptoWrapper.decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
 		}
 	}
 
@@ -257,7 +255,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			if (version + 1 > lastVersion) {
 				continue
 			} else if (version + 1 === lastVersion) {
-				lastGroupKey = decryptKey(lastGroupKey, formerKey.ownerEncGKey)
+				lastGroupKey = this.cryptoWrapper.decryptKey(lastGroupKey, formerKey.ownerEncGKey)
 				lastVersion = version
 				lastGroupKeyInstance = formerKey
 				if (lastVersion <= targetKeyVersion) {
@@ -308,7 +306,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
-		const decryptedKeyPair = decryptKeyPair(groupKey.object, toEncryptedKeyPairs(keyPair))
+		const decryptedKeyPair = this.cryptoWrapper.decryptKeyPair(groupKey.object, toEncryptedKeyPairs(keyPair))
 		if (groupKey.version !== 0 && isRsaOrRsaX25519KeyPair(decryptedKeyPair)) {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}

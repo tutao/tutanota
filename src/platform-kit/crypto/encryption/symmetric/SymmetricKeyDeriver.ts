@@ -173,5 +173,3 @@ export function deriveInstanceKey(groupKey: VersionedKey, kdfNonce: KdfNonce): V
 	const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_LENGTH_PER_KEY_BYTES)
 	return { object: uint8ArrayToKey(derivedBytes, AesKeyLength.Aes256), version: groupKey.version }
 }
-
-export const SYMMETRIC_KEY_DERIVER = new SymmetricKeyDeriver()

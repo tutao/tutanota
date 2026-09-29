@@ -3,18 +3,7 @@ import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
-import {
-	_encryptBytes,
-	_encryptKeyWithVersionedKey,
-	_encryptString,
-	aes256RandomKey,
-	AesKey,
-	createAuthVerifier,
-	encryptKey,
-	generateRandomSalt,
-	random,
-	VersionedKey,
-} from "@tutao/crypto"
+import { AesKey, createAuthVerifier, CryptoWrapper, generateRandomSalt, KeyEncryption, Randomizer, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -45,14 +34,18 @@ export class UserManagementFacade {
 		private readonly recoverCodeFacade: RecoverCodeFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 		private readonly identityKeyCreator: IdentityKeyCreator,
+		private readonly random: Randomizer,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly keyEncryption: KeyEncryption,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const salt = generateRandomSalt()
+		const salt = generateRandomSalt(this.random)
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
-		const pwEncUserGroupKey = encryptKey(passwordKey, userGroupKey.object)
+		const pwEncUserGroupKey = this.keyEncryption.encryptKey(passwordKey, userGroupKey.object)
 		const passwordVerifier = createAuthVerifier(passwordKey)
 		const data = createResetPasswordPostIn({
 			user: elementIdToId(user._id),
@@ -104,8 +97,8 @@ export class UserManagementFacade {
 
 		const customerGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Customer))
 
-		const userGroupKey = freshVersioned(aes256RandomKey())
-		const userGroupInfoSessionKey = aes256RandomKey()
+		const userGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const userGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const keyPair = await this.pqFacade.generateKeyPairs()
 		const userGroupData = this.groupManagement.generateInternalGroupData(
 			keyPair,
@@ -154,42 +147,42 @@ export class UserManagementFacade {
 		recoverData: RecoverData,
 	): Promise<UserAccountUserData> {
 		const kdfType = DEFAULT_KDF_TYPE
-		const salt = generateRandomSalt()
+		const salt = generateRandomSalt(this.random)
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
-		const mailGroupKey = freshVersioned(aes256RandomKey())
-		const contactGroupKey = freshVersioned(aes256RandomKey())
-		const fileGroupKey = freshVersioned(aes256RandomKey())
-		const mailboxSessionKey = aes256RandomKey()
-		const contactListSessionKey = aes256RandomKey()
-		const fileSystemSessionKey = aes256RandomKey()
-		const mailGroupInfoSessionKey = aes256RandomKey()
-		const contactGroupInfoSessionKey = aes256RandomKey()
-		const fileGroupInfoSessionKey = aes256RandomKey()
-		const tutanotaPropertiesSessionKey = aes256RandomKey()
+		const mailGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const contactGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const fileGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const mailboxSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const contactListSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const fileSystemSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const mailGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const contactGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const fileGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const tutanotaPropertiesSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 
-		const userEncCustomerGroupKey = _encryptKeyWithVersionedKey(userGroupKey, customerGroupKey.object)
-		const userEncMailGroupKey = _encryptKeyWithVersionedKey(userGroupKey, mailGroupKey.object)
-		const userEncContactGroupKey = _encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
-		const userEncFileGroupKey = _encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
-		const userEncTutanotaPropertiesSessionKey = _encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
-		const userEncEntropy = _encryptBytes(userGroupKey.object, random.generateRandomData(32))
+		const userEncCustomerGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, customerGroupKey.object)
+		const userEncMailGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, mailGroupKey.object)
+		const userEncContactGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, contactGroupKey.object)
+		const userEncFileGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, fileGroupKey.object)
+		const userEncTutanotaPropertiesSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, tutanotaPropertiesSessionKey)
+		const userEncEntropy = this.cryptoWrapper.encryptBytes(userGroupKey.object, this.random.generateRandomData(32))
 
-		const customerEncMailGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
-		const customerEncContactGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, contactGroupInfoSessionKey)
-		const customerEncFileGroupInfoSessionKey = _encryptKeyWithVersionedKey(customerGroupKey, fileGroupInfoSessionKey)
+		const customerEncMailGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(customerGroupKey, mailGroupInfoSessionKey)
+		const customerEncContactGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(customerGroupKey, contactGroupInfoSessionKey)
+		const customerEncFileGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(customerGroupKey, fileGroupInfoSessionKey)
 
-		const contactEncContactListSessionKey = _encryptKeyWithVersionedKey(contactGroupKey, contactListSessionKey)
-		const fileEncFileSystemSessionKey = _encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
-		const mailEncMailBoxSessionKey = _encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
+		const contactEncContactListSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(contactGroupKey, contactListSessionKey)
+		const fileEncFileSystemSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(fileGroupKey, fileSystemSessionKey)
+		const mailEncMailBoxSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, mailboxSessionKey)
 
 		return createUserAccountUserData({
 			mailAddress: mailAddress,
-			encryptedName: _encryptString(userGroupInfoSessionKey, userName),
+			encryptedName: this.cryptoWrapper.encryptString(userGroupInfoSessionKey, userName),
 			salt: salt,
 			kdfVersion: kdfType,
 
 			verifier: createAuthVerifier(userPassphraseKey),
-			pwEncUserGroupKey: encryptKey(userPassphraseKey, userGroupKey.object),
+			pwEncUserGroupKey: this.keyEncryption.encryptKey(userPassphraseKey, userGroupKey.object),
 
 			userEncCustomerGroupKey: userEncCustomerGroupKey.key,
 			userEncMailGroupKey: userEncMailGroupKey.key,

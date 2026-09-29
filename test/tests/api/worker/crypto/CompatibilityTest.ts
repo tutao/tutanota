@@ -377,7 +377,7 @@ o.spec("CompatibilityTest", function () {
 
 			const pqPublicKeys = new PQPublicKeys(x25519KeyPair.publicKey, kyberKeyPair.publicKey)
 			const pqKeyPairs = new PQKeyPairs(x25519KeyPair, kyberKeyPair)
-			const pqFacade = new PQFacade(new WASMKyberFacade(libOQS))
+			const pqFacade = new PQFacade(new WASMKyberFacade(random, libOQS))
 
 			const encapsulation = await pqFacade.encapsulateAndEncode(x25519KeyPair, ephemeralKeyPair, pqPublicKeys, bucketKey)
 			// NOTE: We cannot do compatibility tests for encapsulation with this library, only decapsulation, since we cannot inject randomness.

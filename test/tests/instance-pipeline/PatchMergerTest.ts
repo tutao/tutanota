@@ -1,5 +1,16 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, AesKey, SubKeyInfoWithSessionKeyCbcThenHmac, VersionedEncryptedKey, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	AesKey,
+	KeyEncryption,
+	Randomizer,
+	SubKeyInfoWithSessionKeyCbcThenHmac,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { DecryptedParsedInstance, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
@@ -44,13 +55,14 @@ import { AppName, AttributeModel, EncryptedModelValue, Entity, idToElementId } f
 import { createPatch, Customer, CustomerTypeRef, Patch } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
-import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { changeInstanceDirection } from "./InstancePipelineTestUtils"
 import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("PatchMergerTest", () => {
 	let sk: AesKey
@@ -66,9 +78,22 @@ o.spec("PatchMergerTest", () => {
 	let customCacheHandlerMap: CustomCacheHandlerMap
 	let cryptoWrapper: CryptoWrapper
 	let app: AppName
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let symmetricCipherFacade: SymmetricCipherFacade
 
 	o.beforeEach(async () => {
-		cryptoWrapper = new CryptoWrapper()
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
 		cryptoFacadePartialStub = new CryptoFacade(
 			instance(UserFacade),
 			instance(EntityClient),
@@ -86,6 +111,9 @@ o.spec("PatchMergerTest", () => {
 			async () => {
 				noOp()
 			},
+			symmetricCipherUtils,
+			aes,
+			keyEncryption,
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk
@@ -95,11 +123,11 @@ o.spec("PatchMergerTest", () => {
 		const modelMapper = modelMapperFromTypeModelResolver(typeModelResolver)
 		storage = new EphemeralCacheStorage(modelMapper, typeModelResolver, customCacheHandlerMap)
 
-		sk = aes256RandomKey()
-		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
+		sk = symmetricCipherUtils.aes256RandomKey()
+		ownerGroupKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, ownerGroupKey.version)).thenResolve(ownerGroupKey.object)
-		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub, SYMMETRIC_CIPHER_FACADE)
+		patchMerger = new PatchMerger(storage, instancePipeline, typeModelResolver, () => cryptoFacadePartialStub, symmetricCipherFacade)
 
 		app = "testApplication"
 	})
@@ -206,7 +234,7 @@ o.spec("PatchMergerTest", () => {
 			const valueType = mailTypeModel.values[subjectAttributeId] as EncryptedModelValue
 			let plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new subject")
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			let ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, ValuePath.fromPatchPath(app, ""))
 			const patches: Array<Patch> = [
 				createPatch({
@@ -237,7 +265,7 @@ o.spec("PatchMergerTest", () => {
 			const valueType = mailTypeModel.values[encryptionAuthStatusAttributeId] as EncryptedModelValue
 			const plaintext: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString(EncryptionAuthStatus.TUTACRYPT_AUTHENTICATION_SUCCEEDED)
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(valueType, plaintext, subKeyProvider, ValuePath.fromPatchPath(app, ""))
 			const patches: Array<Patch> = [
 				createPatch({
@@ -363,7 +391,7 @@ o.spec("PatchMergerTest", () => {
 			const pathString = `${senderAttributeId}/senderId/${nameAttributeId}`
 			let plaintextParsedValue: ParsedValue<DecryptedParsedInstance> = ParsedValue.fromString("new name")
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
-			const subKeyProvider = SYMMETRIC_CIPHER_FACADE.getSubKeyProvider(subKeyInfo, object())
+			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const ciphertext = patchMerger.instancePipeline.cryptoMapper.encryptValue(
 				valueType,
 				plaintextParsedValue,

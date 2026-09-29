@@ -5,6 +5,7 @@ import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, Test
 import { removeOriginals } from "../TestUtils"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
+import { random } from "../../../src/platform-kit/crypto"
 
 o.spec("ModelMapperTransformations", function () {
 	o.spec("AddAssociation", function () {
@@ -79,7 +80,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttributeById(2, ParsedValue.fromString("123"))]),
@@ -167,7 +168,7 @@ o.spec("ModelMapperTransformations", function () {
 				return serverModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver), random)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([DecryptedParsedInstance.incomingFromServer(serverModel["43"]).addAttributeById(2, ParsedValue.fromString("123"))]),
@@ -264,7 +265,7 @@ o.spec("ModelMapperTransformations", function () {
 			const serverTypeModel = await serverModelResolver(TestTypeRef)
 			const serverAggregateModel = await serverModelResolver(TestAggregateRef)
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver), random)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttributeById(
 				3,
 				ParsedValue.fromNestedItems([
@@ -352,7 +353,7 @@ o.spec("ModelMapperTransformations", function () {
 			}
 			const typeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver), random)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
 				ParsedValue.fromIdTupleList([["listId", "listElementId"]]),
@@ -437,7 +438,7 @@ o.spec("ModelMapperTransformations", function () {
 
 			const typeRef = new TypeRef<TestEntity>("tutanota", 42)
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver), random)
 
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverTypeModel).addAttributeById(
 				3,
@@ -527,7 +528,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(
 				3,
@@ -595,7 +596,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("example"))
 
@@ -666,7 +667,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			// The instance in the local-store storage (written when the value was not there for the server & client models)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"])
@@ -730,7 +731,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("example"))
 
 			const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -802,7 +803,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			const falseParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromBoolean(false))
 			const trueParsedInstance = DecryptedParsedInstance.incomingFromServer(serverModel["42"]).addAttributeById(1, ParsedValue.fromString("anything"))
@@ -920,7 +921,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			let serverTypeModel = await serverModelResolver(TestTypeRef)
 			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
@@ -1034,7 +1035,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 
 			const typeModel = await serverModelResolver(TestTypeRef)
 
@@ -1134,7 +1135,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNestedItems([]))
 
@@ -1238,7 +1239,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
@@ -1341,7 +1342,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromNestedItems([]))
 
@@ -1445,7 +1446,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const aggregateTypeModel = await serverModelResolver(TestAggregateRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
@@ -1554,7 +1555,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
@@ -1662,7 +1663,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
@@ -1759,7 +1760,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
@@ -1865,7 +1866,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
@@ -1967,7 +1968,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(3, ParsedValue.fromIdTupleList([]))
 
@@ -2071,7 +2072,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(
 				3,
@@ -2149,7 +2150,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
@@ -2224,7 +2225,7 @@ o.spec("ModelMapperTransformations", function () {
 				return clientModel[typeRef.typeId]
 			}
 
-			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+			const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 			const typeModel = await serverModelResolver(TestTypeRef)
 			const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
@@ -2299,7 +2300,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromNull())
 				await assertThrows(InvalidModelError, () => modelMapper.mapToInstance(parsedInstance))
@@ -2366,7 +2367,7 @@ o.spec("ModelMapperTransformations", function () {
 				}
 
 				const typeModel = await serverModelResolver(TestTypeRef)
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("42"))
 
 				const mappedInstance = await modelMapper.mapToInstance(parsedInstance)
@@ -2437,7 +2438,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const wrongParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel).addAttributeById(1, ParsedValue.fromString("example"))
 
@@ -2520,7 +2521,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
@@ -2608,7 +2609,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
@@ -2690,7 +2691,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 				// can remove association with ZeroOrOne and supply null
@@ -2781,7 +2782,7 @@ o.spec("ModelMapperTransformations", function () {
 					return clientModel[typeRef.typeId]
 				}
 
-				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+				const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 				const typeModel = await serverModelResolver(TestTypeRef)
 				const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
@@ -2849,7 +2850,7 @@ o.spec("ModelMapperTransformations", function () {
 						return clientModel[typeRef.typeId]
 					}
 
-					const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!))
+					const modelMapper: ModelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, null!), random)
 					const typeModel = await serverModelResolver(TestTypeRef)
 					const parsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
@@ -2912,7 +2913,7 @@ o.spec("ModelMapperTransformations", function () {
 					}
 					const typeModel = await serverModelResolver(TestTypeRef)
 
-					const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver))
+					const modelMapper = new ModelMapper(new DummyTypeModelResolver(clientModelResolver, serverModelResolver), random)
 					const serverDecryptedParsedInstance = DecryptedParsedInstance.incomingFromServer(typeModel)
 
 					const entity = await modelMapper.mapToInstance(serverDecryptedParsedInstance)

@@ -115,7 +115,6 @@ export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
 export { hmacSha256, verifyHmacSha256, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
 export {
-	aes256RandomKey,
 	keyToUint8Array,
 	uint8ArrayToKey,
 	base64ToKey,
@@ -128,10 +127,9 @@ export {
 	FIXED_INITIALIZATION_VECTOR,
 	type InitializationVector,
 	type KdfNonce,
-	generateInitializationVector,
-	generateKdfNonce,
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
+	SymmetricCipherUtils,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKey, Aes256Key, Aes128Key, AesKeyLength, getKeyLengthInBytes, assert256BitKey } from "./encryption/symmetric/AesKey.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"

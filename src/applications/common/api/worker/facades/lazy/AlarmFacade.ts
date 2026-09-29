@@ -1,4 +1,4 @@
-import { aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, VersionedKey } from "@tutao/crypto"
+import { AesKey, CryptoWrapper, keyToBase64, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { elementIdPart, elementIdToId, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
@@ -50,10 +50,11 @@ export class AlarmFacade {
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly infoMessageHandler: InfoMessageHandler,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
-		const notificationSessionKey = aes256RandomKey()
+		const notificationSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const alarmServicePostRequestData = await this.prepareAlarmServicePostData(
 			elementIdToId(loggedInUser._id),
@@ -73,7 +74,7 @@ export class AlarmFacade {
 			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, elementIdToId(user._id))),
 		)
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
 		const encryptedNotificationsWireFormat = await Promise.all(
@@ -109,7 +110,7 @@ export class AlarmFacade {
 			})
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
-				const userAlarmInfoSessionKey = aes256RandomKey()
+				const userAlarmInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 				const calendarEventRefTransferAggregatedType = createCalendarEventRefTransferAggregatedType({
 					listId: eventRef.listId,
 					elementId: eventRef.elementId,

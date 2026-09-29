@@ -6,6 +6,7 @@ import {
 	hexToRsaPublicKey,
 	keyToUint8Array,
 	pqKeyPairsToPublicKeys,
+	random,
 	rsaDecrypt,
 	rsaEncrypt,
 	RsaKeyPair,
@@ -33,7 +34,7 @@ o.spec("RsaPqPerformanceTest", function () {
 		}
 
 		o("pq", async function () {
-			const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+			const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 			const pqFacade: PQFacade = new PQFacade(kyberFacade)
 			const bucketKey = keyToUint8Array(aes256RandomKey())
 

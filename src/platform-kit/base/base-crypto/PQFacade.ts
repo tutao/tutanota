@@ -1,9 +1,8 @@
 import { KyberFacade } from "./KyberFacade.js"
 import {
 	Aes256Key,
-	aesDecrypt,
-	aesEncrypt,
 	AesKeyLength,
+	CryptoWrapper,
 	generateX25519KeyPair,
 	getKeyLengthInBytes,
 	hkdf,
@@ -28,7 +27,10 @@ export type DecapsulatedSymKey = {
 }
 
 export class PQFacade {
-	constructor(private readonly kyberFacade: KyberFacade) {}
+	constructor(
+		private readonly kyberFacade: KyberFacade,
+		private readonly cryptoWrapper: CryptoWrapper,
+	) {}
 
 	public async generateKeyPairs(): Promise<PQKeyPairs> {
 		return new PQKeyPairs(generateX25519KeyPair(), await this.kyberFacade.generateKeypair())
@@ -67,7 +69,7 @@ export class PQFacade {
 			CryptoProtocolVersion.TUTA_CRYPT,
 		)
 
-		const kekEncBucketKey = aesEncrypt(kek, bucketKey)
+		const kekEncBucketKey = this.cryptoWrapper.aesEncrypt(kek, bucketKey)
 		return {
 			senderIdentityPubKey: senderIdentityKeyPair.publicKey,
 			ephemeralPubKey: ephemeralKeyPair.publicKey,
@@ -104,7 +106,7 @@ export class PQFacade {
 			CryptoProtocolVersion.TUTA_CRYPT,
 		)
 
-		return aesDecrypt(kek, message.encapsulation.kekEncBucketKey)
+		return this.cryptoWrapper.aesDecrypt(kek, message.encapsulation.kekEncBucketKey)
 	}
 
 	private derivePQKEK(

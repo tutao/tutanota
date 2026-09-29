@@ -21,16 +21,7 @@ import { AsymmetricCryptoFacade } from "../../../../../../platform-kit/base/base
 import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { isInternalUser } from "../../../common/utils/UserUtils"
 import { PaymentData, SubscriptionApp } from "../../../../subscription/utils/SubscriptionUtils"
-import {
-	_encryptKeyWithVersionedKey,
-	cryptoUtils,
-	CryptoWrapper,
-	hexToRsaPublicKey,
-	keyToUint8Array,
-	PQKeyPairs,
-	VersionedEncryptedKey,
-	VersionedKey,
-} from "@tutao/crypto"
+import { cryptoUtils, CryptoWrapper, hexToRsaPublicKey, keyToUint8Array, PQKeyPairs, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
 import { CounterType } from "../../../../../../entities/monitor/Utils"
 import { createCustomerAccountCreateData, CustomerAccountService } from "@tutao/entities/tutanota"
 import { SpamRuleFieldType, SpamRuleType } from "../../../../../../entities/tutanota/Utils"
@@ -67,7 +58,7 @@ import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { getByAbbreviation, CountryType } from "../../../../gui/CountryList"
+import { CountryType, getByAbbreviation } from "../../../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 
 assertWorkerOrNode()
@@ -217,7 +208,7 @@ export class CustomerFacade {
 			const adminGroupId = this.userFacade.getGroupId(GroupType.Admin)
 			const adminGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
-			const adminGroupEncSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
+			const adminGroupEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, sessionKey)
 			const data = createCreateCustomerServerPropertiesData({
 				adminGroupEncSessionKey: adminGroupEncSessionKey.key,
 				adminGroupKeyVersion: adminGroupEncSessionKey.encryptingKeyVersion.toString(),
@@ -333,9 +324,9 @@ export class CustomerFacade {
 
 		const recoverData = this.recoverCodeFacade.generateRecoveryCode(userGroupKey)
 
-		const userEncAdminGroupKey = _encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
-		const adminEncAccountingInfoSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
-		const adminEncCustomerServerPropertiesSessionKey = _encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
+		const userEncAdminGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, adminGroupKey.object)
+		const adminEncAccountingInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, accountingInfoSessionKey)
+		const adminEncCustomerServerPropertiesSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(adminGroupKey, customerServerPropertiesSessionKey)
 
 		const data = createCustomerAccountCreateData({
 			authToken,

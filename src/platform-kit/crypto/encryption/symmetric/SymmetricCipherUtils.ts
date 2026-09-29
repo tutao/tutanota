@@ -1,4 +1,4 @@
-import { random } from "../../random/Randomizer.js"
+import { Randomizer } from "../../random/Randomizer.js"
 import { CryptoError } from "@tutao/crypto/error"
 import { base64ToBase64Url, base64ToUint8Array, hexToUint8Array, Nullable, uint8ArrayToArrayBuffer, uint8ArrayToBase64 } from "@tutao/utils"
 import { sha256Hash } from "../../hashes/Sha256.js"
@@ -13,6 +13,12 @@ export class InitializationVector {
 		public readonly variant: InitializationVectorVariant,
 	) {}
 }
+
+export class KdfNonceTag extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+
+export type KdfNonce = BrandedType<Uint8Array<ArrayBuffer>, KdfNonceTag>
 
 export const FIXED_INITIALIZATION_VECTOR = new InitializationVector(hexToUint8Array("88888888888888888888888888888888"), InitializationVectorVariant.Fixed)
 export const BLOCK_SIZE_BYTES = 16
@@ -111,27 +117,25 @@ export function keyToUint8Array(key: AesKey): Uint8Array<ArrayBuffer> {
 	return bitArrayToUint8Array(key.bits)
 }
 
-/**
- * Create a random 256-bit symmetric AES key.
- *
- * @return The key.
- */
-export function aes256RandomKey(): Aes256Key {
-	return new Aes256Key(uint8ArrayToBitArray(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))))
-}
+export class SymmetricCipherUtils {
+	constructor(private readonly random: Randomizer) {}
 
-export class KdfNonceTag extends TsBrand {
-	protected __brand: Nullable<never> = null
-}
+	/**
+	 * Create a random 256-bit symmetric AES key.
+	 *
+	 * @return The key.
+	 */
+	aes256RandomKey(): Aes256Key {
+		return new Aes256Key(uint8ArrayToBitArray(this.random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes256))))
+	}
 
-export type KdfNonce = BrandedType<Uint8Array<ArrayBuffer>, KdfNonceTag>
+	generateInitializationVector(): InitializationVector {
+		return new InitializationVector(this.random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)
+	}
 
-export function generateInitializationVector(): InitializationVector {
-	return new InitializationVector(random.generateRandomData(INITIALIZATION_VECTOR_LENGTH_BYTES), InitializationVectorVariant.Random)
-}
-
-export function generateKdfNonce(): KdfNonce {
-	return random.generateRandomData(KDF_NONCE_LENGTH_BYTES) as KdfNonce
+	generateKdfNonce(): KdfNonce {
+		return this.random.generateRandomData(KDF_NONCE_LENGTH_BYTES) as KdfNonce
+	}
 }
 
 export function validateInitializationVectorLength(initializationVector: Uint8Array<ArrayBuffer>): InitializationVector

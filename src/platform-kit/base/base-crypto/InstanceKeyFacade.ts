@@ -1,5 +1,5 @@
 import { PersistentEntity } from "@tutao/meta"
-import { deriveInstanceKey, KdfNonce, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
+import { deriveInstanceKey, KdfNonce, SymmetricCipherUtils, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { KeyLoaderFacade } from "./KeyLoaderFacade"
 import { ProgrammingError } from "@tutao/app-env"
 import { CryptoNetworkHelper } from "../../network/CryptoNetworkHelper"
@@ -11,6 +11,7 @@ export class InstanceKeyFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoNetworkHelper: CryptoNetworkHelper,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	async getCurrentInstanceKey(instance: PersistentEntity): Promise<VersionedAes256Key> {
@@ -18,7 +19,7 @@ export class InstanceKeyFacade {
 			throw new ProgrammingError("owner group missing for instance.")
 		}
 		// we may have to create the kdfNonce here if we are sharing an old instance that has not been updated in a while
-		const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this.cryptoNetworkHelper, instance)
+		const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this.cryptoNetworkHelper, this.symmetricCipherUtils, instance)
 
 		const currentGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(instance._ownerGroup)
 		return this.deriveInstanceKey(currentGroupKey, kdfNonce)

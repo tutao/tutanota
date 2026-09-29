@@ -1,7 +1,6 @@
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "./DriveWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { random } from "../../../../platform-kit/crypto"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
 import { CryptoError } from "../../../../platform-kit/crypto/error"
 import { errorToObj } from "../../../../platform-kit/utils"
@@ -171,7 +170,7 @@ export class DriveWorkerImpl implements NativeInterface {
 			async random() {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
-						return random.generateRandomNumber(nbrOfBytes)
+						return locator.base.random.generateRandomNumber(nbrOfBytes)
 					},
 				}
 			},

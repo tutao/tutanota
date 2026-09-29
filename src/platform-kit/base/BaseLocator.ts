@@ -1,7 +1,6 @@
 import { LoginFacade, LoginListener } from "./facades/LoginFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
-import type { RsaImplementation } from "../crypto"
-import { CryptoWrapper, random, SYMMETRIC_CIPHER_FACADE } from "../crypto"
+import { Aes, AesCbcFacade, CryptoWrapper, KeyEncryption, Randomizer, RsaImplementation, SymmetricCipherFacade, SymmetricCipherUtils } from "../crypto"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../network/BlobAccessTokenFacade.js"
 import { IServiceExecutor } from "../network/ServiceRequest.js"
@@ -56,8 +55,13 @@ import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyT
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
 import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
+import { AeadFacade } from "../crypto/encryption/symmetric/AeadFacade"
+import { SymmetricKeyDeriver } from "../crypto/encryption/symmetric/SymmetricKeyDeriver"
 
 export type BaseLocator = {
+	random: Randomizer
+
+	symmetricCipherUtils: SymmetricCipherUtils
 	cryptoWrapper: CryptoWrapper
 	rsa: RsaImplementation
 	kyberFacade: KyberFacade
@@ -65,6 +69,12 @@ export type BaseLocator = {
 	ed25519Facade: Ed25519Facade
 	publicKeySignatureFacade: PublicKeySignatureFacade
 	asymmetricCrypto: AsymmetricCryptoFacade
+	aesCbcFacade: AesCbcFacade
+	aeadFacade: AeadFacade
+	symmetricKeyDeriver: SymmetricKeyDeriver
+	symmetricCipherFacade: SymmetricCipherFacade
+	aes: Aes
+	keyEncryption: KeyEncryption
 
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
@@ -135,6 +145,8 @@ export type BaseLocatorConfig = {
 		instancePipeline: InstancePipeline
 		restClient: RestClient
 		crypto: CryptoFacade
+		symmetricCipherUtils: SymmetricCipherUtils
+		keyEncryption: KeyEncryption
 	}) => EntityMigrator
 	entityRestCache: (
 		entityRestClient: EntityRestClient,
@@ -161,8 +173,17 @@ export async function createBaseLocator({
 	entityMigratorFactory,
 	entityRestCache,
 }: BaseLocatorConfig): Promise<BaseLocator> {
+	const random = new Randomizer()
+
 	const keyCache = new KeyCache()
-	const cryptoWrapper = new CryptoWrapper()
+	const symmetricCipherUtils: SymmetricCipherUtils = new SymmetricCipherUtils(random)
+	const aesCbcFacade = new AesCbcFacade()
+	const aeadFacade = new AeadFacade(symmetricCipherUtils)
+	const symmetricKeyDeriver = new SymmetricKeyDeriver()
+	const symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
+	const aes = new Aes(symmetricCipherFacade)
+	const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+	const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
 	const user = new UserFacade(keyCache, cryptoWrapper)
 
 	const dateProvider = new NoZoneDateProvider()
@@ -183,7 +204,7 @@ export async function createBaseLocator({
 
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
-	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE, user)
+	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, symmetricCipherFacade, user, random, keyEncryption)
 	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),
 	)
@@ -193,7 +214,7 @@ export async function createBaseLocator({
 	const lazyCrypto = () => crypto
 	const serviceExecutor = new ServiceExecutor(restClient, user, instancePipeline, lazyCrypto, typeModelResolver)
 	applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
-	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader)
+	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader, aes)
 	const blobAccessToken = new BlobAccessTokenFacade(serviceExecutor, user, dateProvider, typeModelResolver)
 
 	// Declared before entityRestClient because it's captured by the lazy callback
@@ -207,9 +228,10 @@ export async function createBaseLocator({
 		typeModelResolver,
 		lazyCrypto,
 		() => entityMigrator,
+		symmetricCipherUtils,
 	)
 
-	const patchMerger = new PatchMerger(maybeUninitializedStorage, instancePipeline, typeModelResolver, lazyCrypto, SYMMETRIC_CIPHER_FACADE)
+	const patchMerger = new PatchMerger(maybeUninitializedStorage, instancePipeline, typeModelResolver, lazyCrypto, symmetricCipherFacade)
 
 	const cache: EntityRestInterface = isAdminClient()
 		? entityRestClient
@@ -221,14 +243,14 @@ export async function createBaseLocator({
 	let kyberFacade: KyberFacade
 	let ed25519Facade: Ed25519Facade
 	if (nativeCryptoFacade != null && (isIOSApp() || isAndroidApp())) {
-		kyberFacade = new NativeKyberFacade(nativeCryptoFacade)
+		kyberFacade = new NativeKyberFacade(nativeCryptoFacade, random)
 		ed25519Facade = new NativeEd25519Facade(nativeCryptoFacade)
 	} else {
-		kyberFacade = new WASMKyberFacade()
+		kyberFacade = new WASMKyberFacade(random)
 		ed25519Facade = new WASMEd25519Facade()
 	}
 
-	const pqFacade = new PQFacade(kyberFacade)
+	const pqFacade = new PQFacade(kyberFacade, cryptoWrapper)
 	const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper)
@@ -281,19 +303,22 @@ export async function createBaseLocator({
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+		symmetricCipherUtils,
+		aes,
+		keyEncryption,
 	)
 
-	const instanceKey = new InstanceKeyFacade(keyLoader, crypto, typeModelResolver)
+	const instanceKey = new InstanceKeyFacade(keyLoader, crypto, typeModelResolver, symmetricCipherUtils)
 
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade
 	const recoverCode = lazyMemoized(async () => {
 		const { RecoverCodeFacade } = await import("./facades/lazy/RecoverCodeFacade.js")
-		return new RecoverCodeFacade(user, cachingEntityClient, login, keyLoader)
+		return new RecoverCodeFacade(user, cachingEntityClient, login, keyLoader, keyEncryption, cryptoWrapper)
 	})
 	const share = lazyMemoized(async () => {
 		const { ShareFacade } = await import("./facades/lazy/ShareFacade.js")
-		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader)
+		return new ShareFacade(user, crypto, serviceExecutor, cachingEntityClient, keyLoader, symmetricCipherUtils, keyEncryption, cryptoWrapper)
 	})
 	const counters = lazyMemoized(async () => {
 		const { CounterFacade } = await import("../network/CounterFacade.js")
@@ -362,7 +387,7 @@ export async function createBaseLocator({
 		argon2idFacade = new WASMArgon2idFacade()
 	}
 
-	const deviceEncryptionFacade = new DeviceEncryptionFacade()
+	const deviceEncryptionFacade = new DeviceEncryptionFacade(symmetricCipherUtils, aes)
 	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
 
 	entityMigrator = entityMigratorFactory({
@@ -375,6 +400,8 @@ export async function createBaseLocator({
 		instancePipeline,
 		restClient,
 		crypto,
+		symmetricCipherUtils,
+		keyEncryption,
 	})
 
 	login = new LoginFacade(
@@ -400,9 +427,14 @@ export async function createBaseLocator({
 		rolloutFacade,
 		applicationTypesFacade,
 		entityMigrator,
+		keyEncryption,
+		cryptoWrapper,
+		symmetricCipherUtils,
 	)
 
 	return {
+		random,
+		symmetricCipherUtils,
 		cryptoWrapper,
 		rsa,
 		kyberFacade,
@@ -444,5 +476,11 @@ export async function createBaseLocator({
 		nonCachingEntityClient,
 		typeModelResolver,
 		lastProcessedEventBatchStorageFacade,
+		aeadFacade,
+		symmetricKeyDeriver,
+		aesCbcFacade,
+		aes,
+		symmetricCipherFacade,
+		keyEncryption,
 	}
 }

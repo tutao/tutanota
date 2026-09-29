@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../src/platform-kit/network/Servic
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, CryptoWrapper, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { CryptoWrapper, Randomizer, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import {
 	ImapImportAttachment,
 	ImapImportDataFile,
@@ -49,6 +49,7 @@ o.spec("ImportMailFacade", () => {
 	let cryptoWrapperMock: CryptoWrapper
 	let facade: ImportMailFacade
 	let mailGroupKeyMock: VersionedKey
+	let symmetricCipherUtils: SymmetricCipherUtils
 
 	const mailGroupId = "mailGroup123"
 
@@ -102,6 +103,8 @@ o.spec("ImportMailFacade", () => {
 		instancePipelineMock = object<InstancePipeline>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		mailGroupKeyMock = { object: object(), version: 1 }
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		facade = new ImportMailFacade(
 			mailFacadeMock,
 			serviceExecutorMock,
@@ -111,6 +114,7 @@ o.spec("ImportMailFacade", () => {
 			keyLoaderMock,
 			instancePipelineMock,
 			cryptoWrapperMock,
+			symmetricCipherUtils,
 		)
 		const typeModelResolver = clientInitializedTypeModelResolver()
 		const typeModel = await typeModelResolver.resolveClientTypeReference(ImportMailData2TypeRef)
@@ -241,7 +245,7 @@ o.spec("ImportMailFacade", () => {
 		const providedFiles = new Map<number, ImapImportAttachment[]>([[imapMailUid, [existingFileIdMock]]])
 
 		const existingFileMock = createTestEntity(FileTypeRef, { _id: fileIdMock, _ownerGroup: mailGroupId })
-		const fileSessionKeyMock = aes256RandomKey()
+		const fileSessionKeyMock = symmetricCipherUtils.aes256RandomKey()
 		when(entityClientMock.load(FileTypeRef, fileIdMock)).thenResolve(existingFileMock)
 		when(cryptoMock.resolveSessionKey(existingFileMock)).thenResolve(fileSessionKeyMock)
 
@@ -305,7 +309,7 @@ o.spec("ImportMailFacade", () => {
 		const providedFiles = new Map<number, ImapImportAttachment[]>([[30, [existingFileIdMock, dataFileMock]]])
 
 		const existingFileMock = createTestEntity(FileTypeRef, { _id: fileIdMock })
-		const fileSessionKeyMock = aes256RandomKey()
+		const fileSessionKeyMock = symmetricCipherUtils.aes256RandomKey()
 		when(entityClientMock.load(FileTypeRef, fileIdMock)).thenResolve(existingFileMock)
 		when(cryptoMock.resolveSessionKey(existingFileMock)).thenResolve(fileSessionKeyMock)
 

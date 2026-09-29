@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import { RSA_TEST_KEYPAIR } from "../api/worker/facades/RsaPqPerformanceTest"
-import { generateX25519KeyPair, KyberKeyPair, RsaKeyPair, X25519KeyPair } from "../../../src/platform-kit/crypto"
+import { generateX25519KeyPair, KyberKeyPair, random, RsaKeyPair, X25519KeyPair } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { WASMKyberFacade } from "../../../src/platform-kit/base/base-crypto/KyberFacade"
 
@@ -17,7 +17,7 @@ o.spec("CryptoWrapperTest", function () {
 	o.spec("verify public keys", function () {
 		let kyberFacade: WASMKyberFacade
 		o.before(async () => {
-			kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+			kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 		})
 
 		o("x25519 key success", function () {

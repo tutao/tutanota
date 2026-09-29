@@ -1,17 +1,17 @@
 import {
 	FIXED_INITIALIZATION_VECTOR,
-	generateInitializationVector,
 	InitializationVector,
 	KdfNonce,
 	keyToUint8Array,
+	SymmetricCipherUtils,
 	uint8ArrayToKey,
 } from "../encryption/symmetric/SymmetricCipherUtils.js"
-import { AES_CBC_FACADE, AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
+import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
-import { AEAD_FACADE, AeadFacade } from "../encryption/symmetric/AeadFacade.js"
-import { AeadSubKeys, AesCbcSubKeys, SYMMETRIC_KEY_DERIVER, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
+import { AeadFacade } from "../encryption/symmetric/AeadFacade.js"
+import { AeadSubKeys, AesCbcSubKeys, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
 import { InstanceDecryptor, OwnerKeyProvider } from "./decryption/InstanceDecryptor"
 import { InitializationVectorVariant, ParsedCiphertextAesCbc, parseVersionedCiphertext } from "../encryption/symmetric/ParsedCiphertext"
@@ -36,9 +36,10 @@ export class SymmetricCipherFacade {
 	/** whether we can use SubtleCrypto for big chunks of data (we use JS impl for most encryption) */
 	readonly subtleCryptoAvailable: boolean
 	constructor(
-		readonly aesCbcFacade: AesCbcFacade,
-		readonly aeadFacade: AeadFacade,
-		readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+		private readonly aesCbcFacade: AesCbcFacade,
+		private readonly aeadFacade: AeadFacade,
+		private readonly symmetricKeyDeriver: SymmetricKeyDeriver,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {
 		this.subtleCryptoAvailable = crypto.subtle != null
 		if (!this.subtleCryptoAvailable) {
@@ -49,7 +50,8 @@ export class SymmetricCipherFacade {
 	/**
 	 * Gets an instance decryptor which provides value decryptors to decrypt the values of a given instance.
 	 *
-	 * @param keyDerivationContext	The context of the instance being decrypted used to derive sub-keys.	 * @param sessionKey		The session key of the instance. It can be null if no value is encrypted using it.
+	 * @param keyDerivationContext	The context of the instance being decrypted used to derive sub-keys.
+	 * @param sessionKey		    The session key of the instance. It can be null if no value is encrypted using it.
 	 * @param kdfNonce				The KDF nonce of the instance. It can be null if no value is encrypted using the group key.
 	 * @param ownerKeyProvider		Must be set iff kdfNonce is set.
 	 * @param instanceKey			The instance key of the instance. It can be null if kdfNonce or sessionKey is set.
@@ -260,7 +262,7 @@ export class SymmetricCipherFacade {
 	): Uint8Array<ArrayBuffer> {
 		let initializationVector: InitializationVector
 		if (initializationVectorVariant === InitializationVectorVariant.Random) {
-			initializationVector = generateInitializationVector()
+			initializationVector = this.symmetricCipherUtils.generateInitializationVector()
 		} else {
 			initializationVector = FIXED_INITIALIZATION_VECTOR
 		}
@@ -321,4 +323,3 @@ export class SymmetricCipherFacade {
 		return new SubKeyProvider(subKeyInfo, this.symmetricKeyDeriver, keyDerivationContext)
 	}
 }
-export const SYMMETRIC_CIPHER_FACADE = new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER)

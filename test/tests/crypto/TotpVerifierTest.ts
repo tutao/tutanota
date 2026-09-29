@@ -1,10 +1,10 @@
 import o from "@tutao/otest"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
-import { bitArrayToUint8Array, keyToUint8Array, TotpVerifier } from "../../../src/platform-kit/crypto"
+import { bitArrayToUint8Array, random, TotpVerifier } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 
 o.spec("TotpVerifier", function () {
-	const totp = new TotpVerifier(8)
+	const totp = new TotpVerifier(random, 8)
 	const base32 = sjcl.codec.base32
 	o("readableKey", function () {
 		let secret = new Uint8Array([99, 98, 3, 5, 7, 89, 4, 7, 9, 5, 22, 55, 1, 4, 88, 127])

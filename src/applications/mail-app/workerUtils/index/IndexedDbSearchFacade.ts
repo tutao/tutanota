@@ -59,16 +59,15 @@ import { SuggestionFacade } from "./SuggestionFacade.js"
 import { NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { iterateBinaryBlocks } from "../../../common/api/worker/search/SearchIndexEncoding.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
-import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS, SearchIndexWordsIndex } from "../../../common/api/worker/search/IndexTables.js"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { SearchFacade } from "./SearchFacade"
 import { SearchToken, splitQuery } from "../../../../ui/utils/QueryTokenUtils"
-import { decryptMetaData, decryptSearchIndexEntry, encryptIndexKeyBase64 } from "../../../common/api/worker/search/IndexEncryptionUtils"
 import { Contact, ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
 import { promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
+import { IndexEncryptionUtils } from "../../../common/api/worker/search/IndexEncryptionUtils"
 
 type RowsToReadForIndexKey = {
 	indexKey: string
@@ -79,13 +78,13 @@ export class IndexedDbSearchFacade implements SearchFacade {
 	private promiseMapCompat: PromiseMapFn
 
 	constructor(
-		private readonly userFacade: UserFacade,
 		private readonly db: EncryptedDbWrapper,
 		private readonly mailIndexer: MailIndexer,
 		private readonly contactSuggestionFacade: SuggestionFacade<Contact>,
 		browserData: BrowserData,
 		private readonly entityClient: EntityClient,
 		private readonly typeModelResolver: ClientTypeModelResolver,
+		private readonly indexEncryptionUtils: IndexEncryptionUtils,
 	) {
 		this.promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
 	}
@@ -345,7 +344,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		return this.db.dbFacade.createTransaction(true, [SearchIndexOS, SearchIndexMetaDataOS]).then((transaction) => {
 			return this.promiseMapCompat(searchResult.lastReadSearchIndexRow, (tokenInfo, index) => {
 				const [searchToken] = tokenInfo
-				let indexKey = encryptIndexKeyBase64(key, searchToken, initializationVector)
+				let indexKey = this.indexEncryptionUtils.encryptIndexKeyBase64(key, searchToken, initializationVector)
 				return transaction.get(SearchIndexMetaDataOS, indexKey, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
 					if (!metaData) {
 						tokenInfo[1] = 0 // "we've read all" (because we don't have anything
@@ -358,7 +357,7 @@ export class IndexedDbSearchFacade implements SearchFacade {
 						}
 					}
 
-					return decryptMetaData(key, metaData)
+					return this.indexEncryptionUtils.decryptMetaData(key, metaData)
 				})
 			})
 				.thenOrApply((metaRows) => {
@@ -527,7 +526,9 @@ export class IndexedDbSearchFacade implements SearchFacade {
 		return results.map((searchResult) => {
 			return {
 				indexKey: searchResult.indexKey,
-				indexEntries: searchResult.indexEntries.map((entry) => decryptSearchIndexEntry(key, entry.encEntry, initializationVector)),
+				indexEntries: searchResult.indexEntries.map((entry) =>
+					this.indexEncryptionUtils.decryptSearchIndexEntry(key, entry.encEntry, initializationVector),
+				),
 			}
 		})
 	}

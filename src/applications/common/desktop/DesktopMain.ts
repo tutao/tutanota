@@ -22,7 +22,6 @@ import { DesktopIntegrator, getDesktopIntegratorForPlatform } from "./integratio
 import net from "node:net"
 import child_process from "node:child_process"
 import { LocalShortcutManager } from "./electron-localshortcut/LocalShortcut"
-import { cryptoFns } from "./CryptoFns"
 import { DesktopConfigMigrator } from "./config/migrations/DesktopConfigMigrator"
 import { DesktopKeyStoreFacade } from "./DesktopKeyStoreFacade.js"
 import { SchedulerImpl } from "../api/common/utils/Scheduler.js"
@@ -63,7 +62,7 @@ import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
 import { DesktopSseDelay } from "./sse/reconnectDelay.js"
 import { KeychainEncryption } from "./credentials/KeychainEncryption.js"
-import { Argon2IDExports, SYMMETRIC_CIPHER_FACADE } from "../../../platform-kit/crypto"
+import { Aes, AesCbcFacade, Argon2IDExports, KeyEncryption, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../platform-kit/crypto"
 import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
@@ -93,6 +92,9 @@ import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListen
 import { createImapSync } from "./imapimport/imapsync/ImapSync"
 import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
+import { CryptoFunctions } from "./CryptoFns"
+import { AeadFacade } from "../../../platform-kit/crypto/encryption/symmetric/AeadFacade"
+import { SymmetricKeyDeriver } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
 
 mp()
 
@@ -121,6 +123,19 @@ const windowsRegistryFacade = new LazyLoaded(async () => {
 	const { WindowsRegistryFacade } = await import("./integration/WindowsRegistryFacade.js")
 	return new WindowsRegistryFacade(commandExecutor)
 })
+
+const random = new Randomizer()
+CryptoFunctions.seed(random)
+const symmetricCipherUtils = new SymmetricCipherUtils(random)
+const symmetricCipherFacade = new SymmetricCipherFacade(
+	new AesCbcFacade(),
+	new AeadFacade(symmetricCipherUtils),
+	new SymmetricKeyDeriver(),
+	symmetricCipherUtils,
+)
+const cryptoFns = new CryptoFunctions(random, symmetricCipherUtils, symmetricCipherFacade)
+const aes = new Aes(symmetricCipherFacade)
+const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
 
 const tfs = new TempFs(fs, electron, cryptoFns)
 const commandExecutor = new CommandExecutor(child_process)
@@ -220,10 +235,12 @@ async function createComponents(): Promise<Components> {
 			// That is because, as they need to work offline, they cannot rely on being able to load group keys.
 			throw new ProgrammingError("trying to use group keys for alarm encryption")
 		},
-		SYMMETRIC_CIPHER_FACADE,
+		symmetricCipherFacade,
+		random,
+		keyEncryption,
 	)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline, keyEncryption)
 	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)

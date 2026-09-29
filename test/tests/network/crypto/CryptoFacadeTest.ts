@@ -31,6 +31,7 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
+	random,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
 	X25519KeyPair,
@@ -89,7 +90,7 @@ import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelin
 
 const { anything, argThat } = matchers
 
-const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 const pqFacade: PQFacade = new PQFacade(kyberFacade)
 let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 

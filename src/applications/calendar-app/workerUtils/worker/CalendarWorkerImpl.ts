@@ -4,7 +4,6 @@ import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { assertWorkerOrNode, isMainOrNode, ProgrammingError } from "../../../../platform-kit/app-env"
 import { initLocator, locator, resetLocator } from "../index/CalendarWorkerLocator.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { random } from "../../../../platform-kit/crypto"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { WebWorkerTransport } from "../../../../app-kit/native-bridge/common/threading/WebTransport.js"
 import { CommonWorkerInterface, MainInterface } from "../../../common/api/worker/workerInterfaces.js"
@@ -170,7 +169,7 @@ export class CalendarWorkerImpl implements NativeInterface {
 			async random() {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
-						return random.generateRandomNumber(nbrOfBytes)
+						return locator.base.random.generateRandomNumber(nbrOfBytes)
 					},
 				}
 			},

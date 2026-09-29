@@ -1,4 +1,4 @@
-import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, decryptKey, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
+import { Aes256Key, AesKey, cryptoUtils, CryptoWrapper, HkdfKeyDerivationDomains, SymmetricEncryptionScheme, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, KeyVersion } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { LoggedInUserProvider } from "@tutao/instance-pipeline"
@@ -60,7 +60,7 @@ export class UserFacade extends LoggedInUserProvider {
 		const userGroupMembership = this.user.userGroup
 		const currentUserGroupKey = {
 			version: cryptoUtils.parseKeyVersion(userGroupMembership.groupKeyVersion),
-			object: decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
+			object: this.cryptoWrapper.decryptKey(userPassphraseKey, userGroupMembership.symEncGKey),
 		}
 		this.keyCache.setCurrentUserGroupKey(currentUserGroupKey)
 		this.setUserDistKey(currentUserGroupKey.version, userPassphraseKey)
@@ -213,7 +213,7 @@ export class UserFacade extends LoggedInUserProvider {
 		}
 		let newUserGroupKeyBytes
 		try {
-			newUserGroupKeyBytes = decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
+			newUserGroupKeyBytes = this.cryptoWrapper.decryptKey(userDistKey, userGroupKeyDistribution.distributionEncUserGroupKey)
 		} catch (e) {
 			// this may happen during offline storage synchronization when the event queue contains user group key rotation and a password change.
 			// We can ignore this error as we already have the latest user group key after connecting the offline client

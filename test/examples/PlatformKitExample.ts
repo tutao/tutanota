@@ -3,16 +3,15 @@
  * Launched by runExamples.ts which sets up the environment first.
  */
 import type { BaseLocator } from "../../src/platform-kit/base/BaseLocator.js"
+import { createBaseLocator } from "../../src/platform-kit/base/BaseLocator.js"
 import type { LoginListener } from "../../src/platform-kit/base/facades/LoginFacade.js"
 import type { MainInterface } from "../../src/applications/common/api/worker/workerInterfaces.js"
 import type { NativeInterface } from "../../src/app-kit/native-bridge/common/NativeInterface.js"
 import type { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { initClientModels, NamedClientModel } from "../../src/platform-kit/instance-pipeline"
-
-import { createBaseLocator } from "../../src/platform-kit/base/BaseLocator.js"
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector.js"
 import { SessionType } from "../../src/platform-kit/app-env"
-import { MailBoxTypeRef, MailTypeRef, MailboxGroupRootTypeRef } from "../../src/entities/tutanota/TypeRefs.js"
+import { MailboxGroupRootTypeRef, MailBoxTypeRef, MailTypeRef } from "../../src/entities/tutanota/TypeRefs.js"
 import { tutanotaModelInfo, tutanotaTypeModels } from "../../src/entities/tutanota"
 import { baseModelInfo, baseTypeModels } from "../../src/entities/base"
 import { sysModelInfo, sysTypeModels } from "../../src/entities/sys"
@@ -30,7 +29,7 @@ import { EphemeralCacheStorage } from "../../src/app-kit/local-store/EphemeralCa
 import { CustomCacheHandlerMap } from "../../src/app-kit/local-store/CustomCacheHandler.js"
 import { NoOpLastProcessedEventBatchStorageFacade } from "../../src/applications/common/api/worker/LastProcessedEventBatchStorageFacade.js"
 import { loadWasmFromFileOrNetwork } from "../../src/platform-kit/utils/WebAssembly.js"
-import { generateKeyFromPassphraseArgon2id, type Argon2IDExports } from "../../src/platform-kit/crypto"
+import { type Argon2IDExports, generateKeyFromPassphraseArgon2id } from "../../src/platform-kit/crypto"
 import { RsaWeb } from "../../src/app-kit/native-bridge/worker/RsaImplementation.js"
 import { TutanotaEntityMigrator } from "../../src/applications/common/api/worker/TutanotaEntityMigrator.js"
 import { DefaultEntityRestCache } from "../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
@@ -162,6 +161,8 @@ export async function runPlatformKitExample() {
 			instancePipeline,
 			restClient,
 			crypto,
+			symmetricCipherUtils,
+			keyEncryption,
 		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
@@ -173,6 +174,8 @@ export async function runPlatformKitExample() {
 				instancePipeline,
 				restClient,
 				crypto,
+				symmetricCipherUtils,
+				keyEncryption,
 			),
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(

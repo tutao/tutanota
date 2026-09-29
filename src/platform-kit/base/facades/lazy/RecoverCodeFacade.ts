@@ -3,14 +3,13 @@ import { LoginFacade } from "../LoginFacade.js"
 import { assertWorkerOrNode } from "@tutao/app-env"
 import {
 	Aes256Key,
-	aes256RandomKey,
 	AesKey,
 	AesKeyLength,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	cryptoUtils,
-	decryptKey,
-	encryptKey,
+	CryptoWrapper,
+	KeyEncryption,
 	keyToUint8Array,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -41,16 +40,18 @@ export class RecoverCodeFacade {
 		private readonly entityClient: EntityClient,
 		private readonly loginFacade: LoginFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly keyEncryption: KeyEncryption,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	generateRecoveryCode(currentUserGroupKey: VersionedKey): RecoverData {
-		const recoveryCode = aes256RandomKey()
+		const recoveryCode = this.cryptoWrapper.aes256RandomKey()
 		return this.encryptRecoveryCode(recoveryCode, currentUserGroupKey)
 	}
 
 	encryptRecoveryCode(recoveryCode: Aes256Key, currentUserGroupKey: VersionedKey): RecoverData {
-		const userEncRecoverCode = encryptKey(currentUserGroupKey.object, recoveryCode)
-		const recoverCodeEncUserGroupKey = encryptKey(recoveryCode, currentUserGroupKey.object)
+		const userEncRecoverCode = this.cryptoWrapper.encryptKey(currentUserGroupKey.object, recoveryCode)
+		const recoverCodeEncUserGroupKey = this.cryptoWrapper.encryptKey(recoveryCode, currentUserGroupKey.object)
 		const recoveryCodeVerifier = createAuthVerifier(recoveryCode)
 		return {
 			userEncRecoverCode,
@@ -84,7 +85,7 @@ export class RecoverCodeFacade {
 			extraHeaders,
 		})
 		const userGroupKey = await this.keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(recoveryCodeEntity.userKeyVersion))
-		return decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode, AesKeyLength.Aes256)
+		return this.keyEncryption.decryptKey(userGroupKey, recoveryCodeEntity.userEncRecoverCode, AesKeyLength.Aes256)
 	}
 
 	private async getPassphraseKey(user: User, passphrase: string) {

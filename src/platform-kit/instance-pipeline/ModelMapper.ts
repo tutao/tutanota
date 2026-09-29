@@ -19,7 +19,7 @@ import {
 	TypeRef,
 } from "@tutao/meta"
 import { TypeModelResolver } from "./EntityFunctions"
-import { random } from "@tutao/crypto"
+import { Randomizer } from "@tutao/crypto"
 import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
@@ -38,7 +38,10 @@ assertWorkerOrNode()
  *
  */
 export class ModelMapper {
-	constructor(private readonly typeModelResolver: TypeModelResolver) {}
+	constructor(
+		private readonly typeModelResolver: TypeModelResolver,
+		private readonly random: Randomizer,
+	) {}
 
 	async mapToInstances<T extends Entity>(parsedInstances: Array<DecryptedParsedInstance>): Promise<Array<T>> {
 		return await promiseMap(parsedInstances, (parsedInstance) => this.mapToInstance(parsedInstance))
@@ -63,7 +66,7 @@ export class ModelMapper {
 			let parsedValue: DecryptedParsedValue = instance.getValue(modelValue)
 
 			if (clientTypeModel.type === Type.Aggregated && modelValue.name === "_id" && parsedValue.isNull()) {
-				const randomAggregateId = base64ToBase64Url(uint8ArrayToBase64(random.generateRandomData(4)))
+				const randomAggregateId = base64ToBase64Url(uint8ArrayToBase64(this.random.generateRandomData(4)))
 				parsedValue = ParsedValue.fromString(randomAggregateId)
 			}
 

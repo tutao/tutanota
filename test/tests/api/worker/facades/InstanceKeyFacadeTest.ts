@@ -6,7 +6,7 @@ import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-cry
 import { GroupInfoTypeRef, UpdateKdfNoncePostOutTypeRef } from "@tutao/entities/sys"
 import { createTestEntity } from "../../../TestUtils"
 import { PersistentEntity } from "../../../../../src/platform-kit/meta"
-import { generateKdfNonce, KdfNonce, VersionedAes256Key, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { KdfNonce, Randomizer, SymmetricCipherUtils, VersionedAes256Key, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 
 const { anything, argThat, captor } = matchers
@@ -22,16 +22,19 @@ o.spec("InstanceKeyFacadeTest", function () {
 	let instance: PersistentEntity
 	let currentInstanceGroupKey: VersionedKey
 	let derivedInstanceKey: VersionedAes256Key
+	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
 		keyLoaderFacade = object()
 		cryptoNetworkHelper = object()
 		typeModelResolver = object()
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 
-		instanceKeyFacade = new InstanceKeyFacade(keyLoaderFacade, cryptoNetworkHelper, typeModelResolver)
+		instanceKeyFacade = new InstanceKeyFacade(keyLoaderFacade, cryptoNetworkHelper, typeModelResolver, symmetricCipherUtils)
 
 		instanceGroupId = "instanceGroupId"
-		instance = createTestEntity(GroupInfoTypeRef, { _kdfNonce: generateKdfNonce(), _ownerGroup: instanceGroupId })
+		instance = createTestEntity(GroupInfoTypeRef, { _kdfNonce: symmetricCipherUtils.generateKdfNonce(), _ownerGroup: instanceGroupId })
 		currentInstanceGroupKey = object()
 		derivedInstanceKey = object()
 		when(keyLoaderFacade.getCurrentSymGroupKey(instanceGroupId)).thenResolve(currentInstanceGroupKey)
@@ -56,7 +59,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 		o.test("success - kdfNonce must be created", async function () {
 			instance._kdfNonce = null
 			when(cryptoNetworkHelper.postUpdateKdfNonceService(anything())).thenResolve(
-				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: generateKdfNonce() }),
+				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: symmetricCipherUtils.generateKdfNonce() }),
 			)
 			const instanceKey = await instanceKeyFacade.getCurrentInstanceKey(instance)
 			o.check(instanceKey).deepEquals(derivedInstanceKey)

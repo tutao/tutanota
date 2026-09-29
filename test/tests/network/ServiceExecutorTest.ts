@@ -8,7 +8,7 @@ import { assert, deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, SymmetricCipherFacade, SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, random, SymmetricCipherFacade, SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 import {
@@ -73,6 +73,7 @@ o.spec("ServiceExecutor", function () {
 			() => null!,
 			new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER),
 			authDataProvider,
+			random,
 		)
 		sessionKey = aes256RandomKey()
 

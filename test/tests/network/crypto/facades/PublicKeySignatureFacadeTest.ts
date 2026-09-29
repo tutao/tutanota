@@ -8,6 +8,7 @@ import {
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 	PQPublicKeys,
+	random,
 	RsaKeyPair,
 	RsaPublicKey,
 	rsaPublicKeyToBytes,
@@ -39,7 +40,7 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 	let keyPairVersion: KeyVersion
 
 	o.before(async function () {
-		const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+		const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 		pqFacade = new PQFacade(kyberFacade)
 	})
 

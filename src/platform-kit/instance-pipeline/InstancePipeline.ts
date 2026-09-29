@@ -3,7 +3,9 @@ import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
 import {
 	AesKey,
+	KeyEncryption,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
+	Randomizer,
 	SubKeyInfo,
 	SubKeyInfoWithSessionKeyAead,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
@@ -33,18 +35,22 @@ export class InstancePipeline {
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly loggedInUserProvider: Nullable<LoggedInUserProvider>,
+		private readonly random: Randomizer,
+		keyEncryption: KeyEncryption,
 	) {
-		this.modelMapper = new ModelMapper(typeModelResolver)
+		this.modelMapper = new ModelMapper(typeModelResolver, this.random)
 		this.typeMapper = new TypeMapper(typeModelResolver)
-		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper)
+		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper, keyEncryption)
 	}
 
 	public static newNativeOnly(
 		typeModelResolver: ClientOnlyTypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
+		random: Randomizer,
+		keyEncrytpion: KeyEncryption,
 	): InstancePipeline {
-		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null)
+		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null, random, keyEncrytpion)
 	}
 
 	private getSubKeyInfo(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfo> {

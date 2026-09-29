@@ -2,8 +2,6 @@
 import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
 
-import { EntropySource } from "../CryptoTypes"
-
 import { EntropyDataChunk } from "./EntropyDataChunk"
 
 /**

@@ -36,12 +36,12 @@ import {
 } from "@tutao/rest-client/error"
 import {
 	AesKey,
-	generateKdfNonce,
 	KdfNonce,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
 	OwnerKeyProvider,
 	SubKeyInfo,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
+	SymmetricCipherUtils,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
 	VersionedKey,
@@ -92,6 +92,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
 		private readonly entityMigrator: lazy<EntityMigrator>,
+		private readonly symmetricCypherUtils: SymmetricCipherUtils,
 	) {
 		this.patchGenerator = new PatchGenerator(instancePipeline)
 	}
@@ -552,7 +553,7 @@ export class EntityRestClient implements EntityRestInterface {
 				console.log(`overwriting KDF nonce previously found on instance of type ${instance._type} with ID ${instance._id}`)
 			}
 
-			const kdfNonce: KdfNonce = generateKdfNonce()
+			const kdfNonce: KdfNonce = this.symmetricCypherUtils.generateKdfNonce()
 			instance._kdfNonce = kdfNonce
 			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
@@ -572,7 +573,7 @@ export class EntityRestClient implements EntityRestInterface {
 				}
 				ownerKey = await this._crypto.getCurrentSymGroupKey(instance._ownerGroup)
 			}
-			const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this._crypto, instance)
+			const kdfNonce = await createAndSetOrGetKdfNonce(this.typeModelResolver, this._crypto, this.symmetricCypherUtils, instance)
 			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
 	}
@@ -742,6 +743,7 @@ export async function doBlobRequestWithRetry<T>(doBlobRequest: () => Promise<T>,
 export async function createAndSetOrGetKdfNonce(
 	typeModelResolver: TypeModelResolver,
 	cryptoNetworkHelper: CryptoNetworkHelper,
+	symmetricCipherUtils: SymmetricCipherUtils,
 	instance: PersistentEntity,
 ): Promise<KdfNonce> {
 	let kdfNonce: KdfNonce
@@ -766,7 +768,7 @@ export async function createAndSetOrGetKdfNonce(
 		const typeId = instance._type.typeId.toString()
 		const typeInfo = createTypeInfo({ application, typeId })
 		const out = await cryptoNetworkHelper.postUpdateKdfNonceService(
-			createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
+			createInstanceKdfNonce({ kdfNonce: symmetricCipherUtils.generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
 		)
 		kdfNonce = validateKdfNonceLength(out.kdfNonce)
 		instance._kdfNonce = kdfNonce

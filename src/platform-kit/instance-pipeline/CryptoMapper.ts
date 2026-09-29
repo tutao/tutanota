@@ -39,9 +39,9 @@ import {
 	AesKey,
 	AesKeyLength,
 	AsymmetricKeyPair,
-	decryptKey,
 	InstanceDecryptor,
 	KdfNonce,
+	KeyEncryption,
 	OwnerKeyProvider,
 	SubKeyFactory,
 	SubKeyInfo,
@@ -102,6 +102,7 @@ export class CryptoMapper {
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		private readonly modelMapper: ModelMapper,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
@@ -355,7 +356,7 @@ export class CryptoMapper {
 			if (ownerKey == null) {
 				throw new ProgrammingError("The session key cannot be decrypted without the owner group key.")
 			}
-			const newSessionKey: Aes256Key = decryptKey(ownerKey.object, ownerEncSessionKey, AesKeyLength.Aes256)
+			const newSessionKey: Aes256Key = this.keyEncryption.decryptKey(ownerKey.object, ownerEncSessionKey, AesKeyLength.Aes256)
 
 			switch (subKeyProvider.subKeyInfo.cipherVersion) {
 				case SymmetricCipherVersion.AeadWithSessionKey:

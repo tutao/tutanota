@@ -1,8 +1,8 @@
 // @ts-ignore[untyped-import]
 import sjcl from "../internal/sjcl.js"
 import { hexToUint8Array } from "@tutao/utils"
-import { random } from "../random/Randomizer.js"
-import { bitArrayToUint8Array, uint8ArrayToBitArray, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { Randomizer } from "../random/Randomizer.js"
+import { bitArrayToUint8Array, uint8ArrayToBitArray } from "../encryption/symmetric/SymmetricCipherUtils.js"
 
 export let DIGITS: number = 6
 export type Base32 = string
@@ -17,14 +17,13 @@ export type TotpSecret = {
 }
 
 export class TotpVerifier {
-	_digits: number
-
-	constructor(digits: number = DIGITS) {
-		this._digits = digits
-	}
+	constructor(
+		private readonly random: Randomizer,
+		private readonly digits: number = DIGITS,
+	) {}
 
 	generateSecret(): TotpSecret {
-		let key = random.generateRandomData(16)
+		let key = this.random.generateRandomData(16)
 		let readableKey = TotpVerifier.readableKey(key)
 		return {
 			key,
@@ -36,9 +35,9 @@ export class TotpVerifier {
 	 * This method generates a TOTP value for the given
 	 * set of parameters.
 	 *
-	 * @param time : a value that reflects a time
-	 * @param key  :  the shared secret. It is generated if it does not exist
-	 * @return: the key and a numeric String in base 10 that includes truncationDigits digits
+	 * @param time a value that reflects a time
+	 * @param key the shared secret. It is generated if it does not exist
+	 * @return the key and a numeric String in base 10 that includes truncationDigits digits
 	 */
 	generateTotp(time: number, key: Uint8Array<ArrayBuffer>): number {
 		// Using the counter
@@ -52,8 +51,7 @@ export class TotpVerifier {
 		let hash = this.hmac_sha(key, msg)
 		let offset = hash[hash.length - 1] & 0xf
 		let binary = ((hash[offset] & 0x7f) << 24) | ((hash[offset + 1] & 0xff) << 16) | ((hash[offset + 2] & 0xff) << 8) | (hash[offset + 3] & 0xff)
-		let code = binary % DIGITS_POWER[this._digits]
-		return code
+		return binary % DIGITS_POWER[this.digits]
 	}
 
 	hmac_sha(key: Uint8Array<ArrayBuffer>, text: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {

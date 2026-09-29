@@ -87,18 +87,11 @@ import {
 	SearchIndexWordsIndex,
 } from "../../../common/api/worker/search/IndexTables.js"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
-import {
-	decryptIndexKey,
-	decryptMetaData,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-} from "../../../common/api/worker/search/IndexEncryptionUtils"
+import { IndexEncryptionUtils } from "../../../common/api/worker/search/IndexEncryptionUtils"
 import { ContactList } from "@tutao/entities/tutanota"
 import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstants"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { $Promisable, PromisableWrapper, promiseMapCompat, PromiseMapFn } from "./IndexerPromiseUtils"
+import { Aes } from "@tutao/crypto"
 
 const SEARCH_INDEX_ROW_LENGTH = 1000
 
@@ -131,7 +124,12 @@ export class IndexerCore {
 	private _explicitIdStart: number
 	indexedGroupIds: Array<Id>
 
-	constructor(db: EncryptedDbWrapper, browserData: BrowserData) {
+	constructor(
+		db: EncryptedDbWrapper,
+		browserData: BrowserData,
+		private readonly aes: Aes,
+		private readonly indexEncryptionUtils: IndexEncryptionUtils,
+	) {
 		this.db = db
 		this._isStopped = false
 		this._promiseMapCompat = promiseMapCompat(browserData.needsMicrotaskHack)
@@ -196,17 +194,17 @@ export class IndexerCore {
 	async encryptSearchIndexEntries(id: IdTuple, ownerGroup: Id, keyToIndexEntries: Map<string, SearchIndexEntry[]>, indexUpdate: IndexUpdate): Promise<void> {
 		const { key, initializationVector } = await this.db.encryptionData()
 		const listId = listIdPart(id)
-		const encInstanceId = encryptIndexKeyUint8Array(key, elementIdPart(id), initializationVector)
+		const encInstanceId = this.indexEncryptionUtils.encryptIndexKeyUint8Array(key, elementIdPart(id), initializationVector)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceId)
 		const elementIdTimestamp = generatedIdToTimestamp(elementIdPart(id))
 		const encWordsB64: string[] = []
 		for (const [indexKey, value] of keyToIndexEntries.entries()) {
-			const encWordB64 = encryptIndexKeyBase64(key, indexKey, initializationVector)
+			const encWordB64 = this.indexEncryptionUtils.encryptIndexKeyBase64(key, indexKey, initializationVector)
 			encWordsB64.push(encWordB64)
 			const encIndexEntries = getFromMap(indexUpdate.create.indexMap, encWordB64, () => [])
 			for (const indexEntry of value)
 				encIndexEntries.push({
-					entry: encryptSearchIndexEntry(key, indexEntry, encInstanceId),
+					entry: this.indexEncryptionUtils.encryptSearchIndexEntry(key, indexEntry, encInstanceId),
 					timestamp: elementIdTimestamp,
 				})
 		}
@@ -222,7 +220,7 @@ export class IndexerCore {
 	 */
 	async _processDeleted(typeRef: TypeRef<any>, instanceId: Id, indexUpdate: IndexUpdate): Promise<void> {
 		const { key, initializationVector } = await this.db.encryptionData()
-		const encInstanceIdPlain = encryptIndexKeyUint8Array(key, instanceId, initializationVector)
+		const encInstanceIdPlain = this.indexEncryptionUtils.encryptIndexKeyUint8Array(key, instanceId, initializationVector)
 		const encInstanceIdB64 = uint8ArrayToBase64(encInstanceIdPlain)
 		const { appId, typeId } = typeRefToTypeInfo(typeRef)
 		const transaction = await this.db.dbFacade.createTransaction(true, [ElementDataOS])
@@ -233,7 +231,7 @@ export class IndexerCore {
 
 		// We need to find SearchIndex rows which we want to update. In the ElementData we have references to the metadata and we can find
 		// corresponding SearchIndex row in it.
-		const metaDataRowKeysBinary = aesDecryptUnauthenticated(key, elementData[1])
+		const metaDataRowKeysBinary = this.aes.aesDecryptUnauthenticated(key, elementData[1])
 		// For every word we have a metadata reference and we want to update them all.
 		const metaDataRowKeys = decodeNumbers(metaDataRowKeysBinary)
 		for (const metaDataRowKey of metaDataRowKeys) {
@@ -424,7 +422,7 @@ export class IndexerCore {
 				return
 			}
 
-			const metaDataRow = decryptMetaData(encryptionData.key, encMetaDataRow)
+			const metaDataRow = this.indexEncryptionUtils.decryptMetaData(encryptionData.key, encMetaDataRow)
 			// add meta data to set to only update meta data once when deleting multiple instances
 			const metaDataEntriesSet = new Set() as Set<SearchIndexMetadataEntry>
 			for (const info of instanceInfos) {
@@ -474,7 +472,7 @@ export class IndexerCore {
 				if (metaDataRow.rows.length === 0) {
 					return transaction.delete(SearchIndexMetaDataOS, metaDataRow.id)
 				} else {
-					return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(encryptionData.key, metaDataRow))
+					return transaction.put(SearchIndexMetaDataOS, null, this.indexEncryptionUtils.encryptMetaData(encryptionData.key, metaDataRow))
 				}
 			}).value
 		})
@@ -495,7 +493,7 @@ export class IndexerCore {
 			const metaRows = elementDataSurrogate.encWordsB64.map((w) => encWordToMetaRow[w])
 			const rowKeysBinary = new Uint8Array(calculateNeededSpaceForNumbers(metaRows))
 			encodeNumbers(metaRows, rowKeysBinary)
-			const encMetaRowKeys = aes256EncryptSearchIndexEntry(key, rowKeysBinary)
+			const encMetaRowKeys = this.aes.aes256EncryptSearchIndexEntry(key, rowKeysBinary)
 			promises.push(transaction.put(ElementDataOS, b64EncInstanceId, [elementDataSurrogate.listId, encMetaRowKeys, elementDataSurrogate.ownerGroup]))
 		}
 		return Promise.all(promises)
@@ -554,7 +552,7 @@ export class IndexerCore {
 			})
 			.then((metaData) => {
 				encWordToMetaRow[encWordB64] = metaData.id
-				return transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(encryptionData.key, metaData))
+				return transaction.put(SearchIndexMetaDataOS, null, this.indexEncryptionUtils.encryptMetaData(encryptionData.key, metaData))
 			})
 	}
 
@@ -698,7 +696,7 @@ export class IndexerCore {
 					// Iterate all entries in a block, decrypt id of each and put it into the map
 					iterateBinaryBlocks(binaryBlock, (encSearchIndexEntry) => {
 						const encId = getIdFromEncSearchIndexEntry(encSearchIndexEntry)
-						const decId = decryptIndexKey(encryptionData.key, encId, encryptionData.initializationVector)
+						const decId = this.indexEncryptionUtils.decryptIndexKey(encryptionData.key, encId, encryptionData.initializationVector)
 						const timeStamp = generatedIdToTimestamp(decId)
 						getFromMap(timestampToEntries, timeStamp, () => []).push(encSearchIndexEntry)
 					})
@@ -867,7 +865,7 @@ export class IndexerCore {
 	_getOrCreateSearchIndexMeta(transaction: DbTransaction, encWordBase64: B64EncIndexKey, { key }: DbEncryptionData): Promise<SearchIndexMetaDataRow> {
 		return transaction.get(SearchIndexMetaDataOS, encWordBase64, SearchIndexWordsIndex).then((metaData: SearchIndexMetaDataDbRow | null) => {
 			if (metaData) {
-				return decryptMetaData(key, metaData)
+				return this.indexEncryptionUtils.decryptMetaData(key, metaData)
 			} else {
 				const metaTemplate: Partial<SearchIndexMetaDataDbRow> = {
 					word: encWordBase64,

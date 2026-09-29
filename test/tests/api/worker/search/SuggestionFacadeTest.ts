@@ -4,7 +4,7 @@
 import o, { spy } from "@tutao/otest"
 import { SuggestionFacade } from "../../../../../src/applications/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "../../../../../src/platform-kit/utils"
-import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { DbEncryptionData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
@@ -14,6 +14,8 @@ import { TypeModel } from "../../../../../src/platform-kit/meta"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("SuggestionFacade test", () => {
 	let db: EncryptedDbWrapper
@@ -24,12 +26,18 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(async function () {
 		db = new EncryptedDbWrapper(object())
 
-		encryptionData = { key: aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR }
+		const random = new Randomizer()
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+
+		encryptionData = { key: symmetricCipherUtils.aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR }
 		db.init(encryptionData)
 		clientModelResolver = makePopulatedClientModelInfo()
 		contactTypeModel = await clientModelResolver.resolveClientTypeReference(ContactTypeRef)
 
-		facade = new SuggestionFacade(ContactTypeRef, db, clientModelResolver)
+		const aes = new Aes(
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+		)
+		facade = new SuggestionFacade(ContactTypeRef, db, clientModelResolver, aes)
 	})
 	o("add and get suggestion", () => {
 		o(facade.getSuggestions("a").join("")).equals("")

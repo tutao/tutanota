@@ -4,14 +4,20 @@ import td, { instance, matchers, object, when } from "testdouble"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod } from "../../../src/platform-kit/rest-client/types"
 import {
+	Aes,
 	Aes128Key,
-	aes256RandomKey,
+	AesCbcFacade,
 	AesKey,
 	AesKeyLength,
 	createAuthVerifier,
+	CryptoWrapper,
 	getKeyLengthInBytes,
+	KeyEncryption,
 	keyToUint8Array,
+	Randomizer,
 	sha256Hash,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { AsyncLoginStateOptions, LoginFacade, LoginFailReason, LoginListener, ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
@@ -53,10 +59,10 @@ import { DEFAULT_KDF_TYPE, KdfType } from "../../../src/platform-kit/base/base-c
 import { AccountType } from "../../../src/entities/sys/Utils"
 import { CacheStorageLateInitializer, EphemeralStorageArgs, OfflineStorageArgs } from "../../../src/platform-kit/base/facades/CacheStorageLateInitializer"
 import { DefaultLoginListener } from "../../../src/applications/common/api/worker/utils/DefaultLoginListener"
-import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
-import { _encryptString } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { idToElementId } from "../../../src/platform-kit/meta"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything, argThat } = matchers
 
@@ -84,8 +90,13 @@ export function verify(demonstration: any, config?: td.VerificationConfig) {
 
 const SALT = new Uint8Array([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15])
 
-async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, userPassphraseKey: AesKey = PASSWORD_KEY): Promise<User> {
-	const groupKey = encryptKey(userPassphraseKey, new Aes128Key([3229306880, 2716953871, 4072167920, 3901332676]))
+async function makeUser(
+	userId: Id,
+	keyEncryption: KeyEncryption,
+	kdfVersion: KdfType = DEFAULT_KDF_TYPE,
+	userPassphraseKey: AesKey = PASSWORD_KEY,
+): Promise<User> {
+	const groupKey = keyEncryption.encryptKey(userPassphraseKey, new Aes128Key([3229306880, 2716953871, 4072167920, 3901332676]))
 
 	return createTestEntity(UserTypeRef, {
 		_id: idToElementId(userId),
@@ -102,12 +113,12 @@ async function makeUser(userId: Id, kdfVersion: KdfType = DEFAULT_KDF_TYPE, user
 	})
 }
 
-async function createSessionJson(userId: string, accessKey: AesKey, instancePipeline: InstancePipeline) {
+async function createSessionJson(userId: string, accessKey: AesKey, instancePipeline: InstancePipeline, symmetricCipherUtils: SymmetricCipherUtils) {
 	const session = createTestEntity(SessionTypeRef, {
 		user: userId,
 		accessKey: keyToUint8Array(accessKey),
 	})
-	const encryptedInstance = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, aes256RandomKey())
+	const encryptedInstance = await instancePipeline.mapAndEncrypt(SessionTypeRef, session, symmetricCipherUtils.aes256RandomKey())
 	return encryptedInstance.getJsonRepresentation()
 }
 
@@ -130,6 +141,9 @@ o.spec("LoginFacadeTest", function () {
 	let cacheManagmentFacadeMock: CacheManagementFacade
 	let typeModelResolver: TypeModelResolver
 	let rolloutFacade: RolloutFacade
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let keyEncryption: KeyEncryption
+	let cryptoWrapper: CryptoWrapper
 
 	const login = "born.slippy@tuta.io"
 
@@ -168,6 +182,18 @@ o.spec("LoginFacadeTest", function () {
 		cacheManagmentFacadeMock = object()
 		rolloutFacade = object()
 
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+
 		facade = new LoginFacade(
 			restClientMock,
 			entityClientMock,
@@ -189,6 +215,9 @@ o.spec("LoginFacadeTest", function () {
 			rolloutFacade,
 			object(),
 			object(),
+			keyEncryption,
+			cryptoWrapper,
+			symmetricCipherUtils,
 		)
 
 		eventBusClientMock = instance(EventBusClient)
@@ -213,7 +242,7 @@ o.spec("LoginFacadeTest", function () {
 				)
 				when(
 					entityClientMock.load(UserTypeRef, idToElementId(userId), { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly }),
-				).thenReturn(makeUser(userId))
+				).thenReturn(makeUser(userId, keyEncryption))
 			})
 
 			o.test("When a database key is provided and session is persistent it is passed to the local-store storage initializer", async function () {
@@ -293,7 +322,7 @@ o.spec("LoginFacadeTest", function () {
 			let user: User
 
 			o.beforeEach(async function () {
-				user = await makeUser(userId)
+				user = await makeUser(userId, keyEncryption)
 
 				credentials = {
 					/**
@@ -303,7 +332,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					encryptedPassphraseKey: null,
 					accessToken,
 					userId,
@@ -322,7 +351,7 @@ o.spec("LoginFacadeTest", function () {
 						HttpMethod.GET,
 						anything(),
 					),
-				).thenResolve(createSessionJson(userId, accessKey, instancePipeline))
+				).thenResolve(createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils))
 			})
 
 			o.test("When resuming a session and there is a database key, it is passed to local-store storage initialization", async function () {
@@ -419,7 +448,7 @@ o.spec("LoginFacadeTest", function () {
 			let fullLoginDeferred: DeferredObject<void>
 
 			o.beforeEach(async function () {
-				user = await makeUser(userId)
+				user = await makeUser(userId, keyEncryption)
 				credentials = {
 					/**
 					 * Identifier which we use for logging in.
@@ -428,7 +457,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -500,7 +529,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testSuccessfulSyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return await createSessionJson(userId, accessKey, instancePipeline)
+					return await createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils)
 				})
 
 				await facade
@@ -542,7 +571,7 @@ o.spec("LoginFacadeTest", function () {
 			async function testSuccessfulAsyncLogin() {
 				when(restClientMock.request(anything(), HttpMethod.GET, anything())).thenDo(async () => {
 					calls.push("sessionService")
-					return createSessionJson(userId, accessKey, instancePipeline)
+					return createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils)
 				})
 
 				const deferred: DeferredObject<void> = defer()
@@ -612,7 +641,7 @@ o.spec("LoginFacadeTest", function () {
 			let user: User
 
 			o.beforeEach(async function () {
-				user = await makeUser(userId)
+				user = await makeUser(userId, keyEncryption)
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
 
@@ -624,7 +653,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -650,7 +679,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenResolve(
-					await createSessionJson(userId, accessKey, instancePipeline),
+					await createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils),
 				)
 
 				const result = await facade.resumeSession(
@@ -719,7 +748,7 @@ o.spec("LoginFacadeTest", function () {
 			o.beforeEach(async function () {
 				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
 				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
-				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
+				user = await makeUser(userId, keyEncryption, KdfType.Bcrypt, userPassphraseKey)
 				user.salt = SALT
 				usingOfflineStorage = true
 				user.accountType = AccountType.PAID
@@ -732,7 +761,7 @@ o.spec("LoginFacadeTest", function () {
 					login: login,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -762,7 +791,7 @@ o.spec("LoginFacadeTest", function () {
 				const groupInfo = createTestEntity(GroupInfoTypeRef)
 				when(entityClientMock.load(GroupInfoTypeRef, user.userGroup.groupInfo)).thenResolve(groupInfo)
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
-					createSessionJson(userId, accessKey, instancePipeline),
+					createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils),
 				)
 
 				await facade.resumeSession(credentials, null, dbKey)
@@ -792,13 +821,13 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
 				} as Credentials
 
-				user = await makeUser(userId)
+				user = await makeUser(userId, keyEncryption)
 				user.externalAuthInfo = createTestEntity(UserExternalAuthInfoTypeRef, {
 					latestSaltHash: sha256Hash(SALT),
 				})
@@ -809,7 +838,7 @@ o.spec("LoginFacadeTest", function () {
 				).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
-					createSessionJson(userId, accessKey, instancePipeline),
+					createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils),
 				)
 			})
 
@@ -879,7 +908,7 @@ o.spec("LoginFacadeTest", function () {
 					login: userId,
 
 					/** Session#accessKey encrypted password. Is set when session is persisted. */
-					encryptedPassword: uint8ArrayToBase64(_encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
+					encryptedPassword: uint8ArrayToBase64(cryptoWrapper.encryptString(accessKey, passphrase)), // We can't call encryptString in the top level of spec because `random` isn't initialized yet
 					accessToken,
 					userId,
 					type: "internal",
@@ -887,7 +916,7 @@ o.spec("LoginFacadeTest", function () {
 
 				const passphraseKeyData = { kdfType: KdfType.Bcrypt, passphrase, salt: SALT }
 				const userPassphraseKey = await facade.deriveUserPassphraseKey(passphraseKeyData)
-				user = await makeUser(userId, KdfType.Bcrypt, userPassphraseKey)
+				user = await makeUser(userId, keyEncryption, KdfType.Bcrypt, userPassphraseKey)
 				user.externalAuthInfo = createTestEntity(UserExternalAuthInfoTypeRef, {
 					latestSaltHash: sha256Hash(SALT),
 				})
@@ -898,7 +927,7 @@ o.spec("LoginFacadeTest", function () {
 				).thenResolve(user)
 
 				when(restClientMock.request(matchers.contains("sys/session"), HttpMethod.GET, anything())).thenReturn(
-					createSessionJson(userId, accessKey, instancePipeline),
+					createSessionJson(userId, accessKey, instancePipeline, symmetricCipherUtils),
 				)
 			})
 
@@ -919,7 +948,7 @@ o.spec("LoginFacadeTest", function () {
 
 	o.spec("Migrating the KDF", function () {
 		o("When the migration is enabled, a new key is derived from the same password with Argon2", async function () {
-			const user = await makeUser("userId", KdfType.Bcrypt)
+			const user = await makeUser("userId", keyEncryption, KdfType.Bcrypt)
 			user.salt = SALT
 
 			when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: new Aes128Key([1, 2, 3, 4]), version: 0 })

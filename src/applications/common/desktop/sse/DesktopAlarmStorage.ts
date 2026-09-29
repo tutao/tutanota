@@ -4,7 +4,7 @@ import { DesktopConfigKey } from "@tutao/app-env"
 import type { DesktopKeyStoreFacade } from "../DesktopKeyStoreFacade.js"
 import { assertNotNull, base64ToUint8Array, findAllAndRemove, isEmpty, Nullable, promiseMap, uint8ArrayToBase64 } from "../../../../platform-kit/utils"
 import { log } from "../DesktopLog"
-import { AesKey, base64ToKey, decryptKey, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
+import { AesKey, base64ToKey, KeyEncryption, keyToBase64, uint8ArrayToKey } from "@tutao/crypto"
 import { EncryptedParsedInstance, InstancePipeline } from "../../../../platform-kit/instance-pipeline"
 import { CryptoError } from "@tutao/crypto/error"
 import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/common/EncryptedAlarmNotification"
@@ -24,6 +24,7 @@ export class DesktopAlarmStorage {
 		private readonly cryptoFacade: DesktopNativeCryptoFacade,
 		private readonly keyStoreFacade: DesktopKeyStoreFacade,
 		private readonly alarmStorageInstancePipeline: InstancePipeline,
+		private readonly keyEncryption: KeyEncryption,
 	) {
 		this.unencryptedSessionKeys = {}
 	}
@@ -101,7 +102,7 @@ export class DesktopAlarmStorage {
 			const pushIdentifierSessionKey = await this.getPushIdentifierSessionKey(notificationSessionKey.pushIdentifier)
 			if (pushIdentifierSessionKey) {
 				return {
-					sessionKey: decryptKey(pushIdentifierSessionKey, notificationSessionKey.pushIdentifierSessionEncSessionKey),
+					sessionKey: this.keyEncryption.decryptKey(pushIdentifierSessionKey, notificationSessionKey.pushIdentifierSessionEncSessionKey),
 					notificationSessionKey,
 				}
 			}
@@ -189,7 +190,7 @@ export class DesktopAlarmStorage {
 				continue
 			}
 
-			const sessionKey = decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
+			const sessionKey = this.keyEncryption.decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
 			const decryptedAlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 				encryptedAlarmNotification.encryptedInstance,
 				sessionKey,

@@ -1,6 +1,6 @@
 import { AeadSubKeys, AeadWithInstanceKeySubKeys } from "./SymmetricKeyDeriver.js"
 import { concat } from "@tutao/utils"
-import { bitArrayToUint8Array, generateInitializationVector, keyToUint8Array, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
+import { bitArrayToUint8Array, keyToUint8Array, SymmetricCipherUtils, uint8ArrayToBitArray } from "./SymmetricCipherUtils.js"
 import sjcl from "../../internal/sjcl.js"
 import { blake3Mac, blake3MacVerify } from "../../hashes/Blake3.js"
 import { CryptoError } from "../../error.js"
@@ -19,6 +19,8 @@ export const PADDING_ZERO_BYTE: number = 0x00
  * We use AES-CTR then BLAKE3, where the tag is computed over: version byte, nonce, ciphertext and associated data.
  */
 export class AeadFacade {
+	constructor(private readonly symmetricCipherUtils: SymmetricCipherUtils) {}
+
 	private pad(plaintext: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
 		const bytesToAppend = PADDING_BLOCK_SIZE - (plaintext.length % PADDING_BLOCK_SIZE)
 		const paddedPlaintext = new Uint8Array(plaintext.length + bytesToAppend)
@@ -63,7 +65,7 @@ export class AeadFacade {
 	 * @private
 	 */
 	encryptInternal(subKeys: AeadSubKeys, plaintext: Uint8Array<ArrayBuffer>, associatedData: AssociatedData): Uint8Array<ArrayBuffer> {
-		const initializationVector = generateInitializationVector()
+		const initializationVector = this.symmetricCipherUtils.generateInitializationVector()
 		const aesCtrCiphertext = bitArrayToUint8Array(
 			sjcl.mode.ctr.encrypt(
 				new sjcl.cipher.aes(subKeys.encryptionKey.bits),
@@ -133,5 +135,3 @@ export class AeadFacade {
 		return bitArrayToUint8Array([integer])
 	}
 }
-
-export const AEAD_FACADE = new AeadFacade()

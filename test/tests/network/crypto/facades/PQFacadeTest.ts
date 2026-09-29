@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { aes256RandomKey, generateX25519KeyPair, keyToUint8Array, pqKeyPairsToPublicKeys } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, generateX25519KeyPair, keyToUint8Array, pqKeyPairsToPublicKeys, random } from "../../../../../src/platform-kit/crypto"
 import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 
@@ -8,7 +8,7 @@ import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 o.spec("PQFacade test", function () {
 	o.spec("encapsulateDecapsulateRoundtrip", function () {
 		o("should lead to same result", async function () {
-			const kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+			const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 			const pqFacade: PQFacade = new PQFacade(kyberFacade)
 
 			const senderIdentityKeyPair = generateX25519KeyPair()

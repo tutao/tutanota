@@ -24,7 +24,7 @@ import {
 } from "@tutao/utils"
 import { assertWorkerOrNode, CancelledError, isApp, isDesktop, ProgrammingError } from "@tutao/app-env"
 import { BlobElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
-import { _encryptBytes, aesDecrypt, aesEncrypt, AesKey, asyncDecryptBytes, sha256Hash } from "@tutao/crypto"
+import { Aes, AesKey, sha256Hash } from "@tutao/crypto"
 import type { FileUri, NativeFileApp } from "../../../../../../app-kit/native-bridge/common/FileApp.js"
 import type { AesApp } from "../../../../../../app-kit/native-bridge/worker/AesApp.js"
 import { splitFileIntoChunks } from "../../../../../../ui/utils/FileUtils.js"
@@ -218,6 +218,7 @@ export class BlobFacade {
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly progressDispatcher: TransferProgressDispatcher,
 		private readonly typeModelResolver: TypeModelResolver,
+		private readonly aes: Aes,
 	) {}
 
 	/**
@@ -264,7 +265,7 @@ export class BlobFacade {
 	}
 
 	private async encryptChunk(sessionKey: AesKey, chunk: Uint8Array<ArrayBuffer>): Promise<EncryptedChunk> {
-		return (await _encryptBytes(sessionKey, chunk)) as EncryptedChunk
+		return this.aes.aesEncrypt(sessionKey, chunk) as EncryptedChunk
 	}
 	private async encryptChunkNative(sessionKey: AesKey, fileUri: FileUri): Promise<string> {
 		const encryptedFileInfo = await this.aesApp.aesEncryptFile(sessionKey, fileUri)
@@ -432,7 +433,7 @@ export class BlobFacade {
 		this.abortControllers.set(transferId, abortController)
 
 		const sessionKeyToReferenceTokens = new Map<AesKey, BlobReferenceTokenWrapper[]>(fileData.map((f) => [f.sessionKey, []]))
-		const keyedNewBlobWrappers = encryptMultipleFileData(fileData)
+		const keyedNewBlobWrappers = this.encryptMultipleFileData(fileData)
 		const serializedBinaries = serializeNewBlobsInBinaryChunks(keyedNewBlobWrappers)
 		const doBlobRequest: () => Promise<BlobReferenceTokenWrapper[][]> = async () => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
@@ -687,7 +688,7 @@ export class BlobFacade {
 				return null
 			}
 			try {
-				decryptedChunks.push(aesDecrypt(sessionKey, encryptedChunk))
+				decryptedChunks.push(this.aes.aesDecrypt(sessionKey, encryptedChunk))
 			} catch (e) {
 				// If decrypting one chunk of an instance fails it doesn't make sense to return any data for
 				// that instance
@@ -958,7 +959,7 @@ export class BlobFacade {
 		}
 		const processedBlobEntries = await promiseMap(Array.from(mapWithEncryptedBlobs.entries()), async ([blobId, blob]) => {
 			abortSignal?.throwIfAborted()
-			return [blobId, await asyncDecryptBytes(sessionKey, blob)] as const
+			return [blobId, await this.aes.asyncDecryptBytes(sessionKey, blob)] as const
 		})
 		return new Map(processedBlobEntries)
 	}
@@ -1134,6 +1135,29 @@ export class BlobFacade {
 			totalBytes: state.totalSize,
 		})
 	}
+
+	encryptMultipleFileData(fileData: FileData[]): KeyedNewBlobWrapper[] {
+		const result: KeyedNewBlobWrapper[] = []
+
+		for (const file of fileData) {
+			for (const chunk of chunkData(file.data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES)) {
+				const encrypted = this.aes.aesEncrypt(file.sessionKey, chunk)
+
+				const hashFull = sha256Hash(encrypted)
+				const shortHash = hashFull.slice(0, 6)
+
+				result.push({
+					sessionKey: file.sessionKey,
+					newBlobWrapper: {
+						hash: shortHash,
+						data: encrypted,
+					},
+				})
+			}
+		}
+
+		return result
+	}
 }
 
 /**
@@ -1208,29 +1232,6 @@ export function serializeNewBlobsInBinaryChunks(
 		sessionKeys: chunk.map((c) => c.sessionKey),
 		binary: serializeNewBlobs(chunk.map((c) => c.newBlobWrapper)),
 	}))
-}
-
-function encryptMultipleFileData(fileData: FileData[]): KeyedNewBlobWrapper[] {
-	const result: KeyedNewBlobWrapper[] = []
-
-	for (const file of fileData) {
-		for (const chunk of chunkData(file.data, MAX_UNENCRYPTED_BLOB_SIZE_BYTES)) {
-			const encrypted = aesEncrypt(file.sessionKey, chunk)
-
-			const hashFull = sha256Hash(encrypted)
-			const shortHash = hashFull.slice(0, 6)
-
-			result.push({
-				sessionKey: file.sessionKey,
-				newBlobWrapper: {
-					hash: shortHash,
-					data: encrypted,
-				},
-			})
-		}
-	}
-
-	return result
 }
 
 function chunkData(data: Uint8Array<ArrayBuffer>, size: number): Uint8Array<ArrayBuffer>[] {

@@ -8,7 +8,19 @@ import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUti
 import { EventQueue, QueuedBatch } from "../../../../../src/app-kit/local-store/event/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/applications/common/api/common/error/MembershipRemovedError.js"
 import { defer, downcast, freshVersioned, promiseMap } from "../../../../../src/platform-kit/utils"
-import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, InitializationVector, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import {
+	Aes,
+	Aes256Key,
+	AesCbcFacade,
+	CryptoWrapper,
+	FIXED_INITIALIZATION_VECTOR,
+	InitializationVector,
+	KeyEncryption,
+	Randomizer,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	VersionedKey,
+} from "../../../../../src/platform-kit/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
@@ -27,9 +39,9 @@ import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instanc
 import { EntityUpdateTypeRef, GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
-import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const SERVER_TIME = new Date("1994-06-08").getTime()
 const serverDateProvider: DateProvider = {
@@ -68,10 +80,13 @@ o.spec("IndexedDbIndexer", () => {
 	let infoMessageHandler: InfoMessageHandler
 	let clientTypeModelResolver: ClientTypeModelResolver
 	let indexerTemplate: IndexedDbIndexer
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let aes: Aes
+	let keyEncryption: KeyEncryption
 
 	o.beforeEach(function () {
 		clientTypeModelResolver = makePopulatedClientModelInfo()
-		key = aes256RandomKey()
+		key = symmetricCipherUtils.aes256RandomKey()
 		initializationVector = FIXED_INITIALIZATION_VECTOR
 		mailIndexer = object()
 		;(mailIndexer as Writeable<MailIndexer>).mailIndexingEnabled = false
@@ -87,6 +102,18 @@ o.spec("IndexedDbIndexer", () => {
 		infoMessageHandler = object()
 		keyLoaderFacade = object()
 
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		aes = new Aes(symmetricCipherFacade)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+
 		indexerTemplate = new IndexedDbIndexer(
 			serverDateProvider,
 			dbWithStub,
@@ -95,8 +122,11 @@ o.spec("IndexedDbIndexer", () => {
 			entityClient,
 			mailIndexer,
 			contactIndexer,
-			clientTypeModelResolver,
 			keyLoaderFacade,
+			symmetricCipherUtils,
+			aes,
+			keyEncryption,
+			cryptoWrapper,
 		)
 	})
 
@@ -160,7 +190,7 @@ o.spec("IndexedDbIndexer", () => {
 			const indexer = mock(indexerTemplate, (mock) => {
 				mock._loadGroupData = loadGroupData
 			})
-			let userGroupKey = freshVersioned(aes256RandomKey())
+			let userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
 
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)
 
@@ -171,17 +201,17 @@ o.spec("IndexedDbIndexer", () => {
 
 			// this gets what was passed in db.init()
 			const { key } = await dbWithStub.encryptionData()
-			o.check(decryptKey(userGroupKey.object, idbStub.getValue(MetaDataOS, Metadata.userEncDbKey))).deepEquals(key)
+			o.check(keyEncryption.decryptKey(userGroupKey.object, idbStub.getValue(MetaDataOS, Metadata.userEncDbKey))).deepEquals(key)
 
 			verify(contactIndexer.indexFullContactList())
 			verify(mailIndexer.indexMailboxes(matchers.anything(), matchers.anything()), { times: 1 })
 		})
 
 		o.test("init existing db no errors", async function () {
-			let userGroupKey = freshVersioned(aes256RandomKey())
-			let dbKey = aes256RandomKey()
-			let encDbIv = aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR.bytes)
-			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
+			let userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
+			let dbKey = symmetricCipherUtils.aes256RandomKey()
+			let encDbIv = aes.aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR.bytes)
+			let userEncDbKey = keyEncryption.encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
 
 			const t = await idbStub.createTransaction()
@@ -215,11 +245,11 @@ o.spec("IndexedDbIndexer", () => {
 		})
 
 		o.test("init existing db out of sync", async () => {
-			let userGroupKey = freshVersioned(aes256RandomKey())
-			let dbKey = aes256RandomKey()
-			let userEncDbKey = encryptKey(userGroupKey.object, dbKey)
+			let userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
+			let dbKey = symmetricCipherUtils.aes256RandomKey()
+			let userEncDbKey = keyEncryption.encryptKey(userGroupKey.object, dbKey)
 			const userGroupKeyVersion = 0
-			let encDbIv = aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR.bytes)
+			let encDbIv = aes.aesEncrypt(dbKey, FIXED_INITIALIZATION_VECTOR.bytes)
 			const t = await idbStub.createTransaction()
 			t.put(MetaDataOS, Metadata.userEncDbKey, userEncDbKey)
 			t.put(MetaDataOS, Metadata.userGroupKeyVersion, userGroupKeyVersion)
@@ -892,7 +922,7 @@ o.spec("IndexedDbIndexer", () => {
 		let userGroupKey: VersionedKey
 
 		o.beforeEach(async function () {
-			userGroupKey = freshVersioned(aes256RandomKey())
+			userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
 			const transactionDouble = await idbStub.createTransaction()
 			transactionDouble.put(GroupDataOS, "key", "value")
 
@@ -959,7 +989,7 @@ o.spec("IndexedDbIndexer", () => {
 		let userGroupKey: VersionedKey
 
 		o.beforeEach(async function () {
-			userGroupKey = freshVersioned(aes256RandomKey())
+			userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
 			when(contactIndexer.areContactsIndexed()).thenResolve(true)
 			// for initial init
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(userGroupKey)

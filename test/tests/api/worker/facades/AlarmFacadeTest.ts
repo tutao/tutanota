@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, base64ToKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { AesKey, base64ToKey, Randomizer, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -38,6 +38,7 @@ import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/co
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 
 o.spec("AlarmFacadeTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let nativePushFacadeMock: NativePushFacade
 	let userFacadeMock: UserFacade
 	let cryptoWrapperMock: CryptoWrapper
@@ -53,6 +54,8 @@ o.spec("AlarmFacadeTest", function () {
 	let userGroupMembership: GroupMembership
 
 	o.beforeEach(function () {
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		nativePushFacadeMock = object()
@@ -77,6 +80,7 @@ o.spec("AlarmFacadeTest", function () {
 			nativePushFacadeMock,
 			instancePipeline,
 			infoMessageHandlerMock,
+			symmetricCipherUtils,
 		)
 	})
 

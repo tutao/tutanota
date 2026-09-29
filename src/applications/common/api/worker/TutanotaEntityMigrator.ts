@@ -14,7 +14,7 @@ import { createEncryptTutanotaPropertiesData, EncryptTutanotaPropertiesService, 
 import { assertNotNull, downcast, ofClass, uint8ArrayToBase64 } from "@tutao/utils"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
-import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, decryptKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, cryptoUtils, CryptoWrapper, KeyEncryption, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { HttpMethod, RestClientInterface, RestTextBody } from "@tutao/rest-client/types"
 import { PayloadTooLargeError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
@@ -34,6 +34,8 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		protected readonly instancePipeline: InstancePipeline,
 		protected readonly restClient: RestClientInterface,
 		protected readonly crypto: CryptoNetworkHelper,
+		protected readonly symmetricCipherUtils: SymmetricCipherUtils,
+		protected readonly keyEncryption: KeyEncryption,
 	) {}
 
 	/**
@@ -65,8 +67,8 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		const customerGroupKeyVersion = cryptoUtils.parseKeyVersion(customerGroupPermission.symKeyVersion ?? "0")
 		const customerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(customerGroupMembership.group, customerGroupKeyVersion)
 		const versionedCustomerGroupKey = { object: customerGroupKey, version: customerGroupKeyVersion }
-		const listKey = decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
-		const groupInfoSk = decryptKey(listKey, assertNotNull(data._listEncSessionKey))
+		const listKey = this.keyEncryption.decryptKey(customerGroupKey, assertNotNull(customerGroupPermission.symEncSessionKey))
+		const groupInfoSk = this.keyEncryption.decryptKey(listKey, assertNotNull(data._listEncSessionKey))
 
 		this.crypto.setOwnerEncSessionKey(
 			data,
@@ -80,7 +82,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		const userGroupKey = this.loggedInUserProvider.getCurrentUserGroupKey()
 
 		// set sessionKey for allowing encryption when old instance (< v43) is updated
-		await this.updateOwnerEncSessionKey(instance, userGroupKey, aes256RandomKey())
+		await this.updateOwnerEncSessionKey(instance, userGroupKey, this.symmetricCipherUtils.aes256RandomKey())
 		return instance
 	}
 
@@ -88,7 +90,7 @@ export class TutanotaEntityMigrator implements EntityMigrator {
 		const userGroupKey = this.loggedInUserProvider.getCurrentUserGroupKey()
 
 		// EncryptTutanotaPropertiesService could be removed and replaced with a Migration that writes the key
-		const groupEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, aes256RandomKey())
+		const groupEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, this.symmetricCipherUtils.aes256RandomKey())
 		this.crypto.setOwnerEncSessionKey(instance, groupEncSessionKey, this.loggedInUserProvider.getUserGroupId())
 		const migrationData = createEncryptTutanotaPropertiesData({
 			properties: elementIdPart(downcast<IdTuple>(instance._id)),

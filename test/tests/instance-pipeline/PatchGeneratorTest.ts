@@ -9,7 +9,7 @@ import {
 	TestTypeRef,
 } from "./InstancePipelineTestUtils"
 import { InstancePipeline, PatchGenerator, PatchOperationType, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
+import { aes256RandomKey, random, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
@@ -27,7 +27,7 @@ o.spec("computePatches", function () {
 	o.before(() => {
 		typeModelResolver.resolveClientTypeReference = dummyResolver as any
 	})
-	const dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), SYMMETRIC_CIPHER_FACADE, null)
+	const dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), SYMMETRIC_CIPHER_FACADE, null, random)
 	const patchGenerator = new PatchGenerator(dummyInstancePipeline)
 
 	o("computePatches returns empty list for equal objects", async function () {

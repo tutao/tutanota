@@ -46,10 +46,11 @@ import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { File, FileTypeRef, MailDetailsBlobTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-import { aesDecrypt, aesEncrypt } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
-import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything, captor } = matchers
 
@@ -74,6 +75,8 @@ o.spec("BlobFacadeTest", function () {
 	let anotherFile: File
 	let typeModelResolver: TypeModelResolver
 	let realInstancePipeline: InstancePipeline
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let aes: Aes
 
 	o.beforeEach(function () {
 		restClientMock = instance(RestClient)
@@ -90,6 +93,14 @@ o.spec("BlobFacadeTest", function () {
 		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
 		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
+		const random = new Randomizer()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const aesCbcFacade = new AesCbcFacade()
+		const aeadFacade = new AeadFacade(symmetricCipherUtils)
+		const symmetricKeyDeriver = new SymmetricKeyDeriver()
+		const symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
+		aes = new Aes(symmetricCipherFacade)
+
 		blobFacade = new BlobFacade(
 			restClientMock,
 			suspensionHandlerMock,
@@ -100,6 +111,7 @@ o.spec("BlobFacadeTest", function () {
 			blobAccessTokenFacade,
 			object(),
 			typeModelResolver,
+			aes,
 		)
 	})
 
@@ -117,6 +129,7 @@ o.spec("BlobFacadeTest", function () {
 				blobAccessTokenFacade,
 				object(),
 				typeModelResolver,
+				aes,
 			)
 
 			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
@@ -132,7 +145,7 @@ o.spec("BlobFacadeTest", function () {
 
 		o("encryptAndUpload single blob", async function () {
 			const ownerGroup = "ownerId"
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
 			const transferId = "abcde" as TransferId
 
@@ -156,7 +169,7 @@ o.spec("BlobFacadeTest", function () {
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, optionsCaptor.capture()))
 			const encryptedData = (optionsCaptor.value.body as RestBinaryBody).payload
-			const decryptedData = aesDecrypt(sessionKey, encryptedData)
+			const decryptedData = aes.aesDecrypt(sessionKey, encryptedData)
 			o(arrayEquals(decryptedData, blobData)).equals(true)
 			o(optionsCaptor.value.baseUrl).equals("w1")
 		})
@@ -167,10 +180,10 @@ o.spec("BlobFacadeTest", function () {
 				const transferId = "t1" as TransferId
 
 				const fileData: FileData[] = [
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2048) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2048) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2048) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2048) },
 				]
 
 				const expectedTokens = [
@@ -190,7 +203,11 @@ o.spec("BlobFacadeTest", function () {
 				let expectedBlobPostOutEntity = createTestEntity(BlobPostOutTypeRef, {
 					blobReferenceTokens: expectedTokens,
 				})
-				const expectedBlobPostOut = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, expectedBlobPostOutEntity, aes256RandomKey())
+				const expectedBlobPostOut = await realInstancePipeline.mapAndEncrypt(
+					BlobPostOutTypeRef,
+					expectedBlobPostOutEntity,
+					symmetricCipherUtils.aes256RandomKey(),
+				)
 				when(restClientMock.request(BLOB_SERVICE_REST_PATH, HttpMethod.POST, anything())).thenResolve(expectedBlobPostOut.getJsonRepresentation())
 
 				const tokensArray = expectedTokens.map((t) => Array.of(t.blobReferenceToken))
@@ -205,10 +222,10 @@ o.spec("BlobFacadeTest", function () {
 				const transferId = "t2" as TransferId
 
 				const fileData: FileData[] = [
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(12 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(12 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(1024 * 1024) },
 				]
 
 				const firstPartToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "first_attachment_token1" })
@@ -223,8 +240,16 @@ o.spec("BlobFacadeTest", function () {
 				const secondExpectedBlobPostOut = createTestEntity(BlobPostOutTypeRef, {
 					blobReferenceTokens: [secondPartToken, secondAttachmentToken, thirdAttachmentToken, fourthAttachmentToken],
 				})
-				const firstServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, firstExpectedBlobPostOut, aes256RandomKey())
-				const secondServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, secondExpectedBlobPostOut, aes256RandomKey())
+				const firstServerResponse = await realInstancePipeline.mapAndEncrypt(
+					BlobPostOutTypeRef,
+					firstExpectedBlobPostOut,
+					symmetricCipherUtils.aes256RandomKey(),
+				)
+				const secondServerResponse = await realInstancePipeline.mapAndEncrypt(
+					BlobPostOutTypeRef,
+					secondExpectedBlobPostOut,
+					symmetricCipherUtils.aes256RandomKey(),
+				)
 
 				const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 					blobAccessToken: "123",
@@ -256,9 +281,9 @@ o.spec("BlobFacadeTest", function () {
 				const transferId = "t3" as TransferId
 
 				const fileData: FileData[] = [
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(14 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(9 * 1024 * 1024) },
-					{ sessionKey: aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(14 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(9 * 1024 * 1024) },
+					{ sessionKey: symmetricCipherUtils.aes256RandomKey(), data: new Uint8Array(2 * 1024 * 1024) },
 				]
 
 				const blobRefTokenWrappers = [
@@ -278,7 +303,7 @@ o.spec("BlobFacadeTest", function () {
 				}
 
 				const serverRespones: OutgoingServerJson[] = await promiseMap(postOuts, (p) =>
-					realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, p, aes256RandomKey()),
+					realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, p, symmetricCipherUtils.aes256RandomKey()),
 				)
 
 				const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
@@ -316,7 +341,7 @@ o.spec("BlobFacadeTest", function () {
 		o("encryptAndUploadNative", async function () {
 			env.networkDebugging = false
 			const ownerGroup = "ownerId"
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcde" as TransferId
 
 			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
@@ -376,13 +401,13 @@ o.spec("BlobFacadeTest", function () {
 
 	o.spec("download", function () {
 		o("downloadAndDecrypt", async function () {
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
 			const blobData = new Uint8Array([1, 2, 3])
 			const blobId = "--------0s--"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId, size: String(65), archiveId: archiveId }))
-			const encryptedBlobData = aesEncrypt(sessionKey, blobData)
+			const encryptedBlobData = aes.aesEncrypt(sessionKey, blobData)
 
 			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -435,17 +460,17 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o("downloadAndDecrypt multiple", async function () {
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -488,17 +513,17 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o("downloadAndDecrypt multiple from different archives", async function () {
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65), archiveId }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65), archiveId: archive2Id }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -550,7 +575,7 @@ o.spec("BlobFacadeTest", function () {
 
 		o("downloadAndDecryptNative", async function () {
 			env.networkDebugging = false
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
 			file.blobs.push(blobs[0])
@@ -605,7 +630,7 @@ o.spec("BlobFacadeTest", function () {
 
 		o("downloadAndDecryptNative multiple from different archives", async function () {
 			env.networkDebugging = false
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
 			const blobId1 = "--------0s-1"
@@ -690,7 +715,7 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o("downloadAndDecryptNative_delete_on_error", async function () {
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
 			file.blobs.push(blobs[0])
@@ -729,22 +754,22 @@ o.spec("BlobFacadeTest", function () {
 
 	o.spec("downloadAndDecryptBlobsOfMultipleInstances", function () {
 		o.test("when passed multiple instances of the same archives it downloads and decrypts the data", async function () {
-			const sessionKey = aes256RandomKey()
-			const anothersessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
+			const anothersessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
+			const encryptedBlobData3 = aes.aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -806,8 +831,8 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o.test("when passed multiple instances of the different archives it downloads and decrypts the data", async function () {
-			const sessionKey = aes256RandomKey()
-			const anothersessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
+			const anothersessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(
@@ -817,7 +842,7 @@ o.spec("BlobFacadeTest", function () {
 					archiveId: "archiveId1",
 				}),
 			)
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
@@ -828,7 +853,7 @@ o.spec("BlobFacadeTest", function () {
 					archiveId: "archiveId1",
 				}),
 			)
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
 			const blobId3 = "--------0s-3"
@@ -839,7 +864,7 @@ o.spec("BlobFacadeTest", function () {
 					archiveId: "archiveId2",
 				}),
 			)
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
+			const encryptedBlobData3 = aes.aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -935,17 +960,17 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o.test("when passed multiple instances of the same archive but one blob is missing it downloads and decrypts the rest", async function () {
-			const sessionKey = aes256RandomKey()
-			const anothersessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
+			const anothersessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
@@ -1002,23 +1027,23 @@ o.spec("BlobFacadeTest", function () {
 		})
 
 		o.test("when passed multiple instances of the same archive but one blob is corrupted it downloads and decrypts the rest", async function () {
-			const sessionKey = aes256RandomKey()
-			const anothersessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
+			const anothersessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData1 = new Uint8Array([1, 2, 3])
 			const blobId1 = "--------0s-1"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId1, size: String(65) }))
-			const encryptedBlobData1 = aesEncrypt(sessionKey, blobData1)
+			const encryptedBlobData1 = aes.aesEncrypt(sessionKey, blobData1)
 
 			const blobData2 = new Uint8Array([4, 5, 6, 7, 8, 9])
 			const blobId2 = "--------0s-2"
 			file.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId2, size: String(65) }))
-			const encryptedBlobData2 = aesEncrypt(sessionKey, blobData2)
+			const encryptedBlobData2 = aes.aesEncrypt(sessionKey, blobData2)
 			encryptedBlobData2[16] = ~encryptedBlobData2[16]
 
 			const blobId3 = "--------0s-3"
 			anotherFile.blobs.push(createTestEntity(BlobTypeRef, { blobId: blobId3, size: String(65) }))
 			const blobData3 = new Uint8Array([10, 11, 12, 13, 14, 15])
-			const encryptedBlobData3 = aesEncrypt(anothersessionKey, blobData3)
+			const encryptedBlobData3 = aes.aesEncrypt(anothersessionKey, blobData3)
 
 			const blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				blobAccessToken: "123",
@@ -1293,7 +1318,7 @@ o.spec("BlobFacadeTest", function () {
 	})
 	o.spec("serializeNewBlobsInChunks", function () {
 		o.test("serializeNewBlobsInBinaryChunks splits blobs by max size", function () {
-			const sessionKey1 = aes256RandomKey()
+			const sessionKey1 = symmetricCipherUtils.aes256RandomKey()
 			const firstBlob: KeyedNewBlobWrapper = {
 				sessionKey: sessionKey1,
 				newBlobWrapper: {
@@ -1302,7 +1327,7 @@ o.spec("BlobFacadeTest", function () {
 				},
 			}
 
-			const sessionKey2 = aes256RandomKey()
+			const sessionKey2 = symmetricCipherUtils.aes256RandomKey()
 			const secondBlob: KeyedNewBlobWrapper = {
 				sessionKey: sessionKey2,
 				newBlobWrapper: {
@@ -1326,7 +1351,7 @@ o.spec("BlobFacadeTest", function () {
 			o(result[1].binary.length > 0).equals(true)
 		})
 		o.test("serializeNewBlobsInBinaryChunks does not exceed max blobs per chunk", function () {
-			const sessionKey1 = aes256RandomKey()
+			const sessionKey1 = symmetricCipherUtils.aes256RandomKey()
 			const firstBlob: KeyedNewBlobWrapper = {
 				sessionKey: sessionKey1,
 				newBlobWrapper: {
@@ -1335,7 +1360,7 @@ o.spec("BlobFacadeTest", function () {
 				},
 			}
 
-			const sessionKey2 = aes256RandomKey()
+			const sessionKey2 = symmetricCipherUtils.aes256RandomKey()
 			const secondBlob: KeyedNewBlobWrapper = {
 				sessionKey: sessionKey2,
 				newBlobWrapper: {
@@ -1394,7 +1419,7 @@ o.spec("BlobFacadeTest", function () {
 				createTestEntity(MailDetailsBlobTypeRef, {}, { populateAggregates: true }),
 			]
 			const encryptedBlobsJson = await promiseMap(mailDetailsBlobs, (b) =>
-				realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, b, aes256RandomKey()),
+				realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, b, symmetricCipherUtils.aes256RandomKey()),
 			)
 			const serverResponse = OutgoingServerJson.getJsonRepresentationOfMultiple(
 				await Promise.all(

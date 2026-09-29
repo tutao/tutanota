@@ -9,6 +9,7 @@ import {
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
+	random,
 	RsaKeyPair,
 	rsaPublicKeyToHex,
 	VersionedKey,
@@ -70,7 +71,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		userFacade = object()
 		entityClient = object()
 		cacheManagementFacade = object()
-		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
+		pqFacade = new PQFacade(new WASMKyberFacade(random, await loadLibOQSWASM()))
 		cryptoWrapper = object()
 		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper)
 

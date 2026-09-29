@@ -11,7 +11,7 @@ import {
 	KyberPublicKey,
 	LibOQSExports,
 	ML_KEM_RAND_AMOUNT_OF_ENTROPY,
-	random,
+	Randomizer,
 } from "@tutao/crypto"
 import { loadWasmFromFileOrNetwork } from "../../utils/WebAssembly"
 
@@ -46,7 +46,10 @@ export interface KyberFacade {
  * WebAssembly implementation of Liboqs
  */
 export class WASMKyberFacade implements KyberFacade {
-	constructor(private readonly testWASM?: LibOQSExports) {}
+	constructor(
+		private readonly random: Randomizer,
+		private readonly testWASM?: LibOQSExports,
+	) {}
 
 	// loads liboqs WASM
 	private liboqs: LazyLoaded<LibOQSExports> = new LazyLoaded(async () => {
@@ -57,11 +60,11 @@ export class WASMKyberFacade implements KyberFacade {
 	})
 
 	async generateKeypair(): Promise<KyberKeyPair> {
-		return generateKeyPairKyber(await this.liboqs.getAsync(), random)
+		return generateKeyPairKyber(await this.liboqs.getAsync(), this.random)
 	}
 
 	async encapsulate(publicKey: KyberPublicKey): Promise<KyberEncapsulation> {
-		return encapsulateKyber(await this.liboqs.getAsync(), publicKey, random)
+		return encapsulateKyber(await this.liboqs.getAsync(), publicKey, this.random)
 	}
 
 	async decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
@@ -73,14 +76,17 @@ export class WASMKyberFacade implements KyberFacade {
  * Native implementation of Liboqs
  */
 export class NativeKyberFacade implements KyberFacade {
-	constructor(private readonly nativeCryptoFacade: NativeCryptoFacade) {}
+	constructor(
+		private readonly nativeCryptoFacade: NativeCryptoFacade,
+		private readonly random: Randomizer,
+	) {}
 
 	generateKeypair(): Promise<KyberKeyPair> {
-		return this.nativeCryptoFacade.generateKyberKeypair(random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
+		return this.nativeCryptoFacade.generateKyberKeypair(this.random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
 	}
 
 	encapsulate(publicKey: KyberPublicKey): Promise<KyberEncapsulation> {
-		return this.nativeCryptoFacade.kyberEncapsulate(publicKey, random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
+		return this.nativeCryptoFacade.kyberEncapsulate(publicKey, this.random.generateRandomData(ML_KEM_RAND_AMOUNT_OF_ENTROPY))
 	}
 
 	decapsulate(privateKey: KyberPrivateKey, ciphertext: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {

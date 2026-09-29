@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { BlobFacade } from "./BlobFacade"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { aes256RandomKey, AesKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AesKey, CryptoWrapper, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import {
 	createFileTransferAggregatedType,
 	createImportAttachment,
@@ -90,6 +90,7 @@ export class ImportMailFacade {
 		private readonly keyLoader: KeyLoaderFacade,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	async importMails(importMailsParamsList: Array<ImportMailParams>, mailGroupId: Id): Promise<void> {
@@ -102,7 +103,7 @@ export class ImportMailFacade {
 		let currentEstimatedCallSize = 0
 		const chunkedEncImports2: Array<Array<StringWrapper>> = []
 		for (const importMailParams of importMailsParamsList) {
-			const sk = aes256RandomKey()
+			const sk = this.symmetricCipherUtils.aes256RandomKey()
 
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
@@ -261,7 +262,7 @@ export class ImportMailFacade {
 		const fileDataForUpload = await promiseMap(filesToUpload, async ({ key, file }) => ({
 			key,
 			data: file.data,
-			sessionKey: aes256RandomKey(),
+			sessionKey: this.symmetricCipherUtils.aes256RandomKey(),
 			original: file,
 		}))
 
@@ -303,7 +304,7 @@ export class ImportMailFacade {
 
 		const fileHash = newFile.fileHash
 
-		const fileHashSessionKey = aes256RandomKey()
+		const fileHashSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncFileHashSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileHashSessionKey)
 
 		let deduplicatedImportedAttachment: Nullable<ImportedDeduplicatedImportedAttachment> = null

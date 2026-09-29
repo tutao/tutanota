@@ -3,7 +3,7 @@ import { SearchTermSuggestionsOS } from "../../../common/api/worker/search/Index
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { TypeRef } from "../../../../platform-kit/meta"
 import { ClientTypeModelResolver } from "../../../../platform-kit/instance-pipeline"
-import { aes256EncryptSearchIndexEntry, aesDecryptUnauthenticated } from "../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { Aes } from "@tutao/crypto"
 
 export type SuggestionsType = Record<string, string[]>
 
@@ -16,6 +16,7 @@ export class SuggestionFacade<T> {
 		type: TypeRef<T>,
 		db: EncryptedDbWrapper,
 		private readonly typeModelResolver: ClientTypeModelResolver,
+		private readonly aes: Aes,
 	) {
 		this.type = type
 		this._db = db
@@ -28,7 +29,7 @@ export class SuggestionFacade<T> {
 			const typeName = (await this.typeModelResolver.resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name.toLowerCase()
 			return t.get(SearchTermSuggestionsOS, typeName).then((encSuggestions) => {
 				if (encSuggestions) {
-					this._suggestions = JSON.parse(utf8Uint8ArrayToString(aesDecryptUnauthenticated(key, encSuggestions)))
+					this._suggestions = JSON.parse(utf8Uint8ArrayToString(this.aes.aesDecryptUnauthenticated(key, encSuggestions)))
 				} else {
 					this._suggestions = {}
 				}
@@ -74,7 +75,7 @@ export class SuggestionFacade<T> {
 		const { key } = await this._db.encryptionData()
 		return this._db.dbFacade.createTransaction(false, [SearchTermSuggestionsOS]).then(async (t) => {
 			const typeName = (await this.typeModelResolver.resolveClientTypeReference(new TypeRef(this.type.app, this.type.typeId))).name.toLowerCase()
-			let encSuggestions = aes256EncryptSearchIndexEntry(key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
+			let encSuggestions = this.aes.aes256EncryptSearchIndexEntry(key, stringToUtf8Uint8Array(JSON.stringify(this._suggestions)))
 			t.put(SearchTermSuggestionsOS, typeName, encSuggestions)
 			return t.wait()
 		})

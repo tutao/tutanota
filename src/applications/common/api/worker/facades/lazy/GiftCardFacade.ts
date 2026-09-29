@@ -10,7 +10,7 @@ import {
 	uint8ArrayToBase64,
 } from "@tutao/utils"
 import { elementIdPart, GENERATED_MAX_ID } from "@tutao/meta"
-import { _encryptKeyWithVersionedKey, aes256RandomKey, base64ToKey, keyToUint8Array, sha256Hash } from "@tutao/crypto"
+import { base64ToKey, CryptoWrapper, keyToUint8Array, sha256Hash, SymmetricCipherUtils } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
@@ -40,6 +40,8 @@ export class GiftCardFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly keyLoaderFacade: KeyLoaderFacade,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	async generateGiftCard(message: string, value: NumberString): Promise<IdTuple> {
@@ -52,8 +54,8 @@ export class GiftCardFacade {
 		const adminGroupId = getFirstOrThrow(adminGroupIds)
 		const ownerKey = await this.keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)
 
-		const sessionKey = aes256RandomKey()
-		const ownerEncSessionKey = _encryptKeyWithVersionedKey(ownerKey, sessionKey)
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(ownerKey, sessionKey)
 		const giftCardTransferAggregatedType = createGiftCardTransferAggregatedType({
 			message,
 			value,

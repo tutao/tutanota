@@ -4,7 +4,7 @@ import { DbFacade, DbTransaction } from "../../src/applications/common/api/worke
 import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import { Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR } from "../../src/platform-kit/crypto"
+import { Aes, Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, KeyEncryption, random, Randomizer } from "../../src/platform-kit/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
@@ -45,7 +45,7 @@ import { EncryptedDbWrapper } from "../../src/applications/common/api/worker/sea
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector"
 import { KeyLoaderFacade } from "../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants"
-import { SYMMETRIC_CIPHER_FACADE, SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { ProgrammingError } from "../../src/platform-kit/app-env"
 
@@ -415,9 +415,11 @@ export function clientInitializedTypeModelResolver(): TypeModelResolver {
 export function instancePipelineFromTypeModelResolver(
 	typeModelResolver: TypeModelResolver,
 	keyLoaderFacade: KeyLoaderFacade = object(),
-	symmetricCipherFacade: SymmetricCipherFacade = SYMMETRIC_CIPHER_FACADE,
+	random: Randomizer,
+	symmetricCipherFacade: SymmetricCipherFacade,
 ): InstancePipeline {
-	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade, null)
+	const keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
+	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade, null, random, keyEncryption)
 }
 
 export function base64Decode(base64: Base64): string {
@@ -425,7 +427,7 @@ export function base64Decode(base64: Base64): string {
 }
 
 export function modelMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): ModelMapper {
-	return new ModelMapper(typeModelResolver)
+	return new ModelMapper(typeModelResolver, random)
 }
 
 export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): OfflineMapper {

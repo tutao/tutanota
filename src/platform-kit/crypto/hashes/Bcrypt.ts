@@ -1,6 +1,6 @@
 // @ts-ignore[untyped-import]
 import bCrypt from "../internal/bCrypt.js"
-import { random } from "../random/Randomizer.js"
+import { Randomizer } from "../random/Randomizer.js"
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { sha256Hash } from "./Sha256.js"
@@ -17,7 +17,7 @@ export type SignedBytes = number[]
  * Create a 128 bit random _salt value.
  * return _salt 128 bit of random data, encoded as a hex string.
  */
-export function generateRandomSalt(): Uint8Array<ArrayBuffer> {
+export function generateRandomSalt(random: Randomizer): Uint8Array<ArrayBuffer> {
 	return random.generateRandomData(128 / 8)
 }
 
