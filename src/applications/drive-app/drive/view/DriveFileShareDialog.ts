@@ -10,7 +10,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
-import { showInfoSnackbar } from "../../../../ui/base/SnackBar"
+import { showInfoSnackbar, showSnackBar } from "../../../../ui/base/SnackBar"
 import { DriveFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { UserError } from "../../../common/api/main/UserError"
@@ -39,8 +39,8 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 	const reloadShare = async () => {
 		state = "busy"
 		m.redraw()
-
-		shareInfo = await driveFacade.getShareInfo(item.file)
+		const updatedFile = await driveFacade.loadDriveFile(item.file._id)
+		shareInfo = await driveFacade.getShareInfo(updatedFile)
 		state = "done"
 		m.redraw()
 	}
@@ -130,25 +130,15 @@ async function showFileShareDialog(driveFacade: DriveFacade, item: FileFolderIte
 												// FIXME show progress
 												driveFacade.deleteShareLink(item.file)
 												shareInfo = null
-												m.redraw()
+												dialog.close()
+												const message = lang.makeTranslation("", `Share link for ${item.file.name} has been deleted`) //FIXME
+												showSnackBar({ message })
 											},
 										}),
 									]),
 								]),
 					]),
 				])
-			}
-			private async createShareLink(password: string | null, expirationDate: Date | null) {
-				state = "busy"
-				if (password?.trim() === "") {
-					throw new UserError(lang.makeTranslation("password", "Please enter a password to continue"))
-				}
-				try {
-					shareInfo = await driveFacade.createShareLink(item.file, password, expirationDate)
-				} finally {
-					state = "done"
-					m.redraw()
-				}
 			}
 		},
 	)

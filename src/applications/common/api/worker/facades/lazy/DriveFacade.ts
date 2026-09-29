@@ -477,7 +477,12 @@ export class DriveFacade {
 			)
 		}
 
-		const updatedFile = await this.entityClient.load(DriveFileTypeRef, file._id, {
+		const updatedFile = await this.loadDriveFile(file._id)
+		return this.getShareInfo(updatedFile)
+	}
+
+	async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {
+		return await this.entityClient.load(DriveFileTypeRef, fileId, {
 			queryParams: null,
 			baseUrl: null,
 			extraHeaders: null,
@@ -486,7 +491,6 @@ export class DriveFacade {
 			suspensionBehavior: null,
 			cacheMode: CacheMode.WriteOnly,
 		})
-		return this.getShareInfo(updatedFile)
 	}
 
 	private normalizeShareExpirationDate(expirationDate: Date | null): Date | null {
