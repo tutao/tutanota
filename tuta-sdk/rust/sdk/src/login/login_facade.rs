@@ -368,6 +368,7 @@ mod tests {
 			salt: Some(salt),
 			customer: None,
 			successfulLogins: Default::default(),
+			plugins: None,
 		}
 	}
 }
