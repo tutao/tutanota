@@ -2558,3 +2558,4 @@ export type TranslationKeyType =
 	| "declinedFeedbackDialogInput_msg"
 	| "sendFeedback_action"
 	| "feedbackAnonymousAndHelpUs_label"
+	| "accessDeactivated_msg"

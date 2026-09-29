@@ -273,6 +273,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				invalidCredentials: this.viewModel.state === LoginState.InvalidCredentials,
 				showRecoveryOption: this._recoverLoginVisible(),
 				accessExpired: this.viewModel.state === LoginState.AccessExpired,
+				accessDeactivated: this.viewModel.state === LoginState.AccessDeactivated,
 			}),
 		])
 	}

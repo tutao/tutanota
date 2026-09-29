@@ -58,6 +58,9 @@ export const enum LoginState {
 
 	/* The user has successfully logged in. */
 	LoggedIn = "LoggedIn",
+
+	/* The user was deactivated by us */
+	AccessDeactivated = "AccessDeactivated",
 }
 
 /**
