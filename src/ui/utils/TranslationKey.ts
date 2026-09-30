@@ -2541,3 +2541,8 @@ export type TranslationKeyType =
 	| "setPasswordAndExpiration_label"
 	| "deleteLink_action"
 	| "shareDeleted_msg"
+	| "fileNotFound_msg"
+	| "fileDoesNotExist_msg"
+	| "fileNotAvailable_msg"
+	| "fileLoadingError_msg"
+	| "fileExpirationDate_msg"

@@ -9,9 +9,10 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { assertNotNull, base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
-import { TextField } from "../../../../ui/base/TextField"
 import { formatDateWithWeekdayAndYearLong } from "../../../../ui/utils/Formatter"
 import { DataFile } from "../../../../entities/tutanota/Utils"
+import { PasswordFieldNew } from "../../../common/signup/components/PasswordFieldNew"
+import { lang } from "../../../../ui/utils/LanguageViewModel"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {
 	downloadFileForShare: (
@@ -53,9 +54,13 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
 		const state = this.state
-		return m(".flex.mlr-64.mt-64.mb-64.fill-absolute", [
-			m(".flex.col.flex-space-between", [m(".logo-height", m.trust(theme.logo)), m(".flex.col.gap-8", this.renderForState(state)), m("")]),
-			m(".flex.col", ""),
+		return m(".flex.mlr-32.mt-32.mb-64.fill-absolute", [
+			m(".flex.col.flex-space-between.flex-grow", [
+				m(".logo-height", m.trust(theme.logo)),
+				m(".flex.col.gap-8.align-self-center.max-width-m", this.renderForState(state)),
+				m(""),
+			]),
+			m(".flex.col.flex-grow.justify-center", m(".flex.col.align-self-center.h1", "Tuta Drive File Share")),
 		])
 	}
 
@@ -73,28 +78,13 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	}
 
 	private renderLoading(): Children {
-		return [
-			m(
-				".flex.items-center",
-				progressIcon(),
-				// FIXME: translation
-				m(".b.h4.ml-8", "Loading file"),
-			),
-		]
+		return [m(".flex.items-center", progressIcon(), m(".b.h4.ml-8", lang.getTranslationText("loading_msg")))]
 	}
 
 	private renderError(type: "notFound" | "generic"): Children {
 		return type === "notFound"
-			? [
-					// FIXME: translations
-					m(".b.h2", "File not found"),
-					m(".text-fade", "This file does not exist. It may have been deleted or unshared."),
-				]
-			: [
-					// FIXME: translations
-					m(".b.h2", "File not available"),
-					m(".text-fade", "An error occurred while loading this file."),
-				]
+			? [m(".b.h2", lang.getTranslationText("fileNotFound_msg")), m(".text-fade", lang.getTranslationText("fileDoesNotExist_msg"))]
+			: [m(".b.h2", lang.getTranslationText("fileNotAvailable_msg")), m(".text-fade", lang.getTranslationText("fileLoadingError_msg"))]
 	}
 
 	private renderFile(file: DriveFile): Children {
@@ -110,13 +100,17 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 				m(".b.h2", file.name),
 			),
 			m(PrimaryButton, {
+				class: "items-center",
 				label: "download_action",
 				onclick: () => {
 					this.downloadFile(file)
 				}, //FIXME,
 			}),
 			this.state.status === "success" && this.state.share.expirationDate
-				? m("", `This file is available until ${formatDateWithWeekdayAndYearLong(this.state.share.expirationDate)}`) //FIXME
+				? m(
+						".text-fade",
+						lang.getTranslation("fileExpirationDate_msg", { "{date}": formatDateWithWeekdayAndYearLong(this.state.share.expirationDate) }).text,
+					)
 				: null,
 		]
 	}
@@ -198,14 +192,14 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 	}
 
 	private renderPassword(state: { status: "password"; password: string }): Children {
-		return m(".flex.col", [
-			m(TextField, {
+		return m(".flex.col.gap-8", [
+			m(PasswordFieldNew, {
 				value: state.password,
 				oninput: (value) => (state.password = value),
 				label: "password_label",
 			}),
 			m(PrimaryButton, {
-				label: "ok_action",
+				label: "submit_action",
 				onclick: () => {
 					const { shareId, authToken } = m.route.param()
 					const salt = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("salt"))

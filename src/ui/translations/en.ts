@@ -2543,5 +2543,11 @@ export default {
 		"setPasswordAndExpiration_label":"Set password and expiration date",
 		"deleteLink_action":"Delete link",
 		"shareDeleted_msg":"Share link for {fileName} has been deleted",
+		"fileNotFound_msg":"File not found",
+		"fileDoesNotExist_msg":"This file does not exist. It may have been deleted or unshared.",
+		"fileNotAvailable_msg" : "File not available",
+		"fileLoadingError_msg":"An error occurred while loading this file.",
+		"fileExpirationDate_msg": "This file available until {date}"
+
 	}
 }
