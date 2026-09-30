@@ -179,7 +179,11 @@ export function normalizeTime(date: Date) {
  * Converts runtime representation of an alarm into a db one.
  */
 export function serializeAlarmInterval(interval: AlarmInterval): string {
-	return `${interval.value}${interval.unit}`
+	const integerValue = Math.trunc(interval.value)
+	if (integerValue !== interval.value) {
+		console.error(`Got invalid non-integer alarm interval value ${interval.value}! Discarding decimal places.`)
+	}
+	return `${integerValue}${interval.unit}`
 }
 
 export enum CalendarViewType {
