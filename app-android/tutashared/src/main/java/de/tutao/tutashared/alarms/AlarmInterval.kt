@@ -24,7 +24,7 @@ data class AlarmInterval(
 ) {
 	companion object {
 		fun fromString(string: String): AlarmInterval {
-			val regex = Regex("(\\d+)([MHDW])")
+			val regex = Regex("(-?\\d+)([MHDW])")
 
 			val matchResult = regex.matchEntire(string)
 			if (matchResult != null) {

@@ -2287,27 +2287,55 @@ o.spec("CalendarUtilsTest", function () {
 	})
 
 	o.spec("parseAlarmInterval", () => {
-		o("accepts valid values", () => {
+		o("accepts positive values", () => {
 			o(parseAlarmInterval("1M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 1 })
 			o(parseAlarmInterval("10M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 10 })
 			o(parseAlarmInterval("42H")).deepEquals({ unit: AlarmIntervalUnit.HOUR, value: 42 })
 			o(parseAlarmInterval("35D")).deepEquals({ unit: AlarmIntervalUnit.DAY, value: 35 })
 			o(parseAlarmInterval("6W")).deepEquals({ unit: AlarmIntervalUnit.WEEK, value: 6 })
 		})
+		o.test("accepts negative values", function () {
+			o.check(parseAlarmInterval("-1M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: -1 })
+			o.check(parseAlarmInterval("-10M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: -10 })
+			o.check(parseAlarmInterval("-42H")).deepEquals({ unit: AlarmIntervalUnit.HOUR, value: -42 })
+			o.check(parseAlarmInterval("-35D")).deepEquals({ unit: AlarmIntervalUnit.DAY, value: -35 })
+			o.check(parseAlarmInterval("-6W")).deepEquals({ unit: AlarmIntervalUnit.WEEK, value: -6 })
+		})
+		o.test("accepts zero values", function () {
+			o.check(parseAlarmInterval("0M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 0 })
+			o.check(parseAlarmInterval("0H")).deepEquals({ unit: AlarmIntervalUnit.HOUR, value: 0 })
+			o.check(parseAlarmInterval("0D")).deepEquals({ unit: AlarmIntervalUnit.DAY, value: 0 })
+			o.check(parseAlarmInterval("0W")).deepEquals({ unit: AlarmIntervalUnit.WEEK, value: 0 })
+			o.check(parseAlarmInterval("-0M")).deepEquals({ unit: AlarmIntervalUnit.MINUTE, value: 0 })
+			o.check(parseAlarmInterval("-0H")).deepEquals({ unit: AlarmIntervalUnit.HOUR, value: 0 })
+			o.check(parseAlarmInterval("-0D")).deepEquals({ unit: AlarmIntervalUnit.DAY, value: 0 })
+			o.check(parseAlarmInterval("-0W")).deepEquals({ unit: AlarmIntervalUnit.WEEK, value: 0 })
+		})
 
 		o("does not accept invalid values", () => {
 			// it does accept values like "05M". should it tho?
-			for (const value of ["-1M", "M", "3G", "3", "H5"]) {
+			for (const value of ["M", "3G", "3", "H5"]) {
 				o(() => parseAlarmInterval(value)).throws(ParserError)(`Should throw on ${value}`)
 			}
 		})
 	})
 
-	o("serializeAlarmInterval", () => {
-		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.MINUTE })).equals("2M")
-		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.HOUR })).equals("2H")
-		o(serializeAlarmInterval({ value: 35, unit: AlarmIntervalUnit.DAY })).equals("35D")
-		o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.WEEK })).equals("2W")
+	o.spec("serializeAlarmInterval", () => {
+		o.test("handles positive values", function () {
+			o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.MINUTE })).equals("2M")
+			o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.HOUR })).equals("2H")
+			o(serializeAlarmInterval({ value: 35, unit: AlarmIntervalUnit.DAY })).equals("35D")
+			o(serializeAlarmInterval({ value: 2, unit: AlarmIntervalUnit.WEEK })).equals("2W")
+		})
+		o.test("handles negative values", function () {
+			o.check(serializeAlarmInterval({ value: -2, unit: AlarmIntervalUnit.MINUTE })).equals("-2M")
+		})
+		o.test("handles zero values", function () {
+			o.check(serializeAlarmInterval({ value: 0, unit: AlarmIntervalUnit.MINUTE })).equals("0M")
+		})
+		o.test("discards decimal places of non-integer values", function () {
+			o.check(serializeAlarmInterval({ value: 1.1, unit: AlarmIntervalUnit.MINUTE })).equals("1M")
+		})
 	})
 })
 
