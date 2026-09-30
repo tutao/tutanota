@@ -100,7 +100,17 @@ export class InstanceKeyFacade {
 		}
 		const confirmedInstancesToMigrate = await this.confirmInstancesForInstanceKeySharing(instanceReferenceDataList)
 		//Filter for instances that actually need migration
-		const instancesToMigrate = instances.filter((instance) => confirmedInstancesToMigrate.includes(this.getInstanceReferenceData(instance)))
+		const instancesToMigrate = instances.filter((instance) =>
+			confirmedInstancesToMigrate.some((confirmedInstance) => {
+				const instanceReferenceData = this.getInstanceReferenceData(instance)
+				return (
+					instanceReferenceData.instanceElementId === confirmedInstance.instanceElementId &&
+					instanceReferenceData.instanceListId === confirmedInstance.instanceListId &&
+					instanceReferenceData.typeInfo.application === confirmedInstance.typeInfo.application &&
+					instanceReferenceData.typeInfo.typeId === confirmedInstance.typeInfo.typeId
+				)
+			}),
+		)
 		return await this.migrateConfirmedInstances(instancesToMigrate, null)
 	}
 
