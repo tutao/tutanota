@@ -10,6 +10,9 @@
 	"references": [
 		{
 			"path": "tsconfig.utils.json"
+		},
+		{
+			"path": "tsconfig.http-client.json"
 		}
 	]
 }

@@ -1,24 +1,12 @@
-import { HttpMethod, MediaType, ProgressListener, RestBinaryBody, RestBody, RestTextBody } from "@tutao/rest-client/types"
-import { isNotNull, newPromise, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import { once } from "../utils/memoized"
-import { CancelledError, EnvProvider } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks"
-import { ConnectionError, XhrError } from "@tutao/rest-client/error"
-import { isNull } from "../utils/Utils"
+import { isNotNull, isNull } from "../utils/Utils"
 import { HttpClient } from "./HttpClient"
-
-export class HttpResponse {
-	constructor(
-		public readonly status: number,
-		public readonly statusText: string,
-		public readonly body: RestBody | null,
-		readonly responseHeaders: Map<string, string>,
-	) {}
-
-	getResponseHeader(name: string): string | null {
-		return this.responseHeaders.get(name.toLowerCase()) ?? null
-	}
-}
+import { HttpMethod, MediaType, ProgressListener, XhrError } from "./HttpTypes"
+import { HttpResponse, RestBinaryBody, RestBody, RestTextBody } from "./HttpResponse"
+import { CancelledError, EnvProvider } from "@tutao/app-env"
+import { newPromise, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { ConnectionError } from "./error"
 
 const TAG = "[HttpClient]"
 

@@ -54,7 +54,7 @@ import { CacheManager } from "./base-crypto/persistence/CacheManager.js"
 import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyTrustDatabase"
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
-import { HttpClientJavascript } from "../rest-client/HttpClientJavascript"
+import { HttpClientJavascript } from "../http-client/HttpClientJavascript"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper

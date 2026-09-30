@@ -34,6 +34,8 @@
 			"@tutao/usagetests": ["./src/usagetests"],
 			"@tutao/mimimi": ["./src/app-kit/mimimi"],
 			"@tutao/mimimi/types": ["./src/app-kit/mimimi/napi-out/binding.d.ts"],
+			"@tutao/http-client": ["./src/platform-kit/http-client"],
+			"@tutao/http-client/error": ["./src/platform-kit/http-client/error.ts"],
 			"@tutao/rest-client": ["./src/platform-kit/rest-client"],
 			"@tutao/rest-client/types": ["./src/platform-kit/rest-client/types.ts"],
 			"@tutao/rest-client/error": ["./src/platform-kit/rest-client/error.ts"],

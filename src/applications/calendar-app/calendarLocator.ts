@@ -128,7 +128,7 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { HttpClientJavascript } from "../../platform-kit/rest-client/HttpClientJavascript"
+import { HttpClientJavascript } from "@tutao/http-client"
 
 EnvProvider.assertMainOrNode()
 

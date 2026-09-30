@@ -452,7 +452,6 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return "common-min"
 	} else if (
 		isIn("src/platform-kit/meta") ||
-		isIn("src/platform-kit/rest-client/error.ts") ||
 		isIn("src/platform-kit/instance-pipeline/utils") ||
 		isIn("src/ui/utils") ||
 		isIn("src/platform-kit/base/base-crypto/Constants.ts") ||
@@ -507,6 +506,10 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		return `plugin-sdk`
 	} else if (isIn("src/plugin-kit/plugin-manager")) {
 		return "plugin-manager"
+	} else if (isIn("src/platform-kit/http-client/error.ts")) {
+		return "common-min"
+	} else if (isIn("src/platform-kit/http-client")) {
+		return "common"
 	} else {
 		// Put all translations into "translation-code"
 		// Almost like in Rollup example: https://rollupjs.org/guide/en/#outputmanualchunks

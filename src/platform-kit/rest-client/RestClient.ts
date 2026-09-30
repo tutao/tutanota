@@ -1,24 +1,12 @@
 import { DomainConfig, EnvProvider } from "@tutao/app-env"
 import { assertNotNull, isNotNull, Nullable, typedEntries } from "@tutao/utils"
 import * as restSuspension from "./SuspensionHandler.js"
-import { handleRestError, PayloadTooLargeError, SuspensionError, XhrError } from "./error.js"
-import {
-	HttpMethod,
-	InterceptedResponse,
-	MediaType,
-	RestBinaryBody,
-	RestBody,
-	RestClientInterface,
-	RestClientMiddleware,
-	RestClientOptions,
-	RestTextBody,
-	SuspensionBehavior,
-} from "./types"
-import { TypeChecks } from "../app-env/TsTypeChecks"
+import { handleRestError, PayloadTooLargeError } from "./error.js"
+import { HttpMethod, InterceptedResponse, RestClientInterface, RestClientMiddleware, RestClientOptions, SuspensionBehavior } from "./types"
 import { isNull } from "../utils/Utils"
 import { TsDate } from "../app-env/TranspileCompatibility"
-import { HttpResponse } from "./HttpClientJavascript"
-import { HttpClient } from "./HttpClient"
+import { HttpClient, HttpResponse, MediaType, RestBinaryBody, RestBody, RestTextBody, XhrError } from "@tutao/http-client"
+import { SuspensionError } from "@tutao/http-client/error"
 
 EnvProvider.assertWorkerOrNode()
 

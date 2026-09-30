@@ -10,7 +10,7 @@ import {
 	RestTextBody,
 	SuspensionBehavior,
 } from "../../../src/platform-kit/rest-client/types"
-import { CancelledError } from "../../../src/platform-kit/app-env/CancelledError"
+import { CancelledError } from "../../../src/platform-kit/app-env"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -22,8 +22,7 @@ import { ClientPlatform } from "../../../src/platform-kit/app-env/boot/ClientDet
 import { APPLICATION_TYPES_HASH_HEADER, ServerModelInfo, UpdateAppTypesHashMiddleware } from "../../../src/platform-kit/instance-pipeline"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ApplicationTypesService_GET } from "@tutao/entities/base"
-import { HttpClientJavascript, HttpResponse } from "../../../src/platform-kit/rest-client/HttpClientJavascript"
-import { HttpClient } from "../../../src/platform-kit/rest-client/HttpClient"
+import { HttpClient, HttpClientJavascript, HttpResponse } from "../../../src/platform-kit/http-client"
 
 type SuspensionHandler = restSuspension.SuspensionHandler
 

@@ -1,5 +1,5 @@
-import { HttpMethod, MediaType, ProgressListener, RestBody } from "@tutao/rest-client/types"
-import { HttpResponse } from "./HttpClientJavascript"
+import { HttpResponse, RestBody } from "./HttpResponse"
+import { HttpMethod, MediaType, ProgressListener } from "./HttpTypes"
 
 export interface HttpClient {
 	request(

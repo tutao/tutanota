@@ -174,7 +174,7 @@ import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
-import { HttpClientJavascript } from "../../platform-kit/rest-client/HttpClientJavascript"
+import { HttpClientJavascript } from "@tutao/http-client"
 
 EnvProvider.assertMainOrNode()
 

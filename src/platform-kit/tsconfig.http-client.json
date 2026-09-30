@@ -1,0 +1,15 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["http-client", "../types/"],
+	"compilerOptions": {
+		"rootDir": "http-client",
+		"outDir": "../../build/http-client",
+		"tsBuildInfoFile": "../../build/http-client/tsbuildinfo",
+		"composite": true
+	},
+	"references": [
+		{
+			"path": "tsconfig.utils.json"
+		}
+	]
+}

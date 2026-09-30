@@ -1,4 +1,6 @@
-import { ProgrammingError } from "@tutao/app-env"
+import { HttpMethod, MediaType, ProgressListener, RestBody } from "@tutao/http-client"
+
+export { ProgressListener, MediaType, HttpMethod, validateHttpMethod, RestBodyType, RestBody, RestTextBody, RestBinaryBody } from "@tutao/http-client"
 
 /** A read-only view of a completed response, abstracted over the underlying transport (XMLHttpRequest or fetch's Response). */
 export interface InterceptedResponse {
@@ -12,68 +14,6 @@ export interface InterceptedResponse {
  */
 export interface RestClientMiddleware {
 	interceptResponse(sentResponse: InterceptedResponse, method: HttpMethod): Promise<void>
-}
-
-export interface ProgressListener {
-	/**
-	 * Called when data is sent / received with HTTP request.
-	 * @param percent of the overall data to be sent
-	 * @param bytes sent so far
-	 */
-	update(percent: number, bytes: number): void
-}
-
-export const enum MediaType {
-	Json = "application/json",
-	Binary = "application/octet-stream",
-	Text = "text/plain",
-}
-
-export const enum HttpMethod {
-	GET = "GET",
-	POST = "POST",
-	PUT = "PUT",
-	PATCH = "PATCH",
-	DELETE = "DELETE",
-}
-export function validateHttpMethod(method: string): HttpMethod {
-	switch (method) {
-		case HttpMethod.GET:
-			return HttpMethod.GET
-		case HttpMethod.POST:
-			return HttpMethod.POST
-		case HttpMethod.PUT:
-			return HttpMethod.PUT
-		case HttpMethod.PATCH:
-			return HttpMethod.PATCH
-		case HttpMethod.DELETE:
-			return HttpMethod.DELETE
-		default:
-			throw new ProgrammingError(
-				`Unknown http method: ${method}. Valid methods are: ${[HttpMethod.GET, HttpMethod.PUT, HttpMethod.POST, HttpMethod.PATCH, HttpMethod.DELETE]}`,
-			)
-	}
-}
-
-export const enum RestBodyType {
-	Text,
-	Binary,
-}
-
-export abstract class RestBody {
-	protected constructor(public readonly bodyType: RestBodyType) {}
-}
-
-export class RestTextBody extends RestBody {
-	constructor(public readonly payload: string) {
-		super(RestBodyType.Text)
-	}
-}
-
-export class RestBinaryBody extends RestBody {
-	constructor(public readonly payload: Uint8Array<ArrayBuffer>) {
-		super(RestBodyType.Binary)
-	}
 }
 
 export interface RestClientOptions {

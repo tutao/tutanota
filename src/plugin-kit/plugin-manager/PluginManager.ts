@@ -13,7 +13,7 @@ import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
 import { HttpMethod, MediaType, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { isNull } from "../../platform-kit/utils/Utils"
-import { HttpClient } from "../../platform-kit/rest-client/HttpClient"
+import { HttpClient } from "../../platform-kit/http-client/HttpClient"
 
 type PluginWrapper = {
 	pluginId: PluginId
