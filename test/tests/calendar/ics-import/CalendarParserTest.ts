@@ -18,13 +18,12 @@ import {
 	parseUntilRruleTime,
 	propertySequenceParser,
 	repeatPeriodToIcalFrequency,
-	triggerToAlarmInterval,
 } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import { AlarmInfo, AlarmInfoTypeRef, createDateWrapper, createRepeatRule, UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 import { serializeCalendar, serializeEvent } from "../../../../src/applications/calendar-app/calendar/export/CalendarExporter"
 import { CalendarEvent, CalendarEventTypeRef, createCalendarEventAttendee, createEncryptedMailAddress } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus } from "../../../../src/entities/tutanota/Utils"
-import { AlarmIntervalUnit, getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
+import { getAllDayDateUTCFromZone } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { makeCalendarEventFromIcsCalendarEvent } from "../../../../src/applications/common/calendar/import/ImportExportUtils"
 import { getAllDayDateUTC } from "../../../../src/applications/common/api/common/utils/CommonCalendarUtils"
 import { ParserError, StringIterator } from "../../../../src/applications/common/misc/parsing/ParserCombinator"
@@ -119,145 +118,286 @@ o.spec("CalendarParser", function () {
 		})
 	})
 
-	o("parseDuration", function () {
-		o(parseDuration("P")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: undefined,
-			minute: undefined,
-			week: undefined,
+	o.spec("parseDuration", function () {
+		o.test("works", function () {
+			o(parseDuration("P")).deepEquals({
+				days: 0,
+				hours: 0,
+				minutes: 0,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P8W")).deepEquals({
+				days: 0,
+				hours: 0,
+				minutes: 0,
+				seconds: 0,
+				weeks: 8,
+			})
+			o(parseDuration("-P11W6D")).deepEquals({
+				days: -6,
+				hours: 0,
+				minutes: 0,
+				seconds: 0,
+				weeks: -11,
+			})
+			o(parseDuration("P36WT21H")).deepEquals({
+				days: 0,
+				hours: 21,
+				minutes: 0,
+				seconds: 0,
+				weeks: 36,
+			})
+			o(parseDuration("P1WT1M")).deepEquals({
+				days: 0,
+				hours: 0,
+				minutes: 1,
+				seconds: 0,
+				weeks: 1,
+			})
+			o(parseDuration("-P11W6DT15H")).deepEquals({
+				days: -6,
+				hours: -15,
+				minutes: 0,
+				seconds: 0,
+				weeks: -11,
+			})
+			o(parseDuration("P2W5DT30M")).deepEquals({
+				days: 5,
+				hours: 0,
+				minutes: 30,
+				seconds: 0,
+				weeks: 2,
+			})
+			o(parseDuration("-P11WT15H15M")).deepEquals({
+				days: 0,
+				hours: -15,
+				minutes: -15,
+				seconds: 0,
+				weeks: -11,
+			})
+			o(parseDuration("-P5W4DT3H18M")).deepEquals({
+				days: -4,
+				hours: -3,
+				minutes: -18,
+				seconds: 0,
+				weeks: -5,
+			})
+			o(parseDuration("P0D")).deepEquals({
+				days: 0,
+				hours: 0,
+				minutes: 0,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P3D")).deepEquals({
+				days: 3,
+				hours: 0,
+				minutes: 0,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P22DT60H")).deepEquals({
+				days: 22,
+				hours: 60,
+				minutes: 0,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P4DT20M")).deepEquals({
+				days: 4,
+				hours: 0,
+				minutes: 20,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P40DT60H120M")).deepEquals({
+				days: 40,
+				hours: 60,
+				minutes: 120,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("-PT4H")).deepEquals({
+				days: 0,
+				hours: -4,
+				minutes: 0,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("PT3H15M")).deepEquals({
+				days: 0,
+				hours: 3,
+				minutes: 15,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("PT18M")).deepEquals({
+				days: 0,
+				hours: 0,
+				minutes: 18,
+				seconds: 0,
+				weeks: 0,
+			})
+			o(parseDuration("P60DT15M05S")).deepEquals({
+				days: 60,
+				hours: 0,
+				minutes: 15,
+				seconds: 5,
+				weeks: 0,
+			})
 		})
-		o(parseDuration("P8W")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: undefined,
-			minute: undefined,
-			week: 8,
+		o.test("M unit NOT after T causes error because it could be the spec-incompliant, unsupported month unit", function () {
+			o.check(() => parseDuration("P8W15M")).throws(ParserError)
 		})
-		o(parseDuration("-P11W6D")).deepEquals({
-			positive: false,
-			day: 6,
-			hour: undefined,
-			minute: undefined,
-			week: 11,
+		o.test("too large integer value causes error", function () {
+			o.check(() => parseDuration("P9999999999999999D")).throws(ParserError)
 		})
-		o(parseDuration("P36WT21H")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: 21,
-			minute: undefined,
-			week: 36,
-		})
-		o(parseDuration("P1WT1M")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: undefined,
-			minute: 1,
-			week: 1,
-		})
-		o(parseDuration("-P11W6DT15H")).deepEquals({
-			positive: false,
-			day: 6,
-			hour: 15,
-			minute: undefined,
-			week: 11,
-		})
-		o(parseDuration("P2W5DT30M")).deepEquals({
-			positive: true,
-			day: 5,
-			hour: undefined,
-			minute: 30,
-			week: 2,
-		})
-		o(parseDuration("-P11WT15H15M")).deepEquals({
-			positive: false,
-			day: undefined,
-			hour: 15,
-			minute: 15,
-			week: 11,
-		})
-		o(parseDuration("-P5W4DT3H18M")).deepEquals({
-			positive: false,
-			day: 4,
-			hour: 3,
-			minute: 18,
-			week: 5,
-		})
-		o(parseDuration("P3D")).deepEquals({
-			positive: true,
-			day: 3,
-			hour: undefined,
-			minute: undefined,
-			week: undefined,
-		})
-		o(parseDuration("P22DT60H")).deepEquals({
-			positive: true,
-			day: 22,
-			hour: 60,
-			minute: undefined,
-			week: undefined,
-		})
-		o(parseDuration("P4DT20M")).deepEquals({
-			positive: true,
-			day: 4,
-			hour: undefined,
-			minute: 20,
-			week: undefined,
-		})
-		o(parseDuration("P40DT60H120M")).deepEquals({
-			positive: true,
-			day: 40,
-			hour: 60,
-			minute: 120,
-			week: undefined,
-		})
-		o(parseDuration("-PT4H")).deepEquals({
-			positive: false,
-			day: undefined,
-			hour: 4,
-			minute: undefined,
-			week: undefined,
-		})
-		o(parseDuration("PT3H15M")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: 3,
-			minute: 15,
-			week: undefined,
-		})
-		o(parseDuration("PT18M")).deepEquals({
-			positive: true,
-			day: undefined,
-			hour: undefined,
-			minute: 18,
-			week: undefined,
-		})
-		o(parseDuration("P60DT15M05S")).deepEquals({
-			positive: true,
-			day: 60,
-			hour: undefined,
-			minute: 15,
-			week: undefined,
-		})
-		o(() => parseDuration("P8W15M")).throws(Error)
-	})
-
-	o("triggerToAlarmInterval", function () {
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M")).deepEquals({
-			unit: AlarmIntervalUnit.MINUTE,
-			value: 5 * 60 + 30,
-		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H30M20S")).deepEquals({
-			unit: AlarmIntervalUnit.MINUTE,
-			value: 5 * 60 + 30,
-		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-PT5H0M")).deepEquals({
-			unit: AlarmIntervalUnit.HOUR,
-			value: 5,
-		})
-		o(triggerToAlarmInterval(getDateInUTC("2023-10-01T15:00"), "-P1DT5H0M")).deepEquals({
-			unit: AlarmIntervalUnit.HOUR,
-			value: 29,
+		o.test("exhaustively test spec-compliant duration values", function () {
+			let signString = ""
+			let isNegative = false
+			let daysString = ""
+			let days = 0
+			let hoursString = ""
+			let hours = 0
+			let minutesString = ""
+			let minutes = 0
+			let secondsString = ""
+			let seconds = 0
+			let weeksString = ""
+			let weeks = 0
+			let duration = ""
+			// test sign ("-"/"+"/empty)
+			for ([signString, isNegative] of [
+				["", false],
+				["-", true],
+				["+", false],
+			] as [string, boolean][]) {
+				// test days
+				for ([daysString, days] of [
+					["1D", 1],
+					["365D", 365],
+					["0D", 0],
+					["01D", 1],
+					["", 0],
+				] as [string, number][]) {
+					if (daysString) {
+						if (isNegative) {
+							days = -days
+						}
+						duration = `${signString}P${daysString}`
+						// console.log(duration)
+						o.check(parseDuration(duration)).deepEquals({
+							days,
+							hours: 0,
+							minutes: 0,
+							seconds: 0,
+							weeks: 0,
+						})
+					}
+					// test hours
+					for ([hoursString, hours] of [
+						["1H", 1],
+						["12H", 12],
+						["0H", 0],
+						["23H", 23],
+						["01H", 1],
+						["00H", 0],
+						["", 0],
+					] as [string, number][]) {
+						if (hoursString) {
+							if (isNegative) {
+								hours = -hours
+							}
+							duration = `${signString}P${daysString}T${hoursString}`
+							// console.log(duration)
+							o.check(parseDuration(duration)).deepEquals({
+								days,
+								hours,
+								minutes: 0,
+								seconds: 0,
+								weeks: 0,
+							})
+						}
+						// test minutes
+						for ([minutesString, minutes] of [
+							["1M", 1],
+							["30M", 30],
+							["60M", 60],
+							["120M", 120],
+							["0M", 0],
+							["01M", 1],
+							["00M", 0],
+							["", 0],
+						] as [string, number][]) {
+							if (minutesString) {
+								if (isNegative) {
+									minutes = -minutes
+								}
+								duration = `${signString}P${daysString}T${hoursString}${minutesString}`
+								// console.log(duration)
+								o.check(parseDuration(duration)).deepEquals({
+									days,
+									hours,
+									minutes,
+									seconds: 0,
+									weeks: 0,
+								})
+							}
+							// test seconds
+							for ([secondsString, seconds] of [
+								["1S", 1],
+								["30S", 30],
+								["60S", 60],
+								["120S", 120],
+								["0S", 0],
+								["01S", 1],
+								["00S", 0],
+								["", 0],
+							] as [string, number][]) {
+								if (secondsString && (!hoursString || minutesString)) {
+									if (isNegative) {
+										seconds = -seconds
+									}
+									duration = `${signString}P${daysString}T${hoursString}${minutesString}${secondsString}`
+									// console.log(duration)
+									o.check(parseDuration(duration)).deepEquals({
+										days,
+										hours,
+										minutes,
+										seconds,
+										weeks,
+									})
+								}
+							}
+						}
+					}
+				}
+				// test weeks
+				for ([weeksString, weeks] of [
+					["1W", 1],
+					["2W", 2],
+					["4W", 4],
+					["52W", 52],
+					["53W", 53],
+					["0W", 0],
+					["01W", 1],
+					["00W", 0],
+				] as [string, number][]) {
+					if (isNegative) {
+						weeks = -weeks
+					}
+					duration = `${signString}P${weeksString}`
+					// console.log(duration)
+					o.check(parseDuration(duration)).deepEquals({
+						days: 0,
+						hours: 0,
+						minutes: 0,
+						seconds: 0,
+						weeks,
+					})
+				}
+			}
 		})
 	})
 
@@ -1005,7 +1145,12 @@ o.spec("CalendarParser", function () {
 									startTimeZone: zone,
 									endTimeZone: zone,
 								},
-								alarms: [],
+								alarms: [
+									{
+										alarmIdentifier: "",
+										trigger: "-1D",
+									},
+								],
 							},
 						],
 						parseEventErrors: [],
@@ -1543,6 +1688,113 @@ END:VCALENDAR`
 			const parsedDtEndResult = parseCalendarStringData(calendarInvalidDtEnd, zone)
 			o(parsedDtEndResult.contents.length).equals(0)(`Parsing ${invalidDtEndTzidWithDate} succeeded, but should have failed.`)
 			o(parsedDtEndResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtEndTzidWithDate}.`)
+		})
+	})
+
+	o.spec("handles VALARM TRIGGER property", function () {
+		const createCalendarWithTrigger = (triggerValue: string) =>
+			"BEGIN:VCALENDAR\r\n" +
+			"PRODID:-//Tutao GmbH//Tutanota 360.260922.0//EN\r\n" +
+			"VERSION:2.0\r\n" +
+			"CALSCALE:GREGORIAN\r\n" +
+			"METHOD:PUBLISH\r\n" +
+			"BEGIN:VEVENT\r\n" +
+			"DTSTART:20260929T083000Z\r\n" +
+			"DTEND:20260929T090000Z\r\n" +
+			"DTSTAMP:20260929T082951Z\r\n" +
+			"UID:uid\r\n" +
+			"SEQUENCE:0\r\n" +
+			"SUMMARY:test alarm triggers\r\n" +
+			"BEGIN:VALARM\r\n" +
+			"ACTION:DISPLAY\r\n" +
+			"DESCRIPTION:This is an event reminder\r\n" +
+			`TRIGGER:${triggerValue}\r\n` +
+			"END:VALARM\r\n" +
+			"END:VEVENT\r\n" +
+			"END:VCALENDAR"
+
+		o.test("alarm triggers with offsets specified by negative durations convert to positive database values", function () {
+			// Database values have the reversed sign because we previously only accepted alarm triggers for before the start of the event
+			for (const [triggerLine, expectedDatabaseTrigger] of [
+				["-PT5H30M", "330M"],
+				["-PT5H0M", "5H"],
+				["-P1DT5H0M", "29H"],
+
+				["-PT1M", "1M"],
+				["-PT2H1M", "121M"],
+				["-P3DT2H1M", "4441M"],
+				["-P4W3DT2H1M", "44761M"],
+				["-PT1H", "1H"],
+				["-P2DT1H", "49H"],
+				["-P3W2DT1H", "553H"],
+				["-P1D", "1D"],
+				["-P2W1D", "15D"],
+				["-P1W", "1W"],
+			]) {
+				const calendar = createCalendarWithTrigger(triggerLine)
+				const parseResult = parseCalendarStringData(calendar, zone)
+				const alarms = parseResult.contents[0].alarms
+				o.check(alarms.length).equals(1)
+				o.check(alarms[0].trigger).equals(expectedDatabaseTrigger)
+			}
+		})
+		o.test("alarm triggers with offsets specified by positive durations convert to negative database values", function () {
+			// Database values have the reversed sign because we previously only accepted alarm triggers for before the start of the event
+			for (const [triggerLine, expectedDatabaseTrigger] of [
+				["PT5H30M", "-330M"],
+				["PT5H0M", "-5H"],
+				["P1DT5H0M", "-29H"],
+
+				["PT1M", "-1M"],
+				["PT2H1M", "-121M"],
+				["P3DT2H1M", "-4441M"],
+				["P4W3DT2H1M", "-44761M"],
+				["PT1H", "-1H"],
+				["P2DT1H", "-49H"],
+				["P3W2DT1H", "-553H"],
+				["P1D", "-1D"],
+				["P2W1D", "-15D"],
+				["P1W", "-1W"],
+			]) {
+				const calendar = createCalendarWithTrigger(triggerLine)
+				const parseResult = parseCalendarStringData(calendar, zone)
+				const alarms = parseResult.contents[0].alarms
+				o.check(alarms.length).equals(1)
+				o.check(alarms[0].trigger).equals(expectedDatabaseTrigger)
+			}
+		})
+		o.test("alarm triggers with offsets specified with zero-durations are converted to the database value '0M'", function () {
+			for (const [triggerLine, expectedDatabaseTrigger] of [
+				["P0D", "0M"],
+				["PT0H", "0M"],
+				["PT0M", "0M"],
+				["PT0S", "0M"],
+				["P0DT0M", "0M"],
+				["-P0D", "0M"],
+				["-PT0H", "0M"],
+				["-PT0M", "0M"],
+				["-PT0S", "0M"],
+				["-P0DT0M", "0M"],
+			]) {
+				const calendar = createCalendarWithTrigger(triggerLine)
+				const parseResult = parseCalendarStringData(calendar, zone)
+				const alarms = parseResult.contents[0].alarms
+				o.check(alarms.length).equals(1)
+				o.check(alarms[0].trigger).equals(expectedDatabaseTrigger)
+			}
+		})
+		o.test("seconds are dropped from alarm trigger value when converting to database value", function () {
+			// NOTE: We may want to change this behviour in the future
+			for (const [triggerLine, expectedDatabaseTrigger] of [
+				["-PT5H30M20S", "330M"],
+				["PT5H30M20S", "-330M"],
+			]) {
+				const calendar = createCalendarWithTrigger(triggerLine)
+				const parseResult = parseCalendarStringData(calendar, zone)
+				const alarms = parseResult.contents[0].alarms
+				o.check(alarms.length).equals(1)
+				o.check(alarms[0].trigger).equals(expectedDatabaseTrigger)
+			}
 		})
 	})
 })

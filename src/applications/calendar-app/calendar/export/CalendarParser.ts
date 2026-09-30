@@ -17,7 +17,7 @@ import {
 	RepeatRule,
 } from "@tutao/entities/sys"
 import { filterInt, isMailAddress, neverNull, utf8Uint8ArrayToString } from "@tutao/utils"
-import { DateTime, Duration } from "luxon"
+import { DateTime } from "luxon"
 import type { Parser } from "../../../common/misc/parsing/ParserCombinator"
 import {
 	combineParsers,
@@ -28,15 +28,13 @@ import {
 	makeZeroOrMoreParser,
 	mapParser,
 	maybeParse,
-	numberParser,
 	ParserError,
 	StringIterator,
 } from "../../../common/misc/parsing/ParserCombinator"
 import { EndType, ProgrammingError, RepeatPeriod, TimeConstants } from "@tutao/app-env"
 import { reverse } from "../../../common/misc/EnumUtils"
-import { AlarmInterval, AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
+import { AlarmIntervalUnit, BYRULE_MAP, getTimeZone } from "../../../common/calendar/date/CalendarUtils.js"
 import { AlarmInfoTemplate } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
-import { serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { availableIANATimeZones, windowsToIANATimeZones } from "../../../common/calendar/TimeZoneData"
 
@@ -96,14 +94,6 @@ export type StrippedRepeatRule = {
 
 	excludedDates: DateWrapperParams[]
 	advancedRules: AdvancedRepeatRuleParams[]
-}
-
-type ICalDuration = {
-	positive: boolean
-	day?: number
-	week?: number
-	hour?: number
-	minute?: number
 }
 
 function getProp(obj: ICalObject, tag: string, optional: false): Property
@@ -334,67 +324,41 @@ export function parseICalendar(stringData: string): ICalObject {
 	return parseIcalObject("VCALENDAR", iterator)
 }
 
-function parseAlarm(alarmObject: ICalObject, startTime: Date): AlarmInfoTemplate | null {
+function parseAlarm(alarmObject: ICalObject, startTime: Date): AlarmInfoTemplate {
 	const triggerValue = getPropStringValue(alarmObject, "TRIGGER", false)
-	const alarmInterval: AlarmInterval | null = triggerToAlarmInterval(startTime, triggerValue)
-	return alarmInterval != null
-		? {
-				trigger: serializeAlarmInterval(alarmInterval),
-				alarmIdentifier: "",
-			}
-		: null
-}
 
-/** visible for testing */
-export function triggerToAlarmInterval(eventStart: Date, triggerValue: string): AlarmInterval | null {
+	let value: number
+	let unit: AlarmIntervalUnit
 	// Absolute time
-	if (triggerValue.endsWith("Z")) {
+	if (triggerValue.length > 0 && triggerValue[triggerValue.length - 1] === "Z") {
 		// For absolute time we just convert the trigger to minutes. There might be a bigger unit that can express it but we don't have to take care about time
 		// zones or daylight saving in this case and it's simpler this way.
 		const triggerTime = parseTime(triggerValue, null).date
-		const tillEvent = eventStart.getTime() - triggerTime.getTime()
-		const minutes = Duration.fromMillis(tillEvent).as("minutes")
-		return { unit: AlarmIntervalUnit.MINUTE, value: minutes }
+		const millisDiff = triggerTime.getTime() - startTime.getTime()
+		value = Math.round(millisDiff / (60 * 1000))
+		unit = AlarmIntervalUnit.MINUTE
 	} else {
+		const duration = parseDuration(triggerValue)
 		// If we have relative trigger expressed in units we want to find the smallest unit that will fit. Unlike iCal we do not support multiple units so
 		// we have to pick one.
-		const duration = parseDuration(triggerValue)
-
-		if (duration.positive) {
-			return null
+		if (duration.minutes) {
+			value = duration.minutes + 60 * (duration.hours + 24 * (duration.days + 7 * duration.weeks))
+			unit = AlarmIntervalUnit.MINUTE
+		} else if (duration.hours) {
+			value = duration.hours + 24 * (duration.days + 7 * duration.weeks)
+			unit = AlarmIntervalUnit.HOUR
+		} else if (duration.days) {
+			value = duration.days + 7 * duration.weeks
+			unit = AlarmIntervalUnit.DAY
+		} else if (duration.weeks) {
+			value = duration.weeks
+			unit = AlarmIntervalUnit.WEEK
+		} else {
+			value = 0
+			unit = AlarmIntervalUnit.MINUTE
 		}
-
-		let smallestUnit: AlarmIntervalUnit = AlarmIntervalUnit.MINUTE
-		if (duration.week) {
-			smallestUnit = AlarmIntervalUnit.WEEK
-		}
-		if (duration.day) {
-			smallestUnit = AlarmIntervalUnit.DAY
-		}
-		if (duration.hour) {
-			smallestUnit = AlarmIntervalUnit.HOUR
-		}
-		if (duration.minute) {
-			smallestUnit = AlarmIntervalUnit.MINUTE
-		}
-		const luxonDuration = { week: duration.week, day: duration.day, minute: duration.minute, hour: duration.hour }
-		let value
-		switch (smallestUnit) {
-			case AlarmIntervalUnit.WEEK:
-				value = Duration.fromObject(luxonDuration).as("weeks")
-				break
-			case AlarmIntervalUnit.DAY:
-				value = Duration.fromObject(luxonDuration).as("days")
-				break
-			case AlarmIntervalUnit.HOUR:
-				value = Duration.fromObject(luxonDuration).as("hours")
-				break
-			case AlarmIntervalUnit.MINUTE:
-				value = Duration.fromObject(luxonDuration).as("minutes")
-				break
-		}
-		return { unit: smallestUnit, value }
 	}
+	return { trigger: `${-value}${unit}`, alarmIdentifier: "" }
 }
 
 export function parseRrule(rawRruleValue: string, startTzId: string | null): RepeatRule {
@@ -481,20 +445,20 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 	const duration = parseDuration(durationValue)
 	let durationInMillis = 0
 
-	if (duration.week) {
-		durationInMillis += TimeConstants.DAY_IN_MILLIS * 7 * duration.week
+	if (duration.weeks) {
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * 7 * duration.weeks
 	}
 
-	if (duration.day) {
-		durationInMillis += TimeConstants.DAY_IN_MILLIS * duration.day
+	if (duration.days) {
+		durationInMillis += TimeConstants.DAY_IN_MILLIS * duration.days
 	}
 
-	if (duration.hour) {
-		durationInMillis += 1000 * 60 * 60 * duration.hour
+	if (duration.hours) {
+		durationInMillis += 1000 * 60 * 60 * duration.hours
 	}
 
-	if (duration.minute) {
-		durationInMillis += 1000 * 60 * duration.minute
+	if (duration.minutes) {
+		durationInMillis += 1000 * 60 * duration.minutes
 	}
 
 	return new Date(startTime.getTime() + durationInMillis)
@@ -996,67 +960,109 @@ function parsePropertyName(iterator: StringIterator): string {
 	return text
 }
 
-const secondDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("S"))
-const minuteDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("M"))
-const hourDurationParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("H"))
+export function parseDuration(value: string): { days: number; hours: number; minutes: number; seconds: number; weeks: number } {
+	const result = { days: 0, hours: 0, minutes: 0, seconds: 0, weeks: 0 }
 
-const durationTimeParser = mapParser(
-	combineParsers(makeCharacterParser("T"), maybeParse(hourDurationParser), maybeParse(minuteDurationParser), maybeParse(secondDurationParser)),
-	(parsed) => {
-		//Note: we parse for seconds in case they are there, but do not have that as an option, so they are ignored
-		let hour, minute
+	// The format specified RFC 5545, Section 3.3.6 https://www.rfc-editor.org/info/rfc5545/#section-3.3.6
+	// is as follows, in augmented Backus Naur form:
+	//
+	// dur-value  = (["+"] / "-") "P" (dur-date / dur-time / dur-week)
+	//
+	// dur-date   = dur-day [dur-time]
+	// dur-time   = "T" (dur-hour / dur-minute / dur-second)
+	// dur-week   = 1*DIGIT "W"
+	// dur-hour   = 1*DIGIT "H" [dur-minute]
+	// dur-minute = 1*DIGIT "M" [dur-second]
+	// dur-second = 1*DIGIT "S"
+	// dur-day    = 1*DIGIT "D"
 
-		// the first item in parsed is T (if time is there)
-		if (parsed[1]) {
-			hour = parsed[1][0]
-		}
-		if (parsed[2]) {
-			minute = parsed[2][0]
-		}
+	let offset = 0
 
-		return {
-			hour,
-			minute,
-		}
-	},
-)
-const durationDayParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("D"))
-const durationWeekParser: Parser<[number, string]> = combineParsers(numberParser, makeCharacterParser("W"))
-const durationParser = mapParser(
-	combineParsers(
-		maybeParse(makeEitherParser(makeCharacterParser("+"), makeCharacterParser("-"))),
-		makeCharacterParser("P"),
-		maybeParse(durationWeekParser),
-		maybeParse(durationDayParser),
-		maybeParse(durationTimeParser),
-	),
-	(parsed) => {
-		const positive = parsed[0] !== "-"
-		let week, day, hour, minute
-		if (parsed[2]) {
-			week = parsed[2][0]
-		}
-		if (parsed[3]) {
-			day = parsed[3][0]
-		}
-
-		return {
-			positive,
-			week,
-			day,
-			hour: parsed[4]?.hour,
-			minute: parsed[4]?.minute,
-		}
-	},
-)
-
-export function parseDuration(value: string): ICalDuration {
-	const iterator = new StringIterator(value)
-	const duration = durationParser(iterator)
-
-	if (iterator.peek()) {
-		throw new ParserError("Could not parse duration completely")
+	// parse sign
+	let isNegative = false
+	if (offset < value.length && value[offset] === "+") {
+		++offset
+	} else if (offset < value.length && value[offset] === "-") {
+		isNegative = true
+		++offset
 	}
 
-	return duration
+	// parse 'P' character
+	let lastChar: string
+	if (offset < value.length && (lastChar = value[offset]) === "P") {
+		++offset
+	} else {
+		throw new ParserError(`No "P"/"+P"/"-P" at start of iCal DURATION "${value}"!`)
+	}
+
+	while (offset < value.length) {
+		// parse 'T' character
+		if (offset < value.length && value[offset] === "T") {
+			lastChar = "T"
+			++offset
+		}
+
+		// parse integer value
+		let integer = 0
+		const integerStart = offset
+		while (offset < value.length) {
+			const ZERO_CHAR_CODE = 0x30
+			const digit = value.charCodeAt(offset) - ZERO_CHAR_CODE
+			if (digit < 0 || digit > 9) {
+				break
+			}
+			integer = 10 * integer + digit
+			if (integer > Number.MAX_SAFE_INTEGER) {
+				throw new ParserError(`Integer value too large in iCal DURATION "${value.slice(0, offset)}..."!`)
+			}
+			++offset
+		}
+		if (offset === integerStart) {
+			throw new ParserError(`Expected an integer at offset=${offset} in iCal DURATION "${value}"!`)
+		}
+		const signedInteger = isNegative ? -integer : integer
+
+		// parse duration unit
+		if (offset >= value.length) {
+			throw new ParserError(`Expected duration unit character 'D'/'W'/'M'/'S' before end of iCal DURATION "${value}"!`)
+		}
+		const currentChar = value[offset]
+		switch (currentChar) {
+			case "D":
+				// We're intentionally spec-non-compiliant here to interoperate with spec-non-compiliant calendars.
+				// As per spec, the days component, ending in "D", must come directly after "P".
+				result.days = signedInteger
+				break
+			case "H":
+				// We're intentionally spec-non-compiliant here to interoperate with spec-non-compiliant calendars.
+				// As per spec, the hours component, ending in "H", must come directly after "T".
+				result.hours = signedInteger
+				break
+			case "M":
+				if (lastChar !== "T" && lastChar !== "H") {
+					throw new ParserError(
+						`'M' not after 'T' time introducer character nor after hour unit 'H' in iCal DURATION "${value}" leaving it ambiguous whether 'M' unit is for minute or month!`,
+					)
+				}
+				result.minutes = signedInteger
+				break
+			case "S":
+				// We're intentionally spec-non-compiliant here to interoperate with spec-non-compiliant calendars.
+				// As per spec, the seconds component can only appear after a "T", "H" or "M" character.
+				result.seconds = signedInteger
+				break
+			case "W":
+				// We're intentionally spec-non-compiliant here to interoperate with spec-non-compiliant calendars.
+				// As per spec, the weeks component can only appear after a "P" character.
+				result.weeks = signedInteger
+				break
+			case "Y":
+				throw new ParserError(`Spec-incompliant, unsupported year unit in iCal DURATION "${value}"!`)
+			default:
+				throw new ParserError(`Unexpected character='${value[offset]}' in iCal DURATION "${value}"!`)
+		}
+		lastChar = currentChar
+		++offset
+	}
+	return result
 }
