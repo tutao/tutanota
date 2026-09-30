@@ -175,6 +175,7 @@ import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { HttpClientJavascript } from "@tutao/http-client"
+import { PluginManifestProvider } from "../common/plugin/PluginManifestProvider"
 
 EnvProvider.assertMainOrNode()
 
@@ -957,7 +958,7 @@ class MailLocator implements CommonLocator {
 
 		this.pluginConfigurationProvider = new PluginConfigurationProvider(this.entityClient, this.logins)
 		this.pluginManager = new PluginManager(
-			new HttpClientJavascript(),
+			new PluginManifestProvider(new HttpClientJavascript(), this.domainConfigProvider()),
 			this.pluginConfigurationProvider,
 			new DialogProvider(),
 			new MailPluginIntegrationAdapter(this.mailboxModel),

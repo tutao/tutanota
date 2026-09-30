@@ -9,6 +9,7 @@ import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
 import NEXTCLOUD_PLUGIN_MANIFEST from "./manifest.json"
+import NEXTCLOUD_MANIFEST from "./manifest.json"
 import { CustomerConfigPluginError } from "../../sdk/PluginError"
 
 type UserPluginConfig = {
@@ -33,6 +34,7 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	private nextcloudApi: NextcloudApi = null!
 
 	constructor(pluginHost: PluginHostApi) {
+		const _ = NEXTCLOUD_MANIFEST
 		super(pluginHost)
 	}
 
