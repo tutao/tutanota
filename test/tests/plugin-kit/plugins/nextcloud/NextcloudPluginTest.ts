@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { func, matchers, object, verify, when } from "testdouble"
 import { NextcloudPlugin } from "../../../../../src/plugin-kit/plugins/nextcloud/NextcloudPlugin"
 import { NextcloudApi } from "../../../../../src/plugin-kit/plugins/nextcloud/NextcloudApi"
-import { NEXTCLOUD_PLUGIN_MANIFEST } from "../../../../../src/plugin-kit/plugins/nextcloud/manifest"
+import NEXTCLOUD_PLUGIN_MANIFEST from "../../../../../src/plugin-kit/plugins/nextcloud/manifest.json"
 import { ExtensionPoint, PluginHostApi } from "../../../../../src/plugin-kit/sdk/hostApi/PluginHostApi"
 import { CustomerConfigPluginError } from "../../../../../src/plugin-kit/sdk/PluginError"
 import { PluginDataFile } from "../../../../../src/plugin-kit/sdk/PluginDataFile"
@@ -15,11 +15,6 @@ o.spec("NextcloudPluginTest", () => {
 	o.beforeEach(() => {
 		pluginHost = object<PluginHostApi>()
 		plugin = new NextcloudPlugin(pluginHost)
-	})
-
-	o.test("getManifest resolves the static manifest", async () => {
-		const manifest = await plugin.getManifest()
-		o.check(manifest).equals(NEXTCLOUD_PLUGIN_MANIFEST)
 	})
 
 	o.spec("load", () => {

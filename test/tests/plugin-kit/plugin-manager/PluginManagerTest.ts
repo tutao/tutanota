@@ -12,17 +12,20 @@ import { Mode } from "../../../../src/platform-kit/app-env"
 import { OperationType } from "../../../../src/platform-kit/meta"
 import { stringToBase64UrlCustomId } from "../../../../src/platform-kit/utils/Encoding"
 import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { CustomerTypeRef, PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
+import { PluginManifestProvider } from "../../../../src/applications/common/plugin/PluginManifestProvider"
 
 o.spec("PluginManagerTest", () => {
 	let configurationAdapter: ConfigurationAdapter
 	let dialogAdapter: DialogAdapter
 	let pluginManager: PluginManager
+	let pluginManifestProvider: PluginManifestProvider
 
 	o.beforeEach(() => {
 		configurationAdapter = object<ConfigurationAdapter>()
 		dialogAdapter = object<DialogAdapter>()
-		pluginManager = new PluginManager(configurationAdapter, dialogAdapter)
+		pluginManifestProvider = object<PluginManifestProvider>()
+		pluginManager = new PluginManager(pluginManifestProvider, configurationAdapter, dialogAdapter)
 	})
 
 	function seedLoadedPlugin(overrides: { api?: any; pluginAsWorker?: any; draftConfig?: Record<string, string> } = {}) {

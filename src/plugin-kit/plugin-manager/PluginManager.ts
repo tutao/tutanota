@@ -4,16 +4,14 @@ import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButt
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginConfigurationOwner, PluginHost } from "./hostApi/PluginHost"
 import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, LazyLoaded, Nullable, ofClass } from "@tutao/utils"
-import { EnvProvider, TimeConstants } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
 import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
-import { HttpMethod, MediaType, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { isNull } from "../../platform-kit/utils/Utils"
-import { HttpClient } from "../../platform-kit/http-client/HttpClient"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -21,6 +19,10 @@ type PluginWrapper = {
 	pluginHost: PluginHost
 	pluginAsWorker: Worker
 	draftConfig: Record<string, string>
+}
+
+export interface PluginManifestFetcher {
+	fetchManifestJson(pluginId: PluginId): Promise<PluginManifest>
 }
 
 export class PluginManager {
@@ -31,7 +33,7 @@ export class PluginManager {
 	private configChangeListener: () => void
 
 	constructor(
-		private readonly httpClient: HttpClient,
+		private readonly manifestFetcher: PluginManifestFetcher,
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
@@ -211,7 +213,7 @@ export class PluginManager {
 	private _populatePluginManifestMap(pluginId: PluginId) {
 		let lazyPluginManifest = this.pluginManifest.get(pluginId) ?? null
 		if (isNull(lazyPluginManifest)) {
-			lazyPluginManifest = new LazyLoaded<PluginManifest>(async () => await this._fetchPluginManifest(pluginId))
+			lazyPluginManifest = new LazyLoaded<PluginManifest>(async () => await this.manifestFetcher.fetchManifestJson(pluginId))
 			this.pluginManifest.set(pluginId, lazyPluginManifest)
 		}
 	}
@@ -224,31 +226,6 @@ export class PluginManager {
 			return lazyPluginManifest.getLoaded()
 		} else {
 			return null
-		}
-	}
-
-	private async _fetchPluginManifest(pluginId: PluginId): Promise<PluginManifest> {
-		const pluginManifestUrl = `${EnvProvider.get().getPathPrefix()}/plugin-kit/plugins/${pluginId}/manifest.json`
-		const manifestResponse = await this.httpClient.request(
-			pluginManifestUrl,
-			HttpMethod.GET,
-			null,
-			{},
-			MediaType.Json,
-			TimeConstants.secondsToMillis(5),
-			null,
-			true,
-			null,
-			null,
-		)
-		if (manifestResponse.status !== 200) {
-			throw new Error(`Could not fetch manifest file: ${manifestResponse.status}`)
-		}
-
-		if (manifestResponse.body?.bodyType === RestBodyType.Text) {
-			return JSON.parse(downcast<RestTextBody>(manifestResponse.body).payload)
-		} else {
-			throw new Error("Received non text response")
 		}
 	}
 }
