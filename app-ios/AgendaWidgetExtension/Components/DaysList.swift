@@ -12,36 +12,37 @@ struct DaysList: View {
 	var userId: String
 	var family: WidgetFamily
 	var widgetHeight: CGFloat
-	var normalEvents: EventMap
-	var allDayEventsData: LongEventsDataMap
+	var daysToEventsList: DaysToEventsList
 
 	var body: some View {
-		LazyVStack(alignment: .leading, spacing: 6) {
-			let days: [Double] = normalEvents.keys.sorted(by: { $0 < $1 })
+		let currentCalendar: Calendar = Calendar.current
+		let now = Date.now
+		let startOfToday = currentCalendar.startOfDay(for: Date())
 
-			ForEach(days, id: \.self) { startOfDay in
-				DayRow(startOfDay: startOfDay, userId: userId, normalEvents: normalEvents, allDayEventsData: allDayEventsData)
+		LazyVStack(alignment: .leading, spacing: 6) {
+			ForEach(Array(daysToEventsList.enumerated()), id: \.offset) { (index, dayEvents) in
+				var currentDay = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: index, to: now)!)
+				DayRow(currentDay: currentDay, userId: userId, events: dayEvents, index: index)
 			}
 		}
 	}
 }
 
 private struct DayRow: View {
-	let startOfDay: Double
+	let currentDay: Date
 	let userId: String
-	let normalEvents: EventMap
-	let allDayEventsData: LongEventsDataMap
+	let events: [UIEvent]
+	let index: Int
 
 	var body: some View {
-		let parsedDay = Date(timeIntervalSince1970: startOfDay)
-		let normalEventsOnDay: [CalendarEventData] = normalEvents[startOfDay] ?? []
-		let allDayEventsOnDay: SimpleLongEventsData = allDayEventsData[startOfDay] ?? SimpleLongEventsData(event: nil, count: 0)
-		let isToday = Calendar.current.isDateInToday(parsedDay)
+		let normalEventsOnDay: [UIEvent] = events.filter { !$0.isDisplayedAsAllDay }
+		let allDayEventsOnDay: [UIEvent] = events.filter { !$0.isDisplayedAsAllDay }
+		let isToday = index == 0
 
 		if isToday {
-			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: parsedDay)
+			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: currentDay)
 		} else {
-			OtherDayCard(userId: userId, date: parsedDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
+			OtherDayCard(userId: userId, date: currentDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
 		}
 	}
 }

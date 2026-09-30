@@ -10,18 +10,18 @@ import TutanotaSharedFramework
 import WidgetKit
 
 struct AllDayEventRow: View {
-	var allDayEventsData: SimpleLongEventsData
+	var allDayEventsData: [UIEvent]
 	var textColor: Color?
 	var body: some View {
 		let (allDayImage, allDayPadding): (ImageResource, CGFloat) =
-			if let firstEvent = allDayEventsData.event, firstEvent.isBirthdayEvent { (.giftIcon, Dimensions.Spacing.space_4 / 2) } else {
+			if let firstEvent = allDayEventsData.first, firstEvent.isBirthdayEvent { (.giftIcon, Dimensions.Spacing.space_4 / 2) } else {
 				(.allDayIcon, Dimensions.Spacing.space_4 / 2)
 			}
 		let eventTitle: String =
-			if let title: String = allDayEventsData.event?.summary, !title.isEmpty { allDayEventsData.event!.summary } else {
+			if let title: String = allDayEventsData.first?.summary, !title.isEmpty { allDayEventsData.first!.summary } else {
 				translate("TutaoNoTitleLabel", default: "<No Title>")
 			}
-		let backgroundColor: UIColor = UIColor(hex: allDayEventsData.event?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
+		let backgroundColor: UIColor = UIColor(hex: allDayEventsData.first?.calendarColor ?? DEFAULT_CALENDAR_COLOR) ?? UIColor(.primary)
 		let foregroundColor: Color = if backgroundColor.getLuminance() > 0.5 { .black } else { .white }
 
 		return HStack {

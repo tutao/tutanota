@@ -252,7 +252,6 @@ class WidgetUIViewModel(
 					}
 				}
 
-
 			}
 		}
 

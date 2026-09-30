@@ -9,7 +9,7 @@ import TutanotaSharedFramework
 import WidgetKit
 
 struct Header: View {
-	var allDayEvents: SimpleLongEventsData
+	var allDayEvents: [UIEvent]
 	var userId: String
 	let startOfToday = Calendar.current.startOfDay(for: Date()).timeIntervalSince1970
 	let dateComponents = Calendar.current.dateComponents([.day, .weekday], from: Date())

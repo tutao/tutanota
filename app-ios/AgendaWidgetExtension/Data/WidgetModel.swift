@@ -14,29 +14,18 @@ import TutanotaSharedFramework
  Keys are the epoch milliseconds (or seconds?) representing the start of a day.
  Values are an array of CalendarEventData for events occurring on that day.
  */
-typealias EventMap = [Double: [CalendarEventData]]
+typealias DaysToEventsList = [[UIEvent]]
 
-typealias LongEventsDataMap = [Double: SimpleLongEventsData]
-
-struct CalendarEventData: Equatable, Hashable, Encodable {
+struct UIEvent: Equatable, Hashable, Encodable {
+	var calendarId: String
 	var id: String
 	var summary: String
 	var startDate: Date
 	var endDate: Date
 	var calendarColor: String
 	var isBirthdayEvent: Bool
-}
-
-/**
- 	Data representing the Long Events and All Day events that will be displayed in the widget.
- 	(This may have been done to handle memory constraints due to how iOS Timeline functions.)
-
- 	- Parameter event: The *only* event that will have its data displayed in the widget.
- 	- Parameter count: The total number of events of this type, not all of which will have their info displayed.
- */
-struct SimpleLongEventsData: Equatable, Hashable, Encodable {
-	var event: CalendarEventData?
-	var count: Int
+	var isDisplayedAsAllDay: Bool
+	var timeString: String
 }
 
 struct WidgetModel {
@@ -67,88 +56,176 @@ struct WidgetModel {
 		return eventMidnightAtCurrentZone
 	}
 
-	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> (EventMap, LongEventsDataMap) {
+	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> DaysToEventsList {
 		printLog("Fetching \(calendars.count) calendars")
 		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
 		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
 		let calendarFacade = self.sdk.calendarFacade()
 
-		let startOfToday = Calendar.current.startOfDay(for: date).timeIntervalSince1970
-
-		var normalEvents: EventMap = [startOfToday: []]
-		var longEvents: LongEventsDataMap = [startOfToday: SimpleLongEventsData(event: nil, count: 0)]
+		let now = Date.now
+		let currentCalendar = Calendar.current
+		var daysAndEvents: DaysToEventsList = [[], [], [], [], [], [], []]
 
 		for calendar in calendars {
-			let eventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
-			eventsList.birthdayEvents.forEach { event in
-				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
-				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
-				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
 
-				let startOfEventDay = Calendar.current.startOfDay(for: self.replaceDateTimeZone(date: eventStart)).timeIntervalSince1970
+			let shortAndLongEvents = eventsList.shortEvents + eventsList.longEvents
 
-				let eventData = CalendarEventData(
-					id: eventId,
-					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
-					startDate: eventStart,
-					endDate: eventEnd,
-					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-					isBirthdayEvent: true
-				)
+			let dateFormatter = DateFormatter()
+			dateFormatter.setLocalizedDateFormatFromTemplate("HH:mm")
 
-				if longEvents.index(forKey: startOfEventDay) == nil || longEvents[startOfEventDay]?.event == nil {
-					longEvents.updateValue(SimpleLongEventsData(event: eventData, count: 1), forKey: startOfEventDay)
-					if normalEvents.index(forKey: startOfEventDay) == nil { normalEvents.updateValue([], forKey: startOfEventDay) }
-					return
-				}
+			for calendarEvent in shortAndLongEvents {
+				for dayIndex in stride(from: 0, to: daysAndEvents.count, by: 1) {
 
-				longEvents[startOfEventDay]?.count += 1
-			}
+					let currentDayMidnightInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: now)!)
+						.timeIntervalSince1970
+					let nextDayMidnightInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: now)!)
+						.timeIntervalSince1970
 
-			var normalEventCount = 0
-			(eventsList.shortEvents + eventsList.longEvents).sorted(by: { $0.startTime < $1.startTime })
-				.forEach { event in
-					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
-					let eventEnd = Date(timeIntervalSince1970: Double(event.endTime) / 1000)
-					let isAllDay =
-						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
-						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
+					// calendarEvent.endTime start of day is in milliseconds, but iOS time intervals are seconds.
+					// since we don't really care about millisecond differences, maybe we can divide all incoming dates by 1000 for calculations.  since this would use less memory.
+					let uiEventStartMax = max(currentDayMidnightInstant, Double(calendarEvent.endTime))
+					let uiEventEndMin = min(nextDayMidnightInstant, Double(calendarEvent.endTime))
 
-					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
+					let eventStartsAfterToday = uiEventStartMax >= uiEventEndMin
+					let eventEndsBeforeToday = uiEventEndMin <= uiEventStartMax
 
-					var referenceDate: Date
+					if eventEndsBeforeToday || eventStartsAfterToday { continue }
 
-					if isAllDay { referenceDate = self.replaceDateTimeZone(date: eventStart) } else { referenceDate = eventStart }
+					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime))
+					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime))
 
-					let startOfEventDay = Calendar.current.startOfDay(for: referenceDate).timeIntervalSince1970
-					if startOfEventDay >= startOfToday {
-						let eventData = CalendarEventData(
-							id: eventId,
-							summary: event.summary,
-							startDate: eventStart,
-							endDate: eventEnd,
-							calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-							isBirthdayEvent: false
-						)
+					let dateFormatter = DateFormatter()
+					dateFormatter.timeZone = .current
 
-						if longEvents.index(forKey: startOfEventDay) == nil {
-							longEvents.updateValue(SimpleLongEventsData(event: nil, count: 0), forKey: startOfEventDay)
-							normalEvents.updateValue([], forKey: startOfEventDay)
-						}
+					let eventTakesEntireDay =
+						Double(calendarEvent.startTime) < currentDayMidnightInstant && Double(calendarEvent.endTime) >= nextDayMidnightInstant
 
-						if isAllDay {
-							if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
-							longEvents[startOfEventDay]?.count += 1
-						} else if normalEventCount <= 8 {
-							normalEvents[startOfEventDay]?.append(eventData)
-							normalEventCount += 1
+					let eventStartsTodayAndEndsLater =
+						Double(calendarEvent.startTime) >= currentDayMidnightInstant && Double(calendarEvent.endTime) >= nextDayMidnightInstant
+
+					let eventStartsBeforeTodayAndEndsToday =
+						Double(calendarEvent.startTime) < currentDayMidnightInstant && Double(calendarEvent.endTime) < nextDayMidnightInstant
+
+					let isConsideredAllDay = isAllDayEvent(startDate: eventStartDate, endDate: eventEndDate) || eventTakesEntireDay
+
+					var timeString: String {
+						if eventStartsBeforeTodayAndEndsToday {
+							return "Ends at " + dateFormatter.string(from: eventEndDate)
+						} else if eventStartsTodayAndEndsLater {
+							return "Starts at " + dateFormatter.string(from: eventStartDate)
+						} else {
+							return dateFormatter.string(from: eventStartDate) + " - " + dateFormatter.string(from: eventEndDate)
 						}
 					}
+
+					let eventId = if let id = calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+
+					let uiEvent = UIEvent(
+						calendarId: calendar.id,
+						id: eventId,
+						summary: calendarEvent.summary,
+						startDate: eventStartDate,
+						endDate: eventEndDate,
+						calendarColor: calendar.color,
+						isBirthdayEvent: false,
+						isDisplayedAsAllDay: isConsideredAllDay,
+						timeString: timeString
+					)
+					daysAndEvents[dayIndex].append(uiEvent)
 				}
+			}
+
+			//			eventsList.birthdayEvents.forEach { birthdayEvent: BirthdayEvent ->
+			//				let eventStartDate = Date.init(timeIntervalSince1970: calendarEvent.startTime)
+			//
+			//				let eventStartLocalTime = currentCalendar.date(from: eventStartDate)
+			//				let eventEndLocalTime = currentCalendar.date(from: eventEndDate)
+			//
+			//				let uiEvent = UIEvent(
+			//					calendarId: calendar.id,
+			//					id: birhdayEvent.calendarEvent.id,
+			//					summary: getBirthdayEventTitle(name: birthdayEvent.contact.firstName, age: parseContactAge(birthdayIso: birthdayEvent.contact.birthdayIso)),
+			//					startDate: dateFormatter.string(from: eventStartLocalTime),
+			//					endDate: dateFormatter.string(from: eventEndLocalTime),
+			//					calendarColor: calendar.color,
+			//					isBirthdayEvent: true,
+			//					isDisplayedAsAllDay: true,
+			//					""
+			//				)
+
+			//				let index =
+
+			//				daysAndEvents.append(
+
+			//			eventsList.birthdayEvents.forEach { event in
+			//				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
+			//				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
+			//				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
+			//
+			//				let startOfEventDay = Calendar.current.startOfDay(for: self.replaceDateTimeZone(date: eventStart)).timeIntervalSince1970
+			//
+			//				let eventDao = UIEvent(
+			//					id: eventId,
+			//					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
+			//					startDate: eventStart,
+			//					endDate: eventEnd,
+			//					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
+			//					isBirthdayEvent: true
+			//				)
+			//
+			////				if longEvents.index(forKey: startOfEventDay) == nil || longEvents[startOfEventDay]?.event == nil {
+			////					longEvents.updateValue(SimpleAllDayEventsData(event: eventData, count: 1), forKey: startOfEventDay)
+			////					if daysAndEvents.index(forKey: startOfEventDay) == nil { daysAndEvents.updateValue([], forKey: startOfEventDay) }
+			////					return
+			////				}
+			//
+			//				longEvents[startOfEventDay]?.count += 1
+			//			}
+
+			//			(eve).sorted(by: { $0.startTime < $1.startTime })
+			//				.forEach { event in
+			//					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
+			//					let eventEnd = Date(timeIntervalSince1970: Double(event.endTime) / 1000)
+			//					let isAllDay =
+			//						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
+			//						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
+			//
+			//					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
+			//
+			//					var referenceDate: Date
+			//
+			//					if isAllDay { referenceDate = self.replaceDateTimeZone(date: eventStart) } else { referenceDate = eventStart }
+			//
+			//					let startOfEventDay = Calendar.current.startOfDay(for: referenceDate).timeIntervalSince1970
+			//					if startOfEventDay >= now {
+			//						let eventData = CalendarEventData(
+			//							id: eventId,
+			//							summary: event.summary,
+			//							startDate: eventStart,
+			//							endDate: eventEnd,
+			//							calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
+			//							isBirthdayEvent: false
+			//						)
+			//
+			//						if longEvents.index(forKey: startOfEventDay) == nil {
+			//							longEvents.updateValue(SimpleAllDayEventsData(event: nil, count: 0), forKey: startOfEventDay)
+			//							daysAndEvents.updateValue([], forKey: startOfEventDay)
+			//						}
+			//
+			//						if isAllDay {
+			//							if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
+			//							longEvents[startOfEventDay]?.count += 1
+			//						} else {
+			//							daysAndEvents[startOfEventDay]?.append(eventData)
+			//						}
+			//					}
+			//				}
+
 		}
 
-		normalEvents.forEach { key, value in normalEvents[key] = value.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 } }
-		return (normalEvents, longEvents)
+		//		events.forEach { key, value in events[key] = value.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 } }
+		return daysAndEvents
 	}
 
 	private func parseContactAge(birthdayIso: String?) -> Int? {

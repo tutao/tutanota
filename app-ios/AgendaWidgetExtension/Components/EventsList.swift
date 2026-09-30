@@ -10,7 +10,7 @@ import WidgetKit
 
 struct EventsList: View {
 	var userId: String
-	var events: [CalendarEventData]
+	var events: [UIEvent]
 	var applyPaddingEndForFirstElement = false
 
 	private let eventTimeFormatter: DateFormatter = {

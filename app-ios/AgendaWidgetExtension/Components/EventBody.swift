@@ -15,7 +15,7 @@ struct EventBody: View {
 	var calendarColor: UIColor
 	var eventDate: Date
 	var eventTime: String?
-	var event: CalendarEventData?
+	var event: UIEvent?
 
 	var body: some View {
 		let eventTitle: String
