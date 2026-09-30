@@ -15,7 +15,7 @@ import { isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { Mail, MailSet, MailSetEntryTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolderReadOnly } from "../MailUtils"
-import { elementIdPart, elementIdToId, isSameId, listIdPart } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, getElementId, isSameId, listIdPart } from "../../../../platform-kit/meta"
 import { checkMailSetName } from "./MailGuiUtils"
 
 /**
@@ -148,7 +148,8 @@ export async function showEditFolderDialog(
 	Dialog.showActionDialog({
 		title: editedFolder ? "editFolder_action" : "addFolder_action",
 		child: form,
-		validator: async () => checkMailSetName(folders, folderNameValue, selectedParentFolder?._id ?? null, false),
+		validator: async () =>
+			checkMailSetName(folders, folderNameValue, editedFolder ? getElementId(editedFolder) : null, selectedParentFolder?._id ?? null, false),
 		allowOkWithReturn: true,
 		okAction: okAction,
 	})

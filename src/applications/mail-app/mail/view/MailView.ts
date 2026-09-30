@@ -1239,7 +1239,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (isTargetDescendent) return
 
 		// don't move label into another label that contains child with same name
-		const message = checkMailSetName(labelFolderSystem, labelToMove.name, targetLabel._id, true)
+		const message = checkMailSetName(labelFolderSystem, labelToMove.name, getElementId(labelToMove), targetLabel._id, true)
 		if (message != null) {
 			await Dialog.message(message)
 		} else {
@@ -1389,7 +1389,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		if (isTargetDescendent) return
 
 		// don't move folder into another folder that contains child with same name
-		const message = checkMailSetName(folderSystem, folderToMove.name, targetFolder._id, false)
+		const message = checkMailSetName(folderSystem, folderToMove.name, getElementId(folderToMove), targetFolder._id, false)
 		if (message != null) {
 			await Dialog.message(message)
 		} else {
