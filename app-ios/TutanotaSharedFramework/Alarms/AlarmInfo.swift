@@ -12,7 +12,7 @@ public struct AlarmInterval: Equatable {
 
 extension AlarmInterval: SimpleStringDecodable {
 	public init?(string: String) {
-		let regex = try! NSRegularExpression(pattern: "^([0-9]+)([MHDW])$")
+		let regex = try! NSRegularExpression(pattern: "^(-?[0-9]+)([MHDW])$")
 		let matches = regex.matches(in: string, range: NSRange(location: 0, length: string.utf16.count))
 		if matches.count != 1 { return nil }
 		let digitsString = (string as NSString).substring(with: matches[0].range(at: 1))
