@@ -69,7 +69,8 @@ o.spec("InstanceKeyFacadeTest", function () {
 	let instanceGroup: Group
 	let instance: PersistentEntity
 	let currentInstanceGroupKey: VersionedKey
-	let derivedInstanceKey: VersionedAes256Key
+	let versionedDerivedInstanceKey: VersionedAes256Key
+	let currentDerivedInstanceKeyInVersion1: VersionedAes256Key
 	let olderVersionDerivedInstanceKey: Aes256Key
 	let instancePermissionsId: Id
 
@@ -101,7 +102,8 @@ o.spec("InstanceKeyFacadeTest", function () {
 			_permissions: instancePermissionsId,
 			_formerInstanceKeys: createTestEntity(InstanceKeysRefTypeRef, { list: "listid" }),
 		})
-		derivedInstanceKey = { object: object(), version: 0 }
+		versionedDerivedInstanceKey = { object: object(), version: 0 }
+		currentDerivedInstanceKeyInVersion1 = { object: object(), version: 1 }
 		olderVersionDerivedInstanceKey = object()
 		const modelAssociation: ModelAssociation = {
 			cardinality: "ZeroOrOne",
@@ -131,7 +133,13 @@ o.spec("InstanceKeyFacadeTest", function () {
 		deriveInstanceKeyMethod = instanceKeyFacade.deriveInstanceKey
 		instanceKeyFacade.deriveInstanceKey = (groupKey: VersionedKey, kdfNonce: KdfNonce) => {
 			if (groupKey.version === currentInstanceGroupKey.version) {
-				return derivedInstanceKey
+				if (groupKey.version === 0) {
+					return versionedDerivedInstanceKey
+				} else if (groupKey.version === 1) {
+					return currentDerivedInstanceKeyInVersion1
+				} else {
+					throw new Error("not implemented in test")
+				}
 			} else {
 				return { version: groupKey.version, object: olderVersionDerivedInstanceKey }
 			}
@@ -144,7 +152,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 	o.spec("getCurrentInstanceKey", function () {
 		o.test("success", async function () {
 			const instanceKey = await instanceKeyFacade.getCurrentInstanceKey(instance)
-			o.check(instanceKey).deepEquals(derivedInstanceKey)
+			o.check(instanceKey).deepEquals(versionedDerivedInstanceKey)
 			verify(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(assertNotNull(instance._ownerGroup)))
 		})
 
@@ -154,7 +162,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce: generateKdfNonce() }),
 			)
 			const instanceKey = await instanceKeyFacade.getCurrentInstanceKey(instance)
-			o.check(instanceKey).deepEquals(derivedInstanceKey)
+			o.check(instanceKey).deepEquals(versionedDerivedInstanceKey)
 			verify(cryptoFacade.postUpdateKdfNonceService(anything()), { times: 1 })
 		})
 	})
@@ -175,7 +183,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 		o.beforeEach(function () {
 			instancePermissions = []
-			instanceGroup = createTestEntity(GroupTypeRef, { groupKeyVersion: currentInstanceGroupKey.version.toString() })
+			instanceGroup = createTestEntity(GroupTypeRef, { groupKeyVersion: currentInstanceGroupKey.version.toString(), _id: idToElementId(instanceGroupId) })
 			when(entityClient.load(GroupTypeRef, idToElementId(instanceGroupId))).thenResolve(instanceGroup)
 			when(
 				entityClient.loadAll(PermissionTypeRef, assertNotNull(instance._permissions), undefined, composeRestClientOptionsToGetAllPermissions(instance)),
@@ -209,7 +217,10 @@ o.spec("InstanceKeyFacadeTest", function () {
 			o.spec("share internal", function () {
 				o.test("success", async function () {
 					let permissionOwnerGroup = createTestEntity(GroupTypeRef)
-					const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(permissionOwnerGroup, derivedInstanceKey)
+					const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(
+						permissionOwnerGroup,
+						versionedDerivedInstanceKey,
+					)
 					when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(stringifyId(permissionOwnerGroup._id))).thenResolve(
 						currentPermissionOwnerGroupKey,
 					)
@@ -220,7 +231,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 						symEncSessionKey,
 						symEncInstanceKey.key,
 						symEncInstanceKey.encryptingKeyVersion,
-						derivedInstanceKey.version,
+						versionedDerivedInstanceKey.version,
 					)
 				})
 
@@ -268,6 +279,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 					instanceKeyFacade.deriveInstanceKey = deriveInstanceKeyMethod
 				})
+
 				o.test("success former instance keys are only created if not there yet", async function () {
 					instanceGroup.groupKeyVersion = "1"
 					const formerInstanceKeys = [
@@ -276,6 +288,8 @@ o.spec("InstanceKeyFacadeTest", function () {
 							symKeyVersion: instanceGroup.groupKeyVersion,
 						}),
 					]
+					currentInstanceGroupKey = { object: object(), version: 1 }
+					when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(assertNotNull(instance._ownerGroup))).thenResolve(currentInstanceGroupKey)
 					const formerInstanceKeyList = (instance as GroupInfo)._formerInstanceKeys?.list
 					when(entityClient.loadRange(InstanceKeyTypeRef, assertNotNull(formerInstanceKeyList), GENERATED_MAX_ID, 1, true)).thenResolve(
 						formerInstanceKeys,
@@ -283,7 +297,10 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 					let permissionOwnerGroup = createTestEntity(GroupTypeRef)
 
-					const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(permissionOwnerGroup, derivedInstanceKey)
+					const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(
+						permissionOwnerGroup,
+						currentDerivedInstanceKeyInVersion1,
+					)
 					when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(stringifyId(permissionOwnerGroup._id))).thenResolve(
 						currentPermissionOwnerGroupKey,
 					)
@@ -303,7 +320,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 				externalUserGroup.external = true
 				externalUserGroup.type = GroupType.User
 				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(stringifyId(externalUserGroup._id))).thenReject(new Error("ERROR"))
-				const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(externalUserGroup, derivedInstanceKey)
+				const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(externalUserGroup, versionedDerivedInstanceKey)
 				when(keyLoaderFacade.getCurrentExternalUserGroupKey(stringifyId(externalUserGroup._id))).thenResolve(currentPermissionOwnerGroupKey)
 
 				const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
@@ -312,7 +329,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 					symEncSessionKey,
 					symEncInstanceKey.key,
 					symEncInstanceKey.encryptingKeyVersion,
-					derivedInstanceKey.version,
+					versionedDerivedInstanceKey.version,
 				)
 			})
 
@@ -324,7 +341,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 				externalMailGroup.admin = adminId
 
 				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(stringifyId(externalMailGroup._id))).thenReject(new Error("ERROR"))
-				const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(externalMailGroup, derivedInstanceKey)
+				const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(externalMailGroup, versionedDerivedInstanceKey)
 				when(keyLoaderFacade.getCurrentExternalGroupKeys(stringifyId(externalMailGroup._id), adminId)).thenResolve({
 					currentExternalUserGroupKey: object(),
 					currentExternalMailGroupKey: currentPermissionOwnerGroupKey,
@@ -336,7 +353,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 					symEncSessionKey,
 					symEncInstanceKey.key,
 					symEncInstanceKey.encryptingKeyVersion,
-					derivedInstanceKey.version,
+					versionedDerivedInstanceKey.version,
 				)
 			})
 		})
@@ -378,7 +395,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 				instancePermissions.push(permission)
 
 				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(permissionOwnerGroupId)).thenReject(new Error("should not be called"))
-				when(cryptoWrapper.encryptKey(anything(), derivedInstanceKey.object)).thenReturn(bucketEncInstanceKey)
+				when(cryptoWrapper.encryptKey(anything(), versionedDerivedInstanceKey.object)).thenReturn(bucketEncInstanceKey)
 				when(
 					cryptoFacade.encryptBucketKeyForInternalRecipient(
 						assertNotNull(instance._ownerGroup),
@@ -391,7 +408,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 			})
 			o.test("accountingInfo success", async function () {
 				const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
-				checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, derivedInstanceKey.version, [], pubEncRecipientKeyData)
+				checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, versionedDerivedInstanceKey.version, [], pubEncRecipientKeyData)
 				const recipientIdentifier: PublicKeyIdentifier = { identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID }
 				verify(cryptoFacade.encryptBucketKeyForInternalRecipient(instanceGroupId, anything(), recipientIdentifier, [], []), { times: 1 }) // make sure we really used the asymmetric code path
 			})
