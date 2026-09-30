@@ -111,7 +111,7 @@ interface MoveMailsParams {
 	contactModel: ContactModel
 }
 
-enum UndoSnackbarResult {
+export enum UndoSnackbarResult {
 	/** Undo moving or sending the mail. */
 	Undo,
 

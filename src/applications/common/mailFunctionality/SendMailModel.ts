@@ -1064,7 +1064,10 @@ export class SendMailModel {
 				allowUndo,
 			)
 			await this.clearLocalAutosave() // no need to keep a local copy of a draft of an email that was sent
-			await this.updatePreviousMail()
+			if (!allowUndo || sendReturn.sendJob == null) {
+				// when allowing undo, only update after mail was actually sent
+				await this.updatePreviousMail()
+			}
 			this.updateExternalLanguage()
 			return {
 				success: true,
@@ -1304,7 +1307,7 @@ export class SendMailModel {
 		}
 	}
 
-	private updatePreviousMail(): Promise<void> {
+	updatePreviousMail(): Promise<void> {
 		if (this.previousMail) {
 			if (this.previousMail.replyType === ReplyType.NONE && this.conversationType === ConversationType.REPLY) {
 				this.previousMail.replyType = ReplyType.REPLY
