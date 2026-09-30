@@ -1,7 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import { getNativeLibModulePaths } from "./nativeLibraryProvider.js"
-import { getTargetTupleWithLibc, normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.js"
+import { getTargetTupleWithLibc, normalizeCopyTarget, removeNpmNamespacePrefix } from "./buildUtils.ts"
 
 /**
  * Prepare native module that is compiled with node-gyp to be loaded.

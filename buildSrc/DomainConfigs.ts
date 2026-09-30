@@ -1,9 +1,10 @@
+import { DomainConfigMap } from "../src/platform-kit/app-env"
+
 /**
  * Domain configurations: different parameters depending on which URLs the app is running on.
  *
- * @type DomainConfigMap
  * */
-export const domainConfigs = {
+export const domainConfigs: DomainConfigMap = {
 	"mail.tutanota.com": {
 		firstPartyDomain: true,
 		partneredDomainTransitionUrl: "https://app.tuta.com",

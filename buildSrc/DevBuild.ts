@@ -9,11 +9,14 @@ import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
 import { domainConfigs } from "./DomainConfigs.js"
 import { rolldown } from "rolldown"
-import { resolveLibs, tsImportAliases } from "./RollupConfig.js"
+import { emptyTsImportAliases, resolveLibs } from "./RollupConfig"
 import { nodeGypPlugin } from "./nodeGypPlugin.js"
 import { napiPlugin } from "./napiPlugin.js"
 import { execSync } from "node:child_process"
-import { buildArgon2, buildLibOqs } from "./buildWasm.js"
+import { buildArgon2, buildLibOqs } from "./buildWasm"
+import { type DomainConfigMap, type EnvType, Mode } from "../src/platform-kit/app-env"
+
+export type AppName = "mail" | "calendar" | "drive"
 
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
@@ -27,7 +30,17 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param app {"mail"|"calendar"|"drive"}
  * @returns {Promise<void>}
  */
-export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
+export type BuildStage = "test" | "prod" | "local" | "host" | "release"
+export type DevBuildOptions = {
+	stage: BuildStage
+	host: null | string
+	desktop: boolean
+	clean: boolean
+	networkDebugging: boolean
+	app: AppName
+}
+export type BuildPlatform = "android" | "ios" | "desktop" | "web"
+export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }: DevBuildOptions) {
 	const version = await getTutanotaAppVersion()
 	const liboqsIncludeDir = "libs/webassembly/include"
 	const buildDir = buildDirForApp(app)
@@ -67,7 +80,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	 * @param host {string|null}
 	 * @return {DomainConfigMap}
 	 */
-	function updateDomainConfigForHostname(host) {
+	function updateDomainConfigForHostname(host: string | null) {
 		// Non-webapp builds default to local hostname, make sure we add a domain config for it and not fall back on generic whitelabel one
 		if (host == null) {
 			host = "http://" + os.hostname() + ":9000"
@@ -99,25 +112,21 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 	}
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
-
-	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, app })
+	await buildWebPart(stage, host, version, extendedDomainConfigs, networkDebugging, app)
 
 	if (desktop) {
-		await buildDesktopPart({ version, networkDebugging, app })
+		await buildDesktopPart(version, networkDebugging)
 	}
 }
 
-/**
- * @param p {object}
- * @param p.stage {string}
- * @param p.host {string|null}
- * @param p.version {string}
- * @param p.domainConfigs {DomainConfigMap}
- * @param p.networkDebugging {boolean}
- * @param p.app {"mail"|"calendar"}
- * @return {Promise<void>}
- */
-export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
+export async function buildWebPart(
+	stage: BuildStage,
+	host: string | null,
+	version: string,
+	domainConfigs: DomainConfigMap,
+	networkDebugging: boolean,
+	app: AppName,
+) {
 	const buildDir = buildDirForApp(app)
 	const { entry, worker } = entryPointsForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
@@ -126,7 +135,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		// In devBuild this aliases are resolved by rolldown itself,
 		// and we should not replate it with js path as it will not work for ts types
 		// which does not exists in final .js output
-		Object.keys(tsImportAliases).forEach((key) => delete tsImportAliases[key])
+		emptyTsImportAliases()
 
 		await buildArgon2(resolvedBuildDir)
 		await buildLibOqs(resolvedBuildDir)
@@ -166,7 +175,7 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	})
 }
 
-async function buildDesktopPart({ version, networkDebugging }) {
+async function buildDesktopPart(version: string, networkDebugging: boolean) {
 	const buildDir = buildDirForApp("mail")
 
 	await runStep("Desktop: Rolldown", async () => {
@@ -250,7 +259,7 @@ async function buildDesktopPart({ version, networkDebugging }) {
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const root = __dirname.split(path.sep).slice(0, -1).join(path.sep)
 
-async function createBootstrap(env, buildDir) {
+async function createBootstrap(env: EnvType, buildDir: string) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
@@ -263,7 +272,7 @@ async function createBootstrap(env, buildDir) {
 			htmlFileName = "index.html"
 			break
 		case "Desktop":
-			jsFileName = "index-desktop.js"
+			jsFileName = "index-desktop.ts"
 			htmlFileName = "index-desktop.html"
 	}
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
@@ -280,7 +289,7 @@ import('./app.js')`
 	await writeFile(`./${buildDir}/${htmlFileName}`, html)
 }
 
-function getStaticUrl(stage, mode, host) {
+function getStaticUrl(stage: BuildStage, mode: Mode, host: string | null) {
 	if (stage === "local" && mode === "Browser") {
 		// We would like to use web app build for both JS server and actual server. For that we should avoid hardcoding URL as server
 		// might be running as one of testing HTTPS domains. So instead we override URL when the app is served from JS server
@@ -299,16 +308,14 @@ function getStaticUrl(stage, mode, host) {
 	}
 }
 
-/**
- * @param stage {string}
- * @param host {string|null}
- * @param version {string}
- * @param domainConfigs {DomainConfigMap}
- * @param buildDir {string}
- * @param networkDebugging {boolean}
- * @return {Promise<void>}
- */
-export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
+export async function prepareAssets(
+	stage: BuildStage,
+	host: string | null,
+	version: string,
+	domainConfigs: DomainConfigMap,
+	buildDir: string,
+	networkDebugging: boolean,
+) {
 	await fs.emptyDir(path.join(root, `${buildDir}/images`))
 	await Promise.all([
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
@@ -322,14 +329,13 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	// write empty file
 	await fs.writeFile(`${buildDir}/polyfill.js`, "")
 
-	/** @type {EnvMode[]} */
-	const modes = ["Browser", "App", "Desktop"]
+	const modes: Mode[] = [Mode.Browser, Mode.App, Mode.Desktop]
 	for (const mode of modes) {
 		await createBootstrap(env.create({ staticUrl: getStaticUrl(stage, mode, host), version, mode, dist: false, domainConfigs, networkDebugging }), buildDir)
 	}
 }
 
-export function buildDirForApp(app) {
+export function buildDirForApp(app: AppName) {
 	switch (app) {
 		case "mail":
 			return "build"
@@ -340,27 +346,27 @@ export function buildDirForApp(app) {
 	}
 }
 
-export function entryPointsForApp(app) {
+export function entryPointsForApp(app: AppName) {
 	switch (app) {
 		case "mail":
 			return {
 				entry: "src/applications/mail-app/app.ts",
 				worker: "src/applications/mail-app/workerUtils/worker/mail-worker.ts",
-			}
+			} as const
 		case "calendar":
 			return {
 				entry: "src/applications/calendar-app/calendar-app.ts",
 				worker: "src/applications/calendar-app/workerUtils/worker/calendar-worker.ts",
-			}
+			} as const
 		case "drive":
 			return {
 				entry: "src/applications/drive-app/drive-app.ts",
 				worker: "src/applications/drive-app/workerUtils/worker/drive-worker.ts",
-			}
+			} as const
 	}
 }
 
-export function appTypeForApp(app) {
+export function appTypeForApp(app: AppName) {
 	// see ClientConstants
 	switch (app) {
 		case "mail":

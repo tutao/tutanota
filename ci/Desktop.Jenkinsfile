@@ -91,7 +91,7 @@ pipeline {
 			} // agent
 			steps {
 				sh 'npm ci'
-				sh 'node webapp.js release'
+				sh 'npm run build-tools webapp release'
 
 				// excluding web-specific and mobile specific parts which we don't need in desktop
 				stash includes: 'build/**, src/crypto-primitives/**', excludes: '**/braintree.html, **/index.html, **/app.html, **/desktop.html, **/index-index.js, **/index-app.js, **/index-desktop.js, **/sw.js', name: 'web_base'

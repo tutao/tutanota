@@ -80,7 +80,7 @@ pipeline {
                 }
 
 				sh 'npm ci'
-				sh 'node buildSrc/publish.js webapp'
+				sh 'npm run build-tools publish webapp'
             } // steps
         } // stage build deb
 
@@ -91,7 +91,7 @@ pipeline {
 
 				writeFile file: "notes.txt", text: params.releaseNotes
                 withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-                    sh '''node buildSrc/createReleaseDraft.js --name ${VERSION} --tag tutanota-release-${VERSION} --notes notes.txt'''
+                    sh '''npm run build-tools create-release-draft --name ${VERSION} --tag tutanota-release-${VERSION} --notes notes.txt'''
                 }
             }
         } // stage publish release notes

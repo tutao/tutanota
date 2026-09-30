@@ -1,25 +1,20 @@
 import fs from "node:fs"
-import { Option, program } from "commander"
-import { fileURLToPath } from "node:url"
+import { Command, Option } from "commander"
 import path from "node:path"
-import { buildDirForApp } from "./DevBuild.js"
+import { AppName, buildDirForApp } from "./DevBuild"
 
 const TAG = "prepareMobileBuild:"
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-	program
-		.description("Prepare built web code for mobile app build")
-		.addOption(new Option("--app <app>", "which app to prepare build for").choices(["mail", "calendar", "drive"]))
-		.parse(process.argv)
-	await prepareMobileBuild(program.opts())
-}
+export const prepareMobileBuildCmd = new Command("prepare-mobile-build")
+	.description("Prepare built web code for mobile app build")
+	.addOption(new Option("--app <app>", "which app to prepare build for").choices(["mail", "calendar", "drive"]))
+	.parse(process.argv)
+	.action(prepareMobileBuild)
 
 /**
  * Removes source maps, icons, HTML files which are not needed for mobile apps.
- * @param opts {object}
- * @param opts.app {"mail"|"calendar"}
  */
-export async function prepareMobileBuild({ app }) {
+export async function prepareMobileBuild(app: AppName) {
 	if (app !== "mail" && app !== "calendar" && app !== "drive") {
 		throw new Error("Required option app: " + app)
 	}
@@ -41,8 +36,7 @@ export async function prepareMobileBuild({ app }) {
 	}
 }
 
-/** @param prefix {string} */
-function removeWasm(prefix) {
+function removeWasm(prefix: string) {
 	const wasmpath = path.join(prefix, "wasm")
 	if (fs.existsSync(wasmpath)) {
 		console.log(TAG, "rm", wasmpath)
@@ -50,8 +44,7 @@ function removeWasm(prefix) {
 	}
 }
 
-/** @param prefix {string} */
-function removeSourceMaps(prefix) {
+function removeSourceMaps(prefix: string) {
 	for (let file of fs.readdirSync(prefix)) {
 		if (file.endsWith(".js.map")) {
 			console.log(TAG, "rm", file)

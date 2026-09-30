@@ -118,7 +118,7 @@ pipeline {
 
 					writeFile file: "notes.txt", text: params.releaseNotes
 					withCredentials([string(credentialsId: 'github-access-token', variable: 'GITHUB_TOKEN')]) {
-						sh """node buildSrc/createReleaseDraft.js --name '[Drive] ${VERSION} (iOS)' \
+						sh """npm run build-tools create-release-draft --name '[Drive] ${VERSION} (iOS)' \
 																--tag 'tuta-drive-ios-release-${VERSION}' \
 																--notes notes.txt"""
 					} // withCredentials

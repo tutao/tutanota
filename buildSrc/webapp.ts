@@ -9,12 +9,13 @@
  * Unfortunately manual bundling is "infectious" in a sense that if you manually put module in a chunk all its dependencies will also be
  * put in that chunk unless they are sorted into another manual chunk. Ideally this would be semi-automatic with directory-based chunks.
  */
-import { Argument, Option, program } from "commander"
+import { Argument, Command, Option, program } from "commander"
 import fs from "fs-extra"
 import path, { dirname } from "node:path"
-import { buildWebapp } from "./buildSrc/buildWebapp.js"
-import { getTutanotaAppVersion, measure } from "./buildSrc/buildUtils.js"
+import { buildWebapp } from "./buildWebapp"
+import { getTutanotaAppVersion, measure } from "./buildUtils.js"
 import { fileURLToPath } from "node:url"
+import { AppName, BuildStage } from "./DevBuild"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
@@ -22,7 +23,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 // It does not work because there's no top-level code besides invocations of System.register and non-top-level code is not put into cache
 // which looks like a problem e.g. for accessing fields.
 
-await program
+export const webappCmd = new Command("webapp")
 	.usage('[options] [test|prod|local|release|host <url>], "release" is default')
 	.description("Utility to build the web part of tuta")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "host", "release"]).default("prod").argOptional())
@@ -30,7 +31,6 @@ await program
 	.addOption(new Option("--app <app>", "app to build").choices(["mail", "calendar", "drive"]).default("mail"))
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
-	.option("--mobile-build", "Whether the current build is for the mobile app")
 	.action(async (stage, host, options) => {
 		if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
 			console.error("ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n")
@@ -47,9 +47,10 @@ await program
 
 		await doBuild(options)
 	})
-	.parseAsync(process.argv)
 
-async function doBuild(options) {
+export type BuildWebappOpts = { stage: BuildStage; host: null | string; app: AppName; disableMinify: boolean; outDir: string }
+
+async function doBuild(options: BuildWebappOpts) {
 	try {
 		measure()
 		const version = await getTutanotaAppVersion()
@@ -67,7 +68,6 @@ async function doBuild(options) {
 			minify,
 			projectDir: __dirname,
 			app: options.app,
-			mobileBuild: options.mobileBuild,
 		})
 
 		const now = new Date(Date.now()).toTimeString().substring(0, 5)

@@ -23,11 +23,7 @@ async function readCurrentVersion() {
 	return JSON.parse(await fs.promises.readFile("./package.json", { encoding: "utf8" })).version
 }
 
-/**
- * @param currentVersionString {string}
- * @return {number[]}
- */
-function parseCurrentVersion(currentVersionString) {
+function parseCurrentVersion(currentVersionString: string): Array<number> {
 	return currentVersionString.split(".").map((n) => parseInt(n, 10))
 }
 
@@ -36,10 +32,8 @@ function parseCurrentVersion(currentVersionString) {
  * * Major is the sum of all current model versions.
  * * Minor is the current date
  * * Patch is always increased by one in case Major or Minor have not been changed
- * @param currentVersion {number[]}
- * @return {number[]}
  */
-function makeNewVersion(currentVersion) {
+function makeNewVersion(currentVersion: Array<number>): Array<number> {
 	const majorVersion = parseInt(fs.readFileSync("src/entities/application-version-sum.txt", { encoding: "utf8" }))
 	const now = new Date()
 	const year = now.getFullYear().toString().substring(2, 4)
@@ -58,23 +52,4 @@ function makeNewVersion(currentVersion) {
 		throw new Error("New version is older than current!")
 	}
 	return [majorVersion, minorVersion, patchVersion]
-}
-
-/**
- * Read versions of all models from generated ModelInfos.
- * @returns {number[]}
- */
-function readModelVersions() {
-	return fs
-		.readdirSync("./src/entities/", { withFileTypes: true })
-		.filter((dirent) => dirent.isDirectory())
-		.map((dirent) => {
-			const appName = dirent.name
-			const modelInfoString = fs.readFileSync(`./src/entities/${appName}/ModelInfo.ts`, { encoding: "utf8" })
-			const versionPrefix = "version:"
-			const versionNumberStart = modelInfoString.indexOf(versionPrefix) + versionPrefix.length
-			const version = modelInfoString.substring(versionNumberStart, modelInfoString.indexOf(",", versionNumberStart))
-			console.log(` > ${appName} version ${version}`)
-			return parseInt(version, 10)
-		})
 }

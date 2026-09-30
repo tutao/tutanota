@@ -1,5 +1,7 @@
-import { runTestBuild } from "./TestBuilder.js"
+import { runTestBuild } from "./TestBuilder"
 import { Option, program } from "commander"
+import { Server } from "node:net"
+import { RunResult } from "./otest"
 
 await program
 	.addOption(new Option("-i, --integration", "Include integration tests (requires local tutadb server)"))
@@ -37,12 +39,12 @@ await program
 	})
 	.parseAsync(process.argv)
 
-function resultIsOk(result) {
+function resultIsOk(result: any) {
 	return result.failingTests.length === 0
 }
 
 /** Function which runs tests and exits with the exit code afterwards. */
-async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }) {
+async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }: any) {
 	const { default: express } = await import("express")
 	const app = express()
 	app.use(express.static("build"))
@@ -51,11 +53,11 @@ async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }) {
 
 	const { spawn } = await import("node:child_process")
 
-	const server = await new Promise((resolve) => {
+	const server = await new Promise((resolve: (_: Server) => void) => {
 		const s = app.listen(0, () => resolve(s))
 	})
 
-	const result = await new Promise((resolve) => {
+	const result: RunResult = await new Promise((resolve) => {
 		app.post("/status", (req, res) => {
 			console.log("browser: ", req.body)
 			res.status(200).send()
@@ -65,7 +67,8 @@ async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }) {
 			res.status(200).send()
 		})
 
-		const url = new URL(`http://localhost:${server.address().port}/test.html`)
+		const serverAddress = server.address()! as any
+		const url = new URL(`http://localhost:${serverAddress.port}/test.html`)
 		if (filter) {
 			url.searchParams.set("filter", filter)
 		}
@@ -87,7 +90,7 @@ async function runTestsInBrowser({ filter, regexp, exclude, browserCmd }) {
 	return resultIsOk(result)
 }
 
-async function runTestsInNode({ integration, filter, regexp, exclude }) {
+async function runTestsInNode({ integration, filter, regexp, exclude }: any) {
 	const { run } = await import("./build/testInNode.js")
 	console.log("\n--------------- NODE ---------------")
 	const result = await run({ integration, filter, regexp, exclude })

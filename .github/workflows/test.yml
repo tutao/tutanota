@@ -111,7 +111,7 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build webapp
         run: |
-          node webapp --disable-minify --app calendar
+          npm run webapp --disable-minify --app calendar
 
   build-desktop: # will check that offline migrations are there
     runs-on: ubuntu-latest
@@ -126,4 +126,4 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build desktop
         run: |
-          node desktop --disable-minify
+          npm run desktop --disable-minify

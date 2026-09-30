@@ -2,7 +2,7 @@ import util from "node:util"
 import { exec } from "node:child_process"
 import path from "node:path"
 
-export async function buildLibOqs(resolvedBuildDir) {
+export async function buildLibOqs(resolvedBuildDir: string) {
 	const outputPath = path.join(resolvedBuildDir, "liboqs.wasm")
 	let workingDir
 	if (process.cwd().endsWith("/admin")) {
@@ -18,7 +18,7 @@ export async function buildLibOqs(resolvedBuildDir) {
 	})
 }
 
-export async function buildArgon2(resolvedBuildDir) {
+export async function buildArgon2(resolvedBuildDir: string) {
 	const outputPath = path.join(resolvedBuildDir, "argon2.wasm")
 	let workingDir
 	if (process.cwd().endsWith("/admin")) {
@@ -34,11 +34,12 @@ export async function buildArgon2(resolvedBuildDir) {
 	})
 }
 
-// export interface WasmGeneratorOptions {
-// 	workingDir?: string
-// 	env?: Record<string, any>
-// }
-async function runCommand(command, options /*WasmGeneratorOptions*/) {
+type WasmGeneratorOptions = {
+	workingDir?: string
+	env?: Record<string, any>
+}
+
+async function runCommand(command: string, options: WasmGeneratorOptions) {
 	const runner = util.promisify(exec)
 	const promise = runner(`${command}`, {
 		env: {

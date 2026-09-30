@@ -21,14 +21,11 @@ export async function updateLibs() {
 }
 
 /**
- * Should correspond to {@link import("./RollupConfig").dependencyMap}
- *
- * @typedef {"rollupWeb" | "rollupTF" | "rollupImap" | "rollupDesktop" | "copy"} BundlingStrategy
- * @typedef {{src: string, target: string, bundling: BundlingStrategy, banner?: string, patch?: string}} DependencyDescription
- * @type Array<DependencyDescription>
- *
+ * Should correspond to {@link import("./RollupConfig.ts").dependencyMap}
  */
-const clientDependencies = [
+export type BundlingStrategy = "rollupWeb" | "rollupTF" | "rollupImap" | "rollupDesktop" | "copy"
+export type DependencyDescription = { src: string; target: string; bundling: BundlingStrategy; banner?: string; patch?: string }
+const clientDependencies: Array<DependencyDescription> = [
 	// mithril is patched manually to remove some unused parts
 	// "../node_modules/mithril/mithril.js",
 	{ src: "../node_modules/mithril/stream/stream.js", target: "stream.js", bundling: "copy" },
@@ -95,18 +92,14 @@ async function patchTensorflow() {
  *    git reset --hard HEAD~1
  * 5. commit the generated ./libs.changes file
  */
-async function applyGitPatch(patchFile) {
+async function applyGitPatch(patchFile: string) {
 	if (process.platform === "win32") return
 	const exec = promisify(child_process.exec)
 	console.log(`updateLibs: applying a patch to ${patchFile}`)
 	await exec(`git apply ${patchFile}`)
 }
 
-/**
- * @param dependencies {Array<DependencyDescription>}>}
- * @return {Promise<void>}
- */
-async function copyToLibs(dependencies) {
+async function copyToLibs(dependencies: Array<DependencyDescription>): Promise<void> {
 	for (let { bundling, src, target, banner, patch } of dependencies) {
 		switch (bundling) {
 			case "copy":
@@ -139,20 +132,20 @@ async function copyToLibs(dependencies) {
  * Will bundle web app dependencies starting at {@param src} into a single file at {@param target}.
  * @type RollupFn
  */
-async function rollWebDep(src, target, banner) {
+async function rollWebDep(src: string, target: string, banner?: string) {
 	const bundle = await rollup({ input: path.join(__dirname, src), plugins: [nodeResolve()] })
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 
 const logResolvePlugin = {
 	name: "log-resolve",
-	resolveId(source, importer) {
+	resolveId(source: string, importer?: string): string | null {
 		console.log(`Resolving: source='${source}', importer='${importer}'`)
 		return null
 	},
 }
 
-async function rollupTensorFlow(src, target, banner) {
+async function rollupTensorFlow(src: string, target: string, banner?: string) {
 	const bundle = await rollup({
 		input: path.join(__dirname, src),
 		treeshake: {
@@ -183,7 +176,7 @@ async function rollupTensorFlow(src, target, banner) {
 	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
 }
 
-async function rollupImapLibraries(src, target, banner) {
+async function rollupImapLibraries(src: string, target: string, banner?: string) {
 	console.log("rolling up Imap libraries with...", src, target, banner)
 	const bundle = await rollup({
 		input: path.join(__dirname, src),
@@ -216,7 +209,7 @@ async function rollupImapLibraries(src, target, banner) {
  *
  * @type RollupFn
  */
-async function rollDesktopDep(src, target, banner) {
+async function rollDesktopDep(src: string, target: string, banner?: string) {
 	const bundle = await rollup({
 		input: path.join(__dirname, src),
 		makeAbsoluteExternalsRelative: true,

@@ -9,7 +9,7 @@
  * */
 import fs from "node:fs/promises"
 import { buildCachedLibPaths } from "./nativeLibraryProvider.js"
-import { getValidArchitecture, removeNpmNamespacePrefix } from "./buildUtils.js"
+import { getValidArchitecture, removeNpmNamespacePrefix } from "./buildUtils.ts"
 
 const packageJson = JSON.parse(await fs.readFile("package-lock.json", "utf-8"))
 const packageName = process.argv[2]

@@ -1,6 +1,6 @@
 import path from "node:path"
 import fs from "node:fs"
-import { fileExists, LogWriter, removeNpmNamespacePrefix } from "./buildUtils.js"
+import { fileExists, LogWriter, removeNpmNamespacePrefix } from "./buildUtils.ts"
 import { createRequire } from "node:module"
 import { getElectronVersion, getInstalledModuleVersion } from "./getInstalledModuleVersion.js"
 import { spawn } from "node:child_process"

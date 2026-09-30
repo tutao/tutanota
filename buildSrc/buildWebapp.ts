@@ -1,7 +1,7 @@
 /**
 	Exports the buildWebapp function that can be used for production builds.
  */
-import { rollup } from "rollup"
+import { OutputBundle as RollupOutputBundle, OutputOptions as RollupOutputOptions, PluginContext as RollupPluginContext, rollup } from "rollup"
 import terser from "@rollup/plugin-terser"
 import path from "node:path"
 import { nodeResolve } from "@rollup/plugin-node-resolve"
@@ -17,8 +17,8 @@ import replace from "@rollup/plugin-replace"
 import { runStep } from "./buildUtils.js"
 import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
-import { buildArgon2, buildLibOqs } from "./buildWasm.js"
-import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
+import { buildArgon2, buildLibOqs } from "./buildWasm"
+import { AppName, appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
 
 /**
  * Builds the web app for production.
@@ -33,7 +33,16 @@ import { appTypeForApp, buildDirForApp, entryPointsForApp } from "./DevBuild.js"
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
+export type BuildWebAppOptions = {
+	version: string
+	stage: "test" | "prod" | "local" | "release" | "host"
+	host: string | null
+	measure: () => {}
+	app: AppName
+	minify: boolean
+	projectDir: string
+}
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app }: BuildWebAppOptions) {
 	const buildDir = buildDirForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
 	const { entry: entryFile, worker: workerFile } = entryPointsForApp(app)
@@ -46,7 +55,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 			case "local":
 				return { restUrl: "http://" + os.hostname() + ":9000", networkDebugging: false }
 			case "release":
-				return { restUrl: undefined, networkDebugging: false }
+				return { restUrl: null, networkDebugging: false }
 			default:
 				return { restUrl: host, networkDebugging: true }
 		}
@@ -130,7 +139,7 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	})
 
 	console.log("bundling timings: ")
-	for (let [k, v] of Object.entries(bundle.getTimings())) {
+	for (let [k, v] of Object.entries(bundle.getTimings!())) {
 		console.log(k, v[0])
 	}
 	console.log("started writing bundles into", buildDir, measure())
@@ -183,14 +192,7 @@ import "./worker.js"`,
 	await bundleServiceWorker(chunks, version, minify, buildDir)
 }
 
-/**
- * @param bundles {string[]}
- * @param version {string}
- * @param minify {boolean}
- * @param buildDir {string}
- * @returns {Promise<void>}
- */
-async function bundleServiceWorker(bundles, version, minify, buildDir) {
+async function bundleServiceWorker(bundles: Array<string>, version: string, minify: boolean, buildDir: string) {
 	const customDomainFileExclusions = ["index.html", "index.js"]
 	const filesToCache = ["index.js", "index.html", "polyfill.js", "worker-bootstrap.js"]
 		// we always include English
@@ -238,10 +240,10 @@ async function bundleServiceWorker(bundles, version, minify, buildDir) {
  *  - Print out each chunk size and contents
  *  - Create a graph file with chunk dependencies.
  */
-function analyzer(projectDir, buildDir) {
+function analyzer(projectDir: string, buildDir: string) {
 	return {
 		name: "analyze",
-		async generateBundle(outOpts, bundle) {
+		async generateBundle(this: RollupPluginContext, outOpts: RollupOutputOptions, bundle: RollupOutputBundle) {
 			const prefix = projectDir
 			let buffer = "digraph G {\n"
 			buffer += "edge [dir=back]\n"

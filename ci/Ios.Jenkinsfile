@@ -171,7 +171,7 @@ def buildWebapp(String stage) {
 		sh "echo $PATH"
 		sh "npm ci"
 		sh "node --max-old-space-size=8192 webapp ${stage} --app mail"
-		sh "node buildSrc/prepareMobileBuild.js --app mail"
+		sh "npm run build-tools prepare-mobile-build --app mail"
 	}
 }
 

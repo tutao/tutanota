@@ -1,34 +1,36 @@
 import { Octokit } from "@octokit/rest"
-import { Option, program } from "commander"
-import { fileURLToPath } from "node:url"
+import { Command, Option } from "commander"
 import path from "node:path"
 import fs from "node:fs"
 import crypto from "node:crypto"
 
-const wasRunFromCli = fileURLToPath(import.meta.url).startsWith(process.argv[1])
-
-function hashFileSha256(filePath) {
+function hashFileSha256(filePath: string) {
 	const input = fs.readFileSync(filePath)
 	return crypto.createHash("sha256").update(input).digest("hex")
 }
 
-if (wasRunFromCli) {
-	program
-		.requiredOption("--name <name>", "Name of the release")
-		.requiredOption("--tag <tag>", "The commit tag to reference")
-		.requiredOption("--notes <notes>", "path to the file containing the release notes to use")
-		.option("--toFile <toFile>", "If provided, the release notes will be written to the given file path.")
-		.addOption(
-			new Option("--uploadFile <filePath>", "path to a file to upload. can be passed multiple times.")
-				.argParser((cur, prev) => (prev ? prev.concat(cur) : [cur]))
-				.default([]),
-		)
-		.option("--dryRun", "Don't make any changes to github")
-		.action((options) => run(options))
-		.parseAsync(process.argv)
-}
+export const createReleaseDraftCmd = new Command("create-release-draft")
+	.requiredOption("--name <name>", "Name of the release")
+	.requiredOption("--tag <tag>", "The commit tag to reference")
+	.requiredOption("--notes <notes>", "path to the file containing the release notes to use")
+	.option("--toFile <toFile>", "If provided, the release notes will be written to the given file path.")
+	.addOption(
+		new Option("--uploadFile <filePath>", "path to a file to upload. can be passed multiple times.")
+			.argParser((cur, prev: Array<string>) => (prev ? prev.concat(cur) : [cur]))
+			.default([]),
+	)
+	.option("--dryRun", "Don't make any changes to github")
+	.action((options) => run(options))
 
-async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
+type CreateReleaseDraftOpts = {
+	name: string
+	tag: string
+	notes: string
+	toFile: string | null
+	dryRun: boolean
+	uploadFile: Array<string>
+}
+async function run({ name, tag, notes, uploadFile, dryRun, toFile }: CreateReleaseDraftOpts) {
 	notes = renderCompleteNotes({ notes: await fs.promises.readFile(notes, { encoding: "utf8" }), files: uploadFile })
 
 	if (toFile) {
@@ -61,11 +63,11 @@ async function run({ name, tag, notes, uploadFile, dryRun, toFile }) {
 /**
  * we get the release notes without any asset checksums, which are added here.
  */
-function renderCompleteNotes({ notes, files }) {
+function renderCompleteNotes({ notes, files }: { notes: string; files: Array<string> }) {
 	return files.length === 0 ? notes : `${notes}\n\n${renderAssetSection(files)}`.trim()
 }
 
-function renderAssetSection(files) {
+function renderAssetSection(files: Array<string>) {
 	let assetSection = ""
 	if (files.length > 0) {
 		assetSection += "# Asset Checksums (SHA256)\n"
@@ -78,7 +80,7 @@ function renderAssetSection(files) {
 	return assetSection
 }
 
-async function createReleaseDraft(octokit, name, tag, body) {
+async function createReleaseDraft(octokit: Octokit, name: string, tag: string, body: string) {
 	return octokit.repos.createRelease({
 		owner: "tutao",
 		repo: "tutanota",
@@ -89,12 +91,12 @@ async function createReleaseDraft(octokit, name, tag, body) {
 	})
 }
 
-async function uploadAsset(octokit, uploadUrl, releaseId, assetPath) {
-	const response = octokit.rest.repos.uploadReleaseAsset({
+async function uploadAsset(octokit: Octokit, uploadUrl: string, releaseId: number, assetPath: string) {
+	const response = await octokit.rest.repos.uploadReleaseAsset({
 		owner: "tutao",
 		repo: "tutanota",
 		release_id: releaseId,
-		data: await fs.promises.readFile(assetPath),
+		data: await fs.promises.readFile(assetPath, { encoding: "utf8" }),
 		name: path.basename(assetPath),
 		upload_url: uploadUrl,
 	})

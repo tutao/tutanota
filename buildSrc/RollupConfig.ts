@@ -1,8 +1,9 @@
 import path from "node:path"
+import { ManualChunkMeta, OutputBundle as RollupOutputBundle, OutputOptions as RollupOutputOptions, PluginContext as RollupPluginContext } from "rollup"
 
 /**
  * These are the vendored dependencies. This map is to help bundler find the resolved path.
- * Must stay in sync with ./updateLibs.js
+ * Must stay in sync with ./updateLibs.ts
  */
 export const dependencyMap = {
 	mithril: path.normalize("./libs/mithril.js"),
@@ -25,7 +26,7 @@ export const dependencyMap = {
 	"@fingerprintjs/botd": path.normalize("./libs/botd.mjs"),
 	"./imapflow-custom": path.normalize("./libs/imapflow.js"),
 	"./postalmime-custom": path.normalize("./libs/postal-mime.js"),
-}
+} as const
 
 export let tsImportAliases = {
 	"@tutao/utils": path.normalize("build/utils/index.js"),
@@ -45,6 +46,9 @@ export let tsImportAliases = {
 	"@tutao/native-bridge/generatedIpc/types": path.normalize("build/native-bridge/common/generatedipc/types/index.js"),
 	"@tutao/local-store": path.normalize("build/local-store/index.js"),
 	"@tutao/network": path.normalize("build/network/index.js"),
+} as const
+export function emptyTsImportAliases() {
+	tsImportAliases = {} as typeof tsImportAliases
 }
 
 /**
@@ -202,25 +206,28 @@ export const allowedImports = {
 }
 
 /** resolves certain imports to vendored libraries for the dist build */
-export function resolveLibs(baseDir = ".", extraDependenciesMap = {}) {
+export function resolveLibs(baseDir: string = ".", extraDependenciesMap: Record<string, string> = {}) {
 	return {
 		name: "resolve-libs",
-		resolveId(source) {
-			const value = dependencyMap[source] ?? tsImportAliases[source] ?? extraDependenciesMap[source]
-			if (!value) return null
+		resolveId(source: string) {
+			const value: string =
+				dependencyMap[source as keyof typeof dependencyMap] ?? tsImportAliases[source as keyof typeof tsImportAliases] ?? extraDependenciesMap[source]
+			if (!value) {
+				return null
+			}
 			const id = path.join(baseDir, value)
 			return { id, resolvedBy: this.name }
 		},
 	}
 }
 
-export function esBuildResolveLibs(baseDir = ".", extraDependenciesMap = {}) {
+export function esBuildResolveLibs(baseDir: string = ".", extraDependenciesMap: Record<string, string> = {}) {
 	return {
 		name: "resolve-libs",
 
-		setup(build) {
-			build.onResolve({ filter: /^[^./]/ }, (args) => {
-				const value = dependencyMap[args.path] ?? extraDependenciesMap[args.path]
+		setup(build: any) {
+			build.onResolve({ filter: /^[^./]/ }, (args: any) => {
+				const value = dependencyMap[args.path as keyof typeof dependencyMap] ?? extraDependenciesMap[args.path]
 
 				if (!value) return
 
@@ -238,15 +245,16 @@ export function esBuildResolveLibs(baseDir = ".", extraDependenciesMap = {}) {
  * @param getModuleInfo Helper function to get information about the ES module.
  * @returns {string} Chunk name
  */
-export function getChunkName(moduleId, { getModuleInfo }) {
+export function getChunkName(moduleId: string, { getModuleInfo }: Pick<ManualChunkMeta, "getModuleInfo">) {
 	// See HACKING.md for rules
-	const moduleInfo = getModuleInfo(moduleId)
+	const moduleInfo = getModuleInfo(moduleId)!
 	const code = moduleInfo.code
 	if (code == null) {
 		console.log("SYNTHETIC MODULE??", moduleId)
+		return "<invalid path>"
 	}
 
-	function isIn(subpath) {
+	function isIn(subpath: string) {
 		return moduleId.includes(path.normalize(subpath))
 	}
 
@@ -501,11 +509,8 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 	}
 }
 
-function pushToMapEntry(map, key, value) {
-	let entry = []
-	if (map.has(key)) {
-		entry = map.get(key)
-	}
+function pushToMapEntry<K, V>(map: Map<K, Array<V>>, key: K, value: V) {
+	const entry = map.get(key) ?? new Array<V>()
 	entry.push(value)
 	map.set(key, entry)
 }
@@ -516,7 +521,7 @@ function pushToMapEntry(map, key, value) {
 export function bundleDependencyCheckPlugin() {
 	const illegalImports = new Map()
 	const staticLangImports = new Map()
-	const unknownChunks = []
+	const unknownChunks = new Array<string>()
 
 	const reportErrors = () => {
 		let shouldThrow = false
@@ -555,7 +560,7 @@ export function bundleDependencyCheckPlugin() {
 
 	return {
 		name: "bundle-dependency-check",
-		generateBundle(outOpts, bundle) {
+		generateBundle(this: RollupPluginContext, outOpts: RollupOutputOptions, bundle: RollupOutputBundle) {
 			// retrieves getModule function from plugin context.
 			const getModuleInfo = this.getModuleInfo.bind(this)
 
@@ -570,24 +575,24 @@ export function bundleDependencyCheckPlugin() {
 					if (moduleId.includes(path.normalize("src/ui/translations"))) {
 						continue
 					}
-					const ownChunk = getChunkName(moduleId, { getModuleInfo })
+					const ownChunk = getChunkName(moduleId, { getModuleInfo }) as keyof typeof allowedImports
 					if (!allowedImports[ownChunk]) {
 						unknownChunks.push(`${ownChunk} of ${moduleId}`)
 					}
 
-					for (const importedId of getModuleInfo(moduleId).importedIds) {
+					for (const importedId of getModuleInfo(moduleId)!.importedIds) {
 						if (importedId.includes("@tutao")) {
-							throw new Error("path alias not replaces: " + importedId)
+							throw new Error("path alias not replaced: " + importedId)
 						}
 						// static dependencies on translation files are not allowed
 						if (importedId.includes(path.normalize("src/applications/mail-app/translations"))) {
 							pushToMapEntry(staticLangImports, moduleId, importedId)
 						}
-						const importedChunk = getChunkName(importedId, { getModuleInfo })
+						const importedChunk = getChunkName(importedId, { getModuleInfo }) as keyof typeof allowedImports
 						if (!allowedImports[importedChunk]) {
 							unknownChunks.push(`${importedChunk} of ${importedId}`)
 						}
-						if (ownChunk !== importedChunk && !allowedImports[ownChunk]?.includes(importedChunk)) {
+						if (ownChunk !== importedChunk && !allowedImports[ownChunk]?.includes(importedChunk as never)) {
 							pushToMapEntry(illegalImports, `${moduleId} [${ownChunk}]`, `${importedId} [${importedChunk}]`)
 						}
 					}

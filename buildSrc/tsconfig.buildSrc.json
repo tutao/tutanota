@@ -1,0 +1,19 @@
+{
+	"extends": "../tsconfig_common.json",
+	"include": ["./*.ts", "./*.js", "../src/types"],
+	"exclude": ["./licc", "../libs", "./RustGenerator.js"],
+	"compilerOptions": {
+		"rootDir": "./",
+		"target": "es2023",
+		"outDir": "../../build/buildSrc/scripts",
+		"tsBuildInfoFile": "../../build/buildSrc/scripts/tsbuildinfo",
+		"composite": true,
+		"types": ["node"],
+		"paths": {}
+	},
+	"references": [
+		{
+			"path": "../src/platform-kit/tsconfig.utils.json"
+		}
+	]
+}

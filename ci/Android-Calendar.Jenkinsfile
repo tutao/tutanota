@@ -73,7 +73,7 @@ pipeline {
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
 						]) {
-							sh 'node android.js -b releaseTest test -a calendar'
+							sh 'npm run build-tools android -b releaseTest test -a calendar'
 						}
 						stash includes: STAGING_AAB_FILE_PATH, name: 'aab-staging'
 						stash includes: STAGING_APK_FILE_PATH, name: 'apk-staging'
@@ -93,7 +93,7 @@ pipeline {
 								string(credentialsId: 'apk-sign-store-pass', variable: "APK_SIGN_STORE_PASS"),
 								string(credentialsId: 'apk-sign-key-pass', variable: "APK_SIGN_KEY_PASS")
 						]) {
-							sh 'node android.js -b release prod -a calendar'
+							sh 'npm run build-tools android -b release prod -a calendar'
 						}
 						stash includes: PROD_AAB_FILE_PATH, name: 'aab-production'
 						stash includes: PROD_APK_FILE_PATH, name: 'apk-production'

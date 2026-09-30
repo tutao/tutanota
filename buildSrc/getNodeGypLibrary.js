@@ -4,7 +4,7 @@
 import { fileURLToPath } from "node:url"
 import { program } from "commander"
 import fs from "node:fs"
-import { getCanonicalPlatformName, getValidArchitecture } from "./buildUtils.js"
+import { getCanonicalPlatformName, getValidArchitecture } from "./buildUtils.ts"
 import { getCachedLibPaths, getNativeLibModulePaths } from "./nativeLibraryProvider.js"
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

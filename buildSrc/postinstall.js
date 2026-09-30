@@ -27,7 +27,7 @@ async function tryToUpdateLibs() {
 		console.log("cannot update vendored libs as rollup is not installed (installed as a dependency?)")
 		return
 	}
-	const { updateLibs } = await import("./updateLibs.js")
+	const { updateLibs } = await import("./updateLibs.ts")
 	await updateLibs()
 }
 
