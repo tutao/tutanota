@@ -62,7 +62,7 @@ import { Contact, File, Mail, MailSet, MovedMails } from "@tutao/entities/tutano
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { Attachment, isDataFile, isFileReference, isTutanotaFile, MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { TransferId } from "../../../../entities/drive/Utils"
-import { elementIdPart, getIds, isSameId } from "../../../../platform-kit/meta"
+import { elementIdPart, getElementId, getIds, isSameId } from "../../../../platform-kit/meta"
 import { getMailFolderType, SimpleMoveMailTarget } from "../MailUtils"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -949,10 +949,10 @@ export async function showDownloadProgressDialog(
 	}
 }
 
-export function checkMailSetName(system: FolderSystem, name: string, parentId: IdTuple | null, isLabel: boolean): TranslationKey | null {
+export function checkMailSetName(system: FolderSystem, name: string, elementId: Id | null, parentId: IdTuple | null, isLabel: boolean): TranslationKey | null {
 	if (name.trim() === "") {
 		return isLabel ? "enterName_msg" : "folderNameNeutral_msg"
-	} else if (system.getCustomFoldersOfParent(parentId).some((ms) => ms.name === name)) {
+	} else if (system.getCustomFoldersOfParent(parentId).some((ms) => ms.name === name && getElementId(ms) !== elementId)) {
 		return isLabel ? "labelNameInvalidExisting_msg" : "folderNameInvalidExisting_msg"
 	} else {
 		return null
