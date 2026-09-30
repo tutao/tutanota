@@ -36,7 +36,7 @@ pipeline {
                 sh 'npm -v'
                 sh 'node -v'
                 sh 'npm ci'
-                sh 'node webapp.js release'
+                sh 'node webapp.js prod'
 
                 // excluding web-specific and mobile specific parts which we don't need in desktop
                 stash includes: 'build/**, src/crypto-primitives/**', excludes: '**/desktop.html', name: 'web_base'
