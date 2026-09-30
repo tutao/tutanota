@@ -1669,7 +1669,7 @@ export function areAllAdvancedRepeatRulesValid(advancedRules: AdvancedRepeatRule
  * @example
  * parseAlarmInterval("5M") // => { value: 5, unit: AlarmIntervalUnit.MINUTE }
  *
- * @param serialized - The alarm interval string in the format (\d+)([MHDW])
+ * @param serialized - The alarm interval string in the format (-?\d+)([MHDW])
  * @returns An {@link AlarmInterval} object with numeric value and unit as {@link AlarmIntervalUnit}
  *
  * @throws {ParserError} If the string does not match the expected format
@@ -1677,14 +1677,14 @@ export function areAllAdvancedRepeatRulesValid(advancedRules: AdvancedRepeatRule
  * @see {@link serializeAlarmInterval} - The inverse operation
  */
 export function parseAlarmInterval(serialized: string): AlarmInterval {
-	const matched = serialized.match(/^(\d+)([MHDW])$/)
+	const matched = serialized.match(/^(-?\d+)([MHDW])$/)
 
 	if (!matched) {
 		throw new ParserError(`Invalid alarm interval: ${serialized} - Uknown format`)
 	}
 
-	const [_, digits, unit] = matched
-	const value = filterInt(digits)
+	const [_, integerString, unit] = matched
+	const value = parseInt(integerString)
 	if (isNaN(value)) {
 		throw new ParserError(`Invalid alarm interval: ${serialized} - NaN value`)
 	}
