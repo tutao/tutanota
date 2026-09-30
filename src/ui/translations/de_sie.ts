@@ -2530,6 +2530,18 @@ export default {
 		"attachingDriveFile_label" : "Attaching file to email",
 		"savingAttachmentToDrive_Label": "Saving file to Drive",
 		"sendDriveFileWithMail_action": "Send via email",
-		"openDriveDestinationPickerForAttachment_action": "Attach drive files"
+		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
+		"shareALink_label": "Share a link",
+		"secureWithPassword_label": "Secure the file with a password",
+		"setExpirationDate_label": "Set an expiration date for the link",
+		"selectExpiryDate_label" : "Select expiry date",
+		"updateLink_action": "Update share link",
+		"expirationDateEmpty_msg":"Expiration date must be set",
+		"expirationDateInPast_msg":"Expiration date cannot be in the past",
+		"updatingShare_msg":"Updating share link",
+		"creatingShare_msg": "Creating share link",
+		"setPasswordAndExpiration_label":"Set password and expiration date",
+		"deleteLink_action":"Delete link",
+		"shareDeleted_msg":"Share link for {fileName} has been deleted",
 	}
 }

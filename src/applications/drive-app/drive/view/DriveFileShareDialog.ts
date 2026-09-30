@@ -32,10 +32,7 @@ export class DriveFileShareDialog {
 	async show(item: FileFolderItem) {
 		let file = item.file
 		if (isNull(file.share)) {
-			;[file] = await showProgressDialog(
-				lang.makeTranslation("", "Creating share link"), //FIXME
-				this.driveFacade.createShareLink(file, null, null),
-			)
+			;[file] = await showProgressDialog(lang.getTranslation("creatingShare_msg"), this.driveFacade.createShareLink(file, null, null))
 		}
 
 		showFileShareDialog(this.driveFacade, file)
@@ -82,7 +79,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 										m(TextField, {
 											// isReadOnly: true,
 											// FXIME
-											label: lang.makeTranslation("shareLink_label", "Share link"),
+											label: lang.getTranslation("shareALink_label"),
 											value: shareInfo.publicLink,
 											// FIXME: test with screen reader
 											onfocus: (_, input) => {
@@ -104,7 +101,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 									]),
 									m(".flex.row.mt-16.justify-between", [
 										m(SecondaryButton, {
-											label: lang.makeTranslation("", "Set password and expiration date"), // FIXME
+											label: lang.getTranslation("setPasswordAndExpiration_label"),
 											onclick: () => {
 												showFileShareDetailsDialog(
 													driveFacade,
@@ -129,13 +126,13 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 										m(Button, {
 											class: ["align-self-end"],
 											type: ButtonType.Secondary,
-											label: lang.makeTranslation("deleteLink_action", "Delete link"), // FIXME
+											label: lang.getTranslation("deleteLink_action"),
 											click: () => {
 												// FIXME show progress
 												driveFacade.deleteShareLink(file)
 												shareInfo = null
 												dialog.close()
-												const message = lang.makeTranslation("", `Share link for ${file.name} has been deleted`) //FIXME
+												const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
 												showSnackBar({ message })
 											},
 										}),
@@ -173,7 +170,7 @@ async function showFileShareDetailsDialog(
 				return m(".flex.col", {}, [
 					m(DialogHeaderBar, {
 						left: [{ label: `close_alt`, click: () => dialog.close(), type: ButtonType.Secondary }],
-						middle: "share_action", // FIXME: Introduce translation key that says "Share a link"
+						middle: "shareALink_label",
 					}),
 					m(".flex.col.mlr-16.mt-16.mb-16.gap-16", [
 						m(".flex.gap-12", [
@@ -192,13 +189,13 @@ async function showFileShareDetailsDialog(
 								Switch,
 								{
 									checked: this.doPassword,
-									ariaLabel: "Secure the file with a password", // FIXME
+									ariaLabel: lang.getTranslationText("secureWithPassword_label"),
 									onclick: (toggled) => {
 										this.doPassword = toggled
 									},
 									togglePillPosition: "left",
 								},
-								"Secure the file with a password",
+								lang.getTranslationText("secureWithPassword_label"),
 							),
 							this.doPassword
 								? m(PasswordFieldNew, {
@@ -215,16 +212,16 @@ async function showFileShareDetailsDialog(
 								Switch,
 								{
 									checked: this.doExpiry,
-									ariaLabel: "Set an expiration date for the link", //FIXME
+									ariaLabel: lang.getTranslationText("setExpirationDate_label"),
 									onclick: (toggled) => (this.doExpiry = toggled),
 									togglePillPosition: "left",
 								},
-								"Set an expiration date for the link",
+								lang.getTranslationText("setExpirationDate_label"),
 							),
 							this.doExpiry
 								? m(DatePicker, {
 										date: this.expirationDate,
-										label: lang.makeTranslation("", "Select expiry date"),
+										label: lang.getTranslation("selectExpiryDate_label"),
 										onDateSelected: (selectedDate) => {
 											this.expirationDate = selectedDate
 										},
@@ -242,22 +239,21 @@ async function showFileShareDetailsDialog(
 									margin: "8px auto 0 auto",
 								},
 								width: "flex",
-								// FIXME
-								label: lang.makeTranslation("updateLink_action", "Update share link"),
+								label: lang.getTranslation("updateLink_action"),
 								onclick: () => {
 									if (this.doPassword && this.passwordValue.trim() === "") {
-										throw new UserError(lang.makeTranslation("", "Password cannot be empty"))
+										throw new UserError(lang.getTranslation("invalidPassword_msg"))
 									}
 									if (this.doExpiry && isNull(this.expirationDate)) {
-										throw new UserError(lang.makeTranslation("", "Expiration date must be set"))
+										throw new UserError(lang.getTranslation("expirationDateEmpty_msg"))
 									}
 									if (this.doExpiry && assertNotNull(this.expirationDate).getTime() < new Date().getTime()) {
-										throw new UserError(lang.makeTranslation("", "Expiration date cannot be in the past"))
+										throw new UserError(lang.getTranslation("expirationDateInPast_msg"))
 									}
 
 									dialog.close()
 									showProgressDialog(
-										lang.makeTranslation("", "Updating share link"), //FIXME
+										lang.getTranslation("updatingShare_msg"),
 										this.updateShareAndReload(this.doPassword ? this.passwordValue : null, this.doExpiry ? this.expirationDate : null),
 									)
 								},
