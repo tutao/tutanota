@@ -81,6 +81,7 @@ import {
 	replaceInlineImagesWithCids,
 	showDownloadProgressDialog,
 	showUndoMailSnackbar,
+	UndoSnackbarResult,
 } from "../view/MailGuiUtils"
 import { appendEmailSignature } from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
@@ -1332,7 +1333,11 @@ async function createMailEditorDialog(
 						},
 						lang.getTranslation("emailSent_msg"),
 						UNDO_SEND_TIMEOUT,
-					)
+					).then(async (result) => {
+						if (result !== UndoSnackbarResult.Undo) {
+							await model.updatePreviousMail()
+						}
+					})
 				} else if (sendAtDate) {
 					// scheduled mail
 					showInfoSnackbar("emailScheduled_msg")
