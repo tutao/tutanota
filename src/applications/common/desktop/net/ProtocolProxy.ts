@@ -64,7 +64,7 @@ function interceptProtocol(protocol: string, session: Session, fetchImpl: FetchI
 				const parsedUrl = new URL(url)
 				const noQueryUrl = `${parsedUrl.protocol}//${parsedUrl.host}${parsedUrl.pathname}`
 				log.debug(TAG, `error for ${method} ${noQueryUrl}:`)
-				log.debug(TAG, e)
+				log.debug(TAG, e, e?.cause)
 				log.debug(TAG, JSON.stringify(errorToObj(e)))
 				log.debug(TAG, `failed after ${Date.now() - startTime}ms`)
 				return Response.error()

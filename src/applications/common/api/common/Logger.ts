@@ -2,7 +2,7 @@
 
 import { stringToUtf8Uint8Array } from "@tutao/utils"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
-import { errorToString } from "../../../../platform-kit/utils/ErrorInfo"
+import { ErrorInfo, errorToString } from "../../../../platform-kit/utils/ErrorInfo"
 
 export const LOG_SIZE = 1000
 
@@ -44,7 +44,15 @@ export class Logger {
 	formatLogEntry(date: Date, level: string, ...rest: Array<any>): string {
 		const formattedArgs = rest.map((obj) => {
 			try {
-				return obj instanceof Error ? errorToString(Object.assign({ stack: null }, obj)) : JSON.stringify(obj)
+				if (obj instanceof Error) {
+					return errorToString({
+						name: obj.name,
+						message: obj.message,
+						stack: obj.stack ?? null,
+					} satisfies ErrorInfo)
+				}
+
+				return JSON.stringify(obj)
 			} catch (e) {
 				return "[cyclic object]"
 			}
