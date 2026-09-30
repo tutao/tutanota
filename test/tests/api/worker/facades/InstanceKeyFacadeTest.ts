@@ -393,7 +393,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 				const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
 				checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, derivedInstanceKey.version, [], pubEncRecipientKeyData)
 				const recipientIdentifier: PublicKeyIdentifier = { identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID }
-				verify(cryptoFacade.encryptBucketKeyForInternalRecipient(instanceGroupId, anything(), recipientIdentifier, [], []), { times: 1 })
+				verify(cryptoFacade.encryptBucketKeyForInternalRecipient(instanceGroupId, anything(), recipientIdentifier, [], []), { times: 1 }) // make sure we really used the asymmetric code path
 			})
 		})
 	})
