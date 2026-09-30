@@ -707,13 +707,13 @@ export class MailViewModel {
 
 		const mailboxDetails = await this.getMailboxDetails()
 
-		if (mailLocator.inboxRuleModel.isUsingLegacyInboxRules()) {
+		if ((await mailLocator.inboxRuleModel()).isUsingLegacyInboxRules()) {
 			const currentFolder = this.getMailSet()
 			if (currentFolder == null) {
 				return
 			}
 
-			const inboxRuleHandler = mailLocator.processInboxHandler()
+			const inboxRuleHandler = await mailLocator.processInboxHandler()
 			const targetFolderIdToFolderMailMap = new Map<Id, { folder: MailSet; mails: Mail[] }>()
 
 			// preload mailDetails, to cache in one request
@@ -750,7 +750,7 @@ export class MailViewModel {
 
 			return movedMailIds.flat()
 		} else {
-			const inboxRuleHandler = mailLocator.inboxRuleHandler() as ExpandedInboxRuleHandler
+			const inboxRuleHandler = (await mailLocator.inboxRuleHandler()) as ExpandedInboxRuleHandler
 			await inboxRuleHandler.applyRulesToGivenMails(actionableMails, mailboxDetails)
 		}
 	}

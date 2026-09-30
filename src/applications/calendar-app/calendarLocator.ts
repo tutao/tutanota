@@ -72,7 +72,7 @@ import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -368,6 +368,10 @@ class CalendarLocator implements CommonLocator {
 		const { RecipientsSearchModel } = await import("../common/misc/RecipientsSearchModel.js")
 		const suggestionsProvider = await this.contactSuggestionProvider()
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
+	}
+
+	async inboxRuleModel(): Promise<null> {
+		return null
 	}
 
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {

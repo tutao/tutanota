@@ -78,7 +78,7 @@ import { ConversationViewModel, ConversationViewModelFactory } from "./mail/view
 import { CreateMailViewerOptions } from "./mail/view/MailViewer.js"
 import { MailViewerViewModel } from "./mail/view/MailViewerViewModel.js"
 import { ExternalLoginViewModel } from "./mail/view/ExternalLoginView.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -180,7 +180,6 @@ class MailLocator implements CommonLocator {
 	clientModelInfo!: ClientModelInfo
 	eventController!: EventController
 	mailboxModel!: MailboxModel
-	inboxRuleModel!: InboxRuleModel
 	mailModel!: MailModel
 	minimizedMailModel!: MinimizedMailEditorViewModel
 	contactModel!: ContactModel
@@ -310,7 +309,7 @@ class MailLocator implements CommonLocator {
 			conversationViewModelFactory,
 			this.mailOpenedListener,
 			deviceConfig,
-			this.processInboxHandler(),
+			await this.processInboxHandler(),
 			router,
 			await this.redraw(),
 			this.syncTracker,
@@ -325,11 +324,12 @@ class MailLocator implements CommonLocator {
 		return new AffiliateViewModel()
 	})
 
-	readonly inboxRuleHandler = lazyMemoized(() => {
-		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+	readonly inboxRuleHandler = lazyMemoized(async () => {
+		const inboxRuleModel = await this.inboxRuleModel()
+		if (inboxRuleModel.isUsingLegacyInboxRules()) {
 			return new LegacyInboxRuleHandler(this.mailFacade, this.logins, this.mailModel)
 		} else {
-			return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel, this.inboxRuleModel)
+			return new ExpandedInboxRuleHandler(this.mailFacade, this.logins, this.mailModel, inboxRuleModel)
 		}
 	})
 
@@ -337,14 +337,15 @@ class MailLocator implements CommonLocator {
 		return new SpamClassificationHandler(this.spamClassifier, this.contactModel, this.mailFacade, this.logins)
 	})
 
-	readonly processInboxHandler = lazyMemoized(() => {
+	readonly processInboxHandler = lazyMemoized(async () => {
+		const inboxRuleModel = await this.inboxRuleModel()
 		return new ProcessInboxHandler(
 			this.logins,
 			this.mailFacade,
 			this.cryptoFacade,
 			this.spamClassificationHandler,
 			this.inboxRuleHandler,
-			this.inboxRuleModel.isUsingLegacyInboxRules(),
+			inboxRuleModel.isUsingLegacyInboxRules(),
 		)
 	})
 
@@ -536,6 +537,11 @@ class MailLocator implements CommonLocator {
 		return new RecipientsSearchModel(await this.recipientsModel(), this.contactModel, suggestionsProvider, this.entityClient)
 	}
 
+	readonly inboxRuleModel: lazyAsync<InboxRuleModel> = lazyMemoized(async () => {
+		const { InboxRuleModel } = await import("./mail/model/InboxRuleModel")
+		return new InboxRuleModel(this.entityClient, this.mailboxModel, this.mailModel)
+	})
+
 	private async contactSuggestionProvider(): Promise<ContactSuggestionProvider> {
 		if (EnvProvider.get().isApp()) {
 			const { MobileContactSuggestionProvider } = await import("../common/native/MobileContactSuggestionProvider.js")
@@ -588,6 +594,7 @@ class MailLocator implements CommonLocator {
 		const undoModel = await this.undoModel()
 		const fileApp = EnvProvider.get().isBrowser() ? null : this.fileApp
 		const fileDownloader = new AttachmentDownloader(this.fileController, fileApp, this.transferProgressDispatcher)
+		const inboxRuleModel = await this.inboxRuleModel()
 
 		return ({ mail, showFolder, highlightedTokens }) =>
 			new MailViewerViewModel(
@@ -613,7 +620,7 @@ class MailLocator implements CommonLocator {
 				this.transferProgressDispatcher,
 				this.operationProgressTracker,
 				this.syncTracker,
-				this.inboxRuleModel,
+				inboxRuleModel,
 			)
 	}
 
@@ -928,7 +935,6 @@ class MailLocator implements CommonLocator {
 			this.bulkMailLoader,
 			registerIndexingNotAvailableHandler,
 		)
-		this.inboxRuleModel = new InboxRuleModel(this.entityClient, this.mailboxModel, this.mailModel)
 		this.operationProgressTracker = new OperationProgressTracker()
 		this.infoMessageHandler = new InfoMessageHandler((state: SearchIndexStateInfo) => {
 			this.mailSearchModel().then((model) => model.indexState(state))

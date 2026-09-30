@@ -9,6 +9,7 @@ import {
 	groupBy,
 	groupByAndMap,
 	isNotNull,
+	lazyAsync,
 	lazyMemoized,
 	Nullable,
 	ofClass,
@@ -80,7 +81,7 @@ export class MailModel {
 		private readonly logins: LoginController,
 		private readonly mailFacade: MailFacade,
 		private readonly connectivityModel: WebsocketConnectivityModel | null,
-		private readonly processInboxHandler: () => ProcessInboxHandler,
+		private readonly processInboxHandler: lazyAsync<ProcessInboxHandler>,
 		private readonly bulkMailLoader: BulkMailLoader,
 		private readonly registerIndexingNotAvailableHandler: (handler: () => unknown) => unknown,
 	) {}
@@ -215,7 +216,8 @@ export class MailModel {
 
 				let targetFolder = sourceMailFolder
 				if (this.isInternalUser() && mailboxDetail && folderSystem) {
-					targetFolder = await this.processInboxHandler().handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
+					const processInboxHandler = await this.processInboxHandler()
+					targetFolder = await processInboxHandler.handleIncomingMail(mail, sourceMailFolder, mailboxDetail, folderSystem, isLeaderClient)
 				}
 				if (EnvProvider.get().isBrowser()) {
 					this._showNotification(targetFolder, mail)
