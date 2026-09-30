@@ -575,13 +575,15 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			accountingInfo = this._accountingInfo
 			lastBooking = this._lastBooking
 		} else {
+			console.error(">>>> missing:", this._customer, this._accountingInfo, this._lastBooking)
 			return
 		}
 
 		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
 		const userStatus = customer.approvalStatus
 		const isActiveSubscription = lastBooking.endDate && lastBooking.endDate?.getTime() > Date.now()
-
+		console.log(">>>> isActive:", isActiveSubscription)
+		console.log(">>>> ownership:", externalSubscriptionOwnership)
 		if (isActiveSubscription && !(await this.canManageExternalSubscriptionInApp(externalSubscriptionOwnership))) {
 			return
 		}

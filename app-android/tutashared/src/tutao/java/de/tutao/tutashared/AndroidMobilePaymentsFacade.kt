@@ -63,8 +63,10 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 
 		val accountId = customerIdBytes.toObfuscatedAccountId()
 		val currentPurchases = billingClient.queryPurchases(
-			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).includeSuspendedSubscriptions(true).build()
-		).filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && it.accountIdentifiers?.obfuscatedAccountId == accountId }
+			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS)
+				.includeSuspendedSubscriptions(true).build()
+		)
+			.filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && it.accountIdentifiers?.obfuscatedAccountId == accountId }
 		val currentPurchase = currentPurchases.singleOrNull()
 		if (currentPurchases.size > 1) error("Multiple subscriptions found for this account")
 		if (currentPurchase != null) {
@@ -96,12 +98,14 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 			.setProductDetails(productDetails)
 			.setOfferToken(offerDetails.offerToken)
 			.setSubscriptionProductReplacementParams(
-				SubscriptionProductReplacementParams.newBuilder().setOldProductId(oldProductId).setReplacementMode(mode).build()
+				SubscriptionProductReplacementParams.newBuilder().setOldProductId(oldProductId).setReplacementMode(mode)
+					.build()
 			).build()
 		val billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(productDetailsParams))
 			.setObfuscatedAccountId(accountId)
 			.setSubscriptionUpdateParams(
-				BillingFlowParams.SubscriptionUpdateParams.newBuilder().setOldPurchaseToken(currentPurchase.purchaseToken).build()
+				BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+					.setOldPurchaseToken(currentPurchase.purchaseToken).build()
 			).build()
 		return billingClient.launchBillingFlow(billingFlowParams)
 	}
@@ -151,9 +155,12 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 			.includeSuspendedSubscriptions(true)
 			.build()
 		val purchases = billingClient.queryPurchases(params)
+		val customerId = customerIdBytes?.toObfuscatedAccountId()
+		println("accountId: $customerId")
+		println("purchases:")
+		purchases.forEach { println(it.toString()) }
 		if (purchases.isEmpty()) return MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION
 
-		val customerId = customerIdBytes?.toObfuscatedAccountId()
 		return if (customerId != null && purchases.any { purchase ->
 				purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
 						purchase.accountIdentifiers?.obfuscatedAccountId == customerId
