@@ -19,11 +19,15 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
-import { AesKey } from "../../encryption/symmetric/AesKey"
+import { Aes256Key, AesKey } from "../../encryption/symmetric/AesKey"
 import { AssociatedData, KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 export interface OwnerKeyProvider {
 	(ownerKeyVersion: KeyVersion): Promise<AesKey>
+}
+
+export interface InstanceKeyProvider {
+	(instanceKeyVersion: KeyVersion): Promise<Nullable<Aes256Key>>
 }
 
 export class InstanceDecryptor {
@@ -33,7 +37,7 @@ export class InstanceDecryptor {
 	constructor(
 		private readonly sessionKey: Nullable<AesKey>,
 		private readonly kdfNonce: Nullable<KdfNonce>,
-		private readonly instanceKey: Nullable<VersionedAes256Key>,
+		private readonly instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		private readonly ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		private readonly keyDerivationContext: KeyDerivationContext,
 		private readonly aesCbcFacade: AesCbcFacade,
@@ -49,7 +53,8 @@ export class InstanceDecryptor {
 			}
 			return new AesCbcDecryptor(parsedCiphertext, this.symmetricKeyDeriver, this.instanceAesSubKeyCache, this.aesCbcFacade, this.sessionKey)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithInstanceKey) {
-			if (this.instanceKey != null) {
+			if (this.instanceKeyProvider != null) {
+				const instanceKey = await this.getInstanceKey(parsedCiphertext.groupKeyVersion, this.instanceKeyProvider)
 				return new AeadWithInstanceKeyFromInstanceKeyDecryptor(
 					parsedCiphertext,
 					this.symmetricKeyDeriver,
@@ -57,7 +62,7 @@ export class InstanceDecryptor {
 					this.aeadFacade,
 					this.keyDerivationContext,
 					associatedData,
-					this.instanceKey,
+					instanceKey,
 				)
 			} else if (this.kdfNonce != null) {
 				const groupKey = await this.getOwnerKey(parsedCiphertext.groupKeyVersion, this.ownerKeyProvider)
@@ -92,7 +97,7 @@ export class InstanceDecryptor {
 	}
 
 	canAttemptDecryption(): boolean {
-		return this.sessionKey != null || (this.kdfNonce != null && this.ownerKeyProvider != null) || this.instanceKey != null
+		return this.sessionKey != null || (this.kdfNonce != null && this.ownerKeyProvider != null) || this.instanceKeyProvider != null
 	}
 
 	private async getOwnerKey(requiredOwnerKeyVersion: KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<VersionedKey> {
@@ -103,11 +108,19 @@ export class InstanceDecryptor {
 		return { object: ownerKey, version: requiredOwnerKeyVersion }
 	}
 
+	private async getInstanceKey(requiredInstanceKeyVersion: KeyVersion, instanceKeyProvider: Nullable<InstanceKeyProvider>): Promise<VersionedAes256Key> {
+		if (instanceKeyProvider == null) {
+			throw new CryptoError("Cannot get instance key. Missing instance key provider.")
+		}
+		const instanceKey = await instanceKeyProvider(requiredInstanceKeyVersion)
+		return { object: instanceKey, version: requiredInstanceKeyVersion }
+	}
+
 	public async updateForTransferAggregatedType(keyDerivationContext: KeyDerivationContext): Promise<InstanceDecryptor> {
 		return new InstanceDecryptor(
 			this.sessionKey,
 			this.kdfNonce,
-			this.instanceKey,
+			this.instanceKeyProvider,
 			this.ownerKeyProvider,
 			keyDerivationContext,
 			this.aesCbcFacade,

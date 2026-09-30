@@ -41,6 +41,7 @@ import {
 	AsymmetricKeyPair,
 	decryptKey,
 	InstanceDecryptor,
+	InstanceKeyProvider,
 	KdfNonce,
 	OwnerKeyProvider,
 	SubKeyFactory,
@@ -113,11 +114,18 @@ export class CryptoMapper {
 		sessionKey: Nullable<AesKey>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
+		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		instanceTypeId: InstanceTypeId = encryptedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<DecryptedParsedInstance> {
 		const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
-		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, sessionKey, kdfNonce, ownerKeyProvider, null)
+		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
+			keyDerivationContext,
+			sessionKey,
+			kdfNonce,
+			ownerKeyProvider,
+			instanceKeyProvider,
+		)
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}
 

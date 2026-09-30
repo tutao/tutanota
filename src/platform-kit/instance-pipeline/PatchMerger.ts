@@ -102,6 +102,7 @@ export class PatchMerger {
 				name: instanceType.typeId.toString(),
 			}
 			const ownerKeyProvider = this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup)
+
 			const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, sk, kdfNonce, ownerKeyProvider, null)
 			// We need to preserve the order of patches, so no promiseMap here

@@ -37,11 +37,11 @@ import { TypeId } from "../../meta/EntityTypes"
 import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
 
-function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
+export function convertCustomIdToKeyVersion(customId: Id): KeyVersion {
 	return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(customId))
 }
 
-function convertKeyVersionToCustomId(version: KeyVersion): Id {
+export function convertKeyVersionToCustomId(version: KeyVersion): Id {
 	return stringToBase64UrlCustomId(String(version))
 }
 
@@ -263,7 +263,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		let lastGroupKeyInstance: GroupKey | null = null
 
 		for (const formerKey of formerKeys) {
-			const version = this.decodeGroupKeyVersion(getElementId(formerKey))
+			const version = this.decodeKeyVersion(getElementId(formerKey))
 			if (version + 1 > lastVersion) {
 				continue
 			} else if (version + 1 === lastVersion) {
@@ -309,7 +309,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		return await this.entityClient.loadRange(GroupKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
 	}
 
-	private decodeGroupKeyVersion(id: Id): KeyVersion {
+	private decodeKeyVersion(id: Id): KeyVersion {
 		return cryptoUtils.parseKeyVersion(base64UrlCustomIdToString(id))
 	}
 
