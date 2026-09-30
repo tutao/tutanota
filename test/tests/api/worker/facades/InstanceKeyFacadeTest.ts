@@ -3,7 +3,6 @@ import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypt
 import { matchers, object, verify, when } from "testdouble"
 import { composeRestClientOptionsToGetAllPermissions, InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import {
-	AccountingInfoTypeRef,
 	createFormerInstanceKeyData,
 	FormerInstanceKeyData,
 	Group,
@@ -36,6 +35,7 @@ import {
 	CryptoWrapper,
 	generateKdfNonce,
 	KdfNonce,
+	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
@@ -358,23 +358,23 @@ o.spec("InstanceKeyFacadeTest", function () {
 		}
 
 		o.spec("asymmetricEncryption", function () {
-			//TODO make AccountingInfo shared or delete this
-			let permissionOwnerGroup: Group
 			const bucketEncInstanceKey: Uint8Array<ArrayBuffer> = object()
 			const pubEncRecipientKeyData: PubEncKeyData = object()
+			const permissionOwnerGroupId = "permissionOwnerGroupId"
 
 			o.beforeEach(function () {
-				instance = createTestEntity(AccountingInfoTypeRef, {
+				instance = createTestEntity(GroupInfoTypeRef, {
 					_kdfNonce: generateKdfNonce(),
 					_ownerGroup: instanceGroupId,
 					_permissions: instancePermissionsId,
 				})
-				const permissionOwnerGroupId = "permissionOwnerGroupId"
-				permissionOwnerGroup = createTestEntity(GroupTypeRef, { _id: idToElementId(permissionOwnerGroupId) })
+
 				const permission = createTestEntity(PermissionTypeRef, {
 					_id: [instancePermissionsId, permissionOwnerGroupId],
 					_ownerGroup: permissionOwnerGroupId,
 				})
+				const fakePermissionOwnerGroup = { external: false } // hack as normally the instance type would be different and this code path not reachable. so we use this to break out
+				when(entityClient.load(GroupTypeRef, idToElementId(permissionOwnerGroupId))).thenResolve(fakePermissionOwnerGroup)
 				instancePermissions.push(permission)
 
 				when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(permissionOwnerGroupId)).thenReject(new Error("should not be called"))
@@ -392,7 +392,8 @@ o.spec("InstanceKeyFacadeTest", function () {
 			o.test("accountingInfo success", async function () {
 				const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
 				checkInstanceKeyData(instanceKeyInstanceData, null, bucketEncInstanceKey, null, derivedInstanceKey.version, [], pubEncRecipientKeyData)
-				verify(entityClient.load(GroupTypeRef, permissionOwnerGroup._id), { times: 0 })
+				const recipientIdentifier: PublicKeyIdentifier = { identifier: permissionOwnerGroupId, identifierType: PublicKeyIdentifierType.GROUP_ID }
+				verify(cryptoFacade.encryptBucketKeyForInternalRecipient(instanceGroupId, anything(), recipientIdentifier, [], []), { times: 1 })
 			})
 		})
 	})
