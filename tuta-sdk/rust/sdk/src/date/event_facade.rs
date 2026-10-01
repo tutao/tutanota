@@ -4620,12 +4620,10 @@ mod event_facade_unit_tests {
 		);
 		let repeat_rule = EventRepeatRule {
 			frequency: RepeatPeriod::Monthly,
-			by_rules: vec![
-				ByRule {
-					by_rule: ByRuleType::ByDay,
-					interval: "FR".to_string(),
-				},
-			],
+			by_rules: vec![ByRule {
+				by_rule: ByRuleType::ByDay,
+				interval: "FR".to_string(),
+			}],
 		};
 
 		let occurrence_dates = event_facade
