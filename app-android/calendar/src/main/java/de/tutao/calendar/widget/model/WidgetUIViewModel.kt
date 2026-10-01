@@ -156,7 +156,7 @@ class WidgetUIViewModel(
 			Log.d(TAG, "[$widgetId] Creating UIEvents from calendar $calendarId")
 			val shortAndLongEvents: List<CalendarEventDao> = eventList.shortEvents.plus(eventList.longEvents)
 
-			for (eventDao in shortAndLongEvents) {
+			for (eventDao: CalendarEventDao in shortAndLongEvents) {
 				for (dayIndex in 0..<daysAndEvents.size) {
 
 					val currentDayMidnightInstant =
@@ -186,21 +186,17 @@ class WidgetUIViewModel(
 					val eventStartInstant = Instant.ofEpochMilli(eventDao.startTime.toLong())
 					val eventEndInstant = Instant.ofEpochMilli(eventDao.endTime.toLong())
 
-					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
-					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
-
+					// Handle logic for modifying string related to all day events and events spanning multiple days
 					val eventTakesEntireDay =
 						eventStartInstant < currentDayMidnightInstant && eventEndInstant >= nextDayMidnightInstant
-
-					// Format display string to be used in the widget item
 					val eventStartsBeforeTodayAndEndsToday =
 						eventStartInstant < currentDayMidnightInstant && eventEndInstant < nextDayMidnightInstant
 					val eventStartsTodayAndEndsLater =
 						eventStartInstant >= currentDayMidnightInstant && eventEndInstant >= nextDayMidnightInstant
 
-					val isConsideredAllDay = isAllDayEventByTimes(
-						Date.from(eventStartInstant), Date.from(eventEndInstant)
-					) || eventTakesEntireDay
+					// Apply time zone for display string clock times
+					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
+					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
 
 					val timesString = if (eventStartsBeforeTodayAndEndsToday) {
 						"Ends at " + eventEndLocalTime.format(UIEvent.dateFormatter)
@@ -210,6 +206,12 @@ class WidgetUIViewModel(
 						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					}
 
+					// determine if event will be considered all day based on times
+					val isConsideredAllDay = isAllDayEventByTimes(
+						Date.from(eventStartInstant), Date.from(eventEndInstant)
+					) || eventTakesEntireDay
+
+					// create the actual UIEvent
 					val uiEvent = UIEvent(
 						calendarId,
 						eventDao.id,
@@ -222,36 +224,34 @@ class WidgetUIViewModel(
 					)
 
 					daysAndEvents[dayIndex] = daysAndEvents[dayIndex].plus(uiEvent)
-
-					eventList.birthdayEvents.forEach { birthdayEventDao ->
-						val eventStartAsInstant = Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong())
-
-						val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
-						val eventLocalEndTime =
-							LocalDateTime.ofInstant(
-								Instant.ofEpochMilli(birthdayEventDao.eventDao.endTime.toLong()),
-								zoneId
-							)
-						val uiEvent = UIEvent(
-							calendarId,
-							birthdayEventDao.eventDao.id,
-							calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
-							summary = buildBirthdayEventTitle(birthdayEventDao),
-							eventLocalStartTime.format(UIEvent.dateFormatter),
-							eventLocalEndTime.format(UIEvent.dateFormatter),
-							isDisplayedAsAllDay = true,
-							"",
-							isBirthday = true
-						)
-
-						val eventStartDate =
-							Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
-								.toLocalDate()
-						val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
-						daysAndEvents[index.toInt()] = daysAndEvents[index.toInt()].plus(uiEvent)
-					}
 				}
+			}
+			for (birthdayEventDao: BirthdayEventDao in eventList.birthdayEvents) {
+				val eventStartAsInstant = Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong())
 
+				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
+				val eventLocalEndTime =
+					LocalDateTime.ofInstant(
+						Instant.ofEpochMilli(birthdayEventDao.eventDao.endTime.toLong()),
+						zoneId
+					)
+				val uiEvent = UIEvent(
+					calendarId,
+					birthdayEventDao.eventDao.id,
+					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
+					summary = buildBirthdayEventTitle(birthdayEventDao),
+					eventLocalStartTime.format(UIEvent.dateFormatter),
+					eventLocalEndTime.format(UIEvent.dateFormatter),
+					isDisplayedAsAllDay = true,
+					"",
+					isBirthday = true
+				)
+
+				val eventStartDate =
+					Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
+						.toLocalDate()
+				val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
+				daysAndEvents[index.toInt()] = daysAndEvents[index.toInt()].plus(uiEvent)
 			}
 		}
 
