@@ -111,6 +111,7 @@ import { EncryptedPqKeyPairs } from "../../../../../src/platform-kit/crypto/encr
 import { _aes128RandomKey } from "../../../crypto/AesTest"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { CacheManager } from "../../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 
 const { anything } = matchers
 
@@ -447,6 +448,7 @@ o.spec("KeyRotationFacade", function () {
 	let publicKeySignatureFacade: PublicKeySignatureFacade
 	let adminKeyLoader: AdminKeyLoaderFacade
 	let instanceKeyFacade: InstanceKeyFacade
+	let cacheManager: CacheManager
 
 	let user: User
 	let cryptoWrapperMock: CryptoWrapper
@@ -477,6 +479,7 @@ o.spec("KeyRotationFacade", function () {
 		publicKeySignatureFacade = object()
 		adminKeyLoader = object()
 		instanceKeyFacade = object()
+		cacheManager = object()
 		keyRotationFacade = new KeyRotationFacade(
 			entityClient,
 			keyLoaderFacadeMock,
@@ -494,6 +497,7 @@ o.spec("KeyRotationFacade", function () {
 			publicKeySignatureFacade,
 			adminKeyLoader,
 			instanceKeyFacade,
+			async () => cacheManager,
 		)
 		user = await makeUser(userId, { key: userEncAdminKey, encryptingKeyVersion: 0 })
 		const customerId = "customerId"

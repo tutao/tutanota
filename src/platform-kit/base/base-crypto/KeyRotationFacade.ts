@@ -92,6 +92,7 @@ import { assertEnumValue, elementIdPart, elementIdToId, getElementId, idToElemen
 import { asPublicKeyIdentifier } from "./Constants"
 import { GroupInvitationPostData } from "@tutao/entities/tutanota"
 import { InstanceKeyFacade } from "./InstanceKeyFacade"
+import { CacheManager } from "./persistence/CacheManager"
 
 assertWorkerOrNode()
 
@@ -172,6 +173,7 @@ export class KeyRotationFacade {
 		private readonly publicKeySignatureFacade: PublicKeySignatureFacade,
 		private readonly adminKeyLoaderFacade: AdminKeyLoaderFacade,
 		private readonly instanceKeyFacade: InstanceKeyFacade,
+		private readonly cacheManager: lazyAsync<CacheManager>,
 	) {
 		this.groupIdsThatPerformedKeyRotations = new Set<Id>()
 	}
@@ -281,9 +283,15 @@ export class KeyRotationFacade {
 		await this.serviceExecutor.post(GroupKeyRotationService, serviceData, null)
 
 		if (customerGroupKeyRotationWasExecuted) {
+			// we reload the customer group as we will otherwise end up in an inconsistent state when sharing instance keys due to a race condition
+			const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
+			await (await this.cacheManager()).reloadGroup(customerGroupId)
 			await this.instanceKeyFacade.executeInstanceKeySharing(GroupKeyRotationType.InstanceKeySharingAfterCustomerGroupRotation)
 		}
 		if (internalMailGroupWasRotated) {
+			// we reload the internal mail group as we will otherwise end up in an inconsistent state when sharing instance keys due to a race condition
+			const internalMailGroupId = this.userFacade.getGroupId(GroupType.Mail)
+			await (await this.cacheManager()).reloadGroup(internalMailGroupId)
 			await this.instanceKeyFacade.executeInstanceKeySharing(GroupKeyRotationType.InstanceKeySharingAfterInternalMailGroupRotation)
 		}
 

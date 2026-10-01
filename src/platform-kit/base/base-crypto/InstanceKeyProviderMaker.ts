@@ -1,6 +1,6 @@
 import { UserFacade } from "../facades/UserFacade"
 import { EntityClient } from "../../network/EntityClient"
-import { InstanceKeyProviderMakerInterface, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstanceKeyProviderMakerInterface, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
 import { AesKeyLength, cryptoUtils, decryptKey, EncryptedKeyWithVersions, InstanceKeyProvider, VersionedAes256Key } from "@tutao/crypto"
 import { assertNotNull, KeyVersion, Nullable } from "@tutao/utils"
 import { getElementId, isSameSingleId, PersistentEntity } from "@tutao/meta"
@@ -24,9 +24,26 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 		if (!Object.values(clientTypeModel.associations).some((a) => a.name === formerInstanceKeysProperty)) {
 			return null
 		}
-		// @ts-ignore
-		const formerInstanceKeys = instance[formerInstanceKeysProperty]
-		if (instance._permissions == null || formerInstanceKeys == null) {
+		let formerInstanceKeysList: Nullable<Id>
+		if (instance instanceof EntityAdapter) {
+			formerInstanceKeysList =
+				instance
+					.getWrappedEncryptedInstance()
+					?.getAttributeByNameOrNull(formerInstanceKeysProperty)
+					?.getNullWhenNull()
+					?.asArray()[0]
+					?.asNestedObj()
+					?.getAttributeByName("list")
+					?.getNullWhenNull()
+					?.asArray()[0]
+					?.asId() ?? null
+		} else {
+			// we do not expect to reach this code path, but are not entirely sure :-)
+			console.log(`makeInstanceKeyProvider: instance of type ${typeof instance}`)
+			// @ts-ignore
+			formerInstanceKeysList = instance[formerInstanceKeysProperty]?.list ?? null
+		}
+		if (instance._permissions == null || formerInstanceKeysList == null) {
 			return null
 		}
 
@@ -40,7 +57,7 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 						// public permissions are not yet supported for decryption
 						(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
 						p._ownerGroup &&
-						userFacade.hasGroup(p._ownerGroup),
+						this.userFacade.hasGroup(p._ownerGroup),
 				) ?? null
 
 			if (symmetricPermission == null || symmetricPermission.symKeyVersion == null || symmetricPermission.symEncInstanceKey == null) return null
@@ -55,7 +72,6 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 			const permissionOwnerGroup = assertNotNull(symmetricPermission._ownerGroup)
 
 			// TODO find something better for these closure variables?
-			const userFacade = this.userFacade
 			const symGroupKeyLoader = this.symGroupKeyLoader
 			const findFormerInstanceKey = this.findFormerInstanceKey
 			return async function (requestedInstanceKeyVersion: KeyVersion): Promise<VersionedAes256Key> {
@@ -74,7 +90,7 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 						`instance key on the permission (version ${decryptedInstanceKey.version}) is older than the requested one (version ${requestedInstanceKeyVersion})`,
 					)
 
-				return await findFormerInstanceKey(formerInstanceKeys.list, decryptedInstanceKey, requestedInstanceKeyVersion)
+				return await findFormerInstanceKey(formerInstanceKeysList, decryptedInstanceKey, requestedInstanceKeyVersion)
 			}
 		}
 	}
