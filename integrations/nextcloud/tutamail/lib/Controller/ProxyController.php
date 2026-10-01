@@ -47,6 +47,10 @@ class ProxyController extends Controller
 
 		$allPaths = array_merge(...array_values(ProxyController::$ALLOWED_PROXIES));
 		ProxyController::$ALLOWED_PROXIES['OPTIONS'] = $allPaths;
+
+		if ( PageController::isDebugMode() && !in_array('localhost', ProxyController::$ALLOWED_ORIGINS) ) {
+		    array_push('localhost');
+		}
 	}
 
 	#[PublicPage]
