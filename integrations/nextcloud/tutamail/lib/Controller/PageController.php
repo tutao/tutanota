@@ -32,16 +32,23 @@ class PageController extends Controller {
 	#[OpenAPI(OpenAPI::SCOPE_IGNORE)]
 	public function index(): TemplateResponse {
 		$response = new TemplateResponse(Application::APP_ID, 'index');
-
 		$csp = new ContentSecurityPolicy();
+
 		$csp->addAllowedConnectDomain('https://tuta.com');
 		$csp->addAllowedConnectDomain('https://app.test.tuta.com');
-		$csp->addAllowedConnectDomain('https://app.local.tuta.com');
 		$csp->addAllowedImageDomain('*');
 
-		$response->setContentSecurityPolicy($csp);
+        if ( PageController::isDebugMode() ) {
+        	$csp->addAllowedConnectDomain('https://app.local.tuta.com:9000');
+            $csp->addAllowedConnectDomain('http://localhost:9000');
+        }
 
+		$response->setContentSecurityPolicy($csp);
 		return $response;
+	}
+
+	public static function isDebugMode(): bool {
+		return getenv('TUTAO_NEXTCLOUD_DEV_SETUP') == '1';
 	}
 
 	// Redirect deep links to the SPA entry point with ?r=<path> so the client can recover the

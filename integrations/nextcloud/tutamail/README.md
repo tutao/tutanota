@@ -38,6 +38,11 @@ In order to activate these integrations, you need to enable the Nextcloud plugin
        - '${HOME}/dev/repositories/tutanota/integrations/nextcloud/tutamail:/var/www/html/apps/tutamail'
        - '${HOME}/dev/repositories/tutanota/build/:/var/www/html/apps/tutamail/js'
    ```
+
+	and under `services>nextcloud>environment` add:
+	```yaml
+		TUTAO_NEXTCLOUD_DEV_SETUP: "1"
+ 	```
 4) Start the nextcloud container:
     * `docker compose up -d nextcloud` to start nextcloud
     * `rm .env` and run `./bootstrap.sh` again if something goes wrong.
