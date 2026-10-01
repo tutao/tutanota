@@ -198,8 +198,8 @@ struct AgendaWidgetEntryView: View {
 
 		// days to events list is being passed in but each day is empty for some reason
 
-		let noNormalEvents = daysToEventsList.allSatisfy({ $0.contains(where: { !$0.isDisplayedAsAllDay }) })
-		let noAllDayEvents = daysToEventsList.allSatisfy({ $0.contains(where: { $0.isDisplayedAsAllDay }) })
+		let noNormalEvents = daysToEventsList.allSatisfy({ !$0.contains(where: { !$0.isDisplayedAsAllDay }) })
+		let noAllDayEvents = daysToEventsList.allSatisfy({ !$0.contains(where: { $0.isDisplayedAsAllDay }) })
 
 		GeometryReader { g in
 			VStack {

@@ -21,8 +21,8 @@ struct DaysList: View {
 
 		LazyVStack(alignment: .leading, spacing: 6) {
 			ForEach(Array(daysToEventsList.enumerated()), id: \.offset) { (index, dayEvents) in
-				var currentDay = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: index, to: now)!)
-				DayRow(currentDay: currentDay, userId: userId, events: dayEvents, index: index)
+				let currentDay = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: index, to: now)!)
+					DayRow(currentDay: currentDay, userId: userId, events: dayEvents, index: index)
 			}
 		}
 	}
@@ -36,13 +36,15 @@ private struct DayRow: View {
 
 	var body: some View {
 		let normalEventsOnDay: [UIEvent] = events.filter { !$0.isDisplayedAsAllDay }
-		let allDayEventsOnDay: [UIEvent] = events.filter { !$0.isDisplayedAsAllDay }
+		let allDayEventsOnDay: [UIEvent] = events.filter { $0.isDisplayedAsAllDay }
 		let isToday = index == 0
 
 		if isToday {
 			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: currentDay)
 		} else {
-			OtherDayCard(userId: userId, date: currentDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
+			if(!events.isEmpty){
+				OtherDayCard(userId: userId, date: currentDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
+			}
 		}
 	}
 }

@@ -58,16 +58,17 @@ struct WidgetModel {
 
 	func getEventsForCalendars(_ calendars: [CalendarEntity], date: Date) async throws -> DaysToEventsList {
 		printLog("Fetching \(calendars.count) calendars")
-		let dateInMiliseconds = UInt64(date.timeIntervalSince1970) * 1000
-		let end = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970) * 1000
+		let dateInSeconds = UInt64(date.timeIntervalSince1970)
+		let endSeconds = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970)
 		let calendarFacade = self.sdk.calendarFacade()
 
-		let now = Date.now
+		let widgetStartDate = date
+
 		let currentCalendar = Calendar.current
 		var daysAndEvents: DaysToEventsList = [[], [], [], [], [], [], []]
 
 		for calendar in calendars {
-			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInMiliseconds, end: end)
+			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInSeconds * 1000, end: endSeconds * 1000)
 
 			let shortAndLongEvents = eventsList.shortEvents + eventsList.longEvents
 
@@ -75,37 +76,42 @@ struct WidgetModel {
 			dateFormatter.setLocalizedDateFormatFromTemplate("HH:mm")
 
 			for calendarEvent in shortAndLongEvents {
+
 				for dayIndex in stride(from: 0, to: daysAndEvents.count, by: 1) {
 
-					let currentDayMidnightInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: now)!)
-						.timeIntervalSince1970
-					let nextDayMidnightInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: now)!)
-						.timeIntervalSince1970
+					let currentDayMidnightInstantMs = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
+						.timeIntervalSince1970 * 1000
+					let nextDayMidnightInstantMs = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!)
+						.timeIntervalSince1970 * 1000
 
 					// calendarEvent.endTime start of day is in milliseconds, but iOS time intervals are seconds.
 					// since we don't really care about millisecond differences, maybe we can divide all incoming dates by 1000 for calculations.  since this would use less memory.
-					let uiEventStartMax = max(currentDayMidnightInstant, Double(calendarEvent.endTime))
-					let uiEventEndMin = min(nextDayMidnightInstant, Double(calendarEvent.endTime))
+
+					let calendarEventStartTimeMs = Double(calendarEvent.startTime)
+					let calendarEventEndTimeMs = Double(calendarEvent.endTime)
+
+					let uiEventStartMax = max(currentDayMidnightInstantMs, calendarEventStartTimeMs)
+					let uiEventEndMin = min(nextDayMidnightInstantMs, calendarEventEndTimeMs)
 
 					let eventStartsAfterToday = uiEventStartMax >= uiEventEndMin
 					let eventEndsBeforeToday = uiEventEndMin <= uiEventStartMax
 
 					if eventEndsBeforeToday || eventStartsAfterToday { continue }
 
-					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime))
-					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime))
+					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime) / 1000)
+					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime) / 1000)
 
 					let dateFormatter = DateFormatter()
 					dateFormatter.timeZone = .current
 
 					let eventTakesEntireDay =
-						Double(calendarEvent.startTime) < currentDayMidnightInstant && Double(calendarEvent.endTime) >= nextDayMidnightInstant
+						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
 
 					let eventStartsTodayAndEndsLater =
-						Double(calendarEvent.startTime) >= currentDayMidnightInstant && Double(calendarEvent.endTime) >= nextDayMidnightInstant
+						Double(calendarEvent.startTime) >= currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
 
 					let eventStartsBeforeTodayAndEndsToday =
-						Double(calendarEvent.startTime) < currentDayMidnightInstant && Double(calendarEvent.endTime) < nextDayMidnightInstant
+						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) < nextDayMidnightInstantMs
 
 					let isConsideredAllDay = isAllDayEvent(startDate: eventStartDate, endDate: eventEndDate) || eventTakesEntireDay
 
