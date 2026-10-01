@@ -30,7 +30,7 @@ public protocol MobilePaymentsFacade : Sendable {
 	 * Check if the latest transaction using the current Store Account belongs to the tuta customer
 	 */
 	func queryExternalSubscriptionOwnership(
-		_ customerIdBytes: DataWrapper?
+		_ foreignKey: String?
 	) async throws -> MobilePaymentSubscriptionOwnership
 	/**
 	 * Check if there's a subscription with google or apple and if it has auto-renew enabled

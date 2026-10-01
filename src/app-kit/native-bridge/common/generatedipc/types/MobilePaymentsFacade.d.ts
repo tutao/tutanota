@@ -30,7 +30,7 @@ export interface MobilePaymentsFacade {
 	/**
 	 * Check if the latest transaction using the current Store Account belongs to the tuta customer
 	 */
-	queryExternalSubscriptionOwnership(customerIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership>
+	queryExternalSubscriptionOwnership(foreignKey: string | null): Promise<MobilePaymentSubscriptionOwnership>
 
 	/**
 	 * Check if there's a subscription with google or apple and if it has auto-renew enabled

@@ -38,9 +38,9 @@ class MobilePaymentsFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"queryExternalSubscriptionOwnership" -> {
-				val customerIdBytes: DataWrapper? = json.decodeFromString(arg[0])
+				val foreignKey: String? = json.decodeFromString(arg[0])
 				val result: MobilePaymentSubscriptionOwnership = this.facade.queryExternalSubscriptionOwnership(
-					customerIdBytes,
+					foreignKey,
 				)
 				return json.encodeToString(result)
 			}

@@ -31,9 +31,9 @@ public final class MobilePaymentsFacadeReceiveDispatcher: Sendable {
 			)
 			return "null"
 		case "queryExternalSubscriptionOwnership":
-			let customerIdBytes = try! JSONDecoder().decode(DataWrapper?.self, from: arg[0].data(using: .utf8)!)
+			let foreignKey = try! JSONDecoder().decode(String?.self, from: arg[0].data(using: .utf8)!)
 			let result = try await self.facade.queryExternalSubscriptionOwnership(
-				customerIdBytes
+				foreignKey
 			)
 			return toJson(result)
 		case "isExternalSubscriptionRenewalEnabled":

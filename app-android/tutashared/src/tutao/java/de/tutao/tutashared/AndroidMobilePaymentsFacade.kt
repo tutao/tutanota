@@ -145,7 +145,8 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		}
 	}
 
-	override suspend fun queryExternalSubscriptionOwnership(customerIdBytes: DataWrapper?): MobilePaymentSubscriptionOwnership {
+	override suspend fun queryExternalSubscriptionOwnership(foreignKey: String?): MobilePaymentSubscriptionOwnership {
+
 		val params = QueryPurchasesParams.newBuilder()
 			.setProductType(BillingClient.ProductType.SUBS)
 			.includeSuspendedSubscriptions(true)
@@ -153,10 +154,9 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val purchases = billingClient.queryPurchases(params)
 		if (purchases.isEmpty()) return MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION
 
-		val customerId = customerIdBytes?.toObfuscatedAccountId()
-		return if (customerId != null && purchases.any { purchase ->
+		return if (foreignKey != null && purchases.any {purchase ->
 				purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-						purchase.accountIdentifiers?.obfuscatedAccountId == customerId
+						purchase.purchaseToken == foreignKey
 			}) {
 			MobilePaymentSubscriptionOwnership.OWNER
 		} else {

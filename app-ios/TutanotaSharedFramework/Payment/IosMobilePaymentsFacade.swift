@@ -21,14 +21,13 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		self.windowScene = windowScene
 	}
 
-	public func queryExternalSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
+	public func queryExternalSubscriptionOwnership(_ foreignKey: String?) async throws -> MobilePaymentSubscriptionOwnership {
 		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
 
 		for await transaction in Transaction.currentEntitlements {
-			if let customerBytes = customerIdBytes {
+			if let foreignKey = foreignKey {
 				let transactionInfo = try transaction.payloadValue
-				let uuid = customerIdToUUID(customerBytes.data)
-				let isSameOwner = transactionInfo.appAccountToken == uuid
+				let isSameOwner = String(transactionInfo.originalID) == foreignKey
 
 				if isSameOwner {
 					currentResult = MobilePaymentSubscriptionOwnership.owner

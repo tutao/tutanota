@@ -37,7 +37,7 @@
 			"doc": "Check if the latest transaction using the current Store Account belongs to the tuta customer",
 			"arg": [
 				{
-					"customerIdBytes": "bytes?"
+					"foreignKey": "string?"
 				}
 			],
 			"ret": "MobilePaymentSubscriptionOwnership"

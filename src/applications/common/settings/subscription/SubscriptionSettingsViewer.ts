@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { ApprovalStatus, Const, EnvProvider, PaymentSetup } from "@tutao/app-env"
-import { elementIdToId, GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
+import { GENERATED_MAX_ID, getEtId, idToElementId } from "@tutao/meta"
 import { assertNotNull, base64ExtToBase64, base64ToUint8Array, downcast, getDayShifted, neverNull, promiseMap, stringToBase64 } from "@tutao/utils"
 import { InfoLink, lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -611,7 +611,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))))
+		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(lastBooking.subscriptionReference.foreignKey)
 		const userStatus = customer.approvalStatus
 		const isActiveSubscription = lastBooking.endDate && lastBooking.endDate?.getTime() > Date.now()
 
