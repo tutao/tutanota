@@ -67,8 +67,6 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 				encryptingKeyVersion: cryptoUtils.parseKeyVersion(symmetricPermission.symKeyVersion),
 				encryptedKeyVersion: cryptoUtils.parseKeyVersion(assertNotNull(symmetricPermission.instanceKeyVersion)),
 			}
-			if (symEncInstanceKeyFromPermission.encryptingKeyVersion) {
-			}
 			const permissionOwnerGroup = assertNotNull(symmetricPermission._ownerGroup)
 
 			// TODO find something better for these closure variables?

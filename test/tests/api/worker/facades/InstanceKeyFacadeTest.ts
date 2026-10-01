@@ -44,7 +44,7 @@ import {
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { CryptoFacade, RecipientKeyData } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
-import { ProgrammingError, RolloutType, SessionType } from "../../../../../src/platform-kit/app-env"
+import { ProgrammingError, SessionType } from "../../../../../src/platform-kit/app-env"
 import { assertNotNull, KeyVersion, Nullable } from "../../../../../src/platform-kit/utils"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { AdminKeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
@@ -52,7 +52,7 @@ import { IServiceExecutor } from "../../../../../src/platform-kit/network/Servic
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { InstanceKeySharingRolloutAction } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeySharingRolloutAction"
 
-const { anything, argThat, captor } = matchers
+const { anything } = matchers
 
 o.spec("InstanceKeyFacadeTest", function () {
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade
@@ -131,7 +131,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 		when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(instanceGroupId)).thenResolve(currentInstanceGroupKey)
 		when(entityClient.loadRange(InstanceKeyTypeRef, anything(), GENERATED_MAX_ID, 1, true)).thenResolve([])
 		deriveInstanceKeyMethod = instanceKeyFacade.deriveInstanceKey
-		instanceKeyFacade.deriveInstanceKey = (groupKey: VersionedKey, kdfNonce: KdfNonce) => {
+		instanceKeyFacade.deriveInstanceKey = (groupKey: VersionedKey, _: KdfNonce) => {
 			if (groupKey.version === currentInstanceGroupKey.version) {
 				if (groupKey.version === 0) {
 					return versionedDerivedInstanceKey
@@ -297,10 +297,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 					let permissionOwnerGroup = createTestEntity(GroupTypeRef)
 
-					const { currentPermissionOwnerGroupKey, symEncSessionKey, symEncInstanceKey } = prepareMocks(
-						permissionOwnerGroup,
-						currentDerivedInstanceKeyInVersion1,
-					)
+					const { currentPermissionOwnerGroupKey } = prepareMocks(permissionOwnerGroup, currentDerivedInstanceKeyInVersion1)
 					when(adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(stringifyId(permissionOwnerGroup._id))).thenResolve(
 						currentPermissionOwnerGroupKey,
 					)
@@ -308,8 +305,6 @@ o.spec("InstanceKeyFacadeTest", function () {
 					const instanceKeyInstanceData = await instanceKeyFacade.prepareInstanceKeysForSharedInstance(instance)
 
 					o.check(instanceKeyInstanceData.formerInstanceKeys.length).equals(0)
-					o.check(instanceKeyInstanceData.formerInstanceKeys).deepEquals([])
-					//TODO check more?
 				})
 			})
 		})
@@ -447,8 +442,6 @@ o.spec("InstanceKeySharingRolloutAction", function () {
 		const userFacadeMock: UserFacade = object()
 		const user: User = object()
 		when(userFacadeMock.getUser()).thenReturn(user)
-
-		const rolloutType = RolloutType.InstanceKeySharing
 
 		const rolloutAction = new InstanceKeySharingRolloutAction(instanceKeyFacadeMock, userFacadeMock, SessionType.Persistent)
 		await rolloutAction.execute()

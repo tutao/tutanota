@@ -17,7 +17,6 @@ export class InstanceKeySharingRolloutAction implements RolloutAction {
 	) {}
 
 	public async execute() {
-		// If we have not migrated to argon2 we postpone the migration.
 		if (!isAdminClient() && this.sessionType !== SessionType.Temporary) {
 			const user = this.userFacade.getUser()
 			if (user && user.accountType !== AccountType.EXTERNAL) {

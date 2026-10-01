@@ -79,7 +79,6 @@ import {
 	GroupKeyUpdatesRefTypeRef,
 	GroupMembershipTypeRef,
 	GroupMemberTypeRef,
-	GroupRootTypeRef,
 	GroupTypeRef,
 	IdentityKeyPairTypeRef,
 	KeyMac,
@@ -95,7 +94,6 @@ import {
 	RecoverCodeData,
 	SentGroupInvitationTypeRef,
 	User,
-	UserAreaGroupsTypeRef,
 	UserAuthenticationTypeRef,
 	UserGroupKeyRotationData,
 	UserGroupKeyRotationService,
@@ -430,7 +428,6 @@ function prepareMultiAdminUserKeyRotation(
 	return pendingKeyRotations
 }
 
-const customerUserAreaGroupsListId = "customerUserAreaGroupsListId"
 o.spec("KeyRotationFacade", function () {
 	let entityClient: EntityClient
 	let keyRotationFacade: KeyRotationFacade
@@ -504,7 +501,6 @@ o.spec("KeyRotationFacade", function () {
 		customer = createTestEntity(CustomerTypeRef, {
 			_id: idToElementId(customerId),
 			userGroups: "userGroupsList",
-			userAreaGroups: createTestEntity(UserAreaGroupsTypeRef, { list: customerUserAreaGroupsListId }),
 		})
 		const groupData = makeGroupWithMembership(groupId, user)
 		group = groupData.group
@@ -559,15 +555,6 @@ o.spec("KeyRotationFacade", function () {
 
 	o.spec("processPendingKeyRotation", function () {
 		o.spec("User area group key rotation", function () {
-			o.beforeEach(function () {
-				when(entityClient.loadRoot(GroupRootTypeRef, userFacade.getUserGroupId())).thenResolve(
-					createTestEntity(GroupRootTypeRef, {
-						externalUserAreaGroupInfos: createTestEntity(UserAreaGroupsTypeRef, { list: "externalUserAreaGroupListId" }),
-						externalGroupInfos: "externalGroupInfoListId",
-					}),
-				)
-			})
-
 			o("Rotated group does not have a key pair", async function () {
 				const pendingKeyRotations = {
 					adminOrUserGroupKeyRotation: null,
