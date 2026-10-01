@@ -46,7 +46,7 @@ export class SupportRequestSentPage implements Component<SupportRequestSentPageA
 						m(
 							".pb-16.block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `/images/leaving-wizard/other.svg`,
+								path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/other.svg`,
 							}),
 						),
 					),

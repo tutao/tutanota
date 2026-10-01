@@ -760,7 +760,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-24",
 						m(ImageWithOptionsDialog, {
-							image: `/images/dynamic-color-svg/update.svg`,
+							image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/update.svg`,
 							titleText: "updateNeeded_msg",
 							messageText: allowDefer ? "updateFound_label" : "outdatedClient_msg",
 							mainActionText: "update_action",
@@ -863,8 +863,8 @@ export class Dialog implements ModalComponent {
 						".plr-48",
 						m(ImageWithOptionsDialog, {
 							image: success
-								? `/images/newsletter-unsubscribe/unsubscribe_success.svg`
-								: `/images/newsletter-unsubscribe/unsubscribe_failure_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
+								? `${EnvProvider.get().getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_success.svg`
+								: `${EnvProvider.get().getPathPrefix()}/images/newsletter-unsubscribe/unsubscribe_failure_${getUnsubscribeImageSuffix(theme.themeId)}.svg`,
 							titleText: success ? "unsubscribeSuccessful_title" : "unsubscribeFailed_title",
 							messageText: success ? "unsubscribeSuccessful_msg" : "unsubscribeFailed_msg",
 							mainActionText: "ok_action",
@@ -895,7 +895,7 @@ export class Dialog implements ModalComponent {
 					m(
 						".plr-48",
 						m(ImageWithOptionsDialog, {
-							image: `/images/imap-import/initialization-success.svg`,
+							image: `${EnvProvider.get().getPathPrefix()}/images/imap-import/initialization-success.svg`,
 							titleText: "migrationSetupComplete_title",
 							messageText: "migrationSetupFinished_msg",
 							mainActionText: "ok_action",

@@ -350,7 +350,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `/images/leaving-wizard/feature.svg`,
+							path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/feature.svg`,
 						}),
 					),
 					m("", lang.getTranslationText("subscriptionSettingsFreePlan_label")),

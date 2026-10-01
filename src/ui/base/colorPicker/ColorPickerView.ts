@@ -7,7 +7,7 @@ import { px, size } from "../../size"
 import { Checkbox } from "../Checkbox"
 import { lang } from "../../utils/LanguageViewModel"
 import { TextField } from "../TextField"
-import { TabIndex } from "@tutao/app-env"
+import { EnvProvider, TabIndex } from "@tutao/app-env"
 import { isKeyPressed } from "../../utils/KeyManager"
 import { Keys } from "../../utils/KeyboardKeys"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
@@ -321,7 +321,7 @@ export class ColorPickerView implements Component<ColorPickerViewAttrs> {
 						},
 					},
 					m("img.block.full-width", {
-						src: `/images/color-hue-picker/hue-gradient-${isDarkTheme() ? "dark" : "light"}.png`,
+						src: `${EnvProvider.get().getPathPrefix()}/images/color-hue-picker/hue-gradient-${isDarkTheme() ? "dark" : "light"}.png`,
 						alt: "",
 						draggable: false,
 						style: {

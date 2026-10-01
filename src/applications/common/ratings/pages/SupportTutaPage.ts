@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../../../ui/base/Dialog.js"
 import { ImageWithOptionsDialog } from "../../../../ui/dialogs/ImageWithOptionsDialog.js"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey.js"
 import { locator } from "../../api/main/CommonLocator.js"
-import { UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { showUpgradeDialog } from "../../gui/nav/NavFunctions.js"
 import { windowFacade } from "../../misc/WindowFacade.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
@@ -40,7 +40,7 @@ export class SupportTutaPage implements Component<SupportTutaPageAttrs> {
 		}
 
 		return m(ImageWithOptionsDialog, {
-			image: `/images/dynamic-color-svg/off-surveillance.svg`,
+			image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/off-surveillance.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingSupportTuta_title",
 			messageText: "ratingSupportTuta_msg",

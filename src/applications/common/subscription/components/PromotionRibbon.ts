@@ -7,6 +7,7 @@ import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg"
 import { Styles } from "../../../../ui/styles"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
+import { EnvProvider } from "@tutao/app-env"
 
 interface PromotionRibbonAttrs {
 	translation: Translation
@@ -40,7 +41,7 @@ export class PromotionRibbon implements Component<PromotionRibbonAttrs> {
 					},
 
 					m(DynamicColorSvg, {
-						path: `/images/dynamic-color-svg/birthday-hat.svg`,
+						path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/birthday-hat.svg`,
 					}),
 				),
 			m(

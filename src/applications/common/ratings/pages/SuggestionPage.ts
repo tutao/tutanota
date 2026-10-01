@@ -12,6 +12,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 import { createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
+import { EnvProvider } from "@tutao/app-env"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
@@ -38,7 +39,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						},
 					},
 					m(DynamicColorSvg, {
-						path: `/images/dynamic-color-svg/on-your-mind.svg`,
+						path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/on-your-mind.svg`,
 					}),
 				),
 				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),

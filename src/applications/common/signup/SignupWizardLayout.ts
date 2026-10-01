@@ -401,6 +401,7 @@ class SignupWizardLayout<TViewModel> implements Component<WizardLayoutAttrs<TVie
 	}
 
 	private getIllustrationPath(name: string): string {
+		// no need for ${EnvProvider.get().getPathPrefix()} here since we do not allow signup from the nextcloud app
 		return `/images/dynamic-color-svg/${name}`
 	}
 

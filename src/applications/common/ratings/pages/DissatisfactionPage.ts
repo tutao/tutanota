@@ -8,6 +8,7 @@ import { Card } from "../../../../ui/base/Card.js"
 import { px } from "../../../../ui/size.js"
 import { theme } from "../../../../ui/theme.js"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
+import { EnvProvider } from "@tutao/app-env"
 
 interface DissatisfactionPageAttrs {
 	dialog: Dialog
@@ -38,7 +39,7 @@ export class DissatisfactionPage implements Component<DissatisfactionPageAttrs> 
 					},
 				},
 				m(DynamicColorSvg, {
-					path: `/images/dynamic-color-svg/feedback.svg`,
+					path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/feedback.svg`,
 				}),
 			),
 			m(

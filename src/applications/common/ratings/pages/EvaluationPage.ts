@@ -19,7 +19,7 @@ interface EvaluationPageAttrs {
 export class EvaluationPage implements Component<EvaluationPageAttrs> {
 	view({ attrs }: Vnode<EvaluationPageAttrs>): Children {
 		return m(ImageWithOptionsDialog, {
-			image: `/images/dynamic-color-svg/love-it.svg`,
+			image: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/love-it.svg`,
 			imageStyle: { maxWidth: px(320) },
 			titleText: "ratingHowAreWeDoing_title",
 			messageText: "ratingExplanation_msg",

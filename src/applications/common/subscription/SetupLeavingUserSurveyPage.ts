@@ -3,6 +3,7 @@ import { Styles } from "../../../ui/styles.js"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { DynamicColorSvg } from "../../../ui/base/DynamicColorSvg.js"
+import { EnvProvider } from "@tutao/app-env"
 
 export interface SetupLeavingUserSurveyPageAttrs {
 	closeAction: () => void
@@ -37,7 +38,7 @@ export class SetupLeavingUserSurveyPage implements Component<SetupLeavingUserSur
 						m(
 							".pb-16.block.full-width.height-100p",
 							m(DynamicColorSvg, {
-								path: `/images/leaving-wizard/${vnode.attrs.image}.svg`,
+								path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/${vnode.attrs.image}.svg`,
 							}),
 						),
 					),

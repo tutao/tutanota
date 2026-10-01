@@ -8,7 +8,7 @@ import { windowFacade } from "../../misc/WindowFacade.js"
 import { locator } from "../../api/main/CommonLocator.js"
 import { SupportDialogState } from "../SupportDialog.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { Thunk } from "@tutao/utils"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 
@@ -36,7 +36,7 @@ export class EmailSupportUnavailablePage implements Component<EmailSupportUnavai
 							},
 						},
 						m(DynamicColorSvg, {
-							path: `/images/leaving-wizard/account.svg`,
+							path: `${EnvProvider.get().getPathPrefix()}/images/leaving-wizard/account.svg`,
 						}),
 					),
 				]),
