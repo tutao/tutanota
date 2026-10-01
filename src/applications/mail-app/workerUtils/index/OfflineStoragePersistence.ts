@@ -116,8 +116,6 @@ export type LoadedArchiveMetadata = {
 	serverHostname: string
 }
 
-export type ArchiveDownloadResumeParams = Pick<LoadedArchiveMetadata, "serverHostname"> & { rangeHeader: ArchiveDownloadRangeHeader }
-
 /**
  * Handles directly indexing mail data as well as storing mail groups' indexing timestamps.
  */

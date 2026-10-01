@@ -1,7 +1,7 @@
-import { ArchiveDownloadResumeParams, IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
+import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, abortAwareWithCleanup, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
+import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
 	collectToMap,
@@ -300,46 +300,50 @@ export class OfflineMailIndexer implements MailIndexer {
 		)
 	}
 
+	private async preparePreloadArchivesForGroup(allGroupArchives: Id[]): Promise<{ archiveId: Id; resumeParams: ArchiveDownloadResumeParams | null }[]> {
+		// sort so we load oldest archive first
+		const mappedAndSorted = allGroupArchives
+			.map((archiveId) => ({ archiveId, resumeParams: null }))
+			.sort((a, b) => compareOldestFirst(a.archiveId, b.archiveId, EntityIdEncoding.Base64Ext))
+
+		const lastLoadedArchive = await this.offlineStoragePersistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)
+		if (lastLoadedArchive == null) {
+			return mappedAndSorted
+		}
+
+		let resumeParams: ArchiveDownloadResumeParams | null = null
+		const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
+		// redownload the last loaded archive if modelVersion changed
+		if (lastLoadedArchive.modelVersion === mailDetailsBlobTypeModel.version) {
+			const rangeHeader = await this.offlineStoragePersistence.getArchiveDownloadRangeHeader(
+				lastLoadedArchive.archiveId,
+				MailDetailsBlobTypeRef,
+				lastLoadedArchive.modelVersion,
+			)
+
+			if (rangeHeader != null) {
+				resumeParams = {
+					serverHostname: lastLoadedArchive.serverHostname,
+					rangeHeader,
+				}
+			}
+		}
+
+		return [
+			{
+				archiveId: lastLoadedArchive.archiveId,
+				resumeParams,
+			},
+			...mappedAndSorted.filter(({ archiveId }) => firstBiggerThanSecondBase64Ext(archiveId, lastLoadedArchive.archiveId)),
+		]
+	}
+
 	/**
 	 * @return a list of all archives
 	 */
 	private async preloadEncryptedArchivesForGroup(mailGroupId: Id): Promise<Id[]> {
 		const allArchives = await this.blobFacade.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)
-		// sort so we load oldest archive first
-		allArchives.sort((a, b) => compareOldestFirst(a, b, EntityIdEncoding.Base64Ext))
-
-		const lastLoadedArchive = await this.offlineStoragePersistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)
-		const neverLoadedArchives =
-			lastLoadedArchive == null ? allArchives : allArchives.filter((id) => firstBiggerThanSecondBase64Ext(id, lastLoadedArchive.archiveId))
-
-		const archivesToLoad: {
-			archiveId: Id
-			resumeParams: ArchiveDownloadResumeParams | null
-		}[] = neverLoadedArchives.map((archiveId) => ({ archiveId, resumeParams: null }))
-
-		// try to resume the last-loaded archive; older ones are finished, newer ones haven't even started yet
-		if (lastLoadedArchive != null) {
-			const mailDetailsBlobTypeModel = await this.mailDetailsBlobTypeModel.getAsync()
-			const rangeHeader =
-				lastLoadedArchive.modelVersion === mailDetailsBlobTypeModel.version
-					? await this.offlineStoragePersistence.getArchiveDownloadRangeHeader(
-							lastLoadedArchive.archiveId,
-							MailDetailsBlobTypeRef,
-							lastLoadedArchive.modelVersion,
-						)
-					: null
-
-			archivesToLoad.unshift({
-				archiveId: lastLoadedArchive.archiveId,
-				resumeParams:
-					rangeHeader != null
-						? {
-								serverHostname: lastLoadedArchive.serverHostname,
-								rangeHeader,
-							}
-						: null,
-			})
-		}
+		const archivesToLoad = await this.preparePreloadArchivesForGroup(allArchives)
 
 		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
 		const preloadStart = performance.now()

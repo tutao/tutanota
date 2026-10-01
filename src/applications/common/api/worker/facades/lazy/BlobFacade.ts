@@ -52,11 +52,15 @@ import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipe
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
 import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeader } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
-import { ArchiveDownloadResumeParams } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 EnvProvider.assertWorkerOrNode()
 
 export const TAG = "BlobFacade"
+
+export interface ArchiveDownloadResumeParams {
+	serverHostname: string
+	rangeHeader: ArchiveDownloadRangeHeader
+}
 
 export interface FileData {
 	data: Uint8Array<ArrayBuffer>
