@@ -14,7 +14,7 @@ import {
 	LoggedInUserProvider,
 	OwnerEncSessionKeyProvider,
 	PatchGenerator,
-	SessionKeyResolver,
+	SessionAndInstanceKeyResolver,
 	TypeModelResolver,
 } from "@tutao/instance-pipeline"
 import { CryptoNetworkHelper } from "./CryptoNetworkHelper"
@@ -91,7 +91,7 @@ export class EntityRestClient implements EntityRestInterface {
 		public readonly instancePipeline: InstancePipeline,
 		private readonly blobAccessTokenFacade: BlobAccessTokenFacade,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
+		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly entityMigrator: lazy<EntityMigrator>,
 	) {
 		this.patchGenerator = new PatchGenerator(instancePipeline)

@@ -221,6 +221,9 @@ async function createComponents(): Promise<Components> {
 			throw new ProgrammingError("trying to use group keys for alarm encryption")
 		},
 		SYMMETRIC_CIPHER_FACADE,
+		() => {
+			throw new ProgrammingError("trying to decrypt with instance key for alarm decryption")
+		},
 	)
 	const sseStorage = new SseStorage(conf)
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)

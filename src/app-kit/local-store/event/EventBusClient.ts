@@ -12,7 +12,14 @@ import {
 } from "@tutao/rest-client/error"
 import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
 import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
-import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
+import {
+	DecryptedParsedInstance,
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	SessionAndInstanceKeyResolver,
+	TypeModelResolver,
+} from "@tutao/instance-pipeline"
 import { CloseEventBusOption, ConnectMode, WsConnectionState } from "../../../platform-kit/network/Constants.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ProgressMonitorInterface } from "../../../platform-kit/network/ProgressMonitorInterface.js"
@@ -160,7 +167,7 @@ export class EventBusClient {
 		private readonly socketFactory: (path: string) => WebSocket,
 		private readonly sleepDetector: ISleepDetector,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: SessionKeyResolver,
+		private readonly sessionKeyResolver: SessionAndInstanceKeyResolver,
 		private readonly entityMigrator: EntityMigrator,
 		private readonly lastProcessedEventBatchStorageFacade: lazyAsync<LastProcessedEventBatchProvider>,
 		private readonly serverDateProvider: DateProvider,

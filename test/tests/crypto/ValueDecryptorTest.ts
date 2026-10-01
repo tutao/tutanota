@@ -17,7 +17,15 @@ import {
 import o, { assertThrows } from "@tutao/otest"
 import { AeadWithInstanceKeySubKeys, AeadWithSessionKeySubKeys, AesCbcThenHmacSubKeys, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { AssociatedData, KeyDerivationContext, MacTag, OwnerKeyProvider, VersionedAes256Key, VersionedKey } from "../../../src/platform-kit/crypto"
+import {
+	AssociatedData,
+	InstanceKeyProvider,
+	KeyDerivationContext,
+	MacTag,
+	OwnerKeyProvider,
+	VersionedAes256Key,
+	VersionedKey,
+} from "../../../src/platform-kit/crypto"
 import { AppName, AppNameEnum } from "../../../src/platform-kit/meta"
 import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
@@ -154,7 +162,8 @@ o.spec("ValueDecryptorTest", function () {
 	o.test("AeadWithInstanceKey from instance key", async function () {
 		const groupKeyVersion = 0
 		const instanceKey: VersionedAes256Key = { object: aes256RandomKey(), version: groupKeyVersion }
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, null, null, null, instanceKey)
+		const instanceKeyProvider: InstanceKeyProvider = async (groupKeyVersion) => instanceKey
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, null, null, null, instanceKeyProvider)
 		const keyVersionLengthByte = 0
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(
@@ -170,7 +179,9 @@ o.spec("ValueDecryptorTest", function () {
 		const subKeys: AeadWithInstanceKeySubKeys = object()
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext)).thenReturn(subKeys)
 		o.check(valueDecryptor.getValue()).equals(plaintext)
-		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext), { times: 1 })
+		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext), {
+			times: 1,
+		})
 		o.check(valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext), { times: 1 })
 	})

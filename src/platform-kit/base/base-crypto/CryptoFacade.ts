@@ -13,29 +13,16 @@ import {
 	Versioned,
 } from "@tutao/utils"
 import { assertWorkerOrNode, CryptoProtocolVersion, EncryptionAuthStatus, PresentableKeyVerificationState, ProgrammingError } from "@tutao/app-env"
-import {
-	assertEnumValue,
-	AttributeModel,
-	ClientTypeModel,
-	getElementId,
-	getListId,
-	idToElementId,
-	isSameId,
-	isSameSingleId,
-	isSameTypeRef,
-	stringifyId,
-} from "../../meta"
+import { assertEnumValue, AttributeModel, ClientTypeModel, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, stringifyId } from "../../meta"
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
-	AesKeyLength,
 	cryptoUtils,
 	CryptoWrapper,
 	decryptKey,
-	EncryptedKeyWithVersions,
 	encryptKey,
 	InstanceKeyProvider,
 	isPqKeyPairs,
@@ -47,7 +34,6 @@ import {
 	PublicKeyIdentifierType,
 	sha256Hash,
 	validateKdfNonceLength,
-	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
 	X25519PublicKey,
@@ -55,7 +41,7 @@ import {
 import { RecipientNotResolvedError } from "../../network/error/RecipientNotResolvedError"
 import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "../facades/UserFacade"
-import { EntityAdapter, InstancePipeline, PatchOperationType, SessionKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
+import { EntityAdapter, InstancePipeline, PatchOperationType, SessionAndInstanceKeyResolver, SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { AsymmetricCryptoFacade, AuthenticateSenderReturnType } from "./AsymmetricCryptoFacade.js"
 import PublicEncryptionKeyProvider from "./PublicEncryptionKeyProvider.js"
 import { KeyRotationFacade } from "./KeyRotationFacade.js"
@@ -74,8 +60,6 @@ import {
 	createUpdateSessionKeysPostIn,
 	GroupTypeRef,
 	InstanceKdfNonce,
-	InstanceKey,
-	InstanceKeyTypeRef,
 	InstanceSessionKey,
 	PatchListTypeRef,
 	Permission,
@@ -105,7 +89,7 @@ import { CacheManager } from "./persistence/CacheManager"
 import { InstanceSessionKeysCache } from "./persistence/InstanceSessionKeysCache"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { OutgoingServerJson } from "../../instance-pipeline/TypeMapper"
-import { convertCustomIdToKeyVersion, convertKeyVersionToCustomId } from "./KeyLoaderFacade"
+import { InstanceKeyProviderMaker } from "./InstanceKeyProviderMaker"
 
 assertWorkerOrNode()
 
@@ -121,7 +105,7 @@ export class RecipientKeyData {
 	) {}
 }
 
-export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
+export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetworkHelper {
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -137,137 +121,11 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		private readonly keyRotationFacade: lazy<KeyRotationFacade>,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sendError: (error: Error) => Promise<void>,
+		private readonly instanceKeyProviderMaker: InstanceKeyProviderMaker,
 	) {}
 
 	async makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>> {
-		const ownerGroupId = instance._ownerGroup
-		if (ownerGroupId == null) return null
-		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(instance._type)
-		const formerInstanceKeysProperty = "_formerInstanceKeys"
-		if (!Object.values(clientTypeModel.associations).some((a) => a.name === formerInstanceKeysProperty)) {
-			return null
-		}
-		// @ts-ignore
-		const formerInstanceKeys = instance[formerInstanceKeysProperty]
-		if (instance._permissions == null || formerInstanceKeys == null) {
-			return null
-		}
-
-		if (this.userFacade.hasGroup(ownerGroupId)) {
-			return null // ownerKeyProvider
-		} else {
-			const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
-			let symmetricPermission: Nullable<Permission> =
-				permissions.find(
-					(p) =>
-						// public permissions are not yet supported for decryption
-						(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
-						p._ownerGroup &&
-						userFacade.hasGroup(p._ownerGroup),
-				) ?? null
-
-			if (symmetricPermission == null || symmetricPermission.symKeyVersion == null || symmetricPermission.symEncInstanceKey == null) return null
-
-			const symEncInstanceKeyFromPermission: EncryptedKeyWithVersions = {
-				bytes: symmetricPermission.symEncInstanceKey,
-				encryptingKeyVersion: cryptoUtils.parseKeyVersion(symmetricPermission.symKeyVersion),
-				encryptedKeyVersion: cryptoUtils.parseKeyVersion(assertNotNull(symmetricPermission.instanceKeyVersion)),
-			}
-			if (symEncInstanceKeyFromPermission.encryptingKeyVersion) {
-			}
-			const permissionOwnerGroup = assertNotNull(symmetricPermission._ownerGroup)
-			symmetricPermission = null
-
-			// TODO find something better for these closure variables?
-			const userFacade = this.userFacade
-			const symGroupKeyLoader = this.symGroupKeyLoader
-			const findFormerInstanceKey = this.findFormerInstanceKey
-			return async function (requestedInstanceKeyVersion: KeyVersion): Promise<VersionedAes256Key> {
-				const permissionOwnerGroupKey = await symGroupKeyLoader.loadSymGroupKey(
-					permissionOwnerGroup,
-					symEncInstanceKeyFromPermission.encryptingKeyVersion,
-				)
-				const decryptedInstanceKey = {
-					object: decryptKey(permissionOwnerGroupKey, symEncInstanceKeyFromPermission.bytes, AesKeyLength.Aes256),
-					version: symEncInstanceKeyFromPermission.encryptedKeyVersion,
-				}
-
-				if (decryptedInstanceKey.version === requestedInstanceKeyVersion) return decryptedInstanceKey
-				if (decryptedInstanceKey.version < requestedInstanceKeyVersion)
-					throw new Error(
-						`instance key on the permission (version ${decryptedInstanceKey.version}) is older than the requested one (version ${requestedInstanceKeyVersion})`,
-					)
-
-				return await findFormerInstanceKey(formerInstanceKeys.list, decryptedInstanceKey, requestedInstanceKeyVersion)
-			}
-		}
-	}
-
-	private async findFormerInstanceKey(
-		formerInstanceKeysList: Id,
-		currentInstanceKey: VersionedAes256Key,
-		targetKeyVersion: KeyVersion,
-	): Promise<VersionedAes256Key> {
-		// start id is not included in the result of the range request, so we need to start at current version.
-		const startId = convertKeyVersionToCustomId(currentInstanceKey.version)
-		const amountOfKeysIncludingTarget = currentInstanceKey.version - targetKeyVersion
-
-		let formerKeys: InstanceKey[] = await this.entityClient.loadRange(
-			InstanceKeyTypeRef,
-			formerInstanceKeysList,
-			startId,
-			amountOfKeysIncludingTarget,
-			true,
-		)
-		if (amountOfKeysIncludingTarget > formerKeys.length) {
-			formerKeys = await this.fixOutdatedCache(amountOfKeysIncludingTarget, formerKeys, currentInstanceKey, formerInstanceKeysList, startId)
-		}
-
-		let lastInstanceKey = currentInstanceKey
-
-		for (const formerKey of formerKeys) {
-			const formerKeyVersion = convertCustomIdToKeyVersion(getElementId(formerKey))
-			if (formerKeyVersion + 1 === lastInstanceKey.version) {
-				lastInstanceKey = { object: decryptKey(lastInstanceKey.object, formerKey.symEncInstanceKey, AesKeyLength.Aes256), version: formerKeyVersion }
-				if (lastInstanceKey.version <= targetKeyVersion) {
-					break
-				}
-			} else if (formerKeyVersion + 1 < lastInstanceKey.version) {
-				throw new Error(`unexpected version ${formerKeyVersion}; expected ${lastInstanceKey.version}`)
-			}
-		}
-
-		if (lastInstanceKey.version !== targetKeyVersion) {
-			throw new Error(
-				`could not get version (last version is ${lastInstanceKey.version} of ${formerKeys.length} key(s) loaded from list ${formerInstanceKeysList})`,
-			)
-		}
-
-		return lastInstanceKey
-	}
-
-	/**
-	 * Try reloading missing InstanceKey instances in a cached range.
-	 *
-	 * This can be necessary due to a race condition when processing entity event updates,
-	 * when the cache is not yet up to date.
-	 */
-	private async fixOutdatedCache(
-		amountOfKeysIncludingTarget: number,
-		formerKeys: InstanceKey[],
-		currentInstanceKey: VersionedAes256Key,
-		formerKeysList: string,
-		startId: string,
-	): Promise<InstanceKey[]> {
-		const missingInstanceKeyIds: Id[] = []
-		for (let i = 1; i <= amountOfKeysIncludingTarget; i++) {
-			const versionToCheck = convertKeyVersionToCustomId(cryptoUtils.checkKeyVersionConstraints(currentInstanceKey.version - i))
-			if (!formerKeys.some((formerKey) => isSameSingleId(getElementId(formerKey), versionToCheck))) {
-				missingInstanceKeyIds.push(versionToCheck)
-			}
-		}
-		await this.entityClient.loadMultiple(InstanceKeyTypeRef, formerKeysList, missingInstanceKeyIds)
-		return await this.entityClient.loadRange(InstanceKeyTypeRef, formerKeysList, startId, amountOfKeysIncludingTarget, true)
+		return this.instanceKeyProviderMaker.makeInstanceKeyProvider(instance)
 	}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */

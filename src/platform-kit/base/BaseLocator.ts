@@ -56,6 +56,7 @@ import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyT
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
 import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
+import { InstanceKeyProviderMaker } from "./base-crypto/InstanceKeyProviderMaker"
 
 export type BaseLocator = {
 	cryptoWrapper: CryptoWrapper
@@ -80,6 +81,7 @@ export type BaseLocator = {
 	login: LoginFacade
 	entropyFacade: EntropyFacade
 	rolloutFacade: RolloutFacade
+	instanceKeyProviderMaker: InstanceKeyProviderMaker
 	crypto: CryptoFacade
 	instanceKey: InstanceKeyFacade
 
@@ -183,7 +185,14 @@ export async function createBaseLocator({
 
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
-	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE, user)
+	let instanceKeyProviderMaker: InstanceKeyProviderMaker
+	const instancePipeline = new InstancePipeline(
+		typeModelResolver,
+		() => keyLoader,
+		SYMMETRIC_CIPHER_FACADE,
+		user,
+		() => instanceKeyProviderMaker,
+	)
 	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform)).addMiddleware(
 		new UpdateAppTypesHashMiddleware(serverModelInfo),
 	)
@@ -264,6 +273,7 @@ export async function createBaseLocator({
 
 	// Declared before crypto because it's captured by the lazy callback inside CryptoFacade
 	let keyRotation: KeyRotationFacade
+	instanceKeyProviderMaker = new InstanceKeyProviderMaker(user, cachingEntityClient, keyLoader, typeModelResolver)
 	crypto = new CryptoFacade(
 		user,
 		cachingEntityClient,
@@ -281,6 +291,7 @@ export async function createBaseLocator({
 		async (error: Error) => {
 			await worker.sendError(error)
 		},
+		instanceKeyProviderMaker,
 	)
 
 	const instanceKey = new InstanceKeyFacade(adminKeyLoader, keyLoader, crypto, typeModelResolver, cachingEntityClient, cryptoWrapper, serviceExecutor)
@@ -424,6 +435,7 @@ export async function createBaseLocator({
 		login,
 		entropyFacade,
 		rolloutFacade,
+		instanceKeyProviderMaker,
 		crypto,
 		instanceKey,
 		counters,

@@ -37,7 +37,7 @@ export interface OwnerEncSessionKeyProvider {
 	(instanceElementId: Id, entity: Entity): Promise<VersionedEncryptedKey>
 }
 
-export interface SessionKeyResolver {
+export interface SessionAndInstanceKeyResolver {
 	/**
 	 * Returns the session key for the provided type/instance:
 	 * * null, if the instance is unencrypted
@@ -92,7 +92,7 @@ export class PatchMerger {
 		private readonly cacheStorage: GetOrPutInstance,
 		public readonly instancePipeline: InstancePipeline,
 		private readonly typeModelResolver: TypeModelResolver,
-		private readonly sessionKeyResolver: lazy<SessionKeyResolver>,
+		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 	) {}
 

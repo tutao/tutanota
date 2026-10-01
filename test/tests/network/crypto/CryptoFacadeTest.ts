@@ -86,6 +86,7 @@ import { GroupType, PermissionType } from "../../../../src/entities/sys/Utils"
 import { CacheManager } from "../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 import { InstanceDirection, ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceKeyProviderMaker } from "../../../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 
 const { anything, argThat } = matchers
 
@@ -123,6 +124,7 @@ o.spec("CryptoFacadeTest", function () {
 	let typeModelResolver: TypeModelResolver
 	let cryptoWrapper: CryptoWrapper
 	let instanceSessionKeysCache: InstanceSessionKeysCache
+	let instanceKeyProviderMaker: InstanceKeyProviderMaker
 
 	async function prepareBucketKeyInstance(
 		bucketEncMailSessionKey: Uint8Array<ArrayBuffer>,
@@ -201,6 +203,7 @@ o.spec("CryptoFacadeTest", function () {
 		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 		cryptoWrapper = new CryptoWrapper()
 		instanceSessionKeysCache = object()
+		instanceKeyProviderMaker = object()
 
 		crypto = new CryptoFacade(
 			userFacade,
@@ -219,6 +222,7 @@ o.spec("CryptoFacadeTest", function () {
 			async () => {
 				noOp()
 			},
+			instanceKeyProviderMaker,
 		)
 	})
 

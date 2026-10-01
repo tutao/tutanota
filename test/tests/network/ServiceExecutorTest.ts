@@ -73,6 +73,7 @@ o.spec("ServiceExecutor", function () {
 			() => null!,
 			new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER),
 			authDataProvider,
+			() => object(),
 		)
 		sessionKey = aes256RandomKey()
 

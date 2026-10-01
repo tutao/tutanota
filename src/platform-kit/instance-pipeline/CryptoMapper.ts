@@ -13,6 +13,7 @@ import {
 	IdType,
 	isSameTypeRef,
 	ModelValue,
+	PersistentEntity,
 	ServerTypeModel,
 	TypeModel,
 	TypeRef,
@@ -69,6 +70,10 @@ export interface SymmetricGroupKeyLoader {
 	getCurrentSymGroupKey(groupId: Id): Promise<VersionedKey>
 	loadCurrentKeyPair(groupId: Id, currentGroupKey: Nullable<VersionedKey>): Promise<Versioned<AsymmetricKeyPair>>
 	loadSymUserGroupKey(requestedVersion: KeyVersion): Promise<AesKey>
+}
+
+export interface InstanceKeyProviderMakerInterface {
+	makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>>
 }
 
 export abstract class LoggedInUserProvider {

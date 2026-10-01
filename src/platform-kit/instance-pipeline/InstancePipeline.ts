@@ -1,4 +1,4 @@
-import { CryptoMapper, EncryptedParsedInstance, LoggedInUserProvider, SymmetricGroupKeyLoader } from "./CryptoMapper"
+import { CryptoMapper, EncryptedParsedInstance, InstanceKeyProviderMakerInterface, LoggedInUserProvider, SymmetricGroupKeyLoader } from "./CryptoMapper"
 import { ModelMapper } from "./ModelMapper"
 import { lazy, Nullable } from "@tutao/utils"
 import {
@@ -33,6 +33,7 @@ export class InstancePipeline {
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly loggedInUserProvider: Nullable<LoggedInUserProvider>,
+		private readonly instanceKeyProviderMaker: lazy<InstanceKeyProviderMakerInterface>,
 	) {
 		this.modelMapper = new ModelMapper(typeModelResolver)
 		this.typeMapper = new TypeMapper(typeModelResolver)
@@ -43,8 +44,9 @@ export class InstancePipeline {
 		typeModelResolver: ClientOnlyTypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		symmetricCipherFacade: SymmetricCipherFacade,
+		instanceKeyProviderMaker: lazy<InstanceKeyProviderMakerInterface>,
 	): InstancePipeline {
-		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null)
+		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null, instanceKeyProviderMaker)
 	}
 
 	private getSubKeyInfo(sessionKey: Nullable<AesKey>): Nullable<SubKeyInfo> {
@@ -121,7 +123,7 @@ export class InstancePipeline {
 			sk,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
-			null, // TODO
+			await this.instanceKeyProviderMaker().makeInstanceKeyProvider(entityAdapter),
 			instanceTypeId,
 			instancePath,
 		)
