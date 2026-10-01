@@ -23,7 +23,7 @@ export class EntityAdapter implements Entity {
 		const encBucketKeyParsedInstance = encryptedParsedInstance.getAttributeByNameOrNull("bucketKey")?.getNullWhenNull()?.asNestedObjList().at(0) ?? null
 		if (isNotNull(encBucketKeyParsedInstance)) {
 			// since, bucket key is really not encrypted entity, we can just parse it to instance
-			const decryptedBucketKey = await cryptoMapper.decryptParsedInstance(encBucketKeyParsedInstance, null, null, null)
+			const decryptedBucketKey = await cryptoMapper.decryptParsedInstance(encBucketKeyParsedInstance, null, null, null, null)
 			bucketKey = await modelMapper.mapToInstance<BucketKey>(decryptedBucketKey)
 		}
 

@@ -458,6 +458,7 @@ export class EventBusClient {
 					sessionKey,
 					validateKdfNonceLength(entityAdapter._kdfNonce),
 					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+					await this.sessionKeyResolver.makeInstanceKeyProvider(entityAdapter),
 				)
 
 				// we do not want to process the instance if there are _errors (when decrypting)
@@ -473,6 +474,7 @@ export class EventBusClient {
 							sessionKey,
 							validateKdfNonceLength(entityAdapter._kdfNonce),
 							this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+							await this.sessionKeyResolver.makeInstanceKeyProvider(entityAdapter),
 						)
 						return { parsedInstance, parsedBlobInstance }
 					}

@@ -19,7 +19,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
-import { Aes256Key, AesKey } from "../../encryption/symmetric/AesKey"
+import { AesKey } from "../../encryption/symmetric/AesKey"
 import { AssociatedData, KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 export interface OwnerKeyProvider {
@@ -27,7 +27,7 @@ export interface OwnerKeyProvider {
 }
 
 export interface InstanceKeyProvider {
-	(instanceKeyVersion: KeyVersion): Promise<Nullable<Aes256Key>>
+	(instanceKeyVersion: KeyVersion): Promise<VersionedAes256Key>
 }
 
 export class InstanceDecryptor {
@@ -112,8 +112,7 @@ export class InstanceDecryptor {
 		if (instanceKeyProvider == null) {
 			throw new CryptoError("Cannot get instance key. Missing instance key provider.")
 		}
-		const instanceKey = await instanceKeyProvider(requiredInstanceKeyVersion)
-		return { object: instanceKey, version: requiredInstanceKeyVersion }
+		return await instanceKeyProvider(requiredInstanceKeyVersion)
 	}
 
 	public async updateForTransferAggregatedType(keyDerivationContext: KeyDerivationContext): Promise<InstanceDecryptor> {

@@ -3,7 +3,7 @@
 // apply patch operations using a similar logic from the server
 // update the instance in the offline db
 
-import { AssociationReprType, Entity, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, TypeRef } from "../meta"
+import { AssociationReprType, Entity, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, Nullable } from "@tutao/utils"
 import {
@@ -14,7 +14,15 @@ import {
 	InstancePipeline,
 	PatchOperationError,
 } from "@tutao/instance-pipeline"
-import { AesKey, InstanceDecryptor, OwnerKeyProvider, SymmetricCipherFacade, validateKdfNonceLength, VersionedEncryptedKey } from "@tutao/crypto"
+import {
+	AesKey,
+	InstanceDecryptor,
+	InstanceKeyProvider,
+	OwnerKeyProvider,
+	SymmetricCipherFacade,
+	validateKdfNonceLength,
+	VersionedEncryptedKey,
+} from "@tutao/crypto"
 import { CryptoError } from "@tutao/crypto/error"
 import { ServerTypeModel } from "@tutao/meta"
 import { PatchOperationType } from "./PatchGenerator.js"
@@ -52,6 +60,13 @@ export interface SessionKeyResolver {
 	 *
 	 */
 	resolveServiceSessionKey(instance: EntityAdapter): Promise<AesKey | null>
+
+	/**
+	 * Return an instance key provider if possible and needed for the instance.
+	 * Needed if the instance is encrypted with instance keys, and we cannot get the ownerGroupKey.
+	 * @param instance
+	 */
+	makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>>
 }
 /*
  * Note:

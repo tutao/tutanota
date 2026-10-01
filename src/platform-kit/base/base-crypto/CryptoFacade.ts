@@ -28,7 +28,6 @@ import {
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
-	Aes256Key,
 	aes256RandomKey,
 	aesEncrypt,
 	AesKey,
@@ -36,6 +35,7 @@ import {
 	cryptoUtils,
 	CryptoWrapper,
 	decryptKey,
+	EncryptedKeyWithVersions,
 	encryptKey,
 	InstanceKeyProvider,
 	isPqKeyPairs,
@@ -157,37 +157,48 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			return null // ownerKeyProvider
 		} else {
 			const permissions = await this.entityClient.loadAll(PermissionTypeRef, instance._permissions)
+			let symmetricPermission: Nullable<Permission> =
+				permissions.find(
+					(p) =>
+						// public permissions are not yet supported for decryption
+						(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
+						p._ownerGroup &&
+						userFacade.hasGroup(p._ownerGroup),
+				) ?? null
+
+			if (symmetricPermission == null || symmetricPermission.symKeyVersion == null || symmetricPermission.symEncInstanceKey == null) return null
+
+			const symEncInstanceKeyFromPermission: EncryptedKeyWithVersions = {
+				bytes: symmetricPermission.symEncInstanceKey,
+				encryptingKeyVersion: cryptoUtils.parseKeyVersion(symmetricPermission.symKeyVersion),
+				encryptedKeyVersion: cryptoUtils.parseKeyVersion(assertNotNull(symmetricPermission.instanceKeyVersion)),
+			}
+			if (symEncInstanceKeyFromPermission.encryptingKeyVersion) {
+			}
+			const permissionOwnerGroup = assertNotNull(symmetricPermission._ownerGroup)
+			symmetricPermission = null
+
+			// TODO find something better for these closure variables?
 			const userFacade = this.userFacade
 			const symGroupKeyLoader = this.symGroupKeyLoader
 			const findFormerInstanceKey = this.findFormerInstanceKey
-			return async function (requestedInstanceKeyVersion: KeyVersion): Promise<Nullable<Aes256Key>> {
-				const symmetricPermission: Nullable<Permission> =
-					permissions.find(
-						(p) =>
-							// public permissions are not yet supported for decryption
-							(p.type === PermissionType.Public_Symmetric || p.type === PermissionType.Symmetric) &&
-							p._ownerGroup &&
-							userFacade.hasGroup(p._ownerGroup),
-					) ?? null
-
-				if (symmetricPermission?.symKeyVersion == null || symmetricPermission.symEncInstanceKey == null) return null
-
+			return async function (requestedInstanceKeyVersion: KeyVersion): Promise<VersionedAes256Key> {
 				const permissionOwnerGroupKey = await symGroupKeyLoader.loadSymGroupKey(
-					assertNotNull(symmetricPermission._ownerGroup),
-					cryptoUtils.parseKeyVersion(symmetricPermission.symKeyVersion),
+					permissionOwnerGroup,
+					symEncInstanceKeyFromPermission.encryptingKeyVersion,
 				)
-				const decryptedInstanceKey = decryptKey(permissionOwnerGroupKey, assertNotNull(symmetricPermission.symEncInstanceKey), AesKeyLength.Aes256)
-				const decryptedInstanceKeyVersion = cryptoUtils.parseKeyVersion(assertNotNull(symmetricPermission.instanceKeyVersion))
+				const decryptedInstanceKey = {
+					object: decryptKey(permissionOwnerGroupKey, symEncInstanceKeyFromPermission.bytes, AesKeyLength.Aes256),
+					version: symEncInstanceKeyFromPermission.encryptedKeyVersion,
+				}
 
-				if (decryptedInstanceKeyVersion === requestedInstanceKeyVersion) return decryptedInstanceKey
-				if (decryptedInstanceKeyVersion < requestedInstanceKeyVersion) return null
+				if (decryptedInstanceKey.version === requestedInstanceKeyVersion) return decryptedInstanceKey
+				if (decryptedInstanceKey.version < requestedInstanceKeyVersion)
+					throw new Error(
+						`instance key on the permission (version ${decryptedInstanceKey.version}) is older than the requested one (version ${requestedInstanceKeyVersion})`,
+					)
 
-				const formerInstanceKey = await findFormerInstanceKey(
-					formerInstanceKeys.list,
-					{ object: decryptedInstanceKey, version: decryptedInstanceKeyVersion },
-					requestedInstanceKeyVersion,
-				)
-				return formerInstanceKey.instanceKey
+				return await findFormerInstanceKey(formerInstanceKeys.list, decryptedInstanceKey, requestedInstanceKeyVersion)
 			}
 		}
 	}
@@ -196,7 +207,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		formerInstanceKeysList: Id,
 		currentInstanceKey: VersionedAes256Key,
 		targetKeyVersion: KeyVersion,
-	): Promise<{ instanceKey: Aes256Key; instanceKeyInstance: InstanceKey }> {
+	): Promise<VersionedAes256Key> {
 		// start id is not included in the result of the range request, so we need to start at current version.
 		const startId = convertKeyVersionToCustomId(currentInstanceKey.version)
 		const amountOfKeysIncludingTarget = currentInstanceKey.version - targetKeyVersion
@@ -212,29 +223,27 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 			formerKeys = await this.fixOutdatedCache(amountOfKeysIncludingTarget, formerKeys, currentInstanceKey, formerInstanceKeysList, startId)
 		}
 
-		let lastVersion = currentInstanceKey.version
-		let lastInstanceKey = currentInstanceKey.object
-		let lastInstanceKeyInstance: Nullable<InstanceKey> = null
+		let lastInstanceKey = currentInstanceKey
 
 		for (const formerKey of formerKeys) {
 			const formerKeyVersion = convertCustomIdToKeyVersion(getElementId(formerKey))
-			if (formerKeyVersion + 1 === lastVersion) {
-				lastInstanceKey = decryptKey(lastInstanceKey, formerKey.symEncInstanceKey, AesKeyLength.Aes256)
-				lastVersion = formerKeyVersion
-				lastInstanceKeyInstance = formerKey
-				if (lastVersion <= targetKeyVersion) {
+			if (formerKeyVersion + 1 === lastInstanceKey.version) {
+				lastInstanceKey = { object: decryptKey(lastInstanceKey.object, formerKey.symEncInstanceKey, AesKeyLength.Aes256), version: formerKeyVersion }
+				if (lastInstanceKey.version <= targetKeyVersion) {
 					break
 				}
-			} else if (formerKeyVersion + 1 < lastVersion) {
-				throw new Error(`unexpected version ${formerKeyVersion}; expected ${lastVersion}`)
+			} else if (formerKeyVersion + 1 < lastInstanceKey.version) {
+				throw new Error(`unexpected version ${formerKeyVersion}; expected ${lastInstanceKey.version}`)
 			}
 		}
 
-		if (lastVersion !== targetKeyVersion || !lastInstanceKeyInstance) {
-			throw new Error(`could not get version (last version is ${lastVersion} of ${formerKeys.length} key(s) loaded from list ${formerInstanceKeysList})`)
+		if (lastInstanceKey.version !== targetKeyVersion) {
+			throw new Error(
+				`could not get version (last version is ${lastInstanceKey.version} of ${formerKeys.length} key(s) loaded from list ${formerInstanceKeysList})`,
+			)
 		}
 
-		return { instanceKey: lastInstanceKey, instanceKeyInstance: lastInstanceKeyInstance }
+		return lastInstanceKey
 	}
 
 	/**
@@ -546,7 +555,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		encryptionAuthStatus: EncryptionAuthStatus | null,
 		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
-		instance: Entity,
+		instance: PersistentEntity,
 		resolvedSessionKeyForInstance: AesKey,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
@@ -590,7 +599,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 		}
 	}
 
-	private async getDecryptedMailFromAdapter(instance: Entity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
+	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: AesKey): Promise<Mail> {
 		if (instance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
@@ -598,7 +607,7 @@ export class CryptoFacade implements SessionKeyResolver, CryptoNetworkHelper {
 				resolvedSessionKeyForInstance,
 				validateKdfNonceLength(instance._kdfNonce ?? null),
 				this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(instance._ownerGroup ?? null),
-				null,
+				await this.makeInstanceKeyProvider(instance),
 			)
 			return await this.instancePipeline.modelMapper.mapToInstance<Mail>(parsedInstance)
 		} else {

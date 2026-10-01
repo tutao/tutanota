@@ -121,6 +121,7 @@ export class InstancePipeline {
 			sk,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
+			null, // TODO
 			instanceTypeId,
 			instancePath,
 		)
