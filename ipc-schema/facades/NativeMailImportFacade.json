@@ -3,7 +3,7 @@
 	"type": "facade",
 	"senders": ["web"],
 	"receivers": ["desktop"],
-	"doc": "Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.",
+	"doc": "Facade implemented by the native desktop client enabling mail imports from files.",
 	"methods": {
 		"getResumableImport": {
 			"doc": "@returns the mail import state id of the import that might be resumed",

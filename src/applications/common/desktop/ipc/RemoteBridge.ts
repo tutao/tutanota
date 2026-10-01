@@ -1,9 +1,9 @@
-import { CommonNativeFacade, DesktopFacade, ImapSyncFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { CommonNativeFacade, DesktopFacade, MigrationSyncFacade } from "@tutao/native-bridge/generatedIpc/types"
 import {
 	CommonNativeFacadeSendDispatcher,
 	DesktopFacadeSendDispatcher,
 	DesktopGlobalDispatcher,
-	ImapSyncFacadeSendDispatcher,
+	MigrationSyncFacadeSendDispatcher,
 	InterWindowEventFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
@@ -18,7 +18,7 @@ export interface SendingFacades {
 	commonNativeFacade: CommonNativeFacade
 	interWindowEventSender: InterWindowEventFacadeSendDispatcher
 	windowCleanup: WindowCleanup
-	imapSyncFacade: ImapSyncFacade
+	migrationSyncFacade: MigrationSyncFacade
 }
 
 const primaryIpcConfig: IpcConfig<"to-main", "to-renderer"> = {
@@ -82,7 +82,7 @@ export class RemoteBridge {
 			commonNativeFacade: new CommonNativeFacadeSendDispatcher(nativeInterface),
 			interWindowEventSender: new InterWindowEventFacadeSendDispatcher(nativeInterface),
 			windowCleanup,
-			imapSyncFacade: new ImapSyncFacadeSendDispatcher(nativeInterface),
+			migrationSyncFacade: new MigrationSyncFacadeSendDispatcher(nativeInterface),
 		}
 	}
 

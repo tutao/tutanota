@@ -54,7 +54,7 @@ import { BrowserData } from "../../../../platform-kit/app-env/boot/ClientConstan
 import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
-import { MailboxImporter } from "../imapimport/MailboxImporter"
+import { MailboxImporter } from "../migration/MailboxImporter"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -102,7 +102,7 @@ export interface WorkerInterface {
 	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
-	readonly imapImporter: MailboxImporter
+	readonly mailboxImporter: MailboxImporter
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -325,8 +325,8 @@ export class WorkerImpl implements NativeInterface {
 			async driveFacade() {
 				return locator.driveFacade()
 			},
-			async imapImporter() {
-				return locator.imapImporter()
+			async mailboxImporter() {
+				return locator.mailboxImporter()
 			},
 		}
 	}

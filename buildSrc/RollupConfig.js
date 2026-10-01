@@ -354,7 +354,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/calendar-app/worker") ||
 		isIn("src/applications/mail-app/workerUtils/offline") ||
 		isIn("src/applications/drive-app/workerUtils") ||
-		isIn("src/applications/mail-app/workerUtils/imapimport")
+		isIn("src/applications/mail-app/workerUtils/migration")
 	) {
 		return "worker"
 	} else if (moduleId.includes("pow-worker") || moduleId.includes("ProofOfWorkCaptchaUtils")) {

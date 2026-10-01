@@ -1,0 +1,409 @@
+import o from "@tutao/otest"
+import {
+	getFolderSyncStateForMailboxPath,
+	guessServerMigrationParamsFromEmail,
+	migrationMailToImportMailParams,
+	labelsFromMigrationLabels,
+	migrationSyncStateToMigrationCredentials,
+	oAuthTokenToTokenEndpointResponse,
+	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
+} from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationImportUtils.js"
+import type { TokenEndpointResponse } from "oauth4webapi"
+import { createTestEntity } from "../../../../TestUtils"
+import {
+	MigrationMail,
+	MigrationMailAddress,
+	MigrationMailAttachment,
+	MigrationMailAttachmentDisposition,
+} from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationMail"
+import { MigrationMailboxSpecialUse } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationMailbox"
+import { MailMethod, MailState, ReplyType } from "../../../../../../src/entities/tutanota/Utils"
+import {
+	MailboxMigrationFolderSyncStateTypeRef,
+	MailboxMigrationImapConfigurationTypeRef,
+	MailboxMigrationSyncStateTypeRef,
+	OAuthTokenEndpointResponseLegacyTypeRef,
+} from "@tutao/entities/tutanota"
+import { UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import { MigrationImportAttachments, MigrationImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
+import { MailboxMigrationProvider } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+
+o.spec("MigrationImportUtils", () => {
+	o.spec("guessServerMigrationParamsFromEmail", () => {
+		o.test("guesses correctly for gmx and web.de", () => {
+			o.check(guessServerMigrationParamsFromEmail("test@gmx.de")?.host).equals("imap.gmx.net")
+			o.check(guessServerMigrationParamsFromEmail("user@web.de")?.host).equals("imap.web.de")
+		})
+
+		o.test("returns null in case there is no match", () => {
+			o.check(guessServerMigrationParamsFromEmail("test@test.com")).equals(null)
+			o.check(guessServerMigrationParamsFromEmail("test@thisshouldnotexist.de")).equals(null)
+		})
+	})
+
+	o.spec("migrationSyncStateToMigrationCredentials", () => {
+		o.test("converts to ImapCredentials without token", () => {
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					sharedUsername: "user@test.com",
+					sharedPassword: "secret",
+					sharedOauthToken: null,
+				}),
+				legacyProvider: MailboxMigrationProvider.Other.toString(),
+			})
+			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
+			o.check(result.host).equals("imap.test.com")
+			o.check(result.port).equals(993)
+			o.check(result.username).equals("user@test.com")
+			o.check(result.password).equals("secret")
+			o.check(result.tokenEndpointResponse).equals(undefined)
+			o.check(result.provider).equals(MailboxMigrationProvider.Other)
+		})
+
+		o.test("converts with token endpoint response", () => {
+			const tokenResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
+				accessToken: "access123",
+				refreshToken: "refresh456",
+				expiresIn: "3600",
+				tokenType: "Bearer",
+			})
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					sharedUsername: "user@test.com",
+					sharedPassword: null,
+					sharedOauthToken: tokenResponseMock,
+				}),
+				legacyProvider: MailboxMigrationProvider.Gmail.toString(),
+			})
+			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
+			o.check(result.tokenEndpointResponse!.access_token).equals("access123")
+			o.check(result.tokenEndpointResponse!.refresh_token).equals("refresh456")
+			o.check(result.tokenEndpointResponse!.expires_in).equals(3600)
+			o.check(result.tokenEndpointResponse!.token_type.toLowerCase()).equals("bearer")
+			o.check(result.provider).equals(MailboxMigrationProvider.Gmail)
+		})
+
+		o.test("prefers shared credential and provider when present", () => {
+			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
+				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
+					host: "imap.test.com",
+					port: "993",
+					sharedUsername: "fallback@test.com",
+					sharedPassword: "fallbackSecret",
+					sharedOauthToken: null,
+				}),
+				legacyProvider: MailboxMigrationProvider.Other.toString(),
+			})
+			const userMigrationInformationMock = createTestEntity(UserMigrationInformationTypeRef, {
+				provider: MailboxMigrationProvider.Outlook.toString(),
+				credential: {
+					_id: "credentialId",
+					username: "user@outlook.com",
+					password: "secret",
+					oAuthToken: null,
+				} as any,
+			})
+			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, userMigrationInformationMock)
+			o.check(result.username).equals("fallback@test.com")
+			o.check(result.password).equals("fallbackSecret")
+			o.check(result.provider).equals(MailboxMigrationProvider.Outlook)
+		})
+	})
+
+	o.spec("oAuthTokenLikeToTokenEndpointResponse", () => {
+		o.test("converts with all fields", () => {
+			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
+				accessToken: "access123",
+				refreshToken: "refresh456",
+				expiresIn: "7200",
+				tokenType: "Bearer",
+			})
+			const result = oAuthTokenToTokenEndpointResponse(tutaResponseMock)
+			o.check(result.access_token).equals("access123")
+			o.check(result.refresh_token).equals("refresh456")
+			o.check(result.expires_in).equals(7200)
+			o.check(result.token_type.toLowerCase()).equals("bearer")
+		})
+
+		o.test("handles null refreshToken and expiresIn", () => {
+			const tutaResponseMock = createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
+				accessToken: "access123",
+				refreshToken: null,
+				expiresIn: null,
+				tokenType: "Bearer",
+			})
+			const result = oAuthTokenToTokenEndpointResponse(tutaResponseMock)
+			o.check(result.refresh_token).equals(undefined)
+			o.check(result.expires_in).equals(undefined)
+		})
+	})
+
+	o.spec("tokenEndpointResponseToOAuthTokenEndpointResponseLegacy", () => {
+		o.test("converts with all fields", () => {
+			const oauthResponseMock: TokenEndpointResponse = {
+				access_token: "access456",
+				refresh_token: "refresh789",
+				expires_in: 3600,
+				token_type: "bearer",
+			}
+			const result = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(oauthResponseMock)
+			o.check(result.accessToken).equals("access456")
+			o.check(result.refreshToken).equals("refresh789")
+			o.check(result.expiresIn).equals("3600")
+			o.check(result.tokenType).equals("bearer")
+		})
+
+		o.test("handles missing refresh_token and expires_in", () => {
+			const oauthResponseMock: TokenEndpointResponse = {
+				access_token: "access456",
+				token_type: "bearer",
+			}
+			const result = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(oauthResponseMock)
+			o.check(result.accessToken).equals("access456")
+			o.check(result.refreshToken).equals(null)
+			o.check(result.expiresIn).equals(null)
+		})
+	})
+
+	o.spec("getFolderSyncStateForMailboxPath", () => {
+		o.test("returns the folder with matching path", () => {
+			const folder1Mock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, { sourceId: "INBOX" })
+			const folder2Mock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, { sourceId: "Sent" })
+			const result = getFolderSyncStateForMailboxPath("Sent", [folder1Mock, folder2Mock])
+			o.check(result).equals(folder2Mock)
+		})
+
+		o.test("returns null if no match", () => {
+			const folderMock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, { sourceId: "INBOX" })
+			const result = getFolderSyncStateForMailboxPath("Drafts", [folderMock])
+			o.check(result).equals(null)
+		})
+	})
+
+	o.spec("migrationMailToImportMailParams", () => {
+		let migrationMail: MigrationMail
+		let folderSyncStateIdMock: IdTuple
+
+		const folderSyncStatesMock = [
+			createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
+				sourceId: "INBOX",
+				specialUse: MigrationMailboxSpecialUse.INBOX,
+				mailSet: ["mailSetsListId", "inboxLabelSet"],
+			}),
+			createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
+				sourceId: "[Google Mail]/Important",
+				specialUse: MigrationMailboxSpecialUse.IMPORTANT,
+				mailSet: ["mailSetsListId", "importantLabelSet"],
+			}),
+			createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
+				sourceId: "Drafts",
+				specialUse: MigrationMailboxSpecialUse.DRAFTS,
+				mailSet: ["mailSetsListId", "draftsLabelSet"],
+			}),
+			createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
+				sourceId: "Custom",
+				specialUse: null,
+				mailSet: ["mailSetsListId", "customLabelSet"],
+			}),
+		]
+
+		o.beforeEach(() => {
+			folderSyncStateIdMock = ["listId", "elementId"]
+			migrationMail = {
+				sourceId: "123",
+				modSeq: 456n,
+				belongsToMailbox: { path: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
+				flags: new Set(),
+				internalDate: new Date(2024, 0, 1),
+				envelope: {
+					date: new Date(2024, 0, 1),
+					subject: "Test subject",
+					from: [{ address: "sender@example.com", name: "Sender" }],
+					sender: [{ address: "sender@example.com", name: "Sender" }],
+					to: [{ address: "to@example.com", name: "Recipient" }],
+					cc: [],
+					bcc: [],
+					replyTo: [],
+					messageId: "msg123",
+					references: [],
+				},
+				body: {
+					plaintext: "Plain text body",
+					html: "<p>HTML body</p>",
+				},
+				attachments: [],
+				headers: "Header: value",
+				labels: new Set(["\\Important", "Custom", "RandomLabelNotToBeApplied"]),
+			}
+		})
+
+		o.test("converts basic mail without attachments", () => {
+			migrationMail.labels?.add("\\Inbox")
+
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.subject).equals("Test subject")
+			o.check(result.bodyText).equals("<p>HTML body</p>")
+			o.check(result.sentDate).equals(migrationMail.envelope!.date)
+			o.check(result.receivedDate).equals(migrationMail.internalDate)
+			o.check(result.state).equals(MailState.RECEIVED)
+			o.check(result.unread).equals(true)
+			o.check(result.senderMailAddress).equals("sender@example.com")
+			o.check(result.senderName).equals("Sender")
+			o.check(result.method).equals(MailMethod.NONE)
+			o.check(result.replyType).equals(ReplyType.NONE)
+			o.check(result.differentEnvelopeSender).equals(null)
+			o.check(result.headers).equals("Header: value")
+			o.check(result.replyTos).deepEquals([])
+			o.check(result.toRecipients).deepEquals([{ address: "to@example.com", name: "Recipient" }])
+			o.check(result.ccRecipients).deepEquals([])
+			o.check(result.bccRecipients).deepEquals([])
+			o.check(result.attachments).deepEquals([])
+			o.check(result.inReplyTo).equals(null)
+			o.check(result.references).deepEquals([])
+			o.check(result.sourceId).equals("123")
+			o.check(result.imapModSeq).equals(456n)
+			o.check(result.mailboxMigrationFolderSyncState).equals(folderSyncStateIdMock)
+			const expectedLabels = new Set([
+				["mailSetsListId", "customLabelSet"] as IdTuple,
+				["mailSetsListId", "importantLabelSet"] as IdTuple,
+				["mailSetsListId", "inboxLabelSet"] as IdTuple,
+			])
+			o.check(new Set(result.labels)).deepEquals(expectedLabels)
+		})
+
+		o.test("converts basic mail without attachments with draft label", () => {
+			migrationMail.labels?.add("\\Draft")
+
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.subject).equals("Test subject")
+			o.check(result.bodyText).equals("<p>HTML body</p>")
+			o.check(result.sentDate).equals(migrationMail.envelope!.date)
+			o.check(result.receivedDate).equals(migrationMail.internalDate)
+			o.check(result.state).equals(MailState.DRAFT)
+			o.check(result.unread).equals(true)
+			o.check(result.senderMailAddress).equals("sender@example.com")
+			o.check(result.senderName).equals("Sender")
+			o.check(result.method).equals(MailMethod.NONE)
+			o.check(result.replyType).equals(ReplyType.NONE)
+			o.check(result.differentEnvelopeSender).equals(null)
+			o.check(result.headers).equals("Header: value")
+			o.check(result.replyTos).deepEquals([])
+			o.check(result.toRecipients).deepEquals([{ address: "to@example.com", name: "Recipient" }])
+			o.check(result.ccRecipients).deepEquals([])
+			o.check(result.bccRecipients).deepEquals([])
+			o.check(result.attachments).deepEquals([])
+			o.check(result.inReplyTo).equals(null)
+			o.check(result.references).deepEquals([])
+			o.check(result.sourceId).equals("123")
+			o.check(result.imapModSeq).equals(456n)
+			o.check(result.mailboxMigrationFolderSyncState).equals(folderSyncStateIdMock)
+			o.check(result.labels).deepEquals([
+				["mailSetsListId", "importantLabelSet"],
+				["mailSetsListId", "customLabelSet"],
+				["mailSetsListId", "draftsLabelSet"],
+			])
+		})
+
+		o.test("uses plaintext body when HTML missing", () => {
+			migrationMail.body = { plaintext: "Only plaintext \n", html: "" } as any
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.bodyText.includes("<br>")).equals(true)
+		})
+
+		o.test("handles missing subject", () => {
+			migrationMail.envelope!.subject = undefined
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.subject).equals("")
+		})
+
+		o.test("sets differentEnvelopeSender when sender differs from from", () => {
+			migrationMail.envelope!.sender = [{ address: "different@example.com", name: "Different" } as MigrationMailAddress]
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.differentEnvelopeSender).equals("different@example.com")
+		})
+
+		o.test("sets unread false when mail has \\Seen flag", () => {
+			migrationMail.flags = new Set(["\\Seen"])
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.unread).equals(false)
+		})
+
+		o.test("sets replyType correctly for flags", () => {
+			migrationMail.flags = new Set(["\\Answered"])
+			let result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.replyType).equals(ReplyType.REPLY)
+
+			migrationMail.flags = new Set(["$Forwarded"])
+			result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.replyType).equals(ReplyType.FORWARD)
+
+			migrationMail.flags = new Set(["\\Answered", "$Forwarded"])
+			result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.replyType).equals(ReplyType.REPLY_FORWARD)
+		})
+
+		o.test("sets state to SENT for Sent mailbox", () => {
+			migrationMail.belongsToMailbox = { path: "Sent", specialUse: MigrationMailboxSpecialUse.SENT }
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.state).equals(MailState.SENT)
+		})
+
+		o.test("sets state to DRAFT for Drafts mailbox", () => {
+			migrationMail.belongsToMailbox = { path: "Drafts", specialUse: MigrationMailboxSpecialUse.DRAFTS }
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.state).equals(MailState.DRAFT)
+		})
+
+		o.test("includes deduplicated attachments when provided", () => {
+			const dedupedAttachmentsMock: MigrationImportAttachments = [{ _type: "MigrationImportTutaFileId", _id: ["file", "id"] }]
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, dedupedAttachmentsMock, folderSyncStatesMock)
+			o.check(result.attachments).equals(dedupedAttachmentsMock)
+		})
+
+		o.test("converts MigrationMail attachments when no deduplicated ones", () => {
+			const attachmentMock: MigrationMailAttachment = {
+				size: 3,
+				mimeType: "text/plain",
+				disposition: MigrationMailAttachmentDisposition.Attachment,
+				filename: "test.txt",
+				content: new Uint8Array([1, 2, 3]),
+			} as MigrationMailAttachment
+			migrationMail.attachments = [attachmentMock]
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.attachments!.length).equals(1)
+			const file = result.attachments![0] as any
+			o.check(file._type).equals("DataFile")
+			o.check(file.name).equals("test.txt")
+			o.check(file.data).equals(attachmentMock.content)
+			o.check(file.size).equals(3)
+			o.check(file.mimeType).equals("text/plain")
+		})
+
+		o.test("generates filename using mimetype when missing", () => {
+			const attachmentMock: MigrationMailAttachment = {
+				size: 1,
+				mimeType: "image/png",
+				disposition: MigrationMailAttachmentDisposition.Inline,
+				content: new Uint8Array([1, 2, 3]),
+			} as MigrationMailAttachment
+			migrationMail.attachments = [attachmentMock]
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			const file = result.attachments![0] as MigrationImportDataFile
+			o.check(file.name).equals("image.png")
+		})
+
+		o.test("labelsFromMigrationLabels works correctly", () => {
+			const labels = new Set(["\\Inbox", "\\Important", "\\Draft", "Custom", "RandomLabelShouldNotBeImported"])
+			const result = labelsFromMigrationLabels(labels, folderSyncStatesMock)
+			o.check(result[0]).equals(folderSyncStatesMock[0].mailSet)
+			o.check(result[1]).equals(folderSyncStatesMock[1].mailSet)
+			o.check(result[2]).equals(folderSyncStatesMock[2].mailSet)
+			o.check(result[3]).equals(folderSyncStatesMock[3].mailSet)
+			o.check(result.length).equals(4)
+		})
+	})
+})

@@ -2,7 +2,7 @@
 
 import { UnencryptedCredentials } from "../types/UnencryptedCredentials"
 /**
- * Facade implemented by the native desktop client enabling mail imports, both from files, and via IMAP.
+ * Facade implemented by the native desktop client enabling mail imports from files.
  */
 export interface NativeMailImportFacade {
 	/**

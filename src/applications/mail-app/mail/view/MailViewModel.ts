@@ -773,7 +773,7 @@ export class MailViewModel {
 						await this.deleteMailSetEntryRangeFolder(targetFolder, true)
 					}
 				} else if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
-					// We need to drop all ranges for mailSets corresponding to MigrationFolderSyncStates + imapSyncLabel
+					// We need to drop all ranges for mailSets corresponding to MigrationFolderSyncStates + syncLabel
 					const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, [
 						assertNotNull(update.instanceListId),
 						update.instanceId,
@@ -781,7 +781,7 @@ export class MailViewModel {
 					// we only reload the folder / label the user is currently viewing in case we are done
 					const shouldReload = mailboxMigrationSyncState.status !== MailboxMigrationSyncStatus.RUNNING
 
-					const imapFolderSyncStates = await this.entityClient.loadAll(
+					const mailboxMigrationFolderSyncStates = await this.entityClient.loadAll(
 						MailboxMigrationFolderSyncStateTypeRef,
 						mailboxMigrationSyncState.mailboxMigrationFolderSyncStates,
 					)
@@ -789,7 +789,7 @@ export class MailViewModel {
 						const syncLabel = await this.entityClient.load(MailSetTypeRef, mailboxMigrationSyncState.syncLabel)
 						await this.deleteMailSetEntryRangeFolder(syncLabel, shouldReload)
 					}
-					const mailSetIdsToDeleteRange = imapFolderSyncStates.map((imapFolderSyncState) => imapFolderSyncState.mailSet).filter(isNotNull)
+					const mailSetIdsToDeleteRange = mailboxMigrationFolderSyncStates.map((folderSyncState) => folderSyncState.mailSet).filter(isNotNull)
 					if (isNotEmpty(mailSetIdsToDeleteRange)) {
 						const mailSetsToDeleteRange = await pMap(
 							mailSetIdsToDeleteRange,
@@ -810,7 +810,7 @@ export class MailViewModel {
 
 	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
-		// currently used when importing mails from a file or IMAP.
+		// currently used when importing mails from a file or Migration.
 		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show
 		// all mails inside the targetFolder correctly.
 		// The MailIndexer is downloading the MailSetEntries and Mails corresponding to an import in the background
