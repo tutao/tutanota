@@ -1,7 +1,7 @@
 import { SettingsViewSection } from "../../common/settings/Interfaces"
 import { CredentialsProvider } from "../../common/misc/credentials/CredentialsProvider"
 import { LoginController } from "../../common/api/main/LoginController"
-import { adminSettingsSection, appearanceSettings, loginSettings, subscriptionSettingsSection } from "../../common/settings/standardSettings"
+import { adminSettingsSection, appearanceSettings, driveSettings, loginSettings, subscriptionSettingsSection } from "../../common/settings/standardSettings"
 import { CustomerFacade } from "../../common/api/worker/facades/lazy/CustomerFacade"
 import { MobilePaymentsFacade, MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { EntityClient } from "../../../platform-kit/network/EntityClient"
@@ -22,8 +22,9 @@ export function makeDriveSettings(
 	return [
 		{
 			name: lang.getTranslation("userSettings_label"),
-			settings: [loginSettings(credentialsProvider, systemFacade), appearanceSettings()],
+			settings: [loginSettings(credentialsProvider, systemFacade), driveSettings(), appearanceSettings()],
 		},
+
 		adminSettingsSection(logins, entityClient, themeController, whitelabelThemeGenerator, customerFacade),
 		subscriptionSettingsSection(logins, mobilePaymentsFacade),
 	]

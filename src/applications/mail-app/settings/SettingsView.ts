@@ -43,7 +43,7 @@ import { getSupportUsageTestStage } from "../../common/support/SupportUsageTestU
 import { shouldHideBusinessPlans } from "../../common/subscription/utils/SubscriptionUtils"
 import { GroupNameData } from "../../common/sharing/model/GroupSettingsModel"
 import { GroupSettingNameInputFields } from "../../common/sharing/view/GroupSettingNameInputFields"
-import { calendarSettings, loginSettings } from "../../common/settings/standardSettings"
+import { calendarSettings, driveSettings, loginSettings } from "../../common/settings/standardSettings"
 import { NotificationSettingsViewer } from "./NotificationSettingsViewer"
 import { AppearanceSettingsViewer } from "../../common/settings/AppearanceSettingsViewer"
 import { createMoreActionButtonAttrs, getConfirmation } from "../../../ui/base/GuiUtils"
@@ -128,6 +128,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				undefined,
 			),
 			calendarSettings(locator.entityClient, locator.logins.getUserController()),
+			driveSettings(),
 			new SettingsFolder(
 				() => "appearanceSettings_label",
 				() => Icons.ColorpaletteFilled,

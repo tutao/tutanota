@@ -8,6 +8,7 @@ import { WebFile } from "../../../../entities/tutanota/Utils"
 import { DriveTransferState } from "./DriveTransferController"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { OperationStatus } from "@tutao/app-env"
+import { deviceConfig } from "../../../common/misc/DeviceConfig"
 
 export function makeDuplicateFileName(fileName: string, indicator: string = "copy"): string {
 	const [basename, ext] = getFileBaseNameAndExtensions(fileName)
@@ -264,6 +265,19 @@ export interface SortingPreference {
 
 export type SortOrder = "asc" | "desc"
 
+function prioritizeFolders(sortFunction: (f1: FolderItem, f2: FolderItem) => number) {
+	return (l: FolderItem, r: FolderItem): number => {
+		if (l.type === "folder" && r.type === "file") {
+			return -1
+		}
+		if (l.type === "file" && r.type === "folder") {
+			return 1
+		}
+
+		return sortFunction(l, r)
+	}
+}
+
 export function comparisonFunction(column: SortColumn, order: "asc" | "desc"): ComparisonFunction {
 	const itemName = (item: FolderItem) => (item.type === "folder" ? item.folder.name : item.file.name)
 	const itemDate = (item: FolderItem) => (item.type === "folder" ? item.folder.updatedDate : item.file.updatedDate)
@@ -284,7 +298,8 @@ export function comparisonFunction(column: SortColumn, order: "asc" | "desc"): C
 
 	// invert comparison function when the order is descending
 	const sortFunction: typeof comparisonFn = order === "asc" ? comparisonFn : (l, r) => -comparisonFn(l, r)
-	return sortFunction
+
+	return deviceConfig.getDrivePrioritizeFolders() ? prioritizeFolders(sortFunction) : sortFunction
 }
 
 const compareString = (s1: string, s2: string) => {

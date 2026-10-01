@@ -9,7 +9,7 @@ import { getDefaultSenderFromUser } from "../../../common/mailFunctionality/Shar
 import { EventController } from "../../../common/api/main/EventController"
 import { Const, EnvProvider, TimeConstants } from "@tutao/app-env"
 import { ListModel } from "../../../common/misc/ListModel"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { deviceConfig, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { ListFetchResult, ListItemSelectionCallbacks } from "../../../../ui/base/ListUtils"
 import { ListState } from "../../../../ui/base/List"
 import Stream from "mithril/stream"
@@ -48,7 +48,6 @@ import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
 import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
 
 export interface RegularFolder {
@@ -93,6 +92,7 @@ export class DriveViewModel {
 	public readonly userMailAddress: string
 
 	private sortingPreference: Readonly<SortingPreference> = { order: "asc", column: SortColumn.name }
+	private folderSortingPriority: boolean = false
 
 	// normal folder view
 	currentFolder: DisplayFolder | null = null
@@ -140,7 +140,11 @@ export class DriveViewModel {
 	}
 	readonly init = async () => {
 		this.syncTracker.addSyncListener(this.syncListener)
-
+		const lastFolderSortingPriority = this.folderSortingPriority
+		this.folderSortingPriority = deviceConfig.getDrivePrioritizeFolders()
+		if (lastFolderSortingPriority !== this.folderSortingPriority) {
+			this.comparisonFunction = this.resetCachedComparisonFunction()
+		}
 		// if the roots have already been loaded the init must have been finished
 		if (this.roots) {
 			return
@@ -213,10 +217,14 @@ export class DriveViewModel {
 		return newListModel
 	}
 
-	private readonly comparisonFunction: () => ComparisonFunction = memoizedWithHiddenArgument(
-		() => this.sortingPreference,
-		() => comparisonFunction(this.sortingPreference.column, this.sortingPreference.order),
-	)
+	private resetCachedComparisonFunction(): () => ComparisonFunction {
+		return memoizedWithHiddenArgument(
+			() => this.sortingPreference,
+			() => comparisonFunction(this.sortingPreference.column, this.sortingPreference.order),
+		)
+	}
+
+	private comparisonFunction: () => ComparisonFunction = this.resetCachedComparisonFunction()
 
 	deinit() {
 		this.syncTracker.removeSyncListener(this.syncListener)

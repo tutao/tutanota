@@ -96,6 +96,7 @@ interface ConfigObject {
 	scrollTime: number
 	/** map from user id to a list of collapsed mailGroups (mailGroupId)*/
 	collapsedMailGroups: Record<Id, Id[]>
+	drivePrioritizeFolders: boolean
 }
 
 /**
@@ -167,6 +168,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
 			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
+			drivePrioritizeFolders: loadedConfig.drivePriorititzeFolders ?? false,
 		}
 
 		this.lastSyncStream(new Map(Object.entries(this.config.lastExternalCalendarSync)))
@@ -585,6 +587,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	public getInstallationDate(): Date {
 		return new Date(parseInt(this.config.installationDate))
+	}
+
+	public setDrivePrioritizeFolders(prioritizeFolders: boolean) {
+		this.config.drivePrioritizeFolders = prioritizeFolders
+		this.writeToStorage()
+	}
+
+	public getDrivePrioritizeFolders(): boolean {
+		return this.config.drivePrioritizeFolders
 	}
 }
 

@@ -21,6 +21,7 @@ import { WhitelabelThemeGenerator } from "../../../ui/WhitelabelThemeGenerator"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { UserController } from "../api/main/UserController"
 import { isFreeSignupOnly } from "../misc/LoginUtils"
+import { DriveSettingsViewer } from "./DriveSettingsViewer"
 
 export function calendarSettings(entityClient: EntityClient, userController: UserController): SettingsFolder<void> {
 	return new SettingsFolder(
@@ -28,6 +29,16 @@ export function calendarSettings(entityClient: EntityClient, userController: Use
 		() => Icons.CalendarFilled,
 		"calendar",
 		() => new CalendarSettingsViewer(entityClient, userController),
+		undefined,
+	)
+}
+
+export function driveSettings(): SettingsFolder<void> {
+	return new SettingsFolder(
+		() => "driveView_action",
+		() => Icons.DriveFilled,
+		"drive",
+		() => new DriveSettingsViewer(),
 		undefined,
 	)
 }
