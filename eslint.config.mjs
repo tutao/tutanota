@@ -252,6 +252,8 @@ export default defineConfig([
 			"**/build-drive-app/",
 			"**/dist/",
 			"**/libs/",
+			"integrations/nextcloud"
+
 		]),
 	],
 ])
