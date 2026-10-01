@@ -323,9 +323,9 @@ import("../../ui/translations/en.js")
 
 		if (EnvProvider.get().isDesktop()) {
 			mailLocator.logins.addPostLoginAction(async () => {
-				const { ImapImportPostLoginAction } = await import("./mail/imapimport/ImapImportPostLoginAction")
-				return new ImapImportPostLoginAction(
-					mailLocator.getImapMailImportController(),
+				const { MigrationPostLoginAction } = await import("./mail/migration/MigrationPostLoginAction")
+				return new MigrationPostLoginAction(
+					mailLocator.getMailboxMigrationController(),
 					mailLocator.customerFacade,
 					mailLocator.entityClient,
 					mailLocator.syncTracker,

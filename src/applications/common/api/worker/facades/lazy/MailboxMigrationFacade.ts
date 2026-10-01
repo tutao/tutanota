@@ -1,25 +1,24 @@
 /**
- * The ImapFacade is responsible for initializing (and terminating) an IMAP migration.
- * The ImapFacade is also responsible for initializing the ImapFolderSyncStates for each single mapping from IMAP folder to Tuta folder.
- * The ImapFolderSyncState is needed to store relevant IMAP synchronization information for a single folder, most importantly, the IMAP UID to Tuta mailId.
- * The facade communicates directly with the ImapService and ImapFolderService.
+ * The MailboxMigrationFacade is responsible for initializing (and terminating) a mailbox migration.
+ * The MailboxMigrationFacade is also responsible for initializing the MailboxMigrationFolderSyncStates for each single mapping from migration folder to Tuta folder.
+ * The facade communicates directly with the MailboxMigrationService and MailboxMigrationFolderService.
  */
 import { CryptoWrapper } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
-import { InitializeMailboxImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/MailboxImporter"
+import { InitializeMigrationParams, MailSetMapping } from "../../../../../mail-app/workerUtils/migration/MailboxImporter"
 import { assertNotNull } from "@tutao/utils"
 import {
-	createImapFolderDeleteIn,
 	createMailboxMigrationDeleteIn,
+	createMailboxMigrationFolderDeleteIn,
 	createMailboxMigrationFolderPostIn,
 	createMailboxMigrationPostIn,
 	createMailboxMigrationPutIn,
 	DeduplicatedImportedAttachment,
 	DeduplicatedImportedAttachmentTypeRef,
-	ImapFolderService_DELETE,
 	ImportedMigrationMail,
 	ImportedMigrationMailTypeRef,
 	MailboxGroupRootTypeRef,
+	MailboxMigrationFolderService_DELETE,
 	MailboxMigrationFolderService_POST,
 	MailboxMigrationFolderSyncState,
 	MailboxMigrationFolderSyncStateTypeRef,
@@ -42,7 +41,7 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { MailboxMigrationFolderSyncStatus, MailboxMigrationSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
-import { ImapMailbox, ImapMailboxSpecialUse, ImapMailboxStatus } from "../../../common/utils/migrationImportUtils/ImapMailbox"
+import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } from "../../../common/utils/migrationImportUtils/MigrationMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
@@ -51,7 +50,7 @@ import {
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { getElementId, idToElementId } from "@tutao/meta"
 import { randomHexColor } from "../../../common/utils/migrationImportUtils/MigrationImportUtils"
-import { MailboxMigrationProvider } from "../../../common/utils/migrationImportUtils/ImapKnownConfigs"
+import { MailboxMigrationProvider } from "../../../common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
 export class MailboxMigrationFacade {
@@ -63,15 +62,15 @@ export class MailboxMigrationFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
-	async initializeMailboxImport(initializeParams: InitializeMailboxImportParams): Promise<{
+	async initializeMailboxImport(initializeParams: InitializeMigrationParams): Promise<{
 		mailboxMigrationSyncState: MailboxMigrationSyncState
 		initialFolderSyncStates: MailboxMigrationFolderSyncState[]
 		userMigrationInformation: UserMigrationInformation | null
 	}> {
 		const mailGroupId = initializeParams.mailGroupId
 
-		if (initializeParams.rootImportMailSetName === "" && !initializeParams.matchImapMailboxesToTutaMailSets) {
-			throw new ProgrammingError("Either rootImportMailFolderName or matchImapMailboxesToTutaMailSets must be set")
+		if (initializeParams.rootImportMailSetName === "" && !initializeParams.matchMigrationMailboxesToTutaMailSets) {
+			throw new ProgrammingError("Either rootImportMailFolderName or matchMigrationMailboxesToTutaMailSets must be set")
 		}
 
 		let rootImportMailSetId: IdTuple | null = null
@@ -87,8 +86,8 @@ export class MailboxMigrationFacade {
 		}
 
 		let syncLabelId: IdTuple | null = null
-		if (initializeParams.imapSyncLabelData) {
-			syncLabelId = await this.mailFacade.createLabel(mailGroupId, initializeParams.imapSyncLabelData)
+		if (initializeParams.migrationSyncLabelData) {
+			syncLabelId = await this.mailFacade.createLabel(mailGroupId, initializeParams.migrationSyncLabelData)
 		}
 
 		const userGroupKey = this.keyLoader.getCurrentSymUserGroupKey()
@@ -134,8 +133,8 @@ export class MailboxMigrationFacade {
 		const userMigrationInformation = await this.entityClient.load(UserMigrationInformationTypeRef, userMigrationServicePostOut.userMigrationInfo)
 
 		let initialFolderSyncStates: MailboxMigrationFolderSyncState[] = []
-		if (initializeParams.imapMailboxesToTutaMailSets) {
-			initialFolderSyncStates = await this.createInitialImportMailFolders(mailboxMigrationSyncState, initializeParams.imapMailboxesToTutaMailSets)
+		if (initializeParams.migrationMailboxesToTutaMailSets) {
+			initialFolderSyncStates = await this.createInitialImportMailFolders(mailboxMigrationSyncState, initializeParams.migrationMailboxesToTutaMailSets)
 		} else if (
 			initializeParams.spamFolderMigrationInformation.shouldMigrateSpamFolder &&
 			initializeParams.spamFolderMigrationInformation.spamMailbox !== null
@@ -147,7 +146,7 @@ export class MailboxMigrationFacade {
 			const mailSetMapping = new Map([
 				[
 					initializeParams.spamFolderMigrationInformation.spamMailbox.path,
-					{ mailSetElementId: getElementId(spamMailSet), shouldSync: true, specialUse: ImapMailboxSpecialUse.JUNK },
+					{ mailSetElementId: getElementId(spamMailSet), shouldSync: true, specialUse: MigrationMailboxSpecialUse.JUNK },
 				],
 			])
 			initialFolderSyncStates = await this.createInitialImportMailFolders(mailboxMigrationSyncState, mailSetMapping)
@@ -157,20 +156,20 @@ export class MailboxMigrationFacade {
 	}
 
 	async updateMailboxMigrationSyncStateAndAllFolderSyncStates(
-		imapAccountSyncState: MailboxMigrationSyncState,
-		newImapAccountSyncStatus: MailboxMigrationSyncStatus,
-		newImapFolderSyncStatus: MailboxMigrationFolderSyncStatus,
+		mailboxMigrationSyncState: MailboxMigrationSyncState,
+		newMailboxMigrationSyncStatus: MailboxMigrationSyncStatus,
+		newMailboxMigrationFolderSyncStatus: MailboxMigrationFolderSyncStatus,
 		newPostponedUntil?: string,
 	) {
 		const mailboxMigrationPutIn = createMailboxMigrationPutIn({
-			mailboxMigrationSyncState: imapAccountSyncState._id,
-			newMailboxMigrationSyncStatus: newImapAccountSyncStatus,
-			newMailboxMigrationFolderSyncStatus: newImapFolderSyncStatus,
+			mailboxMigrationSyncState: mailboxMigrationSyncState._id,
+			newMailboxMigrationSyncStatus: newMailboxMigrationSyncStatus,
+			newMailboxMigrationFolderSyncStatus: newMailboxMigrationFolderSyncStatus,
 			newPostponedUntil: newPostponedUntil ?? null,
 		})
-		const ownerKeyVersion = parseKeyVersion(assertNotNull(imapAccountSyncState._ownerKeyVersion))
-		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(imapAccountSyncState._ownerGroup), ownerKeyVersion)
-		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(imapAccountSyncState._ownerEncSessionKey))
+		const ownerKeyVersion = parseKeyVersion(assertNotNull(mailboxMigrationSyncState._ownerKeyVersion))
+		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(mailboxMigrationSyncState._ownerGroup), ownerKeyVersion)
+		const sessionKey = this.cryptoWrapper.decryptKey(mailGroupKey, assertNotNull(mailboxMigrationSyncState._ownerEncSessionKey))
 
 		await this.serviceExecutor.execute(MailboxMigrationService_PUT, mailboxMigrationPutIn, {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
@@ -178,26 +177,26 @@ export class MailboxMigrationFacade {
 		})
 	}
 
-	async deleteImapImport(imapAccountSyncStateId: IdTuple): Promise<void> {
-		const mailboxMigrationDeleteIn = createMailboxMigrationDeleteIn({ mailboxMigrationSyncState: imapAccountSyncStateId })
+	async deleteMigrationImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+		const mailboxMigrationDeleteIn = createMailboxMigrationDeleteIn({ mailboxMigrationSyncState: mailboxMigrationSyncStateId })
 		await this.serviceExecutor.execute(MailboxMigrationService_DELETE, mailboxMigrationDeleteIn, null)
 	}
 
 	async createInitialImportMailFolders(
 		mailboxMigrationSyncState: MailboxMigrationSyncState,
-		imapMailboxesToTutaFolders: Map<string, MailSetMapping>,
+		migrationMailboxesToTutaFolders: Map<string, MailSetMapping>,
 	): Promise<MailboxMigrationFolderSyncState[]> {
 		const mailGroupId = assertNotNull(mailboxMigrationSyncState._ownerGroup)
 		const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
 		const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 		const mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[] = []
-		for (const [imapMailboxPath, { mailSetElementId, shouldSync, specialUse }] of imapMailboxesToTutaFolders.entries()) {
+		for (const [migrationMailboxPath, { mailSetElementId, shouldSync, specialUse }] of migrationMailboxesToTutaFolders.entries()) {
 			const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.cryptoWrapper.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const mailboxMigrationFolderPostIn = createMailboxMigrationFolderPostIn({
-				sourceId: imapMailboxPath,
+				sourceId: migrationMailboxPath,
 				mailboxMigrationSyncState: mailboxMigrationSyncState._id,
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				shouldSync,
@@ -210,17 +209,17 @@ export class MailboxMigrationFacade {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
 				sessionKey: sk,
 			})
-			const imapFolderSyncState = await this.entityClient.load(
+			const mailboxMigrationFolderSyncState = await this.entityClient.load(
 				MailboxMigrationFolderSyncStateTypeRef,
 				mailboxMigrationFolderPostOut.mailboxMigrationFolderSyncState,
 			)
-			mailboxMigrationFolderSyncStates.push(imapFolderSyncState)
+			mailboxMigrationFolderSyncStates.push(mailboxMigrationFolderSyncState)
 		}
 		return mailboxMigrationFolderSyncStates
 	}
 
-	async initializeImapMailSet(
-		imapMailbox: ImapMailbox,
+	async initializeMigrationMailSet(
+		migrationMailbox: MigrationMailbox,
 		mailboxMigrationSyncState: MailboxMigrationSyncState,
 		provider: MailboxMigrationProvider,
 		parentMailSetId: IdTuple | null,
@@ -234,7 +233,7 @@ export class MailboxMigrationFacade {
 			const rootMailSet = await this.entityClient.load(MailSetTypeRef, assertNotNull(mailboxMigrationSyncState.rootImportMailSet))
 			name = rootMailSet.name
 		} else {
-			name = imapMailbox.name
+			name = migrationMailbox.name
 		}
 		if (name) {
 			const mailGroupId = assertNotNull(mailboxMigrationSyncState._ownerGroup)
@@ -253,11 +252,11 @@ export class MailboxMigrationFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const mailboxMigrationFolderPostIn = createMailboxMigrationFolderPostIn({
-				sourceId: imapMailbox.path,
+				sourceId: migrationMailbox.path,
 				mailboxMigrationSyncState: mailboxMigrationSyncState._id,
 				mailSet: mailSetId,
 				shouldSync: mailSetId !== null && !shouldCreateLabels,
-				specialUse: imapMailbox.specialUse ?? null,
+				specialUse: migrationMailbox.specialUse ?? null,
 			})
 			mailboxMigrationFolderPostIn.ownerEncSessionKey = ownerEncSessionKey.key
 			mailboxMigrationFolderPostIn.ownerKeyVersion = ownerEncSessionKey.encryptingKeyVersion.toString()
@@ -271,26 +270,30 @@ export class MailboxMigrationFacade {
 		}
 	}
 
-	async updateImapFolderSyncState(imapMailboxStatus: ImapMailboxStatus, folderSyncState: MailboxMigrationFolderSyncState): Promise<void> {
-		folderSyncState.uidnext = imapMailboxStatus.uidNext.toString()
-		folderSyncState.uidvalidity = imapMailboxStatus.uidValidity.toString()
-		folderSyncState.status = imapMailboxStatus.syncStatus.toString()
+	async updateMigrationFolderSyncState(migrationMailboxStatus: MigrationMailboxStatus, folderSyncState: MailboxMigrationFolderSyncState): Promise<void> {
+		folderSyncState.uidnext = migrationMailboxStatus.uidNext.toString()
+		folderSyncState.uidvalidity = migrationMailboxStatus.uidValidity.toString()
+		folderSyncState.status = migrationMailboxStatus.syncStatus.toString()
 		await this.entityClient.update(folderSyncState)
 	}
 
-	async deleteImapFolderSyncState(folderSyncStateId: IdTuple) {
-		await this.serviceExecutor.execute(ImapFolderService_DELETE, createImapFolderDeleteIn({ imapFolderSyncState: folderSyncStateId }), null)
+	async deleteMigrationFolderSyncState(folderSyncStateId: IdTuple) {
+		await this.serviceExecutor.execute(
+			MailboxMigrationFolderService_DELETE,
+			createMailboxMigrationFolderDeleteIn({ mailboxMigrationFolderSyncState: folderSyncStateId }),
+			null,
+		)
 	}
 
 	async getMailboxMigrationSyncStateById(
-		imapAccountSyncStateId: IdTuple,
+		mailboxMigrationSyncStateId: IdTuple,
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<MailboxMigrationSyncState> {
-		return await this.entityClient.load(MailboxMigrationSyncStateTypeRef, imapAccountSyncStateId, opts)
+		return await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId, opts)
 	}
 
-	async getImapFolderSyncStateById(imapFolderSyncStateId: IdTuple): Promise<MailboxMigrationFolderSyncState> {
-		return this.entityClient.load(MailboxMigrationFolderSyncStateTypeRef, imapFolderSyncStateId)
+	async getMailboxMigrationFolderSyncStateById(mailboxMigrationFolderSyncStateId: IdTuple): Promise<MailboxMigrationFolderSyncState> {
+		return this.entityClient.load(MailboxMigrationFolderSyncStateTypeRef, mailboxMigrationFolderSyncStateId)
 	}
 
 	async getAllUserMigrationInformation(userMigrationInfosListId: Id | null): Promise<UserMigrationInformation[]> {
@@ -325,7 +328,7 @@ export class MailboxMigrationFacade {
 		return this.entityClient.loadAll(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateListId)
 	}
 
-	async getAllMailboxMigrationFolderSyncStates(imapFolderSyncStateListId: Id): Promise<MailboxMigrationFolderSyncState[]> {
-		return this.entityClient.loadAll(MailboxMigrationFolderSyncStateTypeRef, imapFolderSyncStateListId)
+	async getAllMailboxMigrationFolderSyncStates(mailboxMigrationFolderSyncStateListId: Id): Promise<MailboxMigrationFolderSyncState[]> {
+		return this.entityClient.loadAll(MailboxMigrationFolderSyncStateTypeRef, mailboxMigrationFolderSyncStateListId)
 	}
 }

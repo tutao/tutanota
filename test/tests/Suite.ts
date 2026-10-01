@@ -10,14 +10,14 @@ import "./typerefs/EntityFunctionsTest.js"
 import "./api/common/utils/FileUtilsTest.js"
 import "./api/common/utils/LoggerTest.js"
 import "./api/common/utils/PlainTextSearchTest.js"
-import "./api/common/utils/imapImportUtils/ImapImportUtilsTest.js"
+import "./api/common/utils/migrationImportUtils/MigrationImportUtilsTest.js"
 import "./api/common/utils/PlainTextToHtmlConverterTest.js"
 import "./api/worker/facades/MailboxMigrationFacadeTest.js"
 import "./api/worker/facades/ImportMailFacadeTest.js"
-import "./api/worker/utils/imapImport/ImapImporterTest"
-import "./settings/imapimport/ImapMaiImportControllerTest.js"
-import "./settings/imapimport/oauth/OAuthHandlerTest.js"
-import "./settings/imapimport/oauth/ImapErrorHandlerTest.js"
+import "./api/worker/utils/migration/MailboxImporterTest"
+import "./settings/migration/MailboxMigrationControllerTest.js"
+import "./settings/migration/oauth/OAuthHandlerTest.js"
+import "./settings/migration/oauth/MigrationErrorHandlerTest.js"
 import "./api/main/EntropyCollectorTest.js"
 import "./api/main/SyncTrackerTest.js"
 import "./instance-pipeline/CompressionTest.js"
@@ -335,13 +335,12 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/db/OfflineDbFacadeTest.js")
 		await import("./desktop/export/DesktopExportFacadeTest.js")
 		await import("./desktop/files/DesktopFileFacadeTest.js")
-		await import("./desktop/imapimport/DesktopImapSyncSystemFacadeTest.js")
-		await import("./desktop/imapimport/imapsync/imapmail/ImapParserUtilsTest.js")
+		await import("./desktop/migration/DesktopMigrationSyncSystemFacadeTest.js")
+		await import("./desktop/migration/mailparser/MailParserUtilsTest.js")
 		await import("./desktop/DesktopOauthWindowFacadeTest.js")
-		await import("./desktop/imapimport/imapsync/ImapSyncTest.js")
-		await import("./desktop/imapimport/imapsync/ImapSyncSessionTest.js")
-		await import("./desktop/imapimport/imapsync/DifferentialUidLoaderTest.js")
-		await import("./desktop/imapimport/imapsync/ImapSyncSessionProcessTest.js")
+		await import("./desktop/migration/imapsync/ImapSyncSessionTest.js")
+		await import("./desktop/migration/imapsync/DifferentialUidLoaderTest.js")
+		await import("./desktop/migration/imapsync/ImapSyncSessionProcessTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")

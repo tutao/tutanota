@@ -546,9 +546,9 @@ export class WebMailIndexer implements MailIndexer {
 		const importMailState = await this.entityClient.load(refs.state as TypeRef<CommonImportState>, importStateId)
 
 		if (mailImportType === MailImportType.ImapImport) {
-			const imapFolderSyncStatus = importMailState.status as MailboxMigrationFolderSyncStatus
-			// We do not index while still syncing the folder from the IMAP server.
-			if (imapFolderSyncStatus === MailboxMigrationFolderSyncStatus.RUNNING) {
+			const mailboxMigrationFolderSyncStatus = importMailState.status as MailboxMigrationFolderSyncStatus
+			// We do not index while still syncing the folder from the migrating server.
+			if (mailboxMigrationFolderSyncStatus === MailboxMigrationFolderSyncStatus.RUNNING) {
 				return []
 			}
 		} else if (mailImportType === MailImportType.FileImport) {

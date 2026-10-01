@@ -76,7 +76,7 @@ import {
 	ContactSuggestion,
 	DesktopSystemFacade,
 	ExternalCalendarFacade,
-	ImapSyncFacade,
+	MigrationSyncFacade,
 	MobileContactsFacade,
 	MobilePaymentsFacade,
 	MobileSystemFacade,
@@ -190,7 +190,7 @@ class DriveLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
-	imapImporter!: ImapSyncFacade
+	mailboxImporter!: MigrationSyncFacade
 	searchRouter!: SearchRouter
 
 	private nativeInterfaces: NativeInterfaces | null = null
@@ -672,7 +672,7 @@ class DriveLocator implements CommonLocator {
 			pluginConfigurationProvider.setPluginManager(this.pluginManager)
 
 			// TODO: it would be nice to move this facade out of the ApplicationWindow
-			this.imapImporter = {} as ImapSyncFacade
+			this.mailboxImporter = {} as MigrationSyncFacade
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, CALENDAR_PREFIX)
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
@@ -681,7 +681,7 @@ class DriveLocator implements CommonLocator {
 					async () => this.native,
 					() => this.desktopSettingsFacade,
 				),
-				this.imapImporter,
+				this.mailboxImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,

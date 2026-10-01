@@ -153,11 +153,11 @@ import { CALENDAR_MIME_TYPE, MAIL_MIME_TYPES, VCARD_MIME_TYPES } from "../../pla
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
-import { MailboxImporter } from "./workerUtils/imapimport/MailboxImporter"
+import { MailboxImporter } from "./workerUtils/migration/MailboxImporter"
 
 import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
-import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
+import type { MailboxMigrationController } from "./settings/migration/MailboxMigrationController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchViewModel } from "./search/view/ContactSearchViewModel"
@@ -245,11 +245,11 @@ class MailLocator implements CommonLocator {
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
-	imapImporter!: MailboxImporter
+	mailboxImporter!: MailboxImporter
 
 	private nativeInterfaces: NativeInterfaces | null = null
 	private fileMailImportController: FileMailImportController | null = null
-	private imapMailImportController: ImapMailImportController | null = null
+	private mailboxMigrationController: MailboxMigrationController | null = null
 	private entropyFacade!: EntropyFacade
 	private sqlCipherFacade!: SqlCipherFacade
 	private oauthFacade: OauthFacade | null = null
@@ -788,12 +788,12 @@ class MailLocator implements CommonLocator {
 		return this.fileMailImportController
 	}
 
-	public getImapMailImportController(): ImapMailImportController {
-		if (this.imapMailImportController == null) {
-			throw new ProgrammingError(`Tried to use imapImportController in web or mobile`)
+	public getMailboxMigrationController(): MailboxMigrationController {
+		if (this.mailboxMigrationController == null) {
+			throw new ProgrammingError(`Tried to use mailboxMigrationController in web or mobile`)
 		}
 
-		return this.imapMailImportController
+		return this.mailboxMigrationController
 	}
 
 	private readonly _workerDeferred: DeferredObject<WorkerClient>
@@ -861,7 +861,7 @@ class MailLocator implements CommonLocator {
 			autosaveFacade,
 			spamClassifier,
 			driveFacade,
-			imapImporter,
+			mailboxImporter,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -925,7 +925,7 @@ class MailLocator implements CommonLocator {
 			this.mailSearchModel().then((model) => model.indexState(state))
 		})
 		this.autosaveFacade = autosaveFacade
-		this.imapImporter = imapImporter
+		this.mailboxImporter = mailboxImporter
 
 		this.usageTestModel = new UsageTestModel(
 			{
@@ -987,7 +987,7 @@ class MailLocator implements CommonLocator {
 					async () => this.native,
 					() => this.desktopSettingsFacade,
 				),
-				this.imapImporter,
+				this.mailboxImporter,
 				new WebInterWindowEventFacade(this.logins, windowFacade, deviceConfig),
 				new WebCommonNativeFacade(
 					this.logins,
@@ -1032,16 +1032,16 @@ class MailLocator implements CommonLocator {
 					this.exportFacade = desktopInterfaces.exportFacade
 					this.oauthFacade = desktopInterfaces.desktopOauthWindowFacade
 
-					const { ImapMailImportController } = await import("./settings/imapimport/ImapMailImportController.js")
-					const { ImapErrorHandler } = await import("./settings/imapimport/ImapErrorHandler.js")
-					this.imapMailImportController = new ImapMailImportController(
-						this.imapImporter,
+					const { MailboxMigrationController } = await import("./settings/migration/MailboxMigrationController.js")
+					const { MigrationErrorHandler } = await import("./settings/migration/MigrationErrorHandler.js")
+					this.mailboxMigrationController = new MailboxMigrationController(
+						this.mailboxImporter,
 						this.mailModel,
 						this.mailboxModel,
 						this.entityClient,
 						this.eventController,
 						this.oauthFacade,
-						new ImapErrorHandler(this.entityClient, this.serviceExecutor, this.logins),
+						new MigrationErrorHandler(this.entityClient, this.serviceExecutor, this.logins),
 					)
 				}
 			} else if (EnvProvider.get().isAndroidApp() || EnvProvider.get().isIOSApp()) {

@@ -105,7 +105,7 @@ export async function showEditLabelDialog(
 	})
 }
 
-export async function showImapEditLabelDialog(
+export async function showMigrationEditLabelDialog(
 	attributes: { name: string; color: string },
 	oninput: (name: string) => unknown,
 	onselect: (color: string) => unknown,
