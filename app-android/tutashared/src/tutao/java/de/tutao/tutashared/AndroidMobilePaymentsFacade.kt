@@ -38,7 +38,7 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		plan: String,
 		interval: Long,
 		customerIdBytes: DataWrapper,
-		currentInterval: Long?,
+		foreignKey: String?,
 	): MobilePaymentResult {
 		val planPrefix = getPlanPrefix()
 		val productId = when (plan) {
@@ -64,9 +64,17 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val accountId = customerIdBytes.toObfuscatedAccountId()
 		val currentPurchases = billingClient.queryPurchases(
 			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).includeSuspendedSubscriptions(true).build()
-		).filter { it.purchaseState == Purchase.PurchaseState.PURCHASED && it.accountIdentifiers?.obfuscatedAccountId == accountId }
+		).filter {
+			it.purchaseState == Purchase.PurchaseState.PURCHASED &&
+					if (foreignKey != null) {
+						it.purchaseToken == foreignKey
+					} else {
+						it.accountIdentifiers?.obfuscatedAccountId == accountId
+					}
+		}
 		val currentPurchase = currentPurchases.singleOrNull()
 		if (currentPurchases.size > 1) error("Multiple subscriptions found for this account")
+		if (foreignKey != null && currentPurchase == null) error("Could not find subscription to replace")
 		if (currentPurchase != null) {
 			return replaceSubscription(productId, accountId, productDetails, offerDetails, currentPurchase)
 		}
@@ -145,7 +153,8 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		}
 	}
 
-	override suspend fun queryExternalSubscriptionOwnership(customerIdBytes: DataWrapper?): MobilePaymentSubscriptionOwnership {
+	override suspend fun queryExternalSubscriptionOwnership(foreignKey: String?): MobilePaymentSubscriptionOwnership {
+
 		val params = QueryPurchasesParams.newBuilder()
 			.setProductType(BillingClient.ProductType.SUBS)
 			.includeSuspendedSubscriptions(true)
@@ -153,10 +162,9 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val purchases = billingClient.queryPurchases(params)
 		if (purchases.isEmpty()) return MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION
 
-		val customerId = customerIdBytes?.toObfuscatedAccountId()
-		return if (customerId != null && purchases.any { purchase ->
+		return if (foreignKey != null && purchases.any {purchase ->
 				purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
-						purchase.accountIdentifiers?.obfuscatedAccountId == customerId
+						purchase.purchaseToken == foreignKey
 			}) {
 			MobilePaymentSubscriptionOwnership.OWNER
 		} else {

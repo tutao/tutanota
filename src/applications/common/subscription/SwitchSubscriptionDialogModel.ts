@@ -8,6 +8,7 @@ export type CurrentPlanInfo = {
 	businessUse: boolean
 	planType: PlanType
 	paymentInterval: PaymentInterval
+	subscriptionForeignKey: string | null
 }
 
 export class SwitchSubscriptionDialogModel {
@@ -28,6 +29,7 @@ export class SwitchSubscriptionDialogModel {
 			businessUse: this.customer.businessUse,
 			planType: this.planType,
 			paymentInterval,
+			subscriptionForeignKey: this.lastBooking.subscriptionReference.foreignKey,
 		}
 	}
 

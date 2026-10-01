@@ -11,7 +11,6 @@ import { AccountingInfo, Customer } from "@tutao/entities/sys"
 import { PaymentMethodType } from "../../../entities/sys/Utils"
 import { getByAbbreviation } from "../gui/CountryList"
 import { PaymentDetailsModel } from "./PaymentDetailsModel"
-import InvoiceAndPaymentDataPageNew from "../signup/InvoiceAndPaymentDataPageNew"
 import { createWizard, WizardLayoutAttrs } from "../../../ui/base/wizard/Wizard"
 import { Styles } from "../../../ui/styles"
 import { px } from "../../../ui/size"
@@ -20,6 +19,7 @@ import { px } from "../../../ui/size"
  * @returns {boolean} true if the payment data update was successful
  */
 export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
+	const InvoiceAndPaymentDataPageNew = (await import("../signup/InvoiceAndPaymentDataPageNew")).default
 	const viewModel: PaymentDetailsModel = {
 		customer,
 		accountingInfo: { ...accountingInfo },

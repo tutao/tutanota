@@ -35,11 +35,10 @@ import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
 import { SwitchSubscriptionDialogModel } from "./SwitchSubscriptionDialogModel"
 import { locator } from "../api/main/CommonLocator"
 import { PaymentInterval, PriceAndConfigProvider } from "./utils/PriceUtils"
-import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, delay, downcast, last, lazy } from "@tutao/utils"
+import { assertNotNull, base64ExtToBase64, base64ToUint8Array, defer, downcast, last, lazy, noOp } from "@tutao/utils"
 import { showSwitchToBusinessInvoiceDataDialog } from "./SwitchToBusinessInvoiceDataDialog.js"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { PrimaryButtonAttrs } from "../../../ui/base/buttons/VariantButtons.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import {
 	externalStorePlanName,
 	getCurrentPaymentInterval,
@@ -50,7 +49,6 @@ import {
 	SubscriptionApp,
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
-import { mailLocator } from "../../mail-app/mailLocator"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { PlanSelector } from "./PlanSelector.js"
 import { PlanSelectorHeadline } from "./components/PlanSelectorHeadline"
@@ -189,7 +187,7 @@ export async function showSwitchDialog({
 		[PlanType.Free]: () =>
 			({
 				label: "pricing.select_action",
-				onclick: () => onSwitchToFree(customer, dialog, currentPlanInfo, paymentMethod),
+				onclick: () => noOp(),
 			}) satisfies PrimaryButtonAttrs,
 		[PlanType.Revolutionary]: createPlanButton(
 			dialog,
@@ -208,45 +206,6 @@ export async function showSwitchDialog({
 	return deferred.promise
 }
 
-async function onSwitchToFree(customer: Customer, dialog: Dialog, currentPlanInfo: CurrentPlanInfo, paymentMethod: PaymentMethodType) {
-	if (isExternalPaymentMethod(paymentMethod)) {
-		// We want the user to disable renewal in the external store before they try to downgrade on our side
-		const ownership = await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(
-			base64ToUint8Array(base64ExtToBase64(elementIdToId(customer._id))),
-		)
-		if (ownership === MobilePaymentSubscriptionOwnership.Owner && (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled())) {
-			await locator.mobilePaymentsFacade.showSubscriptionConfigView()
-
-			await showProgressDialog("pleaseWait_msg", waitUntilRenewalDisabled())
-
-			if (await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled()) {
-				console.log("external store renewal is still enabled, canceling downgrade")
-				// User probably did not disable the renewal still, cancel
-				return
-			}
-		}
-	}
-
-	const newPlanType = await downgradeSubscription(dialog)
-
-	if (newPlanType === PlanType.Free) {
-		if (mailLocator.mailModel) {
-			// there is no mailLocator for the calendar app
-			for (const importedMailSet of mailLocator.mailModel.getImportedMailSets()) void mailLocator.mailModel.finallyDeleteCustomMailFolder(importedMailSet)
-		}
-	}
-}
-
-async function waitUntilRenewalDisabled() {
-	for (let i = 0; i < 3; i++) {
-		// Wait a bit before checking, it takes a bit to propagate
-		await delay(2000)
-		if (!(await locator.mobilePaymentsFacade.isExternalSubscriptionRenewalEnabled())) {
-			return
-		}
-	}
-}
-
 async function doSwitchToPaidPlan(
 	accountingInfo: AccountingInfo,
 	newPaymentInterval: PaymentInterval,
@@ -262,7 +221,7 @@ async function doSwitchToPaidPlan(
 				externalStorePlanName(targetSubscription),
 				newPaymentInterval,
 				customerIdBytes,
-				currentPlanInfo.paymentInterval,
+				currentPlanInfo.subscriptionForeignKey,
 			)
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {

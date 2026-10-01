@@ -21,7 +21,7 @@ class AndroidMobilePaymentsFacade(_activity: Activity, _app: AppType) : MobilePa
 		plan: String,
 		interval: Long,
 		customerIdBytes: DataWrapper,
-		currentInterval: Long?,
+		foreignKey: String?,
 	): MobilePaymentResult {
 		throw NotImplementedError("there is no requestSubscriptionToPlan for non-playstore apps")
 	}
@@ -35,7 +35,7 @@ class AndroidMobilePaymentsFacade(_activity: Activity, _app: AppType) : MobilePa
 		throw NotImplementedError("there is no showSubscriptionConfigView for non-playstore apps")
 	}
 
-	override suspend fun queryExternalSubscriptionOwnership(customerIdBytes: DataWrapper?): MobilePaymentSubscriptionOwnership {
+	override suspend fun queryExternalSubscriptionOwnership(foreignKey: String?): MobilePaymentSubscriptionOwnership {
 
 		throw NotImplementedError("there is no queryExternalSubscriptionOwnership for non-playstore apps")
 	}

@@ -21,14 +21,13 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		self.windowScene = windowScene
 	}
 
-	public func queryExternalSubscriptionOwnership(_ customerIdBytes: DataWrapper?) async throws -> MobilePaymentSubscriptionOwnership {
+	public func queryExternalSubscriptionOwnership(_ foreignKey: String?) async throws -> MobilePaymentSubscriptionOwnership {
 		var currentResult = MobilePaymentSubscriptionOwnership.no_subscription
 
 		for await transaction in Transaction.currentEntitlements {
-			if let customerBytes = customerIdBytes {
+			if let foreignKey = foreignKey {
 				let transactionInfo = try transaction.payloadValue
-				let uuid = customerIdToUUID(customerBytes.data)
-				let isSameOwner = transactionInfo.appAccountToken == uuid
+				let isSameOwner = String(transactionInfo.originalID) == foreignKey
 
 				if isSameOwner {
 					currentResult = MobilePaymentSubscriptionOwnership.owner
@@ -105,7 +104,7 @@ public final class IosMobilePaymentsFacade: MobilePaymentsFacade {
 		}
 	}
 	@MainActor public func showSubscriptionConfigView() async throws { try await AppStore.showManageSubscriptions(in: self.windowScene()) }
-	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper, _: Int?) async throws -> MobilePaymentResult {
+	public func requestSubscriptionToPlan(_ plan: String, _ interval: Int, _ customerIdBytes: DataWrapper, _: String?) async throws -> MobilePaymentResult {
 		let uuid = customerIdToUUID(customerIdBytes.data)
 		let planType = formatPlanType(plan, UInt(interval))
 
