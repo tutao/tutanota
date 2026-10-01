@@ -124,11 +124,11 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(await persistence.getIndexedGroups()).deepEquals([mailGroupData, contactGroupData])
 	})
 
-	o.test("clearEncryptedMailDetailsBlobs", async () => {
+	o.test("clearEncryptedBlobsForType", async () => {
 		for (let a = 10; a < 15; a++) {
 			for (let b = 100; b < 105; b++) {
 				const { query, params } = sql`INSERT
-				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeRef, modelVersion) VALUES (
 				${`${a + b}`},
 				${`${b}`},
 				${new Uint8Array([1, 2, 3, 4])},
@@ -140,7 +140,7 @@ o.spec("OfflineStoragePersistence", () => {
 		}
 
 		o.check(await persistence.getDownloadedArchives()).deepEquals([])
-		await persistence.clearEncryptedMailDetailsBlobs()
+		await persistence.clearEncryptedBlobsForType()
 		o.check((await persistence.getDownloadedArchives()).sort()).deepEquals(["100", "101", "102", "103", "104"])
 	})
 

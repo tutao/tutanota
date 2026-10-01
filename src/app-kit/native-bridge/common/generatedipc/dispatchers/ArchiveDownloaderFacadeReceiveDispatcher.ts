@@ -1,6 +1,6 @@
 /* generated file, don't edit. */
 
-import { ArchiveDownloadRangeHeader } from "../types/ArchiveDownloadRangeHeader"
+import { ArchiveDownloadRangeHeaders } from "../types/ArchiveDownloadRangeHeaders"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 export class ArchiveDownloaderFacadeReceiveDispatcher {
@@ -10,10 +10,10 @@ export class ArchiveDownloaderFacadeReceiveDispatcher {
 			case "downloadAndStoreArchive": {
 				const sourceUrl: string = arg[0]
 				const archiveId: string = arg[1]
-				const typeref: string = arg[2]
+				const typeRef: string = arg[2]
 				const modelVersion: number = arg[3]
-				const rangeHeader: ArchiveDownloadRangeHeader | null = arg[4]
-				return this.facade.downloadAndStoreArchive(sourceUrl, archiveId, typeref, modelVersion, rangeHeader)
+				const rangeHeaders: ArchiveDownloadRangeHeaders | null = arg[4]
+				return this.facade.downloadAndStoreArchive(sourceUrl, archiveId, typeRef, modelVersion, rangeHeaders)
 			}
 			case "abortDownloadAndStoreArchive": {
 				const archiveId: string = arg[0]

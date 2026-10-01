@@ -1,0 +1,9 @@
+{
+	"name": "ArchiveDownloadRangeHeaders",
+	"type": "struct",
+	"doc": "HTTP range request headers used to resume archive download.",
+	"fields": {
+		"rangeStart": "number",
+		"reprDigest": "string"
+	}
+}

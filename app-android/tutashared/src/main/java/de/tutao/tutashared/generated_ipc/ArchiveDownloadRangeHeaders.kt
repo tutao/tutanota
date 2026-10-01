@@ -8,10 +8,10 @@ import kotlinx.serialization.json.*
 
 
 /**
- * FIXME
+ * HTTP range request headers used to resume archive download.
  */
 @Serializable
-data class ArchiveDownloadRangeHeader(
+data class ArchiveDownloadRangeHeaders(
 	val rangeStart: Long,
 	val reprDigest: String,
 )

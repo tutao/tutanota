@@ -4,18 +4,18 @@
 import Foundation
 
 /**
- * Download archives and write them to offline database.
+ * Download archives and write them encrypted to offline database.
  */
 public protocol ArchiveDownloaderFacade : Sendable {
 	/**
-	 * Download an archive and store it (without decryption) in offline DB
+	 * Download an archive and store it in offline database
 	 */
 	func downloadAndStoreArchive(
 		_ sourceUrl: String,
 		_ archiveId: String,
-		_ typeref: String,
+		_ typeRef: String,
 		_ modelVersion: Int,
-		_ rangeHeader: ArchiveDownloadRangeHeader?
+		_ rangeHeaders: ArchiveDownloadRangeHeaders?
 	) async throws -> Void
 	/**
 	 * Abort downloading or storing an archive

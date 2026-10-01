@@ -1,19 +1,19 @@
 /* generated file, don't edit. */
 
-import { ArchiveDownloadRangeHeader } from "../types/ArchiveDownloadRangeHeader"
+import { ArchiveDownloadRangeHeaders } from "../types/ArchiveDownloadRangeHeaders"
 /**
- * Download archives and write them to offline database.
+ * Download archives and write them encrypted to offline database.
  */
 export interface ArchiveDownloaderFacade {
 	/**
-	 * Download an archive and store it (without decryption) in offline DB
+	 * Download an archive and store it in offline database
 	 */
 	downloadAndStoreArchive(
 		sourceUrl: string,
 		archiveId: string,
-		typeref: string,
+		typeRef: string,
 		modelVersion: number,
-		rangeHeader: ArchiveDownloadRangeHeader | null,
+		rangeHeaders: ArchiveDownloadRangeHeaders | null,
 	): Promise<void>
 
 	/**

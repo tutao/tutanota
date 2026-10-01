@@ -1,12 +1,12 @@
 {
 	"name": "ArchiveDownloaderFacade",
-	"doc": "Download archives and write them to offline database.",
+	"doc": "Download archives and write them encrypted to offline database.",
 	"type": "facade",
 	"receivers": ["ios", "desktop", "android"],
 	"senders": ["web"],
 	"methods": {
 		"downloadAndStoreArchive": {
-			"doc": "Download an archive and store it (without decryption) in offline DB",
+			"doc": "Download an archive and store it in offline database",
 			"arg": [
 				{
 					"sourceUrl": "string"
@@ -15,13 +15,13 @@
 					"archiveId": "string"
 				},
 				{
-					"typeref": "string"
+					"typeRef": "string"
 				},
 				{
 					"modelVersion": "number"
 				},
 				{
-					"rangeHeader": "ArchiveDownloadRangeHeader?"
+					"rangeHeaders": "ArchiveDownloadRangeHeaders?"
 				}
 			],
 			"ret": "void"

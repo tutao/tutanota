@@ -2,9 +2,9 @@
 
 
 /**
- * FIXME
+ * HTTP range request headers used to resume archive download.
  */
-public struct ArchiveDownloadRangeHeader : Codable, Sendable {
+public struct ArchiveDownloadRangeHeaders : Codable, Sendable {
 	public init(
 		rangeStart: Int,
 		reprDigest: String

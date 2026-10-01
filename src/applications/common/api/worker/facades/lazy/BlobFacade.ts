@@ -50,13 +50,17 @@ import { FileReference } from "../../../../../../entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
 import { IncomingServerJson } from "../../../../../../platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../../../../platform-kit/instance-pipeline/EntityUtils"
-import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeader } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "@tutao/native-bridge/generatedIpc/types"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
-import { ArchiveDownloadResumeParams } from "../../../../../mail-app/workerUtils/index/OfflineStoragePersistence"
 
 EnvProvider.assertWorkerOrNode()
 
 export const TAG = "BlobFacade"
+
+export interface ArchiveDownloadResumeParams {
+	serverHostname: string
+	rangeHeaders: ArchiveDownloadRangeHeaders
+}
 
 export interface FileData {
 	data: Uint8Array<ArrayBuffer>
@@ -664,9 +668,9 @@ export class BlobFacade {
 	}
 
 	/**
-	 * Download a full archive of (encrypted) blob entities and store them to the SQLite DB.
+	 * Download a full archive of (encrypted) blob entities and store them in offline database.
 	 */
-	async downloadAndStoreFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(
+	async downloadAndStoreEncryptedBlobArchive<T extends BlobElementEntity>(
 		typeRef: TypeRef<T>,
 		archiveId: Id,
 		archiveDownloader: ArchiveDownloaderFacade,
@@ -678,12 +682,12 @@ export class BlobFacade {
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 		const serversToTry = blobServerAccessInfo.servers
 
-		let rangeHeader: ArchiveDownloadRangeHeader | null = null
+		let rangeHeaders: ArchiveDownloadRangeHeaders | null = null
 		if (resumeParams != null) {
 			// try to resume from the last-used server first
 			const resumeServerIndex = blobServerAccessInfo.servers.findIndex(({ url }) => new URL(url).hostname === resumeParams.serverHostname)
 			if (resumeServerIndex !== -1) {
-				rangeHeader = resumeParams.rangeHeader
+				rangeHeaders = resumeParams.rangeHeaders
 				const resumeServer = getFirstOrThrow(serversToTry.splice(resumeServerIndex, 1))
 				serversToTry.unshift(resumeServer)
 			}
@@ -700,7 +704,7 @@ export class BlobFacade {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, rangeHeader)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, rangeHeaders)
 				},
 				`can't load instances from server `,
 			)

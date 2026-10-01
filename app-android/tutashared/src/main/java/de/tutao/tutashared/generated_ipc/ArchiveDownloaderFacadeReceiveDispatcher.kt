@@ -17,15 +17,15 @@ class ArchiveDownloaderFacadeReceiveDispatcher(
 			"downloadAndStoreArchive" -> {
 				val sourceUrl: String = json.decodeFromString(arg[0])
 				val archiveId: String = json.decodeFromString(arg[1])
-				val typeref: String = json.decodeFromString(arg[2])
+				val typeRef: String = json.decodeFromString(arg[2])
 				val modelVersion: Long = json.decodeFromString(arg[3])
-				val rangeHeader: ArchiveDownloadRangeHeader? = json.decodeFromString(arg[4])
+				val rangeHeaders: ArchiveDownloadRangeHeaders? = json.decodeFromString(arg[4])
 				val result: Unit = this.facade.downloadAndStoreArchive(
 					sourceUrl,
 					archiveId,
-					typeref,
+					typeRef,
 					modelVersion,
-					rangeHeader,
+					rangeHeaders,
 				)
 				return json.encodeToString(result)
 			}

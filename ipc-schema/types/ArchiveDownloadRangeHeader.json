@@ -1,9 +1,0 @@
-{
-	"name": "ArchiveDownloadRangeHeader",
-	"type": "struct",
-	"doc": "FIXME",
-	"fields": {
-		"rangeStart": "number",
-		"reprDigest": "string"
-	}
-}

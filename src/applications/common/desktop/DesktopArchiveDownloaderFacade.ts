@@ -1,4 +1,4 @@
-import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeader, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { FetchImpl, toGlobalResponse } from "./net/NetAgent"
 import { tagSqlValue } from "../../../app-kit/local-store/SqlValue"
 import { first, isNotEmpty } from "@tutao/utils"
@@ -19,30 +19,27 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 		if (this.activeRequests.has(archiveId)) {
 			this.activeRequests.get(archiveId)?.abort()
 			await this.cleanState(archiveId)
-			console.log(TAG, `Aborted storing archive with id ${archiveId}`)
+			console.log(TAG, `Aborted storing archive ${archiveId}`)
 		}
 	}
 
 	async downloadAndStoreArchive(
 		sourceUrl: string,
 		archiveId: string,
-		typeref: string,
+		typeRef: string,
 		modelVersion: number,
-		rangeHeader: ArchiveDownloadRangeHeader | null,
+		rangeHeader: ArchiveDownloadRangeHeaders | null,
 	): Promise<void> {
 		const abortController = new AbortController()
 		this.activeRequests.set(archiveId, abortController)
 		try {
-			console.log(TAG, `Downloading archive with id ${archiveId}`)
 			const headers: Dict = { Accept: "text/csv;charset=utf-8", "Content-Type": "application/json", "Cache-Control": "no-cache" }
 			if (rangeHeader != null) {
-				console.log(TAG, `Trying to resume downloading archive with id ${archiveId} from row ${rangeHeader.rangeStart}`)
 				headers["Range"] = `rows=${rangeHeader.rangeStart}-`
 				headers["Repr-Digest"] = `sha-256=:${rangeHeader.reprDigest}:`
-			} else {
-				console.log(TAG, `Not trying to resume downloading archive with id ${archiveId}; starting from first row instead`)
 			}
 
+			console.log(TAG, `Downloading archive ${archiveId} starting from row ${rangeHeader?.rangeStart ?? 0}`)
 			const { status, body } = toGlobalResponse(
 				await this.fetch(sourceUrl, {
 					method: "GET",
@@ -51,20 +48,21 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				}),
 			)
 
+			console.log(TAG, `Received status code ${status} when downloading archive ${archiveId}`)
 			if ([200, 206].includes(status) && body != null) {
 				// status code 200 -> we received the full archive, instead of the partial one we wanted -> clear cache
 				if (status === 200) {
-					console.log(TAG, `Received status code 200, clearing cached blobs for archive with id ${archiveId}`)
+					console.log(TAG, `Clearing cached blobs for archive ${archiveId}`)
 					await this.sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE archiveId = ?", [tagSqlValue(archiveId)])
 				}
 
 				const decoder = new TextDecoder()
-				const storage = new ArchiveStorageHelper(archiveId, typeref, modelVersion, new URL(sourceUrl).hostname, this.sqlCipherFacade)
+				const storage = new ArchiveStorageHelper(archiveId, typeRef, modelVersion, new URL(sourceUrl).hostname, this.sqlCipherFacade)
 				this.storageForArchive.set(archiveId, storage)
 				await storage.init()
 
 				const startTime = new Date().getTime()
-				console.log(TAG, `Started storing archive with id ${archiveId}`)
+				console.log(TAG, `Started storing archive ${archiveId}`)
 
 				let currentChunkString = ""
 				let isParsingBlobs = false
@@ -98,9 +96,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				await storage.flushAndClose()
 
 				const timeToStore = new Date().getTime() - startTime
-				console.log(TAG, `Finished storing archive with id ${archiveId} (took ${timeToStore} ms)`)
-			} else {
-				console.log(TAG, `Received status code ${status} when trying to download archive with id ${archiveId}, aborting.`)
+				console.log(TAG, `Finished storing archive ${archiveId} (took ${timeToStore} ms)`)
 			}
 		} finally {
 			await this.cleanState(archiveId)
@@ -111,32 +107,32 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 		this.activeRequests.delete(archiveId)
 		await this.storageForArchive.get(archiveId)?.flushAndClose()
 		this.storageForArchive.delete(archiveId)
-		console.log(TAG, `Cleaned up state of archive with id ${archiveId}, kept the blobs.`)
+		console.log(TAG, `Cleaned up state of archive ${archiveId}, kept the blobs.`)
 	}
 }
 
 class ArchiveStorageHelper {
 	private readonly archiveId: TaggedSqlValue
-	private readonly typeref: TaggedSqlValue
+	private readonly typeRef: TaggedSqlValue
 	private readonly modelVersion: TaggedSqlValue
 	private readonly serverHostname: TaggedSqlValue
 
 	constructor(
 		_archiveId: string,
-		_typeref: string,
+		_typeRef: string,
 		_modelVersion: number,
 		_serverHostname: string,
 		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {
 		this.archiveId = tagSqlValue(_archiveId)
-		this.typeref = tagSqlValue(_typeref)
+		this.typeRef = tagSqlValue(_typeRef)
 		this.modelVersion = tagSqlValue(_modelVersion)
 		this.serverHostname = tagSqlValue(_serverHostname)
 	}
 
 	async init() {
-		const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeref, modelVersion, serverHostname) VALUES (?, ?, ?, ?)"
-		const params: TaggedSqlValue[] = [this.archiveId, this.typeref, this.modelVersion, this.serverHostname]
+		const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeRef, modelVersion, serverHostname) VALUES (?, ?, ?, ?)"
+		const params: TaggedSqlValue[] = [this.archiveId, this.typeRef, this.modelVersion, this.serverHostname]
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -170,11 +166,11 @@ class ArchiveStorageHelper {
 	private async store() {
 		if (!this.closed && isNotEmpty(this.blobs)) {
 			const query =
-				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeref, modelVersion) VALUES (?, ?, ?, ?, ?)" +
+				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeRef, modelVersion) VALUES (?, ?, ?, ?, ?)" +
 				", (?, ?, ?, ?, ?)".repeat(this.blobs.length - 1)
 			const params = Array(this.blobs.length)
 				.fill(null)
-				.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), this.archiveId, tagSqlValue(this.blobs[i].json), this.typeref, this.modelVersion])
+				.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), this.archiveId, tagSqlValue(this.blobs[i].json), this.typeRef, this.modelVersion])
 
 			await this.sqlCipherFacade.run(query, params)
 		}
