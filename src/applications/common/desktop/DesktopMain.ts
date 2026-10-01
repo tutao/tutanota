@@ -48,7 +48,7 @@ import { DesktopWebauthnFacade } from "./2fa/DesktopWebauthnFacade.js"
 import { DesktopPostLoginActions } from "./DesktopPostLoginActions.js"
 import { DesktopInterWindowEventFacade } from "./ipc/DesktopInterWindowEventFacade.js"
 import { OfflineDbFactory, PerWindowSqlCipherFacade } from "./db/PerWindowSqlCipherFacade.js"
-import { LazyLoaded, lazyMemoized, noOp } from "../../../platform-kit/utils"
+import { LazyLoaded, lazyMemoized, noOp, Nullable } from "../../../platform-kit/utils"
 import dns from "node:dns"
 import { getConfigFile } from "./config/ConfigFile.js"
 import { OfflineDbRefCounter } from "./db/OfflineDbRefCounter.js"
@@ -63,7 +63,7 @@ import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
 import { DesktopSseDelay } from "./sse/reconnectDelay.js"
 import { KeychainEncryption } from "./credentials/KeychainEncryption.js"
-import { Argon2IDExports, SYMMETRIC_CIPHER_FACADE } from "../../../platform-kit/crypto"
+import { Argon2IDExports, InstanceKeyProvider, SYMMETRIC_CIPHER_FACADE } from "../../../platform-kit/crypto"
 import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
@@ -72,12 +72,12 @@ import { customFetch } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
-import { ClientOnlyTypeModelResolver, InstancePipeline, NamedClientModel } from "../../../platform-kit/instance-pipeline"
+import { ClientOnlyTypeModelResolver, InstanceKeyProviderMakerInterface, InstancePipeline, NamedClientModel } from "../../../platform-kit/instance-pipeline"
 import { CommandExecutor } from "./CommandExecutor"
 import { makeSuspensionAwareFetch } from "./net/SuspensionAwareFetch"
 import { restSuspension } from "../../../platform-kit/rest-client"
 import { DesktopErrorHandler } from "./DesktopErrorHandler"
-import { AppNameEnum } from "@tutao/meta"
+import { AppNameEnum, PersistentEntity } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
@@ -221,8 +221,12 @@ async function createComponents(): Promise<Components> {
 			throw new ProgrammingError("trying to use group keys for alarm encryption")
 		},
 		SYMMETRIC_CIPHER_FACADE,
-		() => {
-			throw new ProgrammingError("trying to decrypt with instance key for alarm decryption")
+		(): InstanceKeyProviderMakerInterface => {
+			return {
+				async makeInstanceKeyProvider(_: PersistentEntity): Promise<Nullable<InstanceKeyProvider>> {
+					return null
+				},
+			}
 		},
 	)
 	const sseStorage = new SseStorage(conf)
