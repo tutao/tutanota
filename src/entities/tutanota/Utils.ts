@@ -477,14 +477,14 @@ export function getHourCycle(userSettings: UserSettingsGroupRoot): "h12" | "h23"
 	return userSettings.timeFormat === TimeFormat.TWELVE_HOURS ? "h12" : "h23"
 }
 
-export enum ImapSyncEventType {
+export enum MigrationSyncEventType {
 	CREATE,
 	UPDATE,
 	DELETE,
 }
 
-export const IMAP_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds
-export const IMAP_AUTH_ERROR_POSTPONE_TIME: number = 15 * 60 * 1000 // 15 minutes
+export const MIGRATION_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds
+export const MIGRATION_AUTH_ERROR_POSTPONE_TIME: number = 15 * 60 * 1000 // 15 minutes
 export enum MailImportType {
 	FileImport = "FileImport",
 	ImapImport = "ImapImport",

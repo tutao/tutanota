@@ -1,0 +1,58 @@
+import { isCustomizationEnabledForCustomer } from "../../../common/api/common/utils/CustomerUtils"
+import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction"
+import { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade"
+import { EntityClient } from "../../../../platform-kit/network/EntityClient"
+import { SyncTracker } from "../../../common/api/main/SyncTracker"
+import { assertNotNull } from "../../../../platform-kit/utils/Utils"
+import { isInternalUser } from "../../../common/api/common/utils/UserUtils"
+import { CustomerTypeRef } from "@tutao/entities/sys"
+import { FeatureType } from "@tutao/app-env"
+import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
+import { MailBox, MailboxGroupRootTypeRef, MailBoxTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationController } from "../../settings/migration/MailboxMigrationController"
+import { idToElementId } from "@tutao/meta"
+import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+
+/**
+ * continue a Migration task after login if there is one
+ */
+export class MigrationPostLoginAction implements PostLoginAction {
+	constructor(
+		private readonly mailboxMigrationController: MailboxMigrationController,
+		private readonly customerFacade: CustomerFacade,
+		private readonly entityClient: EntityClient,
+		private readonly syncTracker: SyncTracker,
+	) {}
+
+	async onPartialLoginSuccess(_: LoggedInEvent): Promise<void> {
+		// do nothing
+	}
+
+	async onFullLoginSuccess(_: LoggedInEvent): Promise<void> {
+		await this.customerFacade.loadCustomizations()
+		const user = assertNotNull(await this.customerFacade.getUser())
+		const customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(user.customer)))
+
+		if (isInternalUser(user) && isCustomizationEnabledForCustomer(customer, FeatureType.ImapSyncMigration)) {
+			const mailMemberships = filterMailMemberships(user)
+
+			const mailboxesOfUser: MailBox[] = []
+			for (const mailMembership of mailMemberships) {
+				const mailboxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailMembership.group))
+				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
+				mailboxesOfUser.push(mailbox)
+			}
+
+			await this.mailboxMigrationController.init(mailboxesOfUser)
+
+			this.syncTracker.addSyncListener({
+				id: "MigrationPostLoginAction",
+				priority: ListenerPriority.LOW,
+				targetStatus: CacheSyncStatus.OnlineSyncDone,
+				onSyncStatusChange: async () => {
+					await this.mailboxMigrationController.continueAllImportsAfterLogin()
+				},
+			})
+		}
+	}
+}

@@ -1,0 +1,39 @@
+{
+	"name": "MigrationSyncSystemFacade",
+	"type": "facade",
+	"senders": ["web"],
+	"receivers": ["desktop"],
+	"doc": "Facade implemented by the native desktop client starting and stopping a Migration sync.",
+	"methods": {
+		"startSync": {
+			"doc": "Start the Migration sync for a specific account.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				},
+				{
+					"migrationSyncContext": "MigrationSyncContext"
+				}
+			],
+			"ret": "void"
+		},
+		"getMigrationMailboxes": {
+			"doc": "Fetches the folders from the Migration server, to be used for the folder mapping step",
+			"arg": [
+				{
+					"migrationCredentials": "MigrationCredentials"
+				}
+			],
+			"ret": "List<MigrationMailbox>"
+		},
+		"stopSync": {
+			"doc": "Stop a specific running Migration sync.",
+			"arg": [
+				{
+					"accountSyncId": "IdTuple"
+				}
+			],
+			"ret": "void"
+		}
+	}
+}

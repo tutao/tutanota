@@ -79,7 +79,7 @@ import { Dialog } from "../../../ui/base/Dialog.js"
 import { createUserAreaGroupDeleteData, TemplateGroupService_DELETE, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
-import ImapImportSettingsViewer from "./imapimport/ImapImportSettingsViewer.js"
+import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
 
 EnvProvider.assertMainOrNode()
 
@@ -210,7 +210,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 						"migration",
 						() => {
 							if (EnvProvider.get().isDesktop()) {
-								return new ImapImportSettingsViewer(() => mailLocator.getImapMailImportController())
+								return new MigrationSettingsViewer(() => mailLocator.getMailboxMigrationController())
 							} else {
 								return new WebMailImportSettingsViewer(false)
 							}

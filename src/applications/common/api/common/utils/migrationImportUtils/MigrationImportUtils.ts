@@ -1,9 +1,9 @@
-import { ImapMail, ImapMailAddress, ImapMailAttachment } from "./ImapMail.js"
-import { ImapMailboxSpecialUse } from "./ImapMailbox.js"
+import { MigrationMail, MigrationMailAddress, MigrationMailAttachment } from "./MigrationMail.js"
+import { MigrationMailboxSpecialUse } from "./MigrationMailbox.js"
 import { plainTextToHtml } from "./PlainTextToHtmlConverter"
-import { getImapConfigWithPasswordAuthForDomain, MailboxMigrationProvider, ServerImapImportParams } from "./ImapKnownConfigs"
+import { getServerMigrationConfigForDomain, MailboxMigrationProvider, ServerMigrationConfig } from "./MigrationKnownConfigs"
 
-import { ImapCredentials } from "./ImapSyncContext"
+import { MigrationCredentials } from "./MigrationSyncContext"
 import type { TokenEndpointResponse } from "oauth4webapi"
 import {
 	createOAuthTokenEndpointResponseLegacy,
@@ -12,7 +12,7 @@ import {
 	OAuthTokenEndpointResponseLegacy,
 } from "@tutao/entities/tutanota"
 import { createOAuthToken, OAuthToken, UserMigrationInformation } from "@tutao/entities/sys"
-import { ImapImportAttachments, ImapImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
+import { MigrationImportAttachments, MigrationImportDataFile, ImportMailParams } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
 	calendarMethodToMailMethod,
@@ -28,9 +28,9 @@ import { ProgrammingError } from "@tutao/app-env"
 
 const TEXT_CALENDAR_MIME_TYPE = "text/calendar"
 
-const IMAP_FLAG_SEEN = "\\Seen"
-const IMAP_FLAG_ANSWERED = "\\Answered"
-const IMAP_FLAG_FORWARDED = "$Forwarded"
+const SEEN_FLAG = "\\Seen"
+const ANSWERED_FLAG = "\\Answered"
+const FORWARDED_FLAG = "$Forwarded"
 
 export type MailboxMigrationCredential = {
 	provider: MailboxMigrationProvider
@@ -77,26 +77,27 @@ export function findUserMigrationInfoForSyncState(
 	)
 }
 
-export function migrationSyncStateToImapCredentials(
+export function migrationSyncStateToMigrationCredentials(
 	migrationSyncState: MailboxMigrationSyncState,
 	userMigrationInformation: UserMigrationInformation | null,
-): ImapCredentials {
-	const imapConfiguration = assertNotNull(migrationSyncState.imapConfiguration)
+): MigrationCredentials {
+	const mailboxMigrationImapConfiguration = assertNotNull(migrationSyncState.imapConfiguration)
 	const migrationCredential = getMailboxMigrationCredential(migrationSyncState, userMigrationInformation)
-	const imapCredentials: ImapCredentials = {
-		host: imapConfiguration.host,
-		port: parseInt(imapConfiguration.port),
+	const migrationCredentials: MigrationCredentials = {
+		host: mailboxMigrationImapConfiguration.host,
+		port: parseInt(mailboxMigrationImapConfiguration.port),
 		username: migrationCredential.username,
-		ignoreCertificateErrors: imapConfiguration.ignoreCertificateErrors,
-		customCertificateData: imapConfiguration.customCertificateData,
+		ignoreCertificateErrors: mailboxMigrationImapConfiguration.ignoreCertificateErrors,
+		customCertificateData: mailboxMigrationImapConfiguration.customCertificateData,
 		provider: migrationCredential.provider,
-		useSSL: imapConfiguration.useSSL,
+		useSSL: mailboxMigrationImapConfiguration.useSSL,
+		isLegacy: userMigrationInformation === null,
 	}
-	imapCredentials.password = migrationCredential.password ?? undefined
-	imapCredentials.tokenEndpointResponse =
+	migrationCredentials.password = migrationCredential.password ?? undefined
+	migrationCredentials.tokenEndpointResponse =
 		migrationCredential.oAuthToken !== null ? oAuthTokenToTokenEndpointResponse(migrationCredential.oAuthToken) : undefined
 
-	return imapCredentials
+	return migrationCredentials
 }
 
 export function oAuthTokenToTokenEndpointResponse(oAuthToken: OAuthToken | OAuthTokenEndpointResponseLegacy): TokenEndpointResponse {
@@ -137,69 +138,70 @@ export function getFolderSyncStateForMailboxPath(
 	)
 }
 
-export function imapMailToImportMailParams(
-	imapMail: ImapMail,
+export function migrationMailToImportMailParams(
+	migrationMail: MigrationMail,
 	folderSyncStateId: IdTuple,
-	deduplicatedAttachments: ImapImportAttachments | null,
+	deduplicatedAttachments: MigrationImportAttachments | null,
 	migrationFolderSyncStates: MailboxMigrationFolderSyncState[],
 ): ImportMailParams {
-	const fromMailAddress = imapMail.envelope?.from?.at(0)?.address ?? ""
-	const fromName = imapMail.envelope?.from?.at(0)?.name ?? ""
-	const senderMailAddress = imapMail.envelope?.sender?.at(0)?.address ?? null
+	const fromMailAddress = migrationMail.envelope?.from?.at(0)?.address ?? ""
+	const fromName = migrationMail.envelope?.from?.at(0)?.name ?? ""
+	const senderMailAddress = migrationMail.envelope?.sender?.at(0)?.address ?? null
 
 	const differentEnvelopeSender = senderMailAddress !== fromMailAddress ? senderMailAddress : null
 
 	let attachments = deduplicatedAttachments
 	if (!attachments) {
-		attachments = imapMail.attachments ? importAttachmentsFromImapMailAttachments(imapMail.attachments) : null
+		attachments = migrationMail.attachments ? importAttachmentsFromMigrationMailAttachments(migrationMail.attachments) : null
 	}
 
-	const bodyText = imapMail.body?.html.trim() || (imapMail.body?.plaintext.trim() ? plainTextToHtml(imapMail.body.plaintext) : "")
+	const bodyText = migrationMail.body?.html.trim() || (migrationMail.body?.plaintext.trim() ? plainTextToHtml(migrationMail.body.plaintext) : "")
 
 	return {
-		subject: imapMail.envelope?.subject ?? "",
+		subject: migrationMail.envelope?.subject ?? "",
 		bodyText: bodyText,
-		sentDate: imapMail.envelope?.date ?? new Date(Date.now()),
-		receivedDate: imapMail.internalDate ?? new Date(Date.now()),
-		state: mailStateFromImapMailbox(imapMail),
-		unread: unreadFromImapMail(imapMail),
-		messageId: imapMail.envelope?.messageId ?? null,
+		sentDate: migrationMail.envelope?.date ?? new Date(Date.now()),
+		receivedDate: migrationMail.internalDate ?? new Date(Date.now()),
+		state: mailStateFromMigrationMailbox(migrationMail),
+		unread: unreadFromMigrationMail(migrationMail),
+		messageId: migrationMail.envelope?.messageId ?? null,
 		senderMailAddress: fromMailAddress,
 		senderName: fromName,
-		method: mailMethodFromImapMail(imapMail),
-		replyType: replyTypeFromImapMail(imapMail),
+		method: mailMethodFromMigrationMail(migrationMail),
+		replyType: replyTypeFromMigrationMail(migrationMail),
 		differentEnvelopeSender: differentEnvelopeSender, // null if sender == from in mail envelope
-		headers: imapMail.headers ?? "",
-		replyTos: imapMail.envelope?.replyTo ? recipientsFromImapMailAddresses(imapMail.envelope?.replyTo!) : [],
-		toRecipients: imapMail.envelope?.to ? recipientsFromImapMailAddresses(imapMail.envelope?.to!) : [],
-		ccRecipients: imapMail.envelope?.cc ? recipientsFromImapMailAddresses(imapMail.envelope?.cc!) : [],
-		bccRecipients: imapMail.envelope?.bcc ? recipientsFromImapMailAddresses(imapMail.envelope?.bcc!) : [],
+		headers: migrationMail.headers ?? "",
+		replyTos: migrationMail.envelope?.replyTo ? recipientsFromMigrationMailAddresses(migrationMail.envelope?.replyTo!) : [],
+		toRecipients: migrationMail.envelope?.to ? recipientsFromMigrationMailAddresses(migrationMail.envelope?.to!) : [],
+		ccRecipients: migrationMail.envelope?.cc ? recipientsFromMigrationMailAddresses(migrationMail.envelope?.cc!) : [],
+		bccRecipients: migrationMail.envelope?.bcc ? recipientsFromMigrationMailAddresses(migrationMail.envelope?.bcc!) : [],
 		attachments: attachments,
-		inReplyTo: imapMail.envelope?.inReplyTo ?? null,
-		references: imapMail.envelope?.references ?? [],
-		imapUid: imapMail.uid,
-		imapModSeq: imapMail.modSeq ?? null,
-		imapFolderSyncState: folderSyncStateId,
-		labels: imapMail.labels ? labelsFromImapLabels(imapMail.labels, migrationFolderSyncStates) : [],
+		inReplyTo: migrationMail.envelope?.inReplyTo ?? null,
+		references: migrationMail.envelope?.references ?? [],
+		sourceId: migrationMail.sourceId,
+		imapUid: migrationMail.imapUid ?? null,
+		imapModSeq: migrationMail.modSeq ?? null,
+		mailboxMigrationFolderSyncState: folderSyncStateId,
+		labels: migrationMail.labels ? labelsFromMigrationLabels(migrationMail.labels, migrationFolderSyncStates) : [],
 	}
 }
 
-export function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
+export function labelsFromMigrationLabels(migrationLabels: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
-	for (const imapLabel of imapLabels) {
+	for (const migrationLabel of migrationLabels) {
 		let folderSyncState: MailboxMigrationFolderSyncState | null
-		folderSyncState = imapFolderSyncStates.find((imapFolderSyncState) => imapFolderSyncState.specialUse === imapLabel) ?? null
+		folderSyncState = mailboxMigrationFolderSyncStates.find((folderSyncState) => folderSyncState.specialUse === migrationLabel) ?? null
 		// Gmail announces the folder's special use as DRAFTS, but the label on the mail is DRAFT...
-		if (imapLabel === ImapMailboxSpecialUse.DRAFT || imapLabel === ImapMailboxSpecialUse.DRAFTS) {
+		if (migrationLabel === MigrationMailboxSpecialUse.DRAFT || migrationLabel === MigrationMailboxSpecialUse.DRAFTS) {
 			folderSyncState =
-				imapFolderSyncStates.find(
-					(imapFolderSyncState) =>
-						imapFolderSyncState.specialUse === ImapMailboxSpecialUse.DRAFTS || imapFolderSyncState.specialUse === ImapMailboxSpecialUse.DRAFT,
+				mailboxMigrationFolderSyncStates.find(
+					(folderSyncState) =>
+						folderSyncState.specialUse === MigrationMailboxSpecialUse.DRAFTS || folderSyncState.specialUse === MigrationMailboxSpecialUse.DRAFT,
 				) ?? null
 		}
 		if (!folderSyncState) {
-			folderSyncState = getFolderSyncStateForMailboxPath(imapLabel, imapFolderSyncStates)
+			folderSyncState = getFolderSyncStateForMailboxPath(migrationLabel, mailboxMigrationFolderSyncStates)
 		}
 		if (folderSyncState?.mailSet) {
 			result.add(folderSyncState.mailSet)
@@ -208,18 +210,18 @@ export function labelsFromImapLabels(imapLabels: Set<string>, imapFolderSyncStat
 	return Array.from(result)
 }
 
-function importAttachmentsFromImapMailAttachments(imapMailAttachments: ImapMailAttachment[]): ImapImportDataFile[] {
-	return imapMailAttachments.map((imapMailAttachment) => {
-		const imapImportDataFile: ImapImportDataFile = {
+function importAttachmentsFromMigrationMailAttachments(migrationMailAttachments: MigrationMailAttachment[]): MigrationImportDataFile[] {
+	return migrationMailAttachments.map((migrationMailAttachment) => {
+		const migrationImportDataFile: MigrationImportDataFile = {
 			_type: "DataFile",
-			name: imapMailAttachment.filename ?? guessFilenameBasedOnMimeType(imapMailAttachment.mimeType),
-			data: imapMailAttachment.content,
-			size: imapMailAttachment.size,
-			mimeType: imapMailAttachment.mimeType,
-			cid: imapMailAttachment.cid,
+			name: migrationMailAttachment.filename ?? guessFilenameBasedOnMimeType(migrationMailAttachment.mimeType),
+			data: migrationMailAttachment.content,
+			size: migrationMailAttachment.size,
+			mimeType: migrationMailAttachment.mimeType,
+			cid: migrationMailAttachment.cid,
 			fileHash: null,
 		}
-		return imapImportDataFile
+		return migrationImportDataFile
 	})
 }
 
@@ -240,16 +242,16 @@ function guessFilenameBasedOnMimeType(mimeType: string): string {
 	return "unknown.txt"
 }
 
-function mailStateFromImapMailbox(imapMail: ImapMail): MailState {
+function mailStateFromMigrationMailbox(migrationMail: MigrationMail): MailState {
 	let mailState: MailState
-	const specialUse = imapMail.belongsToMailbox.specialUse
+	const specialUse = migrationMail.belongsToMailbox.specialUse
 	// in case of Gmail we do only fetch the ALL folder, so we need to check for the labels
-	const isSent = specialUse === ImapMailboxSpecialUse.SENT || (imapMail.labels?.has(ImapMailboxSpecialUse.SENT) ?? false)
+	const isSent = specialUse === MigrationMailboxSpecialUse.SENT || (migrationMail.labels?.has(MigrationMailboxSpecialUse.SENT) ?? false)
 	const isDraft =
-		specialUse === ImapMailboxSpecialUse.DRAFTS ||
-		specialUse === ImapMailboxSpecialUse.DRAFT ||
-		(imapMail.labels?.has(ImapMailboxSpecialUse.DRAFT) ?? false) ||
-		(imapMail.labels?.has(ImapMailboxSpecialUse.DRAFTS) ?? false)
+		specialUse === MigrationMailboxSpecialUse.DRAFTS ||
+		specialUse === MigrationMailboxSpecialUse.DRAFT ||
+		(migrationMail.labels?.has(MigrationMailboxSpecialUse.DRAFT) ?? false) ||
+		(migrationMail.labels?.has(MigrationMailboxSpecialUse.DRAFTS) ?? false)
 	if (isSent) {
 		mailState = MailState.SENT
 	} else if (isDraft) {
@@ -260,30 +262,30 @@ function mailStateFromImapMailbox(imapMail: ImapMail): MailState {
 	return mailState
 }
 
-function unreadFromImapMail(imapMail: ImapMail): boolean {
-	return !(imapMail.flags?.has(IMAP_FLAG_SEEN) ?? false)
+function unreadFromMigrationMail(migrationMail: MigrationMail): boolean {
+	return !(migrationMail.flags?.has(SEEN_FLAG) ?? false)
 }
 
-function mailMethodFromImapMail(imapMail: ImapMail): MailMethod {
-	const iCalAttachments = imapMail.attachments?.find((attachment) => {
+function mailMethodFromMigrationMail(migrationMail: MigrationMail): MailMethod {
+	const iCalAttachments = migrationMail.attachments?.find((attachment) => {
 		return attachment.mimeType === TEXT_CALENDAR_MIME_TYPE
 	})
 	let calendarMethod = iCalAttachments?.method as CalendarMethod
 	return calendarMethod ? calendarMethodToMailMethod(calendarMethod) : MailMethod.NONE
 }
 
-function replyTypeFromImapMail(imapMail: ImapMail): ReplyType {
-	const flags = imapMail.flags
+function replyTypeFromMigrationMail(migrationMail: MigrationMail): ReplyType {
+	const flags = migrationMail.flags
 	if (flags === undefined) {
 		return ReplyType.NONE
 	}
 
 	let replyType: ReplyType
-	if (flags.has(IMAP_FLAG_ANSWERED) && flags.has(IMAP_FLAG_FORWARDED)) {
+	if (flags.has(ANSWERED_FLAG) && flags.has(FORWARDED_FLAG)) {
 		replyType = ReplyType.REPLY_FORWARD
-	} else if (flags.has(IMAP_FLAG_ANSWERED)) {
+	} else if (flags.has(ANSWERED_FLAG)) {
 		replyType = ReplyType.REPLY
-	} else if (flags.has(IMAP_FLAG_FORWARDED)) {
+	} else if (flags.has(FORWARDED_FLAG)) {
 		replyType = ReplyType.FORWARD
 	} else {
 		replyType = ReplyType.NONE
@@ -291,23 +293,23 @@ function replyTypeFromImapMail(imapMail: ImapMail): ReplyType {
 	return replyType
 }
 
-function recipientsFromImapMailAddresses(imapMailAddresses: ImapMailAddress[]): RecipientList {
-	return imapMailAddresses.map((imapMailAddress) => {
+function recipientsFromMigrationMailAddresses(migrationMailAddresses: MigrationMailAddress[]): RecipientList {
+	return migrationMailAddresses.map((migrationMailAddress) => {
 		const partialRecipient: PartialRecipient = {
-			address: imapMailAddress.address ?? "",
-			name: imapMailAddress.name,
+			address: migrationMailAddress.address ?? "",
+			name: migrationMailAddress.name,
 		}
 		return partialRecipient
 	})
 }
 
-export function guessServerImapConfigFromEmail(username: string): ServerImapImportParams | null {
+export function guessServerMigrationParamsFromEmail(username: string): ServerMigrationConfig | null {
 	const domain = username.split("@")[1]
 	if (domain === undefined) {
 		return null
 	}
 
-	return getImapConfigWithPasswordAuthForDomain(domain)
+	return getServerMigrationConfigForDomain(domain)
 }
 
 export function randomHexColor() {
