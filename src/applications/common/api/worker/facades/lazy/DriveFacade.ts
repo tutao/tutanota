@@ -457,9 +457,7 @@ export class DriveFacade {
 			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
 			// 	4. Encrypt the PWD with the owner key producing the ENCPWD.
 			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
-			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
-			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
-			const verifier = createAuthVerifier(passwordKey)
+			const verifier = await this.createShareVerifier(shareKey, nonce, password)
 			// 	5. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
 			await this.serviceExecutor.execute(
 				DriveShareService_POST,
@@ -503,15 +501,23 @@ export class DriveFacade {
 		}
 	}
 
-	async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
+	private async createShareVerifier(shareKey: Aes256Key, nonce: KdfNonce, password: string): Promise<Uint8Array<ArrayBuffer>> {
+		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
+		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
+		return createAuthVerifier(passwordKey)
+	}
+
+	private async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
-		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
-		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
-		const verifier = createAuthVerifier(passwordKey)
+		const nonce = share.nonce as KdfNonce
+		const verifier = await this.createShareVerifier(shareKey, nonce, password)
 		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
-		const groupKeyVersion = String(fileGroupKey.version)
-		return { verifier, ownerEncPassword, groupKeyVersion }
+		return {
+			ownerEncPassword,
+			verifier,
+			groupKeyVersion: String(fileGroupKey.version),
+		}
 	}
 
 	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null) {
