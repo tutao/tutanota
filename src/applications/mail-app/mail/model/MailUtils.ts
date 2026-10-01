@@ -47,7 +47,7 @@ export function getSystemFolderName(folderType: MailSetKind): string {
 			return lang.getTranslationText("sent_action")
 
 		case MailSetKind.TRASH:
-			return lang.getTranslationText("trash_action")
+			return lang.getTranslationText("driveTrash_label")
 
 		case MailSetKind.ARCHIVE:
 			return lang.getTranslationText("archive_label")
