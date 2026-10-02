@@ -14,7 +14,7 @@ type CancelSubscriptionOptionPageAttrs = {
 export class CancelSubscriptionOptionPage implements Component<CancelSubscriptionOptionPageAttrs> {
 	view(vnode: Vnode<CancelSubscriptionOptionPageAttrs>): Children {
 		return m(
-			".flex.col.gap-16.mt-16.mb-16",
+			".flex.col.gap-16.mt-16.mb-16.pb-24",
 			m(TitleSection, {
 				icon: Icons.TrophyOutline,
 				title: lang.getTranslationText("subscriptionStateCardCancel_action"),
