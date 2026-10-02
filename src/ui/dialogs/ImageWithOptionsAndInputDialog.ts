@@ -26,7 +26,7 @@ interface ImageWithOptionsAndInputDialogAttrs {
 export class ImageWithOptionsAndInputDialog implements Component<ImageWithOptionsAndInputDialogAttrs> {
 	private currentText = ""
 	view({ attrs }: Vnode<ImageWithOptionsAndInputDialogAttrs>) {
-		return m(".flex.flex-column.pb-24.height-100p.text-break.gap-16", [
+		return m(".flex.flex-column.pb-24.height-100p.gap-16", [
 			m(
 				"section",
 				m(
@@ -44,8 +44,11 @@ export class ImageWithOptionsAndInputDialog implements Component<ImageWithOption
 						}),
 					),
 				),
-				m("h1.text-center", lang.getTranslationText(attrs.titleText)),
-				m(".text-center", lang.getTranslationText(attrs.messageText)),
+				m(
+					".flex.col.text-break.gap-8",
+					m("h1.text-center", lang.getTranslationText(attrs.titleText)),
+					m(".text-center", lang.getTranslationText(attrs.messageText)),
+				),
 			),
 			this.renderInputForm(attrs),
 			m(
@@ -71,7 +74,7 @@ export class ImageWithOptionsAndInputDialog implements Component<ImageWithOption
 				}),
 			),
 			m(
-				".flex.row.gap-4.justify-center.items-center",
+				".flex.row.gap-4.justify-center.items-center.pb-16",
 				m(Icon, {
 					size: IconSize.PX20,
 					icon: Icons.GenericLockFilled,
