@@ -2,6 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify } from "testdouble"
 import {
 	createGmailApiClient,
+	parseRetryAfterFromMessage,
 	GmailApiClient,
 	GmailApiError,
 	GmailLibraryApi,
@@ -284,6 +285,33 @@ o.spec("GmailSyncSession", () => {
 		o.check(handedOver).deepEquals([["oldest", "middle", "newest"]])
 	})
 
+	o.test("startSync - mails that were downloaded next to a failed one are handed over, the failed one is retried", async () => {
+		const raw = Buffer.from(RAW_MAIL).toString("base64url")
+		let middleAttempts = 0
+		const responses = new Map<string, any>([
+			["/labels", labelsResponse],
+			["/messages", { messages: [{ id: "newest" }, { id: "middle" }, { id: "oldest" }] }],
+			["/messages/newest", { id: "newest", labelIds: ["INBOX"], raw }],
+			[
+				"/messages/middle",
+				() => {
+					if (++middleAttempts === 1) throw new Error("socket hang up")
+					return { id: "middle", labelIds: ["INBOX"], raw }
+				},
+			],
+			["/messages/oldest", { id: "oldest", labelIds: ["INBOX"], raw }],
+		])
+		const handedOver: string[][] = []
+		listenerMock.onMultipleMails = async (mails: any[]) => {
+			handedOver.push(mails.map((mail) => mail.sourceId))
+		}
+
+		await session(responses).startSync(context())
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		o.check(handedOver).deepEquals([["oldest", "newest"], ["middle"]])
+	})
+
 	o.test("startSync - a 403 that is not a rate limit is reported as AUTH_FAILED", async () => {
 		const responses = new Map<string, any>([["/labels", new GmailApiError("Gmail API has not been used", 403, "accessNotConfigured")]])
 
@@ -309,7 +337,7 @@ o.spec("GmailSyncSession", () => {
 			return { users: { labels: { list: async () => ({ data: { labels: [] } }) }, messages: { get: messagesGet, list: messagesList } } } as any
 		}
 
-		o.test("retries throttled requests with backoff and honours Retry-After", async () => {
+		o.test("waits out a rate limit using Retry-After and backs off on server errors", async () => {
 			const results = [gaxiosError(429, { "retry-after": "2" }), gaxiosError(503), { data: { id: "m1", raw: "abc", labelIds: ["INBOX"] } }]
 			const sleeps: number[] = []
 			const client = createGmailApiClient(
@@ -321,12 +349,45 @@ o.spec("GmailSyncSession", () => {
 				async (ms) => {
 					sleeps.push(ms)
 				},
+				() => 0,
 			)
 
 			o.check((await client.getRawMessage("m1"))?.raw).equals("abc")
-			o.check(sleeps.length).equals(2)
-			o.check(sleeps[0]).equals(2000)
-			o.check(sleeps[1] >= 2000).equals(true) // second backoff, 1000 * 2^1
+			o.check(sleeps[0]).equals(2000) // the pace is kept from starting before the Retry-After of the rate limit is over
+			o.check(sleeps.length).equals(3)
+		})
+
+		o.test("paces requests below the quota and slows down after a rate limit", async () => {
+			let rateLimited = false
+			const sleeps: number[] = []
+			const client = createGmailApiClient(
+				libraryWith(async () => {
+					if (!rateLimited) {
+						rateLimited = true
+						throw gaxiosError(429, { "retry-after": "0" })
+					}
+					return { data: { id: "m", raw: "abc" } }
+				}),
+				async (ms) => {
+					sleeps.push(ms)
+				},
+				() => 0,
+			)
+
+			await client.getRawMessage("a") // rate limited once, the pace is halved from 150 to 75 quota units per second
+			sleeps.length = 0
+			await client.getRawMessage("b")
+			await client.getRawMessage("c")
+
+			// unslowed, 5 quota units at 150 units per second would be 33 ms between the starts of two requests
+			o.check(sleeps[sleeps.length - 1] - sleeps[sleeps.length - 2] > 50).equals(true)
+		})
+
+		o.test("parses the end of a rate limit from the error message", async () => {
+			o.check(
+				parseRetryAfterFromMessage("User-rate limit exceeded.  Retry after 2026-10-02T10:00:10.000Z", Date.parse("2026-10-02T10:00:00.000Z")),
+			).equals(10_000)
+			o.check(parseRetryAfterFromMessage("something else", 0)).equals(null)
 		})
 
 		o.test("retries rate limit 403 and network errors, a message that does not exist is null and not retried", async () => {
@@ -374,7 +435,7 @@ o.spec("GmailSyncSession", () => {
 			const e = await assertThrows(GmailApiError, async () => await client.getRawMessage("m1"))
 
 			o.check(e.status).equals(500)
-			o.check(calls).equals(6)
+			o.check(calls).equals(8)
 		})
 
 		o.test("lists the ids like IMAP's All Mail: no spam, no trash, no chats", async () => {

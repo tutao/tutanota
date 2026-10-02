@@ -21,12 +21,24 @@ const FLAGGED_FLAG = "\\Flagged"
 const DRAFT_FLAG = "\\Draft"
 
 // https://developers.google.com/gmail/api/guides/handle-errors
-const MAX_REQUEST_ATTEMPTS = 6
+// Gmail API quota: 250 units per second per user (moving average), messages.get and messages.list cost 5 units, labels.list 1.
+// A client that fires requests as fast as possible (about 50 mails per second) runs into the limit after a few hundred mails,
+// so requests are paced below it. The pace is halved when Google still reports a rate limit and recovers slowly afterwards.
+// https://developers.google.com/gmail/api/reference/quota
+const QUOTA_UNITS_PER_SECOND = 150
+const MIN_QUOTA_UNITS_PER_SECOND = 25
+const QUOTA_COST_LIST_LABELS = 1
+const QUOTA_COST_LIST_MESSAGES = 5
+const QUOTA_COST_GET_MESSAGE = 5
+// rate limit windows are short, so a throttled request waits them out instead of postponing the whole sync
+const MAX_REQUEST_ATTEMPTS = 8
 const REQUEST_RETRY_BASE_DELAY = 1000
-const MAX_REQUEST_RETRY_DELAY = 60 * 1000
+const MAX_REQUEST_RETRY_DELAY = 2 * 60 * 1000
+const GMAIL_DAILY_LIMIT_POSTPONE_TIME = 60 * 60 * 1000
 const GMAIL_RATE_LIMIT_DEFAULT_POSTPONE_TIME = 60 * 1000
 const GMAIL_RATE_LIMIT_MIN_POSTPONE_TIME = 30 * 1000
-const RATE_LIMIT_REASONS = new Set(["rateLimitExceeded", "userRateLimitExceeded", "dailyLimitExceeded"])
+const RATE_LIMIT_REASONS = new Set(["rateLimitExceeded", "userRateLimitExceeded"])
+const DAILY_LIMIT_REASON = "dailyLimitExceeded"
 
 const ALL_MAIL_PATH = "[Gmail]/All Mail"
 
@@ -94,7 +106,11 @@ export type GmailApiClientFactory = (accessToken: string) => Promise<GmailApiCli
 export type GmailLibraryApi = Pick<gmail_v1.Gmail, "users">
 
 export function isGmailRateLimitError(e: any): boolean {
-	return e?.status === 403 && RATE_LIMIT_REASONS.has(e?.reason)
+	return e?.status === 429 || (e?.status === 403 && RATE_LIMIT_REASONS.has(e?.reason))
+}
+
+export function isGmailDailyLimitError(e: any): boolean {
+	return e?.status === 403 && e?.reason === DAILY_LIMIT_REASON
 }
 
 /** Maps the error of the library (a GaxiosError) to a GmailApiError, errors without a response (network level failures) are returned as they are. */
@@ -112,7 +128,7 @@ export function toGmailApiError(e: any): any {
 /** Throttling, server side failures and network level failures are worth another attempt, see https://developers.google.com/gmail/api/guides/handle-errors */
 function isRetryableGmailError(e: any): boolean {
 	if (e instanceof GmailApiError) {
-		return e.status === 429 || e.status === 500 || e.status === 502 || e.status === 503 || e.status === 504 || isGmailRateLimitError(e)
+		return e.status === 500 || e.status === 502 || e.status === 503 || e.status === 504 || isGmailRateLimitError(e)
 	}
 	return !(e instanceof MigrationError)
 }
@@ -130,6 +146,43 @@ export function parseRetryAfterMs(retryAfter: string | null | undefined): number
 	return Number.isFinite(date) ? Math.max(date - Date.now(), 0) : null
 }
 
+/** Google reports the end of a rate limit as "Retry after 2026-10-02T10:00:00.000Z" in the error message, without a Retry-After header. */
+export function parseRetryAfterFromMessage(message: string | undefined, now: number): number | null {
+	const match = message?.match(/Retry after (\d{4}-\d{2}-\d{2}T[\d:.]+Z)/i)
+	const date = match ? Date.parse(match[1]) : NaN
+	return Number.isFinite(date) ? Math.max(date - now, 0) : null
+}
+
+/** Spaces the start of requests so that the quota is not exceeded, shared by all requests of a client. */
+class RequestPacer {
+	private unitsPerSecond = QUOTA_UNITS_PER_SECOND
+	private nextRequestStart = 0
+
+	constructor(
+		private readonly sleep: (ms: number) => Promise<void>,
+		private readonly now: () => number,
+	) {}
+
+	async acquire(quotaCost: number): Promise<void> {
+		const start = Math.max(this.now(), this.nextRequestStart)
+		this.nextRequestStart = start + (quotaCost / this.unitsPerSecond) * 1000
+		const waitMs = start - this.now()
+		if (waitMs > 0) {
+			await this.sleep(waitMs)
+		}
+	}
+
+	onSuccess() {
+		this.unitsPerSecond = Math.min(this.unitsPerSecond * 1.02, QUOTA_UNITS_PER_SECOND)
+	}
+
+	/** Slows down and keeps all requests, also the ones that are already waiting, from starting before the limit is over. */
+	onRateLimited(retryAfterMs: number) {
+		this.unitsPerSecond = Math.max(this.unitsPerSecond / 2, MIN_QUOTA_UNITS_PER_SECOND)
+		this.nextRequestStart = Math.max(this.nextRequestStart, this.now() + retryAfterMs)
+	}
+}
+
 /**
  * Creates the client on top of the Gmail API client library. Requests are retried with exponential backoff (honouring Retry-After),
  * as recommended by Google, because postponing the whole sync for a single throttled request would stall large imports.
@@ -137,32 +190,45 @@ export function parseRetryAfterMs(retryAfter: string | null | undefined): number
 export function createGmailApiClient(
 	gmailApi: GmailLibraryApi,
 	sleep: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+	now: () => number = Date.now,
 ): GmailApiClient {
-	async function withRetry<T>(request: () => Promise<T>): Promise<T> {
+	const pacer = new RequestPacer(sleep, now)
+
+	async function withRetry<T>(quotaCost: number, request: () => Promise<T>): Promise<T> {
 		for (let attempt = 1; ; attempt++) {
+			await pacer.acquire(quotaCost)
 			try {
-				return await request()
+				const result = await request()
+				pacer.onSuccess()
+				return result
 			} catch (e) {
 				const error = toGmailApiError(e)
 				if (attempt >= MAX_REQUEST_ATTEMPTS || !isRetryableGmailError(error)) {
 					throw error
 				}
-				const retryAfterMs = parseRetryAfterMs((error as GmailApiError).retryAfter)
 				const backoffMs = REQUEST_RETRY_BASE_DELAY * 2 ** (attempt - 1) + Math.random() * 250
-				await sleep(Math.min(retryAfterMs ?? backoffMs, MAX_REQUEST_RETRY_DELAY))
+				const retryAfterMs = Math.min(
+					parseRetryAfterMs((error as GmailApiError).retryAfter) ?? parseRetryAfterFromMessage((error as GmailApiError).message, now()) ?? backoffMs,
+					MAX_REQUEST_RETRY_DELAY,
+				)
+				if (isGmailRateLimitError(error)) {
+					pacer.onRateLimited(retryAfterMs)
+				} else {
+					await sleep(retryAfterMs)
+				}
 			}
 		}
 	}
 
 	return {
 		async listLabels() {
-			const response = await withRetry(() => gmailApi.users.labels.list({ userId: "me" }))
+			const response = await withRetry(QUOTA_COST_LIST_LABELS, () => gmailApi.users.labels.list({ userId: "me" }))
 			return (response.data.labels ?? []).map((label) => ({ id: label.id!, name: label.name!, type: label.type as GmailLabelResource["type"] }))
 		},
 
 		async listMessageIds(pageToken?: string) {
 			// without labelIds and with includeSpamTrash=false this are the mails of IMAP's "[Gmail]/All Mail", which does not show chats either
-			const response = await withRetry(() =>
+			const response = await withRetry(QUOTA_COST_LIST_MESSAGES, () =>
 				gmailApi.users.messages.list({ userId: "me", maxResults: LIST_PAGE_SIZE, includeSpamTrash: false, q: "-in:chats", pageToken }),
 			)
 			return { ids: (response.data.messages ?? []).map((message) => message.id!), nextPageToken: response.data.nextPageToken ?? undefined }
@@ -170,7 +236,7 @@ export function createGmailApiClient(
 
 		async getRawMessage(id: string) {
 			try {
-				const response = await withRetry(() => gmailApi.users.messages.get({ userId: "me", id, format: "raw" }))
+				const response = await withRetry(QUOTA_COST_GET_MESSAGE, () => gmailApi.users.messages.get({ userId: "me", id, format: "raw" }))
 				const message = response.data
 				return {
 					id: message.id!,
@@ -230,6 +296,9 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailApiClient> {
 			const migrationMails = migrationMailsCreate
 			migrationMailsCreate = []
 			migrationMailsBytes = 0
+			if (migrationMails.length === 0) {
+				return
+			}
 			// a stopped session must not hand over anything anymore, a new session might already import the same mails
 			if (this.stopped) {
 				return
@@ -258,8 +327,13 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailApiClient> {
 			if (this.stopped) {
 				return false
 			}
-			const messages = await Promise.all(idsToDownload.slice(i, i + CONCURRENT_MAIL_DOWNLOADS).map((id) => client.getRawMessage(id)))
-			for (const message of messages) {
+			// allSettled so that the mails that were downloaded are not thrown away (and downloaded again) because another one failed
+			const results = await Promise.allSettled(idsToDownload.slice(i, i + CONCURRENT_MAIL_DOWNLOADS).map((id) => client.getRawMessage(id)))
+			for (const result of results) {
+				if (result.status === "rejected") {
+					continue
+				}
+				const message = result.value
 				// null: deleted between listing and download
 				if (message == null) {
 					continue
@@ -269,6 +343,11 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailApiClient> {
 				if (migrationMailsCreate.length >= MAIL_DOWNLOAD_BATCH_SIZE || migrationMailsBytes >= MAIL_DOWNLOAD_BATCH_MAX_BYTES) {
 					await emitCreate()
 				}
+			}
+			const failure = results.find((result): result is PromiseRejectedResult => result.status === "rejected")
+			if (failure) {
+				await emitCreate()
+				throw failure.reason
 			}
 		}
 
@@ -366,7 +445,7 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailApiClient> {
 			case 401:
 				return new MigrationError(e?.message ?? "Gmail API authentication failed", MigrationErrorCause.AUTH_FAILED, "401")
 			case 403:
-				return isGmailRateLimitError(e)
+				return isGmailRateLimitError(e) || isGmailDailyLimitError(e)
 					? new MigrationError(e?.message ?? "Gmail API rate limit exceeded", MigrationErrorCause.POSTPONE, "403")
 					: new MigrationError(e?.message ?? "Gmail API denied access to the requested resource", MigrationErrorCause.AUTH_FAILED, "403")
 			case 400:
@@ -387,8 +466,11 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailApiClient> {
 	protected getRetryAfterMs(e: any): number | null {
 		const status = e?.status
 		const isTransient = status === 429 || status === 500 || status === 502 || status === 503 || status === 504
-		if (!isTransient && !isGmailRateLimitError(e)) {
+		if (!isTransient && !isGmailRateLimitError(e) && !isGmailDailyLimitError(e)) {
 			return null
+		}
+		if (isGmailDailyLimitError(e)) {
+			return GMAIL_DAILY_LIMIT_POSTPONE_TIME
 		}
 		const retryAfterMs = parseRetryAfterMs(e?.retryAfter) ?? GMAIL_RATE_LIMIT_DEFAULT_POSTPONE_TIME
 		return Math.max(retryAfterMs, GMAIL_RATE_LIMIT_MIN_POSTPONE_TIME)
