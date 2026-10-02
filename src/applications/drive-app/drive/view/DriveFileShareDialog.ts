@@ -197,13 +197,12 @@ async function showFileShareDetailsDialog(
 								},
 								lang.getTranslationText("secureWithPassword_label"),
 							),
-							this.doPassword
-								? m(PasswordFieldNew, {
-										class: "",
-										value: this.passwordValue,
-										oninput: (passwordValue) => (this.passwordValue = passwordValue),
-									})
-								: null,
+							m(PasswordFieldNew, {
+								class: this.doPassword ? "" : "translucent",
+								value: this.passwordValue,
+								disabled: !this.doPassword,
+								oninput: (passwordValue) => (this.passwordValue = passwordValue),
+							}),
 						),
 
 						m(
@@ -218,18 +217,18 @@ async function showFileShareDetailsDialog(
 								},
 								lang.getTranslationText("setExpirationDate_label"),
 							),
-							this.doExpiry
-								? m(DatePicker, {
-										date: this.expirationDate,
-										label: lang.getTranslation("selectExpiryDate_label"),
-										onDateSelected: (selectedDate) => {
-											this.expirationDate = normalizeShareExpirationDate(selectedDate)
-										},
-										startOfTheWeekOffset: 0, //FIXME
-										noPadding: true,
-										useNewTextField: true,
-									})
-								: null,
+							m(DatePicker, {
+								classes: this.doExpiry ? [] : ["translucent"],
+								date: this.expirationDate,
+								label: lang.getTranslation("selectExpiryDate_label"),
+								onDateSelected: (selectedDate) => {
+									this.expirationDate = normalizeShareExpirationDate(selectedDate)
+								},
+								startOfTheWeekOffset: 0, //FIXME
+								noPadding: true,
+								useNewTextField: true,
+								disabled: !this.doExpiry,
+							}),
 						),
 
 						m(

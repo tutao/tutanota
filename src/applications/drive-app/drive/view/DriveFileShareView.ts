@@ -54,14 +54,14 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 
 	view(vnode: Vnode<DriveFileShareViewAttrs>): Children {
 		const state = this.state
-		return m(".flex.mlr-32.mt-32.mb-64.fill-absolute", [
+		return m(
+			".flex.plr-64.pt-16.pb-32.fill-absolute.nav-bg",
 			m(".flex.col.flex-space-between.flex-grow", [
 				m(".logo-height", m.trust(theme.logo)),
 				m(".flex.col.gap-8.align-self-center.max-width-m", this.renderForState(state)),
 				m(""),
 			]),
-			m(".flex.col.flex-grow.justify-center", m(".flex.col.align-self-center.h1", "Tuta Drive File Share")),
-		])
+		)
 	}
 
 	private renderForState(state: DriveFileShareViewState) {
@@ -197,16 +197,22 @@ export class DriveFileShareView extends BaseTopLevelView implements Component<Dr
 				value: state.password,
 				oninput: (value) => (state.password = value),
 				label: "password_label",
+				onReturnKeyPressed: () => {
+					this.submitPassword(state)
+				},
 			}),
 			m(PrimaryButton, {
 				label: "submit_action",
 				onclick: () => {
-					const { shareId, authToken } = m.route.param()
-					const salt = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("salt"))
-					this.state = { status: "loading" }
-					void this.downloadFileWithPassword(shareId, authToken, salt, state.password)
+					this.submitPassword(state)
 				},
 			}),
 		])
+	}
+	private submitPassword(state: { status: "password"; password: string }) {
+		const { shareId, authToken } = m.route.param()
+		const salt = assertNotNull(new URLSearchParams(location.hash.slice(1)).get("salt"))
+		this.state = { status: "loading" }
+		void this.downloadFileWithPassword(shareId, authToken, salt, state.password)
 	}
 }
