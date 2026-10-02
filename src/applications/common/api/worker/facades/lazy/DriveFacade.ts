@@ -424,15 +424,14 @@ export class DriveFacade {
 	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<[DriveFile, DriveShareInfo]> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 
-		expirationDate = this.normalizeShareExpirationDate(expirationDate)
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
+		// 1. Generate a random nonce (N).
+		const nonce = generateKdfNonce()
+		// 2. Derive a share key (SHK) using the nonce (N), a domain separator and the owner key.
+		const shareKey = deriveFileShareKey(fileGroupKey, nonce)
+		// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
+		const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
 		if (password == null) {
-			// 1. Generate a random nonce (N).
-			const nonce = generateKdfNonce()
-			// 2. Derive a share key (SHK) using the nonce (N), a domain separator and the owner key.
-			const shareKey = deriveFileShareKey(fileGroupKey, nonce)
-			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
-			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
 			// 4. Create a share with the N, the ENCFSK, and the owner key version.
 
 			await this.serviceExecutor.execute(
@@ -449,12 +448,6 @@ export class DriveFacade {
 				null,
 			)
 		} else {
-			// 1. Generate a random nonce (N)
-			const nonce = generateKdfNonce()
-			// 2. Derive a share key (SHK) using the nonce (N), a domain separator, and the owner key.
-			const shareKey = deriveFileShareKey(fileGroupKey, nonce)
-			// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
-			const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
 			// 	4. Encrypt the PWD with the owner key producing the ENCPWD.
 			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
 			const verifier = await this.createShareVerifier(shareKey, nonce, password)
@@ -491,16 +484,6 @@ export class DriveFacade {
 		})
 	}
 
-	private normalizeShareExpirationDate(expirationDate: Date | null): Date | null {
-		// Set the expiration time to the end of the day
-		if (isNotNull(expirationDate)) {
-			expirationDate.setHours(23, 59, 59)
-			return expirationDate
-		} else {
-			return null
-		}
-	}
-
 	private async createShareVerifier(shareKey: Aes256Key, nonce: KdfNonce, password: string): Promise<Uint8Array<ArrayBuffer>> {
 		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
 		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
@@ -525,7 +508,6 @@ export class DriveFacade {
 		if (isNotNull(password)) {
 			passwordUpdate = await this.constructPasswordUpdate(share, password)
 		}
-		expirationDate = this.normalizeShareExpirationDate(expirationDate)
 
 		await this.serviceExecutor.execute(
 			DriveShareService_PUT,
