@@ -55,6 +55,11 @@ const clientDependencies = [
 		target: "microsoft-graph-client.js",
 		bundling: "rollupImap",
 	},
+	{
+		src: "../src/applications/common/desktop/migration/gmailsync/gmail-client-custom.js",
+		target: "gmail-api-client.js",
+		bundling: "rollupImap",
+	},
 ]
 
 /** Run special patches after bundling */
@@ -220,7 +225,7 @@ async function rollupImapLibraries(src, target, banner) {
 			format: "esm",
 		},
 	})
-	await bundle.write({ file: path.join(__dirname, "../libs", target), banner })
+	await bundle.write({ file: path.join(__dirname, "../libs", target), inlineDynamicImports: true, banner })
 }
 
 /**

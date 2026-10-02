@@ -32,6 +32,7 @@
 	},
 	"dependencies": {
 		"@fingerprintjs/botd": "1.9.1",
+		"@googleapis/gmail": "^22.0.1",
 		"@indutny/simple-windows-notifications": "git+https://github.com/tutao/simple-windows-notifications.git#58600c1639ff47a1bae5e195ac8b52e87b17796e",
 		"@material/material-color-utilities": "git+https://github.com/tutao/material-color-utilities#064dcc2768cb0c8106c150a819eedb6233bb1d0a",
 		"@microsoft/microsoft-graph-client": "3.0.7",

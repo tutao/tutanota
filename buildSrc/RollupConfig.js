@@ -26,6 +26,7 @@ export const dependencyMap = {
 	"./imapflow-custom": path.normalize("./libs/imapflow.js"),
 	"./postalmime-custom": path.normalize("./libs/postal-mime.js"),
 	"./microsoft-graph-client-custom": path.normalize("./libs/microsoft-graph-client.js"),
+	"./gmail-client-custom": path.normalize("./libs/gmail-api-client.js"),
 }
 
 export let tsImportAliases = {
