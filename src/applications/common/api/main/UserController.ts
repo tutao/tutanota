@@ -282,15 +282,11 @@ export class UserController {
 
 			if (sendBeacon) {
 				try {
-					const apiUrl = new URL(EnvProvider.get().getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+					const apiUrl = new URL(locator.domainConfigProvider().getCurrentDomainConfig().apiUrl)
 					apiUrl.pathname += CloseSessionService_POST.serviceRestPath
 					apiUrl.searchParams.append("v", sysTypeModels[SessionTypeRef.typeId].version)
 					apiUrl.searchParams.append("cv", env.versionNumber)
-					// atleast in the iOS WebView, we _have_ to use a http(s) URL to sendBeacon to not error out.
-					// our apiUrl is a api(s):// url on iOS, so we just replace the protocol in that case.
-					if (apiUrl.protocol.startsWith("api")) {
-						apiUrl.protocol = apiUrl.protocol.replace("api", "http")
-					}
+
 					const requestObject = JSON.stringify({
 						[1596]: "0", // _format
 						[1597]: this.accessToken, // accessToken
@@ -307,7 +303,7 @@ export class UserController {
 				}
 			} else {
 				// Fall back to sync XHR if Beacon API is not available (which it should be everywhere by now but maybe it is suppressed somehow)
-				const apiUrl = new URL(EnvProvider.get().getApiBaseUrl(locator.domainConfigProvider().getCurrentDomainConfig()))
+				const apiUrl = new URL(EnvProvider.get().rewriteSchemeForIos(locator.domainConfigProvider().getCurrentDomainConfig().apiUrl))
 				apiUrl.pathname += `/rest/sys/session/${listIdPart(this.sessionId)}/${elementIdPart(this.sessionId)}`
 				const xhr = new XMLHttpRequest()
 				xhr.open("DELETE", apiUrl, false) // sync requests increase reliability when invoked in onunload

@@ -1,7 +1,7 @@
 import { decode } from "cborg"
 import { downcast, getFirstOrThrow, partitionAsync, stringToUtf8Uint8Array } from "@tutao/utils"
 import { WebAuthnFacade, WebauthnKeyDescriptor } from "@tutao/native-bridge/generatedIpc/types"
-import { Const, DomainConfig, EnvProvider } from "@tutao/app-env"
+import { Const, DomainConfig } from "@tutao/app-env"
 import { DomainConfigProvider } from "../../../api/common/DomainConfigProvider.js"
 import { createU2fRegisteredDevice, createWebauthnResponseData, U2fChallenge, U2fKey, U2fRegisteredDevice, WebauthnResponseData } from "@tutao/entities/sys"
 
@@ -84,9 +84,8 @@ export class WebauthnClient {
 		// take https://app.tuta.com/webauthn and convert it to apis://app.tuta.com
 		const authUrlObject = new URL(authenticationUrl)
 		const domainConfig = this.domainConfigProvider.getDomainConfigForHostname(authUrlObject.hostname, authUrlObject.protocol, authUrlObject.port)
-		const apiUrl = EnvProvider.get().getApiBaseUrl(domainConfig)
 
-		return { responseData, apiBaseUrl: apiUrl }
+		return { responseData, apiBaseUrl: domainConfig.apiUrl }
 	}
 
 	abortCurrentOperation(): Promise<void> {
