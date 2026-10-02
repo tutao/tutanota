@@ -9,8 +9,8 @@ import require$$5 from 'node:querystring';
 import require$$0 from 'node:events';
 import require$$0$3 from 'node:diagnostics_channel';
 import require$$3 from 'node:util';
-import require$$4 from 'node:tls';
 import require$$0$4 from 'node:buffer';
+import require$$4 from 'node:tls';
 import require$$0$5 from 'node:zlib';
 import require$$5$1 from 'node:perf_hooks';
 import require$$8 from 'node:util/types';
@@ -43,6 +43,8 @@ function requireSymbols () {
 	  kDestroy: Symbol('destroy'),
 	  kDispatch: Symbol('dispatch'),
 	  kUrl: Symbol('url'),
+	  kRequestOrigin: Symbol('request origin'),
+	  kOriginless: Symbol('originless'),
 	  kWriting: Symbol('writing'),
 	  kResuming: Symbol('resuming'),
 	  kQueue: Symbol('queue'),
@@ -558,7 +560,7 @@ let UndiciError$4 = class UndiciError extends Error {
 };
 
 const kConnectTimeoutError = Symbol.for('undici.error.UND_ERR_CONNECT_TIMEOUT');
-let ConnectTimeoutError$2 = class ConnectTimeoutError extends UndiciError$4 {
+let ConnectTimeoutError$3 = class ConnectTimeoutError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ConnectTimeoutError';
@@ -630,7 +632,7 @@ let BodyTimeoutError$2 = class BodyTimeoutError extends UndiciError$4 {
 };
 
 const kInvalidArgumentError = Symbol.for('undici.error.UND_ERR_INVALID_ARG');
-let InvalidArgumentError$A = class InvalidArgumentError extends UndiciError$4 {
+let InvalidArgumentError$B = class InvalidArgumentError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'InvalidArgumentError';
@@ -684,7 +686,7 @@ let AbortError$2 = class AbortError extends UndiciError$4 {
 };
 
 const kRequestAbortedError = Symbol.for('undici.error.UND_ERR_ABORTED');
-let RequestAbortedError$9 = class RequestAbortedError extends AbortError$2 {
+let RequestAbortedError$a = class RequestAbortedError extends AbortError$2 {
   constructor (message) {
     super(message);
     this.name = 'AbortError';
@@ -738,7 +740,7 @@ let RequestContentLengthMismatchError$2 = class RequestContentLengthMismatchErro
 };
 
 const kResponseContentLengthMismatchError = Symbol.for('undici.error.UND_ERR_RES_CONTENT_LENGTH_MISMATCH');
-let ResponseContentLengthMismatchError$1 = class ResponseContentLengthMismatchError extends UndiciError$4 {
+let ResponseContentLengthMismatchError$2 = class ResponseContentLengthMismatchError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ResponseContentLengthMismatchError';
@@ -865,7 +867,7 @@ let HTTPParserError$1 = class HTTPParserError extends Error {
 };
 
 const kResponseExceededMaxSizeError = Symbol.for('undici.error.UND_ERR_RES_EXCEEDED_MAX_SIZE');
-let ResponseExceededMaxSizeError$1 = class ResponseExceededMaxSizeError extends UndiciError$4 {
+let ResponseExceededMaxSizeError$3 = class ResponseExceededMaxSizeError extends UndiciError$4 {
   constructor (message) {
     super(message);
     this.name = 'ResponseExceededMaxSizeError';
@@ -1015,18 +1017,18 @@ var errors = {
   HeadersOverflowError: HeadersOverflowError$1,
   BodyTimeoutError: BodyTimeoutError$2,
   RequestContentLengthMismatchError: RequestContentLengthMismatchError$2,
-  ConnectTimeoutError: ConnectTimeoutError$2,
-  InvalidArgumentError: InvalidArgumentError$A,
+  ConnectTimeoutError: ConnectTimeoutError$3,
+  InvalidArgumentError: InvalidArgumentError$B,
   InvalidReturnValueError: InvalidReturnValueError$2,
-  RequestAbortedError: RequestAbortedError$9,
+  RequestAbortedError: RequestAbortedError$a,
   ClientDestroyedError: ClientDestroyedError$2,
   ClientClosedError: ClientClosedError$1,
   InformationalError: InformationalError$4,
   SocketError: SocketError$4,
   NotSupportedError: NotSupportedError$2,
-  ResponseContentLengthMismatchError: ResponseContentLengthMismatchError$1,
+  ResponseContentLengthMismatchError: ResponseContentLengthMismatchError$2,
   BalancedPoolMissingUpstreamError: BalancedPoolMissingUpstreamError$1,
-  ResponseExceededMaxSizeError: ResponseExceededMaxSizeError$1,
+  ResponseExceededMaxSizeError: ResponseExceededMaxSizeError$3,
   RequestRetryError: RequestRetryError$1,
   ResponseError: ResponseError$1,
   SecureProxyConnectionError: SecureProxyConnectionError$1,
@@ -1321,7 +1323,7 @@ const net$3 = require$$1;
 const { stringify } = require$$5;
 const { EventEmitter: EE, addAbortListener: addAbortListenerNative } = require$$0;
 const timers$1 = timers$2;
-const { InvalidArgumentError: InvalidArgumentError$z, ConnectTimeoutError: ConnectTimeoutError$1 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$A, ConnectTimeoutError: ConnectTimeoutError$2 } = errors;
 const { headerNameLowerCasedRecord: headerNameLowerCasedRecord$1 } = constants$5;
 const { tree } = tree_1;
 
@@ -1479,39 +1481,39 @@ function parseURL (url) {
     url = new URL(url);
 
     if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-      throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+      throw new InvalidArgumentError$A('Invalid URL protocol: the URL must start with `http:` or `https:`.')
     }
 
     return url
   }
 
   if (!url || typeof url !== 'object') {
-    throw new InvalidArgumentError$z('Invalid URL: The URL argument must be a non-null object.')
+    throw new InvalidArgumentError$A('Invalid URL: The URL argument must be a non-null object.')
   }
 
   if (!(url instanceof URL)) {
     if (url.port != null && url.port !== '' && isValidPort(url.port) === false) {
-      throw new InvalidArgumentError$z('Invalid URL: port must be a valid integer or a string representation of an integer.')
+      throw new InvalidArgumentError$A('Invalid URL: port must be a valid integer or a string representation of an integer.')
     }
 
     if (url.path != null && typeof url.path !== 'string') {
-      throw new InvalidArgumentError$z('Invalid URL path: the path must be a string or null/undefined.')
+      throw new InvalidArgumentError$A('Invalid URL path: the path must be a string or null/undefined.')
     }
 
     if (url.pathname != null && typeof url.pathname !== 'string') {
-      throw new InvalidArgumentError$z('Invalid URL pathname: the pathname must be a string or null/undefined.')
+      throw new InvalidArgumentError$A('Invalid URL pathname: the pathname must be a string or null/undefined.')
     }
 
     if (url.hostname != null && typeof url.hostname !== 'string') {
-      throw new InvalidArgumentError$z('Invalid URL hostname: the hostname must be a string or null/undefined.')
+      throw new InvalidArgumentError$A('Invalid URL hostname: the hostname must be a string or null/undefined.')
     }
 
     if (url.origin != null && typeof url.origin !== 'string') {
-      throw new InvalidArgumentError$z('Invalid URL origin: the origin must be a string or null/undefined.')
+      throw new InvalidArgumentError$A('Invalid URL origin: the origin must be a string or null/undefined.')
     }
 
     if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-      throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+      throw new InvalidArgumentError$A('Invalid URL protocol: the URL must start with `http:` or `https:`.')
     }
 
     const port = url.port != null
@@ -1539,7 +1541,7 @@ function parseURL (url) {
   }
 
   if (!isHttpOrHttpsPrefixed(url.origin || url.protocol)) {
-    throw new InvalidArgumentError$z('Invalid URL protocol: the URL must start with `http:` or `https:`.')
+    throw new InvalidArgumentError$A('Invalid URL protocol: the URL must start with `http:` or `https:`.')
   }
 
   return url
@@ -1553,7 +1555,7 @@ function parseOrigin (url) {
   url = parseURL(url);
 
   if (url.pathname !== '/' || url.search || url.hash) {
-    throw new InvalidArgumentError$z('invalid url')
+    throw new InvalidArgumentError$A('invalid url')
   }
 
   return url
@@ -1632,7 +1634,7 @@ function isIterable$1 (obj) {
  * @param {object} obj
  * @returns {boolean}
  */
-function hasSafeIterator$3 (obj) {
+function hasSafeIterator$4 (obj) {
   const prototype = Object.getPrototypeOf(obj);
   const ownIterator = Object.hasOwn(obj, Symbol.iterator);
   return ownIterator || (prototype != null && prototype !== Object.prototype && typeof obj[Symbol.iterator] === 'function')
@@ -1879,40 +1881,40 @@ function isBuffer$1 (buffer) {
  */
 function assertRequestHandler$1 (handler, method, upgrade) {
   if (!handler || typeof handler !== 'object') {
-    throw new InvalidArgumentError$z('handler must be an object')
+    throw new InvalidArgumentError$A('handler must be an object')
   }
 
   if (typeof handler.onRequestStart !== 'function') {
-    throw new InvalidArgumentError$z('invalid onRequestStart method')
+    throw new InvalidArgumentError$A('invalid onRequestStart method')
   }
 
   if (typeof handler.onResponseError !== 'function') {
-    throw new InvalidArgumentError$z('invalid onResponseError method')
+    throw new InvalidArgumentError$A('invalid onResponseError method')
   }
 
   if (typeof handler.onBodySent !== 'function' && handler.onBodySent !== undefined) {
-    throw new InvalidArgumentError$z('invalid onBodySent method')
+    throw new InvalidArgumentError$A('invalid onBodySent method')
   }
 
   if (typeof handler.onRequestSent !== 'function' && handler.onRequestSent !== undefined) {
-    throw new InvalidArgumentError$z('invalid onRequestSent method')
+    throw new InvalidArgumentError$A('invalid onRequestSent method')
   }
 
   if (upgrade || method === 'CONNECT') {
     if (typeof handler.onRequestUpgrade !== 'function') {
-      throw new InvalidArgumentError$z('invalid onRequestUpgrade method')
+      throw new InvalidArgumentError$A('invalid onRequestUpgrade method')
     }
   } else {
     if (typeof handler.onResponseStart !== 'function') {
-      throw new InvalidArgumentError$z('invalid onResponseStart method')
+      throw new InvalidArgumentError$A('invalid onResponseStart method')
     }
 
     if (typeof handler.onResponseData !== 'function') {
-      throw new InvalidArgumentError$z('invalid onResponseData method')
+      throw new InvalidArgumentError$A('invalid onResponseData method')
     }
 
     if (typeof handler.onResponseEnd !== 'function') {
-      throw new InvalidArgumentError$z('invalid onResponseEnd method')
+      throw new InvalidArgumentError$A('invalid onResponseEnd method')
     }
   }
 }
@@ -1955,44 +1957,6 @@ function getSocketInfo (socket) {
     bytesWritten: socket.bytesWritten,
     bytesRead: socket.bytesRead
   }
-}
-
-/**
- * @param {Iterable} iterable
- * @returns {ReadableStream}
- */
-function ReadableStreamFrom$1 (iterable) {
-  // We cannot use ReadableStream.from here because it does not return a byte stream.
-
-  let iterator;
-  return new ReadableStream(
-    {
-      start () {
-        iterator = iterable[Symbol.asyncIterator]();
-      },
-      pull (controller) {
-        return iterator.next().then(({ done, value }) => {
-          if (done) {
-            return queueMicrotask(() => {
-              controller.close();
-              controller.byobRequest?.respond(0);
-            })
-          } else {
-            const buf = Buffer.isBuffer(value) ? value : Buffer.from(value);
-            if (buf.byteLength) {
-              return controller.enqueue(new Uint8Array(buf))
-            } else {
-              return this.pull(controller)
-            }
-          }
-        })
-      },
-      cancel () {
-        return iterator.return()
-      },
-      type: 'bytes'
-    }
-  )
 }
 
 /**
@@ -2173,7 +2137,7 @@ function errorRequest (client, request, err) {
  * @param {number} opts.port
  * @returns {() => void}
  */
-const setupConnectTimeout = process.platform === 'win32'
+const setupConnectTimeout$1 = process.platform === 'win32'
   ? (socketWeakRef, opts) => {
       if (!opts.timeout) {
         return noop$9
@@ -2234,7 +2198,7 @@ function onConnectTimeout (socket, opts) {
 
   message += ` timeout: ${opts.timeout}ms)`;
 
-  destroy$1(socket, new ConnectTimeoutError$1(message));
+  destroy$1(socket, new ConnectTimeoutError$2(message));
 }
 
 let lastUrlString = null;
@@ -2323,7 +2287,7 @@ var util$p = {
   getServerName: getServerName$1,
   isStream: isStream$1,
   isIterable: isIterable$1,
-  hasSafeIterator: hasSafeIterator$3,
+  hasSafeIterator: hasSafeIterator$4,
   isAsyncIterable,
   isDestroyed,
   headerNameToString,
@@ -2339,7 +2303,6 @@ var util$p = {
   destroy: destroy$1,
   bodyLength,
   deepClone,
-  ReadableStreamFrom: ReadableStreamFrom$1,
   isBuffer: isBuffer$1,
   assertRequestHandler: assertRequestHandler$1,
   getSocketInfo,
@@ -2357,13 +2320,13 @@ var util$p = {
   isHttpOrHttpsPrefixed,
   safeHTTPMethods: Object.freeze(['GET', 'HEAD', 'OPTIONS', 'TRACE']),
   wrapRequestBody: wrapRequestBody$1,
-  setupConnectTimeout,
+  setupConnectTimeout: setupConnectTimeout$1,
   getProtocolFromUrlString: getProtocolFromUrlString$1
 };
 
 const {
   kConnected: kConnected$6,
-  kPending: kPending$4,
+  kPending: kPending$5,
   kRunning: kRunning$5,
   kSize: kSize$5,
   kFree: kFree$1,
@@ -2373,7 +2336,7 @@ const {
 let ClientStats$1 = class ClientStats {
   constructor (client) {
     this.connected = client[kConnected$6];
-    this.pending = client[kPending$4];
+    this.pending = client[kPending$5];
     this.running = client[kRunning$5];
     this.size = client[kSize$5];
   }
@@ -2383,7 +2346,7 @@ let PoolStats$1 = class PoolStats {
   constructor (pool) {
     this.connected = pool[kConnected$6];
     this.free = pool[kFree$1];
-    this.pending = pool[kPending$4];
+    this.pending = pool[kPending$5];
     this.queued = pool[kQueued$1];
     this.running = pool[kRunning$5];
     this.size = pool[kSize$5];
@@ -2619,7 +2582,7 @@ var diagnostics = {
 };
 
 const {
-  InvalidArgumentError: InvalidArgumentError$y,
+  InvalidArgumentError: InvalidArgumentError$z,
   NotSupportedError: NotSupportedError$1
 } = errors;
 const assert$f = require$$0$2;
@@ -2631,7 +2594,7 @@ const {
   isBuffer,
   isFormDataLike,
   isIterable,
-  hasSafeIterator: hasSafeIterator$2,
+  hasSafeIterator: hasSafeIterator$3,
   isBlobLike,
   serializePathWithQuery: serializePathWithQuery$3,
   parseHeaders: parseHeaders$1,
@@ -2732,57 +2695,57 @@ let Request$1 = class Request {
     typeOfService
   }, handler) {
     if (typeof path !== 'string') {
-      throw new InvalidArgumentError$y('path must be a string')
+      throw new InvalidArgumentError$z('path must be a string')
     } else if (
       path[0] !== '/' &&
       !(path.startsWith('http://') || path.startsWith('https://')) &&
       method !== 'CONNECT'
     ) {
-      throw new InvalidArgumentError$y('path must be an absolute URL or start with a slash')
+      throw new InvalidArgumentError$z('path must be an absolute URL or start with a slash')
     } else if (invalidPathRegex.test(path)) {
-      throw new InvalidArgumentError$y('invalid request path')
+      throw new InvalidArgumentError$z('invalid request path')
     }
 
     if (typeof method !== 'string') {
-      throw new InvalidArgumentError$y('method must be a string')
+      throw new InvalidArgumentError$z('method must be a string')
     } else if (normalizedMethodRecords[method] === undefined && !isValidHTTPToken$1(method)) {
-      throw new InvalidArgumentError$y('invalid request method')
+      throw new InvalidArgumentError$z('invalid request method')
     }
 
     if (upgrade && typeof upgrade !== 'string') {
-      throw new InvalidArgumentError$y('upgrade must be a string')
+      throw new InvalidArgumentError$z('upgrade must be a string')
     }
 
     if (upgrade && !isValidHeaderValue(upgrade)) {
-      throw new InvalidArgumentError$y('invalid upgrade header')
+      throw new InvalidArgumentError$z('invalid upgrade header')
     }
 
     if (headersTimeout != null && (!Number.isFinite(headersTimeout) || headersTimeout < 0)) {
-      throw new InvalidArgumentError$y('invalid headersTimeout')
+      throw new InvalidArgumentError$z('invalid headersTimeout')
     }
 
     if (bodyTimeout != null && (!Number.isFinite(bodyTimeout) || bodyTimeout < 0)) {
-      throw new InvalidArgumentError$y('invalid bodyTimeout')
+      throw new InvalidArgumentError$z('invalid bodyTimeout')
     }
 
     if (reset != null && typeof reset !== 'boolean') {
-      throw new InvalidArgumentError$y('invalid reset')
+      throw new InvalidArgumentError$z('invalid reset')
     }
 
     if (expectContinue != null && typeof expectContinue !== 'boolean') {
-      throw new InvalidArgumentError$y('invalid expectContinue')
+      throw new InvalidArgumentError$z('invalid expectContinue')
     }
 
     if (throwOnError != null) {
-      throw new InvalidArgumentError$y('invalid throwOnError')
+      throw new InvalidArgumentError$z('invalid throwOnError')
     }
 
     if (maxRedirections != null && maxRedirections !== 0) {
-      throw new InvalidArgumentError$y('maxRedirections is not supported, use the redirect interceptor')
+      throw new InvalidArgumentError$z('maxRedirections is not supported, use the redirect interceptor')
     }
 
     if (typeOfService != null && (!Number.isInteger(typeOfService) || typeOfService < 0 || typeOfService > 255)) {
-      throw new InvalidArgumentError$y('typeOfService must be an integer between 0 and 255')
+      throw new InvalidArgumentError$z('typeOfService must be an integer between 0 and 255')
     }
 
     this.headersTimeout = headersTimeout;
@@ -2827,7 +2790,7 @@ let Request$1 = class Request {
     } else if (isFormDataLike(body) || isIterable(body) || isBlobLike(body)) {
       this.body = body;
     } else {
-      throw new InvalidArgumentError$y('body must be a string, a Buffer, a Readable stream, an iterable, or an async iterable')
+      throw new InvalidArgumentError$z('body must be a string, a Buffer, a Readable stream, an iterable, or an async iterable')
     }
 
     this.completed = false;
@@ -2863,16 +2826,16 @@ let Request$1 = class Request {
 
     if (Array.isArray(headers)) {
       if (headers.length % 2 !== 0) {
-        throw new InvalidArgumentError$y('headers array must be even')
+        throw new InvalidArgumentError$z('headers array must be even')
       }
       for (let i = 0; i < headers.length; i += 2) {
         processHeader(this, headers[i], headers[i + 1]);
       }
     } else if (headers && typeof headers === 'object') {
-      if (hasSafeIterator$2(headers)) {
+      if (hasSafeIterator$3(headers)) {
         for (const header of headers) {
           if (!Array.isArray(header) || header.length !== 2) {
-            throw new InvalidArgumentError$y('headers must be in key-value pair format')
+            throw new InvalidArgumentError$z('headers must be in key-value pair format')
           }
           processHeader(this, header[0], header[1]);
         }
@@ -2883,7 +2846,7 @@ let Request$1 = class Request {
         }
       }
     } else if (headers != null) {
-      throw new InvalidArgumentError$y('headers must be an object or an array')
+      throw new InvalidArgumentError$z('headers must be an object or an array')
     }
 
     assertRequestHandler(handler, method, upgrade);
@@ -2986,9 +2949,21 @@ let Request$1 = class Request {
     }
   }
 
-  onRequestUpgrade (statusCode, headers, socket) {
+  /**
+   * @param {number} statusCode
+   * @param {Buffer[]|string[]|import('../../types/header.d.ts').IncomingHttpHeaders} headers
+   * @param {import('node:stream').Duplex} socket
+   * @param {string} [statusText]
+   */
+  onRequestUpgrade (statusCode, headers, socket, statusText = '') {
+    this.onFinally();
+
     assert$f(!this.aborted);
     assert$f(!this.completed);
+
+    if (channels$4.headers.hasSubscribers) {
+      channels$4.headers.publish({ request: this, response: { statusCode, headers, statusText } });
+    }
 
     const controller = this[kController];
     if (controller) {
@@ -2997,7 +2972,16 @@ let Request$1 = class Request {
 
     const parsedHeaders = Array.isArray(headers) ? parseHeaders$1(headers) : headers;
 
-    return this[kHandler].onRequestUpgrade?.(controller, statusCode, parsedHeaders, socket)
+    const result = this[kHandler].onRequestUpgrade?.(controller, statusCode, parsedHeaders, socket);
+
+    if (!this.aborted) {
+      this.completed = true;
+      if (channels$4.trailers.hasSubscribers) {
+        channels$4.trailers.publish({ request: this, trailers: [] });
+      }
+    }
+
+    return result
   }
 
   onResponseEnd (trailers) {
@@ -3063,7 +3047,7 @@ let Request$1 = class Request {
 
 function processHeader (request, key, val) {
   if (val && (typeof val === 'object' && !Array.isArray(val))) {
-    throw new InvalidArgumentError$y(`invalid ${key} header`)
+    throw new InvalidArgumentError$z(`invalid ${key} header`)
   } else if (val === undefined) {
     return
   }
@@ -3073,7 +3057,7 @@ function processHeader (request, key, val) {
   if (headerName === undefined) {
     headerName = key.toLowerCase();
     if (headerNameLowerCasedRecord[headerName] === undefined && !isValidHTTPToken$1(headerName)) {
-      throw new InvalidArgumentError$y('invalid header key')
+      throw new InvalidArgumentError$z('invalid header key')
     }
   }
 
@@ -3082,19 +3066,19 @@ function processHeader (request, key, val) {
     for (let i = 0; i < val.length; i++) {
       if (typeof val[i] === 'string') {
         if (!isValidHeaderValue(val[i])) {
-          throw new InvalidArgumentError$y(`invalid ${key} header`)
+          throw new InvalidArgumentError$z(`invalid ${key} header`)
         }
         arr.push(val[i]);
       } else if (val[i] === null) {
         arr.push('');
       } else if (typeof val[i] === 'object') {
-        throw new InvalidArgumentError$y(`invalid ${key} header`)
+        throw new InvalidArgumentError$z(`invalid ${key} header`)
       } else {
         // Coerce primitives (and reject unsafe coercions such as functions
         // with a crafted toString/Symbol.toPrimitive).
         const str = `${val[i]}`;
         if (!isValidHeaderValue(str)) {
-          throw new InvalidArgumentError$y(`invalid ${key} header`)
+          throw new InvalidArgumentError$z(`invalid ${key} header`)
         }
         arr.push(str);
       }
@@ -3102,7 +3086,7 @@ function processHeader (request, key, val) {
     val = arr;
   } else if (typeof val === 'string') {
     if (!isValidHeaderValue(val)) {
-      throw new InvalidArgumentError$y(`invalid ${key} header`)
+      throw new InvalidArgumentError$z(`invalid ${key} header`)
     }
   } else if (val === null) {
     val = '';
@@ -3111,44 +3095,44 @@ function processHeader (request, key, val) {
     // with a crafted toString/Symbol.toPrimitive).
     val = `${val}`;
     if (!isValidHeaderValue(val)) {
-      throw new InvalidArgumentError$y(`invalid ${key} header`)
+      throw new InvalidArgumentError$z(`invalid ${key} header`)
     }
   }
 
   if (headerName === 'host') {
     if (request.host !== null) {
-      throw new InvalidArgumentError$y('duplicate host header')
+      throw new InvalidArgumentError$z('duplicate host header')
     }
     if (typeof val !== 'string') {
-      throw new InvalidArgumentError$y('invalid host header')
+      throw new InvalidArgumentError$z('invalid host header')
     }
     // Consumed by Client
     request.host = val;
   } else if (headerName === 'content-length') {
     if (request.contentLength !== null) {
-      throw new InvalidArgumentError$y('duplicate content-length header')
+      throw new InvalidArgumentError$z('duplicate content-length header')
     }
     if (!isValidContentLengthHeaderValue(val)) {
-      throw new InvalidArgumentError$y('invalid content-length header')
+      throw new InvalidArgumentError$z('invalid content-length header')
     }
     request.contentLength = parseInt(val, 10);
   } else if (request.contentType === null && headerName === 'content-type') {
     request.contentType = val;
     request.headers.push(key, val);
   } else if (headerName === 'transfer-encoding' || headerName === 'keep-alive' || headerName === 'upgrade') {
-    throw new InvalidArgumentError$y(`invalid ${headerName} header`)
+    throw new InvalidArgumentError$z(`invalid ${headerName} header`)
   } else if (headerName === 'connection') {
     // Per RFC 7230 Section 6.1, Connection header can contain
     // a comma-separated list of connection option tokens (header names)
     const value = typeof val === 'string' ? val : null;
     if (value === null) {
-      throw new InvalidArgumentError$y('invalid connection header')
+      throw new InvalidArgumentError$z('invalid connection header')
     }
 
     for (const token of value.toLowerCase().split(',')) {
       const trimmed = token.trim();
       if (!isValidHTTPToken$1(trimmed)) {
-        throw new InvalidArgumentError$y('invalid connection header')
+        throw new InvalidArgumentError$z('invalid connection header')
       }
       if (trimmed === 'close') {
         request.reset = true;
@@ -3164,6 +3148,7 @@ function processHeader (request, key, val) {
 var request$2 = Request$1;
 
 const EventEmitter$2 = require$$0;
+const { kOriginless: kOriginless$3, kUrl: kUrl$a } = requireSymbols();
 
 let Dispatcher$4 = class Dispatcher extends EventEmitter$2 {
   dispatch () {
@@ -3181,6 +3166,10 @@ let Dispatcher$4 = class Dispatcher extends EventEmitter$2 {
   compose (...args) {
     // So we handle [interceptor1, interceptor2] or interceptor1, interceptor2, ...
     const interceptors = Array.isArray(args[0]) ? args[0] : args;
+    // null disables origin-dependent interceptors; undefined uses opts.origin.
+    const interceptorOrigin = this[kOriginless$3] === true
+      ? null
+      : this[kUrl$a]?.origin;
     let dispatch = this.dispatch.bind(this);
 
     for (const interceptor of interceptors) {
@@ -3192,12 +3181,21 @@ let Dispatcher$4 = class Dispatcher extends EventEmitter$2 {
         throw new TypeError(`invalid interceptor, expected function received ${typeof interceptor}`)
       }
 
-      dispatch = interceptor(dispatch);
+      dispatch = interceptor(dispatch, interceptorOrigin);
 
       if (dispatch == null || typeof dispatch !== 'function' || dispatch.length !== 2) {
         throw new TypeError('invalid interceptor')
       }
     }
+
+    const originalDispatch = dispatch;
+    const self = this;
+    dispatch = function (opts, handler) {
+      if (opts && typeof opts === 'object' && !opts.origin && self[kUrl$a]) {
+        opts = Object.assign({}, opts, { origin: self[kUrl$a].origin });
+      }
+      return originalDispatch(opts, handler)
+    };
 
     return new Proxy(this, {
       get: (target, key) => key === 'dispatch' ? dispatch : target[key]
@@ -3207,17 +3205,19 @@ let Dispatcher$4 = class Dispatcher extends EventEmitter$2 {
 
 var dispatcher = Dispatcher$4;
 
+const buffer = require$$0$4;
 const Dispatcher$3 = dispatcher;
 const {
   ClientDestroyedError: ClientDestroyedError$1,
   ClientClosedError,
-  InvalidArgumentError: InvalidArgumentError$x
+  InvalidArgumentError: InvalidArgumentError$y
 } = errors;
 const { kDestroy: kDestroy$6, kClose: kClose$8, kClosed: kClosed$3, kDestroyed: kDestroyed$1, kDispatch: kDispatch$6 } = requireSymbols();
 
 const kOnDestroyed = Symbol('onDestroyed');
 const kOnClosed = Symbol('onClosed');
 const kWebSocketOptions = Symbol('webSocketOptions');
+const kEventSourceOptions = Symbol('eventSourceOptions');
 
 let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
   /** @type {boolean} */
@@ -3238,15 +3238,25 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
   constructor (opts) {
     super();
     this[kWebSocketOptions] = opts?.webSocket ?? {};
+    this[kEventSourceOptions] = opts?.eventSource ?? {};
   }
 
   /**
-   * @returns {import('../../types/dispatcher').WebSocketOptions}
+   * @returns {import('../../types/client').Client.WebSocketOptions}
    */
   get webSocketOptions () {
     return {
       maxFragments: this[kWebSocketOptions].maxFragments ?? 131072,
       maxPayloadSize: this[kWebSocketOptions].maxPayloadSize ?? 128 * 1024 * 1024 // 128 MB default
+    }
+  }
+
+  /**
+   * @returns {import('../../types/client').Client.EventSourceOptions}
+   */
+  get eventSourceOptions () {
+    return {
+      maxEventSize: this[kEventSourceOptions].maxEventSize ?? buffer.kStringMaxLength
     }
   }
 
@@ -3270,7 +3280,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$x('invalid callback')
+      throw new InvalidArgumentError$y('invalid callback')
     }
 
     if (this[kDestroyed$1]) {
@@ -3321,7 +3331,7 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$x('invalid callback')
+      throw new InvalidArgumentError$y('invalid callback')
     }
 
     if (this[kDestroyed$1]) {
@@ -3356,16 +3366,16 @@ let DispatcherBase$6 = class DispatcherBase extends Dispatcher$3 {
 
   dispatch (opts, handler) {
     if (!handler || typeof handler !== 'object') {
-      throw new InvalidArgumentError$x('handler must be an object')
+      throw new InvalidArgumentError$y('handler must be an object')
     }
 
     try {
       if (!opts || typeof opts !== 'object') {
-        throw new InvalidArgumentError$x('opts must be an object.')
+        throw new InvalidArgumentError$y('opts must be an object.')
       }
 
       if (opts.dispatcher) {
-        throw new InvalidArgumentError$x('opts.dispatcher is not supported by instance methods. Pass opts.dispatcher to the top-level undici functions or call the dispatcher instance method directly.')
+        throw new InvalidArgumentError$y('opts.dispatcher is not supported by instance methods. Pass opts.dispatcher to the top-level undici functions or call the dispatcher instance method directly.')
       }
 
       if (this[kDestroyed$1] || this[kOnDestroyed]) {
@@ -3394,7 +3404,7 @@ var dispatcherBase = DispatcherBase$6;
 const net$2 = require$$1;
 const assert$e = require$$0$2;
 const util$n = util$p;
-const { InvalidArgumentError: InvalidArgumentError$w, ConnectTimeoutError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$x, ConnectTimeoutError: ConnectTimeoutError$1 } = errors;
 
 let tls$1; // include tls conditionally since it is not always available
 
@@ -3452,7 +3462,7 @@ const SessionCache = class WeakSessionCache {
 
 function buildConnector$5 ({ allowH2, preferH2, useH2c, maxCachedSessions, socketPath, timeout, session: customSession, ...opts }) {
   if (maxCachedSessions != null && (!Number.isInteger(maxCachedSessions) || maxCachedSessions < 0)) {
-    throw new InvalidArgumentError$w('maxCachedSessions must be a positive integer or zero')
+    throw new InvalidArgumentError$x('maxCachedSessions must be a positive integer or zero')
   }
 
   const options = { path: socketPath, ...opts };
@@ -3573,7 +3583,7 @@ function maybeNormalizeConnectError (err, socket, opts) {
     }
     message += ` timeout: ${opts.timeout}ms)`;
 
-    const wrapped = new ConnectTimeoutError(message);
+    const wrapped = new ConnectTimeoutError$1(message);
     wrapped.cause = err;
     return wrapped
   }
@@ -4578,6 +4588,20 @@ function requireInfra () {
 	  return input
 	}
 
+	const nonASCIIRegex = /[^\x00-\x7F]/; // eslint-disable-line no-control-regex
+
+	/**
+	 * @param {string} str
+	 * @returns {string}
+	 *
+	 * @see https://infra.spec.whatwg.org/#ascii-lowercase
+	 */
+	function asciiLowercase (str) {
+	  return nonASCIIRegex.test(str)
+	    ? str.replace(/[A-Z]+/g, (upper) => upper.toLowerCase())
+	    : str.toLowerCase()
+	}
+
 	/**
 	 * @see https://infra.spec.whatwg.org/#parse-json-bytes-to-a-javascript-value
 	 * @param {Uint8Array} bytes
@@ -4614,7 +4638,7 @@ function requireInfra () {
 	  }
 
 	  if (trailing) {
-	    while (trail > 0 && predicate(str.charCodeAt(trail))) trail--;
+	    while (trail >= lead && predicate(str.charCodeAt(trail))) trail--;
 	  }
 
 	  return lead === 0 && trail === str.length - 1 ? str : str.slice(lead, trail + 1)
@@ -4638,6 +4662,7 @@ function requireInfra () {
 	}
 
 	infra = {
+	  asciiLowercase,
 	  collectASequenceOfCodePoints,
 	  collectASequenceOfCodePointsFast,
 	  forgivingBase64,
@@ -4660,14 +4685,14 @@ function requireDataUrl () {
 	hasRequiredDataUrl = 1;
 
 	const assert = require$$0$2;
-	const { forgivingBase64, collectASequenceOfCodePoints, collectASequenceOfCodePointsFast, isomorphicDecode, removeASCIIWhitespace, removeChars } = requireInfra();
+	const { asciiLowercase, forgivingBase64, collectASequenceOfCodePoints, collectASequenceOfCodePointsFast, isomorphicDecode, removeASCIIWhitespace, removeChars } = requireInfra();
 
 	const encoder = new TextEncoder();
 
 	/**
 	 * @see https://mimesniff.spec.whatwg.org/#http-token-code-point
 	 */
-	const HTTP_TOKEN_CODEPOINTS = /^[-!#$%&'*+.^_|~A-Za-z0-9]+$/u;
+	const HTTP_TOKEN_CODEPOINTS = /^[-!#$%&'*+.^_`|~A-Za-z0-9]+$/u;
 	const HTTP_WHITESPACE_REGEX = /[\u000A\u000D\u0009\u0020]/u; // eslint-disable-line
 
 	/**
@@ -4728,7 +4753,7 @@ function requireDataUrl () {
 	  // 11. If mimeType ends with U+003B (;), followed by
 	  // zero or more U+0020 SPACE, followed by an ASCII
 	  // case-insensitive match for "base64", then:
-	  if (/;(?:\u0020*)base64$/ui.test(mimeType)) {
+	  if (/;\u0020*[Bb][Aa][Ss][Ee]64$/u.test(mimeType)) {
 	    // 1. Let stringBody be the isomorphic decode of body.
 	    const stringBody = isomorphicDecode(body);
 
@@ -4927,8 +4952,8 @@ function requireDataUrl () {
 	    return 'failure'
 	  }
 
-	  const typeLowercase = type.toLowerCase();
-	  const subtypeLowercase = subtype.toLowerCase();
+	  const typeLowercase = asciiLowercase(type);
+	  const subtypeLowercase = asciiLowercase(subtype);
 
 	  // 10. Let mimeType be a new MIME type record whose type
 	  // is type, in ASCII lowercase, and subtype is subtype,
@@ -4968,7 +4993,7 @@ function requireDataUrl () {
 
 	    // 4. Set parameterName to parameterName, in ASCII
 	    // lowercase.
-	    parameterName = parameterName.toLowerCase();
+	    parameterName = asciiLowercase(parameterName);
 
 	    // 5. If position is not past the end of input, then:
 	    if (position.position < input.length) {
@@ -5289,9 +5314,9 @@ function requireWebidl () {
 	/**
 	 * @description Instantiate an error.
 	 *
-	 * @param {Object} opts
-	 * @param {string} opts.header
-	 * @param {string} opts.message
+	 * @param {Object} message
+	 * @param {string} message.header
+	 * @param {string} message.message
 	 * @returns {TypeError}
 	 */
 	webidl.errors.exception = function (message) {
@@ -5336,23 +5361,11 @@ function requireWebidl () {
 	};
 
 	// https://webidl.spec.whatwg.org/#implements
-	webidl.brandCheck = function (V, I) {
-	  if (!FunctionPrototypeSymbolHasInstance(I, V)) {
+	webidl.brandCheck = function (V, is) {
+	  if (!is(V)) {
 	    const err = new TypeError('Illegal invocation');
 	    err.code = 'ERR_INVALID_THIS'; // node compat.
 	    throw err
-	  }
-	};
-
-	webidl.brandCheckMultiple = function (List) {
-	  const prototypes = List.map((c) => webidl.util.MakeTypeAssertion(c));
-
-	  return (V) => {
-	    if (prototypes.every(typeCheck => !typeCheck(V))) {
-	      const err = new TypeError('Illegal invocation');
-	      err.code = 'ERR_INVALID_THIS'; // node compat.
-	      throw err
-	    }
 	  }
 	};
 
@@ -6281,7 +6294,7 @@ function requireUtil$4 () {
 	const { getGlobalOrigin } = requireGlobal();
 	const { collectAnHTTPQuotedString, parseMIMEType } = requireDataUrl();
 	const { performance } = require$$5$1;
-	const { ReadableStreamFrom, isValidHTTPToken, normalizedMethodRecordsBase } = util$p;
+	const { isValidHTTPToken, normalizedMethodRecordsBase } = util$p;
 	const assert = require$$0$2;
 	const { isUint8Array } = require$$8;
 	const { webidl } = requireWebidl();
@@ -6502,14 +6515,19 @@ function requireUtil$4 () {
 	  return 'success'
 	}
 
+	// https://w3c.github.io/webappsec-fetch-metadata/#abstract-opdef-append-the-fetch-metadata-headers-for-a-request
 	function appendFetchMetadata (httpRequest) {
+	  //  1. If r’s url is not a potentially trustworthy URL, return.
+	  if (!isURLPotentiallyTrustworthy(requestCurrentURL(httpRequest))) {
+	    return
+	  }
+
 	  //  https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-dest-header
 	  //  TODO
 
 	  //  https://w3c.github.io/webappsec-fetch-metadata/#sec-fetch-mode-header
 
 	  //  1. Assert: r’s url is a potentially trustworthy URL.
-	  //  TODO
 
 	  //  2. Let header be a Structured Header whose value is a token.
 	  let header = null;
@@ -7141,8 +7159,9 @@ function requireUtil$4 () {
 	 * @param {(target: any) => any} kInternalIterator
 	 * @param {string | number} [keyIndex]
 	 * @param {string | number} [valueIndex]
+	 * @param {import('../../../types/webidl').WebidlIsFunction} brandCheck
 	 */
-	function iteratorMixin (name, object, kInternalIterator, keyIndex = 0, valueIndex = 1) {
+	function iteratorMixin (name, object, kInternalIterator, keyIndex = 0, valueIndex = 1, brandCheck) {
 	  const makeIterator = createIterator(name, kInternalIterator, keyIndex, valueIndex);
 
 	  const properties = {
@@ -7151,7 +7170,7 @@ function requireUtil$4 () {
 	      enumerable: true,
 	      configurable: true,
 	      value: function keys () {
-	        webidl.brandCheck(this, object);
+	        webidl.brandCheck(this, brandCheck);
 	        return makeIterator(this, 'key')
 	      }
 	    },
@@ -7160,7 +7179,7 @@ function requireUtil$4 () {
 	      enumerable: true,
 	      configurable: true,
 	      value: function values () {
-	        webidl.brandCheck(this, object);
+	        webidl.brandCheck(this, brandCheck);
 	        return makeIterator(this, 'value')
 	      }
 	    },
@@ -7169,7 +7188,7 @@ function requireUtil$4 () {
 	      enumerable: true,
 	      configurable: true,
 	      value: function entries () {
-	        webidl.brandCheck(this, object);
+	        webidl.brandCheck(this, brandCheck);
 	        return makeIterator(this, 'key+value')
 	      }
 	    },
@@ -7178,7 +7197,7 @@ function requireUtil$4 () {
 	      enumerable: true,
 	      configurable: true,
 	      value: function forEach (callbackfn, thisArg = globalThis) {
-	        webidl.brandCheck(this, object);
+	        webidl.brandCheck(this, brandCheck);
 	        webidl.argumentLengthCheck(arguments, 1, `${name}.forEach`);
 	        if (typeof callbackfn !== 'function') {
 	          throw new TypeError(
@@ -7752,7 +7771,6 @@ function requireUtil$4 () {
 	  isAborted,
 	  isCancelled,
 	  isValidEncodedURL,
-	  ReadableStreamFrom,
 	  tryUpgradeRequestToAPotentiallyTrustworthyURL,
 	  clampAndCoarsenConnectionTimingInfo,
 	  coarsenedSharedCurrentTime,
@@ -7919,6 +7937,8 @@ function requireFormdata () {
 	  ? require$$2$2.randomInt
 	  : (max) => Math.floor(Math.random() * max);
 
+	let getFormDataState, setFormDataState, getFormDataBoundary;
+
 	// https://xhr.spec.whatwg.org/#formdata
 	class FormData {
 	  #state = []
@@ -7937,7 +7957,7 @@ function requireFormdata () {
 	  }
 
 	  append (name, value, filename = undefined) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.append';
 	    webidl.argumentLengthCheck(arguments, 2, prefix);
@@ -7965,7 +7985,7 @@ function requireFormdata () {
 	  }
 
 	  delete (name) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.delete';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -7978,7 +7998,7 @@ function requireFormdata () {
 	  }
 
 	  get (name) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.get';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -7998,7 +8018,7 @@ function requireFormdata () {
 	  }
 
 	  getAll (name) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.getAll';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -8015,7 +8035,7 @@ function requireFormdata () {
 	  }
 
 	  has (name) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.has';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -8028,7 +8048,7 @@ function requireFormdata () {
 	  }
 
 	  set (name, value, filename = undefined) {
-	    webidl.brandCheck(this, FormData);
+	    webidl.brandCheck(this, webidl.is.FormData);
 
 	    const prefix = 'FormData.set';
 	    webidl.argumentLengthCheck(arguments, 2, prefix);
@@ -8093,40 +8113,34 @@ function requireFormdata () {
 	    return `FormData ${output.slice(output.indexOf(']') + 2)}`
 	  }
 
-	  /**
-	   * @param {FormData} formData
-	   */
-	  static getFormDataState (formData) {
-	    return formData.#state
-	  }
+	  static {
+	    /** @param {FormData} formData  */
+	    getFormDataState = (formData) => formData.#state;
 
-	  /**
-	   * @param {FormData} formData
-	   * @param {any[]} newState
-	   */
-	  static setFormDataState (formData, newState) {
-	    formData.#state = newState;
-	  }
+	    /**
+	     * @param {FormData} formData
+	     * @param {any[]} newState
+	     */
+	    setFormDataState = (formData, newState) => {
+	      formData.#state = newState;
+	    };
 
-	  /**
-	   * @param {FormData} formData
-	   * @returns {string | null}
-	   */
-	  static getFormDataBoundary (formData) {
-	    const boundary = formData.#boundary;
-	    if (boundary != null) return boundary
+	    /**
+	     * @param {FormData} formData
+	     * @returns {string | null}
+	     */
+	    getFormDataBoundary = (formData) => {
+	      // eslint-disable-next-line no-return-assign
+	      return formData.#boundary ??= `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
+	    };
 
-	    // eslint-disable-next-line no-return-assign
-	    return formData.#boundary = `----formdata-undici-0${`${random(1e11)}`.padStart(11, '0')}`
+	    webidl.is.FormData = (arg) => {
+	      return arg != null && typeof arg === 'object' && #state in arg
+	    };
 	  }
 	}
 
-	const { getFormDataState, setFormDataState, getFormDataBoundary } = FormData;
-	Reflect.deleteProperty(FormData, 'getFormDataState');
-	Reflect.deleteProperty(FormData, 'setFormDataState');
-	Reflect.deleteProperty(FormData, 'getFormDataBoundary');
-
-	iteratorMixin('FormData', FormData, getFormDataState, 'name', 'value');
+	iteratorMixin('FormData', FormData, getFormDataState, 'name', 'value', webidl.is.FormData);
 
 	Object.defineProperties(FormData.prototype, {
 	  append: kEnumerableProperty,
@@ -8179,8 +8193,6 @@ function requireFormdata () {
 	  // 4. Return an entry whose name is name and whose value is value.
 	  return { name, value }
 	}
-
-	webidl.is.FormData = webidl.util.MakeTypeAssertion(FormData);
 
 	formdata = { FormData, makeEntry, setFormDataState, getFormDataBoundary };
 	return formdata;
@@ -8789,7 +8801,6 @@ function requireBody () {
 
 	const util = util$p;
 	const {
-	  ReadableStreamFrom,
 	  readableStreamClose,
 	  fullyReadBody,
 	  extractMimeType
@@ -8984,8 +8995,16 @@ function requireBody () {
 	      )
 	    }
 
-	    stream =
-	      webidl.is.ReadableStream(object) ? object : ReadableStreamFrom(object);
+	    stream = webidl.is.ReadableStream(object)
+	      ? object
+	      : ReadableStream.from(object).pipeThrough(new TransformStream({
+	        transform (chunk, controller) {
+	          const bytes = isUint8Array(chunk) ? chunk : Buffer.from(chunk);
+	          if (bytes.byteLength) {
+	            controller.enqueue(bytes);
+	          }
+	        }
+	      }));
 	  }
 
 	  // 11. If source is a byte sequence, then set action to a
@@ -9080,7 +9099,7 @@ function requireBody () {
 	  }
 	}
 
-	function bodyMixinMethods (instance, getInternalState) {
+	function bodyMixinMethods (brandCheck, getInternalState) {
 	  const methods = {
 	    blob () {
 	      // The blob() method steps are to return the result of
@@ -9100,7 +9119,7 @@ function requireBody () {
 	        // Return a Blob whose contents are bytes and type attribute
 	        // is mimeType.
 	        return new Blob([bytes], { type: mimeType })
-	      }, instance, getInternalState)
+	      }, brandCheck, getInternalState)
 	    },
 
 	    arrayBuffer () {
@@ -9110,19 +9129,19 @@ function requireBody () {
 	      // whose contents are bytes.
 	      return consumeBody(this, (bytes) => {
 	        return new Uint8Array(bytes).buffer
-	      }, instance, getInternalState)
+	      }, brandCheck, getInternalState)
 	    },
 
 	    text () {
 	      // The text() method steps are to return the result of running
 	      // consume body with this and UTF-8 decode.
-	      return consumeBody(this, utf8DecodeBytes, instance, getInternalState)
+	      return consumeBody(this, utf8DecodeBytes, brandCheck, getInternalState)
 	    },
 
 	    json () {
 	      // The json() method steps are to return the result of running
 	      // consume body with this and parse JSON from bytes.
-	      return consumeBody(this, parseJSONFromBytes, instance, getInternalState)
+	      return consumeBody(this, parseJSONFromBytes, brandCheck, getInternalState)
 	    },
 
 	    formData () {
@@ -9170,7 +9189,7 @@ function requireBody () {
 	        throw new TypeError(
 	          'Content-Type was not one of "multipart/form-data" or "application/x-www-form-urlencoded".'
 	        )
-	      }, instance, getInternalState)
+	      }, brandCheck, getInternalState)
 	    },
 
 	    bytes () {
@@ -9179,7 +9198,7 @@ function requireBody () {
 	      // result of creating a Uint8Array from bytes in this’s relevant realm.
 	      return consumeBody(this, (bytes) => {
 	        return new Uint8Array(bytes)
-	      }, instance, getInternalState)
+	      }, brandCheck, getInternalState)
 	    },
 
 	    textStream () {
@@ -9229,20 +9248,20 @@ function requireBody () {
 	  return methods
 	}
 
-	function mixinBody (prototype, getInternalState) {
-	  Object.assign(prototype.prototype, bodyMixinMethods(prototype, getInternalState));
+	function mixinBody (prototype, getInternalState, brandCheck) {
+	  Object.assign(prototype.prototype, bodyMixinMethods(brandCheck, getInternalState));
 	}
 
 	/**
 	 * @see https://fetch.spec.whatwg.org/#concept-body-consume-body
 	 * @param {any} object internal state
 	 * @param {(value: unknown) => unknown} convertBytesToJSValue
-	 * @param {any} instance
+	 * @param {import('../../../types/webidl').WebidlIsFunction} brandCheck
 	 * @param {(target: any) => any} getInternalState
 	 */
-	function consumeBody (object, convertBytesToJSValue, instance, getInternalState) {
+	function consumeBody (object, convertBytesToJSValue, brandCheck, getInternalState) {
 	  try {
-	    webidl.brandCheck(object, instance);
+	    webidl.brandCheck(object, brandCheck);
 	  } catch (e) {
 	    return Promise.reject(e)
 	  }
@@ -9343,25 +9362,25 @@ const { channels: channels$3 } = diagnostics;
 const timers = timers$2;
 const {
   RequestContentLengthMismatchError: RequestContentLengthMismatchError$1,
-  ResponseContentLengthMismatchError,
-  RequestAbortedError: RequestAbortedError$8,
-  InvalidArgumentError: InvalidArgumentError$v,
+  ResponseContentLengthMismatchError: ResponseContentLengthMismatchError$1,
+  RequestAbortedError: RequestAbortedError$9,
+  InvalidArgumentError: InvalidArgumentError$w,
   HeadersTimeoutError: HeadersTimeoutError$1,
   HeadersOverflowError,
   SocketError: SocketError$3,
   InformationalError: InformationalError$3,
   BodyTimeoutError: BodyTimeoutError$1,
   HTTPParserError,
-  ResponseExceededMaxSizeError
+  ResponseExceededMaxSizeError: ResponseExceededMaxSizeError$2
 } = errors;
 const {
-  kUrl: kUrl$7,
+  kUrl: kUrl$9,
   kReset: kReset$1,
   kClient: kClient$3,
   kParser,
   kBlocking,
   kRunning: kRunning$4,
-  kPending: kPending$3,
+  kPending: kPending$4,
   kSize: kSize$4,
   kWriting,
   kQueue: kQueue$3,
@@ -9382,10 +9401,10 @@ const {
   kStrictContentLength: kStrictContentLength$2,
   kMaxRequests: kMaxRequests$1,
   kCounter: kCounter$1,
-  kMaxResponseSize: kMaxResponseSize$1,
+  kMaxResponseSize: kMaxResponseSize$2,
   kOnError: kOnError$2,
   kResume: kResume$3,
-  kHTTPContext: kHTTPContext$2,
+  kHTTPContext: kHTTPContext$3,
   kClosed: kClosed$2
 } = requireSymbols();
 
@@ -9405,8 +9424,14 @@ function lazyllhttp () {
 
   let mod;
 
-  // We disable wasm SIMD on ppc64 as it seems to be broken on Power 9 architectures.
-  let useWasmSIMD = process.arch !== 'ppc64';
+  // We disable wasm SIMD on older versions of Node.js on ppc64 that are broken on Power >=9 architectures.
+  let useWasmSIMD = true;
+  if (process.arch === 'ppc64') {
+    const [major, minor] = process.versions.node.split('.').map(n => parseInt(n, 10));
+    if (major < 24 || (major === 24 && minor < 12)) {
+      useWasmSIMD = false;
+    }
+  }
   // The Env Variable UNDICI_NO_WASM_SIMD allows explicitly overriding the default behavior
   if (process.env.UNDICI_NO_WASM_SIMD === '1') {
     useWasmSIMD = false;
@@ -9575,7 +9600,7 @@ class Parser {
     this.keepAlive = '';
     this.contentLength = -1;
     this.connectionKeepAlive = false;
-    this.maxResponseSize = client[kMaxResponseSize$1];
+    this.maxResponseSize = client[kMaxResponseSize$2];
   }
 
   setTimeout (delay, type) {
@@ -9762,7 +9787,7 @@ class Parser {
     const { llhttp, contentLength, bytesRead } = this;
 
     if (contentLength !== -1 && bytesRead !== contentLength) {
-      return new ResponseContentLengthMismatchError()
+      return new ResponseContentLengthMismatchError$1()
     }
 
     const ptr = llhttp.llhttp_get_error_reason(this.ptr);
@@ -9896,7 +9921,7 @@ class Parser {
    * @param {Buffer} head
    */
   onUpgrade (head) {
-    const { upgrade, client, socket, headers, statusCode } = this;
+    const { upgrade, client, socket, headers, statusCode, statusText } = this;
 
     assert$d(upgrade);
     assert$d(client[kSocket$1] === socket);
@@ -9926,13 +9951,14 @@ class Parser {
     removeAllListeners(socket);
 
     client[kSocket$1] = null;
-    client[kHTTPContext$2] = null; // TODO (fix): This is hacky...
+    client[kHTTPContext$3] = null; // TODO (fix): This is hacky...
     client[kQueue$3][client[kRunningIdx$2]++] = null;
-    client.emit('disconnect', client[kUrl$7], [client], new InformationalError$3('upgrade'));
+    client.emit('disconnect', client[kUrl$9], [client], new InformationalError$3('upgrade'));
 
     try {
-      request.onRequestUpgrade(statusCode, headers, socket);
+      request.onRequestUpgrade(statusCode, headers, socket, statusText);
     } catch (err) {
+      util$l.errorRequest(client, request, err);
       util$l.destroy(socket, err);
     }
 
@@ -10080,7 +10106,7 @@ class Parser {
     assert$d(statusCode >= 200);
 
     if (maxResponseSize > -1 && this.bytesRead + buf.length > maxResponseSize) {
-      util$l.destroy(socket, new ResponseExceededMaxSizeError());
+      util$l.destroy(socket, new ResponseExceededMaxSizeError$2());
       return -1
     }
 
@@ -10128,14 +10154,14 @@ class Parser {
     }
 
     if (request.method !== 'HEAD' && contentLength !== -1 && bytesRead !== contentLength) {
-      util$l.destroy(socket, new ResponseContentLengthMismatchError());
+      util$l.destroy(socket, new ResponseContentLengthMismatchError$1());
       return -1
     }
 
     request.onResponseEnd(headers);
 
     client[kQueue$3][client[kRunningIdx$2]++] = null;
-    socket[kSocketUsed] = client[kPending$3] === 0;
+    socket[kSocketUsed] = client[kPending$4] === 0;
 
     if (socket[kWriting]) {
       assert$d(client[kRunning$4] === 0);
@@ -10353,10 +10379,10 @@ function onHttpSocketClose () {
   const client = this[kClient$3];
 
   client[kSocket$1] = null;
-  client[kHTTPContext$2] = null; // TODO (fix): This is hacky...
+  client[kHTTPContext$3] = null; // TODO (fix): This is hacky...
 
   if (client.destroyed) {
-    assert$d(client[kPending$3] === 0);
+    assert$d(client[kPending$4] === 0);
 
     // Fail entire queue.
     const requests = client[kQueue$3].splice(client[kRunningIdx$2]);
@@ -10376,7 +10402,7 @@ function onHttpSocketClose () {
 
   assert$d(client[kRunning$4] === 0);
 
-  client.emit('disconnect', client[kUrl$7], [client], err);
+  client.emit('disconnect', client[kUrl$9], [client], err);
 
   client[kResume$3]();
 }
@@ -10387,7 +10413,7 @@ function onSocketClose$1 () {
 
 function clearIdleSocketValidation (socket) {
   if (socket[kIdleSocketValidationTimeout]) {
-    clearTimeout(socket[kIdleSocketValidationTimeout]);
+    clearImmediate(socket[kIdleSocketValidationTimeout]);
     socket[kIdleSocketValidationTimeout] = null;
   }
 
@@ -10396,15 +10422,23 @@ function clearIdleSocketValidation (socket) {
 
 function scheduleIdleSocketValidation (client, socket) {
   socket[kIdleSocketValidation] = 1;
-  socket[kIdleSocketValidationTimeout] = setTimeout(() => {
+  // Yield to the check phase (after poll) so unsolicited bytes / FIN / RST
+  // already pending on this idle keep-alive socket are processed before the
+  // next request is written (GHSA-35p6-xmwp-9g52).
+  //
+  // setTimeout(0) pays Node's ~1ms timer floor on every sequential reuse
+  // (#5493). setImmediate avoids that, but an *unref'd* Immediate lets poll
+  // block for ~500ms when the event loop is otherwise idle (#5600 / #5606).
+  // A ref'd Immediate both keeps the pending request alive and makes poll
+  // return immediately — the hybrid those issues asked for.
+  socket[kIdleSocketValidationTimeout] = setImmediate(() => {
     socket[kIdleSocketValidationTimeout] = null;
     socket[kIdleSocketValidation] = 2;
 
     if (client[kSocket$1] === socket && !socket.destroyed) {
       client[kResume$3]();
     }
-  }, 0);
-  socket[kIdleSocketValidationTimeout].unref?.();
+  });
 }
 
 /**
@@ -10424,7 +10458,7 @@ function resumeH1 (client) {
       socket[kNoRef] = false;
     }
 
-    if (client[kRunning$4] === 0 && client[kPending$3] > 0 && socket[kSocketUsed]) {
+    if (client[kRunning$4] === 0 && client[kPending$4] > 0 && socket[kSocketUsed]) {
       if (socket[kIdleSocketValidation] === 0) {
         scheduleIdleSocketValidation(client, socket);
         socket[kParser].readMore();
@@ -10541,7 +10575,7 @@ function writeH1 (client, request) {
     if (contentType) {
       const contentTypeValue = `${contentType}`;
       if (!util$l.isValidHeaderValue(contentTypeValue)) {
-        util$l.errorRequest(client, request, new InvalidArgumentError$v('invalid content-type header'));
+        util$l.errorRequest(client, request, new InvalidArgumentError$w('invalid content-type header'));
         return false
       }
       headers.push('content-type', contentTypeValue);
@@ -10593,7 +10627,7 @@ function writeH1 (client, request) {
       return
     }
 
-    util$l.errorRequest(client, request, err || new RequestAbortedError$8());
+    util$l.errorRequest(client, request, err || new RequestAbortedError$9());
 
     util$l.destroy(body);
     util$l.destroy(socket, new InformationalError$3('aborted'));
@@ -10755,7 +10789,7 @@ function writeStream$1 (abort, body, client, request, socket, contentLength, hea
     });
 
     if (!finished) {
-      const err = new RequestAbortedError$8();
+      const err = new RequestAbortedError$9();
       queueMicrotask(() => onFinished(err));
     }
   };
@@ -11132,19 +11166,21 @@ const { pipeline: pipeline$2 } = require$$0$1;
 const util$k = util$p;
 const {
   RequestContentLengthMismatchError,
-  RequestAbortedError: RequestAbortedError$7,
+  ResponseContentLengthMismatchError,
+  RequestAbortedError: RequestAbortedError$8,
   SocketError: SocketError$2,
   InformationalError: InformationalError$2,
-  InvalidArgumentError: InvalidArgumentError$u,
+  InvalidArgumentError: InvalidArgumentError$v,
   HeadersTimeoutError,
-  BodyTimeoutError
+  BodyTimeoutError,
+  ResponseExceededMaxSizeError: ResponseExceededMaxSizeError$1
 } = errors;
 const {
-  kUrl: kUrl$6,
+  kUrl: kUrl$8,
   kReset,
   kClient: kClient$2,
   kRunning: kRunning$3,
-  kPending: kPending$2,
+  kPending: kPending$3,
   kQueue: kQueue$2,
   kPendingIdx: kPendingIdx$1,
   kRunningIdx: kRunningIdx$1,
@@ -11157,7 +11193,7 @@ const {
   kHostAuthority: kHostAuthority$1,
   kResume: kResume$2,
   kSize: kSize$3,
-  kHTTPContext: kHTTPContext$1,
+  kHTTPContext: kHTTPContext$2,
   kClosed: kClosed$1,
   kKeepAliveDefaultTimeout: kKeepAliveDefaultTimeout$1,
   kHeadersTimeout: kHeadersTimeout$1,
@@ -11166,7 +11202,8 @@ const {
   kRemoteSettings,
   kHTTP2Stream: kHTTP2Stream$1,
   kHTTP2SessionState,
-  kHTTP2Options: kHTTP2Options$1
+  kHTTP2Options: kHTTP2Options$1,
+  kMaxResponseSize: kMaxResponseSize$1
 } = requireSymbols();
 const { channels: channels$2 } = diagnostics;
 
@@ -11224,7 +11261,7 @@ function resetHttp2Session (session, err) {
 
   if (client[kHTTP2Session] === session) {
     client[kSocket] = null;
-    client[kHTTPContext$1] = null;
+    client[kHTTPContext$2] = null;
     client[kHTTP2Session] = null;
   }
 
@@ -11318,6 +11355,11 @@ function canReplayRequest (request) {
   return body == null || util$k.isBuffer(body) || util$k.isBlobLike(body)
 }
 
+function hasResponseStarted (request) {
+  const state = request[kRequestStream]?.[kRequestStreamState];
+  return state?.responseReceived === true
+}
+
 // Count a GOAWAY refusal against the request's replay budget. A peer that
 // refuses every connection must eventually surface an error to the caller
 // rather than being retried forever. Kept separate from canReplayRequest so
@@ -11377,7 +11419,7 @@ function connectH2$1 (client, socket) {
   const http2InitialWindowSize = client[kHTTP2Options$1].sessionOptions?.initialWindowSize;
   const http2ConnectionWindowSize = client[kHTTP2Options$1].connectionWindowSize;
 
-  const session = http2.connect(client[kUrl$6], {
+  const session = http2.connect(client[kUrl$8], {
     createConnection: () => socket,
     peerMaxConcurrentStreams: client[kHTTP2Options$1].maxConcurrentStreams,
     settings: {
@@ -11531,7 +11573,8 @@ function resumeH2 (client) {
   const session = client[kHTTP2Session];
 
   if (socket?.destroyed === false) {
-    if (client[kSize$3] === 0 || client[kMaxConcurrentStreams$1] === 0) {
+    // After an upgrade the queue is empty but its stream is still in use, so never unref while a stream is open.
+    if (session[kOpenStreams] === 0 && client[kSize$3] === 0) {
       unrefH2Session(session);
     } else {
       refH2Session(session);
@@ -11543,7 +11586,7 @@ function resumeH2 (client) {
       clearHttp2IdleTimeout(session);
     }
 
-    if (client[kMaxConcurrentStreams$1] === 0 && client[kRunning$3] === 0 && client[kPending$2] > 0) {
+    if (client[kMaxConcurrentStreams$1] === 0 && client[kRunning$3] === 0 && client[kPending$3] > 0) {
       setNoStreamsTimeout(session);
     } else {
       clearNoStreamsTimeout(session);
@@ -11590,7 +11633,7 @@ function onNoStreamsTimeout (session) {
     client[kHTTP2Session] !== session ||
     client[kMaxConcurrentStreams$1] !== 0 ||
     client[kRunning$3] !== 0 ||
-    client[kPending$2] === 0
+    client[kPending$3] === 0
   ) {
     return
   }
@@ -11765,9 +11808,12 @@ function onHttp2SessionGoAway (errorCode, lastStreamID) {
     const request = client[kQueue$2][i];
 
     if (request != null) {
+      // Read before detaching, which drops the stream state.
+      const responseStarted = hasResponseStarted(request);
+
       streamsToClose.push(detachRequestStreamForClose(request));
 
-      if (canReplayRequest(request) && registerGoAwayRefusal(request)) {
+      if (!responseStarted && canReplayRequest(request) && registerGoAwayRefusal(request)) {
         retriableRequests.push(request);
       } else {
         util$k.errorRequest(client, request, err);
@@ -11787,7 +11833,7 @@ function onHttp2SessionGoAway (errorCode, lastStreamID) {
 
   if (client[kHTTP2Session] === this) {
     client[kSocket] = null;
-    client[kHTTPContext$1] = null;
+    client[kHTTPContext$2] = null;
     client[kHTTP2Session] = null;
   }
 
@@ -11800,7 +11846,7 @@ function onHttp2SessionGoAway (errorCode, lastStreamID) {
 
   client[kPendingIdx$1] = pendingIdx;
 
-  client.emit('disconnect', client[kUrl$6], [client], err);
+  client.emit('disconnect', client[kUrl$8], [client], err);
 
   client[kResume$2]();
 }
@@ -11812,7 +11858,7 @@ function onHttp2SessionClose () {
 
   if (client[kHTTP2Session] === this) {
     client[kSocket] = null;
-    client[kHTTPContext$1] = null;
+    client[kHTTPContext$2] = null;
     client[kHTTP2Session] = null;
   }
 
@@ -11825,7 +11871,7 @@ function onHttp2SessionClose () {
   }
 
   if (client.destroyed) {
-    assert$c(client[kPending$2] === 0);
+    assert$c(client[kPending$3] === 0);
 
     // Fail entire queue.
     const requests = client[kQueue$2].splice(client[kRunningIdx$1]);
@@ -11855,7 +11901,7 @@ function onHttp2SocketClose () {
   }
 
   client[kSocket] = null;
-  client[kHTTPContext$1] = null;
+  client[kHTTPContext$2] = null;
   if (client[kHTTP2Session] === session) {
     client[kHTTP2Session] = null;
   }
@@ -11866,7 +11912,7 @@ function onHttp2SocketClose () {
 
   assert$c(client[kRunning$3] === 0);
 
-  client.emit('disconnect', client[kUrl$6], [client], err);
+  client.emit('disconnect', client[kUrl$8], [client], err);
 
   client[kResume$2]();
 }
@@ -11895,10 +11941,12 @@ function noop$8 () {}
 
 function closeStreamSession (stream) {
   const session = stream[kHTTP2Session];
+  const client = session[kClient$2];
 
   stream[kHTTP2Session] = null;
   session[kOpenStreams] -= 1;
-  if (session[kOpenStreams] === 0) {
+  // A session that received GOAWAY does not need to stay ref'd for queued requests.
+  if (session[kOpenStreams] === 0 && (client[kSize$3] === 0 || session[kReceivedGoAway])) {
     unrefH2Session(session);
     setHttp2IdleTimeout(session);
   }
@@ -12056,9 +12104,14 @@ function onUpgradeResponse (headers, _flags) {
   const statusCode = headers[HTTP2_HEADER_STATUS];
   delete headers[HTTP2_HEADER_STATUS];
 
-  request.onRequestUpgrade(statusCode, headers, stream);
+  try {
+    request.onRequestUpgrade(statusCode, headers, stream);
+  } catch (err) {
+    state.abort(err);
+    return
+  }
 
-  if (request.aborted || request.completed) {
+  if (request.aborted) {
     return
   }
 
@@ -12134,7 +12187,7 @@ function writeH2 (client, request) {
   const { method, path, host, upgrade, expectContinue, signal, protocol, headers: reqHeaders } = request;
 
   if (upgrade != null && upgrade !== 'websocket') {
-    util$k.errorRequest(client, request, new InvalidArgumentError$u(`Custom upgrade "${upgrade}" not supported over HTTP/2`));
+    util$k.errorRequest(client, request, new InvalidArgumentError$v(`Custom upgrade "${upgrade}" not supported over HTTP/2`));
     return false
   }
 
@@ -12149,13 +12202,16 @@ function writeH2 (client, request) {
   const state = {
     abort: null,
     body: request.body,
+    bytesRead: 0,
     client,
     contentLength: null,
     expectsPayload: false,
+    maxResponseSize: client[kMaxResponseSize$1],
     request,
     headersTimeout,
     bodyTimeout,
     requestFinalized: false,
+    responseContentLength: null,
     responseReceived: false,
     bodySent: false,
     pendingEnd: false,
@@ -12169,7 +12225,7 @@ function writeH2 (client, request) {
       return
     }
 
-    err = err || new RequestAbortedError$7();
+    err = err || new RequestAbortedError$8();
 
     util$k.errorRequest(client, request, err);
 
@@ -12387,6 +12443,7 @@ function writeH2 (client, request) {
   // become unreachable once the stream closes, so plain `on` avoids the
   // per-listener `once` wrapper allocation.
   stream.on('response', onResponse);
+  stream.on('headers', onInterimResponse);
   stream.on('end', onEnd);
   stream.on('error', onError$1);
   stream.on('frameError', onFrameError);
@@ -12407,6 +12464,7 @@ function removeRequestStreamListeners (stream) {
   stream.off('error', noop$8);
   stream.off('continue', writeBodyH2);
   stream.off('response', onResponse);
+  stream.off('headers', onInterimResponse);
   stream.off('end', onEnd);
   stream.off('error', onError$1);
   stream.off('frameError', onFrameError);
@@ -12449,15 +12507,54 @@ function onData (chunk) {
     return
   }
 
+  const { request, maxResponseSize, responseContentLength } = state;
+
+  if (request.aborted || request.completed) {
+    return
+  }
+
+  if (responseContentLength != null && state.bytesRead + chunk.length > responseContentLength) {
+    state.abort(new ResponseContentLengthMismatchError());
+    return
+  }
+
+  if (maxResponseSize > -1 && state.bytesRead + chunk.length > maxResponseSize) {
+    // Unlike HTTP/1.1, which destroys the socket because it cannot abandon one
+    // response without losing framing, resetting the offending stream leaves
+    // the session usable for its siblings.
+    state.abort(new ResponseExceededMaxSizeError$1());
+    return
+  }
+
+  state.bytesRead += chunk.length;
+
+  if (request.onResponseData(chunk) === false) {
+    stream.pause();
+  }
+}
+
+function onInterimResponse (headers) {
+  const stream = this;
+  const state = stream[kRequestStreamState];
+
+  if (state == null) {
+    return
+  }
+
   const { request } = state;
 
   if (request.aborted || request.completed) {
     return
   }
 
-  if (request.onResponseData(chunk) === false) {
-    stream.pause();
-  }
+  // node http2 emits 'headers' for interim (1xx) informational responses,
+  // while the final response arrives via 'response'. Forward these to the
+  // handler so that onInfo is invoked, matching the HTTP/1 behaviour and the
+  // documented onInfo contract.
+  const statusCode = headers[HTTP2_HEADER_STATUS];
+  delete headers[HTTP2_HEADER_STATUS];
+
+  request.onResponseStart(Number(statusCode), headers, noop$8, '');
 }
 
 function onResponse (headers) {
@@ -12479,10 +12576,19 @@ function onResponse (headers) {
     stream.end();
   }
 
-  const statusCode = headers[HTTP2_HEADER_STATUS];
+  const statusCode = Number(headers[HTTP2_HEADER_STATUS]);
   delete headers[HTTP2_HEADER_STATUS];
   request.onResponseStarted();
   state.responseReceived = true;
+
+  // A Content-Length in HEAD and 304 responses describes the selected
+  // representation rather than DATA on this stream. Successful CONNECT uses
+  // the upgrade path above; all other final responses use Content-Length as
+  // their DATA payload length.
+  if (request.method !== 'HEAD' && statusCode !== 304) {
+    const contentLength = headers[HTTP2_HEADER_CONTENT_LENGTH];
+    state.responseContentLength = contentLength == null ? null : Number(contentLength);
+  }
 
   if (state.headersTimeout || state.bodyTimeout) {
     stream.setTimeout(state.bodyTimeout);
@@ -12501,7 +12607,7 @@ function onResponse (headers) {
     return
   }
 
-  if (request.onResponseStart(Number(statusCode), headers, stream.resume.bind(stream), '') === false) {
+  if (request.onResponseStart(statusCode, headers, stream.resume.bind(stream), '') === false) {
     stream.pause();
   }
 
@@ -12524,6 +12630,11 @@ function onEnd () {
   // trailers on the state by now, so completing here still delivers them.
   if (state.responseReceived) {
     if (!request.aborted && !request.completed) {
+      if (state.responseContentLength != null && state.bytesRead !== state.responseContentLength) {
+        state.abort(new ResponseContentLengthMismatchError());
+        return
+      }
+
       state.pendingEnd = true;
 
       // Complete on 'end': a blocked event loop can keep the stream's 'close'
@@ -12579,6 +12690,13 @@ function onError$1 (err) {
   }
 
   stream.off('error', onError$1);
+
+  // Node's HTTP/2 implementation can turn an incomplete Content-Length body
+  // into a protocol stream error instead of emitting 'end'. Prefer the
+  // content-length mismatch error when the received byte count proves it.
+  if (state.responseContentLength != null && state.bytesRead !== state.responseContentLength) {
+    err = new ResponseContentLengthMismatchError();
+  }
 
   if (typeof stream.rstCode === 'number' && stream.rstCode !== NGHTTP2_NO_ERROR) {
     err.http2ErrorCode = stream.rstCode;
@@ -12876,24 +12994,24 @@ const { channels: channels$1 } = diagnostics;
 const Request = request$2;
 const DispatcherBase$5 = dispatcherBase;
 const {
-  InvalidArgumentError: InvalidArgumentError$t,
+  InvalidArgumentError: InvalidArgumentError$u,
   InformationalError: InformationalError$1,
   ClientDestroyedError
 } = errors;
 const buildConnector$4 = connect$2;
 const {
-  kUrl: kUrl$5,
+  kUrl: kUrl$7,
   kServerName,
   kClient: kClient$1,
   kBusy: kBusy$3,
   kConnect,
   kResuming,
   kRunning: kRunning$2,
-  kPending: kPending$1,
+  kPending: kPending$2,
   kSize: kSize$2,
   kQueue: kQueue$1,
   kConnected: kConnected$5,
-  kConnecting,
+  kConnecting: kConnecting$1,
   kNeedDrain: kNeedDrain$4,
   kKeepAliveDefaultTimeout,
   kHostHeader,
@@ -12917,7 +13035,7 @@ const {
   kLocalAddress,
   kMaxResponseSize,
   kOnError,
-  kHTTPContext,
+  kHTTPContext: kHTTPContext$1,
   kMaxConcurrentStreams,
   kHostAuthority,
   kResume: kResume$1,
@@ -12933,12 +13051,12 @@ const getDefaultNodeMaxHeaderSize = http &&
   Number.isInteger(http.maxHeaderSize) &&
   http.maxHeaderSize > 0
   ? () => http.maxHeaderSize
-  : () => { throw new InvalidArgumentError$t('http module not available or http.maxHeaderSize invalid') };
+  : () => { throw new InvalidArgumentError$u('http module not available or http.maxHeaderSize invalid') };
 
 const noop$7 = () => { };
 
 function getPipelining (client) {
-  return client[kPipelining] ?? client[kHTTPContext]?.defaultPipelining ?? 1
+  return client[kPipelining] ?? client[kHTTPContext$1]?.defaultPipelining ?? 1
 }
 
 let h2NamespaceOptsWarning = false;
@@ -12957,7 +13075,7 @@ function emitH2OptionsNamespaceWarning (optName) {
 // pipelining factor; once h2 attaches the queued requests can drain in
 // one batch up to maxConcurrentStreams.
 function getMaxConcurrent (client) {
-  if (client[kHTTPContext]?.version === 'h2') {
+  if (client[kHTTPContext$1]?.version === 'h2') {
     return client[kMaxConcurrentStreams]
   }
   return getPipelining(client)
@@ -13004,31 +13122,32 @@ let Client$6 = class Client extends DispatcherBase$5 {
     connectionWindowSize,
     pingInterval,
     webSocket,
-    h2Options
+    h2Options,
+    eventSource
   } = {}) {
     if (keepAlive !== undefined) {
-      throw new InvalidArgumentError$t('unsupported keepAlive, use pipelining=0 instead')
+      throw new InvalidArgumentError$u('unsupported keepAlive, use pipelining=0 instead')
     }
 
     if (socketTimeout !== undefined) {
-      throw new InvalidArgumentError$t('unsupported socketTimeout, use headersTimeout & bodyTimeout instead')
+      throw new InvalidArgumentError$u('unsupported socketTimeout, use headersTimeout & bodyTimeout instead')
     }
 
     if (requestTimeout !== undefined) {
-      throw new InvalidArgumentError$t('unsupported requestTimeout, use headersTimeout & bodyTimeout instead')
+      throw new InvalidArgumentError$u('unsupported requestTimeout, use headersTimeout & bodyTimeout instead')
     }
 
     if (idleTimeout !== undefined) {
-      throw new InvalidArgumentError$t('unsupported idleTimeout, use keepAliveTimeout instead')
+      throw new InvalidArgumentError$u('unsupported idleTimeout, use keepAliveTimeout instead')
     }
 
     if (maxKeepAliveTimeout !== undefined) {
-      throw new InvalidArgumentError$t('unsupported maxKeepAliveTimeout, use keepAliveMaxTimeout instead')
+      throw new InvalidArgumentError$u('unsupported maxKeepAliveTimeout, use keepAliveMaxTimeout instead')
     }
 
     if (maxHeaderSize != null) {
       if (!Number.isInteger(maxHeaderSize) || maxHeaderSize < 1) {
-        throw new InvalidArgumentError$t('invalid maxHeaderSize')
+        throw new InvalidArgumentError$u('invalid maxHeaderSize')
       }
     } else {
       // If maxHeaderSize is not provided, use the default value from the http module
@@ -13037,59 +13156,59 @@ let Client$6 = class Client extends DispatcherBase$5 {
     }
 
     if (socketPath != null && typeof socketPath !== 'string') {
-      throw new InvalidArgumentError$t('invalid socketPath')
+      throw new InvalidArgumentError$u('invalid socketPath')
     }
 
     if (connectTimeout != null && (!Number.isFinite(connectTimeout) || connectTimeout < 0)) {
-      throw new InvalidArgumentError$t('invalid connectTimeout')
+      throw new InvalidArgumentError$u('invalid connectTimeout')
     }
 
     if (keepAliveTimeout != null && (!Number.isFinite(keepAliveTimeout) || keepAliveTimeout <= 0)) {
-      throw new InvalidArgumentError$t('invalid keepAliveTimeout')
+      throw new InvalidArgumentError$u('invalid keepAliveTimeout')
     }
 
     if (keepAliveMaxTimeout != null && (!Number.isFinite(keepAliveMaxTimeout) || keepAliveMaxTimeout <= 0)) {
-      throw new InvalidArgumentError$t('invalid keepAliveMaxTimeout')
+      throw new InvalidArgumentError$u('invalid keepAliveMaxTimeout')
     }
 
     if (keepAliveTimeoutThreshold != null && !Number.isFinite(keepAliveTimeoutThreshold)) {
-      throw new InvalidArgumentError$t('invalid keepAliveTimeoutThreshold')
+      throw new InvalidArgumentError$u('invalid keepAliveTimeoutThreshold')
     }
 
     if (headersTimeout != null && (!Number.isInteger(headersTimeout) || headersTimeout < 0)) {
-      throw new InvalidArgumentError$t('headersTimeout must be a positive integer or zero')
+      throw new InvalidArgumentError$u('headersTimeout must be a positive integer or zero')
     }
 
     if (bodyTimeout != null && (!Number.isInteger(bodyTimeout) || bodyTimeout < 0)) {
-      throw new InvalidArgumentError$t('bodyTimeout must be a positive integer or zero')
+      throw new InvalidArgumentError$u('bodyTimeout must be a positive integer or zero')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$t('connect must be a function or an object')
+      throw new InvalidArgumentError$u('connect must be a function or an object')
     }
 
     if (maxRequestsPerClient != null && (!Number.isInteger(maxRequestsPerClient) || maxRequestsPerClient < 0)) {
-      throw new InvalidArgumentError$t('maxRequestsPerClient must be a positive number')
+      throw new InvalidArgumentError$u('maxRequestsPerClient must be a positive number')
     }
 
     if (localAddress != null && (typeof localAddress !== 'string' || net$1.isIP(localAddress) === 0)) {
-      throw new InvalidArgumentError$t('localAddress must be valid string IP address')
+      throw new InvalidArgumentError$u('localAddress must be valid string IP address')
     }
 
     if (maxResponseSize != null && (!Number.isInteger(maxResponseSize) || maxResponseSize < -1)) {
-      throw new InvalidArgumentError$t('maxResponseSize must be a positive number')
+      throw new InvalidArgumentError$u('maxResponseSize must be a positive number')
     }
 
     if (
       autoSelectFamilyAttemptTimeout != null &&
       (!Number.isInteger(autoSelectFamilyAttemptTimeout) || autoSelectFamilyAttemptTimeout < -1)
     ) {
-      throw new InvalidArgumentError$t('autoSelectFamilyAttemptTimeout must be a positive number')
+      throw new InvalidArgumentError$u('autoSelectFamilyAttemptTimeout must be a positive number')
     }
 
     // h2
     if (allowH2 != null && typeof allowH2 !== 'boolean') {
-      throw new InvalidArgumentError$t('allowH2 must be a valid boolean value')
+      throw new InvalidArgumentError$u('allowH2 must be a valid boolean value')
     }
 
     // We validate only if allowH2 is enabled or null (enabled by default)
@@ -13097,53 +13216,53 @@ let Client$6 = class Client extends DispatcherBase$5 {
       // Prioritise new h2Options object, otherwise fallback to prior configuration options
       if (h2Options != null) {
         if (h2Options.useH2c != null && typeof h2Options.useH2c !== 'boolean') {
-          throw new InvalidArgumentError$t('h2Options.useH2c must be a valid boolean value')
+          throw new InvalidArgumentError$u('h2Options.useH2c must be a valid boolean value')
         }
 
         if (h2Options.settings?.initialWindowSize != null && (!Number.isInteger(h2Options.settings.initialWindowSize) || h2Options.settings.initialWindowSize < 1)) {
-          throw new InvalidArgumentError$t('h2Options.settings.initialWindowSize must be a positive integer, greater than 0')
+          throw new InvalidArgumentError$u('h2Options.settings.initialWindowSize must be a positive integer, greater than 0')
         }
 
-        if (h2Options.maxConcurrentStreams != null && (!Number.isInteger(h2Options.connectionWindowSize) || h2Options.maxConcurrentStreams < 1)) {
-          throw new InvalidArgumentError$t('h2Options.maxConcurrentStreams must be a positive integer, greater than 0')
+        if (h2Options.maxConcurrentStreams != null && (!Number.isInteger(h2Options.maxConcurrentStreams) || h2Options.maxConcurrentStreams < 1)) {
+          throw new InvalidArgumentError$u('h2Options.maxConcurrentStreams must be a positive integer, greater than 0')
         }
 
         if (h2Options.connectionWindowSize != null && (!Number.isInteger(h2Options.connectionWindowSize) || h2Options.connectionWindowSize < 1)) {
-          throw new InvalidArgumentError$t('h2Options.connectionWindowSize must be a positive integer, greater than 0')
+          throw new InvalidArgumentError$u('h2Options.connectionWindowSize must be a positive integer, greater than 0')
         }
 
         if (h2Options.pingInterval != null && (typeof h2Options.pingInterval !== 'number' || !Number.isInteger(h2Options.pingInterval) || h2Options.pingInterval < 0)) {
-          throw new InvalidArgumentError$t('h2Options.pingInterval must be a positive integer, greater or equal to 0')
+          throw new InvalidArgumentError$u('h2Options.pingInterval must be a positive integer, greater or equal to 0')
         }
       } else {
         if (useH2c != null && typeof useH2c !== 'boolean') {
           emitH2OptionsNamespaceWarning('useH2c');
-          throw new InvalidArgumentError$t('useH2c must be a valid boolean value')
+          throw new InvalidArgumentError$u('useH2c must be a valid boolean value')
         }
 
         if (maxConcurrentStreams != null && (typeof maxConcurrentStreams !== 'number' || maxConcurrentStreams < 1)) {
           emitH2OptionsNamespaceWarning('maxConcurrentStreams');
-          throw new InvalidArgumentError$t('maxConcurrentStreams must be a positive integer, greater than 0')
+          throw new InvalidArgumentError$u('maxConcurrentStreams must be a positive integer, greater than 0')
         }
 
         if (initialWindowSize != null && (!Number.isInteger(initialWindowSize) || initialWindowSize < 1)) {
           emitH2OptionsNamespaceWarning('initialWindowSize');
-          throw new InvalidArgumentError$t('initialWindowSize must be a positive integer, greater than 0')
+          throw new InvalidArgumentError$u('initialWindowSize must be a positive integer, greater than 0')
         }
 
         if (connectionWindowSize != null && (!Number.isInteger(connectionWindowSize) || connectionWindowSize < 1)) {
           emitH2OptionsNamespaceWarning('connectionWindowSize');
-          throw new InvalidArgumentError$t('connectionWindowSize must be a positive integer, greater than 0')
+          throw new InvalidArgumentError$u('connectionWindowSize must be a positive integer, greater than 0')
         }
 
         if (pingInterval != null && (typeof pingInterval !== 'number' || !Number.isInteger(pingInterval) || pingInterval < 0)) {
           emitH2OptionsNamespaceWarning('pingInterval');
-          throw new InvalidArgumentError$t('pingInterval must be a positive integer, greater or equal to 0')
+          throw new InvalidArgumentError$u('pingInterval must be a positive integer, greater or equal to 0')
         }
       }
     }
 
-    super({ webSocket });
+    super({ webSocket, eventSource });
 
     if (typeof connect !== 'function') {
       connect = buildConnector$4({
@@ -13165,8 +13284,8 @@ let Client$6 = class Client extends DispatcherBase$5 {
       }, callback);
     }
 
-    this[kUrl$5] = util$j.parseOrigin(url);
-    this[kHostAuthority] = `${this[kUrl$5].hostname}${this[kUrl$5].port ? `:${this[kUrl$5].port}` : ''}`;
+    this[kUrl$7] = util$j.parseOrigin(url);
+    this[kHostAuthority] = `${this[kUrl$7].hostname}${this[kUrl$7].port ? `:${this[kUrl$7].port}` : ''}`;
     this[kConnector$1] = connect;
     this[kPipelining] = pipelining != null ? pipelining : 1;
     this[kMaxHeadersSize] = maxHeaderSize;
@@ -13185,7 +13304,7 @@ let Client$6 = class Client extends DispatcherBase$5 {
     this[kMaxRequests] = maxRequestsPerClient;
     this[kClosedResolve$1] = null;
     this[kMaxResponseSize] = maxResponseSize > -1 ? maxResponseSize : -1;
-    this[kHTTPContext] = null;
+    this[kHTTPContext$1] = null;
     // h2
     this[kHTTP2Options] = {
       pingInterval: h2Options?.pingInterval ?? pingInterval ?? 60e3,
@@ -13232,7 +13351,7 @@ let Client$6 = class Client extends DispatcherBase$5 {
     return new ClientStats(this)
   }
 
-  get [kPending$1] () {
+  get [kPending$2] () {
     return this[kQueue$1].length - this[kPendingIdx]
   }
 
@@ -13245,7 +13364,7 @@ let Client$6 = class Client extends DispatcherBase$5 {
   }
 
   get [kConnected$5] () {
-    return !!this[kHTTPContext] && !this[kConnecting] && !this[kHTTPContext].destroyed
+    return !!this[kHTTPContext$1] && !this[kConnecting$1] && !this[kHTTPContext$1].destroyed
   }
 
   get [kBusy$3] () {
@@ -13254,12 +13373,12 @@ let Client$6 = class Client extends DispatcherBase$5 {
     // each socket only handles one pipelined request at a time. Once an h2
     // context is attached we want concurrent dispatches to multiplex onto
     // the shared session, so suppress that signal in the h2 case.
-    const allowsMux = this[kHTTPContext]?.version === 'h2';
+    const allowsMux = this[kHTTPContext$1]?.version === 'h2';
 
     return Boolean(
-      this[kHTTPContext]?.busy(null) ||
+      this[kHTTPContext$1]?.busy(null) ||
       (this[kSize$2] >= (getMaxConcurrent(this) || 1)) ||
-      (this[kPending$1] > 0 && !allowsMux)
+      (this[kPending$2] > 0 && !allowsMux)
     )
   }
 
@@ -13269,7 +13388,7 @@ let Client$6 = class Client extends DispatcherBase$5 {
   }
 
   [kDispatch$5] (opts, handler) {
-    const request = new Request(this[kUrl$5].origin, opts, handler);
+    const request = new Request(this[kUrl$7].origin, opts, handler);
 
     this[kQueue$1].push(request);
     if (this[kResuming]) ; else if (util$j.bodyLength(request.body) == null && util$j.isIterable(request.body)) {
@@ -13318,9 +13437,9 @@ let Client$6 = class Client extends DispatcherBase$5 {
         resolve(null);
       };
 
-      if (this[kHTTPContext]) {
-        this[kHTTPContext].destroy(err, callback);
-        this[kHTTPContext] = null;
+      if (this[kHTTPContext$1]) {
+        this[kHTTPContext$1].destroy(err, callback);
+        this[kHTTPContext$1] = null;
       } else {
         queueMicrotask(callback);
       }
@@ -13358,10 +13477,10 @@ function onError (client, err) {
  * @returns {void}
  */
 function connect$1 (client) {
-  assert$b(!client[kConnecting]);
-  assert$b(!client[kHTTPContext]);
+  assert$b(!client[kConnecting$1]);
+  assert$b(!client[kHTTPContext$1]);
 
-  let { host, hostname, protocol, port } = client[kUrl$5];
+  let { host, hostname, protocol, port } = client[kUrl$7];
 
   // Resolve ipv6
   if (hostname[0] === '[') {
@@ -13374,7 +13493,7 @@ function connect$1 (client) {
     hostname = ip;
   }
 
-  client[kConnecting] = true;
+  client[kConnecting$1] = true;
 
   if (channels$1.beforeConnect.hasSubscribers) {
     channels$1.beforeConnect.publish({
@@ -13383,7 +13502,7 @@ function connect$1 (client) {
         hostname,
         protocol,
         port,
-        version: client[kHTTPContext]?.version,
+        version: client[kHTTPContext$1]?.version,
         servername: client[kServerName],
         localAddress: client[kLocalAddress]
       },
@@ -13415,7 +13534,7 @@ function connect$1 (client) {
       assert$b(socket);
 
       try {
-        client[kHTTPContext] = socket.alpnProtocol === 'h2'
+        client[kHTTPContext$1] = socket.alpnProtocol === 'h2'
           ? connectH2(client, socket)
           : connectH1(client, socket);
       } catch (err) {
@@ -13425,7 +13544,7 @@ function connect$1 (client) {
         return
       }
 
-      client[kConnecting] = false;
+      client[kConnecting$1] = false;
 
       socket[kCounter] = 0;
       socket[kMaxRequests] = client[kMaxRequests];
@@ -13439,7 +13558,7 @@ function connect$1 (client) {
             hostname,
             protocol,
             port,
-            version: client[kHTTPContext]?.version,
+            version: client[kHTTPContext$1]?.version,
             servername: client[kServerName],
             localAddress: client[kLocalAddress]
           },
@@ -13448,7 +13567,7 @@ function connect$1 (client) {
         });
       }
 
-      client.emit('connect', client[kUrl$5], [client]);
+      client.emit('connect', client[kUrl$7], [client]);
       client[kResume$1]();
     });
   } catch (err) {
@@ -13462,7 +13581,7 @@ function handleConnectError (client, err, { host, hostname, protocol, port }) {
     return
   }
 
-  client[kConnecting] = false;
+  client[kConnecting$1] = false;
 
   if (channels$1.connectError.hasSubscribers) {
     channels$1.connectError.publish({
@@ -13471,7 +13590,7 @@ function handleConnectError (client, err, { host, hostname, protocol, port }) {
         hostname,
         protocol,
         port,
-        version: client[kHTTPContext]?.version,
+        version: client[kHTTPContext$1]?.version,
         servername: client[kServerName],
         localAddress: client[kLocalAddress]
       },
@@ -13488,7 +13607,7 @@ function handleConnectError (client, err, { host, hostname, protocol, port }) {
       util$j.errorRequest(client, running[i], err);
     }
 
-    while (client[kPending$1] > 0 && client[kQueue$1][client[kPendingIdx]].servername === client[kServerName]) {
+    while (client[kPending$2] > 0 && client[kQueue$1][client[kPendingIdx]].servername === client[kServerName]) {
       const request = client[kQueue$1].splice(client[kPendingIdx], 1)[0];
       util$j.errorRequest(client, request, err);
     }
@@ -13496,12 +13615,12 @@ function handleConnectError (client, err, { host, hostname, protocol, port }) {
     onError(client, err);
   }
 
-  client.emit('connectionError', client[kUrl$5], [client], err);
+  client.emit('connectionError', client[kUrl$7], [client], err);
 }
 
 function emitDrain (client) {
   client[kNeedDrain$4] = 0;
-  client.emit('drain', client[kUrl$5], [client]);
+  client.emit('drain', client[kUrl$7], [client]);
 }
 
 function resume (client, sync) {
@@ -13524,7 +13643,7 @@ function resume (client, sync) {
 function _resume (client, sync) {
   while (true) {
     if (client.destroyed) {
-      assert$b(client[kPending$1] === 0);
+      assert$b(client[kPending$2] === 0);
       return
     }
 
@@ -13534,8 +13653,8 @@ function _resume (client, sync) {
       return
     }
 
-    if (client[kHTTPContext]) {
-      client[kHTTPContext].resume();
+    if (client[kHTTPContext$1]) {
+      client[kHTTPContext$1].resume();
     }
 
     if (client[kBusy$3]) {
@@ -13550,7 +13669,7 @@ function _resume (client, sync) {
       continue
     }
 
-    if (client[kPending$1] === 0) {
+    if (client[kPending$2] === 0) {
       return
     }
 
@@ -13564,37 +13683,42 @@ function _resume (client, sync) {
       return
     }
 
-    if (client[kUrl$5].protocol === 'https:' && client[kServerName] !== request.servername) {
+    if (request.aborted) {
+      client[kQueue$1].splice(client[kPendingIdx], 1);
+      continue
+    }
+
+    if (client[kUrl$7].protocol === 'https:' && client[kServerName] !== request.servername) {
       if (client[kRunning$2] > 0) {
         return
       }
 
       client[kServerName] = request.servername;
-      client[kHTTPContext]?.destroy(new InformationalError$1('servername changed'), () => {
-        client[kHTTPContext] = null;
+      client[kHTTPContext$1]?.destroy(new InformationalError$1('servername changed'), () => {
+        client[kHTTPContext$1] = null;
         resume(client);
       });
     }
 
-    if (client[kConnecting]) {
+    if (client[kConnecting$1]) {
       return
     }
 
-    if (!client[kHTTPContext]) {
+    if (!client[kHTTPContext$1]) {
       client[kServerName] = request.servername;
       connect$1(client);
       return
     }
 
-    if (client[kHTTPContext].destroyed) {
+    if (client[kHTTPContext$1].destroyed) {
       return
     }
 
-    if (client[kHTTPContext].busy(request)) {
+    if (client[kHTTPContext$1].busy(request)) {
       return
     }
 
-    if (!request.aborted && client[kHTTPContext].write(request)) {
+    if (!request.aborted && client[kHTTPContext$1].write(request)) {
       client[kPendingIdx]++;
     } else {
       client[kQueue$1].splice(client[kPendingIdx], 1);
@@ -13741,7 +13865,7 @@ var fixedQueue = class FixedQueue {
 const { PoolStats } = stats;
 const DispatcherBase$4 = dispatcherBase;
 const FixedQueue = fixedQueue;
-const { kConnected: kConnected$4, kSize, kRunning: kRunning$1, kPending, kQueued, kBusy: kBusy$2, kFree, kUrl: kUrl$4, kClose: kClose$6, kDestroy: kDestroy$4, kDispatch: kDispatch$4 } = requireSymbols();
+const { kConnected: kConnected$4, kSize, kRunning: kRunning$1, kPending: kPending$1, kQueued, kBusy: kBusy$2, kFree, kUrl: kUrl$6, kClose: kClose$6, kDestroy: kDestroy$4, kDispatch: kDispatch$4 } = requireSymbols();
 
 const kClients$5 = Symbol('clients');
 const kNeedDrain$3 = Symbol('needDrain');
@@ -13751,6 +13875,9 @@ const kOnDrain$1 = Symbol('onDrain');
 const kOnConnect$1 = Symbol('onConnect');
 const kOnDisconnect$1 = Symbol('onDisconnect');
 const kOnConnectionError$1 = Symbol('onConnectionError');
+const kOnClientBusy$1 = Symbol('on client busy');
+const kOnClientDrain$1 = Symbol('on client drain');
+const kDrainQueue$1 = Symbol('drain queue');
 const kGetDispatcher$3 = Symbol('get dispatcher');
 const kHasDispatcher$2 = Symbol('has dispatcher');
 const kAddClient$3 = Symbol('add client');
@@ -13766,9 +13893,14 @@ let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
   [kNeedDrain$3] = false;
 
   [kOnDrain$1] (client, origin, targets) {
-    const queue = this[kQueue];
+    if (client.closed || client.destroyed) {
+      return
+    }
 
+    const queue = this[kQueue];
     let needDrain = false;
+
+    this[kOnClientDrain$1](client);
 
     while (!needDrain) {
       const item = queue.shift();
@@ -13780,8 +13912,57 @@ let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
     }
 
     client[kNeedDrain$3] = needDrain;
+    if (needDrain) {
+      this[kOnClientBusy$1](client);
+    }
 
     if (!needDrain && this[kNeedDrain$3]) {
+      this[kNeedDrain$3] = false;
+      this.emit('drain', origin, [this, ...targets]);
+    }
+
+    if (this[kClosedResolve] && queue.isEmpty()) {
+      const closeAll = [];
+      for (let i = 0; i < this[kClients$5].length; i++) {
+        const client = this[kClients$5][i];
+        if (!client.destroyed) {
+          closeAll.push(client.close());
+        }
+      }
+      return Promise.all(closeAll)
+        .then(this[kClosedResolve])
+    }
+  }
+
+  [kOnClientBusy$1] () {}
+
+  [kOnClientDrain$1] () {}
+
+  [kDrainQueue$1] (origin, targets) {
+    const queue = this[kQueue];
+    let hasDispatcher = true;
+
+    while (!queue.isEmpty()) {
+      const dispatcher = this[kGetDispatcher$3]();
+      if (!dispatcher) {
+        hasDispatcher = false;
+        break
+      }
+
+      const item = queue.shift();
+      this[kQueued]--;
+
+      if (!dispatcher.dispatch(item.opts, item.handler)) {
+        dispatcher[kNeedDrain$3] = true;
+        this[kOnClientBusy$1](dispatcher);
+        hasDispatcher = this[kHasDispatcher$2]();
+        if (!hasDispatcher) {
+          break
+        }
+      }
+    }
+
+    if (hasDispatcher && this[kNeedDrain$3]) {
       this[kNeedDrain$3] = false;
       this.emit('drain', origin, [this, ...targets]);
     }
@@ -13831,9 +14012,9 @@ let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
     return ret
   }
 
-  get [kPending] () {
+  get [kPending$1] () {
     let ret = this[kQueued];
-    for (const { [kPending]: pending } of this[kClients$5]) {
+    for (const { [kPending$1]: pending } of this[kClients$5]) {
       ret += pending;
     }
     return ret
@@ -13901,6 +14082,7 @@ let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
       this[kQueued]++;
     } else if (!dispatcher.dispatch(opts, handler)) {
       dispatcher[kNeedDrain$3] = true;
+      this[kOnClientBusy$1](dispatcher);
       this[kNeedDrain$3] = !this[kHasDispatcher$2]();
     }
 
@@ -13934,8 +14116,8 @@ let PoolBase$3 = class PoolBase extends DispatcherBase$4 {
 
     if (this[kNeedDrain$3]) {
       queueMicrotask(() => {
-        if (this[kNeedDrain$3]) {
-          this[kOnDrain$1](client, client[kUrl$4], [client, this]);
+        if (this[kNeedDrain$3] && !client[kNeedDrain$3]) {
+          this[kOnDrain$1](client, client[kUrl$6], [client, this]);
         }
       });
     }
@@ -13965,6 +14147,9 @@ var poolBase = {
   kNeedDrain: kNeedDrain$3,
   kAddClient: kAddClient$3,
   kRemoveClient: kRemoveClient$3,
+  kDrainQueue: kDrainQueue$1,
+  kOnClientBusy: kOnClientBusy$1,
+  kOnClientDrain: kOnClientDrain$1,
   kGetDispatcher: kGetDispatcher$3,
   kHasDispatcher: kHasDispatcher$2
 };
@@ -13974,24 +14159,51 @@ const {
   kClients: kClients$4,
   kNeedDrain: kNeedDrain$2,
   kAddClient: kAddClient$2,
+  kDrainQueue,
+  kOnClientBusy,
+  kOnClientDrain,
   kGetDispatcher: kGetDispatcher$2,
   kHasDispatcher: kHasDispatcher$1,
   kRemoveClient: kRemoveClient$2
 } = poolBase;
 const Client$5 = client;
 const {
-  InvalidArgumentError: InvalidArgumentError$s
+  InvalidArgumentError: InvalidArgumentError$t
 } = errors;
 const util$i = util$p;
-const { kUrl: kUrl$3 } = requireSymbols();
+const { kConnecting, kHTTPContext, kUrl: kUrl$5 } = requireSymbols();
 const buildConnector$3 = connect$2;
 
 const kOptions$4 = Symbol('options');
 const kConnections$1 = Symbol('connections');
 const kFactory$4 = Symbol('factory');
+const kProtocol = Symbol('protocol');
+const kProtocolProbe = Symbol('protocol probe');
 
 function defaultFactory$4 (origin, opts) {
   return new Client$5(origin, opts)
+}
+
+function shouldCreateProtocolProbe (pool, dispatcher) {
+  return dispatcher instanceof Client$5 &&
+    pool[kProtocol] !== 'h1' &&
+    (pool[kOptions$4].useH2c === true || (pool[kUrl$5].protocol === 'https:' && pool[kOptions$4].allowH2 !== false))
+}
+
+function createClient (pool) {
+  const dispatcher = pool[kFactory$4](pool[kUrl$5], pool[kOptions$4]);
+
+  // HTTPS does not reveal whether the peer selected h1 or h2 until ALPN
+  // completes. While h2 is still possible, let one Client probe the protocol
+  // and keep later requests in the Pool queue instead of opening one TLS
+  // connection per request. A confirmed h1 connection disables this gate and
+  // restores the usual Pool fan-out.
+  if (shouldCreateProtocolProbe(pool, dispatcher)) {
+    pool[kProtocolProbe] = dispatcher;
+  }
+
+  pool[kAddClient$2](dispatcher);
+  return dispatcher
 }
 
 let Pool$5 = class Pool extends PoolBase$2 {
@@ -14011,15 +14223,15 @@ let Pool$5 = class Pool extends PoolBase$2 {
     ...options
   } = {}) {
     if (connections != null && (!Number.isFinite(connections) || connections < 0)) {
-      throw new InvalidArgumentError$s('invalid connections')
+      throw new InvalidArgumentError$t('invalid connections')
     }
 
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$s('factory must be a function.')
+      throw new InvalidArgumentError$t('factory must be a function.')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$s('connect must be a function or an object')
+      throw new InvalidArgumentError$t('connect must be a function or an object')
     }
 
     if (typeof connect !== 'function') {
@@ -14038,9 +14250,11 @@ let Pool$5 = class Pool extends PoolBase$2 {
     super(options);
 
     this[kConnections$1] = connections || null;
-    this[kUrl$3] = util$i.parseOrigin(origin);
+    this[kUrl$5] = util$i.parseOrigin(origin);
     this[kOptions$4] = { ...util$i.deepClone(options), connect, allowH2, useH2c, clientTtl, socketPath };
     this[kFactory$4] = factory;
+    this[kProtocol] = null;
+    this[kProtocolProbe] = null;
 
     this.on('connect', (origin, targets) => {
       if (clientTtl != null && clientTtl > 0) {
@@ -14048,13 +14262,42 @@ let Pool$5 = class Pool extends PoolBase$2 {
           Object.assign(target, { ttl: Date.now() });
         }
       }
+
+      const client = targets[targets.length - 1];
+      if (client instanceof Client$5) {
+        this[kProtocol] = client[kHTTPContext]?.version;
+      }
+
+      if (client === this[kProtocolProbe]) {
+        // An h2 Client's drain event releases the requests accumulated during
+        // negotiation onto that Client. If ALPN selected h1, release the probe
+        // immediately and restore normal Pool fan-out instead.
+        if (this[kProtocol] !== 'h2') {
+          this[kProtocolProbe] = null;
+          this[kDrainQueue](origin, targets.slice(1));
+        }
+      }
     });
 
-    this.on('connectionError', (origin, targets, error) => {
+    this.on('disconnect', (origin, targets) => {
+      if (targets.includes(this[kProtocolProbe])) {
+        this[kProtocolProbe] = null;
+        this[kDrainQueue](origin, targets.slice(1));
+      }
+    });
+
+    this.on('connectionError', (origin, targets) => {
+      let resumeQueued = false;
+
       // If a connection error occurs, we remove the client from the pool,
       // and emit a connectionError event. They will not be re-used.
       // Fixes https://github.com/nodejs/undici/issues/3895
       for (const target of targets) {
+        if (target === this[kProtocolProbe]) {
+          this[kProtocolProbe] = null;
+          resumeQueued = true;
+        }
+
         // Do not use kRemoveClient here, as it will close the client,
         // but the client cannot be closed in this state.
         const idx = this[kClients$4].indexOf(target);
@@ -14062,7 +14305,27 @@ let Pool$5 = class Pool extends PoolBase$2 {
           this[kClients$4].splice(idx, 1);
         }
       }
+
+      if (resumeQueued) {
+        this[kDrainQueue](origin, targets.slice(1));
+      }
     });
+  }
+
+  [kOnClientBusy] (client) {
+    if (
+      this[kProtocolProbe] === null &&
+      client[kConnecting] &&
+      shouldCreateProtocolProbe(this, client)
+    ) {
+      this[kProtocolProbe] = client;
+    }
+  }
+
+  [kOnClientDrain] (client) {
+    if (client === this[kProtocolProbe]) {
+      this[kProtocolProbe] = null;
+    }
   }
 
   [kGetDispatcher$2] () {
@@ -14079,10 +14342,12 @@ let Pool$5 = class Pool extends PoolBase$2 {
       }
     }
 
+    if (this[kProtocolProbe] !== null) {
+      return
+    }
+
     if (!this[kConnections$1] || this[kClients$4].length < this[kConnections$1]) {
-      const dispatcher = this[kFactory$4](this[kUrl$3], this[kOptions$4]);
-      this[kAddClient$2](dispatcher);
-      return dispatcher
+      return createClient(this)
     }
   }
 
@@ -14099,9 +14364,12 @@ let Pool$5 = class Pool extends PoolBase$2 {
       }
     }
 
+    if (this[kProtocolProbe] !== null) {
+      return false
+    }
+
     if (!this[kConnections$1] || this[kClients$4].length < this[kConnections$1]) {
-      const dispatcher = this[kFactory$4](this[kUrl$3], this[kOptions$4]);
-      this[kAddClient$2](dispatcher);
+      createClient(this);
       return true
     }
 
@@ -14113,7 +14381,7 @@ var pool = Pool$5;
 
 const {
   BalancedPoolMissingUpstreamError,
-  InvalidArgumentError: InvalidArgumentError$r
+  InvalidArgumentError: InvalidArgumentError$s
 } = errors;
 const {
   PoolBase: PoolBase$1,
@@ -14124,7 +14392,7 @@ const {
   kGetDispatcher: kGetDispatcher$1
 } = poolBase;
 const Pool$4 = pool;
-const { kUrl: kUrl$2 } = requireSymbols();
+const { kOriginless: kOriginless$2, kUrl: kUrl$4 } = requireSymbols();
 const util$h = util$p;
 const kFactory$3 = Symbol('factory');
 
@@ -14160,14 +14428,17 @@ function defaultFactory$3 (origin, opts) {
 }
 
 class BalancedPool extends PoolBase$1 {
-  constructor (upstreams = [], { factory = defaultFactory$3, ...opts } = {}) {
+  constructor (upstreams = [], { factory = defaultFactory$3, connect, tls, ...opts } = {}) {
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$r('factory must be a function.')
+      throw new InvalidArgumentError$s('factory must be a function.')
     }
 
-    super();
+    super(opts);
 
-    this[kOptions$3] = { ...util$h.deepClone(opts) };
+    this[kOriginless$2] = true;
+    if (connect && typeof connect !== 'function') connect = { ...connect };
+    if (tls && typeof tls !== 'function') tls = { ...tls };
+    this[kOptions$3] = { ...util$h.deepClone(opts), connect, tls };
     this[kIndex$1] = -1;
     this[kCurrentWeight] = 0;
 
@@ -14190,7 +14461,7 @@ class BalancedPool extends PoolBase$1 {
     const upstreamOrigin = util$h.parseOrigin(upstream).origin;
 
     if (this[kClients$3].find((pool) => (
-      pool[kUrl$2].origin === upstreamOrigin &&
+      pool[kUrl$4].origin === upstreamOrigin &&
       pool.closed !== true &&
       pool.destroyed !== true
     ))) {
@@ -14239,7 +14510,7 @@ class BalancedPool extends PoolBase$1 {
     const upstreamOrigin = util$h.parseOrigin(upstream).origin;
 
     const pool = this[kClients$3].find((pool) => (
-      pool[kUrl$2].origin === upstreamOrigin &&
+      pool[kUrl$4].origin === upstreamOrigin &&
       pool.closed !== true &&
       pool.destroyed !== true
     ));
@@ -14255,7 +14526,7 @@ class BalancedPool extends PoolBase$1 {
     const upstreamOrigin = util$h.parseOrigin(upstream).origin;
 
     return this[kClients$3].find((pool) => (
-      pool[kUrl$2].origin === upstreamOrigin &&
+      pool[kUrl$4].origin === upstreamOrigin &&
       pool.closed !== true &&
       pool.destroyed !== true
     ))
@@ -14264,7 +14535,7 @@ class BalancedPool extends PoolBase$1 {
   get upstreams () {
     return this[kClients$3]
       .filter(dispatcher => dispatcher.closed !== true && dispatcher.destroyed !== true)
-      .map((p) => p[kUrl$2].origin)
+      .map((p) => p[kUrl$4].origin)
   }
 
   [kGetDispatcher$1] () {
@@ -14335,10 +14606,10 @@ const {
 } = poolBase;
 const Client$4 = client;
 const {
-  InvalidArgumentError: InvalidArgumentError$q
+  InvalidArgumentError: InvalidArgumentError$r
 } = errors;
 const util$g = util$p;
-const { kUrl: kUrl$1 } = requireSymbols();
+const { kUrl: kUrl$3 } = requireSymbols();
 const buildConnector$2 = connect$2;
 
 const kOptions$2 = Symbol('options');
@@ -14366,15 +14637,15 @@ class RoundRobinPool extends PoolBase {
     ...options
   } = {}) {
     if (connections != null && (!Number.isFinite(connections) || connections < 0)) {
-      throw new InvalidArgumentError$q('invalid connections')
+      throw new InvalidArgumentError$r('invalid connections')
     }
 
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$q('factory must be a function.')
+      throw new InvalidArgumentError$r('factory must be a function.')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$q('connect must be a function or an object')
+      throw new InvalidArgumentError$r('connect must be a function or an object')
     }
 
     if (typeof connect !== 'function') {
@@ -14389,10 +14660,10 @@ class RoundRobinPool extends PoolBase {
       });
     }
 
-    super();
+    super(options);
 
     this[kConnections] = connections || null;
-    this[kUrl$1] = util$g.parseOrigin(origin);
+    this[kUrl$3] = util$g.parseOrigin(origin);
     this[kOptions$2] = { ...util$g.deepClone(options), connect, allowH2, clientTtl, socketPath };
     this[kFactory$2] = factory;
     this[kIndex] = -1;
@@ -14420,7 +14691,7 @@ class RoundRobinPool extends PoolBase {
 
     // If we have no clients yet, create one
     if (this[kClients$2].length === 0) {
-      const dispatcher = this[kFactory$2](this[kUrl$1], this[kOptions$2]);
+      const dispatcher = this[kFactory$2](this[kUrl$3], this[kOptions$2]);
       this[kAddClient](dispatcher);
       return dispatcher
     }
@@ -14448,7 +14719,7 @@ class RoundRobinPool extends PoolBase {
 
     // All clients are busy, create a new one if we haven't reached the limit
     if (!this[kConnections] || this[kClients$2].length < this[kConnections]) {
-      const dispatcher = this[kFactory$2](this[kUrl$1], this[kOptions$2]);
+      const dispatcher = this[kFactory$2](this[kUrl$3], this[kOptions$2]);
       this[kAddClient](dispatcher);
       return dispatcher
     }
@@ -14471,7 +14742,7 @@ class RoundRobinPool extends PoolBase {
     }
 
     if (!this[kConnections] || this[kClients$2].length < this[kConnections]) {
-      const dispatcher = this[kFactory$2](this[kUrl$1], this[kOptions$2]);
+      const dispatcher = this[kFactory$2](this[kUrl$3], this[kOptions$2]);
       this[kAddClient](dispatcher);
       return true
     }
@@ -14482,8 +14753,8 @@ class RoundRobinPool extends PoolBase {
 
 var roundRobinPool = RoundRobinPool;
 
-const { InvalidArgumentError: InvalidArgumentError$p, MaxOriginsReachedError } = errors;
-const { kBusy: kBusy$1, kClients: kClients$1, kConnected: kConnected$3, kRunning, kClose: kClose$5, kDestroy: kDestroy$3, kDispatch: kDispatch$3, kUrl } = requireSymbols();
+const { InvalidArgumentError: InvalidArgumentError$q, MaxOriginsReachedError } = errors;
+const { kBusy: kBusy$1, kClients: kClients$1, kConnected: kConnected$3, kRunning, kPending, kClose: kClose$5, kDestroy: kDestroy$3, kDispatch: kDispatch$3, kUrl: kUrl$2 } = requireSymbols();
 const DispatcherBase$3 = dispatcherBase;
 const Pool$3 = pool;
 const Client$3 = client;
@@ -14506,15 +14777,15 @@ function defaultFactory$1 (origin, opts) {
 let Agent$5 = class Agent extends DispatcherBase$3 {
   constructor ({ factory = defaultFactory$1, maxOrigins = Infinity, connect, ...options } = {}) {
     if (typeof factory !== 'function') {
-      throw new InvalidArgumentError$p('factory must be a function.')
+      throw new InvalidArgumentError$q('factory must be a function.')
     }
 
     if (connect != null && typeof connect !== 'function' && typeof connect !== 'object') {
-      throw new InvalidArgumentError$p('connect must be a function or an object')
+      throw new InvalidArgumentError$q('connect must be a function or an object')
     }
 
     if (typeof maxOrigins !== 'number' || Number.isNaN(maxOrigins) || maxOrigins <= 0) {
-      throw new InvalidArgumentError$p('maxOrigins must be a number greater than 0')
+      throw new InvalidArgumentError$q('maxOrigins must be a number greater than 0')
     }
 
     super(options);
@@ -14558,7 +14829,7 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
     if (opts.origin && (typeof opts.origin === 'string' || opts.origin instanceof URL)) {
       origin = String(opts.origin);
     } else {
-      throw new InvalidArgumentError$p('opts.origin must be a non-empty string or URL.')
+      throw new InvalidArgumentError$q('opts.origin must be a non-empty string or URL.')
     }
 
     const allowH2 = opts.allowH2 ?? this[kOptions$1].allowH2;
@@ -14579,7 +14850,12 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
           return
         }
 
-        if (dispatcher[kConnected$3] > 0 || dispatcher[kBusy$1]) {
+        // A GOAWAY detaches the HTTP/2 session before requeued requests are
+        // dispatched on a replacement connection. At that point the pool has
+        // no connected clients and is not busy, but it still has pending work.
+        // Closing it here lets the replacement Client finish those requests
+        // and then destroys that new connection with ClientDestroyedError.
+        if (dispatcher[kConnected$3] > 0 || dispatcher[kBusy$1] || dispatcher[kPending] > 0) {
           return
         }
 
@@ -14644,7 +14920,7 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
     const allClientStats = {};
     for (const dispatcher of this[kClients$1].values()) {
       if (dispatcher.stats) {
-        allClientStats[dispatcher[kUrl].origin] = dispatcher.stats;
+        allClientStats[dispatcher[kUrl$2].origin] = dispatcher.stats;
       }
     }
     return allClientStats
@@ -14654,8 +14930,9 @@ let Agent$5 = class Agent extends DispatcherBase$3 {
 var agent = Agent$5;
 
 const Dispatcher$2 = dispatcher;
-const { InvalidArgumentError: InvalidArgumentError$o } = errors;
+const { InvalidArgumentError: InvalidArgumentError$p } = errors;
 const { toRawHeaders } = util$p;
+const { kOriginless: kOriginless$1, kUrl: kUrl$1 } = requireSymbols();
 
 class LegacyHandlerWrapper {
   #handler
@@ -14720,15 +14997,17 @@ let Dispatcher1Wrapper$1 = class Dispatcher1Wrapper extends Dispatcher$2 {
     super();
 
     if (!dispatcher || typeof dispatcher.dispatch !== 'function') {
-      throw new InvalidArgumentError$o('Argument dispatcher must implement dispatch')
+      throw new InvalidArgumentError$p('Argument dispatcher must implement dispatch')
     }
 
     this.#dispatcher = dispatcher;
+    this[kUrl$1] = dispatcher[kUrl$1];
+    this[kOriginless$1] = dispatcher[kOriginless$1];
   }
 
   static wrapHandler (handler) {
     if (!handler || typeof handler !== 'object') {
-      throw new InvalidArgumentError$o('handler must be an object')
+      throw new InvalidArgumentError$p('handler must be an object')
     }
 
     if (typeof handler.onRequestStart === 'function') {
@@ -14761,7 +15040,7 @@ var dispatcher1Wrapper = Dispatcher1Wrapper$1;
 
 const { Buffer: Buffer$2 } = require$$0$4;
 const net = require$$1;
-const { InvalidArgumentError: InvalidArgumentError$n } = errors;
+const { InvalidArgumentError: InvalidArgumentError$o } = errors;
 
 /**
  * Parse an address and determine its type
@@ -14789,7 +15068,7 @@ function parseAddress$1 (address) {
   // Otherwise, treat as domain name
   const domainBuffer = Buffer$2.from(address, 'utf8');
   if (domainBuffer.length > 255) {
-    throw new InvalidArgumentError$n('Domain name too long (max 255 bytes)')
+    throw new InvalidArgumentError$o('Domain name too long (max 255 bytes)')
   }
 
   return {
@@ -14853,7 +15132,7 @@ var socks5Utils = {
 
 const { EventEmitter: EventEmitter$1 } = require$$0;
 const { Buffer: Buffer$1 } = require$$0$4;
-const { InvalidArgumentError: InvalidArgumentError$m, Socks5ProxyError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$n, Socks5ProxyError } = errors;
 const { debuglog: debuglog$1 } = require$$3;
 const { parseAddress } = socks5Utils;
 
@@ -14915,7 +15194,7 @@ let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
     super();
 
     if (!socket) {
-      throw new InvalidArgumentError$m('socket is required')
+      throw new InvalidArgumentError$n('socket is required')
     }
 
     this.socket = socket;
@@ -15001,7 +15280,7 @@ let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
    */
   handshake () {
     if (this.state !== STATES$1.INITIAL) {
-      throw new InvalidArgumentError$m('Handshake already started')
+      throw new InvalidArgumentError$n('Handshake already started')
     }
 
     debug$1('starting handshake with', this.authMethods.length, 'auth methods');
@@ -15062,7 +15341,7 @@ let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
     const { username, password } = this.options;
 
     if (!username || !password) {
-      throw new InvalidArgumentError$m('Username and password required for authentication')
+      throw new InvalidArgumentError$n('Username and password required for authentication')
     }
 
     debug$1('sending username/password auth');
@@ -15077,7 +15356,7 @@ let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
     const passwordBuffer = Buffer$1.from(password);
 
     if (usernameBuffer.length > 255 || passwordBuffer.length > 255) {
-      throw new InvalidArgumentError$m('Username or password too long')
+      throw new InvalidArgumentError$n('Username or password too long')
     }
 
     const request = Buffer$1.alloc(3 + usernameBuffer.length + passwordBuffer.length);
@@ -15121,11 +15400,11 @@ let Socks5Client$1 = class Socks5Client extends EventEmitter$1 {
    */
   connect (address, port) {
     if (this.state === STATES$1.CONNECTING || this.state === STATES$1.CONNECTED) {
-      throw new InvalidArgumentError$m('Connection already in progress')
+      throw new InvalidArgumentError$n('Connection already in progress')
     }
 
     if (this.state !== STATES$1.AUTHENTICATED) {
-      throw new InvalidArgumentError$m('Client must be authenticated before CONNECT')
+      throw new InvalidArgumentError$n('Client must be authenticated before CONNECT')
     }
 
     debug$1('connecting to', address, port);
@@ -15268,14 +15547,17 @@ const { URL: URL$1 } = require$$0$6;
 
 let tls; // include tls conditionally since it is not always available
 const DispatcherBase$2 = dispatcherBase;
-const { InvalidArgumentError: InvalidArgumentError$l } = errors;
+const { ConnectTimeoutError, InvalidArgumentError: InvalidArgumentError$m } = errors;
 const { Socks5Client, STATES } = socks5Client;
 const { kBusy, kConnected: kConnected$2, kDispatch: kDispatch$2, kClose: kClose$4, kDestroy: kDestroy$2 } = requireSymbols();
 const Pool$2 = pool;
 const buildConnector$1 = connect$2;
+const { setupConnectTimeout } = util$p;
 const { debuglog } = require$$3;
 
 const debug = debuglog('undici:socks5-proxy');
+
+const DEFAULT_SOCKS5_CONNECT_TIMEOUT = 5000;
 
 const kProxyUrl = Symbol('proxy url');
 const kProxyHeaders$1 = Symbol('proxy headers');
@@ -15283,7 +15565,15 @@ const kProxyAuth = Symbol('proxy auth');
 const kProxyProtocol = Symbol('proxy protocol');
 const kPools = Symbol('pools');
 const kConnector = Symbol('connector');
+const kConnectTimeout = Symbol('connect timeout');
 const kRequestTls$1 = Symbol('request tls settings');
+const kRequestTlsTimeout = Symbol('request tls timeout');
+
+function createConnectTimeoutError (hostname, port, timeout) {
+  return new ConnectTimeoutError(
+    `Connect Timeout Error (attempted address: ${hostname}:${port}, timeout: ${timeout}ms)`
+  )
+}
 
 // Static flag to ensure warning is only emitted once per process
 let experimentalWarningEmitted = false;
@@ -15293,7 +15583,7 @@ let experimentalWarningEmitted = false;
  */
 let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
   constructor (proxyUrl, options = {}) {
-    super();
+    super(options);
 
     // Emit experimental warning only once
     if (!experimentalWarningEmitted) {
@@ -15305,20 +15595,33 @@ let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
     }
 
     if (!proxyUrl) {
-      throw new InvalidArgumentError$l('Proxy URL is mandatory')
+      throw new InvalidArgumentError$m('Proxy URL is mandatory')
     }
 
     // Parse proxy URL
     const url = typeof proxyUrl === 'string' ? new URL$1(proxyUrl) : proxyUrl;
 
     if (url.protocol !== 'socks5:' && url.protocol !== 'socks:') {
-      throw new InvalidArgumentError$l('Proxy URL must use socks5:// or socks:// protocol')
+      throw new InvalidArgumentError$m('Proxy URL must use socks5:// or socks:// protocol')
     }
 
     this[kProxyUrl] = url;
     this[kProxyHeaders$1] = options.headers || {};
     this[kProxyProtocol] = options.proxyTls ? 'https:' : 'http:';
-    this[kRequestTls$1] = options.requestTls;
+
+    const connectTimeout = options.connectTimeout ?? DEFAULT_SOCKS5_CONNECT_TIMEOUT;
+    if (!Number.isFinite(connectTimeout) || connectTimeout < 0) {
+      throw new InvalidArgumentError$m('invalid connectTimeout')
+    }
+    this[kConnectTimeout] = connectTimeout;
+
+    const { timeout, ...requestTls } = options.requestTls || {};
+    const requestTlsTimeout = timeout ?? connectTimeout;
+    if (!Number.isFinite(requestTlsTimeout) || requestTlsTimeout < 0) {
+      throw new InvalidArgumentError$m('invalid requestTls.timeout')
+    }
+    this[kRequestTls$1] = requestTls;
+    this[kRequestTlsTimeout] = requestTlsTimeout;
 
     // Extract auth from URL or options
     this[kProxyAuth] = {
@@ -15327,8 +15630,13 @@ let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
     };
 
     // Create connector for proxy connection
+    const proxyTlsTimeout = options.proxyTls?.timeout ?? connectTimeout;
+    if (!Number.isFinite(proxyTlsTimeout) || proxyTlsTimeout < 0) {
+      throw new InvalidArgumentError$m('invalid proxyTls.timeout')
+    }
     this[kConnector] = options.connect || buildConnector$1({
       ...options.proxyTls,
+      timeout: proxyTlsTimeout,
       servername: options.proxyTls?.servername || url.hostname
     });
 
@@ -15377,20 +15685,29 @@ let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
 
     // Wait for authentication (if required)
     const authenticationReady = Promise.withResolvers();
+    const authenticationTimeout = this[kConnectTimeout] === 0
+      ? null
+      : setTimeout(() => {
+        cleanupAuthenticationListeners();
+        socks5Client.destroy();
+        authenticationReady.reject(
+          createConnectTimeoutError(proxyHost, proxyPort, this[kConnectTimeout])
+        );
+      }, this[kConnectTimeout]);
 
-    const authenticationTimeout = setTimeout(() => {
-      authenticationReady.reject(new Error('SOCKS5 authentication timeout'));
-    }, 5000);
+    const cleanupAuthenticationListeners = () => {
+      clearTimeout(authenticationTimeout);
+      socks5Client.removeListener('authenticated', onAuthenticated);
+      socks5Client.removeListener('error', onAuthenticationError);
+    };
 
     const onAuthenticated = () => {
-      clearTimeout(authenticationTimeout);
-      socks5Client.removeListener('error', onAuthenticationError);
+      cleanupAuthenticationListeners();
       authenticationReady.resolve();
     };
 
     const onAuthenticationError = (err) => {
-      clearTimeout(authenticationTimeout);
-      socks5Client.removeListener('authenticated', onAuthenticated);
+      cleanupAuthenticationListeners();
       authenticationReady.reject(err);
     };
 
@@ -15410,21 +15727,30 @@ let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
 
     // Wait for connection
     const connectionReady = Promise.withResolvers();
+    const connectionTimeout = this[kConnectTimeout] === 0
+      ? null
+      : setTimeout(() => {
+        cleanupConnectionListeners();
+        socks5Client.destroy();
+        connectionReady.reject(
+          createConnectTimeoutError(targetHost, targetPort, this[kConnectTimeout])
+        );
+      }, this[kConnectTimeout]);
 
-    const connectionTimeout = setTimeout(() => {
-      connectionReady.reject(new Error('SOCKS5 connection timeout'));
-    }, 5000);
+    const cleanupConnectionListeners = () => {
+      clearTimeout(connectionTimeout);
+      socks5Client.removeListener('connected', onConnected);
+      socks5Client.removeListener('error', onConnectionError);
+    };
 
     const onConnected = (info) => {
       debug('SOCKS5 tunnel established to', targetHost, targetPort, 'via', info);
-      clearTimeout(connectionTimeout);
-      socks5Client.removeListener('error', onConnectionError);
+      cleanupConnectionListeners();
       connectionReady.resolve();
     };
 
     const onConnectionError = (err) => {
-      clearTimeout(connectionTimeout);
-      socks5Client.removeListener('connected', onConnected);
+      cleanupConnectionListeners();
       connectionReady.reject(err);
     };
 
@@ -15477,8 +15803,31 @@ let Socks5ProxyAgent$1 = class Socks5ProxyAgent extends DispatcherBase$2 {
                 });
 
                 const tlsReady = Promise.withResolvers();
-                finalSocket.once('secureConnect', tlsReady.resolve);
-                finalSocket.once('error', tlsReady.reject);
+
+                const cleanupTlsListeners = () => {
+                  queueMicrotask(clearTlsTimeout);
+                  finalSocket.removeListener('secureConnect', onSecureConnect);
+                  finalSocket.removeListener('error', onTlsError);
+                };
+
+                const onSecureConnect = () => {
+                  cleanupTlsListeners();
+                  tlsReady.resolve();
+                };
+
+                const onTlsError = (err) => {
+                  cleanupTlsListeners();
+                  tlsReady.reject(err);
+                };
+
+                const clearTlsTimeout = setupConnectTimeout(new WeakRef(finalSocket), {
+                  timeout: this[kRequestTlsTimeout],
+                  hostname: targetHost,
+                  port: targetPort
+                });
+
+                finalSocket.once('secureConnect', onSecureConnect);
+                finalSocket.once('error', onTlsError);
                 await tlsReady.promise;
               }
 
@@ -15547,11 +15896,12 @@ const { kProxy, kClose: kClose$3, kDestroy: kDestroy$1, kDispatch: kDispatch$1 }
 const Agent$4 = agent;
 const Pool$1 = pool;
 const DispatcherBase$1 = dispatcherBase;
-const { InvalidArgumentError: InvalidArgumentError$k, RequestAbortedError: RequestAbortedError$6, SecureProxyConnectionError, ProxyConnectionError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$l, RequestAbortedError: RequestAbortedError$7, SecureProxyConnectionError, ProxyConnectionError } = errors;
 const buildConnector = connect$2;
 const Client$2 = client;
 const { channels } = diagnostics;
 const Socks5ProxyAgent = socks5ProxyAgent;
+const { hasSafeIterator: hasSafeIterator$2 } = util$p;
 
 const kAgent$1 = Symbol('proxy agent');
 const kClient = Symbol('proxy client');
@@ -15590,7 +15940,7 @@ class Http1ProxyWrapper extends DispatcherBase$1 {
 
   constructor (proxyUrl, { headers = {}, connect, factory, proxyServername }) {
     if (!proxyUrl) {
-      throw new InvalidArgumentError$k('Proxy URL is mandatory')
+      throw new InvalidArgumentError$l('Proxy URL is mandatory')
     }
 
     super();
@@ -15609,7 +15959,7 @@ class Http1ProxyWrapper extends DispatcherBase$1 {
     handler.onResponseStart = function (controller, statusCode, data, statusMessage) {
       if (statusCode === 407) {
         if (typeof handler.onResponseError === 'function') {
-          handler.onResponseError(controller, new InvalidArgumentError$k('Proxy Authentication Required (407)'));
+          handler.onResponseError(controller, new InvalidArgumentError$l('Proxy Authentication Required (407)'));
         }
         return
       }
@@ -15653,17 +16003,17 @@ class Http1ProxyWrapper extends DispatcherBase$1 {
 let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
   constructor (opts) {
     if (!opts || (typeof opts === 'object' && !(opts instanceof URL) && !opts.uri)) {
-      throw new InvalidArgumentError$k('Proxy uri is mandatory')
+      throw new InvalidArgumentError$l('Proxy uri is mandatory')
     }
 
     const { clientFactory = defaultFactory } = opts;
     if (typeof clientFactory !== 'function') {
-      throw new InvalidArgumentError$k('Proxy opts.clientFactory must be a function.')
+      throw new InvalidArgumentError$l('Proxy opts.clientFactory must be a function.')
     }
 
     const { proxyTunnel, connectTimeout } = opts;
 
-    super();
+    super(opts);
 
     const url = this.#getUrl(opts);
     const { href, origin, port, protocol, username, password, hostname: proxyHostname } = url;
@@ -15675,7 +16025,7 @@ let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
     this[kTunnelProxy] = proxyTunnel;
 
     if (opts.auth && opts.token) {
-      throw new InvalidArgumentError$k('opts.auth cannot be used in combination with opts.token')
+      throw new InvalidArgumentError$l('opts.auth cannot be used in combination with opts.token')
     } else if (opts.auth) {
       /* @deprecated in favour of opts.token */
       this[kProxyHeaders]['proxy-authorization'] = `Basic ${opts.auth}`;
@@ -15704,6 +16054,7 @@ let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
           factory: agentFactory,
           username: opts.username || username,
           password: opts.password || password,
+          connectTimeout,
           proxyTls: opts.proxyTls,
           requestTls: opts.requestTls
         })
@@ -15746,7 +16097,7 @@ let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
         // SOCKS5 proxies handle their own connections via Socks5ProxyAgent,
         // so this connect function should never be called for them.
         if (!this[kClient]) {
-          callback(new InvalidArgumentError$k('Cannot establish tunnel connection without a proxy client'));
+          callback(new InvalidArgumentError$l('Cannot establish tunnel connection without a proxy client'));
           return
         }
 
@@ -15770,7 +16121,7 @@ let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
           const { socket, statusCode } = await this[kClient].connect(connectParams);
           if (statusCode !== 200) {
             socket.on('error', noop$6).destroy();
-            callback(new RequestAbortedError$6(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`));
+            callback(new RequestAbortedError$7(`Proxy response (${statusCode}) !== 200 when HTTP Tunneling`));
             return
           }
 
@@ -15866,8 +16217,8 @@ let ProxyAgent$1 = class ProxyAgent extends DispatcherBase$1 {
 };
 
 /**
- * @param {string[] | Record<string, string>} headers
- * @returns {Record<string, string>}
+ * @param {string[] | Record<string, string> | Iterable<[string, string | string[] | undefined]>} headers
+ * @returns {Record<string, string | string[] | undefined>}
  */
 function buildHeaders (headers) {
   // When using undici.fetch, the headers list is stored
@@ -15882,6 +16233,34 @@ function buildHeaders (headers) {
       }
 
       headersPair[headers[i]] = headers[i + 1];
+    }
+
+    return headersPair
+  }
+
+  // Materialize iterable header containers (e.g. Map, Headers) into a record so
+  // that throwIfProxyAuthIsSent() can inspect their entries. Object.keys and
+  // for...in see nothing on a Map/Headers instance, so without this the
+  // Proxy-Authorization guard is bypassed and proxy credentials can reach the
+  // origin server (GHSA-6cv7-626c-qhqw).
+  if (headers && typeof headers === 'object' && hasSafeIterator$2(headers)) {
+    const headersPair = {};
+
+    for (const [key, value] of headers) {
+      if (!Object.hasOwn(headersPair, key)) {
+        headersPair[key] = value;
+        continue
+      }
+
+      const previous = headersPair[key];
+      const values = [];
+      if (previous !== undefined) {
+        values.push(...(Array.isArray(previous) ? previous : [previous]));
+      }
+      if (value !== undefined) {
+        values.push(...(Array.isArray(value) ? value : [value]));
+      }
+      headersPair[key] = values.length > 1 ? values : values[0];
     }
 
     return headersPair
@@ -15915,7 +16294,7 @@ function isProxyAuthorizationHeader (key) {
 }
 
 function throwProxyAuthError () {
-  throw new InvalidArgumentError$k('Proxy-Authorization should be sent in ProxyAgent constructor')
+  throw new InvalidArgumentError$l('Proxy-Authorization should be sent in ProxyAgent constructor')
 }
 
 var proxyAgent = ProxyAgent$1;
@@ -15936,7 +16315,7 @@ class EnvHttpProxyAgent extends DispatcherBase {
   #opts = null
 
   constructor (opts = {}) {
-    super();
+    super(opts);
     this.#opts = opts;
 
     const { httpProxy, httpsProxy, noProxy, ...agentOpts } = opts;
@@ -15989,6 +16368,13 @@ class EnvHttpProxyAgent extends DispatcherBase {
     // brackets from IPv6 literals (e.g. "[::1]" -> "::1") so that the
     // result matches the unbracketed form stored by #parseNoProxy.
     hostname = hostname.replace(/:\d*$/, '').replace(/^\[(.+)\]$/, '$1').toLowerCase();
+    // Drop a trailing dot: it only marks the fully qualified form of a domain
+    // name ("example.com." and "example.com" are the same name, RFC 1034 root
+    // label). This runs on every dispatch, so it is a charCode check rather
+    // than a third regex. `length > 1` leaves the degenerate host "." alone.
+    if (hostname.length > 1 && hostname.charCodeAt(hostname.length - 1) === 46) {
+      hostname = hostname.slice(0, -1);
+    }
     port = Number.parseInt(port, 10) || DEFAULT_PORTS[protocol] || 0;
     if (!this.#shouldProxy(hostname, port)) {
       return this[kNoProxyAgent]
@@ -16007,17 +16393,25 @@ class EnvHttpProxyAgent extends DispatcherBase {
     if (this.#noProxyEntries.length === 0) {
       return true // Always proxy if NO_PROXY is not set or empty.
     }
-    if (this.#noProxyValue === '*') {
-      return false // Never proxy if wildcard is set.
-    }
 
     for (let i = 0; i < this.#noProxyEntries.length; i++) {
       const entry = this.#noProxyEntries[i];
+      // A bare `*` entry matches all hosts regardless of its position or the
+      // surrounding whitespace (e.g. ` * ` or `none.invalid,*`). If a port is
+      // attached (`*:80`) it only bypasses that port.
+      if (entry.hostname === '*') {
+        if (entry.port && entry.port !== port) {
+          continue
+        }
+        return false // Never proxy if a wildcard entry is present.
+      }
       if (entry.port && entry.port !== port) {
         continue // Skip if ports don't match.
       }
-      // Don't proxy if the hostname is equal with the no_proxy host.
-      if (hostname === entry.hostname) {
+      // Don't proxy if the hostname is equal with the no_proxy host. A
+      // `*.example.com` wildcard matches subdomains only, not the apex
+      // `example.com`, so exact matches are skipped for wildcard entries.
+      if (!entry.wildcard && hostname === entry.hostname) {
         return false
       }
       // Don't proxy if the hostname is the subdomain of the no_proxy host.
@@ -16062,10 +16456,17 @@ class EnvHttpProxyAgent extends DispatcherBase {
         port = parsed ? Number.parseInt(parsed[2], 10) : 0;
       }
 
+      // A leading `*` marks a subdomain wildcard (`*.example.com`), distinct
+      // from a plain or leading-dot suffix (`example.com` / `.example.com`)
+      // which also matches the apex. `*.example.com` must only match
+      // subdomains, never the apex `example.com` itself.
+      const wildcard = entry.charCodeAt(0) === 42; /* '*' */
+
       noProxyEntries.push({
-        // strip leading dot or asterisk with dot
-        hostname: hostname.replace(/^\*?\./, '').toLowerCase(),
-        port
+        // strip leading dot or asterisk with dot, and any trailing dot
+        hostname: hostname.replace(/^\*?\./, '').replace(/^(.+)\.$/, '$1').toLowerCase(),
+        port,
+        wildcard
       });
     }
 
@@ -16090,7 +16491,7 @@ var envHttpProxyAgent = EnvHttpProxyAgent;
 const assert$a = require$$0$2;
 
 const { kRetryHandlerDefaultRetry } = requireSymbols();
-const { RequestRetryError } = errors;
+const { RequestRetryError, RequestAbortedError: RequestAbortedError$6 } = errors;
 const {
   isDisturbed,
   parseRangeHeader,
@@ -16129,19 +16530,59 @@ function validatePartialResponseContentLength (headers, range, statusCode, retry
 // new one: backpressure pauses the new connection's controller, but the
 // consumer's resume() targets the old one, so the resumed body stalls forever.
 // The proxy always forwards to the controller of the currently active connection.
+// An abort is additionally reported to the handler so it can cancel a pending
+// retry backoff instead of letting the request hang until the backoff elapses.
+// The notification is a private callback the handler hands over on construction,
+// so nothing outside the handler can trigger it.
 class RetryController {
-  constructor () {
-    this.target = null;
+  #onAbort
+  #paused = false
+  #target = null
+
+  constructor (onAbort) {
+    this.#onAbort = onAbort;
   }
 
-  pause () { this.target?.pause(); }
-  resume () { this.target?.resume(); }
-  abort (reason) { this.target?.abort(reason); }
-  get paused () { return this.target?.paused ?? false }
-  get aborted () { return this.target?.aborted ?? false }
-  get reason () { return this.target?.reason ?? null }
-  get rawHeaders () { return this.target?.rawHeaders ?? null }
-  get rawTrailers () { return this.target?.rawTrailers ?? null }
+  set target (target) {
+    this.#target = target;
+    if (this.#paused) {
+      target?.pause();
+    }
+  }
+
+  get target () { return this.#target }
+
+  pause () {
+    this.#paused = true;
+    this.#target?.pause();
+  }
+
+  resume () {
+    this.#paused = false;
+    this.#target?.resume();
+  }
+
+  abort (reason) {
+    this.#target?.abort(reason);
+    this.#onAbort(reason);
+  }
+
+  get paused () { return this.#paused || (this.#target?.paused ?? false) }
+  get aborted () { return this.#target?.aborted ?? false }
+  get reason () { return this.#target?.reason ?? null }
+  get rawHeaders () { return this.#target?.rawHeaders ?? null }
+  set rawHeaders (value) {
+    if (this.#target) {
+      this.#target.rawHeaders = value;
+    }
+  }
+
+  get rawTrailers () { return this.#target?.rawTrailers ?? null }
+  set rawTrailers (value) {
+    if (this.#target) {
+      this.#target.rawTrailers = value;
+    }
+  }
 }
 
 let RetryHandler$2 = class RetryHandler {
@@ -16200,15 +16641,38 @@ let RetryHandler$2 = class RetryHandler {
     this.etag = null;
     this.statusCode = null;
     this.headers = null;
-    this.controllerProxy = new RetryController();
+    this.controllerProxy = new RetryController(reason => this.#onAbort(reason));
+    // A retry decision is in flight (the policy may be holding a backoff
+    // timer). While pending, a consumer abort cancels the wait.
+    this.retryPending = false;
+    // Backoff timer returned by the retry policy, so #onAbort can cancel it.
+    // Null for custom policies that do not return their timer.
+    this.retryTimer = null;
+    // A response can complete while its controller is paused if the peer closes
+    // the connection. Hold its body until the retry policy decides whether to
+    // discard it for a retry or forward it as the final response.
+    this.pendingResponseData = null;
+    this.pendingResponseTrailers = null;
+    this.pendingResponseEnded = false;
+    // Set once an abort during the backoff delivered the terminal error
+    // downstream; late policy callbacks and connection errors are then moot.
+    this.aborted = false;
   }
 
   onResponseStartWithRetry (controller, statusCode, headers, statusMessage, err) {
     if (this.retryOpts.throwOnError) {
       // Preserve old behavior for status codes that are not eligible for retry
       if (this.retryOpts.statusCodes.includes(statusCode) === false) {
-        this.headersSent = true;
-        this.handler.onResponseStart?.(this.controllerProxy, statusCode, headers, statusMessage);
+        if (this.headersSent) {
+          // The downstream handler already received the response from an
+          // earlier attempt. Forwarding this response would replace the
+          // downstream body and leave the original body pending forever.
+          this.handler.onResponseError?.(this.controllerProxy, err);
+        } else {
+          this.headersSent = true;
+          this.checkpointResponseEnd(headers);
+          this.handler.onResponseStart?.(this.controllerProxy, statusCode, headers, statusMessage);
+        }
       } else {
         this.error = err;
       }
@@ -16218,20 +16682,55 @@ let RetryHandler$2 = class RetryHandler {
 
     if (isDisturbed(this.opts.body)) {
       this.headersSent = true;
+      this.checkpointResponseEnd(headers);
       this.handler.onResponseStart?.(this.controllerProxy, statusCode, headers, statusMessage);
       return
     }
 
     function shouldRetry (passedErr) {
+      if (this.aborted) {
+        // Aborted while the policy was deciding; the decision is moot.
+        return
+      }
+      this.retryPending = false;
+      this.retryTimer = null;
+
+      const pendingData = this.pendingResponseData;
+      const pendingTrailers = this.pendingResponseTrailers;
+      const pendingEnd = this.pendingResponseEnded;
+      this.pendingResponseData = null;
+      this.pendingResponseTrailers = null;
+      this.pendingResponseEnded = false;
+
       if (passedErr) {
-        this.headersSent = true;
-        this.handler.onResponseStart?.(this.controllerProxy, statusCode, headers, statusMessage);
+        if (this.headersSent) {
+          // The downstream handler already received the response from an
+          // earlier attempt. Forwarding this response would replace the
+          // downstream body and leave the original body pending forever.
+          this.handler.onResponseError?.(this.controllerProxy, passedErr);
+        } else {
+          this.headersSent = true;
+          this.checkpointResponseEnd(headers);
+          this.handler.onResponseStart?.(this.controllerProxy, statusCode, headers, statusMessage);
+          controller.resume();
+
+          if (pendingEnd) {
+            for (const chunk of pendingData) {
+              this.onResponseData(controller, chunk);
+            }
+            this.onResponseEnd(controller, pendingTrailers);
+          }
+          return
+        }
         controller.resume();
         return
       }
 
       this.error = err;
       controller.resume();
+      if (pendingEnd) {
+        this.onResponseEnd(controller, pendingTrailers);
+      }
     }
 
     // The pause()/resume() pair (here and in shouldRetry) acts on THIS
@@ -16242,14 +16741,34 @@ let RetryHandler$2 = class RetryHandler {
     // between, leaving this one paused forever -- the very stall the proxy exists
     // to prevent.
     controller.pause();
-    this.retryOpts.retry(
+    // The default policy returns its backoff timer so an abort can cancel it;
+    // a custom policy may return anything (or nothing), which is ignored.
+    this.retryPending = true;
+    this.pendingResponseData = [];
+    this.pendingResponseTrailers = null;
+    this.pendingResponseEnded = false;
+    this.retryTimer = this.retryOpts.retry(
       err,
       {
         state: { counter: this.retryCount },
         opts: { retryOptions: this.retryOpts, ...this.opts }
       },
       shouldRetry.bind(this)
-    );
+    ) ?? null;
+  }
+
+  checkpointResponseEnd (headers) {
+    if (this.end == null && this.opts.method !== 'HEAD') {
+      const contentLength = headers['content-length'];
+      this.end = contentLength != null ? Number(contentLength) - 1 : null;
+
+      assert$a(
+        this.end == null || Number.isFinite(this.end),
+        'invalid content-length'
+      );
+
+      this.resume = this.end != null;
+    }
   }
 
   onRequestStart (controller, context) {
@@ -16262,6 +16781,14 @@ let RetryHandler$2 = class RetryHandler {
     if (!this.headersSent) {
       this.handler.onRequestStart?.(this.controllerProxy, context);
     }
+  }
+
+  onBodySent (chunk) {
+    this.handler.onBodySent?.(chunk);
+  }
+
+  onRequestSent () {
+    this.handler.onRequestSent?.();
   }
 
   onRequestUpgrade (_controller, statusCode, headers, socket) {
@@ -16278,7 +16805,8 @@ let RetryHandler$2 = class RetryHandler {
       timeoutFactor,
       statusCodes,
       errorCodes,
-      methods
+      methods,
+      retryAfter
     } = retryOptions;
     const { counter } = state;
 
@@ -16310,7 +16838,7 @@ let RetryHandler$2 = class RetryHandler {
       return
     }
 
-    let retryAfterHeader = headers?.['retry-after'];
+    let retryAfterHeader = retryAfter === false ? undefined : headers?.['retry-after'];
     if (retryAfterHeader) {
       retryAfterHeader = Number(retryAfterHeader);
       retryAfterHeader = Number.isNaN(retryAfterHeader)
@@ -16325,7 +16853,9 @@ let RetryHandler$2 = class RetryHandler {
           ? Math.min(retryAfterHeader, maxTimeout)
           : Math.min(minTimeout * timeoutFactor ** (counter - 1), maxTimeout);
 
-    setTimeout(() => cb(null), retryTimeout);
+    // Return the backoff timer so the handler can cancel it when the
+    // consumer aborts while the retry decision is pending.
+    return setTimeout(() => cb(null), retryTimeout)
   }
 
   onResponseStart (controller, statusCode, headers, statusMessage) {
@@ -16338,18 +16868,6 @@ let RetryHandler$2 = class RetryHandler {
     this.retryCount += 1;
     this.statusCode = statusCode;
     this.headers = headers;
-
-    if (statusCode >= 300) {
-      const err = new RequestRetryError('Request failed', statusCode, {
-        headers,
-        data: {
-          count: this.retryCount
-        }
-      });
-
-      this.onResponseStartWithRetry(controller, statusCode, headers, statusMessage, err);
-      return
-    }
 
     // Checkpoint for resume from where we left it
     if (this.headersSent) {
@@ -16387,9 +16905,25 @@ let RetryHandler$2 = class RetryHandler {
 
       const { start, size, end = size ? size - 1 : null } = contentRange;
 
-      assert$a(this.start === start, 'content-range mismatch');
-      assert$a(this.end == null || this.end === end, 'content-range mismatch');
+      if (this.start !== start || (this.end != null && this.end !== end)) {
+        throw new RequestRetryError('Content-Range mismatch', statusCode, {
+          headers,
+          data: { count: this.retryCount }
+        })
+      }
 
+      return
+    }
+
+    if (statusCode >= 300) {
+      const err = new RequestRetryError('Request failed', statusCode, {
+        headers,
+        data: {
+          count: this.retryCount
+        }
+      });
+
+      this.onResponseStartWithRetry(controller, statusCode, headers, statusMessage, err);
       return
     }
 
@@ -16464,6 +16998,11 @@ let RetryHandler$2 = class RetryHandler {
   }
 
   onResponseData (_controller, chunk) {
+    if (this.pendingResponseData !== null) {
+      this.pendingResponseData.push(chunk);
+      return
+    }
+
     if (this.error) {
       return
     }
@@ -16474,6 +17013,12 @@ let RetryHandler$2 = class RetryHandler {
   }
 
   onResponseEnd (_controller, trailers) {
+    if (this.pendingResponseData !== null) {
+      this.pendingResponseTrailers = trailers;
+      this.pendingResponseEnded = true;
+      return
+    }
+
     if (this.error && this.retryOpts.throwOnError) {
       throw this.error
     }
@@ -16523,14 +17068,27 @@ let RetryHandler$2 = class RetryHandler {
   }
 
   onResponseError (controller, err) {
+    if (this.aborted) {
+      // #onAbort already delivered the terminal error downstream; the late
+      // error of the torn-down connection must not be forwarded twice.
+      return
+    }
+
     // controller is THIS failed connection (not the proxy): we inspect whether
     // the consumer aborted it to decide retry-vs-propagate.
-    if (controller?.aborted || isDisturbed(this.opts.body)) {
+    if (controller?.aborted || isDisturbed(this.opts.body) || (this.headersSent && !this.resume)) {
       this.handler.onResponseError?.(this.controllerProxy, err);
       return
     }
 
     function shouldRetry (returnedErr) {
+      if (this.aborted) {
+        // Aborted while the policy was deciding; the decision is moot.
+        return
+      }
+      this.retryPending = false;
+      this.retryTimer = null;
+
       if (!returnedErr) {
         this.retry();
         return
@@ -16550,14 +17108,34 @@ let RetryHandler$2 = class RetryHandler {
       this.retryCount += 1;
     }
 
-    this.retryOpts.retry(
+    this.retryPending = true;
+    this.retryTimer = this.retryOpts.retry(
       err,
       {
         state: { counter: this.retryCount },
         opts: { retryOptions: this.retryOpts, ...this.opts }
       },
       shouldRetry.bind(this)
-    );
+    ) ?? null;
+  }
+
+  #onAbort (reason) {
+    // A consumer abort lands on the controller proxy. If the retry policy is
+    // still deciding (typically holding a backoff timer), cancel the wait and
+    // surface the abort immediately instead of letting the request hang until
+    // the backoff elapses.
+    if (!this.retryPending) {
+      return
+    }
+
+    this.aborted = true;
+    this.retryPending = false;
+    clearTimeout(this.retryTimer);
+    this.retryTimer = null;
+    this.pendingResponseData = null;
+    this.pendingResponseTrailers = null;
+    this.pendingResponseEnded = false;
+    this.handler.onResponseError?.(this.controllerProxy, reason ?? new RequestAbortedError$6());
   }
 };
 
@@ -16565,6 +17143,7 @@ var retryHandler = RetryHandler$2;
 
 const Dispatcher$1 = dispatcher;
 const RetryHandler$1 = retryHandler;
+const { kOriginless, kUrl } = requireSymbols();
 
 class RetryAgent extends Dispatcher$1 {
   #agent = null
@@ -16573,6 +17152,8 @@ class RetryAgent extends Dispatcher$1 {
     super(options);
     this.#agent = agent;
     this.#options = options;
+    this[kUrl] = agent[kUrl];
+    this[kOriginless] = agent[kOriginless];
   }
 
   dispatch (opts, handler) {
@@ -16597,7 +17178,7 @@ class RetryAgent extends Dispatcher$1 {
 
 var retryAgent = RetryAgent;
 
-const { InvalidArgumentError: InvalidArgumentError$j } = errors;
+const { InvalidArgumentError: InvalidArgumentError$k } = errors;
 const Client$1 = client;
 
 class H2CClient extends Client$1 {
@@ -16607,7 +17188,7 @@ class H2CClient extends Client$1 {
     }
 
     if (origin.protocol !== 'http:') {
-      throw new InvalidArgumentError$j(
+      throw new InvalidArgumentError$k(
         'h2c-client: Only h2c protocol is supported'
       )
     }
@@ -16622,7 +17203,7 @@ class H2CClient extends Client$1 {
             (!Number.isInteger(maxConcurrentStreams) ||
             maxConcurrentStreams < 1)
     ) {
-      throw new InvalidArgumentError$j('maxConcurrentStreams must be a positive integer, greater than 0')
+      throw new InvalidArgumentError$k('maxConcurrentStreams must be a positive integer, greater than 0')
     }
 
     if (pipelining != null && Number.isInteger(pipelining) && pipelining > 0) {
@@ -16630,7 +17211,7 @@ class H2CClient extends Client$1 {
     }
 
     if (defaultPipelining > defaultMaxConcurrentStreams) {
-      throw new InvalidArgumentError$j(
+      throw new InvalidArgumentError$k(
         'h2c-client: pipelining cannot be greater than maxConcurrentStreams'
       )
     }
@@ -16654,9 +17235,8 @@ var apiRequest = {exports: {}};
 const assert$9 = require$$0$2;
 const { addAbortListener: addAbortListener$1 } = require$$0;
 const { Readable: Readable$3 } = require$$0$1;
-const { RequestAbortedError: RequestAbortedError$5, NotSupportedError, InvalidArgumentError: InvalidArgumentError$i, AbortError: AbortError$1 } = errors;
+const { RequestAbortedError: RequestAbortedError$5, NotSupportedError, InvalidArgumentError: InvalidArgumentError$j, AbortError: AbortError$1 } = errors;
 const util$e = util$p;
-const { ReadableStreamFrom } = util$p;
 
 const kConsume = Symbol('kConsume');
 const kReading = Symbol('kReading');
@@ -16897,7 +17477,7 @@ class BodyReadable extends Readable$3 {
    */
   get body () {
     if (!this[kBody]) {
-      this[kBody] = ReadableStreamFrom(this);
+      this[kBody] = ReadableStream.from(this);
       if (this[kConsume]) {
         // TODO: Is this the best way to force a lock?
         this[kBody].getReader(); // Ensure stream is locked.
@@ -16918,7 +17498,7 @@ class BodyReadable extends Readable$3 {
     const signal = opts?.signal;
 
     if (signal != null && (typeof signal !== 'object' || !('aborted' in signal))) {
-      return Promise.reject(new InvalidArgumentError$i('signal must be an AbortSignal'))
+      return Promise.reject(new InvalidArgumentError$j('signal must be an AbortSignal'))
     }
 
     const limit = opts?.limit && Number.isFinite(opts.limit)
@@ -17267,7 +17847,7 @@ var readable = {
 const assert$8 = require$$0$2;
 const { AsyncResource: AsyncResource$4 } = require$$1$1;
 const { Readable: Readable$2 } = readable;
-const { InvalidArgumentError: InvalidArgumentError$h, RequestAbortedError: RequestAbortedError$4 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$i, RequestAbortedError: RequestAbortedError$4 } = errors;
 const util$d = util$p;
 
 function noop$4 () {}
@@ -17275,30 +17855,30 @@ function noop$4 () {}
 class RequestHandler extends AsyncResource$4 {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$h('invalid opts')
+      throw new InvalidArgumentError$i('invalid opts')
     }
 
     const { signal, method, opaque, body, onInfo, responseHeaders, highWaterMark } = opts;
 
     try {
       if (typeof callback !== 'function') {
-        throw new InvalidArgumentError$h('invalid callback')
+        throw new InvalidArgumentError$i('invalid callback')
       }
 
       if (highWaterMark != null && (!Number.isFinite(highWaterMark) || highWaterMark < 0)) {
-        throw new InvalidArgumentError$h('invalid highWaterMark')
+        throw new InvalidArgumentError$i('invalid highWaterMark')
       }
 
       if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-        throw new InvalidArgumentError$h('signal must be an EventEmitter or EventTarget')
+        throw new InvalidArgumentError$i('signal must be an EventEmitter or EventTarget')
       }
 
       if (method === 'CONNECT') {
-        throw new InvalidArgumentError$h('invalid method')
+        throw new InvalidArgumentError$i('invalid method')
       }
 
       if (onInfo && typeof onInfo !== 'function') {
-        throw new InvalidArgumentError$h('invalid onInfo callback')
+        throw new InvalidArgumentError$i('invalid onInfo callback')
       }
 
       super('UNDICI_REQUEST');
@@ -17569,7 +18149,7 @@ var abortSignal = {
 
 const assert$7 = require$$0$2;
 const { AsyncResource: AsyncResource$3 } = require$$1$1;
-const { InvalidArgumentError: InvalidArgumentError$g, InvalidReturnValueError: InvalidReturnValueError$1 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$h, InvalidReturnValueError: InvalidReturnValueError$1 } = errors;
 const util$c = util$p;
 const { addSignal: addSignal$3, removeSignal: removeSignal$3 } = abortSignal;
 
@@ -17626,30 +18206,30 @@ function trackWritableLifecycle (stream, callback) {
 class StreamHandler extends AsyncResource$3 {
   constructor (opts, factory, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$g('invalid opts')
+      throw new InvalidArgumentError$h('invalid opts')
     }
 
     const { signal, method, opaque, body, onInfo, responseHeaders } = opts;
 
     try {
       if (typeof callback !== 'function') {
-        throw new InvalidArgumentError$g('invalid callback')
+        throw new InvalidArgumentError$h('invalid callback')
       }
 
       if (typeof factory !== 'function') {
-        throw new InvalidArgumentError$g('invalid factory')
+        throw new InvalidArgumentError$h('invalid factory')
       }
 
       if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-        throw new InvalidArgumentError$g('signal must be an EventEmitter or EventTarget')
+        throw new InvalidArgumentError$h('signal must be an EventEmitter or EventTarget')
       }
 
       if (method === 'CONNECT') {
-        throw new InvalidArgumentError$g('invalid method')
+        throw new InvalidArgumentError$h('invalid method')
       }
 
       if (onInfo && typeof onInfo !== 'function') {
-        throw new InvalidArgumentError$g('invalid onInfo callback')
+        throw new InvalidArgumentError$h('invalid onInfo callback')
       }
 
       super('UNDICI_STREAM');
@@ -17844,7 +18424,7 @@ const {
 const assert$6 = require$$0$2;
 const { AsyncResource: AsyncResource$2 } = require$$1$1;
 const {
-  InvalidArgumentError: InvalidArgumentError$f,
+  InvalidArgumentError: InvalidArgumentError$g,
   InvalidReturnValueError,
   RequestAbortedError: RequestAbortedError$2
 } = errors;
@@ -17904,25 +18484,25 @@ class PipelineResponse extends Readable$1 {
 class PipelineHandler extends AsyncResource$2 {
   constructor (opts, handler) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$f('invalid opts')
+      throw new InvalidArgumentError$g('invalid opts')
     }
 
     if (typeof handler !== 'function') {
-      throw new InvalidArgumentError$f('invalid handler')
+      throw new InvalidArgumentError$g('invalid handler')
     }
 
     const { signal, method, opaque, onInfo, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$f('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$g('signal must be an EventEmitter or EventTarget')
     }
 
     if (method === 'CONNECT') {
-      throw new InvalidArgumentError$f('invalid method')
+      throw new InvalidArgumentError$g('invalid method')
     }
 
     if (onInfo && typeof onInfo !== 'function') {
-      throw new InvalidArgumentError$f('invalid onInfo callback')
+      throw new InvalidArgumentError$g('invalid onInfo callback')
     }
 
     super('UNDICI_PIPELINE');
@@ -18100,7 +18680,7 @@ function pipeline$1 (opts, handler) {
 
 var apiPipeline = pipeline$1;
 
-const { InvalidArgumentError: InvalidArgumentError$e, SocketError: SocketError$1 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$f, SocketError: SocketError$1 } = errors;
 const { AsyncResource: AsyncResource$1 } = require$$1$1;
 const assert$5 = require$$0$2;
 const util$a = util$p;
@@ -18110,17 +18690,17 @@ const { addSignal: addSignal$1, removeSignal: removeSignal$1 } = abortSignal;
 class UpgradeHandler extends AsyncResource$1 {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$e('invalid opts')
+      throw new InvalidArgumentError$f('invalid opts')
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$e('invalid callback')
+      throw new InvalidArgumentError$f('invalid callback')
     }
 
     const { signal, opaque, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$e('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$f('signal must be an EventEmitter or EventTarget')
     }
 
     super('UNDICI_UPGRADE');
@@ -18222,24 +18802,24 @@ var apiUpgrade = upgrade;
 
 const assert$4 = require$$0$2;
 const { AsyncResource } = require$$1$1;
-const { InvalidArgumentError: InvalidArgumentError$d, SocketError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$e, SocketError } = errors;
 const util$9 = util$p;
 const { addSignal, removeSignal } = abortSignal;
 
 class ConnectHandler extends AsyncResource {
   constructor (opts, callback) {
     if (!opts || typeof opts !== 'object') {
-      throw new InvalidArgumentError$d('invalid opts')
+      throw new InvalidArgumentError$e('invalid opts')
     }
 
     if (typeof callback !== 'function') {
-      throw new InvalidArgumentError$d('invalid callback')
+      throw new InvalidArgumentError$e('invalid callback')
     }
 
     const { signal, opaque, responseHeaders } = opts;
 
     if (signal && typeof signal.on !== 'function' && typeof signal.addEventListener !== 'function') {
-      throw new InvalidArgumentError$d('signal must be an EventEmitter or EventTarget')
+      throw new InvalidArgumentError$e('signal must be an EventEmitter or EventTarget')
     }
 
     super('UNDICI_CONNECT');
@@ -18412,7 +18992,7 @@ const {
     isPromise: isPromise$1
   }
 } = require$$3;
-const { InvalidArgumentError: InvalidArgumentError$c } = errors;
+const { InvalidArgumentError: InvalidArgumentError$d } = errors;
 const requestAborted = Symbol('request aborted');
 
 function matchValue$1 (match, value) {
@@ -18718,11 +19298,10 @@ function mockDispatch (opts, handler) {
       callbackResult.then(
         (resolvedData) => {
           if (resolvedData == null || typeof resolvedData !== 'object') {
-            handler.onResponseError(null, new InvalidArgumentError$c('reply options callback must return an object'));
+            handler.onResponseError(null, new InvalidArgumentError$d('reply options callback must return an object'));
             return
           }
-          mockDispatch.data = { ...responseDefaults, ...resolvedData };
-          dispatchMockReply(mockDispatches, mockDispatch, key, opts, handler);
+          dispatchMockReply(mockDispatches, mockDispatch, key, opts, handler, { ...responseDefaults, ...resolvedData });
         },
         (error) => {
           handler.onResponseError(null, error);
@@ -18732,10 +19311,10 @@ function mockDispatch (opts, handler) {
     }
 
     if (callbackResult == null || typeof callbackResult !== 'object') {
-      throw new InvalidArgumentError$c('reply options callback must return an object')
+      throw new InvalidArgumentError$d('reply options callback must return an object')
     }
 
-    mockDispatch.data = { ...responseDefaults, ...callbackResult };
+    return dispatchMockReply(mockDispatches, mockDispatch, key, opts, handler, { ...responseDefaults, ...callbackResult })
   }
 
   return dispatchMockReply(mockDispatches, mockDispatch, key, opts, handler)
@@ -18744,9 +19323,13 @@ function mockDispatch (opts, handler) {
 /**
  * Replies to a request once the mock dispatch data is fully resolved
  */
-function dispatchMockReply (mockDispatches, mockDispatch, key, opts, handler) {
-  // Parse mockDispatch data
-  const { data: response, delay } = mockDispatch;
+function dispatchMockReply (mockDispatches, mockDispatch, key, opts, handler, resolvedResponse) {
+  // Parse mockDispatch data. When a reply callback has already been resolved
+  // in mockDispatch() (i.e. no body lifecycle hooks are involved), the resolved
+  // response is passed in here, leaving mockDispatch.data untouched so the
+  // callback can be re-invoked for persistent / times() replies.
+  const { data: responseData, delay } = mockDispatch;
+  const response = resolvedResponse ?? responseData;
 
   // If specified, trigger dispatch error
   if (response.error !== null) {
@@ -18839,11 +19422,10 @@ function dispatchMockReply (mockDispatches, mockDispatch, key, opts, handler) {
         callbackResult.then(
           (resolvedData) => {
             if (resolvedData == null || typeof resolvedData !== 'object') {
-              handler.onResponseError(null, new InvalidArgumentError$c('reply options callback must return an object'));
+              handler.onResponseError(null, new InvalidArgumentError$d('reply options callback must return an object'));
               return
             }
-            mockDispatch.data = { ...responseDefaults, ...resolvedData };
-            handleReply(dispatches, mockDispatch.data);
+            handleReply(dispatches, { ...responseDefaults, ...resolvedData });
           },
           (err) => {
             handler.onResponseError(null, err);
@@ -18853,11 +19435,10 @@ function dispatchMockReply (mockDispatches, mockDispatch, key, opts, handler) {
       }
 
       if (callbackResult == null || typeof callbackResult !== 'object') {
-        throw new InvalidArgumentError$c('reply options callback must return an object')
+        throw new InvalidArgumentError$d('reply options callback must return an object')
       }
 
-      mockDispatch.data = { ...responseDefaults, ...callbackResult };
-      handleReply(dispatches, mockDispatch.data);
+      handleReply(dispatches, { ...responseDefaults, ...callbackResult });
       return
     }
 
@@ -19072,15 +19653,15 @@ function buildAndValidateMockOptions$1 (opts) {
   const { agent, ...mockOptions } = opts;
 
   if ('enableCallHistory' in mockOptions && typeof mockOptions.enableCallHistory !== 'boolean') {
-    throw new InvalidArgumentError$c('options.enableCallHistory must to be a boolean')
+    throw new InvalidArgumentError$d('options.enableCallHistory must to be a boolean')
   }
 
   if ('acceptNonStandardSearchParameters' in mockOptions && typeof mockOptions.acceptNonStandardSearchParameters !== 'boolean') {
-    throw new InvalidArgumentError$c('options.acceptNonStandardSearchParameters must to be a boolean')
+    throw new InvalidArgumentError$d('options.acceptNonStandardSearchParameters must to be a boolean')
   }
 
   if ('ignoreTrailingSlash' in mockOptions && typeof mockOptions.ignoreTrailingSlash !== 'boolean') {
-    throw new InvalidArgumentError$c('options.ignoreTrailingSlash must to be a boolean')
+    throw new InvalidArgumentError$d('options.ignoreTrailingSlash must to be a boolean')
   }
 
   return mockOptions
@@ -19109,7 +19690,7 @@ const {
   kMockDispatch,
   kIgnoreTrailingSlash: kIgnoreTrailingSlash$3
 } = mockSymbols;
-const { InvalidArgumentError: InvalidArgumentError$b } = errors;
+const { InvalidArgumentError: InvalidArgumentError$c } = errors;
 const { serializePathWithQuery: serializePathWithQuery$1 } = util$p;
 const {
   types: {
@@ -19130,7 +19711,7 @@ class MockScope {
    */
   delay (waitInMs) {
     if (typeof waitInMs !== 'number' || !Number.isInteger(waitInMs) || waitInMs <= 0) {
-      throw new InvalidArgumentError$b('waitInMs must be a valid integer > 0')
+      throw new InvalidArgumentError$c('waitInMs must be a valid integer > 0')
     }
 
     this[kMockDispatch].delay = waitInMs;
@@ -19150,7 +19731,7 @@ class MockScope {
    */
   times (repeatTimes) {
     if (typeof repeatTimes !== 'number' || !Number.isInteger(repeatTimes) || repeatTimes <= 0) {
-      throw new InvalidArgumentError$b('repeatTimes must be a valid integer > 0')
+      throw new InvalidArgumentError$c('repeatTimes must be a valid integer > 0')
     }
 
     this[kMockDispatch].times = repeatTimes;
@@ -19164,10 +19745,10 @@ class MockScope {
 let MockInterceptor$2 = class MockInterceptor {
   constructor (opts, mockDispatches) {
     if (typeof opts !== 'object') {
-      throw new InvalidArgumentError$b('opts must be an object')
+      throw new InvalidArgumentError$c('opts must be an object')
     }
     if (typeof opts.path === 'undefined') {
-      throw new InvalidArgumentError$b('opts.path must be defined')
+      throw new InvalidArgumentError$c('opts.path must be defined')
     }
     if (typeof opts.method === 'undefined') {
       opts.method = 'GET';
@@ -19207,10 +19788,10 @@ let MockInterceptor$2 = class MockInterceptor {
 
   validateReplyParameters (replyParameters) {
     if (typeof replyParameters.statusCode === 'undefined') {
-      throw new InvalidArgumentError$b('statusCode must be defined')
+      throw new InvalidArgumentError$c('statusCode must be defined')
     }
     if (typeof replyParameters.responseOptions !== 'object' || replyParameters.responseOptions === null) {
-      throw new InvalidArgumentError$b('responseOptions must be an object')
+      throw new InvalidArgumentError$c('responseOptions must be an object')
     }
   }
 
@@ -19226,7 +19807,7 @@ let MockInterceptor$2 = class MockInterceptor {
       const resolveReplyCallbackData = (resolvedData) => {
         // Check if it is in the right format
         if (typeof resolvedData !== 'object' || resolvedData === null) {
-          throw new InvalidArgumentError$b('reply options callback must return an object')
+          throw new InvalidArgumentError$c('reply options callback must return an object')
         }
 
         const replyParameters = { data: '', responseOptions: {}, ...resolvedData };
@@ -19282,7 +19863,7 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   replyWithError (error) {
     if (typeof error === 'undefined') {
-      throw new InvalidArgumentError$b('error must be defined')
+      throw new InvalidArgumentError$c('error must be defined')
     }
 
     const newMockDispatch = addMockDispatch(this[kDispatches$3], this[kDispatchKey], { error }, { ignoreTrailingSlash: this[kIgnoreTrailingSlash$3] });
@@ -19294,7 +19875,7 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   defaultReplyHeaders (headers) {
     if (typeof headers === 'undefined') {
-      throw new InvalidArgumentError$b('headers must be defined')
+      throw new InvalidArgumentError$c('headers must be defined')
     }
 
     this[kDefaultHeaders] = headers;
@@ -19306,7 +19887,7 @@ let MockInterceptor$2 = class MockInterceptor {
    */
   defaultReplyTrailers (trailers) {
     if (typeof trailers === 'undefined') {
-      throw new InvalidArgumentError$b('trailers must be defined')
+      throw new InvalidArgumentError$c('trailers must be defined')
     }
 
     this[kDefaultTrailers] = trailers;
@@ -19340,7 +19921,7 @@ const {
 } = mockSymbols;
 const { MockInterceptor: MockInterceptor$1 } = mockInterceptor;
 const Symbols$1 = requireSymbols();
-const { InvalidArgumentError: InvalidArgumentError$a } = errors;
+const { InvalidArgumentError: InvalidArgumentError$b } = errors;
 
 /**
  * MockClient provides an API that extends the Client to influence the mockDispatches.
@@ -19348,7 +19929,7 @@ const { InvalidArgumentError: InvalidArgumentError$a } = errors;
 let MockClient$1 = class MockClient extends Client {
   constructor (origin, opts) {
     if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$a('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$b('Argument opts.agent must implement Agent')
     }
 
     super(origin, opts);
@@ -19395,7 +19976,7 @@ var mockClient = MockClient$1;
 var mockCallHistory = {};
 
 const { kMockCallHistoryAddLog: kMockCallHistoryAddLog$1 } = mockSymbols;
-const { InvalidArgumentError: InvalidArgumentError$9 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$a } = errors;
 
 function handleFilterCallsWithOptions (criteria, options, handler, store, allLogs) {
   switch (options.operator) {
@@ -19407,7 +19988,7 @@ function handleFilterCallsWithOptions (criteria, options, handler, store, allLog
       return handler(criteria, store)
     default:
       // guard -- should never happens because buildAndValidateFilterCallsOptions is called before
-      throw new InvalidArgumentError$9('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
+      throw new InvalidArgumentError$a('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
   }
 }
 
@@ -19416,7 +19997,7 @@ function buildAndValidateFilterCallsOptions (options = {}) {
 
   if ('operator' in options) {
     if (typeof options.operator !== 'string' || (options.operator.toUpperCase() !== 'OR' && options.operator.toUpperCase() !== 'AND')) {
-      throw new InvalidArgumentError$9('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
+      throw new InvalidArgumentError$a('options.operator must to be a case insensitive string equal to \'OR\' or \'AND\'')
     }
 
     return {
@@ -19441,7 +20022,7 @@ function makeFilterCalls (parameterName) {
       })
     }
 
-    throw new InvalidArgumentError$9(`${parameterName} parameter should be one of string, regexp, undefined or null`)
+    throw new InvalidArgumentError$a(`${parameterName} parameter should be one of string, regexp, undefined or null`)
   }
 }
 function computeUrlWithMaybeSearchParameters (requestInit) {
@@ -19461,7 +20042,7 @@ function computeUrlWithMaybeSearchParameters (requestInit) {
 
     return url
   } catch (error) {
-    throw new InvalidArgumentError$9('An error occurred when computing MockCallHistoryLog.url', { cause: error })
+    throw new InvalidArgumentError$a('An error occurred when computing MockCallHistoryLog.url', { cause: error })
   }
 }
 
@@ -19535,13 +20116,13 @@ let MockCallHistory$1 = class MockCallHistory {
 
   nthCall (number) {
     if (typeof number !== 'number') {
-      throw new InvalidArgumentError$9('nthCall must be called with a number')
+      throw new InvalidArgumentError$a('nthCall must be called with a number')
     }
     if (!Number.isInteger(number)) {
-      throw new InvalidArgumentError$9('nthCall must be called with an integer')
+      throw new InvalidArgumentError$a('nthCall must be called with an integer')
     }
     if (Math.sign(number) !== 1) {
-      throw new InvalidArgumentError$9('nthCall must be called with a positive value. use firstCall or lastCall instead')
+      throw new InvalidArgumentError$a('nthCall must be called with a positive value. use firstCall or lastCall instead')
     }
 
     // non zero based index. this is more human readable
@@ -19600,7 +20181,7 @@ let MockCallHistory$1 = class MockCallHistory {
       return uniqLogsFiltered
     }
 
-    throw new InvalidArgumentError$9('criteria parameter should be one of function, regexp, or object')
+    throw new InvalidArgumentError$a('criteria parameter should be one of function, regexp, or object')
   }
 
   filterCallsByProtocol = makeFilterCalls.call(this, 'protocol')
@@ -19656,7 +20237,7 @@ const {
 } = mockSymbols;
 const { MockInterceptor } = mockInterceptor;
 const Symbols = requireSymbols();
-const { InvalidArgumentError: InvalidArgumentError$8 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$9 } = errors;
 
 /**
  * MockPool provides an API that extends the Pool to influence the mockDispatches.
@@ -19664,7 +20245,7 @@ const { InvalidArgumentError: InvalidArgumentError$8 } = errors;
 let MockPool$1 = class MockPool extends Pool {
   constructor (origin, opts) {
     if (!opts || !opts.agent || typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$8('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$9('Argument opts.agent must implement Agent')
     }
 
     super(origin, opts);
@@ -19773,7 +20354,7 @@ const {
 const MockClient = mockClient;
 const MockPool = mockPool;
 const { matchValue, normalizeSearchParams, buildAndValidateMockOptions, normalizeOrigin } = mockUtils;
-const { InvalidArgumentError: InvalidArgumentError$7, UndiciError: UndiciError$2 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$8, UndiciError: UndiciError$2 } = errors;
 const Dispatcher = dispatcher;
 const PendingInterceptorsFormatter = pendingInterceptorsFormatter;
 const { MockCallHistory } = mockCallHistory;
@@ -19792,7 +20373,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher {
 
     // Instantiate Agent and encapsulate
     if (opts?.agent && typeof opts.agent.dispatch !== 'function') {
-      throw new InvalidArgumentError$7('Argument opts.agent must implement Agent')
+      throw new InvalidArgumentError$8('Argument opts.agent must implement Agent')
     }
     const agent = opts?.agent ? opts.agent : new Agent$2(opts);
     this[kAgent] = agent;
@@ -19823,13 +20404,25 @@ let MockAgent$1 = class MockAgent extends Dispatcher {
     opts.origin = normalizeOrigin(opts.origin);
 
     // Call MockAgent.get to perform additional setup before dispatching as normal
-    this.get(opts.origin);
+    const mockDispatcher = this.get(opts.origin);
 
     this[kMockAgentAddCallHistoryLog](opts);
 
     const acceptNonStandardSearchParameters = this[kMockAgentAcceptsNonStandardSearchParameters];
 
     const dispatchOpts = { ...opts };
+
+    // Agent keeps HTTP/1.1-only dispatchers under a separate key. Legacy
+    // global dispatcher consumers use that path, so mirror the mock dispatches
+    // before delegating to the internal Agent.
+    if (dispatchOpts.allowH2 === false) {
+      const http1OnlyKey = `${dispatchOpts.origin}#http1-only`;
+      if (!this[kClients].has(http1OnlyKey)) {
+        const http1OnlyDispatcher = this[kFactory](dispatchOpts.origin);
+        http1OnlyDispatcher[kDispatches] = mockDispatcher[kDispatches];
+        this[kMockAgentSet](http1OnlyKey, http1OnlyDispatcher);
+      }
+    }
 
     if (acceptNonStandardSearchParameters && dispatchOpts.path) {
       const [path, searchParams] = dispatchOpts.path.split('?');
@@ -19864,7 +20457,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher {
     } else if (typeof matcher === 'undefined') {
       this[kNetConnect] = true;
     } else {
-      throw new InvalidArgumentError$7('Unsupported matcher. Must be one of String|Function|RegExp.')
+      throw new InvalidArgumentError$8('Unsupported matcher. Must be one of String|Function|RegExp.')
     }
   }
 
@@ -19981,7 +20574,7 @@ let MockAgent$1 = class MockAgent extends Dispatcher {
 
 var mockAgent = MockAgent$1;
 
-const { InvalidArgumentError: InvalidArgumentError$6 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$7 } = errors;
 const { runtimeFeatures } = requireRuntimeFeatures();
 
 /**
@@ -20125,7 +20718,7 @@ const validSnapshotModes = /** @type {const} */ (['record', 'playback', 'update'
  */
 function validateSnapshotMode$1 (mode) {
   if (!validSnapshotModes.includes(mode)) {
-    throw new InvalidArgumentError$6(`Invalid snapshot mode: ${mode}. Must be one of: ${validSnapshotModes.join(', ')}`)
+    throw new InvalidArgumentError$7(`Invalid snapshot mode: ${mode}. Must be one of: ${validSnapshotModes.join(', ')}`)
   }
 }
 
@@ -20140,7 +20733,7 @@ var snapshotUtils = {
 const { writeFile, readFile, mkdir } = require$$0$7;
 const { dirname, resolve } = require$$1$3;
 const { setTimeout: setTimeout$1, clearTimeout: clearTimeout$1 } = require$$2$3;
-const { InvalidArgumentError: InvalidArgumentError$5, UndiciError: UndiciError$1 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$6, UndiciError: UndiciError$1 } = errors;
 const { hashId, isUrlExcludedFactory, normalizeHeaders: normalizeHeaders$4, createHeaderFilters } = snapshotUtils;
 
 /**
@@ -20554,7 +21147,7 @@ let SnapshotRecorder$1 = class SnapshotRecorder {
   async loadSnapshots (filePath) {
     const path = filePath || this.#snapshotPath;
     if (!path) {
-      throw new InvalidArgumentError$5('Snapshot path is required')
+      throw new InvalidArgumentError$6('Snapshot path is required')
     }
 
     try {
@@ -20590,7 +21183,7 @@ let SnapshotRecorder$1 = class SnapshotRecorder {
   async saveSnapshots (filePath) {
     const path = filePath || this.#snapshotPath;
     if (!path) {
-      throw new InvalidArgumentError$5('Snapshot path is required')
+      throw new InvalidArgumentError$6('Snapshot path is required')
     }
 
     const resolvedPath = resolve(path);
@@ -20762,7 +21355,7 @@ var snapshotRecorder = { SnapshotRecorder: SnapshotRecorder$1};
 const Agent$1 = agent;
 const MockAgent = mockAgent;
 const { SnapshotRecorder } = snapshotRecorder;
-const { InvalidArgumentError: InvalidArgumentError$4, UndiciError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$5, UndiciError } = errors;
 const util$8 = util$p;
 const { validateSnapshotMode } = snapshotUtils;
 
@@ -20798,7 +21391,7 @@ class SnapshotAgent extends MockAgent {
 
     // Validate snapshotPath is provided when required
     if ((mode === 'playback' || mode === 'update') && !snapshotPath) {
-      throw new InvalidArgumentError$4(`snapshotPath is required when mode is '${mode}'`)
+      throw new InvalidArgumentError$5(`snapshotPath is required when mode is '${mode}'`)
     }
 
     this[kSnapshotMode] = mode;
@@ -21133,7 +21726,7 @@ var snapshotAgent = SnapshotAgent;
 // this version number must be increased to avoid conflicts.
 const globalDispatcher = Symbol.for('undici.globalDispatcher.2');
 const legacyGlobalDispatcher = Symbol.for('undici.globalDispatcher.1');
-const { InvalidArgumentError: InvalidArgumentError$3 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$4 } = errors;
 const Agent = agent;
 const Dispatcher1Wrapper = dispatcher1Wrapper;
 
@@ -21146,7 +21739,7 @@ if (getGlobalDispatcher() === undefined) {
 
 function setGlobalDispatcher (agent) {
   if (!agent || typeof agent.dispatch !== 'function') {
-    throw new InvalidArgumentError$3('Argument agent must implement Agent')
+    throw new InvalidArgumentError$4('Argument agent must implement Agent')
   }
 
   try {
@@ -21253,12 +21846,19 @@ var decoratorHandler = class DecoratorHandler {
   /**
    * @deprecated
    */
-  onBodySent () {}
+  onBodySent (...args) {
+    return this.#handler.onBodySent?.(...args)
+  }
+
+  onRequestSent (...args) {
+    return this.#handler.onRequestSent?.(...args)
+  }
 };
 
 const util$7 = util$p;
 const assert$2 = require$$0$2;
-const { InvalidArgumentError: InvalidArgumentError$2 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$3 } = errors;
+const { kRequestOrigin: kRequestOrigin$2 } = requireSymbols();
 
 const redirectableStatusCodes = [300, 301, 302, 303, 307, 308];
 
@@ -21267,7 +21867,7 @@ const noop$1 = () => {};
 let RedirectHandler$1 = class RedirectHandler {
   static buildDispatch (dispatcher, maxRedirections) {
     if (maxRedirections != null && (!Number.isInteger(maxRedirections) || maxRedirections < 0)) {
-      throw new InvalidArgumentError$2('maxRedirections must be a positive number')
+      throw new InvalidArgumentError$3('maxRedirections must be a positive number')
     }
 
     const dispatch = dispatcher.dispatch.bind(dispatcher);
@@ -21276,11 +21876,11 @@ let RedirectHandler$1 = class RedirectHandler {
 
   constructor (dispatch, maxRedirections, opts, handler) {
     if (maxRedirections != null && (!Number.isInteger(maxRedirections) || maxRedirections < 0)) {
-      throw new InvalidArgumentError$2('maxRedirections must be a positive number')
+      throw new InvalidArgumentError$3('maxRedirections must be a positive number')
     }
 
     if (opts.throwOnMaxRedirect != null && typeof opts.throwOnMaxRedirect !== 'boolean') {
-      throw new InvalidArgumentError$2('throwOnMaxRedirect must be a boolean')
+      throw new InvalidArgumentError$3('throwOnMaxRedirect must be a boolean')
     }
 
     this.dispatch = dispatch;
@@ -21299,11 +21899,24 @@ let RedirectHandler$1 = class RedirectHandler {
     this.handler.onRequestStart?.(controller, { ...context, history: this.history });
   }
 
+  onBodySent (chunk) {
+    this.handler.onBodySent?.(chunk);
+  }
+
+  onRequestSent () {
+    this.handler.onRequestSent?.();
+  }
+
   onRequestUpgrade (controller, statusCode, headers, socket) {
     this.handler.onRequestUpgrade?.(controller, statusCode, headers, socket);
   }
 
   onResponseStart (controller, statusCode, headers, statusMessage) {
+    if (statusCode < 200) {
+      this.handler.onResponseStart?.(controller, statusCode, headers, statusMessage);
+      return
+    }
+
     if (this.opts.throwOnMaxRedirect && this.history.length >= this.maxRedirections) {
       throw new Error('max redirects')
     }
@@ -21337,8 +21950,12 @@ let RedirectHandler$1 = class RedirectHandler {
       ? null
       : headers.location;
 
-    if (this.opts.origin) {
-      this.history.push(new URL(this.opts.path, this.opts.origin));
+    const requestOrigin = this.opts[kRequestOrigin$2] === undefined
+      ? this.opts.origin
+      : this.opts[kRequestOrigin$2];
+
+    if (requestOrigin) {
+      this.history.push(new URL(this.opts.path, requestOrigin));
     }
 
     if (!this.location) {
@@ -21346,7 +21963,10 @@ let RedirectHandler$1 = class RedirectHandler {
       return
     }
 
-    const { origin, pathname, search } = util$7.parseURL(new URL(this.location, this.opts.origin && new URL(this.opts.path, this.opts.origin)));
+    const baseUrl = requestOrigin
+      ? new URL(this.opts.path, requestOrigin)
+      : undefined;
+    const { origin, pathname, search } = util$7.parseURL(new URL(this.location, baseUrl));
     const path = search ? `${pathname}${search}` : pathname;
 
     // Check for redirect loops by seeing if we've already visited this URL in our history
@@ -21355,16 +21975,17 @@ let RedirectHandler$1 = class RedirectHandler {
     const redirectUrlString = `${origin}${path}`;
     for (const historyUrl of this.history) {
       if (historyUrl.toString() === redirectUrlString) {
-        throw new InvalidArgumentError$2(`Redirect loop detected. Cannot redirect to ${origin}. This typically happens when using a Client or Pool with cross-origin redirects. Use an Agent for cross-origin redirects.`)
+        throw new InvalidArgumentError$3(`Redirect loop detected. Cannot redirect to ${origin}. This typically happens when using a Client or Pool with cross-origin redirects. Use an Agent for cross-origin redirects.`)
       }
     }
 
     // Remove headers referring to the original URL.
     // By default it is Host only. A 303 or a 301/302 POST-to-GET redirect also removes all Content-* headers.
     // https://tools.ietf.org/html/rfc7231#section-6.4
-    this.opts.headers = cleanRequestHeaders(this.opts.headers, removeContentHeaders, this.opts.origin !== origin, this.stripHeadersOnRedirect, this.stripHeadersOnCrossOriginRedirect);
+    this.opts.headers = cleanRequestHeaders(this.opts.headers, removeContentHeaders, requestOrigin !== origin, this.stripHeadersOnRedirect, this.stripHeadersOnCrossOriginRedirect);
     this.opts.path = path;
     this.opts.origin = origin;
+    this.opts[kRequestOrigin$2] = origin;
     this.opts.query = null;
   }
 
@@ -21420,13 +22041,13 @@ function normalizeStripHeaders (headers, optionName) {
   }
 
   if (!Array.isArray(headers)) {
-    throw new InvalidArgumentError$2(`${optionName} must be an array`)
+    throw new InvalidArgumentError$3(`${optionName} must be an array`)
   }
 
   const normalized = new Set();
   for (const header of headers) {
     if (typeof header !== 'string') {
-      throw new InvalidArgumentError$2(`${optionName} must contain header names`)
+      throw new InvalidArgumentError$3(`${optionName} must contain header names`)
     }
 
     normalized.add(util$7.headerNameToString(header));
@@ -21591,20 +22212,19 @@ var retry = globalOpts => {
   }
 };
 
-const { InvalidArgumentError: InvalidArgumentError$1, RequestAbortedError: RequestAbortedError$1 } = errors;
+const { InvalidArgumentError: InvalidArgumentError$2, RequestAbortedError: RequestAbortedError$1 } = errors;
 const DecoratorHandler$2 = decoratorHandler;
 
 class DumpHandler extends DecoratorHandler$2 {
   #maxSize = 1024 * 1024
   #dumped = false
   #size = 0
-  #controller = null
   aborted = false
   reason = false
 
   constructor ({ maxSize, signal }, handler) {
     if (maxSize != null && (!Number.isFinite(maxSize) || maxSize < 1)) {
-      throw new InvalidArgumentError$1('maxSize must be a number greater than 0')
+      throw new InvalidArgumentError$2('maxSize must be a number greater than 0')
     }
 
     super(handler);
@@ -21620,7 +22240,6 @@ class DumpHandler extends DecoratorHandler$2 {
 
   onRequestStart (controller, context) {
     controller.abort = this.#abort.bind(this);
-    this.#controller = controller;
 
     return super.onRequestStart(controller, context)
   }
@@ -21644,43 +22263,32 @@ class DumpHandler extends DecoratorHandler$2 {
   }
 
   onResponseError (controller, err) {
-    if (this.#dumped) {
-      return
-    }
-
-    // On network errors before connect, controller will be null
-    err = this.#controller?.reason ?? err;
-
-    super.onResponseError(controller, err);
+    super.onResponseError(controller, this.aborted === true ? this.reason : err);
   }
 
   onResponseData (controller, chunk) {
     this.#size = this.#size + chunk.length;
 
-    if (this.#size >= this.#maxSize) {
-      this.#dumped = true;
+    if (this.#size > this.#maxSize) {
+      throw new RequestAbortedError$1(
+        `Response size (${this.#size}) larger than maxSize (${this.#maxSize})`
+      )
+    }
 
-      if (this.aborted === true) {
-        super.onResponseError(controller, this.reason);
-      } else {
-        super.onResponseEnd(controller, {});
-      }
+    if (this.#size === this.#maxSize) {
+      this.#dumped = true;
     }
 
     return true
   }
 
   onResponseEnd (controller, trailers) {
-    if (this.#dumped) {
-      return
-    }
-
-    if (this.#controller.aborted === true) {
+    if (this.aborted === true) {
       super.onResponseError(controller, this.reason);
       return
     }
 
-    super.onResponseEnd(controller, trailers);
+    super.onResponseEnd(controller, this.#dumped ? {} : trailers);
   }
 }
 
@@ -21705,7 +22313,8 @@ var dump = createDumpInterceptor;
 const { isIP } = require$$1;
 const { lookup } = require$$1$4;
 const DecoratorHandler$1 = decoratorHandler;
-const { InvalidArgumentError, InformationalError } = errors;
+const { InvalidArgumentError: InvalidArgumentError$1, InformationalError } = errors;
+const { kRequestOrigin: kRequestOrigin$1 } = requireSymbols();
 const maxInt = Math.pow(2, 31) - 1;
 
 function hasSafeIterator$1 (headers) {
@@ -22137,6 +22746,9 @@ class DNSDispatchHandler extends DecoratorHandler$1 {
             origin: `${this.#origin.protocol}//${
               ip.family === 6 ? `[${ip.address}]` : ip.address
             }${port}`,
+            [kRequestOrigin$1]: this.#opts[kRequestOrigin$1] === undefined
+              ? this.#origin
+              : this.#opts[kRequestOrigin$1],
             headers: withHostHeader(this.#origin.host, this.#opts.headers)
           };
           this.#dispatch(dispatchOpts, this);
@@ -22163,7 +22775,7 @@ var dns = interceptorOpts => {
     interceptorOpts?.maxTTL != null &&
     (typeof interceptorOpts?.maxTTL !== 'number' || interceptorOpts?.maxTTL < 0)
   ) {
-    throw new InvalidArgumentError('Invalid maxTTL. Must be a positive number')
+    throw new InvalidArgumentError$1('Invalid maxTTL. Must be a positive number')
   }
 
   if (
@@ -22171,7 +22783,7 @@ var dns = interceptorOpts => {
     (typeof interceptorOpts?.maxItems !== 'number' ||
       interceptorOpts?.maxItems < 1)
   ) {
-    throw new InvalidArgumentError(
+    throw new InvalidArgumentError$1(
       'Invalid maxItems. Must be a positive number and greater than zero'
     )
   }
@@ -22181,28 +22793,28 @@ var dns = interceptorOpts => {
     interceptorOpts?.affinity !== 4 &&
     interceptorOpts?.affinity !== 6
   ) {
-    throw new InvalidArgumentError('Invalid affinity. Must be either 4 or 6')
+    throw new InvalidArgumentError$1('Invalid affinity. Must be either 4 or 6')
   }
 
   if (
     interceptorOpts?.dualStack != null &&
     typeof interceptorOpts?.dualStack !== 'boolean'
   ) {
-    throw new InvalidArgumentError('Invalid dualStack. Must be a boolean')
+    throw new InvalidArgumentError$1('Invalid dualStack. Must be a boolean')
   }
 
   if (
     interceptorOpts?.lookup != null &&
     typeof interceptorOpts?.lookup !== 'function'
   ) {
-    throw new InvalidArgumentError('Invalid lookup. Must be a function')
+    throw new InvalidArgumentError$1('Invalid lookup. Must be a function')
   }
 
   if (
     interceptorOpts?.pick != null &&
     typeof interceptorOpts?.pick !== 'function'
   ) {
-    throw new InvalidArgumentError('Invalid pick. Must be a function')
+    throw new InvalidArgumentError$1('Invalid pick. Must be a function')
   }
 
   if (
@@ -22213,7 +22825,7 @@ var dns = interceptorOpts => {
       typeof interceptorOpts?.storage?.delete !== 'function'
     )
   ) {
-    throw new InvalidArgumentError('Invalid storage. Must be a object with methods: { get, set, full, delete }')
+    throw new InvalidArgumentError$1('Invalid storage. Must be a object with methods: { get, set, full, delete }')
   }
 
   const dualStack = interceptorOpts?.dualStack ?? true;
@@ -22260,6 +22872,9 @@ var dns = interceptorOpts => {
           ...origDispatchOpts,
           servername: origin.hostname, // For SNI on TLS
           origin: newOrigin.origin,
+          [kRequestOrigin$1]: origDispatchOpts[kRequestOrigin$1] === undefined
+            ? origin
+            : origDispatchOpts[kRequestOrigin$1],
           headers: withHostHeader(origin.host, origDispatchOpts.headers)
         };
 
@@ -22285,6 +22900,7 @@ const {
 } = util$p;
 
 const { serializePathWithQuery } = util$p;
+const { kRequestOrigin } = requireSymbols();
 
 const MAX_DELTA_SECONDS = 2147483647;
 const RESTRICTIVE_DIRECTIVE_NAMES = ['no-store', 'private', 'no-cache'];
@@ -22424,8 +23040,47 @@ function getMalformedRestrictiveDirectiveName (key) {
 /**
  * @param {import('../../types/dispatcher.d.ts').default.DispatchOptions} opts
  */
-function makeCacheKey$2 (opts) {
-  const origin = opts.origin ? opts.origin.toString() : '';
+function getRequestOrigin (opts) {
+  const origin = opts[kRequestOrigin] === undefined
+    ? opts.origin
+    : opts[kRequestOrigin];
+  return typeof origin === 'string' || origin instanceof URL
+    ? origin
+    : null
+}
+
+/**
+ * @param {import('../../types/dispatcher.d.ts').default.DispatchOptions} opts
+ * @param {string|null|undefined} interceptorOrigin
+ */
+function getInterceptorOrigin$2 (opts, interceptorOrigin) {
+  const requestOrigin = getRequestOrigin(opts);
+  if (interceptorOrigin === undefined) {
+    return requestOrigin
+  }
+  if (interceptorOrigin === null) {
+    return null
+  }
+  if (requestOrigin) {
+    try {
+      if (new URL(requestOrigin).origin !== interceptorOrigin) {
+        return null
+      }
+    } catch {
+      return interceptorOrigin
+    }
+  }
+  return interceptorOrigin
+}
+
+/**
+ * @param {import('../../types/dispatcher.d.ts').default.DispatchOptions} opts
+ * @param {string|URL|null} [origin]
+ */
+function makeCacheKey$2 (opts, origin = getRequestOrigin(opts)) {
+  if (!origin) {
+    throw new Error('opts.origin is undefined')
+  }
 
   let fullPath = opts.path || '/';
 
@@ -22434,7 +23089,7 @@ function makeCacheKey$2 (opts) {
   }
 
   return {
-    origin,
+    origin: origin.toString(),
     method: opts.method,
     path: fullPath,
     headers: opts.headers
@@ -22844,7 +23499,7 @@ function hasVaryStar$1 (varyHeader) {
  * @param {Record<string, string | string[]>} headers Request headers
  * @returns {Record<string, string | string[] | null> | undefined}
  */
-function parseVaryHeader$1 (varyHeader, headers) {
+function parseVaryHeader$2 (varyHeader, headers) {
   if (hasVaryStar$1(varyHeader)) {
     return headers
   }
@@ -22876,7 +23531,7 @@ function parseVaryHeader$1 (varyHeader, headers) {
  * @returns {boolean}
  */
 function isInvalidOrWildcardVaryHeader$2 (varyHeader) {
-  return hasVaryStar$1(varyHeader) || parseVaryHeader$1(varyHeader, {}) === undefined
+  return hasVaryStar$1(varyHeader) || parseVaryHeader$2(varyHeader, {}) === undefined
 }
 
 /**
@@ -22977,13 +23632,14 @@ function makeDeduplicationKey$1 (cacheKey, excludeHeaders) {
 }
 
 var cache$2 = {
+  getInterceptorOrigin: getInterceptorOrigin$2,
   makeCacheKey: makeCacheKey$2,
   normalizeHeaders: normalizeHeaders$2,
   assertCacheKey: assertCacheKey$2,
   assertCacheValue: assertCacheValue$2,
   parseCacheControlHeader: parseCacheControlHeader$2,
   hasInvalidCacheControlDirective: hasInvalidCacheControlDirective$1,
-  parseVaryHeader: parseVaryHeader$1,
+  parseVaryHeader: parseVaryHeader$2,
   hasVaryStar: hasVaryStar$1,
   isInvalidOrWildcardVaryHeader: isInvalidOrWildcardVaryHeader$2,
   isEtagUsable: isEtagUsable$1,
@@ -23665,7 +24321,7 @@ const util$6 = util$p;
 const {
   parseCacheControlHeader: parseCacheControlHeader$1,
   hasInvalidCacheControlDirective,
-  parseVaryHeader,
+  parseVaryHeader: parseVaryHeader$1,
   hasVaryStar,
   isInvalidOrWildcardVaryHeader: isInvalidOrWildcardVaryHeader$1,
   isEtagUsable
@@ -23834,6 +24490,14 @@ let CacheHandler$1 = class CacheHandler {
     this.#handler.onRequestStart?.(controller, context);
   }
 
+  onBodySent (chunk) {
+    this.#handler.onBodySent?.(chunk);
+  }
+
+  onRequestSent () {
+    this.#handler.onRequestSent?.();
+  }
+
   onRequestUpgrade (controller, statusCode, headers, socket) {
     this.#handler.onRequestUpgrade?.(controller, statusCode, headers, socket);
   }
@@ -23871,6 +24535,13 @@ let CacheHandler$1 = class CacheHandler {
     }
 
     const cacheControlHeader = resHeaders['cache-control'];
+    const cacheControlDirectives = cacheControlHeader ? parseCacheControlHeader$1(cacheControlHeader) : {};
+
+    if (revalidationResponseDisallowsCachedReuse$1(this.#cacheType, resHeaders, cacheControlDirectives)) {
+      deleteCachedValue$1(this.#store, this.#cacheKey);
+      return downstreamOnHeaders()
+    }
+
     const heuristicallyCacheable = resHeaders['last-modified'] && arrayIncludes$1(HEURISTICALLY_CACHEABLE_STATUS_CODES, statusCode);
     if (
       !cacheControlHeader &&
@@ -23887,8 +24558,7 @@ let CacheHandler$1 = class CacheHandler {
       return downstreamOnHeaders()
     }
 
-    const cacheControlDirectives = cacheControlHeader ? parseCacheControlHeader$1(cacheControlHeader) : {};
-    if (!canCacheResponse(this.#cacheType, statusCode, resHeaders, cacheControlDirectives, this.#cacheKey.headers)) {
+    if (!canCacheResponse(this.#cacheType, this.#cacheKey.method, statusCode, resHeaders, cacheControlDirectives, this.#cacheKey.headers)) {
       if (statusCode === 304 && (cacheControlHeader || revalidationResponseDisallowsCachedReuse$1(this.#cacheType, resHeaders, cacheControlDirectives))) {
         deleteCachedValue$1(this.#store, this.#cacheKey);
       }
@@ -23942,7 +24612,7 @@ let CacheHandler$1 = class CacheHandler {
 
     let varyDirectives;
     if (this.#cacheKey.headers && resHeaders.vary) {
-      varyDirectives = parseVaryHeader(resHeaders.vary, this.#cacheKey.headers);
+      varyDirectives = parseVaryHeader$1(resHeaders.vary, this.#cacheKey.headers);
       if (!varyDirectives) {
         // Parse error
         return downstreamOnHeaders()
@@ -24137,7 +24807,10 @@ function deleteCachedValueIfNotModified (statusCode, store, cacheKey) {
  */
 function revalidationResponseDisallowsCachedReuse$1 (cacheType, resHeaders, cacheControlDirectives) {
   return cacheControlDirectives['no-store'] === true ||
-    (cacheType === 'shared' && cacheControlDirectives.private === true) ||
+    (cacheType === 'shared' && (
+      cacheControlDirectives.private === true ||
+      Object.hasOwn(resHeaders, 'set-cookie')
+    )) ||
     (resHeaders.vary ? isInvalidOrWildcardVaryHeader$1(resHeaders.vary) : false)
 }
 
@@ -24145,12 +24818,16 @@ function revalidationResponseDisallowsCachedReuse$1 (cacheType, resHeaders, cach
  * @see https://www.rfc-editor.org/rfc/rfc9111.html#name-storing-responses-to-authen
  *
  * @param {import('../../types/cache-interceptor.d.ts').default.CacheOptions['type']} cacheType
+ * @param {string} method
  * @param {number} statusCode
  * @param {import('../../types/header.d.ts').IncomingHttpHeaders} resHeaders
  * @param {import('../../types/cache-interceptor.d.ts').default.CacheControlDirectives} cacheControlDirectives
  * @param {import('../../types/header.d.ts').IncomingHttpHeaders} [reqHeaders]
  */
-function canCacheResponse (cacheType, statusCode, resHeaders, cacheControlDirectives, reqHeaders) {
+function canCacheResponse (cacheType, method, statusCode, resHeaders, cacheControlDirectives, reqHeaders) {
+  if (!arrayIncludes$1(util$6.safeHTTPMethods, method)) {
+    return false
+  }
   // Status code must be final and understood.
   if (statusCode < 200 || arrayIncludes$1(NOT_UNDERSTOOD_STATUS_CODES, statusCode)) {
     return false
@@ -24171,7 +24848,10 @@ function canCacheResponse (cacheType, statusCode, resHeaders, cacheControlDirect
     return false
   }
 
-  if (cacheType === 'shared' && cacheControlDirectives.private === true) {
+  if (cacheType === 'shared' && (
+    cacheControlDirectives.private === true ||
+    Object.hasOwn(resHeaders, 'set-cookie')
+  )) {
     return false
   }
 
@@ -24541,7 +25221,7 @@ let MemoryCacheStore$1 = class MemoryCacheStore extends EventEmitter {
   }
 
   /**
-   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} req
+   * @param {import('../../types/cache-interceptor.d.ts').default.CacheKey} key
    * @returns {import('../../types/cache-interceptor.d.ts').default.GetResult | undefined}
    */
   get (key) {
@@ -24633,7 +25313,7 @@ let MemoryCacheStore$1 = class MemoryCacheStore extends EventEmitter {
 
           // Perform eviction
           for (const [key, entries] of store.#entries) {
-            for (const entry of entries.splice(0, entries.length / 2)) {
+            for (const entry of entries.splice(0, Math.ceil(entries.length / 2))) {
               store.#size -= entry.size;
               store.#count -= 1;
             }
@@ -24871,7 +25551,16 @@ const util$5 = util$p;
 const CacheHandler = cacheHandler;
 const MemoryCacheStore = memoryCacheStore;
 const CacheRevalidationHandler = cacheRevalidationHandler;
-const { assertCacheStore, assertCacheMethods, makeCacheKey: makeCacheKey$1, normalizeHeaders: normalizeHeaders$1, parseCacheControlHeader, isInvalidOrWildcardVaryHeader } = cache$2;
+const {
+  assertCacheStore,
+  assertCacheMethods,
+  getInterceptorOrigin: getInterceptorOrigin$1,
+  makeCacheKey: makeCacheKey$1,
+  normalizeHeaders: normalizeHeaders$1,
+  parseCacheControlHeader,
+  isInvalidOrWildcardVaryHeader,
+  parseVaryHeader
+} = cache$2;
 const { AbortError } = errors;
 const { parseHttpDate } = date;
 
@@ -24982,7 +25671,10 @@ function staleResponseRequiresRevalidation (result, cacheType) {
  * @returns {boolean}
  */
 function revalidationResponseDisallowsCachedReuse (cacheType, headers) {
-  if (headers.vary && isInvalidOrWildcardVaryHeader(headers.vary)) {
+  if (
+    (headers.vary && isInvalidOrWildcardVaryHeader(headers.vary)) ||
+    (cacheType === 'shared' && Object.hasOwn(headers, 'set-cookie'))
+  ) {
     return true
   }
 
@@ -24998,6 +25690,25 @@ function revalidationResponseDisallowsCachedReuse (cacheType, headers) {
 
 function revalidationResponseUpdatesCacheControl (headers) {
   return headers['cache-control'] !== undefined
+}
+
+/**
+ * @param {import('../../types/cache-interceptor.d.ts').default.GetResult} result
+ * @param {Record<string, string | string[] | null> | undefined} varyDirectives
+ * @returns {boolean}
+ */
+function revalidationResponseAddsVary (result, varyDirectives) {
+  if (!varyDirectives) {
+    return false
+  }
+
+  for (const key in varyDirectives) {
+    if (result.vary == null || !Object.hasOwn(result.vary, key)) {
+      return true
+    }
+  }
+
+  return false
 }
 
 function deleteCachedValue (store, cacheKey) {
@@ -25164,6 +25875,8 @@ function sendCachedValue (handler, opts, result, age, context, isStale) {
   assert(!stream.destroyed, 'stream should not be destroyed');
   assert(!stream.readableDidRead, 'stream should not be readableDidRead');
 
+  let aborted = false;
+
   const controller = {
     rawHeaders: [],
     rawTrailers: [],
@@ -25177,12 +25890,13 @@ function sendCachedValue (handler, opts, result, age, context, isStale) {
       return stream.isPaused()
     },
     get aborted () {
-      return stream.destroyed
+      return aborted
     },
     get reason () {
       return stream.errored
     },
     abort (reason) {
+      aborted = true;
       stream.destroy(reason ?? new AbortError());
     }
   };
@@ -25251,6 +25965,17 @@ function handleResult (
   result
 ) {
   if (!result) {
+    return handleUncachedResponse(dispatch, globalOpts, cacheKey, handler, opts, reqCacheControl)
+  }
+
+  // Shared stores may outlive the Undici version that wrote them. Do not
+  // re-serve a Set-Cookie header from an existing shared-cache entry.
+  if (globalOpts.type === 'shared' && Object.hasOwn(result.headers, 'set-cookie')) {
+    if (util$5.isStream(result.body)) {
+      result.body.on('error', nop).destroy();
+    }
+
+    deleteCachedValue(globalOpts.store, cacheKey);
     return handleUncachedResponse(dispatch, globalOpts, cacheKey, handler, opts, reqCacheControl)
   }
 
@@ -25336,6 +26061,13 @@ function handleResult (
 
               if (revalidationResponseUpdatesCacheControl(headers)) {
                 deleteCachedValue(globalOpts.store, cacheKey);
+              } else if (revalidationResponseAddsVary(result, headers.vary ? parseVaryHeader(headers.vary, opts.headers) : undefined)) {
+                if (util$5.isStream(result.body)) {
+                  result.body.on('error', nop).destroy();
+                }
+
+                deleteCachedValue(globalOpts.store, cacheKey);
+                return dispatch(opts, new CacheHandler(globalOpts, cacheKey, handler))
               }
             }
 
@@ -25403,29 +26135,28 @@ var cache$1 = (opts = {}) => {
     }
   }
 
-  return dispatch => {
+  return (dispatch, interceptorOrigin) => {
     return (opts, handler) => {
-      if (arrayIncludes(safeMethodsToNotCache, opts.method)) {
-        // Not a method we want to cache, skip
+      const requestOrigin = getInterceptorOrigin$1(opts, interceptorOrigin);
+      if (!requestOrigin || arrayIncludes(safeMethodsToNotCache, opts.method)) {
+        // We cannot safely cache without an authoritative origin, or this is
+        // not a method we want to cache.
         return dispatch(opts, handler)
       }
 
       // Check if origin is in whitelist
       if (origins !== undefined) {
-        if (!opts.origin) {
-          return dispatch(opts, handler)
-        }
-        const requestOrigin = opts.origin.toString().toLowerCase();
+        const normalizedRequestOrigin = requestOrigin.toString().toLowerCase();
         let isAllowed = false;
 
         for (let i = 0; i < origins.length; i++) {
           const allowed = origins[i];
           if (typeof allowed === 'string') {
-            if (allowed.toLowerCase() === requestOrigin) {
+            if (allowed.toLowerCase() === normalizedRequestOrigin) {
               isAllowed = true;
               break
             }
-          } else if (allowed.test(requestOrigin)) {
+          } else if (allowed.test(normalizedRequestOrigin)) {
             isAllowed = true;
             break
           }
@@ -25454,7 +26185,12 @@ var cache$1 = (opts = {}) => {
       /**
        * @type {import('../../types/cache-interceptor.d.ts').default.CacheKey}
        */
-      const cacheKey = makeCacheKey$1(opts);
+      const cacheKey = makeCacheKey$1(opts, requestOrigin);
+
+      if (!arrayIncludes(util$5.safeHTTPMethods, opts.method)) {
+        return dispatch(opts, new CacheHandler(globalOpts, cacheKey, handler))
+      }
+
       const result = store.get(cacheKey);
 
       if (result && typeof result.then === 'function') {
@@ -25483,15 +26219,71 @@ var cache$1 = (opts = {}) => {
 };
 
 const { createInflate, createGunzip, createBrotliDecompress, createZstdDecompress } = require$$0$5;
-const { pipeline } = require$$0$1;
+const { pipeline, Transform: TransformStream$1 } = require$$0$1;
+const { InvalidArgumentError, ResponseExceededMaxSizeError } = errors;
 const DecoratorHandler = decoratorHandler;
 
 /** @typedef {import('node:stream').Transform} Transform */
 /** @typedef {import('node:stream').Transform} Controller */
 /** @typedef {Transform&import('node:zlib').Zlib} DecompressorStream */
 
+class DecompressController {
+  #onPause
+  #onResume
+  #onAbort
+  #paused = false
+
+  constructor (onPause, onResume, onAbort) {
+    this.#onPause = onPause;
+    this.#onResume = onResume;
+    this.#onAbort = onAbort;
+    this.target = null;
+  }
+
+  pause () {
+    if (this.#paused) {
+      return
+    }
+
+    this.#paused = true;
+    this.#onPause();
+  }
+
+  resume () {
+    if (!this.#paused) {
+      return
+    }
+
+    this.#paused = false;
+    this.#onResume();
+  }
+
+  abort (reason) {
+    this.target?.abort(reason);
+    this.#onAbort(reason);
+  }
+
+  get paused () { return this.#paused }
+  get aborted () { return this.target?.aborted ?? false }
+  get reason () { return this.target?.reason ?? null }
+  get rawHeaders () { return this.target?.rawHeaders ?? null }
+  set rawHeaders (value) {
+    if (this.target) {
+      this.target.rawHeaders = value;
+    }
+  }
+
+  get rawTrailers () { return this.target?.rawTrailers ?? null }
+  set rawTrailers (value) {
+    if (this.target) {
+      this.target.rawTrailers = value;
+    }
+  }
+}
+
 /** @type {Record<string, () => DecompressorStream>} */
 const supportedEncodings = {
+  __proto__: null,
   gzip: createGunzip,
   'x-gzip': createGunzip,
   br: createBrotliDecompress,
@@ -25502,6 +26294,31 @@ const supportedEncodings = {
 };
 
 const defaultSkipStatusCodes = /** @type {const} */ ([204, 304]);
+const defaultMaxSize = 0;
+
+/**
+ * Limits the output of one stage in a decompression chain.
+ * @param {number} maxSize - Maximum output size in bytes
+ * @returns {Transform}
+ */
+function createMaxSizeLimiter (maxSize) {
+  let size = 0;
+
+  return new TransformStream$1({
+    transform (chunk, _encoding, callback) {
+      const decompressedSize = size + chunk.length;
+      if (decompressedSize > maxSize) {
+        callback(new ResponseExceededMaxSizeError(
+          `Decompressed response size (${decompressedSize}) exceeded maxSize (${maxSize})`
+        ));
+        return
+      }
+
+      size = decompressedSize;
+      callback(null, chunk);
+    }
+  })
+}
 
 let warningEmitted = /** @type {boolean} */ (false);
 
@@ -25509,6 +26326,7 @@ let warningEmitted = /** @type {boolean} */ (false);
  * @typedef {Object} DecompressHandlerOptions
  * @property {number[]|Readonly<number[]>} [skipStatusCodes=[204, 304]] - List of status codes to skip decompression for
  * @property {boolean} [skipErrorResponses] - Whether to skip decompression for error responses (status codes >= 400)
+ * @property {number} [maxSize=0] - Maximum decompressed response size in bytes. 0 disables the limit
  */
 
 class DecompressHandler extends DecoratorHandler {
@@ -25520,11 +26338,138 @@ class DecompressHandler extends DecoratorHandler {
   #skipStatusCodes
   /** @type {boolean} */
   #skipErrorResponses
+  /** @type {number} */
+  #maxSize
+  /** @type {number} */
+  #decompressedSize = 0
+  /** @type {boolean} */
+  #terminated = false
+  /** @type {boolean} */
+  #inputEnded = false
+  /** @type {boolean} */
+  #inputBackpressured = false
+  /** @type {boolean} */
+  #upstreamPaused = false
+  /** @type {boolean} */
+  #draining = false
+  /** @type {boolean} */
+  #drainRequested = false
+  /** @type {boolean} */
+  #completionPending = false
+  /** @type {DecompressorStream | undefined} */
+  #finalDecompressor
+  /** @type {DecompressController} */
+  #controller
 
-  constructor (handler, { skipStatusCodes = defaultSkipStatusCodes, skipErrorResponses = true } = {}) {
+  constructor (handler, { skipStatusCodes = defaultSkipStatusCodes, skipErrorResponses = true, maxSize = defaultMaxSize } = {}) {
+    if (!Number.isSafeInteger(maxSize) || maxSize < 0) {
+      throw new InvalidArgumentError('maxSize must be a non-negative integer')
+    }
+
     super(handler);
     this.#skipStatusCodes = skipStatusCodes;
     this.#skipErrorResponses = skipErrorResponses;
+    this.#maxSize = maxSize;
+    this.#controller = new DecompressController(
+      () => this.#onDownstreamPause(),
+      () => this.#onDownstreamResume(),
+      reason => {
+        if (this.#inputEnded && !this.#terminated) {
+          this.onResponseError(this.#controller, reason);
+        }
+      }
+    );
+  }
+
+  #onDownstreamPause () {
+    this.#pauseUpstream();
+  }
+
+  #onDownstreamResume () {
+    const drainWasDeferred = this.#draining;
+    this.#drainOutput();
+    if (!drainWasDeferred) {
+      this.#resumeUpstreamIfNeeded();
+      this.#finishIfReady();
+    }
+  }
+
+  #pauseUpstream () {
+    if (!this.#upstreamPaused && !this.#terminated) {
+      this.#upstreamPaused = true;
+      this.#controller.target?.pause();
+    }
+  }
+
+  #resumeUpstreamIfNeeded () {
+    if (this.#upstreamPaused && !this.#controller.paused && !this.#inputBackpressured) {
+      this.#upstreamPaused = false;
+      if (!this.#inputEnded) {
+        this.#controller.target?.resume();
+      }
+    }
+  }
+
+  #drainOutput () {
+    if (this.#terminated || this.#controller.paused || !this.#finalDecompressor) {
+      return
+    }
+
+    if (this.#draining) {
+      this.#drainRequested = true;
+      return
+    }
+
+    this.#draining = true;
+    try {
+      do {
+        this.#drainRequested = false;
+        let chunk;
+        while (!this.#terminated && !this.#controller.paused && (chunk = this.#finalDecompressor.read()) !== null) {
+          if (this.#maxSize > 0) {
+            const decompressedSize = this.#decompressedSize + chunk.length;
+            if (decompressedSize > this.#maxSize) {
+              this.#fail(new ResponseExceededMaxSizeError(
+                `Decompressed response size (${decompressedSize}) exceeded maxSize (${this.#maxSize})`
+              ));
+              return
+            }
+
+            this.#decompressedSize = decompressedSize;
+          }
+
+          const result = super.onResponseData(this.#controller, chunk);
+          if (result === false && !this.#controller.paused) {
+            this.#controller.pause();
+          }
+        }
+      } while (this.#drainRequested && !this.#terminated && !this.#controller.paused)
+    } finally {
+      this.#draining = false;
+    }
+
+    this.#resumeUpstreamIfNeeded();
+    this.#finishIfReady();
+  }
+
+  #finishIfReady () {
+    if (this.#terminated || !this.#completionPending || this.#controller.paused || this.#draining) {
+      return
+    }
+
+    this.#terminated = true;
+    this.#cleanupDecompressors();
+    super.onResponseEnd(this.#controller, this.#trailers);
+  }
+
+  #onDecompressionEnd () {
+    if (this.#terminated) {
+      return
+    }
+
+    this.#completionPending = true;
+    this.#drainOutput();
+    this.#finishIfReady();
   }
 
   /**
@@ -25544,7 +26489,7 @@ class DecompressHandler extends DecoratorHandler {
    * Creates a chain of decompressors for multiple content encodings
    *
    * @param {string} encodings - Comma-separated list of content encodings
-   * @returns {Array<DecompressorStream>} - Array of decompressor streams
+   * @returns {Array<Transform>} - Array of decompressor and limiting streams
    * @throws {Error} - If the number of content-encodings exceeds the maximum allowed
    */
   #createDecompressionChain (encodings) {
@@ -25572,60 +26517,97 @@ class DecompressHandler extends DecoratorHandler {
       decompressors.push(supportedEncodings[encoding]());
     }
 
-    return decompressors
+    if (decompressors.length < 2) {
+      return decompressors
+    }
+
+    /** @type {Transform[]} */
+    const streams = [];
+    for (let i = 0; i < decompressors.length; i++) {
+      streams.push(decompressors[i]);
+      if (i < decompressors.length - 1 && this.#maxSize > 0) {
+        streams.push(createMaxSizeLimiter(this.#maxSize));
+      }
+    }
+
+    return streams
   }
 
   /**
-   * Sets up event handlers for a decompressor stream using readable events
-   * @param {DecompressorStream} decompressor - The decompressor stream
-   * @param {Controller} controller - The controller to coordinate with
+   * Stops decompression and reports an error.
+   * @param {Error} error - The decompression error
    * @returns {void}
    */
-  #setupDecompressorEvents (decompressor, controller) {
-    decompressor.on('readable', () => {
-      let chunk;
-      while ((chunk = decompressor.read()) !== null) {
-        const result = super.onResponseData(controller, chunk);
-        if (result === false) {
-          break
-        }
-      }
-    });
+  #fail (error) {
+    if (this.#terminated) {
+      return
+    }
 
-    decompressor.on('error', (error) => {
-      super.onResponseError(controller, error);
-    });
+    if (this.#inputEnded) {
+      // The request is already marked complete once the compressed input ends,
+      // so controller.abort() can no longer propagate decoder flush errors.
+      this.onResponseError(this.#controller, error);
+    } else {
+      this.#controller.abort(error);
+    }
+  }
+
+  /**
+   * Sets up event handlers for the final decompressor stream.
+   * @param {DecompressorStream} decompressor - The decompressor stream
+   * @returns {void}
+   */
+  #setupDecompressorEvents (decompressor) {
+    this.#finalDecompressor = decompressor;
+    decompressor.on('readable', () => this.#drainOutput());
+    decompressor.on('error', (error) => this.#fail(error));
   }
 
   /**
    * Sets up event handling for a single decompressor
-   * @param {Controller} controller - The controller to handle events
    * @returns {void}
    */
-  #setupSingleDecompressor (controller) {
+  #setupSingleDecompressor () {
     const decompressor = this.#decompressors[0];
-    this.#setupDecompressorEvents(decompressor, controller);
+    this.#setupDecompressorEvents(decompressor);
 
-    decompressor.on('end', () => {
-      super.onResponseEnd(controller, this.#trailers);
-    });
+    decompressor.on('end', () => this.#onDecompressionEnd());
   }
 
   /**
    * Sets up event handling for multiple chained decompressors using pipeline
-   * @param {Controller} controller - The controller to handle events
    * @returns {void}
    */
-  #setupMultipleDecompressors (controller) {
+  #setupMultipleDecompressors () {
     const lastDecompressor = this.#decompressors[this.#decompressors.length - 1];
-    this.#setupDecompressorEvents(lastDecompressor, controller);
+    this.#setupDecompressorEvents(lastDecompressor);
 
     pipeline(this.#decompressors, (err) => {
-      if (err) {
-        super.onResponseError(controller, err);
+      if (this.#terminated) {
         return
       }
-      super.onResponseEnd(controller, this.#trailers);
+
+      if (err) {
+        this.#fail(err);
+        return
+      }
+
+      this.#onDecompressionEnd();
+    });
+  }
+
+  #setupInputBackpressure () {
+    const decompressor = this.#decompressors[0];
+    decompressor.on('drain', () => {
+      if (this.#terminated) {
+        return
+      }
+
+      this.#inputBackpressured = false;
+      if (!this.#controller.paused) {
+        this.#drainOutput();
+        this.#resumeUpstreamIfNeeded();
+      }
     });
   }
 
@@ -25635,6 +26617,16 @@ class DecompressHandler extends DecoratorHandler {
    */
   #cleanupDecompressors () {
     this.#decompressors.length = 0;
+    this.#finalDecompressor = undefined;
+  }
+
+  onRequestStart (controller, context) {
+    this.#controller.target = controller;
+    return super.onRequestStart(this.#controller, context)
+  }
+
+  onRequestUpgrade (controller, statusCode, headers, socket) {
+    return super.onRequestUpgrade(this.#controller, statusCode, headers, socket)
   }
 
   /**
@@ -25645,18 +26637,24 @@ class DecompressHandler extends DecoratorHandler {
    * @returns {void}
    */
   onResponseStart (controller, statusCode, headers, statusMessage) {
-    const contentEncoding = headers['content-encoding'];
+    // Repeated field lines reach us as an array. RFC 9110 section 5.3 lets a
+    // recipient join them with commas, which yields the single-line form the
+    // decompression chain already handles.
+    const rawContentEncoding = headers['content-encoding'];
+    const contentEncoding = Array.isArray(rawContentEncoding)
+      ? rawContentEncoding.join(',')
+      : rawContentEncoding;
 
     // If content encoding is not supported or status code is in skip list
     if (this.#shouldSkipDecompression(contentEncoding, statusCode)) {
-      return super.onResponseStart(controller, statusCode, headers, statusMessage)
+      return super.onResponseStart(this.#controller, statusCode, headers, statusMessage)
     }
 
     const decompressors = this.#createDecompressionChain(contentEncoding.toLowerCase());
 
     if (decompressors.length === 0) {
       this.#cleanupDecompressors();
-      return super.onResponseStart(controller, statusCode, headers, statusMessage)
+      return super.onResponseStart(this.#controller, statusCode, headers, statusMessage)
     }
 
     this.#decompressors = decompressors;
@@ -25664,8 +26662,8 @@ class DecompressHandler extends DecoratorHandler {
     // Remove compression headers since we're decompressing
     const { 'content-encoding': _, 'content-length': __, ...newHeaders } = headers;
 
-    if (controller?.rawHeaders) {
-      const rawHeaders = controller.rawHeaders;
+    if (this.#controller.rawHeaders) {
+      const rawHeaders = this.#controller.rawHeaders;
 
       if (Array.isArray(rawHeaders)) {
         const filteredHeaders = [];
@@ -25680,7 +26678,7 @@ class DecompressHandler extends DecoratorHandler {
 
           filteredHeaders.push(rawHeaders[i], rawHeaders[i + 1]);
         }
-        controller.rawHeaders = filteredHeaders;
+        rawHeaders.splice(0, rawHeaders.length, ...filteredHeaders);
       } else if (typeof rawHeaders === 'object') {
         for (const name of Object.keys(rawHeaders)) {
           const lowerName = name.toLowerCase();
@@ -25691,13 +26689,14 @@ class DecompressHandler extends DecoratorHandler {
       }
     }
 
+    this.#setupInputBackpressure();
     if (this.#decompressors.length === 1) {
-      this.#setupSingleDecompressor(controller);
+      this.#setupSingleDecompressor();
     } else {
-      this.#setupMultipleDecompressors(controller);
+      this.#setupMultipleDecompressors();
     }
 
-    return super.onResponseStart(controller, statusCode, newHeaders, statusMessage)
+    return super.onResponseStart(this.#controller, statusCode, newHeaders, statusMessage)
   }
 
   /**
@@ -25707,10 +26706,13 @@ class DecompressHandler extends DecoratorHandler {
    */
   onResponseData (controller, chunk) {
     if (this.#decompressors.length > 0) {
-      this.#decompressors[0].write(chunk);
+      if (!this.#decompressors[0].write(chunk)) {
+        this.#inputBackpressured = true;
+        this.#pauseUpstream();
+      }
       return
     }
-    super.onResponseData(controller, chunk);
+    return super.onResponseData(this.#controller, chunk)
   }
 
   /**
@@ -25720,12 +26722,12 @@ class DecompressHandler extends DecoratorHandler {
    */
   onResponseEnd (controller, trailers) {
     if (this.#decompressors.length > 0) {
+      this.#inputEnded = true;
       this.#trailers = trailers;
       this.#decompressors[0].end();
-      this.#cleanupDecompressors();
       return
     }
-    super.onResponseEnd(controller, trailers);
+    return super.onResponseEnd(this.#controller, trailers)
   }
 
   /**
@@ -25734,13 +26736,16 @@ class DecompressHandler extends DecoratorHandler {
    * @returns {void}
    */
   onResponseError (controller, err) {
-    if (this.#decompressors.length > 0) {
-      for (const decompressor of this.#decompressors) {
-        decompressor.destroy(err);
-      }
-      this.#cleanupDecompressors();
+    if (this.#terminated) {
+      return
     }
-    super.onResponseError(controller, err);
+
+    this.#terminated = true;
+    for (const decompressor of this.#decompressors) {
+      decompressor.destroy();
+    }
+    this.#cleanupDecompressors();
+    super.onResponseError(this.#controller, err);
   }
 }
 
@@ -26024,8 +27029,11 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
       return
     }
 
-    this.#completed = true;
+    // Remove the entry before callbacks can synchronously dispatch a retry.
+    this.#cleanup();
     this.#primaryHandler.onResponseEnd?.(controller, trailers);
+    // A throwing end callback must still be handled by onResponseError.
+    this.#completed = true;
 
     for (const waitingHandler of this.#waitingHandlers) {
       if (waitingHandler.done || waitingHandler.controller.aborted) {
@@ -26040,22 +27048,21 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
         continue
       }
 
-      if (waitingHandler.controller.paused && waitingHandler.bufferedChunks.length > 0) {
+      if (waitingHandler.controller.paused) {
         waitingHandler.pendingTrailers = trailers;
         continue
       }
 
       try {
         waitingHandler.handler.onResponseEnd?.(waitingHandler.controller, trailers);
-      } catch {
-        // Ignore errors from waiting handlers
+      } catch (err) {
+        this.#errorWaitingHandler(waitingHandler, err);
       }
 
       waitingHandler.done = true;
     }
 
     this.#pruneDoneWaitingHandlers();
-    this.#onComplete?.();
   }
 
   /**
@@ -26069,6 +27076,7 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
 
     this.#aborted = true;
     this.#completed = true;
+    this.#cleanup();
 
     this.#primaryHandler.onResponseError?.(controller, err);
 
@@ -26077,7 +27085,12 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
     }
 
     this.#waitingHandlers = [];
-    this.#onComplete?.();
+  }
+
+  #cleanup () {
+    const onComplete = this.#onComplete;
+    this.#onComplete = null;
+    onComplete?.();
   }
 
   /**
@@ -26119,8 +27132,8 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
         ) {
           try {
             waitingHandler.handler.onResponseEnd?.(waitingHandler.controller, waitingHandler.pendingTrailers);
-          } catch {
-            // Ignore errors from waiting handlers
+          } catch (err) {
+            this.#errorWaitingHandler(waitingHandler, err);
           }
 
           waitingHandler.pendingTrailers = null;
@@ -26138,12 +27151,22 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
       get aborted () { return state.aborted },
       get reason () { return state.reason },
       abort: (reason) => {
+        if (state.aborted) {
+          return
+        }
+
         state.aborted = true;
         state.reason = reason ?? null;
         waitingHandler.done = true;
         waitingHandler.pendingTrailers = null;
         waitingHandler.bufferedChunks = [];
         waitingHandler.bufferedBytes = 0;
+
+        try {
+          handler.onResponseError?.(waitingHandler.controller, state.reason ?? new RequestAbortedError());
+        } catch {
+          // Ignore errors from waiting handlers
+        }
       }
     };
 
@@ -26168,7 +27191,7 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
 
     if (waitingHandler.bufferedBytes > this.#maxBufferSize) {
       const err = new RequestAbortedError(`Deduplicated waiting handler exceeded maxBufferSize (${this.#maxBufferSize} bytes) while paused`);
-      this.#errorWaitingHandler(waitingHandler, err);
+      waitingHandler.controller.abort(err);
     }
   }
 
@@ -26217,8 +27240,9 @@ let DeduplicationHandler$1 = class DeduplicationHandler {
     waitingHandler.bufferedChunks = [];
     waitingHandler.bufferedBytes = 0;
 
+    // A response failure is not a consumer abort: retry handlers must be able
+    // to retry it just as they would a failure of the primary request.
     try {
-      waitingHandler.controller.abort(err);
       waitingHandler.handler.onResponseError?.(waitingHandler.controller, err);
     } catch {
       // Ignore errors from waiting handlers
@@ -26235,7 +27259,7 @@ var deduplicationHandler = DeduplicationHandler$1;
 const diagnosticsChannel = require$$0$3;
 const util$4 = util$p;
 const DeduplicationHandler = deduplicationHandler;
-const { normalizeHeaders, makeCacheKey, makeDeduplicationKey } = cache$2;
+const { getInterceptorOrigin, normalizeHeaders, makeCacheKey, makeDeduplicationKey } = cache$2;
 
 const pendingRequestsChannel = diagnosticsChannel.channel('undici:request:pending-requests');
 
@@ -26289,9 +27313,10 @@ var deduplicate = (opts = {}) => {
    */
   const pendingRequests = new Map();
 
-  return dispatch => {
+  return (dispatch, interceptorOrigin) => {
     return (opts, handler) => {
-      if (opts.upgrade || methods.includes(opts.method) === false) {
+      const requestOrigin = getInterceptorOrigin(opts, interceptorOrigin);
+      if (!requestOrigin || opts.upgrade || methods.includes(opts.method) === false) {
         return dispatch(opts, handler)
       }
 
@@ -26309,7 +27334,7 @@ var deduplicate = (opts = {}) => {
         }
       }
 
-      const cacheKey = makeCacheKey(opts);
+      const cacheKey = makeCacheKey(opts, requestOrigin);
       const dedupeKey = makeDeduplicationKey(cacheKey, excludeHeaderNamesSet);
 
       // Check if there's already a pending request for this key
@@ -27244,6 +28269,8 @@ function requireHeaders () {
 	  }
 	}
 
+	let getHeadersGuard, setHeadersGuard, getHeadersList, setHeadersList;
+
 	// https://fetch.spec.whatwg.org/#headers-class
 	class Headers {
 	  #guard
@@ -27279,7 +28306,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-append
 	  append (name, value) {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    webidl.argumentLengthCheck(arguments, 2, 'Headers.append');
 
@@ -27292,7 +28319,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-delete
 	  delete (name) {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    webidl.argumentLengthCheck(arguments, 1, 'Headers.delete');
 
@@ -27336,7 +28363,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-get
 	  get (name) {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    webidl.argumentLengthCheck(arguments, 1, 'Headers.get');
 
@@ -27359,7 +28386,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-has
 	  has (name) {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    webidl.argumentLengthCheck(arguments, 1, 'Headers.has');
 
@@ -27382,7 +28409,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-set
 	  set (name, value) {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    webidl.argumentLengthCheck(arguments, 2, 'Headers.set');
 
@@ -27430,7 +28457,7 @@ function requireHeaders () {
 
 	  // https://fetch.spec.whatwg.org/#dom-headers-getsetcookie
 	  getSetCookie () {
-	    webidl.brandCheck(this, Headers);
+	    webidl.brandCheck(this, webidl.is.Headers);
 
 	    // 1. If this’s header list does not contain `Set-Cookie`, then return « ».
 	    // 2. Return the values of all headers in this’s header list whose name is
@@ -27451,37 +28478,38 @@ function requireHeaders () {
 	    return `Headers ${util.formatWithOptions(options, this.#headersList.entries)}`
 	  }
 
-	  static getHeadersGuard (o) {
-	    return o.#guard
-	  }
+	  static {
+	    /** @param {Headers} headers */
+	    getHeadersGuard = (headers) => headers.#guard;
 
-	  static setHeadersGuard (o, guard) {
-	    o.#guard = guard;
-	  }
+	    /**
+	     * @param {Headers} headers
+	     * @param {string} guard
+	     */
+	    setHeadersGuard = (headers, guard) => {
+	      headers.#guard = guard;
+	    };
 
-	  /**
-	   * @param {Headers} o
-	   */
-	  static getHeadersList (o) {
-	    return o.#headersList
-	  }
+	    /**
+	     * @param {Headers} headers
+	     */
+	    getHeadersList = (headers) => headers.#headersList;
 
-	  /**
-	   * @param {Headers} target
-	   * @param {HeadersList} list
-	   */
-	  static setHeadersList (target, list) {
-	    target.#headersList = list;
+	    /**
+	     * @param {Headers} target
+	     * @param {HeadersList} list
+	     */
+	    setHeadersList = (target, list) => {
+	      target.#headersList = list;
+	    };
+
+	    webidl.is.Headers = (arg) => {
+	      return arg != null && typeof arg === 'object' && #guard in arg
+	    };
 	  }
 	}
 
-	const { getHeadersGuard, setHeadersGuard, getHeadersList, setHeadersList } = Headers;
-	Reflect.deleteProperty(Headers, 'getHeadersGuard');
-	Reflect.deleteProperty(Headers, 'setHeadersGuard');
-	Reflect.deleteProperty(Headers, 'getHeadersList');
-	Reflect.deleteProperty(Headers, 'setHeadersList');
-
-	iteratorMixin('Headers', Headers, headersListSortAndCombine, 0, 1);
+	iteratorMixin('Headers', Headers, headersListSortAndCombine, 0, 1, webidl.is.Headers);
 
 	Object.defineProperties(Headers.prototype, {
 	  append: kEnumerableProperty,
@@ -27571,6 +28599,7 @@ function requireResponse () {
 	const { isomorphicEncode, serializeJavascriptValueToJSONString } = requireInfra();
 
 	const textEncoder = new TextEncoder('utf-8');
+	let getResponseHeaders, setResponseHeaders, getResponseState, setResponseState;
 
 	// https://fetch.spec.whatwg.org/#response-class
 	class Response {
@@ -27693,7 +28722,7 @@ function requireResponse () {
 
 	  // Returns response’s type, e.g., "cors".
 	  get type () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The type getter steps are to return this’s response’s type.
 	    return this.#state.type
@@ -27701,7 +28730,7 @@ function requireResponse () {
 
 	  // Returns response’s URL, if it has one; otherwise the empty string.
 	  get url () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    const urlList = this.#state.urlList;
 
@@ -27719,7 +28748,7 @@ function requireResponse () {
 
 	  // Returns whether response was obtained through a redirect.
 	  get redirected () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The redirected getter steps are to return true if this’s response’s URL
 	    // list has more than one item; otherwise false.
@@ -27728,7 +28757,7 @@ function requireResponse () {
 
 	  // Returns response’s status.
 	  get status () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The status getter steps are to return this’s response’s status.
 	    return this.#state.status
@@ -27736,7 +28765,7 @@ function requireResponse () {
 
 	  // Returns whether response’s status is an ok status.
 	  get ok () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The ok getter steps are to return true if this’s response’s status is an
 	    // ok status; otherwise false.
@@ -27745,7 +28774,7 @@ function requireResponse () {
 
 	  // Returns response’s status message.
 	  get statusText () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The statusText getter steps are to return this’s response’s status
 	    // message.
@@ -27754,27 +28783,27 @@ function requireResponse () {
 
 	  // Returns response’s headers as Headers.
 	  get headers () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // The headers getter steps are to return this’s headers.
 	    return this.#headers
 	  }
 
 	  get body () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    return this.#state.body ? this.#state.body.stream : null
 	  }
 
 	  get bodyUsed () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    return !!this.#state.body && util.isDisturbed(this.#state.body.stream)
 	  }
 
 	  // Returns a clone of response.
 	  clone () {
-	    webidl.brandCheck(this, Response);
+	    webidl.brandCheck(this, webidl.is.Response);
 
 	    // 1. If this is unusable, then throw a TypeError.
 	    if (bodyUnusable(this.#state)) {
@@ -27820,44 +28849,44 @@ function requireResponse () {
 	    return `Response ${nodeUtil.formatWithOptions(options, properties)}`
 	  }
 
-	  /**
-	   * @param {Response} response
-	   */
-	  static getResponseHeaders (response) {
-	    return response.#headers
-	  }
+	  static {
+	    /**
+	     * @param {Response} response
+	     */
+	    getResponseHeaders = (response) => {
+	      return response.#headers
+	    };
 
-	  /**
-	   * @param {Response} response
-	   * @param {Headers} newHeaders
-	   */
-	  static setResponseHeaders (response, newHeaders) {
-	    response.#headers = newHeaders;
-	  }
+	    /**
+	     * @param {Response} response
+	     * @param {Headers} newHeaders
+	     */
+	    setResponseHeaders = (response, newHeaders) => {
+	      response.#headers = newHeaders;
+	    };
 
-	  /**
-	   * @param {Response} response
-	   */
-	  static getResponseState (response) {
-	    return response.#state
-	  }
+	    /**
+	     * @param {Response} response
+	     */
+	    getResponseState = (response) => {
+	      return response.#state
+	    };
 
-	  /**
-	   * @param {Response} response
-	   * @param {any} newState
-	   */
-	  static setResponseState (response, newState) {
-	    response.#state = newState;
+	    /**
+	     * @param {Response} response
+	     * @param {any} newState
+	     */
+	    setResponseState = (response, newState) => {
+	      response.#state = newState;
+	    };
+
+	    webidl.is.Response = (arg) => {
+	      return arg != null && typeof arg === 'object' && #state in arg
+	    };
 	  }
 	}
 
-	const { getResponseHeaders, setResponseHeaders, getResponseState, setResponseState } = Response;
-	Reflect.deleteProperty(Response, 'getResponseHeaders');
-	Reflect.deleteProperty(Response, 'setResponseHeaders');
-	Reflect.deleteProperty(Response, 'getResponseState');
-	Reflect.deleteProperty(Response, 'setResponseState');
-
-	mixinBody(Response, getResponseState);
+	mixinBody(Response, getResponseState, webidl.is.Response);
 
 	Object.defineProperties(Response.prototype, {
 	  type: kEnumerableProperty,
@@ -28172,8 +29201,6 @@ function requireResponse () {
 	  }
 	]);
 
-	webidl.is.Response = webidl.util.MakeTypeAssertion(Response);
-
 	response = {
 	  isNetworkError,
 	  makeNetworkError,
@@ -28278,6 +29305,7 @@ function requireRequest () {
 	}
 
 	let patchMethodWarning = false;
+	let setRequestSignal, getRequestDispatcher, setRequestDispatcher, setRequestHeaders, getRequestState, setRequestState, removeRequestAbortListener;
 
 	// https://fetch.spec.whatwg.org/#request-class
 	class Request {
@@ -28795,7 +29823,7 @@ function requireRequest () {
 
 	  // Returns request’s HTTP method, which is "GET" by default.
 	  get method () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The method getter steps are to return this’s request’s method.
 	    return this.#state.method
@@ -28803,7 +29831,7 @@ function requireRequest () {
 
 	  // Returns the URL of request as a string.
 	  get url () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The url getter steps are to return this’s request’s URL, serialized.
 	    return URLSerializer(this.#state.url)
@@ -28813,7 +29841,7 @@ function requireRequest () {
 	  // Note that headers added in the network layer by the user agent will not
 	  // be accounted for in this object, e.g., the "Host" header.
 	  get headers () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The headers getter steps are to return this’s headers.
 	    return this.#headers
@@ -28822,7 +29850,7 @@ function requireRequest () {
 	  // Returns the kind of resource requested by request, e.g., "document"
 	  // or "script".
 	  get destination () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The destination getter are to return this’s request’s destination.
 	    return this.#state.destination
@@ -28834,7 +29862,7 @@ function requireRequest () {
 	  // during fetching to determine the value of the `Referer` header of the
 	  // request being made.
 	  get referrer () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // 1. If this’s request’s referrer is "no-referrer", then return the
 	    // empty string.
@@ -28856,7 +29884,7 @@ function requireRequest () {
 	  // This is used during fetching to compute the value of the request’s
 	  // referrer.
 	  get referrerPolicy () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The referrerPolicy getter steps are to return this’s request’s referrer policy.
 	    return this.#state.referrerPolicy
@@ -28866,7 +29894,7 @@ function requireRequest () {
 	  // whether the request will use CORS, or will be restricted to same-origin
 	  // URLs.
 	  get mode () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The mode getter steps are to return this’s request’s mode.
 	    return this.#state.mode
@@ -28876,7 +29904,7 @@ function requireRequest () {
 	  // which is a string indicating whether credentials will be sent with the
 	  // request always, never, or only when sent to a same-origin URL.
 	  get credentials () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The credentials getter steps are to return this’s request’s credentials mode.
 	    return this.#state.credentials
@@ -28886,7 +29914,7 @@ function requireRequest () {
 	  // which is a string indicating how the request will
 	  // interact with the browser’s cache when fetching.
 	  get cache () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The cache getter steps are to return this’s request’s cache mode.
 	    return this.#state.cache
@@ -28897,7 +29925,7 @@ function requireRequest () {
 	  // request will be handled during fetching. A request
 	  // will follow redirects by default.
 	  get redirect () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The redirect getter steps are to return this’s request’s redirect mode.
 	    return this.#state.redirect
@@ -28907,7 +29935,7 @@ function requireRequest () {
 	  // cryptographic hash of the resource being fetched. Its value
 	  // consists of multiple hashes separated by whitespace. [SRI]
 	  get integrity () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The integrity getter steps are to return this’s request’s integrity
 	    // metadata.
@@ -28917,7 +29945,7 @@ function requireRequest () {
 	  // Returns a boolean indicating whether or not request can outlive the
 	  // global in which it was created.
 	  get keepalive () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The keepalive getter steps are to return this’s request’s keepalive.
 	    return this.#state.keepalive
@@ -28926,7 +29954,7 @@ function requireRequest () {
 	  // Returns a boolean indicating whether or not request is for a reload
 	  // navigation.
 	  get isReloadNavigation () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The isReloadNavigation getter steps are to return true if this’s
 	    // request’s reload-navigation flag is set; otherwise false.
@@ -28936,7 +29964,7 @@ function requireRequest () {
 	  // Returns a boolean indicating whether or not request is for a history
 	  // navigation (a.k.a. back-forward navigation).
 	  get isHistoryNavigation () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The isHistoryNavigation getter steps are to return true if this’s request’s
 	    // history-navigation flag is set; otherwise false.
@@ -28947,33 +29975,33 @@ function requireRequest () {
 	  // object indicating whether or not request has been aborted, and its
 	  // abort event handler.
 	  get signal () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // The signal getter steps are to return this’s signal.
 	    return this.#signal
 	  }
 
 	  get body () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    return this.#state.body ? this.#state.body.stream : null
 	  }
 
 	  get bodyUsed () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    return !!this.#state.body && util.isDisturbed(this.#state.body.stream)
 	  }
 
 	  get duplex () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    return 'half'
 	  }
 
 	  // Returns a clone of request.
 	  clone () {
-	    webidl.brandCheck(this, Request);
+	    webidl.brandCheck(this, webidl.is.Request);
 
 	    // 1. If this is unusable, then throw a TypeError.
 	    if (bodyUnusable(this.#state)) {
@@ -29035,73 +30063,69 @@ function requireRequest () {
 	    return `Request ${nodeUtil.formatWithOptions(options, properties)}`
 	  }
 
-	  /**
-	   * @param {Request} request
-	   * @param {AbortSignal} newSignal
-	   */
-	  static setRequestSignal (request, newSignal) {
-	    request.#signal = newSignal;
-	    return request
-	  }
+	  static {
+	    /**
+	     * @param {Request} request
+	     * @param {AbortSignal} newSignal
+	     */
+	    setRequestSignal = (request, newSignal) => {
+	      request.#signal = newSignal;
+	    };
 
-	  /**
-	   * @param {Request} request
-	   */
-	  static getRequestDispatcher (request) {
-	    return request.#dispatcher
-	  }
+	    /**
+	     * @param {Request} request
+	     */
+	    getRequestDispatcher = (request) => {
+	      return request.#dispatcher
+	    };
 
-	  /**
-	   * @param {Request} request
-	   * @param {import('../../dispatcher/dispatcher')} newDispatcher
-	   */
-	  static setRequestDispatcher (request, newDispatcher) {
-	    request.#dispatcher = newDispatcher;
-	  }
+	    /**
+	     * @param {Request} request
+	     * @param {import('../../dispatcher/dispatcher')} newDispatcher
+	     */
+	    setRequestDispatcher = (request, newDispatcher) => {
+	      request.#dispatcher = newDispatcher;
+	    };
 
-	  /**
-	   * @param {Request} request
-	   * @param {Headers} newHeaders
-	   */
-	  static setRequestHeaders (request, newHeaders) {
-	    request.#headers = newHeaders;
-	  }
+	    /**
+	     * @param {Request} request
+	     * @param {Headers} newHeaders
+	     */
+	    setRequestHeaders = (request, newHeaders) => {
+	      request.#headers = newHeaders;
+	    };
 
-	  /**
-	   * @param {Request} request
-	   */
-	  static getRequestState (request) {
-	    return request.#state
-	  }
+	    /**
+	     * @param {Request} request
+	     */
+	    getRequestState = (request) => {
+	      return request.#state
+	    };
 
-	  /**
-	   * @param {Request} request
-	   * @param {any} newState
-	   */
-	  static setRequestState (request, newState) {
-	    request.#state = newState;
-	  }
+	    /**
+	     * @param {Request} request
+	     * @param {any} newState
+	     */
+	    setRequestState = (request, newState) => {
+	      request.#state = newState;
+	    };
 
-	  /**
-	   * Removes the `abort` listener that makes this request's signal follow the
-	   * signal passed to its constructor, if any. Idempotent.
-	   * @param {Request} request
-	   */
-	  static removeRequestAbortListener (request) {
-	    request.#abortCleanup?.();
+	    /**
+	     * Removes the `abort` listener that makes this request's signal follow the
+	     * signal passed to its constructor, if any. Idempotent.
+	     * @param {Request} request
+	     */
+	    removeRequestAbortListener = (request) => {
+	      request.#abortCleanup?.();
+	    };
+
+	    webidl.is.Request = (arg) => {
+	      return arg != null && typeof arg === 'object' && #state in arg
+	    };
 	  }
 	}
 
-	const { setRequestSignal, getRequestDispatcher, setRequestDispatcher, setRequestHeaders, getRequestState, setRequestState, removeRequestAbortListener } = Request;
-	Reflect.deleteProperty(Request, 'setRequestSignal');
-	Reflect.deleteProperty(Request, 'getRequestDispatcher');
-	Reflect.deleteProperty(Request, 'setRequestDispatcher');
-	Reflect.deleteProperty(Request, 'setRequestHeaders');
-	Reflect.deleteProperty(Request, 'getRequestState');
-	Reflect.deleteProperty(Request, 'setRequestState');
-	Reflect.deleteProperty(Request, 'removeRequestAbortListener');
-
-	mixinBody(Request, getRequestState);
+	mixinBody(Request, getRequestState, webidl.is.Request);
 
 	// https://fetch.spec.whatwg.org/#requests
 	function makeRequest (init) {
@@ -29118,7 +30142,7 @@ function requireRequest () {
 	    serviceWorkers: init.serviceWorkers ?? 'all',
 	    initiator: init.initiator ?? '',
 	    destination: init.destination ?? '',
-	    priority: init.priority ?? null,
+	    priority: init.priority ?? 'auto',
 	    origin: init.origin ?? 'client',
 	    policyContainer: init.policyContainer ?? 'client',
 	    referrer: init.referrer ?? 'client',
@@ -29215,8 +30239,6 @@ function requireRequest () {
 	    configurable: true
 	  }
 	});
-
-	webidl.is.Request = webidl.util.MakeTypeAssertion(Request);
 
 	/**
 	 * @param {*} V
@@ -29324,8 +30346,7 @@ function requireRequest () {
 	  {
 	    key: 'priority',
 	    converter: webidl.converters.DOMString,
-	    allowedValues: ['high', 'low', 'auto'],
-	    defaultValue: () => 'auto'
+	    allowedValues: ['high', 'low', 'auto']
 	  }
 	]);
 
@@ -29720,6 +30741,7 @@ function requireFetch () {
 	const EE = require$$0;
 	const { Readable, pipeline, finished, isErrored, isReadable } = require$$0$1;
 	const { addAbortListener, bufferToLowerCasedHeaderName } = util$p;
+	const { SocketError } = errors;
 	const { dataURLProcessor, serializeAMimeType, minimizeSupportedMimeType } = requireDataUrl();
 	const { getGlobalDispatcher } = global;
 	const { webidl } = requireWebidl();
@@ -30468,11 +31490,8 @@ function requireFetch () {
 	// https://fetch.spec.whatwg.org/#concept-scheme-fetch
 	// given a fetch params fetchParams
 	function schemeFetch (fetchParams) {
-	  // Note: since the connection is destroyed on redirect, which sets fetchParams to a
-	  // cancelled state, we do not want this condition to trigger *unless* there have been
-	  // no redirects. See https://github.com/nodejs/undici/issues/1776
 	  // 1. If fetchParams is canceled, then return the appropriate network error for fetchParams.
-	  if (isCancelled(fetchParams) && fetchParams.request.redirectCount === 0) {
+	  if (isCancelled(fetchParams)) {
 	    return Promise.resolve(makeAppropriateNetworkError(fetchParams))
 	  }
 
@@ -30686,18 +31705,18 @@ function requireFetch () {
 	  //    `Server-Timing` from response’s internal response’s header list.
 	  // TODO
 
-	  // 3. Let processResponseEndOfBody be the following steps:
+	  // 3. If fetchParams’s request’s destination is "document", then set fetchParams’s controller’s
+	  //    full timing info to fetchParams’s timing info.
+	  if (fetchParams.request.destination === 'document') {
+	    fetchParams.controller.fullTimingInfo = timingInfo;
+	  }
+
+	  // 4. Let processResponseEndOfBody be the following steps:
 	  const processResponseEndOfBody = () => {
 	    // 1. Let unsafeEndTime be the unsafe shared current time.
 	    const unsafeEndTime = Date.now(); // ?
 
-	    // 2. If fetchParams’s request’s destination is "document", then set fetchParams’s controller’s
-	    //    full timing info to fetchParams’s timing info.
-	    if (fetchParams.request.destination === 'document') {
-	      fetchParams.controller.fullTimingInfo = timingInfo;
-	    }
-
-	    // 3. Set fetchParams’s controller’s report timing steps to the following steps given a global object global:
+	    // 2. Set fetchParams’s controller’s report timing steps to the following steps given a global object global:
 	    fetchParams.controller.reportTimingSteps = () => {
 	      // 1. If fetchParams’s request’s URL’s scheme is not an HTTP(S) scheme, then return.
 	      if (!urlIsHttpHttpsScheme(fetchParams.request.url)) {
@@ -30746,7 +31765,7 @@ function requireFetch () {
 	      }
 	    };
 
-	    // 4. Let processResponseEndOfBodyTask be the following steps:
+	    // 3. Let processResponseEndOfBodyTask be the following steps:
 	    const processResponseEndOfBodyTask = () => {
 	      // 1. Set fetchParams’s request’s done flag.
 	      fetchParams.request.done = true;
@@ -30765,11 +31784,11 @@ function requireFetch () {
 	      }
 	    };
 
-	    // 5. Queue a fetch task to run processResponseEndOfBodyTask with fetchParams’s task destination
+	    // 4. Queue a fetch task to run processResponseEndOfBodyTask with fetchParams’s task destination
 	    queueMicrotask(() => processResponseEndOfBodyTask());
 	  };
 
-	  // 4. If fetchParams’s process response is non-null, then queue a fetch task to run fetchParams’s
+	  // 5. If fetchParams’s process response is non-null, then queue a fetch task to run fetchParams’s
 	  //    process response given response, with fetchParams’s task destination.
 	  if (fetchParams.processResponse != null) {
 	    queueMicrotask(() => {
@@ -30778,11 +31797,14 @@ function requireFetch () {
 	    });
 	  }
 
-	  // 5. Let internalResponse be response, if response is a network error; otherwise response’s internal response.
+	  // 6. Let internalResponse be response, if response is a network error; otherwise response’s internal response.
 	  const internalResponse = response.type === 'error' ? response : (response.internalResponse ?? response);
 
-	  // 6. If internalResponse’s body is null, then run processResponseEndOfBody.
-	  // 7. Otherwise:
+	  // 7. If response is a network error, then run the WebDriver BiDi fetch error steps with request.
+	  //    Otherwise, run the WebDriver BiDi response completed steps with request and response.
+
+	  // 8. If internalResponse’s body is null, then run processResponseEndOfBody.
+	  // 9. Otherwise:
 	  if (internalResponse.body == null) {
 	    processResponseEndOfBody();
 	  } else {
@@ -30799,6 +31821,27 @@ function requireFetch () {
 	    finished(internalResponse.body.stream, () => {
 	      processResponseEndOfBody();
 	    });
+	  }
+
+	  // 10. If fetchParams’s process response consume body is non-null, then:
+	  if (fetchParams.processResponseConsumeBody != null) {
+	    // 1. Let processBody given nullOrBytes be this step: run fetchParams’s
+	    //    process response consume body given response and nullOrBytes.
+	    const processBody = (nullOrBytes) => fetchParams.processResponseConsumeBody(response, nullOrBytes);
+
+	    // 2. Let processBodyError be this step: run fetchParams’s process
+	    //    response consume body given response and failure.
+	    const processBodyError = () => fetchParams.processResponseConsumeBody(response, 'failure');
+
+	    // 3. If internalResponse’s body is null, then queue a fetch task to run
+	    //    processBody given null, with fetchParams’s task destination.
+	    if (internalResponse.body == null) {
+	      queueMicrotask(() => processBody(null));
+	    } else {
+	      // 4. Otherwise, fully read internalResponse’s body given processBody,
+	      //    processBodyError, and fetchParams’s task destination.
+	      fullyReadBody(internalResponse.body, processBody, processBodyError);
+	    }
 	  }
 	}
 
@@ -30873,7 +31916,7 @@ function requireFetch () {
 	    // encouraged to, transmit an RST_STREAM frame.
 	    // See, https://github.com/whatwg/fetch/issues/1288
 	    if (request.redirect !== 'manual') {
-	      fetchParams.controller.connection.destroy(undefined, false);
+	      fetchParams.controller.connection.destroy();
 	    }
 
 	    // 2. Switch on request’s redirect mode:
@@ -31454,12 +32497,10 @@ function requireFetch () {
 	  fetchParams.controller.connection = {
 	    abort: null,
 	    destroyed: false,
-	    destroy (err, abort = true) {
+	    destroy (err) {
 	      if (!this.destroyed) {
 	        this.destroyed = true;
-	        if (abort) {
-	          this.abort?.(err ?? new DOMException('The operation was aborted.', 'AbortError'));
-	        }
+	        this.abort?.(err ?? new DOMException('The operation was aborted.', 'AbortError'));
 	      }
 	    }
 	  };
@@ -31973,7 +33014,7 @@ function requireFetch () {
 	            this.body?.push(null);
 	          },
 
-	          onResponseError (_controller, error) {
+	          onResponseError (controller, error) {
 	            if (this.abort) {
 	              fetchParams.controller.off('terminated', this.abort);
 	            }
@@ -31992,7 +33033,9 @@ function requireFetch () {
 
 	            this.body?.destroy(error);
 
-	            fetchParams.controller.terminate(error);
+	            if (!controller?.aborted) {
+	              fetchParams.controller.terminate(error);
+	            }
 
 	            reject(error);
 	          },
@@ -32001,6 +33044,11 @@ function requireFetch () {
 	            // We need to support 200 for websocket over h2 as per RFC-8441
 	            // Absence of session means H1
 	            if ((socket.session != null && status !== 200) || (socket.session == null && status !== 101)) {
+	              if (socket.session != null) {
+	                // The server refused the extended CONNECT, and nothing further
+	                // will settle this request. Fail the opening handshake here.
+	                controller.abort(new SocketError('bad upgrade', null));
+	              }
 	              return false
 	            }
 
@@ -32133,7 +33181,7 @@ function requireCache () {
 	  }
 
 	  async match (request, options = {}) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.match';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -32151,7 +33199,7 @@ function requireCache () {
 	  }
 
 	  async matchAll (request = undefined, options = {}) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.matchAll';
 	    if (request !== undefined) request = webidl.converters.RequestInfo(request);
@@ -32161,7 +33209,7 @@ function requireCache () {
 	  }
 
 	  async add (request) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.add';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -32179,7 +33227,7 @@ function requireCache () {
 	  }
 
 	  async addAll (requests) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.addAll';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -32277,7 +33325,10 @@ function requireCache () {
 	            }
 	          }
 	        },
-	        processResponseEndOfBody (response) {
+	        // Possible spec bug. If the body is never read, `processResponseEndOfBody` (which is attached to a TransformStream's flush hook)
+	        // never runs, so this would hang. This hook, on the other hand, always reads the body.
+	        // https://github.com/nodejs/undici/issues/5615
+	        processResponseConsumeBody (response) {
 	          // 1.
 	          if (response.aborted) {
 	            responsePromise.reject(new DOMException('aborted', 'AbortError'));
@@ -32349,7 +33400,7 @@ function requireCache () {
 	  }
 
 	  async put (request, response) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.put';
 	    webidl.argumentLengthCheck(arguments, 2, prefix);
@@ -32480,7 +33531,7 @@ function requireCache () {
 	  }
 
 	  async delete (request, options = {}) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.delete';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -32546,7 +33597,7 @@ function requireCache () {
 	   * @returns {Promise<readonly Request[]>}
 	   */
 	  async keys (request = undefined, options = {}) {
-	    webidl.brandCheck(this, Cache);
+	    webidl.brandCheck(this, webidl.is.Cache);
 
 	    const prefix = 'Cache.keys';
 
@@ -32896,6 +33947,12 @@ function requireCache () {
 	    // 6.
 	    return Object.freeze(responseList)
 	  }
+
+	  static {
+	    webidl.is.Cache = (arg) => {
+	      return arg != null && typeof arg === 'object' && #relevantRequestResponseList in arg
+	    };
+	  }
 	}
 
 	Object.defineProperties(Cache.prototype, {
@@ -32983,7 +34040,7 @@ function requireCachestorage () {
 	  }
 
 	  async match (request, options = {}) {
-	    webidl.brandCheck(this, CacheStorage);
+	    webidl.brandCheck(this, webidl.is.CacheStorage);
 	    webidl.argumentLengthCheck(arguments, 1, 'CacheStorage.match');
 
 	    request = webidl.converters.RequestInfo(request);
@@ -33020,7 +34077,7 @@ function requireCachestorage () {
 	   * @returns {Promise<boolean>}
 	   */
 	  async has (cacheName) {
-	    webidl.brandCheck(this, CacheStorage);
+	    webidl.brandCheck(this, webidl.is.CacheStorage);
 
 	    const prefix = 'CacheStorage.has';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -33038,7 +34095,7 @@ function requireCachestorage () {
 	   * @returns {Promise<Cache>}
 	   */
 	  async open (cacheName) {
-	    webidl.brandCheck(this, CacheStorage);
+	    webidl.brandCheck(this, webidl.is.CacheStorage);
 
 	    const prefix = 'CacheStorage.open';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -33072,7 +34129,7 @@ function requireCachestorage () {
 	   * @returns {Promise<boolean>}
 	   */
 	  async delete (cacheName) {
-	    webidl.brandCheck(this, CacheStorage);
+	    webidl.brandCheck(this, webidl.is.CacheStorage);
 
 	    const prefix = 'CacheStorage.delete';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -33087,13 +34144,19 @@ function requireCachestorage () {
 	   * @returns {Promise<string[]>}
 	   */
 	  async keys () {
-	    webidl.brandCheck(this, CacheStorage);
+	    webidl.brandCheck(this, webidl.is.CacheStorage);
 
 	    // 2.1
 	    const keys = this.#caches.keys();
 
 	    // 2.2
 	    return [...keys]
+	  }
+
+	  static {
+	    webidl.is.CacheStorage = (arg) => {
+	      return arg != null && typeof arg === 'object' && #caches in arg
+	    };
 	  }
 	}
 
@@ -33457,7 +34520,9 @@ function requireUtil$2 () {
 	    out.push(`Path=${cookie.path}`);
 	  }
 
-	  if (cookie.expires && cookie.expires.toString() !== 'Invalid Date') {
+	  // A numeric 0 is the Unix epoch, not an absent value -- the same reason the
+	  // Max-Age check above tests the type rather than truthiness.
+	  if (cookie.expires != null && cookie.expires.toString() !== 'Invalid Date') {
 	    out.push(`Expires=${toIMFDate(cookie.expires)}`);
 	  }
 
@@ -33594,221 +34659,224 @@ function requireParse () {
 	 * @param {Object.<string, unknown>} [cookieAttributeList={}]
 	 */
 	function parseUnparsedAttributes (unparsedAttributes, cookieAttributeList = {}) {
-	  // 1. If the unparsed-attributes string is empty, skip the rest of
-	  //    these steps.
-	  if (unparsedAttributes.length === 0) {
-	    return cookieAttributeList
-	  }
+	  while (true) {
+	    // 1. If the unparsed-attributes string is empty, skip the rest of
+	    //    these steps.
+	    if (unparsedAttributes.length === 0) {
+	      return cookieAttributeList
+	    }
 
-	  // 2. Discard the first character of the unparsed-attributes (which
-	  //    will be a %x3B (";") character).
-	  assert(unparsedAttributes[0] === ';');
-	  unparsedAttributes = unparsedAttributes.slice(1);
+	    // 2. Discard the first character of the unparsed-attributes (which
+	    //    will be a %x3B (";") character).
+	    assert(unparsedAttributes[0] === ';');
+	    unparsedAttributes = unparsedAttributes.slice(1);
 
-	  let cookieAv = '';
+	    let cookieAv = '';
 
-	  // 3. If the remaining unparsed-attributes contains a %x3B (";")
-	  //    character:
-	  if (unparsedAttributes.includes(';')) {
+	    // 3. If the remaining unparsed-attributes contains a %x3B (";")
+	    //    character:
+	    if (unparsedAttributes.includes(';')) {
 	    // 1. Consume the characters of the unparsed-attributes up to, but
 	    //    not including, the first %x3B (";") character.
-	    cookieAv = collectASequenceOfCodePointsFast(
-	      ';',
-	      unparsedAttributes,
-	      { position: 0 }
-	    );
-	    unparsedAttributes = unparsedAttributes.slice(cookieAv.length);
-	  } else {
+	      cookieAv = collectASequenceOfCodePointsFast(
+	        ';',
+	        unparsedAttributes,
+	        { position: 0 }
+	      );
+	      unparsedAttributes = unparsedAttributes.slice(cookieAv.length);
+	    } else {
 	    // Otherwise:
 
-	    // 1. Consume the remainder of the unparsed-attributes.
-	    cookieAv = unparsedAttributes;
-	    unparsedAttributes = '';
-	  }
+	      // 1. Consume the remainder of the unparsed-attributes.
+	      cookieAv = unparsedAttributes;
+	      unparsedAttributes = '';
+	    }
 
-	  // Let the cookie-av string be the characters consumed in this step.
+	    // Let the cookie-av string be the characters consumed in this step.
 
-	  let attributeName = '';
-	  let attributeValue = '';
+	    let attributeName = '';
+	    let attributeValue = '';
 
-	  // 4. If the cookie-av string contains a %x3D ("=") character:
-	  if (cookieAv.includes('=')) {
+	    // 4. If the cookie-av string contains a %x3D ("=") character:
+	    if (cookieAv.includes('=')) {
 	    // 1. The (possibly empty) attribute-name string consists of the
 	    //    characters up to, but not including, the first %x3D ("=")
 	    //    character, and the (possibly empty) attribute-value string
 	    //    consists of the characters after the first %x3D ("=")
 	    //    character.
-	    const position = { position: 0 };
+	      const position = { position: 0 };
 
-	    attributeName = collectASequenceOfCodePointsFast(
-	      '=',
-	      cookieAv,
-	      position
-	    );
-	    attributeValue = cookieAv.slice(position.position + 1);
-	  } else {
+	      attributeName = collectASequenceOfCodePointsFast(
+	        '=',
+	        cookieAv,
+	        position
+	      );
+	      attributeValue = cookieAv.slice(position.position + 1);
+	    } else {
 	    // Otherwise:
 
-	    // 1. The attribute-name string consists of the entire cookie-av
-	    //    string, and the attribute-value string is empty.
-	    attributeName = cookieAv;
-	  }
+	      // 1. The attribute-name string consists of the entire cookie-av
+	      //    string, and the attribute-value string is empty.
+	      attributeName = cookieAv;
+	    }
 
-	  // 5. Remove any leading or trailing WSP characters from the attribute-
-	  //    name string and the attribute-value string.
-	  attributeName = attributeName.trim();
-	  attributeValue = attributeValue.trim();
+	    // 5. Remove any leading or trailing WSP characters from the attribute-
+	    //    name string and the attribute-value string.
+	    attributeName = attributeName.trim();
+	    attributeValue = attributeValue.trim();
 
-	  // 6. If the attribute-value is longer than 1024 octets, ignore the
-	  //    cookie-av string and return to Step 1 of this algorithm.
-	  if (attributeValue.length > maxAttributeValueSize) {
-	    return parseUnparsedAttributes(unparsedAttributes, cookieAttributeList)
-	  }
+	    // 6. If the attribute-value is longer than 1024 octets, ignore the
+	    //    cookie-av string and return to Step 1 of this algorithm.
+	    if (attributeValue.length > maxAttributeValueSize) {
+	      continue
+	    }
 
-	  // 7. Process the attribute-name and attribute-value according to the
-	  //    requirements in the following subsections.  (Notice that
-	  //    attributes with unrecognized attribute-names are ignored.)
-	  const attributeNameLowercase = attributeName.toLowerCase();
+	    // 7. Process the attribute-name and attribute-value according to the
+	    //    requirements in the following subsections.  (Notice that
+	    //    attributes with unrecognized attribute-names are ignored.)
+	    const attributeNameLowercase = attributeName.toLowerCase();
 
-	  // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.1
-	  // If the attribute-name case-insensitively matches the string
-	  // "Expires", the user agent MUST process the cookie-av as follows.
-	  if (attributeNameLowercase === 'expires') {
+	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.1
+	    // If the attribute-name case-insensitively matches the string
+	    // "Expires", the user agent MUST process the cookie-av as follows.
+	    if (attributeNameLowercase === 'expires') {
 	    // 1. Let the expiry-time be the result of parsing the attribute-value
 	    //    as cookie-date (see Section 5.1.1).
-	    const expiryTime = new Date(attributeValue);
+	      const expiryTime = new Date(attributeValue);
 
-	    // 2. If the attribute-value failed to parse as a cookie date, ignore
-	    //    the cookie-av.
-	    if (!Number.isNaN(expiryTime.getTime())) {
-	      cookieAttributeList.expires = expiryTime;
-	    }
-	  } else if (attributeNameLowercase === 'max-age') {
+	      // 2. If the attribute-value failed to parse as a cookie date, ignore
+	      //    the cookie-av.
+	      if (!Number.isNaN(expiryTime.getTime())) {
+	        cookieAttributeList.expires = expiryTime;
+	      }
+	    } else if (attributeNameLowercase === 'max-age') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.2
 	    // If the attribute-name case-insensitively matches the string "Max-
 	    // Age", the user agent MUST process the cookie-av as follows.
 
-	    // 1. If the first character of the attribute-value is not a DIGIT or a
-	    //    "-" character, ignore the cookie-av.
-	    const charCode = attributeValue.charCodeAt(0);
+	      // 1. If the first character of the attribute-value is not a DIGIT or a
+	      //    "-" character, ignore the cookie-av.
+	      const charCode = attributeValue.charCodeAt(0);
+	      const startsWithDigit = charCode >= 48 && charCode <= 57;
+	      const startsWithSignedDigit = attributeValue[0] === '-' && attributeValue.length > 1;
 
-	    if ((charCode < 48 || charCode > 57) && attributeValue[0] !== '-') {
-	      return parseUnparsedAttributes(unparsedAttributes, cookieAttributeList)
-	    }
+	      if (!startsWithDigit && !startsWithSignedDigit) {
+	        continue
+	      }
 
-	    // 2. If the remainder of attribute-value contains a non-DIGIT
-	    //    character, ignore the cookie-av.
-	    if (!/^\d+$/.test(attributeValue)) {
-	      return parseUnparsedAttributes(unparsedAttributes, cookieAttributeList)
-	    }
+	      // 2. If the remainder of attribute-value contains a non-DIGIT
+	      //    character, ignore the cookie-av.
+	      if (/[^\d]/.test(attributeValue.slice(1))) {
+	        continue
+	      }
 
-	    // 3. Let delta-seconds be the attribute-value converted to an integer.
-	    const deltaSeconds = Number(attributeValue);
+	      // 3. Let delta-seconds be the attribute-value converted to an integer.
+	      const deltaSeconds = Number(attributeValue);
 
-	    // 4. Let cookie-age-limit be the maximum age of the cookie (which
-	    //    SHOULD be 400 days or less, see Section 4.1.2.2).
+	      // 4. Let cookie-age-limit be the maximum age of the cookie (which
+	      //    SHOULD be 400 days or less, see Section 4.1.2.2).
 
-	    // 5. Set delta-seconds to the smaller of its present value and cookie-
-	    //    age-limit.
-	    // deltaSeconds = Math.min(deltaSeconds * 1000, maxExpiresMs)
+	      // 5. Set delta-seconds to the smaller of its present value and cookie-
+	      //    age-limit.
+	      // deltaSeconds = Math.min(deltaSeconds * 1000, maxExpiresMs)
 
-	    // 6. If delta-seconds is less than or equal to zero (0), let expiry-
-	    //    time be the earliest representable date and time.  Otherwise, let
-	    //    the expiry-time be the current date and time plus delta-seconds
-	    //    seconds.
-	    // const expiryTime = deltaSeconds <= 0 ? Date.now() : Date.now() + deltaSeconds
+	      // 6. If delta-seconds is less than or equal to zero (0), let expiry-
+	      //    time be the earliest representable date and time.  Otherwise, let
+	      //    the expiry-time be the current date and time plus delta-seconds
+	      //    seconds.
+	      // const expiryTime = deltaSeconds <= 0 ? Date.now() : Date.now() + deltaSeconds
 
-	    // 7. Append an attribute to the cookie-attribute-list with an
-	    //    attribute-name of Max-Age and an attribute-value of expiry-time.
-	    cookieAttributeList.maxAge = deltaSeconds;
-	  } else if (attributeNameLowercase === 'domain') {
+	      // 7. Append an attribute to the cookie-attribute-list with an
+	      //    attribute-name of Max-Age and an attribute-value of expiry-time.
+	      cookieAttributeList.maxAge = deltaSeconds;
+	    } else if (attributeNameLowercase === 'domain') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.3
 	    // If the attribute-name case-insensitively matches the string "Domain",
 	    // the user agent MUST process the cookie-av as follows.
 
-	    // 1. Let cookie-domain be the attribute-value.
-	    let cookieDomain = attributeValue;
+	      // 1. Let cookie-domain be the attribute-value.
+	      let cookieDomain = attributeValue;
 
-	    // 2. If cookie-domain starts with %x2E ("."), let cookie-domain be
-	    //    cookie-domain without its leading %x2E (".").
-	    if (cookieDomain[0] === '.') {
-	      cookieDomain = cookieDomain.slice(1);
-	    }
+	      // 2. If cookie-domain starts with %x2E ("."), let cookie-domain be
+	      //    cookie-domain without its leading %x2E (".").
+	      if (cookieDomain[0] === '.') {
+	        cookieDomain = cookieDomain.slice(1);
+	      }
 
-	    // 3. Convert the cookie-domain to lower case.
-	    cookieDomain = cookieDomain.toLowerCase();
+	      // 3. Convert the cookie-domain to lower case.
+	      cookieDomain = cookieDomain.toLowerCase();
 
-	    // 4. Append an attribute to the cookie-attribute-list with an
-	    //    attribute-name of Domain and an attribute-value of cookie-domain.
-	    cookieAttributeList.domain = cookieDomain;
-	  } else if (attributeNameLowercase === 'path') {
+	      // 4. Append an attribute to the cookie-attribute-list with an
+	      //    attribute-name of Domain and an attribute-value of cookie-domain.
+	      cookieAttributeList.domain = cookieDomain;
+	    } else if (attributeNameLowercase === 'path') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.4
 	    // If the attribute-name case-insensitively matches the string "Path",
 	    // the user agent MUST process the cookie-av as follows.
 
-	    // 1. If the attribute-value is empty or if the first character of the
-	    //    attribute-value is not %x2F ("/"):
-	    let cookiePath = '';
-	    if (attributeValue.length === 0 || attributeValue[0] !== '/') {
+	      // 1. If the attribute-value is empty or if the first character of the
+	      //    attribute-value is not %x2F ("/"):
+	      let cookiePath = '';
+	      if (attributeValue.length === 0 || attributeValue[0] !== '/') {
 	      // 1. Let cookie-path be the default-path.
-	      cookiePath = '/';
-	    } else {
+	        cookiePath = '/';
+	      } else {
 	      // Otherwise:
 
-	      // 1. Let cookie-path be the attribute-value.
-	      cookiePath = attributeValue;
-	    }
+	        // 1. Let cookie-path be the attribute-value.
+	        cookiePath = attributeValue;
+	      }
 
-	    // 2. Append an attribute to the cookie-attribute-list with an
-	    //    attribute-name of Path and an attribute-value of cookie-path.
-	    cookieAttributeList.path = cookiePath;
-	  } else if (attributeNameLowercase === 'secure') {
+	      // 2. Append an attribute to the cookie-attribute-list with an
+	      //    attribute-name of Path and an attribute-value of cookie-path.
+	      cookieAttributeList.path = cookiePath;
+	    } else if (attributeNameLowercase === 'secure') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.5
 	    // If the attribute-name case-insensitively matches the string "Secure",
 	    // the user agent MUST append an attribute to the cookie-attribute-list
 	    // with an attribute-name of Secure and an empty attribute-value.
 
-	    cookieAttributeList.secure = true;
-	  } else if (attributeNameLowercase === 'httponly') {
+	      cookieAttributeList.secure = true;
+	    } else if (attributeNameLowercase === 'httponly') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.6
 	    // If the attribute-name case-insensitively matches the string
 	    // "HttpOnly", the user agent MUST append an attribute to the cookie-
 	    // attribute-list with an attribute-name of HttpOnly and an empty
 	    // attribute-value.
 
-	    cookieAttributeList.httpOnly = true;
-	  } else if (attributeNameLowercase === 'samesite') {
+	      cookieAttributeList.httpOnly = true;
+	    } else if (attributeNameLowercase === 'samesite') {
 	    // https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis#section-5.4.7
 	    // If the attribute-name case-insensitively matches the string
 	    // "SameSite", the user agent MUST process the cookie-av as follows:
 
-	    const attributeValueLowercase = attributeValue.toLowerCase();
+	      const attributeValueLowercase = attributeValue.toLowerCase();
 
-	    // 1. If cookie-av's attribute-value is a case-insensitive match for
-	    //    "None", append an attribute to the cookie-attribute-list with an
-	    //    attribute-name of "SameSite" and an attribute-value of "None".
-	    if (attributeValueLowercase === 'none') {
-	      cookieAttributeList.sameSite = 'None';
-	    } else if (attributeValueLowercase === 'strict') {
+	      // 1. If cookie-av's attribute-value is a case-insensitive match for
+	      //    "None", append an attribute to the cookie-attribute-list with an
+	      //    attribute-name of "SameSite" and an attribute-value of "None".
+	      if (attributeValueLowercase === 'none') {
+	        cookieAttributeList.sameSite = 'None';
+	      } else if (attributeValueLowercase === 'strict') {
 	      // 2. If cookie-av's attribute-value is a case-insensitive match for
 	      //    "Strict", append an attribute to the cookie-attribute-list with
 	      //    an attribute-name of "SameSite" and an attribute-value of
 	      //    "Strict".
-	      cookieAttributeList.sameSite = 'Strict';
-	    } else if (attributeValueLowercase === 'lax') {
+	        cookieAttributeList.sameSite = 'Strict';
+	      } else if (attributeValueLowercase === 'lax') {
 	      // 3. If cookie-av's attribute-value is a case-insensitive match for
 	      //    "Lax", append an attribute to the cookie-attribute-list with an
 	      //    attribute-name of "SameSite" and an attribute-value of "Lax".
-	      cookieAttributeList.sameSite = 'Lax';
-	    }
-	  } else {
-	    cookieAttributeList.unparsed ??= [];
+	        cookieAttributeList.sameSite = 'Lax';
+	      }
+	    } else {
+	      cookieAttributeList.unparsed ??= [];
 
-	    cookieAttributeList.unparsed.push(`${attributeName}=${attributeValue}`);
-	  }
+	      cookieAttributeList.unparsed.push(`${attributeName}=${attributeValue}`);
+	    }
 
 	  // 8. Return to Step 1 of this algorithm.
-	  return parseUnparsedAttributes(unparsedAttributes, cookieAttributeList)
+	  }
 	}
 
 	parse = {
@@ -33828,9 +34896,19 @@ function requireCookies () {
 	const { parseSetCookie } = requireParse();
 	const { stringify } = requireUtil$2();
 	const { webidl } = requireWebidl();
-	const { Headers } = requireHeaders();
 
-	const brandChecks = webidl.brandCheckMultiple([Headers, globalThis.Headers].filter(Boolean));
+	const globalHeadersBrandCheck = (arg) => webidl.brandCheck(arg, webidl.util.MakeTypeAssertion(globalThis.Headers));
+	const undiciHeadersBrandCheck = (arg) => webidl.brandCheck(arg, webidl.is.Headers);
+
+	function brandCheckHeaders (arg) {
+	  try {
+	    undiciHeadersBrandCheck(arg);
+	    return
+	  } catch {
+	  }
+
+	  globalHeadersBrandCheck(arg);
+	}
 
 	/**
 	 * @typedef {Object} Cookie
@@ -33853,12 +34931,14 @@ function requireCookies () {
 	function getCookies (headers) {
 	  webidl.argumentLengthCheck(arguments, 1, 'getCookies');
 
-	  brandChecks(headers);
+	  brandCheckHeaders(headers);
 
 	  const cookie = headers.get('cookie');
 
+	  // A null prototype keeps a cookie named `__proto__` from hitting the
+	  // Object.prototype setter, which would silently drop it.
 	  /** @type {Record<string, string>} */
-	  const out = {};
+	  const out = { __proto__: null };
 
 	  if (!cookie) {
 	    return out
@@ -33880,7 +34960,7 @@ function requireCookies () {
 	 * @returns {void}
 	 */
 	function deleteCookie (headers, name, attributes) {
-	  brandChecks(headers);
+	  brandCheckHeaders(headers);
 
 	  const prefix = 'deleteCookie';
 	  webidl.argumentLengthCheck(arguments, 2, prefix);
@@ -33905,7 +34985,7 @@ function requireCookies () {
 	function getSetCookies (headers) {
 	  webidl.argumentLengthCheck(arguments, 1, 'getSetCookies');
 
-	  brandChecks(headers);
+	  brandCheckHeaders(headers);
 
 	  const cookies = headers.getSetCookie();
 
@@ -33934,7 +35014,7 @@ function requireCookies () {
 	function setCookie (headers, cookie) {
 	  webidl.argumentLengthCheck(arguments, 2, 'setCookie');
 
-	  brandChecks(headers);
+	  brandCheckHeaders(headers);
 
 	  cookie = webidl.converters.Cookie(cookie);
 
@@ -34036,6 +35116,8 @@ function requireEvents () {
 	const { kEnumerableProperty } = util$p;
 	const { kConstruct } = requireSymbols();
 
+	let createFastMessageEvent;
+
 	/**
 	 * @see https://html.spec.whatwg.org/multipage/comms.html#messageevent
 	 */
@@ -34062,31 +35144,31 @@ function requireEvents () {
 	  }
 
 	  get data () {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    return this.#eventInit.data
 	  }
 
 	  get origin () {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    return this.#eventInit.origin
 	  }
 
 	  get lastEventId () {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    return this.#eventInit.lastEventId
 	  }
 
 	  get source () {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    return this.#eventInit.source
 	  }
 
 	  get ports () {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    if (!Object.isFrozen(this.#eventInit.ports)) {
 	      Object.freeze(this.#eventInit.ports);
@@ -34105,7 +35187,7 @@ function requireEvents () {
 	    source = null,
 	    ports = []
 	  ) {
-	    webidl.brandCheck(this, MessageEvent);
+	    webidl.brandCheck(this, webidl.is.MessageEvent);
 
 	    webidl.argumentLengthCheck(arguments, 1, 'MessageEvent.initMessageEvent');
 
@@ -34114,20 +35196,23 @@ function requireEvents () {
 	    })
 	  }
 
-	  static createFastMessageEvent (type, init) {
-	    const messageEvent = new MessageEvent(kConstruct, type, init);
-	    messageEvent.#eventInit = init;
-	    messageEvent.#eventInit.data ??= null;
-	    messageEvent.#eventInit.origin ??= '';
-	    messageEvent.#eventInit.lastEventId ??= '';
-	    messageEvent.#eventInit.source ??= null;
-	    messageEvent.#eventInit.ports ??= [];
-	    return messageEvent
+	  static {
+	    createFastMessageEvent = (type, init) => {
+	      const messageEvent = new MessageEvent(kConstruct, type, init);
+	      messageEvent.#eventInit = init;
+	      messageEvent.#eventInit.data ??= null;
+	      messageEvent.#eventInit.origin ??= '';
+	      messageEvent.#eventInit.lastEventId ??= '';
+	      messageEvent.#eventInit.source ??= null;
+	      messageEvent.#eventInit.ports ??= [];
+	      return messageEvent
+	    };
+
+	    webidl.is.MessageEvent = (arg) => {
+	      return arg != null && typeof arg === 'object' && #eventInit in arg
+	    };
 	  }
 	}
-
-	const { createFastMessageEvent } = MessageEvent;
-	delete MessageEvent.createFastMessageEvent;
 
 	/**
 	 * @see https://websockets.spec.whatwg.org/#the-closeevent-interface
@@ -34149,21 +35234,27 @@ function requireEvents () {
 	  }
 
 	  get wasClean () {
-	    webidl.brandCheck(this, CloseEvent);
+	    webidl.brandCheck(this, webidl.is.CloseEvent);
 
 	    return this.#eventInit.wasClean
 	  }
 
 	  get code () {
-	    webidl.brandCheck(this, CloseEvent);
+	    webidl.brandCheck(this, webidl.is.CloseEvent);
 
 	    return this.#eventInit.code
 	  }
 
 	  get reason () {
-	    webidl.brandCheck(this, CloseEvent);
+	    webidl.brandCheck(this, webidl.is.CloseEvent);
 
 	    return this.#eventInit.reason
+	  }
+
+	  static {
+	    webidl.is.CloseEvent = (arg) => {
+	      return arg != null && typeof arg === 'object' && #eventInit in arg
+	    };
 	  }
 	}
 
@@ -34185,33 +35276,39 @@ function requireEvents () {
 	  }
 
 	  get message () {
-	    webidl.brandCheck(this, ErrorEvent);
+	    webidl.brandCheck(this, webidl.is.ErrorEvent);
 
 	    return this.#eventInit.message
 	  }
 
 	  get filename () {
-	    webidl.brandCheck(this, ErrorEvent);
+	    webidl.brandCheck(this, webidl.is.ErrorEvent);
 
 	    return this.#eventInit.filename
 	  }
 
 	  get lineno () {
-	    webidl.brandCheck(this, ErrorEvent);
+	    webidl.brandCheck(this, webidl.is.ErrorEvent);
 
 	    return this.#eventInit.lineno
 	  }
 
 	  get colno () {
-	    webidl.brandCheck(this, ErrorEvent);
+	    webidl.brandCheck(this, webidl.is.ErrorEvent);
 
 	    return this.#eventInit.colno
 	  }
 
 	  get error () {
-	    webidl.brandCheck(this, ErrorEvent);
+	    webidl.brandCheck(this, webidl.is.ErrorEvent);
 
 	    return this.#eventInit.error
+	  }
+
+	  static {
+	    webidl.is.ErrorEvent = (arg) => {
+	      return arg != null && typeof arg === 'object' && #eventInit in arg
+	    };
 	  }
 	}
 
@@ -35096,13 +36193,13 @@ function requireConnection () {
 	        // The presence of a session property on the socket indicates HTTP2
 	        // HTTP1
 	        if (response.socket?.session == null) {
-	          failWebsocketConnection(handler, 1002, 'Received network error or non-101 status code.', response.error);
+	          failHandshake(handler, response, 1002, 'Received network error or non-101 status code.', response.error);
 	          return
 	        }
 
 	        // HTTP2
 	        if (response.status !== 200) {
-	          failWebsocketConnection(handler, 1002, 'Received network error or non-200 status code.', response.error);
+	          failHandshake(handler, response, 1002, 'Received network error or non-200 status code.', response.error);
 	          return
 	        }
 	      }
@@ -35117,7 +36214,7 @@ function requireConnection () {
 	      //    header list results in null, failure, or the empty byte
 	      //    sequence, then fail the WebSocket connection.
 	      if (protocols.length !== 0 && !response.headersList.get('Sec-WebSocket-Protocol')) {
-	        failWebsocketConnection(handler, 1002, 'Server did not respond with sent protocols.');
+	        failHandshake(handler, response, 1002, 'Server did not respond with sent protocols.');
 	        return
 	      }
 
@@ -35133,7 +36230,7 @@ function requireConnection () {
 	      //    _Fail the WebSocket Connection_.
 	      //    For H2, no upgrade header is expected.
 	      if (response.socket.session == null && response.headersList.get('Upgrade')?.toLowerCase() !== 'websocket') {
-	        failWebsocketConnection(handler, 1002, 'Server did not set Upgrade header to "websocket".');
+	        failHandshake(handler, response, 1002, 'Server did not set Upgrade header to "websocket".');
 	        return
 	      }
 
@@ -35143,7 +36240,7 @@ function requireConnection () {
 	      //    MUST _Fail the WebSocket Connection_.
 	      //    For H2, no connection header is expected.
 	      if (response.socket.session == null && response.headersList.get('Connection')?.toLowerCase() !== 'upgrade') {
-	        failWebsocketConnection(handler, 1002, 'Server did not set Connection header to "upgrade".');
+	        failHandshake(handler, response, 1002, 'Server did not set Connection header to "upgrade".');
 	        return
 	      }
 
@@ -35154,11 +36251,15 @@ function requireConnection () {
 	      //    E914-47DA-95CA-C5AB0DC85B11" but ignoring any leading and
 	      //    trailing whitespace, the client MUST _Fail the WebSocket
 	      //    Connection_.
-	      const secWSAccept = response.headersList.get('Sec-WebSocket-Accept');
-	      const digest = crypto.hash('sha1', keyValue + uid, 'base64');
-	      if (secWSAccept !== digest) {
-	        failWebsocketConnection(handler, 1002, 'Incorrect hash received in Sec-WebSocket-Accept header.');
-	        return
+	      //    For H2, implementations "do not do the processing of the Sec-WebSocket-Key and
+	      //    Sec-WebSocket-Accept header fields". https://datatracker.ietf.org/doc/html/rfc8441#section-5
+	      if (response.socket.session == null) {
+	        const secWSAccept = response.headersList.get('Sec-WebSocket-Accept');
+	        const digest = crypto.hash('sha1', keyValue + uid, 'base64');
+	        if (secWSAccept !== digest) {
+	          failHandshake(handler, response, 1002, 'Incorrect hash received in Sec-WebSocket-Accept header.');
+	          return
+	        }
 	      }
 
 	      // 5. If the response includes a |Sec-WebSocket-Extensions| header
@@ -35175,7 +36276,7 @@ function requireConnection () {
 	        extensions = parseExtensions(secExtension);
 
 	        if (!extensions.has('permessage-deflate')) {
-	          failWebsocketConnection(handler, 1002, 'Sec-WebSocket-Extensions header does not match.');
+	          failHandshake(handler, response, 1002, 'Sec-WebSocket-Extensions header does not match.');
 	          return
 	        }
 	      }
@@ -35195,10 +36296,17 @@ function requireConnection () {
 	        // is specified, the server needs to include the same field and one of
 	        // the selected subprotocol values in its response for the connection to
 	        // be established.
-	        if (!requestProtocols.includes(secProtocol)) {
-	          failWebsocketConnection(handler, 1002, 'Protocol was not set in the opening handshake.');
+	        if (requestProtocols === null || !requestProtocols.includes(secProtocol)) {
+	          failHandshake(handler, response, 1002, 'Protocol was not set in the opening handshake.');
 	          return
 	        }
+	      }
+
+	      // For H2, "Orderly TCP-level closures are represented as END_STREAM flags", so
+	      // end our side of the stream when the server ends its side, as a TCP socket would.
+	      // https://datatracker.ietf.org/doc/html/rfc8441#section-5
+	      if (response.socket.session != null) {
+	        response.socket.allowHalfOpen = false;
 	      }
 
 	      response.socket.on('data', handler.onSocketData);
@@ -35287,6 +36395,16 @@ function requireConnection () {
 	    // Set object’s ready state to CLOSING (2).
 	    object.readyState = states.CLOSING;
 	  }
+	}
+
+	function failHandshake (handler, response, code, reason, cause) {
+	  // The H2 upgrade request has already completed and handed off its stream.
+	  // Aborting the request cannot close that stream after handshake validation fails.
+	  if (response.socket?.session != null && !response.socket.destroyed) {
+	    response.socket.destroy();
+	  }
+
+	  failWebsocketConnection(handler, code, reason);
 	}
 
 	/**
@@ -35393,7 +36511,12 @@ function requirePermessageDeflate () {
 
 	        if (this.#maxPayloadSize > 0 && this.#inflate[kLength] > this.#maxPayloadSize) {
 	          callback(new MessageSizeExceededError());
+	          // The inflater may still hold buffered input that can emit a late
+	          // zlib error. Remove the data listener, then deterministically stop
+	          // the stream so a subsequent 'error' cannot fire without a listener
+	          // (which would terminate the process as an unhandled error event).
 	          this.#inflate.removeAllListeners();
+	          this.#inflate.destroy();
 	          this.#inflate = null;
 	          return
 	        }
@@ -35807,6 +36930,8 @@ function requireReceiver () {
 	  consumeFragments () {
 	    const fragments = this.#fragments;
 
+	    this.#info.compressed = false;
+
 	    if (fragments.length === 1) {
 	      // single fragment
 	      this.#fragmentsBytes = 0;
@@ -36098,6 +37223,8 @@ function requireWebsocket () {
 	const kRef = Symbol.for('nodejs.ref');
 	const kUnref = Symbol.for('nodejs.unref');
 
+	let ping;
+
 	function getSocketAddress (socket) {
 	  if (typeof socket?.address === 'function') {
 	    return socket.address()
@@ -36268,16 +37395,14 @@ function requireWebsocket () {
 	    this.#binaryType = 'blob';
 	  }
 
+	  // TODO: remove this
 	  [kRef] () {
-	    webidl.brandCheck(this, WebSocket);
-
 	    this.#refed = true;
 	    this.#handler.socket?.ref?.();
 	  }
 
+	  // TODO: remove this
 	  [kUnref] () {
-	    webidl.brandCheck(this, WebSocket);
-
 	    this.#refed = false;
 	    this.#handler.socket?.unref?.();
 	  }
@@ -36288,7 +37413,7 @@ function requireWebsocket () {
 	   * @param {string|undefined} reason
 	   */
 	  close (code = undefined, reason = undefined) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    const prefix = 'WebSocket.close';
 
@@ -36315,7 +37440,7 @@ function requireWebsocket () {
 	   * @param {NodeJS.TypedArray|ArrayBuffer|Blob|string} data
 	   */
 	  send (data) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    const prefix = 'WebSocket.send';
 	    webidl.argumentLengthCheck(arguments, 1, prefix);
@@ -36409,45 +37534,45 @@ function requireWebsocket () {
 	  }
 
 	  get readyState () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    // The readyState getter steps are to return this's ready state.
 	    return this.#handler.readyState
 	  }
 
 	  get bufferedAmount () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#bufferedAmount
 	  }
 
 	  get url () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    // The url getter steps are to return this's url, serialized.
 	    return URLSerializer(this.#url)
 	  }
 
 	  get extensions () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#extensions
 	  }
 
 	  get protocol () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#protocol
 	  }
 
 	  get onopen () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#events.open
 	  }
 
 	  set onopen (fn) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    if (this.#events.open) {
 	      this.removeEventListener('open', this.#events.open);
@@ -36464,13 +37589,13 @@ function requireWebsocket () {
 	  }
 
 	  get onerror () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#events.error
 	  }
 
 	  set onerror (fn) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    if (this.#events.error) {
 	      this.removeEventListener('error', this.#events.error);
@@ -36487,13 +37612,13 @@ function requireWebsocket () {
 	  }
 
 	  get onclose () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#events.close
 	  }
 
 	  set onclose (fn) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    if (this.#events.close) {
 	      this.removeEventListener('close', this.#events.close);
@@ -36510,13 +37635,13 @@ function requireWebsocket () {
 	  }
 
 	  get onmessage () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#events.message
 	  }
 
 	  set onmessage (fn) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    if (this.#events.message) {
 	      this.removeEventListener('message', this.#events.message);
@@ -36533,13 +37658,13 @@ function requireWebsocket () {
 	  }
 
 	  get binaryType () {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    return this.#binaryType
 	  }
 
 	  set binaryType (type) {
-	    webidl.brandCheck(this, WebSocket);
+	    webidl.brandCheck(this, webidl.is.WebSocket);
 
 	    if (type !== 'blob' && type !== 'arraybuffer') {
 	      this.#binaryType = 'blob';
@@ -36724,32 +37849,35 @@ function requireWebsocket () {
 	    }
 	  }
 
-	  /**
-	   * @param {WebSocket} ws
-	   * @param {Buffer|undefined} buffer
-	   */
-	  static ping (ws, buffer) {
-	    if (Buffer.isBuffer(buffer)) {
-	      if (buffer.length > 125) {
-	        throw new TypeError('A PING frame cannot have a body larger than 125 bytes.')
+	  static {
+	    /**
+	     * @param {WebSocket} ws
+	     * @param {Buffer|undefined} buffer
+	     */
+	    ping = (ws, buffer) => {
+	      if (Buffer.isBuffer(buffer)) {
+	        if (buffer.length > 125) {
+	          throw new TypeError('A PING frame cannot have a body larger than 125 bytes.')
+	        }
+	      } else if (buffer !== undefined) {
+	        throw new TypeError('Expected buffer payload')
 	      }
-	    } else if (buffer !== undefined) {
-	      throw new TypeError('Expected buffer payload')
-	    }
 
-	    // An endpoint MAY send a Ping frame any time after the connection is
-	    // established and before the connection is closed.
-	    const readyState = ws.#handler.readyState;
+	      // An endpoint MAY send a Ping frame any time after the connection is
+	      // established and before the connection is closed.
+	      const readyState = ws.#handler.readyState;
 
-	    if (isEstablished(readyState) && !isClosing(readyState) && !isClosed(readyState)) {
-	      const frame = new WebsocketFrameSend(buffer);
-	      ws.#handler.socket.write(frame.createFrame(opcodes.PING));
-	    }
+	      if (isEstablished(readyState) && !isClosing(readyState) && !isClosed(readyState)) {
+	        const frame = new WebsocketFrameSend(buffer);
+	        ws.#handler.socket.write(frame.createFrame(opcodes.PING));
+	      }
+	    };
+
+	    webidl.is.WebSocket = (arg) => {
+	      return arg != null && typeof arg === 'object' && #handler in arg
+	    };
 	  }
 	}
-
-	const { ping } = WebSocket;
-	Reflect.deleteProperty(WebSocket, 'ping');
 
 	// https://websockets.spec.whatwg.org/#dom-websocket-connecting
 	WebSocket.CONNECTING = WebSocket.prototype.CONNECTING = states.CONNECTING;
@@ -36884,6 +38012,8 @@ function requireWebsocketerror () {
 	  })
 	}
 
+	let createUnvalidatedWebSocketError;
+
 	class WebSocketError extends createInheritableDOMException() {
 	  #closeCode
 	  #reason
@@ -36935,16 +38065,19 @@ function requireWebsocketerror () {
 	   * @param {number|null} code
 	   * @param {string} reason
 	   */
-	  static createUnvalidatedWebSocketError (message, code, reason) {
-	    const error = new WebSocketError(message, kConstruct);
-	    error.#closeCode = code;
-	    error.#reason = reason;
-	    return error
+	  static {
+	    createUnvalidatedWebSocketError = (message, code, reason) => {
+	      const error = new WebSocketError(message, kConstruct);
+	      error.#closeCode = code;
+	      error.#reason = reason;
+	      return error
+	    };
+
+	    webidl.is.WebSocketError = (arg) => {
+	      return arg != null && typeof arg === 'object' && #reason in arg
+	    };
 	  }
 	}
-
-	const { createUnvalidatedWebSocketError } = WebSocketError;
-	delete WebSocketError.createUnvalidatedWebSocketError;
 
 	Object.defineProperties(WebSocketError.prototype, {
 	  closeCode: kEnumerableProperty,
@@ -36956,8 +38089,6 @@ function requireWebsocketerror () {
 	    configurable: true
 	  }
 	});
-
-	webidl.is.WebSocketError = webidl.util.MakeTypeAssertion(WebSocketError);
 
 	websocketerror = { WebSocketError, createUnvalidatedWebSocketError };
 	return websocketerror;
@@ -37004,9 +38135,9 @@ function requireWebsocketstream () {
 	  /** @type {ReadableStreamDefaultController} */
 	  #readableStreamController
 
-	  // Each WebSocketStream object has an associated writable stream , which is a WritableStream .
-	  /** @type {WritableStream} */
-	  #writableStream
+	  // Retain the controller so the writable stream can be errored while locked.
+	  /** @type {WritableStreamDefaultController} */
+	  #writableStreamController
 
 	  // Each WebSocketStream object has an associated boolean handshake aborted , which is initially false.
 	  #handshakeAborted = false
@@ -37032,7 +38163,9 @@ function requireWebsocketstream () {
 
 	      this.#handler.socket.destroy();
 	    },
-	    onSocketClose: () => this.#onSocketClose(),
+	    // When the WebSocket connection is closed for a WebSocketStream stream, possibly cleanly, the user agent must
+	    // queue a global task on the WebSocket task source given stream ’s relevant global object to run the following substeps:
+	    onSocketClose: () => queueMicrotask(() => this.#onSocketClose()),
 	    onPing: () => {},
 	    onPong: () => {},
 
@@ -37216,11 +38349,15 @@ function requireWebsocketstream () {
 	      const frame = new WebsocketFrameSend(data);
 
 	      this.#handler.socket.write(frame.createFrame(opcode), () => {
+	        // 6.3. Queue a global task on the WebSocket task source given stream ’s relevant global object to resolve promise with undefined.
 	        promise.resolve(undefined);
 	      });
+	    } else {
+	      // 6.3. Queue a global task on the WebSocket task source given stream ’s relevant global object to resolve promise with undefined.
+	      promise.resolve(undefined);
 	    }
 
-	    // 6.3. Queue a global task on the WebSocket task source given stream ’s relevant global object to resolve promise with undefined.
+	    // 7. Return promise.
 	    return promise.promise
 	  }
 
@@ -37248,7 +38385,7 @@ function requireWebsocketstream () {
 	    // This is done in the opening handshake.
 
 	    // 3. Let extensions be the extensions in use .
-	    const extensions = parsedExtensions ?? '';
+	    const extensions = response.headersList.get('sec-websocket-extensions') ?? '';
 
 	    // 4. Let protocol be the subprotocol in use .
 	    const protocol = response.headersList.get('sec-websocket-protocol') ?? '';
@@ -37261,6 +38398,7 @@ function requireWebsocketstream () {
 	      start: (controller) => {
 	        this.#readableStreamController = controller;
 	      },
+	      pull: () => this.#pull(),
 	      cancel: (reason) => this.#cancel(reason)
 	    });
 
@@ -37270,6 +38408,9 @@ function requireWebsocketstream () {
 	    // 12. Let writable be a new WritableStream .
 	    // 13. Set up writable with writeAlgorithm , closeAlgorithm , and abortAlgorithm .
 	    const writable = new WritableStream({
+	      start: (controller) => {
+	        this.#writableStreamController = controller;
+	      },
 	      write: (chunk) => this.#write(chunk),
 	      close: () => closeWebSocketConnection(this.#handler, null, null),
 	      abort: (reason) => this.#closeUsingReason(reason)
@@ -37277,9 +38418,6 @@ function requireWebsocketstream () {
 
 	    // Set stream ’s readable stream to readable .
 	    this.#readableStream = readable;
-
-	    // Set stream ’s writable stream to writable .
-	    this.#writableStream = writable;
 
 	    // Resolve stream ’s opened promise with WebSocketOpenInfo «[ " extensions " → extensions , " protocol " → protocol , " readable " → readable , " writable " → writable ]».
 	    this.#openedPromise.resolve({
@@ -37320,6 +38458,9 @@ function requireWebsocketstream () {
 	    this.#readableStreamController.enqueue(chunk);
 
 	    // 4. Apply backpressure to the WebSocket.
+	    if (this.#readableStreamController.desiredSize <= 0) {
+	      this.#handler.socket.pause();
+	    }
 	  }
 
 	  /** @type {import('../websocket').Handler['onSocketClose']} */
@@ -37353,7 +38494,7 @@ function requireWebsocketstream () {
 	    // 1006.
 	    let code = result?.code ?? 1005;
 
-	    if (!this.#handler.closeState.has(sentCloseFrameState.SENT) && !this.#handler.closeState.has(sentCloseFrameState.RECEIVED)) {
+	    if (!this.#handler.closeState.has(sentCloseFrameState.RECEIVED)) {
 	      code = 1006;
 	    }
 
@@ -37366,9 +38507,7 @@ function requireWebsocketstream () {
 	      readableStreamClose(this.#readableStreamController);
 
 	      // 6.2. Error stream ’s writable stream with an " InvalidStateError " DOMException indicating that a closed WebSocketStream cannot be written to.
-	      if (!this.#writableStream.locked) {
-	        this.#writableStream.abort(new DOMException('A closed WebSocketStream cannot be written to', 'InvalidStateError'));
-	      }
+	      this.#writableStreamController.error(new DOMException('A closed WebSocketStream cannot be written to', 'InvalidStateError'));
 
 	      // 6.3. Resolve stream ’s closed promise with WebSocketCloseInfo «[ " closeCode " → code , " reason " → reason ]».
 	      this.#closedPromise.resolve({
@@ -37385,7 +38524,7 @@ function requireWebsocketstream () {
 	      this.#readableStreamController?.error(error);
 
 	      // 7.3. Error stream ’s writable stream with error .
-	      this.#writableStream?.abort(error);
+	      this.#writableStreamController?.error(error);
 
 	      // 7.4. Reject stream ’s closed promise with error .
 	      this.#closedPromise.reject(error);
@@ -37411,6 +38550,11 @@ function requireWebsocketstream () {
 	    // 4. Close the WebSocket with stream , code , and reasonString . If this throws an exception,
 	    //    discard code and reasonString and close the WebSocket with stream .
 	    closeWebSocketConnection(this.#handler, code, reasonString);
+	  }
+
+	  // To pull bytes from a WebSocketStream stream , if stream is currently applying backpressure, release backpressure.
+	  #pull () {
+	    this.#handler.socket.resume();
 	  }
 
 	  //  To cancel a WebSocketStream stream given reason , close using reason giving stream and reason .
@@ -37543,6 +38687,7 @@ var hasRequiredEventsourceStream;
 function requireEventsourceStream () {
 	if (hasRequiredEventsourceStream) return eventsourceStream;
 	hasRequiredEventsourceStream = 1;
+	const buffer = require$$0$4;
 	const { Transform } = require$$0$1;
 	const { isASCIINumber, isValidLastEventId } = requireUtil();
 
@@ -37566,6 +38711,8 @@ function requireEventsourceStream () {
 	 * @type {32} SPACE
 	 */
 	const SPACE = 0x20;
+
+	const defaultMaxEventSize = buffer.kStringMaxLength;
 
 	const DATA = Buffer.from('data');
 	const EVENT = Buffer.from('event');
@@ -37608,6 +38755,12 @@ function requireEventsourceStream () {
 	  }
 
 	  return true
+	}
+
+	function createMaxEventSizeExceededError () {
+	  const error = new Error('EventSource message size exceeded');
+	  error.aborted = false;
+	  return error
 	}
 
 	/**
@@ -37658,6 +38811,8 @@ function requireEventsourceStream () {
 	  pos = 0
 	  lineChunkIndex = 0
 	  linePos = 0
+	  eventDataSize = 0
+	  maxEventSize
 
 	  event = {
 	    data: undefined,
@@ -37669,6 +38824,7 @@ function requireEventsourceStream () {
 	  /**
 	   * @param {object} options
 	   * @param {boolean} [options.readableObjectMode]
+	   * @param {number} [options.maxEventSize]
 	   * @param {eventSourceSettings} [options.eventSourceSettings]
 	   * @param {(chunk: any, encoding?: BufferEncoding | undefined) => boolean} [options.push]
 	   */
@@ -37680,6 +38836,7 @@ function requireEventsourceStream () {
 	    super(options);
 
 	    this.state = options.eventSourceSettings || {};
+	    this.maxEventSize = options.maxEventSize ?? defaultMaxEventSize;
 	    if (options.push) {
 	      this.push = options.push;
 	    }
@@ -37775,7 +38932,12 @@ function requireEventsourceStream () {
 
 	        // In any case, we can process the line as we reached an
 	        // end-of-line character
-	        this.parseLine(this.readLine(), this.event);
+	        try {
+	          this.parseLine(this.readLine(), this.event);
+	        } catch (error) {
+	          callback(error);
+	          return
+	        }
 	        this.consumeCurrentByte();
 	        // A line was processed and this could be the end of the event. We need
 	        // to check if the next line is empty to determine if the event is
@@ -37826,6 +38988,13 @@ function requireEventsourceStream () {
 	    }
 
 	    if (isFieldName(line, fieldLength, DATA)) {
+	      const valueBytes = line.length - valueStart;
+	      const eventDataSize = this.eventDataSize + (event.data === undefined ? 0 : 1) + valueBytes;
+
+	      if (this.maxEventSize > 0 && eventDataSize > this.maxEventSize) {
+	        throw createMaxEventSizeExceededError()
+	      }
+
 	      const value = line.toString('utf8', valueStart);
 
 	      if (event.data === undefined) {
@@ -37833,6 +39002,7 @@ function requireEventsourceStream () {
 	      } else {
 	        event.data += `\n${value}`;
 	      }
+	      this.eventDataSize = eventDataSize;
 	      return
 	    }
 
@@ -37889,6 +39059,7 @@ function requireEventsourceStream () {
 	    this.event.event = undefined;
 	    this.event.id = undefined;
 	    this.event.retry = undefined;
+	    this.eventDataSize = 0;
 	  }
 
 	  hasPendingEvent () {
@@ -38053,9 +39224,13 @@ function requireEventsource () {
 	const { parseMIMEType } = requireDataUrl();
 	const { createFastMessageEvent } = requireEvents();
 	const { isNetworkError } = requireResponse();
-	const { kEnumerableProperty } = util$p;
+	const { isValidHeaderValue, kEnumerableProperty } = util$p;
 	const { environmentSettingsObject } = requireUtil$4();
 	const { createPotentialCORSRequest } = requireUtil();
+	const { getGlobalDispatcher } = global;
+	const { isomorphicDecode } = requireInfra();
+
+	const textEncoder = new TextEncoder();
 
 	let experimentalWarned = false;
 
@@ -38233,6 +39408,8 @@ function requireEventsource () {
 	   * @readonly
 	   */
 	  get readyState () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#readyState
 	  }
 
@@ -38242,6 +39419,8 @@ function requireEventsource () {
 	   * @returns {string}
 	   */
 	  get url () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#url
 	  }
 
@@ -38250,6 +39429,8 @@ function requireEventsource () {
 	   * instantiated with CORS credentials set (true), or not (false, the default).
 	   */
 	  get withCredentials () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#withCredentials
 	  }
 
@@ -38327,6 +39508,7 @@ function requireEventsource () {
 
 	      const eventSourceStream = new EventSourceStream({
 	        eventSourceSettings: this.#state,
+	        maxEventSize: this.#dispatcher.eventSourceOptions?.maxEventSize,
 	        push: (event) => {
 	          this.dispatchEvent(createFastMessageEvent(
 	            event.type,
@@ -38386,8 +39568,12 @@ function requireEventsource () {
 	      //         string, encoded as UTF-8.
 	      //      2. Set (`Last-Event-ID`, lastEventIDValue) in request's header
 	      //         list.
+	      this.#request.headersList.delete('last-event-id', true);
 	      if (this.#state.lastEventId.length) {
-	        this.#request.headersList.set('last-event-id', this.#state.lastEventId, true);
+	        const lastEventId = isomorphicDecode(textEncoder.encode(this.#state.lastEventId));
+	        if (isValidHeaderValue(lastEventId)) {
+	          this.#request.headersList.set('last-event-id', lastEventId, true);
+	        }
 	      }
 
 	      //   4. Fetch request and process the response obtained in this fashion, if any, as described earlier in this section.
@@ -38400,7 +39586,7 @@ function requireEventsource () {
 	   * CLOSED.
 	   */
 	  close () {
-	    webidl.brandCheck(this, EventSource);
+	    webidl.brandCheck(this, webidl.is.EventSource);
 
 	    if (this.#readyState === CLOSED) return
 	    this.#readyState = CLOSED;
@@ -38409,10 +39595,14 @@ function requireEventsource () {
 	  }
 
 	  get onopen () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#events.open
 	  }
 
 	  set onopen (fn) {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    if (this.#events.open) {
 	      this.removeEventListener('open', this.#events.open);
 	    }
@@ -38428,10 +39618,14 @@ function requireEventsource () {
 	  }
 
 	  get onmessage () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#events.message
 	  }
 
 	  set onmessage (fn) {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    if (this.#events.message) {
 	      this.removeEventListener('message', this.#events.message);
 	    }
@@ -38447,10 +39641,14 @@ function requireEventsource () {
 	  }
 
 	  get onerror () {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    return this.#events.error
 	  }
 
 	  set onerror (fn) {
+	    webidl.brandCheck(this, webidl.is.EventSource);
+
 	    if (this.#events.error) {
 	      this.removeEventListener('error', this.#events.error);
 	    }
@@ -38463,6 +39661,12 @@ function requireEventsource () {
 	    } else {
 	      this.#events.error = null;
 	    }
+	  }
+
+	  static {
+	    webidl.is.EventSource = (arg) => {
+	      return arg != null && typeof arg === 'object' && #events in arg
+	    };
 	  }
 	}
 
@@ -38511,7 +39715,8 @@ function requireEventsource () {
 	  },
 	  {
 	    key: 'dispatcher', // undici only
-	    converter: webidl.converters.any
+	    converter: webidl.converters.any,
+	    defaultValue: () => getGlobalDispatcher()
 	  },
 	  {
 	    key: 'node', // undici only
