@@ -3,6 +3,7 @@ import { HostApiPermissionDenied } from "../../sdk/PluginError"
 import { isNull } from "../../../platform-kit/utils/Utils"
 import { PluginManifest } from "../../sdk/PluginManifest"
 import { WindowHostApi } from "../../sdk/hostApi/WindowHostApi"
+import { EnvProvider } from "@tutao/app-env"
 
 export class WindowHost implements WindowHostApi {
 	private nextWindowId = 0
@@ -20,7 +21,13 @@ export class WindowHost implements WindowHostApi {
 		// 	throw new HostApiPermissionDenied(`Hostname: ${targetUrl.host} is not included in manifest permissions.windowOpen.allowedDomains`)
 		// }
 
-		const win = window.open(url)
+		let win: Nullable<Window> = null
+		if (EnvProvider.get().isIOSApp()) {
+			window.location.href = url
+		} else {
+			win = window.open(url)
+		}
+
 		const windowId = this.nextWindowId++
 		if (isNull(win)) {
 			this.openedWindows.set(windowId, null)
