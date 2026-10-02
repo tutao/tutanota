@@ -31,6 +31,7 @@ export class HttpClientJavascript implements HttpClient {
 		uploadProgressListener: ProgressListener | null,
 		downloadProgressListener: ProgressListener | null,
 	): Promise<HttpResponse> {
+		url = EnvProvider.get().rewriteSchemeForIos(url)
 		// @ts-ignore
 		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
 		const verbose: boolean = EnvProvider.isWorker() && debug

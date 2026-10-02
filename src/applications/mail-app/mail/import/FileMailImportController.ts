@@ -110,7 +110,7 @@ export class FileMailImportController {
 			const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)
 			const userId = this.loginController.getUserController().userId
 			const unencryptedCredentials = assertNotNull(await this.credentialsProvider?.getDecryptedCredentialsByUserId(userId))
-			const apiUrl = EnvProvider.get().getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+			const apiUrl = EnvProvider.get().rewriteSchemeForIos(this.domainConfigProvider.getCurrentDomainConfig().apiUrl)
 
 			try {
 				activeImportId = await importFacade.getResumableImport(elementIdToId(mailbox._id), mailOwnerGroupId, unencryptedCredentials, apiUrl)
@@ -267,7 +267,7 @@ export class FileMailImportController {
 		if (isEmpty(fileUris)) return
 		if (!this.shouldRenderStartButton()) throw new ProgrammingError("can't change state to starting")
 
-		const apiUrl = EnvProvider.get().getApiBaseUrl(this.domainConfigProvider.getCurrentDomainConfig())
+		const apiUrl = EnvProvider.get().rewriteSchemeForIos(this.domainConfigProvider.getCurrentDomainConfig().apiUrl)
 		const mailbox = assertNotNull(this.selectedMailBoxDetail).mailbox
 		const mailboxId = elementIdToId(mailbox._id)
 		const mailOwnerGroupId = assertNotNull(mailbox._ownerGroup)

@@ -250,14 +250,17 @@ export class EnvProvider {
 		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
 
-	/** Returns the origin which should be used for API requests. */
-	public getApiBaseUrl(domainConfig: DomainConfig): string {
+	/**
+	 * Rewrites the scheme to api://|apis:// which is intercepted by the ApiSchemeHandler on iOS
+	 * This is done in order to avoid preflight requests with Origin asset://app
+	 * @param url
+	 */
+	public rewriteSchemeForIos(url: string): string {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
-			return domainConfig.apiUrl.replace(/^http/, "api")
-		} else {
-			return domainConfig.apiUrl
+			return url.replace(/^http/, "api")
 		}
+		return url
 	}
 
 	static assertMainOrNode(): void {
