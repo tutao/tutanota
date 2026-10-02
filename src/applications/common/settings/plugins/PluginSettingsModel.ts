@@ -32,7 +32,7 @@ export class PluginSettingsModel {
 	}
 
 	public getConfigFieldValue(pluginId: PluginId, fieldName: string): string {
-		return this.pluginManager.getConfigFieldValue(pluginId, fieldName)
+		return this.pluginManager.getConfigFieldValue(pluginId, fieldName) ?? ""
 	}
 
 	/** Config fields are defined by the plugin itself and only registered once its bundle has been loaded, i.e. while it's enabled. */
