@@ -133,4 +133,14 @@ export abstract class PluginApi {
 	abstract verifyCustomerConfiguration(newCustomerConfig: string): Promise<void>
 	abstract onUserConfigChange(): Promise<void>
 	abstract onCustomerConfigChange(): Promise<void>
+
+	/**
+	 * PluginLoader needs to set up the env variable on the plugin thread,
+	 * we use this method to pass the env from the main thread.
+	 *
+	 * Note:
+	 * Plugins do not need to implement this method and even when implemented
+	 * the implementation will always be overriden by PluginApi proxy. see: PluginLoader
+	 */
+	async setupEnv(envString: string): Promise<void> {}
 }

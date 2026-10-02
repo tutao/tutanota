@@ -58,6 +58,14 @@ class PluginWorkerImpl {
 			get: (_: PluginApi, property: string) => {
 				return (messageArgs: Request<keyof PluginApi>): Promise<any> => {
 					assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
+					if (property === "setupEnv") {
+						globalThis.env = JSON.parse(messageArgs.args[0])
+						// Note:
+						// this way, even when plugins implement the setupEnv function,
+						// we always override the implementation
+						return Promise.resolve()
+					}
+
 					const targetMethod = pluginApi[messageArgs.requestType] as (...args: any) => Promise<any>
 					const bindedMethod = targetMethod.bind(pluginApi)
 					return bindedMethod(...messageArgs.args)
