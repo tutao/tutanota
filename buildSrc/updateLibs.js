@@ -214,7 +214,16 @@ async function rollupImapLibraries(src, target, banner) {
 		},
 		plugins: [
 			alias({
-				entries: [],
+				entries: [
+					{
+						find: /^\.{1,2}\/(?:middleware\/)?options\/TelemetryHandlerOptions$/,
+						replacement: path.resolve(__dirname, "../libs/microsoft-graph-client-telemetry-handler-option-stub.js"),
+					},
+					{
+						find: /^\.{1,2}\/(?:middleware\/)?TelemetryHandler$/,
+						replacement: path.resolve(__dirname, "../libs/microsoft-graph-client-telemetry-handler-stub.js"),
+					},
+				],
 			}),
 			// logResolvePlugin,
 			nodeResolve(),

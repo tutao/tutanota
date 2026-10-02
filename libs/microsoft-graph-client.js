@@ -294,21 +294,6 @@ class MiddlewareControl {
  */
 /**
  * @constant
- * To generate the UUID
- * @returns The UUID string
- */
-const generateUUID = () => {
-    let uuid = "";
-    for (let j = 0; j < 32; j++) {
-        if (j === 8 || j === 12 || j === 16 || j === 20) {
-            uuid += "-";
-        }
-        uuid += Math.floor(Math.random() * 16).toString(16);
-    }
-    return uuid;
-};
-/**
- * @constant
  * To get the request header from the request
  * @param {RequestInfo} request - The request object or the url string
  * @param {FetchOptions|undefined} options - The request options object
@@ -466,82 +451,6 @@ class AuthenticationHandlerOptions {
  * -------------------------------------------------------------------------------------------
  */
 /**
- * @enum
- * @property {number} NONE - The hexadecimal flag value for nothing enabled
- * @property {number} REDIRECT_HANDLER_ENABLED - The hexadecimal flag value for redirect handler enabled
- * @property {number} RETRY_HANDLER_ENABLED - The hexadecimal flag value for retry handler enabled
- * @property {number} AUTHENTICATION_HANDLER_ENABLED - The hexadecimal flag value for the authentication handler enabled
- */
-var FeatureUsageFlag;
-(function (FeatureUsageFlag) {
-    /* eslint-disable  @typescript-eslint/naming-convention */
-    FeatureUsageFlag[FeatureUsageFlag["NONE"] = 0] = "NONE";
-    FeatureUsageFlag[FeatureUsageFlag["REDIRECT_HANDLER_ENABLED"] = 1] = "REDIRECT_HANDLER_ENABLED";
-    FeatureUsageFlag[FeatureUsageFlag["RETRY_HANDLER_ENABLED"] = 2] = "RETRY_HANDLER_ENABLED";
-    FeatureUsageFlag[FeatureUsageFlag["AUTHENTICATION_HANDLER_ENABLED"] = 4] = "AUTHENTICATION_HANDLER_ENABLED";
-    /* eslint-enable  @typescript-eslint/naming-convention */
-})(FeatureUsageFlag || (FeatureUsageFlag = {}));
-/**
- * @class
- * @implements MiddlewareOptions
- * Class for TelemetryHandlerOptions
- */
-class TelemetryHandlerOptions {
-    constructor() {
-        /**
-         * @private
-         * A member to hold the OR of feature usage flags
-         */
-        this.featureUsage = FeatureUsageFlag.NONE;
-    }
-    /**
-     * @public
-     * @static
-     * To update the feature usage in the context object
-     * @param {Context} context - The request context object containing middleware options
-     * @param {FeatureUsageFlag} flag - The flag value
-     * @returns nothing
-     */
-    static updateFeatureUsageFlag(context, flag) {
-        let options;
-        if (context.middlewareControl instanceof MiddlewareControl) {
-            options = context.middlewareControl.getMiddlewareOptions(TelemetryHandlerOptions);
-        }
-        else {
-            context.middlewareControl = new MiddlewareControl();
-        }
-        if (typeof options === "undefined") {
-            options = new TelemetryHandlerOptions();
-            context.middlewareControl.setMiddlewareOptions(TelemetryHandlerOptions, options);
-        }
-        options.setFeatureUsage(flag);
-    }
-    /**
-     * @private
-     * To set the feature usage flag
-     * @param {FeatureUsageFlag} flag - The flag value
-     * @returns nothing
-     */
-    setFeatureUsage(flag) {
-        this.featureUsage = this.featureUsage | flag;
-    }
-    /**
-     * @public
-     * To get the feature usage
-     * @returns A feature usage flag as hexadecimal string
-     */
-    getFeatureUsage() {
-        return this.featureUsage.toString(16);
-    }
-}
-
-/**
- * -------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.
- * See License in the project root for license information.
- * -------------------------------------------------------------------------------------------
- */
-/**
  * @class
  * @implements Middleware
  * Class representing AuthenticationHandler
@@ -583,7 +492,6 @@ class AuthenticationHandler {
                 const token = yield authenticationProvider.getAccessToken(authenticationProviderOptions);
                 const bearerKey = `Bearer ${token}`;
                 appendRequestHeader(context.request, context.options, AuthenticationHandler.AUTHORIZATION_HEADER, bearerKey);
-                TelemetryHandlerOptions.updateFeatureUsageFlag(context, FeatureUsageFlag.AUTHENTICATION_HANDLER_ENABLED);
             }
             else {
                 if (context.options.headers) {
@@ -873,7 +781,6 @@ class RetryHandler {
         return __awaiter(this, void 0, void 0, function* () {
             const retryAttempts = 0;
             const options = this.getOptions(context);
-            TelemetryHandlerOptions.updateFeatureUsageFlag(context, FeatureUsageFlag.RETRY_HANDLER_ENABLED);
             return yield this.executeWithRetry(context, retryAttempts, options);
         });
     }
@@ -1117,7 +1024,6 @@ class RedirectHandler {
             const redirectCount = 0;
             const options = this.getOptions(context);
             context.options.redirect = RedirectHandler.MANUAL_REDIRECT;
-            TelemetryHandlerOptions.updateFeatureUsageFlag(context, FeatureUsageFlag.REDIRECT_HANDLER_ENABLED);
             return yield this.executeWithRedirect(context, redirectCount, options);
         });
     }
@@ -1168,102 +1074,16 @@ RedirectHandler.AUTHORIZATION_HEADER = "Authorization";
  */
 RedirectHandler.MANUAL_REDIRECT = "manual";
 
-/**
- * -------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.
- * See License in the project root for license information.
- * -------------------------------------------------------------------------------------------
- */
-// THIS FILE IS AUTO GENERATED
-// ANY CHANGES WILL BE LOST DURING BUILD
-/**
- * @module Version
- */
-const PACKAGE_VERSION = "3.0.7";
-
-/**
- * -------------------------------------------------------------------------------------------
- * Copyright (c) Microsoft Corporation.  All Rights Reserved.  Licensed under the MIT License.
- * See License in the project root for license information.
- * -------------------------------------------------------------------------------------------
- */
-/**
- * @class
- * @implements Middleware
- * Class for TelemetryHandler
- */
+// Patch out telemetry related code.
 class TelemetryHandler {
-    /**
-     * @public
-     * @async
-     * To execute the current middleware
-     * @param {Context} context - The context object of the request
-     * @returns A Promise that resolves to nothing
-     */
-    execute(context) {
-        return __awaiter(this, void 0, void 0, function* () {
-            const url = typeof context.request === "string" ? context.request : context.request.url;
-            if (isGraphURL(url) || (context.customHosts && isCustomHost(url, context.customHosts))) {
-                // Add telemetry only if the request url is a Graph URL.
-                // Errors are reported as in issue #265 if headers are present when redirecting to a non Graph URL
-                let clientRequestId = getRequestHeader(context.request, context.options, TelemetryHandler.CLIENT_REQUEST_ID_HEADER);
-                if (!clientRequestId) {
-                    clientRequestId = generateUUID();
-                    setRequestHeader(context.request, context.options, TelemetryHandler.CLIENT_REQUEST_ID_HEADER, clientRequestId);
-                }
-                let sdkVersionValue = `${TelemetryHandler.PRODUCT_NAME}/${PACKAGE_VERSION}`;
-                let options;
-                if (context.middlewareControl instanceof MiddlewareControl) {
-                    options = context.middlewareControl.getMiddlewareOptions(TelemetryHandlerOptions);
-                }
-                if (options) {
-                    const featureUsage = options.getFeatureUsage();
-                    sdkVersionValue += ` (${TelemetryHandler.FEATURE_USAGE_STRING}=${featureUsage})`;
-                }
-                appendRequestHeader(context.request, context.options, TelemetryHandler.SDK_VERSION_HEADER, sdkVersionValue);
-            }
-            else {
-                // Remove telemetry headers if present during redirection.
-                delete context.options.headers[TelemetryHandler.CLIENT_REQUEST_ID_HEADER];
-                delete context.options.headers[TelemetryHandler.SDK_VERSION_HEADER];
-            }
-            return yield this.nextMiddleware.execute(context);
-        });
-    }
-    /**
-     * @public
-     * To set the next middleware in the chain
-     * @param {Middleware} next - The middleware instance
-     * @returns Nothing
-     */
-    setNext(next) {
-        this.nextMiddleware = next;
-    }
+	async execute(context) {
+		return await this.nextMiddleware.execute(context)
+	}
+
+	setNext(next) {
+		this.nextMiddleware = next;
+	}
 }
-/**
- * @private
- * @static
- * A member holding the name of the client request id header
- */
-TelemetryHandler.CLIENT_REQUEST_ID_HEADER = "client-request-id";
-/**
- * @private
- * @static
- * A member holding the name of the sdk version header
- */
-TelemetryHandler.SDK_VERSION_HEADER = "SdkVersion";
-/**
- * @private
- * @static
- * A member holding the language prefix for the sdk version header value
- */
-TelemetryHandler.PRODUCT_NAME = "graph-js";
-/**
- * @private
- * @static
- * A member holding the key for the feature usage metrics
- */
-TelemetryHandler.FEATURE_USAGE_STRING = "featureUsage";
 
 /**
  * -------------------------------------------------------------------------------------------
