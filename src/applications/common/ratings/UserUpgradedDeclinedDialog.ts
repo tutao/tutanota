@@ -73,6 +73,7 @@ export async function showUserUpgradedDeclinedDialog(triggerType: TriggerType): 
 				},
 			}),
 			windowFacade,
+			"auto",
 		).getDialog()
 		lastUpgradeDeclined = Date.now()
 		dialog.show()
