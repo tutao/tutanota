@@ -62,10 +62,12 @@ struct WidgetModel {
 		let endSeconds = UInt64(Calendar.current.date(byAdding: .day, value: 7, to: date)!.timeIntervalSince1970)
 		let calendarFacade = self.sdk.calendarFacade()
 
-		let widgetStartDate = date
-
 		let currentCalendar = Calendar.current
 		var daysAndEvents: DaysToEventsList = [[], [], [], [], [], [], []]
+
+		let widgetStartDate = date
+		let widgetStartDateComponents = currentCalendar.dateComponents([.day, .month, .year], from: widgetStartDate)
+
 
 		for calendar in calendars {
 			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInSeconds * 1000, end: endSeconds * 1000)
@@ -79,19 +81,37 @@ struct WidgetModel {
 
 				for dayIndex in stride(from: 0, to: daysAndEvents.count, by: 1) {
 
-					let currentDayMidnightInstantMs = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
-						.timeIntervalSince1970 * 1000
-					let nextDayMidnightInstantMs = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!)
-						.timeIntervalSince1970 * 1000
+					let currentDayMidnightDateInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
+					let nextDayMidnightDateInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!)
 
-					// calendarEvent.endTime start of day is in milliseconds, but iOS time intervals are seconds.
-					// since we don't really care about millisecond differences, maybe we can divide all incoming dates by 1000 for calculations.  since this would use less memory.
+					let currentDayMidnightInstantMs = currentDayMidnightDateInstant.timeIntervalSince1970 * 1000
+					let nextDayMidnightInstantMs = nextDayMidnightDateInstant.timeIntervalSince1970 * 1000
+
+					// create a separate calendar that uses UTC times so we can get the UTC dates for all-day event calculations
+					var utcCalendar = Calendar.init(identifier: .gregorian)
+					utcCalendar.timeZone = TimeZone.gmt // double check differences between GMT and UTC
+
+					let currentDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
+					let nextDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex + 1, to: widgetStartDate)!)
+
 
 					let calendarEventStartTimeMs = Double(calendarEvent.startTime)
 					let calendarEventEndTimeMs = Double(calendarEvent.endTime)
 
-					let uiEventStartMax = max(currentDayMidnightInstantMs, calendarEventStartTimeMs)
-					let uiEventEndMin = min(nextDayMidnightInstantMs, calendarEventEndTimeMs)
+					let calendarEventStartDate = Date.init(timeIntervalSince1970: calendarEventStartTimeMs/1000)
+					let calendarEventEndDate = Date.init(timeIntervalSince1970: calendarEventEndTimeMs / 1000)
+
+					var uiEventStartMax: Double
+					var uiEventEndMin: Double
+
+					//
+					if(isAllDayEvent(startDate: calendarEventStartDate, endDate: calendarEventEndDate)){
+						uiEventStartMax = max(currentDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventStartTimeMs)
+						uiEventEndMin = min(nextDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventEndTimeMs)
+					} else {
+						uiEventStartMax = max(currentDayMidnightInstantMs, calendarEventStartTimeMs)
+						uiEventEndMin = min(nextDayMidnightInstantMs, calendarEventEndTimeMs)
+					}
 
 					let eventStartsAfterToday = uiEventStartMax >= uiEventEndMin
 					let eventEndsBeforeToday = uiEventEndMin <= uiEventStartMax
