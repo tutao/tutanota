@@ -203,7 +203,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker),
+		rsa: await createRsaImplementation(worker, locator.base.random),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		entityMigratorFactory: ({
@@ -261,6 +261,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.symmetricCipherUtils,
 			locator.base.keyEncryption,
 			locator.base.cryptoWrapper,
+			locator.base.bcrypt,
 		)
 	})
 
@@ -321,6 +322,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.symmetricCipherUtils,
 			locator.base.aes,
 			locator.base.keyEncryption,
+			locator.base.bcrypt,
 		)
 	})
 

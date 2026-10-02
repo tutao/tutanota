@@ -1,6 +1,18 @@
 import { LoginFacade, LoginListener } from "./facades/LoginFacade.js"
 import { UserFacade } from "./facades/UserFacade.js"
-import { Aes, AesCbcFacade, CryptoWrapper, KeyEncryption, Randomizer, RsaImplementation, SymmetricCipherFacade, SymmetricCipherUtils } from "../crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	Bcrypt,
+	CryptoWrapper,
+	KeyEncryption,
+	random,
+	Randomizer,
+	RsaImplementation,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	X25519,
+} from "../crypto"
 import { EntropyFacade } from "./facades/EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../network/BlobAccessTokenFacade.js"
 import { IServiceExecutor } from "../network/ServiceRequest.js"
@@ -75,6 +87,7 @@ export type BaseLocator = {
 	symmetricCipherFacade: SymmetricCipherFacade
 	aes: Aes
 	keyEncryption: KeyEncryption
+	bcrypt: Bcrypt
 
 	keyCache: KeyCache
 	keyLoader: KeyLoaderFacade
@@ -173,17 +186,17 @@ export async function createBaseLocator({
 	entityMigratorFactory,
 	entityRestCache,
 }: BaseLocatorConfig): Promise<BaseLocator> {
-	const random = new Randomizer()
-
 	const keyCache = new KeyCache()
-	const symmetricCipherUtils: SymmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const x25519 = new X25519(random)
 	const aesCbcFacade = new AesCbcFacade()
 	const aeadFacade = new AeadFacade(symmetricCipherUtils)
 	const symmetricKeyDeriver = new SymmetricKeyDeriver()
 	const symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
 	const aes = new Aes(symmetricCipherFacade)
 	const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
-	const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+	const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
+	const bcrypt = new Bcrypt(random)
 	const user = new UserFacade(keyCache, cryptoWrapper)
 
 	const dateProvider = new NoZoneDateProvider()
@@ -250,7 +263,7 @@ export async function createBaseLocator({
 		ed25519Facade = new WASMEd25519Facade()
 	}
 
-	const pqFacade = new PQFacade(kyberFacade, cryptoWrapper)
+	const pqFacade = new PQFacade(kyberFacade, cryptoWrapper, x25519)
 	const publicKeySignatureFacade = new PublicKeySignatureFacade(ed25519Facade, cryptoWrapper)
 	const keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 	keyLoader = new KeyLoaderFacade(keyCache, user, cachingEntityClient, cacheManagement, cryptoWrapper)
@@ -430,6 +443,8 @@ export async function createBaseLocator({
 		keyEncryption,
 		cryptoWrapper,
 		symmetricCipherUtils,
+		random,
+		bcrypt,
 	)
 
 	return {
@@ -482,5 +497,6 @@ export async function createBaseLocator({
 		aes,
 		symmetricCipherFacade,
 		keyEncryption,
+		bcrypt,
 	}
 }

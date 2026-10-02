@@ -25,15 +25,14 @@ import {
 	AesKey,
 	AesKeyLength,
 	base64ToKey,
+	Bcrypt,
 	createAuthVerifier,
 	createAuthVerifierAsBase64Url,
 	CryptoWrapper,
-	generateKeyFromPassphraseBcrypt,
-	generateRandomSalt,
 	KeyEncryption,
 	KeyLength,
 	keyToUint8Array,
-	random,
+	Randomizer,
 	sha256Hash,
 	SymmetricCipherUtils,
 	SymmetricEncryptionScheme,
@@ -247,6 +246,8 @@ export class LoginFacade implements SessionTypeProvider {
 		private readonly keyEncryption: KeyEncryption,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly random: Randomizer,
+		private readonly bcrypt: Bcrypt,
 	) {}
 
 	async resetSession(): Promise<void> {
@@ -367,7 +368,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const newPassphraseKeyData = {
 			passphrase,
 			kdfType: targetKdfType,
-			salt: generateRandomSalt(random),
+			salt: this.bcrypt.generateRandomSalt(),
 		}
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPassphraseKeyData)
 
@@ -465,7 +466,7 @@ export class LoginFacade implements SessionTypeProvider {
 	async deriveUserPassphraseKey({ kdfType, passphrase, salt }: PassphraseKeyData): Promise<AesKey> {
 		switch (kdfType) {
 			case KdfType.Bcrypt: {
-				return generateKeyFromPassphraseBcrypt(passphrase, salt, KeyLength.b128)
+				return this.bcrypt.generateKeyFromPassphrase(passphrase, salt, KeyLength.b128)
 			}
 			case KdfType.Argon2id: {
 				return this.argon2idFacade.generateKeyFromPassphrase(passphrase, salt)
@@ -643,7 +644,7 @@ export class LoginFacade implements SessionTypeProvider {
 	} | null> {
 		const currentUserPassphraseKey = await this.deriveUserPassphraseKey(currentPasswordKeyData)
 		const currentAuthVerifier = createAuthVerifier(currentUserPassphraseKey)
-		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: generateRandomSalt(random) }
+		const newPasswordKeyData = { ...newPasswordKeyDataTemplate, salt: this.bcrypt.generateRandomSalt() }
 
 		const newUserPassphraseKey = await this.deriveUserPassphraseKey(newPasswordKeyData)
 		const currentUserGroupKey = this.userFacade.getCurrentUserGroupKey()
@@ -781,7 +782,7 @@ export class LoginFacade implements SessionTypeProvider {
 		})
 		try {
 			const groupKey = this.keyEncryption.aes256DecryptWithRecoveryKey(recoverCodeKey, recoverCodeData.recoverCodeEncUserGroupKey)
-			const salt = generateRandomSalt(random)
+			const salt = this.bcrypt.generateRandomSalt()
 			const newKdfType = DEFAULT_KDF_TYPE
 
 			const newPassphraseKeyData = { kdfType: newKdfType, passphrase: newPassword, salt }
@@ -1237,6 +1238,6 @@ export class LoginFacade implements SessionTypeProvider {
 	}
 
 	private getTotpVerifier(): Promise<TotpVerifier> {
-		return Promise.resolve(new TotpVerifier(random))
+		return Promise.resolve(new TotpVerifier(this.random))
 	}
 }

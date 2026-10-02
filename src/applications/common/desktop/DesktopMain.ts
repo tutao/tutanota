@@ -62,7 +62,7 @@ import { TutaSseFacade } from "./sse/TutaSseFacade.js"
 import { SseStorage } from "./sse/SseStorage.js"
 import { DesktopSseDelay } from "./sse/reconnectDelay.js"
 import { KeychainEncryption } from "./credentials/KeychainEncryption.js"
-import { Aes, AesCbcFacade, Argon2IDExports, KeyEncryption, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../platform-kit/crypto"
+import { Aes, AesCbcFacade, Argon2IDExports, KeyEncryption, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../platform-kit/crypto"
 import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
@@ -124,8 +124,6 @@ const windowsRegistryFacade = new LazyLoaded(async () => {
 	return new WindowsRegistryFacade(commandExecutor)
 })
 
-const random = new Randomizer()
-CryptoFunctions.seed(random)
 const symmetricCipherUtils = new SymmetricCipherUtils(random)
 const symmetricCipherFacade = new SymmetricCipherFacade(
 	new AesCbcFacade(),

@@ -92,6 +92,7 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
+import { random, SymmetricCipherUtils } from "@tutao/crypto"
 
 assertWorkerOrNode()
 
@@ -155,7 +156,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	locator._worker = worker
 	locator._browserData = browserData
 	locator._apps = apps
-	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
+	locator.workerFacade = new WorkerFacade(new SymmetricCipherUtils(random))
 
 	const mainInterface = worker.getMainInterface()
 	const dateProvider = new NoZoneDateProvider()
@@ -386,7 +387,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker),
+		rsa: await createRsaImplementation(worker, random),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		entityMigratorFactory: ({
@@ -444,6 +445,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.symmetricCipherUtils,
 			locator.base.keyEncryption,
 			locator.base.cryptoWrapper,
+			locator.base.bcrypt,
 		)
 	})
 
@@ -504,6 +506,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.symmetricCipherUtils,
 			locator.base.aes,
 			locator.base.keyEncryption,
+			locator.base.bcrypt,
 		)
 	})
 

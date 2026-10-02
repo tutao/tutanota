@@ -3,7 +3,7 @@ import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
 import { CounterFacade } from "../../../../../../platform-kit/network/CounterFacade.js"
-import { AesKey, createAuthVerifier, CryptoWrapper, generateRandomSalt, KeyEncryption, Randomizer, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
+import { AesKey, Bcrypt, createAuthVerifier, CryptoWrapper, KeyEncryption, Randomizer, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest.js"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade.js"
 import { ExposedOperationProgressTracker, OperationId } from "../../../main/OperationProgressTracker.js"
@@ -38,11 +38,12 @@ export class UserManagementFacade {
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 		private readonly keyEncryption: KeyEncryption,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly bcrypt: Bcrypt,
 	) {}
 
 	async changeUserPassword(user: User, newPassword: string): Promise<void> {
 		const userGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(user.userGroup.group)
-		const salt = generateRandomSalt(this.random)
+		const salt = this.bcrypt.generateRandomSalt()
 		const kdfType = DEFAULT_KDF_TYPE
 		const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase: newPassword, salt })
 		const pwEncUserGroupKey = this.keyEncryption.encryptKey(passwordKey, userGroupKey.object)
@@ -147,7 +148,7 @@ export class UserManagementFacade {
 		recoverData: RecoverData,
 	): Promise<UserAccountUserData> {
 		const kdfType = DEFAULT_KDF_TYPE
-		const salt = generateRandomSalt(this.random)
+		const salt = this.bcrypt.generateRandomSalt()
 		const userPassphraseKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 		const mailGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
 		const contactGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())

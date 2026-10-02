@@ -218,6 +218,7 @@ o.spec("LoginFacadeTest", function () {
 			keyEncryption,
 			cryptoWrapper,
 			symmetricCipherUtils,
+			random,
 		)
 
 		eventBusClientMock = instance(EventBusClient)

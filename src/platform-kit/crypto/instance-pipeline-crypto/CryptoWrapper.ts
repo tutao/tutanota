@@ -1,7 +1,7 @@
 import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { keyToUint8Array, SymmetricCipherUtils, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
-import { deriveX25519PublicKey, generateX25519KeyPair, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
+import { X25519, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
 import { bytesToEd25519PrivateKey, Ed25519PrivateKey, ed25519PrivateKeyToBytes, Ed25519PublicKey, ed25519PublicKeyToBytes } from "../encryption/Ed25519.js"
 import {
 	extractKyberPublicKeyFromKyberPrivateKey,
@@ -34,6 +34,7 @@ export class CryptoWrapper {
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 		private readonly aes: Aes,
 		private readonly keyEncryption: KeyEncryption,
+		private readonly x25519: X25519,
 	) {}
 
 	aes256RandomKey(): Aes256Key {
@@ -82,7 +83,7 @@ export class CryptoWrapper {
 	}
 
 	generateEccKeyPair(): X25519KeyPair {
-		return generateX25519KeyPair()
+		return this.x25519.generateX25519KeyPair()
 	}
 
 	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array<ArrayBuffer> {
@@ -135,7 +136,7 @@ export class CryptoWrapper {
 	}
 
 	verifyPublicX25519Key(x25519KeyPair: X25519KeyPair): X25519PublicKey {
-		const extractedPubKey = deriveX25519PublicKey(x25519KeyPair.privateKey)
+		const extractedPubKey = this.x25519.deriveX25519PublicKey(x25519KeyPair.privateKey)
 		if (!arrayEquals(extractedPubKey, x25519KeyPair.publicKey)) {
 			throw new CryptoError("Extracted public key does not match the provided public key")
 		}

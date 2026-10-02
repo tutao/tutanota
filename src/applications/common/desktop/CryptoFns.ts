@@ -2,22 +2,10 @@
  * This is a wrapper for commonly used crypto functions, easier to inject/swap implementations and test.
  */
 import crypto from "node:crypto"
-import { Aes256Key, AesKey, base64ToKey, EntropySource, Randomizer, SymmetricCipherFacade, uint8ArrayToKey } from "@tutao/crypto"
+import { Aes256Key, AesKey, base64ToKey, EntropySource, random, Randomizer, SymmetricCipherFacade, uint8ArrayToKey } from "@tutao/crypto"
 
 import { EntropyDataChunk } from "../../../platform-kit/crypto/random/EntropyDataChunk"
 import { SymmetricCipherUtils } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricCipherUtils"
-
-// the prng throws if it doesn't have enough entropy
-// it may be called very early, so we need to seed it
-// we do it here because it's the first place in the dep. chain that knows it's
-// in node but the last one that knows the prng implementation
-
-// const seed = (random: Randomizer) => {
-// 	const entropy = Array.from(crypto.randomBytes(128))
-// 	random.addEntropy(entropy.map((b) => new EntropyDataChunk(EntropySource.Random, 128 * 8, b))).then()
-// }
-//
-// seed(random)
 
 export class CryptoFunctions {
 	constructor(
@@ -94,3 +82,10 @@ export class CryptoFunctions {
 		return this.symmetricCipherUtils.aes256RandomKey()
 	}
 }
+
+// the prng throws if it doesn't have enough entropy
+// it may be called very early, so we need to seed it
+// we do it here because it's the first place in the dep. chain that knows it's
+// in node but the last one that knows the prng implementation
+
+CryptoFunctions.seed(random)

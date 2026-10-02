@@ -17,10 +17,10 @@ import {
 	Aes,
 	Aes256Key,
 	AesKey,
+	Bcrypt,
 	createAuthVerifier,
 	cryptoUtils,
 	CryptoWrapper,
-	generateRandomSalt,
 	KeyEncryption,
 	keyToUint8Array,
 	murmurHash,
@@ -243,6 +243,7 @@ export class MailFacade {
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 		private readonly aes: Aes,
 		private readonly keyEncryption: KeyEncryption,
+		private readonly bcrypt: Bcrypt,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
@@ -944,7 +945,7 @@ export class MailFacade {
 					continue
 				}
 
-				const salt = generateRandomSalt(this.random)
+				const salt = this.bcrypt.generateRandomSalt()
 				const kdfType = DEFAULT_KDF_TYPE
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)

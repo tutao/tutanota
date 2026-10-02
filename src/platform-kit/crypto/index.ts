@@ -1,13 +1,4 @@
-export {
-	type X25519PrivateKey,
-	type X25519PublicKey,
-	type X25519KeyPair,
-	type X25519SharedSecrets,
-	generateX25519KeyPair,
-	x25519Encapsulate,
-	x25519Decapsulate,
-	deriveX25519PublicKey,
-} from "./encryption/X25519"
+export { type X25519PrivateKey, type X25519PublicKey, type X25519KeyPair, type X25519SharedSecrets, X25519 } from "./encryption/X25519"
 import {
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -47,7 +38,7 @@ export {
 	bytesToEd25519Signature,
 	ed25519SignatureToBytes,
 }
-export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
+export { Bcrypt } from "./hashes/Bcrypt.js"
 export {
 	type LibOQSExports,
 	generateKeyPair as generateKeyPairKyber,
