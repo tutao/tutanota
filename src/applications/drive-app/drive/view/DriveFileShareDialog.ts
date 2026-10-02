@@ -3,7 +3,7 @@ import { Dialog, DialogType } from "../../../../ui/base/Dialog"
 import { DialogHeaderBar } from "../../../../ui/base/DialogHeaderBar"
 import { Button, ButtonType } from "../../../../ui/base/Button"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { FileFolderItem } from "./DriveUtils"
+import { FileFolderItem, normalizeShareExpirationDate } from "./DriveUtils"
 import { TextField } from "../../../../ui/base/TextField"
 import { assertNotNull, isNotNull } from "@tutao/utils"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -223,7 +223,7 @@ async function showFileShareDetailsDialog(
 										date: this.expirationDate,
 										label: lang.getTranslation("selectExpiryDate_label"),
 										onDateSelected: (selectedDate) => {
-											this.expirationDate = selectedDate
+											this.expirationDate = normalizeShareExpirationDate(selectedDate)
 										},
 										startOfTheWeekOffset: 0, //FIXME
 										noPadding: true,
