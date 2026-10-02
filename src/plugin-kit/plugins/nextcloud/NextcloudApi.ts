@@ -60,11 +60,12 @@ export class NextcloudApi {
 			null,
 			null,
 		)
-		const responseData = nextcloudResponse.getJsonBody<any>()
-		const poll = responseData.poll
 		if (nextcloudResponse.status !== 200) {
 			throw new Error("Nextcloud login flow failed.")
 		}
+		// the body is only populated for successful responses, so it must not be read before the status check
+		const responseData = nextcloudResponse.getJsonBody<any>()
+		const poll = responseData.poll
 		const userLoginUrl = responseData.login
 		const windowId = await this.hostApi.openWindow(userLoginUrl)
 		if (isNull(windowId)) {
@@ -99,10 +100,9 @@ export class NextcloudApi {
 				}
 			}
 
-			const pollResponseData = pollResponse.getJsonBody<any>()
-
 			await this.hostApi.closeWindow(windowId)
 			this.throwErrorIfNotOk(pollResponse, "During login flow")
+			const pollResponseData = pollResponse.getJsonBody<any>()
 			this.nextCloudCredentials = {
 				loginName: assertNotNull(pollResponseData.loginName),
 				server: assertNotNull(pollResponseData.server),
