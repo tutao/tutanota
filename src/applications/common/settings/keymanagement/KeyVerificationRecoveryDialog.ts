@@ -16,6 +16,7 @@ import { SenderKeyVerificationRecoveryInfoPage } from "./dialogpages/SenderKeyVe
 import { MultiRecipientsKeyVerificationRecoveryUserSelectionPage } from "./dialogpages/MultiRecipientsKeyVerificationRecoveryUserSelectionPage"
 import { windowFacade } from "../../misc/WindowFacade"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { px } from "../../../../ui/size"
 
 export enum MultiRecipientsKeyVerificationRecoveryDialogPages {
 	USER_SELECTION = "USER_SELECTION",
@@ -37,7 +38,7 @@ export enum SenderKeyVerificationRecoveryDialogPages {
 	REJECT_CONFIRM = "REJECT_CONFIRM",
 }
 
-const KEY_VERIFICATION_DIALOG_HEIGHT = 700
+const KEY_VERIFICATION_DIALOG_HEIGHT = px(700)
 
 /**
  * Allows a user to recover identity keys when they fail verification

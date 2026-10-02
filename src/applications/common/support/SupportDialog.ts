@@ -19,7 +19,7 @@ import { getSupportUsageTestStage } from "./SupportUsageTestUtils.js"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { Thunk } from "@tutao/utils"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
-import { size } from "../../../ui/size"
+import { px, size } from "../../../ui/size"
 import { SupportCategory, SupportData, SupportDataTypeRef, SupportTopic } from "@tutao/entities/tutanota"
 import { DataFile } from "../../../entities/tutanota/MailBundle"
 import { windowFacade } from "../misc/WindowFacade"
@@ -255,7 +255,7 @@ export async function showSupportDialog(logins: LoginController) {
 			},
 		}),
 		windowFacade,
-		dialogHeight,
+		px(dialogHeight),
 	).getDialog()
 
 	dialog
