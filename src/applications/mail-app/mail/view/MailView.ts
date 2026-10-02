@@ -5,7 +5,7 @@ import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { CancelledError, EnvProvider, FeatureType, MAX_LABELS_PER_FREE_USER, UpgradePromptType } from "../../../../platform-kit/app-env"
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
-import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
+import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass, Thunk } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
@@ -131,6 +131,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 	private readonly collapsedMailGroups: Set<Id>
 	private readonly expandedMailSets: Set<Id>
+	private ongoingDelayedMailSetExpand: { mailSetId: Id; cancelExpand: Thunk } | null = null
 	private readonly mailViewModel: MailViewModel
 
 	private readonly undoModel: UndoModel
@@ -1175,6 +1176,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				}
 			},
 			onFolderExpanded: (folder, state) => this.setExpandedMailSetState(folder, state),
+			onExpandFolderWithDelay: (folder) => this.expandMailSetWithDelay(folder),
+			onCancelFolderDelayedExpand: (predicate) => this.cancelOngoingDelayedMailSetExpand(predicate),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
 			onFolderDrop: (dropData, folder) => {
@@ -1203,6 +1206,8 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 				}
 			},
 			onLabelExpanded: (folder, state) => this.setExpandedMailSetState(folder, state),
+			onExpandLabelWithDelay: (label) => this.expandMailSetWithDelay(label),
+			onCancelLabelDelayedExpand: (predicate) => this.cancelOngoingDelayedMailSetExpand(predicate),
 			onShowLabelAddEditDialog: (...args) => this.showLabelFolderAddEditDialog(this.mailViewModel, ...args),
 			onDeleteCustomMailLabel: (folder) => this.showLabelDeleteDialog(folder),
 			onLabelDrop: (dropData: DropData, label) => {
@@ -1245,6 +1250,21 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		} else {
 			await mailLocator.mailFacade.updateLabel(labelToMove, labelToMove.name, assertNotNull(labelToMove.color), targetLabel._id)
 		}
+	}
+
+	private cancelOngoingDelayedMailSetExpand(predicate: (mailSetId: Id) => boolean): void {
+		if (this.ongoingDelayedMailSetExpand && predicate(this.ongoingDelayedMailSetExpand.mailSetId)) {
+			this.ongoingDelayedMailSetExpand.cancelExpand()
+			this.ongoingDelayedMailSetExpand = null
+		}
+	}
+
+	private expandMailSetWithDelay(mailSet: MailSet, delay = 400): void {
+		const timeoutId = setTimeout(() => {
+			this.setExpandedMailSetState(mailSet, false)
+			m.redraw()
+		}, delay)
+		this.ongoingDelayedMailSetExpand = { mailSetId: getElementId(mailSet), cancelExpand: () => clearTimeout(timeoutId) }
 	}
 
 	private setExpandedMailSetState(folder: MailSet, currentExpansionState: boolean) {

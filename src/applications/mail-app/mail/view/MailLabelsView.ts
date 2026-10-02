@@ -20,7 +20,6 @@ import { SidebarSection } from "../../../../ui/SidebarSection"
 import { locator } from "../../../common/api/main/CommonLocator"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { MailFolderViewAttrs } from "./MailFoldersView"
 
 export interface MailLabelViewAttrs {
 	mailModel: MailModel
@@ -30,6 +29,8 @@ export interface MailLabelViewAttrs {
 	onLabelDrop: (dropData: DropData, folder: MailSet) => unknown
 	expandedLabels: ReadonlySet<Id>
 	onLabelExpanded: (label: MailSet, state: boolean) => unknown
+	onExpandLabelWithDelay: (label: MailSet) => unknown
+	onCancelLabelDelayedExpand: (predicate: (labelId: Id) => boolean) => unknown
 	onShowLabelAddEditDialog: (mailGroupId: Id, label: MailSet | null, parentLabel: MailSet | null) => unknown
 	onDeleteCustomMailLabel: (label: MailSet) => unknown
 	inEditMode: boolean
@@ -62,6 +63,8 @@ export class MailLabelsView implements Component<MailLabelViewAttrs> {
 			onFolderDrop: attrs.onLabelDrop,
 			expandedFolders: attrs.expandedLabels,
 			onFolderExpanded: attrs.onLabelExpanded,
+			onExpandFolderWithDelay: attrs.onExpandLabelWithDelay,
+			onCancelFolderDelayedExpand: attrs.onCancelLabelDelayedExpand,
 			inEditMode: attrs.inEditMode,
 			buttonAttrs: {
 				edit: this.editButtonAttrs,
