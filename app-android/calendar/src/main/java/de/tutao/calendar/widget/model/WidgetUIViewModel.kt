@@ -159,22 +159,53 @@ class WidgetUIViewModel(
 			for (eventDao: CalendarEventDao in shortAndLongEvents) {
 				for (dayIndex in 0..<daysAndEvents.size) {
 
-					val currentDayMidnightInstant =
+					val currentDayMidnightInstantLocalZone =
 						startOfToday.atStartOfDay(zoneId).plus(dayIndex.toLong(), ChronoUnit.DAYS).toInstant()
-					val nextDayMidnightInstant = startOfToday
+					val nextDayMidnightInstantLocalZone = startOfToday
 						.plusDays(1 + dayIndex.toLong())
 						.atStartOfDay(zoneId)
 						.toInstant()
 
-					val uiEventStartMax = max(
-						currentDayMidnightInstant.toEpochMilli(),
-						eventDao.startTime.toLong()
-					)    /* will equal today midnight if the event starts before today */
-					val uiEventEndMin = min(
-						nextDayMidnightInstant.toEpochMilli(),
-						eventDao.endTime.toLong()
-					) /* will equal tomorrow midnight if event ends after today */
+					val currentDayMidnightInstantUTC =
+						startOfToday.atStartOfDay(ZoneId.of("UTC")).plus(dayIndex.toLong(), ChronoUnit.DAYS).toInstant()
 
+					val nextDayMidnightInstantUTC =
+						startOfToday.atStartOfDay(ZoneId.of("UTC")).plus(1 + dayIndex.toLong(), ChronoUnit.DAYS)
+							.toInstant()
+
+					val eventStartInstant = Instant.ofEpochMilli(eventDao.startTime.toLong())
+					val eventEndInstant = Instant.ofEpochMilli(eventDao.endTime.toLong())
+
+					val eventStartUTC = Date.from(eventStartInstant)
+					val eventEndUTC = Date.from(eventEndInstant)
+
+					// Apply time zone for display string clock times
+					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
+					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
+
+					var uiEventStartMax: Long
+					var uiEventEndMin: Long
+
+					// for all day events we want to do the start/end limit checking using the UTC midnight instants not the local time midnight instant
+					if (isAllDayEventByTimes(eventStartUTC, eventEndUTC)) {
+						uiEventStartMax = max(
+							currentDayMidnightInstantUTC.toEpochMilli(),
+							eventDao.startTime.toLong()
+						)    /* will equal today midnight if the event starts before today */
+						uiEventEndMin = min(
+							nextDayMidnightInstantUTC.toEpochMilli(),
+							eventDao.endTime.toLong()
+						) /* will equal tomorrow midnight if event ends after today */
+					} else {
+						uiEventStartMax = max(
+							currentDayMidnightInstantLocalZone.toEpochMilli(),
+							eventDao.startTime.toLong()
+						)    /* will equal today midnight if the event starts before today */
+						uiEventEndMin = min(
+							nextDayMidnightInstantLocalZone.toEpochMilli(),
+							eventDao.endTime.toLong()
+						) /* will equal tomorrow midnight if event ends after today */
+					}
 					val eventStartsAfterToday = uiEventStartMax >= uiEventEndMin
 					val eventEndsBeforeToday = uiEventEndMin <= uiEventStartMax
 
@@ -183,20 +214,13 @@ class WidgetUIViewModel(
 						continue
 					}
 
-					val eventStartInstant = Instant.ofEpochMilli(eventDao.startTime.toLong())
-					val eventEndInstant = Instant.ofEpochMilli(eventDao.endTime.toLong())
-
 					// Handle logic for modifying string related to all day events and events spanning multiple days
 					val eventTakesEntireDay =
-						eventStartInstant < currentDayMidnightInstant && eventEndInstant >= nextDayMidnightInstant
+						eventStartInstant < currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 					val eventStartsBeforeTodayAndEndsToday =
-						eventStartInstant < currentDayMidnightInstant && eventEndInstant < nextDayMidnightInstant
+						eventStartInstant < currentDayMidnightInstantLocalZone && eventEndInstant < nextDayMidnightInstantLocalZone
 					val eventStartsTodayAndEndsLater =
-						eventStartInstant >= currentDayMidnightInstant && eventEndInstant >= nextDayMidnightInstant
-
-					// Apply time zone for display string clock times
-					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
-					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
+						eventStartInstant >= currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 
 					val timesString = if (eventStartsBeforeTodayAndEndsToday) {
 						"Ends at " + eventEndLocalTime.format(UIEvent.dateFormatter)
