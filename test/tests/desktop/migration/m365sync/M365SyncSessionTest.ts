@@ -188,7 +188,10 @@ o.spec("M365SyncSession", () => {
 	o.test("startSync - a newly-discovered folder inherits noSync from its already-known excluded parent", async () => {
 		const responses = new Map<string, any>([
 			["/me/mailFolders", { value: [{ id: "id-excluded", displayName: "Excluded", childFolderCount: 1 }] }],
-			["/me/mailFolders/id-excluded/childFolders", { value: [{ id: "id-child", displayName: "ExcludedChild", childFolderCount: 0 }] }],
+			[
+				"/me/mailFolders/id-excluded/childFolders",
+				{ value: [{ id: "id-child", displayName: "ExcludedChild", parentFolderId: "id-excluded", childFolderCount: 0 }] },
+			],
 		])
 		session = sessionWithFakeGraphClient(responses)
 
