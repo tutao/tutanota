@@ -22,8 +22,6 @@ import { getFolderIcon } from "./MailGuiUtils"
 import { IconSize } from "../../../../ui/base/Icon"
 import { FolderSystemKind, MailSetTreeActionAttrs, MailSetTreeAttrs, renderFolderTree } from "./MailSetTreeUtils"
 import { Group } from "@tutao/entities/sys"
-import { MailSetKind } from "../../../../entities/tutanota/Utils"
-import { isSpamOrTrashFolder } from "../model/MailChecks"
 
 export interface MailFolderViewAttrs {
 	mailModel: MailModel
@@ -33,6 +31,8 @@ export interface MailFolderViewAttrs {
 	onFolderDrop: (dropData: DropData, folder: MailSet) => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailSet, state: boolean) => unknown
+	onExpandFolderWithDelay: (folder: MailSet) => unknown
+	onCancelFolderDelayedExpand: (predicate: (folderId: Id) => boolean) => unknown
 	onShowFolderAddEditDialog: (mailGroupId: Id, folder: MailSet | null, parentFolder: MailSet | null) => unknown
 	onDeleteCustomMailFolder: (folder: MailSet) => unknown
 	inEditMode: boolean
@@ -69,6 +69,8 @@ export class MailFoldersView implements Component<MailFolderViewAttrs> {
 			onFolderDrop: attrs.onFolderDrop,
 			expandedFolders: attrs.expandedFolders,
 			onFolderExpanded: attrs.onFolderExpanded,
+			onExpandFolderWithDelay: attrs.onExpandFolderWithDelay,
+			onCancelFolderDelayedExpand: attrs.onCancelFolderDelayedExpand,
 			inEditMode: attrs.inEditMode,
 			buttonAttrs: {
 				edit: this.editButtonAttrs,

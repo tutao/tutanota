@@ -11,7 +11,7 @@ import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { EnvProvider } from "../../platform-kit/app-env"
 import { isKeyPressed } from "../utils/KeyManager"
-import { DragEnterHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
+import { DragEnterHandler, DragLeaveHandler, DragStartHandler, DropData, DropHandler, DropType } from "./GuiUtils"
 import { fileListToArray } from "../utils/FileUtils.js"
 import { Keys } from "../utils/KeyboardKeys"
 import { throttleRoute } from "../utils/RouteChange"
@@ -26,6 +26,7 @@ export type NavButtonAttrs = {
 	colors?: NavButtonColor
 	dragStartHandler?: DragStartHandler
 	dragEnterHandler?: DragEnterHandler
+	dragLeaveHandler?: DragLeaveHandler
 	dropHandler?: DropHandler
 	hideLabel?: boolean
 	vertical?: boolean
@@ -159,6 +160,7 @@ export class NavButton implements Component<NavButtonAttrs> {
 				}
 
 				ev.preventDefault()
+				a.dragLeaveHandler?.(ev)
 			}
 
 			attr.ondragover = (ev: DragEvent) => {
