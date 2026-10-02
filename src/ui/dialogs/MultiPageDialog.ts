@@ -118,7 +118,7 @@ export class MultiPageDialog<PageKey extends string> {
 		defaultPage: PageKey,
 		private readonly getPages: GetPagesFunc<PageKey>,
 		windowFacade: IWindowFacade,
-		height: number = 666,
+		height: string = px(666),
 	) {
 		this.currentPageStream = stream(defaultPage)
 		this.pageStackStream = stream([defaultPage])
@@ -224,7 +224,7 @@ type Props = {
 	renderContent: (currentPage: stream<string>) => Children
 	stackStream: stream<string[]>
 	isAnimating: stream<boolean>
-	height: number
+	height: string
 	windowFacade: IWindowFacade
 }
 
@@ -235,7 +235,7 @@ enum SlideDirection {
 
 class MultiPageDialogViewWrapper implements Component<Props> {
 	private readonly transitionPage: stream<string | null> = stream(null)
-	private dialogHeight: number | null = null
+	private dialogHeight: string | null = null
 	private pageWidth: number = -1
 	private translate = 0
 	private pagesWrapperDomElement!: HTMLElement
@@ -297,7 +297,7 @@ class MultiPageDialogViewWrapper implements Component<Props> {
 		const dom = vnode.dom as HTMLElement
 		if (this.dialogHeight == null && dom.parentElement) {
 			this.dialogHeight = vnode.attrs.height
-			;(vnode.dom as HTMLElement).style.height = px(this.dialogHeight)
+			;(vnode.dom as HTMLElement).style.height = this.dialogHeight
 		}
 
 		if (this.pageWidth === -1 && dom.parentElement) {
