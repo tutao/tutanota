@@ -119,7 +119,7 @@ export async function showSupportDialog(logins: LoginController) {
 						topicStage.complete()
 					},
 				}),
-				rightAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "done_action", title: "done_action" },
+				rightAction: { type: ButtonType.Secondary, click: () => dialog.onClose(), label: "close_alt", title: "close_alt" },
 			},
 			categoryDetail: {
 				content: m(SupportCategoryPage, {
@@ -149,8 +149,8 @@ export async function showSupportDialog(logins: LoginController) {
 				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
 				rightAction: {
 					type: ButtonType.Secondary,
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 					click: () => {
 						dialog.onClose()
 					},
@@ -178,8 +178,8 @@ export async function showSupportDialog(logins: LoginController) {
 				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
 				rightAction: {
 					type: ButtonType.Secondary,
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 					click: () => {
 						dialog.onClose()
 					},
@@ -202,8 +202,8 @@ export async function showSupportDialog(logins: LoginController) {
 				},
 				rightAction: {
 					type: ButtonType.Secondary,
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 					click: withConfirmation(() => dialog.onClose(), "supportCloseLostRequest_msg"),
 				},
 			},
@@ -219,8 +219,8 @@ export async function showSupportDialog(logins: LoginController) {
 
 						dialog.onClose()
 					},
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 				},
 			},
 			supportRequestSent: {
@@ -228,8 +228,8 @@ export async function showSupportDialog(logins: LoginController) {
 				title: lang.get("supportMenu_label"),
 				rightAction: {
 					type: ButtonType.Secondary,
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 					click: () => {
 						dialog.onClose()
 					},
@@ -246,8 +246,8 @@ export async function showSupportDialog(logins: LoginController) {
 				leftAction: { type: ButtonType.Secondary, click: () => goBack(), label: "back_action", title: "back_action" },
 				rightAction: {
 					type: ButtonType.Secondary,
-					label: "done_action",
-					title: "done_action",
+					label: "close_alt",
+					title: "close_alt",
 					click: () => {
 						dialog.onClose()
 					},
