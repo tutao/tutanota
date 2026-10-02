@@ -195,8 +195,8 @@ export class PluginManager {
 		this.getLoadedPlugin(pluginId).draftConfig[fieldName] = value
 	}
 
-	public getConfigFieldValue(pluginId: PluginId, fieldName: string): string {
-		return assertNotNull(this.getLoadedPlugin(pluginId).draftConfig[fieldName])
+	public getConfigFieldValue(pluginId: PluginId, fieldName: string): Nullable<string> {
+		return this.getLoadedPlugin(pluginId).draftConfig[fieldName] ?? null
 	}
 
 	public async persistCustomerConfig(pluginId: PluginId): Promise<boolean> {
