@@ -22,7 +22,7 @@ struct DaysList: View {
 		LazyVStack(alignment: .leading, spacing: 6) {
 			ForEach(Array(daysToEventsList.enumerated()), id: \.offset) { (index, dayEvents) in
 				let currentDay = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: index, to: now)!)
-					DayRow(currentDay: currentDay, userId: userId, events: dayEvents, index: index)
+				DayRow(currentDay: currentDay, userId: userId, events: dayEvents, index: index)
 			}
 		}
 	}
@@ -42,9 +42,7 @@ private struct DayRow: View {
 		if isToday {
 			TodayCard(allDayEvents: allDayEventsOnDay, normalEventsOnDay: normalEventsOnDay, userId: userId, parsedDay: currentDay)
 		} else {
-			if(!events.isEmpty){
-				OtherDayCard(userId: userId, date: currentDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay)
-			}
+			if !events.isEmpty { OtherDayCard(userId: userId, date: currentDay, allDayEventsOnDay: allDayEventsOnDay, normalEvents: normalEventsOnDay) }
 		}
 	}
 }

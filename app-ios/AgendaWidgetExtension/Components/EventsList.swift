@@ -24,7 +24,6 @@ struct EventsList: View {
 		VStack(alignment: .leading) {
 			ForEach(Array(events.enumerated()), id: \.element) { index, event in
 				let calendarColor = UIColor(hex: event.calendarColor) ?? .white
-				let eventTime = eventTimeFormatter.string(from: event.startDate) + " - " + eventTimeFormatter.string(from: event.endDate)
 				let happensToday = Calendar.current.isDateInToday(event.startDate)
 
 				EventBody(
@@ -33,7 +32,7 @@ struct EventsList: View {
 					isFirstEventOfDay: index == 0,
 					calendarColor: calendarColor,
 					eventDate: event.startDate,
-					eventTime: eventTime,
+					eventTime: event.timeString,
 					event: event
 				)
 				.padding(.trailing, applyPaddingEndForFirstElement && index == 0 ? Dimensions.Size.core_48 : 0.0)

@@ -63,14 +63,22 @@ struct WidgetModel {
 		let calendarFacade = self.sdk.calendarFacade()
 
 		let currentCalendar = Calendar.current
+
+		// create a separate calendar that uses UTC times so we can get the UTC dates for all-day event calculations
+		var utcCalendar = Calendar.init(identifier: .gregorian)
+		utcCalendar.timeZone = TimeZone.gmt  // double check differences between GMT and UTC
+
 		var daysAndEvents: DaysToEventsList = [[], [], [], [], [], [], []]
 
 		let widgetStartDate = date
 		let widgetStartDateComponents = currentCalendar.dateComponents([.day, .month, .year], from: widgetStartDate)
 
-
 		for calendar in calendars {
-			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(calendarId: calendar.id, start: dateInSeconds * 1000, end: endSeconds * 1000)
+			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(
+				calendarId: calendar.id,
+				start: dateInSeconds * 1000,
+				end: endSeconds * 1000
+			)
 
 			let shortAndLongEvents = eventsList.shortEvents + eventsList.longEvents
 
@@ -81,31 +89,29 @@ struct WidgetModel {
 
 				for dayIndex in stride(from: 0, to: daysAndEvents.count, by: 1) {
 
-					let currentDayMidnightDateInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
-					let nextDayMidnightDateInstant = currentCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!)
+					let currentDayMidnightDateInstant = currentCalendar.startOfDay(
+						for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!
+					)
+					let nextDayMidnightDateInstant = currentCalendar.startOfDay(
+						for: currentCalendar.date(byAdding: .day, value: 1 + dayIndex, to: widgetStartDate)!
+					)
 
 					let currentDayMidnightInstantMs = currentDayMidnightDateInstant.timeIntervalSince1970 * 1000
 					let nextDayMidnightInstantMs = nextDayMidnightDateInstant.timeIntervalSince1970 * 1000
 
-					// create a separate calendar that uses UTC times so we can get the UTC dates for all-day event calculations
-					var utcCalendar = Calendar.init(identifier: .gregorian)
-					utcCalendar.timeZone = TimeZone.gmt // double check differences between GMT and UTC
-
 					let currentDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex, to: widgetStartDate)!)
 					let nextDayMidnightUTC = utcCalendar.startOfDay(for: currentCalendar.date(byAdding: .day, value: dayIndex + 1, to: widgetStartDate)!)
-
 
 					let calendarEventStartTimeMs = Double(calendarEvent.startTime)
 					let calendarEventEndTimeMs = Double(calendarEvent.endTime)
 
-					let calendarEventStartDate = Date.init(timeIntervalSince1970: calendarEventStartTimeMs/1000)
+					let calendarEventStartDate = Date.init(timeIntervalSince1970: calendarEventStartTimeMs / 1000)
 					let calendarEventEndDate = Date.init(timeIntervalSince1970: calendarEventEndTimeMs / 1000)
 
 					var uiEventStartMax: Double
 					var uiEventEndMin: Double
 
-					//
-					if(isAllDayEvent(startDate: calendarEventStartDate, endDate: calendarEventEndDate)){
+					if isAllDayEvent(startDate: calendarEventStartDate, endDate: calendarEventEndDate) {
 						uiEventStartMax = max(currentDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventStartTimeMs)
 						uiEventEndMin = min(nextDayMidnightUTC.timeIntervalSince1970 * 1000, calendarEventEndTimeMs)
 					} else {
@@ -121,27 +127,24 @@ struct WidgetModel {
 					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime) / 1000)
 					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime) / 1000)
 
-					let dateFormatter = DateFormatter()
-					dateFormatter.timeZone = .current
-
 					let eventTakesEntireDay =
-						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
+					Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
 
 					let eventStartsTodayAndEndsLater =
-						Double(calendarEvent.startTime) >= currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
+					Double(calendarEvent.startTime) >= currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
 
 					let eventStartsBeforeTodayAndEndsToday =
-						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) < nextDayMidnightInstantMs
+					Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) < nextDayMidnightInstantMs
 
 					let isConsideredAllDay = isAllDayEvent(startDate: eventStartDate, endDate: eventEndDate) || eventTakesEntireDay
 
 					var timeString: String {
 						if eventStartsBeforeTodayAndEndsToday {
-							return "Ends at " + dateFormatter.string(from: eventEndDate)
+							return "Ends at " + eventEndDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
 						} else if eventStartsTodayAndEndsLater {
-							return "Starts at " + dateFormatter.string(from: eventStartDate)
+							return "Starts at " + eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
 						} else {
-							return dateFormatter.string(from: eventStartDate) + " - " + dateFormatter.string(from: eventEndDate)
+							return eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)) + " - " + eventEndDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
 						}
 					}
 
@@ -158,99 +161,43 @@ struct WidgetModel {
 						isDisplayedAsAllDay: isConsideredAllDay,
 						timeString: timeString
 					)
+
 					daysAndEvents[dayIndex].append(uiEvent)
 				}
 			}
 
-			//			eventsList.birthdayEvents.forEach { birthdayEvent: BirthdayEvent ->
-			//				let eventStartDate = Date.init(timeIntervalSince1970: calendarEvent.startTime)
-			//
-			//				let eventStartLocalTime = currentCalendar.date(from: eventStartDate)
-			//				let eventEndLocalTime = currentCalendar.date(from: eventEndDate)
-			//
-			//				let uiEvent = UIEvent(
-			//					calendarId: calendar.id,
-			//					id: birhdayEvent.calendarEvent.id,
-			//					summary: getBirthdayEventTitle(name: birthdayEvent.contact.firstName, age: parseContactAge(birthdayIso: birthdayEvent.contact.birthdayIso)),
-			//					startDate: dateFormatter.string(from: eventStartLocalTime),
-			//					endDate: dateFormatter.string(from: eventEndLocalTime),
-			//					calendarColor: calendar.color,
-			//					isBirthdayEvent: true,
-			//					isDisplayedAsAllDay: true,
-			//					""
-			//				)
+			for birthdayEvent in eventsList.birthdayEvents {
 
-			//				let index =
+				let eventStartDate = Date.init(timeIntervalSince1970: Double(birthdayEvent.calendarEvent.startTime) / 1000)
+				let eventEndDate = Date.init(timeIntervalSince1970: Double(birthdayEvent.calendarEvent.endTime) / 1000)
 
-			//				daysAndEvents.append(
+				let eventId = if let id = birthdayEvent.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
 
-			//			eventsList.birthdayEvents.forEach { event in
-			//				let eventStart = Date(timeIntervalSince1970: Double(event.calendarEvent.startTime) / 1000)
-			//				let eventEnd = Date(timeIntervalSince1970: Double(event.calendarEvent.endTime) / 1000)
-			//				let eventId = if let id = event.calendarEvent.id { id.listId + "/" + id.elementId } else { "" }
-			//
-			//				let startOfEventDay = Calendar.current.startOfDay(for: self.replaceDateTimeZone(date: eventStart)).timeIntervalSince1970
-			//
-			//				let eventDao = UIEvent(
-			//					id: eventId,
-			//					summary: getBirthdayEventTitle(name: event.contact.firstName, age: parseContactAge(birthdayIso: event.contact.birthdayIso)),
-			//					startDate: eventStart,
-			//					endDate: eventEnd,
-			//					calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-			//					isBirthdayEvent: true
-			//				)
-			//
-			////				if longEvents.index(forKey: startOfEventDay) == nil || longEvents[startOfEventDay]?.event == nil {
-			////					longEvents.updateValue(SimpleAllDayEventsData(event: eventData, count: 1), forKey: startOfEventDay)
-			////					if daysAndEvents.index(forKey: startOfEventDay) == nil { daysAndEvents.updateValue([], forKey: startOfEventDay) }
-			////					return
-			////				}
-			//
-			//				longEvents[startOfEventDay]?.count += 1
-			//			}
+				let uiEvent = UIEvent(
+					calendarId: calendar.id,
+					id: eventId,
+					summary: getBirthdayEventTitle(name: birthdayEvent.contact.firstName, age: parseContactAge(birthdayIso: birthdayEvent.contact.birthdayIso)),
+					startDate: eventStartDate,
+					endDate: eventEndDate,
+					calendarColor: calendar.color,
+					isBirthdayEvent: true,
+					isDisplayedAsAllDay: true,
+					timeString: ""
+				)
+				// Needs to calculate based on only day month year of UTC date (i.e. all day event date).
 
-			//			(eve).sorted(by: { $0.startTime < $1.startTime })
-			//				.forEach { event in
-			//					let eventStart = Date(timeIntervalSince1970: Double(event.startTime) / 1000)
-			//					let eventEnd = Date(timeIntervalSince1970: Double(event.endTime) / 1000)
-			//					let isAllDay =
-			//						isAllDayEvent(startDate: eventStart, endDate: eventEnd)
-			//						|| isAllDayOnReferenceDate(startDate: eventStart, endDate: eventEnd, referenceDate: date)
-			//
-			//					let eventId = if let id = event.id { id.listId + "/" + id.elementId } else { "" }
-			//
-			//					var referenceDate: Date
-			//
-			//					if isAllDay { referenceDate = self.replaceDateTimeZone(date: eventStart) } else { referenceDate = eventStart }
-			//
-			//					let startOfEventDay = Calendar.current.startOfDay(for: referenceDate).timeIntervalSince1970
-			//					if startOfEventDay >= now {
-			//						let eventData = CalendarEventData(
-			//							id: eventId,
-			//							summary: event.summary,
-			//							startDate: eventStart,
-			//							endDate: eventEnd,
-			//							calendarColor: calendar.color.isEmpty ? DEFAULT_CALENDAR_COLOR : calendar.color,
-			//							isBirthdayEvent: false
-			//						)
-			//
-			//						if longEvents.index(forKey: startOfEventDay) == nil {
-			//							longEvents.updateValue(SimpleAllDayEventsData(event: nil, count: 0), forKey: startOfEventDay)
-			//							daysAndEvents.updateValue([], forKey: startOfEventDay)
-			//						}
-			//
-			//						if isAllDay {
-			//							if longEvents[startOfEventDay]?.event == nil { longEvents[startOfEventDay]?.event = eventData }
-			//							longEvents[startOfEventDay]?.count += 1
-			//						} else {
-			//							daysAndEvents[startOfEventDay]?.append(eventData)
-			//						}
-			//					}
-			//				}
+				let widgetStartDateComponents = currentCalendar.dateComponents([.day, .month, .year], from: widgetStartDate)
+				let widgetStartDateStartOfDayUTC = currentCalendar.date(from: widgetStartDateComponents)!
 
+				let index = utcCalendar.dateComponents([.day], from: widgetStartDateStartOfDayUTC, to: eventStartDate).day!
+				daysAndEvents[index].append(uiEvent)
+
+			}
 		}
 
-		//		events.forEach { key, value in events[key] = value.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 } }
+		for (index, day) in daysAndEvents.enumerated() {
+			daysAndEvents[index] = day.sorted{ $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 }
+		}
 		return daysAndEvents
 	}
 
