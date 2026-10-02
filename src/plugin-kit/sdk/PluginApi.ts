@@ -126,7 +126,7 @@ export abstract class PluginApi {
 		})
 	}
 
-	abstract load(): Promise<void>
+	abstract load(manifest: PluginManifest): Promise<void>
 
 	abstract unload(): Promise<void>
 
