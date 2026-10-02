@@ -23,20 +23,21 @@ public final class ApiSchemeHandler: NSObject, WKURLSchemeHandler, Sendable {
 		let newUrl = URL(string: newUrlString)!
 		var newRequest = oldRequest
 		newRequest.url = newUrl
+		newRequest.setValue(nil, forHTTPHeaderField: "Origin")
 		return newRequest
 	}
 
 	public func webView(_ webView: WKWebView, start urlSchemeTask: any WKURLSchemeTask) {
-		// Change URL on the request to a real one
+		let originalURL = urlSchemeTask.request.url!
 		let newRequest = self.rewriteRequest(urlSchemeTask.request)
 		let taskIdentifier = ObjectIdentifier(urlSchemeTask)
-		// Non-detached task will execute with the same isolation as this function which
-		// lets us sidestep isolation problems of WKURLSchemeTask.
+
 		let task = Task {
 			defer { _ = self.dictLock.withLock { dict in dict.removeValue(forKey: taskIdentifier) } }
 			do {
 				let (data, response) = try await self.urlSession.data(for: newRequest)
-				urlSchemeTask.didReceive(response)
+				let newResponse = Self.makeResponse(from: response, url: originalURL, dataLength: data.count)
+				urlSchemeTask.didReceive(newResponse)
 				urlSchemeTask.didReceive(data)
 				urlSchemeTask.didFinish()
 			} catch is CancellationError {
@@ -44,6 +45,17 @@ public final class ApiSchemeHandler: NSObject, WKURLSchemeHandler, Sendable {
 			} catch { urlSchemeTask.didFailWithError(error) }
 		}
 		self.dictLock.withLock { dict in dict[taskIdentifier] = task }
+	}
+
+	private static func makeResponse(from response: URLResponse, url: URL, dataLength: Int) -> URLResponse {
+		var headers: [String: String] = [:]
+		let http = response as! HTTPURLResponse
+
+		for (key, value) in http.allHeaderFields { if let k = key as? String, let v = value as? String { headers[k] = v } }
+
+		headers["Access-Control-Allow-Origin"] = "asset://app"
+
+		return HTTPURLResponse(url: url, statusCode: http.statusCode, httpVersion: "HTTP/1.1", headerFields: headers).unsafelyUnwrapped
 	}
 
 	public func webView(_ webView: WKWebView, stop urlSchemeTask: any WKURLSchemeTask) {
