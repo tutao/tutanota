@@ -341,6 +341,8 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./desktop/migration/imapsync/ImapSyncSessionTest.js")
 		await import("./desktop/migration/imapsync/DifferentialUidLoaderTest.js")
 		await import("./desktop/migration/imapsync/ImapSyncSessionProcessTest.js")
+		await import("./desktop/migration/m365sync/M365SyncSessionTest.js")
+		await import("./desktop/migration/gmailsync/GmailSyncSessionTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/files/TempFsTest.js")
 		await import("./desktop/integration/DesktopIntegratorTest.js")

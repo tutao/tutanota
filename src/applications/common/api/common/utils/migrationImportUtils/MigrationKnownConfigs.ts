@@ -20,9 +20,16 @@ export type OauthConfigParams = {
 	requiresClientSecret?: boolean
 }
 
+export const enum MigrationFetchMethod {
+	Imap = "imap",
+	GraphApi = "graphApi",
+	GoogleApi = "googleApi",
+}
+
 export type ServerMigrationConfig = Pick<MailboxMigrationImapConfiguration, "host" | "port"> & {
 	authType: MigrationAuthType
 	oauthConfig?: OauthConfigParams
+	fetchMethod: MigrationFetchMethod
 }
 
 export const IMAP_SSL_PORT = "993"
@@ -34,11 +41,12 @@ const wellKnownConfigs = {
 		host: "imap.gmail.com",
 		port: IMAP_SSL_PORT,
 		authType: MigrationAuthType.Oauth2, //Find out a way to communicate Oauth Need?
+		fetchMethod: MigrationFetchMethod.GoogleApi,
 		oauthConfig: {
 			server: "https://accounts.google.com",
 			clientId: "397205111573-me3bs8q166tgsrpjb7jg5k89ghb3jlm7.apps.googleusercontent.com", // webapp id
 			redirectUri: "http://localhost/",
-			scope: "https://mail.google.com/",
+			scope: "https://www.googleapis.com/auth/gmail.readonly",
 			providerSpecificParams: {
 				access_type: "offline", // required for refresh token
 				prompt: "consent", // forces refresh token on first login
@@ -50,11 +58,12 @@ const wellKnownConfigs = {
 		host: "outlook.office365.com",
 		port: IMAP_SSL_PORT,
 		authType: MigrationAuthType.Oauth2,
+		fetchMethod: MigrationFetchMethod.GraphApi,
 		oauthConfig: {
 			server: "https://login.microsoftonline.com/common/v2.0",
 			clientId: "5e304219-20c3-4627-a9e9-ae884703bf62",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
-			scope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
+			scope: "offline_access Mail.Read",
 			providerSpecificParams: {
 				prompt: "consent",
 				response_mode: "query",
@@ -68,6 +77,7 @@ const wellKnownConfigs = {
 		host: "imap.mail.yahoo.com",
 		port: IMAP_SSL_PORT,
 		authType: MigrationAuthType.Oauth2,
+		fetchMethod: MigrationFetchMethod.Imap,
 		oauthConfig: {
 			server: "https://api.login.yahoo.com/",
 			// This works to log in, but we do not have the scope required for imap access.
@@ -83,6 +93,7 @@ const wellKnownConfigs = {
 		host: "imap.gmx.net",
 		port: IMAP_SSL_PORT,
 		authType: MigrationAuthType.Password,
+		fetchMethod: MigrationFetchMethod.Imap,
 	},
 	webde: {
 		// See also: https://hilfe.web.de/pop-imap/imap/imap-serverdaten.htm
@@ -90,6 +101,7 @@ const wellKnownConfigs = {
 		host: "imap.web.de",
 		port: IMAP_SSL_PORT,
 		authType: MigrationAuthType.Password,
+		fetchMethod: MigrationFetchMethod.Imap,
 	},
 }
 
