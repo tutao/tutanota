@@ -4,6 +4,7 @@ import { PluginId, pluginIdFromString } from "../../../../plugin-kit/sdk/PluginI
 import { PluginConfigurationProvider } from "../../plugin/PluginConfigurationProvider"
 import { PluginManifest } from "../../../../plugin-kit/sdk/PluginManifest"
 import { Nullable } from "@tutao/utils"
+import { PLUGIN_REGISTRY } from "../../../../plugin-kit/plugin-manager/PluginRegistry"
 
 /**
  * Loads/saves the org-wide (customer-scoped) enabled-state and config for each known plugin.
@@ -54,7 +55,7 @@ export class PluginSettingsModel {
 	}
 
 	public getPluginManifest(pluginId: PluginId): Nullable<PluginManifest> {
-		return this.pluginManager.getPluginManifest(pluginId)
+		return PLUGIN_REGISTRY[pluginId]
 	}
 
 	/** Persists a full config object for an already-enabled plugin, e.g. when the admin clicks "Update" in the config panel. */

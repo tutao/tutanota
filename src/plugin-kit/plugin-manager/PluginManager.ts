@@ -3,7 +3,7 @@ import { ButtonConfiguration, ConfigFieldConfiguration, ExtensionPoint } from ".
 import { AttachmentButtonExtension, PluginDataFile } from "../sdk/AttachmentButtonExtensionPoint"
 import { EventLocationButtonExtension } from "../sdk/EventLocationButtonExtensionPoint"
 import { ButtonExtension, ConfigExtension, ConfigurationAdapter, MailIntegrationAdapter, PluginConfigurationOwner, PluginHost } from "./hostApi/PluginHost"
-import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, LazyLoaded, Nullable, ofClass } from "@tutao/utils"
+import { assertNotNull, base64UrlCustomIdToString, downcast, isNotNull, Nullable, ofClass } from "@tutao/utils"
 import { EnvProvider } from "@tutao/app-env"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
@@ -11,7 +11,7 @@ import { OperationType } from "@tutao/meta"
 import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
-import { isNull } from "../../platform-kit/utils/Utils"
+import { PLUGIN_REGISTRY } from "./PluginRegistry"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -21,19 +21,13 @@ type PluginWrapper = {
 	draftConfig: Record<string, string>
 }
 
-export interface PluginManifestFetcher {
-	fetchManifestJson(pluginId: PluginId): Promise<PluginManifest>
-}
-
 export class PluginManager {
-	private readonly pluginManifest: Map<PluginId, LazyLoaded<PluginManifest>> = new Map()
 	private readonly loadedPlugins: Partial<Record<PluginId, PluginWrapper>> = {}
 	private readonly extensionPointToButtonExtension: Map<ExtensionPoint, Array<ButtonExtension>> = new Map()
 	private readonly pluginToConfigFieldExtension: Map<PluginId, Array<ConfigExtension>> = new Map()
 	private configChangeListener: () => void
 
 	constructor(
-		private readonly manifestFetcher: PluginManifestFetcher,
 		public readonly configurationAdapter: ConfigurationAdapter,
 		private readonly dialogAdapter: DialogAdapter,
 		public readonly mailIntegrationAdapter: Nullable<MailIntegrationAdapter> = null,
@@ -60,15 +54,14 @@ export class PluginManager {
 				throw new Error(`Could not load plugin: ${pluginIdToEnable} as it is already loaded. Call unload() first`)
 			}
 
-			this._populatePluginManifestMap(pluginIdToEnable)
-			const pluginManifest = await assertNotNull(this.pluginManifest.get(pluginIdToEnable)).getAsync()
+			const pluginManifest: PluginManifest = PLUGIN_REGISTRY[pluginIdToEnable]
 
 			const customerConfigJson = await this.configurationAdapter.getCustomerConfig(pluginIdToEnable)
 			const pluginHost = new PluginHost(this, pluginIdToEnable)
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
 			pluginHost.initialize(pluginManifest)
 
-			await pluginApi.load()
+			await pluginApi.load(pluginManifest)
 
 			let draftConfig: Record<string, any>
 			if (isNotNull(customerConfigJson)) {
@@ -208,24 +201,5 @@ export class PluginManager {
 	public async persistCustomerConfig(pluginId: PluginId): Promise<boolean> {
 		const draftConfig = this.getLoadedPlugin(pluginId).draftConfig
 		return await this.configurationAdapter.storeCustomerConfig(pluginId, JSON.stringify(draftConfig))
-	}
-
-	private _populatePluginManifestMap(pluginId: PluginId) {
-		let lazyPluginManifest = this.pluginManifest.get(pluginId) ?? null
-		if (isNull(lazyPluginManifest)) {
-			lazyPluginManifest = new LazyLoaded<PluginManifest>(async () => await this.manifestFetcher.fetchManifestJson(pluginId))
-			this.pluginManifest.set(pluginId, lazyPluginManifest)
-		}
-	}
-
-	public getPluginManifest(pluginId: PluginId): Nullable<PluginManifest> {
-		this._populatePluginManifestMap(pluginId)
-		const lazyPluginManifest = assertNotNull(this.pluginManifest.get(pluginId))
-		lazyPluginManifest.load()
-		if (lazyPluginManifest.isLoaded()) {
-			return lazyPluginManifest.getLoaded()
-		} else {
-			return null
-		}
 	}
 }

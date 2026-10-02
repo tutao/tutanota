@@ -8,8 +8,8 @@ import { FileImportExtension, PluginFileReference } from "../../sdk/FileImportEx
 import { initTutaPluginWorker, PluginFactory } from "../../sdk/PluginLoader"
 import { NextcloudApi } from "./NextcloudApi"
 import { PluginId } from "../../sdk/PluginId"
-import NEXTCLOUD_PLUGIN_MANIFEST from "./manifest.json"
 import { CustomerConfigPluginError } from "../../sdk/PluginError"
+import { PluginManifest } from "../../sdk/PluginManifest"
 
 type UserPluginConfig = {
 	credentials: Nullable<NextcloudCredentials>
@@ -31,12 +31,14 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 	private userConfig: UserPluginConfig = null!
 	private customerConfig: CustomerPluginConfig = null!
 	private nextcloudApi: NextcloudApi = null!
+	private manifest: PluginManifest = null!
 
 	constructor(pluginHost: PluginHostApi) {
 		super(pluginHost)
 	}
 
-	override async load(): Promise<void> {
+	override async load(manifest: PluginManifest): Promise<void> {
+		this.manifest = manifest
 		await this.applyConfigExtensionPoints()
 		await this.loadCustomerConfig()
 		await this.loadUserConfig()
@@ -141,9 +143,9 @@ export class NextcloudPlugin extends PluginApi implements AttachmentButtonExtens
 
 		const newUrl = customerConfig.nextCloudUrl
 		const installedVersion = await NextcloudApi.getInstalledVersion(newUrl)
-		if (installedVersion.major > NEXTCLOUD_PLUGIN_MANIFEST.version.major) {
+		if (installedVersion.major > this.manifest.version.major) {
 			throw new CustomerConfigPluginError(
-				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${NEXTCLOUD_PLUGIN_MANIFEST.version.major}`,
+				`Tuta plugin installed in Nextcloud is too old. Try updating tuta app in nexcloud to version: ${this.manifest.version.major}`,
 			)
 		}
 		if (newUrl.endsWith("/")) {
