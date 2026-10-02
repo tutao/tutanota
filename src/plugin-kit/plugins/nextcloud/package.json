@@ -4,8 +4,6 @@
 	"license": "GPL-3.0",
 	"type": "module",
 	"dependencies": {
-		"@nextcloud/typings": "1.10.0",
-		"@nextcloud/axios": "2.5.2",
-		"axios": "1.20.0"
+		"@nextcloud/typings": "1.10.0"
 	}
 }
