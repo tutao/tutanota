@@ -28,6 +28,7 @@ export type MailSetRowAttrs = {
 	editMode: boolean
 	onHover: () => void
 	onDragEnter: () => void
+	onDragLeave: () => void
 	fullFolderPath: string
 	getIconForMailSet: (mailSet: MailSet, button: NavButtonAttrs) => IconAttrs
 	contextMenuButtonAttrs: DropdownButtonAttrs[]
@@ -37,7 +38,8 @@ export class MailSetRow implements Component<MailSetRowAttrs> {
 	private hovered: boolean = false
 
 	view(vnode: Vnode<MailSetRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, mailSet, hasChildren, editMode, onDragEnter, getIconForMailSet } = vnode.attrs
+		const { count, button, rightButton, expanded, indentationLevel, mailSet, hasChildren, editMode, onDragEnter, onDragLeave, getIconForMailSet } =
+			vnode.attrs
 		const iconAttrs = getIconForMailSet(mailSet, button)
 		const onHover = () => {
 			vnode.attrs.onHover()
@@ -117,6 +119,7 @@ export class MailSetRow implements Component<MailSetRowAttrs> {
 					onfocus: onHover,
 					onkeydown: handleBackwardsTab,
 					dragEnterHandler: onDragEnter,
+					dragLeaveHandler: onDragLeave,
 					disableSelectedBackground: true,
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)

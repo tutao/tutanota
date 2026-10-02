@@ -59,6 +59,8 @@ export interface MailSetTreeAttrs {
 	onFolderDrop: (dropData: DropData, folder: MailSet) => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailSet, state: boolean) => unknown
+	onExpandFolderWithDelay: (folder: MailSet) => unknown
+	onCancelFolderDelayedExpand: (predicate: (folderId: Id) => boolean) => unknown
 	inEditMode: boolean
 	buttonAttrs: MailSetTreeButtonAttrs
 	actionAttrs: MailSetTreeActionAttrs
@@ -239,9 +241,16 @@ export function renderFolderTree(
 						rowContainer.visibleRow = id
 					},
 					onDragEnter: () => {
+						// dragenter fires before previous dragleave, so cancel previous expand first
+						attrs.onCancelFolderDelayedExpand(() => true)
+
 						if (hasChildren && !currentExpansionState) {
-							attrs.onFolderExpanded(system.folder, currentExpansionState)
+							attrs.onExpandFolderWithDelay(system.folder)
 						}
+					},
+					onDragLeave: () => {
+						// handle dragleave out of the folder tree
+						attrs.onCancelFolderDelayedExpand((folderId) => folderId === getElementId(system.folder))
 					},
 					fullFolderPath: fullFolderPath,
 					getIconForMailSet: attrs.getIconForMailSet,
