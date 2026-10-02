@@ -63,7 +63,6 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			onClear: () => {
 				this.searchQuery = ""
 			},
-			// prevent app-wide keyboard shortcuts from firing while typing a search term
 			onKeyDown: (e) => e.stopPropagation(),
 		} satisfies BaseSearchBarAttrs)
 	}
@@ -75,12 +74,8 @@ export class PluginsSettingsViewer implements UpdatableSettingsViewer {
 			.filter((entry) => entry.name.toLowerCase().includes(query) || entry.description.toLowerCase().includes(query))
 			.map((manifest) => manifest.id)
 
-		// wrapped in a single container so this slot is always exactly one (unkeyed) vnode at the outer view()'s
-		// array position — mithril requires every vnode within one fragment to be either all-keyed or all-unkeyed,
-		// and returning a bare array of keyed PluginListRows here would sit alongside the outer array's unkeyed
-		// headers/search bar, corrupting the diff (duplicated/missing DOM nodes).
 		return m(
-			".plugin-list",
+			".plugin-list.rel",
 			isEmpty(filteredPluginIds)
 				? m(ColumnEmptyMessageBox, {
 						color: theme.on_surface_variant,
