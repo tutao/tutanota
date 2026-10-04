@@ -52,6 +52,7 @@ globalThis.performance = {
 	now: Date.now,
 	mark: noOp,
 	measure: noOp,
+	markResourceTiming: noOp,
 }
 
 globalThis.XMLHttpRequest = (await import("xhr2")).default
