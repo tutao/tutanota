@@ -200,7 +200,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 												return
 											}
 											const confirmed = await Dialog.confirm(
-												lang.getTranslation("confirmDeleteFinallySystemFolder_msg", { "{1}": getMailSetName(folder) }),
+												lang.getTranslation("confirmClearFolder_msg", { "{1}": getMailSetName(folder) }),
 											)
 											if (confirmed) {
 												showProgressDialog("progressDeleting_msg", this.mailViewModel.finallyDeleteAllMailsInSelectedFolder(folder))

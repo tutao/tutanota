@@ -1825,7 +1825,6 @@ export type TranslationKeyType =
 	| "confirmDeleteTemplateGroup_msg"
 	| "confirmDeleteSecondFactor_msg"
 	| "confirmDeleteLabel_msg"
-	| "confirmDeleteFinallySystemFolder_msg"
 	| "confirmDeleteFinallyCustomFolder_msg"
 	| "confirmDeleteCustomFolder_msg"
 	| "confirmDeleteContactList_msg"
@@ -2560,3 +2559,4 @@ export type TranslationKeyType =
 	| "openDriveDestinationPickerForAttachment_action"
 	| "skipThisFile_action"
 	| "duplicateFileNames_title"
+	| "confirmClearFolder_msg"

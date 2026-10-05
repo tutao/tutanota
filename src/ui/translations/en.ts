@@ -343,7 +343,6 @@ export default {
 		"confirmDeleteFilesPermanently_action": "Delete file(s)",
 		"confirmDeleteFilesPermanently_msg": "Are you sure you want to permanently delete {count} file(s)?",
 		"confirmDeleteFinallyCustomFolder_msg": "Do you really want to permanently delete the folder '{1}' and all of its emails? Depending on the number of emails this operation may take a long time and will be executed in the background.",
-		"confirmDeleteFinallySystemFolder_msg": "Do you really want to permanently delete all emails from the system folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 		"confirmDeleteLabel_msg": "Are you sure that you want to delete the label \"{1}\"?",
 		"confirmDeleteLabelWithSublabels_msg": "Are you sure that you want to delete the label \"{1}\" and all its sublabels?",
 		"confirmDeleteSecondFactor_msg": "Would you really like to delete this second factor?",
@@ -2562,5 +2561,6 @@ export default {
 		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
 		"skipThisFile_action": "Skip this file",
 		"duplicateFileNames_title": "Duplicate file names",
+		"confirmClearFolder_msg": "Do you really want to permanently delete all emails from the folder '{1}'? Depending on the number of emails this operation may take a long time and will be executed in the background.",
 	}
 }
