@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import java.security.SecureRandom
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -118,7 +117,6 @@ class WidgetUIViewModel(
 		now: LocalDateTime
 	): WidgetUIState {
 		Log.i(TAG, "[$widgetId] Init loadUIState")
-		val uiEventsMap: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
@@ -139,7 +137,7 @@ class WidgetUIViewModel(
 		val forceRemoteEventsFetch = lastSync?.force ?: false
 
 		Log.d(TAG, "[$widgetId] Starting to fetch calendar events")
-		val calendarToEventsListMap = this.getCalendarEvents(
+		val calendarToEventsListMap: Map<GeneratedId, CalendarEventListDao> = this.getCalendarEvents(
 			(lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || lastSync.trigger == WidgetUpdateTrigger.SETTINGS || forceRemoteEventsFetch) && this.sdk != null,
 			this.sdk,
 			credentials,
@@ -179,7 +177,7 @@ class WidgetUIViewModel(
 					val eventStartUTC = Date.from(eventStartInstant)
 					val eventEndUTC = Date.from(eventEndInstant)
 
-					// Apply time zone for display string clock times
+					// Apply time zone for displaying string clock times
 					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
 					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
 
@@ -222,29 +220,46 @@ class WidgetUIViewModel(
 					val eventStartsTodayAndEndsLater =
 						eventStartInstant >= currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 
+					val dayMonthFormatter = DateTimeFormatter.ofPattern("d MMM")
+
 					val timesString = if (eventStartsBeforeTodayAndEndsToday) {
-						"Ends at " + eventEndLocalTime.format(UIEvent.dateFormatter)
+						// if event starts on a previous day and ends today, communicate this
+						"Ends at " + eventEndLocalTime.format(
+							UIEvent.dateFormatter
+						)
 					} else if (eventStartsTodayAndEndsLater) {
-						"Starts at " + eventStartLocalTime.format(UIEvent.dateFormatter)
+						// if event starts today and continues on another day, communicate this
+						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(
+							dayMonthFormatter
+						) + " " + eventEndLocalTime.format(UIEvent.dateFormatter)
+
 					} else {
+						// if event starts and ends on same day, display times normally
 						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					}
-
 					// determine if event will be considered all day based on times
+
 					val isConsideredAllDay = isAllDayEventByTimes(
 						Date.from(eventStartInstant), Date.from(eventEndInstant)
 					) || eventTakesEntireDay
 
-					// create the actual UIEvent
+					// We need these instants for sorting
+					val uiEventStartLocalDateTime =
+						LocalDateTime.ofInstant(Instant.ofEpochMilli(uiEventStartMax), zoneId)
+					val uiEventEndLocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(uiEventEndMin), zoneId)
+
+					// create the item that we will show in the widget UI
 					val uiEvent = UIEvent(
 						calendarId,
 						eventDao.id,
 						settings.calendars[calendarId]?.color ?: "2196f3",
 						eventDao.summary,
-						eventStartLocalTime.format(UIEvent.dateFormatter),
-						eventEndLocalTime.format(UIEvent.dateFormatter),
+						uiEventStartLocalDateTime.format(UIEvent.dateFormatter),
+						uiEventEndLocalDateTime.format(UIEvent.dateFormatter),
 						isConsideredAllDay,
 						timesString,
+						isBirthday = false,
+						startsBeforeTodayAndEndsToday = eventStartsBeforeTodayAndEndsToday
 					)
 
 					daysAndEvents[dayIndex] = daysAndEvents[dayIndex].plus(uiEvent)
@@ -274,16 +289,45 @@ class WidgetUIViewModel(
 				val eventStartDate =
 					Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
 						.toLocalDate()
+
+				// we get the index differently for birthday events because we know they will always only be a single instance of an all day event.
+				// so much of the complex logic for other types of events is not necessary.
 				val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
 				daysAndEvents[index.toInt()] = daysAndEvents[index.toInt()].plus(uiEvent)
 			}
 		}
 
 		Log.d(TAG, "[$widgetId] Sorting events by start time")
-		daysAndEvents.forEach { eventList ->
-			eventList.sortedWith(Comparator<UIEvent> { a, b -> // does this sort in-place or no?
-				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
+		// we sorted events in a day to put them in the correct order.
+		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
+			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
+				// compares the events' local start times, ignoring date. This might not always give us the results we want!
+				// e.g.: if the event starts at 5AM on October 5 and ends on 4pm October 6, the entry on the Oct 6 will appear in the widget
+				// before an event that starts at 6am Oct 6
+				// To get the result that hak wants we should conditionally sort using the End Date of events that continue from a previous date.
+
+				if (a.isBirthday) {
+					Log.d(TAG, "event a is birthday")
+					return@Comparator -1
+				} else if (b.isBirthday) {
+					Log.d(TAG, "event b is a birthday")
+					return@Comparator 1
+				}
+
+				val comparisonDateA =
+					if (a.startsBeforeTodayAndEndsToday) LocalTime.parse(a.formattedEndTime) else LocalTime.parse(a.formattedStartTime)
+				val comparisonDateB =
+					if (b.startsBeforeTodayAndEndsToday) LocalTime.parse(b.formattedEndTime) else LocalTime.parse(b.formattedStartTime)
+
+				Log.d(TAG, "comparison time for event A with summary \"${a.summary}\": ${comparisonDateA}")
+				Log.d(TAG, "comparison time for event B with summary \"${b.summary}\" ${comparisonDateB}")
+				val compareResult =
+					comparisonDateA.compareTo(comparisonDateB)
+				Log.d(TAG, "COMPARE RESULT: ${compareResult.toString()}")
+				// Compare result 1 means a > b
+				compareResult
 			})
+			daysAndEvents[index] = sortedEventsOfDay
 		}
 
 		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
@@ -348,7 +392,10 @@ class WidgetUIViewModel(
 		}
 	}
 
-
+	/**
+	 * Gets all the calendar events for a given list of calendars.
+	 * Returns a Map of calendar IDs to CalendarEventListDaos.
+	 */
 	private suspend fun getCalendarEvents(
 		shouldFetchFromServer: Boolean,
 		sdk: Sdk?,

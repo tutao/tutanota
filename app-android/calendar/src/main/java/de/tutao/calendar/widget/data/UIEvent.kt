@@ -20,7 +20,8 @@ data class UIEvent(
 	val isDisplayedAsAllDay: Boolean,
 	val displayedTimes: String,
 	val isBirthday: Boolean = false,
-	val continuesOnNextDay: Boolean = false
+	// This is used for special sorting behavior for widget events that say "Ends at"
+	val startsBeforeTodayAndEndsToday: Boolean = false
 ) {
 	companion object {
 		val dateFormatter = DateTimeFormatter.ofPattern("HH:mm")
