@@ -435,7 +435,7 @@ export async function signup(
 		}
 	})
 
-	return showProgressDialog("createAccountRunning_msg", signupActionPromise, operation.progress)
+	return showProgressDialog("createAccountRunning_msg", signupActionPromise, { progressStream: operation.progress })
 		.catch(
 			ofClass(
 				InvalidDataError,
