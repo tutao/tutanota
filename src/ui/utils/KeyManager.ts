@@ -1,8 +1,9 @@
 import type { TranslationKey } from "./LanguageViewModel"
 import { EnvProvider } from "../../platform-kit/app-env"
-import { lazy, mod } from "../../platform-kit/utils"
+import { isNotNull, lazy, mod, Nullable } from "../../platform-kit/utils"
 import m from "mithril"
 import { Keys } from "./KeyboardKeys"
+import { TypeChecks } from "../../platform-kit/app-env/TsTypeChecks"
 
 EnvProvider.assertMainOrNodeBoot()
 export const TABBABLE = "button, input, textarea, div[contenteditable='true'], [tabindex='0'], a, [role=button], [role=input]"
@@ -195,14 +196,16 @@ function createKeyIdentifier(
  * Shortcuts that are registered by a modal always take precedence.
  */
 
-class KeyManager {
-	private keyToShortcut: Map<string, Shortcut>
+export class KeyManager {
+	private readonly keyToShortcut: Map<string, Shortcut>
 	// override for shortcuts: If a modal is visible, only modal-shortcuts should be active
-	private keyToModalShortcut: Map<string, Shortcut>
-	private desktopShortcuts: Shortcut[]
+	private readonly keyToModalShortcut: Map<string, Shortcut>
+	private readonly desktopShortcuts: Shortcut[]
 	private isHelpOpen: boolean = false
 
-	constructor() {
+	private static singleton: Nullable<KeyManager> = null
+
+	private constructor() {
 		const helpShortcut: Shortcut = {
 			key: Keys.F1,
 			exec: () => this.openF1Help(),
@@ -213,8 +216,34 @@ class KeyManager {
 		// override for _shortcuts: If a modal is visible, only modal-shortcuts should be active
 		this.keyToModalShortcut = new Map([[helpId, helpShortcut]])
 		this.desktopShortcuts = []
-		if (!window.document.addEventListener) return
-		window.document.addEventListener("keydown", (e) => this.handleKeydown(e), false)
+	}
+
+	public static get(): KeyManager {
+		if (isNotNull(KeyManager.singleton)) {
+			return KeyManager.singleton
+		}
+		return (KeyManager.singleton = new KeyManager())
+	}
+
+	public initializeKeydownEventListener(shadowRoot: Nullable<ShadowRoot>) {
+		if (!TypeChecks.isFunction(window?.document?.addEventListener)) {
+			return
+		}
+		if (isNotNull(shadowRoot)) {
+			shadowRoot.addEventListener(
+				"keydown",
+				(e) => {
+					if (e instanceof KeyboardEvent) {
+						this.handleKeydown(e)
+					} else {
+						console.error(`Expected to get KeyboardEvent for keydown event listener. Got: `, e)
+					}
+				},
+				false,
+			)
+		} else {
+			window.document.addEventListener("keydown", (e) => this.handleKeydown(e), false)
+		}
 	}
 
 	private handleKeydown(e: KeyboardEvent): void {
@@ -352,5 +381,3 @@ export function isModifierKeyPressed(key?: Key | string) {
 
 	return EnvProvider.get().isAppleDevice() ? parsedKey === Keys.META : parsedKey === Keys.CTRL
 }
-
-export const keyManager: KeyManager = new KeyManager()

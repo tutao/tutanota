@@ -1,4 +1,4 @@
-import { AppType, DomainConfig, EnvProvider, FeatureType, PaymentSetup, NEXTCLOUD_PREFIX, ProgrammingError, SessionType } from "../../platform-kit/app-env"
+import { AppType, DomainConfig, EnvProvider, FeatureType, NEXTCLOUD_PREFIX, PaymentSetup, ProgrammingError, SessionType } from "../../platform-kit/app-env"
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
@@ -63,6 +63,7 @@ import { DriveSearchView, DriveSearchViewAttrs } from "../drive-app/search/view/
 import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewModel"
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { MoveItems } from "../drive-app/drive/view/DriveMoveItemDialog"
+import { KeyManager } from "../../ui/utils/KeyManager"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -368,6 +369,7 @@ import("../../ui/translations/en.js")
 		}
 
 		Styles.get().init(mailLocator.themeController, shadowRoot)
+		KeyManager.get().initializeKeydownEventListener(shadowRoot)
 
 		const contactViewResolver = makeViewResolver<
 			ContactViewAttrs,

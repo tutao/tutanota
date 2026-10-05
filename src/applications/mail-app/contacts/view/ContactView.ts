@@ -8,8 +8,7 @@ import { ContactListView } from "./ContactListView"
 import { lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { assertNotNull, clear, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
 import { ContactMergeAction, EnvProvider, UpgradePromptType } from "../../../../platform-kit/app-env"
-import type { Shortcut } from "../../../../ui/utils/KeyManager"
-import { keyManager } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
@@ -177,11 +176,11 @@ export class ContactView extends BaseTopLevelView implements TopLevelView<Contac
 
 		const shortcuts = this.getShortcuts()
 		this.oncreate = (vnode) => {
-			keyManager.registerShortcuts(shortcuts)
+			KeyManager.get().registerShortcuts(shortcuts)
 		}
 
 		this.onremove = () => {
-			keyManager.unregisterShortcuts(shortcuts)
+			KeyManager.get().unregisterShortcuts(shortcuts)
 		}
 	}
 

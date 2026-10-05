@@ -1,8 +1,7 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { layout_size, px, size } from "../../../ui/size"
 import { displayOverlay, overlayBottomMargin, PositionRect } from "../../../ui/base/Overlay"
-import type { Shortcut } from "../../../ui/utils/KeyManager"
-import { isKeyPressed, keyManager } from "../../../ui/utils/KeyManager"
+import { isKeyPressed, KeyManager, Shortcut } from "../../../ui/utils/KeyManager"
 import { debounce, getFirstOrThrow, isNotEmpty, lastIndex, mod } from "@tutao/utils"
 import { BrowserType } from "../../../platform-kit/app-env/boot/ClientConstants"
 import { SearchBarOverlay } from "./SearchBarOverlay"
@@ -134,7 +133,7 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 		const keyHandlers = [
 			{
 				key: Keys.F1,
-				exec: () => keyManager.openF1Help(),
+				exec: () => KeyManager.get().openF1Help(),
 			},
 			{
 				key: Keys.ESC,
@@ -208,13 +207,13 @@ export class QuickSearchBar<T> implements Component<SearchBarAttrs<T>> {
 			// only focus in the mobile app, the search bar always exists in desktop/web and will always be grabbing attention
 			this.onFocus()
 		}
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
 		this.focused = false
 
-		if (this.shortcuts) keyManager.unregisterShortcuts(this.shortcuts)
+		if (this.shortcuts) KeyManager.get().unregisterShortcuts(this.shortcuts)
 
 		this.clear()
 		this.closeOverlay()

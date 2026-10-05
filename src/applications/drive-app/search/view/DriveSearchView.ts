@@ -56,7 +56,7 @@ import { DriveActionBar } from "../../drive/view/DriveActionBar"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { Styles } from "../../../../ui/styles"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { DriveFilePicker } from "../../drive/view/DriveFilePicker"
 import { FileType } from "../../drive/model/DriveMimeUtils"
@@ -257,13 +257,13 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 		this.operationUpdatesSubscription = this.searchViewModel.operationUpdates().map((maybeOperationUpdate: OperationUpdate | null) => {
 			operationUpdateSnackbar(maybeOperationUpdate)
 		})
-		keyManager.registerShortcuts(this.shortcuts())
+		KeyManager.get().registerShortcuts(this.shortcuts())
 	}
 
 	onremove() {
 		this.operationUpdatesSubscription?.end(true)
 		this.operationUpdatesSubscription = null
-		keyManager.unregisterShortcuts(this.shortcuts())
+		KeyManager.get().unregisterShortcuts(this.shortcuts())
 		this.searchViewModel.dispose()
 	}
 

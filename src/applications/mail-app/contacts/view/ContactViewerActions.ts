@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { Contact } from "@tutao/entities/tutanota"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
@@ -63,7 +63,7 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 	}
 
 	onupdate(vnode: VnodeDOM<ContactViewToolbarAttrs>) {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 		this.shortcuts.length = 0
 		const { contacts, onEdit, onDelete, onMerge, onExport } = vnode.attrs
 		if (this.canEdit(contacts)) {
@@ -97,11 +97,11 @@ export class ContactViewerActions implements Component<ContactViewToolbarAttrs> 
 				help: "export_action",
 			})
 		}
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	private canExport(contacts: Contact[]) {

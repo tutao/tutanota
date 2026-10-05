@@ -34,6 +34,10 @@ export class Styles {
 		return Styles.singleton
 	}
 
+	public getShadowRoot(): Readonly<ShadowRoot> | null {
+		return this.shadowRoot
+	}
+
 	constructor() {
 		this.initialized = false
 		this.styles = new Map()

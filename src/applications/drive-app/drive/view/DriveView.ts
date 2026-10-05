@@ -16,7 +16,7 @@ import { DriveTransferStack, DriveTransferStackAttrs } from "./DriveTransferStac
 import { DriveSidebar } from "./Sidebar"
 import { listSelectionKeyboardShortcuts } from "../../../../ui/base/ListUtils"
 import { ListState, MultiselectMode } from "../../../../ui/base/List"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { AppType, CancelledError, EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { formatStorageSize } from "../../../../ui/utils/Formatter"
 import { DriveProgressBar } from "./DriveProgressBar"
@@ -103,7 +103,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	private operationUpdatesSubscription: Stream<unknown> | null = null
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 		this.operationUpdatesSubscription = this.driveViewModel.operationUpdates()
 		if (this.operationUpdatesSubscription) {
 			this.operationUpdatesSubscription.map((maybeOperationUpdate: OperationUpdate | null) => {
@@ -113,7 +113,7 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 		this.operationUpdatesSubscription?.end(true)
 		this.operationUpdatesSubscription = null
 		this.driveViewModel.deinit()

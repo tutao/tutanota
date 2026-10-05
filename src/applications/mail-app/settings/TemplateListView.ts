@@ -20,7 +20,7 @@ import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from 
 import { IconButton } from "../../../ui/base/IconButton.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBar.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { keyManager } from "../../../ui/utils/KeyManager.js"
+import { KeyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { isSameSingleId } from "../../../platform-kit/meta"
@@ -69,11 +69,11 @@ export class TemplateListView implements UpdatableSettingsViewer {
 	}
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	private makeListModel() {

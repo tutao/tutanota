@@ -133,7 +133,7 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	constructor(public readonly env: EnvType) {}
+	private constructor(public readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId

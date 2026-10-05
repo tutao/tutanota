@@ -3,7 +3,7 @@ import { AccessExpiredError } from "../../../../platform-kit/rest-client/error"
 import { assertNotNull, base64ToUint8Array, base64UrlToBase64, noOp } from "../../../../platform-kit/utils"
 import type { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
@@ -202,13 +202,13 @@ export class ExternalLoginView extends BaseTopLevelView implements TopLevelView<
 	}
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
 		this.viewModel.password = ""
 		this.viewModel.dispose()
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	view({ attrs }: Vnode<ExternalLoginViewAttrs>): Children {

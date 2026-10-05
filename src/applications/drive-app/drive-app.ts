@@ -39,6 +39,7 @@ import { DriveSearchView, DriveSearchViewAttrs } from "./search/view/DriveSearch
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { FolderItem } from "./drive/view/DriveUtils"
 import { MoveItems } from "./drive/view/DriveMoveItemDialog"
+import { KeyManager } from "../../ui/utils/KeyManager"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -126,6 +127,7 @@ import("../../ui/translations/en.js")
 		})
 
 		Styles.get().init(driveLocator.themeController, null)
+		KeyManager.get().initializeKeydownEventListener(null)
 
 		const { makeSignupViewResolver } = await import("../common/signup/SignupViewResolver.js")
 		const paths = applicationPaths({

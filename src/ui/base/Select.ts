@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../size.js"
 import { TabIndex } from "../../platform-kit/app-env"
-import { focusNext, focusPrevious, isKeyPressed, keyManager, Shortcut, ShortcutType } from "../utils/KeyManager.js"
+import { focusNext, focusPrevious, isKeyPressed, KeyManager, Shortcut, ShortcutType } from "../utils/KeyManager.js"
 import { DomRectReadOnlyPolyfilled } from "./Dropdown.js"
 import { lang } from "../utils/LanguageViewModel.js"
 import { Icon, IconSize } from "./Icon.js"
@@ -351,7 +351,7 @@ class OptionListContainer implements ClassComponent {
 	private children: Children[] = []
 	private isDropdownOpen = false
 	private isInitialFocusTriggered = false
-	private oldShortcut = keyManager.getShortcutForKey(Keys.ESC)
+	private oldShortcut = KeyManager.get().getShortcutForKey(Keys.ESC)
 	private shortcuts: Shortcut[] = [
 		{
 			key: Keys.ESC,
@@ -399,12 +399,12 @@ class OptionListContainer implements ClassComponent {
 							this.domDropdownContents = vnode.dom as HTMLElement
 							this.domDropdownContents.addEventListener("focusout", this.handleDropdownLoseFocus)
 							this.domDropdownContents.addEventListener("focusin", this.handleDropdownFocusIn)
-							keyManager.registerModalShortcuts(this.shortcuts)
+							KeyManager.get().registerModalShortcuts(this.shortcuts)
 						},
 						onremove: (vnode: VnodeDOM<HTMLElement>) => {
 							this.domDropdownContents?.removeEventListener("focusout", this.handleDropdownLoseFocus)
 							this.domDropdownContents?.removeEventListener("focusin", this.handleDropdownFocusIn)
-							keyManager.unregisterModalShortcuts(this.shortcuts)
+							KeyManager.get().unregisterModalShortcuts(this.shortcuts)
 
 							this.handleShortcutRestore()
 							this.isInitialFocusTriggered = false
@@ -486,8 +486,8 @@ class OptionListContainer implements ClassComponent {
 	private handleShortcutRestore() {
 		if (!this.oldShortcut) return
 
-		if (this.oldShortcut.type === ShortcutType.MODAL) keyManager.registerModalShortcuts([this.oldShortcut.shortcut])
-		else keyManager.registerShortcuts([this.oldShortcut.shortcut])
+		if (this.oldShortcut.type === ShortcutType.MODAL) KeyManager.get().registerModalShortcuts([this.oldShortcut.shortcut])
+		else KeyManager.get().registerShortcuts([this.oldShortcut.shortcut])
 	}
 
 	displayDropdown(domDropdown: HTMLElement, origin: DomRectReadOnlyPolyfilled, contentHeight: number, position?: "top" | "bottom") {

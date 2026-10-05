@@ -1,5 +1,5 @@
 import { DesktopFacade, ElectronResult, ErrorInfo, NativeShortcut, SettingsFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { Shortcut } from "../../../ui/utils/KeyManager.js"
+import { KeyManager, Shortcut } from "../../../ui/utils/KeyManager.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { lazy, lazyAsync } from "@tutao/utils"
 import { NativeInterfaceMain } from "./NativeInterfaceMain.js"
@@ -85,8 +85,8 @@ export class WebDesktopFacade implements DesktopFacade {
 			key: Keys.F,
 		}
 		const fixedShortcuts: Array<Shortcut> = shortcuts.map((nsc) => Object.assign({}, baseShortcut, nsc))
-		const { keyManager } = await import("../../../ui/utils/KeyManager.js")
-		keyManager.registerDesktopShortcuts(fixedShortcuts)
+		const { KeyManager } = await import("../../../ui/utils/KeyManager.js")
+		KeyManager.get().registerDesktopShortcuts(fixedShortcuts)
 	}
 
 	async appUpdateDownloaded(): Promise<void> {

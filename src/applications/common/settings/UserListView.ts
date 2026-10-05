@@ -21,7 +21,7 @@ import { BaseSearchBar, BaseSearchBarAttrs } from "../../../ui/base/BaseSearchBa
 import { IconButton } from "../../../ui/base/IconButton.js"
 import { attachDropdown } from "../../../ui/base/Dropdown.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
-import { keyManager } from "../../../ui/utils/KeyManager.js"
+import { KeyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
@@ -79,7 +79,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	private readonly shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Disabled, () => this.listModel)
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	view(): Children {
@@ -167,7 +167,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 
 		this.listStateSubscription?.end(true)
 		this.listSelectionSubscription?.end(true)

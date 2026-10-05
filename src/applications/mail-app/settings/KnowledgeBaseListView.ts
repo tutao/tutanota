@@ -22,7 +22,7 @@ import ColumnEmptyMessageBox from "../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../ui/theme.js"
 import { knowledgeBaseSearch } from "../knowledgebase/model/KnowledgeBaseSearchFilter.js"
 import { showKnowledgeBaseEditor } from "./KnowledgeBaseEditor.js"
-import { keyManager } from "../../../ui/utils/KeyManager.js"
+import { KeyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../../common/misc/DeviceConfig.js"
 import { UpdatableSettingsDetailsViewer, UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -70,11 +70,11 @@ export class KnowledgeBaseListView implements UpdatableSettingsViewer {
 	}
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	private makeListModel() {

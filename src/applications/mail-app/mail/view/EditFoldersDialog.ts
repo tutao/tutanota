@@ -1,12 +1,12 @@
 import { modal, ModalComponent } from "../../../../ui/base/Modal.js"
 import { assertNotNull, noOp, Thunk } from "../../../../platform-kit/utils"
-import { focusNext, focusPrevious, keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { focusNext, focusPrevious, KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import m, { Children } from "mithril"
 import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, opacity } from "../../../../ui/animation/Animations.js"
 import { getElevatedBackground, theme } from "../../../../ui/theme.js"
 import { INPUT } from "../../../../ui/base/Dialog.js"
 import { ease } from "../../../../ui/animation/Easing.js"
-import { component_size, layout_size, px, size } from "../../../../ui/size.js"
+import { component_size, layout_size, px } from "../../../../ui/size.js"
 import { Styles } from "../../../../ui/styles.js"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
@@ -201,7 +201,7 @@ export class EditFoldersDialog implements ModalComponent {
 		this._shortcuts.push(shortcut)
 
 		if (this.visible) {
-			keyManager.registerModalShortcuts([shortcut])
+			KeyManager.get().registerModalShortcuts([shortcut])
 		}
 
 		return this

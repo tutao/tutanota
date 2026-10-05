@@ -5,8 +5,7 @@ import { alpha, AlphaEnum, AnimationPromise, animations, DefaultAnimationTime, o
 import { ease } from "../animation/Easing"
 import type { MaybeTranslation, Translation, TranslationKey } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
-import type { Shortcut } from "../utils/KeyManager"
-import { focusNext, focusPrevious, keyManager } from "../utils/KeyManager"
+import { focusNext, focusPrevious, KeyManager, Shortcut } from "../utils/KeyManager"
 import { getElevatedBackground, theme, ThemeId } from "../theme"
 import { px, size } from "../size"
 import { HabReminderImage, Icons } from "./icons/Icons"
@@ -291,7 +290,7 @@ export class Dialog implements ModalComponent {
 		this._shortcuts.push(shortcut)
 
 		if (this.visible) {
-			keyManager.registerModalShortcuts([shortcut])
+			KeyManager.get().registerModalShortcuts([shortcut])
 		}
 
 		return this

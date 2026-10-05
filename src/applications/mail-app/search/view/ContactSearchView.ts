@@ -30,7 +30,7 @@ import { BaseMobileHeader } from "../../../../ui/BaseMobileHeader"
 import { IconButton } from "../../../../ui/base/IconButton"
 import { MAIL_PREFIX, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { FeatureType } from "@tutao/app-env"
 import { ViewSlider } from "../../../../ui/nav/ViewSlider"
 import { windowFacade } from "../../../common/misc/WindowFacade"
@@ -204,11 +204,11 @@ export class ContactSearchView extends BaseTopLevelView implements TopLevelView<
 
 	oncreate() {
 		this.searchViewModel.init()
-		keyManager.registerShortcuts(this.shortcuts())
+		KeyManager.get().registerShortcuts(this.shortcuts())
 	}
 	onremove() {
 		this.searchViewModel.dispose()
-		keyManager.unregisterShortcuts(this.shortcuts())
+		KeyManager.get().unregisterShortcuts(this.shortcuts())
 	}
 	protected async onNewUrl(args: Record<string, any>, requestedPath: string) {
 		await this.searchViewModel.init()

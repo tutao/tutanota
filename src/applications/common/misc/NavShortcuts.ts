@@ -1,4 +1,4 @@
-import { keyManager } from "../../../ui/utils/KeyManager.js"
+import { KeyManager } from "../../../ui/utils/KeyManager.js"
 import { FeatureType } from "../../../platform-kit/app-env"
 import m from "mithril"
 import { CALENDAR_PREFIX, CONTACTS_PREFIX, DRIVE_PREFIX, LogoutUrl, MAIL_PREFIX, SETTINGS_PREFIX, throttleRoute } from "../../../ui/utils/RouteChange.js"
@@ -16,7 +16,7 @@ export function setupNavShortcuts({ quickActionsModel, logins }: { quickActionsM
 
 	const routeTo = throttleRoute()
 
-	keyManager.registerShortcuts([
+	KeyManager.get().registerShortcuts([
 		{
 			key: Keys.M,
 			enabled: () => hasInAppNavigation(),

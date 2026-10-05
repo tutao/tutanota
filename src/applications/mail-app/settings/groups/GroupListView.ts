@@ -17,7 +17,7 @@ import { ListElementListModel } from "../../../common/misc/ListElementListModel.
 import { compareGroupInfos } from "../../../../platform-kit/network/GroupUtils.js"
 import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { listSelectionKeyboardShortcuts, onlySingleSelection, VirtualRow } from "../../../../ui/base/ListUtils.js"
-import { keyManager } from "../../../../ui/utils/KeyManager.js"
+import { KeyManager } from "../../../../ui/utils/KeyManager.js"
 import { BaseSearchBar, BaseSearchBarAttrs } from "../../../../ui/base/BaseSearchBar.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
@@ -71,7 +71,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	private readonly shortcuts = listSelectionKeyboardShortcuts(MultiselectMode.Disabled, () => this.listModel)
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	view(): Children {
@@ -124,7 +124,7 @@ export class GroupListView implements UpdatableSettingsViewer {
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 
 		this.listStateSubscription?.end(true)
 	}

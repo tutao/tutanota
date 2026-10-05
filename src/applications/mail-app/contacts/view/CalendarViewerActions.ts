@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { IconButton } from "../../../../ui/base/IconButton.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
@@ -56,7 +56,7 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 	}
 
 	onupdate(vnode: VnodeDOM<CalendarViewToolbarAttrs>) {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 		this.shortcuts.length = 0
 		const { event, onEdit, onDelete, onExport } = vnode.attrs
 		if (event == null) return
@@ -80,11 +80,11 @@ export class CalendarViewerActions implements Component<CalendarViewToolbarAttrs
 			})
 		}
 
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	private canExport(event: CalendarEvent) {

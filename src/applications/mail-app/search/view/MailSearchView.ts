@@ -30,7 +30,7 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { MAIL_PREFIX, throttleRoute } from "../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../ui/base/ProgressBar"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { elementIdToId, getElementId, getIds, isSameId } from "@tutao/meta"
 import { Mail } from "@tutao/entities/tutanota"
 import { SearchCategoryType } from "../../../common/api/worker/search/SearchTypes"
@@ -93,7 +93,6 @@ import { AppPromo } from "../../../common/gui/AppPromo"
 import { SearchViewSearchBar } from "../../../common/search/SearchViewSearchBar"
 import { PaidFunctionResult } from "../../../common/search/SearchUtils"
 import { Styles } from "../../../../ui/styles"
-import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
 
@@ -571,11 +570,11 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 
 	oncreate() {
 		this.searchViewModel.init()
-		keyManager.registerShortcuts(this.shortcuts())
+		KeyManager.get().registerShortcuts(this.shortcuts())
 	}
 	onremove() {
 		this.searchViewModel.dispose()
-		keyManager.unregisterShortcuts(this.shortcuts())
+		KeyManager.get().unregisterShortcuts(this.shortcuts())
 	}
 	private renderDetailsView(header: AppHeaderAttrs): Children {
 		const selectedMails = this.searchViewModel.getSelectedMails()

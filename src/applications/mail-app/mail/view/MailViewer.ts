@@ -6,8 +6,7 @@ import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-k
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
-import type { Shortcut } from "../../../../ui/utils/KeyManager"
-import { keyManager } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { isDarkTheme, theme } from "../../../../ui/theme"
@@ -15,13 +14,13 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { Styles } from "../../../../ui/styles"
 import { DropdownButtonAttrs, DropdownChildAttrs, showDropdownAtPosition } from "../../../../ui/base/Dropdown.js"
 import { applyDarkThemeFix, replaceCidsWithInlineImages } from "./MailGuiUtils"
-import { contextDropdown, getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
+import { getCoordsOfMouseOrTouchEvent } from "../../../../ui/base/GuiUtils"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { ContentBlockingStatus, MailViewerViewModel } from "./MailViewerViewModel"
 import { UserError } from "../../../common/api/main/UserError"
 import { isNewMailActionAvailable } from "../../../common/gui/nav/NavFunctions"
 import { MailViewerHeader } from "./MailViewerHeader.js"
-import { editDraft, getMailActionAttrs, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
+import { editDraft, MailViewerMoreActions, showHeaderDialog, showSourceDialog } from "./MailViewerUtils.js"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import { PinchZoom } from "../../../../ui/PinchZoom.js"
@@ -109,7 +108,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 	oncreate({ attrs }: Vnode<MailViewerAttrs>) {
 		if (attrs.isPrimary) {
-			keyManager.registerShortcuts(this.shortcuts)
+			KeyManager.get().registerShortcuts(this.shortcuts)
 		}
 		windowFacade.addResizeListener(this.resizeListener)
 	}
@@ -126,7 +125,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.pinchZoomable?.remove() // remove the listeners
 		this.clearDomBody()
 		if (attrs.isPrimary) {
-			keyManager.unregisterShortcuts(this.shortcuts)
+			KeyManager.get().unregisterShortcuts(this.shortcuts)
 		}
 	}
 

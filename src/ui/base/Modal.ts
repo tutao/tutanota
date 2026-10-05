@@ -1,8 +1,7 @@
 import m, { Component } from "mithril"
 import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
-import type { Shortcut } from "../utils/KeyManager"
-import { keyManager } from "../utils/KeyManager"
+import { KeyManager, Shortcut } from "../utils/KeyManager"
 import { insideRect, lastIndex, remove } from "../../platform-kit/utils"
 import { LayerType } from "./RootView"
 import { EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
@@ -138,7 +137,7 @@ class Modal implements Component {
 		this.windowFacade!.removeHistoryEventListener(this.historyEventListener)
 		this.windowFacade!.addHistoryEventListener(this.historyEventListener)
 		if (this.components.length > 0) {
-			keyManager.unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
+			KeyManager.get().unregisterModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
 
 		const existingIndex = this.components.findIndex((shownComponent) => shownComponent.component === component)
@@ -154,7 +153,7 @@ class Modal implements Component {
 			needsBg,
 		})
 		m.redraw()
-		keyManager.registerModalShortcuts(component.shortcuts())
+		KeyManager.get().registerModalShortcuts(component.shortcuts())
 	}
 
 	/**
@@ -238,7 +237,7 @@ class Modal implements Component {
 
 		if (componentIsTopmostComponent) {
 			console.log("removed topmost modal component")
-			keyManager.unregisterModalShortcuts(component.shortcuts())
+			KeyManager.get().unregisterModalShortcuts(component.shortcuts())
 		}
 
 		this.components.splice(componentIndex, 1)
@@ -251,7 +250,7 @@ class Modal implements Component {
 
 		if (this.components.length > 0 && componentIsTopmostComponent) {
 			// the removed component was the last component, so we can now register the shortcuts of the now last component
-			keyManager.registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
+			KeyManager.get().registerModalShortcuts(this.components[this.components.length - 1].component.shortcuts())
 		}
 	}
 

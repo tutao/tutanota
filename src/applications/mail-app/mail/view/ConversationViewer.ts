@@ -7,7 +7,7 @@ import { Button, ButtonType } from "../../../../ui/base/Button.js"
 import { CollapsedMailView } from "./CollapsedMailView.js"
 import { MailViewerViewModel } from "./MailViewerViewModel.js"
 import { component_size, px, size } from "../../../../ui/size.js"
-import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager.js"
 import { Styles } from "../../../../ui/styles.js"
 import { responsiveCardHMargin } from "../../../../ui/cards.js"
 import { assertNotNull, ofClass } from "../../../../platform-kit/utils"
@@ -108,11 +108,11 @@ export class ConversationViewer implements Component<ConversationViewerAttrs> {
 	}
 
 	oncreate() {
-		keyManager.registerShortcuts(this.shortcuts)
+		KeyManager.get().registerShortcuts(this.shortcuts)
 	}
 
 	onremove() {
-		keyManager.unregisterShortcuts(this.shortcuts)
+		KeyManager.get().unregisterShortcuts(this.shortcuts)
 	}
 
 	view(vnode: Vnode<ConversationViewerAttrs>): Children {

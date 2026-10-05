@@ -7,8 +7,7 @@ import { CancelledError, EnvProvider, FeatureType, MAX_LABELS_PER_FREE_USER, Upg
 import { AppHeaderAttrs, Header } from "../../../../ui/Header.js"
 import { assertNotNull, first, getFirstOrThrow, isEmpty, isNotEmpty, noOp, ofClass } from "../../../../platform-kit/utils"
 import { MailListView } from "./MailListView"
-import type { Shortcut } from "../../../../ui/utils/KeyManager"
-import { keyManager } from "../../../../ui/utils/KeyManager"
+import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { getMailSelectionMessage, MultiItemViewer } from "./MultiItemViewer.js"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -371,7 +370,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 
 		this.oncreate = (vnode) => {
 			this.countersStream = this.mailViewModel.mailModel.mailboxCounters.map(m.redraw)
-			keyManager.registerShortcuts(shortcuts)
+			KeyManager.get().registerShortcuts(shortcuts)
 			this.cache.conversationViewPreference = deviceConfig.getConversationViewShowOnlySelectedMail()
 		}
 
@@ -382,7 +381,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			this.countersStream?.end(true)
 			this.countersStream = null
 
-			keyManager.unregisterShortcuts(shortcuts)
+			KeyManager.get().unregisterShortcuts(shortcuts)
 		}
 	}
 

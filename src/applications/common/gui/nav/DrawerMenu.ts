@@ -6,7 +6,7 @@ import { getSafeAreaInsetLeft } from "../../../../ui/HtmlUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { AriaLandmarks, landmarkAttrs } from "../../../../ui/AriaUtils"
 import { createDropdown } from "../../../../ui/base/Dropdown.js"
-import { keyManager } from "../../../../ui/utils/KeyManager"
+import { KeyManager } from "../../../../ui/utils/KeyManager"
 import { CounterBadge } from "../../../../ui/base/CounterBadge.js"
 import { px, size } from "../../../../ui/size.js"
 import { theme } from "../../../../ui/theme.js"
@@ -118,7 +118,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								{
 									icon: Icons.KeyboardFilled,
 									label: "keyboardShortcuts_title",
-									click: () => keyManager.openF1Help(true),
+									click: () => KeyManager.get().openF1Help(true),
 								},
 							],
 						})(e, dom),
