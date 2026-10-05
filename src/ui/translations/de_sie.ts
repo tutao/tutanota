@@ -343,7 +343,6 @@ export default {
 		"confirmDeleteFilesPermanently_action": "Datei(en) löschen",
 		"confirmDeleteFilesPermanently_msg": "Möchten Sie wirklich {count} Datei(en) unwiderruflich löschen?",
 		"confirmDeleteFinallyCustomFolder_msg": "Möchten Sie wirklich den Ordner '{1}' und alle seine E-Mails endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
-		"confirmDeleteFinallySystemFolder_msg": "Möchten Sie wirklich alle E-Mails aus dem System-Ordner '{1}' endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
 		"confirmDeleteLabel_msg": "Möchten Sie das Label \"{1}\" wirklich löschen?",
 		"confirmDeleteLabelWithSublabels_msg": "Möchten Sie das Label \"{1}\" und alle untergeordneten Label wirklich löschen?",
 		"confirmDeleteSecondFactor_msg": "Möchten Sie diesen zweiten Faktor wirklich löschen?",
@@ -2550,6 +2549,7 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"confirmClearFolder_msg": "Möchten Sie wirklich alle E-Mails aus dem Ordner '{1}' endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
 	}
 }
