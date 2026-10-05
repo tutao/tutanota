@@ -118,6 +118,7 @@ export const allowedImports = {
 		"sharing",
 		"qr",
 		"plugin-sdk",
+		"plugin-manager",
 	],
 	"mail-settings": [
 		"polyfill-helpers",
@@ -405,9 +406,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		isIn("src/applications/common/ratings") ||
 		isIn("src/applications/common/termination") ||
 		isIn("src/applications/common/revocation") ||
-		isIn("src/applications/common/partner") ||
-		isIn("src/plugin-kit/plugins/nextcloud/manifest.json") ||
-		isIn("src/plugin-kit/plugins/PluginRegistry.ts")
+		isIn("src/applications/common/partner")
 	) {
 		// subscription and settings depend on each other right now.
 		// subscription is also a kitchen sink with signup, utils and views, we should break it up
