@@ -497,23 +497,26 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 
 		const inboxRuleModel = await this.inboxRuleModel()
 		if (inboxRuleModel.isUsingLegacyInboxRules()) {
-			const progress = stream(0)
+			const progressStream = stream(0)
 			const abort = new AbortController()
-			const mailsAffected = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
-				middle: "reapplyInboxRules_action",
-				left: () => {
-					return [
-						{
-							label: "cancel_action",
-							click: () => {
-								abort.abort()
+			const mailsAffected = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progressStream, abort), {
+				progressStream,
+				headerBarAttrs: {
+					middle: "reapplyInboxRules_action",
+					left: () => {
+						return [
+							{
+								label: "cancel_action",
+								click: () => {
+									abort.abort()
 
-								// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-								progress(100)
-							},
-							type: ButtonType.Secondary,
-						} as const,
-					]
+									// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+									progressStream(100)
+								},
+								type: ButtonType.Secondary,
+							} as const,
+						]
+					},
 				},
 			})
 			await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
@@ -525,23 +528,26 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 }
 
 export async function applyRuleWithProgress(rules: Array<ExpandedInboxRule>, inboxRuleHandler: ExpandedInboxRuleHandler): Promise<void> {
-	const progress = stream(0)
+	const progressStream = stream(0)
 	const abort = new AbortController()
-	const mailsAffected = await showProgressDialog("pleaseWait_msg", inboxRuleHandler.applyRulesToAllMails(progress, abort, rules), progress, {
-		middle: "applyingInboxRules_label",
-		left: () => {
-			return [
-				{
-					label: "cancel_action",
-					click: () => {
-						abort.abort()
+	const mailsAffected = await showProgressDialog("pleaseWait_msg", inboxRuleHandler.applyRulesToAllMails(progressStream, abort, rules), {
+		progressStream,
+		headerBarAttrs: {
+			middle: "applyingInboxRules_label",
+			left: () => {
+				return [
+					{
+						label: "cancel_action",
+						click: () => {
+							abort.abort()
 
-						// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-						progress(100)
-					},
-					type: ButtonType.Secondary,
-				} as const,
-			]
+							// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+							progressStream(100)
+						},
+						type: ButtonType.Secondary,
+					} as const,
+				]
+			},
 		},
 	})
 
