@@ -2,7 +2,7 @@
 
 The official Tuta Mail App for Nextcloud!
 
-It allows you to use the Tuta web client inside Nextcloud. Additionally it offer a couple of integrations
+It allows you to use the Tuta web client inside Nextcloud. Additionally, it offers a couple of integrations
 
 ## Tuta integrations with Nextcloud
 
@@ -19,32 +19,32 @@ In order to activate these integrations, you need to enable the Nextcloud plugin
 - Enable the Nextcloud plugin
 - Enter your Nextcloud URL and the folder name for saving attachments
 
-## Setting up nextcloud container for development
+## Setting up Nextcloud container for development
 
 ### Install Docker
 
 1) for Debian 13 use: `sudo apt install docker.io docker-compose`
 2) Add yourself to docker group: `sudo usermod -aG docker $USER`
 3) Logout-Login or reboot. Run `groups` to make sure you are in the docker group
-4) start the docker daemon: `sudo systemct start docker`
+4) Start the docker daemon: `sudo systemctl start docker`
 
-### Setup and configure the nextcloud dev containers
+### Setup and configure the Nextcloud dev containers
 
-1) Clone the official nextcloud dev containers: `git clone https://github.com/juliusknorr/nextcloud-docker-dev
+1) Clone the official Nextcloud dev containers: `git clone https://github.com/juliusknorr/nextcloud-docker-dev
 2) In `nextcloud-docker-dev` run the`./bootstart.sh` script.
 3) In `docker-compose.yml` add these two lines under services>nextcloud>volumes, and make sure to replace
    `/path/to/tutanota/repository` with the correct path:
    ```yaml
-       - '${HOME}/dev/repositories/tutanota/integrations/nextcloud/tutamail:/var/www/html/apps/tutamail'
-       - '${HOME}/dev/repositories/tutanota/build/:/var/www/html/apps/tutamail/js'
+       - '${HOME}/dev/repositories/tuta/clients/tutanota/integrations/nextcloud/tutamail:/var/www/html/apps/tutamail'
+       - '${HOME}/dev/repositories/tuta/clients/tutanota/build/:/var/www/html/apps/tutamail/js'
    ```
 
-	and under `services>nextcloud>environment` add:
-	```yaml
-		TUTAO_NEXTCLOUD_DEV_SETUP: "1"
- 	```
-4) Start the nextcloud container:
-    * `docker compose up -d nextcloud` to start nextcloud
+   and under `services>nextcloud>environment` add:
+   ```yaml
+       TUTAO_NEXTCLOUD_DEV_SETUP: "1"
+    ```
+4) Start the Nextcloud container:
+    * `docker compose up -d nextcloud` to start Nextcloud
     * `rm .env` and run `./bootstrap.sh` again if something goes wrong.
 5) Visit `http://nextcloud.local` from your browser
 
