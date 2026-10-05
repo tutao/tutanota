@@ -73,6 +73,7 @@ import {
 	areRepeatRulesEqual,
 	DefaultDateProvider,
 	findFirstPrivateCalendar,
+	generateUid,
 	getTimeZone,
 	incrementSequence,
 	parseAlarmInterval,
@@ -177,7 +178,7 @@ export type CalendarEventModelFactory = (
 ) => Promise<CalendarEventModel | null>
 
 /**
- * get the models enabling consistent calendar event updates.
+ * Make the models enabling consistent calendar event updates.
  */
 export async function makeCalendarEventModel(
 	operation: CalendarOperation,
@@ -203,8 +204,18 @@ export async function makeCalendarEventModel(
 	const calendarInfos = await calendarModel.getCalendarInfos()
 	const selectedCalendar = getPreselectedCalendar(calendarInfos, initialValues)
 
+	if (!initialValues.uid) {
+		// Previously we were asserting that initialValues.uid is not null. This caused very old events that were
+		// created before the "uid" field was introduced to cause the error dialog to be shown when you attempted to
+		// edit or delete these events. We introduced this code-path as a temporary workaround that we plan on fixing
+		// using a client-side migration.
+		// XXX: Remove this when Rollout migration is implemented
+		console.warn(`Encountered event ${JSON.stringify(initialValues._id)} with null UID. Replacing with generated ID.`)
+		initialValues.uid = generateUid(selectedCalendar.id, Date.now())
+	}
+
 	if (operation === CalendarOperation.DeleteAll || operation === CalendarOperation.EditAll) {
-		const initialValueUid = assertNotNull(initialValues.uid, "tried to edit/delete all with nonexistent uid")
+		const initialValueUid = initialValues.uid
 		const indexEntry = await calendarModel.getEventsByUid(initialValueUid, selectedCalendar.id)
 		if (indexEntry != null && indexEntry.progenitor) {
 			initialValues = indexEntry.progenitor
