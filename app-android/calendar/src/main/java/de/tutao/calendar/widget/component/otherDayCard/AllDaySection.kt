@@ -9,9 +9,12 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.padding
+import androidx.glance.preview.ExperimentalGlancePreviewApi
+import androidx.glance.preview.Preview
 import de.tutao.calendar.widget.component.allDayRow.AllDayRow
 import de.tutao.calendar.widget.data.UIEvent
 import de.tutao.calendar.widget.style.Dimensions
+import de.tutao.tutashared.IdTuple
 
 @Composable
 fun AllDaySection(allDayEvents: List<UIEvent>) {
@@ -29,29 +32,29 @@ fun AllDaySection(allDayEvents: List<UIEvent>) {
 	}
 }
 
-//@OptIn(ExperimentalGlancePreviewApi::class)
-//@Preview(widthDp = 250, heightDp = 80)
-//@Composable
-//fun AllDaySectionPreview() {
-//	AllDaySection(
-//		allDayEvents = listOf(
-//			UIEvent(
-//				"calendarId", IdTuple("list", "elemnt"), "dd55ff", "My all day", "", "", true
-//			)
-//		)
-//	)
-//}
-//
-//
-//@OptIn(ExperimentalGlancePreviewApi::class)
-//@Preview(widthDp = 250, heightDp = 80)
-//@Composable
-//fun AllDaySectionBirthdayPreview() {
-//	AllDaySection(
-//		allDayEvents = listOf(
-//			UIEvent(
-//				"calendarId", IdTuple("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, true
-//			)
-//		)
-//	)
-//}
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 80)
+@Composable
+fun AllDaySectionPreview() {
+	AllDaySection(
+		allDayEvents = listOf(
+			UIEvent(
+				"calendarId", IdTuple("list", "elemnt"), "dd55ff", "My all day", "", "", true, ""
+			)
+		)
+	)
+}
+
+
+@OptIn(ExperimentalGlancePreviewApi::class)
+@Preview(widthDp = 250, heightDp = 80)
+@Composable
+fun AllDaySectionBirthdayPreview() {
+	AllDaySection(
+		allDayEvents = listOf(
+			UIEvent(
+				"calendarId", IdTuple("list", "elemnt"), "aa55ff", "Jane Birthday", "", "", true, ""
+			)
+		)
+	)
+}

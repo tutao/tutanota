@@ -21,80 +21,94 @@ private let startOfToday = Calendar.current.startOfDay(for: Date.now).timeInterv
 private let startOfTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 1, to: Date.now)!).timeIntervalSince1970
 private let startOfAfterTomorrow = Calendar.current.startOfDay(for: Calendar.current.date(byAdding: .day, value: 2, to: Date.now)!).timeIntervalSince1970
 
-//private let NORMAL_EVENTS_PLACEHOLDER = [
-//	startOfToday: [
-//		CalendarEventData(
-//			id: "ev1",
-//			summary: "Gym",
-//			startDate: date(2025, 4, 22, 9, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
-//			calendarColor: "89cff0",
-//			isBirthdayEvent: false
-//		),
-//		CalendarEventData(
-//			id: "ev2",
-//			summary: "Meeting",
-//			startDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 22, 11, 0, "Europe/Berlin"),
-//			calendarColor: "20c4f0",
-//			isBirthdayEvent: false
-//		),
-//	],
-//	startOfTomorrow: [
-//		CalendarEventData(
-//			id: "ev3",
-//			summary: "Lunch",
-//			startDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
-//			calendarColor: "89a83b",
-//			isBirthdayEvent: false
-//		)
-//	],
-//	startOfAfterTomorrow: [
-//		CalendarEventData(
-//			id: "ev4",
-//			summary: "Concert w/ Mark",
-//			startDate: date(2025, 4, 24, 13, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
-//			calendarColor: "c476fc",
-//			isBirthdayEvent: false
-//		),
-//		CalendarEventData(
-//			id: "ev5",
-//			summary: "Dinner",
-//			startDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 24, 20, 0, "Europe/Berlin"),
-//			calendarColor: "a91a2f",
-//			isBirthdayEvent: false
-//		),
-//	],
-//]
-//
-//private let ALL_DAY_EVENTS_PLACEHOLDER = [
-//	startOfToday: SimpleAllDayEventsData(
-//		event: CalendarEventData(
-//
-//			id: "ev0",
-//			summary: "Mark is in Town",
-//			startDate: date(2025, 4, 24, 0, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 25, 0, 0, "Europe/Berlin"),
-//			calendarColor: "ED7D99",
-//			isBirthdayEvent: false
-//		),
-//		count: 1
-//	),
-//	startOfAfterTomorrow: SimpleAllDayEventsData(
-//		event: CalendarEventData(
-//			id: "ev6",
-//			summary: "Spring Festival",
-//			startDate: date(2025, 4, 20, 9, 0, "Europe/Berlin"),
-//			endDate: date(2025, 4, 25, 10, 0, "Europe/Berlin"),
-//			calendarColor: "89cff0",
-//			isBirthdayEvent: false
-//		),
-//		count: 2
-//	),
-//]
+private let NORMAL_EVENTS_PLACEHOLDER: DaysToEventsList = [
+	[
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev1",
+			summary: "Gym",
+			startDate: date(2025, 4, 22, 9, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
+			calendarColor: "89cff0",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+		),
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev2",
+			summary: "Meeting",
+			startDate: date(2025, 4, 22, 10, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 22, 11, 0, "Europe/Berlin"),
+			calendarColor: "20c4f0",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+
+		),
+	],
+	[
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev3",
+			summary: "Lunch",
+			startDate: date(2025, 4, 23, 11, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 23, 13, 0, "Europe/Berlin"),
+			calendarColor: "89a83b",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+		),
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev4",
+			summary: "Concert w/ Mark",
+			startDate: date(2025, 4, 24, 13, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
+			calendarColor: "c476fc",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+		),
+	],
+	[
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev5",
+			summary: "Dinner",
+			startDate: date(2025, 4, 24, 19, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 24, 20, 0, "Europe/Berlin"),
+			calendarColor: "a91a2f",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+		),
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev0",
+			summary: "Mark is in Town",
+			startDate: date(2025, 4, 24, 0, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 25, 0, 0, "Europe/Berlin"),
+			calendarColor: "ED7D99",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: false,
+			timeString: "10:00 - 12:00"
+		),
+	],
+	[
+		UIEvent(
+			calendarId: "asdf",
+			id: "ev6",
+			summary: "Spring Festival",
+			startDate: date(2025, 4, 20, 9, 0, "Europe/Berlin"),
+			endDate: date(2025, 4, 25, 10, 0, "Europe/Berlin"),
+			calendarColor: "89cff0",
+			isBirthdayEvent: false,
+			isDisplayedAsAllDay: true,
+			timeString: "10:00 - 12:00"
+		)
+	], [], [],
+]
 
 struct AgendaProvider: AppIntentTimelineProvider {
 	func makeErrorEntry(configuration: ConfigurationAppIntent, error: WidgetErrors, stackTrace: String = "") -> WidgetEntry {
@@ -156,12 +170,12 @@ struct AgendaProvider: AppIntentTimelineProvider {
 
 	func placeholder(in context: Context) -> WidgetEntry {
 		//		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
-		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: [], error: nil)
+		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: NORMAL_EVENTS_PLACEHOLDER, error: nil)
 	}
 
 	func snapshot(for configuration: ConfigurationAppIntent, in context: Context) async -> WidgetEntry {
 		//		let events = context.isPreview ? (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER) : ([:], [:])
-		_ = context.isPreview ? [] : []
+		_ = context.isPreview ? NORMAL_EVENTS_PLACEHOLDER : []
 
 		//		return WidgetEntry(date: Date(), configuration: configuration, events: events, error: nil)
 		return WidgetEntry(date: Date(), configuration: configuration, events: [], error: nil)
@@ -247,20 +261,16 @@ extension View {
 	@ViewBuilder func `if`<Content: View>(_ condition: Bool, transform: (Self) -> Content) -> some View { if condition { transform(self) } else { self } }
 }
 
-//#Preview(
-//	"With All Day Event",
-//	as: .systemLarge,
-//	widget: { AgendaWidget() },
-//	timeline: {
-//		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
-//	}
-//)
-//
-//#Preview(
-//	"Without All Day Event",
-//	as: .systemLarge,
-//	widget: { AgendaWidget() },
-//	timeline: {
-//		WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: (NORMAL_EVENTS_PLACEHOLDER, ALL_DAY_EVENTS_PLACEHOLDER), error: nil)
-//	}
-//)
+#Preview(
+	"With All Day Event",
+	as: .systemLarge,
+	widget: { AgendaWidget() },
+	timeline: { WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: NORMAL_EVENTS_PLACEHOLDER, error: nil) }
+)
+
+#Preview(
+	"Without All Day Event",
+	as: .systemLarge,
+	widget: { AgendaWidget() },
+	timeline: { WidgetEntry(date: Date(), configuration: ConfigurationAppIntent(), events: NORMAL_EVENTS_PLACEHOLDER, error: nil) }
+)

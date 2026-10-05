@@ -26,6 +26,7 @@ struct UIEvent: Equatable, Hashable, Encodable {
 	var isBirthdayEvent: Bool
 	var isDisplayedAsAllDay: Bool
 	var timeString: String
+	var startsEarlierAndEndsToday: Bool = false
 }
 
 struct WidgetModel {
@@ -79,7 +80,7 @@ struct WidgetModel {
 		for calendar in calendars {
 			let eventsList: CalendarEventsList = try await calendarFacade.getCalendarEvents(
 				calendarId: calendar.id,
-				start: dateInSeconds * 1000, // getCalendarEvents requires start and end in milliseconds
+				start: dateInSeconds * 1000,  // getCalendarEvents requires start and end in milliseconds
 				end: endSeconds * 1000
 			)
 
@@ -134,6 +135,9 @@ struct WidgetModel {
 					let eventStartDate = Date.init(timeIntervalSince1970: Double(calendarEvent.startTime) / 1000)
 					let eventEndDate = Date.init(timeIntervalSince1970: Double(calendarEvent.endTime) / 1000)
 
+					let uiEventStartDate = Date.init(timeIntervalSince1970: uiEventStartMax / 1000)
+					let uiEventEndDate = Date.init(timeIntervalSince1970: uiEventEndMin / 1000)
+
 					let eventTakesEntireDay =
 						Double(calendarEvent.startTime) < currentDayMidnightInstantMs && Double(calendarEvent.endTime) >= nextDayMidnightInstantMs
 
@@ -150,7 +154,10 @@ struct WidgetModel {
 						if eventStartsBeforeTodayAndEndsToday {
 							return "Ends at " + eventEndDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
 						} else if eventStartsTodayAndEndsLater {
-							return "Starts at " + eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits))
+							return eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)) + " - "
+								+ eventEndDate.formatted(
+									.dateTime.month(.abbreviated).day(.defaultDigits).hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)
+								)
 						} else {
 							// if the event starts and ends on the current day, display times normally
 							return eventStartDate.formatted(.dateTime.hour(.defaultDigits(amPM: .abbreviated)).minute(.twoDigits)) + " - "
@@ -165,12 +172,13 @@ struct WidgetModel {
 						calendarId: calendar.id,
 						id: eventId,
 						summary: calendarEvent.summary,
-						startDate: eventStartDate,
-						endDate: eventEndDate,
+						startDate: uiEventStartDate,
+						endDate: uiEventEndDate,
 						calendarColor: calendar.color,
 						isBirthdayEvent: false,
 						isDisplayedAsAllDay: isConsideredAllDay,
-						timeString: timeString
+						timeString: timeString,
+						startsEarlierAndEndsToday: eventStartsBeforeTodayAndEndsToday
 					)
 
 					daysAndEvents[dayIndex].append(uiEvent)
@@ -210,7 +218,15 @@ struct WidgetModel {
 
 		// sort all of the events so that they appear in chronological order within a widget day, regardless of what calendar they are in.
 		for (index, day) in daysAndEvents.enumerated() {
-			daysAndEvents[index] = day.sorted { $0.startDate.timeIntervalSince1970 < $1.startDate.timeIntervalSince1970 }
+			daysAndEvents[index] = day.sorted {
+
+				if $0.isBirthdayEvent { return true } else if $1.isBirthdayEvent { return false }
+
+				let comparisonDate0 = if $0.startsEarlierAndEndsToday { $0.endDate } else { $0.startDate }
+				let comparisonDate1 = if $1.startsEarlierAndEndsToday { $0.endDate } else { $0.startDate }
+
+				return comparisonDate0 < comparisonDate1
+			}
 		}
 		return daysAndEvents
 	}
