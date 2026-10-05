@@ -8585,8 +8585,16 @@ const typeModels = {
 			},
 			1966: {
 				final: false,
-				name: "sourceId",
+				name: "imapUid",
 				id: 1966,
+				type: "Number",
+				cardinality: "ZeroOrOne",
+				encrypted: false,
+			},
+			2036: {
+				final: false,
+				name: "sourceId",
+				id: 2036,
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,

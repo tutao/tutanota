@@ -5348,6 +5348,7 @@ export type ImportMailDataParams = {
 	phishingStatus: NumberString
 	compressedHeaders: string
 	imapModSeq: null | NumberString
+	imapUid: null | NumberString
 	sourceId: null | string
 
 	references: ImportMailDataMailReference[]
@@ -5378,6 +5379,7 @@ export type ImportMailData = {
 	phishingStatus: NumberString
 	compressedHeaders: string
 	imapModSeq: null | NumberString
+	imapUid: null | NumberString
 	sourceId: null | string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface

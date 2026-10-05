@@ -3672,6 +3672,8 @@ pub struct ImportMailData {
 	#[serde(rename = "1965")]
 	pub imapModSeq: Option<i64>,
 	#[serde(rename = "1966")]
+	pub imapUid: Option<i64>,
+	#[serde(rename = "2036")]
 	pub sourceId: Option<String>,
 	#[serde(rename = "1547")]
 	pub references: Vec<ImportMailDataMailReference>,
