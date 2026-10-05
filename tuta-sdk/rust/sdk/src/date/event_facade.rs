@@ -4578,12 +4578,12 @@ mod event_facade_unit_tests {
 			.collect();
 
 		let expected_timestamps = vec![
-			Date::from_calendar_date(2026, Month::December, 25)
+			Date::from_calendar_date(2026, Month::August, 5)
 				.unwrap()
 				.with_time(Time::from_hms(18, 0, 0).unwrap())
 				.assume_utc()
 				.unix_timestamp(),
-			Date::from_calendar_date(2027, Month::January, 1)
+			Date::from_calendar_date(2026, Month::September, 2)
 				.unwrap()
 				.with_time(Time::from_hms(18, 0, 0).unwrap())
 				.assume_utc()
