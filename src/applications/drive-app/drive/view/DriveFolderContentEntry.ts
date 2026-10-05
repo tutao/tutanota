@@ -7,11 +7,12 @@ import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
 import { attachDropdown } from "../../../../ui/base/Dropdown"
 import { theme } from "../../../../ui/theme"
 import { FileFolderItem, FolderItem } from "./DriveUtils"
-import { TabIndex } from "../../../../platform-kit/app-env"
+import { EnvProvider, TabIndex } from "../../../../platform-kit/app-env"
 import { driveFolderName, getFileContextActions, isDraggingDriveItems } from "./DriveGuiUtils"
 import { getDisplayType, getFileIcon, getItemIconFill } from "../model/DriveMimeUtils"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 
 export interface FileActions {
 	onCut: (f: FolderItem) => unknown
@@ -78,6 +79,71 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 
 		const displayType = item.type === "file" ? getDisplayType(item.file.mimeType, item.file.name) : null
 		const fileFormat = displayType?.fileFormat ?? "Folder"
+
+		const initialScale = "0.62"
+
+		const normalCat = "🐱"
+
+		// We only want to show pumpkat in october. Boo!
+		const isOctober = new Date(Date.now()).getMonth() === 9
+
+		const pumpkat = isOctober
+			? m("img", {
+					src: `${EnvProvider.get().getPathPrefix()}/images/drive/pumpkat.png`,
+					alt: "",
+					rel: "noreferrer",
+					loading: "lazy",
+					decoding: "async",
+					style: {
+						width: "32px",
+						height: "32px",
+						transform: `scale(${initialScale})`,
+					},
+					onmouseenter: (e: MouseEvent) => {
+						if (isNull(e.target)) {
+							return
+						}
+						const dom: HTMLElement = e.target as HTMLElement
+
+						const keyframes: Keyframe[] = [
+							{
+								transform: `rotate(0) scale(${initialScale})`,
+							},
+							{
+								transform: "rotate(-15deg) scale(1.0)",
+								offset: 0.3,
+							},
+							{
+								transform: "rotate(15deg)",
+								offset: 0.4,
+							},
+							{
+								transform: "rotate(-15deg)",
+								offset: 0.5,
+							},
+							{
+								transform: "rotate(15deg)",
+								offset: 0.6,
+							},
+							{
+								transform: "rotate(-360deg)",
+							},
+						]
+
+						dom.animate(keyframes, { duration: 750, iterations: 1, fill: "forwards" })
+					},
+					onmouseleave: (e: MouseEvent) => {
+						if (isNull(e.target)) {
+							return
+						}
+						const dom: HTMLElement = e.target as HTMLElement
+
+						const keyframes: Keyframe[] = [{ transform: "scale(1.0)" }, { transform: `scale(${initialScale})` }]
+
+						dom.animate(keyframes, { duration: 150, iterations: 1, fill: "forwards" })
+					},
+				})
+			: normalCat
 
 		return m(
 			"div.flex.row.folder-row.cursor-pointer",
@@ -172,7 +238,7 @@ export class DriveFolderContentEntry implements Component<DriveFolderContentEntr
 				),
 				displayLocation ? m("div.text-ellipsis", { role: "gridcell" }, item.parentFolder ? driveFolderName(item.parentFolder).text : null) : null,
 				m("div", { role: "gridcell" }, fileFormat),
-				m("div", { role: "gridcell" }, item.type === "folder" ? "🐱" : formatStorageSize(filterInt(item.file.size))),
+				m("div.flex", { role: "gridcell" }, item.type === "folder" ? pumpkat : formatStorageSize(filterInt(item.file.size))),
 				m("div", { role: "gridcell" }, updatedDate.toLocaleString()),
 				m(
 					"div",
