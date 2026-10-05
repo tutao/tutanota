@@ -229,8 +229,7 @@ export function startExport(actionableMails: () => Promise<readonly IdTuple[]>) 
 			}
 		},
 		doExport(actionableMails, numberOfMailsStream, operation, ac),
-		operation.progress,
-		headerBarAttrs,
+		{ progressStream: operation.progress, headerBarAttrs },
 	)
 }
 

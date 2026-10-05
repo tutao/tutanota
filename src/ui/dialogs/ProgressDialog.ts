@@ -13,11 +13,22 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.j
 
 EnvProvider.assertMainOrNode()
 
+interface ProgressDialogAttrs {
+	progressStream?: Stream<number>
+	headerBarAttrs?: DialogHeaderBarAttrs
+	delayDisplayMillis?: number
+	minDialogVisibilityMillis?: number
+}
+
 export async function showProgressDialog<T>(
 	messageIdOrMessageFunction: MaybeLazy<MaybeTranslation>,
 	action: Promise<T>,
-	progressStream?: Stream<number>,
-	headerBarAttrs?: DialogHeaderBarAttrs,
+	{
+		progressStream,
+		headerBarAttrs,
+		delayDisplayMillis = 0,
+		minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000,
+	}: ProgressDialogAttrs = {},
 ): Promise<T> {
 	if (progressStream != null) {
 		progressStream.map(() => {
@@ -58,11 +69,17 @@ export async function showProgressDialog<T>(
 	}).setCloseHandler(() => {
 		// do not close progress on onClose event
 	})
-	progressDialog.show()
+	let finished = false
+	setTimeout(() => {
+		if (!finished || (delayDisplayMillis <= 0 && minDialogVisibilityMillis > 0)) {
+			progressDialog.show()
+		}
+	}, delayDisplayMillis)
 	let start = new Date().getTime()
-	let minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000
 	try {
-		return await action
+		const val = await action
+		finished = true
+		return val
 	} finally {
 		const diff = Date.now() - start
 		await delay(Math.max(minDialogVisibilityMillis - diff, 0))
