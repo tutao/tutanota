@@ -155,7 +155,7 @@ async function showBookingDialog(userDetailsArray: UserImportDetails[]) {
 				}
 			})
 		}),
-		operation.progress,
+		{ progressStream: operation.progress },
 	)
 		.catch(ofClass(PreconditionFailedError, () => Dialog.message("createUserFailed_msg")))
 		.finally(() => operation.done)
