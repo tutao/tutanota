@@ -275,7 +275,7 @@ export async function createBaseLocator({
 
 	// Declared before crypto because it's captured by the lazy callback inside CryptoFacade
 	let keyRotation: KeyRotationFacade
-	instanceKeyProviderMaker = new InstanceKeyProviderMaker(user, cachingEntityClient, keyLoader, typeModelResolver, formerKeyResolver)
+	instanceKeyProviderMaker = new InstanceKeyProviderMaker(user, cachingEntityClient, keyLoader, typeModelResolver, formerKeyResolver, cryptoWrapper)
 	crypto = new CryptoFacade(
 		user,
 		cachingEntityClient,

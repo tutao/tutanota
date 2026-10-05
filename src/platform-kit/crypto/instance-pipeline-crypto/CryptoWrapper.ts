@@ -12,7 +12,7 @@ import {
 	KyberPublicKey,
 	kyberPublicKeyToBytes,
 } from "../encryption/Liboqs/KyberKeyPair.js"
-import { RsaPublicKey, RsaKeyPair, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
+import { RsaKeyPair, RsaPublicKey, RsaX25519KeyPair } from "../encryption/RsaKeyPair.js"
 import { AsymmetricKeyPair } from "../encryption/AsymmetricKeyPair.js"
 import { sha256Hash } from "../hashes/Sha256.js"
 import { Aes256Key, AesKey, AesKeyLength, getKeyLengthInBytes } from "../encryption/symmetric/AesKey.js"
@@ -44,6 +44,10 @@ export class CryptoWrapper {
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
 		return decryptKey(encryptionKey, key)
+	}
+
+	decryptAes256Key(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>): Aes256Key {
+		return decryptKey(encryptionKey, keyToBeDecrypted, AesKeyLength.Aes256)
 	}
 
 	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array<ArrayBuffer> {

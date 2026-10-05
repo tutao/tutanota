@@ -1,7 +1,7 @@
 import { UserFacade } from "../facades/UserFacade"
 import { EntityClient } from "../../network/EntityClient"
 import { EntityAdapter, InstanceKeyProviderMakerInterface, SymmetricGroupKeyLoader, TypeModelResolver } from "@tutao/instance-pipeline"
-import { AesKeyLength, cryptoUtils, decryptKey, EncryptedKeyWithVersions, InstanceKeyProvider, VersionedAes256Key } from "@tutao/crypto"
+import { cryptoUtils, CryptoWrapper, EncryptedKeyWithVersions, InstanceKeyProvider, VersionedAes256Key } from "@tutao/crypto"
 import { assertNotNull, KeyVersion, Nullable } from "@tutao/utils"
 import { PersistentEntity } from "@tutao/meta"
 import { Permission, PermissionTypeRef } from "@tutao/entities/sys"
@@ -15,6 +15,7 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 		private readonly symGroupKeyLoader: SymmetricGroupKeyLoader,
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly formerKeyResolver: FormerKeyResolver,
+		private readonly cryptoWrapper: CryptoWrapper,
 	) {}
 
 	/**
@@ -81,12 +82,13 @@ export class InstanceKeyProviderMaker implements InstanceKeyProviderMakerInterfa
 		}
 		const permissionOwnerGroup = assertNotNull(symmetricPermission._ownerGroup)
 
+		const cryptoWrapper = this.cryptoWrapper
 		const symGroupKeyLoader = this.symGroupKeyLoader
 		const formerKeyResolver = this.formerKeyResolver
 		return async function (requestedInstanceKeyVersion: KeyVersion): Promise<VersionedAes256Key> {
 			const permissionOwnerGroupKey = await symGroupKeyLoader.loadSymGroupKey(permissionOwnerGroup, symEncInstanceKeyFromPermission.encryptingKeyVersion)
 			const decryptedInstanceKey = {
-				object: decryptKey(permissionOwnerGroupKey, symEncInstanceKeyFromPermission.bytes, AesKeyLength.Aes256),
+				object: cryptoWrapper.decryptAes256Key(permissionOwnerGroupKey, symEncInstanceKeyFromPermission.bytes),
 				version: symEncInstanceKeyFromPermission.encryptedKeyVersion,
 			}
 
