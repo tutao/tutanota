@@ -9,5 +9,5 @@
 		"composite": false
 	},
 	"include": ["src/**/*", "libs", "src/types"],
-	"exclude": ["build"]
+	"exclude": ["build", "src/plugin-kit/plugins"]
 }
