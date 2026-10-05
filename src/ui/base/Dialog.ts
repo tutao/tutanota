@@ -968,7 +968,7 @@ export class Dialog implements ModalComponent {
 
 			if (validationResult instanceof Promise) {
 				// breaking hard circular dependency
-				import("../dialogs/ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
+				import("../dialogs/ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer, undefined, undefined, 200, 0))
 			}
 		}
 
