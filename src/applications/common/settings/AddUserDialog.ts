@@ -112,7 +112,7 @@ export async function show(): Promise<void> {
 						"{count}": 1,
 					}),
 					p,
-					operation.progress,
+					{ progressStream: operation.progress },
 				)
 					.catch(ofClass(PreconditionFailedError, (e) => Dialog.message("createUserFailed_msg")))
 					.then(() => dialog.close())
