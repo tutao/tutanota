@@ -352,7 +352,6 @@ export default {
 		"confirmDeleteFilesPermanently_action": "Datei(en) löschen",
 		"confirmDeleteFilesPermanently_msg": "Möchten Sie wirklich {count} Datei(en) unwiderruflich löschen?",
 		"confirmDeleteFinallyCustomFolder_msg": "Möchten Sie wirklich den Ordner '{1}' und alle seine E-Mails endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
-		"confirmDeleteFinallySystemFolder_msg": "Möchten Sie wirklich alle E-Mails aus dem System-Ordner '{1}' endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
 		"confirmDeleteLabel_msg": "Möchten Sie das Label \"{1}\" wirklich löschen?",
 		"confirmDeleteLabelWithSublabels_msg": "Möchten Sie das Label \"{1}\" und alle untergeordneten Label wirklich löschen?",
 		"confirmDeleteSecondFactor_msg": "Möchten Sie diesen zweiten Faktor wirklich löschen?",
@@ -2594,5 +2593,6 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn Sie von Proton durch Proton Mail Bridge migrieren, stellen Sie bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies können Sie in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
+		"confirmClearFolder_msg": "Möchten Sie wirklich alle E-Mails aus dem Ordner '{1}' endgültig löschen? Abhängig von der Anzahl E-Mails kann dies sehr lange dauern und wird daher im Hintergrund ausgeführt.",
 	}
 }
