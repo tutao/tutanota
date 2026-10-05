@@ -184,6 +184,80 @@ o.spec("CalendarEventModel", function () {
 			)
 			verify(sendModelFac(), { times: 0 })
 		})
+		o.test("deleting calendar event without a UID does not fail", async function () {
+			const event: CalendarEventProgenitor = createTestEntity(CalendarEventTypeRef, {
+				sequence: "0",
+				_id: ["eventListId", "eventElementId"],
+				_ownerGroup: "ownCalendar",
+				_permissions: "permissionId",
+				summary: "hello event",
+				location: "in a boat",
+				description: "about 3 inches tall",
+				uid: null,
+				hashedUid: null,
+				startTime: new Date("2023-04-27T15:00:00.000Z"),
+				invitedConfidentially: false,
+				endTime: new Date("2023-04-27T15:30:00.000Z"),
+				repeatRule: createTestEntity(RepeatRuleTypeRef, {
+					interval: "10",
+					_id: "repeatRuleId",
+					endType: EndType.Count,
+					endValue: "10",
+					frequency: RepeatPeriod.DAILY,
+					excludedDates: [],
+				}),
+				organizer: ownerAddress,
+				alarmInfos: [],
+				attendees: [],
+			}) as CalendarEventProgenitor
+			const recipientsModel: RecipientsModel = object()
+			const logins: LoginController = object()
+			const userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { groupSettings: [] })
+
+			const userController = makeUserController([ownerAlias.address], AccountType.PAID, ownerMailAddress, true, false, null!, userSettingsGroupRoot)
+			when(logins.getUserController()).thenReturn(userController)
+
+			when(calendarModel.loadAlarms(event.alarmInfos, userController.user)).thenResolve([])
+
+			when(calendarModel.getCalendarInfos()).thenResolve(calendars)
+			when(calendarModel.resolveCalendarEventProgenitor(matchers.anything())).thenResolve(event)
+
+			const resolvableOwner: ResolvableRecipient = object()
+			when(resolvableOwner.resolve()).thenResolve(ownerAddress)
+
+			when(recipientsModel.initialize(matchers.anything())).thenDo(() => resolvableOwner)
+
+			const mailboxDetail: MailboxDetail = {
+				mailbox: createTestEntity(MailBoxTypeRef),
+				mailGroupInfo: createTestEntity(GroupInfoTypeRef),
+				mailGroup: createTestEntity(GroupTypeRef, {
+					user: userId,
+				}),
+				mailboxGroupRoot: createTestEntity(MailboxGroupRootTypeRef),
+			}
+			const mailboxProperties: MailboxProperties = createTestEntity(MailboxPropertiesTypeRef, {})
+			const sendModelFac: () => SendMailModel = func<() => SendMailModel>()
+			const mockCalendarInviteHandler: CalendarInviteHandler = object()
+
+			await makeCalendarEventModel(
+				CalendarOperation.DeleteAll,
+				event,
+				recipientsModel,
+				calendarModel,
+				logins,
+				mailboxDetail,
+				mailboxProperties,
+				sendModelFac,
+				distributor,
+				entityClient,
+				null,
+				mockCalendarInviteHandler,
+				object(),
+				"Europe/Berlin",
+				identity,
+				noOp,
+			)
+		})
 	})
 
 	o.spec("eventHasChanged", function () {
