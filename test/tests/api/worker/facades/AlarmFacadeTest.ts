@@ -1,7 +1,15 @@
 import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import { AesKey, base64ToKey, Randomizer, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import {
+	AesCbcFacade,
+	AesKey,
+	base64ToKey,
+	Randomizer,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	VersionedKey,
+} from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -36,6 +44,8 @@ import { CalendarEvent, CalendarEventTypeRef, createCalendarEvent } from "@tutao
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { EventAlarmInfoTemplatesTuple } from "../../../../../src/applications/common/calendar/import/ImportExportUtils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("AlarmFacadeTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -56,8 +66,14 @@ o.spec("AlarmFacadeTest", function () {
 	o.beforeEach(function () {
 		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 		nativePushFacadeMock = object()
 		userFacadeMock = object()
 		cryptoWrapperMock = object()

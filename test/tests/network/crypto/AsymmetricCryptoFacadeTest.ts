@@ -11,10 +11,8 @@ import {
 } from "../../../../src/platform-kit/app-env"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
-import type { RsaImplementation } from "../../../../src/platform-kit/crypto"
 import {
 	Aes128Key,
-	aes256RandomKey,
 	AesKey,
 	cryptoUtils,
 	KeyPairType,
@@ -24,9 +22,12 @@ import {
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	random,
+	RsaImplementation,
 	RsaKeyPair,
 	RsaPublicKey,
 	RsaX25519PublicKey,
+	SymmetricCipherUtils,
 	X25519KeyPair,
 } from "../../../../src/platform-kit/crypto"
 import { KeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
@@ -41,6 +42,7 @@ import { PubEncKeyData, PubEncKeyDataTypeRef, PublicKeyPutIn, PublicKeyService }
 import { CryptoWrapper } from "../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 
 o.spec("AsymmetricCryptoFacadeTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let rsa: RsaImplementation
 	let pqFacade: PQFacade
 	let keyLoaderFacade: KeyLoaderFacade
@@ -52,6 +54,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		rsa = object()
 		pqFacade = object()
 		keyLoaderFacade = object()
@@ -226,7 +229,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			const senderIdentifier = object<string>()
 			const senderIdentifierType = PublicKeyIdentifierType.GROUP_ID
 
-			const symKey = aes256RandomKey()
+			const symKey = symmetricCipherUtils.aes256RandomKey()
 			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(symKey))
 
 			const result = await asymmetricCryptoFacade.decryptSymKeyWithKeyPairAndAuthenticate(RSA_TEST_KEYPAIR, pubEncKeyData, {
@@ -249,7 +252,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 		o("should call RSA decryption when the protocol version is set to RSA", async function () {
 			const pubEncSymKey: Uint8Array<ArrayBuffer> = object()
 
-			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(aes256RandomKey()))
+			when(rsa.decrypt(RSA_TEST_KEYPAIR.privateKey, pubEncSymKey)).thenResolve(keyToUint8Array(symmetricCipherUtils.aes256RandomKey()))
 
 			await asymmetricCryptoFacade.decryptSymKeyWithKeyPair(RSA_TEST_KEYPAIR, CryptoProtocolVersion.RSA, pubEncSymKey)
 
@@ -270,7 +273,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 			;(keyPair as any).keyPairType = KeyPairType.TUTA_CRYPT
 
 			when(pqFacade.decapsulateEncoded(pubEncSymKey, keyPair)).thenResolve({
-				decryptedSymKeyBytes: keyToUint8Array(aes256RandomKey()),
+				decryptedSymKeyBytes: keyToUint8Array(symmetricCipherUtils.aes256RandomKey()),
 				senderIdentityPubKey: object(),
 			})
 

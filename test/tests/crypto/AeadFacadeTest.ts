@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadWithSessionKeySubKeys, PADDING_BYTE } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, PADDING_BYTE, random, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
-import { aes256RandomKey, INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
+import { INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { concat } from "../../../src/platform-kit/utils"
 import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
@@ -19,9 +19,10 @@ o.spec("AeadFacadeTest", function () {
 	}
 	const plaintext = Uint8Array.from([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
 	o.beforeEach(function () {
-		aeadFacade = new AeadFacade()
-		const encryptionKey = aes256RandomKey()
-		const authenticationKey = aes256RandomKey()
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		aeadFacade = new AeadFacade(symmetricCipherUtils)
+		const encryptionKey = symmetricCipherUtils.aes256RandomKey()
+		const authenticationKey = symmetricCipherUtils.aes256RandomKey()
 		keys = new AeadWithSessionKeySubKeys(encryptionKey, authenticationKey)
 	})
 	o("encrypt roundtrip success", function () {

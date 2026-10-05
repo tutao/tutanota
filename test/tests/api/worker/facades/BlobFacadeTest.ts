@@ -46,7 +46,7 @@ import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { File, FileTypeRef, MailDetailsBlobTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-import { Aes, AesCbcFacade, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -86,20 +86,19 @@ o.spec("BlobFacadeTest", function () {
 		cryptoFacadeMock = object<CryptoFacade>()
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
 
-		const mimeType = "text/plain"
-		const name = "fileName"
-		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
-		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
-
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const aesCbcFacade = new AesCbcFacade()
 		const aeadFacade = new AeadFacade(symmetricCipherUtils)
 		const symmetricKeyDeriver = new SymmetricKeyDeriver()
 		const symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
 		aes = new Aes(symmetricCipherFacade)
+		realInstancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
+
+		const mimeType = "text/plain"
+		const name = "fileName"
+		file = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "fileElementId"] })
+		anotherFile = createTestEntity(FileTypeRef, { name, mimeType, _id: ["fileListId", "anotherFileElementId"] })
 
 		blobFacade = new BlobFacade(
 			restClientMock,

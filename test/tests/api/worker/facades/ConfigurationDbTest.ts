@@ -18,6 +18,7 @@ import {
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
+	X25519,
 } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
@@ -54,7 +55,8 @@ o.spec("ConfigurationDbTest", function () {
 		)
 		aes = new Aes(symmetricCipherFacade)
 		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
-		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+		const x25519 = new X25519(random)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
 
 		configurationDatabase = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, object(), object())
 	})

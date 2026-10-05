@@ -1,12 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
 import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
-import { AesCbcThenHmacSubKeys, SymmetricSubKeys, UnusedReservedUnauthenticatedSubKeys } from "@tutao/crypto/symmetric-key-deriver"
+import { AesCbcThenHmacSubKeys, UnusedReservedUnauthenticatedSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import {
 	Aes128Key,
 	Aes256Key,
-	aes256RandomKey,
 	FIXED_INITIALIZATION_VECTOR,
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
+	random,
+	SymmetricCipherUtils,
 	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
 import { _aes128RandomKey } from "./AesTest.js"
@@ -36,10 +37,11 @@ o.spec("AesCbcFacadeTest", function () {
 	let symmetricSubKeys256WithAuthenticationKey: AesCbcThenHmacSubKeys
 
 	o.beforeEach(function () {
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		encryption128Key = _aes128RandomKey()
 		authentication128Key = _aes128RandomKey()
-		encryption256Key = aes256RandomKey()
-		authentication256Key = aes256RandomKey()
+		encryption256Key = symmetricCipherUtils.aes256RandomKey()
+		authentication256Key = symmetricCipherUtils.aes256RandomKey()
 		symmetricSubKeys128WithoutAuthenticationKey = new UnusedReservedUnauthenticatedSubKeys(encryption128Key)
 		symmetricSubKeys256WithoutAuthenticationKey = new UnusedReservedUnauthenticatedSubKeys(encryption256Key)
 		symmetricSubKeys128WithAuthenticationKey = new AesCbcThenHmacSubKeys(encryption128Key, authentication128Key)

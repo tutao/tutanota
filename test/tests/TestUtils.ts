@@ -4,7 +4,16 @@ import { DbFacade, DbTransaction } from "../../src/applications/common/api/worke
 import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import { Aes, Aes256Key, aes256RandomKey, FIXED_INITIALIZATION_VECTOR, KeyEncryption, random, Randomizer } from "../../src/platform-kit/crypto"
+import {
+	Aes,
+	Aes256Key,
+	AesCbcFacade,
+	FIXED_INITIALIZATION_VECTOR,
+	KeyEncryption,
+	random,
+	Randomizer,
+	SymmetricCipherUtils,
+} from "../../src/platform-kit/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
@@ -48,6 +57,9 @@ import { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants
 import { SymmetricCipherFacade } from "../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { OfflineMapper } from "../../src/platform-kit/instance-pipeline/OfflineMapper"
 import { ProgrammingError } from "../../src/platform-kit/app-env"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { IndexEncryptionUtils } from "../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -68,12 +80,14 @@ export function makeCore(
 	const { transaction } = safeArgs
 	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
 	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
-	defaultDb.init(safeArgs.encryptionData ?? { key: aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR })
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	defaultDb.init(safeArgs.encryptionData ?? { key: symmetricCipherUtils.aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR })
 	const { db, browserData } = {
 		...{ db: defaultDb, browserData: browserDataStub },
 		...safeArgs,
 	}
-	const core = new IndexerCore(db, browserData)
+	const aes = new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils))
+	const core = new IndexerCore(db, browserData, aes, new IndexEncryptionUtils(aes))
 	if (mocker) mock(core, mocker)
 	return core
 }
@@ -413,10 +427,10 @@ export function clientInitializedTypeModelResolver(): TypeModelResolver {
 }
 
 export function instancePipelineFromTypeModelResolver(
-	typeModelResolver: TypeModelResolver,
-	keyLoaderFacade: KeyLoaderFacade = object(),
 	random: Randomizer,
 	symmetricCipherFacade: SymmetricCipherFacade,
+	typeModelResolver: TypeModelResolver,
+	keyLoaderFacade: KeyLoaderFacade = object(),
 ): InstancePipeline {
 	const keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
 	return new InstancePipeline(typeModelResolver, () => keyLoaderFacade, symmetricCipherFacade, null, random, keyEncryption)

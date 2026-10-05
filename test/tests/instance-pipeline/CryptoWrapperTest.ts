@@ -1,17 +1,40 @@
 import o, { assertThrows } from "@tutao/otest"
 import { RSA_TEST_KEYPAIR } from "../api/worker/facades/RsaPqPerformanceTest"
-import { generateX25519KeyPair, KyberKeyPair, random, RsaKeyPair, X25519KeyPair } from "../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	KeyEncryption,
+	KyberKeyPair,
+	random,
+	RsaKeyPair,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	X25519,
+	X25519KeyPair,
+} from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { WASMKyberFacade } from "../../../src/platform-kit/base/base-crypto/KyberFacade"
 
 import { loadLibOQSWASM } from "../crypto/WebAssemblyTestUtils"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("CryptoWrapperTest", function () {
 	let cryptoWrapper: CryptoWrapper
+	let x25519: X25519
 
 	o.beforeEach(() => {
-		cryptoWrapper = new CryptoWrapper()
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		x25519 = new X25519(random)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, new KeyEncryption(symmetricCipherFacade, aes), x25519)
 	})
 
 	o.spec("verify public keys", function () {
@@ -21,14 +44,14 @@ o.spec("CryptoWrapperTest", function () {
 		})
 
 		o("x25519 key success", function () {
-			const keyPair = generateX25519KeyPair()
+			const keyPair = x25519.generateX25519KeyPair()
 			const extractedPubKey = cryptoWrapper.verifyPublicX25519Key(keyPair)
 			o(extractedPubKey).deepEquals(keyPair.publicKey)
 		})
 
 		o("x25519 key failure", async function () {
-			const keyPair = generateX25519KeyPair()
-			const anotherKeyPair = generateX25519KeyPair()
+			const keyPair = x25519.generateX25519KeyPair()
+			const anotherKeyPair = x25519.generateX25519KeyPair()
 			const badKeyPair: X25519KeyPair = { privateKey: keyPair.privateKey, publicKey: anotherKeyPair.publicKey }
 			await assertThrows(CryptoError, async () => cryptoWrapper.verifyPublicX25519Key(badKeyPair))
 		})

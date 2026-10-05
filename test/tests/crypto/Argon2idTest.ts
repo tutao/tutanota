@@ -1,13 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Argon2IDExports, generateKeyFromPassphraseArgon2id, generateRandomSalt, keyToUint8Array, random } from "../../../src/platform-kit/crypto"
+import { Argon2IDExports, Bcrypt, generateKeyFromPassphraseArgon2id, keyToUint8Array, random } from "../../../src/platform-kit/crypto"
 import { loadWasmExports, loadWasmModuleFallback } from "./WebAssemblyTestUtils.js"
 
 o.spec("Argon2id", function () {
 	o("GenerateKeyFromPassphrase", async function () {
 		const argon2 = (await loadWasmExports("argon2.wasm")) as Argon2IDExports
+		const bcrypt = new Bcrypt(random)
 
-		let salt1 = generateRandomSalt(random)
-		let salt2 = generateRandomSalt(random)
+		let salt1 = bcrypt.generateRandomSalt()
+		let salt2 = bcrypt.generateRandomSalt()
 		let key0 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
 		let key1 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt1)
 		let key2 = await generateKeyFromPassphraseArgon2id(argon2, "hello", salt2)
