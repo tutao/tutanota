@@ -216,6 +216,11 @@ export class OfflineMailIndexer implements MailIndexer {
 				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			}
 
+			const resetProgress = async () => {
+				const update = this.createSearchIndexStateInfo(0)
+				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
+			}
+
 			await updateProgress(0)
 
 			let indexedMailboxes = 0
@@ -225,11 +230,16 @@ export class OfflineMailIndexer implements MailIndexer {
 				const mailbox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailboxGroupRoot.mailbox))
 				const data = assertNotNull(mailGroupData.get(group))
 
-				await this.indexMailbox(data, mailbox, async (fraction: number, newMailsIndexed: number) => {
-					indexedMailCount += newMailsIndexed
-					const progress = baseProgress + fraction / totalMailboxes
-					await updateProgress(progress)
-				})
+				await this.indexMailbox(
+					data,
+					mailbox,
+					async (fraction: number, newMailsIndexed: number) => {
+						indexedMailCount += newMailsIndexed
+						const progress = baseProgress + fraction / totalMailboxes
+						await updateProgress(progress)
+					},
+					resetProgress,
+				)
 
 				await this.offlineStoragePersistence.updateIndexingTimestamp(group, FULL_INDEXED_TIMESTAMP)
 
@@ -251,7 +261,12 @@ export class OfflineMailIndexer implements MailIndexer {
 		console.log(TAG, `Cleaned up and fully indexed (took ${cleanupEnd - end} ms)`)
 	}
 
-	private async indexMailbox(groupData: IndexedGroupData, mailbox: MailBox, mailboxProgress: (fraction: number, indexedMails: number) => Promise<unknown>) {
+	private async indexMailbox(
+		groupData: IndexedGroupData,
+		mailbox: MailBox,
+		mailboxProgress: (fraction: number, indexedMails: number) => Promise<unknown>,
+		abortProgress: () => Promise<unknown>,
+	) {
 		console.log(TAG, `Began indexing mail group ${mailbox._id}`)
 
 		const indexStart = performance.now()
@@ -277,6 +292,11 @@ export class OfflineMailIndexer implements MailIndexer {
 				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
 				const indexMailbagStart = performance.now()
 				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsWithBlobsIndexed, newMailsIndexed) => {
+					if (this.abortController.signal.aborted) {
+						await abortProgress()
+						return
+					}
+
 					totalMailsIndexedWithBlobs = totalMailsIndexedWithBlobs + newMailsWithBlobsIndexed
 					newMailsIndexed += newMailsIndexed
 
@@ -289,6 +309,10 @@ export class OfflineMailIndexer implements MailIndexer {
 							PRELOAD_PROGRESS_PORTION + (totalCapped / estimatedMailsWithBlobs) * (1 - PRELOAD_PROGRESS_PORTION),
 							newMailsIndexed,
 						)
+					}
+
+					if (this.abortController.signal.aborted) {
+						await abortProgress()
 					}
 				})
 				const indexMailbagEnd = performance.now()
