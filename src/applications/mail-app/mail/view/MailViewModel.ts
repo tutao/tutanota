@@ -26,7 +26,7 @@ import { EventController } from "../../../common/api/main/EventController.js"
 import { MailModel, MoveMode } from "../model/MailModel.js"
 import { assertSystemFolderOfType } from "../model/MailUtils.js"
 import { getMailFilterForType, MailFilterType } from "./MailViewerUtils.js"
-import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder, isSubfolderOfType } from "../model/MailChecks.js"
+import { isMailDeletable, isOfTypeOrSubfolderOf, isSpamOrTrashFolder } from "../model/MailChecks.js"
 import { MailListModel } from "../model/MailListModel"
 import { MailSetListModel } from "../model/MailSetListModel"
 import { ConversationListModel } from "../model/ConversationListModel"
@@ -61,7 +61,6 @@ import {
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { getMailSetKind, isPermanentDeleteAllowedForFolder } from "../MailUtils"
-import { ProgrammingError } from "../../../../platform-kit/app-env"
 import { $Promisable } from "../../workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
@@ -883,27 +882,11 @@ export class MailViewModel {
 		// remove any selection to avoid that the next mail is loaded and selected for each deleted mail event
 		this.listModel?.selectNone()
 
-		const mailboxDetail = await this.getMailboxDetails()
-
-		// the request is handled a little differently if it is the system folder vs. a subfolder
-		if (folder.folderType === MailSetKind.TRASH || folder.folderType === MailSetKind.SPAM) {
-			return this.mailModel.clearFolder(folder).catch(
-				ofClass(PreconditionFailedError, () => {
-					throw new UserError("operationStillActive_msg")
-				}),
-			)
-		} else {
-			const folders = await this.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
-			if (isSubfolderOfType(folders, folder, MailSetKind.TRASH) || isSubfolderOfType(folders, folder, MailSetKind.SPAM)) {
-				return this.mailModel.finallyDeleteCustomMailFolder(folder).catch(
-					ofClass(PreconditionFailedError, () => {
-						throw new UserError("operationStillActive_msg")
-					}),
-				)
-			} else {
-				throw new ProgrammingError(`Cannot delete mails in folder ${String(folder._id)} with type ${folder.folderType}`)
-			}
-		}
+		return this.mailModel.clearFolder(folder).catch(
+			ofClass(PreconditionFailedError, () => {
+				throw new UserError("operationStillActive_msg")
+			}),
+		)
 	}
 
 	onSingleSelection(mail: Mail) {

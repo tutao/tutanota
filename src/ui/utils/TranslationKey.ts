@@ -1825,7 +1825,6 @@ export type TranslationKeyType =
 	| "confirmDeleteTemplateGroup_msg"
 	| "confirmDeleteSecondFactor_msg"
 	| "confirmDeleteLabel_msg"
-	| "confirmDeleteFinallySystemFolder_msg"
 	| "confirmDeleteFinallyCustomFolder_msg"
 	| "confirmDeleteCustomFolder_msg"
 	| "confirmDeleteContactList_msg"
@@ -2591,3 +2590,4 @@ export type TranslationKeyType =
 	| "ratingTrustpilot_msg"
 	| "deactivatedAccessLogin_msg"
 	| "emptyString_msg"
+	| "confirmClearFolder_msg"
