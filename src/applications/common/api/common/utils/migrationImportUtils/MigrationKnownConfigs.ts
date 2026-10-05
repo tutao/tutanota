@@ -41,7 +41,6 @@ const wellKnownConfigs = {
 			scope: "https://mail.google.com/",
 			providerSpecificParams: {
 				access_type: "offline", // required for refresh token
-				prompt: "consent", // forces refresh token on first login
 			},
 			requiresClientSecret: true,
 		},
@@ -56,7 +55,6 @@ const wellKnownConfigs = {
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
 			scope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
 			providerSpecificParams: {
-				prompt: "consent",
 				response_mode: "query",
 				tenant: "common",
 			},
