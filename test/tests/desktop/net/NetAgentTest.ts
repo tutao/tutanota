@@ -53,42 +53,42 @@ o.spec("NetAgent", function () {
 		await Promise.all([initialAgent.destroy(), currentAgent().destroy()])
 	})
 
-	o("does not replace the agent if requests succeed", async function () {
+	o.test("does not replace the agent if requests succeed", async function () {
 		fakeFingerprint = "wlan0|10.0.0.99"
-		o(await fetchText()).equals("ok")
-		o(agents.size).equals(1)
+		o.check(await fetchText()).equals("ok")
+		o.check(agents.size).equals(1)
 	})
 
-	o("does not replace the agent after a failure if the network did not change", async function () {
+	o.test("does not replace the agent after a failure if the network did not change", async function () {
 		breakConnections = true
-		o(await fetchText()).equals(null)
-		o(agents.size).equals(1)
+		o.check(await fetchText()).equals(null)
+		o.check(agents.size).equals(1)
 	})
 
-	o("replaces the agent after a failure if the network changed", async function () {
+	o.test("replaces the agent after a failure if the network changed", async function () {
 		breakConnections = true
 		fakeFingerprint = "wlan0|10.0.0.99"
-		o(await fetchText()).equals(null)
-		o(agents.size).equals(2)
-		o(initialAgent.destroyed).equals(true)
+		o.check(await fetchText()).equals(null)
+		o.check(agents.size).equals(2)
+		o.check(initialAgent.destroyed).equals(true)
 
 		breakConnections = false
-		o(await fetchText()).equals("ok")
-		o(agents.size).equals(2)
+		o.check(await fetchText()).equals("ok")
+		o.check(agents.size).equals(2)
 	})
 
-	o("replaces the agent only once for concurrent failures and again on the next network change", async function () {
+	o.test("replaces the agent only once for concurrent failures and again on the next network change", async function () {
 		breakConnections = true
 		fakeFingerprint = "wlan0|10.0.0.99"
 		await Promise.all([fetchText(), fetchText(), fetchText()])
-		o(agents.size).equals(2)
+		o.check(agents.size).equals(2)
 
 		// the new agent belongs to the current network, failures alone do not replace it
 		await fetchText()
-		o(agents.size).equals(2)
+		o.check(agents.size).equals(2)
 
 		fakeFingerprint = "eth0|192.168.1.5"
 		await fetchText()
-		o(agents.size).equals(3)
+		o.check(agents.size).equals(3)
 	})
 })
