@@ -4,7 +4,7 @@ import { elementIdPart, listIdPart } from "../../../../platform-kit/meta"
 import { EnvProvider, NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
 import { DbError } from "../../../common/api/common/error/DbError"
 import { SearchIndexStateInfo, SearchResult } from "../../../common/api/worker/search/SearchTypes"
-import { assertNotNull, isEmpty, ofClass } from "../../../../platform-kit/utils"
+import { assertNotNull, deepEqual, isEmpty, ofClass } from "../../../../platform-kit/utils"
 import { SearchFacade } from "../../workerUtils/index/SearchFacade"
 import { areResultsForTheSameQuery, hasMoreResults, mailSearchComparator } from "./MailSearchUtils"
 import { Mail, MailTypeRef } from "@tutao/entities/tutanota"
@@ -43,6 +43,12 @@ export class MailSearchModel {
 		registerIndexingNotAvailableHandler(() => {
 			this.indexingSupported = false
 		})
+	}
+
+	updateIndexingState(state: SearchIndexStateInfo) {
+		if (deepEqual(state, this.indexState())) {
+			this.indexState(state)
+		}
 	}
 
 	async searchMails(searchQuery: SearchQuery): Promise<LiveSearchResult<Mail>> {
