@@ -1026,16 +1026,18 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					},
 					abortController.signal,
 				),
-				progress,
 				{
-					middle: "exportUsers_action",
-					left: [
-						{
-							label: "cancel_action",
-							type: ButtonType.Primary,
-							click: () => abortController.abort(),
-						},
-					],
+					progressStream: progress,
+					headerBarAttrs: {
+						middle: "exportUsers_action",
+						left: [
+							{
+								label: "cancel_action",
+								type: ButtonType.Primary,
+								click: () => abortController.abort(),
+							},
+						],
+					},
 				},
 			)
 			await exportUserCsv(data, locator.fileController)
