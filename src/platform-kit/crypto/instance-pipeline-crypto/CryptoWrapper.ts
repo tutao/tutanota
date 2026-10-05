@@ -2,7 +2,7 @@ import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
 import { aes256RandomKey, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
 import { aesDecrypt, aesEncrypt } from "./Aes.js"
-import { decryptKey, decryptKeyPair, encryptKey, encryptKyberKey, encryptX25519Key } from "./KeyEncryption.js"
+import { decrypt256Key, decryptKey, decryptKeyPair, encryptKey, encryptKyberKey, encryptX25519Key } from "./KeyEncryption.js"
 import { deriveX25519PublicKey, generateX25519KeyPair, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
 import { bytesToEd25519PrivateKey, Ed25519PrivateKey, ed25519PrivateKeyToBytes, Ed25519PublicKey, ed25519PublicKeyToBytes } from "../encryption/Ed25519.js"
 import {
@@ -53,6 +53,10 @@ export class CryptoWrapper {
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
 		return decryptKey(encryptionKey, key)
+	}
+
+	decryptAes256Key(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>): Aes256Key {
+		return decrypt256Key(encryptionKey, keyToBeDecrypted)
 	}
 
 	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array<ArrayBuffer> {
