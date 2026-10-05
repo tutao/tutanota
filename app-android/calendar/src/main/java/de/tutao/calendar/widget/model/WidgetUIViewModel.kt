@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import java.security.SecureRandom
 import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
@@ -118,7 +117,6 @@ class WidgetUIViewModel(
 		now: LocalDateTime
 	): WidgetUIState {
 		Log.i(TAG, "[$widgetId] Init loadUIState")
-		val uiEventsMap: HashMap<LocalDate, List<UIEvent>> = HashMap()
 		val zoneId = this.calendar.timeZone.toZoneId()
 
 		val widgetStoredState = this.getWidgetStoredState(widgetDataStore)
@@ -139,7 +137,7 @@ class WidgetUIViewModel(
 		val forceRemoteEventsFetch = lastSync?.force ?: false
 
 		Log.d(TAG, "[$widgetId] Starting to fetch calendar events")
-		val calendarToEventsListMap = this.getCalendarEvents(
+		val calendarToEventsListMap: Map<GeneratedId, CalendarEventListDao> = this.getCalendarEvents(
 			(lastSync == null || lastSync.trigger == WidgetUpdateTrigger.APP || lastSync.trigger == WidgetUpdateTrigger.SETTINGS || forceRemoteEventsFetch) && this.sdk != null,
 			this.sdk,
 			credentials,
@@ -179,7 +177,7 @@ class WidgetUIViewModel(
 					val eventStartUTC = Date.from(eventStartInstant)
 					val eventEndUTC = Date.from(eventEndInstant)
 
-					// Apply time zone for display string clock times
+					// Apply time zone for displaying string clock times
 					val eventStartLocalTime = LocalDateTime.ofInstant(eventStartInstant, zoneId)
 					val eventEndLocalTime = LocalDateTime.ofInstant(eventEndInstant, zoneId)
 
@@ -223,19 +221,22 @@ class WidgetUIViewModel(
 						eventStartInstant >= currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 
 					val timesString = if (eventStartsBeforeTodayAndEndsToday) {
+						// if event starts on a previous day and ends today, communicate this
 						"Ends at " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					} else if (eventStartsTodayAndEndsLater) {
+						// if event starts today and continues on another day, communicate this
 						"Starts at " + eventStartLocalTime.format(UIEvent.dateFormatter)
 					} else {
+						// if event starts and ends on same day, display times normally
 						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					}
 
 					// determine if event will be considered all day based on times
 					val isConsideredAllDay = isAllDayEventByTimes(
 						Date.from(eventStartInstant), Date.from(eventEndInstant)
-					) || eventTakesEntireDay
+					) || eventTakesEntireDay // if event starts on previous day and ends on later day, display it like an all-day event.
 
-					// create the actual UIEvent
+					// create the item that we will show in the widget UI
 					val uiEvent = UIEvent(
 						calendarId,
 						eventDao.id,
@@ -274,16 +275,21 @@ class WidgetUIViewModel(
 				val eventStartDate =
 					Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong()).atZone(ZoneOffset.UTC)
 						.toLocalDate()
+
+				// we get the index differently for birthday events because we know they will always only be a single instance of an all day event.
+				// so much of the complex logic for other types of events is not necessary.
 				val index = ChronoUnit.DAYS.between(startOfToday, eventStartDate)
 				daysAndEvents[index.toInt()] = daysAndEvents[index.toInt()].plus(uiEvent)
 			}
 		}
 
 		Log.d(TAG, "[$widgetId] Sorting events by start time")
-		daysAndEvents.forEach { eventList ->
-			eventList.sortedWith(Comparator<UIEvent> { a, b -> // does this sort in-place or no?
+		// we sorted events in a day to put them in the correct order.
+		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
+			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
 				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
 			})
+			daysAndEvents[index] = sortedEventsOfDay
 		}
 
 		Log.d(TAG, "[$widgetId] Assigning sorted events to uiState")
@@ -348,7 +354,10 @@ class WidgetUIViewModel(
 		}
 	}
 
-
+	/**
+	 * Gets all the calendar events for a given list of calendars.
+	 * Returns a Map of calendar IDs to CalendarEventListDaos.
+	 */
 	private suspend fun getCalendarEvents(
 		shouldFetchFromServer: Boolean,
 		sdk: Sdk?,
