@@ -2,19 +2,23 @@ import o, { assertThrows } from "@tutao/otest"
 import { func, matchers, object, verify, when } from "testdouble"
 import { NextcloudPlugin } from "../../../../../src/plugin-kit/plugins/nextcloud/NextcloudPlugin"
 import { NextcloudApi } from "../../../../../src/plugin-kit/plugins/nextcloud/NextcloudApi"
-import NEXTCLOUD_PLUGIN_MANIFEST from "../../../../../src/plugin-kit/plugins/nextcloud/manifest.json"
 import { ExtensionPoint, PluginHostApi } from "../../../../../src/plugin-kit/sdk/hostApi/PluginHostApi"
 import { CustomerConfigPluginError } from "../../../../../src/plugin-kit/sdk/PluginError"
 import { PluginDataFile } from "../../../../../src/plugin-kit/sdk/PluginDataFile"
 import { PluginFileReference } from "../../../../../src/plugin-kit/sdk/FileImportExtensionPoint"
+import { PLUGIN_REGISTRY } from "../../../../../src/plugin-kit/plugin-manager/PluginRegistry"
+import { PluginManifest } from "../../../../../src/plugin-kit/sdk/PluginManifest"
 
 o.spec("NextcloudPluginTest", () => {
 	let pluginHost: PluginHostApi
 	let plugin: NextcloudPlugin
+	const NEXTCLOUD_PLUGIN_MANIFEST: PluginManifest = PLUGIN_REGISTRY["nextcloud"]
 
 	o.beforeEach(() => {
 		pluginHost = object<PluginHostApi>()
 		plugin = new NextcloudPlugin(pluginHost)
+		//@ts-ignore
+		plugin.manifest = NEXTCLOUD_PLUGIN_MANIFEST
 	})
 
 	o.spec("load", () => {
@@ -22,7 +26,7 @@ o.spec("NextcloudPluginTest", () => {
 			when(pluginHost.getCustomerConfig()).thenResolve(null)
 			when(pluginHost.getUserConfig()).thenResolve(null)
 
-			await plugin.load()
+			await plugin.load(NEXTCLOUD_PLUGIN_MANIFEST)
 
 			verify(
 				pluginHost.registerConfigFields([
@@ -58,7 +62,7 @@ o.spec("NextcloudPluginTest", () => {
 			when(pluginHost.getCustomerConfig()).thenResolve(null)
 			when(pluginHost.getUserConfig()).thenResolve(null)
 
-			await plugin.load()
+			await plugin.load(NEXTCLOUD_PLUGIN_MANIFEST)
 
 			verify(pluginHost.getHost(), { times: 0 })
 		})
@@ -68,7 +72,7 @@ o.spec("NextcloudPluginTest", () => {
 			when(pluginHost.getUserConfig()).thenResolve(null)
 			when(pluginHost.getHost()).thenResolve("app.tuta.com")
 
-			await plugin.load()
+			await plugin.load(NEXTCLOUD_PLUGIN_MANIFEST)
 
 			verify(pluginHost.getHost())
 			o.check((plugin as any).nextcloudApi instanceof NextcloudApi).equals(true)

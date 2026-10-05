@@ -4,7 +4,7 @@ import { PluginManifest } from "../sdk/PluginManifest"
 /**
  * Static, synchronous manifest of plugins that can be enabled/configured from the admin Plugins settings page.
  * The Settings page must list plugins that are *available to enable*, including disabled ones, without pulling in
- * plugin runtime bundles just to render a name/description/logo.
+ * plugin runtime bundles just to render a name/description/logo. g
  */
 export const PLUGIN_REGISTRY: Readonly<Record<PluginId, PluginManifest>> = Object.freeze({
 	nextcloud: {

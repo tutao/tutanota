@@ -13,19 +13,16 @@ import { OperationType } from "../../../../src/platform-kit/meta"
 import { stringToBase64UrlCustomId } from "../../../../src/platform-kit/utils/Encoding"
 import { CachingStatus, EntityUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { PluginConfiguration, PluginConfigurationTypeRef } from "@tutao/entities/sys"
-import { PluginManifestProvider } from "../../../../src/applications/common/plugin/PluginManifestProvider"
 
 o.spec("PluginManagerTest", () => {
 	let configurationAdapter: ConfigurationAdapter
 	let dialogAdapter: DialogAdapter
 	let pluginManager: PluginManager
-	let pluginManifestProvider: PluginManifestProvider
 
 	o.beforeEach(() => {
 		configurationAdapter = object<ConfigurationAdapter>()
 		dialogAdapter = object<DialogAdapter>()
-		pluginManifestProvider = object<PluginManifestProvider>()
-		pluginManager = new PluginManager(pluginManifestProvider, configurationAdapter, dialogAdapter)
+		pluginManager = new PluginManager(configurationAdapter, dialogAdapter)
 	})
 
 	function seedLoadedPlugin(overrides: { api?: any; pluginAsWorker?: any; draftConfig?: Record<string, string> } = {}) {
@@ -106,11 +103,11 @@ o.spec("PluginManagerTest", () => {
 			o.check(pluginManager.getConfigFieldValue("nextcloud", "foo")).equals("bar")
 		})
 
-		o.test("getConfigFieldValue throws for a missing field", async () => {
+		o.test("getConfigFieldValue does not throw for a missing field", async () => {
 			seedLoadedPlugin({ draftConfig: {} })
 
-			const err = await assertThrows(Error, async () => pluginManager.getConfigFieldValue("nextcloud", "missing"))
-			o.check(err.message).equals("AssertNotNull failed: null")
+			const missingField = pluginManager.getConfigFieldValue("nextcloud", "missing")
+			o.check(missingField).equals(null)
 		})
 
 		o.test("persistCustomerConfig serializes the draft config via the configuration adapter", async () => {
