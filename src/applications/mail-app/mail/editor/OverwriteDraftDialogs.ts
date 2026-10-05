@@ -35,6 +35,7 @@ export function showOverwriteRemoteDraftDialog(updatedAt: number): Promise<"canc
 					dialog.close()
 				},
 			},
+			{ backgroundColor: theme.surface_container },
 		)
 			.addShortcut({
 				key: Keys.ESC,
@@ -60,17 +61,25 @@ interface OverwriteRemoteDraftDialogAttrs {
 
 class OverwriteRemoteDraftDialog implements Component<OverwriteRemoteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteRemoteDraftDialogAttrs>) {
-		return m(".pt-16.pb-16.flex.col.gap-16", [
+		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
 			m(TitleSection, {
-				title: lang.get("conflictDetected_label"),
+				title: lang.getTranslationText("conflictDetected_label"),
 				subTitle: [
-					m(".normal-font-size", lang.get("remoteDraftVersion_msg")),
+					m(".normal-font-size", lang.getTranslationText("remoteDraftVersion_msg")),
 					m(".normal-font-size.b", lang.formats.dateTime.format(vnode.attrs.mailRemotelyUpdatedAt)),
 				],
 				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
+				style: { backgroundColor: theme.surface },
 			}),
-			m(Card, m(".plr-12.flex.flex-column.gap-16.center", lang.get("confirmOverwriteServerDraft_msg"))),
+			m(
+				Card,
+				m(
+					".plr-12.flex.flex-column.gap-16.center",
+					{ style: { backgroundColor: theme.surface } },
+					lang.getTranslationText("confirmOverwriteServerDraft_msg"),
+				),
+			),
 			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
 				label: "yes_label",
@@ -118,6 +127,7 @@ export function showOverwriteDraftDialog(): Promise<"cancel" | "discard"> {
 					dialog.close()
 				},
 			},
+			{ backgroundColor: theme.surface_container },
 		)
 			.addShortcut({
 				key: Keys.ESC,
@@ -142,12 +152,13 @@ interface OverwriteDraftDialogAttrs {
 
 class OverwriteDraftDialog implements Component<OverwriteDraftDialogAttrs> {
 	view(vnode: Vnode<OverwriteDraftDialogAttrs>) {
-		return m(".pt-16.pb-16.flex.col.gap-16", [
+		return m(".pt-16.pb-16.flex.col.gap-16", { style: { backgroundColor: theme.surface_container } }, [
 			m(TitleSection, {
-				title: lang.get("confirmCreateNewDraftOverAutosavedDraft_msg"),
+				title: lang.getTranslationText("confirmCreateNewDraftOverAutosavedDraft_msg"),
 				subTitle: null,
 				icon: Icons.ExclamationOutline,
 				iconOptions: { color: theme.error },
+				style: { backgroundColor: theme.surface },
 			}),
 			m(PrimaryButton, {
 				class: "flex-center row center-vertically",
