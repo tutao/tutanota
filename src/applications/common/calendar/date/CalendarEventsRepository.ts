@@ -3,7 +3,6 @@ import stream from "mithril/stream"
 import { CalendarInfo, CalendarModel } from "../../../calendar-app/calendar/model/CalendarModel.js"
 import {
 	addDaysForRecurringEvent,
-	calculateContactsAge,
 	CalendarTimeRange,
 	createRepeatRuleWithValues,
 	extractYearFromBirthday,
@@ -567,8 +566,13 @@ export class CalendarEventsRepository {
 		const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
 		if (birthdaysOfThisMonth) {
 			for (const calendarEvent of birthdaysOfThisMonth) {
-				const age = calculateContactsAge(calendarEvent.baseYear, selectedDate.getFullYear())
-				const ageString = age ? `(${this.calendarModel.getAgeString(age)})` : ""
+				let summary = calendarEvent.event.summary
+				if (calendarEvent.baseYear != null) {
+					const age = selectedDate.getFullYear() - calendarEvent.baseYear
+					if (age > 0) {
+						summary += ` (${this.calendarModel.getAgeString(age)})`
+					}
+				}
 
 				if (removeEventOccurrences) {
 					this.removeDaysForEvent(calendarEvent.event._id)
@@ -577,7 +581,7 @@ export class CalendarEventsRepository {
 					{
 						event: {
 							...calendarEvent.event,
-							summary: `${calendarEvent.event.summary} ${ageString}`,
+							summary,
 						},
 						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
 						flags: {
