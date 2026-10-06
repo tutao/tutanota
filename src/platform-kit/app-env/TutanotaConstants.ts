@@ -79,6 +79,9 @@ export class TutanotaConstants {
 	public static readonly UNDO_SEND_TIMEOUT_SECONDS: TsInt = 10
 
 	public static readonly companyTeamLabel: TsString = "Tuta Team"
+
+	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS = 28
+	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS = 365
 }
 
 export type ConstType = {
@@ -468,9 +471,6 @@ export enum UsageTestMetricType {
 	LIKERT = "2",
 	STRING = "3",
 }
-
-export const FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS = 28
-export const PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS = 365
 
 export enum UsageTestParticipationMode {
 	Once = "0",

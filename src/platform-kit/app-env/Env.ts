@@ -120,6 +120,18 @@ export class EnvProvider {
 
 	private constructor(private readonly env: EnvType) {}
 
+	public setShadowDomAppRoot(shadowDomAppRoot: string): void {
+		this.env.shadowDomAppRoot = shadowDomAppRoot
+	}
+
+	public getShadowDomAppRoot(): string | null {
+		return this.env.shadowDomAppRoot
+	}
+
+	public getEnvAsJson(): string {
+		return JSON.stringify(this.env)
+	}
+
 	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
 	}

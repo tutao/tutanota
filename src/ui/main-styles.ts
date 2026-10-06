@@ -44,8 +44,8 @@ async function loadFonts() {
 	if (!EnvProvider.get().isNextCloudPlugin()) return
 
 	const fonts = [
-		new FontFace("Ionicons", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${EnvProvider.get().getShadowDomAppRoot()}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${EnvProvider.get().getShadowDomAppRoot()}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))

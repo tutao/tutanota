@@ -61,7 +61,7 @@ export class PluginManager {
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
 			pluginHost.initialize(pluginManifest)
 
-			await pluginApi.setupEnv(JSON.stringify(EnvProvider.get().env))
+			await pluginApi.setupEnv(EnvProvider.get().getEnvAsJson())
 			await pluginApi.load(pluginManifest)
 
 			let draftConfig: Record<string, any>
