@@ -14,7 +14,6 @@ import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
 import de.tutao.calendar.widget.style.Dimensions
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -24,7 +23,7 @@ fun DayWithWeekday(currentDate: LocalDateTime) {
 	Column(
 		horizontalAlignment = Alignment.CenterHorizontally,
 		verticalAlignment = Alignment.Vertical.CenterVertically,
-		modifier = GlanceModifier.width(Dimensions.Size.core_32.dp)
+		modifier = GlanceModifier.width(Dimensions.Size.core_32.dp).padding(vertical = 4.dp)
 	) {
 		Text(
 			style = TextStyle(

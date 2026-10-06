@@ -36,7 +36,8 @@ fun TodayCard(
 ) {
 
 	val normalEvents = events.filter { uiEvent -> !uiEvent.isDisplayedAsAllDay }
-	val allDayEvents = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay }
+	val allDayEvents = events.filter { uiEvent -> uiEvent.isDisplayedAsAllDay && !uiEvent.isBirthday }
+	val birthdayEvents = events.filter { uiEvent -> uiEvent.isBirthday }
 
 	Card(cardAction) {
 		Box(modifier = GlanceModifier.fillMaxWidth(), contentAlignment = Alignment.TopEnd) {
@@ -60,8 +61,25 @@ fun TodayCard(
 					)
 				} else {
 					if (allDayEvents.isNotEmpty()) {
-						Row(modifier = GlanceModifier.padding(end = (Dimensions.Size.core_48 + Dimensions.Spacing.space_4).dp)) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							modifier = GlanceModifier.padding(
+								vertical = Dimensions.Spacing.space_4.dp
+							)
+								.fillMaxWidth()
+						) {
 							AllDayRow(allDayEvents)
+						}
+					}
+					if (birthdayEvents.isNotEmpty()) {
+						Row(
+							verticalAlignment = Alignment.CenterVertically,
+							modifier = GlanceModifier.padding(
+								vertical = Dimensions.Spacing.space_4.dp
+							)
+								.fillMaxWidth()
+						) {
+							AllDayRow(birthdayEvents)
 						}
 					}
 					EventList(

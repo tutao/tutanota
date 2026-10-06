@@ -121,7 +121,7 @@ class Agenda : GlanceAppWidget() {
 				top = Dimensions.Spacing.space_16.dp,
 				start = Dimensions.Spacing.space_16.dp,
 				end = Dimensions.Spacing.space_16.dp,
-				bottom = 0.dp
+				bottom = Dimensions.Spacing.space_16.dp
 			).background(GlanceTheme.colors.background).fillMaxSize().appWidgetBackground()
 				.cornerRadius(20.dp),
 		) {

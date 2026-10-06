@@ -28,7 +28,6 @@ fun AllDaySection(allDayEvents: List<UIEvent>) {
 			.background(GlanceTheme.colors.surfaceVariant),
 	) {
 		AllDayRow(allDayEvents)
-
 	}
 }
 
