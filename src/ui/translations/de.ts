@@ -2559,7 +2559,8 @@ export default {
 		"declinedFeedbackDialogBeforeYouGoPlaceholder_msg": "Wir würden uns über dein Feedback freuen.",
 		"declinedFeedbackDialogInput_msg": "Was hat dich heute davon abgehalten, ein Upgrade durchzuführen?",
 		"sendFeedback_action": "Feedback senden",
-		"feedbackAnonymousAndHelpUs_label": "Dein Feedback ist anonym und hilft uns, Tuta zu verbessern."
+		"feedbackAnonymousAndHelpUs_label": "Dein Feedback ist anonym und hilft uns, Tuta zu verbessern.",
+		"afterProxyStoreAction_msg": "Nachdem du deine Giftcard gekauft hast, folge bitte den Schritten auf ProxyStore, um den Vorgang fortzusetzen."
 
 	}
 }

@@ -2559,3 +2559,4 @@ export type TranslationKeyType =
 	| "feedbackAnonymousAndHelpUs_label"
 	| "accessDeactivated_msg"
 	| "surveySomethingNotWorking_label"
+	| "afterProxyStoreAction_msg"

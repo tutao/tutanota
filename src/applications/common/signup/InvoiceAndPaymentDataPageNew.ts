@@ -11,7 +11,7 @@ import { RadioSelector, RadioSelectorAttrs } from "../../../ui/base/RadioSelecto
 import { getVisiblePaymentMethods, updatePaymentData, validateInvoiceData, validatePaymentData } from "../subscription/utils/PaymentUtils"
 import { WizardStepContext } from "../../../ui/base/wizard/WizardController"
 import { ProgrammingError } from "@tutao/app-env"
-import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
+import { PrimaryButton, SecondaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import { theme } from "../../../ui/theme"
 import { BannerType, InfoBanner, InfoBannerAttrs } from "../../../ui/base/InfoBanner.js"
 import { CreditCardInput } from "../subscription/CreditCardInput"
@@ -62,6 +62,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 			isBusiness: ctx.viewModel.options.businessUse(),
 			isBankTransferAllowed: !ctx.viewModel.firstMonthForFreeOfferActive,
 			accountingInfo: ctx.viewModel.accountingInfo,
+			upgradeType: ctx.viewModel.upgradeType,
 		})
 
 		const options: ReadonlyArray<RadioSelectorOption<PaymentMethodType | null>> = visiblePaymentMethods.map(({ name, value }, index) => ({
@@ -116,7 +117,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		])
 	}
 
-	private renderPaymentMethodForm(ctx: WizardStepContext<PaymentDetailsModel>, method: PaymentMethodType): Children {
+	private renderPaymentMethodForm(ctx: WizardStepContext<PaymentDetailsModel>, method: PaymentMethodType | null): Children {
 		switch (method) {
 			case PaymentMethodType.Invoice:
 				return this.renderInvoiceForm(ctx)
@@ -126,6 +127,8 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 				return this.renderCreditCardForm(ctx)
 			case PaymentMethodType.Paypal:
 				return this.renderPaypalForm(ctx)
+			case PaymentMethodType.Other:
+				return this.renderOtherPaymentForm(ctx)
 			default:
 				throw new ProgrammingError(`unknown payment method: ${method}`)
 		}
@@ -224,6 +227,29 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 		})()
 
 		void showProgressDialog("updatePaymentDataBusy_msg", progress)
+	}
+
+	private renderOtherPaymentForm(ctx: WizardStepContext<PaymentDetailsModel>): Children {
+		return m(`.flex.col${this.formGap}`, [
+			m(
+				`.flex-shrink${Styles.get().isMobileLayout() ? ".align-self-center" : ".align-self-end"}`,
+				m("", [
+					m(".h4.pb-8", "ProxyStore"),
+					m(".small.pb-8", lang.getTranslationText("proxyStorePayment_msg")),
+					m(SecondaryButton, {
+						label: lang.getTranslation("openProxystore_action"),
+						width: "flex",
+						icon: Icons.OpenOutline,
+						onclick: async () => {
+							const choice = await Dialog.confirm("afterProxyStoreAction_msg")
+							if (choice) {
+								windowFacade.openLink("https://digitalgoods.proxysto.re/brand/tuta")
+							}
+						},
+					}),
+				]),
+			),
+		])
 	}
 
 	private onPaypalButtonClick = async () => {

@@ -168,6 +168,8 @@ export enum PaymentMethodType {
 	AccountBalance = "4",
 	AppStore = "5",
 	GooglePlay = "6",
+	// not saved on customer
+	Other = "7",
 }
 
 export type ExternalPaymentMethodType = Exclude<

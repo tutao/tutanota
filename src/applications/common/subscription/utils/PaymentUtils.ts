@@ -4,7 +4,7 @@ import { NewAccountData, type SubscriptionParameters, type UpgradeSubscriptionDa
 import { locator } from "../../api/main/CommonLocator"
 import { runCaptchaFlow } from "../captcha/Captcha"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp, UpgradeType } from "./SubscriptionUtils"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
@@ -285,10 +285,12 @@ export function getVisiblePaymentMethods({
 	isBusiness,
 	isBankTransferAllowed,
 	accountingInfo,
+	upgradeType,
 }: {
 	isBusiness: boolean
 	isBankTransferAllowed: boolean
 	accountingInfo: AccountingInfo | null
+	upgradeType: UpgradeType
 }): Array<{
 	name: string
 	value: PaymentMethodType
@@ -317,6 +319,12 @@ export function getVisiblePaymentMethods({
 		availablePaymentMethods.push({
 			name: lang.get("paymentMethodAccountBalance_label"),
 			value: PaymentMethodType.AccountBalance,
+		})
+	}
+	if (upgradeType !== "Signup") {
+		availablePaymentMethods.push({
+			name: lang.getTranslationText("alternativePaymentMethods_label"),
+			value: PaymentMethodType.Other,
 		})
 	}
 
