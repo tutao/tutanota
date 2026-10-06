@@ -27,7 +27,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason, TutanotaConstants } from "@tutao/app-env"
+import { BookingFailureReason, EnvProvider, UnsubscribeFailureReason, TutanotaConstants } from "@tutao/app-env"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"

@@ -1,9 +1,4 @@
-import {
-	CancelledError,
-	EnvProvider,
-	TimeConstants,
-	TutanotaConstants
-} from "@tutao/app-env"
+import { CancelledError, EnvProvider, TimeConstants, TutanotaConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -27,8 +22,8 @@ import {
 	ListElementEntity,
 	OperationType,
 	TypeRef,
-} from "../../../../platform-kit/meta"
-import { ConnectionError } from "../../../../platform-kit/rest-client/error"
+} from "@tutao/meta"
+import { ConnectionError } from "@tutao/http-client/error"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils.js"
 import { IndexingErrorReason, SearchIndexStateInfo } from "../../../common/api/worker/search/SearchTypes.js"
 import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
@@ -193,7 +188,7 @@ export class WebMailIndexer implements MailIndexer {
 
 	async doInitialMailIndexing(user: User): Promise<void> {
 		// create index in background, termination is handled in Indexer.enableMailIndexing
-		const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
+		const oldestTimestamp = this._dateProvider.getStartOfDayShiftedBy(-TutanotaConstants.INITIAL_MAIL_INDEX_INTERVAL_DAYS).getTime()
 		// We don't have to disable mail indexing when it's stopped now
 		try {
 			await this.indexMailboxes(user, oldestTimestamp)
