@@ -170,6 +170,14 @@ export enum PaymentMethodType {
 	GooglePlay = "6",
 }
 
+// this determines which input form we render for a payment method
+export const enum PaymentDataInput {
+	AccountBalance,
+	Paypal,
+	CreditCard,
+	Other,
+}
+
 export type ExternalPaymentMethodType = Exclude<
 	PaymentMethodType,
 	PaymentMethodType.Invoice | PaymentMethodType.CreditCard | PaymentMethodType.Sepa | PaymentMethodType.Paypal | PaymentMethodType.AccountBalance
