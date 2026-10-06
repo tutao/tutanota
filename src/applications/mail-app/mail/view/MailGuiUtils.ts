@@ -1205,7 +1205,7 @@ export class AttachmentDownloader {
 	}
 
 	async saveToDrive(attachment: Attachment) {
-		const { showDuplicateFilesChoiceDialog } = await import("../../../drive-app/drive/view/DriveGuiUtils.js")
+		const { showDriveDuplicateFileDialog } = await import("../../../drive-app/drive/view/DriveDuplicateFileDialog.js")
 		try {
 			if (isTutanotaFile(attachment)) {
 				await this.showDriveDestinationPickerDialog(async (destinationFolder) => {
@@ -1216,14 +1216,14 @@ export class AttachmentDownloader {
 					const downloadedFile = await downloadReturn.promise
 					await showProgressDialog(
 						lang.getTranslation("savingAttachmentToDrive_Label"),
-						this.driveModel.uploadFiles([downloadedFile], destinationFolder._id, showDuplicateFilesChoiceDialog),
+						this.driveModel.uploadFiles([downloadedFile], destinationFolder._id, showDriveDuplicateFileDialog),
 					)
 				})
 			} else if (isDataFile(attachment) || isFileReference(attachment)) {
 				await this.showDriveDestinationPickerDialog(async (destinationFolder) => {
 					await showProgressDialog(
 						lang.getTranslation("savingAttachmentToDrive_Label"),
-						this.driveModel.uploadFiles([attachment], destinationFolder._id, showDuplicateFilesChoiceDialog),
+						this.driveModel.uploadFiles([attachment], destinationFolder._id, showDriveDuplicateFileDialog),
 					)
 				})
 			} else {

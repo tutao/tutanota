@@ -2559,3 +2559,4 @@ export type TranslationKeyType =
 	| "sendDriveFileWithMail_action"
 	| "openDriveDestinationPickerForAttachment_action"
 	| "nameTooLong_msg"
+	| "skipThisFile_action"

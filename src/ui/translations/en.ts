@@ -993,7 +993,7 @@ export default {
 		"invoiceVatIdNoInfoBusiness_msg": "Optional. If not provided, VAT is added to your invoices. Must start with the two digit country prefix.",
 		"IpAddress_label": "IP address",
 		"itemsSelected_label": "{number} items selected",
-		"keepBothFiles_action": "Keep Both",
+		"keepBothFiles_action": "Keep both files",
 		"keyboardShortcuts_title": "Keyboard shortcuts",
 		"keyManagement.cameraNotFound_msg": "No camera was found on this device. Please connect or activate your camera.",
 		"keyManagement.cameraPermissionNeeded_msg": "Please enable the camera permission in the device settings.",
@@ -1882,7 +1882,7 @@ export default {
 		"repeatedPassword_label": "Repeat password",
 		"repeatsEvery_label": "Repeats every",
 		"repetition_msg": "Every {interval} {timeUnit}",
-		"replaceFile_action": "Replace",
+		"replaceFile_action": "Replace existing file",
 		"replied_label": "Replied",
 		"repliedToEventInvite_msg": "Replied: {event}",
 		"reply_action": "Reply",
@@ -2559,6 +2559,7 @@ export default {
 		"attachingDriveFile_label" : "Attaching file to Email",
 		"savingAttachmentToDrive_Label": "Saving file to Drive",
 		"sendDriveFileWithMail_action": "Send via Email",
-		"openDriveDestinationPickerForAttachment_action": "Attach drive files"
+		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
+		"skipThisFile_action":"Skip this file",
 	}
 }

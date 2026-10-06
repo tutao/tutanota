@@ -34,7 +34,6 @@ export const INPUT = "input.text, input.tutaui-text-field, textarea, div[content
 export const enum DialogType {
 	Progress = "Progress",
 	Alert = "Alert",
-	AlertCompactHeader = "AlertCompactHeader",
 	Reminder = "Reminder",
 	EditSmall = "EditSmall",
 	EditMedium = "EditMedium",
@@ -273,8 +272,6 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-s.dialog-progress.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Alert) {
 			dialogStyle += ".dialog-width-alert.pt-16.border-radius-bottom-8"
-		} else if (dialogType === DialogType.AlertCompactHeader) {
-			dialogStyle += ".dialog-width-alert.border-radius-bottom-8"
 		} else if (dialogType === DialogType.Reminder) {
 			dialogStyle += ".dialog-width-m.pt-16.flex.flex-column.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditSmall) {
@@ -512,7 +509,6 @@ export class Dialog implements ModalComponent {
 		buttons: ReadonlyArray<ButtonAttrs>,
 		onclose?: (positive: boolean) => unknown,
 		infoToAppend?: string | lazy<Children>,
-		oncancel?: () => unknown,
 	): Dialog {
 		let dialog: Dialog
 
@@ -533,23 +529,8 @@ export class Dialog implements ModalComponent {
 			return [lang.getTranslationText(messageIdOrMessageFunction), additionalChild]
 		}
 
-		dialog = new Dialog(oncancel ? DialogType.AlertCompactHeader : DialogType.Alert, {
+		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				oncancel
-					? m(DialogHeaderBar, {
-							left: [
-								{
-									label: "cancel_action",
-									click: () => {
-										oncancel()
-									},
-									type: ButtonType.Secondary,
-								} satisfies ButtonAttrs,
-							],
-							right: [],
-							middle: lang.makeTranslation("", ""),
-						} satisfies DialogHeaderBarAttrs)
-					: null,
 				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll.mt-16", getContent()),
 				buttons.length === 0
 					? null
@@ -651,7 +632,6 @@ export class Dialog implements ModalComponent {
 								)
 							})
 						: null,
-				() => choose(null),
 			)
 		})
 	}

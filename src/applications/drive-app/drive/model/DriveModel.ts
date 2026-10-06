@@ -33,9 +33,9 @@ import { EventController } from "../../../common/api/main/EventController"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { DataFile, FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
-import { DuplicateFilesDialogDecision } from "../view/DriveGuiUtils"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { DuplicateFilesDialogDecision } from "../view/DriveDuplicateFileDialog"
 
 export const enum ClipboardAction {
 	Cut,
