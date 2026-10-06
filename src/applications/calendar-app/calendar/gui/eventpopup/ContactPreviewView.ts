@@ -2,12 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import { AllIcons, Icon, IconSize } from "../../../../../ui/base/Icon.js"
 import { theme } from "../../../../../ui/theme.js"
 import { Icons } from "../../../../../ui/base/icons/Icons.js"
-import { calculateContactsAge, getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
-import { memoized, noOp } from "../../../../../platform-kit/utils"
+import { getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
+import { noOp } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
-import { getLocationUrl } from "./EventPreviewView.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../../ui/base/Dropdown.js"
 import { writeMail } from "../../../../mail-app/contacts/view/ContactView.js"
@@ -22,25 +21,28 @@ export type ContactPreviewViewAttrs = {
 }
 
 export class ContactPreviewView implements Component<ContactPreviewViewAttrs> {
-	// Cache the parsed URL, so we don't parse the URL on every single view call
-	private readonly getLocationUrl: typeof getLocationUrl
-
-	constructor() {
-		this.getLocationUrl = memoized(getLocationUrl)
-	}
-
 	view(vnode: Vnode<ContactPreviewViewAttrs>): Children {
 		const { event, contact } = vnode.attrs
 		const eventTitle = getContactTitle(contact)
 
-		const birthYear = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
-		const age = birthYear && calculateContactsAge(new Date(birthYear).getFullYear(), event.startTime.getFullYear())
-		const ageString = age ? lang.get("birthdayEventAge_title", { "{age}": age }) : ""
-
+		let ageRow: Children | null = null
+		const birthYearString = contact.birthdayIso && isoDateToBirthday(contact.birthdayIso).year
+		if (birthYearString) {
+			const birthYear = parseInt(birthYearString)
+			if (isNaN(birthYear)) {
+				console.warn(`Invalid contact birth year string "${birthYearString}"!`)
+				ageRow = null
+			} else {
+				const age = event.startTime.getUTCFullYear() - birthYear
+				if (age > 0) {
+					ageRow = this.renderRow(Icons.GiftFilled, lang.get("birthdayEventAge_title", { "{age}": age }))
+				}
+			}
+		}
 		return m(".flex.col.smaller.scroll.visible-scrollbar", [
 			this.renderRow(Icons.CalendarFilled, [m("span.h3", eventTitle)]),
 			this.renderRow(Icons.ClockOutlines, [formatEventDuration(event, getTimeZone(), false)]),
-			age ? this.renderRow(Icons.GiftFilled, ageString) : null,
+			ageRow,
 			this.renderActions(contact),
 		])
 	}

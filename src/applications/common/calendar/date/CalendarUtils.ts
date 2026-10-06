@@ -1758,14 +1758,6 @@ export function extractYearFromBirthday(birthday: string | null): number | null 
 	return Number.parseInt(dateParts[0])
 }
 
-export function calculateContactsAge(birthYear: number | null, currentYear: number): number | null {
-	if (!birthYear) {
-		return null
-	}
-
-	return currentYear - birthYear
-}
-
 /**
  * Get contact id that was used to derive {@param calendarEventId}.
  * For birthdays, we create "virtual" (client-only) calendar events. Their id is derived from the contact id. This
