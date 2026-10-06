@@ -273,11 +273,11 @@ export class MainStyles {
 				".nota-bg": {
 					background: theme.tuta_color_nota,
 				},
-				".border-nota": {
-					"border-color": theme.tuta_color_nota,
-				},
-				".border-accent": {
+				".border-color-accent": {
 					"border-color": theme.primary,
+				},
+				".border-color-container-high": {
+					"border-color": theme.surface_container_high,
 				},
 				".border-sm": {
 					"border-style": "solid",
@@ -3476,8 +3476,9 @@ export class MainStyles {
 							"sidebar title title" 
 							"sidebar middle conflicts";
 							`,
-					"grid-template-columns": "120px 1fr 1fr;",
+					"grid-template-columns": "110px 2fr 3fr;",
 					"grid-template-rows": "auto 1fr;",
+					"max-width": px(900),
 				},
 			}
 		})

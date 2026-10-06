@@ -78,7 +78,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 	view({ attrs }: Vnode<TimeOverviewAttrs>) {
 		return m(
-			".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
+			".flex.flex-column.plr-16.pb-16.pt-8.justify-start",
 			{
 				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				style: {

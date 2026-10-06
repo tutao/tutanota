@@ -21,10 +21,11 @@ import { GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getCalendarEventDurationInMinutes, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { Styles } from "../../../../ui/styles"
-import { Icon, IconSize } from "../../../../ui/base/Icon"
+import { AllIcons, Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatEventDuration } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { TimeOverview } from "./TimeOverview"
+import { px, size } from "../../../../ui/size"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -113,7 +114,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		// 	"grid-template-areas": `"sidebar title" "sidebar middle" "sidebar conflicts";`,
 		// }
 
-		return m("#EventBannerGrid.border-radius-8.border-sm.full-width.mb-8.event-banner-grid-layout", [
+		return m(".event-banner-grid-layout.border-sm.border-radius-8.border-color-container-high.mb-8", [
 			m(EventBannerSidbarArea, { event: icsCalendarEvent }),
 			m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
 			m(EventBannerMiddleArea, { event: icsCalendarEvent, calendarTimeZone, replySection }),
@@ -413,7 +414,7 @@ export class EventBannerTitleArea implements ClassComponent<EventBannerTitleArea
 	view(vnode: Vnode<EventBannerTitleAreaAttrs>): Children {
 		const { eventTitle } = vnode.attrs
 		return m(
-			".flex.plr-16.pb-16.pt-16",
+			".flex.plr-16.pb-8.pt-16",
 			{
 				// class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
 				style: {
@@ -421,16 +422,11 @@ export class EventBannerTitleArea implements ClassComponent<EventBannerTitleArea
 					color: theme.on_surface,
 				},
 			},
-			[
-				m(Icon, {
-					icon: Icons.CalendarFilled,
-					container: "div",
-					class: "mr-4",
-					style: { fill: theme.on_surface },
-					size: IconSize.PX24,
-				}),
-				m("span.b.h5.text-ellipsis-multi-line.lh-s", eventTitle),
-			],
+			m(EventBannerIconWithText, {
+				icon: Icons.CalendarFilled,
+				text: eventTitle,
+				textVariant: EventBannerTextVariant.Large,
+			}),
 		)
 	}
 }
@@ -445,7 +441,7 @@ export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAre
 	view(vnode: Vnode<EventBannerMidleAreaAttrs>): Children {
 		const { event, calendarTimeZone, replySection } = vnode.attrs
 		return m(
-			".flex.flex-column.plr-16.pb-16.pt-16",
+			".flex.flex-column.plr-16.pb-16.pt-8",
 			{
 				style: {
 					gridArea: EventBannerAreas.Middle,
@@ -453,18 +449,61 @@ export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAre
 				},
 			},
 			[
-				m(".flex", [
-					m(Icon, {
-						icon: Icons.TimerFilled,
-						container: "div",
-						class: "mr-4",
-						style: { fill: theme.on_surface },
-						size: IconSize.PX24,
-					}),
-					m("span.b.h5.text-ellipsis-multi-line.lh-s", formatEventDuration(event, calendarTimeZone, false)),
-				]),
+				m(EventBannerIconWithText, {
+					icon: Icons.TimerFilled,
+					text: formatEventDuration(event, calendarTimeZone, false),
+					textVariant: EventBannerTextVariant.Normal,
+				}),
 				replySection,
 			],
 		)
+	}
+}
+
+enum EventBannerTextVariant {
+	Normal,
+	Large,
+}
+
+type EventBannerIconWithTextAttrs = {
+	icon: AllIcons
+	text: string
+	textVariant: EventBannerTextVariant
+}
+
+export class EventBannerIconWithText implements ClassComponent<EventBannerIconWithTextAttrs> {
+	public view(vnode: Vnode<EventBannerIconWithTextAttrs>): Children {
+		const { icon, text, textVariant } = vnode.attrs
+
+		return m(".flex", [
+			m(Icon, {
+				icon: icon,
+				container: "div",
+				class: "mr-4",
+				style: { fill: theme.on_surface },
+				size: IconSize.PX24,
+			}),
+
+			m(
+				"span.text-ellipsis-multi-line" + this.getTextVariantClasses(textVariant),
+				{
+					style: {
+						// Use line height 24px in order to align the text with the icon which also has 24px size.
+						// This ensures that the first line also is aligned with the icon when there is a long multi line text.
+						lineHeight: px(size.core_24),
+					},
+				},
+				text,
+			),
+		])
+	}
+
+	private getTextVariantClasses(textVariant: EventBannerTextVariant) {
+		switch (textVariant) {
+			case EventBannerTextVariant.Normal:
+				return ""
+			case EventBannerTextVariant.Large:
+				return ".h5.b"
+		}
 	}
 }
