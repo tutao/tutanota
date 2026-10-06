@@ -193,7 +193,7 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		// It is somewhat harder as it looks different with mobile layout.
 		const { remove, open, download, attachment, fileImport, type, attachmentExtensionButton } = this.attrs
 		return m(
-			".flex.mb-8.pr-12",
+			".flex.pb-8.pt-8.pr-12",
 			{
 				oncreate: (vnode) => (this.domContent = vnode.dom as HTMLElement),
 			},
@@ -301,8 +301,8 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		// add half the difference between .button height of 44px and 30px for pixel-perfect positioning
 		domPanel.style.top = px(targetRect.top)
 
-		//Verify if the attachment bubble is going to overflow the screen
-		//if yes, invert the side of the margin and discount the bubble width
+		// Verify if the attachment bubble is going to overflow the screen
+		// if yes, invert the side of the margin and discount the bubble width
 		if (targetRect.left + targetWidth > window.innerWidth) {
 			domPanel.style.right = px(24)
 		} else {
