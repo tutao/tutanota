@@ -221,6 +221,7 @@ export class MailSearchView extends BaseTopLevelView implements TopLevelView<Mai
 					},
 					extendMailIndex: (time: number) => this.searchViewModel.extendMailIndex(time),
 					cancelMailIndexing: () => this.searchViewModel.cancelMailIndexing(),
+					searchQuery: this.searchViewModel.getCurrentQuery(),
 				}),
 			),
 		])
