@@ -143,7 +143,7 @@ import("../../ui/translations/en.js")
 			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
 			const appRoot = assertNotNull(htmlContainer.getAttribute("app-root"))
 			const prefix = new URL(appRoot).pathname.split("/")[1]
-			EnvProvider.get().env.shadowDomAppRoot = `/${prefix}/tutamail/js`
+			EnvProvider.get().setShadowDomAppRoot(`/${prefix}/tutamail/js`)
 			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
 		}
 

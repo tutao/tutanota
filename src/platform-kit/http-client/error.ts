@@ -1,6 +1,6 @@
 import { TutanotaError } from "@tutao/app-env"
-import { TsNumber } from "../app-env/TranspileCompatibility"
 import { filterInt } from "@tutao/utils"
+import { TsInt } from "@tutao/lang-api"
 
 export class ConnectionError extends TutanotaError {
 	static CODE: number = 0
@@ -195,7 +195,7 @@ export class SuspensionError extends TutanotaError<string | null> {
 	constructor(message: string, suspensionTime: string | null) {
 		super("SuspensionError", message)
 
-		if (suspensionTime != null && TsNumber.isNaN(filterInt(suspensionTime))) {
+		if (suspensionTime != null && TsInt.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 
