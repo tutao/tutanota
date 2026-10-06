@@ -328,6 +328,11 @@ export function getVisiblePaymentMethods({
 		})
 	}
 
+	availablePaymentMethods.push({
+		name: lang.getTranslationText("alternativePaymentMethods_label"),
+		value: PaymentMethodType.Other,
+	})
+
 	return availablePaymentMethods
 }
 
