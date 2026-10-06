@@ -1,0 +1,7 @@
+package de.tutao.langApi
+
+
+open class TutanotaError(val name: TsString, override val message: String?) : Error()
+
+open class ProgrammingError(msg: TsString?) :
+	TutanotaError(TsString("ProgrammingError"), msg?.inner ?: "Unknown Programming Error")

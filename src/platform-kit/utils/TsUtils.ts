@@ -48,10 +48,6 @@ export function defer<T>(): DeferredObject<T> {
 	return ret
 }
 
-export function isStrictlyUndefined<T>(value: T | undefined): value is undefined {
-	return value === undefined
-}
-
 export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectWithHandler<T, U> {
 	const deferred = {} as DeferredObjectWithHandler<T, U>
 	deferred.promise = new Promise((resolve, reject) => {

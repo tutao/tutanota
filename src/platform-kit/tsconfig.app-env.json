@@ -7,5 +7,9 @@
 		"tsBuildInfoFile": "../../build/app-env/tsbuildinfo",
 		"composite": true
 	},
-	"references": []
+	"references": [
+		{
+			"path": "tsconfig.lang-api.json"
+		}
+	]
 }

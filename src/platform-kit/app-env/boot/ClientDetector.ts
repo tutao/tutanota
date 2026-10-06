@@ -2,20 +2,7 @@ import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
-import { TypeChecks } from "../TsTypeChecks"
-import {
-	_cssQuerySelectorIsSupported,
-	_expectedBuiltInsArePresent,
-	_expectedJsSyntaxes,
-	_haveWebsocket,
-	_indexedDbIsSupported,
-	_isSupportedBrowserVersion,
-	_isTouchSupported,
-	_supportsHistory,
-	_supportsLookBehindRegex,
-	_supportsXhr2,
-	_webAssemblyIsSupported,
-} from "../TsPlatformConstants"
+import { indexedDbIsSupported, TypeChecks } from "@tutao/lang-api"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -34,13 +21,14 @@ export class ClientDetector {
 		if (ClientDetector.singeleton != null) {
 			return ClientDetector.singeleton
 		}
-		this.singeleton = new ClientDetector()
-		return this.singeleton
+
+		ClientDetector.singeleton = new ClientDetector()
+		return ClientDetector.singeleton
 	}
 
 	constructor() {}
 
-	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated): void {
+	init(userAgent: string, platform: string, appType: AppType = AppType.Integrated): ClientDetector {
 		this.userAgent = userAgent
 		this.appType = appType
 		this._setBrowserAndVersion()
@@ -55,6 +43,8 @@ export class ClientDetector {
 
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 		this.isMacOS = platform.indexOf("Mac") !== -1
+
+		return this
 	}
 
 	getUserAgent(): NonNullable<string> {
@@ -62,26 +52,6 @@ export class ClientDetector {
 			throw new Error("Client detector is not yet initialized!")
 		}
 		return this.userAgent
-	}
-
-	/**
-	 * Browsers which support these features are supported
-	 */
-	isSupported(): boolean {
-		return (
-			_expectedJsSyntaxes() &&
-			this.isSupportedBrowserVersion() &&
-			_expectedBuiltInsArePresent &&
-			_haveWebsocket() &&
-			_cssQuerySelectorIsSupported() &&
-			_supportsLookBehindRegex() &&
-			_supportsHistory() &&
-			_supportsXhr2()
-		)
-	}
-
-	isSupportedBrowserVersion(): boolean {
-		return _isSupportedBrowserVersion(this.browser, this.browserVersion)
 	}
 
 	isMobileDevice(): boolean {
@@ -99,15 +69,6 @@ export class ClientDetector {
 			// DOMException is thrown if all cookies are disabled
 			return false
 		}
-	}
-
-	/**
-	 * We need WebAssembly for Argon2.
-	 *
-	 * @returns true if webassembly is supported
-	 */
-	webassembly(): boolean {
-		return _webAssemblyIsSupported()
 	}
 
 	_setBrowserAndVersion(): void {
@@ -258,10 +219,6 @@ export class ClientDetector {
 		}
 	}
 
-	isTouchSupported(): boolean {
-		return _isTouchSupported()
-	}
-
 	isIos(): boolean {
 		return this.device === DeviceType.IPAD || this.device === DeviceType.IPHONE
 	}
@@ -311,7 +268,7 @@ export class ClientDetector {
 		return {
 			needsMicrotaskHack: this.needsMicrotaskHack(),
 			needsExplicitIDBIds: this.needsExplicitIDBIds(),
-			indexedDbSupported: _indexedDbIsSupported(),
+			indexedDbSupported: indexedDbIsSupported(),
 			clientPlatform: this.getClientPlatform(),
 		}
 	}

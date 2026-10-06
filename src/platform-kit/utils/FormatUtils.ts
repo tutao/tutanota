@@ -1,5 +1,5 @@
 import { startsWith } from "./index"
-import { isNull } from "./Utils"
+import { isNull } from "@tutao/lang-api"
 
 const DOMAIN_PART_REGEX = "[\\w\\-\\+_]+"
 export const DOMAIN_REGEXP = new RegExp(`^${DOMAIN_PART_REGEX}\\.${DOMAIN_PART_REGEX}(\\.${DOMAIN_PART_REGEX})*\\s*$`)
@@ -99,7 +99,7 @@ export function isRegularExpression(value: string): boolean {
 /**
  * Determine whether an input string is a valid credit card number
  * https://en.wikipedia.org/wiki/Luhn_algorithm
- * @param input: a string between 6 and 20 chars long that should contain only digits or spaces
+ * @param input : a string between 6 and 20 chars long that should contain only digits or spaces
  * @returns {boolean}
  */
 export function isValidCreditCardNumber(input: string): boolean {

@@ -1,6 +1,1 @@
-src/types/globals.d.ts
-src/types/index.d.ts
-src/platform-kit/app-env/TranspileCompatibility.ts
-src/platform-kit/app-env/boot/TsPlatformConstants.ts
-src/platform-kit/app-env/boot/TsPlatformConstants.ts
-src/platform-kit/app-env/boot/TsTypeChecks.ts
+src/platform-kit/lang-api/

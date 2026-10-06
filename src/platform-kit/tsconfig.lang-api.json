@@ -1,0 +1,11 @@
+{
+	"extends": "../../tsconfig_common.json",
+	"include": ["./lang-api/"],
+	"compilerOptions": {
+		"rootDir": "./lang-api/",
+		"outDir": "../../build/lang-api",
+		"tsBuildInfoFile": "../../build/lang-api/tsbuildinfo",
+		"composite": true
+	},
+	"references": []
+}
