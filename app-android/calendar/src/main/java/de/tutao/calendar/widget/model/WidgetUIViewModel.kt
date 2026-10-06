@@ -230,11 +230,15 @@ class WidgetUIViewModel(
 						// if event starts and ends on same day, display times normally
 						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					}
-
 					// determine if event will be considered all day based on times
 					val isConsideredAllDay = isAllDayEventByTimes(
 						Date.from(eventStartInstant), Date.from(eventEndInstant)
 					) || eventTakesEntireDay // if event starts on previous day and ends on later day, display it like an all-day event.
+
+					// We need these instants for sorting
+					val uiEventStartLocalDateTime =
+						LocalDateTime.ofInstant(Instant.ofEpochMilli(uiEventStartMax), zoneId)
+					val uiEventEndLocalDateTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(uiEventEndMin), zoneId)
 
 					// create the item that we will show in the widget UI
 					val uiEvent = UIEvent(
@@ -242,10 +246,12 @@ class WidgetUIViewModel(
 						eventDao.id,
 						settings.calendars[calendarId]?.color ?: "2196f3",
 						eventDao.summary,
-						eventStartLocalTime.format(UIEvent.dateFormatter),
-						eventEndLocalTime.format(UIEvent.dateFormatter),
+						uiEventStartLocalDateTime.format(UIEvent.dateFormatter),
+						uiEventEndLocalDateTime.format(UIEvent.dateFormatter),
 						isConsideredAllDay,
 						timesString,
+						isBirthday = false,
+						startsBeforeTodayAndEndsToday = eventStartsBeforeTodayAndEndsToday
 					)
 
 					daysAndEvents[dayIndex] = daysAndEvents[dayIndex].plus(uiEvent)
@@ -287,7 +293,17 @@ class WidgetUIViewModel(
 		// we sorted events in a day to put them in the correct order.
 		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
 			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
-				LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
+				Log.d(TAG, "start time for event A with summary \"${a.summary}\": ${a.formattedStartTime}")
+				Log.d(TAG, "start time for event B with summary \"${b.summary}\" ${b.formattedStartTime}")
+				// compares the events' local start times, ignoring date. This might not always give us the results we want!
+				// e.g.: if the event starts at 5AM on October 5 and ends on 4pm October 6, the entry on the Oct 6 will appear in the widget
+				// before an event that starts at 6am Oct 6
+				// To get the result that hak wants we should conditionally sort using the End Date of events that continue from a previous date.
+				val compareResult =
+					LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
+				Log.d(TAG, "COMPARE RESULT: ${compareResult.toString()}")
+				// Compare result 1 means a > b
+				compareResult
 			})
 			daysAndEvents[index] = sortedEventsOfDay
 		}
