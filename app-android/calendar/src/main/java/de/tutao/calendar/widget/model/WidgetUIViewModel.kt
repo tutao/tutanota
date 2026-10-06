@@ -293,14 +293,20 @@ class WidgetUIViewModel(
 		// we sorted events in a day to put them in the correct order.
 		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
 			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
-				Log.d(TAG, "start time for event A with summary \"${a.summary}\": ${a.formattedStartTime}")
-				Log.d(TAG, "start time for event B with summary \"${b.summary}\" ${b.formattedStartTime}")
 				// compares the events' local start times, ignoring date. This might not always give us the results we want!
 				// e.g.: if the event starts at 5AM on October 5 and ends on 4pm October 6, the entry on the Oct 6 will appear in the widget
 				// before an event that starts at 6am Oct 6
 				// To get the result that hak wants we should conditionally sort using the End Date of events that continue from a previous date.
+
+				val comparisonDateA =
+					if (a.startsBeforeTodayAndEndsToday) LocalTime.parse(a.formattedEndTime) else LocalTime.parse(a.formattedStartTime)
+				val comparisonDateB =
+					if (b.startsBeforeTodayAndEndsToday) LocalTime.parse(b.formattedEndTime) else LocalTime.parse(b.formattedStartTime)
+
+				Log.d(TAG, "comparison time for event A with summary \"${a.summary}\": ${comparisonDateA}")
+				Log.d(TAG, "comparison time for event B with summary \"${b.summary}\" ${comparisonDateB}")
 				val compareResult =
-					LocalTime.parse(a.formattedStartTime).compareTo(LocalTime.parse(b.formattedStartTime))
+					comparisonDateA.compareTo(comparisonDateB)
 				Log.d(TAG, "COMPARE RESULT: ${compareResult.toString()}")
 				// Compare result 1 means a > b
 				compareResult
