@@ -27,8 +27,8 @@ class InAppController extends OCSController {
 	{
 	    $version = [
            	"major" => 1,
-           	"minor" => 0,
-           	"patch" => 0,
+           	"minor" => 2,
+           	"patch" => 3612610060,
     	];
 
 
