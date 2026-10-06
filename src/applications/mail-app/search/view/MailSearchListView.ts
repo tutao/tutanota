@@ -24,6 +24,7 @@ export interface MailSearchListViewAttrs extends CommonSearchListViewAttrs<Mail>
 	cancelMailIndexing: () => void
 	isIncompleteMailList: boolean
 	searchAndRecreateMailList: () => unknown
+	searchQuery?: string
 }
 export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 	private attrs: MailSearchListViewAttrs
@@ -38,8 +39,15 @@ export class MailSearchListView implements Component<MailSearchListViewAttrs> {
 
 	view({ attrs }: Vnode<MailSearchListViewAttrs>): Children {
 		this.attrs = attrs
-		return renderListColumnWrapper(attrs.listModel, Icons.MailFilled, attrs.onSingleSelection, this.mailRenderConfig, undefined, () =>
-			this.endOfListRender(),
+
+		return renderListColumnWrapper(
+			attrs.listModel,
+			Icons.MailFilled,
+			attrs.onSingleSelection,
+			this.mailRenderConfig,
+			undefined,
+			() => this.endOfListRender(),
+			attrs.searchQuery,
 		)
 	}
 
