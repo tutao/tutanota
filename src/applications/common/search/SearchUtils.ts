@@ -92,11 +92,13 @@ export function renderListColumnWrapper<T, U extends ViewHolder<T>>(
 	renderConfig: RenderConfig<T, U>,
 	cancelCallback?: () => unknown,
 	endOfListRender?: () => Children,
+	searchQuery?: string,
 ): Children {
+	const eolRender = endOfListRender?.() ?? null
 	return m(
 		ListColumnWrapper,
 		{ headerContent: null, class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-padding" },
-		listModel.isEmptyAndDone()
+		listModel.isEmptyAndDone() && (!searchQuery || !eolRender)
 			? m(ColumnEmptyMessageBox, {
 					icon,
 					message: "searchNoResults_msg",
@@ -125,7 +127,7 @@ export function renderListColumnWrapper<T, U extends ViewHolder<T>>(
 						cancelCallback?.()
 						listModel.stopLoading()
 					},
-					renderEndOfListMessage: endOfListRender ? endOfListRender() : null,
+					renderEndOfListMessage: eolRender,
 				} satisfies ListAttrs<T, U>),
 	)
 }
