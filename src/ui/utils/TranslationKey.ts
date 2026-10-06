@@ -2570,3 +2570,4 @@ export type TranslationKeyType =
 	| "accessDeactivated_msg"
 	| "surveySomethingNotWorking_label"
 	| "businessPlansNotAvailableForExternal_msg"
+	| "afterProxyStoreAction_msg"
