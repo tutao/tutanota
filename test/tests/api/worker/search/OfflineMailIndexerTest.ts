@@ -274,7 +274,7 @@ o.spec("OfflineMailIndexer", () => {
 		o.check(removeOriginals(storedMails[0].mailDetails)).deepEquals(removeOriginals(mailDetails.details))
 		o.check(storedMails[0].attachments.map(removeOriginals)).deepEquals(attachments)
 
-		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
+		verify(persistence.updateIndexingTimestamp(mailGroupId, TutanotaConstants.FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedMailDetailsBlobs())
 	})
 
@@ -304,7 +304,7 @@ o.spec("OfflineMailIndexer", () => {
 			{
 				groupId: mailGroupId,
 				type: GroupType.Mail,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: GENERATED_MAX_ID,
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			},

@@ -1,7 +1,7 @@
 //@bundleInto:common
-import { Const, FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS, PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS } from "../../../platform-kit/app-env"
-import { downcast } from "../../../platform-kit/utils"
-import { getAsEnumValue } from "../../../platform-kit/meta"
+import { TutanotaConstants } from "@tutao/app-env"
+import { downcast } from "@tutao/lang-api"
+import { getAsEnumValue } from "@tutao/meta"
 import { MailSet } from "@tutao/entities/tutanota"
 import { MailSetKind, SpamRuleFieldType, SpamRuleType, SYSTEM_FOLDERS } from "../../../entities/tutanota/Utils"
 import { EmailSenderListElement } from "@tutao/entities/sys"
@@ -161,7 +161,7 @@ export function getSpamRuleField(spamRule: EmailSenderListElement): SpamRuleFiel
 export type SimpleMoveMailTarget = (typeof SYSTEM_FOLDERS)[number]
 
 export function getOfflineStorageDefaultIndexRangeDays(accountType: AccountType): number {
-	return accountType === AccountType.PAID ? PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS : FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS
+	return accountType === AccountType.PAID ? TutanotaConstants.PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS : TutanotaConstants.FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS
 }
 
 /**
