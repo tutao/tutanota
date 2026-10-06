@@ -111,7 +111,11 @@ export class DesktopFileFacade implements FileFacade {
 
 			return result
 		} catch (e) {
-			throw new ConnectionError(`Download failed ${e.name} ${e.message} ${e.stack}`)
+			if (e instanceof CancelledError) {
+				throw e
+			} else {
+				throw new ConnectionError(`Download failed ${e.name} ${e.message} ${e.stack}`)
+			}
 		} finally {
 			this.activeRequests.delete(fileId)
 		}
@@ -333,7 +337,11 @@ export class DesktopFileFacade implements FileFacade {
 				responseBody,
 			}
 		} catch (e) {
-			throw new ConnectionError(`Upload failed ${e.name} ${e.message} ${e.stack}`)
+			if (e instanceof CancelledError) {
+				throw e
+			} else {
+				throw new ConnectionError(`Upload failed ${e.name} ${e.message} ${e.stack}`)
+			}
 		} finally {
 			this.tfs.closeFileStream(fileStream)
 			this.activeRequests.delete(fileId)
