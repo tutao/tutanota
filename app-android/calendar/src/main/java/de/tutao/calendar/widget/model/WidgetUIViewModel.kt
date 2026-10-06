@@ -220,20 +220,31 @@ class WidgetUIViewModel(
 					val eventStartsTodayAndEndsLater =
 						eventStartInstant >= currentDayMidnightInstantLocalZone && eventEndInstant >= nextDayMidnightInstantLocalZone
 
-					val timesString = if (eventStartsBeforeTodayAndEndsToday) {
+					val dayMonthFormatter = DateTimeFormatter.ofPattern("d MMM")
+
+					val isConsideredAllDay = isAllDayEventByTimes(
+						Date.from(eventStartInstant), Date.from(eventEndInstant)
+					)
+					val timesString = if (eventTakesEntireDay && !isConsideredAllDay) {
+						"Started on " + eventStartLocalTime.format(dayMonthFormatter) + ", ends on " + eventEndLocalTime.format(
+							dayMonthFormatter
+						)
+					} else if (eventStartsBeforeTodayAndEndsToday) {
 						// if event starts on a previous day and ends today, communicate this
-						"Ends at " + eventEndLocalTime.format(UIEvent.dateFormatter)
+						"Started on " + eventStartLocalTime.format(dayMonthFormatter) + "Ends at " + eventEndLocalTime.format(
+							UIEvent.dateFormatter
+						)
 					} else if (eventStartsTodayAndEndsLater) {
 						// if event starts today and continues on another day, communicate this
-						"Starts at " + eventStartLocalTime.format(UIEvent.dateFormatter)
+						"Starts at " + eventStartLocalTime.format(UIEvent.dateFormatter) + " (until " + eventEndLocalTime.format(
+							dayMonthFormatter
+						) + ")"
 					} else {
 						// if event starts and ends on same day, display times normally
 						eventStartLocalTime.format(UIEvent.dateFormatter) + " - " + eventEndLocalTime.format(UIEvent.dateFormatter)
 					}
 					// determine if event will be considered all day based on times
-					val isConsideredAllDay = isAllDayEventByTimes(
-						Date.from(eventStartInstant), Date.from(eventEndInstant)
-					) || eventTakesEntireDay // if event starts on previous day and ends on later day, display it like an all-day event.
+
 
 					// We need these instants for sorting
 					val uiEventStartLocalDateTime =
@@ -297,6 +308,14 @@ class WidgetUIViewModel(
 				// e.g.: if the event starts at 5AM on October 5 and ends on 4pm October 6, the entry on the Oct 6 will appear in the widget
 				// before an event that starts at 6am Oct 6
 				// To get the result that hak wants we should conditionally sort using the End Date of events that continue from a previous date.
+
+				if (a.isBirthday) {
+					Log.d(TAG, "event a is birthday")
+					return@Comparator -1
+				} else if (b.isBirthday) {
+					Log.d(TAG, "event b is a birthday")
+					return@Comparator 1
+				}
 
 				val comparisonDateA =
 					if (a.startsBeforeTodayAndEndsToday) LocalTime.parse(a.formattedEndTime) else LocalTime.parse(a.formattedStartTime)
