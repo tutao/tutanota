@@ -4,7 +4,7 @@ import { NewAccountData, type SubscriptionParameters, type UpgradeSubscriptionDa
 import { locator } from "../../api/main/CommonLocator"
 import { runCaptchaFlow } from "../captcha/Captcha"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp } from "./SubscriptionUtils"
+import { getPreconditionFailedPaymentMsg, PaymentData, PaymentErrorCode, SubscriptionApp, UpgradeType } from "./SubscriptionUtils"
 import { SessionType } from "../../../../platform-kit/app-env/SessionType"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { InvalidDataError, PreconditionFailedError } from "@tutao/rest-client/error"
@@ -16,7 +16,7 @@ import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import m from "mithril"
 import { Button, ButtonAttrs, ButtonType } from "../../../../ui/base/Button"
 import { AccountingInfo, AccountingInfoTypeRef, Braintree3ds2Request, CreditCard, InvoiceInfoTypeRef } from "@tutao/entities/sys"
-import { AvailablePlanType, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
+import { AvailablePlanType, PaymentDataInput, PaymentMethodType, PlanType } from "../../../../entities/sys/Utils"
 import {
 	EntityUpdateData,
 	EntityUpdatesListener,
@@ -285,22 +285,24 @@ export function getVisiblePaymentMethods({
 	isBusiness,
 	isBankTransferAllowed,
 	accountingInfo,
+	upgradeType,
 }: {
 	isBusiness: boolean
 	isBankTransferAllowed: boolean
 	accountingInfo: AccountingInfo | null
+	upgradeType: UpgradeType
 }): Array<{
 	name: string
-	value: PaymentMethodType
+	value: { paymentMethod: PaymentMethodType; form: PaymentDataInput }
 }> {
 	const availablePaymentMethods = [
 		{
 			name: lang.get("paymentMethodCreditCard_label"),
-			value: PaymentMethodType.CreditCard,
+			value: { paymentMethod: PaymentMethodType.CreditCard, form: PaymentDataInput.CreditCard },
 		},
 		{
 			name: "PayPal",
-			value: PaymentMethodType.Paypal,
+			value: { paymentMethod: PaymentMethodType.Paypal, form: PaymentDataInput.Paypal },
 		},
 	]
 
@@ -308,7 +310,7 @@ export function getVisiblePaymentMethods({
 	if ((isBusiness && isBankTransferAllowed) || accountingInfo?.paymentMethod === PaymentMethodType.Invoice) {
 		availablePaymentMethods.push({
 			name: getPaymentMethodName(PaymentMethodType.Invoice),
-			value: PaymentMethodType.Invoice,
+			value: { paymentMethod: PaymentMethodType.Invoice, form: PaymentDataInput.AccountBalance },
 		})
 	}
 
@@ -316,7 +318,13 @@ export function getVisiblePaymentMethods({
 	if (accountingInfo?.paymentMethod === PaymentMethodType.AccountBalance) {
 		availablePaymentMethods.push({
 			name: lang.get("paymentMethodAccountBalance_label"),
-			value: PaymentMethodType.AccountBalance,
+			value: { paymentMethod: PaymentMethodType.AccountBalance, form: PaymentDataInput.AccountBalance },
+		})
+	}
+	if (upgradeType !== "Signup") {
+		availablePaymentMethods.push({
+			name: lang.getTranslationText("alternativePaymentMethods_label"),
+			value: { paymentMethod: PaymentMethodType.AccountBalance, form: PaymentDataInput.Other },
 		})
 	}
 
