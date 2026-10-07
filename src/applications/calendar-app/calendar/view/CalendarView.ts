@@ -116,7 +116,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { renderHeaderButtons } from "../../gui/HeaderButtons"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 
-import { parseCalendarStringData, ParsedEventAlarmTuple } from "../export/CalendarParser"
+import { parseCalendarStringData, CalendarEventParseResult } from "../export/CalendarParser"
 import { getExternalCalendarName } from "../../../common/calendar/import/ImportExportUtils"
 import { exportCalendar } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { CalendarImporter } from "../../../common/calendar/import/CalendarImporter"
@@ -963,9 +963,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			const iCalStr = await handleUrlSubscription(calendarModel, properties.sourceUrl!)
 			if (iCalStr instanceof Error) throw iCalStr
 
-			let events: ParsedEventAlarmTuple[] = []
+			let events: CalendarEventParseResult[] = []
 			try {
-				events = parseCalendarStringData(iCalStr, getTimeZone()).contents
+				events = parseCalendarStringData(iCalStr, getTimeZone()).eventsParseResults
 			} catch (e) {
 				await Dialog.message("invalidICal_error", e.message)
 				this.viewModel.isCreatingExternalCalendar = false

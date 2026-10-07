@@ -155,7 +155,7 @@ import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { ImapImporter } from "./workerUtils/imapimport/ImapImporter"
 
-import { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import { CalendarEventParseResult } from "../calendar-app/calendar/export/CalendarParser"
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
 import type { ImapMailImportController } from "./settings/imapimport/ImapMailImportController"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
@@ -1239,14 +1239,14 @@ class MailLocator implements CommonLocator {
 				return acc
 			}, new Map())
 
-			let parsedEvents: ParsedEventAlarmTuple[] = []
+			let parsedEvents: CalendarEventParseResult[] = []
 
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
 
 				const data = parseCalendarFile(dataFile)
-				parsedEvents.push(...data.contents)
+				parsedEvents.push(...data.eventsParseResults)
 			}
 
 			calendarSelectionDialog(Array.from(calendarInfos.values()), this.logins.getUserController(), groupColors, async (dialog, selectedCalendar) => {

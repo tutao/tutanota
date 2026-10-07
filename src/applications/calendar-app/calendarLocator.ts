@@ -122,7 +122,7 @@ import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties 
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { GroupType, ShareableGroupType } from "../../entities/sys/Utils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
-import type { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
+import type { CalendarEventParseResult } from "./calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
@@ -864,13 +864,13 @@ class CalendarLocator implements CommonLocator {
 				import("../common/calendar/gui/ImportInteractionHandler"),
 				import("../common/calendar/date/CalendarUtils"),
 			])
-			let parsedEvents: ParsedEventAlarmTuple[] = []
+			let parsedEvents: CalendarEventParseResult[] = []
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
 
 				const data = parseCalendarFile(dataFile)
-				parsedEvents.push(...data.contents)
+				parsedEvents.push(...data.eventsParseResults)
 			}
 			const calendarModel = await this.calendarModel()
 

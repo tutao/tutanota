@@ -1,4 +1,4 @@
-import { ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { CalendarEventParseResult } from "../../../calendar-app/calendar/export/CalendarParser"
 import { deferWithHandler, groupBy, isEmpty, isNotEmpty, isNotNull } from "@tutao/utils"
 import { generateEventElementId, isBefore } from "../../api/common/utils/CommonCalendarUtils"
 import { assignEventId, CalendarEventValidity, CalendarType, checkEventValidity } from "../date/CalendarUtils"
@@ -35,7 +35,7 @@ export class CalendarImporter {
 	 * This function will assign event id according to the calendarGroupRoot and the long/short event list
 	 **/
 	static classifyImportedEvents(
-		parsedEventAlarmTuples: ParsedEventAlarmTuple[],
+		parsedEventAlarmTuples: CalendarEventParseResult[],
 		existingEvents: Array<CalendarEvent>,
 		calendarGroupRoot: CalendarGroupRoot,
 		zone: string,
@@ -71,7 +71,7 @@ export class CalendarImporter {
 	async import(
 		calendarGroupRoot: CalendarGroupRoot,
 		calendarInfo: CalendarInfoBase,
-		parsedEventAlarmTuples: ParsedEventAlarmTuple[],
+		parsedEventAlarmTuples: CalendarEventParseResult[],
 		eventsClassifier: EventsClassifier,
 		calendarType: CalendarType = CalendarType.Private,
 	): Promise<CreateCalendarEventsResult | null> {
@@ -223,14 +223,14 @@ export type ClassifiedParsedEvents = {
 }
 
 export type EventsClassifier = (
-	parsedEventAlarmTuples: ParsedEventAlarmTuple[],
+	parsedEventAlarmTuples: CalendarEventParseResult[],
 	existingEvents: Array<CalendarEvent>,
 	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
 ) => ClassifiedParsedEvents
 
 function classifyUidGroup(
-	parsedUidGroup: ParsedEventAlarmTuple[],
+	parsedUidGroup: CalendarEventParseResult[],
 	existingUidGroup: CalendarEvent[],
 	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
@@ -252,8 +252,8 @@ function classifyUidGroup(
 }
 
 function classifyParsedEvent(
-	parsedTuple: ParsedEventAlarmTuple,
-	followingParsedEvents: ParsedEventAlarmTuple[],
+	parsedTuple: CalendarEventParseResult,
+	followingParsedEvents: CalendarEventParseResult[],
 	existingEvents: CalendarEvent[],
 	calendarGroupRoot: CalendarGroupRoot,
 	zone: string,
@@ -306,7 +306,7 @@ function prepareEventForImport(
  **/
 function determineRejectionReason(
 	event: CalendarEvent,
-	parsedEventUidGroup: Array<ParsedEventAlarmTuple>,
+	parsedEventUidGroup: Array<CalendarEventParseResult>,
 	existingEventUidGroup: Array<CalendarEvent>,
 ): EventImportRejectionReason | null {
 	if (!event.uid) {

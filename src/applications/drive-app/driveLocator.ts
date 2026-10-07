@@ -121,7 +121,7 @@ import { lang } from "../../ui/utils/LanguageViewModel"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import { KdfType } from "../../platform-kit/base/base-crypto/Constants"
 import { GroupSettingsModel } from "../common/sharing/model/GroupSettingsModel"
-import type { ParsedEventAlarmTuple } from "../calendar-app/calendar/export/CalendarParser"
+import type { CalendarEventParseResult } from "../calendar-app/calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { showWindowCloseConfirmation } from "../../ui/base/GuiUtils"
 import { SearchRouter } from "../common/search/view/SearchRouter"
@@ -833,13 +833,13 @@ class DriveLocator implements CommonLocator {
 				import("../common/calendar/date/CalendarUtils"),
 			])
 
-			let parsedEvents: ParsedEventAlarmTuple[] = []
+			let parsedEvents: CalendarEventParseResult[] = []
 			for (const fileRef of files) {
 				const dataFile = await this.fileApp.readDataFile(fileRef.location)
 				if (dataFile == null) continue
 
 				const data = parseCalendarFile(dataFile)
-				parsedEvents.push(...data.contents)
+				parsedEvents.push(...data.eventsParseResults)
 			}
 
 			const calendarModel = await this.calendarModel()

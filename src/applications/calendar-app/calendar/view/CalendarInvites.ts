@@ -33,12 +33,12 @@ export type ParsedIcalFileContent = ParsedIcalFileContentData | None
 
 async function getParsedEvent(fileData: DataFile): Promise<ParsedIcalFileContent> {
 	try {
-		const { contents, method } = await parseCalendarFile(fileData)
-		const uid = contents[0].icsCalendarEvent.uid
+		const { eventsParseResults, method } = await parseCalendarFile(fileData)
+		const uid = eventsParseResults[0].icsCalendarEvent.uid
 		if (uid == null) return null
-		assert(!contents.some((c) => c.icsCalendarEvent.uid !== uid), "received invite with multiple events, but mismatched UIDs")
+		assert(!eventsParseResults.some((c) => c.icsCalendarEvent.uid !== uid), "received invite with multiple events, but mismatched UIDs")
 		return {
-			events: contents.map((c) => c.icsCalendarEvent),
+			events: eventsParseResults.map((c) => c.icsCalendarEvent),
 			uid,
 			method: getAsEnumValue(CalendarMethod, method) || CalendarMethod.PUBLISH,
 		}
@@ -283,7 +283,7 @@ export class CalendarInviteHandler {
 			sender,
 			{
 				method: CalendarMethod.REQUEST,
-				contents: [{ icsCalendarEvent: eventUserIsReplyingTo, alarms: [] }],
+				eventsParseResults: [{ icsCalendarEvent: eventUserIsReplyingTo, alarms: [] }],
 				parseEventErrors: [],
 			},
 			dbEvents,

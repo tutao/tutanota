@@ -15,7 +15,7 @@ import { UserAlarmInfo, UserAlarmInfoTypeRef } from "@tutao/entities/sys"
 
 import { CalendarImporter } from "../import/CalendarImporter"
 import { UserController } from "../../api/main/UserController.js"
-import { parseCalendarFile, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { parseCalendarFile, CalendarParseResult, CalendarEventParseResult } from "../../../calendar-app/calendar/export/CalendarParser"
 import { List, ListAttrs, ListLoadingState, MultiselectMode, RenderConfig } from "../../../../ui/base/List"
 import { KindaCalendarRow } from "../../../calendar-app/calendar/gui/CalendarRow"
 import { component_size } from "../../../../ui/size"
@@ -169,16 +169,16 @@ export function calendarSelectionDialog(
 	}).show()
 }
 
-export async function selectAndParseIcalFile(): Promise<ParsedEventAlarmTuple[]> {
+export async function selectAndParseIcalFile(): Promise<CalendarEventParseResult[]> {
 	const allowedExtensions = ["ical", "ics", "ifb", "icalendar"]
 	const dataFiles = EnvProvider.get().isApp()
 		? await showNativeFilePicker(allowedExtensions, true)
 		: await showFileChooser(FileChooserMultiMode.Multi, allowedExtensions)
-	const contents: ParsedEventAlarmTuple[] = []
+	const contents: CalendarEventParseResult[] = []
 	let failureMessage = ""
 	for (const file of dataFiles) {
-		const result: ParsedCalendarData = parseCalendarFile(file)
-		contents.push(...result.contents)
+		const result: CalendarParseResult = parseCalendarFile(file)
+		contents.push(...result.eventsParseResults)
 
 		const succeededEventsCount = contents.length
 		const failedEventsCount = result.parseEventErrors.length
@@ -257,7 +257,7 @@ function loadAllEvents(groupRoot: CalendarGroupRoot): Promise<Array<CalendarEven
 export async function importCalendarFile(
 	calendarModel: CalendarModel,
 	userController: UserController,
-	events: ParsedEventAlarmTuple[],
+	events: CalendarEventParseResult[],
 	calendarImporter: CalendarImporter,
 ) {
 	const groupSettings = userController.userSettingsGroupRoot.groupSettings

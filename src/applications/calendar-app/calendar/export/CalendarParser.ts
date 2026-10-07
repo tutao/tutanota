@@ -54,6 +54,25 @@ type ICalObject = {
 	children: Array<ICalObject>
 }
 
+export type StrippedRepeatRule = {
+	frequency: NumberString
+	endType: NumberString
+	endValue: null | NumberString
+	interval: NumberString
+	timeZone: string
+
+	excludedDates: DateWrapperParams[]
+	advancedRules: AdvancedRepeatRuleParams[]
+}
+
+type ICalDuration = {
+	positive: boolean
+	day?: number
+	week?: number
+	hour?: number
+	minute?: number
+}
+
 /**
  * This type is based on {@link CalendarEvent} and should have the basic values to create one using values
  * from an ics file
@@ -73,37 +92,23 @@ export type IcsCalendarEvent = {
 	startTimeZone: string | null
 	endTimeZone: string | null
 }
-export type ParsedEventAlarmTuple = {
+export type CalendarEventParseSuccess = {
+	criticalError: null
 	icsCalendarEvent: IcsCalendarEvent
 	alarms: Array<AlarmInfoTemplate>
+	translatedUserWarning: string[]
 }
-export type ParsedCalendarData = {
+export type CalendarEventParseFailure = {
+	criticalError: ParserError
+}
+export type CalendarEventParseResult = CalendarEventParseSuccess | CalendarEventParseFailure
+export type CalendarParseResult = {
 	method: string
-	contents: ParsedEventAlarmTuple[]
-	parseEventErrors: ParserError[]
+	eventsParseResults: CalendarEventParseResult[]
 }
 export type StrippedCalendarEventAttendee = {
 	status: NumberString
 	address: EncryptedMailAddressParams
-}
-
-export type StrippedRepeatRule = {
-	frequency: NumberString
-	endType: NumberString
-	endValue: null | NumberString
-	interval: NumberString
-	timeZone: string
-
-	excludedDates: DateWrapperParams[]
-	advancedRules: AdvancedRepeatRuleParams[]
-}
-
-type ICalDuration = {
-	positive: boolean
-	day?: number
-	week?: number
-	hour?: number
-	minute?: number
 }
 
 function getProp(obj: ICalObject, tag: string, optional: false): Property
@@ -597,13 +602,13 @@ export const calendarAttendeeStatusToParstat: Record<CalendarAttendeeStatus, str
 }
 const parstatToCalendarAttendeeStatus: Record<string, CalendarAttendeeStatus> = reverse(calendarAttendeeStatusToParstat)
 
-export function parseCalendarStringData(value: string, userCalendarTimeZone: string): ParsedCalendarData {
+export function parseCalendarStringData(value: string, userCalendarTimeZone: string): CalendarParseResult {
 	const tree = parseICalendar(value)
 	return parseCalendarEvents(tree, userCalendarTimeZone)
 }
 
 /** given an ical datafile, get the parsed calendar events with their alarms as well as the ical method */
-export function parseCalendarFile(file: DataFile): ParsedCalendarData {
+export function parseCalendarFile(file: DataFile): CalendarParseResult {
 	try {
 		const stringData = utf8Uint8ArrayToString(file.data)
 		return parseCalendarStringData(stringData, getTimeZone())
@@ -616,144 +621,140 @@ export function parseCalendarFile(file: DataFile): ParsedCalendarData {
 	}
 }
 
-export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string): ParsedCalendarData {
+export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone: string): CalendarParseResult {
 	const methodProp = getProp(icalObject, "METHOD", true)
 	const method = methodProp ? methodProp.value : CalendarMethod.PUBLISH
-	const eventObjects = icalObject.children.filter((obj) => obj.type === "VEVENT")
-	const [contents, parseEventErrors] = getContents(eventObjects, userCalendarTimeZone)
 
-	return {
-		method,
-		contents,
-		parseEventErrors,
+	const eventsParseResults: CalendarEventParseResult[] = []
+	let eventIndex = 0
+	for (const child of icalObject.children) {
+		if (child.type !== "VEVENT") {
+			continue
+		}
+		eventsParseResults.push(parseEventObject(child, eventIndex, userCalendarTimeZone))
+		++eventIndex
 	}
+
+	return { method, eventsParseResults }
 }
 
-function getContents(eventObjects: ICalObject[], userCalendarTimeZone: string): [ParsedEventAlarmTuple[], ParserError[]] {
-	const contents: ParsedEventAlarmTuple[] = []
-	const errors: ParserError[] = []
-	for (let i = 0; i < eventObjects.length; ++i) {
+function parseEventObject(eventObj: ICalObject, index: number, userCalendarTimeZone: string): CalendarEventParseResult {
+	try {
+		const startProp = getProp(eventObj, "DTSTART", false)
+		const startTzId: string | null = getTzId(startProp, userCalendarTimeZone)
+		const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+
+		// start time and tzid is sorted, so we can worry about event identity now before proceeding...
+		let hasValidUid = false
+		let uid: string | null = null
 		try {
-			contents.push(parseEventObject(eventObjects[i], i, userCalendarTimeZone))
+			uid = getPropStringValue(eventObj, "UID", false)
+			hasValidUid = true
 		} catch (e) {
 			if (e instanceof ParserError) {
-				errors.push(e)
+				// Also parse event and create new UID if none is set
+				uid = `import-${Date.now()}-${index}@tuta.com`
 			} else {
 				throw e
 			}
 		}
-	}
-	return [contents, errors]
-}
 
-function parseEventObject(eventObj: ICalObject, index: number, userCalendarTimeZone: string) {
-	const startProp = getProp(eventObj, "DTSTART", false)
-	const startTzId: string | null = getTzId(startProp, userCalendarTimeZone)
-	const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
+		const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
+		let recurrenceId: Date | null = null
+		if (recurrenceIdProp != null && hasValidUid) {
+			// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
+			// in that case, we just don't add the recurrenceId and import the event as a standalone.
+			recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId, userCalendarTimeZone)
+		}
 
-	// start time and tzid is sorted, so we can worry about event identity now before proceeding...
-	let hasValidUid = false
-	let uid: string | null = null
-	try {
-		uid = getPropStringValue(eventObj, "UID", false)
-		hasValidUid = true
-	} catch (e) {
-		if (e instanceof ParserError) {
-			// Also parse event and create new UID if none is set
-			uid = `import-${Date.now()}-${index}@tuta.com`
+		const endProp = getProp(eventObj, "DTEND", true)
+		const endTzId = endProp ? getTzId(endProp, userCalendarTimeZone) : null
+		const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, userCalendarTimeZone)
+
+		let summary: string = ""
+		const maybeSummary = parseICalText(eventObj, "SUMMARY")
+		if (maybeSummary) summary = maybeSummary
+
+		let location: string = ""
+		const maybeLocation = parseICalText(eventObj, "LOCATION")
+		if (maybeLocation) location = maybeLocation
+
+		const rruleProp = getPropStringValue(eventObj, "RRULE", true)
+		const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
+
+		let repeatRule: RepeatRule | null = null
+		if (rruleProp != null) {
+			repeatRule = parseRrule(rruleProp, startTzId)
+			repeatRule.excludedDates = parseExDates(excludedDateProps, userCalendarTimeZone)
+		}
+
+		const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
+
+		const sequenceProp = getProp(eventObj, "SEQUENCE", true)
+		let sequence: string = "0"
+		if (sequenceProp) {
+			const sequenceNumber = filterInt(sequenceProp.value)
+
+			if (Number.isNaN(sequenceNumber)) {
+				throw new ParserError("SEQUENCE value is not a number")
+			}
+
+			// Convert it back to NumberString. Could use original one but this feels more robust.
+			sequence = String(sequenceNumber)
+		}
+
+		const attendees = getAttendees(eventObj)
+
+		const organizerProp = getProp(eventObj, "ORGANIZER", true)
+		let organizer: EncryptedMailAddress | null = null
+		if (organizerProp) {
+			const organizerAddress = parseMailtoValue(organizerProp.value)
+
+			if (organizerAddress && isMailAddress(organizerAddress, false)) {
+				organizer = createEncryptedMailAddress({
+					address: organizerAddress,
+					name: organizerProp.params["name"] || "",
+				})
+			} else {
+				console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
+			}
+		}
+
+		const icsCalendarEvent: IcsCalendarEvent = {
+			summary,
+			description,
+			startTime,
+			endTime,
+			location,
+			uid,
+			sequence,
+			recurrenceId,
+			repeatRule,
+			attendees,
+			organizer,
+			startTimeZone: allDay ? null : startTzId,
+			endTimeZone: allDay ? null : endTzId,
+		}
+
+		let alarms: AlarmInfoTemplate[] = []
+
+		try {
+			alarms = getAlarms(eventObj, startTime)
+		} catch (e) {
+			console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
+		}
+
+		return {
+			icsCalendarEvent,
+			alarms,
+			translatedUserWarning: [],
+		}
+	} catch (error) {
+		if (error instanceof ParserError) {
+			return { criticalError: error }
 		} else {
-			throw e
+			throw error
 		}
-	}
-
-	const recurrenceIdProp = getProp(eventObj, "RECURRENCE-ID", true)
-	let recurrenceId: Date | null = null
-	if (recurrenceIdProp != null && hasValidUid) {
-		// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
-		// in that case, we just don't add the recurrenceId and import the event as a standalone.
-		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId, userCalendarTimeZone)
-	}
-
-	const endProp = getProp(eventObj, "DTEND", true)
-	const endTzId = endProp ? getTzId(endProp, userCalendarTimeZone) : null
-	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, userCalendarTimeZone)
-
-	let summary: string = ""
-	const maybeSummary = parseICalText(eventObj, "SUMMARY")
-	if (maybeSummary) summary = maybeSummary
-
-	let location: string = ""
-	const maybeLocation = parseICalText(eventObj, "LOCATION")
-	if (maybeLocation) location = maybeLocation
-
-	const rruleProp = getPropStringValue(eventObj, "RRULE", true)
-	const excludedDateProps = eventObj.properties.filter((p) => p.name === "EXDATE")
-
-	let repeatRule: RepeatRule | null = null
-	if (rruleProp != null) {
-		repeatRule = parseRrule(rruleProp, startTzId)
-		repeatRule.excludedDates = parseExDates(excludedDateProps, userCalendarTimeZone)
-	}
-
-	const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
-
-	const sequenceProp = getProp(eventObj, "SEQUENCE", true)
-	let sequence: string = "0"
-	if (sequenceProp) {
-		const sequenceNumber = filterInt(sequenceProp.value)
-
-		if (Number.isNaN(sequenceNumber)) {
-			throw new ParserError("SEQUENCE value is not a number")
-		}
-
-		// Convert it back to NumberString. Could use original one but this feels more robust.
-		sequence = String(sequenceNumber)
-	}
-
-	const attendees = getAttendees(eventObj)
-
-	const organizerProp = getProp(eventObj, "ORGANIZER", true)
-	let organizer: EncryptedMailAddress | null = null
-	if (organizerProp) {
-		const organizerAddress = parseMailtoValue(organizerProp.value)
-
-		if (organizerAddress && isMailAddress(organizerAddress, false)) {
-			organizer = createEncryptedMailAddress({
-				address: organizerAddress,
-				name: organizerProp.params["name"] || "",
-			})
-		} else {
-			console.log("organizer has no address or address is invalid, ignoring: ", organizerAddress)
-		}
-	}
-
-	const icsCalendarEvent: IcsCalendarEvent = {
-		summary,
-		description,
-		startTime,
-		endTime,
-		location,
-		uid,
-		sequence,
-		recurrenceId,
-		repeatRule,
-		attendees,
-		organizer,
-		startTimeZone: allDay ? null : startTzId,
-		endTimeZone: allDay ? null : endTzId,
-	}
-
-	let alarms: AlarmInfoTemplate[] = []
-
-	try {
-		alarms = getAlarms(eventObj, startTime)
-	} catch (e) {
-		console.log("alarm is invalid for event: ", icsCalendarEvent.summary, icsCalendarEvent.startTime)
-	}
-
-	return {
-		icsCalendarEvent,
-		alarms,
 	}
 }
 

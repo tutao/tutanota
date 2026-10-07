@@ -130,7 +130,7 @@ import {
 	shallowIsSameEvent,
 	SyncStatus,
 } from "../../../common/calendar/import/ImportExportUtils"
-import { IcsCalendarEvent, parseCalendarStringData, ParsedCalendarData, ParsedEventAlarmTuple } from "../export/CalendarParser"
+import { CalendarEventParseResult, CalendarEventParseSuccess, CalendarParseResult, IcsCalendarEvent, parseCalendarStringData } from "../export/CalendarParser"
 import { CalendarImporter, EventImportRejectionReason } from "../../../common/calendar/import/CalendarImporter"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
@@ -554,11 +554,11 @@ export class CalendarModel {
 				continue
 			}
 
-			let parsedExternalEvents: ParsedEventAlarmTuple[] = []
+			let parsedExternalEvents: CalendarEventParseResult[] = []
 			const calendarTimeZone = getTimeZone()
 			try {
 				const externalCalendar = await this.fetchExternalCalendar(calendar.url)
-				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone).contents
+				parsedExternalEvents = parseCalendarStringData(externalCalendar, calendarTimeZone).eventsParseResults
 			} catch (error) {
 				let calendarName = calendar.name
 				console.log("failed to sync external calendar", error)
@@ -602,7 +602,13 @@ export class CalendarModel {
 			})
 
 			const eventsToRemove = existingEventList.filter(
-				(existingEvent) => !parsedExternalEvents.some((externalEvent) => shallowIsSameEvent(externalEvent.icsCalendarEvent, existingEvent)),
+				(existingEvent) =>
+					!parsedExternalEvents.some((eventParseResult) => {
+						if (eventParseResult.criticalError !== null) {
+							return false
+						}
+						return shallowIsSameEvent(eventParseResult.icsCalendarEvent, existingEvent)
+					}),
 			)
 			eventsToRemove.push(...this.findDuplicatedEvents(existingEventList))
 
@@ -922,7 +928,7 @@ export class CalendarModel {
 		})
 	}
 
-	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<ParsedCalendarData | null> {
+	private async getCalendarDataForUpdate(fileId: IdTuple): Promise<CalendarParseResult | null> {
 		try {
 			// We are not supposed to load files without the key provider, but we hope that the key
 			// was already resolved and the entity updated.
@@ -1025,14 +1031,23 @@ export class CalendarModel {
 	 *
 	 * @VisibleForTesting
 	 */
-	async processParsedCalendarDataFromCalendarEventUpdate(sender: string, parsedCalendarData: ParsedCalendarData): Promise<void> {
-		if (parsedCalendarData.contents.length === 0) {
-			console.log(TAG, `CalendarEventUpdate with no events, ignoring`)
+	async processParsedCalendarDataFromCalendarEventUpdate(sender: string, calendarParseResult: CalendarParseResult): Promise<void> {
+		const eventParseSuccesses: CalendarEventParseSuccess[] = []
+		for (const parseResult of calendarParseResult.eventsParseResults) {
+			if (parseResult.criticalError) {
+				console.warn(TAG, `CalendarEventUpdate with parse error: ${parseResult.criticalError}`)
+			} else {
+				eventParseSuccesses.push(parseResult)
+			}
+		}
+
+		if (eventParseSuccesses.length === 0) {
+			console.info(TAG, `CalendarEventUpdate with no events, ignoring`)
 			return
 		}
 
-		if (parsedCalendarData.contents[0].icsCalendarEvent.uid == null) {
-			console.log(TAG, "Invalid CalendarEventUpdate without UID, ignoring.")
+		if (eventParseSuccesses[0].icsCalendarEvent.uid == null) {
+			console.warn(TAG, "Invalid CalendarEventUpdate without UID, ignoring.")
 			return
 		}
 
@@ -1044,9 +1059,9 @@ export class CalendarModel {
 		// Load the events bypassing the cache because we might have already processed some updates and they might have changed the events we are about to load.
 		// We want to operate on the latest events only, otherwise we might lose some data.
 		const latestPersistedEventsIndexEntry: ResolvedUidIndexEntry | null = await this.getFirstUidIndexEntryMatchInPrivateCalendars(
-			getFirstOrThrow(parsedCalendarData.contents).icsCalendarEvent.uid,
+			getFirstOrThrow(eventParseSuccesses).icsCalendarEvent.uid,
 		)
-		const icsEventRecurrenceIdTimestamp = parsedCalendarData.contents[0].icsCalendarEvent.recurrenceId?.getTime()
+		const icsEventRecurrenceIdTimestamp = eventParseSuccesses[0].icsCalendarEvent.recurrenceId?.getTime()
 		const resolvedPersistedCalendarEvent = !icsEventRecurrenceIdTimestamp
 			? latestPersistedEventsIndexEntry?.progenitor
 			: latestPersistedEventsIndexEntry?.alteredInstances.find((e) => e.recurrenceId.getTime() === icsEventRecurrenceIdTimestamp)
@@ -1058,22 +1073,20 @@ export class CalendarModel {
 		}
 
 		if (resolvedPersistedCalendarEvent) {
-			const method = parsedCalendarData.method
-			for (const content of parsedCalendarData.contents) {
-				const updateAlarms = content.alarms
-				const updateEvent = content.icsCalendarEvent
+			const method = calendarParseResult.method
+			for (const { icsCalendarEvent } of eventParseSuccesses) {
 				// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
 				// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
 				await this.handleExistingCalendarEventInvitationFromIcs(
 					sender,
 					method,
-					updateEvent,
+					icsCalendarEvent,
 					resolvedPersistedCalendarEvent,
 					latestPersistedEventsIndexEntry!,
 				)
 			}
 		} else {
-			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData, latestPersistedEventsIndexEntry)
+			return await this.handleNewCalendarEventInvitationFromIcs(sender, eventParseSuccesses, latestPersistedEventsIndexEntry)
 		}
 	}
 
@@ -1101,9 +1114,14 @@ export class CalendarModel {
 	/**
 	 * Handles new Calendar Invitations. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
-	async handleNewCalendarEventInvitationFromIcs(sender: string, calendarData: ParsedCalendarData, uidIndexEntry: ResolvedUidIndexEntry | null) {
-		if (calendarData.method !== CalendarMethod.REQUEST) {
-			console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid: `, calendarData.method)
+	async handleNewCalendarEventInvitationFromIcs(
+		sender: string,
+		calendarMethod: CalendarMethod,
+		eventParseSuccesses: CalendarEventParseSuccess[],
+		uidIndexEntry: ResolvedUidIndexEntry | null,
+	) {
+		if (calendarMethod !== CalendarMethod.REQUEST) {
+			console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid: `, calendarMethod)
 			return // We don't handle anything different from an invitation
 		}
 
@@ -1112,7 +1130,7 @@ export class CalendarModel {
 		// - a single-instance update that created a brand new altered instance
 		// - the user got the progenitor invite for a series. it's possible that there's
 		//   already altered instances of this series on the server.
-		const eventsPromises = calendarData.contents.map((parsed) => {
+		const eventsPromises = eventParseSuccesses.map((parsed) => {
 			const calendarEvent: CalendarEvent = makeCalendarEventFromIcsCalendarEvent(parsed.icsCalendarEvent)
 			calendarEvent.sender = sender
 

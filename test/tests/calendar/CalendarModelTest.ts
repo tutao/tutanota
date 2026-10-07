@@ -62,7 +62,7 @@ import { ProgressMonitorInterface } from "../../../src/platform-kit/network/Prog
 import { EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
-import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import { IcsCalendarEvent, CalendarParseResult, CalendarEventParseResult } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import en from "../../../src/ui/translations/en"
 import { DoubledObject, matchers, object, when } from "testdouble"
 
@@ -110,7 +110,7 @@ o.spec("CalendarModel", function () {
 	let languageViewModelMock: LanguageViewModel
 	let groupMemberMock: GroupMember
 
-	let baseInvitation: ParsedCalendarData
+	let baseInvitation: CalendarParseResult
 	let baseExistingProgenitor: CalendarEvent
 	let baseCalendarEventUidIndexEntry: ResolvedUidIndexEntry
 
@@ -273,8 +273,8 @@ o.spec("CalendarModel", function () {
 	}
 
 	o.spec("processCalendarData - CalendarMethod.REPLY", function () {
-		let baseParsedCalendarData: ParsedCalendarData
-		let baseParsedEventReply: ParsedEventAlarmTuple
+		let baseParsedCalendarData: CalendarParseResult
+		let baseParsedEventReply: CalendarEventParseResult
 
 		o.beforeEach(function () {
 			baseParsedEventReply = {
@@ -295,7 +295,7 @@ o.spec("CalendarModel", function () {
 
 			baseParsedCalendarData = {
 				method: CalendarMethod.REPLY,
-				contents: [baseParsedEventReply],
+				eventsParseResults: [baseParsedEventReply],
 				parseEventErrors: [],
 			}
 
@@ -348,7 +348,7 @@ o.spec("CalendarModel", function () {
 
 			baseInvitation = {
 				method: CalendarMethod.REQUEST,
-				contents: [
+				eventsParseResults: [
 					{
 						icsCalendarEvent: baseExistingProgenitor as CalendarEventProgenitor,
 						alarms: [],
@@ -386,7 +386,7 @@ o.spec("CalendarModel", function () {
 			// Repeat Rules
 			o("New REQUEST invite to repeating event sets pendingInvitation true", async function () {
 				// Arrange
-				baseInvitation.contents[0].icsCalendarEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
+				baseInvitation.eventsParseResults[0].icsCalendarEvent.repeatRule = createTestEntity(RepeatRuleTypeRef, {
 					frequency: RepeatPeriod.DAILY,
 					interval: "1",
 				})
@@ -409,7 +409,7 @@ o.spec("CalendarModel", function () {
 			o("Invite to an altered instance, without being invited to original repeating series, should create new pendingInvitation", async function () {
 				// Arrange -- base invitation needs recurrence ID, not repeat rule
 				const recurrenceId = new Date()
-				baseInvitation.contents[0].icsCalendarEvent.recurrenceId = recurrenceId
+				baseInvitation.eventsParseResults[0].icsCalendarEvent.recurrenceId = recurrenceId
 
 				// Act
 				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, baseInvitation)
@@ -468,7 +468,9 @@ o.spec("CalendarModel", function () {
 					).thenResolve(baseCalendarEventUidIndexEntry)
 
 					const alteredInstanceInvitation = clone(baseInvitation)
-					const guestAttendee = baseInvitation.contents[0].icsCalendarEvent.attendees!.find((attendee) => attendee.address.address === GUEST)!
+					const guestAttendee = baseInvitation.eventsParseResults[0].icsCalendarEvent.attendees!.find(
+						(attendee) => attendee.address.address === GUEST,
+					)!
 					guestAttendee.status = CalendarAttendeeStatus.ACCEPTED // Guest has previously accepted the invitation for the whole series
 
 					// recurrenceId must correspond with original start time of scheduled recurrence.  used baseStartTime+1 because the time is one day
@@ -476,14 +478,14 @@ o.spec("CalendarModel", function () {
 
 					const alteredInstanceStartTime = DateTime.fromJSDate(baseStartTime).plus({ hours: 25 }).toJSDate()
 					const alteredInstanceEndTime = DateTime.fromJSDate(baseEndTime).plus({ hours: 25 }).toJSDate()
-					const alteredInstanceEvent = alteredInstanceInvitation.contents[0].icsCalendarEvent
+					const alteredInstanceEvent = alteredInstanceInvitation.eventsParseResults[0].icsCalendarEvent
 
 					alteredInstanceEvent.summary = "ALTERED INSTANCE" // for identifying during debugging
 					alteredInstanceEvent.startTime = alteredInstanceStartTime
 					alteredInstanceEvent.endTime = alteredInstanceEndTime
 					alteredInstanceEvent.recurrenceId = alteredInstanceRecurrenceId
 
-					alteredInstanceInvitation.contents.push({ icsCalendarEvent: alteredInstanceEvent, alarms: [] })
+					alteredInstanceInvitation.eventsParseResults.push({ icsCalendarEvent: alteredInstanceEvent, alarms: [] })
 
 					// Act
 					await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, alteredInstanceInvitation)
@@ -531,7 +533,7 @@ o.spec("CalendarModel", function () {
 
 				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 					method: CalendarMethod.REQUEST,
-					contents: [
+					eventsParseResults: [
 						{
 							icsCalendarEvent: sentEvent,
 							alarms: [],
@@ -560,7 +562,7 @@ o.spec("CalendarModel", function () {
 
 				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(originalSender, {
 					method: CalendarMethod.REQUEST,
-					contents: [
+					eventsParseResults: [
 						{
 							icsCalendarEvent: sentEvent,
 							alarms: [],
@@ -589,7 +591,7 @@ o.spec("CalendarModel", function () {
 
 				await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(UNKNOWN_SENDER, {
 					method: CalendarMethod.REQUEST,
-					contents: [
+					eventsParseResults: [
 						{
 							icsCalendarEvent: sentEvent,
 							alarms: [],
@@ -667,7 +669,7 @@ o.spec("CalendarModel", function () {
 			// Act
 			await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
-				contents: [
+				eventsParseResults: [
 					{
 						icsCalendarEvent: icsEvent as CalendarEventProgenitor,
 						alarms: [],
@@ -695,8 +697,8 @@ o.spec("CalendarModel", function () {
 	})
 
 	o.spec("processCalendarData - CalendarMethod.CANCEL", function () {
-		let baseParsedCalendarDataCancel: ParsedCalendarData
-		let baseParsedEvent: ParsedEventAlarmTuple
+		let baseParsedCalendarDataCancel: CalendarParseResult
+		let baseParsedEvent: CalendarEventParseResult
 
 		o.beforeEach(function () {
 			userGroupInfo = object()
@@ -713,7 +715,7 @@ o.spec("CalendarModel", function () {
 
 			baseParsedCalendarDataCancel = {
 				method: CalendarMethod.CANCEL,
-				contents: [baseParsedEvent],
+				eventsParseResults: [baseParsedEvent],
 				parseEventErrors: [],
 			}
 		})
@@ -824,7 +826,7 @@ o.spec("CalendarModel", function () {
 
 			await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
-				contents: [
+				eventsParseResults: [
 					{
 						icsCalendarEvent: sentEvent as CalendarEventProgenitor,
 						alarms: [],
@@ -844,7 +846,7 @@ o.spec("CalendarModel", function () {
 
 			await calendarModel.processParsedCalendarDataFromCalendarEventUpdate(ORGANIZER, {
 				method: CalendarMethod.REQUEST,
-				contents: [
+				eventsParseResults: [
 					{
 						icsCalendarEvent: sentEvent,
 						alarms: [],

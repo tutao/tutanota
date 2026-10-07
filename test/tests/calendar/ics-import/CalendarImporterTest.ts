@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { IcsCalendarEvent, ParsedEventAlarmTuple } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
+import { IcsCalendarEvent, CalendarEventParseResult } from "../../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import { getDateInZone, zone } from "../CalendarTestUtils"
 import { createTestEntity } from "../../TestUtils"
 import { CalendarEvent, CalendarGroupRoot, CalendarGroupRootTypeRef, CalendarRepeatRule } from "@tutao/entities/tutanota"
@@ -104,7 +104,7 @@ o.spec("CalendarImporter", function () {
 			o.test("does not create events when the user cancels a partial import", async function () {
 				const icsCalendarEvent = makeIcsEvent()
 
-				const parsedEventAlarmTuple: ParsedEventAlarmTuple = { icsCalendarEvent, alarms: [] }
+				const parsedEventAlarmTuple: CalendarEventParseResult = { icsCalendarEvent, alarms: [] }
 				const parsedEventAlarmTuples = [parsedEventAlarmTuple, parsedEventAlarmTuple]
 				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 
@@ -181,7 +181,7 @@ o.spec("CalendarImporter", function () {
 					alarmInfoTemplates: [],
 				}
 
-				const inputTuples: ParsedEventAlarmTuple[] = [
+				const inputTuples: CalendarEventParseResult[] = [
 					{ icsCalendarEvent: progenitorIcsEvent, alarms: [] },
 					{ icsCalendarEvent: alteredInstanceIcsEvent, alarms: [] },
 				]

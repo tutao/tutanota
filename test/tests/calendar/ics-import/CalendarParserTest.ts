@@ -6,8 +6,8 @@ import {
 	IcsCalendarEvent,
 	parseCalendarEvents,
 	parseCalendarStringData,
-	ParsedCalendarData,
-	ParsedEventAlarmTuple,
+	CalendarParseResult,
+	CalendarEventParseResult,
 	parseDuration,
 	parseExDates,
 	parseICalendar,
@@ -307,7 +307,7 @@ o.spec("CalendarParser", function () {
 
 		const testParseIllegalCalendarEvents = ({ start, end, expect }) => {
 			const event = makeEvent({ start, end })
-			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").contents[0]
+			const { icsCalendarEvent } = parseCalendarEvents(event, "Europe/Berlin").eventsParseResults[0]
 			o(icsCalendarEvent.endTime.getTime()).equals(expect)
 		}
 
@@ -471,12 +471,12 @@ o.spec("CalendarParser", function () {
 	})
 
 	o.spec("parseCalendarStringData", function () {
-		let expectedParsedCalendarData: ParsedCalendarData
+		let expectedParsedCalendarData: CalendarParseResult
 
 		o.beforeEach(function () {
 			expectedParsedCalendarData = {
 				method: "PUBLISH",
-				contents: [
+				eventsParseResults: [
 					{
 						icsCalendarEvent: {
 							summary: "s",
@@ -539,8 +539,8 @@ o.spec("CalendarParser", function () {
 					zone,
 				)
 
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.summary = "Word \n \\ ;, \n"
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.repeatRule = createRepeatRule({
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.summary = "Word \n \\ ;, \n"
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.repeatRule = createRepeatRule({
 					endType: EndType.Never,
 					interval: "3",
 					frequency: RepeatPeriod.WEEKLY,
@@ -549,8 +549,8 @@ o.spec("CalendarParser", function () {
 					excludedDates: [],
 					endValue: null,
 				})
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(actual, expectedParsedCalendarData)
 			})
@@ -575,7 +575,7 @@ o.spec("CalendarParser", function () {
 							"END:VCALENDAR",
 						zone,
 					)
-					const repeatRule = result.contents[0].icsCalendarEvent.repeatRule
+					const repeatRule = result.eventsParseResults[0].icsCalendarEvent.repeatRule
 					o(repeatPeriodToIcalFrequency((repeatRule?.frequency ?? "") as unknown as RepeatPeriod) as string).equals(supportedRepeatFrequency)
 				})
 			}
@@ -600,7 +600,7 @@ o.spec("CalendarParser", function () {
 							"END:VCALENDAR",
 						zone,
 					)
-					o(result.contents.length).equals(0)
+					o(result.eventsParseResults.length).equals(0)
 					o(result.parseEventErrors.length).equals(1)
 					o(result.parseEventErrors[0].message).equals(`Unsupported ICal frequency: ${unsupportedRepeatFrequency}`)
 				})
@@ -625,7 +625,7 @@ o.spec("CalendarParser", function () {
 						"END:VCALENDAR",
 					zone,
 				)
-				const repeatRule = result.contents[0].icsCalendarEvent.repeatRule
+				const repeatRule = result.eventsParseResults[0].icsCalendarEvent.repeatRule
 				o(repeatRule?.endType).equals(EndType.UntilDate)
 				const dateTime = DateTime.fromJSDate(new Date(parseInt(repeatRule?.endValue ?? "")), { zone: "Europe/Berlin" })
 				o(dateTime.day).equals(8)
@@ -653,9 +653,9 @@ o.spec("CalendarParser", function () {
 					"END:VCALENDAR",
 				].join("\r\n"),
 				zone,
-			).contents[0]
+			).eventsParseResults[0]
 
-			const icsCalendarEvent = expectedParsedCalendarData.contents[0].icsCalendarEvent
+			const icsCalendarEvent = expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent
 			icsCalendarEvent.sequence = "1"
 			icsCalendarEvent.startTime = new Date("2023-07-04T15:00:00.000Z")
 			icsCalendarEvent.endTime = new Date("2023-07-04T15:30:00.000Z")
@@ -663,7 +663,7 @@ o.spec("CalendarParser", function () {
 			o(parsedEvent.icsCalendarEvent.uid).notEquals(null)
 			// assigning uid so we can test that the other fields are the same.
 			parsedEvent.icsCalendarEvent.uid = "test@tuta.com"
-			testParsedEventEquality(parsedEvent, expectedParsedCalendarData.contents[0])
+			testParsedEventEquality(parsedEvent, expectedParsedCalendarData.eventsParseResults[0])
 		})
 
 		o.spec("With attendee", function () {
@@ -689,11 +689,11 @@ o.spec("CalendarParser", function () {
 					].join("\r\n"),
 					zone,
 				)
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
 					name: "",
 					address: "organizer@tuta.com",
 				})
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.attendees = [
 					createCalendarEventAttendee({
 						address: createEncryptedMailAddress({
 							name: "",
@@ -702,8 +702,8 @@ o.spec("CalendarParser", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -730,11 +730,11 @@ o.spec("CalendarParser", function () {
 					].join("\r\n"),
 					zone,
 				)
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
 					name: "",
 					address: "organizer@tuta.com",
 				})
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.attendees = [
 					createCalendarEventAttendee({
 						address: createEncryptedMailAddress({
 							name: "",
@@ -743,8 +743,8 @@ o.spec("CalendarParser", function () {
 						status: CalendarAttendeeStatus.NEEDS_ACTION,
 					}),
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -773,11 +773,11 @@ o.spec("CalendarParser", function () {
 					].join("\r\n"),
 					zone,
 				)
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.organizer = createEncryptedMailAddress({
 					name: "",
 					address: "organizer@tuta.com",
 				})
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.attendees = [
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.attendees = [
 					createCalendarEventAttendee({
 						address: createEncryptedMailAddress({
 							name: "",
@@ -787,8 +787,8 @@ o.spec("CalendarParser", function () {
 					}),
 				]
 
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(parsedEvent, expectedParsedCalendarData)
 			})
@@ -796,7 +796,7 @@ o.spec("CalendarParser", function () {
 
 		o.spec("All day events", function () {
 			o.beforeEach(function () {
-				const icsCalendarEvent = expectedParsedCalendarData.contents[0].icsCalendarEvent
+				const icsCalendarEvent = expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent
 				icsCalendarEvent.summary = "Labor Day / May Day"
 				icsCalendarEvent.startTime = getAllDayDateUTCFromZone(
 					DateTime.fromObject(
@@ -848,8 +848,8 @@ o.spec("CalendarParser", function () {
 							"END:VCALENDAR",
 						].join("\r\n"),
 						zone,
-					).contents[0],
-					expectedParsedCalendarData.contents[0],
+					).eventsParseResults[0],
+					expectedParsedCalendarData.eventsParseResults[0],
 				)
 			})
 			o("with invalid DTEND is assumed to lasts a day", async function () {
@@ -876,22 +876,22 @@ o.spec("CalendarParser", function () {
 							"END:VCALENDAR",
 						].join("\r\n"),
 						zone,
-					).contents[0],
-					expectedParsedCalendarData.contents[0],
+					).eventsParseResults[0],
+					expectedParsedCalendarData.eventsParseResults[0],
 				)
 			})
 		})
 
 		o.spec("With alarms", function () {
 			o("with relative non-standard alarm", async function () {
-				expectedParsedCalendarData.contents[0].alarms = [
+				expectedParsedCalendarData.eventsParseResults[0].alarms = [
 					{
 						trigger: "15D",
 						alarmIdentifier: "",
 					},
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
@@ -920,14 +920,14 @@ o.spec("CalendarParser", function () {
 				)
 			})
 			o("with absolute alarm", async function () {
-				expectedParsedCalendarData.contents[0].alarms = [
+				expectedParsedCalendarData.eventsParseResults[0].alarms = [
 					{
 						trigger: "66M",
 						alarmIdentifier: "",
 					},
 				]
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.startTimeZone = zone
-				expectedParsedCalendarData.contents[0].icsCalendarEvent.endTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.startTimeZone = zone
+				expectedParsedCalendarData.eventsParseResults[0].icsCalendarEvent.endTimeZone = zone
 
 				testParsedCalendarDataEquality(
 					parseCalendarStringData(
@@ -983,7 +983,7 @@ o.spec("CalendarParser", function () {
 					),
 					{
 						method: "PUBLISH",
-						contents: [
+						eventsParseResults: [
 							{
 								icsCalendarEvent: {
 									recurrenceId: null,
@@ -1048,7 +1048,7 @@ END:VEVENT
 END:VCALENDAR`
 
 				const parsed = parseCalendarStringData(text, zone)
-				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(parsed.contents[0].icsCalendarEvent)
+				const calendarEvent = makeCalendarEventFromIcsCalendarEvent(parsed.eventsParseResults[0].icsCalendarEvent)
 				const serialized = [
 					"BEGIN:VCALENDAR",
 					`VERSION:2.0`,
@@ -1058,7 +1058,7 @@ END:VCALENDAR`
 					"END:VCALENDAR",
 				].join("\n")
 				const parsedAgain = parseCalendarStringData(serialized, zone)
-				o(parsedAgain.contents[0].icsCalendarEvent.description).equals(
+				o(parsedAgain.eventsParseResults[0].icsCalendarEvent.description).equals(
 					"\n________________________________________________________________________________\nMicrosoft Teams meeting\nJoin on your computer, mobile app or room device\nUnited States, Minneapolis\nPhone Conference ID: 000 000 000",
 				)
 			})
@@ -1284,7 +1284,7 @@ END:VCALENDAR`
 				const serializedEvents = serializeCalendar(versionNumber, events, now, zone)
 
 				const actualImportedEvents = parseCalendarStringData(serializedEvents, zone)
-				const expectedImportedEvents: Array<ParsedEventAlarmTuple> = events.map(({ event, alarms }) => {
+				const expectedImportedEvents: Array<CalendarEventParseResult> = events.map(({ event, alarms }) => {
 					return {
 						icsCalendarEvent: {
 							summary: event.summary,
@@ -1310,7 +1310,7 @@ END:VCALENDAR`
 
 				o(actualImportedEvents.method).equals("PUBLISH")("wrong method")
 				for (const i in expectedImportedEvents) {
-					testParsedEventEquality(actualImportedEvents.contents[i], expectedImportedEvents[i], `event ${i}`)
+					testParsedEventEquality(actualImportedEvents.eventsParseResults[i], expectedImportedEvents[i], `event ${i}`)
 				}
 			})
 			o("roundtrip ics-import -> export", async function () {
@@ -1372,7 +1372,7 @@ END:VCALENDAR`
 				const parsed = parseCalendarStringData(text, zone)
 				const serialized = serializeCalendar(
 					versionNumber,
-					parsed.contents.map(({ icsCalendarEvent, alarms }) => {
+					parsed.eventsParseResults.map(({ icsCalendarEvent, alarms }) => {
 						const calendarEvent = makeCalendarEventFromIcsCalendarEvent(icsCalendarEvent)
 						return {
 							event: Object.assign({}, calendarEvent, {
@@ -1415,11 +1415,11 @@ END:VCALENDAR`
 				zone,
 			)
 			// this is failing because the value is being sorted out as an error/failure but it shouldnt be.
-			o(result.contents[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
-			o(result.contents[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
+			o(result.eventsParseResults[0].icsCalendarEvent.startTime.toISOString()).equals("2019-08-13T05:06:00.000Z")
+			o(result.eventsParseResults[0].icsCalendarEvent.endTime.toISOString()).equals("2019-09-13T05:06:00.000Z")
 
-			o(result.contents[0].icsCalendarEvent.startTimeZone).equals("UTC")
-			o(result.contents[0].icsCalendarEvent.endTimeZone).equals("UTC")
+			o(result.eventsParseResults[0].icsCalendarEvent.startTimeZone).equals("UTC")
+			o(result.eventsParseResults[0].icsCalendarEvent.endTimeZone).equals("UTC")
 		})
 
 		o.test("Handles valid time zones", () => {
@@ -1488,7 +1488,7 @@ END:VCALENDAR`
 					"END:VEVENT\n" +
 					"END:VCALENDAR"
 				const result = parseCalendarStringData(calendar, zone)
-				const calendarEvent: IcsCalendarEvent | undefined = result.contents[0]?.icsCalendarEvent
+				const calendarEvent: IcsCalendarEvent | undefined = result.eventsParseResults[0]?.icsCalendarEvent
 				o(calendarEvent?.startTimeZone).equals(expectedTimeZone)(result.parseEventErrors.toString())
 			}
 		})
@@ -1520,8 +1520,8 @@ END:VCALENDAR`
 
 				const usersTimeZone = "User/Time_Zone"
 				const parseResult = parseCalendarStringData(calendar, usersTimeZone)
-				o.check(parseResult.contents.length).equals(1)
-				o.check(parseResult.contents[0].icsCalendarEvent.startTimeZone).equals(usersTimeZone)
+				o.check(parseResult.eventsParseResults.length).equals(1)
+				o.check(parseResult.eventsParseResults[0].icsCalendarEvent.startTimeZone).equals(usersTimeZone)
 			}
 		})
 		o.test("Produces error when given a TZID that is not UTC and has a Z-Suffix", function () {
@@ -1538,7 +1538,7 @@ END:VCALENDAR`
 				"END:VCALENDAR"
 
 			const parsedDtStartResult = parseCalendarStringData(calendarInvalidDtStart, zone)
-			o(parsedDtStartResult.contents.length).equals(0)(`Parsing ${invalidDtStartTzidWithDate} succeeded, but should have failed.`)
+			o(parsedDtStartResult.eventsParseResults.length).equals(0)(`Parsing ${invalidDtStartTzidWithDate} succeeded, but should have failed.`)
 			o(parsedDtStartResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtStartTzidWithDate}.`)
 
 			const invalidDtEndTzidWithDate = "Europe/Berlin:20260101T123000Z"
@@ -1554,16 +1554,16 @@ END:VCALENDAR`
 				"END:VCALENDAR"
 
 			const parsedDtEndResult = parseCalendarStringData(calendarInvalidDtEnd, zone)
-			o(parsedDtEndResult.contents.length).equals(0)(`Parsing ${invalidDtEndTzidWithDate} succeeded, but should have failed.`)
+			o(parsedDtEndResult.eventsParseResults.length).equals(0)(`Parsing ${invalidDtEndTzidWithDate} succeeded, but should have failed.`)
 			o(parsedDtEndResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtEndTzidWithDate}.`)
 		})
 	})
 })
 
-function testParsedCalendarDataEquality(actual: ParsedCalendarData, expected: ParsedCalendarData, message?: string): void {
+function testParsedCalendarDataEquality(actual: CalendarParseResult, expected: CalendarParseResult, message?: string): void {
 	o.check(actual).deepEquals(expected)(message ?? "")
 }
 
-function testParsedEventEquality(actual: ParsedEventAlarmTuple, expected: ParsedEventAlarmTuple, message?: string): void {
+function testParsedEventEquality(actual: CalendarEventParseResult, expected: CalendarEventParseResult, message?: string): void {
 	o.check(actual).deepEquals(expected)(message ?? "")
 }

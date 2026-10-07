@@ -7,7 +7,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { EventImportRejectionReason } from "../import/CalendarImporter"
 import { CalendarEvent } from "@tutao/entities/tutanota"
-import { ParsedEventAlarmTuple } from "../../../calendar-app/calendar/export/CalendarParser"
+import { CalendarEventParseResult } from "../../../calendar-app/calendar/export/CalendarParser"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey"
 
@@ -31,7 +31,7 @@ export class ImportInteractionHandler {
 	 * @param rejectedEvents
 	 * @param importedParsedEvents
 	 */
-	async confirmPartialImport(rejectedEvents: Map<EventImportRejectionReason, Array<CalendarEvent>>, importedParsedEvents: ParsedEventAlarmTuple[]) {
+	async confirmPartialImport(rejectedEvents: Map<EventImportRejectionReason, Array<CalendarEvent>>, importedParsedEvents: CalendarEventParseResult[]) {
 		const acceptSkippingIcsDuplicates = await this.partialImportConfirmation(
 			rejectedEvents.get(EventImportRejectionReason.DuplicateInIcs) ?? [],
 			"importEventIcsDuplicate_msg",
