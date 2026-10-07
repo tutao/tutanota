@@ -1,17 +1,13 @@
-import { isNotNull, isNull, ProgrammingError, RuntimeInfo, TsInt, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
-
-export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
-	Nextcloud: "Nextcloud",
-})
 
 export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
 
 export type DomainConfigMap = TsRecord<string, DomainConfig>
 export type EnvType = {
-	staticUrl: TsString | null // if null the url from the browser is used
+	staticUrl: Nullable<TsString> // if null the url from the browser is used
 	mode: Mode
 	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
@@ -21,7 +17,7 @@ export type EnvType = {
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: TsString | null
-	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
+	integrationPlatform: Nullable<IntegrationPlatformName>
 	shadowDomAppRoot: string | null
 }
 
@@ -175,7 +171,7 @@ export class EnvProvider {
 	}
 
 	public isNextCloudPlugin(): boolean {
-		return env.integrationPlatform === IntegrationPlatform.Nextcloud
+		return this.env.integrationPlatform === "Nextcloud"
 	}
 
 	public getPathPrefix(): string {
