@@ -259,6 +259,7 @@ export class KeyRotationFacade {
 	 */
 	async processPendingKeyRotation(pendingKeyRotations: PendingKeyRotation, user: User, pwKey: Aes256Key | null): Promise<void> {
 		// first admin, then user and then user area
+		const adminOrUserGroupKeyRotationWasExecuted = pendingKeyRotations.adminOrUserGroupKeyRotation != null
 		if (isNotNull(pendingKeyRotations.adminOrUserGroupKeyRotation) && isNotNull(pwKey)) {
 			const groupKeyRotationType = assertEnumValue(GroupKeyRotationType, pendingKeyRotations.adminOrUserGroupKeyRotation.groupKeyRotationType)
 			switch (groupKeyRotationType) {
@@ -308,7 +309,10 @@ export class KeyRotationFacade {
 			return
 		}
 		await this.serviceExecutor.execute(GroupKeyRotationService_POST, serviceData, null)
-
+		if (!adminOrUserGroupKeyRotationWasExecuted) {
+			// only update the user in case the user group was not rotated as the user group key will be updated later via entity update see type UserGroupKeyDistribution
+			await (await this.cacheManager()).reloadUser()
+		}
 		if (customerGroupKeyRotationWasExecuted) {
 			// we reload the customer group as we will otherwise end up in an inconsistent state when sharing instance keys due to a race condition
 			const customerGroupId = this.userFacade.getGroupId(GroupType.Customer)
