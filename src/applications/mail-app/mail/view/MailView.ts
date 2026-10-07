@@ -84,11 +84,12 @@ import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { MailLabelsView } from "./MailLabelsView"
 import { showEditLabelDialog } from "./EditLabelDialog"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
-import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
+import { NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { showNotAvailableForFreeDialog } from "../../../common/misc/SubscriptionDialogs"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
+import { showDeleteFolderPopup } from "./DeleteMailSetPopup"
 
 EnvProvider.assertMainOrNode()
 
@@ -1440,18 +1441,20 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 		const folders = await this.mailViewModel.mailModel.getMailboxFoldersForId(mailboxDetail.mailbox.mailSets._id)
 
 		if (isSpamOrTrashFolder(folders, folder)) {
-			const confirmed = await Dialog.confirm(
-				lang.getTranslation("confirmDeleteFinallyCustomFolder_msg", {
-					"{1}": getMailSetName(folder),
-				}),
+			const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
+			const confirmed = await showDeleteFolderPopup(
+				getMailSetName(folder),
+				allInboxRulesBeingModified.map((rule) => rule.name),
+				"delete",
 			)
 			if (!confirmed) return
 			await this.mailViewModel.mailModel.finallyDeleteCustomMailFolder(folder)
 		} else {
-			const confirmed = await Dialog.confirm(
-				lang.getTranslation("confirmDeleteCustomFolder_msg", {
-					"{1}": getMailSetName(folder),
-				}),
+			const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(folder, folders)
+			const confirmed = await showDeleteFolderPopup(
+				getMailSetName(folder),
+				allInboxRulesBeingModified.map((rule) => rule.name),
+				"trash",
 			)
 			if (!confirmed) return
 			await this.mailViewModel.mailModel.trashFolderAndSubfolders(folder)
@@ -1519,13 +1522,16 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 	private async showLabelDeleteDialog(label: MailSet) {
 		const labelSystem = mailLocator.mailModel.getLabelFolderSystemByGroupId(assertNotNull(label._ownerGroup))
 		if (labelSystem == null) return
-		const hasSublabels = isNotEmpty(labelSystem.getDescendantFoldersOfParent(label._id))
-		const confirmed = await Dialog.confirm(
-			lang.getTranslation(hasSublabels ? "confirmDeleteLabelWithSublabels_msg" : "confirmDeleteLabel_msg", {
-				"{1}": label.name,
-			}),
+
+		const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(label, labelSystem)
+
+		const confirmed = await showDeleteFolderPopup(
+			getMailSetName(label),
+			allInboxRulesBeingModified.map((rule) => rule.name),
+			"delete",
 		)
 		if (!confirmed) return
+
 		await this.mailViewModel.deleteLabel(label).catch(ofClass(NotFoundError, () => console.log("label already deleted")))
 	}
 	private renderEditMailboxButton(onEditMailbox: () => unknown) {
