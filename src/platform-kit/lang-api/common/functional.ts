@@ -1,6 +1,6 @@
 import { ProgrammingError } from "./error"
 
-export function neverNull<T>(object: T): NonNullable<T> {
+export function neverNull<T>(object: Nullable<T>): NonNullable<T> {
 	if (isNull(object)) {
 		console.trace(`Called neverNull with a null value`)
 	}
@@ -12,7 +12,7 @@ export function neverNull<T>(object: T): NonNullable<T> {
  * @param value the value to check
  * @param message optional error message
  */
-export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
+export function assertNotNull<T>(value: Nullable<T>, message: string = "null"): NonNullable<T> {
 	if (value == null) {
 		throw new ProgrammingError("AssertNotNull failed: " + message)
 	}
