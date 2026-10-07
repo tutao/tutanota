@@ -147,6 +147,8 @@ class WidgetUIViewModel(
 		)
 
 		val startOfToday = now.toLocalDate()
+
+		// an array representing the current day and the next six days, to fill with events that appear on each day.
 		val daysAndEvents: Array<List<UIEvent>> =
 			arrayOf(listOf(), listOf(), listOf(), listOf(), listOf(), listOf(), listOf())
 
@@ -277,7 +279,7 @@ class WidgetUIViewModel(
 					)
 				val uiEvent = UIEvent(
 					calendarId,
-					birthdayEventDao.eventDao.id,
+					IdTuple("", ""),
 					calendarColor = settings.calendars[calendarId]?.color ?: "2196f3",
 					summary = buildBirthdayEventTitle(birthdayEventDao),
 					eventLocalStartTime.format(UIEvent.dateFormatter),
@@ -305,10 +307,8 @@ class WidgetUIViewModel(
 
 				// Birthday events should always be at front of list so they always show in all-day section
 				if (a.isBirthday) {
-					Log.d(TAG, "event a is birthday")
 					return@Comparator -1
 				} else if (b.isBirthday) {
-					Log.d(TAG, "event b is a birthday")
 					return@Comparator 1
 				}
 
@@ -318,13 +318,8 @@ class WidgetUIViewModel(
 					if (a.startsBeforeTodayAndEndsToday) LocalTime.parse(a.formattedEndTime) else LocalTime.parse(a.formattedStartTime)
 				val comparisonDateB =
 					if (b.startsBeforeTodayAndEndsToday) LocalTime.parse(b.formattedEndTime) else LocalTime.parse(b.formattedStartTime)
-
-				Log.d(TAG, "comparison time for event A with summary \"${a.summary}\": ${comparisonDateA}")
-				Log.d(TAG, "comparison time for event B with summary \"${b.summary}\" ${comparisonDateB}")
 				val compareResult =
 					comparisonDateA.compareTo(comparisonDateB)
-				Log.d(TAG, "COMPARE RESULT: ${compareResult.toString()}")
-				// Compare result 1 means a > b
 				compareResult
 			})
 			daysAndEvents[index] = sortedEventsOfDay
