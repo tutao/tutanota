@@ -1,11 +1,9 @@
-import { once } from "../utils/memoized"
-import { TypeChecks } from "../app-env/TsTypeChecks"
-import { isNotNull, isNull } from "../utils/Utils"
+import { newPromise, once, uint8ArrayToArrayBuffer } from "@tutao/utils"
+import { isNotNull, isNull, TypeChecks } from "@tutao/lang-api"
 import { HttpClient } from "./HttpClient"
 import { HttpMethod, MediaType, ProgressListener, XhrError } from "./HttpTypes"
 import { HttpResponse, RestBinaryBody, RestBody, RestTextBody } from "./HttpResponse"
 import { CancelledError, EnvProvider } from "@tutao/app-env"
-import { newPromise, uint8ArrayToArrayBuffer } from "@tutao/utils"
 import { ConnectionError } from "./error"
 
 const TAG = "[HttpClient]"
@@ -16,9 +14,20 @@ const TAG = "[HttpClient]"
  */
 export class HttpClientJavascript implements HttpClient {
 	private lastRequestId: number
-	constructor() {
+	private readonly verbose: boolean
+	private readonly usingTimeoutAbort: boolean
+
+	constructor(private readonly timeoutValue: number) {
 		this.lastRequestId = 0
+
+		// We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver.
+		this.usingTimeoutAbort = EnvProvider.get().isWebClient() || EnvProvider.get().isAndroidApp()
+
+		// @ts-ignore
+		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
+		this.verbose = EnvProvider.isWorker() && debug
 	}
+
 	async request(
 		url: string,
 		method: HttpMethod,
@@ -32,9 +41,7 @@ export class HttpClientJavascript implements HttpClient {
 		downloadProgressListener: ProgressListener | null,
 	): Promise<HttpResponse> {
 		url = EnvProvider.get().rewriteSchemeForIos(url)
-		// @ts-ignore
-		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
-		const verbose: boolean = EnvProvider.isWorker() && debug
+
 		return newPromise((resolve, _reject) => {
 			// Make sure to call reject() only once (e.g. if both xhr.onabort and xhr.upload.onabort fire) because
 			// it is illegal to call resolve/reject more than once
@@ -57,7 +64,7 @@ export class HttpClientJavascript implements HttpClient {
 				xhr.abort()
 			}
 			const restartTimeoutTimer = (): void => {
-				if (!usingTimeoutAbort()) {
+				if (!this.usingTimeoutAbort) {
 					return
 				}
 
@@ -83,14 +90,14 @@ export class HttpClientJavascript implements HttpClient {
 				)
 			}
 
-			if (verbose) {
-				console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
+			if (this.verbose) {
+				console.log(TAG, `${id}: set initial timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
 			}
 
 			xhr.onload = async (): Promise<void> => {
 				try {
 					// XMLHttpRequestProgressEvent, but not needed
-					if (verbose) {
+					if (this.verbose) {
 						console.log(TAG, `${id}: ${String(new Date())} finished request. Clearing Timeout ${String(requestTimeoutTimeoutID)}.`)
 					}
 
@@ -127,14 +134,14 @@ export class HttpClientJavascript implements HttpClient {
 			// don't add an EventListener for non-CORS requests, otherwise it would not meet the 'CORS-Preflight simple request' requirements
 			if (isNull(noCORS) || !noCORS) {
 				xhr.upload.onprogress = (pe: ProgressEvent): void => {
-					if (verbose) {
+					if (this.verbose) {
 						console.log(TAG, `${id}: ${String(new Date())} upload progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 					}
 
 					restartTimeoutTimer()
 
-					if (verbose) {
-						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
+					if (this.verbose) {
+						console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
 					}
 
 					if (uploadProgressListener != null && pe.lengthComputable) {
@@ -144,14 +151,14 @@ export class HttpClientJavascript implements HttpClient {
 				}
 
 				xhr.upload.ontimeout = (e): void => {
-					if (verbose) {
+					if (this.verbose) {
 						console.log(TAG, `${id}: ${String(new Date())} upload timeout. calling error handler.`, e)
 					}
 					xhr.onerror?.(e)
 				}
 
 				xhr.upload.onerror = (e): void => {
-					if (verbose) {
+					if (this.verbose) {
 						console.log(TAG, `${id}: ${String(new Date())} upload error. calling error handler.`, e)
 					}
 					xhr.onerror?.(e)
@@ -162,23 +169,23 @@ export class HttpClientJavascript implements HttpClient {
 					if (abortSignal?.aborted ?? false) {
 						reject(new CancelledError(`upload has been aborted ${method} ${url}`))
 					} else {
-						if (verbose) {
+						if (this.verbose) {
 							console.log(TAG, `${id}: ${String(new Date())} upload aborted. calling error handler.`, e)
 						}
-						reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${url}`))
+						reject(new ConnectionError(`Reached timeout of ${this.timeoutValue}ms ${xhr.statusText} | ${method} ${url}`))
 					}
 				}
 			}
 
 			xhr.onprogress = (pe: ProgressEvent): void => {
-				if (verbose) {
+				if (this.verbose) {
 					console.log(TAG, `${id}: ${String(new Date())} download progress. Clearing Timeout ${String(requestTimeoutTimeoutID)}`, pe)
 				}
 
 				restartTimeoutTimer()
 
-				if (verbose) {
-					console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${EnvProvider.get().getTimeOutValue()}`)
+				if (this.verbose) {
+					console.log(TAG, `${id}: set new timeout ${String(requestTimeoutTimeoutID)} of ${this.timeoutValue}`)
 				}
 
 				if (downloadProgressListener != null && pe.lengthComputable) {
@@ -192,7 +199,7 @@ export class HttpClientJavascript implements HttpClient {
 				if (abortSignal?.aborted ?? false) {
 					reject(new CancelledError(`Request canceled | ${method} ${url}`))
 				} else {
-					reject(new ConnectionError(`Reached timeout of ${EnvProvider.get().getTimeOutValue()}ms ${xhr.statusText} | ${method} ${url}`))
+					reject(new ConnectionError(`Reached timeout of ${this.timeoutValue}ms ${xhr.statusText} | ${method} ${url}`))
 				}
 			}
 
@@ -205,11 +212,6 @@ export class HttpClientJavascript implements HttpClient {
 			}
 		})
 	}
-}
-
-/** We only need to track timeout directly here on some platforms. Other platforms do it inside their network driver. */
-function usingTimeoutAbort(): boolean {
-	return EnvProvider.get().isWebClient() || EnvProvider.get().isAndroidApp()
 }
 
 function parseResponseHeaders(xhr: XMLHttpRequest): Map<string, string> {
