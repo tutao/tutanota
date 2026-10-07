@@ -2567,5 +2567,13 @@ export default {
 		"inboxRuleToRecipientEquals_action": "\"To\" recipient is",
 		"inboxRuleBCCRecipientEquals_action": "\"Bcc\" recipient is",
 		"inboxRuleCCRecipientEquals_action": "\"Cc\" recipient is",
+		"confirmTrashAction_label": "Confirm trash action",
+		"confirmDeleteAction_label": "Confirm delete action",
+		"confirmSpamAction_label": "Confirm spam",
+		"confirmDelete_msg": "Do you really want to permanently delete '{1}'?",
+		"affectedInboxRules_msg": "{1} inbox rules would be affected",
+		"pleaseSelectFolder_msg": "Please select a folder.",
+		"inboxRuleInvalid_label": "This inbox rule contains invalid values. Please edit it to fix the fault condition.",
+		"invalidateInboxRulesUsingDeletedMailSet_msg": "These inbox rules use '{1}'. They may become invalid when removing '{1}'.\n\nInvalid rules will be neither matched nor applied anymore. You must assign valid values to them in the settings again."
 	}
 }

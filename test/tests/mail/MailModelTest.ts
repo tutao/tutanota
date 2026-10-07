@@ -83,6 +83,7 @@ o.spec("MailModelTest", function () {
 			connectivityModel,
 			() => object(),
 			object(),
+			() => object(),
 			noOp,
 		)
 	})
@@ -151,6 +152,7 @@ o.spec("MailModelTest", function () {
 					connectivityModel,
 					() => processInboxHandler,
 					object(),
+					() => object(),
 					noOp,
 				),
 				(m: MailModel) => {
