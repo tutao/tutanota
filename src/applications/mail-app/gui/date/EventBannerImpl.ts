@@ -12,7 +12,6 @@ import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtil
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
-import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
@@ -275,10 +274,11 @@ export async function loadEventsAroundInvite(
 	 */
 	const eventToAgenda: Map<string, InviteAgenda> = new Map()
 	const datesToLoad = iCalContents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
-	const hasNewPaidPlan = await eventsRepository.canLoadBirthdaysCalendar()
-	if (hasNewPaidPlan) {
-		await eventsRepository.loadContactsBirthdays()
-	}
+	// TODO: Re-add birthdays here
+	// const hasNewPaidPlan = await eventsRepository.canLoadBirthdaysCalendar()
+	// if (hasNewPaidPlan) {
+	// 	await eventsRepository.loadContactsBirthdays()
+	// }
 	if (forceReload) {
 		await eventsRepository.forceLoadEventsAt(datesToLoad)
 	} else {

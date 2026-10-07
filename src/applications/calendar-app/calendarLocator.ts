@@ -128,7 +128,6 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { HttpClientJavascript } from "@tutao/http-client"
 
 EnvProvider.assertMainOrNode()
 
@@ -290,15 +289,7 @@ class CalendarLocator implements CommonLocator {
 		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
-		return new CalendarEventsRepository(
-			await this.calendarModel(),
-			this.calendarFacade,
-			timeZone,
-			this.entityClient,
-			this.eventController,
-			this.contactModel,
-			this.logins,
-		)
+		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController, this.logins)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */

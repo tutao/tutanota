@@ -29,6 +29,8 @@ export class CalendarSearchModel {
 	) {}
 
 	async searchCalendar(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<LiveSearchResult<CalendarEvent>> {
+		// TODO: Display birthdays in search results
+
 		const { tokens, resultItems } = await this.runCalendarSearch(searchQuery, abortSignal)
 
 		const searchResult: SearchResult = {
@@ -82,8 +84,8 @@ export class CalendarSearchModel {
 							liveResult.updates({ type: "reset" })
 						}
 					} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isPossibleBirthdayContactUpdate(resultItems, update)) {
-						const calendarModel = await this.calendarEventsRepository()
-						await calendarModel.handleContactEvent(update.operation, [assertNotNull(update.instanceListId), update.instanceId])
+						// TODO: Re-add?!
+						//birthdaysSubsystem.handleContactEvent(update.operation, [assertNotNull(update.instanceListId), update.instanceId])
 
 						resultItems.splice(0, resultItems.length)
 						const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)
@@ -133,11 +135,6 @@ export class CalendarSearchModel {
 		}
 
 		const resultItems: CalendarEvent[] = []
-
-		const canLoadBirthdaysCalendar = await calendarEventsRepository.canLoadBirthdaysCalendar()
-		if (canLoadBirthdaysCalendar) {
-			await calendarEventsRepository.loadContactsBirthdays()
-		}
 
 		await calendarEventsRepository.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
 		monitor.completed()
