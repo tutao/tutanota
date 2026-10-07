@@ -455,11 +455,11 @@ export function parseAdvancedRule(rrule: Record<string, string>): CalendarAdvanc
 	return advancedRepeatRules
 }
 
-export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
+export function parseExDates(excludedDatesProps: Property[], userCalendarTimeZone: string): DateWrapper[] {
 	// it's possible that we have duplicated entries since this data comes from whereever, this deduplicates it.
 	const allExDates: Map<number, DateWrapper> = new Map<number, DateWrapper>()
 	for (let excludedDatesProp of excludedDatesProps) {
-		const tzId: string | null = getTzId(excludedDatesProp)
+		const tzId: string | null = getTzId(excludedDatesProp, userCalendarTimeZone)
 		const values = separatedByCommaParser(new StringIterator(excludedDatesProp.value))
 		for (let value of values) {
 			const { date: exDate } = parseTime(value, tzId)
@@ -469,8 +469,8 @@ export function parseExDates(excludedDatesProps: Property[]): DateWrapper[] {
 	return [...allExDates.values()].sort((dateWrapper1, dateWrapper2) => dateWrapper1.date.getTime() - dateWrapper2.date.getTime())
 }
 
-export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null): Date {
-	const result = parseDateTime(recurrenceIdProp.value, getTzId(recurrenceIdProp), tzId ?? null)
+export function parseRecurrenceId(recurrenceIdProp: Property, tzId: string | null, userCalendarTimeZone: string): Date {
+	const result = parseDateTime(recurrenceIdProp.value, getTzId(recurrenceIdProp, userCalendarTimeZone), tzId ?? null)
 	return toValidJSDate(result.dateTime, recurrenceIdProp.value, tzId)
 }
 
@@ -500,7 +500,7 @@ function parseEventDuration(durationValue: string, startTime: Date): Date {
 	return new Date(startTime.getTime() + durationInMillis)
 }
 
-function getTzId(prop: Property): string | null {
+function getTzId(prop: Property, userCalendarTimeZone: string): string | null {
 	let tzIdValue: string = prop.params["TZID"]
 	if (!tzIdValue) {
 		return null
@@ -516,6 +516,8 @@ function getTzId(prop: Property): string | null {
 		return timeZoneFromWindowsMap
 	}
 
+	let warningMessage: string | null = null
+
 	// Special-case handling for time zone IDs starting with GMT/UTC, followed by an optional offset: +/-h[h][mm]
 	// We throw an error if the seconds value is non-zero, because we have no easy way to map them to an IANA time zone
 	// using the Intl API.
@@ -523,26 +525,29 @@ function getTzId(prop: Property): string | null {
 	if (threeCharPrefix !== null && (threeCharPrefix === "UTC" || threeCharPrefix === "GMT")) {
 		if (tzIdValue.length === 3) {
 			return "UTC"
+		}
+
+		const regexMatches = tzIdValue.slice(3).match(/^([+-]\d\d?)(\d\d)?$/)
+		if (regexMatches === null) {
+			warningMessage = `iCal parameter "TZID=${tzIdValue}", in property "${prop.name}", has unexpected characters after "${threeCharPrefix}".`
 		} else {
-			const regexMatches = tzIdValue.slice(3).match(/^([+-]\d\d?)(\d\d)?$/)
-			if (regexMatches === null) {
-				throw new ParserError(`${TAG} Invalid GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
-			}
 			const [_, hourString, minuteString] = regexMatches
 			let hour = parseInt(hourString)
 			if (hour === 0) {
 				return "UTC"
 			}
-			if (hour < -12 || hour > 14) {
-				throw new ParserError(`${TAG} Invalid hour in GMT/UTC TZID parameter in property ${prop.name}: TZID=${tzIdValue}.`)
+			if (-12 <= hour && hour <= 14) {
+				const minute = minuteString ? parseInt(minuteString) : 0
+				if (minute === 0) {
+					// Etc/UTC is the reverse of normal UTC.  Same with GMT.  (See: https://data.iana.org/time-zones/tzdb/etcetera)
+					return `Etc/GMT${hour < 0 ? "+" : "-"}${Math.abs(hour)}`
+				} else {
+					// our system cannot currently handle minute offsets.
+					warningMessage = `iCal parameter "TZID=${tzIdValue}", in property "${prop.name}", has unsupported minute offset.`
+				}
+			} else {
+				warningMessage = `iCal parameter "TZID=${tzIdValue}", in property "${prop.name}", has invalid hour offset.`
 			}
-			const minute = minuteString ? parseInt(minuteString) : 0
-			if (minute !== 0) {
-				// our system cannot currently handle minute offsets.
-				throw new ParserError(`${TAG} Incompatible GMT/UTC TZID with minute offset in property ${prop.name}: TZID=${tzIdValue}.`)
-			}
-			// Etc/UTC is the reverse of normal UTC.  Same with GMT.  (See: https://data.iana.org/time-zones/tzdb/etcetera)
-			return `Etc/GMT${hour < 0 ? "+" : "-"}${Math.abs(hour)}`
 		}
 	}
 
@@ -550,11 +555,19 @@ function getTzId(prop: Property): string | null {
 		return Intl.DateTimeFormat("en-US", { timeZone: tzIdValue }).resolvedOptions().timeZone
 	} catch (e) {
 		if (e instanceof RangeError) {
-			throw new ParserError(`${TAG} Invalid timezone in property ${prop.name}: TZID=${tzIdValue}.`)
+			if (!warningMessage) {
+				warningMessage = `iCal parameter "TZID=${tzIdValue}", in property "${prop.name}", is not known to the client's implementation of the Intl API.`
+			}
 		} else {
 			throw e
 		}
 	}
+
+	if (!warningMessage) {
+		warningMessage = `iCal parameter "TZID=${tzIdValue}", in property "${prop.name}", is Invalid.`
+	}
+	console.warn(TAG + " " + warningMessage + ` Using user's calendar time zone = "${userCalendarTimeZone}" as fallback.`)
+	return userCalendarTimeZone
 }
 
 function oneDayDurationEnd(startTime: Date, allDay: boolean, tzId: string | null, zone: string): Date {
@@ -616,12 +629,12 @@ export function parseCalendarEvents(icalObject: ICalObject, userCalendarTimeZone
 	}
 }
 
-function getContents(eventObjects: ICalObject[], zone: string): [ParsedEventAlarmTuple[], ParserError[]] {
+function getContents(eventObjects: ICalObject[], userCalendarTimeZone: string): [ParsedEventAlarmTuple[], ParserError[]] {
 	const contents: ParsedEventAlarmTuple[] = []
 	const errors: ParserError[] = []
 	for (let i = 0; i < eventObjects.length; ++i) {
 		try {
-			contents.push(parseEventObject(eventObjects[i], i, zone))
+			contents.push(parseEventObject(eventObjects[i], i, userCalendarTimeZone))
 		} catch (e) {
 			if (e instanceof ParserError) {
 				errors.push(e)
@@ -633,9 +646,9 @@ function getContents(eventObjects: ICalObject[], zone: string): [ParsedEventAlar
 	return [contents, errors]
 }
 
-function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
+function parseEventObject(eventObj: ICalObject, index: number, userCalendarTimeZone: string) {
 	const startProp = getProp(eventObj, "DTSTART", false)
-	const startTzId: string | null = getTzId(startProp)
+	const startTzId: string | null = getTzId(startProp, userCalendarTimeZone)
 	const { date: startTime, allDay } = parseTime(startProp.value, startTzId)
 
 	// start time and tzid is sorted, so we can worry about event identity now before proceeding...
@@ -658,12 +671,12 @@ function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
 	if (recurrenceIdProp != null && hasValidUid) {
 		// if we generated the UID, we have no way of knowing which event series this recurrenceId refers to.
 		// in that case, we just don't add the recurrenceId and import the event as a standalone.
-		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId)
+		recurrenceId = parseRecurrenceId(recurrenceIdProp, startTzId, userCalendarTimeZone)
 	}
 
 	const endProp = getProp(eventObj, "DTEND", true)
-	const endTzId = endProp ? getTzId(endProp) : null
-	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, zone)
+	const endTzId = endProp ? getTzId(endProp, userCalendarTimeZone) : null
+	const endTime = parseEndTime(eventObj, allDay, startTime, startTzId, userCalendarTimeZone)
 
 	let summary: string = ""
 	const maybeSummary = parseICalText(eventObj, "SUMMARY")
@@ -679,7 +692,7 @@ function parseEventObject(eventObj: ICalObject, index: number, zone: string) {
 	let repeatRule: RepeatRule | null = null
 	if (rruleProp != null) {
 		repeatRule = parseRrule(rruleProp, startTzId)
-		repeatRule.excludedDates = parseExDates(excludedDateProps)
+		repeatRule.excludedDates = parseExDates(excludedDateProps, userCalendarTimeZone)
 	}
 
 	const description = parseICalText(eventObj, "DESCRIPTION") ?? ""
@@ -812,7 +825,7 @@ function parseICalText(eventObj: ICalObject, tag: string) {
 	return text
 }
 
-function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, calendarTimeZone: string): Date {
+function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, startTzId: string | null, userCalendarTimeZone: string): Date {
 	const endProp = getProp(eventObj, "DTEND", true)
 
 	if (endProp) {
@@ -820,7 +833,7 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, st
 			throw new ParserError("DTEND value is not a string")
 		}
 
-		const parseEndDateResult = parseDateTime(endProp.value, getTzId(endProp), startTzId)
+		const parseEndDateResult = parseDateTime(endProp.value, getTzId(endProp, userCalendarTimeZone), startTzId)
 
 		const endTime = parseEndDateResult.dateTime.toJSDate()
 		if (endTime > startTime) {
@@ -850,7 +863,7 @@ function parseEndTime(eventObj: ICalObject, allDay: boolean, startTime: Date, st
 			// "DURATION" property, the event's duration is taken to be one day.
 			//
 			// https://tools.ietf.org/html/rfc5545#section-3.6.1
-			return oneDayDurationEnd(startTime, allDay, startTzId, calendarTimeZone)
+			return oneDayDurationEnd(startTime, allDay, startTzId, userCalendarTimeZone)
 		}
 	}
 }
