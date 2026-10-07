@@ -178,7 +178,7 @@ export class EnvProvider {
 	}
 
 	public getPathPrefix(): string {
-		return this.env.shadowDomAppRoot != null ? this.env.shadowDomAppRoot : ""
+		return isNotNull(this.env.shadowDomAppRoot) ? this.env.shadowDomAppRoot : ""
 	}
 
 	/**
