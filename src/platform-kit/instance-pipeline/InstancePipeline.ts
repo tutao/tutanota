@@ -7,7 +7,7 @@ import {
 	SymmetricGroupKeyLoader,
 } from "./CryptoMapper"
 import { ModelMapper } from "./ModelMapper"
-import { lazy, Nullable } from "@tutao/utils"
+import { lazy, Nullable, isNull } from "@tutao/utils"
 import {
 	AeadCipherVersion,
 	AesKey,
@@ -55,6 +55,10 @@ export class InstancePipeline {
 		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper, keyEncryption)
 	}
 
+	public enableNetworkDebugging(): void {
+		this.typeMapper.enableNetworkDebugging()
+	}
+
 	public static newNativeOnly(
 		typeModelResolver: ClientOnlyTypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
@@ -73,10 +77,10 @@ export class InstancePipeline {
 		if (aeadCipherVersion === AeadCipherVersion.Unencrypted) {
 			return null
 		}
-		if (this.loggedInUserProvider == null) throw new ProgrammingError("missing loggedInUserProvider")
+		if (isNull(this.loggedInUserProvider)) throw new ProgrammingError("missing loggedInUserProvider")
 		switch (this.loggedInUserProvider.getDefaultSymmetricEncryptionScheme()) {
 			case SymmetricEncryptionScheme.AesCbc: {
-				if (sessionKeyDecryptor == null) return null
+				if (isNull(sessionKeyDecryptor)) return null
 				return new PartialSubKeyInfoAesCbcThenHmac(sessionKeyDecryptor)
 			}
 			case SymmetricEncryptionScheme.Aead:
@@ -84,7 +88,7 @@ export class InstancePipeline {
 					case AeadCipherVersion.WithInstanceKey:
 						return new PartialSubKeyInfoAeadWithInstanceKey()
 					case AeadCipherVersion.WithSessionKey: {
-						if (sessionKeyDecryptor == null) return null
+						if (isNull(sessionKeyDecryptor)) return null
 						return new PartialSubKeyInfoAeadWithSessionKey(sessionKeyDecryptor)
 					}
 					default:

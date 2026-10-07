@@ -122,6 +122,7 @@ export class RecipientKeyData {
 }
 
 export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetworkHelper {
+	private networkDebuggingEnabled: boolean = false
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -145,6 +146,10 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 	async makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>> {
 		return this.instanceKeyProviderMaker.makeInstanceKeyProvider(instance)
+	}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebuggingEnabled = true
 	}
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
@@ -891,7 +896,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (EnvProvider.get().networkDebuggingEnabled()) {
+		if (this.networkDebuggingEnabled) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}
