@@ -266,6 +266,7 @@ class WidgetUIViewModel(
 				}
 			}
 			for (birthdayEventDao: BirthdayEventDao in eventList.birthdayEvents) {
+				// the logic around birthday events is simpler, because we always know they will be all day and last exactly one day
 				val eventStartAsInstant = Instant.ofEpochMilli(birthdayEventDao.eventDao.startTime.toLong())
 
 				val eventLocalStartTime = LocalDateTime.ofInstant(eventStartAsInstant, zoneId)
@@ -301,11 +302,8 @@ class WidgetUIViewModel(
 		// we sorted events in a day to put them in the correct order.
 		for ((index, eventsOfDay) in daysAndEvents.withIndex()) {
 			val sortedEventsOfDay = eventsOfDay.sortedWith(Comparator<UIEvent> { a, b ->
-				// compares the events' local start times, ignoring date. This might not always give us the results we want!
-				// e.g.: if the event starts at 5AM on October 5 and ends on 4pm October 6, the entry on the Oct 6 will appear in the widget
-				// before an event that starts at 6am Oct 6
-				// To get the result that hak wants we should conditionally sort using the End Date of events that continue from a previous date.
 
+				// Birthday events should always be at front of list so they always show in all-day section
 				if (a.isBirthday) {
 					Log.d(TAG, "event a is birthday")
 					return@Comparator -1
@@ -314,6 +312,8 @@ class WidgetUIViewModel(
 					return@Comparator 1
 				}
 
+				// if an event starts before today and ends today, are more interested in when it ends than when it starts
+				// So we decided to sort it so the event is placed next to events with start times that are similar to its end time.
 				val comparisonDateA =
 					if (a.startsBeforeTodayAndEndsToday) LocalTime.parse(a.formattedEndTime) else LocalTime.parse(a.formattedStartTime)
 				val comparisonDateB =
