@@ -1,16 +1,18 @@
 import { InstanceKeyProviderMaker } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { SymmetricGroupKeyLoader, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
+import { EntityAdapter, InstancePipeline, SymmetricGroupKeyLoader, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { convertKeyVersionToCustomId, FormerKeyResolver } from "../../../../../src/platform-kit/base/base-crypto/FormerKeyResolver"
 import { matchers, object, verify, when } from "testdouble"
 import { GroupInfo, GroupInfoTypeRef, InstanceKey, InstanceKeysRefTypeRef, InstanceKeyTypeRef, Permission, PermissionTypeRef } from "@tutao/entities/sys"
-import { createTestEntity } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { assertNotNull, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { AssociationType, ModelAssociation } from "../../../../../src/platform-kit/meta"
-import { AesKey, cryptoUtils, CryptoWrapper, VersionedAes256Key } from "../../../../../src/platform-kit/crypto"
+import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, VersionedAes256Key } from "../../../../../src/platform-kit/crypto"
 import o, { assertThrows } from "@tutao/otest"
 import { PermissionType } from "../../../../../src/entities/sys/Utils"
+import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
+import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("InstanceKeyProviderMakerTest", function () {
 	let providerMaker: InstanceKeyProviderMaker
@@ -71,6 +73,7 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 		})
 		instance = createTestEntity(GroupInfoTypeRef, {
 			_permissions: permissionForInstance._id[0],
+			group: "instanceGroupId",
 			_ownerGroup: "instanceOwnerGroupId",
 			_formerInstanceKeys: createTestEntity(InstanceKeysRefTypeRef, { list: instanceKey._id[0] }),
 		})
@@ -101,6 +104,46 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 	})
 
 	o.spec("makeInstanceKeyProvider", function () {
+		// this is the real production case
+		o.spec("instance is entityAdapter", function () {
+			let entityAdapter: EntityAdapter // use instead of instance for these tests
+			let instancePipeline: InstancePipeline
+
+			async function convertInstanceToEntityAdapter(instancePipeline: InstancePipeline, entityAdapter: EntityAdapter) {
+				const encryptedParsedInstance = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, instance, aes256RandomKey())
+				changeInstanceDirection(encryptedParsedInstance, InstanceDirection.IncomingFromServer)
+				entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
+					encryptedParsedInstance,
+					instancePipeline.modelMapper,
+					instancePipeline.cryptoMapper,
+				)
+				return entityAdapter
+			}
+
+			o.beforeEach(async function () {
+				const typeModelResolver = clientInitializedTypeModelResolver()
+				instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+			})
+
+			o.test("success - current instance key on permission", async function () {
+				// turn instance into an entityAdapter as we will have in the production code
+				entityAdapter = await convertInstanceToEntityAdapter(instancePipeline, entityAdapter)
+				const instanceKeyProvider = await providerMaker.makeInstanceKeyProvider(entityAdapter)
+				o.check(instanceKeyProvider).notEquals(null)
+				const providedInstanceKey = await assertNotNull(instanceKeyProvider)(currentInstanceKeyVersion)
+				o.check(providedInstanceKey).deepEquals(currentInstanceKeyFromPermission)
+				verify(formerKeyResolver.findFormerInstanceKey(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+			})
+
+			o.test("null - sharable instance but not actually shared", async function () {
+				// turn instance into an entityAdapter as we will have in the production code
+				instance._formerInstanceKeys = null
+				entityAdapter = await convertInstanceToEntityAdapter(instancePipeline, entityAdapter)
+				const instanceKeyProvider = await providerMaker.makeInstanceKeyProvider(entityAdapter)
+				o.check(instanceKeyProvider).equals(null)
+			})
+		})
+
 		o.test("success - current instance key on permission", async function () {
 			const instanceKeyProvider = await providerMaker.makeInstanceKeyProvider(instance)
 			o.check(instanceKeyProvider).notEquals(null)
