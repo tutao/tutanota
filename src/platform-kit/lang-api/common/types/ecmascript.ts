@@ -26,3 +26,13 @@ export const TsObject = {
 	 */
 	assign: null,
 }
+
+export const TsJson = {
+	stringify<T>(obj: T): string {
+		return JSON.stringify(obj)
+	},
+
+	parse<T = any>(jsonString: string): T {
+		return JSON.parse(jsonString)
+	},
+}

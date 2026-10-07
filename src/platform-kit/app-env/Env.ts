@@ -125,7 +125,7 @@ export class EnvProvider {
 	}
 
 	public getEnvAsJson(): string {
-		return JSON.stringify(this.env)
+		return TsJson.stringify(this.env)
 	}
 
 	public isMainOrNode(): boolean {
