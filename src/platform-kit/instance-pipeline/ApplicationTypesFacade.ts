@@ -8,6 +8,7 @@ import { ApplicationTypesHash, ServerModelInfo } from "./EntityFunctions"
 import { DEFAULT_REST_CLIENT_OPTIONS } from "@tutao/rest-client"
 import { EntityUtils } from "./EntityUtils"
 import { isNull } from "../utils/Utils"
+import { Nullable } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -62,8 +63,8 @@ export class ApplicationTypesFacade {
 
 	constructor(
 		private readonly restClient: RestClientInterface,
-		private readonly fileFacade: SimpleFileFacade,
 		private readonly serverModelInfo: ServerModelInfo,
+		private readonly serverModelJsonPersistence: Nullable<SimpleFileFacade>,
 	) {
 		this.deferredRequests = []
 	}
@@ -114,35 +115,34 @@ export class ApplicationTypesFacade {
 	}
 
 	private async storeNewApplicationTypes(newApplicationTypesJsonString: string): Promise<void> {
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
-			try {
-				const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
-				await this.fileFacade.writeToAppDir(fileContent, APPLICATION_TYPES_FILE_NAME)
-			} catch (err_to_ignore) {
-				console.error(`Failed to persist server model: ${err_to_ignore}`)
-			}
+		if (isNull(this.serverModelJsonPersistence)) {
+			return
+		}
+		try {
+			const fileContent = stringToUtf8Uint8Array(newApplicationTypesJsonString)
+			await this.serverModelJsonPersistence.writeToAppDir(fileContent, APPLICATION_TYPES_FILE_NAME)
+		} catch (err_to_ignore) {
+			console.error(`Failed to persist server model: ${err_to_ignore}`)
 		}
 	}
 
 	// In case we fail to read the application types from the stored json file,
 	// we will request it from the server eagerly.
 	private async loadStoredTypeModels(): Promise<ApplicationTypesGetOut | null> {
-		// in the web app, we do not have a persistent server model,
-		// therefore we will load it from the server
-		// when the web app is started and store it in memory
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
-			try {
-				const applicationTypesJsonData = await this.fileFacade.readFromAppDir(APPLICATION_TYPES_FILE_NAME)
-				const applicationTypesHash = this.computeApplicationTypesHash(applicationTypesJsonData)
-				console.log(`initializing server model from local json data. Hash: ${applicationTypesHash}`)
-				const applicationTypesJson = uint8ArrayToString("utf-8", applicationTypesJsonData)
-				return { applicationTypesHash, applicationTypesJson }
-			} catch (e) {
-				console.log(`ignoring error to read typeModel from filesystem: ${e}`)
-			}
+		if (isNull(this.serverModelJsonPersistence)) {
+			return null
 		}
 
-		return null
+		try {
+			const applicationTypesJsonData = await this.serverModelJsonPersistence.readFromAppDir(APPLICATION_TYPES_FILE_NAME)
+			const applicationTypesHash = this.computeApplicationTypesHash(applicationTypesJsonData)
+			console.log(`initializing server model from local json data. Hash: ${applicationTypesHash}`)
+			const applicationTypesJson = uint8ArrayToString("utf-8", applicationTypesJsonData)
+			return { applicationTypesHash, applicationTypesJson }
+		} catch (e) {
+			console.log(`ignoring error to read typeModel from filesystem: ${e}`)
+			return null
+		}
 	}
 
 	// visibleForTesting
@@ -174,9 +174,10 @@ export class ApplicationTypesFacade {
 	}
 
 	async invalidateApplicationTypes(): Promise<void> {
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isApp()) {
-			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_FILE_NAME)
-			await this.fileFacade.deleteFromAppDir(APPLICATION_TYPES_PATH_SDK)
+		if (isNull(this.serverModelJsonPersistence)) {
+			return
 		}
+		await this.serverModelJsonPersistence.deleteFromAppDir(APPLICATION_TYPES_FILE_NAME)
+		await this.serverModelJsonPersistence.deleteFromAppDir(APPLICATION_TYPES_PATH_SDK)
 	}
 }

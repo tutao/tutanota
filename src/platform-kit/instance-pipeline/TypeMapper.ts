@@ -22,7 +22,13 @@ import { assertNotNaN, isNull } from "@tutao/lang-api"
 import { EnvProvider } from "@tutao/app-env"
 
 export class TypeMapper {
+	private networkDebugging: boolean = false
+
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebugging = true
+	}
 
 	async parseServerJson(jsonInstance: IncomingServerJson): Promise<EncryptedParsedInstance> {
 		const typeModel = jsonInstance.typeModel
