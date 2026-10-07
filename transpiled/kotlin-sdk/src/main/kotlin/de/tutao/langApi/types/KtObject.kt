@@ -1,10 +1,13 @@
 package de.tutao.langApi.types
 
-import de.tutao.langApi.TsArray
 import de.tutao.langApi.TsList
 
 class KtObject {
 	companion object {
+		fun <T> freeze(item: T): T {
+			return item
+		}
+
 		fun <T> freeze(list: List<T>): List<T> {
 			return list.toList()
 		}
@@ -17,8 +20,9 @@ class KtObject {
 			return list
 		}
 
-		fun <T> freeze(list: TsArray<T>): TsArray<T> {
-			return list
+		fun <T> freeze(list: KtArray<T>): TsList<T> {
+			return list as TsList<T>
 		}
+
 	}
 }

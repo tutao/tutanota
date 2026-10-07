@@ -14,3 +14,13 @@ open class TutanotaError: Error, @unchecked Sendable {
     self._message = message.asPrimitiveString()
   }
 }
+
+open class ProgrammingError: TutanotaError, @unchecked Sendable {
+  public init(_ m: Nullable<SwString> = nil) {
+    if let m {
+      super.init(SwString("ProgrammingError"), m)
+    } else {
+      super.init(SwString("ProgrammingError"), SwString("Unknown Programming error"))
+    }
+  }
+}

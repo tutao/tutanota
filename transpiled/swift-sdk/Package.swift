@@ -17,9 +17,7 @@ let package = Package(
     // Targets are the basic building blocks of a package, defining a module or a test suite.
     // Targets can depend on other targets in this package and products from dependencies.
     .target(name: "Tutao_LangApi", dependencies: [], path: "Sources/LangApi/Common"),
-    .target(
-      name: "Tutao_AppEnv", dependencies: ["Tutao_LangApi"], path: "Sources/PlatformKit/AppEnv"),
-    .target(name: "Tutao_FingerPrintJs", path: "Sources/LangApi/ExternalPackages/FingerPrintJs"),
+    .target(name: "Tutao_AppEnv", dependencies: ["Tutao_LangApi"], path: "Sources/PlatformKit/AppEnv"),
     .target(name: "Cli", dependencies: ["Tutao_LangApi", "Tutao_AppEnv"]),
   ]
 )
