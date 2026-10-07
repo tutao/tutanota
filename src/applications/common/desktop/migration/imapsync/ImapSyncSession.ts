@@ -169,9 +169,11 @@ export class ImapSyncSession extends MigrationSync {
 		}
 
 		if (listTreeResponse) {
-			const migrationMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
-				return migrationMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
-			})
+			const migrationMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? [])
+				.filter((folder) => (folder.specialUse || folder.subscribed) ?? true)
+				.map((listTreeResponse) => {
+					return migrationMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
+				})
 			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
 			// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
 			if (migrationMailboxes && migrationMailboxes.length === 1 && isNotEmpty(assertNotNull(first(migrationMailboxes)).subFolders ?? [])) {
