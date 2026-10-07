@@ -79,7 +79,6 @@ o.spec("CalendarEventRepositoryTest", function () {
 				timezone,
 				entityClientMock,
 				eventControllerMock,
-				object(),
 				loginControllerMock,
 			)
 		})

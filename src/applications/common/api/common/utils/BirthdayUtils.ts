@@ -12,6 +12,36 @@ export function birthdayToIsoDate(birthday: Birthday): string {
 	return `${year}-${month}-${day}`
 }
 
+export function parseBirthdayIso(birthdayIso: string): { year: number | null; month: number; day: number } {
+	let year: number | null = null
+	let month: number
+	let day: number
+
+	if (birthdayIso.startsWith("--")) {
+		const monthAndDay = birthdayIso.substring(2).split("-")
+
+		if (monthAndDay.length !== 2) {
+			throw new ParsingError("invalid birthday without year: " + birthdayIso)
+		}
+
+		month = parseInt(monthAndDay[0])
+		day = parseInt(monthAndDay[1])
+		year = null
+	} else {
+		const yearMonthAndDay = birthdayIso.split("-")
+
+		if (yearMonthAndDay.length !== 3) {
+			throw new ParsingError("invalid birthday: " + birthdayIso)
+		}
+
+		year = parseInt(yearMonthAndDay[0])
+		month = parseInt(yearMonthAndDay[1])
+		day = parseInt(yearMonthAndDay[2])
+	}
+
+	return { year, month, day }
+}
+
 /**
  * Converts iso Date (yyyy-mm-dd) or Date without year (--mm-dd) into Birthday object.
  */

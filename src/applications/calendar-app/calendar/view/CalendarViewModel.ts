@@ -102,12 +102,12 @@ import { ImportInteractionHandler } from "../../../common/calendar/gui/ImportInt
 import { selectAndParseIcalFile } from "../../../common/calendar/gui/CalendarImporterDialog"
 import { EventSeriesResolver } from "../../../common/calendar/import/EventSeriesResolver"
 import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseUtils"
-import { WebsocketConnectivityModel } from "../../../common/misc/WebsocketConnectivityModel"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
 import { SearchRouter } from "../../../common/search/view/SearchRouter"
 import { encodeCalendarSearchKey } from "../search/model/CalendarSearchUtils"
 import { CalendarSearchModel } from "../../search/model/CalendarSearchModel"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
+import { birthdaysSubsystem } from "../../../common/calendar/BirthdaysSubsystem"
 
 export interface EventWrapperFlags {
 	/**
@@ -432,10 +432,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
 
 		try {
-			const hasNewPaidPlan = await this.eventsRepository.canLoadBirthdaysCalendar()
-			if (hasNewPaidPlan) {
-				await this.eventsRepository.loadContactsBirthdays()
-			}
+			await birthdaysSubsystem.init(this.logins.getUserController(), this.contactModel, this.entityClient)
 			await this.loadMonthsIfNeeded(
 				[new Date(thisMonthStart), nextMonthDate, previousMonthDate],
 				progressMonitor,
@@ -634,6 +631,17 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		}
 
 		for (const day of days) {
+			// Insert birthday events into longEvents
+			const bdayEventWrappers = birthdaysSubsystem.generateEventWrappersForBirthdaysOnDay(
+				this.logins.getUserController(),
+				day.getFullYear(),
+				day.getMonth() + 1,
+				day.getDate(),
+			)
+			for (const bdayEventWrapper of bdayEventWrappers) {
+				longEvents.set(getElementId(bdayEventWrapper.event) + bdayEventWrapper.event.startTime.toString(), bdayEventWrapper)
+			}
+
 			const shortEventsForDay: EventWrapper[] = []
 			const eventsForDay: ReadonlyArray<EventWrapper> = this.eventsRepository.getDaysToEvents()().get(day.getTime()) || []
 
@@ -868,7 +876,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 				}
 			} else if (isUpdateForTypeRef(ContactTypeRef, update) && this.isNewPaidPlan) {
 				const contactId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
-				await this.eventsRepository.handleContactEvent(update.operation, contactId)
+				await birthdaysSubsystem.handleContactEvent(this.contactModel, update.operation, contactId)
 				this.doRedraw()
 			} else if (isUpdateForTypeRef(CustomerInfoTypeRef, update)) {
 				this.logins

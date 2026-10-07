@@ -1741,23 +1741,6 @@ export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
-export function extractYearFromBirthday(birthday: string | null): number | null {
-	if (!birthday) {
-		return null
-	}
-
-	const dateParts = birthday.split("-")
-	const partsLength = dateParts.length
-
-	// A valid ISO date should contain 3 parts:
-	// YYYY-mm-dd => [yyyy, mm, dd]
-	if (partsLength !== 3) {
-		return null
-	}
-
-	return Number.parseInt(dateParts[0])
-}
-
 /**
  * Get contact id that was used to derive {@param calendarEventId}.
  * For birthdays, we create "virtual" (client-only) calendar events. Their id is derived from the contact id. This

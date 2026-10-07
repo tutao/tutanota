@@ -450,15 +450,7 @@ class MailLocator implements CommonLocator {
 		const { CalendarEventsRepository } = await import("../common/calendar/date/CalendarEventsRepository.js")
 		const { DefaultDateProvider } = await import("../common/calendar/date/CalendarUtils")
 		const timeZone = new DefaultDateProvider().timeZone()
-		return new CalendarEventsRepository(
-			await this.calendarModel(),
-			this.calendarFacade,
-			timeZone,
-			this.entityClient,
-			this.eventController,
-			this.contactModel,
-			this.logins,
-		)
+		return new CalendarEventsRepository(await this.calendarModel(), this.calendarFacade, timeZone, this.entityClient, this.eventController, this.logins)
 	})
 
 	/** This ugly bit exists because CalendarEventWhoModel wants a sync factory. */
