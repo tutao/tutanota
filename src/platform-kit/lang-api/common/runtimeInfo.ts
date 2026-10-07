@@ -19,6 +19,6 @@ export class RuntimeInfo {
 	}
 
 	public static globallyDefinedEnv<E>(): Nullable<E> {
-		return env as Nullable<E>
+		return globalThis.env as Nullable<E>
 	}
 }
