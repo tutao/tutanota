@@ -342,42 +342,48 @@ o.spec("CalendarParser", function () {
 
 	o.spec("parseExcludedDates", function () {
 		o("are excluded dates deduplicated", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230308T230000Z,20230308T230000Z,20230309T230000Z" }], zone)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-03-08T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("are excluded dates sorted", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: {}, value: "20230313T230000Z,20230309T230000Z" }], zone)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-13T23:00:00Z") }),
 			])
 		})
 		o("multiple exdates in separate lines are parsed", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
-				{
-					name: "EXDATES",
-					params: {},
-					value: "20230203T230000Z",
-				},
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: {}, value: "20230309T230000Z" },
+					{
+						name: "EXDATES",
+						params: {},
+						value: "20230203T230000Z",
+					},
+				],
+				zone,
+			)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-02-03T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-09T23:00:00Z") }),
 			])
 		})
 		o("deduplication over multiple lines works", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
-				{
-					name: "EXDATES",
-					params: {},
-					value: "20230309T230000Z,20230114T230000Z",
-				},
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: {}, value: "20230309T230000Z,20230302T230000Z" },
+					{
+						name: "EXDATES",
+						params: {},
+						value: "20230309T230000Z,20230114T230000Z",
+					},
+				],
+				zone,
+			)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-01-14T23:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-02T23:00:00Z") }),
@@ -385,34 +391,41 @@ o.spec("CalendarParser", function () {
 			])
 		})
 		o("is timezone parsed", function () {
-			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }])
+			const parsedDates = parseExDates([{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000,20230302T230000" }], zone)
 			o(parsedDates).deepEquals([
 				createDateWrapper({ date: new Date("2023-03-02T22:00:00Z") }),
 				createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") }),
 			])
 		})
 		o(" deduplication over different timezones", function () {
-			const parsedDates = parseExDates([
-				{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
-				{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
-			])
+			const parsedDates = parseExDates(
+				[
+					{ name: "EXDATES", params: { TZID: "Europe/Berlin" }, value: "20230309T230000" },
+					{ name: "EXDATES", params: { TZID: "Europe/Sofia" }, value: "20230310T000000" },
+				],
+				zone,
+			)
 			o(parsedDates).deepEquals([createDateWrapper({ date: new Date("2023-03-09T22:00:00Z") })])
 		})
 	})
 
 	o.spec("parseRecurrenceId", function () {
 		o("it uses UTC for absolute time", function () {
-			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230809T060000Z" }, zone)
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230809T060000Z" }, zone, zone)
 			o(parsedId).deepEquals(getDateInUTC("2023-08-09T06:00"))
 		})
 
 		o("it uses TZID from param for relative time", function () {
-			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME", TZID: "Europe/Sofia" }, value: "20230310T000000" }, zone)
+			const parsedId = parseRecurrenceId(
+				{ name: "RECURRENCE-ID", params: { VALUE: "DATETIME", TZID: "Europe/Sofia" }, value: "20230310T000000" },
+				zone,
+				zone,
+			)
 			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
 		})
 
 		o("it uses TZID from param when none are in the value", function () {
-			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230310T000000" }, "Europe/Sofia")
+			const parsedId = parseRecurrenceId({ name: "RECURRENCE-ID", params: { VALUE: "DATETIME" }, value: "20230310T000000" }, "Europe/Sofia", zone)
 			o(parsedId).deepEquals(getDateInUTC("2023-03-09T22:00:00Z"))
 		})
 	})
@@ -1479,7 +1492,7 @@ END:VCALENDAR`
 				o(calendarEvent?.startTimeZone).equals(expectedTimeZone)(result.parseEventErrors.toString())
 			}
 		})
-		o.test("Parser rejects invalid time zones and collects info about failures", () => {
+		o.test("use the user's time zone as a fallback when TZID is invalid", () => {
 			for (const tzIdValue of [
 				"Bogus/Time_Zone",
 				"ICP",
@@ -1505,9 +1518,10 @@ END:VCALENDAR`
 					"END:VEVENT\n" +
 					"END:VCALENDAR"
 
-				const parseResult = parseCalendarStringData(calendar, zone)
-				o(parseResult.contents.length).equals(0)(`Parsing ${tzIdValue} succeeded, but should have failed.`)
-				o(parseResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${tzIdValue}.`)
+				const usersTimeZone = "User/Time_Zone"
+				const parseResult = parseCalendarStringData(calendar, usersTimeZone)
+				o.check(parseResult.contents.length).equals(1)
+				o.check(parseResult.contents[0].icsCalendarEvent.startTimeZone).equals(usersTimeZone)
 			}
 		})
 		o.test("Produces error when given a TZID that is not UTC and has a Z-Suffix", function () {
@@ -1528,7 +1542,6 @@ END:VCALENDAR`
 			o(parsedDtStartResult.parseEventErrors.length).equals(1)(`ParserError not produced for ${invalidDtStartTzidWithDate}.`)
 
 			const invalidDtEndTzidWithDate = "Europe/Berlin:20260101T123000Z"
-
 			const calendarInvalidDtEnd =
 				"BEGIN:VCALENDAR\n" +
 				"VERSION:2.0\n" +
