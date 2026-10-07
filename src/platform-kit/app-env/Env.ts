@@ -205,6 +205,10 @@ export class EnvProvider {
 		return this.env.mode === Mode.App
 	}
 
+	public isDesktopOrApp(): boolean {
+		return this.isDesktop() || this.isApp()
+	}
+
 	public isDesktop(): boolean {
 		return this.env.mode === Mode.Desktop
 	}

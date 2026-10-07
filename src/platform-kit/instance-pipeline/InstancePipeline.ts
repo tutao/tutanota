@@ -25,6 +25,10 @@ export class InstancePipeline {
 		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper)
 	}
 
+	public enableNetworkDebugging(): void {
+		this.typeMapper.enableNetworkDebugging()
+	}
+
 	public static newNativeOnly(
 		typeModelResolver: ClientOnlyTypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
@@ -42,6 +46,7 @@ export class InstancePipeline {
 		const subKeyInfo = makeNullableSubKeyInfoWithSessionKeyCbcThenHmac(sessionKey)
 		return this.mapAndEncryptWithSubKeyInfo(instance, subKeyInfo)
 	}
+
 	async mapAndEncryptWithSubKeyInfo<T extends Entity>(instance: T, subKeyInfo: Nullable<SubKeyInfo>): Promise<EncryptedParsedInstance> {
 		const parsedInstance = await this.modelMapper.mapToDecryptedInstance(instance)
 		return await this.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)

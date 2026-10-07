@@ -10,7 +10,7 @@ import {
 	RestTextBody,
 	SuspensionBehavior,
 } from "../../../src/platform-kit/rest-client/types"
-import { CancelledError } from "../../../src/platform-kit/app-env"
+import { CancelledError, EnvProvider } from "../../../src/platform-kit/app-env"
 import { defer, noOp } from "../../../src/platform-kit/utils"
 import http from "node:http"
 import express from "express"
@@ -59,7 +59,7 @@ o.spec("RestClientTest", function () {
 				suspensionHandlerMock as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(),
+				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
 			)
 		})
 
@@ -411,7 +411,7 @@ o.spec("RestClientTest", function () {
 				} as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(),
+				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
 			)
 
 			const res = await restClient.request("/get/suspend-then-succeed", HttpMethod.GET, {
@@ -455,7 +455,7 @@ o.spec("RestClientTest", function () {
 				suspensionHandlerMock as SuspensionHandler,
 				domainConfigStub,
 				String(ClientPlatform.UNKNOWN),
-				new HttpClientJavascript(),
+				new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
 			)
 				.addMiddleware(middlewareOne)
 				.addMiddleware(middlewareTwo)

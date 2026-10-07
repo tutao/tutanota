@@ -1,10 +1,7 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, isNotNull, isNull, LangApiEnum,
-	ProgrammingError,
-	RuntimeInfo,
-	TsDouble, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import { console, isNotNull, isNull, LangApiEnum, ProgrammingError, RuntimeInfo, TsDouble, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()

@@ -49,7 +49,6 @@ import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
-import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
 import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
@@ -115,7 +114,8 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
-import { isNull } from "../../utils/Utils"
+import { isNull } from "@tutao/lang-api"
+import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -731,12 +731,15 @@ export class LoginFacade implements SessionTypeProvider {
 			createAuthHeaders(): Dict {
 				return {}
 			}
+
 			isFullyLoggedIn(): boolean {
 				return false
 			}
+
 			getLoggedInUser(): User {
 				throw new Error("No LoggedIn User to return")
 			}
+
 			getCurrentUserGroupKey(): VersionedKey {
 				throw new Error("No loggedInUser to get userGroupKey")
 			}
