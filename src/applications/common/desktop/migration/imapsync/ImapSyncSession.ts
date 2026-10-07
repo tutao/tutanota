@@ -1,5 +1,5 @@
-import { migrationMailboxFromSyncSessionMailbox, MigrationSessionMailbox, SyncSessionMailboxImportance } from "../MigrationSessionMailbox.js"
-import { MigrationCredentials, MigrationSyncContext } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
+import { MigrationSessionMailbox } from "../MigrationSessionMailbox.js"
+import { MigrationCredentials } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationSyncEventListener } from "../MigrationSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
@@ -8,7 +8,7 @@ import {
 	migrationMailboxFromImapFlowListTreeResponse,
 	MigrationMailboxSpecialUse,
 } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
-import type { MigrationSync } from "../MigrationSync.js"
+import { MigrationSync, ShutdownSyncAction, SyncSessionState } from "../MigrationSync.js"
 import { fromImapFlowError, MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { MIGRATION_ERROR_POSTPONE_TIME, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
@@ -17,23 +17,6 @@ import { CertificateProvider } from "../../CertificateProvider"
 import { MailboxMigrationProvider } from "../../../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 
 const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
-const MAX_MAILBOX_FAILURES_THRESHOLD = 2
-
-export enum SyncSessionState {
-	NOT_STARTED,
-	RUNNING,
-	POSTPONED,
-	FINISHED,
-	STOPPED,
-}
-
-export enum ShutdownSyncAction {
-	MANUAL,
-	FINISHED,
-	POSTPONE,
-	AUTH_FAIL,
-	UNKNOWN,
-}
 
 const defaultImapSyncConfig: ImapSyncConfig = {
 	emitMigrationSyncEventTypes: new Set<MigrationSyncEventType>([MigrationSyncEventType.CREATE]),
@@ -47,27 +30,13 @@ export interface ImapSyncConfig {
 
 export type ImapFlowFactory = (imapCredentials: MigrationCredentials, imapSyncConfig: ImapSyncConfig, verifyOnly?: boolean) => Promise<ImapFlow>
 
-export interface SyncSessionEventListener {
-	startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void
-
-	onMailboxFinish(syncSessionMailbox: MigrationSessionMailbox): void
-
-	onMailboxInterrupted(syncSessionMailbox: MigrationSessionMailbox): void
-
-	onAllMailboxesFinish(): Promise<void>
-}
-
-export class ImapSyncSession implements SyncSessionEventListener, MigrationSync {
-	// Visible for testing
-	state: SyncSessionState
-	private migrationSyncContext?: MigrationSyncContext
-	// Visible for testing
-	syncSessionMailboxes: MigrationSessionMailbox[] = []
+export class ImapSyncSession extends MigrationSync {
+	protected readonly mailboxFailurePostponeTime = IMAP_RATE_LIMIT_POSTPONE_TIME
 	// Visible for testing
 	runningSyncSessionProcess: ImapSyncSessionProcess | null = null
 
 	constructor(
-		private migrationSyncEventListener: MigrationSyncEventListener,
+		migrationSyncEventListener: MigrationSyncEventListener,
 		private certificateProvider: CertificateProvider,
 		private imapSyncConfig: ImapSyncConfig,
 		private imapFlowFactory: ImapFlowFactory = async (imapCredentials, imapSyncConfig, verifyOnly?: boolean) => {
@@ -105,119 +74,41 @@ export class ImapSyncSession implements SyncSessionEventListener, MigrationSync 
 			return new ImapFlow(options)
 		},
 	) {
-		this.state = SyncSessionState.NOT_STARTED
+		super(migrationSyncEventListener)
 	}
 
-	async startSync(migrationSyncContext: MigrationSyncContext): Promise<void> {
-		if (this.state !== SyncSessionState.RUNNING) {
-			this.state = SyncSessionState.RUNNING
-			this.migrationSyncContext = migrationSyncContext
-			this.runningSyncSessionProcess?.stopSyncSessionProcess()
-			this.runningSyncSessionProcess = null
-
-			return await this.runSyncSession()
-		}
-	}
-
-	async stopSync(): Promise<void> {
-		await this.shutDownSyncSession(ShutdownSyncAction.MANUAL)
-		return
-	}
-
-	private async shutDownSyncSession(shutdownSyncAction: ShutdownSyncAction, postponeDuration?: number) {
+	protected stopRunningSyncProcess() {
 		this.runningSyncSessionProcess?.stopSyncSessionProcess()
 		this.runningSyncSessionProcess = null
-
-		if (shutdownSyncAction === ShutdownSyncAction.POSTPONE) {
-			this.state = SyncSessionState.POSTPONED
-			await this.migrationSyncEventListener.onPostpone(Date.now() + assertNotNull(postponeDuration))
-		} else if (shutdownSyncAction === ShutdownSyncAction.FINISHED) {
-			this.state = SyncSessionState.FINISHED
-		} else {
-			this.state = SyncSessionState.STOPPED
-		}
 	}
 
-	private async runSyncSession(): Promise<void> {
-		const setupResult = await this.setupSyncSession()
-		if (setupResult instanceof MigrationError) {
-			throw setupResult
-		}
-
+	protected selectSyncSessionMailboxes(syncSessionMailboxes: MigrationSessionMailbox[]): MigrationSessionMailbox[] {
 		if (this.migrationSyncContext?.isGmail) {
-			this.syncSessionMailboxes = setupResult.filter((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.ALL)
-			if (isEmpty(this.syncSessionMailboxes)) {
+			const allMailMailboxes = syncSessionMailboxes.filter((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.ALL)
+			if (isEmpty(allMailMailboxes)) {
 				throw new MigrationError("All mails Gmail mailbox is not enabled for IMAP", MigrationErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
 			}
-		} else {
-			this.syncSessionMailboxes = setupResult
+			return allMailMailboxes
 		}
-
-		if (this.syncSessionMailboxes != null) {
-			this.startNextMailboxSync()
-		}
+		return syncSessionMailboxes
 	}
 
-	private async setupSyncSession(): Promise<MigrationSessionMailbox[] | MigrationError> {
-		if (!this.migrationSyncContext) {
-			throw new ProgrammingError("The migrationSyncContext has not been set!")
-		}
+	protected async fetchSyncMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
+		const imapClient = await this.imapFlowFactory(migrationCredentials, this.imapSyncConfig)
+		return await this.getMailboxesFromServer(imapClient)
+	}
 
-		const knownMailboxes = this.migrationSyncContext.migrationMailboxStates.map((mailboxState) => {
-			return new MigrationSessionMailbox(mailboxState)
-		})
-
-		const migrationCredentials = this.migrationSyncContext.migrationCredentials
-		try {
-			const imapClient = await this.imapFlowFactory(migrationCredentials, this.imapSyncConfig)
-
-			const fetchedRootMailboxes = await this.getMailboxesFromServer(imapClient)
-
-			return await this.getSyncSessionMailboxes(knownMailboxes, fetchedRootMailboxes)
-		} catch (error) {
-			console.error("Error during sync", error, error?.serverResponseCode)
-			if (error.authenticationFailed || error?.serverResponseCode === "AUTHENTICATIONFAILED") {
-				if (error.serverResponseCode !== "LIMIT") {
-					await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
-					return new MigrationError(error.response, MigrationErrorCause.AUTH_FAILED)
-				}
+	protected async handleSetupError(error: any): Promise<MigrationError> {
+		console.error("Error during sync", error, error?.serverResponseCode)
+		if (error.authenticationFailed || error?.serverResponseCode === "AUTHENTICATIONFAILED") {
+			if (error.serverResponseCode !== "LIMIT") {
+				await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
+				return new MigrationError(error.response, MigrationErrorCause.AUTH_FAILED)
 			}
-
-			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
-			return fromImapFlowError(error)
-		}
-	}
-
-	private async startNextMailboxSync() {
-		if (this.state === SyncSessionState.STOPPED) {
-			return
 		}
 
-		const remainingMailboxes = this.syncSessionMailboxes
-			.filter((mailbox) => mailbox.importance !== SyncSessionMailboxImportance.NO_SYNC)
-			.sort((a, b) => {
-				if (a.failCount - b.failCount === 0) {
-					return b.importance - a.importance
-				} else {
-					return a.failCount - b.failCount
-				}
-			})
-
-		if (isEmpty(remainingMailboxes)) {
-			await this.onAllMailboxesFinish()
-			return
-		}
-
-		if (remainingMailboxes.every((syncSessionMailbox) => syncSessionMailbox.failCount >= MAX_MAILBOX_FAILURES_THRESHOLD)) {
-			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_RATE_LIMIT_POSTPONE_TIME)
-			return
-		}
-
-		const nextMailbox = first(remainingMailboxes)
-
-		if (nextMailbox) {
-			this.startMailboxSync(nextMailbox)
-		}
+		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
+		return fromImapFlowError(error)
 	}
 
 	public async getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
@@ -343,66 +234,6 @@ export class ImapSyncSession implements SyncSessionEventListener, MigrationSync 
 		return result
 	}
 
-	private async getSyncSessionMailboxes(
-		knownMailboxes: MigrationSessionMailbox[],
-		fetchedRootMailboxes: MigrationMailbox[],
-	): Promise<MigrationSessionMailbox[]> {
-		const resultMailboxes: MigrationSessionMailbox[] = []
-		for (const fetchedRootMailbox of fetchedRootMailboxes) {
-			resultMailboxes.push(...(await this.traverseMigrationMailboxes(knownMailboxes, fetchedRootMailbox)))
-		}
-
-		knownMailboxes.map(async (knownMailbox) => {
-			const index = resultMailboxes.findIndex((mailbox) => {
-				return mailbox.mailboxState.path === knownMailbox.mailboxState.path
-			})
-
-			if (index === -1) {
-				const deletedMigrationMailbox = migrationMailboxFromSyncSessionMailbox(knownMailbox)
-				await this.migrationSyncEventListener.onMailbox(deletedMigrationMailbox, MigrationSyncEventType.DELETE)
-				return true
-			}
-
-			return false
-		})
-
-		return resultMailboxes
-	}
-
-	private async traverseMigrationMailboxes(
-		knownMailboxes: MigrationSessionMailbox[],
-		migrationMailbox: MigrationMailbox,
-	): Promise<MigrationSessionMailbox[]> {
-		const result: MigrationSessionMailbox[] = []
-
-		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === migrationMailbox.path)
-		if (syncSessionMailbox === undefined) {
-			await this.migrationSyncEventListener.onMailbox(migrationMailbox, MigrationSyncEventType.CREATE)
-			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === migrationMailbox.parentFolder?.path)
-			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
-			syncSessionMailbox = new MigrationSessionMailbox({
-				path: migrationMailbox.path,
-				importedSourceIdToMailIdsMap: new Map(),
-				noSync,
-			})
-		}
-		if (migrationMailbox.specialUse) {
-			syncSessionMailbox.specialUse = migrationMailbox.specialUse
-		}
-
-		// some settings lead to importance "NO_SYNC" which means that the mailbox should not be imported / migrated
-		if (syncSessionMailbox.importance !== SyncSessionMailboxImportance.NO_SYNC) {
-			result.push(syncSessionMailbox)
-		}
-
-		if (migrationMailbox.subFolders) {
-			for (const subFolder of migrationMailbox.subFolders) {
-				result.push(...(await this.traverseMigrationMailboxes(knownMailboxes, subFolder)))
-			}
-		}
-		return result
-	}
-
 	startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void {
 		if (this.state === SyncSessionState.RUNNING) {
 			if (!this.migrationSyncContext) {
@@ -421,47 +252,6 @@ export class ImapSyncSession implements SyncSessionEventListener, MigrationSync 
 					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
 				}
 			})
-		}
-	}
-
-	onMailboxFinish(syncSessionMailbox: MigrationSessionMailbox): void {
-		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
-		})
-		if (mailboxIndex !== -1) {
-			const isLastMailboxFinish = this.syncSessionMailboxes.length === 1
-			this.syncSessionMailboxes.splice(mailboxIndex, 1)
-
-			// call onAllMailboxesFinish() once download of all IMAP folders is finished
-			if (isLastMailboxFinish) {
-				this.onAllMailboxesFinish()
-			} else {
-				// start a new sync session processes in replacement for the finished one
-				this.startNextMailboxSync()
-			}
-		}
-	}
-
-	onMailboxInterrupted(syncSessionMailbox: MigrationSessionMailbox): void {
-		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
-		})
-
-		if (mailboxIndex !== -1) {
-			syncSessionMailbox.failCount = syncSessionMailbox.failCount + 1
-			this.syncSessionMailboxes[mailboxIndex] = syncSessionMailbox
-
-			// start a new sync session process in replacement for the interrupted one
-			this.startNextMailboxSync()
-		}
-	}
-
-	async onAllMailboxesFinish(): Promise<void> {
-		console.log("onAllMailboxesFinish")
-		if (this.state !== SyncSessionState.FINISHED) {
-			await this.shutDownSyncSession(ShutdownSyncAction.FINISHED)
-
-			await this.migrationSyncEventListener.onFinish()
 		}
 	}
 }

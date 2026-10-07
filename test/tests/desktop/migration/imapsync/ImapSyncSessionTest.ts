@@ -2,12 +2,8 @@ import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { MigrationSyncEventListener } from "../../../../../src/applications/common/desktop/migration/MigrationSyncEventListener"
 import type { ImapFlow, ListTreeResponse } from "imapflow"
-import {
-	ImapFlowFactory,
-	ImapSyncConfig,
-	ImapSyncSession,
-	SyncSessionState,
-} from "../../../../../src/applications/common/desktop/migration/imapsync/ImapSyncSession"
+import { ImapFlowFactory, ImapSyncConfig, ImapSyncSession } from "../../../../../src/applications/common/desktop/migration/imapsync/ImapSyncSession"
+import { SyncSessionState } from "../../../../../src/applications/common/desktop/migration/MigrationSync"
 import {
 	MigrationCredentials,
 	MigrationMailboxState,
