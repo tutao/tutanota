@@ -2,7 +2,7 @@ import m, { Children } from "mithril"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { lang, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { EnvProvider, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
-import { assertNotNull, isDomainName, isEmpty, isMailAddress, isRegularExpression } from "@tutao/utils"
+import { assertNotNull, isDomainName, isEmpty, isMailAddress, isNotNull, isRegularExpression } from "@tutao/utils"
 import { clone, elementIdPart, isSameId, isSameIdTuple } from "@tutao/meta"
 import type { MailboxDetail } from "../../common/mailFunctionality/MailboxModel.js"
 import stream from "mithril/stream"
@@ -23,7 +23,7 @@ import {
 	InboxRuleCondition,
 	MailSet,
 } from "@tutao/entities/tutanota"
-import { InboxRuleConditionType, InboxRuleActionType, MailSetKind } from "../../../entities/tutanota/Utils"
+import { InboxRuleActionType, InboxRuleConditionType, MailSetKind } from "../../../entities/tutanota/Utils"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { Card } from "../../../ui/base/Card"
 import { Icon, IconSize } from "../../../ui/base/Icon"
@@ -36,13 +36,14 @@ import { onbeforeremoveColapseAnimation, oncreateExpandAnimation } from "../../.
 import { IconButton } from "../../../ui/base/IconButton"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { SelectorItem } from "../../../ui/base/DropDownSelector"
-import { getInboxRuleConditionTypeNameMapping, getInboxRuleActionTypeNameMapping } from "../mail/model/InboxRuleHandler"
+import { getInboxRuleActionTypeNameMapping, getInboxRuleConditionTypeNameMapping } from "../mail/model/InboxRuleHandler"
 import { InboxRuleModel } from "../mail/model/InboxRuleModel"
 import { applyRuleWithProgress } from "./InboxRuleSettingsViewer"
 import { LabelsDropDownSelector } from "../mail/view/LabelsDropDownSelector"
 import { Label } from "../../../ui/base/Label"
 import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
+import { isNull } from "../../../platform-kit/utils/Utils"
 
 EnvProvider.assertMainOrNode()
 
@@ -58,7 +59,7 @@ interface InboxRuleConditionField {
 interface InboxRuleActionField {
 	type: Stream<InboxRuleActionType>
 	valueFolder: Stream<MailSet | null>
-	valueLabels: Stream<MailSet[]>
+	valueLabels: Stream<MailSet[] | null>
 
 	// for keeping track in the dialog (not persisted on db)
 	key: number
@@ -123,7 +124,10 @@ export async function show(
 							valueFolder: stream(value),
 							valueLabels: stream([]),
 							key: currentRowKey++,
-							valid: null,
+							valid:
+								[InboxRuleActionType.MOVE, InboxRuleActionType.LABEL].includes(action.type as InboxRuleActionType) && value == null
+									? false
+									: null,
 						}
 					})
 					.reduce((actions, action) => {
@@ -132,19 +136,25 @@ export async function show(
 							const otherLabelAction = actions.find((r) => r.type() === InboxRuleActionType.LABEL)
 
 							const assignedLabel = action.valueFolder()
-							if (assignedLabel != null) {
-								if (otherLabelAction != null) {
-									otherLabelAction.valueLabels([...otherLabelAction.valueLabels(), assignedLabel])
-								} else {
-									// first label action clause, make it an array!
-									actions.push({
-										type: stream(InboxRuleActionType.LABEL),
-										valueLabels: stream([assignedLabel]),
-										valueFolder: stream(null),
-										key: action.key,
-										valid: null,
-									})
+							if (isNotNull(otherLabelAction)) {
+								// EITHER exactly one entry that's null, OR multiple or zero entries with a non-null value
+								// (value is null iff last label of this rule has been deleted)
+								otherLabelAction.valueLabels([
+									...assertNotNull(otherLabelAction.valueLabels(), "Invalid inbox rule: One label null, one present"),
+									assertNotNull(assignedLabel, "Invalid inbox rule: One label present, one null"),
+								])
+								if (action.valid === false) {
+									otherLabelAction.valid = false
 								}
+							} else {
+								// first label action clause, make it an array!
+								actions.push({
+									type: stream(InboxRuleActionType.LABEL),
+									valueLabels: stream(isNull(assignedLabel) ? null : [assignedLabel]),
+									valueFolder: stream(null),
+									key: action.key,
+									valid: action.valid,
+								})
 							}
 						} else {
 							// non-labels stay as they are
@@ -339,16 +349,16 @@ export async function show(
 								: null,
 						]),
 					]),
-					ruleAction.type() === InboxRuleActionType.LABEL && ruleAction.valueLabels().length
+					ruleAction.type() === InboxRuleActionType.LABEL && (ruleAction.valueLabels()?.length ?? 0)
 						? m(
 								".flex.wrap.ml-48.mt-16.mr-between-8.row-gap-8",
-								ruleAction.valueLabels().map((value) =>
+								assertNotNull(ruleAction.valueLabels()).map((value) =>
 									m(Label, {
 										text: prependParentLabelNamesToLabel(value, labels),
 										color: value.color ?? theme.primary,
 										cancelable: true,
 										cancelAction: () => {
-											const newValue = ruleAction.valueLabels().filter((label) => !isSameIdTuple(label._id, value._id))
+											const newValue = assertNotNull(ruleAction.valueLabels()).filter((label) => !isSameIdTuple(label._id, value._id))
 											ruleAction.valueLabels(newValue)
 										},
 									}),
@@ -474,17 +484,21 @@ export async function show(
 
 			for (const action of inboxRuleActions) {
 				if (action.type() === InboxRuleActionType.LABEL) {
-					if (action.valueLabels().length === 0) {
+					if (isNull(action.valueLabels()) || isEmpty(assertNotNull(action.valueLabels()))) {
 						action.valid = false
 						if (!alreadyMessaged) {
 							Dialog.message("labelMustBeSelected_msg")
 							alreadyMessaged = true
 						}
+					} else {
+						for (const label of assertNotNull(action.valueLabels())) {
+							const labelId = validateInboxRuleAction(action.type(), label)
+							ruleActions.push(createInboxRuleAction({ type: action.type(), value: labelId }))
+						}
 					}
-					for (const label of action.valueLabels()) {
-						const labelId = validateInboxRuleAction(action.type(), label)
-						ruleActions.push(createInboxRuleAction({ type: action.type(), value: labelId }))
-					}
+				} else if (action.type() === InboxRuleActionType.MOVE && action.valueFolder() == null) {
+					Dialog.message("pleaseSelectFolder_msg")
+					alreadyMessaged = true
 				} else {
 					const valueId = validateInboxRuleAction(action.type(), action.valueFolder())
 					ruleActions.push(createInboxRuleAction({ type: action.type(), value: valueId }))
@@ -598,9 +612,16 @@ function getRuleActionValueInputByType(ruleAction: InboxRuleActionField) {
 				m(DropDownSelectorNew, {
 					items: targetFolders,
 					selectedValue: ruleAction.valueFolder(),
-					selectedValueDisplay: getMailSetName(assertNotNull(ruleAction.valueFolder())),
-					selectionChangedHandler: ruleAction.valueFolder,
-					class: "",
+					selectedValueDisplay:
+						ruleAction.valueFolder() == null
+							? lang.getTranslationText("deletedFolder_label")
+							: getMailSetName(assertNotNull(ruleAction.valueFolder())),
+					selectionChangedHandler: (value: MailSet) => {
+						ruleAction.valid = true
+						ruleAction.valueFolder(value)
+					},
+					class: ruleAction.valid === false ? "error-text-field" : undefined,
+					helpLabel: ruleAction.valid === false ? () => lang.getTranslationText("pleaseSelectFolder_msg") : undefined,
 				})
 		case InboxRuleActionType.LABEL:
 			return (labels: TargetMailSet[]) =>
@@ -608,7 +629,7 @@ function getRuleActionValueInputByType(ruleAction: InboxRuleActionField) {
 					label: "selectLabel_action",
 					items: labels.map((label) => ({
 						...label,
-						applied: ruleAction.valueLabels().some((l) => isSameId(l._id, label.value._id)),
+						applied: isNotNull(ruleAction.valueLabels()) && assertNotNull(ruleAction.valueLabels()).some((l) => isSameId(l._id, label.value._id)),
 					})),
 					icon: {
 						icon: Icons.LabelFilled,
@@ -617,7 +638,7 @@ function getRuleActionValueInputByType(ruleAction: InboxRuleActionField) {
 					onLabelsApplied: ruleAction.valueLabels,
 					onModalClosed: () => {
 						if (ruleAction.valid === false) {
-							ruleAction.valid = !!ruleAction.valueLabels().length
+							ruleAction.valid = !!ruleAction.valueLabels()?.length
 						}
 					},
 					class: ruleAction.valid === false ? "error-text-field" : undefined,
@@ -658,14 +679,14 @@ function validateInboxRuleCondition(condition: InboxRuleConditionField): Transla
 
 function validateInboxRuleAction(type: InboxRuleActionType, value: MailSet | null): IdTuple | null {
 	if (type === InboxRuleActionType.EXCLUDE_SPAM || type === InboxRuleActionType.READ) {
-		if (value != null) {
+		if (isNotNull(value)) {
 			// throw an error instead of informing user, as the user should not be able to choose a value here
 			// if a value is here something else has gone wrong
 			throw new ProgrammingError("Boolean InboxRuleActionType has value!")
 		}
 		return null
 	} else {
-		if (value == null) {
+		if (isNull(value)) {
 			throw new ProgrammingError("When moving or labeling, a mail set must be there!")
 		}
 		return value._id
