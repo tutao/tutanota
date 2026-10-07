@@ -54,16 +54,15 @@ fun ScrollableDaysList(
 						onNewEvent
 					)
 				}
-			} else {
-				if (data.daysAndEvents[dayIndex].isNotEmpty())
-					Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
-						OtherDayCard(
-							userId,
-							data.daysAndEvents[dayIndex],
-							currentDayAction,
-							currentDay
-						)
-					}
+			} else if (data.daysAndEvents[dayIndex].isNotEmpty()) {
+				Row(modifier = GlanceModifier.padding(top = topPadding, bottom = bottomPadding)) {
+					OtherDayCard(
+						userId,
+						data.daysAndEvents[dayIndex],
+						currentDayAction,
+						currentDay
+					)
+				}
 			}
 		}
 	}
