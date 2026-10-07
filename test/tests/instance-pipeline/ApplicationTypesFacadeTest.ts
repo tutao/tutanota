@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import { ApplicationTypesFacade } from "../../../src/platform-kit/instance-pipeline/ApplicationTypesFacade"
 import { matchers, object, verify, when } from "testdouble"
 import { AppName, AppNameEnum, AssociationTypeEnum, CardinalityEnum, EntityTypeEnum, ModelAssociation, ServerTypeModel } from "../../../src/platform-kit/meta"
-import { downcast, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
+import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { HttpMethod, MediaType } from "../../../src/platform-kit/rest-client/types"
 import { ApplicationTypesGetOut, ServerModelInfo, ServerModels } from "../../../src/platform-kit/instance-pipeline"
 import { withOverriddenEnv } from "../TestUtils"
@@ -72,7 +72,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		restClient = object()
 		fileFacade = object()
 		serverModelInfo = object()
-		applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
+		applicationTypesFacade = new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade)
 	})
 	o("getServerApplicationTypesJson does only one service request for requests made in quick succession", async function () {
 		o.timeout(200)
@@ -158,45 +158,52 @@ o.spec("ApplicationTypesFacadeTest", function () {
 
 	o("should attempt to read but not fail on read error", async () => {
 		when(fileFacade.readDataFile(anything())).thenReject(Error("reading simulation failed"))
-		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), fileFacade, serverModelInfo))
+		await withOverriddenEnv({ mode: Mode.Desktop }, () => new ApplicationTypesFacade(object(), serverModelInfo, fileFacade))
 		// did not throw
 	})
 
-	for (const targetEnv of [Mode.App, Mode.Admin, Mode.Test, Mode.Browser, Mode.Desktop, Mode.Playground]) {
-		const shouldPersist = targetEnv === Mode.Desktop || targetEnv === Mode.App
+	o("Server model should persist to filefacade", async () => {
+		when(
+			restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				headers: { v: baseModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
+		).thenResolve(mockResponse)
+		when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve())
+		const expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
+		const actualResult = await applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
 
-		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
-			when(
-				restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { v: baseModelInfo.version.toString() },
-					responseType: MediaType.Binary,
-				}),
-			).thenResolve(mockResponse)
-			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
-			let expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
-			let actualResult = await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
-			o(actualResult).deepEquals(expectedResult)
-			verify(fileFacade.writeToAppDir(anything(), anything()), { times: shouldPersist ? 1 : 0 })
-		})
+		o(actualResult).deepEquals(expectedResult)
+		verify(fileFacade.writeToAppDir(anything(), anything()), { times: 1 })
+	})
 
-		o(`Server model should be initialised from file for native platforms: ${targetEnv}`, async () => {
-			when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
-			when(
-				restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
-					...DEFAULT_REST_CLIENT_OPTIONS,
-					headers: { v: baseModelInfo.version.toString() },
-					responseType: MediaType.Binary,
-				}),
-			).thenResolve(mockResponse)
-			await withOverriddenEnv({ mode: targetEnv }, () =>
-				new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson(null),
-			)
-			verify(fileFacade.readFromAppDir(anything()), { times: shouldPersist ? 1 : 0 })
-		})
-	}
+	o("Server model is always fetched when there is not fileFacade", async () => {
+		// application types facade have no fileFacade to persist  the JSON
+		const applicationTypesFacade = new ApplicationTypesFacade(restClient, serverModelInfo, null)
+		applicationTypesFacade.applicationTypesGetInTimeout = 0
 
-	o("AAAA Server model should be fetched from server if local copy hash does not match", async () => {
+		when(
+			restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
+				...DEFAULT_REST_CLIENT_OPTIONS,
+				headers: { v: baseModelInfo.version.toString() },
+				responseType: MediaType.Binary,
+			}),
+		).thenResolve(mockResponse)
+
+		await applicationTypesFacade.getServerApplicationTypesJson(null)
+		await applicationTypesFacade.getServerApplicationTypesJson(null)
+		verify(restClient.request(anything(), anything(), anything()), { times: 2 })
+	})
+
+	o("Server model should be initialised from file when fileFacade is provided", async () => {
+		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array(mockModel.applicationTypesJson))
+
+		await new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade).getServerApplicationTypesJson(null)
+		verify(fileFacade.readFromAppDir(anything()), { times: 1 })
+	})
+
+	o("Server model should be fetched from server if local copy hash does not match", async () => {
 		when(fileFacade.readFromAppDir(anything())).thenResolve(stringToUtf8Uint8Array("{}"))
 		when(
 			restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
@@ -207,7 +214,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		).thenResolve(mockResponse)
 
 		await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
-			const newServerModel = await new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo).getServerApplicationTypesJson("new-server-hash")
+			const newServerModel = await new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade).getServerApplicationTypesJson("new-server-hash")
 			o(newServerModel).deepEquals(mockModel)
 		})
 	})

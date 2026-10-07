@@ -196,7 +196,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
 		rsa: await createRsaImplementation(worker),
-		fileFacade: new FileFacadeSendDispatcher(worker),
+		fileFacade: EnvProvider.get().isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({

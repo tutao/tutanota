@@ -23,7 +23,13 @@ import { EnvProvider } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 
 export class TypeMapper {
+	private networkDebugging: boolean = false
+
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebugging = true
+	}
 
 	async parseServerJson(jsonInstance: IncomingServerJson): Promise<EncryptedParsedInstance> {
 		const typeModel = jsonInstance.typeModel

@@ -106,12 +106,14 @@ export type BaseLocator = {
 
 export interface BaseLocatorWorker {
 	sendError(e: Error): Promise<void>
+
 	getMainInterface(): BaseLocatorMainInterface
 }
 
 export type BaseLocatorMainInterface = {
 	infoMessageHandler: OnInfoMessage
 }
+
 export interface OnInfoMessage {
 	onInfoMessage(msg: InfoMessageArgs): void
 }
@@ -133,7 +135,7 @@ export type BaseLocatorConfig = {
 	argon2idFacade: Nullable<Argon2idFacade>
 	domainConfig: DomainConfig
 	rsa: RsaImplementation
-	fileFacade: SimpleFileFacade
+	fileFacade: Nullable<SimpleFileFacade>
 	nativeCryptoFacade: Nullable<NativeCryptoFacade>
 	entityMigratorFactory: (params: EntityMigratorFactoryParams) => EntityMigrator
 	entityRestCache: (
@@ -196,15 +198,19 @@ export async function createBaseLocator({
 	// Declared before instancePipeline because it's captured by the lazy callback
 	let keyLoader: KeyLoaderFacade
 	const instancePipeline = new InstancePipeline(typeModelResolver, () => keyLoader, SYMMETRIC_CIPHER_FACADE)
-	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform), new HttpClientJavascript()).addMiddleware(
-		new UpdateAppTypesHashMiddleware(serverModelInfo),
-	)
+	const restClient = new RestClient(
+		suspensionHandler,
+		domainConfig,
+		String(browserData.clientPlatform),
+		new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+	).addMiddleware(new UpdateAppTypesHashMiddleware(serverModelInfo))
 
 	// Declared before serviceExecutor and entityRestClient because it's captured via lazyCrypto
 	let crypto: CryptoFacade
 	const lazyCrypto: lazy<CryptoFacade> = () => crypto
 	const serviceExecutor = new ServiceExecutor(restClient, user, instancePipeline, lazyCrypto, typeModelResolver)
-	applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
+	applicationTypesFacade = new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade)
+
 	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader)
 	const blobAccessToken = new BlobAccessTokenFacade(serviceExecutor, user, dateProvider, typeModelResolver)
 
@@ -294,7 +300,6 @@ export async function createBaseLocator({
 			await worker.sendError(error)
 		},
 	)
-
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade
 	const recoverCode = lazyMemoized(async () => {
@@ -372,9 +377,6 @@ export async function createBaseLocator({
 		argon2idFacade = new WASMArgon2idFacade()
 	}
 
-	const deviceEncryptionFacade = new DeviceEncryptionFacade()
-	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
-
 	entityMigrator = entityMigratorFactory({
 		cryptoWrapper,
 		user,
@@ -386,6 +388,11 @@ export async function createBaseLocator({
 		restClient,
 		crypto,
 	})
+
+	const deviceEncryptionFacade = new DeviceEncryptionFacade()
+	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
+	const databaseKeyFactory =
+		EnvProvider.get().isBrowser() || EnvProvider.get().isAdminClient() ? new DatabaseKeyFactory(null) : new DatabaseKeyFactory(deviceEncryptionFacade)
 
 	login = new LoginFacade(
 		restClient,
@@ -399,7 +406,7 @@ export async function createBaseLocator({
 		user,
 		blobAccessToken,
 		entropyFacade,
-		new DatabaseKeyFactory(deviceEncryptionFacade),
+		databaseKeyFactory,
 		argon2idFacade,
 		nonCachingEntityClient,
 		async (error: Error) => {
@@ -411,6 +418,12 @@ export async function createBaseLocator({
 		applicationTypesFacade,
 		entityMigrator,
 	)
+
+	if (EnvProvider.get().networkDebuggingEnabled()) {
+		crypto.enableNetworkDebugging()
+		patchMerger.enableNetworkDebugging()
+		instancePipeline.enableNetworkDebugging()
+	}
 
 	return {
 		cryptoWrapper,
