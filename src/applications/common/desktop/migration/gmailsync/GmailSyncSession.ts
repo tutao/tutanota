@@ -25,14 +25,13 @@ export type GmailApiClientFactory = (accessToken: string) => GmailMailApi
 /**
  * Gmail's system labels that are mirrored as mailboxes, using the same paths and special uses the IMAP
  * server announces so that mails imported over either transport end up in the same Tuta labels.
- * Other system labels (CATEGORY_*, CHAT, UNREAD, ...) carry no folder semantics and are ignored.
+ * Trash and spam is not included since we only fetch the All Mail label essentially.
+ * (includeSpamTrash query parameter set to false in GmailApiClient.listMessageIds)
  */
 export const GMAIL_SYSTEM_LABELS: ReadonlyArray<{ id: string; path: string; specialUse: MigrationMailboxSpecialUse }> = [
 	{ id: "INBOX", path: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
 	{ id: "SENT", path: "[Gmail]/Sent Mail", specialUse: MigrationMailboxSpecialUse.SENT },
 	{ id: "DRAFT", path: "[Gmail]/Drafts", specialUse: MigrationMailboxSpecialUse.DRAFT },
-	{ id: "TRASH", path: "[Gmail]/Trash", specialUse: MigrationMailboxSpecialUse.TRASH },
-	{ id: "SPAM", path: "[Gmail]/Spam", specialUse: MigrationMailboxSpecialUse.JUNK },
 	{ id: "IMPORTANT", path: "[Gmail]/Important", specialUse: MigrationMailboxSpecialUse.IMPORTANT },
 	{ id: "STARRED", path: "[Gmail]/Starred", specialUse: MigrationMailboxSpecialUse.FLAGGED },
 ]
