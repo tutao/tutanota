@@ -2580,6 +2580,7 @@ export default {
 		"declinedFeedbackDialogInput_msg": "Was hat dich heute davon abgehalten, ein Upgrade durchzuführen?",
 		"sendFeedback_action": "Feedback senden",
 		"feedbackAnonymousAndHelpUs_label": "Dein Feedback ist anonym und hilft uns, Tuta zu verbessern.",
-		"accessDeactivated_msg": "Dein Account wurde deaktiviert."
+		"accessDeactivated_msg": "Dein Account wurde deaktiviert.",
+		"afterProxyStoreAction_msg": "Bitte folge nach dem Kauf des Gutscheins den Anweisungen auf ProxyStore um fortzufahren."
 	}
 }
