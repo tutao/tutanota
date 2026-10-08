@@ -222,9 +222,9 @@ export class ClientDetector {
 				throw new ProgrammingError("AppType.Integrated is not allowed for mobile apps")
 			}
 			const appType: TsString = this.appType === AppType.Mail ? "Mail" : "Calendar"
-			return `${ClientDetector.get().device} ${appType} App`
+			return `${this.device} ${appType} App`
 		} else if (this.envProvider.isBrowser()) {
-			return LangApiEnum.getStringEnumValue(ClientDetector.get().browser) + " Browser"
+			return LangApiEnum.getStringEnumValue(this.browser) + " Browser"
 		} else if (platformId === PlatformId.Linux) {
 			return "Linux Desktop"
 		} else if (platformId === PlatformId.Darwin) {
