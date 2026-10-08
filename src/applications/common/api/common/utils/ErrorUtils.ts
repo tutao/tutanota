@@ -153,7 +153,7 @@ const ErrorNameToType = {
 	"de.tutao.tutanota.MobilePayment": MobilePaymentError,
 	"de.tutao.calendar.MobilePayment": MobilePaymentError,
 	"de.tutao.drive.MobilePayment": MobilePaymentError,
-	"de.tutao.tutashared.MobilePaymentException": MobilePaymentError,
+	"de.tutao.tutashared.error.MobilePaymentError": MobilePaymentError,
 }
 
 export function isSecurityError(e: any): boolean {
