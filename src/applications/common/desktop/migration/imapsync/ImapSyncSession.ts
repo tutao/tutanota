@@ -9,14 +9,12 @@ import {
 	MigrationMailboxSpecialUse,
 } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "../MigrationSyncSession.js"
-import { fromImapFlowError, MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
+import { MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { MIGRATION_ERROR_POSTPONE_TIME, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
 import { MailboxMigrationProvider } from "../../../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
-
-const IMAP_RATE_LIMIT_POSTPONE_TIME: number = 25 * 60 * 60 * 1000 // 25 hours
 
 const defaultImapSyncConfig: ImapSyncConfig = {
 	emitMigrationSyncEventTypes: new Set<MigrationSyncEventType>([MigrationSyncEventType.CREATE]),
@@ -31,10 +29,9 @@ export interface ImapSyncConfig {
 export type ImapFlowFactory = (imapCredentials: MigrationCredentials, imapSyncConfig: ImapSyncConfig, verifyOnly?: boolean) => Promise<ImapFlow>
 
 export class ImapSyncSession extends MigrationSyncSession {
-	protected readonly mailboxFailurePostponeTime = IMAP_RATE_LIMIT_POSTPONE_TIME
+	protected readonly mailboxFailurePostponeTime = 60 * 60 * 1000 // 1 hour
 	// Visible for testing
 	runningSyncSessionProcess: ImapSyncSessionProcess | null = null
-
 	constructor(
 		migrationSyncEventListener: MigrationSyncEventListener,
 		private certificateProvider: CertificateProvider,
@@ -98,17 +95,69 @@ export class ImapSyncSession extends MigrationSyncSession {
 		return await this.getMailboxesFromServer(imapClient)
 	}
 
-	protected async handleSetupError(error: any): Promise<MigrationError> {
-		console.error("Error during sync", error, error?.serverResponseCode)
-		if (error.authenticationFailed || error?.serverResponseCode === "AUTHENTICATIONFAILED") {
-			if (error.serverResponseCode !== "LIMIT") {
+	protected toMigrationError(e: any): MigrationError {
+		const code: string = (e.code ?? e.serverResponseCode ?? "").trim()
+		let cause
+		switch (code) {
+			case "UIDNOTSTICKY":
+				cause = MigrationErrorCause.PERMANENT_ERROR
+				break
+			case "UNAVAILABLE":
+			case "SERVERBUG":
+			case "OVERQUOTA":
+			case "INUSE":
+			case "LIMIT":
+				cause = MigrationErrorCause.POSTPONE
+				break
+			case "AUTHORIZATIONFAILED":
+			case "CONTACTADMIN":
+			case "NOPERM":
+				cause = MigrationErrorCause.AUTH_FAILED
+				break
+			case "AUTHENTICATIONFAILED":
+				cause = MigrationErrorCause.AUTH_FAILED
+				break
+			case "PRIVACYREQUIRED":
+				cause = MigrationErrorCause.INITIAL_CONNECT_FAILED
+				break
+			case "ERR_TLS_CERT_ALTNAME_INVALID":
+			case "DEPTH_ZERO_SELF_SIGNED_CERT":
+			case "UNABLE_TO_VERIFY_LEAF_SIGNATURE":
+				cause = MigrationErrorCause.CERT_ERROR
+				break
+			case "ENOTFOUND":
+				cause = MigrationErrorCause.HOST_NOT_FOUND
+				break
+			case "EHOSTUNREACH":
+				cause = MigrationErrorCause.HOST_NOT_REACHABLE
+				break
+			case "GREETING_TIMEOUT":
+				cause = MigrationErrorCause.GREETING_TIMEOUT
+				break
+			default:
+				if (e.authenticationFailed) {
+					cause = MigrationErrorCause.AUTH_FAILED
+					return new MigrationError(e.message, cause, "AUTHENTICATIONFAILED")
+				} else {
+					cause = MigrationErrorCause.UNKNOWN
+					console.warn("Unknown IMAP e code: " + code)
+				}
+				break
+		}
+		return new MigrationError(e.message, cause, code)
+	}
+
+	protected async handleSetupError(e: any): Promise<MigrationError> {
+		console.error("Error during sync", e, e?.serverResponseCode)
+		if (e.authenticationFailed || e?.serverResponseCode === "AUTHENTICATIONFAILED") {
+			if (e.serverResponseCode !== "LIMIT") {
 				await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
-				return new MigrationError(error.response, MigrationErrorCause.AUTH_FAILED)
+				return new MigrationError(e.response, MigrationErrorCause.AUTH_FAILED)
 			}
 		}
 
 		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
-		return fromImapFlowError(error)
+		return this.toMigrationError(e)
 	}
 
 	public async getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
@@ -135,7 +184,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 			const errorList = e.errors ?? [e]
 			const firstError = first(errorList)
 			if (firstError) {
-				throw fromImapFlowError(firstError)
+				throw this.toMigrationError(firstError)
 			} else {
 				throw new MigrationError("initial connection failed", MigrationErrorCause.INITIAL_CONNECT_FAILED)
 			}
@@ -190,7 +239,8 @@ export class ImapSyncSession extends MigrationSyncSession {
 	 * Filters out disabled folders and promotes children folders, updating their names relative to the provided prefix.
 	 * If a folder is disabled, its children are processed and included in the result with the same prefix.
 	 * If a folder is not disabled, it is included in the result, and its children are processed with the folder's path as the new prefix.
-	 * This is needed because GMail allows slashes (their delimiter) in the folder names but handles them weirdly internally.
+	 * This was needed because Gmail with IMAP (we now use the GoogleApi) allows slashes (their delimiter) in the folder names but handles them weirdly internally.
+	 * We still keep this implementation, because other providers might also have similar behavior.
 	 * See the corresponding test in ImapSyncSessionTest for an example.
 	 *
 	 * @param {ListTreeResponse[]} folders - The list of folders to process, where each folder may have its own nested children.
@@ -249,7 +299,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 			syncSessionProcess.startSyncSessionProcess(this.migrationSyncContext.migrationCredentials, this.migrationSyncEventListener).then((state) => {
 				if (state === SyncSessionProcessState.CONNECTION_FAILED_REJECTED) {
-					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, IMAP_RATE_LIMIT_POSTPONE_TIME)
+					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxFailurePostponeTime)
 				} else if (state === SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN) {
 					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
 				}

@@ -23,7 +23,7 @@ import {
 } from "@tutao/http-client/error"
 
 // The requests are paced by the GmailApiClient, a second batch in flight only hides the latency of the first one.
-const CONCURRENT_MAIL_BATCHES = 2
+const CONCURRENT_MAIL_BATCHES = 2 // FIXME do not understand (yet)?
 
 const GMAIL_DAILY_LIMIT_POSTPONE_TIME = 60 * 60 * 1000
 const GMAIL_RATE_LIMIT_DEFAULT_POSTPONE_TIME = 60 * 1000
@@ -222,7 +222,7 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailMailApi> {
 	}
 
 	/** How long to postpone for if `e` is a throttling or transient server response (still failing after the retries of the client), null for any other error. */
-	protected getRetryAfterMs(e: any): number | null {
+	protected getPostponeTimeAfterError(e: any): number | null {
 		const status = e?.status
 		const isTransient =
 			status === TooManyRequestsError.CODE ||
