@@ -3,7 +3,7 @@ import { MigrationMailbox } from "../../api/common/utils/migrationImportUtils/Mi
 import { MigrationError, MigrationErrorCause } from "../../api/common/error/MigrationError.js"
 import { MailboxMigrationFolderSyncStatus, MIGRATION_ERROR_POSTPONE_TIME } from "../../../../entities/tutanota/Utils.js"
 import type { MigrationSyncEventListener } from "./MigrationSyncEventListener.js"
-import { MigrationSync, ShutdownSyncAction, SyncSessionState } from "./MigrationSync.js"
+import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "./MigrationSyncSession.js"
 import { MigrationSessionMailbox, migrationMailboxFromSyncSessionMailbox } from "./MigrationSessionMailbox.js"
 import { ProgrammingError } from "@tutao/app-env"
 
@@ -13,7 +13,7 @@ import { ProgrammingError } from "@tutao/app-env"
  * The counterpart of ImapSyncSessionProcess is {@link runMailboxSync}, subclasses only implement the API specific parts:
  * the client, the mailboxes and the mails of a mailbox, and how the errors of the API are classified.
  */
-export abstract class ApiMigrationSyncSession<TClient> extends MigrationSync {
+export abstract class ApiMigrationSyncSession<TClient> extends MigrationSyncSession {
 	// Short compared to ImapSyncSession, a postponed API sync is resumed by the periodic resync anyway.
 	protected readonly mailboxFailurePostponeTime = 15 * 60 * 1000 // 15 minutes
 	private client?: TClient

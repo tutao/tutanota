@@ -44,7 +44,7 @@ export interface SyncSessionEventListener {
  * - ImapSyncSession for IMAP, with an ImapSyncSessionProcess per mailbox,
  * - ApiMigrationSyncSession for the providers that are synced through an HTTP API (Gmail API, Microsoft Graph).
  */
-export abstract class MigrationSync implements SyncSessionEventListener {
+export abstract class MigrationSyncSession implements SyncSessionEventListener {
 	// Visible for testing
 	state: SyncSessionState = SyncSessionState.NOT_STARTED
 	protected migrationSyncContext?: MigrationSyncContext

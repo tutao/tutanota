@@ -2,7 +2,7 @@ import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { MigrationCredentials, MigrationSyncContext } from "../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationSyncContext"
 import { MigrationError, MigrationErrorCause } from "../../../../src/applications/common/api/common/error/MigrationError"
-import { MigrationSync } from "../../../../src/applications/common/desktop/migration/MigrationSync"
+import { MigrationSyncSession } from "../../../../src/applications/common/desktop/migration/MigrationSyncSession"
 import {
 	DesktopMigrationSyncSystemFacade,
 	MigrationInitFolderSyncFactory,
@@ -13,8 +13,8 @@ import { MailboxMigrationProvider } from "../../../../src/applications/common/ap
 const { anything } = matchers
 
 o.spec("DesktopMigrationSyncSystemFacade", () => {
-	let migrationSyncMock: MigrationSync
-	let transientMigrationSyncMock: MigrationSync
+	let migrationSyncMock: MigrationSyncSession
+	let transientMigrationSyncMock: MigrationSyncSession
 	let migrationSyncFactory: MigrationSyncFactory
 	let migrationInitFolderSyncFactory: MigrationInitFolderSyncFactory
 	let facade: DesktopMigrationSyncSystemFacade
@@ -35,8 +35,8 @@ o.spec("DesktopMigrationSyncSystemFacade", () => {
 	const migrationErrorMock = new MigrationError("Connection failed", MigrationErrorCause.UNKNOWN)
 
 	o.beforeEach(() => {
-		migrationSyncMock = object<MigrationSync>()
-		transientMigrationSyncMock = object<MigrationSync>()
+		migrationSyncMock = object<MigrationSyncSession>()
+		transientMigrationSyncMock = object<MigrationSyncSession>()
 		migrationSyncFactory = (accountSyncId: IdTuple) => {
 			return migrationSyncMock
 		}
@@ -98,7 +98,7 @@ o.spec("DesktopMigrationSyncSystemFacade", () => {
 	})
 
 	o.test("stopSync - only stops the correct sync when multiple exist", async () => {
-		const migrationSync2Mock = object<MigrationSync>()
+		const migrationSync2Mock = object<MigrationSyncSession>()
 		const factory2 = (id: IdTuple) => {
 			if (id.join("/") === "listId/elementId") return migrationSyncMock
 			return migrationSync2Mock

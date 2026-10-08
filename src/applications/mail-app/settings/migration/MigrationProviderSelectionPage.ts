@@ -7,7 +7,7 @@ import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import {
 	getServerMigrationConfigForProvider,
-	MigrationAuthType,
+	MigrationAuthMethod,
 	MailboxMigrationProvider,
 } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs.js"
 import { TitleSection } from "../../../../ui/TitleSection"
@@ -67,7 +67,7 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 							const serverMigrationConfig = getServerMigrationConfigForProvider(this.selectedProvider)
 							const isConfigAvailableForSelectedProvider = serverMigrationConfig !== null
 							if (isConfigAvailableForSelectedProvider) {
-								if (serverMigrationConfig.authType === MigrationAuthType.Oauth2) {
+								if (serverMigrationConfig.authMethod === MigrationAuthMethod.Oauth2) {
 									vnode.attrs.data.isMigratingServerSupportingOAuth = true
 									vnode.attrs.data.oauthConfig = serverMigrationConfig.oauthConfig
 								} else {

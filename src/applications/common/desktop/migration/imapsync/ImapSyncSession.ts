@@ -8,7 +8,7 @@ import {
 	migrationMailboxFromImapFlowListTreeResponse,
 	MigrationMailboxSpecialUse,
 } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
-import { MigrationSync, ShutdownSyncAction, SyncSessionState } from "../MigrationSync.js"
+import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "../MigrationSyncSession.js"
 import { fromImapFlowError, MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { MIGRATION_ERROR_POSTPONE_TIME, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
@@ -30,7 +30,7 @@ export interface ImapSyncConfig {
 
 export type ImapFlowFactory = (imapCredentials: MigrationCredentials, imapSyncConfig: ImapSyncConfig, verifyOnly?: boolean) => Promise<ImapFlow>
 
-export class ImapSyncSession extends MigrationSync {
+export class ImapSyncSession extends MigrationSyncSession {
 	protected readonly mailboxFailurePostponeTime = IMAP_RATE_LIMIT_POSTPONE_TIME
 	// Visible for testing
 	runningSyncSessionProcess: ImapSyncSessionProcess | null = null
