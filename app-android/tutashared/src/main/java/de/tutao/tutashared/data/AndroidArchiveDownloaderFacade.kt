@@ -29,7 +29,7 @@ class AndroidArchiveDownloaderFacade(
 	override suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
 		archiveId: String,
-		typeRef: String,
+		archiveType: String,
 		modelVersion: Long,
 		rangeHeaders: ArchiveDownloadRangeHeaders?,
 	) {
@@ -81,7 +81,7 @@ class AndroidArchiveDownloaderFacade(
 							storeBytes(
 								response.body.charStream(),
 								archiveId,
-								typeRef,
+								archiveType,
 								modelVersion,
 								URL(sourceUrl).host
 							)
@@ -118,14 +118,14 @@ class AndroidArchiveDownloaderFacade(
 	private suspend fun storeBytes(
 		reader: Reader,
 		archiveId: String,
-		typeRef: String,
+		archiveType: String,
 		modelVersion: Long,
 		serverHostname: String
 	) {
 		Log.d(TAG, "Started storing archive $archiveId")
 
 		val startTime = TimeSource.Monotonic.markNow()
-		val storage = ArchiveStorageHelper(archiveId, typeRef, modelVersion, serverHostname, sqlCipherFacade)
+		val storage = ArchiveStorageHelper(archiveId, archiveType, modelVersion, serverHostname, sqlCipherFacade)
 		storageForArchive[archiveId] = storage
 		storage.init()
 
@@ -156,14 +156,14 @@ class AndroidArchiveDownloaderFacade(
 
 	private class ArchiveStorageHelper(
 		_archiveId: String,
-		_typeRef: String,
+		_archiveType: String,
 		_modelVersion: Long,
 		_serverHostname: String,
 		private val sqlCipherFacade: SqlCipherFacade
 	) {
 
 		private val archiveId = TaggedSqlValue.Str(_archiveId)
-		private val typeRef = TaggedSqlValue.Str(_typeRef)
+		private val archiveType = TaggedSqlValue.Str(_archiveType)
 		private val modelVersion = TaggedSqlValue.Num(_modelVersion)
 		private val serverHostname = TaggedSqlValue.Str(_serverHostname)
 
@@ -174,8 +174,8 @@ class AndroidArchiveDownloaderFacade(
 
 		suspend fun init() {
 			sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeRef, modelVersion, serverHostname) VALUES (?, ?, ?, ?)",
-				listOf(archiveId, typeRef, modelVersion, serverHostname)
+				"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, type, modelVersion, serverHostname) VALUES (?, ?, ?, ?)",
+				listOf(archiveId, archiveType, modelVersion, serverHostname)
 			)
 		}
 
@@ -198,12 +198,12 @@ class AndroidArchiveDownloaderFacade(
 		private suspend fun store() {
 			if (!closed && blobs.isNotEmpty()) {
 				sqlCipherFacade.run(
-					"INSERT OR REPLACE INTO encrypted_blobs (typeRef, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)"
+					"INSERT OR REPLACE INTO encrypted_blobs (type, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)" + ", (?, ?, ?, ?, ?)"
 						.repeat(blobs.size - 1),
 					Array(blobs.size) { _ -> 0 }
 						.flatMapIndexed { i, _ ->
 							listOf(
-								typeRef,
+								archiveType,
 								archiveId,
 								TaggedSqlValue.Str(blobs[i].blobId),
 								modelVersion,

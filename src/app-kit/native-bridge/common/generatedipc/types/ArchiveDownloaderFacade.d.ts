@@ -11,7 +11,7 @@ export interface ArchiveDownloaderFacade {
 	downloadAndStoreArchive(
 		sourceUrl: string,
 		archiveId: string,
-		typeRef: string,
+		archiveType: string,
 		modelVersion: number,
 		rangeHeaders: ArchiveDownloadRangeHeaders | null,
 	): Promise<void>

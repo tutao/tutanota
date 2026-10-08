@@ -16,7 +16,7 @@ interface ArchiveDownloaderFacade {
 	suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
 		archiveId: String,
-		typeRef: String,
+		archiveType: String,
 		modelVersion: Long,
 		rangeHeaders: ArchiveDownloadRangeHeaders?,
 	): Unit

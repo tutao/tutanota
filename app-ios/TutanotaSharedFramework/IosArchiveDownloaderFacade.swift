@@ -16,7 +16,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	public func downloadAndStoreArchive(
 		_ sourceUrl: String,
 		_ archiveId: String,
-		_ typeRef: String,
+		_ archiveType: String,
 		_ modelVersion: Int,
 		_ rangeHeaders: ArchiveDownloadRangeHeaders?
 	) async throws {
@@ -55,7 +55,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 				try await sqlCipherFacade.run("DELETE FROM encrypted_blobs WHERE archiveId = ?", [TaggedSqlValue.string(value: archiveId)])
 			}
 
-			do { try await storeArchive(bytes, archiveId, typeRef, modelVersion, urlStruct.host()!) } catch {
+			do { try await storeArchive(bytes, archiveId, archiveType, modelVersion, urlStruct.host()!) } catch {
 				TUTSLog("Storing archive \(archiveId) failed, cancelling request")
 				self.cancelRequest(archiveId)
 			}
@@ -73,13 +73,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 	private func cancelRequest(_ archiveId: String) { self.activeJobsLock.withLock { do { $0[archiveId]?.cancel() } } }
 
-	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ typeRef: String, _ modelVersion: Int, _ serverHostname: String)
+	private func storeArchive(_ bytes: URLSession.AsyncBytes, _ archiveId: String, _ archiveType: String, _ modelVersion: Int, _ serverHostname: String)
 		async throws
 	{
 		TUTSLog("Started storing archive \(archiveId)")
 		var iterator = bytes.lines.makeAsyncIterator()
 
-		let storage = ArchiveStorageHelper(archiveId, typeRef, modelVersion, serverHostname, self.sqlCipherFacade)
+		let storage = ArchiveStorageHelper(archiveId, archiveType, modelVersion, serverHostname, self.sqlCipherFacade)
 		try await storage.initialize()
 
 		// skip first line
@@ -100,16 +100,16 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 private final class ArchiveStorageHelper {
 	private let archiveId: TaggedSqlValue
 	private let rawArchiveId: String
-	private let typeRef: TaggedSqlValue
+	private let archiveType: TaggedSqlValue
 	private let modelVersion: TaggedSqlValue
 	private let serverHostname: TaggedSqlValue
 	private let sqlCipherFacade: IosSqlCipherFacade
 	static private let CACHE_BUFFER_SIZE = 4 * 1024 * 1024
 
-	init(_ archiveId: String, _ typeRef: String, _ modelVersion: Int, _ serverHostname: String, _ sqlCipherFacade: IosSqlCipherFacade) {
+	init(_ archiveId: String, _ archiveType: String, _ modelVersion: Int, _ serverHostname: String, _ sqlCipherFacade: IosSqlCipherFacade) {
 		self.archiveId = TaggedSqlValue.string(value: archiveId)
 		self.rawArchiveId = archiveId
-		self.typeRef = TaggedSqlValue.string(value: typeRef)
+		self.archiveType = TaggedSqlValue.string(value: archiveType)
 		self.modelVersion = TaggedSqlValue.number(value: modelVersion)
 		self.serverHostname = TaggedSqlValue.string(value: serverHostname)
 		self.sqlCipherFacade = sqlCipherFacade
@@ -122,8 +122,8 @@ private final class ArchiveStorageHelper {
 
 	func initialize() async throws {
 		try await sqlCipherFacade.run(
-			"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeRef, modelVersion, serverHostname) VALUES (?, ?, ?, ?)",
-			[self.archiveId, self.typeRef, self.modelVersion, self.serverHostname]
+			"INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, type, modelVersion, serverHostname) VALUES (?, ?, ?, ?)",
+			[self.archiveId, self.archiveType, self.modelVersion, self.serverHostname]
 		)
 	}
 
@@ -144,11 +144,11 @@ private final class ArchiveStorageHelper {
 	private func store() async throws {
 		if !self.closed && !self.blobs.isEmpty {
 			try await sqlCipherFacade.run(
-				"INSERT OR REPLACE INTO encrypted_blobs (typeRef, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)"
+				"INSERT OR REPLACE INTO encrypted_blobs (type, archiveId, blobId, modelVersion, data) VALUES (?, ?, ?, ?, ?)"
 					+ String(repeating: ", (?, ?, ?, ?, ?)", count: self.blobs.count - 1),
 				self.blobs.indices.flatMap { i in
 					[
-						self.typeRef, self.archiveId, TaggedSqlValue.string(value: self.blobs[i].blobId), self.modelVersion,
+						self.archiveType, self.archiveId, TaggedSqlValue.string(value: self.blobs[i].blobId), self.modelVersion,
 						TaggedSqlValue.string(value: self.blobs[i].json),
 					]
 				}

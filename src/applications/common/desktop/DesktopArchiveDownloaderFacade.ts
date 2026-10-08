@@ -26,7 +26,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 	async downloadAndStoreArchive(
 		sourceUrl: string,
 		archiveId: string,
-		typeRef: string,
+		archiveType: string,
 		modelVersion: number,
 		rangeHeader: ArchiveDownloadRangeHeaders | null,
 	): Promise<void> {
@@ -57,7 +57,7 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 				}
 
 				const decoder = new TextDecoder()
-				const storage = new ArchiveStorageHelper(archiveId, typeRef, modelVersion, new URL(sourceUrl).hostname, this.sqlCipherFacade)
+				const storage = new ArchiveStorageHelper(archiveId, archiveType, modelVersion, new URL(sourceUrl).hostname, this.sqlCipherFacade)
 				this.storageForArchive.set(archiveId, storage)
 				await storage.init()
 
@@ -113,26 +113,26 @@ export class DesktopArchiveDownloaderFacade implements ArchiveDownloaderFacade {
 
 class ArchiveStorageHelper {
 	private readonly archiveId: TaggedSqlValue
-	private readonly typeRef: TaggedSqlValue
+	private readonly archiveType: TaggedSqlValue
 	private readonly modelVersion: TaggedSqlValue
 	private readonly serverHostname: TaggedSqlValue
 
 	constructor(
 		_archiveId: string,
-		_typeRef: string,
+		_archiveType: string,
 		_modelVersion: number,
 		_serverHostname: string,
 		private readonly sqlCipherFacade: SqlCipherFacade,
 	) {
 		this.archiveId = tagSqlValue(_archiveId)
-		this.typeRef = tagSqlValue(_typeRef)
+		this.archiveType = tagSqlValue(_archiveType)
 		this.modelVersion = tagSqlValue(_modelVersion)
 		this.serverHostname = tagSqlValue(_serverHostname)
 	}
 
 	async init() {
-		const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, typeRef, modelVersion, serverHostname) VALUES (?, ?, ?, ?)"
-		const params: TaggedSqlValue[] = [this.archiveId, this.typeRef, this.modelVersion, this.serverHostname]
+		const query = "INSERT OR REPLACE INTO encrypted_blobs_metadata (archiveId, type, modelVersion, serverHostname) VALUES (?, ?, ?, ?)"
+		const params: TaggedSqlValue[] = [this.archiveId, this.archiveType, this.modelVersion, this.serverHostname]
 		await this.sqlCipherFacade.run(query, params)
 	}
 
@@ -166,11 +166,11 @@ class ArchiveStorageHelper {
 	private async store() {
 		if (!this.closed && isNotEmpty(this.blobs)) {
 			const query =
-				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeRef, modelVersion) VALUES (?, ?, ?, ?, ?)" +
+				"INSERT OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES (?, ?, ?, ?, ?)" +
 				", (?, ?, ?, ?, ?)".repeat(this.blobs.length - 1)
 			const params = Array(this.blobs.length)
 				.fill(null)
-				.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), this.archiveId, tagSqlValue(this.blobs[i].json), this.typeRef, this.modelVersion])
+				.flatMap((_, i) => [tagSqlValue(this.blobs[i].blobId), this.archiveId, tagSqlValue(this.blobs[i].json), this.archiveType, this.modelVersion])
 
 			await this.sqlCipherFacade.run(query, params)
 		}

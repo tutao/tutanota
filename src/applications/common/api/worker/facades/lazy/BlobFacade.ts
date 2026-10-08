@@ -668,7 +668,7 @@ export class BlobFacade {
 	}
 
 	/**
-	 * Download a full archive of (encrypted) blob entities and store them in offline database.
+	 * Download a full archive of blob entities and store them (encrypted) in offline database.
 	 */
 	async downloadAndStoreEncryptedBlobArchive<T extends BlobElementEntity>(
 		typeRef: TypeRef<T>,
@@ -677,7 +677,7 @@ export class BlobFacade {
 		resumeParams: ArchiveDownloadResumeParams | null,
 	): Promise<void> {
 		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const typeRefString = getTypeString(typeRef)
+		const typeString = getTypeString(typeRef)
 
 		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
 		const serversToTry = blobServerAccessInfo.servers
@@ -704,7 +704,7 @@ export class BlobFacade {
 					const entityUrl = new URL(serverUrl)
 					entityUrl.pathname = path
 					const url = addParamsToUrl(entityUrl, allParams)
-					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeRefString, serverTypeModel.version, rangeHeaders)
+					await archiveDownloader.downloadAndStoreArchive(url.toString(), archiveId, typeString, serverTypeModel.version, rangeHeaders)
 				},
 				`can't load instances from server `,
 			)

@@ -91,13 +91,13 @@ mailAddresses
 	// storing too many blobs in RAM (which can potentially fail).
 	encrypted_blobs: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_blobs (typeRef STRING NOT NULL, archiveId TEXT NOT NULL, blobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, data BLOB NOT NULL, PRIMARY KEY (typeRef, archiveId, blobId, modelVersion))",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs (type STRING NOT NULL, archiveId TEXT NOT NULL, blobId TEXT NOT NULL, modelVersion NUMBER NOT NULL, data BLOB NOT NULL, PRIMARY KEY (type, archiveId, blobId, modelVersion))",
 		purgedWithCache: true,
 	},
 
 	encrypted_blobs_metadata: {
 		definition:
-			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (typeRef STRING NOT NULL, archiveId TEXT NOT NULL, modelVersion NUMBER NOT NULL, serverHostname TEXT NOT NULL, PRIMARY KEY (typeRef, archiveId))",
+			"CREATE TABLE IF NOT EXISTS encrypted_blobs_metadata (type STRING NOT NULL, archiveId TEXT NOT NULL, modelVersion NUMBER NOT NULL, serverHostname TEXT NOT NULL, PRIMARY KEY (type, archiveId))",
 		purgedWithCache: true,
 	},
 })
@@ -319,9 +319,9 @@ VALUES (
 
 	// FIXME use blobIdTuple to retrieve
 	retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
-		const typeRef = `${serverTypeModel.app}/${serverTypeModel.id}`
+		const typeString = `${serverTypeModel.app}/${serverTypeModel.id}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {
-			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeRef})`)
+			throw new ProgrammingError(`cannot use OfflineStoragePersistence#retrieveEncryptedBlob with ${serverTypeModel.type} (${typeString})`)
 		}
 
 		// if there is a pending request, build onto it (but not too much because we don't want to blow up MAX_SAFE_SQL_VARS or our RAM)
@@ -343,12 +343,12 @@ VALUES (
 				const blobIdQuery = "blobId = ?"
 				const baseQuery = `SELECT data, blobId
 						   FROM encrypted_blobs
-						   WHERE typeRef = ?
+						   WHERE type = ?
 							 AND modelVersion = ?
 							 AND (${blobItemsArray.map((_) => blobIdQuery).join(" OR ")})`
 
 				const blobs = await this.sqlCipherFacade.all(baseQuery, [
-					tagSqlValue(typeRef),
+					tagSqlValue(typeString),
 					tagSqlValue(serverTypeModel.version),
 					...blobItemsArray.map(tagSqlValue),
 				])
@@ -380,7 +380,7 @@ VALUES (
 	async deleteEncryptedBlob<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id, blobId: Id): Promise<void> {
 		const { query, params } = sql`DELETE
 									  FROM encrypted_blobs
-									  WHERE typeRef = ${getTypeString(typeRef)}
+									  WHERE type = ${getTypeString(typeRef)}
 			                            AND archiveId = ${archiveId}
 										AND blobId = ${blobId}`
 
@@ -390,7 +390,7 @@ VALUES (
 	async clearEncryptedBlobsForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<void> {
 		const { query, params } = sql`DELETE
 		                              FROM encrypted_blobs
-		                              WHERE typeRef = ${getTypeString(typeRef)}`
+		                              WHERE type = ${getTypeString(typeRef)}`
 
 		await this.sqlCipherFacade.run(query, params)
 	}
@@ -398,7 +398,7 @@ VALUES (
 	async getLastLoadedArchiveForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<LoadedArchiveMetadata | null> {
 		const { query, params } = sql`SELECT archiveId, modelVersion, serverHostname
 								  FROM encrypted_blobs_metadata
-								  WHERE typeRef = ${getTypeString(typeRef)}
+								  WHERE type = ${getTypeString(typeRef)}
 								  ORDER BY archiveId DESC LIMIT 1`
 
 		const row = await this.sqlCipherFacade.get(query, params)
@@ -412,7 +412,7 @@ VALUES (
 	): Promise<ArchiveDownloadRangeHeaders | null> {
 		const { query, params } = sql`SELECT blobId
 										  FROM encrypted_blobs
-										  WHERE typeRef = ${getTypeString(typeRef)}
+										  WHERE type = ${getTypeString(typeRef)}
 											AND archiveId = ${archiveId}
 											AND modelVersion = ${modelVersion}
 										  ORDER BY rowid ASC`

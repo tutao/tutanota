@@ -13,7 +13,7 @@ public protocol ArchiveDownloaderFacade : Sendable {
 	func downloadAndStoreArchive(
 		_ sourceUrl: String,
 		_ archiveId: String,
-		_ typeRef: String,
+		_ archiveType: String,
 		_ modelVersion: Int,
 		_ rangeHeaders: ArchiveDownloadRangeHeaders?
 	) async throws -> Void

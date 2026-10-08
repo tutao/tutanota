@@ -10,10 +10,10 @@ export class ArchiveDownloaderFacadeReceiveDispatcher {
 			case "downloadAndStoreArchive": {
 				const sourceUrl: string = arg[0]
 				const archiveId: string = arg[1]
-				const typeRef: string = arg[2]
+				const archiveType: string = arg[2]
 				const modelVersion: number = arg[3]
 				const rangeHeaders: ArchiveDownloadRangeHeaders | null = arg[4]
-				return this.facade.downloadAndStoreArchive(sourceUrl, archiveId, typeRef, modelVersion, rangeHeaders)
+				return this.facade.downloadAndStoreArchive(sourceUrl, archiveId, archiveType, modelVersion, rangeHeaders)
 			}
 			case "abortDownloadAndStoreArchive": {
 				const archiveId: string = arg[0]
