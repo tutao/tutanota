@@ -149,7 +149,6 @@ export class InternalServerError extends TutanotaError {
 		super("InternalServerError", msg)
 	}
 }
-
 export class BadGatewayError extends TutanotaError {
 	static CODE: number = 502
 
@@ -163,6 +162,14 @@ export class ServiceUnavailableError extends TutanotaError {
 
 	constructor(msg: string) {
 		super("ServiceUnavailableError", msg)
+	}
+}
+
+export class GatewayTimeoutError extends TutanotaError {
+	static CODE: number = 504
+
+	constructor(msg: string) {
+		super("GatewayTimeoutError", msg)
 	}
 }
 
