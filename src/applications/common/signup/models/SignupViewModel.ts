@@ -128,8 +128,12 @@ export class SignupViewModel {
 			this.nextYearPrice = null
 			return
 		}
-		this.price = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this)
-		const nextYear = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, this)
+		this.price = this.planPrices!.getSubscriptionPriceWithCurrency(this.options.paymentInterval(), UpgradePriceType.PlanActualPrice, this.targetPlanType)
+		const nextYear = this.planPrices!.getSubscriptionPriceWithCurrency(
+			this.options.paymentInterval(),
+			UpgradePriceType.PlanNextYearsPrice,
+			this.targetPlanType,
+		)
 		this.nextYearPrice = this.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 	}
 
@@ -176,6 +180,9 @@ export class SignupViewModel {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			this.options.businessUse(false)
 			const appstoreSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
+			if (appstoreSubscriptionOwnership == MobilePaymentSubscriptionOwnership.Unknown) {
+				return lang.getTranslation("appStoreSubscriptionError_msg")
+			}
 			// if we are on iOS/google play we only show other plans if there's no subscription for this Apple ID/Google ID.
 			if (appstoreSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				this.acceptedPlans = this.acceptedPlans.filter((plan) => plan === PlanType.Free)

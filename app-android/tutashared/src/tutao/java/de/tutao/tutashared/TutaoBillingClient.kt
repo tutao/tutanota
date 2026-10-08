@@ -34,6 +34,12 @@ class TutaoBillingClient(val activity: Activity) {
 		googleBillingClient.startConnection(BillingStateListener(initialized))
 	}
 
+	suspend fun waitForInit() {
+		withTimeout(INIT_TIMEOUT) {
+			initialized.await()
+		}
+	}
+
 	suspend fun launchBillingFlow(params: BillingFlowParams): MobilePaymentResult {
 		withTimeout(INIT_TIMEOUT) {
 			initialized.await()

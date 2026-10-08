@@ -13,7 +13,7 @@ import {
 	NotFoundError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { ApprovalStatus, CancelledError } from "@tutao/app-env"
+import { ApprovalStatus, CancelledError, EnvProvider, PaymentSetup } from "@tutao/app-env"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -191,8 +191,14 @@ export function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCod
 }
 
 export function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
-	// Default to all available plans if the params do not have the needed information
-	if (params == null || params.type == null) return AvailablePlans
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+		// there is no point in returning paid plans if payments are not working.
+		return [PlanType.Free]
+	}
+	if (params == null || params.type == null) {
+		// Default to all available plans if the params do not have the needed information
+		return AvailablePlans
+	}
 
 	try {
 		const type = stringToSubscriptionType(params.type)
