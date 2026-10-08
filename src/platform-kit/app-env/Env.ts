@@ -1,4 +1,5 @@
 import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
+import { ClientType } from "./TutanotaConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -178,6 +179,16 @@ export class EnvProvider {
 		return isNotNull(this.env.shadowDomAppRoot) ? this.env.shadowDomAppRoot : ""
 	}
 
+	public getClientType(): ClientType {
+		if (this.isApp()) {
+			return ClientType.App
+		} else if (this.isDesktop() || this.isAdminClient()) {
+			return ClientType.Desktop
+		} else {
+			return ClientType.Browser
+		}
+	}
+
 	/**
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
@@ -320,6 +331,7 @@ export class EnvProvider {
 		}
 	}
 
+	/** @TTranspileIgnore This method is only used from locator */
 	public static overrideEnv(env: EnvType): void {
 		EnvProvider.singleton = new EnvProvider(env)
 	}
