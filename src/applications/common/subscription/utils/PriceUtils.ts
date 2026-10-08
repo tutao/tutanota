@@ -166,8 +166,13 @@ export class PriceAndConfigProvider {
 		this.upgradePriceData = await serviceExecutor.execute(UpgradePriceService_GET, data, null)
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			this.mobilePrices = new Map()
-
-			const allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
+			let allPrices: ReadonlyArray<MobilePlanPrice>
+			try {
+				allPrices = await locator.mobilePaymentsFacade.getPlanPrices()
+			} catch (e) {
+				console.error("failed to get mobile prices:", e)
+				allPrices = []
+			}
 			for (const plan of allPrices) {
 				this.mobilePrices.set(plan.name, plan)
 			}
@@ -201,7 +206,9 @@ export class PriceAndConfigProvider {
 	 * Returns the subscription price with the currency formatting on iOS/google and as a plain period seperated number on other platforms
 	 */
 	getSubscriptionPriceWithCurrency(paymentInterval: PaymentInterval, type: UpgradePriceType, targetPlanType: PlanType): OfferPrice {
-		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+			return { displayPrice: "?", rawPrice: "?" }
+		} else if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			return this.getExternalPaymentsSubscriptionPrice(targetPlanType, paymentInterval)
 		} else {
 			const price = this.getSubscriptionPrice(paymentInterval, targetPlanType, type)
@@ -211,7 +218,7 @@ export class PriceAndConfigProvider {
 
 	private getExternalPaymentsSubscriptionPrice(subscription: PlanType, paymentInterval: PaymentInterval) {
 		const planName = PlanTypeToName[subscription]
-		const externalSubscriptionPrices = this.getMobilePrices().get(planName.toLowerCase())
+		const externalSubscriptionPrices = this.getMobilePrices()?.get(planName.toLowerCase())
 
 		if (!externalSubscriptionPrices) {
 			throw new Error(`no such iOS plan ${planName}`)
@@ -242,8 +249,8 @@ export class PriceAndConfigProvider {
 		return getPriceForUpgradeType(upgrade, prices)
 	}
 
-	getMobilePrices(): Map<string, MobilePlanPrice> {
-		return assertNotNull(this.mobilePrices)
+	getMobilePrices(): Map<string, MobilePlanPrice> | null {
+		return this.mobilePrices
 	}
 
 	getPlanPricesForPlan(subscription: PlanType): PlanPrices {

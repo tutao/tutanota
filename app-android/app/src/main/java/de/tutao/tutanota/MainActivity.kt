@@ -550,7 +550,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	}
 
 	@MainThread
-	private fun startWebApp(parameters: MutableMap<String, String>) {
+	private suspend fun startWebApp(parameters: MutableMap<String, String>) {
 		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
 		remoteBridge.setup()
 	}
@@ -638,13 +638,18 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		}
 	}
 
-	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
+	private suspend fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
 		if (theme != null) {
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}
 		parameters["platformId"] = "android"
-		if (paymentsFacade.hasPlaystorePayment()) {
-			parameters["paymentSetup"] = "playstore"
+		try {
+			if (paymentsFacade.hasPlaystorePayment()) {
+				parameters["paymentSetup"] = "playstore"
+			}
+		} catch (e: Throwable) {
+			println("failed to set up mobile payment: $e")
+			parameters["paymentSetup"] = "none"
 		}
 		val queryBuilder = StringBuilder()
 		for ((key, value) in parameters) {
@@ -912,8 +917,8 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		}
 	}
 
-	override fun reload(parameters: Map<String, String>) {
-		runOnUiThread { startWebApp(parameters.toMutableMap()) }
+	override suspend fun reload(parameters: Map<String, String>) {
+		runOnUiThread { lifecycleScope.launch { startWebApp(parameters.toMutableMap()) } }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {

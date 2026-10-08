@@ -176,7 +176,7 @@ export async function showSwitchDialog({
 		const isYearly = paymentInterval() === PaymentInterval.Yearly
 
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
-			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
+			const prices = priceAndConfigProvider.getMobilePrices()?.get(PlanTypeToName[targetPlan].toLowerCase())
 			return hasGlobalFirstYearDiscount && isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 		} else {
 			return hasGlobalFirstYearDiscount && isYearly

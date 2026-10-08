@@ -13,7 +13,7 @@ import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
 interface WebViewReloader {
-	fun reload(query: Map<String, String>)
+	suspend fun reload(query: Map<String, String>)
 }
 
 class AndroidCommonSystemFacade(

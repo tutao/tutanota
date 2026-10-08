@@ -14,7 +14,7 @@ import { MessageBanner } from "../../../ui/base/MessageBanner"
 import { AvailablePlanType, PlanType } from "../../../entities/sys/Utils"
 import { PaymentInterval } from "../subscription/utils/PriceUtils"
 
-interface PlanSelectorPageAttrs extends WizardStepComponentAttrs<PlanSelectionModel> {
+export interface PlanSelectorPageAttrs extends WizardStepComponentAttrs<PlanSelectionModel> {
 	forceMobileBusinessLayout?: boolean
 }
 
@@ -45,7 +45,6 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 			[PlanType.Legend]: getAsLazy(button),
 		}
 		const isWideBusinessLayout = data.options.businessUse() && !forceMobileBusinessLayout
-
 		return m(
 			`.full-width${Styles.get().isMobileLayout() ? ".pt-16" : ""}`,
 			// Upgrade messages explain plan requirements; signup may report store-subscription errors.
@@ -53,7 +52,6 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 				m(MessageBanner, { translation: data.messageBoxMessage, type: data.upgradeType === UpgradeType.Signup ? "error" : "base" }),
 			// Headline for promotional messages
 			message && m(MessageBanner, { translation: message, type: "base" }),
-
 			m(
 				".flex.flex-column.items-start.full-width",
 				{
@@ -78,7 +76,7 @@ export class PlanSelectorPage implements ClassComponent<PlanSelectorPageAttrs> {
 								options: data.options!,
 								actionButtons: actionButtons,
 								priceAndConfigProvider: planPrices!,
-								availablePlans: availablePlans!,
+								availablePlans,
 								isExternalStorePrice: isApplePrice,
 								currentPlan: data.currentPlan ?? undefined,
 								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo) ?? PaymentInterval.Yearly,

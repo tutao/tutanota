@@ -1,7 +1,7 @@
 import m, { ClassComponent, ComponentTypes, Vnode } from "mithril"
 import { createWizard, WizardLayoutAttrs } from "../../../ui/base/wizard/Wizard"
 import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
-import { PlanSelectorPage } from "../signup/PlanSelectorPage"
+import { PlanSelectorPage, PlanSelectorPageAttrs } from "../signup/PlanSelectorPage"
 import InvoiceAndPaymentDataPageNew from "../signup/InvoiceAndPaymentDataPageNew"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { UpgradeViewModel } from "./UpgradeViewModel"
@@ -94,7 +94,11 @@ const UpgradeWizardLayout: m.Component<WizardLayoutAttrs<UpgradeViewModel>> = {
 }
 
 const SettingsPlanSelectorPage: m.Component<WizardStepComponentAttrs<UpgradeViewModel>> = {
-	view: ({ attrs }) => m(PlanSelectorPage, { ...attrs, forceMobileBusinessLayout: true }),
+	view: ({ attrs }) =>
+		m(PlanSelectorPage, {
+			...attrs,
+			forceMobileBusinessLayout: true,
+		}),
 }
 
 export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {

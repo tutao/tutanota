@@ -63,7 +63,8 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 
 		val accountId = customerIdBytes.toObfuscatedAccountId()
 		val currentPurchases = billingClient.queryPurchases(
-			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS).includeSuspendedSubscriptions(true).build()
+			QueryPurchasesParams.newBuilder().setProductType(BillingClient.ProductType.SUBS)
+				.includeSuspendedSubscriptions(true).build()
 		).filter {
 			it.purchaseState == Purchase.PurchaseState.PURCHASED &&
 					if (foreignKey != null) {
@@ -104,12 +105,14 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 			.setProductDetails(productDetails)
 			.setOfferToken(offerDetails.offerToken)
 			.setSubscriptionProductReplacementParams(
-				SubscriptionProductReplacementParams.newBuilder().setOldProductId(oldProductId).setReplacementMode(mode).build()
+				SubscriptionProductReplacementParams.newBuilder().setOldProductId(oldProductId).setReplacementMode(mode)
+					.build()
 			).build()
 		val billingFlowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(listOf(productDetailsParams))
 			.setObfuscatedAccountId(accountId)
 			.setSubscriptionUpdateParams(
-				BillingFlowParams.SubscriptionUpdateParams.newBuilder().setOldPurchaseToken(currentPurchase.purchaseToken).build()
+				BillingFlowParams.SubscriptionUpdateParams.newBuilder()
+					.setOldPurchaseToken(currentPurchase.purchaseToken).build()
 			).build()
 		return billingClient.launchBillingFlow(billingFlowParams)
 	}
@@ -159,10 +162,15 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 			.setProductType(BillingClient.ProductType.SUBS)
 			.includeSuspendedSubscriptions(true)
 			.build()
-		val purchases = billingClient.queryPurchases(params)
+		val purchases = try {
+			billingClient.queryPurchases(params)
+		} catch (e: Throwable) {
+			println("failed to query purchases: $e")
+			return MobilePaymentSubscriptionOwnership.UNKNOWN
+		}
 		if (purchases.isEmpty()) return MobilePaymentSubscriptionOwnership.NO_SUBSCRIPTION
 
-		return if (foreignKey != null && purchases.any {purchase ->
+		return if (foreignKey != null && purchases.any { purchase ->
 				purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
 						purchase.purchaseToken == foreignKey
 			}) {
@@ -181,7 +189,8 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		return billingClient.queryPurchases(params).any { it.isAutoRenewing }
 	}
 
-	fun hasPlaystorePayment(): Boolean {
+	suspend fun hasPlaystorePayment(): Boolean {
+		billingClient.waitForInit()
 		return true
 	}
 

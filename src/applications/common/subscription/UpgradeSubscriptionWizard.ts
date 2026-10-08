@@ -1,9 +1,9 @@
-import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
-import { PriceAndConfigProvider, OfferPrice } from "./utils/PriceUtils"
+import { OfferPrice, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { LoginController } from "../api/main/LoginController.js"
 import { Styles } from "../../../ui/styles.js"
 import { PowSolution } from "../api/common/pow-worker"
@@ -15,6 +15,7 @@ import { UpgradeViewModel } from "./UpgradeViewModel"
 import { showUpgradeDialog } from "./UpgradeView"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
+import { Dialog } from "../../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNode()
 export type SubscriptionParameters = {
@@ -76,6 +77,9 @@ export async function showUpgradeWizard({
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
 }): Promise<void> {
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+		return Dialog.message("appStoreSubscriptionError_msg")
+	}
 	let upgradeUsageTest: UsageTest | null = null
 	if (logins.getUserController().isFreeAccount() && upgradePromptType != null) {
 		upgradeUsageTest = locator.usageTestController.getTest("upgrade.paywall.upgradePaywallTypeAndResult")

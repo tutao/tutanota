@@ -420,44 +420,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		// Render external-store controls only when this client matches the subscription's store.
 		if (isExternalSubscription) {
 			const paymentMethod = this._accountingInfo ? getPaymentMethodType(this._accountingInfo) : null
-			return hasMatchingExternalPaymentSetup(paymentMethod)
-				? m(
-						".flex.justify-end.gap-8",
-
-						m(SecondaryButton, {
-							label:
-								EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
-									? "subscriptionSettingManageSubscription_action"
-									: "subscriptionSettingManageSubscriptionGoogle_action",
-							width: "flex",
-							icon: Icons.OpenOutline,
-							onclick: async () => {
-								await locator.mobilePaymentsFacade.showSubscriptionConfigView()
-							},
-						}),
-						currentSubscriptionState !== "cancelled" &&
-							m(PrimaryButton, {
-								label: "subscriptionSettingSwitchPlan_action",
-								width: "flex",
-								onclick: () => {
-									this.onSubscriptionClick()
-								},
-							}),
-					)
-				: m(
-						".flex.justify-end.gap-8",
-						m(PrimaryButton, {
-							label:
-								paymentMethod === PaymentMethodType.AppStore
-									? "subscriptionSettingAppleWebsite_action"
-									: "subscriptionSettingGoogleWebsite_action",
-							width: "flex",
-							icon: Icons.OpenOutline,
-							onclick: () => {
-								this.onSubscriptionClick()
-							},
-						}),
-					)
+			return this.showExternalControls(paymentMethod, currentSubscriptionState)
 		}
 
 		//Show cancel button if renewal is enabled
@@ -495,6 +458,46 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
+	private showExternalControls = (
+		paymentMethod: PaymentMethodType | null,
+		currentSubscriptionState: "active" | "revoked" | "planned" | "cancelled" | "unknown",
+	) => {
+		return hasMatchingExternalPaymentSetup(paymentMethod)
+			? m(
+					".flex.justify-end.gap-8",
+					m(SecondaryButton, {
+						label:
+							EnvProvider.get().getPaymentSetup() === PaymentSetup.Appstore
+								? "subscriptionSettingManageSubscription_action"
+								: "subscriptionSettingManageSubscriptionGoogle_action",
+						width: "flex",
+						icon: Icons.OpenOutline,
+						onclick: async () => {
+							await this.mobilePaymentsFacade?.showSubscriptionConfigView()
+						},
+					}),
+					currentSubscriptionState !== "cancelled" &&
+						m(PrimaryButton, {
+							label: "subscriptionSettingSwitchPlan_action",
+							width: "flex",
+							onclick: () => {
+								this.onSubscriptionClick()
+							},
+						}),
+				)
+			: m(
+					".flex.justify-end.gap-8",
+					m(PrimaryButton, {
+						label:
+							paymentMethod === PaymentMethodType.AppStore ? "subscriptionSettingAppleWebsite_action" : "subscriptionSettingGoogleWebsite_action",
+						width: "flex",
+						icon: Icons.OpenOutline,
+						onclick: () => {
+							this.onSubscriptionClick()
+						},
+					}),
+				)
+	}
 	//Handle the keep subscription button click. Calls renewalPreferenceService with isEnabled = true
 	//to keep the subscription from getting downgraded
 	private async handleKeepSubscriptionClick() {
@@ -569,7 +572,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			// We pass `null` because we expect no subscription when upgrading
 			const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
-
+			if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.Unknown) {
+				return Dialog.message("appStoreSubscriptionError_msg")
+			}
 			if (externalSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
 				return Dialog.message(
 					lang.getTranslation("storeMultiSubscriptionError_msg", {
@@ -612,6 +617,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 
 		const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(lastBooking.subscriptionReference.foreignKey)
+		if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.Unknown) {
+			return await Dialog.message("appStoreSubscriptionError_msg")
+		}
 		const userStatus = customer.approvalStatus
 		const isActiveSubscription = lastBooking.endDate && lastBooking.endDate?.getTime() > Date.now()
 
@@ -681,8 +689,8 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async canManageExternalSubscriptionInApp(ownership: MobilePaymentSubscriptionOwnership): Promise<boolean> {
-		if (ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
+	private async canManageExternalSubscriptionInApp(ownership: MobilePaymentSubscriptionOwnership | null): Promise<boolean> {
+		if (ownership == null || ownership === MobilePaymentSubscriptionOwnership.NotOwner) {
 			// we have a subscription with the external provider for this app (calendar / mail / drive), but it's for another tuta account.
 			// we could technically manage it from this tuta account, but we should not allow it because it's too easy to
 			// confuse which subscription belongs to which tuta account.
