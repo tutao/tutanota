@@ -1,5 +1,4 @@
 import { TimeConstants } from "./TimeConstants.js"
-import { EnvProvider } from "./Env"
 import { TsDouble, TsInt, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
 export class TutanotaConstants {
@@ -8,7 +7,7 @@ export class TutanotaConstants {
 	public static readonly Const: ConstType = TsObject.freeze({
 		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
-		MEMORY_GB_FACTOR: 1000000000,
+		MEMORY_GB_FACTOR: 1000000000.0,
 		MEMORY_WARNING_FACTOR: 0.9,
 		// Sets the current date for testing date dependent services. Only available in test environments.
 		CURRENT_DATE: null,
@@ -80,8 +79,8 @@ export class TutanotaConstants {
 
 	public static readonly companyTeamLabel: TsString = "Tuta Team"
 
-	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS = 28
-	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS = 365
+	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 28
+	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 365
 }
 
 export type ConstType = {
@@ -596,16 +595,4 @@ export enum CredentialEncryptionMode {
 	 * keychain.
 	 */
 	APP_PASSWORD = "APP_PASSWORD",
-}
-
-export function getClientType(): ClientType {
-	if (EnvProvider.get().isApp()) {
-		return ClientType.App
-	} else {
-		if (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()) {
-			return ClientType.Desktop
-		} else {
-			return ClientType.Browser
-		}
-	}
 }

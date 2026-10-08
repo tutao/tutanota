@@ -23,7 +23,7 @@ import {
 	isUpdateForTypeRef,
 	ListenerPriority,
 } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { getClientType, PaymentDataResultType } from "@tutao/app-env"
+import { EnvProvider, PaymentDataResultType } from "@tutao/app-env"
 import { Country, CountryType } from "../../gui/CountryList"
 import { idToElementId } from "@tutao/meta"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
@@ -139,7 +139,7 @@ function verifyCreditCard(accountingInfo: AccountingInfo, braintree3ds: Braintre
 		const app = ClientDetector.get().isCalendarApp() ? "calendar" : "mail"
 		let params = `clientToken=${encodeURIComponent(braintree3ds.clientToken)}&nonce=${encodeURIComponent(braintree3ds.nonce)}&bin=${encodeURIComponent(
 			braintree3ds.bin,
-		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${getClientType()}&app=${app}`
+		)}&price=${encodeURIComponent(price)}&message=${encodeURIComponent(lang.get("creditCardVerification_msg"))}&clientType=${EnvProvider.get().getClientType()}&app=${app}`
 		Dialog.message("creditCardVerificationNeededPopup_msg").then(() => {
 			const paymentUrlString = locator.domainConfigProvider().getCurrentDomainConfig().paymentUrl
 			const paymentUrl = new URL(paymentUrlString)
