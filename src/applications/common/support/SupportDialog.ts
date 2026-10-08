@@ -88,14 +88,15 @@ export async function showSupportDialog(logins: LoginController) {
 		}),
 	)
 	data.categories = filterCategories(supportData)
-
+	const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
+	const STATIC_CONTENT_LENGTH = isFreeAccount ? 1 : 2
 	const SECTION_BUTTON_PIXEL_HEIGHT = size.core_56 + size.spacing_8
 	const STATIC_CONTENT_PIXEL_HEIGHT = 232
 	// this height allows the static content + all categories to fit on the dialog without scrolling and with perfect
 	// padding (24px on the sides and on the bottom)
 	// we're adding one category because of the static support link.
 	// the height is limited automatically by the dialog; if there's too many categories, a scroll bar appears.
-	const dialogHeight = STATIC_CONTENT_PIXEL_HEIGHT + (data.categories.length + 1) * SECTION_BUTTON_PIXEL_HEIGHT
+	const dialogHeight = STATIC_CONTENT_PIXEL_HEIGHT + (data.categories.length + STATIC_CONTENT_LENGTH) * SECTION_BUTTON_PIXEL_HEIGHT
 
 	const dialog = new MultiPageDialog<SupportDialogPageName>(
 		"home",

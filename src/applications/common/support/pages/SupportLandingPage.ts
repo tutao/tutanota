@@ -8,6 +8,8 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { windowFacade } from "../../misc/WindowFacade"
+import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
+import { locator } from "../../api/main/CommonLocator"
 
 type Props = {
 	data: SupportDialogState
@@ -31,6 +33,16 @@ export class SupportLandingPage implements Component<Props> {
 				toCategoryDetail()
 			},
 		}))
+		const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
+
+		!isFreeAccount &&
+			visibleCategorySections.push({
+				leftIcon: { icon: Icons.LightbulbOutline, title: "emptyString_msg", fill: theme.primary },
+				text: { text: "Have some feedback?", testId: "" },
+				onclick: () => {
+					void showUserSatisfactionDialog("ManualFeedback")
+				},
+			})
 		visibleCategorySections.push({
 			leftIcon: { icon: Icons.QuestionmarkFilled, title: "emptyString_msg", fill: theme.primary },
 			text: { text: "tuta.com/support", testId: "" },
