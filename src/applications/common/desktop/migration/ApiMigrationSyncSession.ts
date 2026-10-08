@@ -10,30 +10,26 @@ import { ProgrammingError } from "@tutao/app-env"
 /**
  * Sync session for providers that are synced through an HTTP API (Microsoft Graph, Gmail API) instead of IMAP.
  *
- * The counterpart of ImapSyncSessionProcess is {@link runMailboxSync}, subclasses only implement the API specific parts:
- * the client, the mailboxes and the mails of a mailbox, and how the errors of the API are classified.
+ * The counterpart of ImapSyncSessionProcess is {@link runMailboxSync}, subclasses only implement the API specific parts.
  */
-export abstract class ApiMigrationSyncSession<TClient> extends MigrationSyncSession {
+export abstract class ApiMigrationSyncSession<TApiClient> extends MigrationSyncSession {
 	// Short compared to ImapSyncSession, a postponed API sync is resumed by the periodic resync anyway.
 	protected readonly mailboxFailurePostponeTime = 15 * 60 * 1000 // 15 minutes
-	private client?: TClient
+	private apiClient?: TApiClient
 
 	protected constructor(migrationSyncEventListener: MigrationSyncEventListener) {
 		super(migrationSyncEventListener)
 	}
 
-	protected abstract createClient(migrationCredentials: MigrationCredentials): Promise<TClient>
+	protected abstract createClient(migrationCredentials: MigrationCredentials): Promise<TApiClient>
 
-	/** Fetches the mailbox tree (roots) from the server. */
-	protected abstract fetchMailboxes(client: TClient): Promise<MigrationMailbox[]>
+	protected abstract fetchMailboxes(client: TApiClient): Promise<MigrationMailbox[]>
 
-	/** Downloads the mails of one mailbox. @return true if the whole mailbox was processed, false if it was interrupted because the session is not running anymore. */
-	protected abstract syncMailbox(client: TClient, mailbox: MigrationMailbox, mailboxState: MigrationMailboxState): Promise<boolean>
+	protected abstract syncMailbox(client: TApiClient, mailbox: MigrationMailbox, mailboxState: MigrationMailboxState): Promise<boolean>
 
-	protected abstract toMigrationError(e: unknown): MigrationError
+	protected abstract toMigrationError(e: any): MigrationError
 
-	/** How long to postpone for if `e` is a throttling response, null for any other error. */
-	protected abstract getRetryAfterMs(e: unknown): number | null
+	protected abstract getPostponeTimeAfterError(e: any): number | null
 
 	async getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
 		try {
@@ -46,23 +42,23 @@ export abstract class ApiMigrationSyncSession<TClient> extends MigrationSyncSess
 	}
 
 	protected async fetchSyncMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
-		this.client = await this.createClient(migrationCredentials)
-		return await this.fetchMailboxes(this.client)
+		this.apiClient = await this.createClient(migrationCredentials)
+		return await this.fetchMailboxes(this.apiClient)
 	}
 
-	protected async handleSetupError(error: unknown): Promise<MigrationError | null> {
-		console.error("Error during sync", error)
-		const migrationError = this.toMigrationError(error)
+	protected async handleSetupError(e: any): Promise<MigrationError | null> {
+		console.error("Error during sync", e)
+		const migrationError = this.toMigrationError(e)
 		if (migrationError.data.cause === MigrationErrorCause.AUTH_FAILED) {
 			await this.shutDownSyncSession(ShutdownSyncAction.AUTH_FAIL)
 			return migrationError
 		}
 
-		const retryAfterMs = this.getRetryAfterMs(error)
+		const retryAfterMs = this.getPostponeTimeAfterError(e)
 		if (retryAfterMs !== null) {
-			// postponed for as long as the server asks for, there is nothing to report to the caller
+			// postponed for as long as the server asks for
 			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, retryAfterMs)
-			return null
+			return migrationError
 		}
 
 		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
@@ -71,16 +67,16 @@ export abstract class ApiMigrationSyncSession<TClient> extends MigrationSyncSess
 
 	startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void {
 		if (this.state === SyncSessionState.RUNNING) {
-			if (!this.migrationSyncContext || this.client === undefined) {
+			if (!this.migrationSyncContext || this.apiClient === undefined) {
 				throw new ProgrammingError("The migrationSyncContext has not been set!")
 			}
 
-			this.runMailboxSync(this.client, syncSessionMailbox)
+			this.runMailboxSync(this.apiClient, syncSessionMailbox)
 		}
 	}
 
 	/** The counterpart of ImapSyncSessionProcess. Not awaited by the session, results are reported through the listener and the SyncSessionEventListener methods. */
-	private async runMailboxSync(client: TClient, syncSessionMailbox: MigrationSessionMailbox): Promise<void> {
+	private async runMailboxSync(client: TApiClient, syncSessionMailbox: MigrationSessionMailbox): Promise<void> {
 		const mailboxState = syncSessionMailbox.mailboxState
 		const migrationMailbox = this.migrationMailboxByPath.get(mailboxState.path) ?? migrationMailboxFromSyncSessionMailbox(syncSessionMailbox)
 		let isMailboxFinished = false
@@ -107,7 +103,7 @@ export abstract class ApiMigrationSyncSession<TClient> extends MigrationSyncSess
 			// we will retry later, see onMailboxInterrupted
 			console.error(`Error while syncing mailbox ${mailboxState.path}`, e)
 			const migrationError = this.toMigrationError(e)
-			const retryAfterMs = this.getRetryAfterMs(e)
+			const retryAfterMs = this.getPostponeTimeAfterError(e)
 			if (retryAfterMs !== null) {
 				// throttling applies to the whole account, not to a single mailbox
 				await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, retryAfterMs)

@@ -147,7 +147,8 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 		try {
 			children = await client.listChildFolders(folder.id)
 		} catch (e) {
-			if (this.getRetryAfterMs(e) !== null) {
+			//Handle throttling.
+			if (this.getPostponeTimeAfterError(e) !== null) {
 				throw e
 			}
 
@@ -216,7 +217,7 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 	/**
 	 * See {@link GraphApiClient.ts}'s comments
 	 */
-	protected getRetryAfterMs(e: any): number | null {
+	protected getPostponeTimeAfterError(e: any): number | null {
 		const status = e?.status
 		if (status !== 429 && status !== 503 && status !== 504) {
 			return null

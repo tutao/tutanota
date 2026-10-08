@@ -37,12 +37,6 @@ export interface SyncSessionEventListener {
 
 /**
  * A one-way sync of a mailbox from another provider, started by the DesktopMigrationSyncSystemFacade.
- *
- * It holds what is the same for all providers: the session state, the traversal of the mailboxes of the provider (announcing new and deleted
- * ones), the order in which the mailboxes are synced (by importance and failures), retrying interrupted mailboxes and postponing when all of
- * them keep failing. The subclasses fetch the mailboxes of their provider and sync the mails of one mailbox:
- * - ImapSyncSession for IMAP, with an ImapSyncSessionProcess per mailbox,
- * - ApiMigrationSyncSession for the providers that are synced through an HTTP API (Gmail API, Microsoft Graph).
  */
 export abstract class MigrationSyncSession implements SyncSessionEventListener {
 	// Visible for testing
@@ -54,27 +48,20 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	protected constructor(protected readonly migrationSyncEventListener: MigrationSyncEventListener) {}
 
-	/** How long to postpone the session for when all the remaining mailboxes failed repeatedly. */
 	protected abstract readonly mailboxFailurePostponeTime: number
 
-	/** @return the mailboxes of the provider for the migration wizard, throws a MigrationError if they cannot be fetched */
 	abstract getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]>
 
-	/** Fetches the mailbox tree (roots) for a sync. Errors are passed to {@link handleSetupError}. */
 	protected abstract fetchSyncMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]>
 
-	/**
-	 * Called when fetching the mailboxes for a sync failed, it shuts the session down accordingly.
-	 * @return the error to throw to the caller of startSync, null if the session was postponed and there is nothing to report
-	 */
-	protected abstract handleSetupError(error: unknown): Promise<MigrationError | null>
+	protected abstract toMigrationError(e: any): MigrationError
+
+	protected abstract handleSetupError(e: any): Promise<MigrationError | null>
 
 	abstract startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void
 
-	/** Stops what is syncing a mailbox at the moment, if the subclass runs something that has to be stopped explicitly. */
 	protected stopRunningSyncProcess(): void {}
 
-	/** Subclasses may restrict which of the mailboxes have mails downloaded (e.g. only the "All mail" mailbox of Gmail). */
 	protected selectSyncSessionMailboxes(syncSessionMailboxes: MigrationSessionMailbox[]): MigrationSessionMailbox[] {
 		return syncSessionMailboxes
 	}
