@@ -4,6 +4,7 @@ import com.android.billingclient.api.BillingClient.BillingResponseCode
 import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
+import de.tutao.tutashared.error.MobilePaymentError
 import de.tutao.tutashared.ipc.MobilePaymentResult
 import de.tutao.tutashared.ipc.MobilePaymentResultType
 import kotlinx.coroutines.CompletableDeferred
@@ -64,7 +65,7 @@ class PendingPurchase : PurchasesUpdatedListener {
 			BillingResponseCode.SERVICE_DISCONNECTED,
 			BillingResponseCode.SERVICE_TIMEOUT,
 			BillingResponseCode.SERVICE_UNAVAILABLE -> {
-				fail(MobilePaymentException())
+				fail(MobilePaymentError())
 			}
 
 
