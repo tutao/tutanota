@@ -55,7 +55,7 @@ import {
 import { User } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { ConnectionError, NotAuthorizedError } from "@tutao/rest-client/error"
+import { ConnectionError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
@@ -132,8 +132,8 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
 	}
 
-	async afterMailCreated(mailid: IdTuple): Promise<void> {
-		const mail = await this.newMailDownloader(mailid)
+	async afterMailCreated(mailId: IdTuple): Promise<void> {
+		const mail = await this.newMailDownloader(mailId)
 		if (mail != null) {
 			await this.offlineStoragePersistence.storeMailData([mail])
 		}
@@ -143,19 +143,32 @@ export class OfflineMailIndexer implements MailIndexer {
 		// no-op
 	}
 
-	async afterMailUpdated(mailid: IdTuple): Promise<void> {
-		const mail = await this.entityClient.load(MailTypeRef, mailid)
+	async afterMailUpdated(mailId: IdTuple): Promise<void> {
+		const mail = await this.entityClient.load(MailTypeRef, mailId)
 		if (mail.mailDetailsDraft != null) {
 			// update the entire mail
-			await this.afterMailCreated(mailid)
+			await this.afterMailCreated(mailId)
 		} else {
 			// update just the mail's location in persistence (other indexed fields are immutable for non-draft mail)
 			await this.offlineStoragePersistence.updateMailLocation(mail)
 		}
 	}
 
-	async beforeMailDeleted(mailid: IdTuple): Promise<void> {
-		return await this.offlineStoragePersistence.deleteMailData(mailid)
+	async beforeMailDeleted(mailId: IdTuple): Promise<void> {
+		try {
+			const mail = await this.entityClient.load(MailTypeRef, mailId)
+			if (mail.mailDetails != null) {
+				const [archiveId, blobId] = mail.mailDetails
+				// drop deleted MailDetailsBlob so that archive download can be resumed
+				await this.offlineStoragePersistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, blobId)
+			}
+		} catch (e) {
+			if (!(e instanceof NotFoundError)) {
+				throw e
+			}
+		}
+
+		await this.offlineStoragePersistence.deleteMailData(mailId)
 	}
 
 	async extendMailIndex(user: User): Promise<void> {
@@ -255,6 +268,15 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		const indexStart = performance.now()
 
+		// Sort in reverse order to keep a consistent list
+		const mailBagsToLoad = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags]
+			.filter((mailBag) => mailBag.mails <= groupData.lastIndexedEntityListId)
+			.map((mailBag) => mailBag.mails)
+			.sort((a, b) => compareNewestFirst(a, b, EntityIdEncoding.Base64Ext))
+
+		// Preload mails into cache before preloading archives, otherwise we won't be able to drop deleted MailDetailsBlobs
+		// from encrypted_blobs table, and so the resume hash won't match, and we won't be able to resume archive download.
+		await this.preloadMails(mailBagsToLoad, groupData)
 		const allArchives = await this.preloadEncryptedArchivesForGroup(assertNotNull(mailbox._ownerGroup))
 
 		let estimatedMailsWithBlobs = await this.offlineStoragePersistence.estimateTotalBlobCountForArchives(groupData.groupId, allArchives)
@@ -263,34 +285,24 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		console.log(TAG, `Estimated remaining number of mails with blobs for mail group ${mailbox._ownerGroup}:`, estimatedMailsWithBlobs)
 
-		// Sort in reverse order to keep a consistent list
-		const allMailBags = [assertNotNull(mailbox.currentMailBag), ...mailbox.archivedMailBags]
-			.map((a) => a.mails)
-			.sort((a, b) => compareNewestFirst(a, b, EntityIdEncoding.Base64Ext))
+		for (const mailList of mailBagsToLoad) {
+			const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
+			console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
+			const indexMailbagStart = performance.now()
+			await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsWithBlobsIndexed, newMailsIndexed) => {
+				totalMailsIndexedWithBlobs = totalMailsIndexedWithBlobs + newMailsWithBlobsIndexed
+				newMailsIndexed += newMailsIndexed
 
-		for (const mailList of allMailBags) {
-			if (groupData.lastIndexedEntityListId === mailList || !firstBiggerThanSecondBase64Ext(mailList, groupData.lastIndexedEntityListId)) {
-				const startingId = groupData.lastIndexedEntityListId === mailList ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
-				console.log(TAG, `Indexing mailbag with mail list ${mailList}`)
-				const indexMailbagStart = performance.now()
-				await this.indexMailbag(groupData.groupId, mailList, startingId, async (newMailsWithBlobsIndexed, newMailsIndexed) => {
-					totalMailsIndexedWithBlobs = totalMailsIndexedWithBlobs + newMailsWithBlobsIndexed
-					newMailsIndexed += newMailsIndexed
-
-					// We may be slightly off on our estimate (such as when resuming, especially if drafts were already indexed)
-					const totalCapped = Math.min(totalMailsIndexedWithBlobs, estimatedMailsWithBlobs)
-					if (totalCapped === 0) {
-						await mailboxProgress(PRELOAD_PROGRESS_PORTION, newMailsIndexed)
-					} else {
-						await mailboxProgress(
-							PRELOAD_PROGRESS_PORTION + (totalCapped / estimatedMailsWithBlobs) * (1 - PRELOAD_PROGRESS_PORTION),
-							newMailsIndexed,
-						)
-					}
-				})
-				const indexMailbagEnd = performance.now()
-				console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
-			}
+				// We may be slightly off on our estimate (such as when resuming, especially if drafts were already indexed)
+				const totalCapped = Math.min(totalMailsIndexedWithBlobs, estimatedMailsWithBlobs)
+				if (totalCapped === 0) {
+					await mailboxProgress(PRELOAD_PROGRESS_PORTION, newMailsIndexed)
+				} else {
+					await mailboxProgress(PRELOAD_PROGRESS_PORTION + (totalCapped / estimatedMailsWithBlobs) * (1 - PRELOAD_PROGRESS_PORTION), newMailsIndexed)
+				}
+			})
+			const indexMailbagEnd = performance.now()
+			console.log(TAG, `Finished indexing mail list ${mailList} (took ${indexMailbagEnd - indexMailbagStart} ms)`)
 		}
 
 		const indexEnd = performance.now() - indexStart
@@ -361,9 +373,42 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 
 		const preloadEnd = performance.now()
-		console.log(TAG, `Preloaded ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
+		console.log(TAG, `Finished preloading ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
 
 		return allArchives
+	}
+
+	/**
+	 * Preload mailLists into cache
+	 */
+	private async preloadMails(mailLists: Id[], groupData: IndexedGroupData): Promise<void> {
+		console.log(TAG, `Preloading ${mailLists.length} mailBag(s)`)
+		const preloadStart = performance.now()
+
+		for (const mailList of mailLists) {
+			let startId = mailList === groupData.lastIndexedEntityListId ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
+
+			while (!this.abortController.signal.aborted) {
+				try {
+					const mails = await this.entityClient.loadRange(MailTypeRef, mailList, startId, this.indexChunkSize, true)
+					if (mails.length < this.indexChunkSize) {
+						break
+					}
+
+					startId = getElementId(lastThrow(mails))
+				} catch (e) {
+					if (e instanceof NotAuthorizedError) {
+						console.warn("NotAuthorized: ", e)
+						return
+					} else {
+						throw e
+					}
+				}
+			}
+		}
+
+		const preloadEnd = performance.now()
+		console.log(TAG, `Finished preloading ${mailLists.length} mailBag(s) (took $${preloadEnd - preloadStart} ms)`)
 	}
 
 	private async indexMailbag(

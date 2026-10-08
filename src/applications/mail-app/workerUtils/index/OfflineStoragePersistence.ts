@@ -377,6 +377,16 @@ VALUES (
 		return this.pendingEncryptedMailDetailsBlobRetrieval.then((result) => result.get(blobId) ?? null)
 	}
 
+	async deleteEncryptedBlob<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id, blobId: Id): Promise<void> {
+		const { query, params } = sql`DELETE
+									  FROM encrypted_blobs
+									  WHERE typeRef = ${getTypeString(typeRef)}
+			                            AND archiveId = ${archiveId}
+										AND blobId = ${blobId}`
+
+		await this.sqlCipherFacade.run(query, params)
+	}
+
 	async clearEncryptedBlobsForType<T extends BlobElementEntity>(typeRef: TypeRef<T>): Promise<void> {
 		const { query, params } = sql`DELETE
 		                              FROM encrypted_blobs
