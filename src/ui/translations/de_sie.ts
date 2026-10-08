@@ -2559,6 +2559,7 @@ export default {
 		"attachingDriveFile_label" : "Attaching file to email",
 		"savingAttachmentToDrive_Label": "Saving file to Drive",
 		"sendDriveFileWithMail_action": "Send via email",
-		"openDriveDestinationPickerForAttachment_action": "Attach drive files"
+		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
+		"skipThisFile_action":"Skip this file"
 	}
 }

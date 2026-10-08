@@ -48,7 +48,6 @@ import {
 	isMobileDriveLayout,
 	newItemActions,
 	operationUpdateSnackbar,
-	showDuplicateFilesChoiceDialog,
 	showRenameDialog,
 } from "../../drive/view/DriveGuiUtils"
 import { AppPromo } from "../../../common/gui/AppPromo"
@@ -60,6 +59,7 @@ import { keyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { listSelectionKeyboardShortcuts, onlySingleSelection } from "../../../../ui/base/ListUtils"
 import { DriveFilePicker } from "../../drive/view/DriveFilePicker"
 import { FileType } from "../../drive/model/DriveMimeUtils"
+import { showDriveDuplicateFileDialog } from "../../drive/view/DriveDuplicateFileDialog"
 
 export interface DriveSearchViewAttrs extends TopLevelAttrs {
 	header: AppHeaderAttrs
@@ -161,13 +161,13 @@ export class DriveSearchView extends BaseTopLevelView implements TopLevelView<Dr
 	}
 	async onPickFilesForUpload(boundingRect: DOMRect): Promise<void> {
 		const files = await this.filePicker.pickFiles(boundingRect)
-		await this.searchViewModel.uploadFiles(files, showDuplicateFilesChoiceDialog)
+		await this.searchViewModel.uploadFiles(files, showDriveDuplicateFileDialog)
 	}
 
 	private async onPickFoldersForUpload(boundingRect: DOMRect): Promise<void> {
 		try {
 			const folders = await this.filePicker.pickFolders(boundingRect)
-			await this.searchViewModel.uploadFiles([], showDuplicateFilesChoiceDialog, folders)
+			await this.searchViewModel.uploadFiles([], showDriveDuplicateFileDialog, folders)
 		} catch (e) {
 			if (!(e instanceof CancelledError)) {
 				throw e

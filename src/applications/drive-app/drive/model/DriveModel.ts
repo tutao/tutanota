@@ -25,7 +25,7 @@ import { MoveCycleError } from "../../../common/api/common/error/MoveCycleError"
 import { UserError } from "../../../common/api/main/UserError"
 import { MoveToTrashError } from "../../../common/api/common/error/MoveToTrashError"
 import { MoveDestinationIsSourceError } from "../../../common/api/common/error/MoveDestinationIsSourceError"
-import { assertNotNull, filterInt, isNotEmpty, isNotNull, lazyMemoized, noOp, partition } from "@tutao/utils"
+import { assertNotNull, filterInt, isNotEmpty, lazyMemoized, noOp, partition } from "@tutao/utils"
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { handleRestError } from "@tutao/rest-client/error"
@@ -33,9 +33,9 @@ import { EventController } from "../../../common/api/main/EventController"
 import { TransferProgressDispatcher } from "../../../common/api/main/TransferProgressDispatcher"
 import { DataFile, FileReference, WebFile } from "../../../../entities/tutanota/Utils"
 import { isWebFile } from "../../../../ui/utils/FileUtils"
-import { DuplicateFilesDialogDecision } from "../view/DriveGuiUtils"
 import { WindowFacade } from "../../../common/misc/WindowFacade"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
+import { DuplicateFilesDialogDecision } from "../view/DriveDuplicateFileDialog"
 
 export const enum ClipboardAction {
 	Cut,
@@ -191,17 +191,17 @@ export class DriveModel {
 					applyToAll = result.applyToAll
 					choice = result.choice
 				}
-			}
-			if (choice === "cancel") {
-				break
-			} else if (isNotNull(choice)) {
-				if (choice === "keepBoth") {
+
+				if (choice === "cancel") {
+					break
+				} else if (choice === "skip") {
+					continue
+				} else if (choice === "keepBoth") {
 					fileName = pickNewFileName(fileName, takenFileNames)
-				} else {
+				} else if (choice === "replace") {
 					const itemToReplace = assertNotNull(
 						folderItems.files.find((item) => item.name === fileName) ?? folderItems.folders.find((item) => item.name === fileName) ?? null,
 					)
-
 					this.transferController.setCompletionListenerFor(file, async () => {
 						try {
 							const { fileIds, folderIds } = itemsIntoIds([{ id: itemToReplace._id, type: isDriveFile(itemToReplace) ? "file" : "folder" }])
@@ -211,11 +211,12 @@ export class DriveModel {
 						}
 					})
 				}
-				takenFileNames.add(fileName)
-
-				this.ensureWindowCloseListener()
-				await this.transferController.upload(file, fileName, targetFolderId)
 			}
+
+			takenFileNames.add(fileName)
+
+			this.ensureWindowCloseListener()
+			await this.transferController.upload(file, fileName, targetFolderId)
 		}
 
 		for (const folder of folders ?? []) {
@@ -224,7 +225,6 @@ export class DriveModel {
 				const createdFolder = await this.driveFacade.createFolder(currentFolder.name, parent)
 				for (const childFile of currentFolder.files) {
 					const fileName = isWebFile(childFile) ? childFile.file.name : childFile.name
-
 					this.ensureWindowCloseListener()
 					await this.transferController.upload(childFile, fileName, createdFolder._id)
 				}

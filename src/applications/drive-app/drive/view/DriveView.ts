@@ -28,7 +28,6 @@ import {
 	isMobileDriveLayout,
 	newItemActions,
 	operationUpdateSnackbar,
-	showDuplicateFilesChoiceDialog,
 	showNewFolderDialog,
 	showRenameDialog,
 } from "./DriveGuiUtils"
@@ -61,6 +60,7 @@ import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
 import { DriveQuickSearchBar } from "./DriveQuickSearchBar"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { wholeListSelected } from "../../../common/misc/ListModel"
+import { showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
 
 export type MailFileSender = (item: DriveFile) => unknown
 
@@ -617,13 +617,13 @@ export class DriveView extends BaseTopLevelView implements TopLevelView<DriveVie
 
 	async onPickFilesForUpload(boundingRect: DOMRect): Promise<void> {
 		const files = await this.filePicker.pickFiles(boundingRect)
-		await this.driveViewModel.uploadFiles(files, showDuplicateFilesChoiceDialog)
+		await this.driveViewModel.uploadFiles(files, showDriveDuplicateFileDialog)
 	}
 
 	private async onPickFoldersForUpload(boundingRect: DOMRect): Promise<void> {
 		try {
 			const folders = await this.filePicker.pickFolders(boundingRect)
-			await this.driveViewModel.uploadFiles([], showDuplicateFilesChoiceDialog, folders)
+			await this.driveViewModel.uploadFiles([], showDriveDuplicateFileDialog, folders)
 		} catch (e) {
 			if (!(e instanceof CancelledError)) {
 				throw e

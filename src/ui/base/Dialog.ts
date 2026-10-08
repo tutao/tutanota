@@ -531,7 +531,7 @@ export class Dialog implements ModalComponent {
 
 		dialog = new Dialog(DialogType.Alert, {
 			view: () => [
-				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll", getContent()),
+				m("#dialog-message.dialog-max-height.dialog-contentButtonsBottom.text-break.text-prewrap.selectable.scroll.mt-16", getContent()),
 				buttons.length === 0
 					? null
 					: m(
@@ -599,7 +599,7 @@ export class Dialog implements ModalComponent {
 			let selection: T | null = null
 			let selectionOptions: boolean[] = Array(options?.length ?? 0).fill(false)
 
-			const choose = (choice: T) => {
+			const choose = (choice: T | null) => {
 				selection = choice
 				dialog.onClose()
 			}

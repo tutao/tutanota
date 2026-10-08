@@ -32,8 +32,8 @@ export type AttachmentBubbleAttrs = {
 	attachment: Attachment
 	download: Thunk | null
 	open: Thunk | null
-	attachmentExtensionButton: Array<AttachmentExtensionButton>
 	saveToDrive: Thunk | null
+	attachmentExtensionButton: Array<AttachmentExtensionButton>
 	remove: Thunk | null
 	fileImport: Thunk | null
 	type: AttachmentType

@@ -46,10 +46,9 @@ import { DriveClipboard, DriveModel } from "../model/DriveModel"
 import { listItemSelectionCallbacksFor } from "../../../common/misc/ListModelUtils"
 import { isDriveFile } from "../../../common/api/common/drive/DriveUtils"
 import { LiveSearchResult, QuickSearchQuery, SearchQuery } from "../../../common/search/SearchUtils"
-import { DuplicateFilesDialogDecision, showDuplicateFilesChoiceDialog } from "./DriveGuiUtils"
 import { SyncListener, SyncTracker } from "../../../common/api/main/SyncTracker"
-import { WsConnectionState } from "../../../../platform-kit/network/Constants"
 import { NameTooLongError } from "../../../common/api/common/error/NameTooLongError"
+import { DuplicateFilesDialogDecision, showDriveDuplicateFileDialog } from "./DriveDuplicateFileDialog"
 
 export interface RegularFolder {
 	type: DriveFolderType.Regular
@@ -559,14 +558,14 @@ export class DriveViewModel {
 			}
 
 			const tree = await traverse<FileReference>(folderTransferItems, fileEntryToFileRef)
-			await this.uploadFiles(fileRefs, showDuplicateFilesChoiceDialog, tree)
+			await this.uploadFiles(fileRefs, showDriveDuplicateFileDialog, tree)
 		} else {
 			const tree = await traverse(folderTransferItems, childFileFromEntry)
 			await this.uploadFiles(
 				files.map((f) => {
 					return { _type: "WebFile", file: f } satisfies WebFile
 				}),
-				showDuplicateFilesChoiceDialog,
+				showDriveDuplicateFileDialog,
 				tree,
 			)
 		}
