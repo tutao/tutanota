@@ -247,7 +247,7 @@ o.spec("ImapSyncSession", () => {
 
 		const result = await session.getMigrationMailboxes(imapCredentials)
 		o.check(result.length).equals(1)
-		o.check(result[0].path).equals("INBOX")
+		o.check(result[0].sourceId).equals("INBOX")
 		verify(imapFlowMock.connect(), { times: 2 }) // one for verify, one for connect
 		verify(imapFlowMock.logout(), { times: 1 })
 	})

@@ -97,14 +97,14 @@ o.spec("GmailSyncSession", () => {
 	o.test("getMigrationMailboxes - builds All Mail, system and nested user label mailboxes", async () => {
 		const result = await session(new Map([["/labels", labelsResponse]])).getMigrationMailboxes(credentials)
 
-		const paths = result.map((mailbox) => mailbox.path)
+		const paths = result.map((mailbox) => mailbox.sourceId)
 		o.check(paths).deepEquals(["[Gmail]/All Mail", "INBOX", "[Gmail]/Sent Mail", "Old/Stuff", "Work"])
 		o.check(result[0].specialUse).equals(MigrationMailboxSpecialUse.ALL)
-		const work = result.find((mailbox) => mailbox.path === "Work")!
-		o.check(work.subFolders?.map((sub) => sub.path)).deepEquals(["Work/Project"])
+		const work = result.find((mailbox) => mailbox.sourceId === "Work")!
+		o.check(work.subFolders?.map((sub) => sub.sourceId)).deepEquals(["Work/Project"])
 		o.check(work.subFolders?.[0].name).equals("Project")
 		// no "Old" label exists, so the label is top level and keeps its full name
-		o.check(result.find((mailbox) => mailbox.path === "Old/Stuff")?.name).equals("Old/Stuff")
+		o.check(result.find((mailbox) => mailbox.sourceId === "Old/Stuff")?.name).equals("Old/Stuff")
 	})
 
 	o.test("getMigrationMailboxes - throws AUTH_FAILED without access token", async () => {

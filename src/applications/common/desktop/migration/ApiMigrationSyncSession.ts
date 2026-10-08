@@ -1,7 +1,7 @@
 import { MigrationCredentials, MigrationMailboxState } from "../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMailbox } from "../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationError, MigrationErrorCause } from "../../api/common/error/MigrationError.js"
-import { MailboxMigrationFolderSyncStatus, MIGRATION_ERROR_POSTPONE_TIME } from "../../../../entities/tutanota/Utils.js"
+import { MailboxMigrationFolderSyncStatus } from "../../../../entities/tutanota/Utils.js"
 import type { MigrationSyncEventListener } from "./MigrationSyncEventListener.js"
 import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "./MigrationSyncSession.js"
 import { MigrationSessionMailbox, migrationMailboxFromSyncSessionMailbox } from "./MigrationSessionMailbox.js"
@@ -29,8 +29,6 @@ export abstract class ApiMigrationSyncSession<TApiClient> extends MigrationSyncS
 
 	protected abstract toMigrationError(e: any): MigrationError
 
-	protected abstract getPostponeTimeAfterError(e: any): number | null
-
 	async getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
 		try {
 			const client = await this.createClient(migrationCredentials)
@@ -54,14 +52,7 @@ export abstract class ApiMigrationSyncSession<TApiClient> extends MigrationSyncS
 			return migrationError
 		}
 
-		const retryAfterMs = this.getPostponeTimeAfterError(e)
-		if (retryAfterMs !== null) {
-			// postponed for as long as the server asks for
-			await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, retryAfterMs)
-			return migrationError
-		}
-
-		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
+		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxErrorPostponeTime)
 		return migrationError
 	}
 
@@ -103,17 +94,15 @@ export abstract class ApiMigrationSyncSession<TApiClient> extends MigrationSyncS
 			// we will retry later, see onMailboxInterrupted
 			console.error(`Error while syncing mailbox ${mailboxState.path}`, e)
 			const migrationError = this.toMigrationError(e)
-			const retryAfterMs = this.getPostponeTimeAfterError(e)
-			if (retryAfterMs !== null) {
-				// throttling applies to the whole account, not to a single mailbox
-				await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, retryAfterMs)
-				return
-			}
 			await this.migrationSyncEventListener.onError(migrationError)
+
 			if (migrationError.data.cause === MigrationErrorCause.AUTH_FAILED) {
 				// Access tokens expire (Google: after an hour) which a long import outlives. Postponing makes the importer continue
 				// through the controller, where the failing authentication on startSync triggers the refresh-token flow.
-				await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
+				await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxAuthErrorPostponeTime)
+				return
+			} else {
+				await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxErrorPostponeTime)
 				return
 			}
 		}

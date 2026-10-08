@@ -24,7 +24,7 @@ export enum MigrationMailboxSpecialUse {
 
 export type MigrationMailbox = {
 	name?: string
-	path: string
+	sourceId: string
 	pathDelimiter?: string
 	flags?: string[]
 	specialUse?: MigrationMailboxSpecialUse
@@ -35,7 +35,7 @@ export type MigrationMailbox = {
 
 export function migrationMailboxFromImapFlowListTreeResponse(listTreeResponse: ListTreeResponse, parentFolder: MigrationMailbox | null): MigrationMailbox {
 	let migrationMailbox: MigrationMailbox = {
-		path: listTreeResponse.path ?? "-",
+		sourceId: listTreeResponse.path ?? "-",
 		name: listTreeResponse.name ?? "-",
 		pathDelimiter: listTreeResponse.delimiter ?? "/",
 		flags: Array.from(listTreeResponse.flags ?? []),

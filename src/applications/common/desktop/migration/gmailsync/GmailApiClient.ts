@@ -184,7 +184,7 @@ export class GmailApiClient implements GmailMailApi {
 	}
 
 	async listMessageIds(pageToken?: string): Promise<GmailMessageListPage> {
-		// without labelIds and with includeSpamTrash=false these are the mails of IMAP's "[Gmail]/All Mail", which does not show chats either
+		// we essentially fetch "[Gmail]/All Mail" without spam and trash
 		const query: Record<string, string> = { maxResults: LIST_PAGE_SIZE, includeSpamTrash: "false", q: "-in:chats" }
 		if (pageToken) {
 			query.pageToken = pageToken

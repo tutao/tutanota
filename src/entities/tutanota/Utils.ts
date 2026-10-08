@@ -483,8 +483,6 @@ export enum MigrationSyncEventType {
 	DELETE,
 }
 
-export const MIGRATION_ERROR_POSTPONE_TIME: number = 60 * 1000 // 60 seconds
-export const MIGRATION_AUTH_ERROR_POSTPONE_TIME: number = 15 * 60 * 1000 // 15 minutes
 export enum MailImportType {
 	FileImport = "FileImport",
 	ImapImport = "ImapImport",

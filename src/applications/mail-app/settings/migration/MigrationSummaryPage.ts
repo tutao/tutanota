@@ -85,7 +85,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 
 	private renderFolderMapping(data: MigrationData) {
 		const migrationMailboxToTutaFolderRows = data.migrationMailboxes.map((migrationMailbox) => {
-			const mailSetMapping = assertNotNull(data.migrationMailboxesToTutaMailSets?.get(migrationMailbox.path))
+			const mailSetMapping = assertNotNull(data.migrationMailboxesToTutaMailSets?.get(migrationMailbox.sourceId))
 			const tutaMailSet = data.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
 			return { migrationMailbox, tutaMailSet, shouldSync: mailSetMapping.shouldSync }
 		})
@@ -140,11 +140,11 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 								icon: Icons.CheckboxChecked,
 								label: "disableMigrationSyncForFolder_action",
 								click: async () => {
-									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)
+									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId)
 									if (mappedMailSet) {
 										mappedMailSet.shouldSync = false
 									} else {
-										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 											mailSetElementId: GENERATED_MIN_ID,
 											shouldSync: false,
 											specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
@@ -156,7 +156,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 								icon: Icons.CheckboxEmpty,
 								label: "enableMigrationSyncForFolder_action",
 								click: async () => {
-									const mappedMailSet = assertNotNull(data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path))
+									const mappedMailSet = assertNotNull(data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId))
 									mappedMailSet.shouldSync = true
 								},
 							}),
@@ -199,8 +199,8 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 							color: theme.on_surface_variant,
 						},
 						selectionChangedHandler: (selectedMailSet) => {
-							const shouldSync = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)?.shouldSync ?? true
-							data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+							const shouldSync = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId)?.shouldSync ?? true
+							data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 								mailSetElementId: getElementId(selectedMailSet),
 								shouldSync,
 								specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
@@ -228,7 +228,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 									)
 									data.folderSystem = new FolderSystem(mailSets)
 									if (newFolderElementId !== null) {
-										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 											mailSetElementId: newFolderElementId,
 											shouldSync: true,
 											specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,

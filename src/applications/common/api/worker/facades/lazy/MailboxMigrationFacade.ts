@@ -145,7 +145,7 @@ export class MailboxMigrationFacade {
 			const spamMailSet = assertNotNull(allMailSets.find((mailSet) => mailSet.folderType === MailSetKind.SPAM))
 			const mailSetMapping = new Map([
 				[
-					initializeParams.spamFolderMigrationInformation.spamMailbox.path,
+					initializeParams.spamFolderMigrationInformation.spamMailbox.sourceId,
 					{ mailSetElementId: getElementId(spamMailSet), shouldSync: true, specialUse: MigrationMailboxSpecialUse.JUNK },
 				],
 			])
@@ -252,7 +252,7 @@ export class MailboxMigrationFacade {
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 
 			const mailboxMigrationFolderPostIn = createMailboxMigrationFolderPostIn({
-				sourceId: migrationMailbox.path,
+				sourceId: migrationMailbox.sourceId,
 				mailboxMigrationSyncState: mailboxMigrationSyncState._id,
 				mailSet: mailSetId,
 				shouldSync: mailSetId !== null && !shouldCreateLabels,

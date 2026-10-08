@@ -327,7 +327,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 
 	private renderFolderMapping(data: MigrationData) {
 		const migrationMailboxToTutaFolderRows = data.migrationMailboxes.map((mailbox) => {
-			const mailSetMapping = data.migrationMailboxesToTutaMailSets?.get(mailbox.path)
+			const mailSetMapping = data.migrationMailboxesToTutaMailSets?.get(mailbox.sourceId)
 			let tutaMailSet: MailSet | null = null
 			if (mailSetMapping?.mailSetElementId) {
 				tutaMailSet = data.folderSystem.getFolderById(mailSetMapping.mailSetElementId)
@@ -344,11 +344,11 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 								icon: Icons.CheckboxChecked,
 								label: "disableMigrationSyncForFolder_action",
 								click: async () => {
-									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)
+									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId)
 									if (mappedMailSet) {
 										mappedMailSet.shouldSync = false
 									} else {
-										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+										data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 											mailSetElementId: GENERATED_MIN_ID,
 											shouldSync: false,
 											specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
@@ -360,10 +360,10 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 								icon: Icons.CheckboxEmpty,
 								label: "enableMigrationSyncForFolder_action",
 								click: async () => {
-									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)
+									const mappedMailSet = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId)
 									if (mappedMailSet) {
 										if (mappedMailSet.mailSetElementId === GENERATED_MIN_ID) {
-											data.migrationMailboxesToTutaMailSets?.delete(mailboxToRow.migrationMailbox.path)
+											data.migrationMailboxesToTutaMailSets?.delete(mailboxToRow.migrationMailbox.sourceId)
 										} else {
 											mappedMailSet.shouldSync = true
 										}
@@ -410,8 +410,8 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 							color: theme.on_surface_variant,
 						},
 						selectionChangedHandler: (selectedMailSet) => {
-							const shouldSync = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.path)?.shouldSync ?? true
-							data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+							const shouldSync = data.migrationMailboxesToTutaMailSets?.get(mailboxToRow.migrationMailbox.sourceId)?.shouldSync ?? true
+							data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 								mailSetElementId: getElementId(selectedMailSet),
 								shouldSync,
 								specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
@@ -441,7 +441,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 											)
 											data.folderSystem = new FolderSystem(mailSets)
 											if (newFolderElementId !== null) {
-												data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.path, {
+												data.migrationMailboxesToTutaMailSets?.set(mailboxToRow.migrationMailbox.sourceId, {
 													mailSetElementId: newFolderElementId,
 													shouldSync: true,
 													specialUse: mailboxToRow.migrationMailbox.specialUse ?? null,
@@ -527,13 +527,13 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 				showProgressDialog(
 					"migrationCreatingMissingFolders_msg",
 					promiseMap(data.migrationMailboxes, async (migrationMailbox) => {
-						if (!data.migrationMailboxesToTutaMailSets?.has(migrationMailbox.path)) {
+						if (!data.migrationMailboxesToTutaMailSets?.has(migrationMailbox.sourceId)) {
 							const ownerGroupId = assertNotNull(mailLocator.getMailboxMigrationController().selectedMailBoxDetail).mailGroup._id
 							const newFolderId = await mailLocator.mailFacade.createMailFolder(migrationMailbox.name ?? "", null, elementIdToId(ownerGroupId))
 							// loading here to populate the cache so that the folder system will have it
 							const newFolder = await mailLocator.entityClient.load(MailSetTypeRef, newFolderId)
 							data.newlyCreatedFolders.add(newFolder)
-							data.migrationMailboxesToTutaMailSets?.set(migrationMailbox.path, {
+							data.migrationMailboxesToTutaMailSets?.set(migrationMailbox.sourceId, {
 								mailSetElementId: elementIdPart(newFolder._id),
 								shouldSync: true,
 								specialUse: migrationMailbox.specialUse ?? null,

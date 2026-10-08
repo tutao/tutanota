@@ -101,7 +101,7 @@ o.spec("M365SyncSession", () => {
 
 		o.check(result.length).equals(1)
 		o.check(result[0].name).equals("Inbox")
-		o.check(result[0].path).equals("Inbox")
+		o.check(result[0].sourceId).equals("Inbox")
 		o.check(result[0].specialUse).equals(MigrationMailboxSpecialUse.INBOX)
 	})
 

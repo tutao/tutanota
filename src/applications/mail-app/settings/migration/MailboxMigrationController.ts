@@ -374,7 +374,7 @@ export class MailboxMigrationController {
 				const systemFolderType = getSpecialUseAsSystemFolderType(migrationMailbox)
 				if (systemFolderType !== null) {
 					const systemFolder = assertNotNull(folderSystem.getSystemFolderByType(systemFolderType))
-					migrationMailboxesToTutaFolders.set(migrationMailbox.path, {
+					migrationMailboxesToTutaFolders.set(migrationMailbox.sourceId, {
 						mailSetElementId: getElementId(systemFolder),
 						shouldSync: true,
 						specialUse: migrationMailbox.specialUse,
@@ -384,7 +384,7 @@ export class MailboxMigrationController {
 				const customFolders = folderSystem.getCustomFoldersOfParent(null)
 				const matchingFolder = customFolders.find((customFolder) => migrationMailbox.name && customFolder.name === migrationMailbox.name)
 				if (migrationMailbox.name && matchingFolder) {
-					migrationMailboxesToTutaFolders.set(migrationMailbox.path, {
+					migrationMailboxesToTutaFolders.set(migrationMailbox.sourceId, {
 						mailSetElementId: getElementId(matchingFolder),
 						shouldSync: true,
 						specialUse: null,

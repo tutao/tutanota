@@ -11,7 +11,7 @@ import {
 import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "../MigrationSyncSession.js"
 import { MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
 import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
-import { MIGRATION_ERROR_POSTPONE_TIME, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
+import { MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
 import { MailboxMigrationProvider } from "../../../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
@@ -156,7 +156,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 			}
 		}
 
-		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
+		await this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxErrorPostponeTime)
 		return this.toMigrationError(e)
 	}
 
@@ -301,7 +301,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 				if (state === SyncSessionProcessState.CONNECTION_FAILED_REJECTED) {
 					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxFailurePostponeTime)
 				} else if (state === SyncSessionProcessState.CONNECTION_FAILED_UNKNOWN) {
-					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, MIGRATION_ERROR_POSTPONE_TIME)
+					this.shutDownSyncSession(ShutdownSyncAction.POSTPONE, this.mailboxErrorPostponeTime)
 				}
 			})
 		}

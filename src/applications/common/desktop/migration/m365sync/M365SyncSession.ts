@@ -51,7 +51,7 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 	}
 
 	protected async syncMailbox(client: GraphMailApi, migrationMailbox: MigrationMailbox, mailboxState: MigrationMailboxState): Promise<boolean> {
-		const folderId = this.folderIdByPath.get(migrationMailbox.path)
+		const folderId = this.folderIdByPath.get(migrationMailbox.sourceId)
 		if (!folderId) {
 			return false
 		}
@@ -238,7 +238,7 @@ function buildMailboxNode(
 	const path = parentPath ? `${parentPath}/${folder.displayName}` : folder.displayName
 	const mailbox: MigrationMailbox = {
 		name: folder.displayName,
-		path,
+		sourceId: path,
 		pathDelimiter: "/",
 		specialUse: specialUseByFolderId.get(folder.id),
 		parentFolder: parentMailbox,

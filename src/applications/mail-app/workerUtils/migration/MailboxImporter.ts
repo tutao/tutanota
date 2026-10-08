@@ -404,11 +404,11 @@ export class MailboxImporter implements MigrationSyncFacade {
 				let parentImportFolderId = isGmail && isALLSystemFolder ? null : session.mailboxMigrationSyncState.rootImportMailSet
 				let parentFolderSyncState: MailboxMigrationFolderSyncState | null = null
 				if (migrationMailbox.parentFolder) {
-					parentFolderSyncState = getFolderSyncStateForMailboxPath(migrationMailbox.parentFolder.path, session.mailboxMigrationFolderSyncStates)
+					parentFolderSyncState = getFolderSyncStateForMailboxPath(migrationMailbox.parentFolder.sourceId, session.mailboxMigrationFolderSyncStates)
 					parentImportFolderId = parentFolderSyncState?.mailSet ? parentFolderSyncState.mailSet : null
 				}
 
-				if (!session.mailboxMigrationFolderSyncStates.some((folder) => folder.sourceId === migrationMailbox.path)) {
+				if (!session.mailboxMigrationFolderSyncStates.some((folder) => folder.sourceId === migrationMailbox.sourceId)) {
 					const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC
 					const shouldCreateLabels = isGmail && !isALLSystemFolder
 					const folderSyncState = await this.mailboxMigrationFacade.initializeMigrationMailSet(
@@ -435,7 +435,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 				// We do not process updates because it is a one-way sync
 				break
 			case MigrationSyncEventType.DELETE: {
-				const folderSyncStateForMailboxPath = getFolderSyncStateForMailboxPath(migrationMailbox.path, session.mailboxMigrationFolderSyncStates)
+				const folderSyncStateForMailboxPath = getFolderSyncStateForMailboxPath(migrationMailbox.sourceId, session.mailboxMigrationFolderSyncStates)
 				if (folderSyncStateForMailboxPath && folderSyncStateForMailboxPath.status !== MailboxMigrationFolderSyncStatus.NO_SYNC) {
 					await this.mailboxMigrationFacade.deleteMigrationFolderSyncState(folderSyncStateForMailboxPath._id)
 				}
@@ -476,7 +476,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 
 		const folderSyncState = getFolderSyncStateForMailboxPath(
-			getFirstOrThrow(migrationMails).belongsToMailbox.path,
+			getFirstOrThrow(migrationMails).belongsToMailbox.sourceId,
 			session.mailboxMigrationFolderSyncStates,
 		)
 		if (folderSyncState === null || folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC) {
