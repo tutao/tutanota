@@ -69,7 +69,7 @@ o.spec("MailboxImporter", () => {
 		provider: MailboxMigrationProvider.Other,
 		useSSL: true,
 	}
-	const migrationMailbox: MigrationMailbox = { path: "INBOX", name: "INBOX" }
+	const migrationMailbox: MigrationMailbox = { sourceId: "INBOX", name: "INBOX" }
 	const migrationMailboxStatus: MigrationMailboxStatus = {
 		path: "INBOX",
 		uidNext: 100,

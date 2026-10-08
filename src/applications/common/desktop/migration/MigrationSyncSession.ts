@@ -50,6 +50,10 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	protected abstract readonly mailboxFailurePostponeTime: number
 
+	protected readonly mailboxErrorPostponeTime = 60 * 1000 // 60 seconds
+
+	protected readonly mailboxAuthErrorPostponeTime = 15 * 60 * 1000 // 15 minutes
+
 	abstract getMigrationMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]>
 
 	protected abstract fetchSyncMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]>
@@ -193,13 +197,13 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 	): Promise<MigrationSessionMailbox[]> {
 		const result: MigrationSessionMailbox[] = []
 
-		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === migrationMailbox.path)
+		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === migrationMailbox.sourceId)
 		if (syncSessionMailbox === undefined) {
 			await this.migrationSyncEventListener.onMailbox(migrationMailbox, MigrationSyncEventType.CREATE)
-			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === migrationMailbox.parentFolder?.path)
+			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === migrationMailbox.parentFolder?.sourceId)
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new MigrationSessionMailbox({
-				path: migrationMailbox.path,
+				path: migrationMailbox.sourceId,
 				importedSourceIdToMailIdsMap: new Map(),
 				noSync,
 			})
@@ -207,7 +211,7 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 		if (migrationMailbox.specialUse) {
 			syncSessionMailbox.specialUse = migrationMailbox.specialUse
 		}
-		this.migrationMailboxByPath.set(migrationMailbox.path, migrationMailbox)
+		this.migrationMailboxByPath.set(migrationMailbox.sourceId, migrationMailbox)
 
 		// some settings lead to importance "NO_SYNC" which means that the mailbox should not be imported / migrated
 		if (syncSessionMailbox.importance !== SyncSessionMailboxImportance.NO_SYNC) {

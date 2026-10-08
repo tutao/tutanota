@@ -33,18 +33,13 @@ const ALL_MAIL_PATH = "[Gmail]/All Mail"
 
 export type GmailApiClientFactory = (accessToken: string) => GmailMailApi
 
-/**
- * Gmail's system labels that are mirrored as mailboxes, using the same paths and special uses the IMAP
- * server announces so that mails imported over either transport end up in the same Tuta labels.
- * Trash and spam is not included since we only fetch the All Mail label essentially.
- * (includeSpamTrash query parameter set to false in GmailApiClient.listMessageIds)
- */
-export const GMAIL_SYSTEM_LABELS: ReadonlyArray<{ id: string; path: string; specialUse: MigrationMailboxSpecialUse }> = [
-	{ id: "INBOX", path: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
-	{ id: "SENT", path: "[Gmail]/Sent Mail", specialUse: MigrationMailboxSpecialUse.SENT },
-	{ id: "DRAFT", path: "[Gmail]/Drafts", specialUse: MigrationMailboxSpecialUse.DRAFT },
-	{ id: "IMPORTANT", path: "[Gmail]/Important", specialUse: MigrationMailboxSpecialUse.IMPORTANT },
-	{ id: "STARRED", path: "[Gmail]/Starred", specialUse: MigrationMailboxSpecialUse.FLAGGED },
+// we do not import the Trash and Spam label from Gmail
+export const GMAIL_SYSTEM_LABELS: ReadonlyArray<{ id: string; specialUse: MigrationMailboxSpecialUse }> = [
+	{ id: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
+	{ id: "SENT", specialUse: MigrationMailboxSpecialUse.SENT },
+	{ id: "DRAFT", specialUse: MigrationMailboxSpecialUse.DRAFT },
+	{ id: "IMPORTANT", specialUse: MigrationMailboxSpecialUse.IMPORTANT },
+	{ id: "STARRED", specialUse: MigrationMailboxSpecialUse.FLAGGED },
 ]
 
 /**
@@ -161,23 +156,16 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailMailApi> {
 		const labelNameById = new Map<string, string>()
 
 		const allMail: MigrationMailbox = {
-			name: "All Mail",
-			path: ALL_MAIL_PATH,
-			pathDelimiter: "/",
+			sourceId: ALL_MAIL_PATH,
 			specialUse: MigrationMailboxSpecialUse.ALL,
-			parentFolder: null,
 		}
 		const mailboxes: MigrationMailbox[] = [allMail]
 
 		for (const systemLabel of GMAIL_SYSTEM_LABELS) {
 			if (labels.some((label) => label.id === systemLabel.id)) {
 				mailboxes.push({
-					// IMAP announces "[Gmail]/Important" without a special use, so its name stays the full path there
-					name: systemLabel.specialUse === MigrationMailboxSpecialUse.IMPORTANT ? systemLabel.path : systemLabel.path.split("/").pop(),
-					path: systemLabel.path,
-					pathDelimiter: "/",
+					sourceId: systemLabel.id,
 					specialUse: systemLabel.specialUse,
-					parentFolder: null,
 				})
 			}
 		}
@@ -264,7 +252,7 @@ function buildUserLabelTree(userLabels: GmailLabelResource[]): MigrationMailbox[
 		}
 		const mailbox: MigrationMailbox = {
 			name: segments.slice(parentSegmentCount).join("/"),
-			path: label.name,
+			sourceId: label.name,
 			pathDelimiter: "/",
 			parentFolder: parent,
 			subFolders: [],

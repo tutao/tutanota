@@ -181,7 +181,7 @@ o.spec("MailboxMigrationFacade", () => {
 	})
 
 	o.test("createImportMailFolder - creates folder and returns sync state when no root folder and mapping exists", async () => {
-		const migrationMailbox: MigrationMailbox = { path: "INBOX", name: "INBOX" }
+		const migrationMailbox: MigrationMailbox = { sourceId: "INBOX", name: "INBOX" }
 		mailboxMigrationAccountSyncStateMock.rootImportMailSet = null
 
 		when(entityClientMock.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRootMock)
@@ -205,7 +205,7 @@ o.spec("MailboxMigrationFacade", () => {
 	})
 
 	o.test("createImportMailFolder - creates new folder when root folder is set", async () => {
-		const migrationMailbox: MigrationMailbox = { path: "Sent", name: "Sent" }
+		const migrationMailbox: MigrationMailbox = { sourceId: "Sent", name: "Sent" }
 		mailboxMigrationAccountSyncStateMock.rootImportMailSet = rootImportMailFolderIdMock
 		when(mailFacadeMock.createMailFolder("Sent", null, mailGroupId)).thenResolve(mailFolderIdMock)
 
@@ -228,7 +228,7 @@ o.spec("MailboxMigrationFacade", () => {
 	})
 
 	o.test("createImportMailFolder - returns undefined if migrationMailbox.name is falsy", async () => {
-		const migrationMailbox: MigrationMailbox = { path: "", name: "" }
+		const migrationMailbox: MigrationMailbox = { sourceId: "", name: "" }
 		const result = await mailboxMigrationFacade.initializeMigrationMailSet(
 			migrationMailbox,
 			mailboxMigrationAccountSyncStateMock,

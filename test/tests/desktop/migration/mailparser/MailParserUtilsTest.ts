@@ -22,7 +22,7 @@ o.spec("MailParserUtils", function () {
 			internalDate: date,
 			flags: new Set<string>(),
 		} as FetchMessageObject
-		const result = await migrationMailFromImapFlowFetchMessageObject(testMail, { path: "INBOX" })
+		const result = await migrationMailFromImapFlowFetchMessageObject(testMail, { sourceId: "INBOX" })
 		o(result.modSeq).equals(BigInt(10))
 		o(result.size).equals(12345)
 		o(result.internalDate).equals(date)

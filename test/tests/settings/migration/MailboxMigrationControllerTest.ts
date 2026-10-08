@@ -295,8 +295,8 @@ o.spec("MailboxMigrationController", () => {
 
 	o.test("constructMigrationMailboxesToTutaFoldersMap - maps special use folders and custom folders", async () => {
 		const migrationMailboxes: MigrationMailbox[] = [
-			{ path: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX, name: "INBOX" },
-			{ path: "Custom", name: "Custom" },
+			{ sourceId: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX, name: "INBOX" },
+			{ sourceId: "Custom", name: "Custom" },
 		]
 		const folderSystem = new FolderSystem([
 			createTestEntity(MailSetTypeRef, {

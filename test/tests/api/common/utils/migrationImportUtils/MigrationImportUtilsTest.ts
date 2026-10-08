@@ -216,7 +216,7 @@ o.spec("MigrationImportUtils", () => {
 			migrationMail = {
 				sourceId: "123",
 				modSeq: 456n,
-				belongsToMailbox: { path: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
+				belongsToMailbox: { sourceId: "INBOX", specialUse: MigrationMailboxSpecialUse.INBOX },
 				flags: new Set(),
 				internalDate: new Date(2024, 0, 1),
 				envelope: {
@@ -347,13 +347,13 @@ o.spec("MigrationImportUtils", () => {
 		})
 
 		o.test("sets state to SENT for Sent mailbox", () => {
-			migrationMail.belongsToMailbox = { path: "Sent", specialUse: MigrationMailboxSpecialUse.SENT }
+			migrationMail.belongsToMailbox = { sourceId: "Sent", specialUse: MigrationMailboxSpecialUse.SENT }
 			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.state).equals(MailState.SENT)
 		})
 
 		o.test("sets state to DRAFT for Drafts mailbox", () => {
-			migrationMail.belongsToMailbox = { path: "Drafts", specialUse: MigrationMailboxSpecialUse.DRAFTS }
+			migrationMail.belongsToMailbox = { sourceId: "Drafts", specialUse: MigrationMailboxSpecialUse.DRAFTS }
 			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.state).equals(MailState.DRAFT)
 		})
