@@ -10,6 +10,17 @@ import { ApiMigrationSyncSession } from "../ApiMigrationSyncSession.js"
 import { migrationMailFromGmailMessage } from "../mailparser/MailParserUtils.js"
 import { GmailApiClient, GmailLabelResource, GmailMailApi, isGmailDailyLimitError, isGmailRateLimitError, parseRetryAfterMs } from "./GmailApiClient.js"
 import { MAIL_DOWNLOAD_BATCH_SIZE } from "../imapsync/DifferentialUidLoader"
+import {
+	BadGatewayError,
+	BadRequestError,
+	GatewayTimeoutError,
+	InternalServerError,
+	NotAuthenticatedError,
+	NotAuthorizedError,
+	NotFoundError,
+	ServiceUnavailableError,
+	TooManyRequestsError,
+} from "@tutao/http-client/error"
 
 // The requests are paced by the GmailApiClient, a second batch in flight only hides the latency of the first one.
 const CONCURRENT_MAIL_BATCHES = 2
@@ -190,20 +201,20 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailMailApi> {
 		}
 		const status: number | undefined = e?.status
 		switch (status) {
-			case 401:
+			case NotAuthenticatedError.CODE:
 				return new MigrationError(e?.message ?? "Gmail API authentication failed", MigrationErrorCause.AUTH_FAILED, "401")
-			case 403:
+			case NotAuthorizedError.CODE:
 				return isGmailRateLimitError(e) || isGmailDailyLimitError(e)
 					? new MigrationError(e?.message ?? "Gmail API rate limit exceeded", MigrationErrorCause.POSTPONE, "403")
 					: new MigrationError(e?.message ?? "Gmail API denied access to the requested resource", MigrationErrorCause.AUTH_FAILED, "403")
-			case 400:
-			case 404:
+			case BadRequestError.CODE:
+			case NotFoundError.CODE:
 				return new MigrationError(e?.message ?? "Gmail API rejected the request", MigrationErrorCause.PERMANENT_ERROR, String(status))
-			case 429:
-			case 500:
-			case 502:
-			case 503:
-			case 504:
+			case TooManyRequestsError.CODE:
+			case InternalServerError.CODE:
+			case BadGatewayError.CODE:
+			case ServiceUnavailableError.CODE:
+			case GatewayTimeoutError.CODE:
 				return new MigrationError(e?.message ?? "Gmail API is throttling or unavailable", MigrationErrorCause.POSTPONE, String(status))
 			default:
 				return new MigrationError(e?.message ?? "Unknown Gmail API error", MigrationErrorCause.UNKNOWN, String(status ?? ""))
@@ -213,7 +224,12 @@ export class GmailSyncSession extends ApiMigrationSyncSession<GmailMailApi> {
 	/** How long to postpone for if `e` is a throttling or transient server response (still failing after the retries of the client), null for any other error. */
 	protected getRetryAfterMs(e: any): number | null {
 		const status = e?.status
-		const isTransient = status === 429 || status === 500 || status === 502 || status === 503 || status === 504
+		const isTransient =
+			status === TooManyRequestsError.CODE ||
+			status === InternalServerError.CODE ||
+			status === BadGatewayError.CODE ||
+			status === ServiceUnavailableError.CODE ||
+			status === GatewayTimeoutError.CODE
 		if (!isTransient && !isGmailRateLimitError(e) && !isGmailDailyLimitError(e)) {
 			return null
 		}

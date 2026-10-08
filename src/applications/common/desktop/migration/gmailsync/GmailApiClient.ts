@@ -1,4 +1,13 @@
 import { MigrationError } from "../../../api/common/error/MigrationError.js"
+import {
+	BadGatewayError,
+	GatewayTimeoutError,
+	InternalServerError,
+	NotAuthorizedError,
+	NotFoundError,
+	ServiceUnavailableError,
+	TooManyRequestsError,
+} from "@tutao/http-client/error"
 
 const GMAIL_API_BASE_URL = "https://gmail.googleapis.com/gmail/v1/users/me"
 const GMAIL_BATCH_URL = "https://www.googleapis.com/batch/gmail/v1"
@@ -77,17 +86,23 @@ export interface GmailMailApi {
 }
 
 export function isGmailRateLimitError(e: any): boolean {
-	return e?.status === 429 || (e?.status === 403 && RATE_LIMIT_REASONS.has(e?.reason))
+	return e?.status === TooManyRequestsError.CODE || (e?.status === NotAuthorizedError.CODE && RATE_LIMIT_REASONS.has(e?.reason))
 }
 
 export function isGmailDailyLimitError(e: any): boolean {
-	return e?.status === 403 && e?.reason === DAILY_LIMIT_REASON
+	return e?.status === NotAuthorizedError.CODE && e?.reason === DAILY_LIMIT_REASON
 }
 
 /** Throttling, server side failures and network level failures are worth another attempt. */
 function isRetryableGmailError(e: any): boolean {
 	if (e instanceof GmailApiError) {
-		return e.status === 500 || e.status === 502 || e.status === 503 || e.status === 504 || isGmailRateLimitError(e)
+		return (
+			e.status === InternalServerError.CODE ||
+			e.status === BadGatewayError.CODE ||
+			e.status === ServiceUnavailableError.CODE ||
+			e.status === GatewayTimeoutError.CODE ||
+			isGmailRateLimitError(e)
+		)
 	}
 	return !(e instanceof MigrationError)
 }
@@ -200,7 +215,7 @@ export class GmailApiClient implements GmailMailApi {
 					stillPending.push(index)
 				} else if (part.status === 200) {
 					results[index] = part.body as GmailMessageResource
-				} else if (part.status === 404) {
+				} else if (part.status === NotFoundError.CODE) {
 					results[index] = null
 				} else {
 					const error = new GmailApiError(
