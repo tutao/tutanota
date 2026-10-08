@@ -5,6 +5,7 @@ import {
 	Aes256Key,
 	aes256RandomKey,
 	blake3Kdf,
+	createAuthVerifier,
 	CryptoWrapper,
 	KdfNonce,
 	keyToBase64,
@@ -22,7 +23,7 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { matchers, object, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils"
-import { DriveFileShareTypeRef } from "@tutao/entities/drive"
+import { DriveFileShareTypeRef, DriveFileTypeRef } from "@tutao/entities/drive"
 import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
 
 function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
@@ -139,6 +140,82 @@ o.spec("DriveFileSharingFacade", function () {
 			o.check(shareInfo.share).deepEquals(share)
 			o.check(shareInfo.publicLink).equals(`http://testcase/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`)
 			o.check(shareInfo.password).equals(undefined)
+		})
+	})
+	o.spec("downloadFileForShare", function () {
+		o.test("downloading password protected file", async function () {
+			const shareId = "some share id"
+			const authToken = "some authToken"
+			const sharedKey = aes256RandomKey()
+			const encParam: { type: "password"; password: string; salt: string; sharedKey: Base64 } = {
+				type: "password",
+				password: "some password",
+				salt: uint8ArrayToBase64(new Uint8Array([1, 2, 3])),
+				sharedKey: uint8ArrayToBase64(keyToUint8Array(sharedKey)),
+			}
+			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: idToElementId(shareId),
+			})
+
+			const passwordKey = aes256RandomKey()
+
+			const shareKey = aes256RandomKey()
+			const fileSessionKey = aes256RandomKey()
+
+			const file = createTestEntity(DriveFileTypeRef)
+
+			const loadFileShareRequestCaptor = matchers.captor()
+			const loadFileRequestCaptor = matchers.captor()
+
+			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(shareKey, fileSessionKey)
+			when(entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenResolve(share)
+			when(entityClient.load(DriveFileTypeRef, share.file, loadFileRequestCaptor.capture())).thenResolve(file)
+			when(argon2IdFacade.generateKeyFromPassphrase(matchers.anything(), matchers.anything())).thenResolve(passwordKey)
+
+			const fileInfo = await fileSharingFacade.downloadFileForShare(shareId, authToken, encParam)
+
+			o.check(fileInfo.file).deepEquals(file)
+			o.check(fileInfo.fileSessionKey).deepEquals(keyToUint8Array(fileSessionKey))
+			o.check(fileInfo.share).deepEquals(share)
+
+			o.check(loadFileShareRequestCaptor.value.extraHeaders).deepEquals({ authToken, verifier: uint8ArrayToBase64(createAuthVerifier(passwordKey)) })
+
+			o.check(loadFileRequestCaptor.value.extraHeaders).deepEquals({ authToken })
+			o.check(loadFileRequestCaptor.value.sessionKey).deepEquals(fileSessionKey)
+		})
+		o.test("downloading non-password protected file", async function () {
+			const shareId = "some share id"
+			const authToken = "some authToken"
+			const sharedKey = aes256RandomKey()
+			const encParam: { type: "key"; sharedKey: Base64 } = {
+				type: "key",
+				sharedKey: uint8ArrayToBase64(keyToUint8Array(sharedKey)),
+			}
+			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: idToElementId(shareId),
+			})
+
+			const fileSessionKey = aes256RandomKey()
+
+			const file = createTestEntity(DriveFileTypeRef)
+
+			const loadFileShareRequestCaptor = matchers.captor()
+			const loadFileRequestCaptor = matchers.captor()
+
+			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(fileSessionKey)
+			when(entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenResolve(share)
+			when(entityClient.load(DriveFileTypeRef, share.file, loadFileRequestCaptor.capture())).thenResolve(file)
+
+			const fileInfo = await fileSharingFacade.downloadFileForShare(shareId, authToken, encParam)
+
+			o.check(fileInfo.file).deepEquals(file)
+			o.check(fileInfo.fileSessionKey).deepEquals(keyToUint8Array(fileSessionKey))
+			o.check(fileInfo.share).deepEquals(share)
+
+			o.check(loadFileShareRequestCaptor.value.extraHeaders).deepEquals({ authToken })
+
+			o.check(loadFileRequestCaptor.value.extraHeaders).deepEquals({ authToken })
+			o.check(loadFileRequestCaptor.value.sessionKey).deepEquals(fileSessionKey)
 		})
 	})
 })

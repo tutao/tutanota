@@ -265,7 +265,7 @@ export class DriveFileSharingFacade {
 		const shareKey =
 			encParam.type === "key"
 				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
-				: await this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), base64ToUint8Array(encParam.sharedKey))
+				: this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), base64ToUint8Array(encParam.sharedKey))
 
 		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
 		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
