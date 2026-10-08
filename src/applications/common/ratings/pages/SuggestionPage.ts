@@ -12,17 +12,21 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { SURVEY_VERSION_NUMBER } from "../../subscription/LeavingUserSurveyConstants"
 import { DynamicColorSvg } from "../../../../ui/base/DynamicColorSvg.js"
 import { createSurveyData, createSurveyDataPostIn, SurveyService_POST } from "@tutao/entities/sys"
+import { TriggerType } from "../UserSatisfactionUtils"
 
 interface SuggestionPageAttrs {
 	dialog: Dialog
+	triggerType: TriggerType
 }
 
 export class SuggestionPage implements Component<SuggestionPageAttrs> {
 	private dialog: Dialog | null = null
+	private triggerType: TriggerType | null = null
 	private textFieldInput: string = ""
 
 	oncreate(vnode: Vnode<SuggestionPageAttrs>): void {
 		this.dialog = vnode.attrs.dialog
+		this.triggerType = vnode.attrs.triggerType
 	}
 
 	view(): Children {
@@ -89,7 +93,7 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						clientVersion: env.versionNumber,
 						clientPlatform: ClientDetector.get().getClientPlatform().valueOf().toString(),
 					}),
-					surveyType: SurveyDataType.SATISFACTION_EVALUATION.toString(),
+					surveyType: this.triggerType === "ManualFeedback" ? SurveyDataType.MANUAL.toString() : SurveyDataType.SATISFACTION_EVALUATION.toString(),
 				}),
 				null,
 			)
@@ -127,6 +131,8 @@ class SimpleTextEditor implements Component<SimpleTextEditorAttrs> {
 	}
 }
 
+//Keep in sync with SurveyDataTyp.java on server
+//Keep in sync with SurvilUtils.ts -> SurveyDataType on admin
 export enum SurveyDataType {
 	DOWNGRADE = 0,
 	DELETE = 1,
@@ -135,4 +141,5 @@ export enum SurveyDataType {
 	SATISFACTION_EVALUATION = 4,
 	UPGRADED = 5,
 	DECLINED = 6,
+	MANUAL = 7,
 }
