@@ -9,7 +9,7 @@ import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
 import { migrationMailFromImapFlowFetchMessageObject } from "../mailparser/MailParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, ImapSyncConfig } from "./ImapSyncSession"
-import { SyncSessionEventListener } from "../MigrationSync"
+import { SyncSessionEventListener } from "../MigrationSyncSession"
 import { MailboxMigrationFolderSyncStatus, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { fromImapFlowError } from "../../../api/common/error/MigrationError"
 

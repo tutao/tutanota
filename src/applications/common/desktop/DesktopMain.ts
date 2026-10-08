@@ -93,7 +93,7 @@ import { MigrationSyncEventListener } from "./migration/MigrationSyncEventListen
 import { DesktopMigrationSyncSystemFacade, MigrationInitFolderSyncFactory, MigrationSyncFactory } from "./migration/DesktopMigrationSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
 import { MigrationFetchMethod } from "../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
-import { MigrationSync } from "./migration/MigrationSync"
+import { MigrationSyncSession } from "./migration/MigrationSyncSession"
 import { createGmailSync } from "./migration/gmailsync/GmailSyncSession"
 import { createImapSync } from "./migration/imapsync/ImapSyncSession"
 import { createM365Sync } from "./migration/m365sync/M365SyncSession"
@@ -387,7 +387,7 @@ async function createComponents(): Promise<Components> {
 			},
 		}
 		const certificateProvider = new CertificateProvider(commandExecutor)
-		const createMigrationSync = (fetchMethod: MigrationFetchMethod, listener: MigrationSyncEventListener): MigrationSync => {
+		const createMigrationSync = (fetchMethod: MigrationFetchMethod, listener: MigrationSyncEventListener): MigrationSyncSession => {
 			switch (fetchMethod) {
 				case MigrationFetchMethod.GraphApi:
 					return createM365Sync(listener)

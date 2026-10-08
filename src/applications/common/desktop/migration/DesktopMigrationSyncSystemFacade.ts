@@ -1,15 +1,15 @@
 import { MigrationMailbox } from "../../api/common/utils/migrationImportUtils/MigrationMailbox"
 import { MigrationCredentials, MigrationSyncContext } from "../../api/common/utils/migrationImportUtils/MigrationSyncContext"
-import { MigrationSync } from "./MigrationSync"
+import { MigrationSyncSession } from "./MigrationSyncSession"
 import { getServerMigrationConfigForProvider, MigrationFetchMethod } from "../../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { MigrationSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 
-export type MigrationSyncFactory = (accountSyncId: IdTuple, fetchMethod: MigrationFetchMethod) => MigrationSync
-export type MigrationInitFolderSyncFactory = (fetchMethod: MigrationFetchMethod) => MigrationSync
+export type MigrationSyncFactory = (accountSyncId: IdTuple, fetchMethod: MigrationFetchMethod) => MigrationSyncSession
+export type MigrationInitFolderSyncFactory = (fetchMethod: MigrationFetchMethod) => MigrationSyncSession
 
 export class DesktopMigrationSyncSystemFacade implements MigrationSyncSystemFacade {
 	// Visible for testing
-	activeSyncs = new Map<string, MigrationSync>()
+	activeSyncs = new Map<string, MigrationSyncSession>()
 
 	constructor(
 		private readonly migrationSyncFactory: MigrationSyncFactory,
