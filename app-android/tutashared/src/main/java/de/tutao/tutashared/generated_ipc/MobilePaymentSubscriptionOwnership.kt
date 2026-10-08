@@ -15,7 +15,10 @@ enum class MobilePaymentSubscriptionOwnership(val value: String) {
 	NOT_OWNER("1"),
 	
 	@SerialName("2")
-	NO_SUBSCRIPTION("2");
+	NO_SUBSCRIPTION("2"),
+	
+	@SerialName("3")
+	UNKNOWN("3");
 	
 	companion object {
 		 fun fromValue(
@@ -25,6 +28,7 @@ enum class MobilePaymentSubscriptionOwnership(val value: String) {
 			"0" -> OWNER
 			"1" -> NOT_OWNER
 			"2" -> NO_SUBSCRIPTION
+			"3" -> UNKNOWN
 			else -> null
 		}
 	}

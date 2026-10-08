@@ -220,8 +220,8 @@ export class SubscriptionPage implements WizardPageN<UpgradeSubscriptionData> {
 		const { planPrices, options } = data
 		try {
 			// `data.price.rawPrice` is used for the amount parameter in the Braintree credit card verification call, so we do not include currency locale outside iOS.
-			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanActualPrice, data)
-			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, data)
+			data.price = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanActualPrice, data.targetPlanType)
+			const nextYear = planPrices.getSubscriptionPriceWithCurrency(options.paymentInterval(), UpgradePriceType.PlanNextYearsPrice, data.targetPlanType)
 			data.nextYearPrice = data.price.rawPrice !== nextYear.rawPrice ? nextYear : null
 		} catch (e) {
 			console.error(e)

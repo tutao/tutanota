@@ -225,7 +225,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 
 				const hasFirstYearDiscount = (() => {
 					if (shouldShowExternalStorePrices(accountingInfo)) {
-						const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[personalPlan].toLowerCase())
+						const prices = priceAndConfigProvider.getMobilePrices()?.get(PlanTypeToName[personalPlan].toLowerCase())
 						return isYearly && !!prices?.isEligibleForIntroOffer && !!prices?.displayOfferYearlyPerYear
 					} else {
 						return hasCampaign && isPersonalPaidPlan && isYearly
@@ -288,37 +288,6 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		])
 	}
 
-	/**
-	 * Retrieves the reference prices for the "Revolutionary" and "Legend" plans.
-	 */
-	private getReferencePrices({
-		priceAndConfigProvider,
-		accountingInfo,
-	}: {
-		priceAndConfigProvider: PriceAndConfigProvider
-		accountingInfo: AccountingInfo | null
-	}): { revoPrice: string; legendPrice: string } {
-		if (shouldShowExternalStorePrices(accountingInfo)) {
-			const prices = priceAndConfigProvider.getMobilePrices()
-
-			return {
-				revoPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Revolutionary].toLowerCase())).displayYearlyPerYear,
-				legendPrice: assertNotNull(prices.get(PlanTypeToName[PlanType.Legend].toLowerCase())).displayYearlyPerYear,
-			}
-		}
-
-		return {
-			revoPrice: formatMonthlyPrice(
-				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Revolutionary, UpgradePriceType.PlanReferencePrice) * 12,
-				PaymentInterval.Yearly,
-			),
-			legendPrice: formatMonthlyPrice(
-				priceAndConfigProvider.getSubscriptionPrice(PaymentInterval.Yearly, PlanType.Legend, UpgradePriceType.PlanReferencePrice) * 12,
-				PaymentInterval.Yearly,
-			),
-		}
-	}
-
 	private renderBuyOptionBox(attrs: SubscriptionSelectorAttr, inMobileView: boolean, planType: AvailablePlanType, hasFirstYearDiscount: boolean): Children {
 		return m(
 			"",
@@ -372,7 +341,7 @@ export class SubscriptionSelector implements Component<SubscriptionSelectorAttr>
 		let referencePriceStr: string | undefined = undefined
 		let priceType: PriceType
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default && (!paymentMethod || paymentMethod === PaymentMethodType.AppStore)) {
-			const prices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetSubscription].toLowerCase())
+			const prices = priceAndConfigProvider.getMobilePrices()?.get(PlanTypeToName[targetSubscription].toLowerCase())
 			if (prices != null) {
 				switch (interval) {
 					case PaymentInterval.Monthly:

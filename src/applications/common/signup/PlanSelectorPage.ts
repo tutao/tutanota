@@ -72,7 +72,7 @@ export class PlanSelectorPage implements ClassComponent<WizardStepComponentAttrs
 								options: data.options!,
 								actionButtons: actionButtons,
 								priceAndConfigProvider: planPrices!,
-								availablePlans: availablePlans!,
+								availablePlans,
 								isExternalStorePrice: isApplePrice,
 								currentPlan: data.currentPlan ?? undefined,
 								currentPaymentInterval: getCurrentPaymentInterval(accountingInfo) ?? PaymentInterval.Yearly,

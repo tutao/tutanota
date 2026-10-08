@@ -1,5 +1,5 @@
-import { defer } from "@tutao/utils"
 import { EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
+import { defer } from "@tutao/utils"
 import stream from "mithril/stream"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { createWizardDialog, wizardPageWrapper } from "../../../ui/base/WizardDialog.js"
@@ -7,11 +7,11 @@ import { InvoiceAndPaymentDataPage, InvoiceAndPaymentDataPageAttrs } from "./Inv
 import { locator } from "../api/main/CommonLocator"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { getDefaultPaymentMethod, getPaymentMethodType, PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
+import { asPaymentInterval, OfferPrice, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { UpgradeConfirmSubscriptionPage, UpgradeConfirmSubscriptionPageAttrs } from "./UpgradeConfirmSubscriptionPage.js"
-import { asPaymentInterval, PriceAndConfigProvider, OfferPrice } from "./utils/PriceUtils"
 import { formatNameAndAddress } from "../api/common/utils/CommonFormatter.js"
 import { LoginController } from "../api/main/LoginController.js"
-import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
+import { DialogType } from "../../../ui/base/Dialog.js"
 import { SubscriptionPage, SubscriptionPageAttrs } from "./SubscriptionPage.js"
 import { Styles } from "../../../ui/styles.js"
 import { SignupFlowUsageTestController } from "./usagetest/UpgradeSubscriptionWizardUsageTestUtils.js"
@@ -24,6 +24,7 @@ import { AvailablePlanType, NewPaidPlans, PlanType } from "../../../entities/sys
 import { getByAbbreviation } from "../gui/CountryList"
 import { isFreeSignupOnly } from "../misc/LoginUtils"
 import { InvoiceData } from "./utils/PaymentUtils"
+import { Dialog } from "../../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNode()
 export type SubscriptionParameters = {
@@ -93,6 +94,9 @@ export async function showUpgradeWizard({
 
 	SignupFlowUsageTestController.invalidateUsageTest() // Invalidates the "signup.flow" usage test, because upgrades and signups should not be mixed in this usage test.
 
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+		return Dialog.message("appStoreSubscriptionError_msg")
+	}
 	let upgradeUsageTest: UsageTest | null = null
 	if (logins.getUserController().isFreeAccount() && upgradePromptType != null) {
 		upgradeUsageTest = locator.usageTestController.getTest("upgrade.paywall.upgradePaywallTypeAndResult")
