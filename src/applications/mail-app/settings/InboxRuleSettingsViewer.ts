@@ -32,7 +32,7 @@ import { createDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { ExpandedInboxRule, InboxRule, MailSet, MailSetEntryTypeRef, MailTypeRef, TutanotaPropertiesTypeRef } from "@tutao/entities/tutanota"
-import { assertNotNull, isEmpty, isNotNull, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotNull, lazyAsync, noOp, ofClass, promiseMap, splitInChunks } from "@tutao/utils"
 import { InboxRuleConditionType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION } from "../../../entities/tutanota/Utils"
 import { resolveMailSetEntries } from "../mail/model/MailSetListModel"
 import { MoveMode } from "../mail/model/MailModel"
@@ -52,22 +52,26 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	private draggingOverRule2ndHalf: boolean | null = null
 
 	private legacyInboxRuleTableLines: Stream<Array<TableLineAttrs>> = stream<Array<TableLineAttrs>>([])
+	private isUsingLegacyInboxRules: boolean | null = null
 
 	constructor(
 		readonly mailboxModel: MailboxModel,
 		readonly entityClient: EntityClient,
-		readonly inboxRuleModel: InboxRuleModel,
-		readonly inboxRuleHandler: ExpandedInboxRuleHandler | LegacyInboxRuleHandler,
+		readonly inboxRuleModel: lazyAsync<InboxRuleModel>,
+		readonly inboxRuleHandler: lazyAsync<ExpandedInboxRuleHandler | LegacyInboxRuleHandler>,
 	) {
 		this.model = new InboxRulesSettingsViewerModel(entityClient, inboxRuleModel)
-		this.model.init().then(m.redraw)
-		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
-			this.renderLegacyInboxRules()
-		}
+		this.model.init().then(async () => {
+			this.isUsingLegacyInboxRules = (await this.inboxRuleModel()).isUsingLegacyInboxRules()
+			m.redraw()
+			if (this.isUsingLegacyInboxRules) {
+				this.renderLegacyInboxRules()
+			}
+		})
 	}
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+		if ((await this.inboxRuleModel()).isUsingLegacyInboxRules()) {
 			for (const update of updates) {
 				if (isUpdateForTypeRef(TutanotaPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {
 					this.renderLegacyInboxRules()
@@ -80,7 +84,11 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 	}
 
 	view(): Children {
-		const tableLines = this.inboxRuleModel.isUsingLegacyInboxRules() ? this.legacyInboxRuleTableLines() : this.renderInboxRuleTableLines()
+		if (this.isUsingLegacyInboxRules == null) {
+			return null
+		}
+
+		const tableLines = this.isUsingLegacyInboxRules ? this.legacyInboxRuleTableLines() : this.renderInboxRuleTableLines()
 		const isMobile = ClientDetector.get().isMobileDevice()
 
 		// Making the scroll section based on mobile view allows for the title section to also be scrolled away
@@ -108,7 +116,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						tableLines.length > 0
 							? m(
 									inboxRuleListClasses,
-									this.inboxRuleModel.isUsingLegacyInboxRules()
+									this.isUsingLegacyInboxRules
 										? m(
 												".skeleton-bg-2.border-radius",
 												m(Table, {
@@ -138,14 +146,14 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							label: "addInboxRule_action",
 							width: "flex",
 							onclick: () => {
-								mailLocator.mailboxModel.getUserMailboxDetails().then((mailboxDetails) => {
-									if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+								mailLocator.mailboxModel.getUserMailboxDetails().then(async (mailboxDetails) => {
+									if (this.isUsingLegacyInboxRules) {
 										AddLegacyInboxRuleDialog.show(
 											mailboxDetails,
 											createLegacyInboxRuleTemplate(InboxRuleConditionType.RECIPIENT_TO_EQUALS, ""),
 										)
 									} else {
-										AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, null)
+										AddInboxRuleDialog.show(mailboxDetails, await this.inboxRuleModel(), null)
 									}
 								})
 							},
@@ -314,7 +322,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 				click: () =>
 					mailLocator.mailboxModel
 						.getUserMailboxDetails()
-						.then((mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, this.inboxRuleModel, rule)),
+						.then(async (mailboxDetails) => AddInboxRuleDialog.show(mailboxDetails, await this.inboxRuleModel(), rule)),
 			},
 			index > 1
 				? {
@@ -404,7 +412,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			"no folder system?",
 		)
 		const inbox = assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.INBOX), "no inbox?")
-		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const inboxRuleHandler = await mailLocator.processInboxHandler()
 		const mailboxDetails = await mailLocator.mailboxModel.getUserMailboxDetails()
 
 		let totalProcessed = 0
@@ -472,7 +480,8 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			return
 		}
 
-		if (this.inboxRuleModel.isUsingLegacyInboxRules()) {
+		const inboxRuleModel = await this.inboxRuleModel()
+		if (inboxRuleModel.isUsingLegacyInboxRules()) {
 			const progress = stream(0)
 			const abort = new AbortController()
 			const mailsAffected = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
@@ -494,8 +503,8 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			})
 			await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": mailsAffected }))
 		} else {
-			const rules = await this.inboxRuleModel.getOrderedInboxRules()
-			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>this.inboxRuleHandler)
+			const rules = await inboxRuleModel.getOrderedInboxRules()
+			applyRuleWithProgress(rules, <ExpandedInboxRuleHandler>await this.inboxRuleHandler())
 		}
 	}
 }

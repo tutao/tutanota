@@ -149,7 +149,7 @@ o.spec("MailModelTest", function () {
 					logins,
 					mailFacade,
 					connectivityModel,
-					() => processInboxHandler,
+					async () => processInboxHandler,
 					object(),
 					noOp,
 				),

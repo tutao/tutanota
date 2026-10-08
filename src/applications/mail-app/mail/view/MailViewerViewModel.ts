@@ -725,7 +725,7 @@ export class MailViewerViewModel {
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		const inboxRuleHandler = mailLocator.processInboxHandler()
+		const inboxRuleHandler = await mailLocator.processInboxHandler()
 		const currentFolder = this.mailModel.getMailFolderForMail(mail)
 		if (!currentFolder) {
 			return false
@@ -756,10 +756,10 @@ export class MailViewerViewModel {
 		}
 		const mailboxDetail = await this.mailboxModel.getMailboxDetailsForMailGroup(mail._ownerGroup)
 
-		if (mailLocator.inboxRuleModel.isUsingLegacyInboxRules()) {
+		if ((await mailLocator.inboxRuleModel()).isUsingLegacyInboxRules()) {
 			return this.reapplyLegacyInboxRuleForMail()
 		} else {
-			const inboxRuleHandler = mailLocator.inboxRuleHandler() as ExpandedInboxRuleHandler
+			const inboxRuleHandler = (await mailLocator.inboxRuleHandler()) as ExpandedInboxRuleHandler
 			await inboxRuleHandler.applyRulesToGivenMails([mail], mailboxDetail)
 		}
 	}
