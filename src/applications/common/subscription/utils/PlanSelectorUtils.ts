@@ -203,7 +203,12 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 			: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 	}
 
-	const targetPlans = isApplePrice ? NewPersonalPaidPlans : AvailablePlans
+	let targetPlans: ReadonlyArray<AvailablePlanType>
+	if (isApplePrice) {
+		targetPlans = priceAndConfigProvider.getMobilePrices()?.size == 0 ? [] : NewPersonalPaidPlans
+	} else {
+		targetPlans = AvailablePlans
+	}
 	for (const targetPlan of targetPlans) {
 		const priceKey = planTypeToPriceKey[targetPlan]
 		const bonusMonths = Number(pricingData[priceKey].bonusMonthsForYearlyPlan)

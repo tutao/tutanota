@@ -13,7 +13,7 @@ import {
 	NotFoundError,
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
-import { ApprovalStatus, CancelledError } from "@tutao/app-env"
+import { ApprovalStatus, CancelledError, EnvProvider, PaymentSetup } from "@tutao/app-env"
 import type { ResetAction } from "../login/recover/RecoverLoginDialog"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { UserError } from "../api/main/UserError"
@@ -25,7 +25,7 @@ import { Params } from "mithril"
 import { LoginState } from "../login/LoginViewModel.js"
 import { showApprovalNeededMessageDialog } from "./ApprovalNeededMessageDialog.js"
 import { Customer } from "@tutao/entities/sys"
-import { AvailablePlans, AvailablePlanType, NewBusinessPlans, SubscriptionType } from "../../../entities/sys/Utils"
+import { AvailablePlans, AvailablePlanType, NewBusinessPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
 
@@ -193,8 +193,14 @@ export function getWebsiteLangFromParams(urlParams: Params): { code: LanguageCod
 }
 
 export function getAvailablePlansFromSubscriptionParameters(params: SubscriptionParameters | null): readonly AvailablePlanType[] {
-	// Default to all available plans if the params do not have the needed information
-	if (params == null || params.type == null) return AvailablePlans
+	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
+		// there is no point in returning paid plans if payments are not working.
+		return [PlanType.Free]
+	}
+	if (params == null || params.type == null) {
+		// Default to all available plans if the params do not have the needed information
+		return AvailablePlans
+	}
 
 	try {
 		const type = stringToSubscriptionType(params.type)

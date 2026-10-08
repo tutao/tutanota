@@ -663,6 +663,9 @@ function assignEnvPaymentSetup(urlQueryParams: Mithril.Params) {
 		case PaymentSetup.Playstore:
 			env.paymentSetup = PaymentSetup.Playstore
 			break
+		case PaymentSetup.None:
+			env.paymentSetup = PaymentSetup.None
+			break
 		case undefined:
 			break
 		default:
