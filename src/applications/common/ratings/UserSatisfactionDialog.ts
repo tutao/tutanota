@@ -51,7 +51,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 	}
 
 	const dialog = new MultiPageDialog<UserSatisfactionDialogPage>(
-		"evaluation",
+		triggerType !== "ManualFeedback" ? "evaluation" : "suggestion",
 		(dialog, navigateToPage, goBack) => ({
 			evaluation: {
 				content: m(EvaluationPage, {
@@ -101,17 +101,27 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 				},
 			},
 			suggestion: {
-				content: m(SuggestionPage, { dialog }),
-				leftAction: {
-					label: "back_action",
-					type: ButtonType.Secondary,
-					click: () => goBack(),
-				},
-				rightAction: {
-					label: "notNow_label",
-					type: ButtonType.Secondary,
-					click: () => dialog.close(),
-				},
+				content: m(SuggestionPage, { dialog, triggerType }),
+				leftAction:
+					triggerType !== "ManualFeedback"
+						? {
+								label: "back_action",
+								type: ButtonType.Secondary,
+								click: () => goBack(),
+							}
+						: undefined,
+				rightAction:
+					triggerType !== "ManualFeedback"
+						? {
+								label: "notNow_label",
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+							}
+						: {
+								label: "close_alt",
+								type: ButtonType.Secondary,
+								click: () => dialog.close(),
+							},
 			},
 			contactSupport: {
 				content: m(ContactSupportPage, {
