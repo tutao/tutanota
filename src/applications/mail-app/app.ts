@@ -750,8 +750,8 @@ import("../../ui/translations/en.js")
 						return {
 							component: DriveFileShareView,
 							cache: {
-								downloadFileForShare: mailLocator.driveFacade.downloadFileForShare,
-								downloadBlobsForShare: mailLocator.driveFacade.downloadBlobsForShare,
+								downloadFileForShare: mailLocator.driveFileSharingFacade.downloadFileForShare,
+								downloadBlobsForShare: mailLocator.driveFileSharingFacade.downloadBlobsForShare,
 								saveDataFile: mailLocator.fileController.saveDataFile,
 							},
 						}

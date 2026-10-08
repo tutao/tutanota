@@ -11,7 +11,6 @@ import { IconButton } from "../../../../ui/base/IconButton"
 import { px, size } from "../../../../ui/size"
 import { copyToClipboard } from "../../../../ui/utils/ClipboardUtils"
 import { showInfoSnackbar, showSnackBar } from "../../../../ui/base/SnackBar"
-import { DriveFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { UserError } from "../../../common/api/main/UserError"
 import { theme } from "../../../../ui/theme"
@@ -23,30 +22,31 @@ import { DriveFile, DriveFileShare } from "@tutao/entities/drive"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { idToElementId } from "@tutao/meta"
 import { isNull } from "../../../../platform-kit/utils/Utils"
+import { DriveFileSharingFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 type ShareDialogState = "busy" | "done"
 
 export class DriveFileShareDialog {
-	constructor(private readonly driveFacade: DriveFacade) {}
+	constructor(private readonly driveFileSharingFacade: DriveFileSharingFacade) {}
 
 	async show(item: FileFolderItem) {
 		let file = item.file
 		if (isNull(file.share)) {
-			;[file] = await showProgressDialog(lang.getTranslation("creatingShare_msg"), this.driveFacade.createShareLink(file, null, null))
+			;[file] = await showProgressDialog(lang.getTranslation("creatingShare_msg"), this.driveFileSharingFacade.createShareLink(file, null, null))
 		}
 
-		showFileShareDialog(this.driveFacade, file)
+		showFileShareDialog(this.driveFileSharingFacade, file)
 	}
 }
 
-async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
+async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacade, file: DriveFile) {
 	let shareInfo: DriveShareInfo | null = null
 	let state: ShareDialogState = "busy"
 
 	const shareId = idToElementId(assertNotNull(file.share))
 
 	// reload file in case we just created the share
-	driveFacade.getShareInfo(shareId).then((info) => {
+	driveFileSharingFacade.getShareInfo(shareId).then((info) => {
 		shareInfo = info
 		state = "done"
 		m.redraw()
@@ -104,11 +104,11 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 											label: lang.getTranslation("setPasswordAndExpiration_label"),
 											onclick: () => {
 												showFileShareDetailsDialog(
-													driveFacade,
+													driveFileSharingFacade,
 													async () => {
 														state = "busy"
 														m.redraw()
-														shareInfo = await driveFacade.getShareInfo(shareId)
+														shareInfo = await driveFileSharingFacade.getShareInfo(shareId)
 														state = "done"
 														m.redraw()
 													},
@@ -129,7 +129,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 											label: lang.getTranslation("deleteLink_action"),
 											click: () => {
 												// FIXME show progress
-												driveFacade.deleteShareLink(file)
+												driveFileSharingFacade.deleteShareLink(file)
 												shareInfo = null
 												dialog.close()
 												const message = lang.getTranslation("shareDeleted_msg", { "{fileName}": file.name })
@@ -147,7 +147,7 @@ async function showFileShareDialog(driveFacade: DriveFacade, file: DriveFile) {
 }
 
 async function showFileShareDetailsDialog(
-	driveFacade: DriveFacade,
+	driveFileSharingFacade: DriveFileSharingFacade,
 	reloadShare: () => Promise<unknown>,
 	share: DriveFileShare,
 	fileName: string,
@@ -162,7 +162,7 @@ async function showFileShareDetailsDialog(
 			private expirationDate: Date | null = share.expirationDate
 
 			async updateShareAndReload(password: string | null, expirationDate: Date | null): Promise<void> {
-				await driveFacade.updateShare(share, password, expirationDate)
+				await driveFileSharingFacade.updateShare(share, password, expirationDate)
 				await reloadShare()
 			}
 

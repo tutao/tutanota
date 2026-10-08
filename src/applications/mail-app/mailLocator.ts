@@ -172,6 +172,7 @@ import { DriveModel } from "../drive-app/drive/model/DriveModel"
 import { ContactEditor } from "./contacts/ContactEditor"
 import { ContactViewModel } from "./contacts/view/ContactViewModel"
 import { DriveFileShareDialog } from "../drive-app/drive/view/DriveFileShareDialog"
+import { DriveFileSharingFacade } from "../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -242,6 +243,7 @@ class MailLocator implements CommonLocator {
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	autosaveFacade!: AutosaveFacade
 	driveFacade!: DriveFacade
+	driveFileSharingFacade!: DriveFileSharingFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapImporter
 
@@ -858,6 +860,7 @@ class MailLocator implements CommonLocator {
 			autosaveFacade,
 			spamClassifier,
 			driveFacade,
+			driveFileSharingFacade,
 			imapImporter,
 		} = this.worker.getWorkerInterface() as WorkerInterface
 		this.loginFacade = loginFacade
@@ -883,6 +886,7 @@ class MailLocator implements CommonLocator {
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
 		this.driveFacade = driveFacade
+		this.driveFileSharingFacade = driveFileSharingFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.logins = new LoginController(
@@ -1608,7 +1612,7 @@ class MailLocator implements CommonLocator {
 
 	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
 		const { DriveFileShareDialog } = await import("../drive-app/drive/view/DriveFileShareDialog.js")
-		return new DriveFileShareDialog(this.driveFacade)
+		return new DriveFileShareDialog(this.driveFileSharingFacade)
 	})
 }
 

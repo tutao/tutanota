@@ -1,40 +1,12 @@
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import { EntityClient, loadMultipleFromLists } from "../../../../../../platform-kit/network/EntityClient"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
-import { DomainConfig, ProgrammingError } from "@tutao/app-env"
+import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	bitArrayToUint8Array,
-	blake3Kdf,
-	createAuthVerifier,
-	CryptoWrapper,
-	generateKdfNonce,
-	KdfNonce,
-	keyToBase64,
-	keyToUint8Array,
-	uint8ArrayTo256Key,
-	uint8ArrayToKey,
-	VersionedKey,
-} from "@tutao/crypto"
-import {
-	assertNotNull,
-	base64ToUint8Array,
-	concat,
-	filterInt,
-	first,
-	groupBy,
-	isEmpty,
-	isNotNull,
-	Nullable,
-	partition,
-	promiseMap,
-	Require,
-	uint8ArrayToBase64,
-} from "@tutao/utils"
-import { ElementId, elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require } from "@tutao/utils"
+import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -54,18 +26,11 @@ import {
 	createDriveItemPutIn,
 	createDrivePostIn,
 	createDriveRenameData,
-	createDriveShareServiceDeleteIn,
-	createDriveShareServicePasswordUpdate,
-	createDriveShareServicePostIn,
-	createDriveShareServicePutIn,
-	createDriveShareTokenServicePostIn,
 	createDriveUploadedFile,
 	DriveCopyService_POST,
 	DriveFile,
 	DriveFileRef,
 	DriveFileRefTypeRef,
-	DriveFileShare,
-	DriveFileShareTypeRef,
 	DriveFileTypeRef,
 	DriveFolder,
 	DriveFolderService_DELETE,
@@ -79,21 +44,12 @@ import {
 	DriveItemService_PUT,
 	DriveRenameData,
 	DriveService_POST,
-	DriveShareService_DELETE,
-	DriveShareService_POST,
-	DriveShareService_PUT,
-	DriveShareTokenService_POST,
 } from "@tutao/entities/drive"
 import { TransferId } from "../../../../../../entities/drive/Utils"
 import { getCleanedMimeType } from "../../utils/DataFile"
 import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/CacheStorage"
-import { CacheMode, DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { isDriveFile } from "../../../common/drive/DriveUtils"
-import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
-import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
-
-export const STATIC_FILE_SHARE_PASSWORD = "penguin-on-snowboard"
 
 export interface BreadcrumbEntry {
 	folderName: string
@@ -121,22 +77,6 @@ export const enum DriveFolderType {
 	Trash = "2",
 }
 
-export interface DriveShareInfo {
-	share: DriveFileShare
-	publicLink: string
-	password?: string
-}
-export interface PasswordUpdate {
-	verifier: Uint8Array<ArrayBuffer>
-	ownerEncPassword: Uint8Array<ArrayBuffer>
-	groupKeyVersion: string
-}
-
-function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
-	const keyBytes = blake3Kdf(concat(keyToUint8Array(fileGroupKey.object), nonce), "driveFileShareShareKey", 32)
-	return uint8ArrayTo256Key(keyBytes)
-}
-
 /**
  * Exposes operations on the Drive.
  */
@@ -150,8 +90,6 @@ export class DriveFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cacheStorage: ExposedCacheStorage,
-		private readonly domainConfig: DomainConfig,
-		private readonly argon2idFacade: Argon2idFacade,
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -421,165 +359,6 @@ export class DriveFacade {
 		return this.userFacade.getGroupId(GroupType.File)
 	}
 
-	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<[DriveFile, DriveShareInfo]> {
-		const { fileGroupKey } = await this.getCryptoInfo()
-
-		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
-		// 1. Generate a random nonce (N).
-		const nonce = generateKdfNonce()
-		// 2. Derive a share key (SHK) using the nonce (N), a domain separator and the owner key.
-		const shareKey = deriveFileShareKey(fileGroupKey, nonce)
-		// 3. Encrypt the file session key (FSK) with the derived share key (SHK) producing the ENCFSK.
-		const shareKeyEncFileSessionKey = this.cryptoWrapper.encryptKey(shareKey, sessionKey)
-		if (password == null) {
-			// 4. Create a share with the N, the ENCFSK, and the owner key version.
-
-			await this.serviceExecutor.execute(
-				DriveShareService_POST,
-				createDriveShareServicePostIn({
-					file: file._id,
-					expirationDate,
-					nonce,
-					ownerEncPassword: null,
-					verifier: null,
-					shareKeyEncFileSessionKey,
-					groupKeyVersion: String(fileGroupKey.version),
-				}),
-				null,
-			)
-		} else {
-			// 	4. Encrypt the PWD with the owner key producing the ENCPWD.
-			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
-			const verifier = await this.createShareVerifier(shareKey, nonce, password)
-			// 	5. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
-			await this.serviceExecutor.execute(
-				DriveShareService_POST,
-				createDriveShareServicePostIn({
-					file: file._id,
-					expirationDate,
-					shareKeyEncFileSessionKey,
-					nonce,
-					ownerEncPassword,
-					verifier,
-					groupKeyVersion: String(fileGroupKey.version),
-				}),
-				null,
-			)
-		}
-
-		// FIXME: Do not reload the whole file maybe? Just get the share ID from DriveShareService_POST?
-		const updatedFile = await this.loadDriveFile(file._id)
-		return [updatedFile, await this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))]
-	}
-
-	async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {
-		return await this.entityClient.load(DriveFileTypeRef, fileId, {
-			queryParams: null,
-			baseUrl: null,
-			extraHeaders: null,
-			ownerKeyProvider: null,
-			sessionKey: null,
-			suspensionBehavior: null,
-			cacheMode: CacheMode.WriteOnly,
-		})
-	}
-
-	private async createShareVerifier(shareKey: Aes256Key, nonce: KdfNonce, password: string): Promise<Uint8Array<ArrayBuffer>> {
-		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
-		const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
-		return createAuthVerifier(passwordKey)
-	}
-
-	private async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
-		const { fileGroupKey } = await this.getCryptoInfo()
-		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
-		const nonce = share.nonce as KdfNonce
-		const verifier = await this.createShareVerifier(shareKey, nonce, password)
-		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
-		return {
-			ownerEncPassword,
-			verifier,
-			groupKeyVersion: String(fileGroupKey.version),
-		}
-	}
-
-	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null) {
-		let passwordUpdate: PasswordUpdate | null = null
-		if (isNotNull(password)) {
-			passwordUpdate = await this.constructPasswordUpdate(share, password)
-		}
-
-		await this.serviceExecutor.execute(
-			DriveShareService_PUT,
-			createDriveShareServicePutIn({
-				share: elementIdToId(share._id),
-				passwordUpdate: passwordUpdate
-					? createDriveShareServicePasswordUpdate({
-							verifier: passwordUpdate.verifier,
-							ownerEncPassword: passwordUpdate.ownerEncPassword,
-							groupKeyVersion: passwordUpdate.groupKeyVersion,
-						})
-					: null,
-				expirationDate,
-			}),
-			null,
-		)
-	}
-
-	async getShareInfo(shareId: ElementId): Promise<DriveShareInfo> {
-		const { fileGroupKey } = await this.getCryptoInfo()
-
-		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
-		const appUrl = this.domainConfig.apiUrl
-
-		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
-
-		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
-		if (isNotNull(share.ownerEncPassword)) {
-			// share is protected with a password
-			// 1. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
-			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
-			const password = this.cryptoWrapper.decryptString(fileGroupKey.object, share.ownerEncPassword) // FIXME: Fetch the correct version of the group key
-			// 	2. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
-			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
-			// 	3. Encrypt the share key (SHK) with the password key (PWK) producing the ENCSHK.
-			const encryptedShareKey = this.cryptoWrapper.encryptKey(passwordKey, shareKey)
-			// 4. Create a link with shareId, authToken, encryptedShareKey (ENCSHK), and salt (SLT)
-			const queryParams = new URLSearchParams({
-				authToken: uint8ArrayToBase64(share.authToken),
-			})
-			const fragmentParams = new URLSearchParams({
-				shareKey: uint8ArrayToBase64(encryptedShareKey),
-				salt: uint8ArrayToBase64(salt),
-			})
-
-			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
-			return { share, publicLink, password }
-		} else {
-			// share is publicly available
-			// 1. Create a link with shareId, authToken, shareKey (SHK)
-			const queryParams = new URLSearchParams({
-				authToken: uint8ArrayToBase64(share.authToken),
-			})
-			const fragmentParams = new URLSearchParams({
-				shareKey: keyToBase64(shareKey),
-			})
-
-			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
-			return { share, publicLink }
-		}
-	}
-
-	async deleteShareLink(file: DriveFile): Promise<void> {
-		await this.serviceExecutor.execute(
-			DriveShareService_DELETE,
-			createDriveShareServiceDeleteIn({
-				file: file._id,
-			}),
-			null,
-		)
-	}
-
 	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
 		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
@@ -600,78 +379,6 @@ export class DriveFacade {
 		data.ownerKeyVersion = String(fileGroupKey.version)
 		await this.serviceExecutor.execute(DriveService_POST, data, null)
 		return this.entityClient.load(DriveGroupRootTypeRef, idToElementId(fileGroupId))
-	}
-
-	async downloadFileForShare(
-		shareId: Id,
-		authToken: string,
-		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
-	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }> {
-		const loadFileShareHeaders: Nullable<Dict> = {
-			authToken: authToken,
-		}
-		let passwordKey
-		if (encParam.type === "password") {
-			passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, base64ToUint8Array(encParam.salt))
-
-			const verifier = uint8ArrayToBase64(createAuthVerifier(passwordKey))
-			loadFileShareHeaders["verifier"] = verifier
-		}
-		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
-			extraHeaders: loadFileShareHeaders,
-			ownerKeyProvider: null,
-			sessionKey: null,
-			baseUrl: null,
-			cacheMode: null,
-			queryParams: null,
-			suspensionBehavior: null,
-		})
-		const shareKey =
-			encParam.type === "key"
-				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
-				: await this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), base64ToUint8Array(encParam.sharedKey))
-
-		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
-		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
-			extraHeaders: { authToken: authToken },
-			ownerKeyProvider: null,
-			sessionKey: fileSessionKey,
-			baseUrl: null,
-			cacheMode: null,
-			queryParams: null,
-			suspensionBehavior: null,
-		})
-		return {
-			file,
-			fileSessionKey: bitArrayToUint8Array(fileSessionKey.bits),
-			share,
-		}
-	}
-
-	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64): Promise<DataFile> {
-		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
-			baseUrl: null,
-			extraHeaders: null,
-			suspensionBehavior: null,
-			sessionKey: uint8ArrayToKey(fileSessionKey),
-			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
-				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
-					extraHeaders: { authToken: authToken },
-					sessionKey: null,
-					baseUrl: null,
-					queryParams: null,
-					suspensionBehavior: null,
-				})
-				return new Map([[file.blobs[0].archiveId, createBlobServerAccessInfo(result.blobAccessInfo)]])
-			},
-		})
-		return {
-			_type: "DataFile",
-			data: bytes,
-			mimeType: file.mimeType,
-			name: file.name,
-			size: filterInt(file.size),
-		}
 	}
 }
 

@@ -54,7 +54,7 @@ import { UsageTestModel } from "../../misc/UsageTestModel.js"
 import { WebMobileFacade } from "../../native/WebMobileFacade.js"
 import { OperationProgressTracker } from "./OperationProgressTracker.js"
 import { DomainConfigProvider } from "../common/DomainConfigProvider.js"
-import { MailAddressTableModel, MailAddressTableInfo } from "../../settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressTableInfo, MailAddressTableModel } from "../../settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { lazy } from "@tutao/utils"
 import { NativeInterfaceMain } from "../../native/NativeInterfaceMain.js"
@@ -89,6 +89,7 @@ import { Header } from "../../../../ui/Header"
 import { Router } from "../../../../ui/ScopedThrottledRouter"
 import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
+import { DriveFileSharingFacade } from "../worker/facades/lazy/DriveFileSharingFacade"
 
 export interface CommonLocator {
 	clientModelInfo: ClientModelInfo
@@ -135,6 +136,7 @@ export interface CommonLocator {
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
 	driveFacade: DriveFacade
+	driveFileSharingFacade: DriveFileSharingFacade
 	imapImporter: ImapSyncFacade
 
 	mailboxModel: MailboxModel

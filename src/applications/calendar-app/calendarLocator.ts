@@ -72,7 +72,7 @@ import { showProgressDialog } from "../../ui/dialogs/ProgressDialog.js"
 import { ContactSuggestionProvider, RecipientsSearchModel } from "../common/misc/RecipientsSearchModel.js"
 import { NativeInterfaceMain } from "../common/native/NativeInterfaceMain.js"
 import { NativePushServiceApp } from "../common/native/NativePushServiceApp.js"
-import { MailAddressNameChanger, MailAddressTableModel, MailAddressTableInfo } from "../common/settings/mailaddress/MailAddressTableModel.js"
+import { MailAddressNameChanger, MailAddressTableInfo, MailAddressTableModel } from "../common/settings/mailaddress/MailAddressTableModel.js"
 import type { GroupInfo } from "@tutao/entities/sys"
 import { DrawerMenuAttrs, isPartnerEnabled } from "../common/gui/nav/DrawerMenu.js"
 import { DomainConfigProvider } from "../common/api/common/DomainConfigProvider.js"
@@ -126,6 +126,7 @@ import type { ParsedEventAlarmTuple } from "./calendar/export/CalendarParser"
 import type { AlarmInterval } from "../common/calendar/date/CalendarUtils"
 import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchViewModel"
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
+import { DriveFileSharingFacade } from "../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -185,6 +186,7 @@ class CalendarLocator implements CommonLocator {
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
+	driveFileSharingFacade!: DriveFileSharingFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapSyncFacade
 

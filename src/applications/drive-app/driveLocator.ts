@@ -129,6 +129,7 @@ import { DriveModel } from "./drive/model/DriveModel"
 import { DriveTransferController } from "./drive/view/DriveTransferController"
 import { DriveSearchViewModel } from "./search/view/DriveSearchViewModel"
 import { DriveFileShareDialog } from "./drive/view/DriveFileShareDialog"
+import { DriveFileSharingFacade } from "../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertMainOrNode()
 
@@ -188,6 +189,7 @@ class DriveLocator implements CommonLocator {
 	identityKeyCreator!: IdentityKeyCreator
 	whitelabelThemeGenerator!: WhitelabelThemeGenerator
 	driveFacade!: DriveFacade
+	driveFileSharingFacade!: DriveFileSharingFacade
 	transferProgressDispatcher!: TransferProgressDispatcher
 	imapImporter!: ImapSyncFacade
 	searchRouter!: SearchRouter
@@ -574,6 +576,7 @@ class DriveLocator implements CommonLocator {
 			contactFacade,
 			identityKeyCreator,
 			driveFacade,
+			driveFileSharingFacade,
 		} = this.worker.getWorkerInterface()
 		this.loginFacade = loginFacade
 		this.customerFacade = customerFacade
@@ -594,6 +597,7 @@ class DriveLocator implements CommonLocator {
 		this.recoverCodeFacade = recoverCodeFacade
 		this.contactFacade = contactFacade
 		this.driveFacade = driveFacade
+		this.driveFileSharingFacade = driveFileSharingFacade
 		this.serviceExecutor = serviceExecutor
 		this.sqlCipherFacade = sqlCipherFacade
 		this.identityKeyCreator = identityKeyCreator
@@ -1095,7 +1099,7 @@ class DriveLocator implements CommonLocator {
 
 	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
 		const { DriveFileShareDialog } = await import("./drive/view/DriveFileShareDialog")
-		return new DriveFileShareDialog(this.driveFacade)
+		return new DriveFileShareDialog(this.driveFileSharingFacade)
 	})
 }
 

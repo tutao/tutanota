@@ -198,6 +198,10 @@ export class CalendarWorkerImpl implements NativeInterface {
 			async driveFacade() {
 				return locator.driveFacade()
 			},
+
+			async driveFileSharingFacade() {
+				return locator.driveFileSharingFacade()
+			},
 		}
 	}
 

@@ -55,6 +55,7 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { ImapImporter } from "../imapimport/ImapImporter"
+import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -102,6 +103,7 @@ export interface WorkerInterface {
 	readonly spamClassifier: SpamClassifier
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
+	readonly driveFileSharingFacade: DriveFileSharingFacade
 	readonly imapImporter: ImapImporter
 }
 
@@ -324,6 +326,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async driveFacade() {
 				return locator.driveFacade()
+			},
+			async driveFileSharingFacade() {
+				return locator.driveFileSharingFacade()
 			},
 			async imapImporter() {
 				return locator.imapImporter()

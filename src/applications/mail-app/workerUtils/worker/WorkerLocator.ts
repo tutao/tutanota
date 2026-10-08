@@ -85,6 +85,7 @@ import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailSta
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
 import type { MailIndexerBackend } from "../index/MailIndexerBackend"
+import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -130,6 +131,7 @@ export type WorkerLocatorType = {
 	spamClassifier: lazyAsync<SpamClassifier>
 	spamClassifierStorageFacade: lazyAsync<SpamClassifierStorageFacade>
 	driveFacade: lazyAsync<DriveFacade>
+	driveFileSharingFacade: lazyAsync<DriveFileSharingFacade>
 
 	// Meta
 	_worker: WorkerImpl
@@ -735,8 +737,21 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.crypto,
 			locator.base.cryptoWrapper,
 			locator.cacheStorage,
+		)
+	})
+
+	locator.driveFileSharingFacade = lazyMemoized(async () => {
+		const { DriveFileSharingFacade } = await import("../../../common/api/worker/facades/lazy/DriveFileSharingFacade.js")
+		return new DriveFileSharingFacade(
+			locator.base.cryptoWrapper,
+			locator.base.serviceExecutor,
+			locator.base.crypto,
+			locator.base.user,
+			locator.base.keyLoader,
 			domainConfig,
 			locator.base.argon2idFacade,
+			locator.base.cachingEntityClient,
+			await locator.blob(),
 		)
 	})
 }
