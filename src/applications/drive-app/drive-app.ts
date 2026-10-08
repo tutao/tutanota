@@ -1,7 +1,7 @@
 import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { disableErrorHandlingDuringLogout, handleUncaughtError } from "../common/misc/ErrorHandler.js"
-import { AppType, DomainConfig, EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
+import { AppType, DomainConfig, EnvProvider, PaymentSetup, ProgrammingError } from "../../platform-kit/app-env"
 import { assertNotNull } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -46,6 +46,7 @@ EnvProvider.bootFinished()
 const urlQueryParams = m.parseQueryString(location.search)
 
 assignEnvPlatformId(urlQueryParams)
+assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
 
 let currentView: Component<unknown> | null = null
@@ -475,6 +476,27 @@ function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
 		} else {
 			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
 		}
+	}
+}
+
+// PaymentSetup is passed by the native part in the URL
+function assignEnvPaymentSetup(urlQueryParams: Mithril.Params) {
+	const paymentSetup = urlQueryParams["paymentSetup"]
+
+	switch (paymentSetup) {
+		case PaymentSetup.Appstore:
+			env.paymentSetup = PaymentSetup.Appstore
+			break
+		case PaymentSetup.Playstore:
+			env.paymentSetup = PaymentSetup.Playstore
+			break
+		case PaymentSetup.None:
+			env.paymentSetup = PaymentSetup.None
+			break
+		case undefined:
+			break
+		default:
+			throw new ProgrammingError(`Invalid payment setup: ${String(paymentSetup)}`)
 	}
 }
 

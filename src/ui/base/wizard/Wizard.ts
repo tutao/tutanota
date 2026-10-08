@@ -20,7 +20,7 @@ export interface WizardLayoutAttrs<TViewModel> {
 }
 
 export interface WizardAttrs<TViewModel> {
-	steps: WizardStepAttrs<TViewModel>[]
+	steps: Array<WizardStepAttrs<TViewModel>>
 	viewModel: TViewModel
 	onComplete?: (viewModel: TViewModel) => void
 

@@ -42,6 +42,9 @@ export const enum PaymentSetup {
 	Playstore = "playstore",
 	/// credit cards, paypal, invoice etc. this includes fdroid
 	Default = "default",
+	// this can happen if payment is permanently or temporarily unavailable (mostly when play store billing
+	// or StoreKit error out)
+	None = "none",
 }
 
 /**

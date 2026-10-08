@@ -40,6 +40,7 @@ import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority 
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
 import { idToElementId } from "@tutao/meta"
+import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
 
 export const enum UpgradeType {
 	/**
@@ -464,7 +465,7 @@ export function getPriceStr({ priceAndConfigProvider, targetPlan, paymentInterva
  * If a discount is applied, `referencePriceStr` will show the normal yearly price instead. Otherwise, `referencePriceStr` will be `undefined`.
  */
 export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentInterval }: GetPriceStrProps): GetPriceStrReturn {
-	const applePrices = priceAndConfigProvider.getMobilePrices().get(PlanTypeToName[targetPlan].toLowerCase())
+	const applePrices = priceAndConfigProvider.getMobilePrices()?.get(PlanTypeToName[targetPlan].toLowerCase())
 	if (!applePrices) {
 		console.warn("Cannot get the apple prices")
 		return { priceStr: "", referencePriceStr: "" }
@@ -496,7 +497,7 @@ export function getRawApplePrice({ priceAndConfigProvider, targetPlan, paymentIn
 	referencePrice: number
 } {
 	const planKey = PlanTypeToName[targetPlan].toLowerCase()
-	const applePrices = priceAndConfigProvider.getMobilePrices().get(planKey)
+	const applePrices = priceAndConfigProvider.getMobilePrices()?.get(planKey)
 	if (!applePrices) {
 		throw new Error("Cannot get the apple prices of plan: " + planKey)
 	}
