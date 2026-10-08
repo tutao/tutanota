@@ -15,6 +15,7 @@ await program
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
 	.option("-D, --dev-tools", "Start the desktop client with DevTools open")
+	.option("--debuggable", "Output JavaScript code that is easier to debug")
 	.action(async (stage, host, options) => {
 		await removeDistDirs("src")
 
@@ -29,7 +30,7 @@ await program
 			host = "https://app.local.tuta.com:9000"
 		}
 
-		const { clean, watch, serve, startDesktop, desktopBuildOnly, app, networkDebugging, devTools } = options
+		const { clean, watch, serve, startDesktop, desktopBuildOnly, app, networkDebugging, devTools, debuggable } = options
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -44,6 +45,7 @@ await program
 				serve,
 				desktop: startDesktop || desktopBuildOnly,
 				networkDebugging,
+				debuggable,
 				app,
 				shadowDomAppRoot: null,
 			})

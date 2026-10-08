@@ -182,7 +182,7 @@ import "./worker.js"`,
 	}
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)
-	await buildPlugins(buildDir)
+	await buildPlugins(buildDir, false)
 }
 
 /**
