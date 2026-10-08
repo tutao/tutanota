@@ -24,10 +24,11 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param desktop
  * @param clean
  * @param networkDebugging
+ * @param debuggable
  * @param app {"mail"|"calendar"|"drive"}
  * @returns {Promise<void>}
  */
-export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, app }) {
+export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, debuggable, app }) {
 	const version = await getTutanotaAppVersion()
 	const liboqsIncludeDir = "libs/webassembly/include"
 	const buildDir = buildDirForApp(app)
@@ -101,12 +102,12 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
-	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, app })
+	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, debuggable, app })
 
-	await buildPlugins(buildDir)
+	await buildPlugins(buildDir, debuggable)
 
 	if (desktop) {
-		await buildDesktopPart({ version, networkDebugging, app })
+		await buildDesktopPart({ version, networkDebugging, debuggable, app })
 	}
 }
 
@@ -117,10 +118,11 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @param p.version {string}
  * @param p.domainConfigs {DomainConfigMap}
  * @param p.networkDebugging {boolean}
+ * @param p.debuggable {boolean}
  * @param p.app {"mail"|"calendar"}
  * @return {Promise<void>}
  */
-export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, app }) {
+export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, debuggable, app }) {
 	const buildDir = buildDirForApp(app)
 	const { entry, worker } = entryPointsForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
@@ -133,7 +135,8 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 
 		await buildArgon2(resolvedBuildDir)
 		await buildLibOqs(resolvedBuildDir)
-		const bundle = await rolldown({
+
+		const inputOptions = {
 			input: {
 				app: entry,
 				worker,
@@ -148,8 +151,17 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 			},
 			external: "fs", // qrcode-svg tries to import it on save()
 			plugins: [resolveLibs()],
-		})
-		await bundle.write({
+			optimization: {},
+		}
+		if (debuggable) {
+			inputOptions.treeshake = false
+			inputOptions.optimization = {
+				inlineConst: false,
+			}
+		}
+		const bundle = await rolldown(inputOptions)
+
+		const outputOptions = {
 			dir: `./${buildDir}/`,
 			format: "esm",
 			// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
@@ -157,7 +169,11 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 			sourcemap: "inline",
 			// overwrite the files rather than keeping all versions in the build folder
 			chunkFileNames: "[name]-chunk.js",
-		})
+		}
+		if (debuggable) {
+			outputOptions.minify = false
+		}
+		await bundle.write(outputOptions)
 	})
 
 	// Do assets last so that server that listens to index.html changes does not reload too early
@@ -173,11 +189,19 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	})
 }
 
-export async function buildPlugins(buildDir) {
-	const bundle = await rolldown({
+export async function buildPlugins(buildDir, debuggable) {
+	const inputOptions = {
 		input: { nextcloud: "src/plugin-kit/plugins/nextcloud/NextcloudPlugin.js" },
-	})
-	await bundle.write({
+	}
+	if (debuggable) {
+		inputOptions.treeshake = false
+		inputOptions.optimization = {
+			inlineConst: false,
+		}
+	}
+	const bundle = await rolldown(inputOptions)
+
+	const outputOptions = {
 		dir: `./${buildDir}/plugin-kit/plugins/`,
 		format: "esm",
 		// Setting source map to inline for web part because source maps won't be loaded correctly on mobile because requests from dev tools are not
@@ -185,16 +209,21 @@ export async function buildPlugins(buildDir) {
 		sourcemap: "inline",
 		// overwrite the files rather than keeping all versions in the build folder
 		chunkFileNames: "[name].js",
-	})
+	}
+	if (debuggable) {
+		outputOptions.minify = false
+	}
+	await bundle.write(outputOptions)
 }
 
-async function buildDesktopPart({ version, networkDebugging }) {
+async function buildDesktopPart({ version, networkDebugging, debuggable }) {
 	const buildDir = buildDirForApp("mail")
 
 	await runStep("Desktop: Rolldown", async () => {
 		const platform = getCanonicalPlatformName(process.platform)
 		const architecture = getValidArchitecture(process.platform, process.arch)
-		const bundle = await rolldown({
+
+		const inputOptions = {
 			input: ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"],
 			platform: "node",
 			external: [
@@ -239,15 +268,26 @@ async function buildDesktopPart({ version, networkDebugging }) {
 					}),
 				),
 			],
-		})
+		}
+		if (debuggable) {
+			inputOptions.treeshake = false
+			inputOptions.optimization = {
+				inlineConst: false,
+			}
+		}
+		const bundle = await rolldown(inputOptions)
 
-		await bundle.write({
+		const outputOptions = {
 			dir: `./${buildDir}/desktop`,
 			format: "esm",
 			sourcemap: true,
 			// overwrite the files rather than keeping all versions in the build folder
 			chunkFileNames: "[name]-chunk.js",
-		})
+		}
+		if (debuggable) {
+			outputOptions.minify = false
+		}
+		await bundle.write(outputOptions)
 	})
 
 	await runStep("Desktop: assets", async () => {
