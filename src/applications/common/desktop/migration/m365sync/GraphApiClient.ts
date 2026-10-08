@@ -1,4 +1,13 @@
 import { MigrationError } from "../../../api/common/error/MigrationError.js"
+import {
+	BadGatewayError,
+	BadRequestError,
+	GatewayTimeoutError,
+	InternalServerError,
+	NotFoundError,
+	ServiceUnavailableError,
+	TooManyRequestsError,
+} from "@tutao/http-client/error"
 
 const GRAPH_API_ORIGIN = "https://graph.microsoft.com"
 const GRAPH_API_BASE_URL = `${GRAPH_API_ORIGIN}/v1.0`
@@ -80,7 +89,6 @@ export class GraphApiError extends Error {
 		message: string,
 		readonly status: number,
 		readonly code?: string,
-		/** The Retry-After header, in seconds or as a HTTP date. */
 		readonly retryAfter?: string | null,
 	) {
 		super(message)
@@ -107,6 +115,7 @@ export interface GraphMailApi {
 	getMessages(ids: string[]): Promise<(GraphMessageResource | null)[]>
 }
 
+// TODO:  https://github.com/Azure/autorest/issues/4988 technically they claim it'll always be seconds for Azure but RFC says as comment below
 /** Retry-After is either a number of seconds or a HTTP date. */
 export function parseRetryAfterMs(retryAfter: string | null | undefined, now: number = Date.now()): number | null {
 	if (!retryAfter) {
@@ -120,10 +129,16 @@ export function parseRetryAfterMs(retryAfter: string | null | undefined, now: nu
 	return Number.isFinite(date) ? Math.max(date - now, 0) : null
 }
 
-/** Throttling, server side failures and network level failures are worth another attempt. */
+/** Server side failures and network level failures are worth another attempt. */
 function isRetryableGraphError(e: any): boolean {
 	if (e instanceof GraphApiError) {
-		return e.status === 429 || e.status === 500 || e.status === 502 || e.status === 503 || e.status === 504
+		return (
+			e.status === TooManyRequestsError.CODE ||
+			e.status === InternalServerError.CODE ||
+			e.status === BadGatewayError.CODE ||
+			e.status === ServiceUnavailableError.CODE ||
+			e.status === GatewayTimeoutError.CODE
+		)
 	}
 	return !(e instanceof MigrationError)
 }
@@ -148,7 +163,7 @@ export class GraphApiClient implements GraphMailApi {
 			return folder.id
 		} catch (e) {
 			// not every mailbox has every well-known folder (e.g. Archive)
-			if (e instanceof GraphApiError && (e.status === 404 || e.status === 400)) {
+			if (e instanceof GraphApiError && (e.status === NotFoundError.CODE || e.status === BadRequestError.CODE)) {
 				return null
 			}
 			throw e
@@ -201,7 +216,7 @@ export class GraphApiClient implements GraphMailApi {
 					stillPending.push(index)
 				} else if (response.status === 200) {
 					results[index] = response.body as GraphMessageResource
-				} else if (response.status === 404) {
+				} else if (response.status === NotFoundError.CODE) {
 					results[index] = null
 				} else {
 					const error = new GraphApiError(

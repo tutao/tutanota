@@ -10,8 +10,6 @@ import { migrationMailFromGraphMessage } from "../mailparser/MailParserUtils.js"
 import { MAIL_DOWNLOAD_BATCH_SIZE } from "../imapsync/DifferentialUidLoader.js"
 import { assertNotNull, isNotEmpty } from "@tutao/utils"
 
-// Microsoft Graph throttles with 429 (and occasionally 503) and, per
-// https://learn.microsoft.com/en-us/graph/throttling
 const M365_RATE_LIMIT_DEFAULT_POSTPONE_TIME = 60 * 1000 // 60 seconds
 const M365_RATE_LIMIT_MIN_POSTPONE_TIME = 30 * 1000 // 30 seconds
 
@@ -149,7 +147,6 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 		try {
 			children = await client.listChildFolders(folder.id)
 		} catch (e) {
-			//Handle throttling.
 			if (this.getRetryAfterMs(e) !== null) {
 				throw e
 			}
@@ -217,7 +214,7 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 	}
 
 	/**
-	 * see https://learn.microsoft.com/en-us/graph/throttling.
+	 * See {@link GraphApiClient.ts}'s comments
 	 */
 	protected getRetryAfterMs(e: any): number | null {
 		const status = e?.status
