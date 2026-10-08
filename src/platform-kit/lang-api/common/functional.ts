@@ -1,4 +1,5 @@
 import { ProgrammingError } from "./error"
+import { Nullable } from "./types/utility"
 
 export function neverNull<T>(object: Nullable<T>): NonNullable<T> {
 	if (isNull(object)) {
