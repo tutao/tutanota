@@ -250,6 +250,7 @@ export class CustomerFacade {
 	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
 		return this.loadCustomerServerProperties().then((props) => {
 			spamRule.value = spamRule.value.toLowerCase().trim()
+			spamRule.hashedValue = uint8ArrayToBase64(this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(spamRule.value)))
 			const index = props.emailSenderList.findIndex((item) => {
 				return spamRule._id === item._id
 			})
