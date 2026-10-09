@@ -1,9 +1,9 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	aes256RandomKey,
 	InitializationVector,
 	KDF_NONCE_LENGTH_BYTES,
+	SymmetricCipherUtils,
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "@tutao/crypto/symmetric-cipher-utils"
@@ -12,7 +12,7 @@ import { concat, KeyVersion } from "../../../src/platform-kit/utils"
 import { AeadWithInstanceKeySubKeys, AeadWithSessionKeySubKeys, AesCbcThenHmacSubKeys, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
-import { Aes256Key, AssociatedData, MacTag, OwnerKeyProvider, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { Aes256Key, AssociatedData, MacTag, OwnerKeyProvider, random, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { InstanceTypeId, makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
@@ -20,6 +20,7 @@ import { ValueAssociatedData } from "../../../src/platform-kit/instance-pipeline
 import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
 
 o.spec("InstanceDecryptorTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let symmetricKeyDeriver: SymmetricKeyDeriver
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
@@ -35,18 +36,23 @@ o.spec("InstanceDecryptorTest", function () {
 	let emptyAssociatedData: AssociatedData
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		symmetricKeyDeriver = object()
 		aesCbcFacade = object()
 		aeadFacade = object()
-		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver)
-		aes256SubKeys = { cipherVersion: SymmetricCipherVersion.AesCbcThenHmac, encryptionKey: aes256RandomKey(), authenticationKey: aes256RandomKey() }
+		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
+		aes256SubKeys = {
+			cipherVersion: SymmetricCipherVersion.AesCbcThenHmac,
+			encryptionKey: symmetricCipherUtils.aes256RandomKey(),
+			authenticationKey: symmetricCipherUtils.aes256RandomKey(),
+		}
 		initializationVector = validateInitializationVectorLength(new Uint8Array(16))
 		macTag = new Uint8Array(32) as MacTag
 		aeadGroupKey256SubKeys = {
 			cipherVersion: SymmetricCipherVersion.AeadWithInstanceKey,
 			groupKeyVersion: 0,
-			encryptionKey: aes256RandomKey(),
-			authenticationKey: aes256RandomKey(),
+			encryptionKey: symmetricCipherUtils.aes256RandomKey(),
+			authenticationKey: symmetricCipherUtils.aes256RandomKey(),
 		}
 		app = AppNameEnum.Tutanota
 		instanceTypeId = {
@@ -54,7 +60,7 @@ o.spec("InstanceDecryptorTest", function () {
 			id: 0,
 			name: "name",
 		}
-		ownerKey = aes256RandomKey()
+		ownerKey = symmetricCipherUtils.aes256RandomKey()
 		ownerKeyProvider = async () => ownerKey
 		emptyAssociatedData = new ValueAssociatedData(ValuePath.fromPatchPath(app, ""))
 	})
@@ -82,7 +88,7 @@ o.spec("InstanceDecryptorTest", function () {
 
 	o.test("Aes sub-keys get cached", async function () {
 		const cipherVersion = SymmetricCipherVersion.AesCbcThenHmac
-		const differentAes256Key = aes256RandomKey()
+		const differentAes256Key = symmetricCipherUtils.aes256RandomKey()
 		when(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion)).thenReturn(aes256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), differentAes256Key, null, null, null)
 		const ciphertext = new Uint8Array()
@@ -142,7 +148,7 @@ o.spec("InstanceDecryptorTest", function () {
 
 	o.test("Assembles correct associated data for AEAD with instance key from instance key", async function () {
 		const groupKeyVersion = 42 as KeyVersion
-		const instanceKey = { object: aes256RandomKey(), version: groupKeyVersion }
+		const instanceKey = { object: symmetricCipherUtils.aes256RandomKey(), version: groupKeyVersion }
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, matchers.anything())).thenReturn(aeadGroupKey256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), null, null, null, instanceKey)
 		const keyVersionLengthByte = 0
@@ -157,12 +163,12 @@ o.spec("InstanceDecryptorTest", function () {
 	})
 
 	o.test("Assembles correct associated data for AEAD with session key", async function () {
-		const differentAes256Key = aes256RandomKey()
+		const differentAes256Key = symmetricCipherUtils.aes256RandomKey()
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const aeadSessionKey256SubKeys: AeadWithSessionKeySubKeys = {
 			cipherVersion,
-			encryptionKey: aes256RandomKey(),
-			authenticationKey: aes256RandomKey(),
+			encryptionKey: symmetricCipherUtils.aes256RandomKey(),
+			authenticationKey: symmetricCipherUtils.aes256RandomKey(),
 		}
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(differentAes256Key, matchers.anything())).thenReturn(aeadSessionKey256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), differentAes256Key, null, null, null)

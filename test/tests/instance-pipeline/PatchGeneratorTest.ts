@@ -9,7 +9,15 @@ import {
 	TestTypeRef,
 } from "./InstancePipelineTestUtils"
 import { InstancePipeline, PatchGenerator, PatchOperationType, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, random, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	KeyEncryption,
+	random,
+	SubKeyInfoWithSessionKeyCbcThenHmac,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+} from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { createTestEntityWithDummyResolver } from "../TestUtils"
@@ -17,23 +25,44 @@ import { createTestEntityWithDummyResolver } from "../TestUtils"
 import { object } from "testdouble"
 
 import { createPatch } from "@tutao/entities/sys"
-import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("computePatches", function () {
-	const typeModelResolver: TypeModelResolver = object()
-	o.before(() => {
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let symmetricCipherFacade: SymmetricCipherFacade
+	let typeModelResolver: TypeModelResolver
+	let dummyInstancePipeline: InstancePipeline
+	let patchGenerator: PatchGenerator
+
+	o.beforeEach(function () {
+		typeModelResolver = object()
 		typeModelResolver.resolveClientTypeReference = dummyResolver as any
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		dummyInstancePipeline = new InstancePipeline(
+			typeModelResolver,
+			object(),
+			symmetricCipherFacade,
+			null,
+			random,
+			new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade)),
+		)
+		patchGenerator = new PatchGenerator(dummyInstancePipeline)
 	})
-	const dummyInstancePipeline = new InstancePipeline(typeModelResolver, object(), SYMMETRIC_CIPHER_FACADE, null, random)
-	const patchGenerator = new PatchGenerator(dummyInstancePipeline)
 
 	o("computePatches returns empty list for equal objects", async function () {
 		const testEntity = await createFilledTestEntity()
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -46,7 +75,7 @@ o.spec("computePatches", function () {
 		const date = new Date()
 		testEntity.testDate = date
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -64,7 +93,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testFinalBoolean = false
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -76,7 +105,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testBoolean = null
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -96,7 +125,7 @@ o.spec("computePatches", function () {
 		testEntity.testDate = date
 		testEntity.testBoolean = null
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -119,7 +148,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation[0].testNumber = "1234"
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -137,7 +166,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testListElementAssociation.push(["listId", "elementId"], ["list2Id", "element2Id"])
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -162,7 +191,7 @@ o.spec("computePatches", function () {
 		testEntity.testListElementAssociation.pop()
 		testEntity.testListElementAssociation.pop()
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -181,7 +210,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testElementAssociation = "elementId"
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentEncryptedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -199,7 +228,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testZeroOrOneListElementAssociation = ["listId", "elementId"]
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -217,7 +246,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testElementAssociation = null
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -246,7 +275,7 @@ o.spec("computePatches", function () {
 			}),
 		)
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -286,7 +315,7 @@ o.spec("computePatches", function () {
 		testEntity.testAssociation.splice(0, 1)
 		testEntity.testAssociation.push(elementToMove)
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -307,7 +336,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation.pop()
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -326,7 +355,7 @@ o.spec("computePatches", function () {
 		const newValue = new Uint8Array(8)
 		testEntity.testAssociation[0].testSecondLevelAssociation[0].testBytes = newValue
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -344,7 +373,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		testEntity.testAssociation[0].testZeroOrOneAggregation = null
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const currentUntypedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
@@ -365,7 +394,7 @@ o.spec("computePatches", function () {
 		testEntity._original = structuredClone(testEntity)
 		testEntity.testAssociation[0].testZeroOrOneAggregation = testZeroOrOneAggregation
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -389,7 +418,7 @@ o.spec("computePatches", function () {
 		const testEntity = await createFilledTestEntity()
 		assertNotNull(testEntity.testAssociation[0].testZeroOrOneAggregation)._id = "newAggOnAggId"
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -415,7 +444,7 @@ o.spec("computePatches", function () {
 		const testAggregateOnAggregateEntity = await createTestEntityWithDummyResolver(TestAggregateOnAggregateRef)
 		testEntity.testAssociation[0].testSecondLevelAssociation.push(testAggregateOnAggregateEntity)
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
@@ -440,7 +469,7 @@ o.spec("computePatches", function () {
 
 		testEntity.testAssociation[0].testSecondLevelAssociation.pop()
 
-		let sk = aes256RandomKey()
+		let sk = symmetricCipherUtils.aes256RandomKey()
 		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
 		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
 		const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)

@@ -27,9 +27,13 @@ import { assertNotNull, downcast, isNotNull, Nullable } from "../../../../../src
 import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
-import { SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
+import { SymmetricCipherFacade, SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { AesCbcFacade, random } from "../../../../../src/platform-kit/crypto"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const authDataProvider: LoggedInUserProvider = downcast({
 	createAuthHeaders(): Dict {
@@ -55,15 +59,21 @@ export class EntityRestClientMock extends EntityRestClient {
 
 	constructor() {
 		const typeModelResolver = clientInitializedTypeModelResolver()
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		super(
 			authDataProvider,
 			downcast({}),
 			() => downcast({}),
-			instancePipelineFromTypeModelResolver(typeModelResolver),
+			instancePipelineFromTypeModelResolver(
+				random,
+				new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+				typeModelResolver,
+			),
 			downcast({}),
 			typeModelResolver,
 			() => downcast({}),
 			object(),
+			symmetricCipherUtils,
 		)
 		this._lastIdTimestamp = Date.now()
 		this._typeModelResolver = typeModelResolver

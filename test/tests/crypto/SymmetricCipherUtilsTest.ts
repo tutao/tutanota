@@ -1,17 +1,24 @@
 import o, { assertThrows } from "@tutao/otest"
 import {
-	aes256RandomKey,
 	AesKeyLength,
 	base64ToKey,
 	bitArrayToUint8Array,
 	keyToBase64,
 	keyToUint8Array,
+	random,
+	SymmetricCipherUtils,
 	uint8ArrayToBitArray,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 
 o.spec("SymmetricCipherUtilsTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
+
+	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+	})
+
 	o.spec("Key conversion", function () {
 		o("bitArrayToUint8Array", function () {
 			let bitArray = [8794650181632]
@@ -19,11 +26,11 @@ o.spec("SymmetricCipherUtilsTest", function () {
 			o(Array.from(bitArrayToUint8Array(uint8ArrayToBitArray(new Uint8Array([170]))))).deepEquals([170])
 		})
 		o("keyToBase64 round trip", function () {
-			const key = aes256RandomKey()
+			const key = symmetricCipherUtils.aes256RandomKey()
 			o(Array.from(base64ToKey(keyToBase64(key)).bits)).deepEquals(key.bits)
 		})
 		o("keyToUint8Array round trip", function () {
-			const key = aes256RandomKey()
+			const key = symmetricCipherUtils.aes256RandomKey()
 			o(Array.from(uint8ArrayToKey(keyToUint8Array(key)).bits)).deepEquals(key.bits)
 		})
 
@@ -64,10 +71,10 @@ o.spec("SymmetricCipherUtilsTest", function () {
 	o.spec("key generation", function () {
 		o("check key", function () {
 			const expectedKeyLength = AesKeyLength.Aes256
-			const key = aes256RandomKey()
+			const key = symmetricCipherUtils.aes256RandomKey()
 			const actualKeyLength = key.keyLength
 			o(actualKeyLength).equals(expectedKeyLength)
-			const key2 = aes256RandomKey()
+			const key2 = symmetricCipherUtils.aes256RandomKey()
 			o(key2).notDeepEquals(key)
 			o(key2.keyLength).equals(expectedKeyLength)
 		})

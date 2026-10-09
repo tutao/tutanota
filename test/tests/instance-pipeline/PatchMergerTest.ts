@@ -4,14 +4,22 @@ import {
 	AesCbcFacade,
 	AesKey,
 	KeyEncryption,
-	Randomizer,
+	random,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedEncryptedKey,
 	VersionedKey,
+	X25519,
 } from "../../../src/platform-kit/crypto"
-import { DecryptedParsedInstance, PatchMerger, PatchOperationError, PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
+import {
+	DecryptedParsedInstance,
+	InstancePipeline,
+	PatchMerger,
+	PatchOperationError,
+	PatchOperationType,
+	TypeModelResolver,
+} from "../../../src/platform-kit/instance-pipeline"
 import { instance, object, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade"
@@ -70,8 +78,8 @@ o.spec("PatchMergerTest", () => {
 	let encryptedSessionKey: VersionedEncryptedKey
 	const keyLoaderFacadeMock = instance(KeyLoaderFacade)
 	const ownerGroupId = "ownerGroupId"
-	const typeModelResolver = clientInitializedTypeModelResolver()
-	const instancePipeline = instancePipelineFromTypeModelResolver(clientInitializedTypeModelResolver())
+	let typeModelResolver: TypeModelResolver
+	let instancePipeline: InstancePipeline
 	let cryptoFacadePartialStub: CryptoFacade
 	let patchMerger: PatchMerger
 	let storage: CacheStorage
@@ -82,7 +90,6 @@ o.spec("PatchMergerTest", () => {
 	let symmetricCipherFacade: SymmetricCipherFacade
 
 	o.beforeEach(async () => {
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),
@@ -92,8 +99,10 @@ o.spec("PatchMergerTest", () => {
 		)
 		const aes = new Aes(symmetricCipherFacade)
 		const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		typeModelResolver = clientInitializedTypeModelResolver()
+		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, clientInitializedTypeModelResolver())
 
-		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, new X25519(random))
 		cryptoFacadePartialStub = new CryptoFacade(
 			instance(UserFacade),
 			instance(EntityClient),

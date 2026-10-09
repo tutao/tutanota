@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyCache } from "../../../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
 import { createTestEntity } from "../../../TestUtils.js"
-import { aes256RandomKey, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { random, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { object } from "testdouble"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
@@ -10,15 +10,17 @@ import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 
 o.spec("KeyCacheTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let keyCache: KeyCache
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		keyCache = new KeyCache()
 	})
 
 	o.spec("removeOutdatedGroupKeys", function () {
 		o.beforeEach(function () {
-			keyCache.setCurrentUserGroupKey({ version: 0, object: aes256RandomKey() })
+			keyCache.setCurrentUserGroupKey({ version: 0, object: symmetricCipherUtils.aes256RandomKey() })
 		})
 
 		o("new group key version for cached key", async function () {
@@ -28,11 +30,11 @@ o.spec("KeyCacheTest", function () {
 				memberships: [createTestEntity(GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "1" })],
 			})
 			// add version 0 tp cache
-			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
+			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: symmetricCipherUtils.aes256RandomKey() }))
 
 			await keyCache.removeOutdatedGroupKeys(user)
 			const cachedKey = await keyCache.getCurrentGroupKey(groupId, async () => {
-				return { version: 1, object: aes256RandomKey() }
+				return { version: 1, object: symmetricCipherUtils.aes256RandomKey() }
 			})
 			o(cachedKey.version).equals(1)
 		})
@@ -43,7 +45,7 @@ o.spec("KeyCacheTest", function () {
 				userGroup: createTestEntity(GroupMembershipTypeRef),
 				memberships: [createTestEntity(GroupMembershipTypeRef, { group: groupId, groupKeyVersion: "0" })],
 			})
-			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
+			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: symmetricCipherUtils.aes256RandomKey() }))
 
 			await keyCache.removeOutdatedGroupKeys(user)
 			const cachedKey = await keyCache.getCurrentGroupKey(groupId, async () => {
@@ -58,7 +60,7 @@ o.spec("KeyCacheTest", function () {
 				userGroup: createTestEntity(GroupMembershipTypeRef),
 				memberships: [],
 			})
-			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: aes256RandomKey() }))
+			await keyCache.getCurrentGroupKey(groupId, () => Promise.resolve({ version: 0, object: symmetricCipherUtils.aes256RandomKey() }))
 
 			await keyCache.removeOutdatedGroupKeys(user)
 

@@ -8,16 +8,16 @@ import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tut
 import { AesCbcFacade, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	aes256RandomKey,
 	InitializationVector,
 	KDF_NONCE_LENGTH_BYTES,
+	SymmetricCipherUtils,
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "@tutao/crypto/symmetric-cipher-utils"
 import o, { assertThrows } from "@tutao/otest"
 import { AeadWithInstanceKeySubKeys, AeadWithSessionKeySubKeys, AesCbcThenHmacSubKeys, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { AssociatedData, KeyDerivationContext, MacTag, OwnerKeyProvider, VersionedAes256Key, VersionedKey } from "../../../src/platform-kit/crypto"
+import { AssociatedData, KeyDerivationContext, MacTag, OwnerKeyProvider, random, VersionedAes256Key, VersionedKey } from "../../../src/platform-kit/crypto"
 import { AppName, AppNameEnum } from "../../../src/platform-kit/meta"
 import { concat, stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { CryptoError, SessionKeyNotFoundError } from "../../../src/platform-kit/crypto/error"
@@ -28,6 +28,7 @@ import { ValuePath } from "../../../src/platform-kit/instance-pipeline/Encryptio
 import { makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 
 o.spec("ValueDecryptorTest", function () {
+	let symmetriCipherUtils: SymmetricCipherUtils
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
 	let aeadFacade: AeadFacade
@@ -41,11 +42,12 @@ o.spec("ValueDecryptorTest", function () {
 	let ownerKeyProvider: OwnerKeyProvider
 
 	o.beforeEach(function () {
+		symmetriCipherUtils = new SymmetricCipherUtils(random)
 		aesCbcFacade = object()
 		aeadFacade = object()
 		symmetricKeyDeriver = object()
-		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver)
-		aes256Key = aes256RandomKey()
+		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetriCipherUtils)
+		aes256Key = symmetriCipherUtils.aes256RandomKey()
 		macTag = new Uint8Array(32) as MacTag
 		initializationVector = validateInitializationVectorLength(new Uint8Array(16))
 		app = AppNameEnum.Tutanota
@@ -153,7 +155,7 @@ o.spec("ValueDecryptorTest", function () {
 
 	o.test("AeadWithInstanceKey from instance key", async function () {
 		const groupKeyVersion = 0
-		const instanceKey: VersionedAes256Key = { object: aes256RandomKey(), version: groupKeyVersion }
+		const instanceKey: VersionedAes256Key = { object: symmetriCipherUtils.aes256RandomKey(), version: groupKeyVersion }
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, null, null, null, instanceKey)
 		const keyVersionLengthByte = 0
 		const ciphertext = new Uint8Array()

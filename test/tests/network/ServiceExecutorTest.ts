@@ -8,7 +8,16 @@ import { assert, deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, AesKey, random, SymmetricCipherFacade, SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	AesKey,
+	KeyEncryption,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	SymmetricEncryptionScheme,
+} from "../../../src/platform-kit/crypto"
 import { LoginIncompleteError } from "../../../src/platform-kit/rest-client/error"
 import { CustomerAccountReturnTypeRef, CustomerAccountService } from "@tutao/entities/accounting"
 import {
@@ -23,14 +32,14 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { IncomingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
-import { AEAD_FACADE } from "@tutao/crypto/aead-facade"
-import { AES_CBC_FACADE } from "@tutao/crypto/aes-cbc-facade"
-import { SYMMETRIC_KEY_DERIVER } from "@tutao/crypto/symmetric-key-deriver"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything } = matchers
 
 o.spec("ServiceExecutor", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	const service = {
 		app: "testapp",
 		name: "testservice",
@@ -63,19 +72,28 @@ o.spec("ServiceExecutor", function () {
 	})
 
 	o.beforeEach(async () => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+
 		restClient = object()
 		authHeaders = {}
 		fullyLoggedIn = true
 
 		typeModelResolver = clientInitializedTypeModelResolver()
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
 		instancePipeline = new InstancePipeline(
 			typeModelResolver,
 			() => null!,
-			new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER),
+			symmetricCipherFacade,
 			authDataProvider,
 			random,
+			new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade)),
 		)
-		sessionKey = aes256RandomKey()
+		sessionKey = symmetricCipherUtils.aes256RandomKey()
 
 		cryptoFacade = object()
 		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade, typeModelResolver)
@@ -139,7 +157,7 @@ o.spec("ServiceExecutor", function () {
 			}
 			respondWith(null)
 
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const response = await executor.get(getService, alarmServicePostData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey })
 
 			o(response).equals(undefined)
@@ -543,7 +561,7 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sk = aes256RandomKey()
+			const sk = symmetricCipherUtils.aes256RandomKey()
 			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sk)
 
@@ -567,7 +585,7 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(null)
 

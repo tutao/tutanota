@@ -1,29 +1,27 @@
 import o from "@tutao/otest"
 import { base64ToUint8Array, concat } from "../../../src/platform-kit/utils"
 import {
+	Aes,
 	Aes128Key,
 	Aes256Key,
-	aes256RandomKey,
+	AesCbcFacade,
 	AesKey,
 	AesKeyLength,
 	bitArrayToUint8Array,
 	FIXED_INITIALIZATION_VECTOR,
 	hexToRsaPrivateKey,
+	KeyEncryption,
 	keyToUint8Array,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	SymmetricCipherVersion,
 	uint8ArrayToBitArray,
 } from "../../../src/platform-kit/crypto"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
 import sjcl from "@tutao/crypto/sjcl"
-import {
-	aes256DecryptWithRecoveryKey,
-	decryptKey,
-	decryptKeyUnauthenticatedWithDeviceKeyChain,
-	decryptRsaKey,
-	encryptKey,
-	encryptRsaKey,
-} from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =
@@ -31,36 +29,50 @@ o.spec("key encryption", function () {
 	const rsaPublicHexKey =
 		"02008e8bf43e2990a46042da8168aebec699d62e1e1fd068c5582fd1d5433cee8c8b918799e8ee1a22dd9d6e21dd959d7faed8034663225848c21b88c2733c73788875639425a87d54882285e598bf7e8c83861e8b77ab3cf62c53d35e143cee9bb8b3f36850aebd1548c1881dc7485bb51aa13c5a0391b88a8d7afce88ecd4a7e231ca7cfd063216d1d573ad769a6bb557c251ad34beb393a8fff4a886715315ba9eac0bc31541999b92fcb33d15efd2bd50bf77637d3fc5ba1c21082f67281957832ac832fbad6c383779341555993bd945659d7797b9c993396915e6decee9da2d5e060c27c3b5a9bc355ef4a38088af53e5f795ccc837f45d0583052547a736f"
 
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let keyEncryption: KeyEncryption
+
+	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
+	})
+
 	o("encrypt / decrypt aes128 key with aes128", function () {
 		const gk = new Aes128Key([3957386659, 354339016, 3786337319, 3366334248])
 		const sk = new Aes128Key([3229306880, 2716953871, 4072167920, 3901332676])
-		const encryptedKey = encryptKey(gk, sk)
+		const encryptedKey = keyEncryption.encryptKey(gk, sk)
 		o(Array.from(encryptedKey)).deepEquals(Array.from(base64ToUint8Array("O3cyw7uo5DMm655aQiw0Xw==")))
-		o(decryptKey(gk, encryptedKey)).deepEquals(sk)
+		o(keyEncryption.decryptKey(gk, encryptedKey)).deepEquals(sk)
 	})
 	o("encrypt / decrypt private rsa key with aes128", function () {
 		const gk = new Aes128Key([3957386659, 354339016, 3786337319, 3366334248])
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
+		const encryptedPrivateKey = keyEncryption.encryptRsaKey(gk, privateKey)
 		o(encryptedPrivateKey.length % 2).equals(1) // make sure a mac is present
-		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
+		o(keyEncryption.decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
 	o("encrypt / decrypt private rsa key with aes256", function () {
-		const gk = aes256RandomKey()
+		const gk = symmetricCipherUtils.aes256RandomKey()
 		const privateKey = hexToRsaPrivateKey(rsaPrivateHexKey)
 		const initializationVector = base64ToUint8Array("OhpFcbl6oPjsn3WwhYFnOg==")
-		const encryptedPrivateKey = encryptRsaKey(gk, privateKey)
-		o(decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
+		const encryptedPrivateKey = keyEncryption.encryptRsaKey(gk, privateKey)
+		o(keyEncryption.decryptRsaKey(gk, encryptedPrivateKey)).deepEquals(privateKey)
 	})
 
 	o("encrypt / decrypt aes256 key with aes256", function () {
-		const key = aes256RandomKey()
-		const encryptionKey = aes256RandomKey()
+		const key = symmetricCipherUtils.aes256RandomKey()
+		const encryptionKey = symmetricCipherUtils.aes256RandomKey()
 
-		const encryptedKey = encryptKey(encryptionKey, key)
-		const decryptedKey = decryptKey(encryptionKey, encryptedKey, AesKeyLength.Aes256)
+		const encryptedKey = keyEncryption.encryptKey(encryptionKey, key)
+		const decryptedKey = keyEncryption.decryptKey(encryptionKey, encryptedKey, AesKeyLength.Aes256)
 
 		o(uint8ArrayToBitArray(encryptedKey)).notDeepEquals(key.bits)("It isn't somehow a no-op at least")
 		o(key).deepEquals(decryptedKey)("The round trip works")
@@ -68,40 +80,40 @@ o.spec("key encryption", function () {
 
 	o("encrypt / decrypt legacy recovery code with fixed initialization vector aes256", function () {
 		const key = _aes128RandomKey()
-		const encryptionKey = aes256RandomKey()
+		const encryptionKey = symmetricCipherUtils.aes256RandomKey()
 
 		const encryptedKey = legacyAes256EncryptWithRecoveryKey(encryptionKey, keyToUint8Array(key))
-		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
+		const decryptedKey = keyEncryption.aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
 		o(key as AesKey).deepEquals(decryptedKey)("decrypting legacy recovery code")
 	})
 
 	o("encrypt / decrypt legacy recovery code without fixed initialization vector aes256", function () {
 		const key = _aes128RandomKey()
-		const encryptionKey = aes256RandomKey()
+		const encryptionKey = symmetricCipherUtils.aes256RandomKey()
 
-		const encryptedKey = encryptKey(encryptionKey, key)
-		const decryptedKey = aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
+		const encryptedKey = keyEncryption.encryptKey(encryptionKey, key)
+		const decryptedKey = keyEncryption.aes256DecryptWithRecoveryKey(encryptionKey, encryptedKey)
 
 		o(key as AesKey).deepEquals(decryptedKey)("decrypting recovery code (with random initialization vector and mac, but no padding)")
 	})
 
 	o("encrypt / decrypt key with device / key chain key", function () {
-		const keyChainKey = aes256RandomKey()
-		const keyToBeEncrypted = aes256RandomKey()
+		const keyChainKey = symmetricCipherUtils.aes256RandomKey()
+		const keyToBeEncrypted = symmetricCipherUtils.aes256RandomKey()
 
-		const encryptedKey = encryptKey(keyChainKey, keyToBeEncrypted)
-		const decryptedKey = decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
+		const encryptedKey = keyEncryption.encryptKey(keyChainKey, keyToBeEncrypted)
+		const decryptedKey = keyEncryption.decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
 
 		o(keyToBeEncrypted as AesKey).deepEquals(decryptedKey)
 	})
 
 	o("encrypt / decrypt key with device / key chain key legacy case", function () {
-		const keyChainKey = aes256RandomKey()
-		const keyToBeEncrypted = aes256RandomKey()
+		const keyChainKey = symmetricCipherUtils.aes256RandomKey()
+		const keyToBeEncrypted = symmetricCipherUtils.aes256RandomKey()
 
 		const encryptedKey = legacyEncryptKeyWithDeviceKeyChain(keyChainKey, keyToBeEncrypted)
-		const decryptedKey = decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
+		const decryptedKey = keyEncryption.decryptKeyUnauthenticatedWithDeviceKeyChain(keyChainKey, encryptedKey)
 
 		o(keyToBeEncrypted as AesKey).deepEquals(decryptedKey)
 	})

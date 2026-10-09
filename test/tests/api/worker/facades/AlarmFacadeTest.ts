@@ -1,15 +1,7 @@
 import o from "@tutao/otest"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
-import {
-	AesCbcFacade,
-	AesKey,
-	base64ToKey,
-	Randomizer,
-	SymmetricCipherFacade,
-	SymmetricCipherUtils,
-	VersionedKey,
-} from "../../../../../src/platform-kit/crypto"
+import { AesCbcFacade, AesKey, base64ToKey, random, SymmetricCipherFacade, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { AlarmFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/AlarmFacade"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler"
@@ -64,7 +56,6 @@ o.spec("AlarmFacadeTest", function () {
 	let userGroupMembership: GroupMembership
 
 	o.beforeEach(function () {
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

@@ -4,7 +4,7 @@
 import o, { spy } from "@tutao/otest"
 import { SuggestionFacade } from "../../../../../src/applications/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "../../../../../src/platform-kit/utils"
-import { Aes, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, Randomizer, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { DbEncryptionData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
@@ -26,7 +26,6 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(async function () {
 		db = new EncryptedDbWrapper(object())
 
-		const random = new Randomizer()
 		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 
 		encryptionData = { key: symmetricCipherUtils.aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR }

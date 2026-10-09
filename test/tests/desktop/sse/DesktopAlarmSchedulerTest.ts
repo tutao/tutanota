@@ -23,14 +23,24 @@ import {
 	NotificationSessionKeyTypeRef,
 	RepeatRuleTypeRef,
 } from "@tutao/entities/sys"
-import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
-import { aesEncrypt } from "../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, KeyEncryption, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+
+const symmetricCipherUtils = new SymmetricCipherUtils(random)
+const symmetricCipherFacade = new SymmetricCipherFacade(
+	new AesCbcFacade(),
+	new AeadFacade(symmetricCipherUtils),
+	new SymmetricKeyDeriver(),
+	symmetricCipherUtils,
+)
+const aes = new Aes(symmetricCipherFacade)
 
 const oldTimezone = process.env.TZ
 const userId = "userId1"
-const sk = aes256RandomKey()
+const sk = symmetricCipherUtils.aes256RandomKey()
 
 o.spec("DesktopAlarmSchedulerTest", function () {
 	o.before(function () {
@@ -66,12 +76,15 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		const wmMock = n.mock<WindowManager>("__wm", wm).set()
 
 		const notifierMock = n.mock<DesktopNotifier>("__notifier", notifier).set()
-		const instancePipeline = instancePipelineFromTypeModelResolver(clientInitializedTypeModelResolver())
+		const instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, clientInitializedTypeModelResolver())
 
-		const alarmStorageMockBuilder = n.mock<DesktopAlarmStorage>("__alarmStorage", new DesktopAlarmStorage(null!, cryptoMock, null!, null!))
+		const alarmStorageMockBuilder = n.mock<DesktopAlarmStorage>(
+			"__alarmStorage",
+			new DesktopAlarmStorage(null!, cryptoMock, null!, null!, new KeyEncryption(symmetricCipherFacade, aes)),
+		)
 		alarmStorageMockBuilder._mock.storeAlarm = spy(() => Promise.resolve())
 		alarmStorageMockBuilder._mock.deleteAlarm = spy(() => Promise.resolve())
-		alarmStorageMockBuilder._mock.getPushIdentifierSessionKey = () => Promise.resolve(aes256RandomKey())
+		alarmStorageMockBuilder._mock.getPushIdentifierSessionKey = () => Promise.resolve(symmetricCipherUtils.aes256RandomKey())
 		alarmStorageMockBuilder._mock.getScheduledAlarms = () => Promise.resolve([])
 		alarmStorageMockBuilder._mock.removePushIdentifierKey = () => Promise.resolve()
 		alarmStorageMockBuilder._mock.encryptAlarmNotification = (an) => instancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sk)
@@ -278,7 +291,7 @@ function createAlarmNotification({ startTime, endTime, trigger, endType, endValu
 		notificationSessionKeys: [
 			createTestEntity(NotificationSessionKeyTypeRef, {
 				_id: `notificationSessionKeysId${alarmIdCounter}`,
-				pushIdentifierSessionEncSessionKey: aesEncrypt(sk, stringToUtf8Uint8Array(`pushIdentifierSessionEncSessionKey${alarmIdCounter}`)),
+				pushIdentifierSessionEncSessionKey: aes.aesEncrypt(sk, stringToUtf8Uint8Array(`pushIdentifierSessionEncSessionKey${alarmIdCounter}`)),
 				pushIdentifier: [`pushIdentifier${alarmIdCounter}Part1`, `pushIdentifier${alarmIdCounter}Part2`],
 			}),
 		],

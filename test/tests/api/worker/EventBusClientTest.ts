@@ -29,6 +29,9 @@ import { LastProcessedEventBatchProvider } from "../../../../src/platform-kit/ne
 import { CachingStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../src/entities/sys/Utils"
 import { ProgressMonitorInterface } from "../../../../src/platform-kit/network/ProgressMonitorInterface"
+import { AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 export const noPatchesAndInstance: Pick<EntityUpdateData, "instance" | "patches" | "blobInstance" | "cachingStatus"> = {
 	instance: null,
@@ -114,7 +117,12 @@ o.spec("EventBusClient", function () {
 		socketFactory = () => socket
 
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		instancePipeline = instancePipelineFromTypeModelResolver(
+			random,
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+			typeModelResolver,
+		)
 		cryptoFacadeMock = object()
 		connectivityListenerMock = object()
 		createProgressMonitor = func<(totalWork: number) => ProgressMonitorInterface>()

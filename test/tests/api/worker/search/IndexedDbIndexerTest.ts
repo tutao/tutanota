@@ -16,10 +16,11 @@ import {
 	FIXED_INITIALIZATION_VECTOR,
 	InitializationVector,
 	KeyEncryption,
-	Randomizer,
+	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
+	X25519,
 } from "../../../../../src/platform-kit/crypto"
 import { func, matchers, object, verify, when } from "testdouble"
 import { CacheInfo } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
@@ -102,7 +103,6 @@ o.spec("IndexedDbIndexer", () => {
 		infoMessageHandler = object()
 		keyLoaderFacade = object()
 
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),
@@ -112,7 +112,8 @@ o.spec("IndexedDbIndexer", () => {
 		)
 		aes = new Aes(symmetricCipherFacade)
 		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
-		const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+		const x25519 = new X25519(random)
+		const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
 
 		indexerTemplate = new IndexedDbIndexer(
 			serverDateProvider,

@@ -3,17 +3,29 @@ import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js
 import { KeyCache } from "../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../TestUtils.js"
-import { aes256RandomKey } from "../../../src/platform-kit/crypto"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
-import { encryptKey } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 import { idToElementId } from "../../../src/platform-kit/meta"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { Aes, AesCbcFacade, KeyEncryption, random, SymmetricCipherFacade } from "../../../src/platform-kit/crypto"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("UserFacadeTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let keyEncryption: KeyEncryption
 	let keyCache: KeyCache
 	let facade: UserFacade
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
 		keyCache = object()
 		facade = new UserFacade(keyCache, object())
 	})
@@ -37,9 +49,9 @@ o.spec("UserFacadeTest", function () {
 	})
 
 	o("updateUserGroupKey - successful", function () {
-		const distributionKey = aes256RandomKey()
-		const newUserGroupKey = aes256RandomKey()
-		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
+		const distributionKey = symmetricCipherUtils.aes256RandomKey()
+		const newUserGroupKey = symmetricCipherUtils.aes256RandomKey()
+		const distributionEncUserGroupKey = keyEncryption.encryptKey(distributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,
@@ -51,9 +63,9 @@ o.spec("UserFacadeTest", function () {
 	})
 
 	o("updateUserGroupKey - ignore missing distribution key ", function () {
-		const distributionKey = aes256RandomKey()
-		const newUserGroupKey = aes256RandomKey()
-		const distributionEncUserGroupKey = encryptKey(distributionKey, newUserGroupKey)
+		const distributionKey = symmetricCipherUtils.aes256RandomKey()
+		const newUserGroupKey = symmetricCipherUtils.aes256RandomKey()
+		const distributionEncUserGroupKey = keyEncryption.encryptKey(distributionKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,
@@ -65,9 +77,9 @@ o.spec("UserFacadeTest", function () {
 	})
 
 	o("updateUserGroupKey - ignore decryption error", function () {
-		const distributionKey = aes256RandomKey()
-		const newUserGroupKey = aes256RandomKey()
-		const distributionEncUserGroupKey = encryptKey(newUserGroupKey, newUserGroupKey)
+		const distributionKey = symmetricCipherUtils.aes256RandomKey()
+		const newUserGroupKey = symmetricCipherUtils.aes256RandomKey()
+		const distributionEncUserGroupKey = keyEncryption.encryptKey(newUserGroupKey, newUserGroupKey)
 		const distributionUpdate = createTestEntity(UserGroupKeyDistributionTypeRef, {
 			_id: idToElementId("userGroupId"),
 			distributionEncUserGroupKey,

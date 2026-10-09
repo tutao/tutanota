@@ -6,7 +6,7 @@ import { ImapMailbox, ImapMailboxStatus } from "../../../../../src/applications/
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { aes256RandomKey, CryptoWrapper } from "../../../../../src/platform-kit/crypto"
+import { CryptoWrapper, random, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import {
 	createImapFolderDeleteIn,
 	DeduplicatedImportedAttachmentTypeRef,
@@ -60,8 +60,9 @@ o.spec("ImapFacade", () => {
 		keyLoaderMock = object<KeyLoaderFacade>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		imapFacade = new ImapFacade(mailFacadeMock, serviceExecutorMock, entityClientMock, keyLoaderMock, cryptoWrapperMock)
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve({ object: object(), version: 1 })
-		when(cryptoWrapperMock.aes256RandomKey()).thenReturn(aes256RandomKey())
+		when(cryptoWrapperMock.aes256RandomKey()).thenReturn(symmetricCipherUtils.aes256RandomKey())
 		when(cryptoWrapperMock.encryptKeyWithVersionedKey(anything(), anything())).thenReturn({ key: Uint8Array.from([1, 2, 3]), encryptingKeyVersion: 1 })
 		imapAccountSyncStateMock = createTestEntity(ImapAccountSyncStateTypeRef, {
 			_id: imapAccountSyncStateIdMock,

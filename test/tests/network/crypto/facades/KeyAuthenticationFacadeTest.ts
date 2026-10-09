@@ -8,17 +8,25 @@ import {
 	UserGroupKeyAuthenticationParams,
 } from "../../../../../src/platform-kit/network/KeyAuthenticationFacade.js"
 import {
+	Aes,
 	Aes256Key,
-	aes256RandomKey,
+	AesCbcFacade,
 	cryptoUtils,
 	Ed25519PublicKey,
+	KeyEncryption,
 	KyberPublicKey,
 	PQPublicKeys,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	X25519,
 	X25519PublicKey,
 } from "../../../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 import { KeyVersion } from "../../../../../src/platform-kit/utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible
@@ -32,6 +40,7 @@ function nextKeyVersion(v: KeyVersion): KeyVersion {
 }
 
 o.spec("KeyAuthenticationFacadeTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let keyAuthenticationFacade: KeyAuthenticationFacade
 	let cryptoWrapper: CryptoWrapper
 
@@ -51,20 +60,28 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	let identityKeyVersion: KeyVersion
 
 	o.beforeEach(async function () {
-		cryptoWrapper = new CryptoWrapper()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, new KeyEncryption(symmetricCipherFacade, aes), new X25519(random))
 		keyAuthenticationFacade = new KeyAuthenticationFacade(cryptoWrapper)
 
 		userGroupId = "userGroupId"
 		adminGroupId = "adminGroupId"
 
-		currentUserGroupKey = aes256RandomKey()
+		currentUserGroupKey = symmetricCipherUtils.aes256RandomKey()
 		currentUserGroupKeyVersion = 0 as KeyVersion
-		currentAdminGroupKey = aes256RandomKey()
+		currentAdminGroupKey = symmetricCipherUtils.aes256RandomKey()
 		currentAdminGroupKeyVersion = 0 as KeyVersion
 
-		newUserGroupKey = aes256RandomKey()
+		newUserGroupKey = symmetricCipherUtils.aes256RandomKey()
 		newUserGroupKeyVersion = 1 as KeyVersion
-		newAdminGroupKey = aes256RandomKey()
+		newAdminGroupKey = symmetricCipherUtils.aes256RandomKey()
 		newAdminGroupKeyVersion = 1 as KeyVersion
 
 		kyberPublicKey = { raw: new Uint8Array([1, 2, 3]) }
@@ -107,13 +124,13 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 			const wrongCurrentUserGroupKey: UserGroupKeyAuthenticationParams = {
 				...params,
-				sourceOfTrust: { currentUserGroupKey: aes256RandomKey() },
+				sourceOfTrust: { currentUserGroupKey: symmetricCipherUtils.aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentUserGroupKey, tag))
 
 			const wrongNewUserGroupKey: UserGroupKeyAuthenticationParams = {
 				...params,
-				untrustedKey: { newUserGroupKey: aes256RandomKey() },
+				untrustedKey: { newUserGroupKey: symmetricCipherUtils.aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongNewUserGroupKey, tag))
 		})
@@ -154,7 +171,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 			const wrongCurrentUserGroupKey: NewAdminPubKeyAuthenticationParams = {
 				...params,
-				sourceOfTrust: { receivingUserGroupKey: aes256RandomKey() },
+				sourceOfTrust: { receivingUserGroupKey: symmetricCipherUtils.aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentUserGroupKey, tag))
 
@@ -209,7 +226,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 			const wrongCurrentAdminGroupKey: PubDistKeyAuthenticationParams = {
 				...params,
-				sourceOfTrust: { currentAdminGroupKey: aes256RandomKey() },
+				sourceOfTrust: { currentAdminGroupKey: symmetricCipherUtils.aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentAdminGroupKey, tag))
 
@@ -259,7 +276,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			const wrongCurrentReceivingUserGroupKey: AdminSymKeyAuthenticationParams = {
 				...params,
 				sourceOfTrust: {
-					currentReceivingUserGroupKey: aes256RandomKey(),
+					currentReceivingUserGroupKey: symmetricCipherUtils.aes256RandomKey(),
 				},
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongCurrentReceivingUserGroupKey, tag))
@@ -269,7 +286,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 
 			const wrongAdminSymKey: AdminSymKeyAuthenticationParams = {
 				...params,
-				untrustedKey: { newAdminGroupKey: aes256RandomKey() },
+				untrustedKey: { newAdminGroupKey: symmetricCipherUtils.aes256RandomKey() },
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongAdminSymKey, tag))
 		})
@@ -297,7 +314,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 			const wrongSymmetricGroupKey: IdentityPubKeyAuthenticationParams = {
 				...params,
 				sourceOfTrust: {
-					symmetricGroupKey: aes256RandomKey(),
+					symmetricGroupKey: symmetricCipherUtils.aes256RandomKey(),
 				},
 			}
 			await assertThrows(CryptoError, async () => keyAuthenticationFacade.verifyTag(wrongSymmetricGroupKey, tag))

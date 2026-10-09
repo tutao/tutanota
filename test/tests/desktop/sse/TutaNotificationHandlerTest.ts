@@ -18,7 +18,7 @@ import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo
 import { SseStorage } from "../../../../src/applications/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
+import { AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { assertNotNull } from "../../../../src/platform-kit/utils"
 
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
@@ -26,12 +26,15 @@ import { CredentialType } from "../../../../src/platform-kit/network/types"
 
 import { createIdTupleWrapper, NotificationInfo, NotificationInfoTypeRef } from "@tutao/entities/sys"
 import { OutgoingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 type UndiciFetch = typeof undiciFetch
 
 o.spec("TutaNotificationHandlerTest", () => {
 	const appVersion = "V_1"
 
+	let symmetricCipherUtils
 	let wm: WindowManager
 	let nativeCredentialsFacade: NativeCredentialsFacade
 	let conf: SseStorage
@@ -44,6 +47,7 @@ o.spec("TutaNotificationHandlerTest", () => {
 	let nativeInstancePipeline: InstancePipeline
 
 	o.beforeEach(() => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		wm = object()
 		nativeCredentialsFacade = object()
 		conf = object()
@@ -54,7 +58,11 @@ o.spec("TutaNotificationHandlerTest", () => {
 		fetch = func<UndiciFetch>()
 		when(lang.get(matchers.anything())).thenDo((arg) => `translated:${arg}`)
 		const typeModelResolver = clientInitializedTypeModelResolver()
-		nativeInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		nativeInstancePipeline = instancePipelineFromTypeModelResolver(
+			random,
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+			typeModelResolver,
+		)
 		handler = new TutaNotificationHandler(
 			wm,
 			nativeCredentialsFacade,
@@ -198,7 +206,7 @@ o.spec("TutaNotificationHandlerTest", () => {
 				}),
 			})
 
-			const sk = aes256RandomKey()
+			const sk = symmetricCipherUtils.aes256RandomKey()
 			const mailLiteral = await nativeInstancePipeline.mapAndEncrypt(MailTypeRef, mailMetadata, sk)
 
 			const requestDefer = mockFetchRequest(
@@ -276,7 +284,7 @@ o.spec("TutaNotificationHandlerTest", () => {
 			const notificationInfosSlice = notificationInfos.slice(0, 100)
 			const mailListElementIds = notificationInfosSlice.map((ni) => assertNotNull(ni.mailId).listElementId).join(encodeURIComponent(","))
 
-			const sk = aes256RandomKey()
+			const sk = symmetricCipherUtils.aes256RandomKey()
 			const mailMetadataPromises = notificationInfosSlice.map(({ mailId }) => {
 				const { listId, listElementId } = assertNotNull(mailId)
 				const mailMetadata: Mail = createSystemMail({

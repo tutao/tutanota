@@ -9,16 +9,18 @@ import {
 	AesCbcFacade,
 	AesKey,
 	AesKeyLength,
+	Bcrypt,
 	createAuthVerifier,
 	CryptoWrapper,
 	getKeyLengthInBytes,
 	KeyEncryption,
 	keyToUint8Array,
-	Randomizer,
+	random,
 	sha256Hash,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	uint8ArrayToKey,
+	X25519,
 } from "../../../src/platform-kit/crypto"
 import { AsyncLoginStateOptions, LoginFacade, LoginFailReason, LoginListener, ResumeSessionState } from "../../../src/platform-kit/base/facades/LoginFacade"
 import { IServiceExecutor } from "../../../src/platform-kit/network/ServiceRequest"
@@ -158,7 +160,14 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 		cryptoFacadeMock = object()
 		usingOfflineStorage = false
 		cacheStorageInitializerMock = object()
@@ -181,18 +190,9 @@ o.spec("LoginFacadeTest", function () {
 		when(argon2idFacade.generateKeyFromPassphrase(anything(), anything())).thenResolve(PASSWORD_KEY)
 		cacheManagmentFacadeMock = object()
 		rolloutFacade = object()
-
-		const random = new Randomizer()
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
-		const symmetricCipherFacade = new SymmetricCipherFacade(
-			new AesCbcFacade(),
-			new AeadFacade(symmetricCipherUtils),
-			new SymmetricKeyDeriver(),
-			symmetricCipherUtils,
-		)
 		const aes = new Aes(symmetricCipherFacade)
 		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
-		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, new X25519(random))
 
 		facade = new LoginFacade(
 			restClientMock,
@@ -219,6 +219,7 @@ o.spec("LoginFacadeTest", function () {
 			cryptoWrapper,
 			symmetricCipherUtils,
 			random,
+			new Bcrypt(random),
 		)
 
 		eventBusClientMock = instance(EventBusClient)

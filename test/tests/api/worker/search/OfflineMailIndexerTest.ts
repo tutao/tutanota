@@ -52,12 +52,16 @@ import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../.
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { assert, assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
-import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let mailIndexer: OfflineMailIndexer
 	let persistence: OfflineStoragePersistence
 	let blobs: BlobFacade
@@ -100,8 +104,13 @@ o.spec("OfflineMailIndexer", () => {
 	let mailDetailsBlobModel: ServerTypeModel
 
 	o.beforeEach(async () => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		realInstancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		realInstancePipeline = instancePipelineFromTypeModelResolver(
+			random,
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+			typeModelResolver,
+		)
 		persistence = object()
 		blobs = object()
 		entityRestClientMock = new EntityRestClientMock()
@@ -200,14 +209,14 @@ o.spec("OfflineMailIndexer", () => {
 	o.test("index one mail", async () => {
 		mail.mailDetails = ["whooooa", "i'm a blob :D"]
 
-		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
 
 		const mailDetails = createTestEntity(MailDetailsBlobTypeRef, {
 			_id: mail.mailDetails,
 			details: createTestEntity(MailDetailsTypeRef, {}, { populateAggregates: true }),
 		})
 
-		const sk = aes256RandomKey()
+		const sk = symmetricCipherUtils.aes256RandomKey()
 		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails))).thenDo(async () => {
 			return [
 				IncomingServerJson.expectSingleMailDetailsBlob(
@@ -316,7 +325,7 @@ o.spec("OfflineMailIndexer", () => {
 			return Promise.resolve(assertNotNull(mailsMap.get(getElementId(mailToFind)), `no ${getElementId(mailToFind)}`).attachments)
 		})
 
-		const sk = aes256RandomKey()
+		const sk = symmetricCipherUtils.aes256RandomKey()
 		when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 		when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).thenResolve(
 			await Promise.all(
@@ -398,7 +407,7 @@ o.spec("OfflineMailIndexer", () => {
 			when(mailFacade.loadAttachments(mail)).thenResolve(attachments)
 			entityRestClientMock.addListInstances(importedMail)
 
-			const sk = aes256RandomKey()
+			const sk = symmetricCipherUtils.aes256RandomKey()
 			when(persistence.getImportQueueProgress(listIdPart(importedMail._id))).thenResolve(GENERATED_MIN_ID)
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 
@@ -496,7 +505,7 @@ o.spec("OfflineMailIndexer", () => {
 			when(persistence.getImportQueueEntries()).thenResolve([{ listId: importList, mailImportType }])
 
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
-				const sk = aes256RandomKey()
+				const sk = symmetricCipherUtils.aes256RandomKey()
 				return await Promise.all(
 					mails.map(async (mail) => {
 						const mailDetailsBlob = createTestEntity(
@@ -513,7 +522,7 @@ o.spec("OfflineMailIndexer", () => {
 				)
 			})
 			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
-			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
 
 			await mailIndexer.beforeImportedMailFinished(importList, mailImportType)
 			await mailIndexer.waitForIndex()
@@ -592,7 +601,7 @@ o.spec("OfflineMailIndexer", () => {
 			when(persistence.getImportQueueEntries()).thenResolve([{ listId, mailImportType }])
 
 			when(blobs.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, "blobList")).thenDo(async () => {
-				const sk = aes256RandomKey()
+				const sk = symmetricCipherUtils.aes256RandomKey()
 				return await Promise.all(
 					mails.map(async (mail) => {
 						const mailDetailsBlob = createTestEntity(
@@ -609,7 +618,7 @@ o.spec("OfflineMailIndexer", () => {
 				)
 			})
 			when(mailFacade.loadAttachments(matchers.anything())).thenResolve([])
-			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(aes256RandomKey())
+			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
 
 			let totalStored = 0
 			let storedFirstRun = 0

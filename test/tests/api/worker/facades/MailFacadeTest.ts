@@ -19,8 +19,9 @@ import {
 	Aes128Key,
 	AesCbcFacade,
 	AesKey,
+	Bcrypt,
 	KeyEncryption,
-	Randomizer,
+	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedEncryptedKey,
@@ -78,7 +79,6 @@ o.spec("MailFacade test", function () {
 	let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
 	let cacheStorage: CacheStorage
 	let spamClassifier: SpamClassifier
-	let random: Randomizer
 	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
@@ -92,7 +92,6 @@ o.spec("MailFacade test", function () {
 		loginFacade = object()
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
-		random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),
@@ -117,6 +116,7 @@ o.spec("MailFacade test", function () {
 			symmetricCipherUtils,
 			aes,
 			keyEncryption,
+			new Bcrypt(random),
 		)
 	})
 

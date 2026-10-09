@@ -6,7 +6,7 @@ import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-cry
 import { GroupInfoTypeRef, UpdateKdfNoncePostOutTypeRef } from "@tutao/entities/sys"
 import { createTestEntity } from "../../../TestUtils"
 import { PersistentEntity } from "../../../../../src/platform-kit/meta"
-import { KdfNonce, Randomizer, SymmetricCipherUtils, VersionedAes256Key, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { KdfNonce, random, SymmetricCipherUtils, VersionedAes256Key, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import { TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 
 const { anything, argThat, captor } = matchers
@@ -28,7 +28,6 @@ o.spec("InstanceKeyFacadeTest", function () {
 		keyLoaderFacade = object()
 		cryptoNetworkHelper = object()
 		typeModelResolver = object()
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 
 		instanceKeyFacade = new InstanceKeyFacade(keyLoaderFacade, cryptoNetworkHelper, typeModelResolver, symmetricCipherUtils)

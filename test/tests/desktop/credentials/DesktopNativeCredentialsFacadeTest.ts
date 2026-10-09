@@ -8,9 +8,10 @@ import { CredentialEncryptionMode } from "../../../../src/platform-kit/app-env"
 import { PersistedCredentials } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/PersistedCredentials.js"
 import { UnencryptedCredentials } from "../../../../src/app-kit/native-bridge/common/generatedipc/types/UnencryptedCredentials.js"
 
-import { aes256RandomKey } from "../../../../src/platform-kit/crypto"
 import { stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import { CredentialType } from "../../../../src/platform-kit/network/types"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { random } from "../../../../src/platform-kit/crypto"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()
@@ -66,8 +67,10 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 		accessToken: "decAccessToken2",
 	}
 
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+
 	const encCredentialsKey = new Uint8Array([0x0e])
-	const decCredentialsKey = aes256RandomKey()
+	const decCredentialsKey = symmetricCipherUtils.aes256RandomKey()
 
 	o.beforeEach(() => {
 		facade = new DesktopNativeCredentialsFacade(crypto, credentialsDb, keychainEncryption)

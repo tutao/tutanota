@@ -20,7 +20,7 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
-	Randomizer,
+	random,
 	RsaPublicKey,
 	SymmetricCipherUtils,
 	VersionedAes256Key,
@@ -2230,7 +2230,6 @@ o.spec("KeyRotationFacade", function () {
 			let symmetricCipherUtils: SymmetricCipherUtils
 
 			o.beforeEach(() => {
-				const random = new Randomizer()
 				symmetricCipherUtils = new SymmetricCipherUtils(random)
 			})
 

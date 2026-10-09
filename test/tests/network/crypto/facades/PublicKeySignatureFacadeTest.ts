@@ -2,9 +2,11 @@ import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 import { DeserializedPublicKeyForSigning, PublicKeySignatureFacade } from "../../../../../src/platform-kit/base/base-crypto/PublicKeySignatureFacade"
 import {
+	Aes,
+	AesCbcFacade,
 	Ed25519PrivateKey,
 	Ed25519PublicKey,
-	generateX25519KeyPair,
+	KeyEncryption,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 	PQPublicKeys,
@@ -14,6 +16,9 @@ import {
 	rsaPublicKeyToBytes,
 	RsaX25519KeyPair,
 	RsaX25519PublicKey,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	X25519,
 } from "../../../../../src/platform-kit/crypto"
 
 import { Ed25519Facade } from "../../../../../src/platform-kit/base/base-crypto/Ed25519Facade"
@@ -25,6 +30,8 @@ import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { EncodedEd25519Signature } from "../../../../../src/platform-kit/crypto/encryption/Ed25519"
 import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/base-crypto/Constants.js"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
 	let ed25519Facade: Ed25519Facade
@@ -38,11 +45,6 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 	let rsaOnlyKeyPair: Versioned<RsaKeyPair>
 	let rsaOnlyPubKey: Versioned<RsaPublicKey>
 	let keyPairVersion: KeyVersion
-
-	o.before(async function () {
-		const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
-		pqFacade = new PQFacade(kyberFacade)
-	})
 
 	o.beforeEach(async function () {
 		ed25519Facade = object()
@@ -59,7 +61,18 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 			version: rsaOnlyKeyPair.version,
 			object: rsaOnlyKeyPair.object.publicKey,
 		}
-		const x25519KeyPair = generateX25519KeyPair()
+		const x25519 = new X25519(random)
+		const x25519KeyPair = x25519.generateX25519KeyPair()
+		const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		pqFacade = new PQFacade(kyberFacade, new CryptoWrapper(symmetricCipherUtils, aes, new KeyEncryption(symmetricCipherFacade, aes), x25519), x25519)
 		rsaEccKeyPair = {
 			version: keyPairVersion,
 			object: new RsaX25519KeyPair(RSA_TEST_KEYPAIR.publicKey, RSA_TEST_KEYPAIR.privateKey, x25519KeyPair.publicKey, x25519KeyPair.privateKey),

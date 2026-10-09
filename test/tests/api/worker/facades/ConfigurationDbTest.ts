@@ -14,7 +14,7 @@ import {
 	EntropySource,
 	InitializationVector,
 	KeyEncryption,
-	Randomizer,
+	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
@@ -34,7 +34,6 @@ import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
-	let random: Randomizer
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let aes: Aes
 	let keyEncryption: KeyEncryption
@@ -42,7 +41,6 @@ o.spec("ConfigurationDbTest", function () {
 	let configurationDatabase: ConfigurationDatabase
 
 	o.beforeEach(async function () {
-		random = new Randomizer()
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		keyLoaderFacade = object()
 

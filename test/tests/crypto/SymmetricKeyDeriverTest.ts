@@ -3,30 +3,33 @@ import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import {
 	Aes128Key,
 	Aes256Key,
-	aes256RandomKey,
 	AesKeyLength,
 	getKeyLengthInBytes,
 	keyToUint8Array,
+	random,
 	sha256Hash,
 	sha512Hash,
+	SymmetricCipherUtils,
 	uint8ArrayToKey,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
 import { _aes128RandomKey } from "./AesTest.js"
-import { generateKdfNonce, KdfNonce } from "@tutao/crypto/symmetric-cipher-utils"
+import { KdfNonce } from "@tutao/crypto/symmetric-cipher-utils"
 import { freshVersioned } from "../../../src/platform-kit/utils"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
 import { makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 
 o.spec("SymmetricKeyDeriverTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	const symmetricKeyDeriver: SymmetricKeyDeriver = new SymmetricKeyDeriver()
 	let aes256Key: Aes256Key
 	let aes128Key: Aes128Key
 	let versionedAes256Key: VersionedKey
 	let versionedAes128Key: VersionedKey
-	o.before(function () {
-		aes256Key = aes256RandomKey()
+	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		aes256Key = symmetricCipherUtils.aes256RandomKey()
 		aes128Key = _aes128RandomKey()
 		versionedAes256Key = freshVersioned(aes256Key)
 		versionedAes128Key = freshVersioned(aes128Key)
@@ -75,7 +78,7 @@ o.spec("SymmetricKeyDeriverTest", function () {
 		const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 		let kdfNonce: KdfNonce
 		o.beforeEach(function () {
-			kdfNonce = generateKdfNonce()
+			kdfNonce = symmetricCipherUtils.generateKdfNonce()
 		})
 
 		o.test("derive from group key and nonce via instance key is reproducible", function () {

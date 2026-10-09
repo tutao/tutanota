@@ -8,10 +8,21 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { DesktopConfigKey } from "../../../../src/platform-kit/app-env"
 import { assertNotNull, uint8ArrayToBase64 } from "../../../../src/platform-kit/utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey, encryptKey, keyToUint8Array, uint8ArrayToKey } from "../../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	KeyEncryption,
+	keyToUint8Array,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	uint8ArrayToKey,
+} from "../../../../src/platform-kit/crypto"
 import { hasError } from "../../../../src/platform-kit/meta"
 import { AlarmInfoTypeRef, AlarmNotification, AlarmNotificationTypeRef, CalendarEventRefTypeRef, NotificationSessionKeyTypeRef } from "@tutao/entities/sys"
 import { IncomingServerJson } from "../../../../src/platform-kit/instance-pipeline/TypeMapper"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("DesktopAlarmStorageTest", function () {
 	let cryptoMock: DesktopNativeCryptoFacade
@@ -20,14 +31,17 @@ o.spec("DesktopAlarmStorageTest", function () {
 	let instancePipeline: InstancePipeline
 	let desktopStorage: DesktopAlarmStorage
 
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	let keyEncryption: KeyEncryption
+
 	const key1 = new Uint8Array([1])
 	const key2 = new Uint8Array([2])
 	const key3 = new Uint8Array([3])
-	const key4 = keyToUint8Array(aes256RandomKey())
-	const decryptedKey = aes256RandomKey()
+	const key4 = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
+	const decryptedKey = symmetricCipherUtils.aes256RandomKey()
 	const encryptedKey = new Uint8Array([1, 0])
 
-	let key = aes256RandomKey()
+	let key = symmetricCipherUtils.aes256RandomKey()
 	o.beforeEach(function () {
 		cryptoMock = instance(DesktopNativeCryptoFacade)
 		when(cryptoMock.decryptKeyUnauthenticatedWithDeviceKeyChain(matchers.anything(), key3)).thenReturn(decryptedKey)
@@ -41,10 +55,17 @@ o.spec("DesktopAlarmStorageTest", function () {
 			fourId: uint8ArrayToBase64(key4),
 		})
 
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 		const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(key)
-		desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade, instancePipeline)
+		desktopStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade, instancePipeline, keyEncryption)
 	})
 
 	o("getPushIdentifierSessionKey with uncached sessionKey", async function () {
@@ -77,11 +98,11 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const keyStoreFacade: DesktopKeyStoreFacade = makeKeyStoreFacade(key)
 		when(confMock.getVar(matchers.anything())).thenResolve(null)
 
-		const notificationSessionKey = aes256RandomKey()
-		const pushSessionKey = aes256RandomKey()
-		const pushIdentifierSessionEncSessionKey = encryptKey(pushSessionKey, notificationSessionKey)
+		const notificationSessionKey = symmetricCipherUtils.aes256RandomKey()
+		const pushSessionKey = symmetricCipherUtils.aes256RandomKey()
+		const pushIdentifierSessionEncSessionKey = keyEncryption.encryptKey(pushSessionKey, notificationSessionKey)
 
-		const desktopStorage: DesktopAlarmStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade, instancePipeline)
+		const desktopStorage: DesktopAlarmStorage = new DesktopAlarmStorage(confMock, cryptoMock, keyStoreFacade, instancePipeline, keyEncryption)
 		await desktopStorage.storePushIdentifierSessionKey("fourId", keyToUint8Array(pushSessionKey))
 		const pushIdentifier: IdTuple = ["threeId", "fourId"]
 		const pushIdentifierSessionKey = await desktopStorage.getPushIdentifierSessionKey(pushIdentifier)
@@ -112,9 +133,9 @@ o.spec("DesktopAlarmStorageTest", function () {
 		o(alarmNotification._id).deepEquals(decryptedSavedAlarmNotification._id)
 		o(hasError(decryptedSavedAlarmNotification)).equals(false)
 
-		const newNotificationSessionKey = aes256RandomKey()
-		const newPushSessionKey = aes256RandomKey()
-		const newPushIdentifierSessionEncSessionKey = encryptKey(newPushSessionKey, newNotificationSessionKey)
+		const newNotificationSessionKey = symmetricCipherUtils.aes256RandomKey()
+		const newPushSessionKey = symmetricCipherUtils.aes256RandomKey()
+		const newPushIdentifierSessionEncSessionKey = keyEncryption.encryptKey(newPushSessionKey, newNotificationSessionKey)
 
 		await desktopStorage.storePushIdentifierSessionKey("fiveId", keyToUint8Array(newPushSessionKey))
 		const newPushIdentifier: IdTuple = ["threeId", "fiveId"]

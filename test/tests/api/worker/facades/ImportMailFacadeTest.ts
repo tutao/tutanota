@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../src/platform-kit/network/Servic
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { InstancePipeline } from "../../../../../src/platform-kit/instance-pipeline"
-import { CryptoWrapper, Randomizer, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { CryptoWrapper, random, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import {
 	ImapImportAttachment,
 	ImapImportDataFile,
@@ -103,7 +103,6 @@ o.spec("ImportMailFacade", () => {
 		instancePipelineMock = object<InstancePipeline>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		mailGroupKeyMock = { object: object(), version: 1 }
-		const random = new Randomizer()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		facade = new ImportMailFacade(
 			mailFacadeMock,

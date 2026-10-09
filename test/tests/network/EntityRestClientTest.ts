@@ -13,13 +13,18 @@ import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAcc
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
-	aes256RandomKey,
+	Aes,
+	AesCbcFacade,
 	AesKey,
-	generateKdfNonce,
 	KdfNonce,
+	KeyEncryption,
+	random,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	SymmetricCipherVersion,
 	VersionedKey,
+	X25519,
 } from "../../../src/platform-kit/crypto"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient"
 import { KeyLoaderFacade } from "../../../src/platform-kit/base/base-crypto/KeyLoaderFacade"
@@ -61,6 +66,8 @@ import { IncomingServerJson, OutgoingServerJson } from "../../../src/platform-ki
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything, argThat } = matchers
 
@@ -103,6 +110,7 @@ class EntityMigratorStub implements EntityMigrator {
 type TestLoggedInUserProvider = LoggedInUserProvider & { encryptionScheme: SymmetricEncryptionScheme }
 
 o.spec("EntityRestClient", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
 	let instancePipeline: InstancePipeline
@@ -126,16 +134,25 @@ o.spec("EntityRestClient", function () {
 
 	o.beforeEach(function () {
 		currentDebuggingStatus = env.networkDebugging
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
-		cryptoWrapper = new CryptoWrapper()
+		const aes = new Aes(symmetricCipherFacade)
+		const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, new X25519(random))
 
 		restClient = object()
 
-		sk = aes256RandomKey()
-		ownerGroupKey = { object: aes256RandomKey(), version: 0 }
+		sk = symmetricCipherUtils.aes256RandomKey()
+		ownerGroupKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 		encryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, sk)
 		when(keyLoaderFacadeMock.loadSymGroupKey(ownerGroupId, 0)).thenResolve(ownerGroupKey.object)
 
@@ -158,6 +175,9 @@ o.spec("EntityRestClient", function () {
 			async () => {
 				noOp()
 			},
+			symmetricCipherUtils,
+			aes,
+			keyEncryption,
 		)
 		cryptoFacadePartialStub.resolveSessionKey = async (_instance: Entity): Promise<Nullable<AesKey>> => {
 			return sk
@@ -185,6 +205,7 @@ o.spec("EntityRestClient", function () {
 			typeModelResolver,
 			() => cryptoFacadePartialStub,
 			() => new EntityMigratorStub(),
+			symmetricCipherUtils,
 		)
 	})
 
@@ -314,8 +335,8 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const calendarListId = "calendarListId"
 			const id1 = "id1"
-			const ownerKeyProviderSk = aes256RandomKey()
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerKeyProviderSk = symmetricCipherUtils.aes256RandomKey()
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const ownerKeyProviderEncryptedSessionKey = cryptoWrapper.encryptKeyWithVersionedKey(ownerGroupKey, ownerKeyProviderSk)
 			const calendar = createTestEntity(CalendarEventTypeRef, {
 				_id: [calendarListId, id1],
@@ -814,7 +835,7 @@ o.spec("EntityRestClient", function () {
 	o.spec("Setup", function () {
 		o("Setup list entity", async function () {
 			const { version, dependsOnVersion } = await typeModelResolver.resolveClientTypeReference(CalendarEventTypeRef)
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -850,7 +871,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Setup generates a random KDF nonce if encrypting with AeadWithInstanceKey", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -885,7 +906,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Setup overwrites KDF nonce with a random one if encrypting with AeadWithInstanceKey", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const newCalendar = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -995,7 +1016,7 @@ o.spec("EntityRestClient", function () {
 		o("when ownerKey is passed it is used instead for session key resolution", async function () {
 			const typeModel = await typeModelResolver.resolveClientTypeReference(AccountingInfoTypeRef)
 			const { version } = typeModel
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const newAccountingInfo = createTestEntity(AccountingInfoTypeRef, {
 				_id: idToElementId("id1"),
 				_permissions: "permissionsId",
@@ -1307,7 +1328,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Update creates new KDF nonce when it is missing and required", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1355,7 +1376,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Update accepts KDF nonce from the server when trying to create a new one", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1381,7 +1402,7 @@ o.spec("EntityRestClient", function () {
 			calendarEvent.summary = "totally different"
 			calendarEvent._ownerKeyVersion = ownerGroupKey.version.toString()
 
-			let kdfNonce = generateKdfNonce()
+			let kdfNonce = symmetricCipherUtils.generateKdfNonce()
 
 			when(serviceExecutor.post(UpdateKdfNonceService, matchers.anything(), null)).thenResolve(
 				createTestEntity(UpdateKdfNoncePostOutTypeRef, { kdfNonce }),
@@ -1406,7 +1427,7 @@ o.spec("EntityRestClient", function () {
 
 		o("Update does not overwrite KDF nonce", async function () {
 			loggedInUserProvider.encryptionScheme = SymmetricEncryptionScheme.Aead
-			const ownerGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+			const ownerGroupKey: VersionedKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 			const calendarEvent = createTestEntity(CalendarEventTypeRef, {
 				_id: ["listId", "element"],
 				_permissions: "permissions",
@@ -1419,7 +1440,7 @@ o.spec("EntityRestClient", function () {
 				permissionListId: "permissionListId",
 			})
 
-			const originalKdfNonce = generateKdfNonce()
+			const originalKdfNonce = symmetricCipherUtils.generateKdfNonce()
 			calendarEvent._kdfNonce = originalKdfNonce
 
 			const untypedPersistentPostReturn = await instancePipeline.mapAndEncrypt(PersistenceResourcePostReturnTypeRef, persistentPostReturn, null)
