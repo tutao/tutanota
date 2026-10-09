@@ -15,7 +15,7 @@ import {
 	PlanType,
 	SubscriptionType,
 } from "../../../../entities/sys/Utils"
-import { goEuropeanBlue, sovereignYellowDark, sovereignYellowLight } from "../../../../ui/builtinThemes"
+import { blackFridayGradient, goEuropeanBlue, sovereignYellowDark, sovereignYellowLight } from "../../../../ui/builtinThemes"
 import Stream from "mithril/stream"
 
 export type DiscountDetail = {
@@ -270,7 +270,7 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 // time period of the campaign. they have to be unique.
 export const enum CAMPAIGN_NAME {
 	BIRTHDAY_12_CAMPAIGN = "birthday_12_campaign",
-	BLACKFRIDAY_CAMPAIGN = "blackfriday_campaign",
+	BLACKFRIDAY_CAMPAIGN = "black-friday-2026",
 	DIGITAL_SOVEREIGNTY_2026_CAMPAIGN = "sovereignty2026",
 }
 
@@ -281,6 +281,8 @@ export function getPlanSelectorTitle(campaignName: string | null, isReferred: bo
 				return "planselector_page_sovereignty2026_referred_title"
 			}
 			return "planselector_page_sovereignty2026_title"
+		case CAMPAIGN_NAME.BLACKFRIDAY_CAMPAIGN:
+			return "campaignBlackFridayTitle2026_label"
 		default:
 			return "planselector_page_title"
 	}
@@ -298,6 +300,11 @@ export function getPlanSelectorSubtitle(campaignName: string | null, isReferred:
 	}
 }
 
+/*
+ * Primary:
+ * Secondary:
+ * Tertiary:
+ */
 export const defaultCampaignTheme = () => ({
 	...structuredClone(theme),
 	primary: isDarkTheme() ? "#FFFFFF" : "#9c7935",
@@ -330,11 +337,27 @@ export const sovereignty2026Theme = () => ({
 	outline_variant: goEuropeanBlue,
 })
 
+export const blackFridayTheme = () => ({
+	...structuredClone(theme),
+	primary: theme.black_friday_gold,
+	secondary: theme.black_friday_gold,
+	tertiary: theme.black_friday_gold,
+	on_tertiary: "#111111",
+	on_surface: "#FFFFFF",
+	surface_container_high: blackFridayGradient,
+	primary_container: theme.black_friday_gold,
+	surface: blackFridayGradient,
+	on_surface_variant: theme.black_friday_gold,
+	outline_variant: theme.black_friday_gold,
+})
+
 export function getCampaignTheme(campaignName: string | null) {
 	if (campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 		return birthdayTheme()
 	} else if (campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN) {
 		return sovereignty2026Theme()
+	} else if (campaignName === CAMPAIGN_NAME.BLACKFRIDAY_CAMPAIGN) {
+		return blackFridayTheme()
 	}
 
 	return defaultCampaignTheme()

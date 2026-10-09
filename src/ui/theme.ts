@@ -94,6 +94,7 @@ export type Theme = {
 	experimental_tertiary: string
 	go_european: string
 	on_go_european: string
+	black_friday_gold: string
 	// Drive icon colors
 	drive_folder: string
 	drive_document: string
