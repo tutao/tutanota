@@ -6,6 +6,9 @@ import { ChangePrimaryAddressServicePutIn, ChangePrimaryAddressServicePutInTypeR
 import { ClientClassifierResultPostIn, ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
 import { UserAreaGroupDeleteData, UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
 import { CustomerAccountCreateData, CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
+import { CustomerMailboxMigrationPostIn, CustomerMailboxMigrationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerMailboxMigrationPostOut, CustomerMailboxMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { CustomerMailboxMigrationDeleteIn, CustomerMailboxMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { DraftCreateData, DraftCreateDataTypeRef } from "./TypeRefs.js"
 import { DraftCreateReturn, DraftCreateReturnTypeRef } from "./TypeRefs.js"
 import { DraftUpdateData, DraftUpdateDataTypeRef } from "./TypeRefs.js"
@@ -119,6 +122,19 @@ export const CustomerAccountService_POST = new PostService<CustomerAccountCreate
 	"tutanota",
 	"CustomerAccountService",
 	CustomerAccountCreateDataTypeRef,
+	NullEntityTypeRef,
+)
+
+export const CustomerMailboxMigrationService_POST = new PostService<CustomerMailboxMigrationPostIn, CustomerMailboxMigrationPostOut>(
+	"tutanota",
+	"CustomerMailboxMigrationService",
+	CustomerMailboxMigrationPostInTypeRef,
+	CustomerMailboxMigrationPostOutTypeRef,
+)
+export const CustomerMailboxMigrationService_DELETE = new DeleteService<CustomerMailboxMigrationDeleteIn, NullEntity>(
+	"tutanota",
+	"CustomerMailboxMigrationService",
+	CustomerMailboxMigrationDeleteInTypeRef,
 	NullEntityTypeRef,
 )
 
