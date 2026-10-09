@@ -123,12 +123,22 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					],
 				),
 				m(".flex.flex-column", [
-					m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
-					m(".flex.flex-wrap.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
+					m("span.flex.b.h5.text-ellipsis-multi-line.lh-s.plr-16.pt-16.pb-8", [
+						m(Icon, {
+							icon: Icons.CalendarFilled,
+							style: {
+								fill: theme.on_surface,
+							},
+							title: lang.get("timeSection_label"),
+							size: IconSize.PX24,
+						}),
+						m("span.ml-4", event.summary),
+					]),
+					m(".flex.flex-wrap.justify-start.overflow-x-hidden.pb-16", [
 						/* Invite Column */
-						m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
+						m(".flex.flex-column.plr-16.pb-16.pt-8.justify-start.overflow-x-hidden", [
 							event.organizer?.address
-								? m(".flex.items-center.small.mt-8", [
+								? m(".flex.items-center.small", [
 										m(Icon, {
 											icon: Icons.ClockFilled,
 											style: {
@@ -137,7 +147,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 											title: lang.get("timeSection_label"),
 											size: IconSize.PX24,
 										}),
-										m("span.ml-4", formatEventTime(event, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)),
+										m("span.ml-4.normal-font-size", formatEventTime(event, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)),
 									])
 								: null,
 							replySection,

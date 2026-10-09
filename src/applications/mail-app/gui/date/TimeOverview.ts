@@ -80,27 +80,16 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 	view({ attrs }: Vnode<TimeOverviewAttrs>) {
 		return m(
-			".flex.flex-column.plr-16.pb-16.pt-16.justify-start",
+			".flex.flex-column.plr-16.pb-16.pt-8.justify-start",
 			{
-				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
+				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-md",
 				style: {
 					"border-color": theme.surface_container_high,
 					color: theme.on_surface,
 				},
 			},
 			[
-				m(".flex.flex-column.mb-8", [
-					m(".flex.items-center.gap-4", [
-						m(Icon, {
-							icon: Icons.ClockOutlines,
-							container: "div",
-							style: { fill: theme.on_surface },
-							size: IconSize.PX24,
-						}),
-						m("span.b.h5", lang.getTranslation("timeOverview_title").text),
-					]),
-					attrs.agenda ? this.renderConflictSummary(attrs.agenda) : this.renderMisingAgendaError(),
-				]),
+				m(".flex.flex-column.mb-8", [attrs.agenda ? this.renderConflictSummary(attrs.agenda) : this.renderMisingAgendaError()]),
 				attrs.agenda && this.gridParams
 					? m(".flex.rel", [
 							m(CalendarTimeColumn, {

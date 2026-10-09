@@ -299,6 +299,10 @@ export class MainStyles {
 					"border-left-style": "solid",
 					"border-left-width": "2px",
 				},
+				".border-left-md": {
+					"border-left-style": "solid",
+					"border-left-width": "3px",
+				},
 				".big": {
 					"font-size": px(font_size.base * 2.5),
 				},
