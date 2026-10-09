@@ -4,7 +4,7 @@ import { createTestEntity } from "../../../TestUtils.js"
 import { PdfInvoiceGenerator } from "../../../../../src/applications/common/api/worker/invoicegen/PdfInvoiceGenerator.js"
 import { object, when } from "testdouble"
 import { invoiceItemListMock } from "./invoiceTestUtils.js"
-import { PaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
+import { InvoicePaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef } from "@tutao/entities/sys"
 import { EnvProvider } from "../../../../../src/platform-kit/app-env"
@@ -23,7 +23,7 @@ o.spec("PdfInvoiceGenerator", function () {
 			grandTotal: "28.00",
 			vatType: VatType.ADD_VAT,
 			vatIdNumber: "JP999999999",
-			paymentMethod: PaymentMethod.INVOICE,
+			paymentMethod: InvoicePaymentMethod.INVOICE,
 			items: invoiceItemListMock(3),
 		})
 
