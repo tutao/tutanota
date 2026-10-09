@@ -1751,6 +1751,7 @@ mod tests {
 				list: GeneratedId::test_random(),
 			}),
 			serverProperties: GeneratedId::test_random(),
+			inboxRules: None,
 		};
 		let result = mapper.serialize_entity(group_root.clone()).unwrap();
 		assert_eq!(
