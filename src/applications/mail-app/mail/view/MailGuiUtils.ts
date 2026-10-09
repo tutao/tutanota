@@ -936,7 +936,7 @@ export async function showDownloadProgressDialog(
 	}
 	transferProgressDispatcher.addDownloadListener(listener)
 	try {
-		return await showProgressDialog("loading_msg", downloadReturn.promise, progressStream)
+		return await showProgressDialog("loading_msg", downloadReturn.promise, { progressStream })
 	} catch (e) {
 		// handle the user cancelling the dialog
 		if (e instanceof CancelledError) {

@@ -20,7 +20,7 @@ export class ImportInteractionHandler {
 	}
 
 	async doActionWithProgressDialog<T>(message: TranslationKey, action: Promise<T>, operation: OperationHandle): Promise<T> {
-		return await showProgressDialog(message, action, operation.progress).finally(() => operation.done())
+		return await showProgressDialog(message, action, { progressStream: operation.progress }).finally(() => operation.done())
 	}
 
 	/**
