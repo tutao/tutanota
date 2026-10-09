@@ -86,10 +86,10 @@ export interface ChoiceCancellableResult<T> {
 
 export class Dialog implements ModalComponent {
 	private static keyboardHeight: number = 0
-	private domDialog: HTMLElement | null = null
-	private _shortcuts: Shortcut[]
 	view: ModalComponent["view"]
 	visible: boolean
+	private domDialog: HTMLElement | null = null
+	private _shortcuts: Shortcut[]
 	private focusOnLoadFunction: (dom: HTMLElement) => void
 	private wasFocusOnLoadCalled: boolean
 	private closeHandler: Thunk | null = null
@@ -1187,7 +1187,21 @@ export class Dialog implements ModalComponent {
 					/** fixed-height header with a title, left and right buttons that's fixed to the top of the dialog's area */
 					headerBarAttrs.noHeader ? null : m(DialogHeaderBar, headerBarAttrs),
 					/** variable-size child container that may be scrollable. */
-					m(".scroll.hide-outline.plr-24.flex-grow", { style: { "overflow-x": "hidden" } }, m(child, childAttrs)),
+					m(
+						".scroll.hide-outline.plr-24.flex-grow",
+						{
+							style: { "overflow-x": "hidden" },
+						},
+						m(child, {
+							...childAttrs,
+							onscroll: (event: Event) => {
+								// Workaround for bug in iOS scrolling Without this, clicking
+								// and dragging text field in iOS will cause modal contents to
+								// move left and out of view.
+								;(event.target! as HTMLElement).scrollTo({ left: 0 })
+							},
+						}),
+					),
 				]),
 		})
 	}
