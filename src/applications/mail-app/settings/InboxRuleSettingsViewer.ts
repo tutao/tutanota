@@ -162,6 +162,8 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 			const dragBorderTop = `.pt-4.pb-4.border-bottom-none${dragBorder}${index === 0 ? ".border-md" : ".border-sm"}`
 			const dragBorderBottom = `.border-top-none${dragBorder}${index === length - 1 ? ".border-md" : ".border-sm"}`
 
+			const disabled = !this.inboxRuleModel.isInboxRuleValid(rule)
+
 			const maybeDragBorder = this.draggingOverRule2ndHalf
 				? this.draggingOverRuleIndex === index
 					? dragBorderBottom
@@ -220,7 +222,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 					{
 						style: {
 							display: "grid",
-							gridTemplateColumns: "auto 1fr auto auto",
+							gridTemplateColumns: "auto 1fr auto auto auto",
 							gridTemplateRows: "auto",
 							alignItems: "center",
 						},
@@ -272,6 +274,10 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							},
 							rule.name,
 						),
+						// disabled state icon
+						disabled
+							? m(Icon, { icon: Icons.ExclamationOutline, size: IconSize.PX32, title: lang.getTranslationText("inboxRuleInvalid_label") })
+							: m(""),
 						// toggle button
 						m(
 							".mr-8",
@@ -285,6 +291,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 							m(Switch, {
 								ariaLabel: "deactivate_action",
 								checked: rule.enabled,
+								disabled,
 								onclick: async (checked: boolean) => {
 									rule.enabled = checked
 									await this.model.saveInboxRule(rule)

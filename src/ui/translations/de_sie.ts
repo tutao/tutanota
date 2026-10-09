@@ -2566,6 +2566,14 @@ export default {
 		"markUnread_action": "Ungelesen markieren",
 		"inboxRuleSenderEquals_action": "Absenderadresse",
 		"selectLabel_action": "Label(s) auswählen",
-		"labelMustBeSelected_msg": "Mindestens ein Label muss ausgewählt werden."
+		"labelMustBeSelected_msg": "Mindestens ein Label muss ausgewählt werden.",
+		"confirmTrashAction_label": "Wegwurf bestätigen",
+		"confirmDeleteAction_label": "Löschen bestätigen",
+		"confirmSpamAction_label": "Spam bestätigen",
+		"confirmDelete_msg": "Möchten Sie '{1}' wirklich unwiderruflich löschen?",
+		"affectedInboxRules_msg": "{1} Posteingangsregeln wären betroffen",
+		"pleaseSelectFolder_msg": "Bitte wählen Sie einen Ordner aus.",
+		"inboxRuleInvalid_label": "Diese Posteingangsregel enthält ungültige Werte. Bitte bearbeiten Sie sie, um den Fehlerzustand zu beheben.",
+		"invalidateInboxRulesUsingDeletedMailSet_msg": "Diese Posteingangsregeln verwenden '{1}'. Sie werden eventuell ungültig, wenn '{1}' entfernt wird.\n\nUngültige Regeln werden nicht mehr angewandt. In den Einstellugen müssen ihnen neue, valide Werte zugewiesen werden."
 	}
 }

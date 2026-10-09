@@ -5,13 +5,14 @@ import {
 	ExpandedInboxRule,
 	ExpandedInboxRuleTypeRef,
 	InboxRule,
+	MailSet,
 	TutanotaPropertiesTypeRef,
 } from "@tutao/entities/tutanota"
-import { elementIdPart, elementIdToId, getElementId, getListId } from "@tutao/meta"
+import { elementIdPart, elementIdToId, getElementId, getListId, isSameId } from "@tutao/meta"
 import { MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, isNotNull } from "@tutao/utils"
+import { assertNotNull, isEmpty, isNotNull } from "@tutao/utils"
 import { createIdTupleWrapper, IdTupleWrapper } from "@tutao/entities/sys"
 import { InboxRuleActionType } from "../../../../entities/tutanota/Utils"
 import { mailLocator } from "../../mailLocator"
@@ -19,6 +20,7 @@ import { getMailSetName } from "./MailUtils"
 import { MailModel } from "./MailModel"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { isNull } from "../../../../platform-kit/utils/Utils"
+import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 
 export class InboxRuleModel {
 	private usingLegacyInboxRules: boolean = true
@@ -96,13 +98,16 @@ export class InboxRuleModel {
 		return mailboxProperties.inboxRuleOrder
 	}
 
-	async getInboxRulesMap(): Promise<Map<Id, ExpandedInboxRule>> {
+	private async getUnsortedInboxRules(): Promise<ExpandedInboxRule[]> {
 		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
-		const unsortedInboxRules = await this.entityClient.loadAll(
+		return await this.entityClient.loadAll(
 			ExpandedInboxRuleTypeRef,
 			assertNotNull(userMailboxGroupRoot.inboxRules, "expanded inbox rules list missing from mailboxGroupRoot").list,
 		)
+	}
 
+	async getInboxRulesMap(): Promise<Map<Id, ExpandedInboxRule>> {
+		const unsortedInboxRules = await this.getUnsortedInboxRules()
 		const inboxRulesById = new Map<Id, ExpandedInboxRule>()
 		for (const rule of unsortedInboxRules) {
 			inboxRulesById.set(getElementId(rule), rule)
@@ -142,5 +147,68 @@ export class InboxRuleModel {
 
 	isUsingLegacyInboxRules() {
 		return this.usingLegacyInboxRules
+	}
+
+	async getInboxRulesThatReferenceMailSetSystem(root: MailSet, system: FolderSystem) {
+		const descendants = [root, ...system.getDescendantFoldersOfParent(root._id).map((set) => set.mailSet)]
+		return await this.getInboxRulesThatReferenceMailSets(descendants)
+	}
+
+	async getInboxRulesThatReferenceMailSets(sets: readonly MailSet[]): Promise<ExpandedInboxRule[]> {
+		if (this.usingLegacyInboxRules) return []
+
+		const userMailboxGroupRoot = await this.getUserMailboxGroupRoot()
+		const relevantLabels = sets.filter((label) => label._ownerGroup === userMailboxGroupRoot._ownerGroup)
+		if (isEmpty(relevantLabels)) {
+			return []
+		}
+
+		const unsortedInboxRules = await this.getUnsortedInboxRules()
+		return unsortedInboxRules.filter((rule) => {
+			for (const action of rule.actions) {
+				if (sets.some((label) => isSameId(action.value, label._id))) {
+					return true
+				}
+			}
+			return false
+		})
+	}
+
+	async deactivateInboxRulesThatReferenceLabels(labels: readonly MailSet[]): Promise<void> {
+		const rules = await this.getInboxRulesThatReferenceMailSets(labels)
+		for (const rule of rules) {
+			const firstLabelRuleIndex = rule.actions.findIndex((action) => action.type === InboxRuleActionType.LABEL)
+
+			if (firstLabelRuleIndex > -1) {
+				// Remove all label actions reference a deleted label
+				rule.actions = rule.actions.filter((action) => !labels.some((label) => isSameId(action.value, label._id)))
+				if (rule.actions.filter((action) => action.type === InboxRuleActionType.LABEL).length === 0) {
+					// if all labels were removed we want the invalid placeholder
+					rule.actions.splice(firstLabelRuleIndex, 0, createInboxRuleAction({ type: InboxRuleActionType.LABEL, value: null }))
+					rule.enabled = false
+				}
+			}
+			await this.updateInboxRule(rule)
+		}
+	}
+
+	async deactivateInboxRulesThatReferenceFolders(folders: readonly MailSet[]): Promise<void> {
+		const rules = await this.getInboxRulesThatReferenceMailSets(folders)
+		for (const rule of rules) {
+			rule.enabled = false
+			for (const action of rule.actions) {
+				if (folders.some((folder) => isSameId(action.value, folder._id))) {
+					action.value = null
+				}
+			}
+			await this.updateInboxRule(rule)
+		}
+	}
+
+	isInboxRuleValid(rule: ExpandedInboxRule) {
+		// a rule may become invalid when a folder or label is deleted
+		return !rule.actions.some(
+			(action) => action.value == null && [InboxRuleActionType.MOVE, InboxRuleActionType.LABEL].includes(action.type as InboxRuleActionType),
+		)
 	}
 }

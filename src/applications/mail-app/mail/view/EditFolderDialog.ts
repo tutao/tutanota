@@ -17,6 +17,7 @@ import { MailReportType, MailSetKind } from "../../../../entities/tutanota/Utils
 import { isFolderReadOnly } from "../MailUtils"
 import { elementIdPart, elementIdToId, getElementId, isSameId, listIdPart } from "../../../../platform-kit/meta"
 import { checkMailSetName } from "./MailGuiUtils"
+import { showDeleteFolderPopup } from "./DeleteMailSetPopup"
 
 /**
  * Dialog for Edit and Add folder are the same.
@@ -96,13 +97,11 @@ export async function showEditFolderDialog(
 			} else {
 				// if it is being moved to trash (and not already in trash), ask about trashing
 				if (selectedParentFolder?.folderType === MailSetKind.TRASH && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
-					const confirmed = await Dialog.confirm(
-						lang.makeTranslation(
-							"confirm",
-							lang.get("confirmDeleteCustomFolder_msg", {
-								"{1}": getMailSetName(editedFolder),
-							}),
-						),
+					const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
+					const confirmed = await showDeleteFolderPopup(
+						getMailSetName(editedFolder),
+						allInboxRulesBeingModified.map((rule) => rule.name),
+						"trash",
 					)
 					if (!confirmed) return
 
@@ -110,13 +109,11 @@ export async function showEditFolderDialog(
 					await mailLocator.mailModel.trashFolderAndSubfolders(editedFolder)
 				} else if (selectedParentFolder?.folderType === MailSetKind.SPAM && !isSameId(selectedParentFolder._id, editedFolder.parentFolder)) {
 					// if it is being moved to spam (and not already in spam), ask about reporting containing emails
-					const confirmed = await Dialog.confirm(
-						lang.makeTranslation(
-							"confirm",
-							lang.get("confirmSpamCustomFolder_msg", {
-								"{1}": getMailSetName(editedFolder),
-							}),
-						),
+					const allInboxRulesBeingModified = await mailLocator.inboxRuleModel.getInboxRulesThatReferenceMailSetSystem(editedFolder, folders)
+					const confirmed = await showDeleteFolderPopup(
+						getMailSetName(editedFolder),
+						allInboxRulesBeingModified.map((rule) => rule.name),
+						"spam",
 					)
 					if (!confirmed) return
 
