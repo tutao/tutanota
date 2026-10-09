@@ -6,8 +6,11 @@ import { assertNotNull, TypeChecks } from "@tutao/lang-api"
 export class CheckBrowser {
 	public static readonly overflowAuto: string = CheckBrowser.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
 
-	constructor(appType: AppType) {
-		ClientDetector.get().init(navigator.userAgent, navigator.platform, appType)
+	private constructor() {}
+
+	public static async init(envProvider: EnvProvider, appType: AppType) {
+		await ClientDetector.init(envProvider, navigator.userAgent, navigator.platform, appType)
+		return new CheckBrowser()
 	}
 
 	/**
