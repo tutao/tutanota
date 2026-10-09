@@ -4626,6 +4626,8 @@ pub struct MailboxMigrationSyncState {
 	pub status: i64,
 	#[serde(rename = "1968")]
 	pub importedMailCount: Option<i64>,
+	#[serde(rename = "2037")]
+	pub errorCause: Option<i64>,
 	#[serde(rename = "1924")]
 	pub mailboxMigrationFolderSyncStates: GeneratedId,
 	#[serde(rename = "1925")]
@@ -4634,6 +4636,8 @@ pub struct MailboxMigrationSyncState {
 	pub rootImportMailSet: Option<IdTupleGenerated>,
 	#[serde(rename = "1927")]
 	pub syncLabel: Option<IdTupleGenerated>,
+	#[serde(rename = "2038")]
+	pub mailboxMigrationInformation: Option<IdTupleGenerated>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5014,6 +5018,8 @@ pub struct MailboxMigrationPutIn {
 	pub newMailboxMigrationFolderSyncStatus: i64,
 	#[serde(rename = "2034")]
 	pub newPostponedUntil: Option<String>,
+	#[serde(rename = "2039")]
+	pub errorCause: Option<i64>,
 	#[serde(rename = "2031")]
 	pub mailboxMigrationSyncState: IdTupleGenerated,
 
@@ -5026,6 +5032,87 @@ impl Entity for MailboxMigrationPutIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2029),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomerMailboxMigrationPostIn {
+	#[serde(rename = "2041")]
+	pub _format: i64,
+	#[serde(rename = "2042")]
+	pub mailGroup: GeneratedId,
+	#[serde(rename = "2043")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncMailboxMigrationSyncStateSessionKey: Vec<u8>,
+	#[serde(rename = "2044")]
+	pub ownerMailboxMigrationSyncStateKeyVersion: i64,
+	#[serde(rename = "2045")]
+	#[serde(with = "serde_bytes")]
+	pub ownerEncMailboxMigrationInformationSessionKey: Vec<u8>,
+	#[serde(rename = "2046")]
+	pub ownerEncMailboxMigrationInformationKeyVersion: i64,
+	#[serde(rename = "2047")]
+	pub postponedUntil: i64,
+	#[serde(rename = "2048")]
+	pub provider: i64,
+	#[serde(rename = "2049")]
+	pub isShared: bool,
+	#[serde(rename = "2050")]
+	pub imapConfiguration: MailboxMigrationImapConfiguration,
+	#[serde(rename = "2051")]
+	pub customerUserMigrationInformation: IdTupleGenerated,
+	#[serde(rename = "2052")]
+	pub customerMigrationInformation: IdTupleGenerated,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CustomerMailboxMigrationPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2040),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomerMailboxMigrationPostOut {
+	#[serde(rename = "2054")]
+	pub _format: i64,
+	#[serde(rename = "2055")]
+	pub mailboxMigrationInformation: IdTupleGenerated,
+}
+
+impl Entity for CustomerMailboxMigrationPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2053),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomerMailboxMigrationDeleteIn {
+	#[serde(rename = "2057")]
+	pub _format: i64,
+	#[serde(rename = "2058")]
+	pub user: Option<GeneratedId>,
+	#[serde(rename = "2059")]
+	pub mailboxMigrationInformation: IdTupleGenerated,
+}
+
+impl Entity for CustomerMailboxMigrationDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2056),
 		}
 	}
 }
