@@ -103,11 +103,15 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-layout-mobile" : ".event-banner-grid-layout"
 
+		// if the recipient is the organizer, allocate two grid zones to the reply area.
+		// Otherwise allocate only one, so the TimeOverview area can also be shown.
+		const replyAreaGridZones = recipientIsOrganizer ? EventBannerAreas.Middle + " " + EventBannerAreas.TimeOverview : EventBannerAreas.Middle
+
 		return m(eventBannerGrid + ".border-sm.border-radius-8.border-color-container-high.mb-8", [
 			m(EventBannerSidbarArea, { event: icsCalendarEvent }),
 			m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
-			m(EventBannerMiddleArea, { event: icsCalendarEvent, calendarTimeZone, replySection }),
-			!recipientIsOrganizer ? m(TimeOverview, { agenda, amPm }) : null,
+			m(EventBannerReplyArea, { event: icsCalendarEvent, calendarTimeZone, replySection, gridArea: replyAreaGridZones }),
+			recipientIsOrganizer ? null : m(TimeOverview, { agenda, amPm }),
 		])
 	}
 
@@ -423,16 +427,17 @@ export type EventBannerMidleAreaAttrs = {
 	event: IcsCalendarEvent
 	calendarTimeZone: string
 	replySection: Children
+	gridAreas: string
 }
 
-export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAreaAttrs> {
+export class EventBannerReplyArea implements ClassComponent<EventBannerMidleAreaAttrs> {
 	view(vnode: Vnode<EventBannerMidleAreaAttrs>): Children {
 		const { event, calendarTimeZone, replySection } = vnode.attrs
 		return m(
 			".flex.flex-column.plr-16.pb-16.pt-8.gap-8",
 			{
 				style: {
-					gridArea: EventBannerAreas.Middle,
+					gridArea: vnode.attrs.gridAreas,
 					color: theme.on_surface,
 				},
 			},
