@@ -1,7 +1,7 @@
 import { MARGIN_LEFT, MARGIN_TOP, PDF_FONTS, PDF_IMAGES, PdfDocument, TABLE_VERTICAL_SPACING, TableColumn } from "../pdf/PdfDocument.js"
 import InvoiceTexts from "./InvoiceTexts.js"
 import { PdfWriter } from "../pdf/PdfWriter.js"
-import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils.js"
+import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, InvoicePaymentMethod, VatType } from "./InvoiceUtils.js"
 import { InvoiceDataGetOut } from "@tutao/entities/sys"
 
 /**
@@ -224,7 +224,7 @@ export class PdfInvoiceGenerator {
 		// Payment info
 		if (this.invoice.invoiceType === InvoiceType.INVOICE && parseFloat(this.invoice.grandTotal) > 0) {
 			switch (this.invoice.paymentMethod) {
-				case PaymentMethod.INVOICE:
+				case InvoicePaymentMethod.INVOICE:
 					this.doc
 						.addText(InvoiceTexts[this.languageCode].paymentInvoiceDue1)
 						.addLineBreak()
@@ -246,13 +246,13 @@ export class PdfInvoiceGenerator {
 						.addLineBreak()
 						.addText(InvoiceTexts[this.languageCode].paymentInvoiceProvideNumber2)
 					break
-				case PaymentMethod.CREDIT_CARD:
+				case InvoicePaymentMethod.CREDIT_CARD:
 					this.doc.addText(InvoiceTexts[this.languageCode].paymentCreditCard)
 					break
-				case PaymentMethod.PAYPAL:
+				case InvoicePaymentMethod.PAYPAL:
 					this.doc.addText(InvoiceTexts[this.languageCode].paymentPaypal)
 					break
-				case PaymentMethod.ACCOUNT_BALANCE:
+				case InvoicePaymentMethod.ACCOUNT_BALANCE:
 					this.doc.addText(InvoiceTexts[this.languageCode].paymentAccountBalance)
 					break
 			}
@@ -290,7 +290,7 @@ export class PdfInvoiceGenerator {
 	 */
 	getTableRowsForFirstPage(): number {
 		if (
-			this.invoice.paymentMethod === PaymentMethod.INVOICE &&
+			this.invoice.paymentMethod === InvoicePaymentMethod.INVOICE &&
 			this.invoice.vatIdNumber != null &&
 			// Needs fix @arm, @jug, @jop
 			(this.invoice.vatType === VatType.NO_VAT || this.invoice.vatType === VatType.NO_VAT_CHARGE_TUTAO)

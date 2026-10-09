@@ -14,7 +14,8 @@ export const enum InvoiceType {
 	REFERRAL_CREDIT = "2",
 }
 
-export const enum PaymentMethod {
+// this excludes external stores because we don't write invoices for those.
+export const enum InvoicePaymentMethod {
 	INVOICE = "0",
 	CREDIT_CARD = "1",
 	SEPA_UNUSED = "2",
