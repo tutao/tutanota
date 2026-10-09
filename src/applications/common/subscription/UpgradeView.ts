@@ -62,7 +62,7 @@ export function showUpgradeDialog(viewModel: UpgradeViewModel, onComplete?: () =
 						right: [{ label: "close_alt", click: close, type: ButtonType.Secondary }],
 					}),
 					m(
-						`.${isMobile ? "dialog-container" : "dialog-max-height"}.plr-24.pt-16.pb-24.text-break.scroll.flex.justify-center`,
+						`.${isMobile ? "dialog-container" : "dialog-full-height"}.plr-24.pt-16.pb-24.text-break.scroll.flex.justify-center`,
 						m(UpgradeWizardLayout, { ...attrs, backButton: null }, children),
 					),
 				]),
