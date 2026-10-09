@@ -1901,6 +1901,9 @@ export class MainStyles {
 				".dialog-max-height": {
 					"max-height": "calc(100vh - 100px)",
 				},
+				".dialog-full-height": {
+					height: "100vh",
+				},
 				// mail folder view column
 				" .folder-column": {
 					height: "100%",
