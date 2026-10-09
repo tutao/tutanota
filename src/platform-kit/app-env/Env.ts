@@ -2,11 +2,11 @@ import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJs
 import { ClientType } from "./TutanotaConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
+export const LOGIN_TITLE: TsString = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
-export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
+export const NEXTCLOUD_PREFIX: TsString = "/index.php/apps/tutamail"
 
-export type DomainConfigMap = TsRecord<string, DomainConfig>
+export type DomainConfigMap = TsRecord<TsString, DomainConfig>
 export type EnvType = {
 	staticUrl: Nullable<TsString> // if null the url from the browser is used
 	mode: Mode
