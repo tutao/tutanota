@@ -1,50 +1,71 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, isNotNull, isNull, LangApiEnum, ProgrammingError, RuntimeInfo, TsDouble, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
-import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
+import {
+	assertNotNull,
+	console,
+	isNotNull,
+	isNull,
+	LangApiEnum,
+	Nullable,
+	ProgrammingError,
+	RuntimeInfo,
+	TsDouble,
+	TsInt,
+	TsString,
+	TutanotaError,
+	TypeChecks,
+} from "@tutao/lang-api"
+import { BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
 
 export class ClientDetector {
-	private userAgent: TsString | null = null
-	isMacOS: boolean | null = null
-	appType: AppType | null = null
-	isAutomatedBrowser: boolean = false
-	browserVersion: TsDouble | null = null
-	browser: BrowserType = BrowserType.OTHER
-	device: DeviceType = DeviceType.DESKTOP
+	public readonly isMacOS: boolean
+	public readonly browserVersion: Nullable<TsDouble>
+	public readonly browser: BrowserType
+	public readonly device: DeviceType
 
 	/** @TMutableStaticSafety MainThreadInitialized */
 	private static singleton: ClientDetector | null = null
 
 	/** @TTranspileIgnore This method is only used from locator */
 	public static get(): ClientDetector {
-		if (isNotNull(ClientDetector.singleton)) {
-			return ClientDetector.singleton
-		}
-
-		ClientDetector.singleton = new ClientDetector(EnvProvider.get())
-		return ClientDetector.singleton
+		return assertNotNull(ClientDetector.singleton, "Should call .init() method before using ClientDetector")
 	}
 
-	constructor(private readonly envProvider: EnvProvider) {}
+	private constructor(
+		private readonly envProvider: EnvProvider,
+		private readonly userAgent: TsString,
+		private readonly appType: AppType,
+		public readonly isAutomatedBrowser: boolean,
+		platform: TsString,
+	) {
+		this.isAutomatedBrowser = false
 
-	init(userAgent: TsString, platform: TsString, appType: AppType = AppType.Integrated): ClientDetector {
-		this.userAgent = userAgent
-		this.appType = appType
-		this._setBrowserAndVersion()
-		this._setDeviceInfo()
-
-		FingerprintJs.detect(false)
-			.then((result: BotdResult) => {
-				this.isAutomatedBrowser = result.bot && result.botKind !== BotKind.Electron
-			})
-			.catch((error: TutanotaError) => console.error(error))
-
+		this.device = ClientDetector._getDeviceInfo(userAgent)
 		this.isMacOS = platform.indexOf("Mac") !== -1
+		const [browser, browserVersion] = ClientDetector._getBrowserAndVersion(userAgent)
+		this.browser = browser
+		this.browserVersion = browserVersion
+	}
 
-		return this
+	public static async init(
+		envProvider: EnvProvider,
+		userAgent: TsString,
+		platform: TsString,
+		appType: AppType = AppType.Integrated,
+	): Promise<ClientDetector> {
+		const isAutomatedBrowser = await FingerprintJs.detect(false)
+			.then((result) => result.bot && result.botKind !== BotKind.Electron)
+			.catch((error: TutanotaError) => {
+				console.error("Error while getting fingerprint:")
+				console.error(error)
+				return false
+			})
+
+		ClientDetector.singleton = new ClientDetector(envProvider, userAgent, appType, isAutomatedBrowser, platform)
+		return ClientDetector.singleton
 	}
 
 	getUserAgent(): NonNullable<TsString> {
@@ -62,8 +83,10 @@ export class ClientDetector {
 		return this.device === DeviceType.DESKTOP
 	}
 
-	_setBrowserAndVersion(): void {
-		const userAgent = this.getUserAgent()
+	private static _getBrowserAndVersion(userAgent: TsString): [BrowserType, Nullable<TsDouble>] {
+		let browser: BrowserType = BrowserType.OTHER
+		let browserVersion: Nullable<TsDouble> = null
+
 		const operaIndex1: TsInt = userAgent.indexOf("Opera")
 		const operaIndex2: TsInt = userAgent.indexOf("OPR/")
 		const firefoxIndex: TsInt = userAgent.indexOf("Firefox/")
@@ -78,10 +101,10 @@ export class ClientDetector {
 		let versionIndex: TsInt = -1
 
 		if (edgeIndex !== -1) {
-			this.browser = BrowserType.EDGE
+			browser = BrowserType.EDGE
 			versionIndex = edgeIndex + 5
 		} else if (operaIndex1 !== -1) {
-			this.browser = BrowserType.OPERA
+			browser = BrowserType.OPERA
 			versionIndex = userAgent.indexOf("Version/")
 
 			if (versionIndex !== -1) {
@@ -90,11 +113,11 @@ export class ClientDetector {
 				versionIndex = operaIndex1 + 6
 			}
 		} else if (operaIndex2 !== -1) {
-			this.browser = BrowserType.OPERA
+			browser = BrowserType.OPERA
 			versionIndex = operaIndex2 + 4
 		} else if ((firefoxIndex !== -1 || iceweaselIndex !== -1) && operaIndex1 === -1 && operaIndex2 === -1 && paleMoonIndex === -1) {
 			// Opera may pretend to be Firefox, so it is skipped
-			this.browser = BrowserType.FIREFOX
+			browser = BrowserType.FIREFOX
 
 			if (firefoxIndex !== -1) {
 				versionIndex = firefoxIndex + 8
@@ -102,19 +125,19 @@ export class ClientDetector {
 				versionIndex = iceweaselIndex + 10
 			}
 		} else if (chromeIndex !== -1) {
-			this.browser = BrowserType.CHROME
+			browser = BrowserType.CHROME
 			versionIndex = chromeIndex + 7
 		} else if (androidIndex !== -1) {
 			// default android browser
 			// keep this check after Chrome, Firefox and Opera, because the Android browser does not identify itself in any other way
-			this.browser = BrowserType.ANDROID
+			browser = BrowserType.ANDROID
 			versionIndex = androidIndex + 8
 		} else if (chromeIosIndex !== -1) {
-			this.browser = BrowserType.CHROME
+			browser = BrowserType.CHROME
 			versionIndex = chromeIosIndex + 6
 		} else if (safariIndex !== -1 && chromeIndex === -1) {
 			// Chrome and black berry pretends to be Safari, so it is skipped
-			this.browser = BrowserType.SAFARI
+			browser = BrowserType.SAFARI
 			// Safari prints its version after "Version/"
 			versionIndex = userAgent.indexOf("Version/")
 
@@ -122,15 +145,19 @@ export class ClientDetector {
 				versionIndex += 8
 			} else {
 				// Other browsers on iOS do not usually send Version/ and we can assume that they're Safari
-				this.extractIosVersion()
-				return
+				const iosBrowserVersion = ClientDetector._getIosBrowserVersion(userAgent)
+				if (isNotNull(iosBrowserVersion)) {
+					return [BrowserType.SAFARI, iosBrowserVersion]
+				}
 			}
 		} else if (isNotNull(userAgent.match(/iPad.*AppleWebKit/)) || isNotNull(userAgent.match(/iPhone.*AppleWebKit/))) {
 			// iPad and iPhone do not send the Safari this.userAgent when HTML-apps are directly started from the homescreen a browser version is sent neither
 			// after "OS" the iOS version is sent, so use that one
 			// Also there are a lot of browsers on iOS but they all are based on Safari so we can use the same extraction mechanism for all of them.
-			this.extractIosVersion()
-			return
+			const iosBrowserVersion = ClientDetector._getIosBrowserVersion(userAgent)
+			if (isNotNull(iosBrowserVersion)) {
+				return [BrowserType.SAFARI, iosBrowserVersion]
+			}
 		}
 
 		if (versionIndex !== -1) {
@@ -138,7 +165,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = TsDouble.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					browserVersion = TsDouble.parseFloat(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -146,67 +173,66 @@ export class ClientDetector {
 		}
 
 		// if the version is not valid, the browser type is not valid, so set it to other
-		if (isNull(this.browserVersion)) {
-			this.browser = BrowserType.OTHER
+		if (isNull(browserVersion)) {
+			browser = BrowserType.OTHER
 		}
+
+		return [browser, browserVersion]
 	}
 
-	extractIosVersion(): void {
+	private static _getIosBrowserVersion(userAgent: TsString): Nullable<TsDouble> {
 		// Extracting version does not work with iPad OS WebView because it's not in the userAgent. We could look it up
 		// from Webkit version but maybe we don't need that for now.
-		const userAgent = this.getUserAgent()
 		const versionIndex: TsInt = userAgent.indexOf(" OS ")
+		if (versionIndex === -1) {
+			return null
+		}
 
-		if (versionIndex !== -1) {
-			this.browser = BrowserType.SAFARI
+		try {
+			// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
+			let pos: TsInt = versionIndex + 4
+			let hadNan = false
 
-			try {
-				// in case of versions like 12_1_1 get substring 12_1 and convert it to 12.1
-				let pos: TsInt = versionIndex + 4
-				let hadNan = false
+			while (pos < userAgent.length) {
+				pos++
 
-				while (pos < userAgent.length) {
-					pos++
-
-					if (TsInt.isNaN(TsInt.parseInt(userAgent.charAt(pos)))) {
-						if (hadNan) {
-							break
-						} else {
-							hadNan = true
-						}
+				if (TsInt.isNaN(TsInt.parseInt(userAgent.charAt(pos)))) {
+					if (hadNan) {
+						break
+					} else {
+						hadNan = true
 					}
 				}
-
-				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = TsDouble.parseFloat(numberString.replace(/_/g, "."))
-			} catch (e) {
-				/* empty */
 			}
+
+			const numberString = userAgent.substring(versionIndex + 4, pos)
+			return TsDouble.parseFloat(numberString.replace(/_/g, "."))
+		} catch (e) {
+			return null
 		}
 	}
 
-	_setDeviceInfo(): void {
-		this.device = DeviceType.DESKTOP
-
-		const userAgent = this.getUserAgent()
+	private static _getDeviceInfo(userAgent: TsString): DeviceType {
 		if (
 			isNotNull(userAgent.match(/iPad.*AppleWebKit/)) || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
 			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent) && RuntimeInfo.hasTouchEvent() && /.*Chrome.*/.test(userAgent) === false)
 		) {
-			this.device = DeviceType.IPAD
+			return DeviceType.IPAD
 		} else if (isNotNull(userAgent.match(/iPhone.*AppleWebKit/))) {
-			this.device = DeviceType.IPHONE
+			return DeviceType.IPHONE
 		} else if (isNotNull(userAgent.match(/Android/))) {
 			if (isNotNull(userAgent.match(/Ubuntu/))) {
-				this.device = DeviceType.OTHER_MOBILE
+				return DeviceType.OTHER_MOBILE
 			} else {
-				this.device = DeviceType.ANDROID
+				return DeviceType.ANDROID
 			}
 		} else if (isNotNull(userAgent.match(/Windows NT/))) {
-			this.device = DeviceType.DESKTOP
+			return DeviceType.DESKTOP
 		} else if (isNotNull(userAgent.match(/Mobile/)) || isNotNull(userAgent.match(/Tablet/))) {
-			this.device = DeviceType.OTHER_MOBILE
+			return DeviceType.OTHER_MOBILE
+		} else {
+			return DeviceType.DESKTOP
 		}
 	}
 
