@@ -15,7 +15,7 @@ import {
 	PlanType,
 	SubscriptionType,
 } from "../../../../entities/sys/Utils"
-import { goEuropeanBlue, sovereignYellowDark, sovereignYellowLight } from "../../../../ui/builtinThemes"
+import { blackFridayGold, blackFridayGradient, goEuropeanBlue, sovereignYellowDark, sovereignYellowLight } from "../../../../ui/builtinThemes"
 import Stream from "mithril/stream"
 
 export type DiscountDetail = {
@@ -330,11 +330,26 @@ export const sovereignty2026Theme = () => ({
 	outline_variant: goEuropeanBlue,
 })
 
+export const blackFridayTheme = () => ({
+	...structuredClone(theme),
+	primary: "#FFFFFF",
+	secondary: blackFridayGold,
+	tertiary: blackFridayGold,
+	on_tertiary: "#111111",
+	on_surface: "#FFFFFF",
+	surface_container_high: blackFridayGradient,
+	surface: blackFridayGradient,
+	on_surface_variant: blackFridayGold,
+	outline_variant: "#FFFFFF",
+})
+
 export function getCampaignTheme(campaignName: string | null) {
 	if (campaignName === CAMPAIGN_NAME.BIRTHDAY_12_CAMPAIGN) {
 		return birthdayTheme()
 	} else if (campaignName === CAMPAIGN_NAME.DIGITAL_SOVEREIGNTY_2026_CAMPAIGN) {
 		return sovereignty2026Theme()
+	} else if (campaignName === CAMPAIGN_NAME.BLACKFRIDAY_CAMPAIGN) {
+		return blackFridayTheme()
 	}
 
 	return defaultCampaignTheme()

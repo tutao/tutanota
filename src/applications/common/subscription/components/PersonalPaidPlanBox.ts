@@ -128,7 +128,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				{
 					style: {
 						cursor: isDisabled ? "not-allowed" : "pointer",
-						"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
+						background: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						color: localTheme.on_surface,
 						"min-height": px(270),
 						height: "100%",
@@ -219,7 +219,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									".strike",
 									{
 										style: {
-											color: localTheme.on_surface_variant,
+											color: localTheme.primary,
 											fontSize: px(font_size.smaller),
 											justifySelf: "end",
 										},
@@ -316,7 +316,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				}),
 				m(
 					".smaller",
-					{ style: { color: hasCampaign ? localTheme.secondary : undefined } },
+					{ style: { color: hasCampaign ? localTheme.primary : undefined } },
 					lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)),
 				),
 			)

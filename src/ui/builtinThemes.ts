@@ -463,3 +463,8 @@ export const goEuropeanBlue = "#003E85"
 export const goEuropeanLightBlue = "#ACC7FF"
 export const sovereignYellowDark = "#FEE06A"
 export const sovereignYellowLight = "#FEF9C3"
+export const blackFridayGradient = "linear-gradient(160deg,rgba(35, 35, 35, 1) 44%, rgba(77, 77, 77, 1) 94%)"
+//
+export const blackFridayGold = "#FFDDB2"
+
+export const blackFridayDark = "#291800"
