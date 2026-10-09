@@ -5,14 +5,12 @@ import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithri
 import { base64ToBase64Url, getStartOfDay, isNotNull, partition, stringToBase64 } from "@tutao/utils"
 import { theme } from "../../../../ui/theme"
 import { Styles } from "../../../../ui/styles"
-import { layout_size, px } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
-import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
@@ -101,23 +99,16 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		return m(
 			".border-radius-8.border-sm.grid.full-width.mb-8",
 			{
-				style: Styles.get().isSingleColumnLayout()
-					? {
-							"grid-template-columns": "min-content 1fr",
-							"grid-template-rows": "auto 1fr",
-							"max-width": "100%",
-							"border-color": theme.surface_container_high,
-						}
-					: {
-							"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content min-content 1fr",
-							"max-width": recipientIsOrganizer ? "max-content" : px(layout_size.two_column_layout_width),
-							"border-color": theme.surface_container_high,
-						},
+				style: {
+					"grid-template-columns": recipientIsOrganizer ? "min-content max-content" : "min-content 1fr",
+					"max-width": "max-content",
+					"border-color": theme.surface_container_high,
+				},
 			},
 			[
 				/* Date Column */
 				m(
-					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
+					".flex.flex-column.center.items-center.pb-16.pt-16.justify-center",
 					{
 						class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
 						style: {
@@ -128,31 +119,33 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					[
 						m("span.normal-font-size", event.startTime.toLocaleString("default", { month: "short" })),
 						m("span.big.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
-						m("span.normal-font-size", event.startTime.toLocaleString("default", { year: "numeric" })),
+						m("span.normal-font-size", event.startTime.toLocaleString("default", { weekday: "short" })),
 					],
 				),
-				/* Invite Column */
-				m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
-					m(".flex", [
-						m(Icon, {
-							icon: Icons.CalendarFilled,
-							container: "div",
-							class: "mr-4",
-							style: { fill: theme.on_surface },
-							size: IconSize.PX24,
-						}),
-						m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
+				m(".flex.flex-column", [
+					m("span.b.h5.text-ellipsis-multi-line.lh-s", event.summary),
+					m(".flex.flex-wrap.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
+						/* Invite Column */
+						m(".flex.flex-column.plr-16.pb-16.pt-16.justify-start.overflow-x-hidden", [
+							event.organizer?.address
+								? m(".flex.items-center.small.mt-8", [
+										m(Icon, {
+											icon: Icons.ClockFilled,
+											style: {
+												fill: theme.on_surface,
+											},
+											title: lang.get("timeSection_label"),
+											size: IconSize.PX24,
+										}),
+										m("span.ml-4", formatEventTime(event, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)),
+									])
+								: null,
+							replySection,
+						]),
+						/* Time Overview */
+						!recipientIsOrganizer ? m(TimeOverview, { agenda, amPm }) : null,
 					]),
-					event.organizer?.address
-						? m(".flex.items-center.small.mt-8", [
-								m("span.b", lang.getTranslation("when_label").text),
-								m("span.ml-4", formatEventTime(event, EventTextTimeOption.START_END_TIME, false, calendarTimeZone)),
-							])
-						: null,
-					replySection,
 				]),
-				/* Time Overview */
-				!recipientIsOrganizer ? m(TimeOverview, { agenda, amPm }) : null,
 			],
 		)
 	}
