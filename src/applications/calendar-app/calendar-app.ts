@@ -63,7 +63,9 @@ window.tutao = {
 	locator: null,
 }
 
-new CheckBrowser(AppType.Calendar).ensureIsSupported()
+const envProvider = EnvProvider.get()
+const checkBrowser = await CheckBrowser.init(envProvider, AppType.Calendar)
+checkBrowser.ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show
