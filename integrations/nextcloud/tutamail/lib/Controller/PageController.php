@@ -36,6 +36,8 @@ class PageController extends Controller {
 
 		$csp->addAllowedConnectDomain('https://tuta.com');
 		$csp->addAllowedConnectDomain('https://app.test.tuta.com');
+		$csp->addAllowedWorkerSrcDomain("'self'");
+
 		$csp->addAllowedImageDomain('*');
 
         if ( PageController::isDebugMode() ) {
