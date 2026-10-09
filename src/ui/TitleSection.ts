@@ -49,7 +49,7 @@ export class TitleSection implements Component<TitleSectionAttrs> {
 					},
 					attrs.title,
 				),
-				m(".center.smaller.text-preline", attrs.subTitle),
+				m(".center.normal-font-size.text-preline", attrs.subTitle),
 			),
 		)
 	}

@@ -87,6 +87,11 @@ function migrationErrorToReadableMigrationError(migrationError: MigrationError):
 	}
 }
 
+/** For callers that only have a stored error cause (e.g. `MailboxMigrationInformation.errorCode`), not a live `MigrationError`. */
+export function migrationErrorCauseToReadableMigrationError(cause: MigrationErrorCause): ReadableMigrationError {
+	return migrationErrorToReadableMigrationError(new MigrationError("", cause))
+}
+
 export class MigrationErrorHandler {
 	constructor(
 		private readonly entityClient: EntityClient,
@@ -244,8 +249,10 @@ export class MigrationErrorHandler {
 	}
 
 	private async requestCredentialUpdate(mailboxMigrationSyncState: MailboxMigrationSyncState) {
-		mailboxMigrationSyncState.status = MailboxMigrationSyncStatus.AUTH_ERROR
-		// Updated to error state, which will cause an entity event
-		await this.entityClient.update(mailboxMigrationSyncState)
+		if (mailboxMigrationSyncState.status !== MailboxMigrationSyncStatus.SCHEDULED) {
+			mailboxMigrationSyncState.status = MailboxMigrationSyncStatus.AUTH_ERROR
+			// Updated to error state, which will cause an entity event
+			await this.entityClient.update(mailboxMigrationSyncState)
+		}
 	}
 }

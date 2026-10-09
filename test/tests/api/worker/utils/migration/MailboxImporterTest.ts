@@ -411,6 +411,7 @@ o.spec("MailboxImporter", () => {
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.POSTPONED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				null,
 				postponedUntil.toString(),
 			),
 		).thenDo(() => {

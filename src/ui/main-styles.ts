@@ -737,6 +737,9 @@ export class MainStyles {
 				".min-width-full": {
 					"min-width": "100%",
 				},
+				".min-width-migration-button": {
+					"min-width": px(300),
+				},
 				// used to enable text ellipsis in flex child elements see https://css-tricks.com/flexbox-truncated-text/
 				".text-break": {
 					overflow: "hidden",
@@ -1186,6 +1189,10 @@ export class MainStyles {
 				},
 				".fill-grid-column": {
 					"grid-row": "1 / -1",
+				},
+				".subgrid-columns": {
+					display: "grid",
+					"grid-template-columns": "subgrid",
 				},
 				".gap-1": {
 					gap: px(1),
@@ -3437,6 +3444,26 @@ export class MainStyles {
 					border: `2px solid ${theme.outline}`,
 					"max-width": "250px",
 					"z-index": 1,
+					animation: "hover-panel-hide 4s ease-in forwards",
+				},
+				".hover-panel:hover": {
+					"animation-play-state": "paused",
+					opacity: "1 !important",
+					visibility: "visible !important",
+				},
+				"@keyframes hover-panel-hide": {
+					"0%": {
+						opacity: 1,
+						visibility: "visible",
+					},
+					"50%": {
+						opacity: 1,
+						visibility: "visible",
+					},
+					"100%": {
+						opacity: 0,
+						visibility: "hidden",
+					},
 				},
 				".subscription-settings-card": {
 					display: "grid",

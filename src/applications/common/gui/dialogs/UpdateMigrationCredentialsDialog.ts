@@ -167,6 +167,7 @@ function renderContent(viewModel: UpdateMigrationCredentialsDialogViewModel) {
 }
 
 function renderMigrationCredentials(viewModel: UpdateMigrationCredentialsDialogViewModel) {
+	const shouldDisplayHostAndPort = viewModel.syncState.mailboxMigrationInformation !== null
 	return m("", [
 		m(
 			".flex.row.gap-16.mt-16",
@@ -194,31 +195,33 @@ function renderMigrationCredentials(viewModel: UpdateMigrationCredentialsDialogV
 				},
 			}),
 		),
-		m(".flex.row.gap-16.mt-16", [
-			m(TextField, {
-				label: "migrationImapAccountHost_label",
-				class: "",
-				value: viewModel.host,
-				oninput: (value) => (viewModel.host = value),
-				leadingIcon: {
-					icon: Icons.ServerFilled,
-					color: theme.on_surface_variant,
-				},
-			}),
-			m(TextField, {
-				label: "migrationImapAccountPort_label",
-				class: "",
-				value: viewModel.port,
-				oninput: (value) => {
-					const typedNumber = Number.parseInt(value)
-					viewModel.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
-				},
-				leadingIcon: {
-					icon: Icons.KeyFilled,
-					color: theme.on_surface_variant,
-				},
-			}),
-		]),
+		shouldDisplayHostAndPort
+			? m(".flex.row.gap-16.mt-16", [
+					m(TextField, {
+						label: "migrationImapAccountHost_label",
+						class: "",
+						value: viewModel.host,
+						oninput: (value) => (viewModel.host = value),
+						leadingIcon: {
+							icon: Icons.ServerFilled,
+							color: theme.on_surface_variant,
+						},
+					}),
+					m(TextField, {
+						label: "migrationImapAccountPort_label",
+						class: "",
+						value: viewModel.port,
+						oninput: (value) => {
+							const typedNumber = Number.parseInt(value)
+							viewModel.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
+						},
+						leadingIcon: {
+							icon: Icons.KeyFilled,
+							color: theme.on_surface_variant,
+						},
+					}),
+				])
+			: null,
 	])
 }
 

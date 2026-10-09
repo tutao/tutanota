@@ -25,13 +25,13 @@ import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
-import { Card } from "../../../../ui/base/Card"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { HoverInfoPanel } from "./HoverInfoPanel"
 
 EnvProvider.assertMainOrNode()
 
@@ -120,7 +120,15 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			this.shouldDisplayInfoHover
-				? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text)
+				? m(HoverInfoPanel, {
+						left: this.hoverPosition.left,
+						top: this.hoverPosition.top,
+						message: lang.getTranslation(this.hoverInfo).text,
+						onDismiss: () => {
+							this.shouldDisplayInfoHover = false
+							m.redraw()
+						},
+					})
 				: null,
 			m(
 				".mt-16",
@@ -491,33 +499,6 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 				this.shouldDisplayInfoHover = true
 			}
 		}
-	}
-
-	private renderHoverInfo(left: number, top: number, message: string): Children {
-		return m(
-			".hover-panel.border.border-radius",
-			{
-				style: {
-					left: px(left),
-					top: px(top),
-				},
-			},
-			[
-				m(Card, {}, [
-					m(
-						".flex.items-center.justify-center",
-						m(Icon, {
-							icon: Icons.InfoFilled,
-							size: IconSize.PX32,
-							style: {
-								fill: theme.on_surface_variant,
-							},
-						}),
-					),
-					m("", message),
-				]),
-			],
-		)
 	}
 
 	private renderCreateAllMissingFoldersButton(data: MigrationData) {

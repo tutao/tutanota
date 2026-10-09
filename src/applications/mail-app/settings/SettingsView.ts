@@ -1,6 +1,6 @@
 import m, { Children, Vnode, VnodeDOM } from "mithril"
 import stream from "mithril/stream"
-import { SettingsFolder } from "../../common/settings/SettingsFolder.js"
+import { SettingsFolder, SettingsFolderColumnLayout } from "../../common/settings/SettingsFolder.js"
 import { GlobalSettingsViewer } from "./GlobalSettingsViewer"
 import { PluginsSettingsViewer } from "../../common/settings/plugins/PluginsSettingsViewer"
 import { DesktopSettingsViewer } from "./DesktopSettingsViewer"
@@ -80,8 +80,12 @@ import { createUserAreaGroupDeleteData, TemplateGroupService_DELETE, UserSetting
 import { ButtonType } from "../../../ui/base/Button"
 import { renderHeaderButtons } from "../../calendar-app/gui/HeaderButtons"
 import MigrationSettingsViewer from "./migration/MigrationSettingsViewer.js"
+import { WebMigrationViewer } from "./migration/WebMigrationViewer"
+import MigrationViewer from "./migration/MigrationViewer"
 
 EnvProvider.assertMainOrNode()
+
+const SETTINGS_COLUMN_DEFAULT_MAX_WIDTH = 600
 
 export class SettingsView extends BaseTopLevelView implements TopLevelView<SettingsViewAttrs> {
 	viewSlider: ViewSlider
@@ -371,7 +375,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			ColumnType.Background,
 			{
 				minWidth: 400,
-				maxWidth: 600,
+				maxWidth: SETTINGS_COLUMN_DEFAULT_MAX_WIDTH,
 				headerCenter: this._selectedFolder.name,
 			},
 		)
@@ -442,6 +446,25 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 					undefined,
 				),
 			)
+			if (this.logins.isEnabled(FeatureType.ImapSyncMigration)) {
+				adminFolders.push(
+					new SettingsFolder(
+						() => "multiuserMigration_label",
+						() => Icons.SimpleArrowRight,
+						"multiusermigration",
+						() => {
+							if (EnvProvider.get().isDesktop()) {
+								return new MigrationViewer(() => mailLocator.getCustomerMigrationController())
+							} else {
+								return new WebMigrationViewer()
+							}
+						},
+						undefined,
+						"settings",
+						SettingsFolderColumnLayout.TwoColumn,
+					),
+				)
+			}
 			if (!this.logins.isEnabled(FeatureType.WhitelabelChild)) {
 				adminFolders.push(
 					new SettingsFolder(
@@ -694,6 +717,12 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (!this._currentViewer) {
 			this.detailsViewer = null
 			this._currentViewer = this._selectedFolder.viewerCreator()
+			const useTwoColumnLayout = this._selectedFolder.columnLayout === SettingsFolderColumnLayout.TwoColumn
+			this._settingsDetailsColumn.enabled = !useTwoColumnLayout
+			this._settingsColumn.maxWidth = useTwoColumnLayout
+				? layout_size.second_col_max_width + layout_size.third_col_max_width
+				: SETTINGS_COLUMN_DEFAULT_MAX_WIDTH
+			this.viewSlider.updateVisibleBackgroundColumns()
 		}
 
 		return this._currentViewer
