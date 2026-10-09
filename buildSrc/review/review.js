@@ -42,11 +42,13 @@ async function hashFileAt(filePath) {
 }
 
 async function markAsReviewed(currentDep) {
+	const hash = await hashFileAt(currentDep)
 	reviewedData[currentDep] = {
 		who: reviewers,
 		when: new Date().toISOString().slice(0, 10),
-		hash: await hashFileAt(currentDep),
+		hash,
 	}
+	reviewedHashes.add(hash)
 	await fs.writeFile(reviewedPath, JSON.stringify(reviewedData, null, 4), { encoding: "utf8" })
 }
 
@@ -166,7 +168,7 @@ function isBuiltin(dep) {
 }
 
 function countsAsReviewed(dep) {
-	return isExplicitlyReviewed(dep) || isBuiltin(dep) || reviewedByHash(dep)
+	return /*isExplicitlyReviewed(dep) || */ isBuiltin(dep) || reviewedByHash(dep)
 }
 
 function reviewedByHash(dep) {
@@ -179,7 +181,7 @@ function calculateStats(currentDep, itsDeps) {
 	const dedupedDeps = new Set(collectedTransitiveDeps)
 	let reviewed = 0
 	for (const dep of dedupedDeps) {
-		if (isExplicitlyReviewed(dep) || reviewedByHash(dep)) {
+		if (reviewedByHash(dep)) {
 			reviewed += 1
 		}
 	}

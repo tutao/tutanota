@@ -311,8 +311,8 @@
 	},
 	"node_modules/debug/src/common.js": {
 		"who": "ivk",
-		"when": "2025-06-27",
-		"hash": "3380b81a479cd6bfdb5bbc23a7aadde65f57cabefa5a6cf6a0abcea3715db6d8"
+		"when": "2026-10-02",
+		"hash": "dbe83d2bb5837f3c4d7fe537b8004c585987270eceed5b06b8e078deb0ae214a"
 	},
 	"node_modules/debug/src/node.js": {
 		"who": "ivk",
@@ -3415,14 +3415,14 @@
 		"hash": "9af1c8892ed1e6a153d2f158438722c666aa906eb7e2ec8a27fce7cf035b4278"
 	},
 	"node_modules/minimatch/dist/commonjs/unescape.js": {
-		"who": "ivk",
-		"when": "2025-07-01",
-		"hash": "ff3e0dd4664576cfe078c3b494724d7cf2f691cdf960304e354e7c34fa6b5a30"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "bec1bb4483a2c325599949dd6668b5b7daa2dcbe046c5a09899bc8c5b51c08c1"
 	},
 	"node_modules/minimatch/dist/commonjs/ast.js": {
-		"who": "ivk",
-		"when": "2025-07-01",
-		"hash": "90a2753b02a569b594b0603452224eabbb028a188a71a6e7caf9319c474dba90"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "64eef2ec09b28ba2db87a46111ad87e1e56c73b603baf6de86a12eb5b591f324"
 	},
 	"node_modules/minimatch/dist/commonjs/escape.js": {
 		"who": "ivk",
@@ -3430,9 +3430,9 @@
 		"hash": "55e384815856f5708dad6e501aa47314bc08dcb4b90d11db85e413716f948c17"
 	},
 	"node_modules/minimatch/dist/commonjs/index.js": {
-		"who": "ivk",
-		"when": "2025-07-01",
-		"hash": "202f9ba5eaac630d5417607bc963c0ad623fd89d37b1f76ed94665cae8e26889"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "d224f71f20d7c206fcc5b7e9f747324c7698345a0b2c28d717dd9cf698306783"
 	},
 	"node_modules/@typescript-eslint/typescript-estree/dist/useProgramFromProjectService.js": {
 		"who": "ivk",
@@ -5676,8 +5676,8 @@
 	},
 	"node_modules/sax/lib/sax.js": {
 		"who": "ivk",
-		"when": "2026-02-24",
-		"hash": "cf7aed4a7367aac22e1fe46f5ab2d556dc96735239d0f309fafa6f5aa2bd30be"
+		"when": "2026-10-02",
+		"hash": "1cdc1270d987cb0f6ee66dd8efb01c50511aa14d17b6163bbbffb21df8cf1c06"
 	},
 	"node_modules/builder-util-runtime/out/xml.js": {
 		"who": "ivk",
@@ -6006,17 +6006,17 @@
 	},
 	"node_modules/jsonfile/utils.js": {
 		"who": "ivk",
-		"when": "2026-02-24",
-		"hash": "b0c188696676561411f3c5784d7de61bf21927f9c334e0cfb9136a8b7c82be5d"
+		"when": "2026-10-02",
+		"hash": "3a37b4b21c2cd8f75b850f1373f68a39bcaab3ac58d75ab44e62674cdb0d4cad"
 	},
 	"node_modules/jsonfile/index.js": {
 		"who": "ivk",
-		"when": "2026-02-24",
-		"hash": "2cdf22ffb5a170ad2cf10cbdf647e2a9366b6afa11e9b4c2370d0cf5b1f700b1"
+		"when": "2026-10-02",
+		"hash": "ec5a9f1f45014486f1df4a8c11a5b078671e9936c0651e035b67cb5e763954e8"
 	},
 	"node_modules/builder-util/node_modules/fs-extra/lib/json/jsonfile.js": {
 		"who": "ivk",
-		"when": "2026-02-24",
+		"when": "2026-10-02",
 		"hash": "a986ad3c13166f3bf8f30b18140bfc8ea1754760ab3802aa7c8c3780d54f07ba"
 	},
 	"node_modules/builder-util/node_modules/fs-extra/lib/output-file/index.js": {
@@ -6066,8 +6066,8 @@
 	},
 	"node_modules/builder-util/out/log.js": {
 		"who": "ivk",
-		"when": "2026-02-24",
-		"hash": "be3b735b3ed1c8cf763d21df2d7e3149c8ff4468d140a54be71332acc5c7c847"
+		"when": "2026-10-02",
+		"hash": "c3856a9e6f4e483fe295055fcc323077989658522d8f901b2497f2b026f8d519"
 	},
 	"node_modules/async-exit-hook/index.js": {
 		"who": "ivk",
@@ -6096,8 +6096,8 @@
 	},
 	"node_modules/builder-util/out/util.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "a3b7a5a6946e744dbe6292b9625c67b9e8d7d875509e635017b5f0e7a6e22d6f"
+		"when": "2026-10-02",
+		"hash": "0726437469821eba53311cefca162835617ddc03d6762074a5c5fa19a48d609f"
 	},
 	"node_modules/builder-util/out/mapper.js": {
 		"who": "ivk",
@@ -6106,8 +6106,8 @@
 	},
 	"node_modules/builder-util/out/DebugLogger.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "2e83ca88c723fe593363932b1deb89c6b5d257f0b55b312388d90d6af94b2e55"
+		"when": "2026-10-02",
+		"hash": "fbeaddf5db7807be7812270fea4f668430f91d05bb0a33541aaaf2e6d43b2e9d"
 	},
 	"node_modules/agent-base/dist/helpers.js": {
 		"who": "ivk",
@@ -6116,8 +6116,8 @@
 	},
 	"node_modules/agent-base/dist/index.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "5608043c77d87b74665a8097bc19879dc71b71a5c830805a17880b7676312ab8"
+		"when": "2026-10-02",
+		"hash": "c6503bd5e007db8b73fedf07b6eaaf4a94d5541953f0d06c8a17d1644c29a0c5"
 	},
 	"node_modules/http-proxy-agent/dist/index.js": {
 		"who": "ivk",
@@ -6136,8 +6136,8 @@
 	},
 	"node_modules/builder-util/out/nodeHttpExecutor.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "ad750fdc8d0ba66c6f65227149eb9d6e6cbb43fa6418f2195937a1e69308c1b1"
+		"when": "2026-10-02",
+		"hash": "313e9232dff917feaef613924e5276197ed5a803ef8322176ddacc228a749176"
 	},
 	"node_modules/stat-mode/dist/src/index.js": {
 		"who": "ivk",
@@ -6186,8 +6186,8 @@
 	},
 	"node_modules/sanitize-filename/index.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "1b2c5bd4ef99c5ace6a11ddf249dc6ac75f5531acd7319aa8d275eaf2b58e154"
+		"when": "2026-10-08",
+		"hash": "ca82385db61ff0f9fba7c845022c03d130f610b288a84ed7fa76d5292891ee52"
 	},
 	"node_modules/builder-util/out/filename.js": {
 		"who": "ivk",
@@ -6196,8 +6196,8 @@
 	},
 	"node_modules/app-builder-lib/out/util/macroExpander.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "fe93d4e1d186e244b09fe8ace03b6adbb313eec71803d49ba69c1c150723bd63"
+		"when": "2026-10-08",
+		"hash": "a6062ec2592e519030a87aee9ca72ab3e245b76cb9433e4ea7c41cd59f1328fa"
 	},
 	"node_modules/app-builder-lib/node_modules/semver/internal/re.js": {
 		"who": "ivk",
@@ -6271,18 +6271,18 @@
 	},
 	"node_modules/app-builder-lib/helpers/dynamic-import.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "308ac3703a9f9c653afa3d0f997a1db20e2822fe8df92a386533cb50114e7162"
+		"when": "2026-10-02",
+		"hash": "9d8548a9980756b47a8539707af36778cd9bbb2c60f185463520971f41bc0267"
 	},
 	"node_modules/app-builder-lib/out/util/resolve.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "7cc0439f87ccc611ec78667e81bc60c31cb36a65d15a0bf8b8eaa464e100142e"
+		"when": "2026-10-02",
+		"hash": "b6fdb156fed12c049ec19daba5d2a80ab52c72a163f7f53221044a7003906c2a"
 	},
 	"node_modules/app-builder-lib/out/asar/asarFileChecker.js": {
 		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "ac27704068dfe837467628266b1d86fadf02b76b888ffe2c770afd53fca4ccf5"
+		"when": "2026-10-06",
+		"hash": "8b725f115ac62df2db8ad75584be76dbd6feea351c6252aa494dff1d214fe491"
 	},
 	"node_modules/isbinaryfile/lib/index.js": {
 		"who": "ivk",
@@ -6335,14 +6335,14 @@
 		"hash": "5efd510c03bcc309fb4e0d72987e0772138a256728b80040f1fbfdda85997761"
 	},
 	"node_modules/app-builder-lib/out/fileMatcher.js": {
-		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "a0ffdc17e175426ffef200d866549d8ac8ece9bc1117bea4671cd5a3f23ee985"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "fb3f2039238d502a84eb1a465c77e14115d79c64d0069a30dc6cd65409e28c10"
 	},
 	"node_modules/app-builder-lib/out/fileTransformer.js": {
-		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "2be90c067b245a9dcea353b7dc97a67a5fcb0764f0694da985c5d055d10be2fc"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "0c4e855d5c9c6682a165c78dfc7206f35b17fd57321627cbb5259dce433c6ec9"
 	},
 	"node_modules/app-builder-lib/out/util/AppFileWalker.js": {
 		"who": "ivk",
@@ -6350,9 +6350,9 @@
 		"hash": "5cb6cd95a74b31a8fd16b993e6caa83a7abe9b0f7dbdf5b5c631f87571cf23f9"
 	},
 	"node_modules/app-builder-lib/out/util/NodeModuleCopyHelper.js": {
-		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "daaf8c32bb31c73e58c55de6097af93ceb970a1439c37b5ccc28551b0593aed2"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "7010cbb479c80bbb9304a13e9c1b56990071b30e9c2c59421e1e26823b3cebc6"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/hoist.js": {
 		"who": "ivk",
@@ -6360,9 +6360,9 @@
 		"hash": "41b466e2245944f9492a9f938a2c5a90f5b8fae80c0aa09044c9a2d54862fd6e"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/moduleManager.js": {
-		"who": "ivk",
-		"when": "2026-02-25",
-		"hash": "52b3d41953431af39989c2fd287f7bb90db51b3121074145e2b05bc23ebcb75e"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "f857ff635a8b3d1f0f8796671d966ea97faad74ec4b67236145d1e702c6da125"
 	},
 	"node_modules/app-builder-lib/node_modules/isexe/dist/commonjs/index.min.js": {
 		"who": "ivk",
@@ -6450,19 +6450,19 @@
 		"hash": "473da31d026034993f1a1a7a930513872c500c037306a20f1b98cb03d9d38fd1"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/nodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-02-26",
-		"hash": "3cbce2482a028f9e3e74e9b552c422a519ed519b22b7a3ad88f04c37e776ae9e"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "2b72f9a1b37a99387dd743f4f879764a70fb827e8d470f40e14d8ecc6df02640"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/npmNodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "dfb38b58c7d06b3add874d3eefefd72c9742b858333a5acd12d66d0c93740dba"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "8cbc8cfbd43092a9da8851711bc82a7ebf0d73a3b4ac5d5faac8ff3bea61dc51"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/pnpmNodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "94af1543c617469ab5d127b9a059e4c01ef7cc6a58c8588653f12c7113036ba7"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "2d77b2bffb6164a2fa8602084c542bdc45946f0649d714814bbe61287fd007ae"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/yarnBerryNodeModulesCollector.js": {
 		"who": "ivk",
@@ -6470,34 +6470,34 @@
 		"hash": "da8f4cfbec00d2613ff442da5b99754bc64fa0d1f90da59a6b57f2a06c0a0847"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/yarnNodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "1acd80a2863ed3d323d0bd413a21b34a8e1f7d5c41888aa7be04b54006fe1a49"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "feb90bc91b1bd4469391af7911155015ee0c92120d6bf422e33398c921219a8b"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/traversalNodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "f648805c8a7e8e1abe299246eed2515ce31e4d0c1717439c8168c01bbb8d9a5f"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "a662f56f3a30207950a9fedc8ef5cc339d8dc8246dc69576f8fcdce1f8eb1f19"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/bunNodeModulesCollector.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
+		"who": "ivk,usa",
+		"when": "2026-10-06",
 		"hash": "67baff83f84f7199a77c2557b5746412695afa3340fe6eae8c42b6fe7debed6a"
 	},
 	"node_modules/app-builder-lib/out/node-module-collector/index.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "2aae551dccb112dc5c9727925c01bd478f062dadff651451bc290642f96aed04"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "b174cb8ed03e40e187f40f800632a2417160cb665a09aae4209129c3d72454ef"
 	},
 	"node_modules/app-builder-lib/out/util/appFileCopier.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "60fe31fde30654a116ce2a2d3071f90caf3a53e820216013a687c1c9d2052de4"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "5c423a763035009fca999996dfe2ff06f3bbd7f5e1bf005019e073010f79227c"
 	},
 	"node_modules/app-builder-lib/out/asar/asarUtil.js": {
-		"who": "ivk",
-		"when": "2026-03-03",
-		"hash": "d27ed4dd22475c882c0823c7892e55f14eab5cb37f32de930fd529209cb02963"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "19d8645afee254bcb30b6a7b42f6e67142d8123a45f641653e23f31b3dcb3bb9"
 	},
 	"node_modules/app-builder-lib/out/asar/integrity.js": {
 		"who": "ivk",
@@ -6720,14 +6720,14 @@
 		"hash": "83361b690b01f132fd9e2492060b0ecee6594c2bbfe1ef427ce0a51478d03dd1"
 	},
 	"node_modules/app-builder-lib/out/util/macosIconComposer.js": {
-		"who": "ivk",
-		"when": "2026-03-04",
+		"who": "ivk,usa",
+		"when": "2026-10-06",
 		"hash": "5ee154e220bbdf547470e6e48cf687defd74d0a036be451d7fb79e7884703d34"
 	},
 	"node_modules/app-builder-lib/out/platformPackager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "69cff89e1c38d33526ef1f90901e7db045eb8cd2d8baf6960d23cad7c6818b60"
+		"who": "ivk",
+		"when": "2026-10-06",
+		"hash": "f9d3e570e0c2f96f8c717e92aedf139c1b38a533269cffc620c46d2c2e9c1535"
 	},
 	"node_modules/app-builder-lib/out/util/plist.js": {
 		"who": "ivk",
@@ -6735,24 +6735,24 @@
 		"hash": "7402cc6cc5abb92469629b5d81b93babc60c3dadb2a2a0033ec4a29bf0400538"
 	},
 	"node_modules/app-builder-lib/out/electron/ElectronFramework.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "c95e9f8b9a1adf6511156809ae9d255cb3af3f0f295e34081dd452f7b4485126"
+		"who": "ivk",
+		"when": "2026-10-06",
+		"hash": "33e70c0586a3bf8e718781f1b04ef9dda4a3e66c80f1989dd2885daeff936773"
 	},
 	"node_modules/app-builder-lib/out/electron/electronMac.js": {
 		"who": "ivk",
-		"when": "2026-03-04",
-		"hash": "ea29a8e86bcd72ba66ccd9cbb244f44b84a0bc7a01d05dc3bee8f0479ab5af55"
+		"when": "2026-10-06",
+		"hash": "3e894286dff40becba614ffc425fb70dba5e0fdeddff12bb8265c9c3dc05cee7"
 	},
 	"node_modules/app-builder-lib/out/frameworks/LibUiFramework.js": {
 		"who": "ivk",
-		"when": "2026-03-05",
-		"hash": "71c3d8364ca09f9ac225ebf919fa81cdd1ed25b22181a140f786b1f2ef0d31e8"
+		"when": "2026-10-08",
+		"hash": "15fa93e8ed8da13f7f725ae7125c7c29ea013487c4c9fccdb18aef64b337ef82"
 	},
 	"node_modules/app-builder-lib/out/ProtonFramework.js": {
 		"who": "ivk",
-		"when": "2026-03-05",
-		"hash": "1940f089c0479054c339220963ccfabceefbae6534800f8673d2f50d45d9b693"
+		"when": "2026-10-08",
+		"hash": "e9ecee1db0a6f865a62c6d5fc99803b4726a146e2f82e506387585443737a223"
 	},
 	"node_modules/@isaacs/fs-minipass/node_modules/minipass/dist/commonjs/index.js": {
 		"who": "ivk",
@@ -7136,13 +7136,13 @@
 	},
 	"node_modules/end-of-stream/index.js": {
 		"who": "ivk",
-		"when": "2026-03-20",
-		"hash": "3e912df226ee90ee3edc5ff69cd3e8313fa1da13795e10fb0b0f05727bdabb58"
+		"when": "2026-10-06",
+		"hash": "fd2c4e9b9b363dce5971089ad21a45b68499dc5c7c3ee2aca6cffa9bc2f76d04"
 	},
 	"node_modules/pump/index.js": {
 		"who": "ivk",
-		"when": "2026-03-20",
-		"hash": "289362bbad06eb8b3d6fe4d9346950022278d10045efce0e824f8d522fb8bfbd"
+		"when": "2026-10-06",
+		"hash": "8fd0d0814ae27d025cbb7e13fb1709f991170235bd5196b84c545ba3ae23046b"
 	},
 	"node_modules/get-stream/buffer-stream.js": {
 		"who": "ivk",
@@ -7151,13 +7151,13 @@
 	},
 	"node_modules/get-stream/index.js": {
 		"who": "ivk",
-		"when": "2026-03-20",
+		"when": "2026-10-06",
 		"hash": "80626386e94017e8950ab75791da258c1165867e49187ebf8c9f77b3e1da4478"
 	},
 	"node_modules/http-cache-semantics/index.js": {
 		"who": "ivk",
-		"when": "2026-03-20",
-		"hash": "e5da23845e88c1f06b8ae520aa99601ab57c0c1d9b0eced70031f41938156d2d"
+		"when": "2026-10-06",
+		"hash": "01b7d66c854b2fe53ac05c98feb6e0d64722ab8898a778e2d2426a8b468d178f"
 	},
 	"node_modules/lowercase-keys/index.js": {
 		"who": "ivk",
@@ -7376,8 +7376,8 @@
 	},
 	"node_modules/app-builder-lib/node_modules/@electron/get/dist/cjs/GotDownloader.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "5a9e7951afb77a38bf64540b4cc80de7c6e0dcb5077dc8ce38d997d769672018"
+		"when": "2026-10-06",
+		"hash": "9173d2564e6685674e9b52807f5fa9ce65d60507357bd41716611074c595f7c0"
 	},
 	"node_modules/app-builder-lib/node_modules/@electron/get/dist/cjs/types.js": {
 		"who": "ivk",
@@ -7476,8 +7476,8 @@
 	},
 	"node_modules/app-builder-lib/out/binDownload.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "034d3c2fac4e60cbf45fd1769ade6b99aed5f6d80a5de911e8e54c712c526e3d"
+		"when": "2026-10-08",
+		"hash": "2d3a1a10d62b19e1bbaf3c0a77aa52ae17c25e2f34cb51faef99684cfecbb08a"
 	},
 	"node_modules/app-builder-lib/out/targets/tools.js": {
 		"who": "ivk",
@@ -7486,8 +7486,8 @@
 	},
 	"node_modules/app-builder-lib/out/targets/archive.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "9fc323bc6208709847cb22f8e8e284c0c1032fffbaed23d55cb54fc51fca4fc3"
+		"when": "2026-10-08",
+		"hash": "fd12aa870efeef54da1e5eaafb52ab9974ff1c3bb0b62eb796c3b6705fa36c12"
 	},
 	"node_modules/app-builder-lib/out/targets/differentialUpdateInfoBuilder.js": {
 		"who": "ivk",
@@ -7496,8 +7496,8 @@
 	},
 	"node_modules/app-builder-lib/out/targets/ArchiveTarget.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "10521466ea43ce9874663168379d47be81d814928ce2dd64310eedb0933861f5"
+		"when": "2026-10-08",
+		"hash": "eebbd3f0b223e4cfc02f41f8677831560e1fd7f6623fff4042d9d449656b2b33"
 	},
 	"node_modules/app-builder-lib/out/targets/targetFactory.js": {
 		"who": "ivk",
@@ -7511,8 +7511,8 @@
 	},
 	"node_modules/app-builder-lib/out/version.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "7d5b2791678cd2de9c135e182f3f23225fd1952cf63e8eccdda6962ed659ea00"
+		"when": "2026-10-06",
+		"hash": "ddfec86c88f499cbc7d6080e56bbdc9283713c6b477af041190ee6b8ffda273b"
 	},
 	"node_modules/dotenv/package.json": {
 		"who": "ivk",
@@ -7531,17 +7531,17 @@
 	},
 	"node_modules/jiti/dist/jiti.cjs": {
 		"who": "ivk",
-		"when": "2026-03-24",
-		"hash": "fabbe6eeeb6f012bf9fe000e542f4c324a2fdf24235702a3a04cea8f74c9b59e"
+		"when": "2026-10-08",
+		"hash": "a0b3b8d5e06a0519c66b62179e29200533057920f6f11370546e979dacd24c49"
 	},
 	"node_modules/jiti/lib/jiti.cjs": {
 		"who": "ivk",
-		"when": "2026-03-24",
+		"when": "2026-10-08",
 		"hash": "a80e7f04d21d4ef5c540287e41d6ab36dbff73132620e1894cd83425bb1e62a7"
 	},
 	"node_modules/app-builder-lib/out/util/config/load.js": {
 		"who": "ivk",
-		"when": "2026-03-24",
+		"when": "2026-10-08",
 		"hash": "e30df034da58442d06115c812cab2728a590ea172a7db1484e8801d9316e9bab"
 	},
 	"node_modules/ajv-keywords/keywords/instanceof.js": {
@@ -7735,14 +7735,14 @@
 		"hash": "125003ab4cf3983376f8b93a36e6dbba881f34ea1c10f9a64b19792f8c54f1ed"
 	},
 	"node_modules/app-builder-lib/out/util/normalizePackageData.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "403ae3c2d2069db24ef8a26c00cd197b9d738a61ace1bdfd00e265051bf22fb4"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "d95e7e0a354f25f79004af427e5ccd0624e679292f9a84a7786b5f270b1622d9"
 	},
 	"node_modules/app-builder-lib/out/util/packageMetadata.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "c6572df934681fa25cddf60c4a4f40c248c3860bacbcf8f87ad719d02dd4b761"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "e48c3a5b8723cdb312abd9aa0f72269e907b4edc2bd47bcfd83def96a3d0c529"
 	},
 	"node_modules/app-builder-lib/out/util/repositoryInfo.js": {
 		"who": "ivk, mab",
@@ -7755,9 +7755,9 @@
 		"hash": "cc7b8a24442cda85d35b9fc3b894ffe45ee154089069fd6d41f48057930f93cf"
 	},
 	"node_modules/app-builder-lib/out/util/yarn.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "ba25c68a41d344ff95b283459064911afe87e795bdd35c9f6737fe8ad782f422"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "ca802222639a465070e2c16fabb25abe440c9bca50c771a60aaafe1e2d1ec759"
 	},
 	"node_modules/app-builder-lib/out/util/asyncEventEmitter.js": {
 		"who": "ivk, mab",
@@ -7770,9 +7770,9 @@
 		"hash": "4e0abdc2334774cc7706d8dd70f39c37122b8dd8c70642bf3784df2d937e1524"
 	},
 	"node_modules/app-builder-lib/out/electron/electronVersion.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "df2cfc430d5d3d080b204c84746aeee3343d2b38cbaec9824578d4eb2bf0aa02"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "833e21343db85701d9bda30ed4756bd0365819cdecc1778731576ca873cd8aea"
 	},
 	"node_modules/pe-library/dist/format/FormatBase.js": {
 		"who": "ivk, mab",
@@ -8040,14 +8040,14 @@
 		"hash": "0c651e389e8c593eeca2fc18142539d0c499773c40acf5d530f11a14fc2e31f3"
 	},
 	"node_modules/app-builder-lib/out/electron/injectFFMPEG.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "f16aeb5e22bd6917b50923d7d08a7594a0bb177bb366ea7b11ec3507ec5cb3a4"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "b090b290830af7f3b26d669cf4b2d299ca0e6ee628f192971392ffcd5ddc4c83"
 	},
 	"node_modules/app-builder-lib/out/packager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "48622ab83e376b71339c855ec5ec1076bcf3f62ae688c564b35cced95962c194"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "420d958bc3db4c603a79acbd28b22b8de5ed480c2ceabf88d9cccf9ce0fc6e76"
 	},
 	"node_modules/delayed-stream/lib/delayed_stream.js": {
 		"who": "ivk, mab",
@@ -8310,9 +8310,9 @@
 		"hash": "3c566ebe2e52a364120a665a6e7c7130a7c47503d61b36c74798b54d9414467f"
 	},
 	"node_modules/form-data/lib/form_data.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-26",
-		"hash": "ccf1c1077340212f58e39d6054c9822aaaef2ed6220c3a502bee446fa3fa6fb6"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "c63c99e10e2c3f46fa990787d7dc4a4f65ea90211c422e19626fecb3d767c41d"
 	},
 	"node_modules/electron-publish/out/publisher.js": {
 		"who": "ivk, mab",
@@ -8350,44 +8350,44 @@
 		"hash": "7b35e6b3b981b498b62860b99063916772a7a199125866d4593db952ba1c14b9"
 	},
 	"node_modules/electron-publish/out/gitHubPublisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "ba716dfd039d311f32c8f9a9a3974979dcf7318aa8277f86f17a16aa642501a2"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "9eb6bfa211a7632dced22a89396de10c8e749f8d4704c781ac9b64990ef4d0d0"
 	},
 	"node_modules/electron-publish/out/gitlabPublisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "84696067534eefc6919ceee84016e2dde8c80850dd9d80b5067cce5a1f9b0fab"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "00dcb7a840e6f4b27a35bc50d1f686ea070f76565962138dfe9ae65eceb148fa"
 	},
 	"node_modules/electron-publish/out/keygenPublisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "a538a258af78de536afce857f1c467d54dc60bf34aea578931b364d5af732a58"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "ace573bfbd355a0e126025d9474d3eacffb2bb3810f7aba3344a39b2df9124bd"
 	},
 	"node_modules/electron-publish/out/s3/baseS3Publisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "cb5febaaace0cebadc68c55eb2524aeab35075dd7d2ee21091fad5b04ef22e21"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "3158dc706aa137e5ddcd21e03de86eaae435fe24744b7d8c9b2a0320d0f87dff"
 	},
 	"node_modules/electron-publish/out/s3/s3Publisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "dce7e80eddd8f106ea4a93db3736a964d612f02e56e81bf9cc81212f48b7849d"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "756a318d6b12bb14d14c93f59f745de5a3081fff07b3940aaf118465d540cf08"
 	},
 	"node_modules/electron-publish/out/s3/spacesPublisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "9a84ca8e840ffca3e617d2262051ddaa8f4a494019b84088f25434fc4dd4d067"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "c6ede2117b670b89bd839edecf6da971f9efa8396dc04b4393de6aa48722b534"
 	},
 	"node_modules/electron-publish/out/snapStorePublisher.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "741c80c56b2b6ecb6ab41b5fec8a4d0c56190b0e4c3fbfa74170b946b79b2a1c"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "b6b27f931567c6a552620e136a81f1e0d58906d7930b1dab6fd20a99b8526dea"
 	},
 	"node_modules/electron-publish/out/index.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "b0e092f5ac3aa1f7e8dcc83b4fded8ac9aa85206e5eb0e1a9a3bf2eafcc19988"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "81ccec73b7b964bfdd8e2c0817de2d52ff30be178f582b67b24e23f2c507a26a"
 	},
 	"node_modules/app-builder-lib/out/util/hash.js": {
 		"who": "ivk, mab",
@@ -8395,19 +8395,19 @@
 		"hash": "22571794ecfdd557ae1b03ac6e03cb7acdfce55c05e634b5770502c392c69a44"
 	},
 	"node_modules/app-builder-lib/out/publish/PublishManager.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "1216e2187c7f13e092f718b78c3072f30eff3a72d50f5208082cef2dfbcc78d1"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "4a05af67b54b0e41369ddd80be89440870ccb2e7cf57373d3916ccc8c9bff4ae"
 	},
 	"node_modules/app-builder-lib/out/publish/updateInfoBuilder.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "f6432e8eb24d4aa77a74c5fa68058c349a45c241cac76bf9636d3b263fb72799"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "e0d01c7e9496dfea814a76661c1ffc664610ce8446c6d9639efca1267715fa29"
 	},
 	"node_modules/app-builder-lib/out/forge-maker.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "75c1464933e20f393b3e65c8f1df599558f96a7b72a76986ac411878dab59d88"
+		"who": "ivk",
+		"when": "2026-10-09",
+		"hash": "890557046c02a593847d1f31c0686ef692a58363c9fe200bd8d49da0d132ecd7"
 	},
 	"node_modules/app-builder-lib/out/targets/LinuxTargetHelper.js": {
 		"who": "ivk",
@@ -8430,14 +8430,14 @@
 		"hash": "1f64008c0fadac76f891dc9608f9bf70b66a1580af00405448200dcb5fd0b5d1"
 	},
 	"node_modules/app-builder-lib/out/codeSign/codesign.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "d10410f2a72501c8b360156dcc897dc9dfed25ece2455d1376c1ffe97fea222d"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "5a176d4ae92e016d3e380a28dfb06edd81a1ae1045a688477092c737463f4ba0"
 	},
 	"node_modules/app-builder-lib/out/codeSign/macCodeSign.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "74a57bbc40326ffe65e8efe47db0ffc4e4fc6b689a52bb0be3413d5a148d5823"
+		"who": "ivk",
+		"when": "2026-10-09",
+		"hash": "6f290b610b30a0c67a43e644786acfa2d94c7e58bb9d2f0cba11e8827bccbb89"
 	},
 	"node_modules/app-builder-lib/out/util/langs.js": {
 		"who": "ivk, mab",
@@ -8450,9 +8450,9 @@
 		"hash": "054137ea8066cb8318e4d5dbc53a836c0d257d027cea6951e9668a9320ae49ff"
 	},
 	"node_modules/app-builder-lib/out/targets/pkg.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "22c97ecf86fb2cf7d06aff70f6c240745ff04361e5e385c753e6b101e14569ba"
+		"who": "ivk",
+		"when": "2026-10-09",
+		"hash": "69e8bcad073615705535a2c0f43df4c763da7549f9abc9730b409de2c909d571"
 	},
 	"node_modules/app-builder-lib/out/util/macosVersion.js": {
 		"who": "ivk, mab",
@@ -8461,8 +8461,8 @@
 	},
 	"node_modules/app-builder-lib/out/macPackager.js": {
 		"who": "ivk",
-		"when": "2026-07-30",
-		"hash": "67df3d520ce09a0f73e5c8e0eacb28fdd83e007b23ab893917ec2d035103bb67"
+		"when": "2026-10-09",
+		"hash": "6642de27bb4ce235b0e53c6a6ff63cb6aaefbb67b05debd16aa8f9d5197d9de6"
 	},
 	"node_modules/app-builder-lib/out/codeSign/windowsCodeSign.js": {
 		"who": "ivk, mab",
@@ -8485,24 +8485,24 @@
 		"hash": "889ddd1f066a527b9cd58da8641ce3c760cbe7061ba223d313e458791533c7cb"
 	},
 	"node_modules/app-builder-lib/out/targets/AppxTarget.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "efc3ea7a5d37bbe6f9d3b0348eb2f3130a719cbb67ee811dc4d441aef406e561"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "780fa5630797fe3f9cf3300cb2a6338048099276c7e891f05a76501b7256db98"
 	},
 	"node_modules/app-builder-lib/out/util/bundledTool.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "84ac6748195fd373bd0da60d848267ca6736bcf96af564b1a13af0ebcad5ca03"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "be76aed08f2d5aa1aca9d9531dd811e2ef1cc09ed55ecf0e5dba0ee73cb398a9"
 	},
 	"node_modules/app-builder-lib/out/vm/vm.js": {
-		"who": "ivk, mab",
-		"when": "2026-03-27",
-		"hash": "ad46bb586e8a78707327330917373f2ca22a46a5932313df08976d43c17471ed"
+		"who": "ivk",
+		"when": "2026-10-08",
+		"hash": "1d7b95864c151f9beca5d601703aaf86c2e20678338e311578306658f32ec6ac"
 	},
 	"node_modules/app-builder-lib/out/codeSign/windowsSignToolManager.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "4b956727cd23830550c56315e8debe73f4bbc120b57dc3302952390d7ce09e8d"
+		"when": "2026-10-09",
+		"hash": "737f4e5215362672a75cdf63b9fb4e8f92aa02e09badf7b9245afd8604f8ccbd"
 	},
 	"node_modules/app-builder-lib/out/options/CommonWindowsInstallerConfiguration.js": {
 		"who": "ivk, mab",
@@ -8585,9 +8585,9 @@
 		"hash": "94772d86a718ebeefa1273918175b3816fa051a4d544ce565bcc53c58d5fc74f"
 	},
 	"node_modules/brace-expansion/dist/commonjs/index.js": {
-		"who": "ivk",
-		"when": "2026-07-27",
-		"hash": "994eb761eca1c861f586ce6ab31bc2e7a6bc020dc4d6636d5e8b778c366d133f"
+		"who": "ivk,usa",
+		"when": "2026-10-06",
+		"hash": "8d1ea713e1dd03f52783bbceea9d85815a3587134d1936ea16257dea83884f15"
 	},
 	"node_modules/@electron/fuses/node_modules/fs-extra/lib/fs/index.js": {
 		"who": "ivk",
@@ -8671,8 +8671,8 @@
 	},
 	"node_modules/@electron/asar/node_modules/brace-expansion/index.js": {
 		"who": "ivk",
-		"when": "2026-07-27",
-		"hash": "28659473c69e1ea346e5c594964409508a186a353135df811e6cb9841f2844e5"
+		"when": "2026-10-02",
+		"hash": "c53b4fab560940391af6889ac8fafe67629ec645ca536dd7f10d266713e969bf"
 	},
 	"node_modules/@electron/asar/node_modules/minimatch/minimatch.js": {
 		"who": "ivk",
@@ -8731,12 +8731,12 @@
 	},
 	"node_modules/@electron/asar/node_modules/glob/common.js": {
 		"who": "ivk",
-		"when": "2026-07-27",
-		"hash": "c31f29d45bfd958dc91f3bf2c3b06fe9424cff586822934d525be0a613c0bf57"
+		"when": "2026-10-02",
+		"hash": "b867e089ab5d4ab19a83e5b34da3dd7f4018fdf255fcacc681aab87d41dc77e8"
 	},
 	"node_modules/@electron/asar/node_modules/glob/sync.js": {
 		"who": "ivk",
-		"when": "2026-07-27",
+		"when": "2026-10-02",
 		"hash": "0f61227f4b55297f1ad16798c53e6a6dd55d633856f153133716413b7c5f61ad"
 	},
 	"node_modules/inflight/inflight.js": {
@@ -8781,8 +8781,8 @@
 	},
 	"node_modules/builder-util/out/stringUtil.js": {
 		"who": "ivk",
-		"when": "2026-07-27",
-		"hash": "70a9c2b91da55fb393f4c8c8fc1ce2e7ef90abbfcb640d604cea432e556ac222"
+		"when": "2026-10-02",
+		"hash": "930a7c067e00948017d96b9d650ac0eac3f64ab4eba0d234c4ea98047fa8c88f"
 	},
 	"node_modules/builder-util/out/envUtil.js": {
 		"who": "ivk",
@@ -8831,8 +8831,8 @@
 	},
 	"node_modules/app-builder-lib/out/util/electronGet.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "3452ca5b9a2f29dd6460f0cc9937be2dc1bbbf36809f410649a015b35a607b48"
+		"when": "2026-10-06",
+		"hash": "2996982883a413aae92fa03a62611237a83a576ff602a4f97115d57daee0d87d"
 	},
 	"node_modules/app-builder-lib/out/toolsets/7zip.js": {
 		"who": "ivk",
@@ -8841,8 +8841,8 @@
 	},
 	"node_modules/tar/dist/commonjs/index.min.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "a683d71878842f94426739c79dbdfbeb63b67de3a87183237bccd11505f6d3ff"
+		"when": "2026-10-06",
+		"hash": "b9464172723801f6ad013a1a819b5f31838753559d56c879202d7fb3c1326167"
 	},
 	"node_modules/unzipper/lib/PullStream.js": {
 		"who": "ivk",
@@ -9276,8 +9276,8 @@
 	},
 	"node_modules/app-builder-lib/out/toolsets/icons.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "fc6e3ba1b8a6e0e2b12c60dbc841e4597883ebe2200cc9fa444ff6cebbb3b86e"
+		"when": "2026-10-06",
+		"hash": "2a528c59983ec144ec91849e5bf3db2d920ee88dd29ec02febfe340af07f6045"
 	},
 	"node_modules/app-builder-lib/out/util/iconConverter.js": {
 		"who": "ivk",
@@ -9286,13 +9286,13 @@
 	},
 	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/dom.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "158effa6032e9ae3d030926c3ca4781bb8f3828bc25c85e4a885bdf843be0c19"
+		"when": "2026-10-06",
+		"hash": "eae57ba1588b8c025a71cdbb31edd0a87a4d14c1cb00e19155b2cdba44f7548b"
 	},
 	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/sax.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "b12589c4f672a9ae1e03de837f574d6cdf6b41f270b7efb85cec89c31e157f0b"
+		"when": "2026-10-06",
+		"hash": "b2592fbf6993b04576c7ffbd78d63cecdf6495ff1f7a43c2516a0482e69736e9"
 	},
 	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/dom-parser.js": {
 		"who": "ivk",
@@ -9411,18 +9411,18 @@
 	},
 	"node_modules/fast-uri/lib/utils.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "3394986f9670b821493943faafe5d83ccc15109aba908f1b5dd017e27b0d0ea7"
+		"when": "2026-10-08",
+		"hash": "610a6cfa7b1c9d5689443b3a3d14af4c24afed51ef5852495ae1489ae455a9f4"
 	},
 	"node_modules/fast-uri/lib/schemes.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "0f9497f8e43c9b002d79c8a916709daa4ae8a6462735b1b5dc6ad587a28a5064"
+		"when": "2026-10-08",
+		"hash": "c2c61d3fd0bc63a587100928a399e75be8c420d210c439d75f7346da4aa4f3c3"
 	},
 	"node_modules/fast-uri/index.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "9d6fdc3569a8fef29d6d30c36e16de1753ebd76895aa6e72a3b1c226eb24cc33"
+		"when": "2026-10-08",
+		"hash": "62876e5094b43ba2ba90374613dab4576fd337063dad20b4b07cc5e3a7e2303b"
 	},
 	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/uri.js": {
 		"who": "ivk",
@@ -9461,13 +9461,13 @@
 	},
 	"node_modules/app-builder-lib/node_modules/ajv/dist/runtime/ucs2length.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "422b75e772987840edcd2040918f8314653b8619b73c02564edd30359df22811"
+		"when": "2026-10-08",
+		"hash": "1df012dd3d23fced07255a7204798004509687cb1f431ae0ab976db436bbd890"
 	},
 	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/limitLength.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "2cd7e4b635cc3274d0c3211985e8ff1862c62b29f0374bbb96ed7d48c6e55c43"
+		"when": "2026-10-08",
+		"hash": "379c28317faaf7784680b6049c3562692d3df6d65cce33f48e6c6c723beeeec2"
 	},
 	"node_modules/app-builder-lib/node_modules/ajv/dist/vocabularies/validation/pattern.js": {
 		"who": "ivk",
@@ -9646,38 +9646,38 @@
 	},
 	"node_modules/app-builder-lib/out/toolsets/linux.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "43c9c90f3016f4624ef7b83462453691e2a0e54eaff6e8d4be9fc63bb1f4e4bc"
+		"when": "2026-10-08",
+		"hash": "69b68e17044a0a622fe4705e47c8ca10b1c493793e57b9a9cd18229835cc183b"
 	},
 	"node_modules/@noble/hashes/utils.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "e2adfc13c846487feff0410bd5508a1d66f5ebadc3188f3a40a6b55449981e2f"
+		"when": "2026-10-02",
+		"hash": "7edf19720c345e1cb76e8d3a9306f3344457d4e03576bbb0b3e1ffd0a42d0d30"
 	},
 	"node_modules/@noble/hashes/_blake.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "d25543ec4f84723fa4aec60d2d55a90b51bb7eeb9f70c747f2f55503e67ee75b"
+		"when": "2026-10-08",
+		"hash": "1571ea487d80242d4aa8250eaa3b7ef91b684396653b9d0e373a1e6f95109aee"
 	},
 	"node_modules/@noble/hashes/_md.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "8227b9b5cabf078a9d7f7317f7a1ace6e46627539aa9364667aec724e1636f14"
+		"when": "2026-10-08",
+		"hash": "4eaf0ae8f8191c50acdab7c3de7f335bf24845e4b562bdbc3e9f61cb7a873831"
 	},
 	"node_modules/@noble/hashes/_u64.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "766b91a693a798f9d3cde97b25db4a6d0cef66b2ca21153d3d42424d37878870"
+		"when": "2026-10-08",
+		"hash": "9b109bb57c0d8852bda12136f0f588ffea2a1a3c0f4241bdbb3727cd449976ae"
 	},
 	"node_modules/@noble/hashes/blake2.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "0349c61ff467cb14d413421b212616c0343f4dd4e36a0b1d626e1847dcabafd5"
+		"when": "2026-10-08",
+		"hash": "5021aa2e1d36030dec48489556a6f5b229edfdd01b027db3084935cf537620c8"
 	},
 	"node_modules/app-builder-lib/out/targets/blockmap/blockmap.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "3681fc85bae69106c98d39c299242311a3e4f33b4b1a7786d1c0033fb4b1c0e5"
+		"when": "2026-10-08",
+		"hash": "1299a5cd703d80d0d311f7e862ef3328edbc811455dbef144b6292fcc3e36922"
 	},
 	"node_modules/electron-publish/out/util.js": {
 		"who": "ivk",
@@ -9721,8 +9721,8 @@
 	},
 	"node_modules/pvutils/build/utils.js": {
 		"who": "ivk",
-		"when": "2026-07-28",
-		"hash": "df04e5483b66af19b163561164de1e66b71a68a09e94d60880b92ae01b7b07fd"
+		"when": "2026-10-08",
+		"hash": "cf7847e45f8a080208558e66075683e2691e243df3ca3b471f2d39fad7968d1b"
 	},
 	"node_modules/asn1js/build/index.js": {
 		"who": "ivk",
@@ -9811,8 +9811,8 @@
 	},
 	"node_modules/pkijs/build/index.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "c8c70f540607322bea161078bbf06719aec0be29234383035fcc0a71029c64b4"
+		"when": "2026-10-09",
+		"hash": "cbbbf4032032feb69dfb1b545452bea75586610af505bc9ac0e7d818798f713b"
 	},
 	"node_modules/@peculiar/utils/build/cjs/bytes/buffer-source.js": {
 		"who": "ivk",
@@ -9881,18 +9881,18 @@
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/enums.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "674225bfad835712c8f39c28663b7f791a2350caba4a4886187762892263b06e"
+		"when": "2026-10-09",
+		"hash": "7c98a7a79aaf36968dadf0080284a38acee376913eeb0892a8c8f46b9d90ebda"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/types/bit_string.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "e69d0a0ccc5de493c27d9dd543d63ba0cb9d3bcac07bd173ea864244427c7c4b"
+		"when": "2026-10-09",
+		"hash": "72d5ad1c63c3f72233b09c77d326a9022e8363586b1e95c428b65c761543a12c"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/types/octet_string.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "6002cfa6aad4f1bfbd86169b58f9d1db4b8f0953c09f900d7e2eb6614917a850"
+		"when": "2026-10-09",
+		"hash": "b7d76374e422b6c8ef51893b2fb341d2a2cb2907520fc68895c9f8462a92c6dd"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/types/index.js": {
 		"who": "ivk",
@@ -9901,8 +9901,8 @@
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/converters.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "cc1a80e9705f08875e77a2f7315f1efacf60acabe871b159cd1d920120e662a8"
+		"when": "2026-10-09",
+		"hash": "83a71de3b07d0274653001d2202291d1c98f2b499fea92db0b94c4c4b64e5ed2"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/helper.js": {
 		"who": "ivk",
@@ -9911,18 +9911,18 @@
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/schema.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "0ff6bf148163c86cec973192010191d134a40d28517595746dc9f51c1b9b850d"
+		"when": "2026-10-09",
+		"hash": "88a7999f541ce103c38a9434f79af92ab3ff14e0f7f0e9b1c179c679145dfd8e"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/storage.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "f3b86032ef8a7b45500eb9d0be2dbd3009491923fbffecd55056af6a1c158681"
+		"when": "2026-10-09",
+		"hash": "cbd670a1e2c1b61ea97af7680d967966a5389b70ab3c8ea9e34c9aa9b0b6d795"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/decorators.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "e815649acf380451e21bd2e8490f0067748f950ac7b4c8ffba8c113394c5e940"
+		"when": "2026-10-09",
+		"hash": "121cf121db542aa1540b6ca645756e81eaf975813abf296bd7088ebba4569799"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/errors/schema_validation.js": {
 		"who": "ivk",
@@ -9936,13 +9936,13 @@
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/parser.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "0d57e370e4ee4fa5cb72b85dfa581861a13e642757769ed3f9fc2b5c7363a5de"
+		"when": "2026-10-09",
+		"hash": "ed93b67ed9b65316397c372870ef8c19af8d4d97cc67b86dc985e3b1bb1b7569"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/serializer.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "a1b84d90aa13b35af691283dda3a3a29781e4b67292e2cb9960261065a0fcdff"
+		"when": "2026-10-09",
+		"hash": "fa42e6b681fbe31943cb8cba4ac51f7efae4f46ce8936e12de61b473a9f42873"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/objects.js": {
 		"who": "ivk",
@@ -9951,12 +9951,12 @@
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/convert.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "46daf95adf0fb3a18a959eb5f3db1aab37cbd3dddd37be24204a360402fd2e72"
+		"when": "2026-10-09",
+		"hash": "f631009bc4a6d61fbc7bc96b816046a7529f4cb986cf0854400025d63598b80e"
 	},
 	"node_modules/@peculiar/asn1-schema/build/cjs/index.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
+		"when": "2026-10-09",
 		"hash": "17368fa20e19c361ed85b88bbf768186a9b7776cbdfe2d5fd809ed9b8df02bd0"
 	},
 	"node_modules/@peculiar/json-schema/build/index.js": {
@@ -10061,8 +10061,8 @@
 	},
 	"node_modules/app-builder-lib/out/targets/snap/core24.js": {
 		"who": "ivk",
-		"when": "2026-07-29",
-		"hash": "47dc6a4de12b7650a9096d77b537a5f025f7c4b036a503cc65d0ec83f5110ed2"
+		"when": "2026-10-09",
+		"hash": "3156ad3f328a90a8c75329db945d05a80f4569b6e8f163330704b19cbdc95998"
 	},
 	"node_modules/app-builder-lib/out/targets/snap/coreCustom.js": {
 		"who": "ivk",
@@ -10071,8 +10071,8 @@
 	},
 	"node_modules/app-builder-lib/out/targets/snap/coreLegacy.js": {
 		"who": "ivk",
-		"when": "2026-07-30",
-		"hash": "b6aecbd32427c0d827846a6b4973bdfd44a0686d88e524ab7c9f139db7a639d1"
+		"when": "2026-10-09",
+		"hash": "92d115330b340c725504c9e1351a391a2d9d180f098295701bd44856c8ab3a24"
 	},
 	"node_modules/app-builder-lib/out/mac/MacTargetHelper.js": {
 		"who": "ivk",
@@ -10098,5 +10098,40 @@
 		"who": "ivk",
 		"when": "2026-07-30",
 		"hash": "dce471a598e059f2d1289e5363cb7cbb9049da990ef9a9bf3c9ff0823edf6e24"
+	},
+	"node_modules/app-builder-lib/node_modules/@xmldom/xmldom/lib/conventions.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "9ceee011f51db3a4581029a7dce1e9bf1fa5c37ad928b63c3625dda9a907fd55"
+	},
+	"node_modules/@noble/hashes/cryptoNode.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "7d96258d2ff9da048ceb1fe88fb68172c5f952e461dda65fd08f30e20b5416ae"
+	},
+	"node_modules/@noble/hashes/blake2b.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "769a5b556cfce22010c582d633aecb16f032f4a6f7a6c2284c14a683f31a151c"
+	},
+	"node_modules/@noble/hashes/legacy.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "f4e0c6e5ce845ae819a3aa90dfc92fe3b6e2345028fc4a262dc2686adfd901b4"
+	},
+	"node_modules/@noble/hashes/sha1.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "bd6111c877b310aee9b4cdb78f4ba80c18a4910693582162a3ed4e8fec4e06dc"
+	},
+	"node_modules/@noble/hashes/sha2.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "53b6dc30db76a7c4e4b9370049e7a3c01bbb5507d058c084e97ccb3ee050faa4"
+	},
+	"node_modules/app-builder-lib/out/targets/snap/snapCommand.js": {
+		"who": "ivk",
+		"when": "2026-10-02",
+		"hash": "6e733ad9f679ded3739da04cf6a347e3d4d6f63035989428b87bdc004379e96c"
 	}
 }
