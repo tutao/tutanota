@@ -6,7 +6,7 @@ import {
 	XRechnungInvoiceGenerator,
 } from "../../../../../src/applications/common/api/worker/invoicegen/XRechnungInvoiceGenerator.js"
 
-import { InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
+import { InvoiceItemType, InvoiceType, InvoicePaymentMethod, VatType } from "../../../../../src/applications/common/api/worker/invoicegen/InvoiceUtils.js"
 
 import { InvoiceDataGetOutTypeRef, InvoiceDataItemTypeRef } from "@tutao/entities/sys"
 import { urlEncodeHtmlTags } from "../../../../../src/platform-kit/utils"
@@ -28,7 +28,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			subTotal: "20.00",
 			grandTotal: "20.00",
 			vatType: VatType.NO_VAT,
-			paymentMethod: PaymentMethod.INVOICE,
+			paymentMethod: InvoicePaymentMethod.INVOICE,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: `1`,
@@ -70,7 +70,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vat: "11.40",
 			vatIdNumber: null,
 			vatType: VatType.ADD_VAT,
-			paymentMethod: PaymentMethod.PAYPAL,
+			paymentMethod: InvoicePaymentMethod.PAYPAL,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: "4",
@@ -113,7 +113,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatRate: "0",
 			vat: "0",
 			vatIdNumber: "FR1234567891",
-			paymentMethod: PaymentMethod.CREDIT_CARD,
+			paymentMethod: InvoicePaymentMethod.CREDIT_CARD,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: "3",
@@ -142,7 +142,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatRate: "19",
 			vat: "2.74",
 			vatIdNumber: null,
-			paymentMethod: PaymentMethod.ACCOUNT_BALANCE,
+			paymentMethod: InvoicePaymentMethod.ACCOUNT_BALANCE,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: "1",
@@ -169,7 +169,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatRate: "20",
 			vat: "6.00",
 			vatIdNumber: null,
-			paymentMethod: PaymentMethod.CREDIT_CARD,
+			paymentMethod: InvoicePaymentMethod.CREDIT_CARD,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: "1",
@@ -213,7 +213,7 @@ o.spec("XRechnungInvoiceGenerator", function () {
 			vatRate: "19",
 			vat: "1.57",
 			vatIdNumber: "DE123456789",
-			paymentMethod: PaymentMethod.INVOICE,
+			paymentMethod: InvoicePaymentMethod.INVOICE,
 			items: [
 				createTestEntity(InvoiceDataItemTypeRef, {
 					amount: "1",
