@@ -110,7 +110,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 			ignoreCertificateErrors: migrationData.ignoreCertificateErrors,
 			provider: migrationData.mailboxMigrationProvider,
 			useSSL: migrationData.useSSL,
-			isLegacy: false, // a migration created in the wizard uses the provider's fetch method
+			isLegacy: false,
 		}
 		return migrationCredentials
 	}

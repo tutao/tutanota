@@ -14,7 +14,7 @@ export enum UidFetchRequestType {
 	WAIT,
 }
 
-export const UID_FETCH_REQUEST_WAIT_TIME = 10 // in ms
+export const UID_FETCH_REQUEST_WAIT_TIME_MS = 10
 
 export const UID_DIFF_DOWNLOAD_BATCH_SIZE = 2500
 export const MAIL_DOWNLOAD_BATCH_SIZE = 125

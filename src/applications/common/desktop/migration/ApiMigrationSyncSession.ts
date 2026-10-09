@@ -13,7 +13,7 @@ import { ProgrammingError } from "@tutao/app-env"
  * The counterpart of ImapSyncSessionProcess is {@link runMailboxSync}, subclasses only implement the API specific parts.
  */
 export abstract class ApiMigrationSyncSession<TApiClient> extends MigrationSyncSession {
-	// Short compared to ImapSyncSession, a postponed API sync is resumed by the periodic resync anyway.
+	// Postponed API sync is resumed by the periodic resync anyway.
 	protected readonly mailboxFailurePostponeTime = 15 * 60 * 1000 // 15 minutes
 	private apiClient?: TApiClient
 

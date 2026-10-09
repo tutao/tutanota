@@ -3,7 +3,7 @@ import type { MigrationSyncEventListener } from "../MigrationSyncEventListener.j
 import { MigrationMailId, MigrationCredentials } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMail } from "../../../api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationMailbox, MigrationMailboxStatus } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
-import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
+import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME_MS, UidFetchRequestType } from "./DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
 import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
 import { migrationMailFromImapFlowFetchMessageObject } from "../mailparser/MailParserUtils"
@@ -134,7 +134,7 @@ export class ImapSyncSessionProcess {
 			while (nextUidFetchRequest) {
 				// wait for the differentialUidLoader to calculate more IMAP UID differences
 				if (nextUidFetchRequest.fetchRequestType === UidFetchRequestType.WAIT) {
-					await setTimeout(UID_FETCH_REQUEST_WAIT_TIME)
+					await setTimeout(UID_FETCH_REQUEST_WAIT_TIME_MS)
 					nextUidFetchRequest = await differentialUidLoader.getNextUidFetchRequest()
 					continue
 				}
