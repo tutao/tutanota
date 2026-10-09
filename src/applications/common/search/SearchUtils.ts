@@ -92,11 +92,12 @@ export function renderListColumnWrapper<T, U extends ViewHolder<T>>(
 	renderConfig: RenderConfig<T, U>,
 	cancelCallback?: () => unknown,
 	endOfListRender?: () => Children,
+	searchQuery?: string,
 ): Children {
 	return m(
 		ListColumnWrapper,
 		{ headerContent: null, class: Styles.get().isSingleColumnLayout() ? undefined : "column-resize-padding" },
-		listModel.isEmptyAndDone()
+		listModel.isEmptyAndDone() && !searchQuery
 			? m(ColumnEmptyMessageBox, {
 					icon,
 					message: "searchNoResults_msg",
