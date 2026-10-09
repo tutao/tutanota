@@ -13,13 +13,22 @@ import { DialogHeaderBar, DialogHeaderBarAttrs } from "../base/DialogHeaderBar.j
 
 EnvProvider.assertMainOrNode()
 
+interface ProgressDialogAttrs {
+	progressStream?: Stream<number>
+	headerBarAttrs?: DialogHeaderBarAttrs
+	delayDisplayMillis?: number
+	minDialogVisibilityMillis?: number
+}
+
 export async function showProgressDialog<T>(
 	messageIdOrMessageFunction: MaybeLazy<MaybeTranslation>,
 	action: Promise<T>,
-	progressStream?: Stream<number>,
-	headerBarAttrs?: DialogHeaderBarAttrs,
-	delayDisplayMillis: number = 0,
-	minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000,
+	{
+		progressStream,
+		headerBarAttrs,
+		delayDisplayMillis = 0,
+		minDialogVisibilityMillis = EnvProvider.get().isAdminClient() ? 0 : 1000,
+	}: ProgressDialogAttrs = {},
 ): Promise<T> {
 	if (progressStream != null) {
 		progressStream.map(() => {

@@ -440,21 +440,24 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 
 												const progress = stream(0)
 												const abort = new AbortController()
-												const moved = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), progress, {
-													middle: "reapplyInboxRules_action",
-													left: () => {
-														return [
-															{
-																label: "cancel_action",
-																click: () => {
-																	abort.abort()
+												const moved = await showProgressDialog("pleaseWait_msg", this.reapplyAllInboxRules(progress, abort), {
+													progressStream: progress,
+													headerBarAttrs: {
+														middle: "reapplyInboxRules_action",
+														left: () => {
+															return [
+																{
+																	label: "cancel_action",
+																	click: () => {
+																		abort.abort()
 
-																	// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
-																	progress(100)
-																},
-																type: ButtonType.Secondary,
-															} as const,
-														]
+																		// set progress to 100 so it doesn't look "stuck" even if it might take a few seconds to finish
+																		progress(100)
+																	},
+																	type: ButtonType.Secondary,
+																} as const,
+															]
+														},
 													},
 												})
 												await Dialog.message(lang.getTranslation("moveItemsSuccess_msg", { "{count}": moved }))
