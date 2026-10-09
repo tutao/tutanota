@@ -86,6 +86,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 				style: {
 					"border-color": theme.surface_container_high,
 					color: theme.on_surface,
+					"flex-grow": 1,
 				},
 			},
 			[
