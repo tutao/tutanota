@@ -2581,3 +2581,4 @@ export type TranslationKeyType =
 	| "surveySomethingNotWorking_label"
 	| "accessDeactivated_msg"
 	| "afterProxyStoreAction_msg"
+	| "campaignBlackFridayTitle2026_label"

@@ -2581,6 +2581,7 @@ export default {
 		"sendFeedback_action": "Feedback senden",
 		"feedbackAnonymousAndHelpUs_label": "Ihr Feedback ist anonym und hilft uns, Tuta zu verbessern.",
 		"accessDeactivated_msg": "Ihr Account wurde deaktiviert.",
-		"afterProxyStoreAction_msg": "Bitte folgen Sie nach dem Kauf des Gutscheins den Anweisungen auf ProxyStore um fortzufahren."
+		"afterProxyStoreAction_msg": "Bitte folgen Sie nach dem Kauf des Gutscheins den Anweisungen auf ProxyStore um fortzufahren.",
+		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!"
 	}
 }
