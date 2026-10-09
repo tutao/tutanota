@@ -1,18 +1,18 @@
 import XRechnungUBLTemplate from "./XRechnungUBLTemplate.js"
 import InvoiceTexts from "./InvoiceTexts.js"
 import { InvoiceDataGetOut, InvoiceDataItem } from "@tutao/entities/sys"
-import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, PaymentMethod, VatType } from "./InvoiceUtils"
+import { countryUsesGerman, getInvoiceItemTypeName, InvoiceItemType, InvoiceType, InvoicePaymentMethod, VatType } from "./InvoiceUtils"
 
 const DE_POSTAL_CODE_REGEX = new RegExp(/\d{5}/)
 const CITY_NAME_REGEX = new RegExp(/\d{5}/)
 
 // https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL4461/
-const PaymentMethodTypeCodes: Record<PaymentMethod, NumberString> = Object.freeze({
-	[PaymentMethod.INVOICE]: "58",
-	[PaymentMethod.CREDIT_CARD]: "54",
-	[PaymentMethod.SEPA_UNUSED]: "59",
-	[PaymentMethod.PAYPAL]: "48", // no actual code for Paypal, no common recommendation for a good code
-	[PaymentMethod.ACCOUNT_BALANCE]: "97",
+const PaymentMethodTypeCodes: Record<InvoicePaymentMethod, NumberString> = Object.freeze({
+	[InvoicePaymentMethod.INVOICE]: "58",
+	[InvoicePaymentMethod.CREDIT_CARD]: "54",
+	[InvoicePaymentMethod.SEPA_UNUSED]: "59",
+	[InvoicePaymentMethod.PAYPAL]: "48", // no actual code for Paypal, no common recommendation for a good code
+	[InvoicePaymentMethod.ACCOUNT_BALANCE]: "97",
 })
 
 // https://docs.peppol.eu/poacc/billing/3.0/codelist/UNCL5305
@@ -63,7 +63,7 @@ export class XRechnungInvoiceGenerator {
 			.replace("{buyerId}", this.customerId)
 			.replace("{slotSeller}", XRechnungUBLTemplate.Seller)
 			.replace("{slotBuyer}", this.resolveBuyer())
-			.replace("{paymentMeansCode}", PaymentMethodTypeCodes[this.invoice.paymentMethod as PaymentMethod])
+			.replace("{paymentMeansCode}", PaymentMethodTypeCodes[this.invoice.paymentMethod as InvoicePaymentMethod])
 			.replace("{slotPaymentTerms}", this.resolvePaymentTerms())
 			.replace("{slotAllowanceCharge}", this.resolveAllowanceCharge(taxCategory))
 			.replace("{slotTotalTax}", this.resolveTotalTax(taxCategory))
@@ -140,7 +140,7 @@ export class XRechnungInvoiceGenerator {
 		let paymentNote = ""
 		if (this.invoice.invoiceType === InvoiceType.INVOICE) {
 			switch (this.invoice.paymentMethod) {
-				case PaymentMethod.INVOICE:
+				case InvoicePaymentMethod.INVOICE:
 					paymentNote += `${InvoiceTexts[this.languageCode].paymentInvoiceDue1} ${InvoiceTexts[this.languageCode].paymentInvoiceDue2} ${
 						InvoiceTexts[this.languageCode].paymentInvoiceHolder
 					} ${InvoiceTexts[this.languageCode].paymentInvoiceBank} ${InvoiceTexts[this.languageCode].paymentInvoiceIBAN} ${
@@ -149,13 +149,13 @@ export class XRechnungInvoiceGenerator {
 						InvoiceTexts[this.languageCode].paymentInvoiceProvideNumber2
 					}`
 					break
-				case PaymentMethod.CREDIT_CARD:
+				case InvoicePaymentMethod.CREDIT_CARD:
 					paymentNote += `${InvoiceTexts[this.languageCode].paymentCreditCard}`
 					break
-				case PaymentMethod.PAYPAL:
+				case InvoicePaymentMethod.PAYPAL:
 					paymentNote += `${InvoiceTexts[this.languageCode].paymentPaypal}`
 					break
-				case PaymentMethod.ACCOUNT_BALANCE:
+				case InvoicePaymentMethod.ACCOUNT_BALANCE:
 					paymentNote += `${InvoiceTexts[this.languageCode].paymentAccountBalance}`
 					break
 			}
