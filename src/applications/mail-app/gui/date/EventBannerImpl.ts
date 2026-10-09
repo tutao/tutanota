@@ -36,7 +36,7 @@ export const enum EventBannerAreas {
 	Sidebar = "sidebar",
 	Title = "title",
 	Middle = "middle",
-	Conflicts = "conflicts",
+	TimeOverview = "timeoverview",
 }
 
 /**
@@ -99,21 +99,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		if (!agenda) {
 			console.warn(`Trying to render an EventBanner for an event but it doesn't have an agenda. Something really wrong happened.`)
 		}
-
 		const calendarTimeZone = getTimeZone()
 
-		const eventBannerGridDefinition = {
-			gridTemplateAreas: '"sidebar title title";',
-		}
-		//
-		// const eventBannerGridDefinitionMobile = {
-		// 	display: "grid",
-		// 	gridTemplateColumns: "120px 1fr 1fr;",
-		// 	gridTemplateRows: "auto 1fr;",
-		// 	"grid-template-areas": `"sidebar title" "sidebar middle" "sidebar conflicts";`,
-		// }
+		const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-layout-mobile" : ".event-banner-grid-layout"
 
-		return m(".event-banner-grid-layout.border-sm.border-radius-8.border-color-container-high.mb-8", [
+		return m(eventBannerGrid + ".border-sm.border-radius-8.border-color-container-high.mb-8", [
 			m(EventBannerSidbarArea, { event: icsCalendarEvent }),
 			m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
 			m(EventBannerMiddleArea, { event: icsCalendarEvent, calendarTimeZone, replySection }),

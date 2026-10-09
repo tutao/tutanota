@@ -81,7 +81,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 			{
 				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				style: {
-					gridArea: EventBannerAreas.Conflicts,
+					gridArea: EventBannerAreas.TimeOverview,
 					"border-color": theme.surface_container_high,
 					color: theme.on_surface,
 				},

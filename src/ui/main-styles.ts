@@ -3474,11 +3474,23 @@ export class MainStyles {
 					display: "grid",
 					"grid-template-areas": `
 							"sidebar title title" 
-							"sidebar middle conflicts";
+							"sidebar middle timeoverview";
 							`,
 					"grid-template-columns": "110px 2fr 3fr;",
 					"grid-template-rows": "auto 1fr;",
 					"max-width": px(900),
+				},
+
+				".event-banner-grid-layout-mobile": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title" 
+							"sidebar middle"
+							"sidebar timeoverview";
+							`,
+					"grid-template-columns": "110px 1fr;",
+					"grid-template-rows": "auto auto 1fr;",
+					//"max-width": px(900),
 				},
 			}
 		})
