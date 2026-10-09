@@ -6831,11 +6831,13 @@ export type MailboxMigrationSyncStateParams = {
 	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	errorCause: null | NumberString
 
 	mailboxMigrationFolderSyncStates: Id
 	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	mailboxMigrationInfo: null | IdTuple
 }
 
 export type MailboxMigrationSyncState = {
@@ -6852,6 +6854,7 @@ export type MailboxMigrationSyncState = {
 	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	errorCause: null | NumberString
 
 	// == associations
 
@@ -6859,6 +6862,7 @@ export type MailboxMigrationSyncState = {
 	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	mailboxMigrationInfo: null | IdTuple
 
 	//== some entities have these and some don't
 
@@ -7648,6 +7652,7 @@ export type MailboxMigrationPutInParams = {
 	newMailboxMigrationSyncStatus: NumberString
 	newMailboxMigrationFolderSyncStatus: NumberString
 	newPostponedUntil: null | string
+	errorCause: null | NumberString
 
 	mailboxMigrationSyncState: IdTuple
 }
@@ -7659,6 +7664,7 @@ export type MailboxMigrationPutIn = {
 	newMailboxMigrationSyncStatus: NumberString
 	newMailboxMigrationFolderSyncStatus: NumberString
 	newPostponedUntil: null | string
+	errorCause: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -7680,5 +7686,141 @@ export type MailboxMigrationPutIn = {
 	// === these are not present in metamodel
 	_type: TypeRef<MailboxMigrationPutIn>
 	_original: Nullable<MailboxMigrationPutIn>
+	isAdapter: false
+}
+export const CustomerMailboxMigrationPostInTypeRef: TypeRef<CustomerMailboxMigrationPostIn> = new TypeRef("tutanota", 2066)
+
+export function createCustomerMailboxMigrationPostIn(values: CustomerMailboxMigrationPostInParams): CustomerMailboxMigrationPostIn {
+	return Object.assign(create(typeModels[CustomerMailboxMigrationPostInTypeRef.typeId], CustomerMailboxMigrationPostInTypeRef), values)
+}
+
+export type CustomerMailboxMigrationPostInParams = {
+	ownerEncMailboxMigrationSyncStateSessionKey: Uint8Array<ArrayBuffer>
+	ownerMailboxMigrationSyncStateKeyVersion: NumberString
+	ownerEncMailboxMigrationInformationSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncMailboxMigrationInformationKeyVersion: NumberString
+	postponedUntil: NumberString
+	provider: NumberString
+	isShared: boolean
+
+	imapConfiguration: null | MailboxMigrationImapConfiguration
+	customerMigrationInfo: IdTuple
+	customerUserMigrationInfo: IdTuple
+	userMigrationInfo: IdTuple
+}
+
+export type CustomerMailboxMigrationPostIn = {
+	// == values
+
+	_format: NumberString
+	ownerGroup: Id
+	ownerEncMailboxMigrationSyncStateSessionKey: Uint8Array<ArrayBuffer>
+	ownerMailboxMigrationSyncStateKeyVersion: NumberString
+	ownerEncMailboxMigrationInformationSessionKey: Uint8Array<ArrayBuffer>
+	ownerEncMailboxMigrationInformationKeyVersion: NumberString
+	postponedUntil: NumberString
+	provider: NumberString
+	isShared: boolean
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	imapConfiguration: null | MailboxMigrationImapConfiguration
+	customerMigrationInfo: IdTuple
+	customerUserMigrationInfo: IdTuple
+	userMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMailboxMigrationPostIn>
+	_errors: Object
+	_original: Nullable<CustomerMailboxMigrationPostIn>
+	isAdapter: false
+}
+export const CustomerMailboxMigrationPostOutTypeRef: TypeRef<CustomerMailboxMigrationPostOut> = new TypeRef("tutanota", 2080)
+
+export function createCustomerMailboxMigrationPostOut(values: CustomerMailboxMigrationPostOutParams): CustomerMailboxMigrationPostOut {
+	return Object.assign(create(typeModels[CustomerMailboxMigrationPostOutTypeRef.typeId], CustomerMailboxMigrationPostOutTypeRef), values)
+}
+
+export type CustomerMailboxMigrationPostOutParams = {
+	mailboxMigrationInfo: IdTuple
+}
+
+export type CustomerMailboxMigrationPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMailboxMigrationPostOut>
+	_original: Nullable<CustomerMailboxMigrationPostOut>
+	isAdapter: false
+}
+export const CustomerMailboxMigrationDeleteInTypeRef: TypeRef<CustomerMailboxMigrationDeleteIn> = new TypeRef("tutanota", 2083)
+
+export function createCustomerMailboxMigrationDeleteIn(values: CustomerMailboxMigrationDeleteInParams): CustomerMailboxMigrationDeleteIn {
+	return Object.assign(create(typeModels[CustomerMailboxMigrationDeleteInTypeRef.typeId], CustomerMailboxMigrationDeleteInTypeRef), values)
+}
+
+export type CustomerMailboxMigrationDeleteInParams = {
+	user: null | Id
+	mailboxMigrationInfo: IdTuple
+}
+
+export type CustomerMailboxMigrationDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	user: null | Id
+	mailboxMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMailboxMigrationDeleteIn>
+	_original: Nullable<CustomerMailboxMigrationDeleteIn>
 	isAdapter: false
 }
