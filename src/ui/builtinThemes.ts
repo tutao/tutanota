@@ -105,6 +105,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#222222",
 		go_european: goEuropeanBlue,
 		on_go_european: "#FFFFFF",
+		black_friday_gold: "#FFDDB2",
 		// SVG illust colors
 		il_outline: "#3B080F",
 		il_ne_outline: "#3B080F",
@@ -171,6 +172,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#FFFFFF",
 		go_european: goEuropeanLightBlue,
 		on_go_european: "#111111",
+		black_friday_gold: "#FFDDB2",
 		// SVG illust colors
 		il_outline: "#1A1111",
 		il_ne_outline: "#F9E5E5",
@@ -237,6 +239,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#222222",
 		go_european: goEuropeanBlue,
 		on_go_european: "#FFFFFF",
+		black_friday_gold: "#FFD6F7",
 		// SVG illust colors
 		il_outline: "#001A40",
 		il_ne_outline: "#001A40",
@@ -303,6 +306,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#FFFFFF",
 		go_european: goEuropeanLightBlue,
 		on_go_european: "#111111",
+		black_friday_gold: "#FFD6F7",
 		// SVG illust colors
 		il_outline: "#101418",
 		il_ne_outline: "#E9EFFF",
@@ -369,6 +373,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#222222",
 		go_european: goEuropeanBlue,
 		on_go_european: "#FFFFFF",
+		black_friday_gold: "#CCEDA5",
 		// SVG illust colors
 		il_outline: "#101418",
 		il_ne_outline: "#101418",
@@ -435,6 +440,7 @@ export const themes = (): Themes => {
 		content_bg_tuta_bday: "#FFFFFF",
 		go_european: goEuropeanLightBlue,
 		on_go_european: "#111111",
+		black_friday_gold: "#CCEDA5",
 		// SVG illust colors
 		il_outline: "#101418",
 		il_ne_outline: "#DFF4EB",
@@ -463,3 +469,4 @@ export const goEuropeanBlue = "#003E85"
 export const goEuropeanLightBlue = "#ACC7FF"
 export const sovereignYellowDark = "#FEE06A"
 export const sovereignYellowLight = "#FEF9C3"
+export const blackFridayGradient = "linear-gradient(160deg,rgba(35, 35, 35, 1) 54%, rgba(50, 50, 50, 1) 94%)"

@@ -2571,7 +2571,9 @@ export default {
 		"declinedFeedbackDialogInput_msg": "Was hat dich heute davon abgehalten, ein Upgrade durchzuführen?",
 		"sendFeedback_action": "Feedback senden",
 		"feedbackAnonymousAndHelpUs_label": "Dein Feedback ist anonym und hilft uns, Tuta zu verbessern.",
-		"afterProxyStoreAction_msg": "Nachdem du deine Giftcard gekauft hast, folge bitte den Schritten auf ProxyStore, um den Vorgang fortzusetzen."
-
+		"afterProxyStoreAction_msg": "Nachdem du deine Giftcard gekauft hast, folge bitte den Schritten auf ProxyStore, um den Vorgang fortzusetzen.",
+		"neverAgain_label": "Nie wieder fragen",
+		"disableSatisfactionDialogConfirm_msg": "Auf keinem Gerät mehr um Feedback gebeten werden? Du kannst weiterhin über Hilfe Feedback senden.",
+		"campaignBlackFridayTitle2026_label": "Black Friday: 2 für 1!",
 	}
 }

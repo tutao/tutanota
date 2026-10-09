@@ -128,7 +128,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				{
 					style: {
 						cursor: isDisabled ? "not-allowed" : "pointer",
-						"background-color": isSelected ? localTheme.surface_container_high : localTheme.surface,
+						background: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						color: localTheme.on_surface,
 						"min-height": px(270),
 						height: "100%",
@@ -175,7 +175,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 						display: "block",
 						border: "none",
 						opacity: isSelected ? 0.5 : 1.0,
-						backgroundColor: isSelected ? localTheme.primary : localTheme.outline_variant,
+						backgroundColor: isSelected ? localTheme.on_surface : localTheme.on_surface,
 					},
 				}),
 				this.renderTagLine(position, hasCampaign, localTheme, isCurrentPlan, isDisabled, planConfig),
@@ -219,7 +219,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									".strike",
 									{
 										style: {
-											color: localTheme.on_surface_variant,
+											color: localTheme.on_surface,
 											fontSize: px(font_size.smaller),
 											justifySelf: "end",
 										},
@@ -271,7 +271,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 					"justify-content": position === "right" ? "start" : "end",
 					"flex-direction": position === "right" ? "row-reverse" : "row",
 					height: px(component_size.button_height_compact),
-					color: hasCampaign ? localTheme.primary : undefined,
+					color: hasCampaign ? localTheme.on_surface : undefined,
 				},
 			},
 			isCurrentPlan || isDisabled
@@ -283,7 +283,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 	private renderPlanName(isSelected: boolean, hasCampaign: boolean, localTheme: Theme, planConfig: PlanConfig) {
 		let color
 		if (hasCampaign) {
-			color = localTheme.primary
+			color = localTheme.on_surface
 		} else {
 			color = isSelected ? localTheme.primary : localTheme.on_surface
 		}
@@ -316,7 +316,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 				}),
 				m(
 					".smaller",
-					{ style: { color: hasCampaign ? localTheme.secondary : undefined } },
+					{ style: { color: hasCampaign ? localTheme.on_surface : undefined } },
 					lang.get(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)),
 				),
 			)

@@ -2571,3 +2571,7 @@ export type TranslationKeyType =
 	| "surveySomethingNotWorking_label"
 	| "businessPlansNotAvailableForExternal_msg"
 	| "afterProxyStoreAction_msg"
+	| "neverAgain_label"
+	| "disableSatisfactionDialogConfirm_msg"
+	| "campaignBlackFridayTitle2026_label"
+	| "businessPlansNotAvailableForExternal_msg"

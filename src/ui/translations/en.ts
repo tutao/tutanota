@@ -2571,6 +2571,9 @@ export default {
 		"declinedFeedbackDialogInput_msg": "What stopped you from upgrading today?",
 		"sendFeedback_action": "Send feedback",
 		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us improve Tuta.",
-		"afterProxyStoreAction_msg": "After purchasing your gift card, please follow the steps provided on ProxyStore to continue the process."
+		"afterProxyStoreAction_msg": "After purchasing your gift card, please follow the steps provided on ProxyStore to continue the process.",
+		"neverAgain_label": "Never ask again",
+		"disableSatisfactionDialogConfirm_msg": "Stop asking for your feedback on all devices? You can still send feedback from Help.",
+		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!"
 	}
 }
