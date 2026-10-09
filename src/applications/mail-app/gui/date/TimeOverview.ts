@@ -1,4 +1,4 @@
-import m, { Child, ClassComponent, Vnode } from "mithril"
+import m, { Children, ClassComponent, Vnode } from "mithril"
 import { theme } from "../../../../ui/theme"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -7,7 +7,6 @@ import { AriaRole } from "../../../../ui/AriaUtils"
 import { TabIndex } from "@tutao/app-env"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { isKeyPressed } from "../../../../ui/utils/KeyManager"
-import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs } from "../../../common/calendar/gui/CalendarTimeColumn"
 import {
 	CalendarTimeGrid,
@@ -29,6 +28,8 @@ import { clone } from "@tutao/meta"
 import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/Time"
 import { getCalendarEventDurationInMinutes } from "../../../common/calendar/date/CalendarUtils"
+import { EventBannerIconVariant, EventBannerIconWithText } from "./EventBannerIconWithText"
+import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { Styles } from "../../../../ui/styles"
 
 export type TimeOverviewAttrs = {
@@ -57,7 +58,6 @@ type GridParams = {
 export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	private readonly gridRowHeight = 4
 
-	private hasConflicts: boolean = false
 	private displayConflictingAgenda: boolean = false
 	private timeColumnWidth: number = 0
 	private gridParams: GridParams | null = null
@@ -65,7 +65,6 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	private eventWrappers: EventWrapper[] = []
 
 	oninit({ attrs }: Vnode<TimeOverviewAttrs>) {
-		this.hasConflicts = attrs.agenda?.conflictCount! > 0
 		this.displayConflictingAgenda = attrs.agenda?.conflictCount === 1
 
 		if (attrs.agenda) {
@@ -78,7 +77,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 	view({ attrs }: Vnode<TimeOverviewAttrs>) {
 		return m(
-			".flex.flex-column.plr-16.pb-16.pt-8.justify-start",
+			".flex.flex-column.plr-16.pb-16.pt-8.justify-start.gap-8",
 			{
 				class: Styles.get().isSingleColumnLayout() ? "border-sm border-left-none border-right-none border-bottom-none" : "border-left-sm",
 				style: {
@@ -87,143 +86,143 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 					color: theme.on_surface,
 				},
 			},
-			[
-				m(".flex.flex-column.mb-8", [attrs.agenda ? this.renderConflictSummary(attrs.agenda) : this.renderMisingAgendaError()]),
-				attrs.agenda && this.gridParams
-					? m(".flex.rel", [
-							m(CalendarTimeColumn, {
-								intervals: this.gridParams.intervals,
-								layout: {
-									width: this.timeColumnWidth,
-									subColumnCount: 1,
-									rowCount: this.gridParams.rowCountForRange,
-									gridRowHeight: this.gridRowHeight,
-								},
-								amPm: attrs.amPm,
-							} satisfies CalendarTimeColumnAttrs),
-							m(
-								".full-width",
-								m(CalendarTimeGrid, {
-									events: TimeOverview.filterOutOfRangeEvents(
-										this.gridParams.timeRange,
-										this.eventWrappers,
-										this.gridParams.eventFocusBound,
-										this.gridParams.timeInterval,
-									),
-									timeScale: this.gridParams.timeScale,
-									timeRange: this.gridParams.timeRange,
-									dates: [getStartOfDay(attrs.agenda.main.event.startTime)],
-									intervals: this.gridParams.intervals,
-									layout: {
-										gridRowHeight: this.gridRowHeight,
-										rowCountForRange: this.gridParams.rowCountForRange,
-										hideRightBorder: true,
-										showLeftBorderAtFirstColumn: false,
-									},
-									showTimeZonesAtEventBubble: false,
-								} satisfies CalendarTimeGridAttributes),
-							),
-						])
-					: null,
-			],
+			[this.renderConflictSummary(attrs.agenda), this.renderConflictDetails(attrs.agenda), this.renderConflictTimeGrid(attrs, this.gridParams)],
 		)
 	}
 
-	private renderConflictSummary(agenda: InviteAgenda) {
-		return m(".mb-8", [
-			m(
-				".flex.mt-4.fit-content",
-				agenda.conflictCount > 1
-					? {
-							class: "nav-button",
-							role: AriaRole.Button,
-							ariaExpanded: this.displayConflictingAgenda,
-							tabIndex: TabIndex.Default,
-							onclick: () => this.toggleConflictingAgenda(),
-							onkeydown: (e: KeyboardEvent) => {
-								if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
-									this.toggleConflictingAgenda()
-									e.preventDefault()
-								}
-							},
-						}
-					: {},
+	private renderConflictSummary(agenda: InviteAgenda | null) {
+		if (agenda) {
+			if (agenda.conflictCount === 0) {
+				return m(EventBannerIconWithText, {
+					icon: Icons.SuccessFilled,
+					text: lang.getTranslation("noSimultaneousEvents_msg").text,
+					iconVariant: EventBannerIconVariant.Success,
+				})
+			} else if (agenda.conflictCount === 1) {
+				return m(EventBannerIconWithText, {
+					icon: Icons.ExclamationFilled,
+					text: lang.getTranslation("conflict_label").text,
+					iconVariant: EventBannerIconVariant.Warning,
+				})
+			} else if (agenda.conflictCount > 1) {
+				return this.renderExpandableConflictSummary(agenda)
+			} else {
+				return null
+			}
+		} else {
+			return m(EventBannerIconWithText, {
+				icon: Icons.FailureFilled,
+				text: "ERROR: Could not load the agenda for this day.",
+				iconVariant: EventBannerIconVariant.Error,
+			})
+		}
+	}
+
+	private renderConflictDetails(agenda: InviteAgenda | null): Children {
+		if (agenda && agenda.conflictCount > 0) {
+			return m(
+				"",
+				{
+					style: {
+						"margin-left": px(size.icon_24 + size.spacing_4),
+					},
+				},
 				[
-					m(Icon, {
-						icon: this.hasConflicts ? Icons.ExclamationFilled : Icons.SuccessFilled,
-						container: "div",
-						class: "mr-4",
-						style: {
-							fill: this.hasConflicts ? theme.warning : theme.success,
-						},
-						size: IconSize.PX24,
-					}),
-					this.renderConflictInfoText(agenda.regularEvents.length, agenda.allDayEvents.length),
+					agenda.conflictCount > 1
+						? m(
+								ExpanderPanel,
+								{
+									expanded: this.displayConflictingAgenda,
+								},
+								this.conflictingAgenda(agenda),
+							)
+						: this.conflictingAgenda(agenda),
 				],
-			),
-			agenda.conflictCount > 0
-				? m(
-						"",
-						{
-							style: {
-								"margin-left": px(size.icon_24 + size.spacing_4),
-							},
+			)
+		} else {
+			return null
+		}
+	}
+
+	private renderConflictTimeGrid(attrs: TimeOverviewAttrs, gridParams: GridParams | null): Children {
+		const { agenda, amPm } = attrs
+		if (agenda && gridParams) {
+			return m(".flex.rel", [
+				m(CalendarTimeColumn, {
+					intervals: gridParams.intervals,
+					layout: {
+						width: this.timeColumnWidth,
+						subColumnCount: 1,
+						rowCount: gridParams.rowCountForRange,
+						gridRowHeight: this.gridRowHeight,
+					},
+					amPm: amPm,
+				} satisfies CalendarTimeColumnAttrs),
+				m(
+					".full-width",
+					m(CalendarTimeGrid, {
+						events: TimeOverview.filterOutOfRangeEvents(
+							gridParams.timeRange,
+							this.eventWrappers,
+							gridParams.eventFocusBound,
+							gridParams.timeInterval,
+						),
+						timeScale: gridParams.timeScale,
+						timeRange: gridParams.timeRange,
+						dates: [getStartOfDay(agenda.main.event.startTime)],
+						intervals: gridParams.intervals,
+						layout: {
+							gridRowHeight: this.gridRowHeight,
+							rowCountForRange: gridParams.rowCountForRange,
+							hideRightBorder: true,
+							showLeftBorderAtFirstColumn: false,
 						},
-						[
-							agenda.conflictCount > 1
-								? m(
-										ExpanderPanel,
-										{
-											expanded: this.displayConflictingAgenda,
-										},
-										this.conflictingAgenda(agenda),
-									)
-								: this.conflictingAgenda(agenda),
-						],
-					)
-				: null,
-		])
+						showTimeZonesAtEventBubble: false,
+					} satisfies CalendarTimeGridAttributes),
+				),
+			])
+		} else {
+			return null
+		}
+	}
+
+	private renderExpandableConflictSummary(agenda: InviteAgenda): Children {
+		return m(
+			".flex.nav-button.gap-8",
+			{
+				role: AriaRole.Button,
+				ariaExpanded: this.displayConflictingAgenda,
+				tabIndex: TabIndex.Default,
+				onclick: () => this.toggleConflictingAgenda(),
+				onkeydown: (e: KeyboardEvent) => {
+					if (isKeyPressed(e.key, Keys.SPACE, Keys.RETURN)) {
+						this.toggleConflictingAgenda()
+						e.preventDefault()
+					}
+				},
+			},
+			[
+				m(EventBannerIconWithText, {
+					icon: Icons.ExclamationFilled,
+					text: lang.getTranslation("conflicts_label", { "{count}": agenda.conflictCount }).text,
+					iconVariant: EventBannerIconVariant.Warning,
+				}),
+				m(Icon, {
+					icon: Icons.ArrowDown,
+					container: "div",
+					class: `fit-content`,
+					size: IconSize.PX24,
+					style: {
+						fill: theme.on_surface,
+						rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
+					},
+				}),
+			],
+		)
 	}
 
 	private toggleConflictingAgenda() {
 		this.displayConflictingAgenda = !this.displayConflictingAgenda
-	}
-
-	private renderConflictInfoText(normalEventsConflictCount: number, allDayEventsConflictCount: number) {
-		const totalConflicts = allDayEventsConflictCount + normalEventsConflictCount
-		const stringParts: Array<string> = []
-
-		if (totalConflicts === 0) {
-			stringParts.push(lang.getTranslation("noSimultaneousEvents_msg").text)
-		} else if (totalConflicts === 1) {
-			stringParts.push(lang.getTranslation("conflict_label").text)
-		} else {
-			stringParts.push(lang.getTranslation("conflicts_label", { "{count}": totalConflicts }).text)
-		}
-
-		return m(
-			".small.flex.gap-8.items-center.fit-content",
-			{
-				style: {
-					"line-height": px(19.5),
-				},
-			},
-			[
-				m("span", { class: totalConflicts > 0 ? "b" : "" }, stringParts.join(" ")),
-				totalConflicts > 1
-					? m(Icon, {
-							icon: Icons.ArrowDown,
-							container: "div",
-							class: `fit-content`,
-							size: IconSize.PX24,
-							style: {
-								fill: theme.on_surface,
-								rotate: this.displayConflictingAgenda ? "180deg" : "0deg",
-							},
-						})
-					: null,
-			],
-		)
 	}
 
 	private conflictingAgenda(agenda: InviteAgenda): m.Children {
@@ -255,31 +254,6 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 		const timeText = !isAllDay ? this.getTimeParts(referenceDate, eventWrapper).join(" - ") : ""
 		const eventTitle = eventWrapper.event.summary.trim() !== "" ? eventWrapper.event.summary : lang.getTranslationText("noTitle_label")
 		return m(".small.selectable", `• ${eventTitle} ${timeText}`)
-	}
-
-	private renderMisingAgendaError(): Child {
-		return m(".mb-8", [
-			m(
-				".flex.mt-4.fit-content",
-				{
-					style: {
-						color: theme.error,
-					},
-				},
-				[
-					m(Icon, {
-						icon: Icons.FailureFilled,
-						container: "div",
-						class: "mr-4",
-						style: {
-							fill: theme.error,
-						},
-						size: IconSize.PX24,
-					}),
-					"ERROR: Could not load the agenda for this day.",
-				],
-			),
-		])
 	}
 
 	private getTimeParts(referenceDate: Date, eventWrapper: EventWrapper): Array<string> {

@@ -21,11 +21,10 @@ import { GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getCalendarEventDurationInMinutes, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { Styles } from "../../../../ui/styles"
-import { AllIcons, Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { formatEventDuration } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { TimeOverview } from "./TimeOverview"
-import { px, size } from "../../../../ui/size"
+import { EventBannerIconWithText, EventBannerTextVariant } from "./EventBannerIconWithText"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -173,11 +172,11 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 					]),
 				)
 			} else if (!needsAction) {
-				children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("alreadyReplied_msg").text))
+				children.push(m(".align-self-start.start.small.lh", lang.getTranslation("alreadyReplied_msg").text))
 				children.push(viewOnCalendarButton)
 			}
 		} else if (method === CalendarMethod.REPLY) {
-			children.push(m(".align-self-start.start.small.mt-8.mb-8.lh", lang.getTranslation("eventNotificationUpdated_msg").text))
+			children.push(m(".align-self-start.start.small.lh", lang.getTranslation("eventNotificationUpdated_msg").text))
 			children.push(viewOnCalendarButton)
 		} else {
 			return null
@@ -188,7 +187,6 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 	private renderCommentInputBox(): Children {
 		return m(ExpandableTextArea, {
-			classes: ["mt-8"],
 			variant: "outlined",
 			value: this.comment,
 			oninput: (newValue: string) => {
@@ -441,7 +439,7 @@ export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAre
 	view(vnode: Vnode<EventBannerMidleAreaAttrs>): Children {
 		const { event, calendarTimeZone, replySection } = vnode.attrs
 		return m(
-			".flex.flex-column.plr-16.pb-16.pt-8",
+			".flex.flex-column.plr-16.pb-16.pt-8.gap-8",
 			{
 				style: {
 					gridArea: EventBannerAreas.Middle,
@@ -450,60 +448,12 @@ export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAre
 			},
 			[
 				m(EventBannerIconWithText, {
-					icon: Icons.TimerFilled,
+					icon: Icons.ClockFilled,
 					text: formatEventDuration(event, calendarTimeZone, false),
 					textVariant: EventBannerTextVariant.Normal,
 				}),
 				replySection,
 			],
 		)
-	}
-}
-
-enum EventBannerTextVariant {
-	Normal,
-	Large,
-}
-
-type EventBannerIconWithTextAttrs = {
-	icon: AllIcons
-	text: string
-	textVariant: EventBannerTextVariant
-}
-
-export class EventBannerIconWithText implements ClassComponent<EventBannerIconWithTextAttrs> {
-	public view(vnode: Vnode<EventBannerIconWithTextAttrs>): Children {
-		const { icon, text, textVariant } = vnode.attrs
-
-		return m(".flex", [
-			m(Icon, {
-				icon: icon,
-				container: "div",
-				class: "mr-4",
-				style: { fill: theme.on_surface },
-				size: IconSize.PX24,
-			}),
-
-			m(
-				"span.text-ellipsis-multi-line" + this.getTextVariantClasses(textVariant),
-				{
-					style: {
-						// Use line height 24px in order to align the text with the icon which also has 24px size.
-						// This ensures that the first line also is aligned with the icon when there is a long multi line text.
-						lineHeight: px(size.core_24),
-					},
-				},
-				text,
-			),
-		])
-	}
-
-	private getTextVariantClasses(textVariant: EventBannerTextVariant) {
-		switch (textVariant) {
-			case EventBannerTextVariant.Normal:
-				return ""
-			case EventBannerTextVariant.Large:
-				return ".h5.b"
-		}
 	}
 }
