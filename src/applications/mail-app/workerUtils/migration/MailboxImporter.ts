@@ -6,7 +6,7 @@ import {
 } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } from "../../../common/api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationMail, MigrationMailAttachment } from "../../../common/api/common/utils/migrationImportUtils/MigrationMail.js"
-import { MigrationError } from "../../../common/api/common/error/MigrationError.js"
+import { MigrationError, MigrationErrorCause } from "../../../common/api/common/error/MigrationError.js"
 
 import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
@@ -243,7 +243,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 		})
 	}
 
-	async pauseImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+	async pauseImport(mailboxMigrationSyncStateId: IdTuple, errorCause: MigrationErrorCause | null = null): Promise<void> {
 		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
@@ -251,6 +251,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.PAUSED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				errorCause,
 			)
 		}
 	}
@@ -262,7 +263,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 	}
 
-	async postponeImport(mailboxMigrationSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
+	async postponeImport(mailboxMigrationSyncStateId: IdTuple, postponedUntil: Date, errorCause: MigrationErrorCause | null = null): Promise<void> {
 		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
@@ -270,6 +271,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.POSTPONED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				errorCause,
 				postponedUntil.getTime().toString(),
 			)
 		}
@@ -418,16 +420,29 @@ export class MailboxImporter implements MigrationSyncFacade {
 				}
 
 				if (!session.mailboxMigrationFolderSyncStates.some((folder) => folder.sourceId === migrationMailbox.sourceId)) {
-					const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC
-					const shouldCreateLabels = isGmail && !isALLSystemFolder
-					const folderSyncState = await this.mailboxMigrationFacade.initializeMigrationMailSet(
-						migrationMailbox,
-						session.mailboxMigrationSyncState,
-						provider,
-						parentImportFolderId,
-						shouldSync,
-						shouldCreateLabels,
-					)
+					const isAdminControlledMigration = session.mailboxMigrationSyncState.mailboxMigrationInformation !== null
+					const mailGroupId = assertNotNull(session.mailboxMigrationSyncState._ownerGroup)
+					let folderSyncState: MailboxMigrationFolderSyncState | undefined
+					const existingFolder = await this.mailboxMigrationFacade.getFolderForMigrationMailboxIfExists(migrationMailbox, mailGroupId)
+					// We do a specialUse and name-based mapping between ImapMailboxes and user folders if an admin started the migration and the provider is not Gmail
+					if (isAdminControlledMigration && !isGmail && existingFolder) {
+						folderSyncState = await this.mailboxMigrationFacade.createMailboxMigrationFolderSyncStateForExistingFolder(
+							migrationMailbox,
+							session.mailboxMigrationSyncState,
+							existingFolder,
+						)
+					} else {
+						const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC
+						const shouldCreateLabels = isGmail && !isALLSystemFolder
+						folderSyncState = await this.mailboxMigrationFacade.initializeMigrationMailSet(
+							migrationMailbox,
+							session.mailboxMigrationSyncState,
+							provider,
+							parentImportFolderId,
+							shouldSync,
+							shouldCreateLabels,
+						)
+					}
 					if (folderSyncState) {
 						const folderSyncStateIndex = session.mailboxMigrationFolderSyncStates.findIndex((existingFolderSyncState) =>
 							isSameId(existingFolderSyncState._id, folderSyncState._id),
@@ -682,7 +697,9 @@ export class MailboxImporter implements MigrationSyncFacade {
 		})
 		const [activeSessions, canceledSessions] = partition(
 			mailboxImportUiSessions,
-			(mailboxImportUiSession) => mailboxImportUiSession.mailboxMigrationSyncStatus !== MailboxMigrationSyncStatus.CANCELED,
+			(mailboxImportUiSession) =>
+				mailboxImportUiSession.mailboxMigrationSyncStatus !== MailboxMigrationSyncStatus.CANCELED &&
+				mailboxImportUiSession.mailboxMigrationSyncStatus !== MailboxMigrationSyncStatus.COMPLETED_SUCCESSFULLY,
 		)
 		return Promise.resolve({ activeSessions, canceledSessions })
 	}

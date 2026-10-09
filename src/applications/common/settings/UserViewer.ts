@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { EnvProvider, UnsubscribeFailureReason } from "../../../platform-kit/app-env"
-import { Dialog } from "../../../ui/base/Dialog.js"
+import { Dialog, DialogType } from "../../../ui/base/Dialog.js"
 import { formatDateWithMonth, formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { lang } from "../../../ui/utils/LanguageViewModel.js"
 import { asyncFind, getFirstOrThrow, LazyLoaded, neverNull, ofClass, promiseMap } from "../../../platform-kit/utils"
@@ -12,7 +12,17 @@ import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditFor
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { elementIdToId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import {
+	Customer,
+	CustomerMigrationInformation,
+	CustomerMigrationInformationTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMembership,
+	GroupTypeRef,
+	User,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor.js"
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
@@ -30,6 +40,9 @@ import { progressIcon } from "../../../ui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
+import { CustomerMigrationInfoStatus } from "../../../entities/tutanota/Utils"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons"
+import { showAddToRunningMigrationDialog } from "../gui/dialogs/AddToRunningMigrationDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -41,6 +54,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private readonly secondFactorsForm: SecondFactorsEditForm
 	private usedStorage: number | null = null
 	private mailAddressTableModel: MailAddressTableModel | null = null
+	private activeCustomerMigrationInfo: CustomerMigrationInformation | null = null
 	private mailAddressTableExpanded = false
 	private isPurchasingNewSharedMailboxGroup: boolean
 
@@ -95,6 +109,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						user,
 						groupInfo: this.userGroupInfo,
 					})
+			this.activeCustomerMigrationInfo = await this.loadActiveCustomerMigrationInfo()
 			m.redraw()
 		})
 
@@ -116,6 +131,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		} as const
 		return m("#user-viewer.fill-absolute.scroll.plr-24.pb-floating", [
 			m(".h4.mt-32", lang.get("userSettings_label")),
+			m(".flex.justify-between.items-center.mt-32", [m(".h4", lang.get("userSettings_label"))]),
 			m("", [
 				m(LegacyTextField, {
 					label: "mailAddress_label",
@@ -149,6 +165,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
 					})
 				: progressIcon(),
+			this.activeCustomerMigrationInfo ? this.renderCreateMigrationButton() : null,
 		])
 	}
 
@@ -375,6 +392,19 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
 	}
 
+	private showAddToMigrationDialog(): void {
+		if (this.userGroupInfo.deleted) {
+			Dialog.message("userAccountDeactivated_msg")
+			return
+		}
+
+		const user = this.user.getSync()
+		const customerMigrationInformation = this.activeCustomerMigrationInfo
+		if (user == null || customerMigrationInformation == null) return
+
+		showAddToRunningMigrationDialog({ kind: "user", user }, customerMigrationInformation)
+	}
+
 	private isAdminUser(user: User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
@@ -464,8 +494,42 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return locator.logins.getUserController().reloadCustomer()
 	}
 
+	private loadActiveCustomerMigrationInfo(): Promise<CustomerMigrationInformation | null> {
+		return locator.logins
+			.getUserController()
+			.loadCustomerInfo()
+			.then((customerInfo) => {
+				if (customerInfo.migrationInfos) {
+					return locator.entityClient
+						.loadAll(CustomerMigrationInformationTypeRef, customerInfo.migrationInfos)
+						.then(
+							(migrationInfos) =>
+								migrationInfos.find(
+									(migrationInfo) =>
+										migrationInfo.status === CustomerMigrationInfoStatus.RUNNING ||
+										migrationInfo.status === CustomerMigrationInfoStatus.CREATED,
+								) ?? null,
+						)
+				}
+				return null
+			})
+	}
+
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
 		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
+	}
+
+	private renderCreateMigrationButton() {
+		return this.activeCustomerMigrationInfo !== null
+			? m(
+					".mt-32.flex.justify-center",
+					m(PrimaryButton, {
+						label: "migrationAddUserToRunning_action",
+						width: "flex",
+						onclick: () => this.showAddToMigrationDialog(),
+					}),
+				)
+			: null
 	}
 }
 

@@ -93,19 +93,19 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 			{
 				name: "migrationProviderGmail_label",
 				value: MailboxMigrationProvider.Gmail,
-				icon: m(".flex.ml-4", m.trust(GmailLogo)),
+				icon: m(".flex.ml-4.icon-24", m.trust(GmailLogo)),
 			},
 			{
 				name: "migrationProviderOutlook_label",
 				value: MailboxMigrationProvider.Outlook,
-				icon: m(".flex.ml-4", m.trust(OutlookLogo)),
+				icon: m(".flex.ml-4.icon-24", m.trust(OutlookLogo)),
 			},
 			{
 				name: "migrationProviderOther_label",
 				value: MailboxMigrationProvider.Other,
 				icon: m(Icon, {
 					icon: Icons.MailFilled,
-					size: IconSize.PX40,
+					size: IconSize.PX24,
 					class: "mr-negative-4",
 				}),
 			},
