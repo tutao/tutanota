@@ -923,6 +923,7 @@ export type CustomerInfoParams = {
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
 	storeNotificationLog: null | Id
+	migrationInfos: null | Id
 }
 
 export type CustomerInfo = {
@@ -971,6 +972,7 @@ export type CustomerInfo = {
 	partnerManagedCustomers: null | Id
 	revocationRequest: null | IdTuple
 	storeNotificationLog: null | Id
+	migrationInfos: null | Id
 
 	//== some entities have these and some don't
 
@@ -10786,5 +10788,414 @@ export type UserMigrationServicePostOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<UserMigrationServicePostOut>
 	_original: Nullable<UserMigrationServicePostOut>
+	isAdapter: false
+}
+export const MailboxMigrationInfoTypeRef: TypeRef<MailboxMigrationInfo> = new TypeRef("sys", 2851)
+
+export function createMailboxMigrationInfo(values: MailboxMigrationInfoParams): MailboxMigrationInfo {
+	return Object.assign(create(typeModels[MailboxMigrationInfoTypeRef.typeId], MailboxMigrationInfoTypeRef), values)
+}
+
+export type MailboxMigrationInfoParams = {
+	status: NumberString
+	isShared: boolean
+	sharedMailboxName: null | string
+	errorCode: null | NumberString
+
+	mailboxMigrationSyncState: IdTupleWrapper
+	customerMigrationInfo: IdTuple
+}
+
+export type MailboxMigrationInfo = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	status: NumberString
+	isShared: boolean
+	sharedMailboxName: null | string
+	errorCode: null | NumberString
+
+	// == associations
+
+	mailboxMigrationSyncState: IdTupleWrapper
+	customerMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MailboxMigrationInfo>
+	_errors: Object
+	_original: Nullable<MailboxMigrationInfo>
+	isAdapter: false
+}
+export const CustomerUserMigrationInfoTypeRef: TypeRef<CustomerUserMigrationInfo> = new TypeRef("sys", 2865)
+
+export function createCustomerUserMigrationInfo(values: CustomerUserMigrationInfoParams): CustomerUserMigrationInfo {
+	return Object.assign(create(typeModels[CustomerUserMigrationInfoTypeRef.typeId], CustomerUserMigrationInfoTypeRef), values)
+}
+
+export type CustomerUserMigrationInfoParams = {
+	tutaName: string
+	tutaMailAddress: string
+	initialPassword: null | string
+
+	mailboxMigrationInfos: Id
+	user: Id
+}
+
+export type CustomerUserMigrationInfo = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	tutaName: string
+	tutaMailAddress: string
+	initialPassword: null | string
+
+	// == associations
+
+	mailboxMigrationInfos: Id
+	user: Id
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerUserMigrationInfo>
+	_errors: Object
+	_original: Nullable<CustomerUserMigrationInfo>
+	isAdapter: false
+}
+export const CustomerMigrationImapConfigurationTypeRef: TypeRef<CustomerMigrationImapConfiguration> = new TypeRef("sys", 2879)
+
+export function createCustomerMigrationImapConfiguration(values: CustomerMigrationImapConfigurationParams): CustomerMigrationImapConfiguration {
+	return Object.assign(create(typeModels[CustomerMigrationImapConfigurationTypeRef.typeId], CustomerMigrationImapConfigurationTypeRef), values)
+}
+
+export type CustomerMigrationImapConfigurationParams = {
+	host: string
+	port: NumberString
+	ignoreCertificateErrors: boolean
+	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: boolean
+	provider: NumberString
+
+	adminCredentials: UserMigrationCredential
+}
+
+export type CustomerMigrationImapConfiguration = {
+	// == values
+
+	_id: Id
+	host: string
+	port: NumberString
+	ignoreCertificateErrors: boolean
+	customCertificateData: null | Uint8Array<ArrayBuffer>
+	useSSL: boolean
+	provider: NumberString
+
+	// == associations
+
+	adminCredentials: UserMigrationCredential
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMigrationImapConfiguration>
+	_original: Nullable<CustomerMigrationImapConfiguration>
+	isAdapter: false
+}
+export const CustomerMigrationInfoTypeRef: TypeRef<CustomerMigrationInfo> = new TypeRef("sys", 2888)
+
+export function createCustomerMigrationInfo(values: CustomerMigrationInfoParams): CustomerMigrationInfo {
+	return Object.assign(create(typeModels[CustomerMigrationInfoTypeRef.typeId], CustomerMigrationInfoTypeRef), values)
+}
+
+export type CustomerMigrationInfoParams = {
+	status: NumberString
+	userListProvider: NumberString
+
+	userListAdminCredentials: null | UserMigrationCredential
+	imapConfiguration: null | CustomerMigrationImapConfiguration
+	customerUserMigrationInfos: Id
+	customerMailboxMigrationInfos: Id
+}
+
+export type CustomerMigrationInfo = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	status: NumberString
+	userListProvider: NumberString
+
+	// == associations
+
+	userListAdminCredentials: null | UserMigrationCredential
+	imapConfiguration: null | CustomerMigrationImapConfiguration
+	customerUserMigrationInfos: Id
+	customerMailboxMigrationInfos: Id
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMigrationInfo>
+	_errors: Object
+	_original: Nullable<CustomerMigrationInfo>
+	isAdapter: false
+}
+export const CustomerMigrationPostInTypeRef: TypeRef<CustomerMigrationPostIn> = new TypeRef("sys", 2905)
+
+export function createCustomerMigrationPostIn(values: CustomerMigrationPostInParams): CustomerMigrationPostIn {
+	return Object.assign(create(typeModels[CustomerMigrationPostInTypeRef.typeId], CustomerMigrationPostInTypeRef), values)
+}
+
+export type CustomerMigrationPostInParams = {
+	userListProvider: NumberString
+
+	userListAdminCredentials: null | UserMigrationCredential
+	imapConfiguration: null | CustomerMigrationImapConfiguration
+}
+
+export type CustomerMigrationPostIn = {
+	// == values
+
+	_format: NumberString
+	ownerEncSessionKey: Uint8Array<ArrayBuffer>
+	ownerKeyVersion: NumberString
+	userListProvider: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userListAdminCredentials: null | UserMigrationCredential
+	imapConfiguration: null | CustomerMigrationImapConfiguration
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMigrationPostIn>
+	_errors: Object
+	_original: Nullable<CustomerMigrationPostIn>
+	isAdapter: false
+}
+export const CustomerMigrationPostOutTypeRef: TypeRef<CustomerMigrationPostOut> = new TypeRef("sys", 2912)
+
+export function createCustomerMigrationPostOut(values: CustomerMigrationPostOutParams): CustomerMigrationPostOut {
+	return Object.assign(create(typeModels[CustomerMigrationPostOutTypeRef.typeId], CustomerMigrationPostOutTypeRef), values)
+}
+
+export type CustomerMigrationPostOutParams = {
+	customerMigrationInfo: IdTuple
+}
+
+export type CustomerMigrationPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	customerMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMigrationPostOut>
+	_original: Nullable<CustomerMigrationPostOut>
+	isAdapter: false
+}
+export const CustomerMigrationDeleteInTypeRef: TypeRef<CustomerMigrationDeleteIn> = new TypeRef("sys", 2915)
+
+export function createCustomerMigrationDeleteIn(values: CustomerMigrationDeleteInParams): CustomerMigrationDeleteIn {
+	return Object.assign(create(typeModels[CustomerMigrationDeleteInTypeRef.typeId], CustomerMigrationDeleteInTypeRef), values)
+}
+
+export type CustomerMigrationDeleteInParams = {
+	customerMigrationInfo: IdTuple
+}
+
+export type CustomerMigrationDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	customerMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerMigrationDeleteIn>
+	_original: Nullable<CustomerMigrationDeleteIn>
+	isAdapter: false
+}
+export const CustomerUserMigrationPostInTypeRef: TypeRef<CustomerUserMigrationPostIn> = new TypeRef("sys", 2919)
+
+export function createCustomerUserMigrationPostIn(values: CustomerUserMigrationPostInParams): CustomerUserMigrationPostIn {
+	return Object.assign(create(typeModels[CustomerUserMigrationPostInTypeRef.typeId], CustomerUserMigrationPostInTypeRef), values)
+}
+
+export type CustomerUserMigrationPostInParams = {
+	ownerEncCustomerUserMigrationInfoSessionKey: Uint8Array<ArrayBuffer>
+	ownerCustomerUserMigrationInfoKeyVersion: NumberString
+	encTutaName: Uint8Array<ArrayBuffer>
+	encTutaMailAddress: Uint8Array<ArrayBuffer>
+	encTutaInitialPassword: null | Uint8Array<ArrayBuffer>
+	ownerEncUserMigrationInfoSessionKey: Uint8Array<ArrayBuffer>
+	ownerUserMigrationInfoKeyVersion: NumberString
+	provider: NumberString
+
+	credential: UserMigrationCredential
+	user: Id
+	customerMigrationInfo: IdTuple
+}
+
+export type CustomerUserMigrationPostIn = {
+	// == values
+
+	_format: NumberString
+	ownerEncCustomerUserMigrationInfoSessionKey: Uint8Array<ArrayBuffer>
+	ownerCustomerUserMigrationInfoKeyVersion: NumberString
+	encTutaName: Uint8Array<ArrayBuffer>
+	encTutaMailAddress: Uint8Array<ArrayBuffer>
+	encTutaInitialPassword: null | Uint8Array<ArrayBuffer>
+	ownerEncUserMigrationInfoSessionKey: Uint8Array<ArrayBuffer>
+	ownerUserMigrationInfoKeyVersion: NumberString
+	provider: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	credential: UserMigrationCredential
+	user: Id
+	customerMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerUserMigrationPostIn>
+	_errors: Object
+	_original: Nullable<CustomerUserMigrationPostIn>
+	isAdapter: false
+}
+export const CustomerUserMigrationPostOutTypeRef: TypeRef<CustomerUserMigrationPostOut> = new TypeRef("sys", 2932)
+
+export function createCustomerUserMigrationPostOut(values: CustomerUserMigrationPostOutParams): CustomerUserMigrationPostOut {
+	return Object.assign(create(typeModels[CustomerUserMigrationPostOutTypeRef.typeId], CustomerUserMigrationPostOutTypeRef), values)
+}
+
+export type CustomerUserMigrationPostOutParams = {
+	userMigrationInfo: IdTuple
+	customerUserMigrationInfo: IdTuple
+}
+
+export type CustomerUserMigrationPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userMigrationInfo: IdTuple
+	customerUserMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomerUserMigrationPostOut>
+	_original: Nullable<CustomerUserMigrationPostOut>
 	isAdapter: false
 }
