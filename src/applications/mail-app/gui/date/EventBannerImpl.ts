@@ -21,10 +21,10 @@ import { GENERATED_MIN_ID } from "@tutao/meta"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { getCalendarEventDurationInMinutes, getTimeZone } from "../../../common/calendar/date/CalendarUtils"
 import { Styles } from "../../../../ui/styles"
-import { Icons } from "../../../../ui/base/icons/Icons"
-import { formatEventDuration } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 import { TimeOverview } from "./TimeOverview"
-import { EventBannerIconWithText, EventBannerTextVariant } from "./EventBannerIconWithText"
+import { EventBannerTitleArea } from "./EventBannerTitleArea"
+import { EventBannerMiddleArea } from "./EventBannerMiddleArea"
+import { EventBannerSidebarArea } from "./EventBannerSidebarArea"
 
 export type EventBannerImplAttrs = Omit<EventBannerAttrs, "iCalContents"> & {
 	iCalContents: ParsedIcalFileContentData
@@ -103,24 +103,25 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		const eventBannerBorder = ".border-sm.border-radius-8.border-color-container-high.mb-8"
 		if (recipientIsOrganizer) {
 			return m(".event-banner-grid-organizer" + eventBannerBorder, [
-				m(EventBannerSidbarArea, { event: icsCalendarEvent }),
+				m(EventBannerSidebarArea, { event: icsCalendarEvent }),
 				m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
 				m(EventBannerMiddleArea, {
 					event: icsCalendarEvent,
 					calendarTimeZone,
 					replySection,
-				} as EventBannerMidleAreaAttrs),
+				}),
 			])
 		} else {
+			// As a guest we show the time overview section containing the conflicts
 			const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-mobile" : ".event-banner-grid-guest"
 			return m(eventBannerGrid + eventBannerBorder, [
-				m(EventBannerSidbarArea, { event: icsCalendarEvent }),
+				m(EventBannerSidebarArea, { event: icsCalendarEvent }),
 				m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
 				m(EventBannerMiddleArea, {
 					event: icsCalendarEvent,
 					calendarTimeZone,
 					replySection,
-				} as EventBannerMidleAreaAttrs),
+				}),
 				m(TimeOverview, { agenda, amPm }),
 			])
 		}
@@ -381,84 +382,4 @@ function updateAttendeeStatusIfNeeded(inviteEvent: IcsCalendarEvent, ownAttendee
 	}
 
 	icsOwnAttendee.status = existingOwnAttendee.status
-}
-
-export type EventBannerSidebarAreaAttrs = {
-	event: IcsCalendarEvent
-}
-
-export class EventBannerSidbarArea implements ClassComponent<EventBannerSidebarAreaAttrs> {
-	view(vnode: Vnode<EventBannerSidebarAreaAttrs>): Children {
-		const { event } = vnode.attrs
-		return m(
-			".flex.flex-column.center.items-center.pb-16.pt-16.justify-center.fill-grid-column",
-			{
-				class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
-				style: {
-					gridArea: "sidebar",
-					"background-color": theme.surface_container_high,
-					color: theme.on_surface,
-				},
-			},
-			[
-				m("span.normal-font-size", event.startTime.toLocaleString("default", { month: "short" })),
-				m("span.big.b.lh-s", event.startTime.getDate().toString().padStart(2, "0")),
-				m("span.normal-font-size", event.startTime.toLocaleString("default", { weekday: "short" })),
-			],
-		)
-	}
-}
-
-export type EventBannerTitleAreaAttrs = {
-	eventTitle: string
-}
-
-export class EventBannerTitleArea implements ClassComponent<EventBannerTitleAreaAttrs> {
-	view(vnode: Vnode<EventBannerTitleAreaAttrs>): Children {
-		const { eventTitle } = vnode.attrs
-		return m(
-			".flex.plr-16.pb-8.pt-16",
-			{
-				// class: Styles.get().isSingleColumnLayout() ? "plr-16" : "pr-32 pl-32",
-				style: {
-					gridArea: EventBannerAreas.Title,
-					color: theme.on_surface,
-				},
-			},
-			m(EventBannerIconWithText, {
-				icon: Icons.CalendarFilled,
-				text: eventTitle,
-				textVariant: EventBannerTextVariant.Large,
-			}),
-		)
-	}
-}
-
-export type EventBannerMidleAreaAttrs = {
-	event: IcsCalendarEvent
-	calendarTimeZone: string
-	replySection: Children
-}
-
-export class EventBannerMiddleArea implements ClassComponent<EventBannerMidleAreaAttrs> {
-	view(vnode: Vnode<EventBannerMidleAreaAttrs>): Children {
-		const { event, calendarTimeZone, replySection } = vnode.attrs
-		return m(
-			".flex.flex-column.plr-16.pb-16.pt-8.gap-8",
-			{
-				style: {
-					gridArea: EventBannerAreas.Middle,
-					color: theme.on_surface,
-				},
-			},
-			[
-				m(EventBannerIconWithText, {
-					icon: Icons.ClockFilled,
-					text: formatEventDuration(event, calendarTimeZone, false),
-					textVariant: EventBannerTextVariant.Normal,
-				}),
-				replySection,
-			],
-		)
-	}
 }
