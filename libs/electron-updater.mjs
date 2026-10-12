@@ -1129,13 +1129,13 @@ var makeDir$1 = {};
 
 var utils$1 = {};
 
-const path$l = require$$1$1;
+const path$m = require$$1$1;
 
 // https://github.com/nodejs/node/issues/8987
 // https://github.com/libuv/libuv/pull/1088
 utils$1.checkPath = function checkPath (pth) {
   if (process.platform === 'win32') {
-    const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path$l.parse(pth).root, ''));
+    const pathHasInvalidWinCharacters = /[<>:"|?*]/.test(pth.replace(path$m.parse(pth).root, ''));
 
     if (pathHasInvalidWinCharacters) {
       const error = new Error(`Path contains invalid characters: ${pth}`);
@@ -1224,7 +1224,7 @@ var utimes = {
 };
 
 const fs$d = fs$i;
-const path$k = require$$1$1;
+const path$l = require$$1$1;
 const util$1 = require$$4;
 
 function getStats$2 (src, dest, opts) {
@@ -1262,8 +1262,8 @@ function checkPaths (src, dest, funcName, opts, cb) {
 
     if (destStat) {
       if (areIdentical$2(srcStat, destStat)) {
-        const srcBaseName = path$k.basename(src);
-        const destBaseName = path$k.basename(dest);
+        const srcBaseName = path$l.basename(src);
+        const destBaseName = path$l.basename(dest);
         if (funcName === 'move' &&
           srcBaseName !== destBaseName &&
           srcBaseName.toLowerCase() === destBaseName.toLowerCase()) {
@@ -1291,8 +1291,8 @@ function checkPathsSync (src, dest, funcName, opts) {
 
   if (destStat) {
     if (areIdentical$2(srcStat, destStat)) {
-      const srcBaseName = path$k.basename(src);
-      const destBaseName = path$k.basename(dest);
+      const srcBaseName = path$l.basename(src);
+      const destBaseName = path$l.basename(dest);
       if (funcName === 'move' &&
         srcBaseName !== destBaseName &&
         srcBaseName.toLowerCase() === destBaseName.toLowerCase()) {
@@ -1319,9 +1319,9 @@ function checkPathsSync (src, dest, funcName, opts) {
 // checks the src and dest inodes. It starts from the deepest
 // parent and stops once it reaches the src parent or the root path.
 function checkParentPaths (src, srcStat, dest, funcName, cb) {
-  const srcParent = path$k.resolve(path$k.dirname(src));
-  const destParent = path$k.resolve(path$k.dirname(dest));
-  if (destParent === srcParent || destParent === path$k.parse(destParent).root) return cb()
+  const srcParent = path$l.resolve(path$l.dirname(src));
+  const destParent = path$l.resolve(path$l.dirname(dest));
+  if (destParent === srcParent || destParent === path$l.parse(destParent).root) return cb()
   fs$d.stat(destParent, { bigint: true }, (err, destStat) => {
     if (err) {
       if (err.code === 'ENOENT') return cb()
@@ -1335,9 +1335,9 @@ function checkParentPaths (src, srcStat, dest, funcName, cb) {
 }
 
 function checkParentPathsSync (src, srcStat, dest, funcName) {
-  const srcParent = path$k.resolve(path$k.dirname(src));
-  const destParent = path$k.resolve(path$k.dirname(dest));
-  if (destParent === srcParent || destParent === path$k.parse(destParent).root) return
+  const srcParent = path$l.resolve(path$l.dirname(src));
+  const destParent = path$l.resolve(path$l.dirname(dest));
+  if (destParent === srcParent || destParent === path$l.parse(destParent).root) return
   let destStat;
   try {
     destStat = fs$d.statSync(destParent, { bigint: true });
@@ -1358,8 +1358,8 @@ function areIdentical$2 (srcStat, destStat) {
 // return true if dest is a subdir of src, otherwise false.
 // It only checks the path strings.
 function isSrcSubdir (src, dest) {
-  const srcArr = path$k.resolve(src).split(path$k.sep).filter(i => i);
-  const destArr = path$k.resolve(dest).split(path$k.sep).filter(i => i);
+  const srcArr = path$l.resolve(src).split(path$l.sep).filter(i => i);
+  const destArr = path$l.resolve(dest).split(path$l.sep).filter(i => i);
   return srcArr.reduce((acc, cur, i) => acc && destArr[i] === cur, true)
 }
 
@@ -1377,7 +1377,7 @@ var stat$4 = {
 };
 
 const fs$c = gracefulFs;
-const path$j = require$$1$1;
+const path$k = require$$1$1;
 const mkdirs$1 = mkdirs$2.mkdirs;
 const pathExists$5 = pathExists_1.pathExists;
 const utimesMillis = utimes.utimesMillis;
@@ -1418,7 +1418,7 @@ function copy$2 (src, dest, opts, cb) {
 }
 
 function checkParentDir (destStat, src, dest, opts, cb) {
-  const destParent = path$j.dirname(dest);
+  const destParent = path$k.dirname(dest);
   pathExists$5(destParent, (err, dirExists) => {
     if (err) return cb(err)
     if (dirExists) return getStats$1(destStat, src, dest, opts, cb)
@@ -1552,8 +1552,8 @@ function copyDirItems (items, src, dest, opts, cb) {
 }
 
 function copyDirItem$1 (items, item, src, dest, opts, cb) {
-  const srcItem = path$j.join(src, item);
-  const destItem = path$j.join(dest, item);
+  const srcItem = path$k.join(src, item);
+  const destItem = path$k.join(dest, item);
   stat$3.checkPaths(srcItem, destItem, 'copy', opts, (err, stats) => {
     if (err) return cb(err)
     const { destStat } = stats;
@@ -1568,7 +1568,7 @@ function onLink$1 (destStat, src, dest, opts, cb) {
   fs$c.readlink(src, (err, resolvedSrc) => {
     if (err) return cb(err)
     if (opts.dereference) {
-      resolvedSrc = path$j.resolve(process.cwd(), resolvedSrc);
+      resolvedSrc = path$k.resolve(process.cwd(), resolvedSrc);
     }
 
     if (!destStat) {
@@ -1583,7 +1583,7 @@ function onLink$1 (destStat, src, dest, opts, cb) {
           return cb(err)
         }
         if (opts.dereference) {
-          resolvedDest = path$j.resolve(process.cwd(), resolvedDest);
+          resolvedDest = path$k.resolve(process.cwd(), resolvedDest);
         }
         if (stat$3.isSrcSubdir(resolvedSrc, resolvedDest)) {
           return cb(new Error(`Cannot copy '${resolvedSrc}' to a subdirectory of itself, '${resolvedDest}'.`))
@@ -1611,7 +1611,7 @@ function copyLink$1 (resolvedSrc, dest, cb) {
 var copy_1 = copy$2;
 
 const fs$b = gracefulFs;
-const path$i = require$$1$1;
+const path$j = require$$1$1;
 const mkdirsSync$1 = mkdirs$2.mkdirsSync;
 const utimesMillisSync = utimes.utimesMillisSync;
 const stat$2 = stat$4;
@@ -1641,7 +1641,7 @@ function copySync$1 (src, dest, opts) {
 
 function handleFilterAndCopy (destStat, src, dest, opts) {
   if (opts.filter && !opts.filter(src, dest)) return
-  const destParent = path$i.dirname(dest);
+  const destParent = path$j.dirname(dest);
   if (!fs$b.existsSync(destParent)) mkdirsSync$1(destParent);
   return getStats(destStat, src, dest, opts)
 }
@@ -1729,8 +1729,8 @@ function copyDir (src, dest, opts) {
 }
 
 function copyDirItem (item, src, dest, opts) {
-  const srcItem = path$i.join(src, item);
-  const destItem = path$i.join(dest, item);
+  const srcItem = path$j.join(src, item);
+  const destItem = path$j.join(dest, item);
   const { destStat } = stat$2.checkPathsSync(srcItem, destItem, 'copy', opts);
   return startCopy(destStat, srcItem, destItem, opts)
 }
@@ -1738,7 +1738,7 @@ function copyDirItem (item, src, dest, opts) {
 function onLink (destStat, src, dest, opts) {
   let resolvedSrc = fs$b.readlinkSync(src);
   if (opts.dereference) {
-    resolvedSrc = path$i.resolve(process.cwd(), resolvedSrc);
+    resolvedSrc = path$j.resolve(process.cwd(), resolvedSrc);
   }
 
   if (!destStat) {
@@ -1755,7 +1755,7 @@ function onLink (destStat, src, dest, opts) {
       throw err
     }
     if (opts.dereference) {
-      resolvedDest = path$i.resolve(process.cwd(), resolvedDest);
+      resolvedDest = path$j.resolve(process.cwd(), resolvedDest);
     }
     if (stat$2.isSrcSubdir(resolvedSrc, resolvedDest)) {
       throw new Error(`Cannot copy '${resolvedSrc}' to a subdirectory of itself, '${resolvedDest}'.`)
@@ -1785,7 +1785,7 @@ var copy$1 = {
 };
 
 const fs$a = gracefulFs;
-const path$h = require$$1$1;
+const path$i = require$$1$1;
 const assert = require$$5;
 
 const isWindows = (process.platform === 'win32');
@@ -1981,7 +1981,7 @@ function rmkids (p, options, cb) {
     if (n === 0) return options.rmdir(p, cb)
 
     files.forEach(f => {
-      rimraf$1(path$h.join(p, f), options, er => {
+      rimraf$1(path$i.join(p, f), options, er => {
         if (errState) {
           return
         }
@@ -2060,7 +2060,7 @@ function rmdirSync (p, options, originalEr) {
 function rmkidsSync (p, options) {
   assert(p);
   assert(options);
-  options.readdirSync(p).forEach(f => rimrafSync(path$h.join(p, f), options));
+  options.readdirSync(p).forEach(f => rimrafSync(path$i.join(p, f), options));
 
   if (isWindows) {
     // We only end up here once we got ENOTEMPTY at least once, and
@@ -2108,7 +2108,7 @@ var remove_1 = {
 
 const u$6 = universalify$1.fromPromise;
 const fs$8 = fs$i;
-const path$g = require$$1$1;
+const path$h = require$$1$1;
 const mkdir$3 = mkdirs$2;
 const remove$1 = remove_1;
 
@@ -2120,7 +2120,7 @@ const emptyDir = u$6(async function emptyDir (dir) {
     return mkdir$3.mkdirs(dir)
   }
 
-  return Promise.all(items.map(item => remove$1.remove(path$g.join(dir, item))))
+  return Promise.all(items.map(item => remove$1.remove(path$h.join(dir, item))))
 });
 
 function emptyDirSync (dir) {
@@ -2132,7 +2132,7 @@ function emptyDirSync (dir) {
   }
 
   items.forEach(item => {
-    item = path$g.join(dir, item);
+    item = path$h.join(dir, item);
     remove$1.removeSync(item);
   });
 }
@@ -2145,7 +2145,7 @@ var empty = {
 };
 
 const u$5 = universalify$1.fromCallback;
-const path$f = require$$1$1;
+const path$g = require$$1$1;
 const fs$7 = gracefulFs;
 const mkdir$2 = mkdirs$2;
 
@@ -2159,7 +2159,7 @@ function createFile$1 (file, callback) {
 
   fs$7.stat(file, (err, stats) => { // eslint-disable-line handle-callback-err
     if (!err && stats.isFile()) return callback()
-    const dir = path$f.dirname(file);
+    const dir = path$g.dirname(file);
     fs$7.stat(dir, (err, stats) => {
       if (err) {
         // if the directory doesn't exist, make it
@@ -2191,7 +2191,7 @@ function createFileSync$1 (file) {
   } catch {}
   if (stats && stats.isFile()) return
 
-  const dir = path$f.dirname(file);
+  const dir = path$g.dirname(file);
   try {
     if (!fs$7.statSync(dir).isDirectory()) {
       // parent is not a directory
@@ -2213,7 +2213,7 @@ var file = {
 };
 
 const u$4 = universalify$1.fromCallback;
-const path$e = require$$1$1;
+const path$f = require$$1$1;
 const fs$6 = gracefulFs;
 const mkdir$1 = mkdirs$2;
 const pathExists$4 = pathExists_1.pathExists;
@@ -2235,7 +2235,7 @@ function createLink$1 (srcpath, dstpath, callback) {
       }
       if (dstStat && areIdentical$1(srcStat, dstStat)) return callback(null)
 
-      const dir = path$e.dirname(dstpath);
+      const dir = path$f.dirname(dstpath);
       pathExists$4(dir, (err, dirExists) => {
         if (err) return callback(err)
         if (dirExists) return makeLink(srcpath, dstpath)
@@ -2262,7 +2262,7 @@ function createLinkSync$1 (srcpath, dstpath) {
     throw err
   }
 
-  const dir = path$e.dirname(dstpath);
+  const dir = path$f.dirname(dstpath);
   const dirExists = fs$6.existsSync(dir);
   if (dirExists) return fs$6.linkSync(srcpath, dstpath)
   mkdir$1.mkdirsSync(dir);
@@ -2275,7 +2275,7 @@ var link = {
   createLinkSync: createLinkSync$1
 };
 
-const path$d = require$$1$1;
+const path$e = require$$1$1;
 const fs$5 = gracefulFs;
 const pathExists$3 = pathExists_1.pathExists;
 
@@ -2302,7 +2302,7 @@ const pathExists$3 = pathExists_1.pathExists;
  */
 
 function symlinkPaths$1 (srcpath, dstpath, callback) {
-  if (path$d.isAbsolute(srcpath)) {
+  if (path$e.isAbsolute(srcpath)) {
     return fs$5.lstat(srcpath, (err) => {
       if (err) {
         err.message = err.message.replace('lstat', 'ensureSymlink');
@@ -2314,8 +2314,8 @@ function symlinkPaths$1 (srcpath, dstpath, callback) {
       })
     })
   } else {
-    const dstdir = path$d.dirname(dstpath);
-    const relativeToDst = path$d.join(dstdir, srcpath);
+    const dstdir = path$e.dirname(dstpath);
+    const relativeToDst = path$e.join(dstdir, srcpath);
     return pathExists$3(relativeToDst, (err, exists) => {
       if (err) return callback(err)
       if (exists) {
@@ -2331,7 +2331,7 @@ function symlinkPaths$1 (srcpath, dstpath, callback) {
           }
           return callback(null, {
             toCwd: srcpath,
-            toDst: path$d.relative(dstdir, srcpath)
+            toDst: path$e.relative(dstdir, srcpath)
           })
         })
       }
@@ -2341,7 +2341,7 @@ function symlinkPaths$1 (srcpath, dstpath, callback) {
 
 function symlinkPathsSync$1 (srcpath, dstpath) {
   let exists;
-  if (path$d.isAbsolute(srcpath)) {
+  if (path$e.isAbsolute(srcpath)) {
     exists = fs$5.existsSync(srcpath);
     if (!exists) throw new Error('absolute srcpath does not exist')
     return {
@@ -2349,8 +2349,8 @@ function symlinkPathsSync$1 (srcpath, dstpath) {
       toDst: srcpath
     }
   } else {
-    const dstdir = path$d.dirname(dstpath);
-    const relativeToDst = path$d.join(dstdir, srcpath);
+    const dstdir = path$e.dirname(dstpath);
+    const relativeToDst = path$e.join(dstdir, srcpath);
     exists = fs$5.existsSync(relativeToDst);
     if (exists) {
       return {
@@ -2362,7 +2362,7 @@ function symlinkPathsSync$1 (srcpath, dstpath) {
       if (!exists) throw new Error('relative srcpath does not exist')
       return {
         toCwd: srcpath,
-        toDst: path$d.relative(dstdir, srcpath)
+        toDst: path$e.relative(dstdir, srcpath)
       }
     }
   }
@@ -2404,7 +2404,7 @@ var symlinkType_1 = {
 };
 
 const u$3 = universalify$1.fromCallback;
-const path$c = require$$1$1;
+const path$d = require$$1$1;
 const fs$3 = fs$i;
 const _mkdirs = mkdirs$2;
 const mkdirs = _mkdirs.mkdirs;
@@ -2445,7 +2445,7 @@ function _createSymlink (srcpath, dstpath, type, callback) {
     srcpath = relative.toDst;
     symlinkType(relative.toCwd, type, (err, type) => {
       if (err) return callback(err)
-      const dir = path$c.dirname(dstpath);
+      const dir = path$d.dirname(dstpath);
       pathExists$2(dir, (err, dirExists) => {
         if (err) return callback(err)
         if (dirExists) return fs$3.symlink(srcpath, dstpath, type, callback)
@@ -2472,7 +2472,7 @@ function createSymlinkSync$1 (srcpath, dstpath, type) {
   const relative = symlinkPathsSync(srcpath, dstpath);
   srcpath = relative.toDst;
   type = symlinkTypeSync(relative.toCwd, type);
-  const dir = path$c.dirname(dstpath);
+  const dir = path$d.dirname(dstpath);
   const exists = fs$3.existsSync(dir);
   if (exists) return fs$3.symlinkSync(srcpath, dstpath, type)
   mkdirsSync(dir);
@@ -2626,7 +2626,7 @@ var jsonfile = {
 
 const u$2 = universalify$1.fromCallback;
 const fs$2 = gracefulFs;
-const path$b = require$$1$1;
+const path$c = require$$1$1;
 const mkdir = mkdirs$2;
 const pathExists$1 = pathExists_1.pathExists;
 
@@ -2636,7 +2636,7 @@ function outputFile$1 (file, data, encoding, callback) {
     encoding = 'utf8';
   }
 
-  const dir = path$b.dirname(file);
+  const dir = path$c.dirname(file);
   pathExists$1(dir, (err, itDoes) => {
     if (err) return callback(err)
     if (itDoes) return fs$2.writeFile(file, data, encoding, callback)
@@ -2650,7 +2650,7 @@ function outputFile$1 (file, data, encoding, callback) {
 }
 
 function outputFileSync$1 (file, ...args) {
-  const dir = path$b.dirname(file);
+  const dir = path$c.dirname(file);
   if (fs$2.existsSync(dir)) {
     return fs$2.writeFileSync(file, ...args)
   }
@@ -2701,7 +2701,7 @@ jsonFile.readJSONSync = jsonFile.readJsonSync;
 var json$1 = jsonFile;
 
 const fs$1 = gracefulFs;
-const path$a = require$$1$1;
+const path$b = require$$1$1;
 const copy = copy$1.copy;
 const remove = remove_1.remove;
 const mkdirp = mkdirs$2.mkdirp;
@@ -2724,7 +2724,7 @@ function move$1 (src, dest, opts, cb) {
     stat$1.checkParentPaths(src, srcStat, dest, 'move', err => {
       if (err) return cb(err)
       if (isParentRoot$1(dest)) return doRename$1(src, dest, overwrite, isChangingCase, cb)
-      mkdirp(path$a.dirname(dest), err => {
+      mkdirp(path$b.dirname(dest), err => {
         if (err) return cb(err)
         return doRename$1(src, dest, overwrite, isChangingCase, cb)
       });
@@ -2733,8 +2733,8 @@ function move$1 (src, dest, opts, cb) {
 }
 
 function isParentRoot$1 (dest) {
-  const parent = path$a.dirname(dest);
-  const parsedPath = path$a.parse(parent);
+  const parent = path$b.dirname(dest);
+  const parsedPath = path$b.parse(parent);
   return parsedPath.root === parent
 }
 
@@ -2775,7 +2775,7 @@ function moveAcrossDevice$1 (src, dest, overwrite, cb) {
 var move_1 = move$1;
 
 const fs = gracefulFs;
-const path$9 = require$$1$1;
+const path$a = require$$1$1;
 const copySync = copy$1.copySync;
 const removeSync = remove_1.removeSync;
 const mkdirpSync = mkdirs$2.mkdirpSync;
@@ -2787,13 +2787,13 @@ function moveSync (src, dest, opts) {
 
   const { srcStat, isChangingCase = false } = stat.checkPathsSync(src, dest, 'move', opts);
   stat.checkParentPathsSync(src, srcStat, dest, 'move');
-  if (!isParentRoot(dest)) mkdirpSync(path$9.dirname(dest));
+  if (!isParentRoot(dest)) mkdirpSync(path$a.dirname(dest));
   return doRename(src, dest, overwrite, isChangingCase)
 }
 
 function isParentRoot (dest) {
-  const parent = path$9.dirname(dest);
-  const parsedPath = path$9.parse(parent);
+  const parent = path$a.dirname(dest);
+  const parsedPath = path$a.parse(parent);
   return parsedPath.root === parent
 }
 
@@ -4236,12 +4236,16 @@ ProgressCallbackTransform$1.ProgressCallbackTransform = ProgressCallbackTransfor
 
 Object.defineProperty(httpExecutor, "__esModule", { value: true });
 httpExecutor.DigestTransform = httpExecutor.HttpExecutor = httpExecutor.HttpError = void 0;
+httpExecutor.addSensitiveRedirectHeader = addSensitiveRedirectHeader;
+httpExecutor.addSensitiveFieldPattern = addSensitiveFieldPattern;
 httpExecutor.createHttpError = createHttpError;
 httpExecutor.parseJson = parseJson;
 httpExecutor.configureRequestOptionsFromUrl = configureRequestOptionsFromUrl;
 httpExecutor.configureRequestUrl = configureRequestUrl;
 httpExecutor.safeGetHeader = safeGetHeader;
 httpExecutor.configureRequestOptions = configureRequestOptions;
+httpExecutor.isSensitiveFieldName = isSensitiveFieldName;
+httpExecutor.hashSensitiveValue = hashSensitiveValue;
 httpExecutor.safeStringifyJson = safeStringifyJson;
 const crypto_1$4 = require$$0$3;
 const debug_1$1 = srcExports;
@@ -4252,6 +4256,34 @@ const CancellationToken_1$1 = CancellationToken$1;
 const error_1$2 = error;
 const ProgressCallbackTransform_1 = ProgressCallbackTransform$1;
 const debug$2 = (0, debug_1$1.default)("electron-builder");
+// ── Sensitive-data registries ────────────────────────────────────────────────
+// Normalise a header or field name: lowercase + strip all separators (- and _).
+// Shared by both registries so lookup is always separator-agnostic.
+const normalizeName = (name) => name.toLowerCase().replace(/[-_]/g, "");
+// HTTP header names (normalised) stripped on cross-origin redirects.
+// Stored normalised; lookup normalises the incoming key with normalizeName().
+const SENSITIVE_REDIRECT_HEADERS = new Set(["authorization", "proxyauthorization", "privatetoken", "xapikey", "xauthtoken", "xaccesstoken", "xgitlabtoken", "cookie", "xcsrftoken"]);
+// Substrings: a field name containing any of these (after normalization) is redacted.
+const SENSITIVE_FIELD_PATTERNS = ["token", "password", "secret", "authorization", "credential", "apikey", "passphrase", "auth"];
+// Suffixes: a field name ending with any of these (after normalization) is redacted.
+// Intentionally greedy — "publicKey" is also stripped; over-stripping debug logs is
+// acceptable, under-stripping a credential is not.
+const SENSITIVE_FIELD_SUFFIXES = ["key"];
+/**
+ * Register an additional HTTP header to strip on cross-origin redirects.
+ * Intended for custom publishers (e.g. GenericPublisher with a non-standard auth header).
+ */
+function addSensitiveRedirectHeader(header) {
+    SENSITIVE_REDIRECT_HEADERS.add(normalizeName(header));
+}
+/**
+ * Register an additional substring pattern used by {@link safeStringifyJson} to
+ * identify sensitive field names. Input is normalized (lowercased, separators stripped).
+ * Intended for custom publishers that store credentials under non-standard field names.
+ */
+function addSensitiveFieldPattern(pattern) {
+    SENSITIVE_FIELD_PATTERNS.push(pattern.toLowerCase().replace(/[-_]/g, ""));
+}
 function createHttpError(response, description = null) {
     return new HttpError(response.statusCode || -1, `${response.statusCode} ${response.statusMessage}` +
         (description == null ? "" : "\n" + JSON.stringify(description, null, "  ")) +
@@ -4298,7 +4330,9 @@ class HttpExecutor {
         const json = data == null ? undefined : JSON.stringify(data);
         const encodedData = json ? Buffer.from(json) : undefined;
         if (encodedData != null) {
-            debug$2(json);
+            if (debug$2.enabled) {
+                debug$2(safeStringifyJson(data));
+            }
             const { headers, ...opts } = options;
             options = {
                 method: "post",
@@ -4314,7 +4348,8 @@ class HttpExecutor {
     }
     doApiRequest(options, cancellationToken, requestProcessor, redirectCount = 0) {
         if (debug$2.enabled) {
-            debug$2(`Request: ${safeStringifyJson(options)}`);
+            const { headers: _headers, auth: _auth, ...safeOptions } = options;
+            debug$2(`Request: ${safeStringifyJson(safeOptions)}`);
         }
         return cancellationToken.createPromise((resolve, reject, onCancel) => {
             const request = this.createRequest(options, (response) => {
@@ -4348,7 +4383,8 @@ class HttpExecutor {
     handleResponse(response, options, cancellationToken, resolve, reject, redirectCount, requestProcessor) {
         var _a;
         if (debug$2.enabled) {
-            debug$2(`Response: ${response.statusCode} ${response.statusMessage}, request options: ${safeStringifyJson(options)}`);
+            const { headers: _headers, auth: _auth, ...safeOptions } = options;
+            debug$2(`Response: ${response.statusCode} ${response.statusMessage}, request options: ${safeStringifyJson(safeOptions)}`);
         }
         // we handle any other >= 400 error on request end (read detailed message in the response body)
         if (response.statusCode === 404) {
@@ -4387,7 +4423,7 @@ Please double check that your authentication token is correct. Due to security r
                     reject(createHttpError(response, `method: ${options.method || "GET"} url: ${options.protocol || "https:"}//${options.hostname}${options.port ? `:${options.port}` : ""}${options.path}
 
           Data:
-          ${isJson ? JSON.stringify(JSON.parse(data)) : data}
+          ${isJson ? safeStringifyJson(JSON.parse(data)) : data}
           `));
                 }
                 else {
@@ -4485,16 +4521,19 @@ Please double check that your authentication token is correct. Due to security r
     static prepareRedirectUrlOptions(redirectUrl, options) {
         const newOptions = configureRequestOptionsFromUrl(redirectUrl, { ...options });
         const headers = newOptions.headers;
-        if (headers === null || headers === void 0 ? void 0 : headers.authorization) {
-            // Parse original and redirect URLs to compare origins
-            const originalUrl = HttpExecutor.reconstructOriginalUrl(options);
-            const parsedRedirectUrl = parseUrl(redirectUrl, options);
-            // Strip authorization header on cross-origin redirects (different protocol, hostname, or port)
-            if (HttpExecutor.isCrossOriginRedirect(originalUrl, parsedRedirectUrl)) {
-                if (debug$2.enabled) {
-                    debug$2(`Given the cross-origin redirect (from ${originalUrl.host} to ${parsedRedirectUrl.host}), the Authorization header will be stripped out.`);
+        if (headers == null) {
+            return newOptions;
+        }
+        const originalUrl = HttpExecutor.reconstructOriginalUrl(options);
+        const parsedRedirectUrl = parseUrl(redirectUrl, options);
+        if (HttpExecutor.isCrossOriginRedirect(originalUrl, parsedRedirectUrl)) {
+            if (debug$2.enabled) {
+                debug$2(`Cross-origin redirect (${originalUrl.host} → ${parsedRedirectUrl.host}): stripping sensitive headers`);
+            }
+            for (const key of Object.keys(headers)) {
+                if (SENSITIVE_REDIRECT_HEADERS.has(normalizeName(key))) {
+                    delete headers[key];
                 }
-                delete headers.authorization;
             }
         }
         return newOptions;
@@ -4539,13 +4578,14 @@ Please double check that your authentication token is correct. Due to security r
         const redirectPort = redirectUrl.port;
         return originalPort !== redirectPort;
     }
-    static retryOnServerError(task, maxRetries = 3) {
+    static async retryOnServerError(task, maxRetries = 3) {
         for (let attemptNumber = 0;; attemptNumber++) {
             try {
-                return task();
+                return await task();
             }
             catch (e) {
                 if (attemptNumber < maxRetries && ((e instanceof HttpError && e.isServerError()) || e.code === "EPIPE")) {
+                    await new Promise(r => setTimeout(r, 1000 * (attemptNumber + 1)));
                     continue;
                 }
                 throw e;
@@ -4704,17 +4744,17 @@ function configureRequestOptions(options, token, method) {
     }
     return options;
 }
+function isSensitiveFieldName(name) {
+    const normalized = normalizeName(name);
+    return SENSITIVE_FIELD_PATTERNS.some(p => normalized.includes(p)) || SENSITIVE_FIELD_SUFFIXES.some(s => normalized.endsWith(s));
+}
+function hashSensitiveValue(value) {
+    return `${(0, crypto_1$4.createHash)("sha256").update(value).digest("hex")} (sha256 hash)`;
+}
 function safeStringifyJson(data, skippedNames) {
     return JSON.stringify(data, (name, value) => {
-        if (name.endsWith("Authorization") ||
-            name.endsWith("authorization") ||
-            name.endsWith("Password") ||
-            name.endsWith("PASSWORD") ||
-            name.endsWith("Token") ||
-            name.includes("password") ||
-            name.includes("token") ||
-            (skippedNames != null && skippedNames.has(name))) {
-            return "<stripped sensitive data>";
+        if (isSensitiveFieldName(name) || (skippedNames != null && skippedNames.has(name))) {
+            return typeof value === "string" ? hashSensitiveValue(value) : "<stripped sensitive data>";
         }
         return value;
     }, 2);
@@ -7118,10 +7158,116 @@ function parseXml(data) {
     return rootElement;
 }
 
+var objects = {};
+
+Object.defineProperty(objects, "__esModule", { value: true });
+objects.mapToObject = mapToObject;
+objects.isValidKey = isValidKey;
+objects.asArray = asArray;
+objects.deepAssign = deepAssign;
+objects.objectToArgs = objectToArgs;
+function mapToObject(map) {
+    const obj = {};
+    for (const [key, value] of map) {
+        if (!isValidKey(key)) {
+            continue;
+        }
+        if (value instanceof Map) {
+            obj[key] = mapToObject(value);
+        }
+        else {
+            obj[key] = value;
+        }
+    }
+    return obj;
+}
+function isValidKey(key) {
+    const protectedProperties = ["__proto__", "prototype", "constructor"];
+    if (protectedProperties.includes(key)) {
+        return false;
+    }
+    return ["string", "number", "symbol", "boolean"].includes(typeof key) || key === null;
+}
+function asArray(v) {
+    if (v == null) {
+        return [];
+    }
+    else if (Array.isArray(v)) {
+        return v;
+    }
+    else {
+        return [v];
+    }
+}
+function isObject$1(x) {
+    if (Array.isArray(x)) {
+        return false;
+    }
+    const type = typeof x;
+    return type === "object" || type === "function";
+}
+function assignKey(target, from, key) {
+    const value = from[key];
+    // https://github.com/electron-userland/electron-builder/pull/562
+    if (value === undefined) {
+        return;
+    }
+    const prevValue = target[key];
+    if (prevValue == null || value == null || !isObject$1(prevValue) || !isObject$1(value)) {
+        // Merge arrays.
+        if (Array.isArray(prevValue) && Array.isArray(value)) {
+            target[key] = Array.from(new Set(prevValue.concat(value)));
+        }
+        else {
+            target[key] = value;
+        }
+    }
+    else {
+        target[key] = assign(prevValue, value);
+    }
+}
+function assign(to, from) {
+    if (to !== from) {
+        for (const key of Object.getOwnPropertyNames(from)) {
+            if (isValidKey(key)) {
+                assignKey(to, from, key);
+            }
+        }
+    }
+    return to;
+}
+function deepAssign(target, ...objects) {
+    for (const o of objects) {
+        if (o != null) {
+            assign(target, o);
+        }
+    }
+    return target;
+}
+// Flag names must be letters/digits/hyphens only (e.g. "maintainer", "deb-priority").
+// Anything else could inject extra flags into the argument array.
+const SAFE_FLAG_NAME_RE = /^[a-zA-Z][a-zA-Z0-9-]*$/;
+// Null bytes truncate arguments at the C layer; newlines can split arguments in some parsers.
+const UNSAFE_VALUE_RE = /[\0\r\n]/;
+function objectToArgs(obj) {
+    const args = Object.entries(obj).reduce((args, [name, value]) => {
+        if (!isValidKey(name) || value == null) {
+            return args;
+        }
+        if (!SAFE_FLAG_NAME_RE.test(name)) {
+            throw new Error(`objectToArgs: unsafe flag name rejected: ${JSON.stringify(name)}`);
+        }
+        if (UNSAFE_VALUE_RE.test(value)) {
+            throw new Error(`objectToArgs: value for --${name} contains a null byte or newline`);
+        }
+        return args.concat([`--${name}`, value]);
+    }, []);
+    return Object.freeze(args);
+}
+
 (function (exports$1) {
 	Object.defineProperty(exports$1, "__esModule", { value: true });
-	exports$1.CURRENT_APP_PACKAGE_FILE_NAME = exports$1.CURRENT_APP_INSTALLER_FILE_NAME = exports$1.XElement = exports$1.parseXml = exports$1.UUID = exports$1.parseDn = exports$1.retry = exports$1.githubTagPrefix = exports$1.githubUrl = exports$1.getS3LikeProviderBaseUrl = exports$1.ProgressCallbackTransform = exports$1.MemoLazy = exports$1.safeStringifyJson = exports$1.safeGetHeader = exports$1.parseJson = exports$1.HttpExecutor = exports$1.HttpError = exports$1.DigestTransform = exports$1.createHttpError = exports$1.configureRequestUrl = exports$1.configureRequestOptionsFromUrl = exports$1.configureRequestOptions = exports$1.newError = exports$1.CancellationToken = exports$1.CancellationError = void 0;
-	exports$1.asArray = asArray;
+	exports$1.CURRENT_APP_PACKAGE_FILE_NAME = exports$1.CURRENT_APP_INSTALLER_FILE_NAME = exports$1.objectToArgs = exports$1.deepAssign = exports$1.asArray = exports$1.mapToObject = exports$1.isValidKey = exports$1.XElement = exports$1.parseXml = exports$1.UUID = exports$1.parseDn = exports$1.retry = exports$1.githubTagPrefix = exports$1.githubUrl = exports$1.getS3LikeProviderBaseUrl = exports$1.ProgressCallbackTransform = exports$1.MemoLazy = exports$1.safeStringifyJson = exports$1.safeGetHeader = exports$1.parseJson = exports$1.isSensitiveFieldName = exports$1.HttpExecutor = exports$1.hashSensitiveValue = exports$1.HttpError = exports$1.DigestTransform = exports$1.createHttpError = exports$1.configureRequestUrl = exports$1.configureRequestOptionsFromUrl = exports$1.configureRequestOptions = exports$1.newError = exports$1.CancellationToken = exports$1.CancellationError = void 0;
 	var CancellationToken_1 = CancellationToken$1;
 	Object.defineProperty(exports$1, "CancellationError", { enumerable: true, get: function () { return CancellationToken_1.CancellationError; } });
 	Object.defineProperty(exports$1, "CancellationToken", { enumerable: true, get: function () { return CancellationToken_1.CancellationToken; } });
@@ -7134,7 +7280,9 @@ function parseXml(data) {
 	Object.defineProperty(exports$1, "createHttpError", { enumerable: true, get: function () { return httpExecutor_1.createHttpError; } });
 	Object.defineProperty(exports$1, "DigestTransform", { enumerable: true, get: function () { return httpExecutor_1.DigestTransform; } });
 	Object.defineProperty(exports$1, "HttpError", { enumerable: true, get: function () { return httpExecutor_1.HttpError; } });
+	Object.defineProperty(exports$1, "hashSensitiveValue", { enumerable: true, get: function () { return httpExecutor_1.hashSensitiveValue; } });
 	Object.defineProperty(exports$1, "HttpExecutor", { enumerable: true, get: function () { return httpExecutor_1.HttpExecutor; } });
+	Object.defineProperty(exports$1, "isSensitiveFieldName", { enumerable: true, get: function () { return httpExecutor_1.isSensitiveFieldName; } });
 	Object.defineProperty(exports$1, "parseJson", { enumerable: true, get: function () { return httpExecutor_1.parseJson; } });
 	Object.defineProperty(exports$1, "safeGetHeader", { enumerable: true, get: function () { return httpExecutor_1.safeGetHeader; } });
 	Object.defineProperty(exports$1, "safeStringifyJson", { enumerable: true, get: function () { return httpExecutor_1.safeStringifyJson; } });
@@ -7155,21 +7303,16 @@ function parseXml(data) {
 	var xml_1 = xml;
 	Object.defineProperty(exports$1, "parseXml", { enumerable: true, get: function () { return xml_1.parseXml; } });
 	Object.defineProperty(exports$1, "XElement", { enumerable: true, get: function () { return xml_1.XElement; } });
+	var objects_1 = objects;
+	Object.defineProperty(exports$1, "isValidKey", { enumerable: true, get: function () { return objects_1.isValidKey; } });
+	Object.defineProperty(exports$1, "mapToObject", { enumerable: true, get: function () { return objects_1.mapToObject; } });
+	Object.defineProperty(exports$1, "asArray", { enumerable: true, get: function () { return objects_1.asArray; } });
+	Object.defineProperty(exports$1, "deepAssign", { enumerable: true, get: function () { return objects_1.deepAssign; } });
+	Object.defineProperty(exports$1, "objectToArgs", { enumerable: true, get: function () { return objects_1.objectToArgs; } });
 	// nsis
 	exports$1.CURRENT_APP_INSTALLER_FILE_NAME = "installer.exe";
 	// nsis-web
 	exports$1.CURRENT_APP_PACKAGE_FILE_NAME = "package.7z";
-	function asArray(v) {
-	    if (v == null) {
-	        return [];
-	    }
-	    else if (Array.isArray(v)) {
-	        return v;
-	    }
-	    else {
-	        return [v];
-	    }
-	}
 	
 } (out));
 
@@ -15265,7 +15408,7 @@ const fs_1$4 = require$$1;
 // @ts-ignore
 const isEqual = lodash_isequalExports;
 const fs_extra_1$6 = lib;
-const path$8 = require$$1$1;
+const path$9 = require$$1$1;
 /** @private **/
 class DownloadedUpdateHelper {
     constructor(cacheDir) {
@@ -15286,7 +15429,7 @@ class DownloadedUpdateHelper {
         return this._packageFile;
     }
     get cacheDirForPendingUpdate() {
-        return path$8.join(this.cacheDir, "pending");
+        return path$9.join(this.cacheDir, "pending");
     }
     async validateDownloadedPath(updateFile, updateInfo, fileInfo, logger) {
         if (this.versionInfo != null && this.file === updateFile && this.fileInfo != null) {
@@ -15373,7 +15516,7 @@ class DownloadedUpdateHelper {
             await this.cleanCacheDirForPendingUpdate();
             return null;
         }
-        const updateFile = path$8.join(this.cacheDirForPendingUpdate, cachedInfo.fileName);
+        const updateFile = path$9.join(this.cacheDirForPendingUpdate, cachedInfo.fileName);
         if (!(await (0, fs_extra_1$6.pathExists)(updateFile))) {
             logger.info("Cached update file doesn't exist");
             return null;
@@ -15388,7 +15531,7 @@ class DownloadedUpdateHelper {
         return updateFile;
     }
     getUpdateInfoFile() {
-        return path$8.join(this.cacheDirForPendingUpdate, "update-info.json");
+        return path$9.join(this.cacheDirForPendingUpdate, "update-info.json");
     }
 }
 DownloadedUpdateHelper$1.DownloadedUpdateHelper = DownloadedUpdateHelper;
@@ -15408,7 +15551,7 @@ function hashFile(file, algorithm = "sha512", encoding = "base64", options) {
 async function createTempUpdateFile(name, cacheDir, log) {
     // https://github.com/electron-userland/electron-builder/pull/2474#issuecomment-366481912
     let nameCounter = 0;
-    let result = path$8.join(cacheDir, name);
+    let result = path$9.join(cacheDir, name);
     for (let i = 0; i < 3; i++) {
         try {
             await (0, fs_extra_1$6.unlink)(result);
@@ -15419,7 +15562,7 @@ async function createTempUpdateFile(name, cacheDir, log) {
                 return result;
             }
             log.warn(`Error on remove temp update file: ${e}`);
-            result = path$8.join(cacheDir, `${nameCounter++}-${name}`);
+            result = path$9.join(cacheDir, `${nameCounter++}-${name}`);
         }
     }
     return result;
@@ -15431,27 +15574,27 @@ var AppAdapter = {};
 
 Object.defineProperty(AppAdapter, "__esModule", { value: true });
 AppAdapter.getAppCacheDir = getAppCacheDir;
-const path$7 = require$$1$1;
+const path$8 = require$$1$1;
 const os_1$1 = require$$2;
 function getAppCacheDir() {
     const homedir = (0, os_1$1.homedir)();
     // https://github.com/electron/electron/issues/1404#issuecomment-194391247
     let result;
     if (process.platform === "win32") {
-        result = process.env["LOCALAPPDATA"] || path$7.join(homedir, "AppData", "Local");
+        result = process.env["LOCALAPPDATA"] || path$8.join(homedir, "AppData", "Local");
     }
     else if (process.platform === "darwin") {
-        result = path$7.join(homedir, "Library", "Caches");
+        result = path$8.join(homedir, "Library", "Caches");
     }
     else {
-        result = process.env["XDG_CACHE_HOME"] || path$7.join(homedir, ".cache");
+        result = process.env["XDG_CACHE_HOME"] || path$8.join(homedir, ".cache");
     }
     return result;
 }
 
 Object.defineProperty(ElectronAppAdapter$1, "__esModule", { value: true });
 ElectronAppAdapter$1.ElectronAppAdapter = void 0;
-const path$6 = require$$1$1;
+const path$7 = require$$1$1;
 const AppAdapter_1 = AppAdapter;
 class ElectronAppAdapter {
     constructor(app = require$$1$3.app) {
@@ -15470,7 +15613,7 @@ class ElectronAppAdapter {
         return this.app.isPackaged === true;
     }
     get appUpdateConfigPath() {
-        return this.isPackaged ? path$6.join(process.resourcesPath, "app-update.yml") : path$6.join(this.app.getAppPath(), "dev-app-update.yml");
+        return this.isPackaged ? path$7.join(process.resourcesPath, "app-update.yml") : path$7.join(this.app.getAppPath(), "dev-app-update.yml");
     }
     get userDataPath() {
         return this.app.getPath("userData");
@@ -16024,7 +16167,7 @@ const semver = semver$1;
 const url_1$4 = require$$2$1;
 const util_1$3 = util;
 const Provider_1$9 = Provider$1;
-const hrefRegExp = /\/tag\/([^/]+)$/;
+const hrefRegExp = /\/tag\/(v?[^/]+)$/;
 class BaseGitHubProvider extends Provider_1$9.Provider {
     constructor(options, defaultHost, runtimeOptions) {
         super({
@@ -16068,6 +16211,8 @@ class GitHubProvider extends BaseGitHubProvider {
             if (this.updater.allowPrerelease) {
                 const currentChannel = ((_a = this.updater) === null || _a === void 0 ? void 0 : _a.channel) || ((_b = semver.prerelease(this.updater.currentVersion)) === null || _b === void 0 ? void 0 : _b[0]) || null;
                 if (currentChannel === null) {
+                    // allowPrerelease=true with no explicit channel and stable current version:
+                    // pick the first entry from the Atom feed, which may be a prerelease
                     // noinspection TypeScriptValidateJSTypes
                     tag = hrefRegExp.exec(latestRelease.element("link").attribute("href"))[1];
                 }
@@ -16076,10 +16221,14 @@ class GitHubProvider extends BaseGitHubProvider {
                         // noinspection TypeScriptValidateJSTypes
                         const hrefElement = hrefRegExp.exec(element.element("link").attribute("href"));
                         // If this is null then something is wrong and skip this release
-                        if (hrefElement === null)
+                        if (hrefElement === null) {
                             continue;
+                        }
                         // This Release's Tag
                         const hrefTag = hrefElement[1];
+                        if (!semver.valid(hrefTag)) {
+                            continue;
+                        }
                         //Get Channel from this release's tag
                         const hrefChannel = ((_c = semver.prerelease(hrefTag)) === null || _c === void 0 ? void 0 : _c[0]) || null;
                         const shouldFetchVersion = !currentChannel || ["alpha", "beta"].includes(currentChannel);
@@ -16088,11 +16237,13 @@ class GitHubProvider extends BaseGitHubProvider {
                         const channelMismatch = currentChannel === "beta" && hrefChannel === "alpha";
                         if (shouldFetchVersion && !isCustomChannel && !channelMismatch) {
                             tag = hrefTag;
+                            latestRelease = element;
                             break;
                         }
                         const isNextPreRelease = hrefChannel && hrefChannel === currentChannel;
                         if (isNextPreRelease) {
                             tag = hrefTag;
+                            latestRelease = element;
                             break;
                         }
                     }
@@ -16102,7 +16253,11 @@ class GitHubProvider extends BaseGitHubProvider {
                 tag = await this.getLatestTagName(cancellationToken);
                 for (const element of feed.getElements("entry")) {
                     // noinspection TypeScriptValidateJSTypes
-                    if (hrefRegExp.exec(element.element("link").attribute("href"))[1] === tag) {
+                    const hrefMatch = hrefRegExp.exec(element.element("link").attribute("href"));
+                    if (hrefMatch == null) {
+                        continue;
+                    }
+                    if (hrefMatch[1] === tag) {
                         latestRelease = element;
                         break;
                     }
@@ -16199,11 +16354,38 @@ function computeReleaseNotes(currentVersion, isFullChangelog, feed, latestReleas
     if (!isFullChangelog) {
         return getNoteValue(latestRelease);
     }
+    const releaseVersionRegExp = /\/tag\/v?([^/]+)$/;
+    let latestVersion = undefined;
+    try {
+        latestVersion = releaseVersionRegExp.exec(latestRelease.element("link").attribute("href"))[1];
+        latestVersion = semver.valid(latestVersion) ? latestVersion : undefined;
+    }
+    catch {
+        // If we cannot parse the latest release version, return null — notes cannot be determined
+    }
+    if (latestVersion == null) {
+        return null;
+    }
     const releaseNotes = [];
     for (const release of feed.getElements("entry")) {
-        // noinspection TypeScriptValidateJSTypes
-        const versionRelease = /\/tag\/v?([^/]+)$/.exec(release.element("link").attribute("href"))[1];
-        if (semver.lt(currentVersion, versionRelease)) {
+        let versionRelease;
+        try {
+            const match = releaseVersionRegExp.exec(release.element("link").attribute("href"));
+            if (!match) {
+                continue;
+            }
+            versionRelease = match[1];
+        }
+        catch {
+            continue;
+        }
+        // skip non-semver tags (e.g. doc/website releases in monorepos)
+        if (!semver.valid(versionRelease)) {
+            continue;
+        }
+        const isGreaterThanCurrent = semver.gt(versionRelease, currentVersion.raw);
+        const isLessOrEqualThanLatest = semver.lte(versionRelease, latestVersion);
+        if (isGreaterThanCurrent && isLessOrEqualThanLatest) {
             releaseNotes.push({
                 version: versionRelease,
                 note: getNoteValue(release),
@@ -16255,6 +16437,11 @@ class GitLabProvider extends Provider_1$8.Provider {
         const host = options.host || defaultHost;
         this.baseApiUrl = (0, util_1$2.newBaseUrl)(`https://${host}/api/v4`);
     }
+    createRequestOptions(url, headers) {
+        const result = super.createRequestOptions(url, headers);
+        result.redirect = "manual";
+        return result;
+    }
     get channel() {
         const result = this.updater.channel || this.options.channel;
         return result == null ? this.getDefaultChannelName() : this.getCustomChannelName(result);
@@ -16263,17 +16450,26 @@ class GitLabProvider extends Provider_1$8.Provider {
         const cancellationToken = new builder_util_runtime_1$b.CancellationToken();
         // Get latest release from GitLab API using the permalink/latest endpoint
         const latestReleaseUrl = (0, util_1$2.newUrlFromBase)(`projects/${this.options.projectId}/releases/permalink/latest`, this.baseApiUrl);
-        let latestRelease;
+        const header = { Accept: "application/json", ...this.setAuthHeaderForToken(this.options.token || null) };
+        let releaseResponse;
         try {
-            const header = { "Content-Type": "application/json", ...this.setAuthHeaderForToken(this.options.token || null) };
-            const releaseResponse = await this.httpRequest(latestReleaseUrl, header, cancellationToken);
-            if (!releaseResponse) {
-                throw (0, builder_util_runtime_1$b.newError)("No latest release found", "ERR_UPDATER_NO_PUBLISHED_VERSIONS");
-            }
-            latestRelease = JSON.parse(releaseResponse);
+            releaseResponse = await this.httpRequest(latestReleaseUrl, header, cancellationToken);
         }
         catch (e) {
             throw (0, builder_util_runtime_1$b.newError)(`Unable to find latest release on GitLab (${latestReleaseUrl}): ${e.stack || e.message}`, "ERR_UPDATER_LATEST_VERSION_NOT_FOUND");
+        }
+        if (!releaseResponse) {
+            throw (0, builder_util_runtime_1$b.newError)("No published releases on GitLab", "ERR_UPDATER_NO_PUBLISHED_VERSIONS");
+        }
+        let latestRelease;
+        try {
+            latestRelease = JSON.parse(releaseResponse);
+        }
+        catch (e) {
+            throw (0, builder_util_runtime_1$b.newError)(`Unable to parse latest release response from GitLab (${latestReleaseUrl}): response was not valid JSON: ${e.stack || e.message}`, "ERR_UPDATER_LATEST_VERSION_NOT_FOUND");
+        }
+        if (latestRelease.upcoming_release) {
+            throw (0, builder_util_runtime_1$b.newError)("Latest GitLab release is scheduled but not yet published", "ERR_UPDATER_LATEST_VERSION_NOT_FOUND");
         }
         const tag = latestRelease.tag_name;
         // Look for channel file in release assets
@@ -16288,7 +16484,8 @@ class GitLabProvider extends Provider_1$8.Provider {
                 throw (0, builder_util_runtime_1$b.newError)(`Cannot find ${channelFile} in the latest release assets`, "ERR_UPDATER_CHANNEL_FILE_NOT_FOUND");
             }
             channelFileUrl = new url_1$3.URL(channelAsset.direct_asset_url);
-            const headers = this.options.token ? { "PRIVATE-TOKEN": this.options.token } : undefined;
+            const authHeaders = this.setAuthHeaderForToken(this.options.token || null);
+            const headers = Object.keys(authHeaders).length ? authHeaders : undefined;
             try {
                 const result = await this.httpRequest(channelFileUrl, headers, cancellationToken);
                 if (!result) {
@@ -16327,14 +16524,9 @@ class GitLabProvider extends Provider_1$8.Provider {
         if (result.releaseNotes == null) {
             result.releaseNotes = latestRelease.description || null;
         }
-        // Create assets map from GitLab release assets
-        const assetsMap = new Map();
-        for (const asset of latestRelease.assets.links) {
-            assetsMap.set(this.normalizeFilename(asset.name), asset.direct_asset_url);
-        }
         const gitlabUpdateInfo = {
             tag: tag,
-            assets: assetsMap,
+            assets: this.convertAssetsToMap(latestRelease.assets),
             ...result,
         };
         // Cache the latest version info
@@ -16372,7 +16564,7 @@ class GitLabProvider extends Provider_1$8.Provider {
         for (const releaseId of possibleReleaseIds) {
             const releaseUrl = (0, util_1$2.newUrlFromBase)(`projects/${this.options.projectId}/releases/${encodeURIComponent(releaseId)}`, this.baseApiUrl);
             try {
-                const header = { "Content-Type": "application/json", ...this.setAuthHeaderForToken(this.options.token || null) };
+                const header = { Accept: "application/json", ...this.setAuthHeaderForToken(this.options.token || null) };
                 const releaseResponse = await this.httpRequest(releaseUrl, header, cancellationToken);
                 if (releaseResponse) {
                     const release = JSON.parse(releaseResponse);
@@ -16538,7 +16730,7 @@ Object.defineProperty(PrivateGitHubProvider$1, "__esModule", { value: true });
 PrivateGitHubProvider$1.PrivateGitHubProvider = void 0;
 const builder_util_runtime_1$9 = out;
 const js_yaml_1$1 = jsYaml;
-const path$5 = require$$1$1;
+const path$6 = require$$1$1;
 const url_1$2 = require$$2$1;
 const util_1 = util;
 const GitHubProvider_1$1 = GitHubProvider$1;
@@ -16595,8 +16787,10 @@ class PrivateGitHubProvider extends GitHubProvider_1$1.BaseGitHubProvider {
         const url = (0, util_1.newUrlFromBase)(basePath, this.baseUrl);
         try {
             const version = JSON.parse((await this.httpRequest(url, this.configureHeaders("application/vnd.github.v3+json"), cancellationToken)));
+            // only `latest` can return a single ReleaseInfo. Otherwise, a list of ReleaseInfo is returned and we need to find the latest one ourselves
             if (allowPrerelease) {
-                return version.find(it => it.prerelease) || version[0];
+                const candidates = version.filter(it => !it.draft);
+                return candidates.find(it => it.prerelease) || candidates[0];
             }
             else {
                 return version;
@@ -16611,7 +16805,7 @@ class PrivateGitHubProvider extends GitHubProvider_1$1.BaseGitHubProvider {
     }
     resolveFiles(updateInfo) {
         return (0, Provider_1$6.getFileList)(updateInfo).map(it => {
-            const name = path$5.posix.basename(it.url).replace(/ /g, "-");
+            const name = path$6.posix.basename(it.url).replace(/ /g, "-");
             const asset = updateInfo.assets.find(it => it != null && it.name === name);
             if (asset == null) {
                 throw (0, builder_util_runtime_1$9.newError)(`Cannot find asset "${name}" in: ${JSON.stringify(updateInfo.assets, null, 2)}`, "ERR_UPDATER_ASSET_NOT_FOUND");
@@ -16819,7 +17013,26 @@ const builder_util_runtime_1$7 = out;
 const fs_1$3 = require$$1;
 const stream_1$1 = require$$0$1;
 const downloadPlanBuilder_1$2 = downloadPlanBuilder;
-const DOUBLE_CRLF = Buffer.from("\r\n\r\n");
+const CRLF_HEADER_LIST_END = Buffer.from("\r\n\r\n");
+// RFC 2046 requires CRLF, but some CDNs (e.g. Qiniu's "web cache") emit bare LF in multipart/byteranges responses.
+const LF_HEADER_LIST_END = Buffer.from("\n\n");
+// A terminator may be split across two chunks: keep this many trailing bytes of an unfinished header list.
+const HEADER_LIST_END_CARRY = CRLF_HEADER_LIST_END.length - 1;
+// Parts are separated by "<EOL>--boundary"; these are the sizes of the "<EOL>--" prefix.
+const CRLF_DELIMITER_PREFIX_LENGTH = "\r\n--".length;
+const LF_DELIMITER_PREFIX_LENGTH = "\n--".length;
+function findHeaderListEnd(data) {
+    const crlf = data.indexOf(CRLF_HEADER_LIST_END);
+    // "\r\n\r\n" never contains "\n\n", so whichever terminator comes first tells the line ending in use
+    const lf = data.indexOf(LF_HEADER_LIST_END);
+    if (lf !== -1 && (crlf === -1 || lf < crlf)) {
+        return { end: lf + LF_HEADER_LIST_END.length, lineFeedOnly: true };
+    }
+    if (crlf !== -1) {
+        return { end: crlf + CRLF_HEADER_LIST_END.length, lineFeedOnly: false };
+    }
+    return null;
+}
 var ReadState;
 (function (ReadState) {
     ReadState[ReadState["INIT"] = 0] = "INIT";
@@ -16841,19 +17054,29 @@ function copyData(task, out, oldFileFd, reject, resolve) {
     });
 }
 class DataSplitter extends stream_1$1.Writable {
-    constructor(out, options, partIndexToTaskIndex, boundary, partIndexToLength, finishHandler) {
+    constructor(out, options, partIndexToTaskIndex, boundary, partIndexToLength, finishHandler, grandTotalBytes, onProgress) {
         super();
         this.out = out;
         this.options = options;
         this.partIndexToTaskIndex = partIndexToTaskIndex;
         this.partIndexToLength = partIndexToLength;
         this.finishHandler = finishHandler;
+        this.grandTotalBytes = grandTotalBytes;
+        this.onProgress = onProgress;
+        // properties for progress update calculations
+        this.start = Date.now(); // download start time used to calculate average rate
+        this.nextUpdate = this.start + 1000; // timestamp of next update to prevent updates more often than once per second
+        this.transferred = 0; // total number of bytes transferred
+        this.delta = 0; // number of bytes transferred since last update, reset after each update
         this.partIndex = -1;
-        this.headerListBuffer = null;
+        // Trailing bytes (at most HEADER_LIST_END_CARRY) of a header list that is not complete yet. Header lists are ignored,
+        // so nothing more needs to be kept — only enough to find a terminator that straddles two chunks.
+        this.headerListTail = null;
         this.readState = ReadState.INIT;
         this.ignoreByteCount = 0;
         this.remainingPartDataCount = 0;
         this.actualPartLength = 0;
+        this.boundaryTextLength = boundary.length;
         this.boundaryLength = boundary.length + 4; /* size of \r\n-- */
         // first chunk doesn't start with \r\n
         this.ignoreByteCount = this.boundaryLength - 2;
@@ -16867,7 +17090,25 @@ class DataSplitter extends stream_1$1.Writable {
             console.error(`Trailing ignored data: ${data.length} bytes`);
             return;
         }
-        this.handleData(data).then(callback).catch(callback);
+        this.handleData(data)
+            .then(() => {
+            if (this.onProgress) {
+                const now = Date.now();
+                if ((now >= this.nextUpdate || this.transferred === this.grandTotalBytes) && this.grandTotalBytes && (now - this.start) / 1000) {
+                    this.nextUpdate = now + 1000;
+                    this.onProgress({
+                        total: this.grandTotalBytes,
+                        delta: this.delta,
+                        transferred: this.transferred,
+                        percent: (this.transferred / this.grandTotalBytes) * 100,
+                        bytesPerSecond: Math.round(this.transferred / ((now - this.start) / 1000)),
+                    });
+                    this.delta = 0;
+                }
+            }
+            callback();
+        })
+            .catch(callback);
     }
     async handleData(chunk) {
         let start = 0;
@@ -16895,8 +17136,6 @@ class DataSplitter extends stream_1$1.Writable {
             }
             start = headerListEnd;
             this.readState = ReadState.BODY;
-            // header list is ignored, we don't need it
-            this.headerListBuffer = null;
         }
         while (true) {
             if (this.readState === ReadState.BODY) {
@@ -16967,18 +17206,19 @@ class DataSplitter extends stream_1$1.Writable {
         });
     }
     searchHeaderListEnd(chunk, readOffset) {
-        const headerListEnd = chunk.indexOf(DOUBLE_CRLF, readOffset);
-        if (headerListEnd !== -1) {
-            return headerListEnd + DOUBLE_CRLF.length;
+        const tail = this.headerListTail;
+        const carried = tail == null ? 0 : tail.length;
+        const data = tail == null ? chunk.subarray(readOffset) : Buffer.concat([tail, chunk.subarray(readOffset)]);
+        const found = findHeaderListEnd(data);
+        if (found != null) {
+            this.headerListTail = null;
+            // the separator size follows the line ending the server actually uses
+            this.boundaryLength = this.boundaryTextLength + (found.lineFeedOnly ? LF_DELIMITER_PREFIX_LENGTH : CRLF_DELIMITER_PREFIX_LENGTH);
+            // the carried bytes were already searched, so the terminator always ends inside the current chunk
+            return readOffset + found.end - carried;
         }
-        // not all headers data were received, save to buffer
-        const partialChunk = readOffset === 0 ? chunk : chunk.slice(readOffset);
-        if (this.headerListBuffer == null) {
-            this.headerListBuffer = partialChunk;
-        }
-        else {
-            this.headerListBuffer = Buffer.concat([this.headerListBuffer, partialChunk]);
-        }
+        // not all headers data were received; copy the tail so the chunk itself is not retained
+        this.headerListTail = Buffer.from(data.subarray(Math.max(0, data.length - HEADER_LIST_END_CARRY)));
         return -1;
     }
     onPartEnd() {
@@ -16996,6 +17236,8 @@ class DataSplitter extends stream_1$1.Writable {
     }
     processPartData(data, start, end) {
         this.actualPartLength += end - start;
+        this.transferred += end - start;
+        this.delta += end - start;
         const out = this.out;
         if (out.write(start === 0 && data.length === end ? data : data.slice(start, end))) {
             return Promise.resolve();
@@ -17043,6 +17285,7 @@ function executeTasksUsingMultipleRangeRequests(differentialDownloader, tasks, o
 function doExecuteTasks(differentialDownloader, options, out, resolve, reject) {
     let ranges = "bytes=";
     let partCount = 0;
+    let grandTotalBytes = 0;
     const partIndexToTaskIndex = new Map();
     const partIndexToLength = [];
     for (let i = options.start; i < options.end; i++) {
@@ -17052,6 +17295,7 @@ function doExecuteTasks(differentialDownloader, options, out, resolve, reject) {
             partIndexToTaskIndex.set(partCount, i);
             partCount++;
             partIndexToLength.push(task.end - task.start);
+            grandTotalBytes += task.end - task.start;
         }
     }
     if (partCount <= 1) {
@@ -17097,11 +17341,31 @@ function doExecuteTasks(differentialDownloader, options, out, resolve, reject) {
             reject(new Error(`Content-Type "multipart/byteranges" is expected, but got "${contentType}"`));
             return;
         }
-        const dicer = new DataSplitter_1$1.DataSplitter(out, options, partIndexToTaskIndex, m[1] || m[2], partIndexToLength, resolve);
+        // The watchdog below only exists for a response that ends before every part was handled. It must not outlive a
+        // successful batch: the next batch reuses the same `reject`, so a stale watchdog used to fail any multi-batch
+        // download whose later batches took longer than the grace period.
+        let isBatchFinished = false;
+        let watchdog = null;
+        const onBatchFinished = () => {
+            isBatchFinished = true;
+            if (watchdog != null) {
+                clearTimeout(watchdog);
+                watchdog = null;
+            }
+            resolve();
+        };
+        const dicer = new DataSplitter_1$1.DataSplitter(out, options, partIndexToTaskIndex, m[1] || m[2], partIndexToLength, onBatchFinished, grandTotalBytes, differentialDownloader.options.onProgress);
         dicer.on("error", reject);
         response.pipe(dicer);
         response.on("end", () => {
-            setTimeout(() => {
+            if (isBatchFinished) {
+                return;
+            }
+            watchdog = setTimeout(() => {
+                watchdog = null;
+                if (isBatchFinished) {
+                    return;
+                }
                 request.abort();
                 reject(new Error("Response ends without calling any handlers"));
             }, 10000);
@@ -17321,7 +17585,6 @@ class DifferentialDownloader {
             // Create our download info transformer if we have one
             let downloadInfoTransform = undefined;
             if (!this.options.isUseMultipleRangeRequest && this.options.onProgress) {
-                // TODO: Does not support multiple ranges (someone feel free to PR this!)
                 const expectedByteCounts = [];
                 let grandTotalBytes = 0;
                 for (const task of tasks) {
@@ -17542,7 +17805,7 @@ const events_1 = require$$0$2;
 const fs_extra_1$4 = lib;
 const js_yaml_1 = jsYaml;
 const lazy_val_1 = main$1;
-const path$4 = require$$1$1;
+const path$5 = require$$1$1;
 const semver_1 = semver$1;
 const DownloadedUpdateHelper_1 = DownloadedUpdateHelper$1;
 const ElectronAppAdapter_1 = ElectronAppAdapter$1;
@@ -17762,7 +18025,7 @@ class AppUpdater extends events_1.EventEmitter {
         return "Deprecated. Do not use it.";
     }
     /**
-     * Configure update provider. If value is `string`, [GenericServerOptions](./publish.md#genericserveroptions) will be set with value as `url`.
+     * Configure update provider. If value is `string`, [GenericServerOptions](https://www.electron.build/publish#genericserveroptions) will be set with value as `url`.
      * @param options If you want to override configuration in the `app-update.yml`.
      */
     setFeedURL(options) {
@@ -17975,7 +18238,7 @@ class AppUpdater extends events_1.EventEmitter {
         }
         if (this.downloadPromise != null) {
             this._logger.info("Downloading update (already in progress)");
-            return this.downloadPromise;
+            return this.downloadPromise.then(toDownloadedFilesArray);
         }
         this._logger.info(`Downloading update from ${(0, builder_util_runtime_1$4.asArray)(updateInfoAndProvider.info.files)
             .map(it => it.url)
@@ -18005,7 +18268,7 @@ class AppUpdater extends events_1.EventEmitter {
             .finally(() => {
             this.downloadPromise = null;
         });
-        return this.downloadPromise;
+        return this.downloadPromise.then(toDownloadedFilesArray);
     }
     dispatchError(e) {
         this.emit("error", e, (e.stack || e).toString());
@@ -18033,7 +18296,7 @@ class AppUpdater extends events_1.EventEmitter {
         return this.computeFinalHeaders({ accept: "*/*" });
     }
     async getOrCreateStagingUserId() {
-        const file = path$4.join(this.app.userDataPath, ".updaterId");
+        const file = path$5.join(this.app.userDataPath, ".updaterId");
         try {
             const id = await (0, fs_extra_1$4.readFile)(file, "utf-8");
             if (builder_util_runtime_1$4.UUID.check(id)) {
@@ -18081,7 +18344,7 @@ class AppUpdater extends events_1.EventEmitter {
             if (dirName == null) {
                 logger.error("updaterCacheDirName is not specified in app-update.yml Was app build using at least electron-builder 20.34.0?");
             }
-            const cacheDir = path$4.join(this.app.baseCachePath, dirName || this.app.name);
+            const cacheDir = path$5.join(this.app.baseCachePath, dirName || this.app.name);
             if (logger.debug != null) {
                 logger.debug(`updater cache dir: ${cacheDir}`);
             }
@@ -18108,30 +18371,39 @@ class AppUpdater extends events_1.EventEmitter {
             // NodeJS URL doesn't decode automatically
             const urlPath = decodeURIComponent(taskOptions.fileInfo.url.pathname);
             if (urlPath.toLowerCase().endsWith(`.${taskOptions.fileExtension.toLowerCase()}`)) {
-                return path$4.basename(urlPath);
+                return path$5.basename(urlPath);
             }
             else {
-                // url like /latest, generate name
-                return taskOptions.fileInfo.info.url;
+                // url like /latest — use basename so a server-supplied path like "../../etc/evil"
+                // cannot escape the cache directory via path.join
+                return path$5.basename(taskOptions.fileInfo.info.url);
             }
         }
         const downloadedUpdateHelper = await this.getOrCreateDownloadHelper();
         const cacheDir = downloadedUpdateHelper.cacheDirForPendingUpdate;
         await (0, fs_extra_1$4.mkdir)(cacheDir, { recursive: true });
         const updateFileName = getCacheUpdateFileName();
-        let updateFile = path$4.join(cacheDir, updateFileName);
-        const packageFile = packageInfo == null ? null : path$4.join(cacheDir, `package-${version}${path$4.extname(packageInfo.path) || ".7z"}`);
+        let updateFile = path$5.join(cacheDir, updateFileName);
+        const packageFile = packageInfo == null ? null : path$5.join(cacheDir, `package-${version}${path$5.extname(packageInfo.path) || ".7z"}`);
+        const pendingBlockMapFile = path$5.join(cacheDir, "current.blockmap");
+        const cachedBlockMapFile = path$5.join(downloadedUpdateHelper.cacheDir, "current.blockmap");
         const done = async (isSaveCache) => {
             await downloadedUpdateHelper.setDownloadedFile(updateFile, packageFile, updateInfo, fileInfo, updateFileName, isSaveCache);
             await taskOptions.done({
                 ...updateInfo,
                 downloadedFile: updateFile,
             });
-            const currentBlockMapFile = path$4.join(cacheDir, "current.blockmap");
-            if (await (0, fs_extra_1$4.pathExists)(currentBlockMapFile)) {
-                await (0, fs_extra_1$4.copyFile)(currentBlockMapFile, path$4.join(downloadedUpdateHelper.cacheDir, "current.blockmap"));
+            if (await (0, fs_extra_1$4.pathExists)(pendingBlockMapFile)) {
+                await (0, fs_extra_1$4.copyFile)(pendingBlockMapFile, cachedBlockMapFile);
             }
-            return packageFile == null ? [updateFile] : [updateFile, packageFile];
+            else if (!taskOptions.downloadUpdateOptions.disableDifferentialDownload) {
+                // this download did not produce a blockmap, but `taskOptions.done` above refreshes the cached installer —
+                // remove the cached blockmap too, so a stale one cannot sit next to a fresh file and poison the next
+                // differential download with a wrong copy plan (https://github.com/electron-userland/electron-builder/issues/10097).
+                // The differential downloader re-fetches the old blockmap from the server when no cached one exists.
+                await (0, fs_extra_1$4.remove)(cachedBlockMapFile);
+            }
+            return packageFile == null ? { updateFile } : { updateFile, packageFile };
         };
         const log = this._logger;
         const cachedUpdateFile = await downloadedUpdateHelper.validateDownloadedPath(updateFile, updateInfo, fileInfo, log);
@@ -18147,6 +18419,10 @@ class AppUpdater extends events_1.EventEmitter {
                 // ignore
             });
         };
+        // a fresh download starts — drop any blockmap left over from a previous update round, so that when this round
+        // does not produce a new one (e.g. the differential download is skipped), the leftover cannot be promoted to the
+        // cache next to a file it does not describe
+        await (0, fs_extra_1$4.remove)(pendingBlockMapFile);
         const tempUpdateFile = await (0, DownloadedUpdateHelper_1.createTempUpdateFile)(`temp-${updateFileName}`, cacheDir, log);
         try {
             await taskOptions.task(tempUpdateFile, downloadOptions, packageFile, removeFileIfAny);
@@ -18168,12 +18444,18 @@ class AppUpdater extends events_1.EventEmitter {
                 log.info("cancelled");
                 this.emit("update-cancelled", updateInfo);
             }
+            else if (e.code === "ERR_CHECKSUM_MISMATCH") {
+                // a differential-download failure never escapes the task (it falls back to a full download),
+                // so a checksum mismatch here means the fully downloaded file itself failed verification
+                log.warn(`sha512 checksum mismatch after full download of ${updateFileName}: the downloaded file is corrupted or the published update metadata does not match the uploaded file`);
+            }
             throw e;
         }
         log.info(`New version ${version} has been downloaded to ${updateFile}`);
         return await done(true);
     }
     async differentialDownloadInstaller(fileInfo, downloadUpdateOptions, installerPath, provider, oldInstallerFileName) {
+        let isOldBlockMapFromCache = false;
         try {
             if (this._testOnlyOptions != null && !this._testOnlyOptions.isUseDifferentialDownload) {
                 return true;
@@ -18198,7 +18480,7 @@ class AppUpdater extends events_1.EventEmitter {
             };
             const downloadOptions = {
                 newUrl: fileInfo.url,
-                oldFile: path$4.join(this.downloadedUpdateHelper.cacheDir, oldInstallerFileName),
+                oldFile: path$5.join(this.downloadedUpdateHelper.cacheDir, oldInstallerFileName),
                 logger: this._logger,
                 newFile: installerPath,
                 isUseMultipleRangeRequest: provider.isUseMultipleRangeRequest,
@@ -18209,11 +18491,11 @@ class AppUpdater extends events_1.EventEmitter {
                 downloadOptions.onProgress = it => this.emit(types_1$5.DOWNLOAD_PROGRESS, it);
             }
             const saveBlockMapToCacheDir = async (blockMapData, cacheDir) => {
-                const blockMapFile = path$4.join(cacheDir, "current.blockmap");
+                const blockMapFile = path$5.join(cacheDir, "current.blockmap");
                 await (0, fs_extra_1$4.outputFile)(blockMapFile, (0, zlib_1$1.gzipSync)(JSON.stringify(blockMapData)));
             };
             const getBlockMapFromCacheDir = async (cacheDir) => {
-                const blockMapFile = path$4.join(cacheDir, "current.blockmap");
+                const blockMapFile = path$5.join(cacheDir, "current.blockmap");
                 try {
                     if (await (0, fs_extra_1$4.pathExists)(blockMapFile)) {
                         return JSON.parse((0, zlib_1$1.gunzipSync)(await (0, fs_extra_1$4.readFile)(blockMapFile)).toString());
@@ -18228,13 +18510,18 @@ class AppUpdater extends events_1.EventEmitter {
             await saveBlockMapToCacheDir(newBlockMapData, this.downloadedUpdateHelper.cacheDirForPendingUpdate);
             // get old blockmap from cache dir first, if not found, download it
             let oldBlockMapData = await getBlockMapFromCacheDir(this.downloadedUpdateHelper.cacheDir);
+            isOldBlockMapFromCache = oldBlockMapData != null;
             if (oldBlockMapData == null) {
+                this._logger.info(`No cached blockmap for the old installer, downloading it from "${blockmapFileUrls[0]}"`);
                 oldBlockMapData = await downloadBlockMap(blockmapFileUrls[0]);
             }
             await new GenericDifferentialDownloader_1.GenericDifferentialDownloader(fileInfo.info, this.httpExecutor, downloadOptions).download(oldBlockMapData, newBlockMapData);
             return false;
         }
         catch (e) {
+            if (e.code === "ERR_CHECKSUM_MISMATCH") {
+                this._logger.warn(`sha512 checksum mismatch after differential download (old blockmap ${isOldBlockMapFromCache ? "was read from the local cache" : "was downloaded from the server"}): cached "${oldInstallerFileName}" is likely out of sync with the old blockmap, e.g. because one of them was replaced or evicted independently of the other`);
+            }
             this._logger.error(`Cannot download differentially, fallback to full download: ${e.stack || e}`);
             if (this._testOnlyOptions != null) {
                 // test mode
@@ -18265,10 +18552,14 @@ class NoOpLogger {
     }
 }
 AppUpdater$1.NoOpLogger = NoOpLogger;
+function toDownloadedFilesArray({ updateFile, packageFile }) {
+    return packageFile == null ? [updateFile] : [updateFile, packageFile];
+}
 
 Object.defineProperty(BaseUpdater$1, "__esModule", { value: true });
 BaseUpdater$1.BaseUpdater = void 0;
 const child_process_1$3 = require$$1$4;
+const path$4 = require$$1$1;
 const AppUpdater_1$1 = AppUpdater$1;
 class BaseUpdater extends AppUpdater_1$1.AppUpdater {
     constructor(options, app) {
@@ -18354,10 +18645,23 @@ class BaseUpdater extends AppUpdater_1$1.AppUpdater {
             this.install(true, false);
         });
     }
+    /**
+     * Strips relative-path entries from a PATH string.
+     * Prevents PATH-poisoning where a writable directory earlier in PATH shadows
+     * a trusted package manager binary.
+     */
+    sanitizeEnvPath(envPath) {
+        return envPath
+            .split(path$4.delimiter)
+            .filter((dir) => path$4.isAbsolute(dir))
+            .join(path$4.delimiter);
+    }
     spawnSyncLog(cmd, args = [], env = {}) {
+        var _a;
         this._logger.info(`Executing: ${cmd} with args: ${args}`);
+        const mergedEnv = { ...process.env, ...env };
         const response = (0, child_process_1$3.spawnSync)(cmd, args, {
-            env: { ...process.env, ...env },
+            env: { ...mergedEnv, PATH: this.sanitizeEnvPath((_a = mergedEnv.PATH) !== null && _a !== void 0 ? _a : "") },
             encoding: "utf-8",
             shell: true,
         });
@@ -18516,6 +18820,9 @@ class AppImageUpdater extends BaseUpdater_1$2.BaseUpdater {
         if (appImageFile == null) {
             throw (0, builder_util_runtime_1$3.newError)("APPIMAGE env is not defined", "ERR_UPDATER_OLD_FILE_NOT_FOUND");
         }
+        if (!path$3.isAbsolute(appImageFile) || appImageFile.includes("\0")) {
+            throw (0, builder_util_runtime_1$3.newError)(`APPIMAGE env is not a valid absolute path: "${appImageFile}"`, "ERR_UPDATER_OLD_FILE_NOT_FOUND");
+        }
         // https://stackoverflow.com/a/1712051/1910191
         (0, fs_1$1.unlinkSync)(appImageFile);
         let destination;
@@ -18562,6 +18869,9 @@ var LinuxUpdater$1 = {};
 Object.defineProperty(LinuxUpdater$1, "__esModule", { value: true });
 LinuxUpdater$1.LinuxUpdater = void 0;
 const BaseUpdater_1$1 = BaseUpdater$1;
+// Matches safe package manager names: alphanumeric, hyphens, underscores only.
+// Rejects names with shell metacharacters that could cause command injection.
+const SAFE_PM_REGEX = /^[a-zA-Z0-9_-]+$/;
 class LinuxUpdater extends BaseUpdater_1$1.BaseUpdater {
     constructor(options, app) {
         super(options, app);
@@ -18574,11 +18884,19 @@ class LinuxUpdater extends BaseUpdater_1$1.BaseUpdater {
         return ((_a = process.getuid) === null || _a === void 0 ? void 0 : _a.call(process)) === 0;
     }
     /**
-     * Sanitizies the installer path for using with command line tools.
+     * Sanitizes the installer path for use with shell:true spawn calls.
+     * Backslash-escapes metacharacters that have special meaning in POSIX shell.
+     * Note: paths containing single-quotes (') are not supported.
      */
     get installerPath() {
-        var _a, _b;
-        return (_b = (_a = super.installerPath) === null || _a === void 0 ? void 0 : _a.replace(/\\/g, "\\\\").replace(/ /g, "\\ ")) !== null && _b !== void 0 ? _b : null;
+        const raw = super.installerPath;
+        if (raw == null) {
+            return null;
+        }
+        return raw
+            .replace(/\\/g, "\\\\") // must come first
+            .replace(/([`$!" ;|&()<>])/g, "\\$1")
+            .replace(/[\n\r]/g, "");
     }
     runCommandWithSudoIfNeeded(commandWithArgs) {
         if (this.isRunningAsRoot()) {
@@ -18586,7 +18904,9 @@ class LinuxUpdater extends BaseUpdater_1$1.BaseUpdater {
             return this.spawnSyncLog(commandWithArgs[0], commandWithArgs.slice(1));
         }
         const { name } = this.app;
-        const installComment = `"${name} would like to update"`;
+        // Strip characters that could break shell quoting in the sudo dialog comment string
+        const safeName = name.replace(/["`$\\!\n\r;|&<>(){}*?[\]#~]/g, "");
+        const installComment = `"${safeName} would like to update"`;
         const sudo = this.sudoWithArgs(installComment);
         this._logger.info(`Running as non-root user, using sudo to install: ${sudo}`);
         let wrapper = `"`;
@@ -18639,19 +18959,27 @@ class LinuxUpdater extends BaseUpdater_1$1.BaseUpdater {
      */
     detectPackageManager(pms) {
         var _a;
+        let availablePMs = pms;
         const pmOverride = (_a = process.env.ELECTRON_BUILDER_LINUX_PACKAGE_MANAGER) === null || _a === void 0 ? void 0 : _a.trim();
         if (pmOverride) {
-            return pmOverride;
+            if (!SAFE_PM_REGEX.test(pmOverride)) {
+                this._logger.warn(`ELECTRON_BUILDER_LINUX_PACKAGE_MANAGER "${pmOverride}" contains unsafe characters. Ignoring override.`);
+            }
+            else {
+                availablePMs = [pmOverride];
+            }
         }
         // Check for the package manager in the order of priority
-        for (const pm of pms) {
+        for (const pm of availablePMs) {
             if (this.hasCommand(pm)) {
                 return pm;
             }
         }
-        // return the first package manager in the list if none are found, this will throw upstream for proper logging
-        this._logger.warn(`No package manager found in the list: ${pms.join(", ")}. Defaulting to the first one: ${pms[0]}`);
-        return pms[0];
+        // return the first/default package manager in the original list if none are found, this will throw upstream for proper logging
+        const searchList = pmOverride ? `ELECTRON_BUILDER_LINUX_PACKAGE_MANAGER override "${pmOverride}", ` : "";
+        const defaultPM = pms[0];
+        this._logger.warn(`No package manager found in the list: ${searchList}${pms.join(", ")}. Utilizing default: ${defaultPM}`);
+        return defaultPM;
     }
 }
 LinuxUpdater$1.LinuxUpdater = LinuxUpdater;
@@ -18900,6 +19228,16 @@ class MacUpdater extends AppUpdater_1.AppUpdater {
             this.debug("nativeUpdater.update-downloaded");
         });
     }
+    /** Filters update files to the appropriate architecture.
+     * On arm64 Macs (including Rosetta), arm64 files are preferred when available.
+     * On x64 Macs, arm64 files are excluded. */
+    static filterFilesForArch(files, isArm64Mac) {
+        const isArm64File = (file) => { var _a; return file.url.pathname.includes("arm64") || ((_a = file.info.url) === null || _a === void 0 ? void 0 : _a.includes("arm64")); };
+        if (isArm64Mac && files.some(isArm64File)) {
+            return files.filter(file => isArm64Mac === isArm64File(file));
+        }
+        return files.filter(file => !isArm64File(file));
+    }
     debug(message) {
         if (this._logger.debug != null) {
             this._logger.debug(message);
@@ -18943,13 +19281,7 @@ class MacUpdater extends AppUpdater_1.AppUpdater {
         }
         isArm64Mac = isArm64Mac || process.arch === "arm64" || isRosetta;
         // allow arm64 macs to install universal or rosetta2(x64) - https://github.com/electron-userland/electron-builder/pull/5524
-        const isArm64 = (file) => { var _a; return file.url.pathname.includes("arm64") || ((_a = file.info.url) === null || _a === void 0 ? void 0 : _a.includes("arm64")); };
-        if (isArm64Mac && files.some(isArm64)) {
-            files = files.filter(file => isArm64Mac === isArm64(file));
-        }
-        else {
-            files = files.filter(file => !isArm64(file));
-        }
+        files = MacUpdater.filterFilesForArch(files, isArm64Mac);
         const zipFileInfo = (0, Provider_1$1.findFile)(files, "zip", ["pkg", "dmg"]);
         if (zipFileInfo == null) {
             throw (0, builder_util_runtime_1$2.newError)(`ZIP file not provided: ${(0, builder_util_runtime_1$2.safeStringifyJson)(files)}`, "ERR_UPDATER_ZIP_FILE_NOT_FOUND");
@@ -19507,9 +19839,7 @@ NsisUpdater$1.NsisUpdater = NsisUpdater;
 	            if (!(0, fs_extra_1.existsSync)(identity)) {
 	                return _autoUpdater;
 	            }
-	            console.info("Checking for beta autoupdate feature for deb/rpm distributions");
 	            const fileType = (0, fs_extra_1.readFileSync)(identity).toString().trim();
-	            console.info("Found package-type:", fileType);
 	            switch (fileType) {
 	                case "deb":
 	                    _autoUpdater = new (DebUpdater$1.DebUpdater)();
