@@ -9,6 +9,7 @@ import {
 	CustomerServerPropertiesTypeRef,
 	CustomerTypeRef,
 	DomainInfo,
+	EmailSenderListElement,
 	GroupTypeRef,
 	RejectedSenderTypeRef,
 	UserTypeRef,
@@ -174,8 +175,10 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 			this.props(props)
 
 			const fieldToName = getSpamRuleFieldToName()
+			let allSpamRulesWithIndex = new Map<number, EmailSenderListElement>()
 
 			this.spamRuleLines = props.emailSenderList.map((rule, index) => {
+				allSpamRulesWithIndex.set(index, rule)
 				return {
 					cells: () => [
 						{
@@ -200,6 +203,11 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 							},
 						],
 					),
+				}
+			})
+			locator.customerFacade.updateIncorrectSpamRules(allSpamRulesWithIndex).then((updatedRuleCount) => {
+				if (updatedRuleCount > 0) {
+					console.info(`Fixed ${updatedRuleCount} spam rules with wrong hash.`)
 				}
 			})
 
