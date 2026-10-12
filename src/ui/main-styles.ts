@@ -3470,7 +3470,7 @@ export class MainStyles {
 				".mr-auto": {
 					"margin-left": "auto",
 				},
-				".event-banner-grid-layout": {
+				".event-banner-grid-guest": {
 					display: "grid",
 					"grid-template-areas": `
 							"sidebar title title" 
@@ -3481,7 +3481,7 @@ export class MainStyles {
 					"max-width": px(900),
 				},
 
-				".event-banner-grid-layout-mobile": {
+				".event-banner-grid-guest-mobile": {
 					display: "grid",
 					"grid-template-areas": `
 							"sidebar title" 
@@ -3490,7 +3490,17 @@ export class MainStyles {
 							`,
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto auto 1fr;",
-					//"max-width": px(900),
+				},
+
+				".event-banner-grid-organizer": {
+					display: "grid",
+					"grid-template-areas": `
+							"sidebar title" 
+							"sidebar middle"							
+							`,
+					"grid-template-columns": "110px 1fr;",
+					"grid-template-rows": "auto 1fr;",
+					"max-width": px(900),
 				},
 			}
 		})
