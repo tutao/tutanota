@@ -62,7 +62,7 @@ o.spec("DesktopMigrationSyncSystemFacade", () => {
 	})
 
 	o.test("getMigrationMailboxes - returns mailboxes", async () => {
-		const mailboxesMock = [{ path: "INBOX", name: "INBOX" }]
+		const mailboxesMock = [{ sourceId: "INBOX", name: "INBOX" }]
 		when(transientMigrationSyncMock.getMigrationMailboxes(migrationCredentialsMock)).thenResolve(mailboxesMock)
 
 		const result = await facade.getMigrationMailboxes(migrationCredentialsMock)

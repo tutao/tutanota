@@ -28,15 +28,14 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
-		this.selectedProvider = vnode.attrs.data.mailboxMigrationProvider
-		vnode.attrs.data.isMigratingServerSupportingOAuth = false
+		this.selectedProvider = vnode.attrs.data.provider
 		vnode.attrs.data.oauthConfig = undefined
-		vnode.attrs.data.migrationAccountOAuthToken = undefined
+		vnode.attrs.data.oAuthToken = undefined
 		const serverMigrationConfig = getServerMigrationConfigForProvider(this.selectedProvider)
-		if (serverMigrationConfig !== null) {
-			const { host, port } = serverMigrationConfig
-			vnode.attrs.data.imapAccountHost = host
-			vnode.attrs.data.imapAccountPort = Number.parseInt(port)
+		if (serverMigrationConfig !== null && serverMigrationConfig.imapConfig) {
+			const { host, port } = serverMigrationConfig.imapConfig
+			vnode.attrs.data.imapHost = host
+			vnode.attrs.data.imapPort = port
 		}
 	}
 
@@ -68,17 +67,18 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 							const isConfigAvailableForSelectedProvider = serverMigrationConfig !== null
 							if (isConfigAvailableForSelectedProvider) {
 								if (serverMigrationConfig.authMethod === MigrationAuthMethod.Oauth2) {
-									vnode.attrs.data.isMigratingServerSupportingOAuth = true
 									vnode.attrs.data.oauthConfig = serverMigrationConfig.oauthConfig
 								} else {
-									vnode.attrs.data.isMigratingServerSupportingOAuth = false
 									vnode.attrs.data.oauthConfig = undefined
 								}
-								vnode.attrs.data.imapAccountHost = serverMigrationConfig.host
-								vnode.attrs.data.imapAccountPort = Number.parseInt(serverMigrationConfig.port)
+								if (serverMigrationConfig.imapConfig) {
+									const { host, port } = serverMigrationConfig.imapConfig
+									vnode.attrs.data.imapHost = host
+									vnode.attrs.data.imapPort = port
+								}
 							}
 
-							vnode.attrs.data.mailboxMigrationProvider = this.selectedProvider
+							vnode.attrs.data.provider = this.selectedProvider
 							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 						},
 						disabled: this.selectedProvider === null,
@@ -120,15 +120,15 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 				selectedOption: this.selectedProvider,
 				onOptionSelected: (provider: MailboxMigrationProvider) => {
 					this.selectedProvider = provider
-					data.imapAccountUsername = ""
+					data.username = ""
 					const serverMigrationConfig = getServerMigrationConfigForProvider(provider)
-					if (serverMigrationConfig !== null) {
-						const { host, port } = serverMigrationConfig
-						data.imapAccountHost = host
-						data.imapAccountPort = Number.parseInt(port)
+					if (serverMigrationConfig !== null && serverMigrationConfig.imapConfig) {
+						const { host, port } = serverMigrationConfig.imapConfig
+						data.imapHost = host
+						data.imapPort = port
 					} else {
-						data.imapAccountHost = ""
-						data.imapAccountPort = 993
+						data.imapHost = ""
+						data.imapPort = 993
 					}
 				},
 				horizontalLayout: true,

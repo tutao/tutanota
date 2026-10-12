@@ -1,7 +1,7 @@
 import { MigrationCredentialsPage, MigrationCredentialsPageAttrs } from "./MigrationCredentialsPage.js"
 import MigrationConfigurePage, { MigrationConfigurePageAttrs } from "./MigrationConfigurePage.js"
 import { EnvProvider } from "@tutao/app-env"
-import { MailboxMigrationProvider, OauthConfigParams } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+import { ImapConfigParams, MailboxMigrationProvider, OauthConfigParams } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { TokenEndpointResponse } from "openid-client"
 import { MigrationMailbox } from "../../../common/api/common/utils/migrationImportUtils/MigrationMailbox"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
@@ -19,30 +19,29 @@ import { mailLocator } from "../../mailLocator"
 EnvProvider.assertMainOrNode()
 
 export type MigrationData = {
+	provider: MailboxMigrationProvider
+	username: string
+	imapHost: string
+	imapPort: number
+	imapPassword?: string
 	oauthConfig?: OauthConfigParams
-	migrationAccountOAuthToken?: TokenEndpointResponse
-	mailboxMigrationProvider: MailboxMigrationProvider
-	imapAccountHost: string
-	imapAccountPort: number
+	oAuthToken?: TokenEndpointResponse
 	useSSL: boolean
-	imapAccountUsername: string
-	imapAccountPassword: string | undefined
+	customCertificateData: Uint8Array<ArrayBuffer> | null
+	ignoreCertificateErrors: boolean
 	rootImportMailSetName: string
+	syncLabelData: ManageLabelServiceLabelData | null
+	addLabelToImportedMails: boolean
 	spamFolderMigrationInformation: {
 		shouldMigrateSpamFolder: boolean // flag to migrate spam folder to Tuta spam folder in case a root folder is provided for the account
 		spamMailbox: MigrationMailbox | null // the spam mailbox if it exists, null otherwise
 	}
-	mailboxMigrationSyncStatus: MailboxMigrationSyncStatus
-	matchMigrationMailboxesToTutaMailSets: boolean
-	newlyCreatedFolders: Set<MailSet>
 	migrationMailboxes: ReadonlyArray<MigrationMailbox>
 	folderSystem: FolderSystem
 	migrationMailboxesToTutaMailSets?: Map<string, MailSetMapping>
-	addLabelToImportedMails: boolean
-	isMigratingServerSupportingOAuth: boolean
-	migrationSyncLabelData: ManageLabelServiceLabelData | null
-	customCertificateData: Uint8Array<ArrayBuffer> | null
-	ignoreCertificateErrors: boolean
+	newlyCreatedFolders: Set<MailSet>
+	matchMigrationMailboxesToTutaMailSets: boolean
+	mailboxMigrationSyncStatus: MailboxMigrationSyncStatus
 }
 
 /** Shows a wizard for adding a Migration import. */

@@ -292,7 +292,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 			this.runningSyncSessionProcess?.stopSyncSessionProcess()
 
-			const syncSessionProcess = new ImapSyncSessionProcess(syncSessionMailbox, this, this.imapSyncConfig, this.imapFlowFactory)
+			const syncSessionProcess = new ImapSyncSessionProcess(syncSessionMailbox, this, this.imapSyncConfig, this.imapFlowFactory, this.toMigrationError)
 			this.runningSyncSessionProcess = syncSessionProcess
 
 			syncSessionProcess.startSyncSessionProcess(this.migrationSyncContext.migrationCredentials, this.migrationSyncEventListener).then((state) => {

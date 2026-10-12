@@ -8,7 +8,7 @@ import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } 
 import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
-import { MIGRATION_AUTH_ERROR_POSTPONE_TIME, MIGRATION_ERROR_POSTPONE_TIME, MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
+import { MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
 import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
 import { getSpecialUseAsSystemFolderType, MigrationMailbox } from "../../../common/api/common/utils/migrationImportUtils/MigrationMailbox"
 import { OauthFacade } from "@tutao/native-bridge/generatedIpc/types"
@@ -49,6 +49,8 @@ export type MigrationUiGetMailboxResult = {
 }
 
 const MIGRATION_RESYNC_INTERVAL_MS = 15 * 60 * 1000 // 15 minutes
+const MIGRATION_AUTH_ERROR_POSTPONE_TIME = 30 * 60 * 1000 // 30 minutes
+const MIGRATION_ERROR_POSTPONE_TIME = 60 * 1000 // 60 seconds
 
 export class MailboxMigrationController {
 	private isInStateTransition = false
@@ -405,10 +407,10 @@ export class MailboxMigrationController {
 
 	getInitialMigrationData() {
 		const migrationData: MigrationData = {
-			imapAccountHost: "",
-			imapAccountPort: 993,
-			imapAccountUsername: "",
-			imapAccountPassword: "",
+			imapHost: "",
+			imapPort: 993,
+			username: "",
+			imapPassword: "",
 			rootImportMailSetName: "",
 			spamFolderMigrationInformation: {
 				shouldMigrateSpamFolder: false,
@@ -417,12 +419,11 @@ export class MailboxMigrationController {
 			mailboxMigrationSyncStatus: MailboxMigrationSyncStatus.PAUSED,
 			newlyCreatedFolders: new Set(),
 			matchMigrationMailboxesToTutaMailSets: true,
-			isMigratingServerSupportingOAuth: false,
 			addLabelToImportedMails: true,
-			migrationSyncLabelData: null,
+			syncLabelData: null,
 			migrationMailboxes: [],
 			folderSystem: new FolderSystem([]),
-			mailboxMigrationProvider: MailboxMigrationProvider.Other,
+			provider: MailboxMigrationProvider.Other,
 			customCertificateData: null,
 			ignoreCertificateErrors: false,
 			useSSL: true,

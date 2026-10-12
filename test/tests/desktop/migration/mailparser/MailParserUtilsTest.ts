@@ -33,7 +33,7 @@ o.spec("MailParserUtils", function () {
 
 	o.spec("migrationMailFromGmailMessage", () => {
 		const raw = Buffer.from("From: a@b.com\r\nTo: c@d.com\r\nSubject: Hello\r\nMessage-ID: <1@b.com>\r\n\r\nbody").toString("base64url")
-		const mailbox = { path: "[Gmail]/All Mail", specialUse: MigrationMailboxSpecialUse.ALL }
+		const mailbox = { sourceId: "[Gmail]/All Mail", specialUse: MigrationMailboxSpecialUse.ALL }
 
 		o("parses the raw source and takes the date and the id of Gmail", async function () {
 			const result = await migrationMailFromGmailMessage({ id: "18c3", raw, internalDate: "1700000000000" }, mailbox, new Map())
@@ -66,7 +66,7 @@ o.spec("MailParserUtils", function () {
 	})
 
 	o.spec("migrationMailFromGraphMessage", () => {
-		const mailbox = { path: "Inbox" }
+		const mailbox = { sourceId: "Inbox" }
 
 		o("converts the envelope, the html body, the flags and the headers", function () {
 			const result = migrationMailFromGraphMessage(

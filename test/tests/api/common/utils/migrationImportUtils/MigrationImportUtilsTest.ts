@@ -31,8 +31,8 @@ import { MailboxMigrationProvider } from "../../../../../../src/applications/com
 o.spec("MigrationImportUtils", () => {
 	o.spec("guessServerMigrationParamsFromEmail", () => {
 		o.test("guesses correctly for gmx and web.de", () => {
-			o.check(guessServerMigrationParamsFromEmail("test@gmx.de")?.host).equals("imap.gmx.net")
-			o.check(guessServerMigrationParamsFromEmail("user@web.de")?.host).equals("imap.web.de")
+			o.check(guessServerMigrationParamsFromEmail("test@gmx.de")?.imapConfig?.host).equals("imap.gmx.net")
+			o.check(guessServerMigrationParamsFromEmail("user@web.de")?.imapConfig?.host).equals("imap.web.de")
 		})
 
 		o.test("returns null in case there is no match", () => {

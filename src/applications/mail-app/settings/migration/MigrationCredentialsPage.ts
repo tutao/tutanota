@@ -23,7 +23,7 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 	shouldDisplayUseSSLSwitch = false
 
 	async oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
-		this.shouldDisplayUseSSLSwitch = vnode.attrs.data.imapAccountPort !== parseInt(IMAP_SSL_PORT)
+		this.shouldDisplayUseSSLSwitch = vnode.attrs.data.imapPort !== IMAP_SSL_PORT
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
@@ -42,8 +42,8 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 			m(TextField, {
 				label: "migrationAccountUsername_label",
 				class: "",
-				value: vnode.attrs.data.imapAccountUsername,
-				oninput: (value) => (vnode.attrs.data.imapAccountUsername = value),
+				value: vnode.attrs.data.username,
+				oninput: (value) => (vnode.attrs.data.username = value),
 				leadingIcon: {
 					icon: Icons.MailFilled,
 					color: theme.on_surface_variant,
@@ -53,8 +53,8 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 				".flex.row.gap-16.mt-16",
 				m(TextField, {
 					label: "migrationImapAccountPassword_label",
-					value: vnode.attrs.data.imapAccountPassword ?? "",
-					oninput: (value) => (vnode.attrs.data.imapAccountPassword = value),
+					value: vnode.attrs.data.imapPassword ?? "",
+					oninput: (value) => (vnode.attrs.data.imapPassword = value),
 					type: this.shouldRevealImapAccountPassword ? LegacyTextFieldType.Text : LegacyTextFieldType.Password,
 					injectionsRight: () => this.renderRevealIcon(),
 					class: "",
@@ -69,8 +69,8 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 				m(TextField, {
 					label: "migrationImapAccountHost_label",
 					class: "",
-					value: vnode.attrs.data.imapAccountHost,
-					oninput: (value) => (vnode.attrs.data.imapAccountHost = value),
+					value: vnode.attrs.data.imapHost,
+					oninput: (value) => (vnode.attrs.data.imapHost = value),
 					leadingIcon: {
 						icon: Icons.ServerFilled,
 						color: theme.on_surface_variant,
@@ -79,14 +79,14 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 				m(TextField, {
 					label: "migrationImapAccountPort_label",
 					class: "",
-					value: vnode.attrs.data.imapAccountPort.toString(),
+					value: vnode.attrs.data.imapPort.toString(),
 					oninput: (value) => {
 						const typedNumber = Number.parseInt(value)
-						vnode.attrs.data.imapAccountPort = Number.isNaN(typedNumber) ? 0 : typedNumber
-						if (value === IMAP_SSL_PORT) {
+						vnode.attrs.data.imapPort = Number.isNaN(typedNumber) ? 0 : typedNumber
+						if (value === IMAP_SSL_PORT.toString()) {
 							vnode.attrs.data.useSSL = true
 							this.shouldDisplayUseSSLSwitch = false
-						} else if (value === IMAP_UNSAFE_PORT) {
+						} else if (value === IMAP_UNSAFE_PORT.toString()) {
 							vnode.attrs.data.useSSL = false
 							this.shouldDisplayUseSSLSwitch = true
 						} else {
@@ -126,12 +126,12 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 						label: "continue_action",
 						class: "wizard-next-button",
 						disabled: !(
-							isMailAddress(vnode.attrs.data.imapAccountUsername, true) &&
-							vnode.attrs.data.imapAccountPassword &&
-							vnode.attrs.data.imapAccountPassword.length > 0 &&
-							vnode.attrs.data.imapAccountHost.length > 0 &&
-							!Number.isNaN(vnode.attrs.data.imapAccountPort) &&
-							vnode.attrs.data.imapAccountPort > 0
+							isMailAddress(vnode.attrs.data.username, true) &&
+							vnode.attrs.data.imapPassword &&
+							vnode.attrs.data.imapPassword.length > 0 &&
+							vnode.attrs.data.imapHost.length > 0 &&
+							!Number.isNaN(vnode.attrs.data.imapPort) &&
+							vnode.attrs.data.imapPort > 0
 						),
 						onclick: async (_, dom) => {
 							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
@@ -178,6 +178,6 @@ export class MigrationCredentialsPageAttrs implements WizardPageAttrs<MigrationD
 	}
 
 	isEnabled(): boolean {
-		return !this.data.isMigratingServerSupportingOAuth
+		return !this.data.oauthConfig
 	}
 }

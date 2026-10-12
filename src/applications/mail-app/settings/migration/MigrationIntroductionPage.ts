@@ -30,7 +30,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 
 	oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
 		const migrationData = vnode.attrs.data
-		const provider = migrationData.mailboxMigrationProvider
+		const provider = migrationData.provider
 		switch (provider) {
 			case MailboxMigrationProvider.Gmail:
 				this.titleSectionParams.icon = undefined
@@ -51,7 +51,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 		}
 	}
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
-		const mailboxMigrationProvider = vnode.attrs.data.mailboxMigrationProvider
+		const mailboxMigrationProvider = vnode.attrs.data.provider
 		const providerTranslationText = lang.getTranslationText(getTranslationForMigrationProvider(mailboxMigrationProvider))
 		return m(".mt-24", [
 			m(TitleSection, {
@@ -67,12 +67,12 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 				m(TextField, {
 					label: "migrationAccountUsername_label",
 					class: "",
-					value: vnode.attrs.data.imapAccountUsername,
+					value: vnode.attrs.data.username,
 					oninput: (value) => {
-						vnode.attrs.data.imapAccountUsername = value
+						vnode.attrs.data.username = value
 						vnode.attrs.data.rootImportMailSetName = value
 						if (mailboxMigrationProvider !== MailboxMigrationProvider.Gmail) {
-							vnode.attrs.data.migrationSyncLabelData = createManageLabelServiceLabelData({
+							vnode.attrs.data.syncLabelData = createManageLabelServiceLabelData({
 								name: value,
 								color: theme.primary,
 								parentLabel: null,
@@ -100,21 +100,16 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 						label: "continue_action",
 						class: "wizard-next-button",
 						onclick: async (_, dom) => {
-							if (vnode.attrs.data.isMigratingServerSupportingOAuth) {
-								if (vnode.attrs.data.migrationAccountOAuthToken) {
+							if (vnode.attrs.data.oauthConfig) {
+								if (vnode.attrs.data.oAuthToken) {
 									emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 									return
 								}
 								this.shouldDisableNextButton = true
 								const config = vnode.attrs.data.oauthConfig
-								if (config === undefined) {
-									throw new ProgrammingError(
-										"The provider set to support OAuth without having configs, please review MigrationKnownConfigs.ts",
-									)
-								}
 								const oauthHandler = new OAuthHandler(config, mailLocator.serviceExecutor)
 								const extraParams = {
-									login_hint: vnode.attrs.data.imapAccountUsername,
+									login_hint: vnode.attrs.data.username,
 								}
 								try {
 									await oauthHandler.setupOauthLoginParams(extraParams)
@@ -131,7 +126,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 									.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), config!.redirectUri)
 								if (responseUrl) {
 									try {
-										vnode.attrs.data.migrationAccountOAuthToken = await oauthHandler.getAuthTokens(responseUrl)
+										vnode.attrs.data.oAuthToken = await oauthHandler.getAuthTokens(responseUrl)
 										// only go forward if we have a token
 										emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 									} catch (e) {
@@ -142,19 +137,20 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 									this.changeTitleSectionToErrorState(lang.getTranslationText("migrationOAuthWindowClosedFailure_msg"))
 								}
 							} else {
-								if (vnode.attrs.data.mailboxMigrationProvider === MailboxMigrationProvider.Other) {
+								if (vnode.attrs.data.provider === MailboxMigrationProvider.Other) {
 									//Get settings if user is not using IMAP and if none exist, allow the user
 									//to set it up.
-									const serverMigrationParams = guessServerMigrationParamsFromEmail(vnode.attrs.data.imapAccountUsername)
-									if (serverMigrationParams) {
-										vnode.attrs.data.imapAccountHost = serverMigrationParams.host
-										vnode.attrs.data.imapAccountPort = Number.parseInt(serverMigrationParams.port)
+									const serverMigrationParams = guessServerMigrationParamsFromEmail(vnode.attrs.data.username)
+									if (serverMigrationParams && serverMigrationParams.imapConfig) {
+										const { host, port } = serverMigrationParams.imapConfig
+										vnode.attrs.data.imapHost = host
+										vnode.attrs.data.imapPort = port
 									}
 								}
 								emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 							}
 						},
-						disabled: this.shouldDisableNextButton || !isMailAddress(vnode.attrs.data.imapAccountUsername, true),
+						disabled: this.shouldDisableNextButton || !isMailAddress(vnode.attrs.data.username, true),
 					}),
 				),
 			),

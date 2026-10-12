@@ -12,6 +12,7 @@ import { MigrationCredentials } from "../../../../../src/applications/common/api
 import { DifferentialUidLoader } from "../../../../../src/applications/common/desktop/migration/imapsync/DifferentialUidLoader"
 import { MigrationSyncEventType } from "../../../../../src/entities/tutanota/Utils"
 import { MigrationSessionMailbox } from "../../../../../src/applications/common/desktop/migration/MigrationSessionMailbox"
+import { MigrationError } from "../../../../../src/applications/common/api/common/error/MigrationError"
 
 const { anything } = matchers
 
@@ -56,6 +57,7 @@ o.spec("ImapSyncSessionProcess", () => {
 			imapSyncSessionMock,
 			imapSyncConfigMock,
 			imapFlowFactoryMock,
+			(e) => new MigrationError("error"),
 			differentialUidLoaderFactoryMock,
 		)
 	})
@@ -119,7 +121,7 @@ o.spec("ImapSyncSessionProcess", () => {
 	})
 
 	o.test("handleDeletedUids - emits DELETE events", async () => {
-		const openedMailbox = { path: "INBOX" }
+		const openedMailbox = { sourceId: "INBOX" }
 		const deletedUids = [5, 10]
 		await sessionProcess["handleDeletedUids"](deletedUids, openedMailbox, eventListenerMock)
 		verify(eventListenerMock.onMultipleMails(anything(), MigrationSyncEventType.DELETE), { times: 2 })
@@ -127,7 +129,7 @@ o.spec("ImapSyncSessionProcess", () => {
 
 	o.test("emitImapMailDeleteEvent - deletes from map and emits DELETE", () => {
 		const uid = "7"
-		const mailbox = { path: "INBOX" }
+		const mailbox = { sourceId: "INBOX" }
 		syncSessionMailboxMock.mailboxState.importedSourceIdToMailIdsMap.set(uid, { sourceId: uid })
 		sessionProcess["emitImapMailDeleteEvent"](parseInt(uid), mailbox, eventListenerMock)
 		o.check(syncSessionMailboxMock.mailboxState.importedSourceIdToMailIdsMap.has(uid)).equals(false)
@@ -186,8 +188,8 @@ o.spec("ImapSyncSessionProcess", () => {
 
 	o.test("handleQresyncFetchResult - splits into updates and creates", async () => {
 		syncSessionMailboxMock.mailboxState.importedSourceIdToMailIdsMap.set("1", { sourceId: "1" })
-		const mail1 = { uid: "1", sourceId: "1", belongsToMailbox: { path: "INBOX" } }
-		const mail2 = { uid: "2", sourceId: "2", belongsToMailbox: { path: "INBOX" } }
+		const mail1 = { uid: "1", sourceId: "1", belongsToMailbox: { sourceId: "INBOX" } }
+		const mail2 = { uid: "2", sourceId: "2", belongsToMailbox: { sourceId: "INBOX" } }
 		await sessionProcess.handleQresyncFetchResult([mail1, mail2], eventListenerMock)
 		verify(eventListenerMock.onMultipleMails([mail1], MigrationSyncEventType.UPDATE), { times: 1 })
 		verify(eventListenerMock.onMultipleMails([mail2], MigrationSyncEventType.CREATE), { times: 1 })

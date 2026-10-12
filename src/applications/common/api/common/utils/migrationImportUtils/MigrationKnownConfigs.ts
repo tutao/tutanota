@@ -1,4 +1,3 @@
-import { MailboxMigrationImapConfiguration } from "@tutao/entities/tutanota"
 import { TranslationKey } from "../../../../../../ui/utils/LanguageViewModel"
 
 export const enum MigrationAuthMethod {
@@ -22,7 +21,7 @@ export type OauthConfigParams = {
 
 export type ImapConfigParams = {
 	host: string
-	port: string
+	port: number
 }
 
 export const enum MigrationFetchMethod {
@@ -39,8 +38,8 @@ export type ServerMigrationConfig = {
 	imapConfig?: ImapConfigParams
 }
 
-export const IMAP_SSL_PORT = "993"
-export const IMAP_UNSAFE_PORT = "143"
+export const IMAP_SSL_PORT = 993
+export const IMAP_UNSAFE_PORT = 143
 
 const migrationKnownConfigs = {
 	// See also https://autoconfig.thunderbird.net/v1.1/

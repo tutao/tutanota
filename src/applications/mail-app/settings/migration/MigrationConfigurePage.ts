@@ -54,9 +54,9 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 	async oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
 		const migrationData = vnode.attrs.data
 
-		this.isGmail = migrationData.mailboxMigrationProvider === MailboxMigrationProvider.Gmail
+		this.isGmail = migrationData.provider === MailboxMigrationProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
-			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.mailboxMigrationProvider)),
+			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.provider)),
 		}).text
 		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchMigrationMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
@@ -90,25 +90,25 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 	}
 
 	private updateMigrationCredentials(migrationData: MigrationData, migrationCredentials: MigrationCredentials) {
-		migrationData.imapAccountHost = migrationCredentials.host
-		migrationData.imapAccountPort = migrationCredentials.port
-		migrationData.imapAccountUsername = migrationCredentials.username
-		migrationData.imapAccountPassword = migrationCredentials.password
-		migrationData.migrationAccountOAuthToken = migrationCredentials.tokenEndpointResponse
+		migrationData.imapHost = migrationCredentials.host
+		migrationData.imapPort = migrationCredentials.port
+		migrationData.username = migrationCredentials.username
+		migrationData.imapPassword = migrationCredentials.password
+		migrationData.oAuthToken = migrationCredentials.tokenEndpointResponse
 		migrationData.customCertificateData = migrationCredentials.customCertificateData
 		migrationData.ignoreCertificateErrors = migrationCredentials.ignoreCertificateErrors
 	}
 
 	private getMigrationCredentials(migrationData: MigrationData) {
 		const migrationCredentials: MigrationCredentials = {
-			host: migrationData.imapAccountHost,
-			port: migrationData.imapAccountPort,
-			username: migrationData.imapAccountUsername,
-			password: migrationData.imapAccountPassword,
-			tokenEndpointResponse: migrationData.migrationAccountOAuthToken,
+			host: migrationData.imapHost,
+			port: migrationData.imapPort,
+			username: migrationData.username,
+			password: migrationData.imapPassword,
+			tokenEndpointResponse: migrationData.oAuthToken,
 			customCertificateData: migrationData.customCertificateData,
 			ignoreCertificateErrors: migrationData.ignoreCertificateErrors,
-			provider: migrationData.mailboxMigrationProvider,
+			provider: migrationData.provider,
 			useSSL: migrationData.useSSL,
 			isLegacy: false, // a migration created in the wizard uses the provider's fetch method
 		}
@@ -167,10 +167,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 	}
 
 	private isLabelCorrectlySet(data: MigrationData) {
-		return (
-			!data.addLabelToImportedMails ||
-			(data.migrationSyncLabelData !== null && data.migrationSyncLabelData.name !== "" && isValidCSSHexColor(data.migrationSyncLabelData.color))
-		)
+		return !data.addLabelToImportedMails || (data.syncLabelData !== null && data.syncLabelData.name !== "" && isValidCSSHexColor(data.syncLabelData.color))
 	}
 
 	private shouldAllowContinuing(data: MigrationData) {
@@ -201,7 +198,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 						obj.shouldDisplayLabelField = checked
 						data.addLabelToImportedMails = checked
 						if (!checked) {
-							data.migrationSyncLabelData = null
+							data.syncLabelData = null
 						}
 					},
 				}),
@@ -215,12 +212,12 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 			this.shouldDisplayLabelField
 				? m(TextField, {
 						label: "labelInput_label",
-						value: data.migrationSyncLabelData?.name ?? "",
+						value: data.syncLabelData?.name ?? "",
 						oninput: (value) => {
-							if (data.migrationSyncLabelData) {
-								data.migrationSyncLabelData.name = value
+							if (data.syncLabelData) {
+								data.syncLabelData.name = value
 							} else {
-								data.migrationSyncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentLabel: null })
+								data.syncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentLabel: null })
 								m.redraw() //possibly doing nothing
 							}
 						},
@@ -230,19 +227,19 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 						},
 						injectionsRight: () => {
 							return m(ColorOptionButton, {
-								color: data.migrationSyncLabelData?.color ?? "",
+								color: data.syncLabelData?.color ?? "",
 								onClick: () => {
-									if (!data.migrationSyncLabelData) {
-										data.migrationSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
+									if (!data.syncLabelData) {
+										data.syncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
 									}
-									const labelData = data.migrationSyncLabelData
+									const labelData = data.syncLabelData
 									showMigrationEditLabelDialog(
 										labelData,
 										(value) => {
-											if (data.migrationSyncLabelData) {
-												data.migrationSyncLabelData.name = value
+											if (data.syncLabelData) {
+												data.syncLabelData.name = value
 											} else {
-												data.migrationSyncLabelData = createManageLabelServiceLabelData({
+												data.syncLabelData = createManageLabelServiceLabelData({
 													name: value,
 													color: "",
 													parentLabel: null,

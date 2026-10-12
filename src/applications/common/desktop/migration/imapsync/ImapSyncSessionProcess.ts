@@ -1,6 +1,6 @@
-import { MigrationSessionMailbox, migrationMailboxFromSyncSessionMailbox } from "../MigrationSessionMailbox.js"
+import { migrationMailboxFromSyncSessionMailbox, MigrationSessionMailbox } from "../MigrationSessionMailbox.js"
 import type { MigrationSyncEventListener } from "../MigrationSyncEventListener.js"
-import { MigrationMailId, MigrationCredentials } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
+import { MigrationCredentials, MigrationMailId } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMail } from "../../../api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationMailbox, MigrationMailboxStatus } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
@@ -11,7 +11,7 @@ import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, ImapSyncConfig } from "./ImapSyncSession"
 import { SyncSessionEventListener } from "../MigrationSyncSession"
 import { MailboxMigrationFolderSyncStatus, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
-import { fromImapFlowError } from "../../../api/common/error/MigrationError"
+import { MigrationError } from "../../../api/common/error/MigrationError"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -42,6 +42,7 @@ export class ImapSyncSessionProcess {
 		private syncSessionEventListener: SyncSessionEventListener,
 		private imapSyncConfig: ImapSyncConfig,
 		private readonly imapFlowFactory: ImapFlowFactory,
+		private readonly toMigrationError: (e: any) => MigrationError,
 		private readonly differentialUidLoaderFactory: DifferentialUidLoaderFactory = (client, map, qresync, eventTypes) =>
 			new DifferentialUidLoader(client, map, qresync, eventTypes),
 	) {}
@@ -291,7 +292,7 @@ export class ImapSyncSessionProcess {
 	// Visible for testing
 	setupImapFlowErrorLogger(imapSyncEventListener: MigrationSyncEventListener) {
 		this.imapClient?.on("error", (error: any) => {
-			const imapError = fromImapFlowError(error)
+			const imapError = this.toMigrationError(error)
 			if (error.code) {
 				console.error("imap error code", error.code, imapError)
 			}

@@ -43,7 +43,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		const data = vnode.attrs.data
-		const isGmail = data.mailboxMigrationProvider === MailboxMigrationProvider.Gmail
+		const isGmail = data.provider === MailboxMigrationProvider.Gmail
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			this.renderExportInformation(data),
@@ -55,11 +55,10 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 
 	private renderContinueButton(data: MigrationData) {
 		const isLabelCorrectlySet =
-			!data.addLabelToImportedMails ||
-			(data.migrationSyncLabelData !== null && data.migrationSyncLabelData.name !== "" && isValidCSSHexColor(data.migrationSyncLabelData.color))
+			!data.addLabelToImportedMails || (data.syncLabelData !== null && data.syncLabelData.name !== "" && isValidCSSHexColor(data.syncLabelData.color))
 		const isParentFolderCorrectlySet = data.rootImportMailSetName !== "" || data.matchMigrationMailboxesToTutaMailSets
 		const isInEditMode = this.enableParentFolderEdit || this.enableFolderMappingEdit
-		const isGmail = data.mailboxMigrationProvider === MailboxMigrationProvider.Gmail
+		const isGmail = data.provider === MailboxMigrationProvider.Gmail
 		const shouldAllowContinuing = (isGmail || isLabelCorrectlySet) && isParentFolderCorrectlySet && !isInEditMode
 
 		return m(
@@ -292,7 +291,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 			m(MenuTitle, { content: lang.getTranslationText("migrationSummarySourceInformation_label") }),
 			m(TextField, {
 				label: "migrationSummaryAccount_label",
-				value: data.imapAccountUsername,
+				value: data.username,
 				isReadOnly: true,
 				class: "surface-background mt-16",
 				leadingIcon: { icon: Icons.MailFilled, color: theme.on_surface_variant },
@@ -300,14 +299,14 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 			m(".flex", [
 				m(TextField, {
 					label: "migrationSummaryImapAccountHost_label",
-					value: data.imapAccountHost,
+					value: data.imapHost,
 					isReadOnly: true,
 					class: "surface-background",
 					leadingIcon: { icon: Icons.ServerFilled, color: theme.on_surface_variant },
 				}),
 				m(TextField, {
 					label: "migrationImapAccountPort_label",
-					value: data.imapAccountPort.toString(),
+					value: data.imapPort.toString(),
 					isReadOnly: true,
 					class: "surface-background",
 					leadingIcon: { icon: Icons.KeyFilled, color: theme.on_surface_variant },
@@ -363,27 +362,27 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 	}
 
 	private renderLabel(data: MigrationData) {
-		return data.mailboxMigrationProvider !== MailboxMigrationProvider.Gmail
+		return data.provider !== MailboxMigrationProvider.Gmail
 			? m(TextField, {
 					label: "label_label",
-					value: data.migrationSyncLabelData?.name ?? "-",
+					value: data.syncLabelData?.name ?? "-",
 					isReadOnly: true,
 					class: "surface-background",
 					leadingIcon: { icon: Icons.LabelFilled, color: theme.on_surface_variant },
 					injectionsRight: () => {
 						return m(".flex.items-center", [
-							data.migrationSyncLabelData
+							data.syncLabelData
 								? m(ColorOptionButton, {
-										color: data.migrationSyncLabelData.color,
+										color: data.syncLabelData.color,
 										onClick: noOp,
 									})
 								: null,
-							data.migrationSyncLabelData
+							data.syncLabelData
 								? m(IconButton, {
 										label: "delete_action",
 										icon: Icons.TrashFilled,
 										click: () => {
-											data.migrationSyncLabelData = null
+											data.syncLabelData = null
 											data.addLabelToImportedMails = false
 										},
 									})
@@ -392,18 +391,18 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 								label: "editLabel_action",
 								icon: Icons.PenFilled,
 								click: () => {
-									if (!data.migrationSyncLabelData) {
-										data.migrationSyncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
+									if (!data.syncLabelData) {
+										data.syncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
 										data.addLabelToImportedMails = true
 									}
-									const labelData = data.migrationSyncLabelData
+									const labelData = data.syncLabelData
 									showMigrationEditLabelDialog(
 										labelData,
 										(value) => {
 											if (labelData) {
 												labelData.name = value
 											} else {
-												data.migrationSyncLabelData = createManageLabelServiceLabelData({
+												data.syncLabelData = createManageLabelServiceLabelData({
 													name: value,
 													color: "",
 													parentLabel: null,
@@ -446,8 +445,8 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 		}
 		const mailboxMigrationController = mailLocator.getMailboxMigrationController()
 		const mailboxMigrationImapConfiguration = createMailboxMigrationImapConfiguration({
-			host: this.data.imapAccountHost,
-			port: this.data.imapAccountPort.toString(),
+			host: this.data.imapHost,
+			port: this.data.imapPort.toString(),
 			sharedUsername: null,
 			sharedPassword: null,
 			sharedOauthToken: null,
@@ -457,15 +456,15 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 		})
 
 		const userMigrationParams: UserMigrationCredentialParams = {
-			username: this.data.imapAccountUsername,
-			password: this.data.imapAccountPassword ?? null,
-			oAuthToken: this.data.migrationAccountOAuthToken ? tokenEndpointResponseToOAuthToken(this.data.migrationAccountOAuthToken) : null,
+			username: this.data.username,
+			password: this.data.imapPassword ?? null,
+			oAuthToken: this.data.oAuthToken ? tokenEndpointResponseToOAuthToken(this.data.oAuthToken) : null,
 		}
 
 		const commonMigrationParams = {
 			mailGroupId: elementIdToId(mailboxMigrationController.selectedMailBoxDetail!.mailGroup._id),
-			migrationSyncLabelData: this.data.migrationSyncLabelData,
-			provider: this.data.mailboxMigrationProvider,
+			migrationSyncLabelData: this.data.syncLabelData,
+			provider: this.data.provider,
 		}
 		const initializeMigrationParams: InitializeMigrationParams = this.data.matchMigrationMailboxesToTutaMailSets
 			? {
@@ -493,7 +492,7 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 			if (this.data.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.POSTPONED) {
 				let postponedErrorMsg = "migrationStartedPostponed_msg" as TranslationKey
 				const postponedErrorMessageReplaced = lang.getTranslation(postponedErrorMsg, {
-					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.mailboxMigrationProvider)),
+					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.provider)),
 				})
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}
