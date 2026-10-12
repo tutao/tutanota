@@ -515,7 +515,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 
 	//Gets the current state of a subscription
 	private getCurrentStateOfSubscription(booking: Booking): SubscriptionStatus {
-		if (booking.endDate && booking.endDate?.getTime() < Date.now()) {
+		if (booking.endDate && booking.endDate?.getTime() > Date.now()) {
 			return "expired"
 		} else if (this._customerInfo?.revocationRequest) {
 			return "revoked"
