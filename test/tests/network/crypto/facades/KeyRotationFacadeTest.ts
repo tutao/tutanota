@@ -750,7 +750,7 @@ o.spec("KeyRotationFacade", function () {
 					])
 
 					when(shareFacade.prepareGroupInvitation(anything(), groupInfo, [inviteeMailAddress], capability)).thenReject(
-						new KeyVerificationMismatchError("").setData([inviteeMailAddress]),
+						new KeyVerificationMismatchError("", [inviteeMailAddress]),
 					)
 
 					await keyRotationFacade.processPendingKeyRotation(pendingKeyRotations, user, null)

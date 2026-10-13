@@ -1230,6 +1230,7 @@ export class KeyRotationFacade {
 				throw new TutanotaError(
 					"MultiAdminGroupKeyAdminActionPathImpossibleStateMetError",
 					"Impossible state met while performing multi admin key rotation",
+					null,
 				)
 		}
 	}

@@ -10,6 +10,6 @@ export class CancelledError extends TutanotaError {
 		message: string,
 		readonly reason: string = "unknown",
 	) {
-		super("CancelledError", message)
+		super("CancelledError", message, null)
 	}
 }

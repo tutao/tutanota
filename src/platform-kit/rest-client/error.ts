@@ -140,7 +140,7 @@ export function handleRestError(
 
 export class LoginIncompleteError extends TutanotaError {
 	constructor(message: string) {
-		super("LoginIncompleteError", message)
+		super("LoginIncompleteError", message, null)
 	}
 }
 

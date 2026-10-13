@@ -24,11 +24,8 @@ export type ImapErrorData = {
 }
 
 export class ImapError extends TutanotaError<ImapErrorData> {
-	data: ImapErrorData
-
 	constructor(message: string, cause: ImapErrorCause = ImapErrorCause.UNKNOWN, code: string = "") {
-		super("ImapError", message)
-		this.data = { cause, code }
+		super("ImapError", message, { cause, code })
 	}
 }
 

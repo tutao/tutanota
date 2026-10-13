@@ -162,11 +162,11 @@ export class AdminKeyLoaderFacade {
 			const userGroupKeyMac = assertNotNull(formerGroupKey.pubAdminGroupEncGKey.symKeyMac)
 			// recurse, but expect to hit the end _before_ version 0, which should always be symmetrically encrypted
 			if (userGroupKeyMac.taggedKeyVersion === "0") {
-				throw new TutanotaError("UserGroupKeyNotTrustedError", "cannot establish trust on the user group key")
+				throw new TutanotaError("UserGroupKeyNotTrustedError", "cannot establish trust on the user group key", null)
 			}
 			previousUserGroupKey = await this.decryptViaAsymmetricAdminGKey(userGroup, formerGroupKey.pubAdminGroupEncGKey)
 		} else {
-			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key")
+			throw new TutanotaError("MissingAdminEncGroupKeyError", "cannot verify user group key", null)
 		}
 
 		this.keyAuthenticationFacade.verifyTag(

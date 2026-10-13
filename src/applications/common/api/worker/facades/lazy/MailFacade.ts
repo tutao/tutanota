@@ -884,7 +884,7 @@ export class MailFacade {
 			throw new RecipientsNotFoundError(notFoundRecipients.join("\n"))
 		}
 		if (keyVerificationMismatchRecipients.length > 0) {
-			throw new KeyVerificationMismatchError("key verification mismatch when sending mail").setData(keyVerificationMismatchRecipients)
+			throw new KeyVerificationMismatchError("key verification mismatch when sending mail", keyVerificationMismatchRecipients)
 		}
 	}
 

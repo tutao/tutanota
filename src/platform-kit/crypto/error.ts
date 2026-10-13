@@ -8,12 +8,12 @@ import { isNotNull, Nullable } from "@tutao/utils"
 
 export class CryptoError extends TutanotaError {
 	constructor(message: string, error: Nullable<Error> = null) {
-		super("CryptoError", isNotNull(error) ? message + "> " + (error.stack ?? error.message) : message)
+		super("CryptoError", isNotNull(error) ? message + "> " + (error.stack ?? error.message) : message, null)
 	}
 }
 
 export class SessionKeyNotFoundError extends TutanotaError {
 	constructor(message: string) {
-		super("SessionKeyNotFoundError", message)
+		super("SessionKeyNotFoundError", message, null)
 	}
 }

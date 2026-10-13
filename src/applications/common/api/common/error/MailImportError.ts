@@ -14,10 +14,7 @@ export const enum ImportErrorCategories {
 }
 
 export class MailImportError extends TutanotaError<ImportErrorData> {
-	data: ImportErrorData
-
 	constructor(data: ImportErrorData) {
-		super("MailImportError", `Failed to import mails`)
-		this.data = data
+		super("MailImportError", "Failed to import mails", data)
 	}
 }

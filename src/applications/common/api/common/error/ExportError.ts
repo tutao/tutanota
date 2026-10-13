@@ -9,10 +9,7 @@ export const enum ExportErrorReason {
 
 export class ExportError extends TutanotaError<ExportErrorReason> {
 	// data field is respected by the WorkerProtocol. Other fields might not be passed
-	constructor(
-		msg: string,
-		readonly data: ExportErrorReason,
-	) {
-		super("ExportError", msg)
+	constructor(msg: string, data: ExportErrorReason) {
+		super("ExportError", msg, data)
 	}
 }

@@ -105,7 +105,7 @@ export class ShareFacade {
 		}
 
 		if (keyVerificationMismatchRecipients.length > 0) {
-			throw new KeyVerificationMismatchError("key verification mismatch when sending group invitation").setData(keyVerificationMismatchRecipients)
+			throw new KeyVerificationMismatchError("key verification mismatch when sending group invitation", keyVerificationMismatchRecipients)
 		}
 
 		return invitationData

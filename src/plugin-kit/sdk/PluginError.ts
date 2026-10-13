@@ -7,14 +7,14 @@ export class GeneralPluginError extends TutanotaError {
 		message: string,
 		public readonly messageTranslations: Partial<Record<PluginLanguageCode, string>> = {},
 	) {
-		super(GeneralPluginError.ERROR_NAME, message)
+		super(GeneralPluginError.ERROR_NAME, message, null)
 	}
 }
 
 export class HostApiPermissionDenied extends TutanotaError {
 	public static readonly ERROR_NAME: Readonly<string> = "HostApiPermissionDenied"
 	constructor(message: string) {
-		super(HostApiPermissionDenied.ERROR_NAME, message)
+		super(HostApiPermissionDenied.ERROR_NAME, message, null)
 	}
 }
 
@@ -22,6 +22,6 @@ export class CustomerConfigPluginError extends TutanotaError {
 	public static readonly ERROR_NAME: Readonly<string> = "CustomerConfigPluginError"
 
 	constructor(message: string) {
-		super(CustomerConfigPluginError.ERROR_NAME, message)
+		super(CustomerConfigPluginError.ERROR_NAME, message, null)
 	}
 }

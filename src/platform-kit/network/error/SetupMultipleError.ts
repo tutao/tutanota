@@ -13,6 +13,7 @@ export class SetupMultipleError<T> extends TutanotaError {
 			`${message}
 Number of errors: ${errors.length}
 First error: ${errors[0]}`,
+			null,
 		)
 		this.errors = errors
 		this.failedInstances = instances

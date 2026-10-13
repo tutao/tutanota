@@ -5,6 +5,6 @@ import { TutanotaError } from "@tutao/app-env"
  */
 export class ContactStoreError extends TutanotaError {
 	constructor(message: string) {
-		super("ContactStoreError", message)
+		super("ContactStoreError", message, null)
 	}
 }

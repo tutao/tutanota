@@ -16,6 +16,6 @@ export class UpgradeRequiredError extends TutanotaError {
 		readonly message: TranslationKeyType,
 		readonly plans: Array<AvailablePlanType>,
 	) {
-		super("UpgradeRequiredError", message)
+		super("UpgradeRequiredError", message, null)
 	}
 }

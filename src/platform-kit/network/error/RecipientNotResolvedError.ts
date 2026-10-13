@@ -4,6 +4,6 @@ import { TutanotaError } from "@tutao/app-env"
 
 export class RecipientNotResolvedError extends TutanotaError {
 	constructor(m: string) {
-		super("RecipientNotResolvedError", m)
+		super("RecipientNotResolvedError", m, null)
 	}
 }

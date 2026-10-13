@@ -11,15 +11,18 @@ import { TypeChecks } from "./TsTypeChecks.js"
  * added to the ErrorNameToType map in Utils.js.
  */
 
-export class TutanotaError<T = never> extends Error {
-	data: T | null = null
-	name: string
-	message: string
-
-	constructor(name: string, message: string) {
+export class TutanotaError<T = never | null> extends Error {
+	constructor(
+		public readonly name: string,
+		public readonly message: string,
+		/**
+		 * Sets the data field of the TutanotaError so we can transport any additional data over the worker <-> main
+		 * thread bridge. See (errorToObj() and objToError())
+		 * data field is respected by the WorkerProtocol. Other fields might not be passed
+		 */
+		public readonly data: T,
+	) {
 		super(message)
-		this.name = name
-		this.message = message
 
 		if (TypeChecks.isFunction(Error.captureStackTrace)) {
 			Error.captureStackTrace(this, this.constructor)

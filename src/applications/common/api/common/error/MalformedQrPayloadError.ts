@@ -1,9 +1,9 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "../../../../../platform-kit/app-env"
+import { TutanotaError } from "@tutao/app-env"
 
 export class MalformedQrPayloadError extends TutanotaError {
 	constructor(m: string) {
-		super("MalformedQrPayloadError", m)
+		super("MalformedQrPayloadError", m, null)
 	}
 }

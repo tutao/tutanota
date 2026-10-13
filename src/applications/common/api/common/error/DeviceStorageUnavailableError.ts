@@ -9,6 +9,6 @@ import { TutanotaError } from "@tutao/app-env"
 export class DeviceStorageUnavailableError extends TutanotaError {
 	constructor(msg: string, error: Error | null) {
 		const message = error ? msg + "> " + (error.stack ? error.stack : error.message) : msg
-		super("DeviceStorageUnavailableError", message)
+		super("DeviceStorageUnavailableError", message, null)
 	}
 }

@@ -1604,7 +1604,7 @@ async function didLongStateChange(newEvent: CalendarEvent, existingEvent: Calend
  */
 export class NoOwnerEncSessionKeyForCalendarEventError extends TutanotaError {
 	constructor(message: string) {
-		super("NoOwnerEncSessionKeyForCalendarEventError", message)
+		super("NoOwnerEncSessionKeyForCalendarEventError", message, null)
 	}
 }
 
