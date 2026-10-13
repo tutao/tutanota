@@ -8,7 +8,7 @@ import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/Gif
 import type { LoginFacade } from "../../../../platform-kit/base/facades/LoginFacade.js"
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
-import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { ShareFacade } from "../../../../platform-kit/base/facades/lazy/ShareFacade.js"

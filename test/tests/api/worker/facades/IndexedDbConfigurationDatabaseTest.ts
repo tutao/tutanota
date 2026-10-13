@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import {
-	ConfigurationDatabase,
 	ConfigurationMetaDataOS,
+	IndexedDbConfigurationDatabase,
 	updateEncryptionMetadata,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
@@ -32,13 +32,13 @@ import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/enti
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
-o.spec("ConfigurationDbTest", function () {
+o.spec("IndexedDbConfigurationDatabase", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let aes: Aes
 	let keyEncryption: KeyEncryption
 	let cryptoWrapper: CryptoWrapper
-	let configurationDatabase: ConfigurationDatabase
+	let configurationDatabase: IndexedDbConfigurationDatabase
 
 	o.beforeEach(async function () {
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
@@ -56,7 +56,7 @@ o.spec("ConfigurationDbTest", function () {
 		const x25519 = new X25519(random)
 		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
 
-		configurationDatabase = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, object(), object())
+		configurationDatabase = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, object(), object())
 	})
 
 	function makeExternalImageMocks(
@@ -150,7 +150,7 @@ o.spec("ConfigurationDbTest", function () {
 					address: "fomo@server.com",
 				},
 			])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeDefault = await configDb.getExternalImageRule("notinthere@neverseen.biz")
@@ -158,7 +158,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Allow)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.None)
@@ -177,7 +177,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: ExternalImageRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeBlock = await configDb.getExternalImageRule("lomo@server.com")
@@ -187,7 +187,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Block)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Block)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
@@ -289,7 +289,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: NewsletterBannerRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getNewsletterBannerRule("fomo@server.com")
 			o(shouldBeAllow).equals(NewsletterBannerRule.Allow)
 			const shouldBeBlock = await configDb.getNewsletterBannerRule("lomo@server.com")
@@ -297,7 +297,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeNewsletterBannerRuleMocks([])
-			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Block)
 			o(await configDb.getNewsletterBannerRule("fomo@server.com")).equals(NewsletterBannerRule.Block)
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Allow)

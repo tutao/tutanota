@@ -32,7 +32,7 @@ import { EventBusEventCoordinator } from "../../../common/api/worker/EventBusEve
 import { WorkerFacade } from "../../../common/api/worker/facades/WorkerFacade.js"
 import { DomainConfigProvider } from "../../../common/api/common/DomainConfigProvider.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
+import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { ContactFacade } from "../../../common/api/worker/facades/lazy/ContactFacade.js"
 import { CacheManagementFacade } from "../../../common/api/worker/facades/lazy/CacheManagementFacade.js"
 import { CalendarWorkerImpl } from "../worker/CalendarWorkerImpl.js"
@@ -368,8 +368,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
-		return new ConfigurationDatabase(
+		const { IndexedDbConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
+		return new IndexedDbConfigurationDatabase(
 			locator.base.symmetricCipherUtils,
 			locator.base.aes,
 			locator.base.keyEncryption,
