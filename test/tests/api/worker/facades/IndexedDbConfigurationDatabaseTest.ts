@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import {
-	ConfigurationDatabase,
+	IndexedDbConfigurationDatabase,
 	ConfigurationMetaDataOS,
 	encryptItem,
 	initializeDb,
@@ -30,7 +30,7 @@ import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/enti
 import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
 
-o.spec("ConfigurationDbTest", function () {
+o.spec("IndexedDbConfigurationDatabase", function () {
 	let keyLoaderFacade: KeyLoaderFacade
 
 	o.beforeEach(async function () {
@@ -129,7 +129,7 @@ o.spec("ConfigurationDbTest", function () {
 					address: "fomo@server.com",
 				},
 			])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeDefault = await configDb.getExternalImageRule("notinthere@neverseen.biz")
@@ -137,7 +137,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Allow)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.None)
@@ -156,7 +156,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: ExternalImageRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
 			const shouldBeBlock = await configDb.getExternalImageRule("lomo@server.com")
@@ -166,7 +166,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Block)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Block)
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
@@ -268,7 +268,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: NewsletterBannerRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			const shouldBeAllow = await configDb.getNewsletterBannerRule("fomo@server.com")
 			o(shouldBeAllow).equals(NewsletterBannerRule.Allow)
 			const shouldBeBlock = await configDb.getNewsletterBannerRule("lomo@server.com")
@@ -276,7 +276,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeNewsletterBannerRuleMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Block)
 			o(await configDb.getNewsletterBannerRule("fomo@server.com")).equals(NewsletterBannerRule.Block)
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Allow)

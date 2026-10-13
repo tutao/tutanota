@@ -37,6 +37,7 @@ import {
 	aesEncrypt,
 	aesEncryptConfigurationDatabaseItem,
 } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { ConfigurationDatabase } from "./ConfigurationDatabase"
 
 const VERSION: number = 5
 const DB_KEY_PREFIX: string = "ConfigStorage"
@@ -74,7 +75,7 @@ export async function decryptLegacyItem(
  *
  * Also handles maintaining and encrypting autosaved draft data as well as the SpamClassificationModel
  */
-export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStorageFacade {
+export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClassifierStorageFacade, ConfigurationDatabase {
 	private readonly db: LazyLoaded<ConfigDb | null>
 
 	constructor(
