@@ -8,7 +8,7 @@ import {
 
 import { matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
-import { ConfigurationDatabase } from "../../../../src/applications/common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
+import { ConfigurationDatabase } from "../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { EventController } from "../../../../src/applications/common/api/main/EventController.js"
 import { WorkerFacade } from "../../../../src/applications/common/api/worker/facades/WorkerFacade.js"
