@@ -454,6 +454,13 @@ void assertBranchWasSet(String name, String param) {
 }
 
 void initWorkspace(HashSet<String> changeset, String srcBranch, String targetBranch, boolean shouldClean) {
+    def remoteUrl = scm.userRemoteConfigs[0].url
+    if (sh(script: "git remote -v", returnStatus: true).toInteger() != 0) {
+        sh "git init --initial-branch master && git remote add origin ${remoteUrl}"
+    }
+    if (sh(script: "git rev-list --count HEAD", returnStatus: true).toInteger() != 0) {
+        sh "git pull --set-upstream origin master"
+    }
 	if (shouldClean) {
 		sh """
 		    git submodule deinit --all --force
