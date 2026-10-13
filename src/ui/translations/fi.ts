@@ -143,7 +143,7 @@ export default {
 		"appStoreRenewProblemSubject_msg": "App Store -laskutusvirhe",
 		"appStoreSubscriptionEndedBody_msg": "Tilauksenne vanheni {expirationDate}. Jos haluatte jatkaa tilauksenne käyttöä keskeytyksettä, suorittakaa maksu niin pian kuin mahdollista, tai siirtykää ilmaistilaukseen ylläpitäjän asetuksista > Tilaus.\n\nMikäli toimiin ei ryhdytä, tilinne poistetaan automaattisesti käytöstä.",
 		"appStoreSubscriptionEndedSubject_msg": "Tilauksesi vanheni",
-		"appStoreSubscriptionError_msg": "Valitettavasti maksu epäonnistui. Yritä myöhemmin uudelleen tai ota yhteyttä tukeen.",
+		"appStoreSubscriptionError_msg": "Valitettavasti maksut eivät onnistu juuri nyt. Yritä myöhemmin uudelleen tai ota yhteyttä tukeen.",
 		"archive_action": "Arkisto",
 		"archive_label": "Arkisto",
 		"assignLabel_action": "Anna tunnisteita",

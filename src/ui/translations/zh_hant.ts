@@ -143,7 +143,7 @@ export default {
 		"appStoreRenewProblemSubject_msg": "App Store帳務失敗",
 		"appStoreSubscriptionEndedBody_msg": "您的訂購計劃已於{expirationDate}結束。如要繼續使用訂購計劃而不受中斷，請盡早付款；或者請在管理員設定 > 計劃中降級為免費計劃。\n\n如果沒有採取上述行動，您的帳戶將被自動停用。",
 		"appStoreSubscriptionEndedSubject_msg": "您的訂購計劃已到期",
-		"appStoreSubscriptionError_msg": "抱歉，付款交易失敗。請稍後再試或者聯絡支援。",
+		"appStoreSubscriptionError_msg": "抱歉，付款交易無法使用。請稍後再試或者聯絡支援。",
 		"archive_action": "封存",
 		"archive_label": "封存",
 		"assignLabel_action": "賦予標籤",

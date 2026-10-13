@@ -143,7 +143,7 @@ export default {
 		"appStoreRenewProblemSubject_msg": "App Store Abrechnungsfehler",
 		"appStoreSubscriptionEndedBody_msg": "Ihr Abonnement endete am {expirationDate}. Um Ihr Abonnement weiterhin benutzen zu können, nehmen Sie die Zahlung so bald wie möglich vor. Alternativ downgraden Sie bitte zu einem kostenlosen Plan unter Admin-Einstellungen > Plan.\n\nWenn keine Maßnahmen ergriffen werden, wird Ihr Konto automatisch gesperrt.",
 		"appStoreSubscriptionEndedSubject_msg": "Ihr Abonnement ist abgelaufen",
-		"appStoreSubscriptionError_msg": "Leider ist die Zahlungstransaktion fehlgeschlagen. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.",
+		"appStoreSubscriptionError_msg": "Leider sind Zahlungstransaktionen aktuell nicht verfügbar. Bitte versuchen Sie es später erneut oder kontaktieren Sie den Support.",
 		"archive_action": "Archivieren",
 		"archive_label": "Archiv",
 		"assignLabel_action": "Labels zuweisen",
