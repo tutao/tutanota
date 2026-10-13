@@ -45,9 +45,9 @@ export class ClientDetector {
 
 		this.device = ClientDetector._getDeviceInfo(userAgent)
 		this.isMacOS = platform.indexOf("Mac") !== -1
-		const [browser, browserVersion] = ClientDetector._getBrowserAndVersion(userAgent)
-		this.browser = browser
-		this.browserVersion = browserVersion
+		const browserAndVersion = ClientDetector._getBrowserAndVersion(userAgent)
+		this.browser = browserAndVersion[0]
+		this.browserVersion = browserAndVersion[1]
 	}
 
 	public static async init(
