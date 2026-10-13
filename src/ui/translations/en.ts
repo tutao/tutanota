@@ -2572,8 +2572,8 @@ export default {
 		"sendFeedback_action": "Send feedback",
 		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us improve Tuta.",
 		"afterProxyStoreAction_msg": "After purchasing your gift card, please follow the steps provided on ProxyStore to continue the process.",
-		"neverAgain_label": "Never ask again",
 		"disableSatisfactionDialogConfirm_msg": "Stop asking for your feedback on all devices? You can still send feedback from Help.",
+		"neverAgain_label": "Never ask again",
 		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!"
 	}
 }

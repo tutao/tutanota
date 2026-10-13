@@ -405,6 +405,7 @@ export async function initUserController({
 		groupSettings: [],
 		usageDataOptedIn: null,
 		birthdayCalendarColor: null,
+		satisfactionDialogDisabled: false,
 	})
 	groupRoot._ownerGroup = user.userGroup.group
 	const [props, userSettingsGroupRoot, customer] = await Promise.all([
