@@ -294,6 +294,7 @@ export class EnvProvider {
 		}
 	}
 
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertMainOrNodeBoot(): void {
 		if (!assertionsEnabled) {
 			return
@@ -304,6 +305,7 @@ export class EnvProvider {
 		}
 	}
 
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertWorkerOrNode(): void {
 		if (!assertionsEnabled) {
 			return
