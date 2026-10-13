@@ -1,7 +1,7 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import stream from "mithril/stream"
 import {
 	addAll,
