@@ -18,7 +18,8 @@ pipeline {
 	environment {
 		VERSION = sh(returnStdout: true, script: "${env.NODE_PATH}/node -p -e \"require('./package.json').version\" | tr -d \"\n\"")
 		APK_SIGN_STORE = '/opt/android-keystore/android.jks'
-		PATH = "${env.NODE_PATH}:${env.PATH}:/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
+		LINUX_PATH_PRE = "${env.NODE_PATH}"
+		MAC_PATH_PRE = "/home/jenkins/emsdk/upstream/bin/:/home/jenkins/emsdk/:/home/jenkins/emsdk/upstream/emscripten:/usr/lib/bin:/opt/homebrew/bin"
 		ANDROID_SDK_ROOT = "/opt/android-sdk"
 		ANDROID_HOME = "/opt/android-sdk"
 	}
@@ -95,6 +96,9 @@ pipeline {
 							customWorkspace linuxWorkspace
 						}
 					}
+					environment {
+					    PATH = "${LINUX_PATH_PRE}:$PATH"
+					}
 					steps {
 						assertBranchWasSet("TARGET_BRANCH", params.TARGET_BRANCH)
 						assertBranchWasSet("SOURCE_BRANCH", params.SOURCE_BRANCH)
@@ -127,6 +131,9 @@ pipeline {
 							customWorkspace macWorkspace
 						}
 					}
+					environment {
+					    PATH = "${MAC_PATH_PRE}:$PATH"
+					}
 					steps {
 						script {
 							// must be done before we can load libraries
@@ -140,7 +147,6 @@ pipeline {
 						}
 					}
 				}
-
 			}
 		}
 		stage("Lint and Style") {
@@ -152,6 +158,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[0]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						findFixmes()
 					}
@@ -163,6 +172,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[1]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'npm run lint:check'
 					}
@@ -174,6 +186,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[2]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'npm run style:check'
 					}
@@ -185,6 +200,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[3]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					// this is so quick, we can run it every time.
 					steps {
 						sh "cargo fmt --check"
@@ -196,6 +214,9 @@ pipeline {
 							label "mac-m1"
 							customWorkspace macWorkspace
 						}
+					}
+					environment {
+					    PATH = "${MAC_PATH_PRE}:$PATH"
 					}
 					when {
 						expression { extensionChanged(changeset, ".swift") }
@@ -217,6 +238,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[0]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'cd src/platform-kit/crypto && node make ../../build && node make ../../build-calendar-app && node make ../../build-drive-app && node make ../../test/build && cd -'
 					}
@@ -229,6 +253,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[1]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'cd src/app-kit/mimimi && node make --release && cd -'
 					}
@@ -247,6 +274,9 @@ pipeline {
 									customWorkspace linuxWorkspaceClones[1]
 								}
 							}
+                            environment {
+                                PATH = "${LINUX_PATH_PRE}:$PATH"
+                            }
 							steps {
 								sh 'npm run test-ci'
 							}
@@ -258,6 +288,9 @@ pipeline {
 									customWorkspace linuxWorkspaceClones[2]
 								}
 							}
+                            environment {
+                                PATH = "${LINUX_PATH_PRE}:$PATH"
+                            }
 							steps {
 								sh 'npm run test-ci -- --no-run --browser --browser-cmd \'$(which chromium) --no-sandbox --enable-logging=stderr --headless=new --disable-gpu\''
 							}
@@ -269,6 +302,9 @@ pipeline {
 									customWorkspace linuxWorkspace
 								}
 							}
+                            environment {
+                                PATH = "${LINUX_PATH_PRE}:$PATH"
+                            }
 							when {
 								expression { hasRelevantChangesIn(changeset, "app-android") }
 							}
@@ -285,6 +321,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[3]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'node webapp --disable-minify --app mail'
 					}
@@ -296,6 +335,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[4]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'node webapp --disable-minify --app calendar'
 					}
@@ -307,6 +349,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[5]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					steps {
 						sh 'node webapp --disable-minify --app drive'
 					}
@@ -318,6 +363,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[6]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					when {
 						expression { hasRelevantChangesIn(changeset, "tuta-sdk") }
 					}
@@ -335,6 +383,9 @@ pipeline {
 							customWorkspace linuxWorkspaceClones[7]
 						}
 					}
+					environment {
+                        PATH = "${LINUX_PATH_PRE}:$PATH"
+                    }
 					when {
 						expression { extensionChanged(changeset, ".rs", ".toml") }
 					}
@@ -344,15 +395,18 @@ pipeline {
 					}
 				}
 				stage("ios tests") {
+                    agent {
+                        node {
+                            label "mac-m1"
+                            customWorkspace macWorkspace
+                        }
+                    }
+                    environment {
+                        PATH = "${MAC_PATH_PRE}:$PATH"
+                    }
 					// iOS tests write to the same temp folder which can cause both tests to fail, so they must run sequentially
 					stages {
 						stage("ios app") {
-							agent {
-								node {
-									label "mac-m1"
-									customWorkspace macWorkspace
-								}
-							}
 							when {
 								expression { hasRelevantChangesIn(changeset, "app-ios") }
 							}
@@ -363,12 +417,6 @@ pipeline {
 							}
 						}
 						stage("ios framework") {
-							agent {
-								node {
-									label "mac-m1"
-									customWorkspace macWorkspace
-								}
-							}
 							when {
 								expression { hasRelevantChangesIn(changeset, "app-ios") }
 							}
@@ -389,6 +437,9 @@ pipeline {
 					customWorkspace linuxWorkspace
 				}
 			}
+            environment {
+                PATH = "${LINUX_PATH_PRE}:$PATH"
+            }
 			steps {
 				finalize(params.DRY_RUN)
 			}
