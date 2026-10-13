@@ -11,7 +11,7 @@ import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef,
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import {
 	ExportFacadeSendDispatcher,
@@ -549,7 +549,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
+		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
 	})
 

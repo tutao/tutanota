@@ -1,7 +1,7 @@
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { Const, EnvProvider, Mode, ProgrammingError } from "../../../../platform-kit/app-env"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
 import { NoZoneDateProvider } from "../../../../platform-kit/utils/NoZoneDateProvider.js"
@@ -292,7 +292,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
+		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
 		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
 	})
 
