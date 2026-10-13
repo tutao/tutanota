@@ -113,7 +113,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 			])
 		} else {
 			// As a guest we show the time overview section containing the conflicts
-			const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-mobile" : ".event-banner-grid-guest"
+			const eventBannerGrid = Styles.get().isSingleColumnLayout() ? ".event-banner-grid-guest-mobile" : ".event-banner-grid-guest"
 			return m(eventBannerGrid + eventBannerBorder, [
 				m(EventBannerSidebarArea, { event: icsCalendarEvent }),
 				m(EventBannerTitleArea, { eventTitle: icsCalendarEvent.summary }),
