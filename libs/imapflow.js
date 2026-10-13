@@ -17,9 +17,9 @@ import require$$1$4 from 'string_decoder';
 import require$$0$9 from 'node:buffer';
 import require$$1$5 from 'node:stream';
 import require$$0$a from 'stream';
-import require$$1$6 from 'tls';
-import require$$4$4 from 'net';
-import require$$3$4 from 'dns';
+import require$$1$6 from 'net';
+import require$$3$4 from 'tls';
+import require$$1$7 from 'dns';
 import require$$3$5 from 'crypto';
 import require$$6$2 from 'zlib';
 
@@ -3430,11 +3430,11 @@ function requireTransport () {
 	return transport_1;
 }
 
-var tools;
+var tools$1;
 var hasRequiredTools$1;
 
 function requireTools$1 () {
-	if (hasRequiredTools$1) return tools;
+	if (hasRequiredTools$1) return tools$1;
 	hasRequiredTools$1 = 1;
 
 	/* eslint no-prototype-builtins: 0 */
@@ -3851,7 +3851,7 @@ function requireTools$1 () {
 	  return destination
 	}
 
-	tools = {
+	tools$1 = {
 	  noop,
 	  buildSafeSonicBoom,
 	  asChindings,
@@ -3862,7 +3862,7 @@ function requireTools$1 () {
 	  buildFormatters,
 	  normalizeDestFileDescriptor
 	};
-	return tools;
+	return tools$1;
 }
 
 /**
@@ -5964,7 +5964,9 @@ function requireUtf32$1 () {
 
 	Utf32Encoder.prototype.write = function (str) {
 	  var src = Buffer.from(str, "ucs2");
-	  var dst = Buffer.alloc(src.length * 2);
+	  // src.length * 2 covers this chunk's code units (4 bytes each); the extra 4 bytes leave room for a
+	  // high surrogate held over from a previous chunk, which is flushed ahead of this chunk's units.
+	  var dst = Buffer.alloc(src.length * 2 + 4);
 	  var write32 = this.isLE ? dst.writeUInt32LE : dst.writeUInt32BE;
 	  var offset = 0;
 
@@ -6046,9 +6048,9 @@ function requireUtf32$1 () {
 	      // NOTE: codepoint is a signed int32 and can be negative.
 	      // NOTE: We copied this block from below to help V8 optimize it (it works with array, not buffer).
 	      if (isLE) {
-	        codepoint = overflow[i] | (overflow[i + 1] << 8) | (overflow[i + 2] << 16) | (overflow[i + 3] << 24);
+	        codepoint = overflow[0] | (overflow[1] << 8) | (overflow[2] << 16) | (overflow[3] << 24);
 	      } else {
-	        codepoint = overflow[i + 3] | (overflow[i + 2] << 8) | (overflow[i + 1] << 16) | (overflow[i] << 24);
+	        codepoint = overflow[3] | (overflow[2] << 8) | (overflow[1] << 16) | (overflow[0] << 24);
 	      }
 	      overflow.length = 0;
 
@@ -6101,7 +6103,12 @@ function requireUtf32$1 () {
 	  return offset
 	}
 	Utf32Decoder.prototype.end = function () {
+	  if (this.overflow.length === 0) { return }
+
+	  // A leftover, incomplete 4-byte code unit at the end of the input is ill-formed. Substitute a
+	  // single U+FFFD (Unicode Standard conformance clause C10) instead of silently dropping the bytes.
 	  this.overflow.length = 0;
+	  return String.fromCharCode(this.badChar)
 	};
 
 	// == UTF-32 Auto codec =============================================================
@@ -6926,6 +6933,8 @@ function requireSbcsData$1 () {
 
 	  hebrew: "iso88598",
 	  hebrew8: "iso88598",
+	  iso88598i: "iso88598",
+	  iso88598e: "iso88598",
 
 	  turkish: "iso88599",
 	  turkish8: "iso88599",
@@ -20260,32 +20269,39 @@ function requireEncodingDetect () {
 	encodingDetect.isEUCJP = isEUCJP;
 
 	/**
-	 * Shift-JIS (SJIS)
+	 * SJIS (Shift_JIS)
+	 *
+	 * Includes CP932 (Windows-31J) extensions:
+	 * - NEC special character area (0x8740 - 0x879C)
+	 * - NEC-selected IBM extended character area (0xED40 - 0xEEFC)
+	 * - User-defined character area (0xF040 - 0xF9FC)
+	 * - IBM extended character area (0xFA40 - 0xFC4B)
 	 */
 	function isSJIS(data) {
 	  var i = 0;
 	  var len = data && data.length;
-	  var b;
-
-	  while (i < len && data[i] > 0x80) {
-	    if (data[i++] > 0xFF) {
-	      return false;
-	    }
-	  }
+	  var b, lead;
 
 	  for (; i < len; i++) {
 	    b = data[i];
+	    if (b > 0xFF) {
+	      return false;
+	    }
+
 	    if (b <= 0x80 ||
 	        (0xA1 <= b && b <= 0xDF)) {
 	      continue;
 	    }
 
-	    if (b === 0xA0 || b > 0xEF || i + 1 >= len) {
+	    if (b === 0xA0 || b > 0xFC || i + 1 >= len) {
 	      return false;
 	    }
 
+	    lead = b;
 	    b = data[++i];
-	    if (b < 0x40 || b === 0x7F || b > 0xFC) {
+	    if (b < 0x40 || b > 0xFC || b === 0x7F ||
+	        // IBM extended character area ends at 0xFC4B
+	        (lead === 0xFC && b > 0x4B)) {
 	      return false;
 	    }
 	  }
@@ -20308,8 +20324,12 @@ function requireEncodingDetect () {
 	      return false;
 	    }
 
-	    if (b === 0x09 || b === 0x0A || b === 0x0D ||
-	        (b >= 0x20 && b <= 0x7E)) {
+	    // Every byte in the ASCII range is valid UTF-8, including the C0 control
+	    // characters. Only ESC (0x1B) is excluded here so that ISO-2022-JP data is
+	    // not reported as UTF-8 by `isUTF8()`.
+	    // In `detect()` this does not widen the result: isBINARY (0x00-0x07, 0xFF)
+	    // and isJIS are both tried before UTF8.
+	    if (b <= 0x7F && b !== 0x1B) {
 	      continue;
 	    }
 
@@ -20612,6 +20632,111 @@ function requireEncodingDetect () {
 
 var encodingConvert = {};
 
+var sjisExt = {};
+
+/**
+ * Remapping CP932 (Windows-31J) IBM extended characters (0xFA40 - 0xFC4B)
+ *
+ * Remaps IBM extended characters to their corresponding duplicate codes
+ * before conversion. These characters are also assigned in the NEC special
+ * characters (0x8740 - 0x879C), the NEC-selected IBM extended characters
+ * (0xED40 - 0xEEFC), and JIS X 0208.
+ *
+ * The first 28 characters (0xFA40 - 0xFA5B) have individual mappings defined
+ * in CP932_IBM_EXT_SYMBOL_MAP, and the rest are linearly mapped to 0xED40 - 0xEEEC.
+ */
+
+var hasRequiredSjisExt;
+
+function requireSjisExt () {
+	if (hasRequiredSjisExt) return sjisExt;
+	hasRequiredSjisExt = 1;
+	var CP932_IBM_EXT_SYMBOL_MAP = [
+	  // 0xFA40 - 0xFA49 [ⅰ-ⅹ]
+	  0xEEEF, 0xEEF0, 0xEEF1, 0xEEF2, 0xEEF3, 0xEEF4, 0xEEF5, 0xEEF6, 0xEEF7, 0xEEF8,
+	  // 0xFA4A - 0xFA53 [Ⅰ-Ⅹ]
+	  0x8754, 0x8755, 0x8756, 0x8757, 0x8758, 0x8759, 0x875A, 0x875B, 0x875C, 0x875D,
+	  // 0xFA54 - 0xFA57 [￢￤＇＂]
+	  0x81CA, 0xEEFA, 0xEEFB, 0xEEFC,
+	  // 0xFA58 - 0xFA5B [㈱№℡∵]
+	  0x878A, 0x8782, 0x8784, 0x81E6
+	];
+
+	// The number of IBM extended characters (0xFA40 - 0xFC4B)
+	var CP932_IBM_EXT_LEN = 388;
+	// The number of valid trail bytes per lead byte (0x40 - 0xFC, except 0x7F)
+	var CP932_IBM_EXT_TRAIL_BYTES_LEN = 188;
+
+	function remapCP932_IBMExt(b1, b2) {
+	  var leadOffset = (b1 - 0xFA) * CP932_IBM_EXT_TRAIL_BYTES_LEN;
+	  var trailIndex = b2 - (b2 < 0x7F ? 0x40 : 0x41);
+	  var ibmExtIndex = leadOffset + trailIndex;
+
+	  if (ibmExtIndex < 0 || ibmExtIndex >= CP932_IBM_EXT_LEN) {
+	    return (b1 << 8) | b2;
+	  }
+
+	  if (ibmExtIndex < CP932_IBM_EXT_SYMBOL_MAP.length) {
+	    return CP932_IBM_EXT_SYMBOL_MAP[ibmExtIndex];
+	  }
+
+	  var necSelectedIbmOffset = ibmExtIndex - CP932_IBM_EXT_SYMBOL_MAP.length;
+
+	  // Remap to NEC-selected IBM extended characters (0xED40 - 0xEEEC)
+	  b1 = 0xED;
+	  if (necSelectedIbmOffset >= CP932_IBM_EXT_TRAIL_BYTES_LEN) {
+	    necSelectedIbmOffset -= CP932_IBM_EXT_TRAIL_BYTES_LEN;
+	    b1++;
+	  }
+
+	  b2 = necSelectedIbmOffset + 0x40;
+	  if (b2 >= 0x7F) {
+	    b2++; // Skip invalid trail byte 0x7F
+	  }
+	  return (b1 << 8) | b2;
+	}
+
+	/**
+	 * Remapping duplicate codes for CP932 NEC special characters to their
+	 * standard JIS X 0208 codes.
+	 *
+	 * This also includes 0xEEF9 in the NEC-selected IBM extended characters.
+	 */
+	var CP932_NEC_DUPLICATE_MAP = {
+	  0x8790: 0x81E0, // ≒ (NEC special characters)
+	  0x8791: 0x81DF, // ≡
+	  0x8792: 0x81E7, // ∫
+	  0x8795: 0x81E3, // √
+	  0x8796: 0x81DB, // ⊥
+	  0x8797: 0x81DA, // ∠
+	  0x879A: 0x81E6, // ∵
+	  0x879B: 0x81BF, // ∩
+	  0x879C: 0x81BE, // ∪
+	  0xEEF9: 0x81CA  // ￢ (NEC-selected IBM extended characters)
+	};
+
+	function remapCP932DuplicateCode(b1, b2) {
+	  if (b2 < 0x40 || b2 > 0xFC || b2 === 0x7F) {
+	    return (b1 << 8) | (b2 & 0xFF);
+	  }
+
+	  if (b1 >= 0xFA) {
+	    return remapCP932_IBMExt(b1, b2);
+	  }
+
+	  var code = (b1 << 8) | b2;
+	  var remapped = CP932_NEC_DUPLICATE_MAP[code];
+	  return remapped == null ? code : remapped;
+	}
+	sjisExt.remapCP932DuplicateCode = remapCP932DuplicateCode;
+
+	function hasCP932DuplicateCode(b1) {
+	  return b1 >= 0xFA || b1 === 0x87 || b1 === 0xEE;
+	}
+	sjisExt.hasCP932DuplicateCode = hasCP932DuplicateCode;
+	return sjisExt;
+}
+
 var hasRequiredEncodingConvert;
 
 function requireEncodingConvert () {
@@ -20621,6 +20746,7 @@ function requireEncodingConvert () {
 	var util = /*@__PURE__*/ requireUtil$1();
 	var EncodingDetect = /*@__PURE__*/ requireEncodingDetect();
 	var EncodingTable = /*@__PURE__*/ requireEncodingTable();
+	var sjisExt = /*@__PURE__*/ requireSjisExt();
 
 	/**
 	 * JIS to SJIS
@@ -20753,7 +20879,7 @@ function requireEncodingConvert () {
 	  var index = 0;
 	  var len = data && data.length;
 	  var i = 0;
-	  var b1, b2;
+	  var b1, b2, remapped;
 
 	  var esc = [
 	    0x1B, 0x28, 0x42,
@@ -20779,8 +20905,15 @@ function requireEncodingConvert () {
 	        results[results.length] = esc[5];
 	      }
 
-	      b1 <<= 1;
 	      b2 = data[++i];
+	      if (sjisExt.hasCP932DuplicateCode(b1)) {
+	        // Remap CP932 duplicate codes and IBM extended characters
+	        remapped = sjisExt.remapCP932DuplicateCode(b1, b2);
+	        b1 = remapped >> 8;
+	        b2 = remapped & 0xFF;
+	      }
+
+	      b1 <<= 1;
 	      if (b2 < 0x9F) {
 	        if (b1 < 0x13F) {
 	          b1 -= 0xE1;
@@ -20830,7 +20963,7 @@ function requireEncodingConvert () {
 	  var results = [];
 	  var len = data && data.length;
 	  var i = 0;
-	  var b1, b2;
+	  var b1, b2, remapped;
 
 	  for (; i < len; i++) {
 	    b1 = data[i];
@@ -20839,6 +20972,13 @@ function requireEncodingConvert () {
 	      results[results.length] = b1;
 	    } else if (b1 >= 0x81) {
 	      b2 = data[++i];
+	      if (sjisExt.hasCP932DuplicateCode(b1)) {
+	        // Remap CP932 duplicate codes and IBM extended characters
+	        remapped = sjisExt.remapCP932DuplicateCode(b1, b2);
+	        b1 = remapped >> 8;
+	        b2 = remapped & 0xFF;
+	      }
+
 	      b1 <<= 1;
 	      if (b2 < 0x9F) {
 	        if (b1 < 0x13F) {
@@ -20999,7 +21139,7 @@ function requireEncodingConvert () {
 	  var results = [];
 	  var i = 0;
 	  var len = data && data.length;
-	  var b, b1, b2, u2, u3, jis, utf8;
+	  var b, b1, b2, u2, u3, jis, utf8, remapped;
 
 	  for (; i < len; i++) {
 	    b = data[i];
@@ -21012,9 +21152,15 @@ function requireEncodingConvert () {
 	      results[results.length] = u2 & 0xFF;
 	      results[results.length] = u3 & 0xFF;
 	    } else if (b >= 0x80) {
-	      b1 = b << 1;
 	      b2 = data[++i];
+	      if (sjisExt.hasCP932DuplicateCode(b)) {
+	        // Remap CP932 duplicate codes and IBM extended characters
+	        remapped = sjisExt.remapCP932DuplicateCode(b, b2);
+	        b = remapped >> 8;
+	        b2 = remapped & 0xFF;
+	      }
 
+	      b1 = b << 1;
 	      if (b2 < 0x9F) {
 	        if (b1 < 0x13F) {
 	          b1 -= 0xE1;
@@ -21325,6 +21471,10 @@ function requireEncodingConvert () {
 	      }
 
 	      jis = EncodingTable.UTF8_TO_JIS_TABLE[utf8];
+	      // JIS X 0212 chars duplicated into JIS X 0208 unassigned rows: use the JIS X 0212 form.
+	      if (jis != null && EncodingTable.UTF8_TO_JISX0212_TABLE[utf8] != null) {
+	        jis = null;
+	      }
 	      if (jis == null) {
 	        jis = EncodingTable.UTF8_TO_JISX0212_TABLE[utf8];
 	        if (jis == null) {
@@ -21408,6 +21558,10 @@ function requireEncodingConvert () {
 	      }
 
 	      jis = EncodingTable.UTF8_TO_JIS_TABLE[utf8];
+	      // JIS X 0212 chars duplicated into JIS X 0208 unassigned rows: use the JIS X 0212 form.
+	      if (jis != null && EncodingTable.UTF8_TO_JISX0212_TABLE[utf8] != null) {
+	        jis = null;
+	      }
 	      if (jis == null) {
 	        jis = EncodingTable.UTF8_TO_JISX0212_TABLE[utf8];
 	        if (jis == null) {
@@ -22351,7 +22505,7 @@ function requireKanaCaseTable () {
 	return kanaCaseTable;
 }
 
-var version$1 = "2.2.0";
+var version$1 = "2.3.0";
 var require$$5$1 = {
 	version: version$1};
 
@@ -22721,6 +22875,14 @@ function requireSrc () {
 	      } else if (c === 0x30F7) {
 	        results[results.length] = 0x308F;
 	        c = 0x309B;
+	      // 「ヰ゛」 => 「ゐ」 + 「゛」
+	      } else if (c === 0x30F8) {
+	        results[results.length] = 0x3090;
+	        c = 0x309B;
+	      // 「ヱ゛」 => 「ゑ」 + 「゛」
+	      } else if (c === 0x30F9) {
+	        results[results.length] = 0x3091;
+	        c = 0x309B;
 	      // 「ヲ゛」 => 「を」 + 「゛」
 	      } else if (c === 0x30FA) {
 	        results[results.length] = 0x3092;
@@ -22760,9 +22922,13 @@ function requireSrc () {
 	      c = data[i++];
 	      if (c >= 0x3041 && c <= 0x3096) {
 	        if ((c === 0x308F || // 「わ」 + 「゛」 => 「ワ゛」
+	             c === 0x3090 || // 「ゐ」 + 「゛」 => 「ヰ゛」
+	             c === 0x3091 || // 「ゑ」 + 「゛」 => 「ヱ゛」
 	             c === 0x3092) && // 「を」 + 「゛」 => 「ヲ゛」
 	            i < len && data[i] === 0x309B) {
-	          c = c === 0x308F ? 0x30F7 : 0x30FA;
+	          c = c === 0x308F ? 0x30F7 :
+	              c === 0x3090 ? 0x30F8 :
+	              c === 0x3091 ? 0x30F9 : 0x30FA;
 	          i++;
 	        } else {
 	          c += 0x0060;
@@ -23271,13 +23437,14 @@ function requireCharset () {
 
 	    /**
 	     * Converts well known invalid character set names to proper names.
-	     * eg. win-1257 will be converted to WINDOWS-1257
+	     * eg. win-1257 will be converted to windows-1257. Missing or non-string
+	     * input defaults to UTF-8.
 	     *
 	     * @param {String} charset Charset name to convert
 	     * @return {String} Canonicalized charset name
 	     */
 	    normalizeCharset(charset) {
-	        charset = charset.toLowerCase().trim();
+	        charset = (charset || 'UTF-8').toString().toLowerCase().trim();
 
 	        // first pass
 	        if (charsets.hasOwnProperty(charset) && charsets[charset]) {
@@ -25954,6 +26121,31 @@ function requireLibmime () {
 	const STAGE_KEY = 0x1001;
 	const STAGE_VALUE = 0x1002;
 
+	// Sets an own property on a plain object. A regular assignment with a
+	// '__proto__' key would silently modify the object's prototype instead of
+	// creating an own property, so it needs special handling.
+	const setOwnProperty = (obj, key, value) => {
+	    if (key === '__proto__') {
+	        Object.defineProperty(obj, key, {
+	            value,
+	            writable: true,
+	            enumerable: true,
+	            configurable: true
+	        });
+	    } else {
+	        obj[key] = value;
+	    }
+	};
+
+	// Checks own properties only, as attacker controlled keys like '__proto__'
+	// or 'toString' would otherwise resolve to inherited Object.prototype members.
+	// NB! Not named hasOwnProperty, that would shadow the global builtin
+	const hasOwn = (obj, key) => Object.prototype.hasOwnProperty.call(obj, key);
+
+	// Whitespace that separates the tokens of a header value. Kept as a char comparison,
+	// a regex test would be run for every single char of every parsed header
+	const isWSP = chr => chr === ' ' || chr === '\t' || chr === '\r' || chr === '\n' || chr === '\f' || chr === '\v';
+
 	class Libmime {
 	    constructor(config) {
 	        this.config = config || {};
@@ -26140,6 +26332,19 @@ function requireLibmime () {
 	    }
 
 	    /**
+	     * Normalizes a charset name to its canonical form, resolving common aliases and
+	     * invalid names. For example `iso-8859-8-i` and `iso-8859-8-e` become `ISO-8859-8`
+	     * and `win-1257` becomes `windows-1257`. Unknown charsets are returned uppercased.
+	     * Missing or non-string input defaults to `UTF-8`.
+	     *
+	     * @param {String} charset Charset name to normalize
+	     * @return {String} Canonical charset name
+	     */
+	    normalizeCharset(charset) {
+	        return libcharset.normalizeCharset(charset);
+	    }
+
+	    /**
 	     * Decodes the inner payload of a single mime encoded-word into a unicode string.
 	     * Expects the three components of `=?charset?encoding?text?=` already separated.
 	     *
@@ -26317,7 +26522,7 @@ function requireLibmime () {
 	     * header might have its own rules (eg. formatted email addresses and such)
 	     *
 	     * @param {String} headers Headers string
-	     * @return {Object} An object of headers, where header keys are object keys. NB! Several values with the same key make up an Array
+	     * @return {Object} An object of headers, where header keys are object keys and every value is an Array of the values for that key
 	     */
 	    decodeHeaders(headers) {
 	        let lines = headers.split(/\r?\n|\r/),
@@ -26326,8 +26531,21 @@ function requireLibmime () {
 	            i,
 	            len;
 
-	        for (i = lines.length - 1; i >= 0; i--) {
-	            if (i && lines[i].match(/^\s/)) {
+	        // Empty lines in front of the block are not part of any header, a caller might
+	        // include the line break that separates a mime part boundary from its headers
+	        let headersPos = 0;
+	        while (headersPos < lines.length && lines[headersPos] === '') {
+	            headersPos++;
+	        }
+
+	        // An empty line terminates the header block, anything after it is the message body.
+	        // Without this a body line that starts with whitespace would be folded into the last header
+	        let bodyPos = lines.indexOf('', headersPos);
+	        lines = lines.slice(headersPos, bodyPos >= 0 ? bodyPos : lines.length);
+
+	        // unfold folded lines, a continuation line always starts with a space or a tab
+	        for (i = lines.length - 1; i > 0; i--) {
+	            if (/^[ \t]/.test(lines[i])) {
 	                lines[i - 1] += '\r\n' + lines[i];
 	                lines.splice(i, 1);
 	            }
@@ -26335,8 +26553,8 @@ function requireLibmime () {
 
 	        for (i = 0, len = lines.length; i < len; i++) {
 	            header = this.decodeHeader(lines[i]);
-	            if (!headersObj[header.key]) {
-	                headersObj[header.key] = [header.value];
+	            if (!hasOwn(headersObj, header.key)) {
+	                setOwnProperty(headersObj, header.key, [header.value]);
 	            } else {
 	                headersObj[header.key].push(header.value);
 	            }
@@ -26380,7 +26598,7 @@ function requireLibmime () {
 	     * Parses a header value with key=value arguments into a structured
 	     * object.
 	     *
-	     *   parseHeaderValue('content-type: text/plain; CHARSET='UTF-8'') ->
+	     *   parseHeaderValue('text/plain; CHARSET=UTF-8') ->
 	     *   {
 	     *     'value': 'text/plain',
 	     *     'params': {
@@ -26398,44 +26616,78 @@ function requireLibmime () {
 	        };
 	        let key = false;
 	        let value = '';
+	        // Length of the significant part of `value`. Whitespace outside of quotes is
+	        // not part of the value, while whitespace inside quotes is (rfc2045 section 5.1)
+	        let valueEnd = 0;
 	        let stage = STAGE_VALUE;
 
 	        let quote = false;
 	        let escaped = false;
 	        let chr;
 
+	        // Stores the collected value, either as the default value, as the value for the
+	        // current key, or as a key that has no value at all. Runs once per parameter
+	        let commit = () => {
+	            let collected = value.substring(0, valueEnd);
+	            value = '';
+	            valueEnd = 0;
+
+	            if (stage === STAGE_KEY) {
+	                // key without a value, see emptykey:
+	                // Header-Key: somevalue; key=value; emptykey
+	                if (collected) {
+	                    setOwnProperty(response.params, collected.toLowerCase(), '');
+	                }
+	            } else if (key === false) {
+	                // default value
+	                response.value = collected;
+	            } else {
+	                // subkey value
+	                setOwnProperty(response.params, key, collected);
+	            }
+	        };
+
 	        for (let i = 0, len = str.length; i < len; i++) {
 	            chr = str.charAt(i);
 	            switch (stage) {
 	                case STAGE_KEY:
 	                    if (chr === '=') {
-	                        key = value.trim().toLowerCase();
-	                        stage = STAGE_VALUE;
+	                        key = value.substring(0, valueEnd).toLowerCase();
 	                        value = '';
-	                        break;
+	                        valueEnd = 0;
+	                        stage = STAGE_VALUE;
+	                    } else if (chr === ';') {
+	                        // key without a value, eg. the "inline" in "attachment; inline; filename=a.txt"
+	                        commit();
+	                    } else if (isWSP(chr)) {
+	                        if (value.length) {
+	                            value += chr;
+	                        }
+	                    } else {
+	                        value += chr;
+	                        valueEnd = value.length;
 	                    }
-	                    value += chr;
 	                    break;
 	                case STAGE_VALUE:
 	                    if (escaped) {
 	                        value += chr;
+	                        valueEnd = value.length;
 	                    } else if (chr === '\\') {
 	                        escaped = true;
 	                        continue;
-	                    } else if (quote && chr === quote) {
-	                        quote = false;
-	                    } else if (!quote && chr === '"') {
-	                        quote = chr;
+	                    } else if (chr === '"') {
+	                        // every char between the quotes is significant, including whitespace
+	                        quote = !quote;
 	                    } else if (!quote && chr === ';') {
-	                        if (key === false) {
-	                            response.value = value.trim();
-	                        } else {
-	                            response.params[key] = value.trim();
-	                        }
+	                        commit();
 	                        stage = STAGE_KEY;
-	                        value = '';
+	                    } else if (!quote && isWSP(chr)) {
+	                        if (value.length) {
+	                            value += chr;
+	                        }
 	                    } else {
 	                        value += chr;
+	                        valueEnd = value.length;
 	                    }
 	                    escaped = false;
 	                    break;
@@ -26443,94 +26695,80 @@ function requireLibmime () {
 	        }
 
 	        // finalize remainder
-	        value = value.trim();
-	        if (stage === STAGE_VALUE) {
-	            if (key === false) {
-	                // default value
-	                response.value = value;
-	            } else {
-	                // subkey value
-	                response.params[key] = value;
-	            }
-	        } else if (value) {
-	            // treat as key without value, see emptykey:
-	            // Header-Key: somevalue; key=value; emptykey
-	            response.params[value.toLowerCase()] = '';
-	        }
+	        commit();
 
 	        // handle parameter value continuations
 	        // https://tools.ietf.org/html/rfc2231#section-3
 
-	        // preprocess values
-	        Object.keys(response.params).forEach(key => {
-	            let actualKey;
-	            let nr;
-	            let value;
+	        // Collect the segments of every continuation parameter. These are kept out of
+	        // response.params so that a half assembled value can not leak into the result
+	        let continuations = new Map();
 
+	        for (let key of Object.keys(response.params)) {
 	            let match = key.match(/\*((\d+)\*?)?$/);
 
 	            if (!match) {
 	                // nothing to do here, does not seem like a continuation param
-	                return;
+	                continue;
 	            }
 
-	            actualKey = key.substr(0, match.index).toLowerCase();
-	            nr = Number(match[2]) || 0;
-
-	            if (!response.params[actualKey] || typeof response.params[actualKey] !== 'object') {
-	                response.params[actualKey] = {
-	                    charset: false,
-	                    values: []
-	                };
-	            }
-
-	            value = response.params[key];
-
-	            if (nr === 0 && match[0].charAt(match[0].length - 1) === '*' && (match = value.match(/^([^']*)'[^']*'(.*)$/))) {
-	                response.params[actualKey].charset = match[1] || 'utf-8';
-	                value = match[2];
-	            }
-
-	            response.params[actualKey].values.push({ nr, value });
+	            let actualKey = key.substr(0, match.index).toLowerCase();
+	            let nr = Number(match[2]) || 0;
+	            let value = response.params[key];
 
 	            // remove the old reference
 	            delete response.params[key];
-	        });
 
-	        // concatenate split rfc2231 strings and convert encoded strings to mime encoded words
-	        Object.keys(response.params).forEach(key => {
-	            let value;
-	            if (response.params[key] && Array.isArray(response.params[key].values)) {
-	                value = response.params[key].values
-	                    .sort((a, b) => a.nr - b.nr)
-	                    .map(val => (val && val.value) || '')
-	                    .join('');
-
-	                if (response.params[key].charset) {
-	                    // convert "%AB" to "=?charset?Q?=AB?=" and then to unicode
-	                    response.params[key] = this.decodeWords(
-	                        '=?' +
-	                            response.params[key].charset +
-	                            '?Q?' +
-	                            value
-	                                // fix invalidly encoded chars
-	                                .replace(/[=?_\s]/g, s => {
-	                                    let c = s.charCodeAt(0).toString(16);
-	                                    if (s === ' ') {
-	                                        return '_';
-	                                    } else {
-	                                        return '%' + (c.length < 2 ? '0' : '') + c;
-	                                    }
-	                                })
-	                                // change from urlencoding to percent encoding
-	                                .replace(/%/g, '=') +
-	                            '?='
-	                    );
-	                } else {
-	                    response.params[key] = this.decodeWords(value);
-	                }
+	            let continuation = continuations.get(actualKey);
+	            if (!continuation) {
+	                continuation = {
+	                    charset: false,
+	                    values: []
+	                };
+	                continuations.set(actualKey, continuation);
 	            }
-	        });
+
+	            if (nr === 0 && match[0].charAt(match[0].length - 1) === '*' && (match = value.match(/^([^']*)'[^']*'(.*)$/))) {
+	                continuation.charset = match[1] || 'utf-8';
+	                value = match[2];
+	            }
+
+	            continuation.values.push({ nr, value });
+	        }
+
+	        // concatenate the split rfc2231 strings and decode the encoded ones
+	        for (let [key, continuation] of continuations) {
+	            // NB! An assembled continuation always overrides a plain parameter with the same
+	            // name, in either source order. The plain form is the legacy ascii fallback of the
+	            // extended one, so rfc6266 section 4.3 requires picking the extended value. Letting
+	            // the fallback win would make libmime disagree with the mail clients that follow it
+	            let value = continuation.values
+	                .sort((a, b) => a.nr - b.nr)
+	                .map(val => val.value)
+	                .join('');
+
+	            if (!continuation.charset) {
+	                setOwnProperty(response.params, key, this.decodeWords(value));
+	                continue;
+	            }
+
+	            // convert "%AB" to the quoted printable "=AB" and decode it as the charset of the parameter.
+	            // NB! The charset is passed in as an argument instead of building a "=?charset?Q?=AB?=" string,
+	            // a charset that contains "?" would otherwise inject an encoded word of its own
+	            let qpValue = value
+	                // fix invalidly encoded chars
+	                .replace(/[=_\s]/g, s => {
+	                    if (s === ' ') {
+	                        return '_';
+	                    }
+	                    let c = s.charCodeAt(0).toString(16);
+	                    return '%' + (c.length < 2 ? '0' : '') + c;
+	                })
+	                // change from urlencoding to percent encoding
+	                .replace(/%/g, '=');
+
+	            setOwnProperty(response.params, key, this.decodeWord(continuation.charset, 'Q', qpValue));
+	        }
 
 	        return response;
 	    }
@@ -26553,7 +26791,13 @@ function requireLibmime () {
 	     */
 	    buildHeaderParam(key, data, maxLength, fromCharset) {
 	        let list = [];
-	        let encodedStr = typeof data === 'string' ? data : this.decode(data, fromCharset);
+
+	        if (typeof data !== 'string' && !Buffer.isBuffer(data)) {
+	            // documented input is a string or a Buffer, normalize anything else
+	            data = data === null || data === undefined ? '' : data.toString();
+	        }
+
+	        let encodedStr = typeof data === 'string' ? data : libcharset.decode(data, fromCharset);
 	        let encodedStrArr;
 	        let chr, ord;
 	        let line;
@@ -26687,7 +26931,7 @@ function requireLibmime () {
 	     */
 	    detectExtension(mimeType) {
 	        mimeType = (mimeType || '').toString().toLowerCase().replace(/\s/g, '');
-	        if (!(mimeType in mimetypes.list)) {
+	        if (!hasOwn(mimetypes.list, mimeType)) {
 	            return 'bin';
 	        }
 
@@ -26718,7 +26962,7 @@ function requireLibmime () {
 	    detectMimeType(extension) {
 	        extension = (extension || '').toString().toLowerCase().replace(/\s/g, '').replace(/^\./g, '').split('.').pop();
 
-	        if (!(extension in mimetypes.extensions)) {
+	        if (!hasOwn(mimetypes.extensions, extension)) {
 	            return 'application/octet-stream';
 	        }
 
@@ -26836,18 +27080,12 @@ function requireLibmime () {
 
 	    encodeURICharComponent(chr) {
 	        let res = '';
-	        let ord = chr.charCodeAt(0).toString(16).toUpperCase();
+	        // percent encoding is defined over bytes, so encode the char as UTF-8 first
+	        let buf = Buffer.from(chr, 'utf-8');
 
-	        if (ord.length % 2) {
-	            ord = '0' + ord;
-	        }
-
-	        if (ord.length > 2) {
-	            for (let i = 0, len = ord.length / 2; i < len; i++) {
-	                res += '%' + ord.substr(i, 2);
-	            }
-	        } else {
-	            res += '%' + ord;
+	        for (let i = 0, len = buf.length; i < len; i++) {
+	            let ord = buf[i].toString(16).toUpperCase();
+	            res += '%' + (ord.length < 2 ? '0' : '') + ord;
 	        }
 
 	        return res;
@@ -26883,76 +27121,120 @@ function requireHeaders () {
 
 	const libmime = /*@__PURE__*/ requireLibmime();
 
+	/** @typedef {import('..').HeaderLine} HeaderLine */
+	/** @typedef {import('..').LibmimeOptions} LibmimeOptions */
+	/** @typedef {import('..').DecodedHeader} DecodedHeader */
+
+	const Libmime = /** @type {any} */ (libmime.Libmime);
+
 	/**
-	 * Class Headers to parse and handle message headers. Headers instance allows to
-	 * check existing, delete or add new headers
+	 * Parses and builds message headers. A Headers instance allows callers to
+	 * inspect, delete, update, and add header lines.
 	 */
 	class Headers {
+	    /**
+	     * @param {string | Buffer | HeaderLine[] | false} [headers] Raw header source or already parsed lines.
+	     * @param {LibmimeOptions} [config] Optional libmime configuration.
+	     */
 	    constructor(headers, config) {
 	        config = config || {};
 
 	        if (Array.isArray(headers)) {
 	            // already using parsed headers
 	            this.changed = true;
+	            /** @type {string | Buffer | false} */
 	            this.headers = false;
 	            this.parsed = true;
+	            /** @type {HeaderLine[] | false} */
 	            this.lines = headers;
 	        } else {
 	            // using original string/buffer headers
 	            this.changed = false;
-	            this.headers = headers;
+	            /** @type {string | Buffer | false} */
+	            this.headers = headers || false;
 	            this.parsed = false;
+	            /** @type {HeaderLine[] | false} */
 	            this.lines = false;
 	        }
+	        /** @type {string | false} */
 	        this.mbox = false;
+	        /** @type {string | false} */
 	        this.http = false;
 
-	        this.libmime = new libmime.Libmime({ Iconv: config.Iconv });
+	        this.libmime = new Libmime({ Iconv: config.Iconv });
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {boolean}
+	     */
 	    hasHeader(key) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 	        key = this._normalizeHeader(key);
-	        return typeof this.lines.find(line => line.key === key) === 'object';
+	        return typeof lines.find(line => line.key === key) === 'object';
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {string[]}
+	     */
 	    get(key) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let headerLines = this._getLines();
 	        key = this._normalizeHeader(key);
-	        let lines = this.lines.filter(line => line.key === key).map(line => this._decodeHeaderValue(line.line));
+	        let lines = headerLines.filter(line => line.key === key).map(line => this._decodeHeaderValue(line.line));
 
 	        return lines;
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {DecodedHeader[]}
+	     */
 	    getDecoded(key) {
 	        return this.get(key)
 	            .map(line => this.libmime.decodeHeader(line))
 	            .filter(line => line && line.value);
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {string}
+	     */
 	    getFirst(key) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 	        key = this._normalizeHeader(key);
-	        let header = this.lines.find(line => line.key === key);
+	        let header = lines.find(line => line.key === key);
 	        if (!header) {
 	            return '';
 	        }
 	        return ((this.libmime.decodeHeader(this._decodeHeaderValue(header.line)) || {}).value || '').toString().trim();
 	    }
 
+	    /**
+	     * @returns {HeaderLine[]}
+	     */
 	    getList() {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
-	        return this.lines;
+	        return this._getLines();
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @param {string | number | Buffer} [value]
+	     * @param {number} [index]
+	     * @returns {void}
+	     */
 	    add(key, value, index) {
 	        if (typeof value === 'undefined') {
 	            return;
@@ -26967,13 +27249,21 @@ function requireHeaders () {
 	        }
 
 	        value = value.toString('binary');
-	        this.addFormatted(key, this.libmime.foldLines(key + ': ' + value.replace(/\r?\n/g, ''), 76, false), index);
+	        // a header value may not contain line breaks of its own, folding is added by foldLines
+	        this.addFormatted(key, this.libmime.foldLines(key + ': ' + value.replace(/[\r\n]/g, ''), 76, false), index);
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @param {string | Buffer | false} [line]
+	     * @param {number} [index]
+	     * @returns {void}
+	     */
 	    addFormatted(key, line, index) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 	        index = index || 0;
 	        this.changed = true;
 
@@ -26985,51 +27275,70 @@ function requireHeaders () {
 	            line = line.toString('binary');
 	        }
 
+	        // every header insertion runs through here, so this is where a value or a key
+	        // built from untrusted input is stopped from injecting an extra header line
+	        line = this._normalizeInsertedLine(line);
+	        if (!line) {
+	            return;
+	        }
+
 	        let header = {
 	            key: this._normalizeHeader(key),
 	            line
 	        };
 
 	        if (index < 1) {
-	            this.lines.unshift(header);
-	        } else if (index >= this.lines.length) {
-	            this.lines.push(header);
+	            lines.unshift(header);
+	        } else if (index >= lines.length) {
+	            lines.push(header);
 	        } else {
-	            this.lines.splice(index, 0, header);
+	            lines.splice(index, 0, header);
 	        }
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {void}
+	     */
 	    remove(key) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 	        key = this._normalizeHeader(key);
-	        for (let i = this.lines.length - 1; i >= 0; i--) {
-	            if (this.lines[i].key === key) {
+	        for (let i = lines.length - 1; i >= 0; i--) {
+	            if (lines[i].key === key) {
 	                this.changed = true;
-	                this.lines.splice(i, 1);
+	                lines.splice(i, 1);
 	            }
 	        }
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @param {string | number | Buffer} [value]
+	     * @param {number} [relativeIndex]
+	     * @returns {void}
+	     */
 	    update(key, value, relativeIndex) {
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 	        let keyName = key;
 	        let index = 0;
 	        key = this._normalizeHeader(key);
 	        let relativeIndexCount = 0;
 	        let relativeMatchFound = false;
-	        for (let i = this.lines.length - 1; i >= 0; i--) {
-	            if (this.lines[i].key === key) {
+	        for (let i = lines.length - 1; i >= 0; i--) {
+	            if (lines[i].key === key) {
 	                if (relativeIndex && relativeIndex !== relativeIndexCount) {
 	                    relativeIndexCount++;
 	                    continue;
 	                }
 	                index = i;
 	                this.changed = true;
-	                this.lines.splice(i, 1);
+	                lines.splice(i, 1);
 	                if (relativeIndex) {
 	                    relativeMatchFound = true;
 	                    break;
@@ -27044,44 +27353,130 @@ function requireHeaders () {
 	        this.add(keyName, value, index);
 	    }
 
+	    /**
+	     * Serializes the headers. Unmodified headers are returned byte for byte as they
+	     * were received, otherwise every line is rebuilt with `lineEnd` line endings.
+	     *
+	     * @param {string | false} [lineEnd] Line ending to use, defaults to CRLF.
+	     * @returns {Buffer}
+	     */
 	    build(lineEnd) {
 	        if (!this.changed && !lineEnd) {
-	            return typeof this.headers === 'string' ? Buffer.from(this.headers, 'binary') : this.headers;
+	            return typeof this.headers === 'string' ? Buffer.from(this.headers, 'binary') : this.headers || Buffer.alloc(0);
 	        }
 
 	        if (!this.parsed) {
 	            this._parseHeaders();
 	        }
+	        let lines = this._getLines();
 
-	        lineEnd = lineEnd || '\r\n';
+	        const ending = lineEnd || '\r\n';
 
-	        let headers = this.lines
-	            .map(line => this._buildHeaderLine(line.line.replace(/\r?\n/g, lineEnd)))
+	        let headers = lines
+	            .map(line => this._normalizeLineBreaks(line.line, ending))
+	            // an empty line would close the header block and demote every later header
+	            // into the body, so a line left with nothing in it is dropped instead
+	            .filter(line => line !== '')
+	            .map(line => this._buildHeaderLine(line))
 	            .reduce((joined, line, idx) => {
 	                if (idx) {
-	                    joined.push(Buffer.from(lineEnd, 'binary'));
+	                    joined.push(Buffer.from(ending, 'binary'));
 	                }
 	                joined.push(line);
 	                return joined;
-	            }, []);
+	            }, /** @type {Buffer[]} */ ([]));
 
-	        headers.push(Buffer.from(lineEnd + lineEnd, 'binary'));
+	        headers.push(Buffer.from(ending + ending, 'binary'));
 
 	        if (this.mbox) {
-	            headers.unshift(Buffer.from(this.mbox + lineEnd, 'binary'));
+	            headers.unshift(Buffer.from(this.mbox + ending, 'binary'));
 	        }
 
 	        if (this.http) {
-	            headers.unshift(Buffer.from(this.http + lineEnd, 'binary'));
+	            headers.unshift(Buffer.from(this.http + ending, 'binary'));
 	        }
 
 	        return Buffer.concat(headers);
 	    }
 
+	    /**
+	     * @param {string} key
+	     * @returns {string}
+	     */
 	    _normalizeHeader(key) {
 	        return (key || '').toLowerCase().trim();
 	    }
 
+	    /**
+	     * Rewrites the line breaks of a header line so that the line can only ever parse
+	     * back as the single header it was reported as. A line break followed by whitespace
+	     * is folding and becomes `lineEnd`, every other line break would start a new header
+	     * line and is dropped.
+	     *
+	     * A bare <CR> is never a line break for _parseHeaders, so promoting one here would
+	     * emit a header line that was never reported as parsed.
+	     *
+	     * @param {string} line Header line to normalize.
+	     * @param {string} lineEnd Line ending to fold with.
+	     * @returns {string} Line with only folding line breaks left.
+	     */
+	    _normalizeLineBreaks(line, lineEnd) {
+	        return (
+	            line
+	                // lines are joined with lineEnd, so a line that opens with a break of its own
+	                // would close the header block. Dropping only the break leaves any whitespace
+	                // behind it folding into the line before, which adds no header of its own.
+	                .replace(/^[\r\n]+/, '')
+	                .replace(/\r\n|\r|\n/g, (match, offset, source) => (match !== '\r' && this._isFoldingChar(source.charAt(offset + match.length)) ? lineEnd : ''))
+	        );
+	    }
+
+	    /**
+	     * Prepares a caller supplied line for insertion. On top of the line break rules an
+	     * inserted line has to stand on its own: a leading fold or indent would attach it to
+	     * whichever header happens to precede it, and a leading line break would close the
+	     * header block outright.
+	     *
+	     * Lines that were parsed out of a message keep their leading whitespace instead, so
+	     * that rebuilding can never turn an indented continuation into a header of its own.
+	     *
+	     * An inserted line is normalized twice, here with CRLF and again in build() with the
+	     * line ending the caller asked for. That is only sound because _normalizeLineBreaks is
+	     * idempotent over its own output: the folds this pass emits are still recognized as
+	     * folds by the next one. Any change to how a fold is represented has to keep that true.
+	     *
+	     * @param {string} line Formatted header line supplied by the caller.
+	     * @returns {string} Line that inserts as exactly one header, or an empty string.
+	     */
+	    _normalizeInsertedLine(line) {
+	        return this._normalizeLineBreaks(line.replace(/^[\r\n \t]+/, ''), '\r\n');
+	    }
+
+	    /**
+	     * Tells whether a character continues the previous header line rather than
+	     * starting a new one. Used by both the parser and the builder so that the two
+	     * can not disagree on what folding is.
+	     *
+	     * @param {string} chr Character that follows a line break.
+	     * @returns {boolean} True if the line break is folding.
+	     */
+	    _isFoldingChar(chr) {
+	        return chr === ' ' || chr === '\t';
+	    }
+
+	    /**
+	     * @returns {HeaderLine[]}
+	     */
+	    _getLines() {
+	        if (!this.lines) {
+	            this.lines = [];
+	        }
+	        return this.lines;
+	    }
+
+	    /**
+	     * @returns {void}
+	     */
 	    _parseHeaders() {
 	        if (!this.headers) {
 	            this.lines = [];
@@ -27089,18 +27484,19 @@ function requireHeaders () {
 	            return;
 	        }
 
+	        /** @type {Array<string | HeaderLine>} */
 	        let lines = this.headers
 	            .toString('binary')
 	            .replace(/[\r\n]+$/, '')
 	            .split(/\r?\n/);
 
 	        for (let i = lines.length - 1; i >= 0; i--) {
-	            let chr = lines[i].charAt(0);
-	            if (i && (chr === ' ' || chr === '\t')) {
-	                lines[i - 1] += '\r\n' + lines[i];
+	            let currentLine = /** @type {string} */ (lines[i]);
+	            if (i && this._isFoldingChar(currentLine.charAt(0))) {
+	                lines[i - 1] = /** @type {string} */ (lines[i - 1]) + '\r\n' + currentLine;
 	                lines.splice(i, 1);
 	            } else {
-	                let line = lines[i];
+	                let line = currentLine;
 	                if (!i && /^From /i.test(line)) {
 	                    // mbox file
 	                    this.mbox = line;
@@ -27120,15 +27516,23 @@ function requireHeaders () {
 	            }
 	        }
 
-	        this.lines = lines;
+	        this.lines = /** @type {HeaderLine[]} */ (lines);
 	        this.parsed = true;
 	    }
 
+	    /**
+	     * @param {string} line
+	     * @returns {Buffer}
+	     */
 	    _buildHeaderLine(line) {
 	        let value = this._decodeHeaderValue(line);
 	        return Buffer.from(value, value === line ? 'binary' : 'utf8');
 	    }
 
+	    /**
+	     * @param {string} str
+	     * @returns {string}
+	     */
 	    _decodeHeaderValue(str) {
 	        if (!str) {
 	            return str;
@@ -27154,52 +27558,101 @@ function requireMimeNode () {
 	const Headers = /*@__PURE__*/ requireHeaders();
 	const libmime = /*@__PURE__*/ requireLibmime();
 	const libqp = /*@__PURE__*/ requireLibqp();
+	// @ts-ignore
 	const libbase64 = /*@__PURE__*/ requireLibbase64();
 	const PassThrough = require$$0$a.PassThrough;
 	const pathlib = require$$3$2;
 
+	/** @typedef {import('..').Headers} HeadersType */
+	/** @typedef {import('..').PartNumberItem} PartNumberItem */
+	/** @typedef {import('..').PartNumber} PartNumber */
+	/** @typedef {import('..').SplitterOptions} SplitterOptions */
+	/** @typedef {import('libmime').StructuredHeader} StructuredHeader */
+	/** @typedef {import('stream').Transform | import('stream').PassThrough} ContentStream */
+	/** @typedef {import('..').MimeNode} MimeNodeType */
+
+	const Libmime = /** @type {any} */ (libmime.Libmime);
+
+	/**
+	 * Parsed MIME node with mutable headers and transfer-encoding helpers.
+	 */
 	class MimeNode {
+	    /**
+	     * @param {MimeNodeType | false} parentNode Parent node, or false for the root node.
+	     * @param {SplitterOptions} [config] Splitter and libmime configuration.
+	     */
 	    constructor(parentNode, config) {
+	        /** @type {'node'} */
 	        this.type = 'node';
 	        this.root = !parentNode;
+	        /** @type {MimeNodeType | false} */
 	        this.parentNode = parentNode;
 
+	        /** @type {Buffer | false} */
 	        this._parentBoundary = this.parentNode && this.parentNode._boundary;
+	        // the node whose boundary _parentBoundary was copied from, recorded here so that
+	        // a delimiter for it never has to be matched back to an owner by walking the tree
+	        /** @type {MimeNodeType | false} */
+	        this._parentBoundaryOwner = this.parentNode || false;
+	        /** @type {Buffer[]} */
 	        this._headersLines = [];
 	        this._headerlen = 0;
 
+	        /** @type {StructuredHeader | false} */
 	        this._parsedContentType = false;
+	        /** @type {StructuredHeader | false} */
+	        this._parsedContentDisposition = false;
+	        /** @type {Buffer | false} */
 	        this._boundary = false;
 
+	        /** @type {string | false} */
 	        this.multipart = false;
+	        /** @type {string | false} */
 	        this.encoding = false;
+	        /** @type {HeadersType | false} */
 	        this.headers = false;
+	        /** @type {string | false} */
 	        this.contentType = false;
+	        /** @type {string | false} */
+	        this.charset = false;
+	        /** @type {string | false} */
+	        this.disposition = false;
+	        /** @type {string | false} */
+	        this.filename = false;
 	        this.flowed = false;
 	        this.delSp = false;
 
 	        this.config = config || {};
-	        this.libmime = new libmime.Libmime({ Iconv: this.config.Iconv });
+	        this.libmime = new Libmime({ Iconv: this.config.Iconv });
 
-	        this.parentPartNumber = (parentNode && this.partNr) || [];
+	        /** @type {PartNumber} */
+	        this.parentPartNumber = [];
+	        /** @type {PartNumber | false} */
 	        this.partNr = false; // resolved later
 	        this.childPartNumbers = 0;
+	        this.rfc822 = false;
+	        /** @type {boolean | undefined} */
+	        this.messageNode = undefined;
 	    }
 
+	    /**
+	     * @param {PartNumberItem} [provided]
+	     * @returns {PartNumber}
+	     */
 	    getPartNr(provided) {
+	        /** @type {PartNumber} */
+	        let partNr = this.partNr || [];
 	        if (provided) {
-	            return []
-	                .concat(this.partNr || [])
-	                .filter(nr => !isNaN(nr))
-	                .concat(provided);
+	            return partNr.filter(nr => !isNaN(Number(nr))).concat(provided);
 	        }
 	        let childPartNr = ++this.childPartNumbers;
-	        return []
-	            .concat(this.partNr || [])
-	            .filter(nr => !isNaN(nr))
-	            .concat(childPartNr);
+	        return partNr.filter(nr => !isNaN(Number(nr))).concat(childPartNr);
 	    }
 
+	    /**
+	     * @param {Buffer | false} [line]
+	     * @returns {void}
+	     */
 	    addHeaderChunk(line) {
 	        if (!line) {
 	            return;
@@ -27208,27 +27661,32 @@ function requireMimeNode () {
 	        this._headerlen += line.length;
 	    }
 
+	    /**
+	     * @returns {void}
+	     */
 	    parseHeaders() {
 	        if (this.headers) {
 	            return;
 	        }
 	        this.headers = new Headers(Buffer.concat(this._headersLines, this._headerlen), this.config);
+	        let headers = this.headers;
 
-	        this._parsedContentDisposition = this.libmime.parseHeaderValue(this.headers.getFirst('Content-Disposition'));
+	        this._parsedContentDisposition = this.libmime.parseHeaderValue(headers.getFirst('Content-Disposition'));
+	        let parsedContentDisposition = /** @type {StructuredHeader} */ (this._parsedContentDisposition);
 
 	        // if content-type is missing default to plaintext
 	        let contentHeader;
-	        if (this.headers.get('Content-Type').length) {
-	            contentHeader = this.headers.getFirst('Content-Type');
+	        if (headers.get('Content-Type').length) {
+	            contentHeader = headers.getFirst('Content-Type');
 	        } else {
-	            if (this._parsedContentDisposition.params.filename) {
-	                let extension = pathlib.parse(this._parsedContentDisposition.params.filename).ext.replace(/^\./, '');
+	            if (parsedContentDisposition.params.filename) {
+	                let extension = pathlib.parse(parsedContentDisposition.params.filename).ext.replace(/^\./, '');
 	                if (extension) {
 	                    contentHeader = libmime.detectMimeType(extension);
 	                }
 	            }
 	            if (!contentHeader) {
-	                if (/^attachment$/i.test(this._parsedContentDisposition.value)) {
+	                if (/^attachment$/i.test(parsedContentDisposition.value)) {
 	                    contentHeader = 'application/octet-stream';
 	                } else {
 	                    contentHeader = 'text/plain';
@@ -27237,15 +27695,16 @@ function requireMimeNode () {
 	        }
 
 	        this._parsedContentType = this.libmime.parseHeaderValue(contentHeader);
+	        let parsedContentType = /** @type {StructuredHeader} */ (this._parsedContentType);
 
-	        this.encoding = this.headers
+	        this.encoding = headers
 	            .getFirst('Content-Transfer-Encoding')
 	            .replace(/\(.*\)/g, '')
 	            .toLowerCase()
 	            .trim();
-	        this.contentType = (this._parsedContentType.value || '').toLowerCase().trim() || false;
-	        this.charset = this._parsedContentType.params.charset || false;
-	        this.disposition = (this._parsedContentDisposition.value || '').toLowerCase().trim() || false;
+	        this.contentType = (parsedContentType.value || '').toLowerCase().trim() || false;
+	        this.charset = parsedContentType.params.charset || false;
+	        this.disposition = (parsedContentDisposition.value || '').toLowerCase().trim() || false;
 
 	        // fix invalidly encoded disposition values
 	        if (this.disposition) {
@@ -27256,11 +27715,11 @@ function requireMimeNode () {
 	            }
 	        }
 
-	        this.filename = this._parsedContentDisposition.params.filename || this._parsedContentType.params.name || false;
+	        this.filename = parsedContentDisposition.params.filename || parsedContentType.params.name || false;
 
-	        if (this._parsedContentType.params.format && this._parsedContentType.params.format.toLowerCase().trim() === 'flowed') {
+	        if (parsedContentType.params.format && parsedContentType.params.format.toLowerCase().trim() === 'flowed') {
 	            this.flowed = true;
-	            if (this._parsedContentType.params.delsp && this._parsedContentType.params.delsp.toLowerCase().trim() === 'yes') {
+	            if (parsedContentType.params.delsp && parsedContentType.params.delsp.toLowerCase().trim() === 'yes') {
 	                this.delSp = true;
 	            }
 	        }
@@ -27278,7 +27737,7 @@ function requireMimeNode () {
 	                this.contentType.substr(0, this.contentType.indexOf('/')) === 'multipart' &&
 	                this.contentType.substr(this.contentType.indexOf('/') + 1)) ||
 	            false;
-	        this._boundary = (this._parsedContentType.params.boundary && Buffer.from(this._parsedContentType.params.boundary)) || false;
+	        this._boundary = (parsedContentType.params.boundary && Buffer.from(parsedContentType.params.boundary)) || false;
 
 	        this.rfc822 = this.contentType === 'message/rfc822';
 
@@ -27289,38 +27748,54 @@ function requireMimeNode () {
 	        }
 	    }
 
+	    /**
+	     * @returns {Buffer}
+	     */
 	    getHeaders() {
 	        if (!this.headers) {
 	            this.parseHeaders();
 	        }
-	        return this.headers.build();
+	        let headers = /** @type {HeadersType} */ (this.headers);
+	        return headers.build();
 	    }
 
+	    /**
+	     * @param {string | false} [contentType]
+	     * @returns {void}
+	     */
 	    setContentType(contentType) {
 	        if (!this.headers) {
 	            this.parseHeaders();
 	        }
+	        let headers = /** @type {HeadersType} */ (this.headers);
+	        let parsedContentType = /** @type {StructuredHeader} */ (this._parsedContentType);
 
 	        contentType = (contentType || '').toLowerCase().trim();
 	        if (contentType) {
-	            this._parsedContentType.value = contentType;
+	            parsedContentType.value = contentType;
 	        }
 
-	        if (!this.flowed && this._parsedContentType.params.format) {
-	            delete this._parsedContentType.params.format;
+	        if (!this.flowed && parsedContentType.params.format) {
+	            delete parsedContentType.params.format;
 	        }
 
-	        if (!this.delSp && this._parsedContentType.params.delsp) {
-	            delete this._parsedContentType.params.delsp;
+	        if (!this.delSp && parsedContentType.params.delsp) {
+	            delete parsedContentType.params.delsp;
 	        }
 
-	        this.headers.update('Content-Type', this.libmime.buildHeaderValue(this._parsedContentType));
+	        headers.update('Content-Type', this.libmime.buildHeaderValue(parsedContentType));
 	    }
 
+	    /**
+	     * @param {string | false} [charset]
+	     * @returns {void}
+	     */
 	    setCharset(charset) {
 	        if (!this.headers) {
 	            this.parseHeaders();
 	        }
+	        let headers = /** @type {HeadersType} */ (this.headers);
+	        let parsedContentType = /** @type {StructuredHeader} */ (this._parsedContentType);
 
 	        charset = (charset || '').toLowerCase().trim();
 
@@ -27329,51 +27804,61 @@ function requireMimeNode () {
 	        }
 
 	        if (!charset) {
-	            if (!this._parsedContentType.value) {
+	            if (!parsedContentType.value) {
 	                // nothing to set or update
 	                return;
 	            }
-	            delete this._parsedContentType.params.charset;
+	            delete parsedContentType.params.charset;
 	        } else {
-	            this._parsedContentType.params.charset = charset;
+	            parsedContentType.params.charset = charset;
 	        }
 
-	        if (!this._parsedContentType.value) {
-	            this._parsedContentType.value = 'text/plain';
+	        if (!parsedContentType.value) {
+	            parsedContentType.value = 'text/plain';
 	        }
 
-	        this.headers.update('Content-Type', this.libmime.buildHeaderValue(this._parsedContentType));
+	        headers.update('Content-Type', this.libmime.buildHeaderValue(parsedContentType));
 	    }
 
+	    /**
+	     * @param {string | false} [filename]
+	     * @returns {void}
+	     */
 	    setFilename(filename) {
 	        if (!this.headers) {
 	            this.parseHeaders();
 	        }
+	        let headers = /** @type {HeadersType} */ (this.headers);
+	        let parsedContentType = /** @type {StructuredHeader} */ (this._parsedContentType);
+	        let parsedContentDisposition = /** @type {StructuredHeader} */ (this._parsedContentDisposition);
 
 	        this.filename = (filename || '').toLowerCase().trim();
 
-	        if (this._parsedContentType.params.name) {
-	            delete this._parsedContentType.params.name;
-	            this.headers.update('Content-Type', this.libmime.buildHeaderValue(this._parsedContentType));
+	        if (parsedContentType.params.name) {
+	            delete parsedContentType.params.name;
+	            headers.update('Content-Type', this.libmime.buildHeaderValue(parsedContentType));
 	        }
 
 	        if (!this.filename) {
-	            if (!this._parsedContentDisposition.value) {
+	            if (!parsedContentDisposition.value) {
 	                // nothing to set or update
 	                return;
 	            }
-	            delete this._parsedContentDisposition.params.filename;
+	            delete parsedContentDisposition.params.filename;
 	        } else {
-	            this._parsedContentDisposition.params.filename = this.filename;
+	            parsedContentDisposition.params.filename = this.filename;
 	        }
 
-	        if (!this._parsedContentDisposition.value) {
-	            this._parsedContentDisposition.value = 'attachment';
+	        if (!parsedContentDisposition.value) {
+	            parsedContentDisposition.value = 'attachment';
 	        }
 
-	        this.headers.update('Content-Disposition', this.libmime.buildHeaderValue(this._parsedContentDisposition));
+	        headers.update('Content-Disposition', this.libmime.buildHeaderValue(parsedContentDisposition));
 	    }
 
+	    /**
+	     * @returns {import('stream').Transform | import('stream').PassThrough}
+	     */
 	    getDecoder() {
 	        if (!this.headers) {
 	            this.parseHeaders();
@@ -27389,15 +27874,20 @@ function requireMimeNode () {
 	        }
 	    }
 
+	    /**
+	     * @param {string | false} [encoding]
+	     * @returns {import('stream').Transform | import('stream').PassThrough}
+	     */
 	    getEncoder(encoding) {
 	        if (!this.headers) {
 	            this.parseHeaders();
 	        }
+	        let headers = /** @type {HeadersType} */ (this.headers);
 
 	        encoding = (encoding || '').toString().toLowerCase().trim();
 
 	        if (encoding && encoding !== this.encoding) {
-	            this.headers.update('Content-Transfer-Encoding', encoding);
+	            headers.update('Content-Transfer-Encoding', encoding);
 	        } else {
 	            encoding = this.encoding;
 	        }
@@ -27427,13 +27917,78 @@ function requireMessageSplitter () {
 	const Transform = require$$0$a.Transform;
 	const MimeNode = /*@__PURE__*/ requireMimeNode();
 
+	/** @typedef {import('..').MimeNode} MimeNodeType */
+	/** @typedef {import('..').MessageChunk} MessageChunk */
+	/** @typedef {import('..').SplitterChunk} SplitterChunk */
+	/** @typedef {import('..').SplitterGroup} SplitterGroup */
+	/** @typedef {import('..').SplitterOptions} SplitterOptions */
+	/** @typedef {(err?: (Error & {code?: string}) | null, data?: SplitterChunk | MessageChunk | false, flush?: boolean) => void} ProcessLineCallback */
+
 	const MAX_HEAD_SIZE = 1 * 1024 * 1024;
 	const MAX_CHILD_NODES = 1000;
+
+	// how much of a body line without a line break is buffered before it is flushed
+	// out as regular content instead of being kept in memory
+	const MAX_PENDING_LINE_SIZE = 64 * 1024;
+
+	// how many separate writes the pending line may be kept in before it is compacted
+	const MAX_PENDING_LINE_CHUNKS = 1024;
+
+	// what a delimiter line may carry after the boundary value: the "--" prefix, an optional
+	// "--" suffix and the line terminator. This is the bound compareBoundary() accepts.
+	const BOUNDARY_LINE_SUFFIX = 2 /* "--" prefix */ + 2 /* "--" suffix */ + 2; /* trailing <CR><LF> */
+
+	// checkBoundary() additionally allows a line ending in front of the delimiter, so this is
+	// the longest a delimiter line can ever be once the boundary value is subtracted
+	const BOUNDARY_LINE_OVERHEAD = BOUNDARY_LINE_SUFFIX + 2; /* leading <CR><LF> */
 
 	const HEAD = 0x01;
 	const BODY = 0x02;
 
+	/**
+	 * Creates the error used for all size limit violations.
+	 *
+	 * @param {string} message Human readable error message.
+	 * @returns {Error & {code: string}} Error tagged with the EMAXLEN code.
+	 */
+	function maxLenError(message) {
+	    let err = /** @type {Error & {code: string}} */ (new Error(message));
+	    err.code = 'EMAXLEN';
+	    return err;
+	}
+
+	/**
+	 * Moves an end offset back over the line ending that closes a body line, because the line
+	 * ending in front of a boundary belongs to the delimiter and not to the part content. Only
+	 * a group holding the body of a child node carries such a line ending, anything else is
+	 * returned untouched.
+	 *
+	 * @param {SplitterGroup} group Group the offsets describe.
+	 * @param {Buffer} chunk Chunk the offsets point into.
+	 * @param {number} start Start offset of the body slice.
+	 * @param {number} end End offset of the body slice.
+	 * @returns {number} End offset with a trailing <CR><LF>, <LF> or nothing removed.
+	 */
+	function trimBodyLineEnd(group, chunk, start, end) {
+	    if (group.type !== 'body' || !group.node || !group.node.parentNode) {
+	        return end;
+	    }
+	    if (end > start && chunk[end - 1] === 0x0a) {
+	        end--;
+	        if (end > start && chunk[end - 1] === 0x0d) {
+	            end--;
+	        }
+	    }
+	    return end;
+	}
+
+	/**
+	 * Transform stream that splits raw email bytes into MIME node and content chunks.
+	 */
 	class MessageSplitter extends Transform {
+	    /**
+	     * @param {SplitterOptions} [config]
+	     */
 	    constructor(config) {
 	        let options = {
 	            readableObjectMode: true,
@@ -27444,25 +27999,81 @@ function requireMessageSplitter () {
 	        this.config = config || {};
 	        this.maxHeadSize = this.config.maxHeadSize || MAX_HEAD_SIZE;
 	        this.maxChildNodes = this.config.maxChildNodes || MAX_CHILD_NODES;
-	        this.tree = [];
 	        this.nodeCounter = 0;
+	        this.node = /** @type {MimeNodeType} */ (/** @type {unknown} */ (null));
+	        // set once the closing delimiter of the current node's multipart has been seen, so
+	        // that any later boundary line of that node counts as epilogue. Reset per node.
+	        this.inEpilogue = false;
 	        this.newNode();
-	        this.tree.push(this.node);
-	        this.line = false;
+	        // incomplete trailing line of the previous chunk, kept as a list of chunks so
+	        // that a long line without a line break is not copied over for every write
+	        /** @type {Buffer[]} */
+	        this.lineChunks = [];
+	        this.lineLength = 0;
 	        this.hasFailed = false;
+	        // set when the pending line was flushed as overlong content, the remainder
+	        // of that same line can not be a boundary either
+	        this.pendingLineTruncated = false;
 	    }
 
+	    /**
+	     * Appends unterminated trailing data to the pending line.
+	     *
+	     * @param {Buffer} chunk Data that follows the last line break of a write.
+	     * @returns {void}
+	     */
+	    appendPendingLine(chunk) {
+	        if (!chunk.length) {
+	            return;
+	        }
+	        this.lineChunks.push(chunk);
+	        this.lineLength += chunk.length;
+	        if (this.lineChunks.length >= MAX_PENDING_LINE_CHUNKS) {
+	            // a line written one byte at a time would otherwise cost an array slot and a
+	            // Buffer view per byte, which is far more memory than the data itself
+	            this.lineChunks = [Buffer.concat(this.lineChunks, this.lineLength)];
+	        }
+	    }
+
+	    /**
+	     * Returns the pending line as a single buffer and clears the pending state.
+	     *
+	     * @returns {Buffer | false} Pending line contents or false if there was none.
+	     */
+	    takePendingLine() {
+	        if (!this.lineLength) {
+	            return false;
+	        }
+	        let line = this.lineChunks.length === 1 ? this.lineChunks[0] : Buffer.concat(this.lineChunks, this.lineLength);
+	        this.lineChunks = [];
+	        this.lineLength = 0;
+	        return line;
+	    }
+
+	    /**
+	     * @param {Buffer} chunk
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(chunk, encoding, callback) {
 	        // process line by line
 	        // find next line ending
 	        let pos = 0;
 	        let i = 0;
+	        /** @type {SplitterGroup} */
 	        let group = {
 	            type: 'none'
 	        };
-	        let groupstart = this.line ? -this.line.length : 0;
+	        let groupstart = this.lineLength ? -this.lineLength : 0;
 	        let groupend = 0;
 
+	        /**
+	         * Removes a pending line break from body data that belongs to a following boundary.
+	         *
+	         * @param {MessageChunk} data Body chunk to adjust in place.
+	         * @returns {void}
+	         */
 	        let checkTrailingLinebreak = data => {
 	            if (data.type === 'body' && data.node.parentNode && data.value && data.value.length) {
 	                if (data.value[data.value.length - 1] === 0x0a) {
@@ -27473,10 +28084,9 @@ function requireMessageSplitter () {
 	                        groupstart--;
 	                        groupend--;
 	                        pos--;
-	                        if (groupstart < 0 && !this.line) {
+	                        if (groupstart < 0 && !this.lineLength) {
 	                            // store only <CR> as <LF> should be on the positive side
-	                            this.line = Buffer.allocUnsafe(1);
-	                            this.line[0] = 0x0d;
+	                            this.appendPendingLine(Buffer.from([0x0d]));
 	                        }
 	                        data.value = data.value.slice(0, data.value.length - 2);
 	                    } else {
@@ -27491,6 +28101,11 @@ function requireMessageSplitter () {
 	            }
 	        };
 
+	        /**
+	         * Iterates the current input chunk line by line and emits parsed groups.
+	         *
+	         * @returns {void}
+	         */
 	        let iterateData = () => {
 	            for (let len = chunk.length; i < len; i++) {
 	                // find next <LF>
@@ -27512,21 +28127,19 @@ function requireMessageSplitter () {
 
 	                        if (flush) {
 	                            if (group && group.type !== 'none') {
-	                                if (group.type === 'body' && groupend >= groupstart && group.node.parentNode) {
-	                                    // do not include the last line ending for body
-	                                    if (chunk[groupend - 1] === 0x0a) {
-	                                        groupend--;
-	                                        if (groupend >= groupstart && chunk[groupend - 1] === 0x0d) {
-	                                            groupend--;
-	                                        }
-	                                    }
-	                                }
-	                                if (groupstart !== groupend) {
+	                                // do not include the last line ending for body
+	                                groupend = trimBodyLineEnd(group, chunk, groupstart, groupend);
+	                                if (groupstart < groupend) {
+	                                    // re-slice, the value the line was emitted with may
+	                                    // still include the line ending we just trimmed
 	                                    group.value = chunk.slice(groupstart, groupend);
-	                                    if (groupend < i) {
+	                                    if (groupend < i && 'value' in data) {
+	                                        // the trimmed line ending belongs to the boundary line
 	                                        data.value = chunk.slice(groupend, i);
 	                                    }
 	                                }
+	                                // the group is pushed even when nothing is left of it, so that a
+	                                // part whose whole body is a line ending still reports a body
 	                                this.push(group);
 	                                group = {
 	                                    type: 'none'
@@ -27542,15 +28155,8 @@ function requireMessageSplitter () {
 	                            // shift slice end position forward
 	                            groupend = i;
 	                        } else {
-	                            if (group.type === 'body' && groupend >= groupstart && group.node.parentNode) {
-	                                // do not include the last line ending for body
-	                                if (chunk[groupend - 1] === 0x0a) {
-	                                    groupend--;
-	                                    if (groupend >= groupstart && chunk[groupend - 1] === 0x0d) {
-	                                        groupend--;
-	                                    }
-	                                }
-	                            }
+	                            // do not include the last line ending for body
+	                            groupend = trimBodyLineEnd(group, chunk, groupstart, groupend);
 
 	                            if (group.type !== 'none' && group.type !== 'node') {
 	                                // we have a previous data/body chunk to output
@@ -27589,15 +28195,7 @@ function requireMessageSplitter () {
 	            }
 
 	            // skip last linebreak for body
-	            if (pos >= groupstart + 1 && group.type === 'body' && group.node.parentNode) {
-	                // do not include the last line ending for body
-	                if (chunk[pos - 1] === 0x0a) {
-	                    pos--;
-	                    if (pos >= groupstart && chunk[pos - 1] === 0x0d) {
-	                        pos--;
-	                    }
-	                }
-	            }
+	            pos = trimBodyLineEnd(group, chunk, groupstart, pos);
 
 	            if (group.type !== 'none' && group.type !== 'node' && pos > groupstart) {
 	                // we have a leftover data/body chunk to push out
@@ -27612,11 +28210,16 @@ function requireMessageSplitter () {
 	            }
 
 	            if (pos < chunk.length) {
-	                if (this.line) {
-	                    this.line = Buffer.concat([this.line, chunk.slice(pos)]);
-	                } else {
-	                    this.line = chunk.slice(pos);
-	                }
+	                // checkTrailingLinebreak can push pos before the start of this write when a
+	                // line ending straddles it. A negative start would make slice() count from
+	                // the END of the buffer and hand over the wrong bytes entirely.
+	                this.appendPendingLine(chunk.slice(Math.max(pos, 0)));
+	            }
+
+	            let pendingLineError = this.enforcePendingLineLimit();
+	            if (pendingLineError) {
+	                this.hasFailed = true;
+	                return callback(pendingLineError);
 	            }
 	            callback();
 	        };
@@ -27624,6 +28227,10 @@ function requireMessageSplitter () {
 	        setImmediate(iterateData);
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        if (this.hasFailed) {
 	            return callback();
@@ -27639,9 +28246,15 @@ function requireMessageSplitter () {
 	        });
 	    }
 
+	    /**
+	     * @param {Buffer} line
+	     * @param {number} startpos
+	     * @param {Buffer} boundary
+	     * @returns {1 | 2 | false}
+	     */
 	    compareBoundary(line, startpos, boundary) {
 	        // --{boundary}\r\n or --{boundary}--\r\n
-	        if (line.length < boundary.length + 3 + startpos || line.length > boundary.length + 6 + startpos) {
+	        if (line.length < boundary.length + 3 + startpos || line.length > boundary.length + BOUNDARY_LINE_SUFFIX + startpos) {
 	            return false;
 	        }
 	        for (let i = 0; i < boundary.length; i++) {
@@ -27680,11 +28293,16 @@ function requireMessageSplitter () {
 	        return 2;
 	    }
 
+	    /**
+	     * @param {Buffer} line
+	     * @returns {1 | 2 | 3 | 4 | false}
+	     */
 	    checkBoundary(line) {
 	        let startpos = 0;
 	        if (line.length >= 1 && (line[0] === 0x0d || line[0] === 0x0a)) {
 	            startpos++;
-	            if (line.length >= 2 && (line[0] === 0x0d || line[1] === 0x0a)) {
+	            if (line.length >= 2 && line[0] === 0x0d && line[1] === 0x0a) {
+	                // only <CR><LF> is two bytes, a lone <CR> in front of a delimiter is one
 	                startpos++;
 	            }
 	        }
@@ -27693,8 +28311,9 @@ function requireMessageSplitter () {
 	            return false;
 	        }
 
+	        /** @type {1 | 2 | false} */
 	        let boundary;
-	        if (this.node._boundary && (boundary = this.compareBoundary(line, startpos, this.node._boundary))) {
+	        if (!this.inEpilogue && this.node._boundary && (boundary = this.compareBoundary(line, startpos, this.node._boundary))) {
 	            // 1: next child
 	            // 2: multipart end
 	            return boundary;
@@ -27703,21 +28322,97 @@ function requireMessageSplitter () {
 	        if (this.node._parentBoundary && (boundary = this.compareBoundary(line, startpos, this.node._parentBoundary))) {
 	            // 3: next sibling
 	            // 4: parent end
-	            return boundary + 2;
+	            return /** @type {3 | 4} */ (boundary + 2);
 	        }
 
 	        return false;
 	    }
 
+	    /**
+	     * Checks the header bytes collected for the current node against maxHeadSize.
+	     *
+	     * @param {number} [extra] Bytes that belong to the header block but are not stored yet.
+	     * @returns {(Error & {code?: string}) | null} Error object if the limit was exceeded.
+	     */
+	    checkHeadSize(extra) {
+	        if (this.node._headerlen + (extra || 0) > this.maxHeadSize) {
+	            return maxLenError('Max header size for a MIME node exceeded');
+	        }
+	        return null;
+	    }
+
+	    /**
+	     * Enforces the limits on the pending line so that it can not grow without bound.
+	     * A line that is still short enough to become a boundary delimiter is always kept.
+	     * Past that length it is a header line and counts against maxHeadSize, or it is
+	     * body content, in which case it is pushed out rather than held in memory. Flushing
+	     * marks the pending line truncated, so the tail of it is not tested as a delimiter.
+	     *
+	     * @returns {(Error & {code?: string}) | null} Error object if a limit was exceeded.
+	     */
+	    enforcePendingLineLimit() {
+	        if (!this.lineLength) {
+	            return null;
+	        }
+
+	        let maxBoundaryLength = Math.max(
+	            this.node._boundary ? this.node._boundary.length : 0,
+	            this.node._parentBoundary ? this.node._parentBoundary.length : 0
+	        );
+
+	        if (this.lineLength <= maxBoundaryLength + BOUNDARY_LINE_OVERHEAD) {
+	            // might still turn out to be a boundary delimiter line
+	            return null;
+	        }
+
+	        if (this.state === HEAD) {
+	            // not a boundary line, so it is a header line and counts against the
+	            // header size limit even though it has not been stored on the node yet
+	            return this.checkHeadSize(this.lineLength);
+	        }
+
+	        if (this.lineLength < MAX_PENDING_LINE_SIZE) {
+	            return null;
+	        }
+
+	        let value = /** @type {Buffer} */ (this.takePendingLine());
+	        if (value[value.length - 1] === 0x0d) {
+	            // a trailing <CR> may still turn out to be the first half of the line ending
+	            // that closes this line, and a line ending in front of a boundary belongs to
+	            // the delimiter. Keep it pending so the normal trimming can decide. Copy it
+	            // rather than slicing, a view would pin the whole flushed buffer.
+	            this.appendPendingLine(Buffer.from([0x0d]));
+	            value = value.slice(0, value.length - 1);
+	        }
+
+	        this.push({
+	            node: this.node,
+	            type: this.node.multipart ? 'data' : 'body',
+	            value
+	        });
+	        // whatever follows continues an overlong line, so the tail of it
+	        // can not be a boundary line either
+	        this.pendingLineTruncated = true;
+
+	        return null;
+	    }
+
+	    /**
+	     * @param {Buffer | false} line
+	     * @param {boolean} final
+	     * @param {ProcessLineCallback} next
+	     * @returns {void}
+	     */
 	    processLine(line, final, next) {
 	        let flush = false;
 
-	        if (this.line && line) {
-	            line = Buffer.concat([this.line, line]);
-	            this.line = false;
-	        } else if (this.line && !line) {
-	            line = this.line;
-	            this.line = false;
+	        // consumed here so that no later branch can leak it into the next line
+	        let truncatedLine = this.pendingLineTruncated;
+	        this.pendingLineTruncated = false;
+
+	        let pending = this.takePendingLine();
+	        if (pending) {
+	            line = line ? Buffer.concat([pending, line]) : pending;
 	        }
 
 	        if (!line) {
@@ -27725,13 +28420,12 @@ function requireMessageSplitter () {
 	        }
 
 	        if (this.nodeCounter > this.maxChildNodes) {
-	            let err = new Error('Max allowed child nodes exceeded');
-	            err.code = 'EMAXLEN';
-	            return next(err);
+	            return next(maxLenError('Max allowed child nodes exceeded'));
 	        }
 
 	        // we check boundary outside the HEAD/BODY scope as it may appear anywhere
-	        let boundary = this.checkBoundary(line);
+	        // unless the line is the remainder of an already flushed overlong line
+	        let boundary = truncatedLine ? false : this.checkBoundary(line);
 	        if (boundary) {
 	            // reached boundary, switch context
 	            switch (boundary) {
@@ -27745,28 +28439,28 @@ function requireMessageSplitter () {
 	                    break;
 	                case 3: {
 	                    // next sibling
-	                    let parentNode = this.node.parentNode;
-	                    if (parentNode && parentNode.contentType === 'message/rfc822') {
-	                        // special case where immediate parent is an inline message block
-	                        // move up another step
-	                        parentNode = parentNode.parentNode;
-	                    }
-	                    this.newNode(parentNode);
+	                    this.newNode(this.parentMultipartNode());
 	                    flush = true;
 	                    break;
 	                }
-	                case 4:
+	                case 4: {
 	                    // special case when boundary close a node with only header.
 	                    if (this.node && this.node._headerlen && !this.node.headers) {
 	                        this.node.parseHeaders();
 	                        this.push(this.node);
 	                    }
-	                    // move up
-	                    if (this.tree.length) {
-	                        this.node = this.tree.pop();
+	                    // move up to the multipart node this closing delimiter belongs to
+	                    let parentNode = this.parentMultipartNode();
+	                    if (parentNode) {
+	                        this.node = parentNode;
+	                        // the closing delimiter of this multipart was just processed, so any
+	                        // later boundary line of this node belongs to the epilogue. A closing
+	                        // delimiter seen in the preamble (case 2) deliberately does not count.
+	                        this.inEpilogue = true;
 	                    }
 	                    this.state = BODY;
 	                    break;
+	                }
 	            }
 
 	            return next(
@@ -27783,10 +28477,9 @@ function requireMessageSplitter () {
 	        switch (this.state) {
 	            case HEAD: {
 	                this.node.addHeaderChunk(line);
-	                if (this.node._headerlen > this.maxHeadSize) {
-	                    let err = new Error('Max header size for a MIME node exceeded');
-	                    err.code = 'EMAXLEN';
-	                    return next(err);
+	                let headSizeError = this.checkHeadSize();
+	                if (headSizeError) {
+	                    return next(headSizeError);
 	                }
 	                if (final || (line.length === 1 && line[0] === 0x0a) || (line.length === 2 && line[0] === 0x0d && line[1] === 0x0a)) {
 	                    let currentNode = this.node;
@@ -27803,16 +28496,16 @@ function requireMessageSplitter () {
 	                        currentNode.messageNode = true;
 	                        this.newNode(currentNode);
 	                        if (currentNode.parentNode) {
+	                            // the embedded message continues inside its container, so a
+	                            // delimiter of the container's own parent still applies here
 	                            this.node._parentBoundary = currentNode.parentNode._boundary;
+	                            this.node._parentBoundaryOwner = currentNode.parentNode;
 	                        }
 	                    } else {
 	                        if (currentNode.contentType === 'message/rfc822') {
 	                            currentNode.messageNode = false;
 	                        }
 	                        this.state = BODY;
-	                        if (currentNode.multipart && currentNode._boundary) {
-	                            this.tree.push(currentNode);
-	                        }
 	                    }
 
 	                    return next(null, currentNode, flush);
@@ -27836,10 +28529,26 @@ function requireMessageSplitter () {
 	        next(null, false);
 	    }
 
+	    /**
+	     * Resolves the multipart node that owns the boundary of the current node, ie. the
+	     * node a sibling delimiter or a closing delimiter of _parentBoundary refers to.
+	     *
+	     * @returns {MimeNodeType | false} Owner of _parentBoundary or false for the root node.
+	     */
+	    parentMultipartNode() {
+	        return this.node._parentBoundaryOwner || false;
+	    }
+
+	    /**
+	     * @param {MimeNodeType | false} [parent]
+	     * @returns {void}
+	     */
 	    newNode(parent) {
-	        this.node = new MimeNode(parent || false, this.config);
+	        this.node = /** @type {MimeNodeType} */ (new MimeNode(parent || false, this.config));
 	        this.state = HEAD;
 	        this.nodeCounter++;
+	        // a fresh node starts before its own content, never in an epilogue
+	        this.inEpilogue = false;
 	    }
 	}
 
@@ -27856,7 +28565,15 @@ function requireMessageJoiner () {
 
 	const Transform = require$$0$a.Transform;
 
+	/** @typedef {import('..').SplitterChunk} SplitterChunk */
+
+	/**
+	 * Transform stream that joins splitter objects back into raw message bytes.
+	 */
 	class MessageJoiner extends Transform {
+	    /**
+	     * Creates a joiner that accepts splitter objects and emits Buffer chunks.
+	     */
 	    constructor() {
 	        let options = {
 	            readableObjectMode: false,
@@ -27865,6 +28582,12 @@ function requireMessageJoiner () {
 	        super(options);
 	    }
 
+	    /**
+	     * @param {SplitterChunk | Buffer} obj
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(obj, encoding, callback) {
 	        if (Buffer.isBuffer(obj)) {
 	            this.push(obj);
@@ -27876,6 +28599,10 @@ function requireMessageJoiner () {
 	        return callback();
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        return callback();
 	    }
@@ -27892,34 +28619,47 @@ function requireFlowedDecoder () {
 	if (hasRequiredFlowedDecoder) return flowedDecoder;
 	hasRequiredFlowedDecoder = 1;
 
-	// Helper class to rewrite nodes with specific mime type
+	// Helper class to decode format=flowed text nodes
 
 	const Transform = require$$0$a.Transform;
 	const libmime = /*@__PURE__*/ requireLibmime();
 
+	/** @typedef {import('..').FlowedDecoderOptions} FlowedDecoderOptions */
+
+	const Libmime = /** @type {any} */ (libmime.Libmime);
+
 	/**
-	 * Really bad "stream" transform to parse format=flowed content
+	 * Transform stream that decodes text/plain format=flowed content.
 	 *
-	 * @constructor
-	 * @param {String} delSp True if delsp option was used
+	 * @param {FlowedDecoderOptions} [config] Flowed text and charset decoding settings.
 	 */
 	class FlowedDecoder extends Transform {
+	    /**
+	     * @param {FlowedDecoderOptions} [config] Flowed text and charset decoding settings.
+	     */
 	    constructor(config) {
 	        super();
 	        this.config = config || {};
 
+	        /** @type {Buffer[]} */
 	        this.chunks = [];
 	        this.chunklen = 0;
 
-	        this.libmime = new libmime.Libmime({ Iconv: config.Iconv });
+	        this.libmime = new Libmime({ Iconv: this.config.Iconv });
 	    }
 
+	    /**
+	     * @param {Buffer | string} chunk
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(chunk, encoding, callback) {
 	        if (!chunk || !chunk.length) {
 	            return callback();
 	        }
 
-	        if (!encoding !== 'buffer') {
+	        if (typeof chunk === 'string') {
 	            chunk = Buffer.from(chunk, encoding);
 	        }
 
@@ -27929,6 +28669,10 @@ function requireFlowedDecoder () {
 	        callback();
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        if (this.chunklen) {
 	            let currentBody = Buffer.concat(this.chunks, this.chunklen);
@@ -27960,14 +28704,26 @@ function requireNodeRewriter () {
 	const Transform = require$$0$a.Transform;
 	const FlowedDecoder = /*@__PURE__*/ requireFlowedDecoder();
 
+	/** @typedef {import('..').MimeNode} MimeNode */
+	/** @typedef {import('..').RewriterInput} RewriterInput */
+	/** @typedef {import('..').FilterFunc} FilterFunc */
+	/** @typedef {import('..').RewriterNode} RewriterNode */
+	/** @typedef {import('..').DecoderStream} DecoderStream */
+	/** @typedef {import('..').ContentStream} ContentStream */
+	/** @typedef {import('..').ContinueCallback} ContinueCallback */
+
 	/**
-	 * NodeRewriter Transform stream. Updates content for all nodes with specified mime type
+	 * NodeRewriter Transform stream. Updates content for all nodes selected by the
+	 * filter function.
 	 *
-	 * @constructor
-	 * @param {String} mimeType Define the Mime-Type to look for
-	 * @param {Function} rewriteAction Function to run with the node content
+	 * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to rewrite it.
+	 * @param {Function} [rewriteAction] Optional compatibility hook stored on the instance.
 	 */
 	class NodeRewriter extends Transform {
+	    /**
+	     * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to rewrite it.
+	     * @param {Function} [rewriteAction] Optional compatibility hook stored on the instance.
+	     */
 	    constructor(filterFunc, rewriteAction) {
 	        let options = {
 	            readableObjectMode: true,
@@ -27978,15 +28734,28 @@ function requireNodeRewriter () {
 	        this.filterFunc = filterFunc;
 	        this.rewriteAction = rewriteAction;
 
+	        /** @type {DecoderStream | false} */
 	        this.decoder = false;
+	        /** @type {ContentStream | false} */
 	        this.encoder = false;
+	        /** @type {ContinueCallback | false} */
 	        this.continue = false;
 	    }
 
+	    /**
+	     * @param {RewriterInput} data
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(data, encoding, callback) {
 	        this.processIncoming(data, callback);
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        if (this.decoder) {
 	            // emit an empty node just in case there is pending data to end
@@ -28000,11 +28769,17 @@ function requireNodeRewriter () {
 	        return callback();
 	    }
 
+	    /**
+	     * @param {RewriterInput} data
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    processIncoming(data, callback) {
 	        if (this.decoder && data.type === 'body') {
 	            // data to parse
 	            if (!this.decoder.write(data.value)) {
-	                return this.decoder.once('drain', callback);
+	                this.decoder.once('drain', callback);
+	                return;
 	            } else {
 	                return callback();
 	            }
@@ -28019,7 +28794,8 @@ function requireNodeRewriter () {
 	                this.encoder = false;
 	                this.processIncoming(data, callback);
 	            };
-	            return this.decoder.end();
+	            this.decoder.end();
+	            return;
 	        } else if (data.type === 'node' && this.filterFunc(data)) {
 	            // found matching node, create new handler
 	            this.emit('node', this.createDecodePair(data));
@@ -28030,22 +28806,32 @@ function requireNodeRewriter () {
 	        callback();
 	    }
 
+	    /**
+	     * @param {MimeNode} node
+	     * @returns {RewriterNode}
+	     */
 	    createDecodePair(node) {
-	        this.decoder = node.getDecoder();
+	        this.decoder = /** @type {DecoderStream} */ (node.getDecoder());
 
-	        if (['base64', 'quoted-printable'].includes(node.encoding)) {
+	        if (['base64', 'quoted-printable'].includes(node.encoding || '')) {
 	            this.encoder = node.getEncoder();
 	        } else {
 	            this.encoder = node.getEncoder('quoted-printable');
 	        }
 
+	        /** @type {number | false} */
 	        let lastByte = false;
 
-	        let decoder = this.decoder;
-	        let encoder = this.encoder;
+	        let decoder = /** @type {DecoderStream} */ (this.decoder);
+	        let encoder = /** @type {ContentStream} */ (this.encoder);
 	        let firstChunk = true;
 	        decoder.$reading = false;
 
+	        /**
+	         * Reads encoded replacement bytes and forwards them as body chunks.
+	         *
+	         * @returns {void | NodeJS.Immediate}
+	         */
 	        let readFromEncoder = () => {
 	            decoder.$reading = true;
 
@@ -28059,9 +28845,6 @@ function requireNodeRewriter () {
 	                firstChunk = false;
 	                if (this.readable) {
 	                    this.push(node);
-	                    if (node.type === 'body') {
-	                        lastByte = node.value && node.value.length && node.value[node.value.length - 1];
-	                    }
 	                }
 	            }
 
@@ -28099,9 +28882,6 @@ function requireNodeRewriter () {
 	                firstChunk = false;
 	                if (this.readable) {
 	                    this.push(node);
-	                    if (node.type === 'body') {
-	                        lastByte = node.value && node.value.length && node.value[node.value.length - 1];
-	                    }
 	                }
 	            }
 
@@ -28119,16 +28899,25 @@ function requireNodeRewriter () {
 	            }
 	        });
 
-	        if (/^text\//.test(node.contentType) && node.flowed) {
+	        if (/^text\//.test(node.contentType || '') && node.flowed) {
 	            // text/plain; format=flowed is a special case
 	            let flowDecoder = decoder;
 	            decoder = new FlowedDecoder({
 	                delSp: node.delSp,
-	                encoding: node.encoding
+	                encoding: node.encoding || false
 	            });
-	            flowDecoder.on('error', err => {
-	                decoder.emit('error', err);
-	            });
+	            flowDecoder.on(
+	                'error',
+	                /**
+	                 * Forwards flowed decoder errors to the replacement decoder.
+	                 *
+	                 * @param {Error} err Decoder error to forward.
+	                 * @returns {void}
+	                 */
+	                err => {
+	                    decoder.emit('error', err);
+	                }
+	            );
 	            flowDecoder.pipe(decoder);
 
 	            // we don't know what kind of data we are going to get, does it comply with the
@@ -28157,19 +28946,30 @@ function requireNodeStreamer () {
 	if (hasRequiredNodeStreamer) return nodeStreamer;
 	hasRequiredNodeStreamer = 1;
 
-	// Helper class to rewrite nodes with specific mime type
+	// Helper class to stream selected nodes by MIME metadata
 
 	const Transform = require$$0$a.Transform;
 	const FlowedDecoder = /*@__PURE__*/ requireFlowedDecoder();
 
+	/** @typedef {import('..').MimeNode} MimeNode */
+	/** @typedef {import('..').RewriterInput} RewriterInput */
+	/** @typedef {import('..').FilterFunc} FilterFunc */
+	/** @typedef {import('..').StreamerNode} StreamerNode */
+	/** @typedef {import('..').DecoderStream} DecoderStream */
+	/** @typedef {import('..').ContinueCallback} ContinueCallback */
+
 	/**
-	 * NodeRewriter Transform stream. Updates content for all nodes with specified mime type
+	 * NodeStreamer Transform stream. Exposes decoded content for nodes selected by
+	 * the filter function while passing the original message through unchanged.
 	 *
-	 * @constructor
-	 * @param {String} mimeType Define the Mime-Type to look for
-	 * @param {Function} streamAction Function to run with the node content
+	 * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to stream it.
+	 * @param {Function} [streamAction] Optional compatibility hook stored on the instance.
 	 */
 	class NodeStreamer extends Transform {
+	    /**
+	     * @param {FilterFunc} filterFunc Function that receives a MIME node and returns true to stream it.
+	     * @param {Function} [streamAction] Optional compatibility hook stored on the instance.
+	     */
 	    constructor(filterFunc, streamAction) {
 	        let options = {
 	            readableObjectMode: true,
@@ -28180,15 +28980,27 @@ function requireNodeStreamer () {
 	        this.filterFunc = filterFunc;
 	        this.streamAction = streamAction;
 
+	        /** @type {DecoderStream | false} */
 	        this.decoder = false;
 	        this.canContinue = false;
+	        /** @type {ContinueCallback | false} */
 	        this.continue = false;
 	    }
 
+	    /**
+	     * @param {RewriterInput} data
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(data, encoding, callback) {
 	        this.processIncoming(data, callback);
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        if (this.decoder) {
 	            // emit an empty node just in case there is pending data to end
@@ -28202,12 +29014,18 @@ function requireNodeStreamer () {
 	        return callback();
 	    }
 
+	    /**
+	     * @param {RewriterInput} data
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    processIncoming(data, callback) {
 	        if (this.decoder && data.type === 'body') {
 	            // data to parse
 	            this.push(data);
 	            if (!this.decoder.write(data.value)) {
-	                return this.decoder.once('drain', callback);
+	                this.decoder.once('drain', callback);
+	                return;
 	            } else {
 	                return callback();
 	            }
@@ -28217,6 +29035,11 @@ function requireNodeStreamer () {
 	            // the parsed data is completely processed, so we store a reference to the
 	            // continue callback
 
+	            /**
+	             * Resumes processing with the first chunk after the streamed node.
+	             *
+	             * @returns {void}
+	             */
 	            let doContinue = () => {
 	                this.continue = false;
 	                this.decoder = false;
@@ -28230,7 +29053,8 @@ function requireNodeStreamer () {
 	                this.continue = () => doContinue();
 	            }
 
-	            return this.decoder.end();
+	            this.decoder.end();
+	            return;
 	        } else if (data.type === 'node' && this.filterFunc(data)) {
 	            this.push(data);
 	            // found matching node, create new handler
@@ -28242,26 +29066,44 @@ function requireNodeStreamer () {
 	        callback();
 	    }
 
+	    /**
+	     * @param {MimeNode} node
+	     * @returns {StreamerNode}
+	     */
 	    createDecoder(node) {
-	        this.decoder = node.getDecoder();
+	        this.decoder = /** @type {DecoderStream} */ (node.getDecoder());
 
-	        let decoder = this.decoder;
+	        let decoder = /** @type {DecoderStream} */ (this.decoder);
 	        decoder.$reading = false;
 
-	        if (/^text\//.test(node.contentType) && node.flowed) {
+	        if (/^text\//.test(node.contentType || '') && node.flowed) {
 	            let flowDecoder = decoder;
 	            decoder = new FlowedDecoder({
 	                delSp: node.delSp
 	            });
-	            flowDecoder.on('error', err => {
-	                decoder.emit('error', err);
-	            });
+	            flowDecoder.on(
+	                'error',
+	                /**
+	                 * Forwards flowed decoder errors to the output decoder.
+	                 *
+	                 * @param {Error} err Decoder error to forward.
+	                 * @returns {void}
+	                 */
+	                err => {
+	                    decoder.emit('error', err);
+	                }
+	            );
 	            flowDecoder.pipe(decoder);
 	        }
 
 	        return {
 	            node,
 	            decoder,
+	            /**
+	             * Marks the selected node stream as consumed so the passthrough can continue.
+	             *
+	             * @returns {void}
+	             */
 	            done: () => {
 	                if (typeof this.continue === 'function') {
 	                    // called once input stream is processed
@@ -28288,7 +29130,13 @@ function requireChunkedPassthrough () {
 
 	const { Transform } = require$$0$a;
 
+	/**
+	 * Transform stream that buffers byte input and emits larger Buffer chunks.
+	 */
 	class ChunkedPassthrough extends Transform {
+	    /**
+	     * @param {import('..').ChunkedPassthroughOptions} [options]
+	     */
 	    constructor(options = {}) {
 	        let config = {
 	            readableObjectMode: true,
@@ -28299,6 +29147,12 @@ function requireChunkedPassthrough () {
 	        this.buffer = Buffer.alloc(0);
 	    }
 
+	    /**
+	     * @param {Buffer} chunk
+	     * @param {BufferEncoding} encoding
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _transform(chunk, encoding, callback) {
 	        this.buffer = Buffer.concat([this.buffer, chunk]);
 
@@ -28310,6 +29164,10 @@ function requireChunkedPassthrough () {
 	        callback();
 	    }
 
+	    /**
+	     * @param {import('stream').TransformCallback} callback
+	     * @returns {void}
+	     */
 	    _flush(callback) {
 	        // Send remaining data
 	        if (this.buffer.length > 0) {
@@ -28337,14 +29195,17 @@ function requireMailsplit () {
 	const NodeStreamer = /*@__PURE__*/ requireNodeStreamer();
 	const Headers = /*@__PURE__*/ requireHeaders();
 	const ChunkedPassthrough = /*@__PURE__*/ requireChunkedPassthrough();
+	const MimeNode = /*@__PURE__*/ requireMimeNode();
 
+	/** @type {typeof import('.')} */
 	mailsplit = {
 	    Splitter: MessageSplitter,
 	    Joiner: MessageJoiner,
 	    Rewriter: NodeRewriter,
 	    Streamer: NodeStreamer,
 	    ChunkedPassthrough,
-	    Headers
+	    Headers,
+	    MimeNode
 	};
 	return mailsplit;
 }
@@ -28359,6 +29220,23 @@ function requireLimitedPassthrough () {
 
 	const { Transform } = require$$0$a;
 
+	/**
+	 * Normalizes a byte budget for the download pipeline. Any finite positive number is honored and
+	 * floored, because byte counts are integers: with a fractional bound a counter can only ever
+	 * reach its floor, so a stage would never report itself full and a loop polling that flag would
+	 * keep pulling forever. Anything else - 0, NaN, a non-numeric value - means "no limit".
+	 *
+	 * Lives here rather than in tools.js because tools.js requires jp-decoder.js, which needs this.
+	 *
+	 * @param {*} value - The configured budget.
+	 * @returns {Number} The normalized budget, or Infinity when unbounded.
+	 */
+	const normalizeByteLimit = value => {
+	    let bytes = Number(value);
+	    // Math.max keeps a sub-1 budget from flooring to 0, which would read back as "no limit"
+	    return Number.isFinite(bytes) && bytes > 0 ? Math.max(Math.floor(bytes), 1) : Infinity;
+	};
+
 	// A Transform stream that passes through data up to a maximum byte limit,
 	// then silently discards all subsequent chunks. Used to enforce download
 	// size limits when fetching message content from the IMAP server.
@@ -28366,7 +29244,7 @@ function requireLimitedPassthrough () {
 	    constructor(options) {
 	        super();
 	        this.options = options || {};
-	        this.maxBytes = this.options.maxBytes || Infinity;
+	        this.maxBytes = normalizeByteLimit(this.options.maxBytes);
 	        this.processed = 0;
 	        // Once set to true, all subsequent chunks are dropped without error
 	        this.limited = false;
@@ -28399,10 +29277,74 @@ function requireLimitedPassthrough () {
 	}
 
 	limitedPassthrough.LimitedPassthrough = LimitedPassthrough;
+	limitedPassthrough.normalizeByteLimit = normalizeByteLimit;
 	return limitedPassthrough;
 }
 
 var imapStream = {};
+
+var limits;
+var hasRequiredLimits;
+
+function requireLimits () {
+	if (hasRequiredLimits) return limits;
+	hasRequiredLimits = 1;
+
+	// Shared response-size limits for the IMAP parser. Kept in one place so the streaming parser
+	// (ImapStream) and the standalone token parser cannot drift apart, and so the documented
+	// defaults in imap-flow.d.ts describe both paths.
+
+	// Maximum allowed literal size: 1GB (1073741824 bytes)
+	const MAX_LITERAL_SIZE = 1024 * 1024 * 1024;
+
+	// Default maximum length of a single line (a response without a literal). Matches the literal cap:
+	// large literal-free responses (e.g. big SEARCH/LIST results) are legitimate, so this bound exists
+	// only to stop a server that never sends a line terminator, not to constrain normal traffic.
+	const MAX_LINE_SIZE = MAX_LITERAL_SIZE;
+
+	// Default maximum total size of a single assembled response: every line segment and literal of
+	// one response combined. The per-line and per-literal caps alone cannot stop a server that
+	// spreads attacker-controlled bytes across an unbounded number of tokens of a single response
+	// (e.g. one FETCH answer carrying many maximum-size literals).
+	//
+	// Deliberately above the literal cap: the response total also carries the literal's marker line
+	// and the rest of the response framing, so a cap equal to MAX_LITERAL_SIZE would make a literal
+	// of exactly the maximum permitted size impossible to receive. Configuring both limits calls for
+	// the same headroom - set maxResponseSize above maxLiteralSize, not equal to it.
+	const MAX_RESPONSE_SIZE = 2 * MAX_LITERAL_SIZE;
+
+	/**
+	 * Normalizes a configured size limit. A non-negative integer is honored as-is (including 0, which
+	 * means "reject anything non-empty"), and `Infinity` disables the limit; anything else falls back
+	 * to the default, so an explicit 0 is not silently swallowed the way `value || DEFAULT` would
+	 * swallow it.
+	 *
+	 * @param {*} value - The configured value.
+	 * @param {number} defaultValue - Fallback when the value is not a usable limit.
+	 * @returns {number} The normalized limit.
+	 */
+	const normalizeLimit = (value, defaultValue) => ((Number.isInteger(value) || value === Infinity) && value >= 0 ? value : defaultValue);
+
+	/**
+	 * Builds the `LiteralTooLarge` error. One shape for every place a literal is refused, so callers
+	 * can rely on `code`, `literalSize` and `maxSize` regardless of which parser rejected it.
+	 *
+	 * @param {number} literalSize - The declared literal size.
+	 * @param {number} maxSize - The bound that was exceeded.
+	 * @param {string} [reason] - What the bound was, when it is not the configured maximum.
+	 * @returns {Error} The error to emit or throw.
+	 */
+	const createLiteralTooLargeError = (literalSize, maxSize, reason) => {
+	    const err = new Error(`Literal size ${literalSize} exceeds ${reason || `maximum allowed size of ${maxSize} bytes`}`);
+	    err.code = 'LiteralTooLarge';
+	    err.literalSize = literalSize;
+	    err.maxSize = maxSize;
+	    return err;
+	};
+
+	limits = { MAX_LITERAL_SIZE, MAX_LINE_SIZE, MAX_RESPONSE_SIZE, normalizeLimit, createLiteralTooLargeError };
+	return limits;
+}
 
 var hasRequiredImapStream;
 
@@ -28412,6 +29354,7 @@ function requireImapStream () {
 
 	const Transform = require$$0$a.Transform;
 	const logger = /*@__PURE__*/ requireLogger();
+	const { MAX_LITERAL_SIZE, MAX_LINE_SIZE, MAX_RESPONSE_SIZE, normalizeLimit, createLiteralTooLargeError } = /*@__PURE__*/ requireLimits();
 
 	const LINE = 0x01;
 	const LITERAL = 0x02;
@@ -28422,9 +29365,6 @@ function requireImapStream () {
 	const NUM_9 = 0x39;
 	const CURLY_OPEN = 0x7b;
 	const CURLY_CLOSE = 0x7d;
-
-	// Maximum allowed literal size: 1GB (1073741824 bytes)
-	const MAX_LITERAL_SIZE = 1024 * 1024 * 1024;
 
 	/**
 	 * A Transform stream that parses raw IMAP protocol data from a socket into structured
@@ -28444,6 +29384,28 @@ function requireImapStream () {
 	     * @param {Object} [options.logger] - A pino-compatible logger instance. If not provided, a default child logger is created.
 	     * @param {boolean} [options.logRaw] - If true, logs raw socket data at trace level.
 	     * @param {boolean} [options.secureConnection] - Whether the connection uses TLS.
+	     * @param {number} [options.maxLineLength] - Maximum allowed length (in bytes) of a single
+	     *   line (a response without a literal). Defaults to MAX_LITERAL_SIZE (1GB). Guards against a
+	     *   malicious or broken server that never sends a line terminator, which would otherwise grow
+	     *   the internal line buffer without bound. The line terminator counts toward the limit, and a
+	     *   line exactly at the limit is accepted. Exceeding it is terminal: the stream is destroyed
+	     *   with a `LineTooLarge` error and no further input is parsed.
+	     * @param {number} [options.maxLiteralSize] - Maximum allowed size (in bytes) of a single
+	     *   literal block. Defaults to MAX_LITERAL_SIZE (1GB). Lower it to bound peak memory
+	     *   allocation against a malicious or broken server announcing an oversized literal. A literal
+	     *   exactly at the limit is accepted. Exceeding it is terminal: the stream is destroyed with a
+	     *   `LiteralTooLarge` error, the marker line is not emitted, and no byte of the rejected
+	     *   literal body is parsed as protocol.
+	     * @param {number} [options.maxResponseSize] - Maximum allowed total size (in bytes) of a
+	     *   single assembled response: every line segment and literal of one response combined.
+	     *   Defaults to MAX_RESPONSE_SIZE (2GB), which leaves room above the literal cap for a
+	     *   maximum-size literal plus its marker line. The per-line and per-literal caps alone
+	     *   cannot stop a server that spreads attacker-controlled bytes across an unbounded
+	     *   number of tokens of a single response. Declared literal sizes count when their
+	     *   marker is parsed, so an oversized total is rejected before the literal bytes arrive,
+	     *   and a line still being assembled counts against whatever budget is left.
+	     *   Exceeding the limit is terminal: the stream is destroyed with a `ResponseTooLarge`
+	     *   error and no further input is parsed.
 	     */
 	    constructor(options) {
 	        super({
@@ -28465,18 +29427,76 @@ function requireImapStream () {
 
 	        this.readBytesCounter = 0;
 
+	        // Maximum length of a single line (response without a literal). Bounds the line buffer
+	        // so a server that never sends a line terminator cannot exhaust memory.
+	        this.maxLineLength = normalizeLimit(this.options.maxLineLength, MAX_LINE_SIZE);
+
+	        // Maximum size of a single literal block. Bounds peak memory allocation so a server
+	        // announcing an oversized literal cannot exhaust memory.
+	        this.maxLiteralSize = normalizeLimit(this.options.maxLiteralSize, MAX_LITERAL_SIZE);
+
+	        this.maxResponseSize = normalizeLimit(this.options.maxResponseSize, MAX_RESPONSE_SIZE);
+
 	        this.state = LINE;
 	        this.literalWaiting = 0;
 	        this.inputBuffer = []; // lines
 	        this.lineBuffer = []; // current line
+	        this.lineBytes = 0; // bytes currently buffered for the in-progress line
 	        this.literalBuffer = [];
 	        this.literals = [];
+	        this.responseBytes = 0; // bytes accumulated for the in-progress response (lines + declared literals)
 
 	        this.compress = false;
 	        this.secureConnection = this.options.secureConnection;
 
 	        this.processingInput = false;
 	        this.inputQueue = []; // unprocessed input chunks
+	        this.activeInput = null; // chunk currently being processed (already shifted off inputQueue)
+
+	        // Resolver of the in-flight push() backpressure promise, so destruction can settle it
+	        // instead of leaving processInput() awaiting a consumer that will never read again.
+	        this.pendingPush = null;
+	    }
+
+	    /**
+	     * Terminally fails the stream. Used for response limit violations and for any other
+	     * error raised while parsing.
+	     *
+	     * The stream is destroyed instead of only emitting `error`: emitting on a Transform leaves
+	     * it running, so the caller would keep scanning the rejected payload and could emit it as
+	     * protocol (an oversized literal body contains attacker-chosen CRLF delimited lines).
+	     * Destroying stops all parsing, drops the offending line, and releases every queued
+	     * transform callback exactly once (see `_destroy()`).
+	     *
+	     * `destroyed` (set synchronously by destroy()) is the single liveness flag every other path
+	     * checks, so a second failure attempt is a no-op and nothing is parsed after the first.
+	     *
+	     * @param {Error} err - The error to destroy the stream with.
+	     * @returns {boolean} Always false, so callers can `return this.failStream(err)`.
+	     */
+	    failStream(err) {
+	        if (this.destroyed) {
+	            return false;
+	        }
+	        this.destroy(err);
+	        return false;
+	    }
+
+	    /**
+	     * Releases a queued input chunk's transform callback exactly once, signalling the writable
+	     * side that the chunk was consumed. The mirror image of ImapFlow's releaseStreamData(), which
+	     * releases the readable items this stream pushes downstream.
+	     *
+	     * @param {Object} item - Queue entry holding the chunk and its transform callback.
+	     */
+	    releaseInput(item) {
+	        if (!item || item.released) {
+	            return;
+	        }
+	        item.released = true;
+	        if (typeof item.next === 'function') {
+	            item.next();
+	        }
 	    }
 
 	    /**
@@ -28510,24 +29530,39 @@ function requireImapStream () {
 	        pos--;
 
 	        // Scan backwards through the line to find an IMAP literal marker: {size}\r\n
-	        // The format is: '{' followed by one or more ASCII digits followed by '}'
-	        let numBytes = [];
-	        for (; pos > 0; pos--) {
+	        // The format is: '{' followed by one or more ASCII digits followed by '}'.
+	        // Only the digit run's bounds are tracked - a single linear pass, unlike
+	        // collecting digits into a growing array, which would make a line of n digits
+	        // cost O(n^2). The run length is deliberately not capped: the RFC "number"
+	        // production permits leading zeros, so a long digit run can still denote a
+	        // small, valid size, and treating the marker as an ordinary line instead
+	        // would feed the announced literal body to the line parser and desynchronize
+	        // the session.
+	        let digitsEnd = pos;
+	        for (; pos >= 0; pos--) {
 	            let c = line[pos];
 	            if (c >= NUM_0 && c <= NUM_9) {
-	                numBytes.unshift(c);
 	                continue;
 	            }
-	            if (c === CURLY_OPEN && numBytes.length) {
-	                const literalSize = Number(Buffer.from(numBytes).toString());
+	            if (c === CURLY_OPEN && pos < digitsEnd) {
+	                // Skip leading zeros so only the significant digits are converted: a
+	                // marker padded with megabytes of zeros must not cost a string
+	                // allocation and Number() parse of the whole run.
+	                let digitsStart = pos + 1;
+	                while (digitsStart < digitsEnd && line[digitsStart] === NUM_0) {
+	                    digitsStart++;
+	                }
 
-	                if (literalSize > MAX_LITERAL_SIZE) {
-	                    const err = new Error(`Literal size ${literalSize} exceeds maximum allowed size of ${MAX_LITERAL_SIZE} bytes`);
-	                    err.code = 'LiteralTooLarge';
-	                    err.literalSize = literalSize;
-	                    err.maxSize = MAX_LITERAL_SIZE;
-	                    this.emit('error', err);
-	                    return false;
+	                // More significant digits than any number64 has cannot fit any
+	                // permissible maxLiteralSize; fail closed without materializing them
+	                if (digitsEnd + 1 - digitsStart > 19) {
+	                    return this.failStream(createLiteralTooLargeError(Infinity, this.maxLiteralSize, 'the widest permissible literal size (19 digits)'));
+	                }
+
+	                const literalSize = Number(line.toString('latin1', digitsStart, digitsEnd + 1));
+
+	                if (literalSize > this.maxLiteralSize) {
+	                    return this.failStream(createLiteralTooLargeError(literalSize, this.maxLiteralSize));
 	                }
 
 	                this.state = LITERAL;
@@ -28537,6 +29572,52 @@ function requireImapStream () {
 	            return false;
 	        }
 	        return false;
+	    }
+
+	    /**
+	     * Enforces the configured line-length cap for a projected line length. The projected length
+	     * covers every byte of the line, the line terminator included, whether or not the line was
+	     * split across input chunks. A line exactly at the limit is accepted.
+	     *
+	     * @param {number} lineLength - Total length the current line would reach.
+	     * @returns {boolean} True if the line is within the limit, false if the stream was failed.
+	     */
+	    checkLineLength(lineLength) {
+	        if (lineLength <= this.maxLineLength) {
+	            return true;
+	        }
+	        const err = new Error(`Line length ${lineLength} exceeds maximum allowed size of ${this.maxLineLength} bytes`);
+	        err.code = 'LineTooLarge';
+	        err.lineLength = lineLength;
+	        err.maxSize = this.maxLineLength;
+	        return this.failStream(err);
+	    }
+
+	    /**
+	     * Enforces the configured per-response size cap: the cumulative bytes of every line
+	     * segment and declared literal of the response currently being assembled. Counting
+	     * declared literal sizes at marker time means an oversized total is rejected before
+	     * the literal bytes even arrive. The counter is reset when a response is emitted.
+	     *
+	     * @param {number} additionalBytes - Bytes the next token would add to the response.
+	     * @param {boolean} [peek] - Measure only, without committing the bytes to the counter.
+	     *   Used for a line that is still being assembled: its bytes are committed once, when the
+	     *   line completes.
+	     * @returns {boolean} True if within the limit, false if the stream was failed.
+	     */
+	    checkResponseSize(additionalBytes, peek) {
+	        let total = this.responseBytes + additionalBytes;
+	        if (total <= this.maxResponseSize) {
+	            if (!peek) {
+	                this.responseBytes = total;
+	            }
+	            return true;
+	        }
+	        const err = new Error(`Response size ${total} exceeds maximum allowed size of ${this.maxResponseSize} bytes`);
+	        err.code = 'ResponseTooLarge';
+	        err.responseSize = total;
+	        err.maxSize = this.maxResponseSize;
+	        return this.failStream(err);
 	    }
 
 	    /**
@@ -28551,7 +29632,7 @@ function requireImapStream () {
 	     */
 	    async processInputChunk(chunk, startPos) {
 	        startPos = startPos || 0;
-	        if (startPos >= chunk.length) {
+	        if (this.destroyed || startPos >= chunk.length) {
 	            return;
 	        }
 
@@ -28560,18 +29641,41 @@ function requireImapStream () {
 	                let lineStart = startPos;
 	                for (let i = startPos, len = chunk.length; i < len; i++) {
 	                    if (chunk[i] === LF) {
-	                        // line end found
-	                        this.lineBuffer.push(chunk.slice(lineStart, i + 1));
+	                        // line end found. Measure the completed line (terminator included) before
+	                        // concatenating or emitting anything, so the cap does not depend on where
+	                        // TCP chunk boundaries happen to fall.
+	                        let segment = chunk.slice(lineStart, i + 1);
+	                        if (!this.checkLineLength(this.lineBytes + segment.length)) {
+	                            return;
+	                        }
+
+	                        this.lineBuffer.push(segment);
 	                        lineStart = i + 1;
 
-	                        let line = Buffer.concat(this.lineBuffer);
+	                        let line = this.lineBuffer.length === 1 ? this.lineBuffer[0] : Buffer.concat(this.lineBuffer);
+
+	                        this.lineBuffer = [];
+	                        this.lineBytes = 0;
+
+	                        // try to detect if this is a literal start. An oversized literal fails the
+	                        // stream, so the marker line must not be buffered before the check - it
+	                        // would otherwise be emitted as part of the rejected command.
+	                        let isLiteralMarker = this.checkLiteralMarker(line);
+	                        if (this.destroyed) {
+	                            return;
+	                        }
+
+	                        // Count the line itself and, for a literal marker, the declared
+	                        // literal bytes against the cumulative per-response budget, so a
+	                        // response assembled from many tokens stays bounded as a whole
+	                        if (!this.checkResponseSize(line.length + (isLiteralMarker ? this.literalWaiting : 0))) {
+	                            return;
+	                        }
 
 	                        this.inputBuffer.push(line);
-	                        this.lineBuffer = [];
 
-	                        // try to detect if this is a literal start
-	                        if (this.checkLiteralMarker(line)) {
-	                            // switch into line mode and start over
+	                        if (isLiteralMarker) {
+	                            // switch into literal mode and start over
 	                            return await this.processInputChunk(chunk, lineStart);
 	                        }
 
@@ -28580,6 +29684,7 @@ function requireImapStream () {
 	                        let literals = this.literals;
 	                        this.inputBuffer = [];
 	                        this.literals = [];
+	                        this.responseBytes = 0;
 
 	                        if (payload.length) {
 	                            // remove final line terminator (\n or \r\n)
@@ -28592,15 +29697,42 @@ function requireImapStream () {
 	                            }
 
 	                            if (payload.length) {
+	                                // Whether more buffered input already followed this command on the
+	                                // wire — more bytes in this chunk or another queued chunk. Captured
+	                                // per emitted command (immutable on the pushed object) so a later
+	                                // command cannot overwrite it; consumers that care about pipelining
+	                                // boundaries can read it from the pushed object.
+	                                let trailingAfterLine = lineStart < chunk.length || this.inputQueue.length > 0;
 	                                await new Promise(resolve => {
-	                                    this.push({ payload, literals, next: resolve });
+	                                    // Tracked so destruction can settle the wait instead of leaving
+	                                    // this loop (and the chunk's transform callback) pending forever
+	                                    // when the consumer stops reading.
+	                                    this.pendingPush = resolve;
+	                                    this.push({ payload, literals, next: resolve, trailingAfterLine });
 	                                });
+	                                this.pendingPush = null;
+
+	                                if (this.destroyed) {
+	                                    return;
+	                                }
 	                            }
 	                        }
 	                    }
 	                }
 	                if (lineStart < chunk.length) {
-	                    this.lineBuffer.push(chunk.slice(lineStart));
+	                    // No line terminator was found in the remaining bytes; carry the tail over to
+	                    // the next chunk after measuring the line it belongs to.
+	                    let tail = chunk.slice(lineStart);
+	                    // The response counter is only committed when a line completes, so an
+	                    // in-progress line is measured against the remaining budget separately.
+	                    // Without this a response cap lowered to bound parser memory buys nothing
+	                    // while a server streams a line that never terminates - only the much
+	                    // larger line cap would hold it back.
+	                    if (!this.checkLineLength(this.lineBytes + tail.length) || !this.checkResponseSize(this.lineBytes + tail.length, true)) {
+	                        return;
+	                    }
+	                    this.lineBytes += tail.length;
+	                    this.lineBuffer.push(tail);
 	                }
 	                break;
 	            }
@@ -28637,10 +29769,12 @@ function requireImapStream () {
 	    async processInput() {
 	        let data;
 	        let processedCount = 0;
-	        while ((data = this.inputQueue.shift())) {
+	        while (!this.destroyed && (data = this.inputQueue.shift())) {
+	            this.activeInput = data;
 	            await this.processInputChunk(data.chunk);
+	            this.activeInput = null;
 	            // mark chunk as processed
-	            data.next();
+	            this.releaseInput(data);
 
 	            // Yield to event loop every 10 chunks to prevent CPU blocking
 	            processedCount++;
@@ -28681,6 +29815,12 @@ function requireImapStream () {
 	            });
 	        }
 
+	        // A terminal parser failure must not accept any more protocol input, even if the
+	        // transport delivers a chunk that was already in flight.
+	        if (this.destroyed) {
+	            return next();
+	        }
+
 	        // Queue the chunk for async processing. The 'next' callback serves as
 	        // backpressure: it is called only after this chunk is fully processed,
 	        // which signals the writable side that more data can be accepted.
@@ -28689,7 +29829,7 @@ function requireImapStream () {
 	        if (!this.processingInput) {
 	            this.processingInput = true;
 	            this.processInput()
-	                .catch(err => this.emit('error', err))
+	                .catch(err => this.failStream(err))
 	                .finally(() => (this.processingInput = false));
 	        }
 	    }
@@ -28711,17 +29851,31 @@ function requireImapStream () {
 	     * @param {Function} callback - Callback to signal destruction completion.
 	     */
 	    _destroy(err, callback) {
+	        // Destruction is the single release point for parser-owned callbacks, so a terminal
+	        // failure can never leave the writable side or the processing loop waiting.
 	        this.inputBuffer = [];
 	        this.lineBuffer = [];
+	        this.lineBytes = 0;
 	        this.literalBuffer = [];
 	        this.literals = [];
-	        // Clear inputQueue and call any pending callbacks
-	        while (this.inputQueue.length) {
-	            const item = this.inputQueue.shift();
-	            if (typeof item.next === 'function') {
-	                item.next();
-	            }
+	        this.responseBytes = 0;
+
+	        // Settle an in-flight push() wait so processInput() can unwind
+	        if (typeof this.pendingPush === 'function') {
+	            const resolve = this.pendingPush;
+	            this.pendingPush = null;
+	            resolve();
 	        }
+
+	        // Release the chunk currently being processed, then everything still queued.
+	        // releaseInput() is idempotent, so the processing loop releasing the same chunk
+	        // afterwards is a no-op.
+	        this.releaseInput(this.activeInput);
+	        this.activeInput = null;
+	        while (this.inputQueue.length) {
+	            this.releaseInput(this.inputQueue.shift());
+	        }
+
 	        callback(err);
 	    }
 	}
@@ -28940,6 +30094,7 @@ function requireTokenParser () {
 	hasRequiredTokenParser = 1;
 
 	const imapFormalSyntax = /*@__PURE__*/ requireImapFormalSyntax();
+	const { MAX_LITERAL_SIZE, normalizeLimit, createLiteralTooLargeError } = /*@__PURE__*/ requireLimits();
 
 	const STATE_ATOM = 0x001;
 	const STATE_LITERAL = 0x002;
@@ -28947,7 +30102,6 @@ function requireTokenParser () {
 	const STATE_PARTIAL = 0x004;
 	const STATE_SEQUENCE = 0x005;
 	const STATE_STRING = 0x006;
-	const STATE_TEXT = 0x007;
 
 	const RE_DIGITS = /^\d+$/;
 	const RE_SINGLE_DIGIT = /^\d$/;
@@ -28972,11 +30126,17 @@ function requireTokenParser () {
 	     * @param {Object} [options] - Parser options.
 	     * @param {boolean} [options.literalPlus] - Whether the LITERAL+ extension is in use.
 	     * @param {Array<Buffer>} [options.literals] - Pre-parsed literal values from the input stream.
+	     * @param {number} [options.maxLiteralSize] - Maximum size (in bytes) of a literal parsed inline
+	     *   from the input, i.e. when no pre-parsed literal buffers were supplied. Defaults to 1GB.
 	     */
 	    constructor(parent, startPos, str, options) {
 	        this.str = (str || '').toString();
 	        this.options = options || {};
 	        this.parent = parent;
+
+	        // Same normalization and default as the streaming parser, so a direct user of this parser
+	        // gets the same bound (an explicit 0 means "reject any non-empty inline literal").
+	        this.maxLiteralSize = normalizeLimit(this.options.maxLiteralSize, MAX_LITERAL_SIZE);
 
 	        this.tree = this.currentNode = this.createNode();
 	        this.pos = startPos || 0;
@@ -29286,6 +30446,13 @@ function requireTokenParser () {
 	                                    this.currentNode.type = 'ATOM';
 	                                    // jump i to the ']'
 	                                    i = this.str.indexOf(']', i + 10);
+	                                    if (i < 0) {
+	                                        // Malformed REFERRAL with no closing ']'. Consume the rest
+	                                        // of the string (there is no ']' to exclude) instead of
+	                                        // computing a negative-index substring, which would yield
+	                                        // garbage.
+	                                        i = this.str.length;
+	                                    }
 	                                    this.currentNode.endPos = this.pos + i - 1;
 	                                    this.currentNode.value = this.str.substring(this.currentNode.startPos - this.pos, this.currentNode.endPos - this.pos + 1);
 	                                    this.currentNode = this.currentNode.parentNode;
@@ -29511,6 +30678,13 @@ function requireTokenParser () {
 	                        if (!this.currentNode.literalLength) {
 	                            // special case where literal content length is 0
 	                            // close the node right away, do not wait for additional input
+	                            if (this.options.literals && this.options.literals.length) {
+	                                // ImapStream queues a Buffer for every literal marker it
+	                                // extracts, including {0} - consume the queue entry so
+	                                // subsequent literals in the same response stay aligned
+	                                // with their markers instead of shifting by one
+	                                this.currentNode.value = this.options.literals.shift();
+	                            }
 	                            this.currentNode.endPos = this.pos + i;
 	                            this.currentNode.isClosed = true;
 	                            this.currentNode = this.currentNode.parentNode;
@@ -29535,8 +30709,31 @@ function requireTokenParser () {
 	                            this.state = STATE_NORMAL;
 	                            checkSP();
 	                        } else {
+	                            // No pre-parsed literal buffers were supplied, so the literal is read
+	                            // inline from this input and its declared length decides an
+	                            // allocation. ImapStream always supplies buffers (and has already
+	                            // enforced its own cap), so this branch means the parser is being used
+	                            // directly and the declared length is untrusted: bound it before
+	                            // allocating anything.
+	                            // Two bounds apply: the configured maximum, and the bytes actually
+	                            // available here - an inline literal has to be present in the input
+	                            // being parsed, so a longer declaration can never be satisfied and
+	                            // must not reserve memory for itself.
+	                            let available = this.str.length - i - 1;
+	                            let literalLength = this.currentNode.literalLength;
+	                            if (literalLength > this.maxLiteralSize || literalLength > available) {
+	                                let overMax = literalLength > this.maxLiteralSize;
+	                                let error = createLiteralTooLargeError(
+	                                    literalLength,
+	                                    overMax ? this.maxLiteralSize : available,
+	                                    overMax ? null : `the ${available} bytes available in the input`
+	                                );
+	                                error.parserContext = { input: this.str, pos: this.pos + i, chr };
+	                                throw error;
+	                            }
+
 	                            this.currentNode.started = true;
-	                            // Allocate expected size buffer. Max size check is already performed
+	                            // Allocate expected size buffer.
 	                            // Maybe should use allocUnsafe instead?
 	                            this.currentNode.chBuffer = Buffer.alloc(this.currentNode.literalLength);
 	                            this.currentNode.chPos = 0;
@@ -29636,10 +30833,6 @@ function requireTokenParser () {
 
 	                    this.currentNode.value += chr;
 	                    break;
-
-	                case STATE_TEXT:
-	                    this.currentNode.value += chr;
-	                    break;
 	            }
 	        }
 	    }
@@ -29732,8 +30925,13 @@ function requireParserInstance () {
 	                {
 	                    let match = this.remainder.match(/^\s+\[/);
 	                    if (match) {
+	                        // Find the ']' that closes the response code. Inner brackets are
+	                        // tracked because servers do put bracketed values inside a code
+	                        // (e.g. a "[css3-page]" keyword in a PERMANENTFLAGS list), which a
+	                        // first-']' scan would cut in half.
 	                        let nesting = 1;
-	                        for (let i = match[0].length; i <= this.remainder.length; i++) {
+	                        let end = -1;
+	                        for (let i = match[0].length; i < this.remainder.length; i++) {
 	                            let c = this.remainder[i];
 
 	                            if (c === '[') {
@@ -29742,10 +30940,24 @@ function requireParserInstance () {
 	                                nesting--;
 	                            }
 	                            if (!nesting) {
-	                                this.humanReadable = this.remainder.substring(i + 1).trim();
-	                                this.remainder = this.remainder.substring(0, i + 1);
+	                                end = i;
 	                                break;
 	                            }
+	                        }
+
+	                        // Unbalanced '[' inside the code: the RFC 9051 free-text form
+	                        // (`atom [SP 1*<any TEXT-CHAR except "]">]`) permits '[' but not
+	                        // ']', so the code really does end at the first ']' here. Without
+	                        // this fallback the scan finds no closing bracket at all and the
+	                        // human-readable text - what every error message is built from -
+	                        // is swallowed into the response code.
+	                        if (end < 0) {
+	                            end = this.remainder.indexOf(']', match[0].length);
+	                        }
+
+	                        if (end >= 0) {
+	                            this.humanReadable = this.remainder.substring(end + 1).trim();
+	                            this.remainder = this.remainder.substring(0, end + 1);
 	                        }
 	                    } else {
 	                        this.humanReadable = this.remainder.trim();
@@ -29969,6 +31181,13 @@ function requireImapParser () {
 	        if (err.code === 'ParserErrorExchange' && err.parserContext && err.parserContext.value) {
 	            return err.parserContext.value;
 	        }
+	        if (response.tag) {
+	            // The tag had already been parsed when the rest of the line failed. Expose it
+	            // so the connection can settle the command this line was addressed to - unlike
+	            // re-deriving the tag from the raw bytes, this inherits the leading-NUL
+	            // workaround above.
+	            err.parsedTag = response.tag;
+	        }
 	        throw err;
 	    }
 
@@ -29988,31 +31207,53 @@ function requireImapCompiler () {
 
 	const imapFormalSyntax = /*@__PURE__*/ requireImapFormalSyntax();
 
+	// A single element of a sequence-set as defined by the RFC 9051 grammar: a number
+	// or a range, where "*" stands for the largest number in use. Digit strings are not
+	// range-checked here (a server rejects "0" or an overlong number on its own); the
+	// point of the check is that nothing outside this alphabet can reach the wire.
+	const SEQ_RANGE = /^(\d+|\*)(:(\d+|\*))?$/;
+
+	// Validates a full sequence-set: comma-separated SEQ_RANGE elements, or "$"
+	// (RFC 5182 SEARCHRES), which references the previous SEARCH result and is only
+	// valid as the entire set. Split into per-element tests on purpose - a whole-set
+	// regex with an unbounded repeat group overflows the regex engine's backtrack
+	// stack with an uncoded RangeError on valid sets in the million-element range,
+	// while the per-element regex is bounded.
+	const isValidSequenceSet = value => value === '$' || value.split(',').every(part => SEQ_RANGE.test(part));
+
+	// Numeric tokens may only put the digit alphabet on the wire. Anything that does
+	// not round to a bounded non-negative integer (NaN, Infinity, negatives, unsafe
+	// magnitudes) degrades to 0 - the fallback the NaN coercion has always used.
+	const safeNumber = value => {
+	    let num = Math.round(Number(value));
+	    return Number.isSafeInteger(num) && num >= 0 ? num : 0;
+	};
+
+	// Characters that cannot appear in an IMAP quoted string: CR and LF terminate a
+	// command line, and NUL is outside the CHAR production entirely. A value carrying
+	// any of them has to be sent as a literal, so quoting it is never correct.
+	const NOT_QUOTABLE = /[\r\n\0]/;
+
+	// A line terminator ends an IMAP command, so no token may carry one to the wire.
+	const CRLF = /[\r\n]/;
+
 	/**
-	 * Formats a response entry into a Buffer.
+	 * Quotes a value as an IMAP quoted string. Only DQUOTE and backslash are escaped -
+	 * the IMAP grammar defines no other escape sequence, so JSON-style escaping (which
+	 * turns a tab into a literal backslash-t and a control character into \\uXXXX) would
+	 * silently change the value the server receives.
 	 *
-	 * @param {string|number|Buffer} entry - The value to convert to a Buffer.
-	 * @param {boolean} [returnEmpty] - If true, returns null instead of an empty Buffer when the entry is not a recognized type.
-	 * @returns {Buffer|null} The entry as a Buffer, or null if returnEmpty is true and the entry is not a recognized type.
+	 * @param {string} value - The value to quote.
+	 * @returns {string} The quoted string, ready to be written to the wire.
+	 * @throws {Error} If the value contains CR, LF or NUL, which a quoted string cannot carry.
 	 */
-	const formatRespEntry = (entry, returnEmpty) => {
-	    if (typeof entry === 'string') {
-	        return Buffer.from(entry);
+	const quoteString = value => {
+	    if (NOT_QUOTABLE.test(value)) {
+	        let error = new Error('Unquotable character in IMAP string value');
+	        error.code = 'InvalidStringValue';
+	        throw error;
 	    }
-
-	    if (typeof entry === 'number') {
-	        return Buffer.from(entry.toString());
-	    }
-
-	    if (Buffer.isBuffer(entry)) {
-	        return entry;
-	    }
-
-	    if (returnEmpty) {
-	        return null;
-	    }
-
-	    return Buffer.alloc(0);
+	    return '"' + value.replace(/["\\]/g, char => '\\' + char) + '"';
 	};
 
 	/**
@@ -30034,7 +31275,43 @@ function requireImapCompiler () {
 	    let { asArray, isLogging, literalPlus, literalMinus } = options || {};
 	    const respParts = [];
 
-	    let resp = [].concat(formatRespEntry(response.tag, true) || []).concat(response.command ? formatRespEntry(' ' + response.command) : []);
+	    // Formats an entry (string, number or Buffer) into the Buffer that is written to
+	    // the wire, and is the choke point every emission passes through: a line
+	    // terminator ends an IMAP command, so no token - the tag and command name
+	    // included - may put one on the wire. The literal size marker and literal data
+	    // are the only emissions where CRLF is legitimate; those call sites opt out with
+	    // `raw`. Never enforced when logging: re-encoding an incoming server response for
+	    // the log or for error text must not throw, whatever the server sent. With
+	    // `returnEmpty`, an unrecognized entry type yields null instead of an empty
+	    // Buffer.
+	    const emitEntry = (entry, opts) => {
+	        let { returnEmpty, raw } = opts || {};
+	        if (!raw && !isLogging && (typeof entry === 'string' || Buffer.isBuffer(entry)) && CRLF.test(entry.toString('latin1'))) {
+	            let error = new Error('Line terminator in IMAP token');
+	            error.code = 'InvalidTokenValue';
+	            throw error;
+	        }
+
+	        if (typeof entry === 'string') {
+	            return Buffer.from(entry);
+	        }
+
+	        if (typeof entry === 'number') {
+	            return Buffer.from(entry.toString());
+	        }
+
+	        if (Buffer.isBuffer(entry)) {
+	            return entry;
+	        }
+
+	        if (returnEmpty) {
+	            return null;
+	        }
+
+	        return Buffer.alloc(0);
+	    };
+
+	    let resp = [].concat(emitEntry(response.tag, { returnEmpty: true }) || []).concat(response.command ? emitEntry(' ' + response.command) : []);
 	    let val;
 	    let lastType;
 
@@ -30049,14 +31326,17 @@ function requireImapCompiler () {
 	            lastRespByte = String.fromCharCode(lastRespByte);
 	        }
 
-	        // Add a space separator unless:
-	        // - The previous token was a LITERAL (literal data is self-delimiting after CRLF)
-	        // - The last byte was '(', '<', or '[' (opening delimiters suppress the space)
-	        // - This is the first token (resp is empty)
-	        // - This is a sub-array element in a consecutive-list context (no space between adjacent lists)
+	        // Add a space separator when:
+	        // - The previous token was a LITERAL. Literal data ends exactly at its declared length, so
+	        //   a following token always needs an explicit separator, even though the last written byte
+	        //   is arbitrary literal content.
+	        // - Otherwise: there is something written already (resp is not empty) and the last byte is
+	        //   not an opening delimiter ('(', '<' or '['), which suppresses the space.
+	        // A sub-array element in a consecutive-list context never gets one (no space between
+	        // adjacent lists).
 	        if (lastType === 'LITERAL' || (!['(', '<', '['].includes(lastRespByte) && resp.length)) {
 	            if (!options.subArray) {
-	                resp.push(formatRespEntry(' '));
+	                resp.push(emitEntry(' '));
 	            }
 	        }
 
@@ -30067,7 +31347,7 @@ function requireImapCompiler () {
 
 	        if (Array.isArray(node)) {
 	            lastType = 'LIST';
-	            resp.push(formatRespEntry('('));
+	            resp.push(emitEntry('('));
 
 	            // check if we need to skip separator WS between two arrays
 	            let subArray = node.length > 1 && Array.isArray(node[0]);
@@ -30079,86 +31359,126 @@ function requireImapCompiler () {
 	                await walk(child, { subArray });
 	            }
 
-	            resp.push(formatRespEntry(')'));
+	            resp.push(emitEntry(')'));
 	            return;
 	        }
 
 	        if (!node && typeof node !== 'string' && typeof node !== 'number' && !Buffer.isBuffer(node)) {
-	            resp.push(formatRespEntry('NIL'));
+	            resp.push(emitEntry('NIL'));
 	            return;
 	        }
 
 	        if (typeof node === 'string' || Buffer.isBuffer(node)) {
 	            if (isLogging && node.length > 100) {
-	                resp.push(formatRespEntry('"(* ' + node.length + 'B string *)"'));
+	                resp.push(emitEntry('"(* ' + node.length + 'B string *)"'));
 	            } else {
-	                resp.push(formatRespEntry(JSON.stringify(node.toString())));
+	                resp.push(emitEntry(isLogging ? JSON.stringify(node.toString()) : quoteString(node.toString())));
 	            }
 	            return;
 	        }
 
 	        if (typeof node === 'number') {
-	            resp.push(formatRespEntry(Math.round(node) || 0)); // Only integers allowed
+	            resp.push(emitEntry(safeNumber(node))); // Only bounded non-negative integers allowed
 	            return;
 	        }
 
 	        lastType = node.type;
 
 	        if (isLogging && node.sensitive) {
-	            resp.push(formatRespEntry('"(* value hidden *)"'));
+	            resp.push(emitEntry('"(* value hidden *)"'));
 	            return;
 	        }
 
 	        switch (node.type.toUpperCase()) {
 	            case 'LITERAL':
 	                if (isLogging) {
-	                    resp.push(formatRespEntry('"(* ' + node.value.length + 'B literal *)"'));
+	                    resp.push(emitEntry('"(* ' + node.value.length + 'B literal *)"'));
 	                } else {
-	                    let literalLength = !node.value ? 0 : Math.max(node.value.length, 0);
+	                    // The literal size marker counts octets - string values are written as
+	                    // UTF-8, so their UTF-16 .length would undercount multi-byte characters
+	                    let literalLength = !node.value ? 0 : Buffer.isBuffer(node.value) ? node.value.length : Buffer.byteLength(node.value.toString());
 
-	                    // canAppend: whether the literal data can be sent in the same buffer segment.
-	                    // With LITERAL+ (RFC 7888) the client does not wait for a continuation response.
-	                    // With LITERAL- (RFC 7888) the client can skip the wait only for literals <= 4096 bytes.
-	                    // When asArray is false we always append inline (single-buffer mode).
-	                    let canAppend = !asArray || literalPlus || (literalMinus && literalLength <= 4096);
-	                    // Append '+' to the size marker when using LITERAL+ or LITERAL- (non-synchronizing)
-	                    let usePlus = canAppend && (literalMinus || literalPlus);
+	                    // Append '+' to the size marker only when the extension actually permits a
+	                    // non-synchronizing literal of this size (RFC 7888): LITERAL+ always,
+	                    // LITERAL- only up to 4096 bytes
+	                    let usePlus = literalPlus || (literalMinus && literalLength <= 4096);
+	                    // canAppend: whether the literal data can be sent in the same buffer segment -
+	                    // non-synchronizing literals always, and everything in single-buffer mode
+	                    // (asArray false), which has no continuation flow
+	                    let canAppend = !asArray || usePlus;
 
 	                    // Emit the literal header: optional '~' prefix for literal8, then {size[+]}\r\n
-	                    resp.push(formatRespEntry(`${node.isLiteral8 ? '~' : ''}{${literalLength}${usePlus ? '+' : ''}}\r\n`));
+	                    resp.push(emitEntry(`${node.isLiteral8 ? '~' : ''}{${literalLength}${usePlus ? '+' : ''}}\r\n`, { raw: true }));
 
 	                    if (canAppend) {
 	                        // Literal data follows immediately in the same buffer segment
 	                        if (node.value && node.value.length) {
-	                            resp.push(formatRespEntry(node.value));
+	                            resp.push(emitEntry(node.value, { raw: true }));
 	                        }
 	                    } else {
 	                        // For synchronizing literals in asArray mode, split output into separate
 	                        // parts. The caller must send each part and wait for a continuation
 	                        // response from the server before sending the next.
 	                        respParts.push(resp);
-	                        resp = [].concat(formatRespEntry(node.value, true) || []);
+	                        resp = [].concat(emitEntry(node.value, { returnEmpty: true, raw: true }) || []);
 	                    }
 	                }
 	                break;
 
 	            case 'STRING':
 	                if (isLogging && node.value.length > 100) {
-	                    resp.push(formatRespEntry('"(* ' + node.value.length + 'B string *)"'));
+	                    resp.push(emitEntry('"(* ' + node.value.length + 'B string *)"'));
 	                } else {
-	                    resp.push(formatRespEntry(JSON.stringify((node.value || '').toString())));
+	                    val = (node.value || '').toString();
+	                    resp.push(emitEntry(isLogging ? JSON.stringify(val) : quoteString(val)));
+	                }
+	                break;
+
+	            case 'SEQUENCE':
+	                // Sequence sets are written verbatim - they are the one token type with
+	                // no quoting to fall back on. Callers build them from user-supplied
+	                // ranges, so validate here, at the single point every outgoing sequence
+	                // set passes through, rather than trusting each command module. Skipped
+	                // when logging: the incoming token parser accepts sequence-shaped tokens
+	                // this strict grammar rejects (an ESEARCH set like "1:2:3", a folder
+	                // name like "12:30:00"), and re-compiling a server response for the log
+	                // or for error text must never throw.
+	                if (!isLogging && (typeof node.value === 'string' || typeof node.value === 'number' || Buffer.isBuffer(node.value))) {
+	                    val = node.value.toString();
+	                    if (val && !isValidSequenceSet(val)) {
+	                        let error = new Error('Invalid sequence set value');
+	                        error.code = 'InvalidSequenceSet';
+	                        throw error;
+	                    }
+	                }
+	                if (node.value) {
+	                    // raw: the validated alphabet cannot contain a line terminator, and
+	                    // re-scanning a potentially multi-megabyte set in the choke point
+	                    // would double the cost of exactly the sets this branch exists for
+	                    resp.push(emitEntry(node.value, { raw: true }));
 	                }
 	                break;
 
 	            case 'TEXT':
-	            case 'SEQUENCE':
+	                // Response text is written verbatim. Only the parser produces it today, for
+	                // incoming lines, so this is a re-encoding path rather than a command-building
+	                // one. The emitEntry choke point would refuse a line terminator here too;
+	                // this check runs first only to raise the more specific InvalidTextValue code.
 	                if (node.value) {
-	                    resp.push(formatRespEntry(node.value));
+	                    if (!isLogging && CRLF.test(node.value.toString())) {
+	                        let error = new Error('Line terminator in IMAP text value');
+	                        error.code = 'InvalidTextValue';
+	                        throw error;
+	                    }
+	                    resp.push(emitEntry(node.value));
 	                }
 	                break;
 
 	            case 'NUMBER':
-	                resp.push(formatRespEntry(node.value || 0));
+	                // Coerced rather than written through: formatRespEntry passes a string or
+	                // Buffer straight to the wire, so a numeric token carrying a string value
+	                // would be another verbatim channel
+	                resp.push(emitEntry(safeNumber(node.value)));
 	                break;
 
 	            case 'ATOM':
@@ -30168,28 +31488,33 @@ function requireImapCompiler () {
 	                if (!node.section || val) {
 	                    // Verify the value contains only valid ATOM-CHAR characters.
 	                    // Strip a leading backslash before checking (system flags like \Seen start with '\').
-	                    // If any character fails verification, quote-escape the entire value with JSON.stringify.
+	                    // If any character fails verification, fall back to an IMAP quoted string
+	                    // (JSON.stringify is used only for log output, where values are display-escaped).
 	                    if (node.value === '' || imapFormalSyntax.verify(val.charAt(0) === '\\' ? val.substr(1) : val, imapFormalSyntax['ATOM-CHAR']()) >= 0) {
-	                        val = JSON.stringify(val);
+	                        val = isLogging ? JSON.stringify(val) : quoteString(val);
 	                    }
 
-	                    resp.push(formatRespEntry(val));
+	                    resp.push(emitEntry(val));
 	                }
 
 	                // Section bracket handling: emit [section-contents] after the ATOM value
 	                // e.g., BODY[HEADER.FIELDS (Subject)] or BODY[1.MIME]
 	                if (node.section) {
-	                    resp.push(formatRespEntry('['));
+	                    resp.push(emitEntry('['));
 
 	                    for (let child of node.section) {
 	                        await walk(child);
 	                    }
 
-	                    resp.push(formatRespEntry(']'));
+	                    resp.push(emitEntry(']'));
 	                }
-	                // Partial range: emit <origin.length> after the section brackets
+	                // Partial range: emit <origin.length> after the section brackets. Coerced
+	                // rather than joined as-is: this is the last token component written
+	                // verbatim, and the choke point is only worth relying on if it holds for
+	                // all of them. Every producer already passes numbers, so nothing changes
+	                // for them.
 	                if (node.partial) {
-	                    resp.push(formatRespEntry(`<${node.partial.join('.')}>`));
+	                    resp.push(emitEntry(`<${node.partial.map(safeNumber).join('.')}>`));
 	                }
 	                break;
 	        }
@@ -30241,231 +31566,10 @@ function requireImapHandler () {
 }
 
 var name = "imapflow";
-var version = "1.3.2";
+var version = "1.7.8";
 var require$$11 = {
 	name: name,
 	version: version};
-
-var errors = {exports: {}};
-
-var hasRequiredErrors;
-
-function requireErrors () {
-	if (hasRequiredErrors) return errors.exports;
-	hasRequiredErrors = 1;
-	(function (module) {
-
-		/**
-		 * Nodemailer Error Codes
-		 *
-		 * Centralized error code definitions for consistent error handling.
-		 *
-		 * Usage:
-		 *   const errors = require('./errors');
-		 *   let err = new Error('Connection closed');
-		 *   err.code = errors.ECONNECTION;
-		 */
-
-		/**
-		 * Error code descriptions for documentation and debugging
-		 */
-		const ERROR_CODES = {
-		    // Connection errors
-		    ECONNECTION: 'Connection closed unexpectedly',
-		    ETIMEDOUT: 'Connection or operation timed out',
-		    ESOCKET: 'Socket-level error',
-		    EDNS: 'DNS resolution failed',
-
-		    // TLS/Security errors
-		    ETLS: 'TLS handshake or STARTTLS failed',
-		    EREQUIRETLS: 'REQUIRETLS not supported by server (RFC 8689)',
-
-		    // Protocol errors
-		    EPROTOCOL: 'Invalid SMTP server response',
-		    EENVELOPE: 'Invalid mail envelope (sender or recipients)',
-		    EMESSAGE: 'Message delivery error',
-		    ESTREAM: 'Stream processing error',
-
-		    // Authentication errors
-		    EAUTH: 'Authentication failed',
-		    ENOAUTH: 'Authentication credentials not provided',
-		    EOAUTH2: 'OAuth2 token generation or refresh error',
-
-		    // Resource errors
-		    EMAXLIMIT: 'Pool resource limit reached (max messages per connection)',
-
-		    // Transport-specific errors
-		    ESENDMAIL: 'Sendmail command error',
-		    ESES: 'AWS SES transport error',
-
-		    // Configuration and access errors
-		    ECONFIG: 'Invalid configuration',
-		    EPROXY: 'Proxy connection error',
-		    EFILEACCESS: 'File access rejected (disableFileAccess is set)',
-		    EURLACCESS: 'URL access rejected (disableUrlAccess is set)',
-		    EFETCH: 'HTTP fetch error'
-		};
-
-		// Export error codes as string constants and the full definitions object
-		module.exports = { ERROR_CODES };
-		for (const code of Object.keys(ERROR_CODES)) {
-		    module.exports[code] = code;
-		} 
-	} (errors));
-	return errors.exports;
-}
-
-var httpProxyClient_1;
-var hasRequiredHttpProxyClient;
-
-function requireHttpProxyClient () {
-	if (hasRequiredHttpProxyClient) return httpProxyClient_1;
-	hasRequiredHttpProxyClient = 1;
-
-	/**
-	 * Minimal HTTP/S proxy client
-	 */
-
-	const net = require$$4$4;
-	const tls = require$$1$6;
-	const urllib = require$$4$2;
-	const errors = /*@__PURE__*/ requireErrors();
-
-	/**
-	 * Establishes proxied connection to destinationPort
-	 *
-	 * httpProxyClient("http://localhost:3128/", 80, "google.com", function(err, socket){
-	 *     socket.write("GET / HTTP/1.0\r\n\r\n");
-	 * });
-	 *
-	 * @param {String} proxyUrl proxy configuration, etg "http://proxy.host:3128/"
-	 * @param {Number} destinationPort Port to open in destination host
-	 * @param {String} destinationHost Destination hostname
-	 * @param {Function} callback Callback to run with the rocket object once connection is established
-	 */
-	function httpProxyClient(proxyUrl, destinationPort, destinationHost, callback) {
-	    const proxy = urllib.parse(proxyUrl);
-
-	    const options = {
-	        host: proxy.hostname,
-	        port: Number(proxy.port) ? Number(proxy.port) : proxy.protocol === 'https:' ? 443 : 80
-	    };
-
-	    let connect;
-	    if (proxy.protocol === 'https:') {
-	        // we can use untrusted proxies as long as we verify actual SMTP certificates
-	        options.rejectUnauthorized = false;
-	        connect = tls.connect.bind(tls);
-	    } else {
-	        connect = net.connect.bind(net);
-	    }
-
-	    let socket;
-
-	    // Error harness for initial connection. Once connection is established, the responsibility
-	    // to handle errors is passed to whoever uses this socket
-	    let finished = false;
-	    const tempSocketErr = err => {
-	        if (finished) {
-	            return;
-	        }
-	        finished = true;
-	        try {
-	            socket.destroy();
-	        } catch (_E) {
-	            // ignore
-	        }
-	        callback(err);
-	    };
-
-	    const timeoutErr = () => {
-	        const err = new Error('Proxy socket timed out');
-	        err.code = 'ETIMEDOUT';
-	        tempSocketErr(err);
-	    };
-
-	    socket = connect(options, () => {
-	        if (finished) {
-	            return;
-	        }
-
-	        const reqHeaders = {
-	            Host: destinationHost + ':' + destinationPort,
-	            Connection: 'close'
-	        };
-	        if (proxy.auth) {
-	            reqHeaders['Proxy-Authorization'] = 'Basic ' + Buffer.from(proxy.auth).toString('base64');
-	        }
-
-	        socket.write(
-	            // HTTP method
-	            'CONNECT ' +
-	                destinationHost +
-	                ':' +
-	                destinationPort +
-	                ' HTTP/1.1\r\n' +
-	                // HTTP request headers
-	                Object.keys(reqHeaders)
-	                    .map(key => key + ': ' + reqHeaders[key])
-	                    .join('\r\n') +
-	                // End request
-	                '\r\n\r\n'
-	        );
-
-	        let headers = '';
-	        const onSocketData = chunk => {
-	            let match;
-	            let remainder;
-
-	            if (finished) {
-	                return;
-	            }
-
-	            headers += chunk.toString('binary');
-	            if ((match = headers.match(/\r\n\r\n/))) {
-	                socket.removeListener('data', onSocketData);
-
-	                remainder = headers.substr(match.index + match[0].length);
-	                headers = headers.substr(0, match.index);
-	                if (remainder) {
-	                    socket.unshift(Buffer.from(remainder, 'binary'));
-	                }
-
-	                // proxy connection is now established
-	                finished = true;
-
-	                // check response code
-	                match = headers.match(/^HTTP\/\d+\.\d+ (\d+)/i);
-	                if (!match || (match[1] || '').charAt(0) !== '2') {
-	                    try {
-	                        socket.destroy();
-	                    } catch (_E) {
-	                        // ignore
-	                    }
-	                    const err = new Error('Invalid response from proxy' + ((match && ': ' + match[1]) || ''));
-	                    err.code = errors.EPROXY;
-	                    return callback(err);
-	                }
-
-	                socket.removeListener('error', tempSocketErr);
-	                socket.removeListener('timeout', timeoutErr);
-	                socket.setTimeout(0);
-
-	                return callback(null, socket);
-	            }
-	        };
-	        socket.on('data', onSocketData);
-	    });
-
-	    socket.setTimeout(httpProxyClient.timeout || 30 * 1000);
-	    socket.on('timeout', timeoutErr);
-
-	    socket.once('error', tempSocketErr);
-	}
-
-	httpProxyClient_1 = httpProxyClient;
-	return httpProxyClient_1;
-}
 
 var build = {};
 
@@ -34306,7 +35410,7 @@ function requireHelpers () {
 	const constants_1 = /*@__PURE__*/ requireConstants$2();
 	const stream = require$$0$a;
 	const ip_address_1 = /*@__PURE__*/ requireIpAddress();
-	const net = require$$4$4;
+	const net = require$$1$6;
 	/**
 	 * Validates the provided SocksClientOptions
 	 * @param options { SocksClientOptions }
@@ -34539,7 +35643,7 @@ function requireSocksclient () {
 		Object.defineProperty(exports$1, "__esModule", { value: true });
 		exports$1.SocksClientError = exports$1.SocksClient = void 0;
 		const events_1 = require$$1$2;
-		const net = require$$4$4;
+		const net = require$$1$6;
 		const smart_buffer_1 = /*@__PURE__*/ requireSmartbuffer();
 		const constants_1 = /*@__PURE__*/ requireConstants$2();
 		const helpers_1 = /*@__PURE__*/ requireHelpers();
@@ -35350,6 +36454,112 @@ function requireBuild () {
 	return build;
 }
 
+var connectionDeadline;
+var hasRequiredConnectionDeadline;
+
+function requireConnectionDeadline () {
+	if (hasRequiredConnectionDeadline) return connectionDeadline;
+	hasRequiredConnectionDeadline = 1;
+
+	// Default upper bound for establishing a usable transport, including DNS and proxy negotiation.
+	const CONNECT_TIMEOUT = 90 * 1000;
+
+	/**
+	 * One deadline for an entire connection attempt.
+	 *
+	 * DNS resolution, proxy negotiation and the transport handshake all draw from the same budget, so
+	 * a phase that stalls cannot extend the documented `connectionTimeout`. Every expiry - whether it
+	 * comes from this deadline or is normalized from a dependency - is reported with the same
+	 * `CONNECT_TIMEOUT` error shape, so callers do not need to know which phase was blocked.
+	 */
+	class ConnectionDeadline {
+	    /**
+	     * @param {Number} [timeout] Configured connection timeout in milliseconds. Normalized once
+	     *   here; 0 and any other falsy or invalid value fall back to the 90 second default.
+	     */
+	    constructor(timeout) {
+	        this.timeout = Number(timeout) || CONNECT_TIMEOUT;
+	        this.startedAt = Date.now();
+	    }
+
+	    /**
+	     * @returns {Number} Milliseconds left in the budget, never negative.
+	     */
+	    remaining() {
+	        return Math.max(0, this.timeout - (Date.now() - this.startedAt));
+	    }
+
+	    /**
+	     * @returns {Error} The shared `CONNECT_TIMEOUT` error.
+	     */
+	    error() {
+	        let err = new Error('Failed to establish connection in required time');
+	        err.code = 'CONNECT_TIMEOUT';
+	        err.details = { connectionTimeout: this.timeout };
+	        return err;
+	    }
+
+	    /**
+	     * Maps a dependency's own expiry onto the shared `CONNECT_TIMEOUT` shape, so callers see one
+	     * timeout error whichever layer noticed first. The original error is kept as `_err`. Anything
+	     * that is not a timeout is returned unchanged.
+	     *
+	     * @param {Error} err Error raised by a dependency during a connection phase.
+	     * @returns {Error} Either the normalized timeout error or the original error.
+	     */
+	    normalize(err) {
+	        if (!err || err.code === 'CONNECT_TIMEOUT') {
+	            return err;
+	        }
+
+	        // The `socks` client reports its own expiry as "Proxy connection timed out"
+	        if (err.code !== 'ETIMEDOUT' && !/timed out/i.test(err.message || '')) {
+	            return err;
+	        }
+
+	        let normalized = this.error();
+	        normalized._err = err;
+	        return normalized;
+	    }
+
+	    /**
+	     * Throws before a phase is started if the budget is already used up, so no work is begun
+	     * that could only ever time out.
+	     */
+	    check() {
+	        if (!this.remaining()) {
+	            throw this.error();
+	        }
+	    }
+
+	    /**
+	     * Races a phase against the remaining budget. The timer is always cleared, so a completed
+	     * phase never leaves a pending timer behind.
+	     *
+	     * @param {Promise} promise Phase to run under the deadline.
+	     * @returns {Promise<*>} Resolves with the phase result, rejects with `CONNECT_TIMEOUT`.
+	     */
+	    async race(promise) {
+	        this.check();
+
+	        let timer = null;
+	        try {
+	            return await Promise.race([
+	                promise,
+	                new Promise((resolve, reject) => {
+	                    timer = setTimeout(() => reject(this.error()), this.remaining());
+	                })
+	            ]);
+	        } finally {
+	            clearTimeout(timer);
+	        }
+	    }
+	}
+
+	connectionDeadline = { ConnectionDeadline, CONNECT_TIMEOUT };
+	return connectionDeadline;
+}
+
 var proxyConnection_1;
 var hasRequiredProxyConnection;
 
@@ -35357,132 +36567,464 @@ function requireProxyConnection () {
 	if (hasRequiredProxyConnection) return proxyConnection_1;
 	hasRequiredProxyConnection = 1;
 
-	const httpProxyClient = /*@__PURE__*/ requireHttpProxyClient();
 	const { SocksClient } = /*@__PURE__*/ requireBuild();
-	const util = require$$2$2;
-	const httpProxyClientAsync = util.promisify(httpProxyClient);
-	const dns = require$$3$4.promises;
-	const net = require$$4$4;
+	const dns = require$$1$7.promises;
+	const net = require$$1$6;
+	const tls = require$$3$4;
 
-	// Redacts the password from a parsed URL object before it is logged,
-	// preventing credentials from appearing in log output.
-	const hidePassword = proxyUrl => {
-	    if (proxyUrl.password) {
-	        proxyUrl.password = '(hidden)';
+	const { ConnectionDeadline } = /*@__PURE__*/ requireConnectionDeadline();
+
+	// Cap the CONNECT response buffered before the header terminator, so a proxy that never sends
+	// \r\n\r\n cannot grow memory without bound.
+	const MAX_RESPONSE_HEADER_BYTES = 64 * 1024;
+
+	const DEFAULT_SOCKS_PORT = 1080;
+
+	// URL hostnames keep the brackets around an IPv6 literal ("[2001:db8::1]"), which is neither a
+	// valid input for net.isIP() nor an address net/tls/socks can connect to. Strip them for socket
+	// options; the parsed URL itself stays intact for logging and credentials.
+	const unbracketAddress = host => (typeof host === 'string' && host.startsWith('[') && host.endsWith(']') ? host.slice(1, -1) : host);
+
+	// CONNECT request lines and Host headers need an IPv6 destination wrapped in brackets. Hostnames
+	// and IPv4 literals are used as-is, and an already bracketed literal is not bracketed twice.
+	const formatAuthority = (host, port) => {
+	    let address = unbracketAddress(host);
+	    return net.isIPv6(address) ? `[${address}]:${port}` : `${address}:${port}`;
+	};
+
+	// Password-free rendering of the proxy URL, used in every log path. The caller's URL object is
+	// left untouched so credentials stay available for authentication.
+	const redactUrl = proxyUrl => {
+	    let redacted = new URL(proxyUrl.href);
+	    if (redacted.password) {
+	        redacted.password = '(hidden)';
+	    }
+	    return redacted.href;
+	};
+
+	const proxyError = (message, code) => {
+	    let err = new Error(message);
+	    err.code = code || 'ProxyError';
+	    return err;
+	};
+
+	// URL userinfo is percent-encoded, so it has to be decoded before it can be used as credentials.
+	// A password containing a bare '%' is not valid percent-encoding and makes decodeURIComponent
+	// throw, so such values are used as they came in rather than failing the connection.
+	const decodeUserInfo = value => {
+	    try {
+	        return decodeURIComponent(value);
+	    } catch {
+	        return value;
 	    }
 	};
 
-	const proxyConnection = async (logger, connectionUrl, host, port) => {
-	    let proxyUrl = new URL(connectionUrl);
+	// The socks client attaches its full options object - proxy password included - to the errors it
+	// throws, and Node's URL errors carry the rejected string in `input`. Any logger that serializes
+	// error properties would then write that password out in clear text, so the credentials are
+	// dropped before the error is logged or handed to the caller.
+	const stripProxyCredentials = err => {
+	    if (err && typeof err === 'object') {
+	        delete err.options;
+	        delete err.input;
+	    }
+	    return err;
+	};
 
+	// Attaches a benign 'error' listener as soon as the proxied socket exists, so an early
+	// socket error (before ImapFlow installs its own handlers) cannot surface as an unhandled
+	// 'error' event and crash the process. The handler is stored on the socket so the caller
+	// can remove it once it takes ownership of the socket.
+	const attachEarlyErrorHandler = (logger, socket) => {
+	    if (!socket || typeof socket.on !== 'function') {
+	        return;
+	    }
+	    socket._earlyErrorHandler = err => {
+	        logger.error({ msg: 'Proxy socket error before connection setup', err });
+	    };
+	    socket.on('error', socket._earlyErrorHandler);
+	};
+
+	// Removes the handler installed by attachEarlyErrorHandler once the caller takes ownership
+	// of the socket. Keeps the internal `_earlyErrorHandler` contract inside this module.
+	const detachEarlyErrorHandler = socket => {
+	    if (socket && socket._earlyErrorHandler) {
+	        socket.removeListener('error', socket._earlyErrorHandler);
+	        socket._earlyErrorHandler = null;
+	    }
+	};
+
+	/**
+	 * Establishes a tunnel through an HTTP or HTTPS proxy with a CONNECT request.
+	 *
+	 * ImapFlow owns this instead of using a bundled helper because the connection-wide deadline has
+	 * to apply here: the socket is retained as soon as it exists, so an expiry destroys the in-flight
+	 * socket immediately, and concurrent connections cannot share a single process-global timeout.
+	 *
+	 * The destination hostname is passed through unresolved - resolving it is the proxy's job, which
+	 * is also what keeps DNS traffic off the client for HTTP proxies.
+	 *
+	 * @param {Object} params
+	 * @param {Object} params.logger Logger instance.
+	 * @param {URL} params.proxyUrl Parsed proxy URL (credentials intact).
+	 * @param {Boolean} params.secureProxy Whether the proxy endpoint itself speaks TLS.
+	 * @param {String} params.proxyHost Proxy endpoint host, IPv6 literals unbracketed.
+	 * @param {Number} params.proxyPort Proxy endpoint port.
+	 * @param {String} params.host Destination host (hostname or IP literal).
+	 * @param {Number} params.port Destination port.
+	 * @param {ConnectionDeadline} params.deadline Shared connection deadline.
+	 * @returns {Promise<Object>} The established socket, tunnelled to the destination.
+	 */
+	const httpConnect = async ({ logger, proxyUrl, secureProxy, proxyHost, proxyPort, host, port, deadline }) => {
+	    // Reject CRLF in the destination before it reaches the CONNECT request line and Host header.
+	    // A tainted host/port could otherwise inject additional headers (HTTP request splitting).
+	    let destinationPort = Number(port) || 0;
+	    if (!destinationPort || /[\r\n]/.test(host)) {
+	        throw proxyError('Invalid proxy destination', 'EPROXY');
+	    }
+
+	    let authority = formatAuthority(host, destinationPort);
+
+	    let remaining = deadline.remaining();
+	    if (!remaining) {
+	        throw deadline.error();
+	    }
+
+	    let socket = null;
+
+	    return await new Promise((resolve, reject) => {
+	        let settled = false;
+	        let timer = null;
+	        let headers = '';
+
+	        const onSocketData = chunk => {
+	            // Scan only the newly arrived bytes (plus the 3 that a terminator could straddle),
+	            // so a proxy that dribbles its headers cannot turn this into a quadratic rescan.
+	            let searchFrom = Math.max(0, headers.length - 3);
+	            headers += chunk.toString('binary');
+
+	            let terminator = headers.indexOf('\r\n\r\n', searchFrom);
+	            if (terminator < 0) {
+	                if (headers.length > MAX_RESPONSE_HEADER_BYTES) {
+	                    fail(proxyError('Proxy response headers too large', 'EPROXY'));
+	                }
+	                return;
+	            }
+
+	            // The header block is complete, so this listener must stop consuming before anything
+	            // is put back: unshifting while still subscribed re-emits the data straight back into
+	            // this handler, which would swallow it. Pausing hands the socket over cleanly - the
+	            // next owner resumes it (ImapFlow pipes it into the parser).
+	            socket.removeListener('data', onSocketData);
+	            socket.pause();
+
+	            // Anything after the header terminator already belongs to the tunnelled stream (a
+	            // server greeting that the proxy coalesced with its own response) and has to be
+	            // preserved for the next consumer. It is put back as the original bytes, taken from
+	            // this chunk rather than round-tripped through a string.
+	            let headerBytes = terminator + 4;
+	            let consumedFromChunk = chunk.length - (headers.length - headerBytes);
+	            if (consumedFromChunk < chunk.length) {
+	                socket.unshift(chunk.subarray(consumedFromChunk));
+	            }
+	            headers = headers.slice(0, terminator);
+
+	            let status = headers.match(/^HTTP\/\d+\.\d+ (\d+)/i);
+	            if (!status || (status[1] || '').charAt(0) !== '2') {
+	                return fail(proxyError(`Invalid response from proxy${status ? `: ${status[1]}` : ''}`, 'EPROXY'));
+	            }
+
+	            succeed();
+	        };
+
+	        // Single settlement path: temporary listeners and the deadline timer are dropped exactly
+	        // once, so a late socket event cannot settle the promise twice or leave a timer armed.
+	        const cleanup = () => {
+	            clearTimeout(timer);
+	            timer = null;
+	            if (socket) {
+	                // Every temporary listener goes, the connect callback included: after settlement
+	                // no socket event may run any of this again.
+	                socket.removeListener('connect', onConnected);
+	                socket.removeListener('data', onSocketData);
+	                socket.removeListener('error', fail);
+	                socket.removeListener('close', onEarlyClose);
+	            }
+	        };
+
+	        function fail(err) {
+	            if (settled) {
+	                return;
+	            }
+	            settled = true;
+	            cleanup();
+	            if (socket) {
+	                socket.destroy();
+	            }
+	            reject(err);
+	        }
+
+	        function succeed() {
+	            settled = true;
+	            cleanup();
+	            resolve(socket);
+	        }
+
+	        function onEarlyClose() {
+	            fail(proxyError('Proxy closed the connection before the tunnel was established', 'EPROXY'));
+	        }
+
+	        timer = setTimeout(() => fail(deadline.error()), remaining);
+
+	        let connectOptions = { host: proxyHost, port: proxyPort };
+	        if (secureProxy) {
+	            // Verify the proxy's certificate (Node default) and target SNI plus hostname
+	            // verification at the proxy endpoint rather than the IMAP destination. An IP-literal
+	            // endpoint gets no servername, which would be an invalid SNI value.
+	            if (!net.isIP(proxyHost)) {
+	                connectOptions.servername = proxyHost;
+	            }
+	        }
+
+	        // Declared as a function so cleanup() above can detach it (the connect callback is
+	        // registered as a one-shot 'connect' listener by net/tls).
+	        function onConnected() {
+	            let requestHeaders = {
+	                Host: authority,
+	                Connection: 'close'
+	            };
+
+	            if (proxyUrl.username || proxyUrl.password) {
+	                let credentials = `${decodeUserInfo(proxyUrl.username)}:${decodeUserInfo(proxyUrl.password)}`;
+	                requestHeaders['Proxy-Authorization'] = `Basic ${Buffer.from(credentials).toString('base64')}`;
+	            }
+
+	            socket.write(
+	                `CONNECT ${authority} HTTP/1.1\r\n` +
+	                    Object.keys(requestHeaders)
+	                        .map(key => `${key}: ${requestHeaders[key]}`)
+	                        .join('\r\n') +
+	                    '\r\n\r\n'
+	            );
+
+	            socket.on('data', onSocketData);
+	        }
+
+	        // The socket is retained as soon as it is created, so an expiry can destroy it at once.
+	        socket = secureProxy ? tls.connect(connectOptions, onConnected) : net.connect(connectOptions, onConnected);
+	        socket.once('error', fail);
+	        socket.once('close', onEarlyClose);
+	    })
+	        .then(established => {
+	            logger.info({
+	                msg: `Established a socket via HTTP proxy`,
+	                proxyUrl: redactUrl(proxyUrl),
+	                port,
+	                host
+	            });
+	            attachEarlyErrorHandler(logger, established);
+	            return established;
+	        })
+	        .catch(err => {
+	            logger.error({
+	                msg: 'Failed to establish a socket via HTTP proxy',
+	                proxyUrl: redactUrl(proxyUrl),
+	                port,
+	                host,
+	                err
+	            });
+	            throw err;
+	        });
+	};
+
+	/**
+	 * Resolves a destination hostname to an IPv4 address. Only used for SOCKS4, which has no IPv6
+	 * destination address type and no hostname form of its own.
+	 *
+	 * @param {String} hostname Destination hostname.
+	 * @param {ConnectionDeadline} deadline Shared connection deadline.
+	 * @returns {Promise<String>} An IPv4 address.
+	 */
+	const resolveIPv4 = async (hostname, deadline) => {
+	    let addresses = await deadline.race(dns.resolve4(hostname));
+	    if (!addresses || !addresses.length) {
+	        throw proxyError(`Could not resolve an IPv4 address for ${hostname}`, 'EPROXY');
+	    }
+	    return addresses[0];
+	};
+
+	/**
+	 * Establishes a tunnel through a SOCKS proxy.
+	 *
+	 * DNS policy per protocol, because the `socks` client picks the SOCKS4 or SOCKS4a wire format from
+	 * the destination value alone and offers no switch of its own:
+	 *   * SOCKS4  - destination hostnames are resolved locally to IPv4. Passing a hostname would
+	 *               silently produce a SOCKS4a request that a plain SOCKS4 proxy cannot answer.
+	 *   * SOCKS4a - destination hostnames are preserved for remote DNS.
+	 *   * SOCKS5  - destination hostnames are preserved for remote DNS, IP literals pass through.
+	 * IPv6 destination literals are rejected for both SOCKS4 and SOCKS4a: neither can carry them, and
+	 * the dependency would write the literal into the SOCKS4a hostname field instead.
+	 *
+	 * @param {Object} params
+	 * @param {Object} params.logger Logger instance.
+	 * @param {URL} params.proxyUrl Parsed proxy URL (credentials intact).
+	 * @param {String} params.protocol Configured proxy protocol (socks, socks4, socks4a, socks5).
+	 * @param {String} params.proxyHost Proxy endpoint host, IPv6 literals unbracketed.
+	 * @param {Number} params.proxyPort Proxy endpoint port.
+	 * @param {String} params.host Destination host (hostname or IP literal).
+	 * @param {Number} params.port Destination port.
+	 * @param {ConnectionDeadline} params.deadline Shared connection deadline.
+	 * @returns {Promise<Object>} The established socket, tunnelled to the destination.
+	 */
+	const socksConnect = async ({ logger, proxyUrl, protocol, proxyHost, proxyPort, host, port, deadline }) => {
+	    let proxyType = protocol === 'socks4' || protocol === 'socks4a' ? 4 : 5;
+	    let destinationHost = unbracketAddress(host);
+
+	    try {
+	        if (proxyType === 4) {
+	            if (net.isIPv6(destinationHost)) {
+	                throw proxyError(`SOCKS4 and SOCKS4a cannot address IPv6 destinations (${destinationHost})`, 'UnsupportedProxyAddress');
+	            }
+
+	            if (protocol === 'socks4' && !net.isIP(destinationHost)) {
+	                destinationHost = await resolveIPv4(destinationHost, deadline);
+	            }
+	        }
+
+	        let connectionOpts = {
+	            proxy: {
+	                // The endpoint is handed to net.Socket.connect() by the dependency, so a hostname
+	                // is left unresolved and gets Node's normal lookup and connection behavior.
+	                host: proxyHost,
+	                port: proxyPort,
+	                type: proxyType
+	            },
+	            destination: {
+	                host: destinationHost,
+	                port
+	            },
+	            command: 'connect',
+	            set_tcp_nodelay: true
+	        };
+
+	        if (proxyUrl.username || proxyUrl.password) {
+	            connectionOpts.proxy.userId = proxyUrl.username;
+	            connectionOpts.proxy.password = proxyUrl.password;
+	        }
+
+	        // The dependency treats a zero timeout as its own 30 second default, so only a strictly
+	        // positive remaining budget may be passed.
+	        let remaining = deadline.remaining();
+	        if (!remaining) {
+	            throw deadline.error();
+	        }
+	        connectionOpts.timeout = remaining;
+
+	        const info = await deadline.race(SocksClient.createConnection(connectionOpts));
+	        if (!info || !info.socket) {
+	            throw proxyError('SOCKS proxy did not return a socket', 'EPROXY');
+	        }
+
+	        logger.info({
+	            msg: 'Established a socket via SOCKS proxy',
+	            proxyUrl: redactUrl(proxyUrl),
+	            port,
+	            host
+	        });
+	        attachEarlyErrorHandler(logger, info.socket);
+
+	        return info.socket;
+	    } catch (caught) {
+	        // A dependency expiry and the shared deadline are reported with the same
+	        // CONNECT_TIMEOUT shape, so a caller does not need to know which noticed first.
+	        let err = deadline.normalize(stripProxyCredentials(caught));
+	        stripProxyCredentials(err._err);
+
+	        logger.error({
+	            msg: 'Failed to establish a socket via SOCKS proxy',
+	            proxyUrl: redactUrl(proxyUrl),
+	            port,
+	            host,
+	            err
+	        });
+	        throw err;
+	    }
+	};
+
+	/**
+	 * Opens a socket to `host`:`port` through the configured proxy.
+	 *
+	 * @param {Object} logger Logger instance.
+	 * @param {String} connectionUrl Proxy URL (http, https, socks, socks4, socks4a, socks5).
+	 * @param {String} host Destination host, passed through unresolved wherever the proxy protocol
+	 *   can resolve it itself.
+	 * @param {Number} port Destination port.
+	 * @param {Object} [options]
+	 * @param {ConnectionDeadline} [options.deadline] Shared connection deadline. Proxy DNS and
+	 *   negotiation run inside it, so a stalled proxy cannot exceed the configured connectionTimeout.
+	 * @param {Number} [options.connectionTimeout] Used to build a deadline when none was passed.
+	 * @returns {Promise<Object|undefined>} The tunnelled socket, or undefined for an unknown protocol.
+	 */
+	const proxyConnection = async (logger, connectionUrl, host, port, options) => {
+	    options = options || {};
+
+	    let deadline = options.deadline || new ConnectionDeadline(options.connectionTimeout);
+	    deadline.check();
+
+	    let proxyUrl;
+	    try {
+	        proxyUrl = new URL(connectionUrl);
+	    } catch (err) {
+	        // new URL() attaches the string it rejected to err.input, which here is the full proxy
+	        // endpoint including its password. Any logger that serializes error properties would
+	        // write that out in clear text, so the cause is reported without carrying the value.
+	        throw proxyError('Invalid proxy URL', err.code || 'ERR_INVALID_URL');
+	    }
 	    let protocol = proxyUrl.protocol.replace(/:$/, '').toLowerCase();
 
-	    // Pre-resolve the IMAP server hostname to an IP address before passing it to the proxy.
-	    // Some proxy implementations (especially SOCKS4) do not support hostname resolution,
-	    // so we resolve DNS on the client side to ensure compatibility.
-	    if (!net.isIP(host)) {
-	        let resolveResult = await dns.resolve(host);
-	        if (resolveResult && resolveResult.length) {
-	            host = resolveResult[0];
-	        }
-	    }
+	    // ImapFlow performs no DNS lookup of its own for the proxy endpoint: net, tls and the SOCKS
+	    // client all resolve a hostname endpoint themselves, which keeps Node's normal connection
+	    // behavior (including address-family selection) instead of pinning one address.
+	    let proxyHost = unbracketAddress(proxyUrl.hostname);
 
 	    switch (protocol) {
 	        // Connect using a HTTP CONNECT method
 	        case 'http':
-	        case 'https': {
-	            try {
-	                let socket = await httpProxyClientAsync(proxyUrl.href, port, host);
-	                if (socket) {
-	                    hidePassword(proxyUrl);
-	                    logger.info({
-	                        msg: 'Established a socket via HTTP proxy',
-	                        proxyUrl: proxyUrl.href,
-	                        port,
-	                        host
-	                    });
-	                }
-	                return socket;
-	            } catch (err) {
-	                hidePassword(proxyUrl);
-	                logger.error({
-	                    msg: 'Failed to establish a socket via HTTP proxy',
-	                    proxyUrl: proxyUrl.href,
-	                    port,
-	                    host,
-	                    err
-	                });
-	                throw err;
-	            }
-	        }
+	        case 'https':
+	            return await httpConnect({
+	                logger,
+	                proxyUrl,
+	                secureProxy: protocol === 'https',
+	                proxyHost,
+	                proxyPort: Number(proxyUrl.port) || (protocol === 'https' ? 443 : 80),
+	                host,
+	                port,
+	                deadline
+	            });
 
 	        // SOCKS proxy
 	        case 'socks':
 	        case 'socks5':
 	        case 'socks4':
-	        case 'socks4a': {
-	            let proxyType = Number(protocol.replace(/\D/g, '')) || 5;
-
-	            // targetHost here is the SOCKS proxy server's hostname (not the final IMAP destination).
-	            // The SOCKS library needs a resolved IP for the proxy host it connects to.
-	            // The final IMAP destination (host/port) is passed separately as 'destination'.
-	            let targetHost = proxyUrl.hostname;
-	            if (!net.isIP(targetHost)) {
-	                let resolveResult = await dns.resolve(targetHost);
-	                if (resolveResult && resolveResult.length) {
-	                    targetHost = resolveResult[0];
-	                }
-	            }
-
-	            let connectionOpts = {
-	                proxy: {
-	                    host: targetHost,
-	                    port: Number(proxyUrl.port) || 1080,
-	                    type: proxyType
-	                },
-	                destination: {
-	                    host,
-	                    port
-	                },
-	                command: 'connect',
-	                set_tcp_nodelay: true
-	            };
-
-	            if (proxyUrl.username || proxyUrl.password) {
-	                connectionOpts.proxy.userId = proxyUrl.username;
-	                connectionOpts.proxy.password = proxyUrl.password;
-	            }
-
-	            try {
-	                const info = await SocksClient.createConnection(connectionOpts);
-	                if (info && info.socket) {
-	                    hidePassword(proxyUrl);
-	                    logger.info({
-	                        msg: 'Established a socket via SOCKS proxy',
-	                        proxyUrl: proxyUrl.href,
-	                        port,
-	                        host
-	                    });
-	                }
-	                return info.socket;
-	            } catch (err) {
-	                hidePassword(proxyUrl);
-	                logger.error({
-	                    msg: 'Failed to establish a socket via SOCKS proxy',
-	                    proxyUrl: proxyUrl.href,
-	                    port,
-	                    host,
-	                    err
-	                });
-	                throw err;
-	            }
-	        }
+	        case 'socks4a':
+	            return await socksConnect({
+	                logger,
+	                proxyUrl,
+	                protocol,
+	                proxyHost,
+	                proxyPort: Number(proxyUrl.port) || DEFAULT_SOCKS_PORT,
+	                host,
+	                port,
+	                deadline
+	            });
 	    }
 	};
 
-	proxyConnection_1 = { proxyConnection };
+	proxyConnection_1 = { proxyConnection, detachEarlyErrorHandler };
 	return proxyConnection_1;
 }
+
+var tools = {exports: {}};
 
 var charsets = {};
 
@@ -35798,6 +37340,7 @@ function requireJpDecoder () {
 
 	const { Transform } = require$$0$a;
 	const encodingJapanese = /*@__PURE__*/ requireSrc();
+	const { normalizeByteLimit } = /*@__PURE__*/ requireLimitedPassthrough();
 
 	// A Transform stream for decoding Japanese character sets (Shift_JIS, EUC-JP, ISO-2022-JP).
 	// Unlike iconv-lite which can decode incrementally, encoding-japanese requires the complete
@@ -35805,23 +37348,47 @@ function requireJpDecoder () {
 	// which uses escape sequences to switch between ASCII and multi-byte modes). Therefore,
 	// this stream buffers all input during _transform and performs the actual decoding in _flush.
 	class JPDecoder extends Transform {
-	    constructor(charset) {
+	    constructor(charset, maxBytes) {
 	        super();
 
 	        this.charset = charset;
 	        this.chunks = [];
 	        this.chunklen = 0;
+
+	        // Upper bound for the buffered bytes, normalized the same way LimitedPassthrough
+	        // normalizes its own. The whole-input buffering defeats a downstream maxBytes limiter
+	        // (nothing is emitted until _flush), so without an internal bound a server could force
+	        // unbounded memory use through a caller that asked for a limited download. Excess input
+	        // is truncated, mirroring the truncation a maxBytes download applies anyway.
+	        this.maxBytes = normalizeByteLimit(maxBytes);
+
+	        // Also mirroring LimitedPassthrough: true once the bound is reached and every further
+	        // chunk is being discarded. The download loop reads this to stop pulling from the
+	        // server, which the limiter at the tail of the pipeline cannot tell it, because nothing
+	        // is emitted from here until _flush().
+	        this.limited = false;
 	    }
 
-	    // Buffer all incoming chunks; no decoding happens here because Japanese charsets
-	    // require the complete input for accurate conversion.
+	    // Buffer all incoming chunks (up to maxBytes); no decoding happens here because
+	    // Japanese charsets require the complete input for accurate conversion.
 	    _transform(chunk, encoding, done) {
 	        if (typeof chunk === 'string') {
 	            chunk = Buffer.from(chunk, encoding);
 	        }
 
-	        this.chunks.push(chunk);
-	        this.chunklen += chunk.length;
+	        if (this.chunklen + chunk.length > this.maxBytes) {
+	            chunk = chunk.slice(0, Math.max(0, this.maxBytes - this.chunklen));
+	        }
+
+	        if (chunk.length) {
+	            this.chunks.push(chunk);
+	            this.chunklen += chunk.length;
+	        }
+
+	        if (this.chunklen >= this.maxBytes) {
+	            this.limited = true;
+	        }
+
 	        done();
 	    }
 
@@ -36206,7 +37773,9 @@ function requireUtf32 () {
 
 	Utf32Encoder.prototype.write = function (str) {
 	  var src = Buffer.from(str, "ucs2");
-	  var dst = Buffer.alloc(src.length * 2);
+	  // src.length * 2 covers this chunk's code units (4 bytes each); the extra 4 bytes leave room for a
+	  // high surrogate held over from a previous chunk, which is flushed ahead of this chunk's units.
+	  var dst = Buffer.alloc(src.length * 2 + 4);
 	  var write32 = this.isLE ? dst.writeUInt32LE : dst.writeUInt32BE;
 	  var offset = 0;
 
@@ -36288,9 +37857,9 @@ function requireUtf32 () {
 	      // NOTE: codepoint is a signed int32 and can be negative.
 	      // NOTE: We copied this block from below to help V8 optimize it (it works with array, not buffer).
 	      if (isLE) {
-	        codepoint = overflow[i] | (overflow[i + 1] << 8) | (overflow[i + 2] << 16) | (overflow[i + 3] << 24);
+	        codepoint = overflow[0] | (overflow[1] << 8) | (overflow[2] << 16) | (overflow[3] << 24);
 	      } else {
-	        codepoint = overflow[i + 3] | (overflow[i + 2] << 8) | (overflow[i + 1] << 16) | (overflow[i] << 24);
+	        codepoint = overflow[3] | (overflow[2] << 8) | (overflow[1] << 16) | (overflow[0] << 24);
 	      }
 	      overflow.length = 0;
 
@@ -36343,7 +37912,12 @@ function requireUtf32 () {
 	  return offset
 	}
 	Utf32Decoder.prototype.end = function () {
+	  if (this.overflow.length === 0) { return }
+
+	  // A leftover, incomplete 4-byte code unit at the end of the input is ill-formed. Substitute a
+	  // single U+FFFD (Unicode Standard conformance clause C10) instead of silently dropping the bytes.
 	  this.overflow.length = 0;
+	  return String.fromCharCode(this.badChar)
 	};
 
 	// == UTF-32 Auto codec =============================================================
@@ -37168,6 +38742,8 @@ function requireSbcsData () {
 
 	  hebrew: "iso88598",
 	  hebrew8: "iso88598",
+	  iso88598i: "iso88598",
+	  iso88598e: "iso88598",
 
 	  turkish: "iso88599",
 	  turkish8: "iso88599",
@@ -47040,11 +48616,10 @@ function requireLib () {
 
 /* eslint no-control-regex:0 */
 
-var tools_1;
 var hasRequiredTools;
 
 function requireTools () {
-	if (hasRequiredTools) return tools_1;
+	if (hasRequiredTools) return tools.exports;
 	hasRequiredTools = 1;
 
 	const libmime = /*@__PURE__*/ requireLibmime();
@@ -47056,6 +48631,57 @@ function requireTools () {
 
 	const FLAG_COLORS = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'grey'];
 
+	// Error codes that only mean the connection is no longer usable. See logConnectionError().
+	const CONNECTION_GONE_CODES = new Set(['NoConnection', 'EConnectionClosed', 'StateLogout']);
+
+	// Upper bound for expanding server-supplied sequence ranges (see expandRange). 2^24
+	// entries in total is far beyond any legitimate mailbox while keeping the worst-case
+	// expansion of a hostile range set bounded.
+	const EXPANDED_RANGE_LIMIT = 0x1000000;
+
+	// Digit bounds for untrusted numeric values in server responses. UIDs, UIDVALIDITY and
+	// message counts are 32-bit unsigned (nz-number in the RFC 9051 grammar, so at most 10
+	// digits); MODSEQ and number64 values are 63-bit unsigned (RFC 7162, RFC 9051), at most
+	// 19 digits. The bound is checked before BigInt()/Number(): a response line may carry up
+	// to maxLineLength digits, and BigInt() on a multi-megabyte digit run costs hundreds of
+	// milliseconds of non-yielding CPU.
+	const MAX_UINT32_DIGITS = 10;
+	const MAX_NUMBER64_DIGITS = 19;
+
+	// Object keys that reach through the prototype chain when assigned to, or resolve to an
+	// inherited member when read. Server-controlled strings become keys in several places
+	// (STATUS items, QUOTA resources, BODYSTRUCTURE parameters, FETCH body part names), so they
+	// all consult this one set rather than each carrying its own list.
+	const UNSAFE_OBJECT_KEYS = new Set(['__proto__', 'constructor', 'prototype']);
+
+	// Extensions that RFC 9051 (IMAP4rev2) folds into the base protocol (Appendix E).
+	// When IMAP4rev2 is active, these are available even without their own capability
+	// token. BINARY is deliberately excluded - RFC 9051 only folds in the FETCH side,
+	// which fetch.js handles with its own isRev2Active check, while the APPEND side
+	// stays gated on the BINARY token. SPECIAL-USE is a partial fold: Appendix E only
+	// folds in the special-use mailbox attributes, not the RFC 6154 LIST selection and
+	// RETURN options - the only call sites that act on this entry are in list.js,
+	// where a staged retry ladder recovers if a rev2-only server rejects the RETURN
+	// option. The set mirrors the rest of the Appendix E list in full, including
+	// entries no call site consults yet, so any future capability check gets the
+	// rev2 folding for free.
+	const IMAP4REV2_FOLDED_CAPABILITIES = new Set([
+	    'ENABLE',
+	    'ESEARCH',
+	    'IDLE',
+	    'LIST-EXTENDED',
+	    'LIST-STATUS',
+	    'LITERAL-',
+	    'MOVE',
+	    'NAMESPACE',
+	    'SASL-IR',
+	    'SEARCHRES',
+	    'SPECIAL-USE',
+	    'STATUS=SIZE',
+	    'UIDPLUS',
+	    'UNSELECT'
+	]);
+
 	/**
 	 * Error subclass thrown when IMAP authentication fails.
 	 */
@@ -47063,7 +48689,248 @@ function requireTools () {
 	    authenticationFailed = true;
 	}
 
-	const tools = {
+	// Deliberate no-op, used as the observer a guarded promise attaches to its own rejection.
+	const noop = () => {};
+
+	// The fields buildConnectionError() stamps to say *where* a connection error was rejected, as
+	// opposed to what went wrong. restampConnectionError() clears them, because they belong to the
+	// site that built the error rather than to the failure it describes.
+	const CONNECTION_ERROR_SITE_KEYS = ['rejectedFrom', 'command', 'path'];
+
+	const tools$1 = {
+	    noop,
+
+	    /**
+	     * Builds an error describing a connection that is gone, stamped so it can be traced back to
+	     * where it came from: the connection id always travels on it, and each site names itself
+	     * through `meta` (`rejectedFrom`, plus the command or mailbox path it belongs to).
+	     *
+	     * A stack trace only records where an error was built, and close() hands a rejection to every
+	     * pending request and every queued lock in the same tick, so without these an error that
+	     * reaches a global unhandledRejection handler arrives with nothing that identifies the
+	     * connection it came from, let alone which of the rejected promises carried it.
+	     *
+	     * Takes the connection id rather than the connection, so the stamping stays in one place
+	     * without every caller having to be a full ImapFlow instance.
+	     *
+	     * @param {String} cid - Connection id
+	     * @param {String} code - Error code, e.g. 'NoConnection'
+	     * @param {String} message - Error message
+	     * @param {Object} [meta] - Fields to stamp on the error
+	     * @returns {Error} The stamped error
+	     */
+	    buildConnectionError(cid, code, message, meta) {
+	        const error = new Error(message);
+	        error.code = code;
+	        error.cid = cid;
+	        if (meta) {
+	            Object.assign(error, meta);
+	        }
+	        return error;
+	    },
+
+	    /**
+	     * Re-stamps an existing connection error for a different rejection site.
+	     *
+	     * The same failure can be handed to more than one promise - close() rejects the in-flight
+	     * command, and runIdle() then rejects everything queued behind it - and each of those is a
+	     * separate promise with a separate consumer. Sharing one error object reports whichever of
+	     * them escapes under the first site's marker, which is the attribution these markers exist to
+	     * give.
+	     *
+	     * Everything describing *what went wrong* is carried over, because a re-stamped error reaches
+	     * user code through run() and callers branch on `responseStatus`, `serverResponseCode` and
+	     * friends. Everything describing *where it was rejected* is dropped, because the new site owns
+	     * those and a leftover `command` from the previous site is exactly as misleading as a leftover
+	     * `rejectedFrom`. The original travels on as `cause`.
+	     *
+	     * @param {Error} err - The error being re-stamped
+	     * @param {Object} meta - Fields for the new site, e.g. { rejectedFrom: 'preCheckWaiter' }
+	     * @returns {Error} A separate error describing the same failure at the new site
+	     */
+	    restampConnectionError(err, meta) {
+	        let error = tools$1.buildConnectionError(err.cid, err.code, err.message, err);
+	        for (let key of CONNECTION_ERROR_SITE_KEYS) {
+	            delete error[key];
+	        }
+	        if (meta) {
+	            Object.assign(error, meta);
+	        }
+	        error.cause = err;
+	        return error;
+	    },
+
+	    /**
+	     * Creates a promise whose rejection is observed as soon as it exists.
+	     *
+	     * close() rejects every promise it owns - the in-flight and queued commands, the pending
+	     * connect(), the queued mailbox locks, the waiters for an IDLE break - synchronously, from a
+	     * socket event. A consumer that only reaches its `await` a microtask later has not attached a
+	     * handler yet at the moment Node decides whether the rejection was observed, and the whole
+	     * worker dies on the resulting unhandledRejection. The pre-attached observer settles that
+	     * question; the rejection still propagates normally to whoever awaits the returned promise.
+	     *
+	     * Creation and guarding are one call because splitting them is what actually goes wrong: the
+	     * guard was hand-attached at three of the four sites and the fourth (the IDLE-break waiter)
+	     * went unguarded, on exactly the path a server BYE takes.
+	     *
+	     * @param {Function} executor - Promise executor, (resolve, reject) => {}
+	     * @returns {Promise} The promise, with its rejection already observed
+	     */
+	    guardedPromise(executor) {
+	        let promise = new Promise(executor);
+	        promise.catch(noop);
+	        return promise;
+	    },
+
+	    /**
+	     * The already-rejected form of guardedPromise(), for a call that has to hand back a rejected
+	     * promise rather than throw.
+	     *
+	     * @param {Error} error - Rejection reason
+	     * @returns {Promise} Rejected promise, with its rejection already observed
+	     */
+	    guardedReject(error) {
+	        let promise = Promise.reject(error);
+	        promise.catch(noop);
+	        return promise;
+	    },
+
+	    /**
+	     * Detaches a background timer from the event loop, so it cannot keep the process alive on its
+	     * own. Applied to every background timer (auto-IDLE, IDLE restart, fallback polling, throttle
+	     * back-off, held-lock diagnostics); connection and greeting deadlines are deliberately left
+	     * attached, because a caller is waiting for connect() to settle.
+	     *
+	     * @param {Object} timer - Timer handle returned by setTimeout
+	     * @returns {Object} The same timer handle
+	     */
+	    unrefTimer(timer) {
+	        /* c8 ignore next 3 */ // node timers always expose unref(); the guard covers replaced globals in tests
+	        if (timer && typeof timer.unref === 'function') {
+	            timer.unref();
+	        }
+	        return timer;
+	    },
+
+	    /**
+	     * Logs a failure from background connection work at the level its cause deserves.
+	     *
+	     * Background work (IDLE sessions, polling timers, auto-IDLE) is interrupted by every normal
+	     * disconnect, so a rejection carrying one of the CONNECTION_GONE_CODES is expected rather
+	     * than notable and goes to debug. The three codes describe the same situation reached
+	     * through different guards: write() throws NoConnection or StateLogout, exec() rejects
+	     * EConnectionClosed for the window where the socket is destroyed but close() has not run
+	     * yet, and close() rejects pending requests with NoConnection.
+	     *
+	     * A connection error carrying `reason` is the exception. That field holds the server's
+	     * untagged BYE text ("Too many simultaneous connections", "Account is disabled"), which
+	     * serverBye() only records - this log call is the one place it becomes visible, and it is
+	     * usually the answer to why a client is reconnecting in a loop. Those stay at warn.
+	     *
+	     * Shared so the classification cannot drift between the call sites that make this decision.
+	     *
+	     * @param {Object} connection - IMAP connection instance
+	     * @param {String} msg - What failed, so the entries stay distinguishable in the log
+	     * @param {Error} err - The error to log
+	     */
+	    logConnectionError(connection, msg, err) {
+	        let routine = !!err && CONNECTION_GONE_CODES.has(err.code) && !err.reason;
+	        connection.log[routine ? 'debug' : 'warn']({ msg, err, cid: connection.id });
+	    },
+
+	    /**
+	     * Checks whether IMAP4rev2 semantics are active for the connection: either the
+	     * client enabled IMAP4rev2 explicitly, or the server is rev2-only (advertises
+	     * IMAP4rev2 without IMAP4rev1), in which case rev2 is the base protocol without
+	     * any ENABLE (RFC 9051 Appendix A). UTF-8 mailbox names apply in both cases.
+	     *
+	     * @param {Object} connection - IMAP connection instance
+	     * @returns {Boolean} True if IMAP4rev2 semantics apply to this session
+	     */
+	    isRev2Active(connection) {
+	        return connection.enabled.has('IMAP4REV2') || (connection.capabilities.has('IMAP4rev2') && !connection.capabilities.has('IMAP4rev1'));
+	    },
+
+	    /**
+	     * Checks a capability, accounting for extensions that RFC 9051 folds into base
+	     * IMAP4rev2. Falls back to the plain capability lookup on IMAP4rev1 sessions,
+	     * so behavior against rev1 servers is unchanged.
+	     *
+	     * @param {Object} connection - IMAP connection instance
+	     * @param {String} capability - Capability name, e.g. 'UIDPLUS'
+	     * @returns {Boolean} True if the capability (or its rev2-folded equivalent) is available
+	     */
+	    hasCapability(connection, capability) {
+	        if (connection.capabilities.has(capability)) {
+	            return true;
+	        }
+	        return IMAP4REV2_FOLDED_CAPABILITIES.has(capability) && tools$1.isRev2Active(connection);
+	    },
+
+	    /**
+	     * Builds the attribute list for a STATUS request - the standalone STATUS command
+	     * or the LIST-STATUS return option - from a status query object. Items the current
+	     * session cannot request (RECENT under IMAP4rev2, HIGHESTMODSEQ without CONDSTORE)
+	     * are silently dropped.
+	     *
+	     * @param {Object} connection - IMAP connection instance
+	     * @param {Object} statusQuery - Status data items to request, e.g. {messages: true}
+	     * @returns {Object[]} Attribute token list for the command compiler
+	     */
+	    buildStatusQueryAttributes(connection, statusQuery) {
+	        let attributes = [];
+
+	        Object.keys(statusQuery || {}).forEach(key => {
+	            if (!statusQuery[key]) {
+	                return;
+	            }
+
+	            switch (key.toUpperCase()) {
+	                case 'MESSAGES':
+	                case 'UIDNEXT':
+	                case 'UIDVALIDITY':
+	                case 'UNSEEN':
+	                    attributes.push({ type: 'ATOM', value: key.toUpperCase() });
+	                    break;
+
+	                case 'RECENT':
+	                    // RECENT was removed in IMAP4rev2 (RFC 9051) - requesting it from a
+	                    // rev2 session would get the whole STATUS request rejected
+	                    if (!tools$1.isRev2Active(connection)) {
+	                        attributes.push({ type: 'ATOM', value: key.toUpperCase() });
+	                    }
+	                    break;
+
+	                case 'HIGHESTMODSEQ':
+	                    if (connection.capabilities.has('CONDSTORE')) {
+	                        attributes.push({ type: 'ATOM', value: key.toUpperCase() });
+	                    }
+	                    break;
+
+	                case 'SIZE':
+	                    // STATUS SIZE requires the STATUS=SIZE extension (RFC 8438), which
+	                    // RFC 9051 folds into base IMAP4rev2
+	                    if (tools$1.hasCapability(connection, 'STATUS=SIZE')) {
+	                        attributes.push({ type: 'ATOM', value: key.toUpperCase() });
+	                    }
+	                    break;
+
+	                case 'DELETED':
+	                    // STATUS DELETED is a base IMAP4rev2 addition (RFC 9051 Appendix E
+	                    // item 3) with no standalone capability - requesting it from a plain
+	                    // rev1 server would get the whole STATUS request rejected. RFC 9208
+	                    // additionally makes it mandatory when QUOTA=RES-MESSAGE is advertised.
+	                    if (tools$1.isRev2Active(connection) || connection.capabilities.has('QUOTA=RES-MESSAGE')) {
+	                        attributes.push({ type: 'ATOM', value: key.toUpperCase() });
+	                    }
+	                    break;
+	            }
+	        });
+
+	        return attributes;
+	    },
+
 	    /**
 	     * Encodes a mailbox path to modified UTF-7 if the server does not support UTF8=ACCEPT.
 	     *
@@ -47073,7 +48940,7 @@ function requireTools () {
 	     */
 	    encodePath(connection, path) {
 	        path = (path || '').toString();
-	        if (!connection.enabled.has('UTF8=ACCEPT') && /[&\x00-\x08\x0b-\x0c\x0e-\x1f\u0080-\uffff]/.test(path)) {
+	        if (!connection.enabled.has('UTF8=ACCEPT') && !tools$1.isRev2Active(connection) && /[&\x00-\x08\x0b-\x0c\x0e-\x1f\u0080-\uffff]/.test(path)) {
 	            try {
 	                path = iconv.encode(path, 'utf-7-imap').toString();
 	            } catch {
@@ -47092,7 +48959,7 @@ function requireTools () {
 	     */
 	    decodePath(connection, path) {
 	        path = (path || '').toString();
-	        if (!connection.enabled.has('UTF8=ACCEPT') && /[&]/.test(path)) {
+	        if (!connection.enabled.has('UTF8=ACCEPT') && !tools$1.isRev2Active(connection) && /[&]/.test(path)) {
 	            try {
 	                path = iconv.decode(Buffer.from(path), 'utf-7-imap').toString();
 	            } catch {
@@ -47141,7 +49008,7 @@ function requireTools () {
 	        if (!a || !b) {
 	            return false;
 	        }
-	        return tools.normalizePath(connection, a) === tools.normalizePath(connection, b);
+	        return tools$1.normalizePath(connection, a) === tools$1.normalizePath(connection, b);
 	    },
 
 	    /**
@@ -47155,7 +49022,8 @@ function requireTools () {
 
 	        if (list && Array.isArray(list)) {
 	            list.forEach(val => {
-	                if (typeof val.value !== 'string') {
+	                // any entry can be a parsed NIL
+	                if (!val || typeof val.value !== 'string') {
 	                    return;
 	                }
 	                let capability = val.value.toUpperCase().trim();
@@ -47165,10 +49033,14 @@ function requireTools () {
 	                    return;
 	                }
 
+	                if (capability === 'IMAP4REV2') {
+	                    map.set('IMAP4rev2', true);
+	                    return;
+	                }
+
 	                if (capability.startsWith('APPENDLIMIT=')) {
 	                    let splitPos = capability.indexOf('=');
-	                    let appendLimit = Number(capability.substr(splitPos + 1)) || 0;
-	                    map.set('APPENDLIMIT', appendLimit);
+	                    map.set('APPENDLIMIT', tools$1.parseUintValue(capability.substr(splitPos + 1)) || 0);
 	                    return;
 	                }
 
@@ -47210,7 +49082,17 @@ function requireTools () {
 	            return false;
 	        }
 
-	        return (await compiler(response)).toString();
+	        try {
+	            return (await compiler(response)).toString();
+	        } catch {
+	            // The wire encoder refuses values that cannot be expressed as a valid IMAP
+	            // string, which is what keeps user-supplied data from breaking out of a
+	            // command. A server response is not held to that: the parser deliberately
+	            // tolerates stray bytes inside an OK/NO/BAD atom, and those bytes then have
+	            // no valid re-encoding. This text is diagnostic, so fall back to the logging
+	            // encoder rather than replacing the server's error with an encoding failure.
+	            return (await compiler(response, { isLogging: true })).toString();
+	        }
 	    },
 
 	    /**
@@ -47220,11 +49102,11 @@ function requireTools () {
 	     * @returns {Promise<Error>} The enhanced error with `serverResponseCode` and string `response`
 	     */
 	    async enhanceCommandError(err) {
-	        let errorCode = tools.getStatusCode(err.response);
+	        let errorCode = tools$1.getStatusCode(err.response);
 	        if (errorCode) {
 	            err.serverResponseCode = errorCode;
 	        }
-	        err.response = await tools.getErrorText(err.response);
+	        err.response = await tools$1.getErrorText(err.response);
 	        return err;
 	    },
 
@@ -47267,7 +49149,7 @@ function requireTools () {
 	                existing.path = folder.path;
 	                existing.subscribed = !!folder.subscribed;
 	                existing.listed = !!folder.listed;
-	                existing.status = !!folder.status;
+	                existing.status = folder.status;
 
 	                if (folder.specialUse) {
 	                    existing.specialUse = folder.specialUse;
@@ -47287,7 +49169,7 @@ function requireTools () {
 	                    path: folder.path,
 	                    subscribed: !!folder.subscribed,
 	                    listed: !!folder.listed,
-	                    status: !!folder.status
+	                    status: folder.status
 	                };
 
 	                if (folder.delimiter) {
@@ -47381,7 +49263,9 @@ function requireTools () {
 	    async formatMessageResponse(untagged, mailbox) {
 	        let map = {};
 
-	        map.seq = Number(untagged.command);
+	        // The sequence number indexes into mailbox state, so an unusable one is dropped rather
+	        // than coerced to NaN or Infinity
+	        map.seq = tools$1.parseUintValue(untagged.command, MAX_UINT32_DIGITS) || undefined;
 
 	        let key;
 	        let attributes = (untagged.attributes && untagged.attributes[1]) || [];
@@ -47398,10 +49282,12 @@ function requireTools () {
 	                    .replace(/<\d+(\.\d+)?>$/, '');
 	                continue;
 	            }
+	            /* c8 ignore start */ // defensive: key is always a string produced by the compiler above
 	            if (typeof key !== 'string') {
 	                // should not happen
 	                continue;
 	            }
+	            /* c8 ignore stop */
 
 	            let getString = attribute => {
 	                if (!attribute) {
@@ -47424,11 +49310,14 @@ function requireTools () {
 	                }
 	            };
 
-	            let getArray = attribute => {
-	                if (Array.isArray(attribute)) {
-	                    return attribute.map(entry => (entry && typeof entry.value === 'string' ? entry.value : false)).filter(entry => entry);
-	                }
-	            };
+	            // NIL (parsed as null) and other non-array values yield an empty array, so callers
+	            // can safely index into the result. RFC 8474 allows e.g. `THREADID NIL` when the
+	            // server has no thread relation to report.
+	            let getArray = attribute => tools$1.getStringList(attribute);
+
+	            // Counts, sizes and UIDs are written into mailbox state and into range
+	            // computations, so only a bounded decimal run is usable - see parseUintValue().
+	            let getUint = (attribute, maxDigits) => tools$1.parseUintValue(getString(attribute), maxDigits);
 
 	            switch (key) {
 	                case 'body[]':
@@ -47437,7 +49326,9 @@ function requireTools () {
 	                    break;
 
 	                case 'uid':
-	                    map.uid = Number(getString(attribute));
+	                    // A UID feeds mailbox.uidNext one line below, and from there every range
+	                    // computation, so an unusable one is dropped rather than coerced
+	                    map.uid = getUint(attribute, MAX_UINT32_DIGITS) || undefined;
 	                    // If the UID we just saw is >= the mailbox's uidNext, bump uidNext.
 	                    // This keeps the local uidNext estimate current without requiring a
 	                    // separate STATUS command, handling cases where new messages arrived
@@ -47447,14 +49338,22 @@ function requireTools () {
 	                    }
 	                    break;
 
-	                case 'modseq':
-	                    map.modseq = BigInt(getArray(attribute)[0]);
+	                case 'modseq': {
+	                    // BigInt() throws on a non-numeric or missing value, and the throw
+	                    // drops the whole message from the result set - so a malformed
+	                    // MODSEQ from the server must be skipped, not surfaced.
+	                    let modseq = tools$1.parseBigIntValue(getArray(attribute)[0]);
+	                    if (modseq === false) {
+	                        break;
+	                    }
+	                    map.modseq = modseq;
 	                    // Similarly, keep the local highestModseq estimate up to date.
 	                    // This is critical for CONDSTORE/QRESYNC delta syncing.
 	                    if (map.modseq && (!mailbox.highestModseq || mailbox.highestModseq < map.modseq)) {
 	                        mailbox.highestModseq = map.modseq;
 	                    }
 	                    break;
+	                }
 
 	                case 'emailid':
 	                    // OBJECTID extension (RFC 8474): server-assigned stable email identifier
@@ -47481,7 +49380,7 @@ function requireTools () {
 	                    break;
 
 	                case 'rfc822.size':
-	                    map.size = Number(getString(attribute)) || 0;
+	                    map.size = getUint(attribute) || 0;
 	                    break;
 
 	                case 'flags':
@@ -47489,11 +49388,11 @@ function requireTools () {
 	                    break;
 
 	                case 'envelope':
-	                    map.envelope = tools.parseEnvelope(attribute);
+	                    map.envelope = tools$1.parseEnvelope(attribute);
 	                    break;
 
 	                case 'bodystructure':
-	                    map.bodyStructure = tools.parseBodystructure(attribute);
+	                    map.bodyStructure = tools$1.parseBodystructure(attribute);
 	                    break;
 
 	                case 'internaldate': {
@@ -47523,6 +49422,19 @@ function requireTools () {
 	                            map.bodyParts = new Map();
 	                        }
 	                        map.bodyParts.set(partKey, value);
+
+	                        if (match[1].toLowerCase() === 'binary') {
+	                            // The part arrived via FETCH BINARY (RFC 3516, FETCH side folded
+	                            // into IMAP4rev2), so the server has already removed the
+	                            // content-transfer-encoding - consumers must not decode it again.
+	                            // Recorded from the actual response, not predicted from the
+	                            // request, so it stays correct even if a server answers a BINARY
+	                            // request with a BODY response or vice versa.
+	                            if (!map.binaryParts) {
+	                                map.binaryParts = new Set();
+	                            }
+	                            map.binaryParts.add(partKey);
+	                        }
 	                        break;
 	                    }
 	                    break;
@@ -47535,7 +49447,7 @@ function requireTools () {
 
 	            // normalize path to use ascii, so we would always get the same ID
 	            let path = mailbox.path;
-	            if (/[0x80-0xff]/.test(path)) {
+	            if (/[\u0080-\uffff]/.test(path)) {
 	                try {
 	                    path = iconv.encode(path, 'utf-7-imap').toString();
 	                } catch {
@@ -47543,6 +49455,10 @@ function requireTools () {
 	                }
 	            }
 
+	            // Non-cryptographic identifier: MD5 is used only to derive a stable, compact
+	            // account-unique id from non-secret data (path:uidValidity:uid). No security
+	            // property (collision/preimage resistance, secrecy) is relied upon, so a fast
+	            // hash is the appropriate choice here — not a security-sensitive use.
 	            map.id =
 	                map.emailId ||
 	                createHash('md5')
@@ -47551,7 +49467,7 @@ function requireTools () {
 	        }
 
 	        if (map.flags) {
-	            let flagColor = tools.getFlagColor(map.flags);
+	            let flagColor = tools$1.getFlagColor(map.flags);
 	            if (flagColor) {
 	                map.flagColor = flagColor;
 	            }
@@ -47575,6 +49491,17 @@ function requireTools () {
 	    },
 
 	    /**
+	     * Decodes an ENVELOPE text field for display: encoded words first, then the
+	     * surrounding quotes some servers leave in place.
+	     *
+	     * @param {String} value - Raw field value from an ENVELOPE response
+	     * @returns {String} Decoded, unquoted text
+	     */
+	    decodeText(value) {
+	        return tools$1.processName(libmime.decodeWords(value));
+	    },
+
+	    /**
 	     * Parses a raw IMAP ENVELOPE response into a structured envelope object.
 	     *
 	     * @param {Array} entry - Raw envelope data array from IMAP response
@@ -47591,23 +49518,41 @@ function requireTools () {
 	            if (Buffer.isBuffer(obj.value)) {
 	                return obj.value.toString();
 	            }
+	            /* c8 ignore next */ // defensive: envelope tokens are always string/Buffer/NIL, never another type
 	            return obj.value;
 	        };
 
 	        let processAddresses = function (list) {
+	                /* c8 ignore next 2 */ // defensive: processAddresses is only called with non-empty arrays, so the [] fallback is unreachable
 	                return []
 	                    .concat(list || [])
 	                    .map(addr => {
-	                        let address = (getStrValue(addr[2]) || '') + '@' + (getStrValue(addr[3]) || '');
-	                        if (address === '@') {
-	                            address = '';
+	                        if (!addr) {
+	                            // A NIL entry inside an address list: skip it instead of
+	                            // throwing on the dereference and dropping the message
+	                            return false;
 	                        }
-	                        return {
-	                            name: tools.processName(libmime.decodeWords(getStrValue(addr[0]))),
-	                            address
-	                        };
+
+	                        let name = tools$1.decodeText(getStrValue(addr[0]));
+	                        let mailbox = getStrValue(addr[2]) || '';
+	                        let host = getStrValue(addr[3]) || '';
+
+	                        if (!host) {
+	                            // RFC 9051 7.5.2: a NIL host field marks RFC 5322 group syntax, it is not
+	                            // an empty domain. A non-NIL mailbox then holds the group name phrase, a
+	                            // NIL one closes the group. Joining the fields anyway would invent an
+	                            // address that never appeared in the message, eg. "undisclosed-recipients@",
+	                            // so surface the group name as a display name and leave the address empty.
+	                            // End-of-group markers carry neither and the filter below drops them.
+	                            // The mirror case, a NIL mailbox with a host, is left alone on purpose:
+	                            // the grammar gives it no meaning, so a server sending it is simply
+	                            // malformed rather than signalling anything we could act on.
+	                            return { name: name || (mailbox && tools$1.decodeText(mailbox)), address: '' };
+	                        }
+
+	                        return { name, address: `${mailbox}@${host}` };
 	                    })
-	                    .filter(addr => addr.name || addr.address);
+	                    .filter(addr => addr && (addr.name || addr.address));
 	            },
 	            envelope = {};
 
@@ -47649,10 +49594,12 @@ function requireTools () {
 	        }
 
 	        if (entry[8] && entry[8].value) {
+	            /* c8 ignore next */ // the guard ensures getStrValue is truthy here, so the '' fallback is unreachable
 	            envelope.inReplyTo = (getStrValue(entry[8]) || '').toString().trim();
 	        }
 
 	        if (entry[9] && entry[9].value) {
+	            /* c8 ignore next */ // the guard ensures getStrValue is truthy here, so the '' fallback is unreachable
 	            envelope.messageId = (getStrValue(entry[9]) || '').toString().trim();
 	        }
 
@@ -47674,7 +49621,12 @@ function requireTools () {
 	        // BODYSTRUCTURE parameters come as flat key/value pairs: [key1, val1, key2, val2, ...]
 	        [].concat(arr || []).forEach((val, j) => {
 	            if (j % 2) {
-	                params[key] = libmime.decodeWords(((val && val.value) || '').toString());
+	                // Parameter names are server-controlled. The load-bearing check is the one in
+	                // the continuation pass below, where the value is an object; here the value is
+	                // always a string, which the __proto__ setter ignores anyway.
+	                if (!tools$1.isUnsafeKey(key)) {
+	                    params[key] = libmime.decodeWords(((val && val.value) || '').toString());
+	                }
 	            } else {
 	                key = ((val && val.value) || '').toString().toLowerCase();
 	            }
@@ -47708,6 +49660,14 @@ function requireTools () {
 
 	            actualKey = key.substr(0, match.index).toLowerCase();
 	            nr = Number(match[2]) || 0;
+
+	            if (tools$1.isUnsafeKey(actualKey)) {
+	                // A continuation key like "__proto__*0*" would group under "__proto__":
+	                // params['__proto__'] resolves to Object.prototype, so the grouping
+	                // writes below would mutate it (process-wide pollution). Drop the part.
+	                delete params[key];
+	                return;
+	            }
 
 	            if (!params[actualKey] || typeof params[actualKey] !== 'object') {
 	                params[actualKey] = {
@@ -47811,7 +49771,7 @@ function requireTools () {
 	                // body parameter parenthesized list
 	                if (i < node.length - 1) {
 	                    if (node[i]) {
-	                        curNode.parameters = tools.getStructuredParams(node[i]);
+	                        curNode.parameters = tools$1.getStructuredParams(node[i]);
 	                    }
 	                    i++;
 	                }
@@ -47821,7 +49781,7 @@ function requireTools () {
 
 	                // body parameter parenthesized list
 	                if (node[i]) {
-	                    curNode.parameters = tools.getStructuredParams(node[i]);
+	                    curNode.parameters = tools$1.getStructuredParams(node[i]);
 	                }
 	                i++;
 
@@ -47856,7 +49816,8 @@ function requireTools () {
 
 	                    // envelope of the encapsulated message
 	                    if (node[i]) {
-	                        curNode.envelope = tools.parseEnvelope([].concat(node[i] || []));
+	                        /* c8 ignore next */ // node[i] is truthy inside this guard, so the [] fallback is unreachable
+	                        curNode.envelope = tools$1.parseEnvelope([].concat(node[i] || []));
 	                    }
 	                    i++;
 
@@ -47912,7 +49873,7 @@ function requireTools () {
 	                if (Array.isArray(node[i]) && node[i].length) {
 	                    curNode.disposition = ((node[i][0] && node[i][0].value) || '').toString().toLowerCase();
 	                    if (Array.isArray(node[i][1])) {
-	                        curNode.dispositionParameters = tools.getStructuredParams(node[i][1]);
+	                        curNode.dispositionParameters = tools$1.getStructuredParams(node[i][1]);
 	                    }
 	                }
 	                i++;
@@ -47921,6 +49882,7 @@ function requireTools () {
 	            // body language
 	            if (i < node.length - 1) {
 	                if (node[i]) {
+	                    /* c8 ignore next */ // node[i] is truthy inside this guard, so the [] fallback is unreachable
 	                    curNode.language = [].concat(node[i] || []).map(val => ((val && val.value) || '').toString().toLowerCase());
 	                }
 	                i++;
@@ -47964,7 +49926,7 @@ function requireTools () {
 	        if (typeof value === 'string') {
 	            value = new Date(value);
 	        }
-	        if (!tools.isDate(value) || value.toString() === 'Invalid Date') {
+	        if (!tools$1.isDate(value) || value.toString() === 'Invalid Date') {
 	            return null;
 	        }
 	        return value;
@@ -47977,7 +49939,7 @@ function requireTools () {
 	     * @returns {String|undefined} Formatted date string, or undefined if invalid
 	     */
 	    formatDate(value) {
-	        value = tools.toValidDate(value);
+	        value = tools$1.toValidDate(value);
 	        if (!value) {
 	            return;
 	        }
@@ -47998,12 +49960,12 @@ function requireTools () {
 	     * @returns {String|undefined} Formatted date-time string, or undefined if invalid
 	     */
 	    formatDateTime(value) {
-	        value = tools.toValidDate(value);
+	        value = tools$1.toValidDate(value);
 	        if (!value) {
 	            return;
 	        }
 
-	        let dateStr = tools.formatDate(value).replace(/^0/, ' '); //starts with date-day-fixed with leading 0 replaced by SP
+	        let dateStr = tools$1.formatDate(value).replace(/^0/, ' '); //starts with date-day-fixed with leading 0 replaced by SP
 	        let timeStr = value.toISOString().substr(11, 8);
 
 	        return `${dateStr} ${timeStr} +0000`;
@@ -48044,35 +50006,154 @@ function requireTools () {
 	    },
 
 	    /**
+	     * Checks that a value is a valid IMAP sequence number or UID: a non-zero
+	     * 32-bit unsigned integer (nz-number in the RFC 9051 grammar). Guards range
+	     * expansion against untrusted server input such as 'Infinity' or '0:*'.
+	     *
+	     * @param {Number} value - Value to check
+	     * @returns {Boolean} True if the value is a valid sequence number/UID
+	     */
+	    isValidSequenceValue(value) {
+	        return Number.isSafeInteger(value) && value > 0 && value <= 0xffffffff;
+	    },
+
+	    /**
+	     * Checks that an untrusted response value is a pure decimal digit run no longer than
+	     * the given bound.
+	     *
+	     * `!isNaN(value)` is not usable for this: it also passes '1e5', ' 12 ', '0x10' and
+	     * 'Infinity'. BigInt() throws on all of them and Number() silently returns a value the
+	     * grammar never allowed, so both are wrong in a response handler that is only trying to
+	     * read one field. The length bound is checked before the pattern so an arbitrarily long
+	     * digit run is rejected without any conversion work.
+	     *
+	     * @param {*} value - Raw value from the response.
+	     * @param {Number} maxDigits - Maximum number of digits accepted.
+	     * @returns {Boolean} True if the value is a decimal string within the bound.
+	     */
+	    isDecimalString(value, maxDigits) {
+	        return typeof value === 'string' && value.length > 0 && value.length <= maxDigits && /^[0-9]+$/.test(value);
+	    },
+
+	    /**
+	     * Checks whether a server-supplied string is unsafe to use as a key on a plain object.
+	     * Assigning "__proto__" writes through the prototype setter instead of creating an own
+	     * property, and reading "constructor" or "prototype" resolves to an inherited member.
+	     *
+	     * @param {*} key - Candidate key from a server response.
+	     * @returns {Boolean} True if the key must not be used.
+	     */
+	    isUnsafeKey(key) {
+	        return UNSAFE_OBJECT_KEYS.has(key);
+	    },
+
+	    /**
+	     * Reads a parsed attribute list of atoms or strings (a flag list, a capability list) into
+	     * an array of strings. Any element can be a parsed NIL, and the list itself can be NIL,
+	     * so both levels are guarded here rather than at each call site.
+	     *
+	     * @param {*} list - Parsed attribute list from a response.
+	     * @returns {String[]} The string values, in order, with unusable entries dropped.
+	     */
+	    getStringList(list) {
+	        if (!Array.isArray(list)) {
+	            return [];
+	        }
+	        return list.map(entry => (entry && typeof entry.value === 'string' ? entry.value : false)).filter(entry => entry);
+	    },
+
+	    /**
+	     * Parses an untrusted decimal value from a server response into a BigInt.
+	     *
+	     * @param {*} value - Raw value from the response.
+	     * @param {Number} [maxDigits=MAX_NUMBER64_DIGITS] - Maximum number of digits accepted.
+	     * @returns {BigInt|false} The parsed value, or false when it is not usable.
+	     */
+	    parseBigIntValue(value, maxDigits) {
+	        if (!tools$1.isDecimalString(value, maxDigits || MAX_NUMBER64_DIGITS)) {
+	            return false;
+	        }
+	        return BigInt(value);
+	    },
+
+	    /**
+	     * Parses an untrusted decimal value from a server response into a Number. Values beyond
+	     * the safe integer range are rejected rather than rounded: a silently rounded count or
+	     * UID corrupts every range computation derived from it.
+	     *
+	     * @param {*} value - Raw value from the response.
+	     * @param {Number} [maxDigits=MAX_NUMBER64_DIGITS] - Maximum number of digits accepted.
+	     * @returns {Number|false} The parsed value, or false when it is not usable.
+	     */
+	    parseUintValue(value, maxDigits) {
+	        if (!tools$1.isDecimalString(value, maxDigits || MAX_NUMBER64_DIGITS)) {
+	            return false;
+	        }
+	        let num = Number(value);
+	        return Number.isSafeInteger(num) ? num : false;
+	    },
+
+	    /**
 	     * Expands an IMAP sequence range string (e.g. "1:3,5,7:9") into an array of numbers.
+	     *
+	     * Entries with endpoints that are not valid nz-numbers are skipped - the input
+	     * may come from an untrusted server, and 'Infinity' or similar garbage would
+	     * otherwise loop without bound. The whole set is expanded to at most
+	     * EXPANDED_RANGE_LIMIT entries in total: legitimate responses never reach the limit
+	     * (the mailbox would need that many messages), while hostile input is cut off
+	     * instead of exhausting memory. The total is capped, not just each range -
+	     * otherwise "1:16777216,1:16777216,..." would multiply the per-range bound by an
+	     * unbounded number of ranges.
 	     *
 	     * @param {String} range - IMAP sequence range string
 	     * @returns {Number[]} Array of expanded sequence numbers
 	     */
 	    expandRange(range) {
-	        return range.split(',').flatMap(entry => {
+	        let result = [];
+	        // Callers pass whatever the response parser produced for the sequence set, and a
+	        // malformed response can leave that as `false` (e.g. a VANISHED response carrying
+	        // only the (EARLIER) tag). Nothing to expand then, and throwing here would abort
+	        // the handler for the rest of the response.
+	        if (typeof range !== 'string') {
+	            return result;
+	        }
+	        for (let entry of range.split(',')) {
+	            if (result.length >= EXPANDED_RANGE_LIMIT) {
+	                break;
+	            }
 	            entry = entry.trim();
 	            let colon = entry.indexOf(':');
 	            if (colon < 0) {
-	                return Number(entry) || 0;
+	                let value = Number(entry);
+	                if (tools$1.isValidSequenceValue(value)) {
+	                    result.push(value);
+	                }
+	                continue;
 	            }
-	            let first = Number(entry.substr(0, colon)) || 0;
-	            let second = Number(entry.substr(colon + 1)) || 0;
+	            let first = Number(entry.substr(0, colon));
+	            let second = Number(entry.substr(colon + 1));
+	            if (!tools$1.isValidSequenceValue(first) || !tools$1.isValidSequenceValue(second)) {
+	                continue;
+	            }
 	            if (first === second) {
-	                return first;
+	                result.push(first);
+	                continue;
 	            }
-	            let list = [];
+	            // Remaining total budget doubles as the per-range bound
+	            let remaining = EXPANDED_RANGE_LIMIT - result.length;
 	            if (first < second) {
-	                for (let i = first; i <= second; i++) {
-	                    list.push(i);
+	                let last = Math.min(second, first + remaining - 1);
+	                for (let i = first; i <= last; i++) {
+	                    result.push(i);
 	                }
 	            } else {
-	                for (let i = first; i >= second; i--) {
-	                    list.push(i);
+	                let last = Math.max(second, first - remaining + 1);
+	                for (let i = first; i >= last; i--) {
+	                    result.push(i);
 	                }
 	            }
-	            return list;
-	        });
+	        }
+	        return result;
 	    },
 
 	    /**
@@ -48080,13 +50161,17 @@ function requireTools () {
 	     * charset decoder for JIS/ISO-2022-JP, otherwise delegates to iconv-lite.
 	     *
 	     * @param {String} [charset='ascii'] - Character set name
+	     * @param {Number} [maxBytes] - Bound for the bytes the decoder may buffer. Only
+	     *   relevant for the Japanese decoder, which must buffer its whole input before
+	     *   it can decode: without the bound a server could defeat a caller's maxBytes
+	     *   download limit simply by labelling the part with a Japanese charset.
 	     * @returns {Object} A stream decoder (Transform stream) for the charset
 	     */
-	    getDecoder(charset) {
+	    getDecoder(charset, maxBytes) {
 	        charset = (charset || 'ascii').toString().trim().toLowerCase();
 	        if (/^jis|^iso-?2022-?jp|^euc-?jp/.test(charset)) {
 	            // special case not supported by iconv-lite
-	            return new JPDecoder(charset);
+	            return new JPDecoder(charset, maxBytes);
 	        }
 
 	        return iconv.decodeStream(charset);
@@ -48108,7 +50193,9 @@ function requireTools () {
 	            return '';
 	        }
 
-	        list.sort((a, b) => a - b);
+	        // Deduplicate before sorting so that repeated values do not produce
+	        // overlapping/non-canonical tokens (e.g. [1,1,2,3] -> "1:3", not "1,1:3").
+	        list = Array.from(new Set(list)).sort((a, b) => a - b);
 
 	        let last = list[list.length - 1];
 	        let result = [[last]];
@@ -48131,8 +50218,17 @@ function requireTools () {
 	    }
 	};
 
-	tools_1 = tools;
-	return tools_1;
+	tools.exports = tools$1;
+
+	// Shared bound for expanding server-supplied sequence sets (see expandRange). Exported so
+	// other places that expand server sequences (e.g. ESEARCH ALL in commands/search.js) can
+	// apply the same absolute ceiling instead of inventing their own.
+	tools.exports.EXPANDED_RANGE_LIMIT = EXPANDED_RANGE_LIMIT;
+
+	// Exported so call sites can ask for the tighter 32-bit bound where the grammar requires it
+	// (UID, UIDVALIDITY, message counts) instead of the parsers' 63-bit default.
+	tools.exports.MAX_UINT32_DIGITS = MAX_UINT32_DIGITS;
+	return tools.exports;
 }
 
 var id;
@@ -48269,11 +50365,13 @@ function requireNamespace () {
 	if (hasRequiredNamespace) return namespace;
 	hasRequiredNamespace = 1;
 
+	const { hasCapability, getStringList } = /*@__PURE__*/ requireTools();
+
 	/**
 	 * Requests NAMESPACE info from the server.
 	 *
 	 * @param {Object} connection - IMAP connection instance
-	 * @returns {Promise<{prefix: string, delimiter: string}|{error: boolean, status: string, text: string}>} The primary personal namespace, or an error object on failure
+	 * @returns {Promise<{prefix: string, delimiter: string|null}|{error: boolean, status: string, text: string}>} The primary personal namespace, or an error object on failure
 	 */
 	namespace = async connection => {
 	    if (![connection.states.AUTHENTICATED, connection.states.SELECTED].includes(connection.state)) {
@@ -48281,7 +50379,7 @@ function requireNamespace () {
 	        return;
 	    }
 
-	    if (!connection.capabilities.has('NAMESPACE')) {
+	    if (!hasCapability(connection, 'NAMESPACE')) {
 	        // Fallback: when the server does not support the NAMESPACE extension (RFC 2342),
 	        // derive the prefix and delimiter from a LIST "" "" command, which returns
 	        // the hierarchy delimiter and root name for the default mailbox hierarchy.
@@ -48362,7 +50460,7 @@ function requireNamespace () {
 	                        return;
 	                    }
 
-	                    map.flags = new Set(untagged.attributes[0].map(entry => entry.value));
+	                    map.flags = new Set(getStringList(untagged.attributes[0]));
 	                    map.delimiter = untagged.attributes[1] && untagged.attributes[1].value;
 	                    map.prefix = (untagged.attributes[2] && untagged.attributes[2].value) || '';
 	                    if (map.delimiter && map.prefix.charAt(0) === map.delimiter) {
@@ -48383,7 +50481,7 @@ function requireNamespace () {
 	 * Parses namespace information from an IMAP NAMESPACE response attribute.
 	 *
 	 * @param {Array} attribute - Namespace attribute array from the server response
-	 * @returns {Array<{prefix: string, delimiter: string}>|boolean} Array of namespace entries, or false if empty
+	 * @returns {Array<{prefix: string, delimiter: string|null}>|boolean} Array of namespace entries, or false if empty
 	 */
 	function getNamsepaceInfo(attribute) {
 	    if (!attribute || !attribute.length) {
@@ -48391,10 +50489,15 @@ function requireNamespace () {
 	    }
 
 	    return attribute
-	        .filter(entry => entry.length >= 2 && typeof entry[0].value === 'string' && typeof entry[1].value === 'string')
+	        .filter(
+	            entry =>
+	                // RFC 2342 §5 allows the delimiter to be NIL when the namespace has
+	                // no hierarchy. The token parser emits a literal `null` for NIL.
+	                entry.length >= 2 && entry[0] && typeof entry[0].value === 'string' && (entry[1] === null || (entry[1] && typeof entry[1].value === 'string'))
+	        )
 	        .map(entry => {
 	            let prefix = entry[0].value;
-	            let delimiter = entry[1].value;
+	            let delimiter = entry[1] === null ? null : entry[1].value;
 
 	            // Append the delimiter to the prefix if it doesn't already end with one,
 	            // so callers can construct full paths by simply concatenating prefix + name.
@@ -48494,6 +50597,7 @@ function requireLogout () {
 	        }
 	        connection.log.warn({ err, cid: connection.id });
 	        return false;
+	        /* c8 ignore next */ // the catch above is exhaustive (never re-throws), so finally is only ever reached via normal completion
 	    } finally {
 	        // Set state to LOGOUT before closing to prevent any further commands from
 	        // being queued. The socket is closed unconditionally in this finally block
@@ -48530,6 +50634,9 @@ function requireStarttls () {
 	    let response;
 	    try {
 	        response = await connection.exec('STARTTLS');
+	        // Whether the server sent anything after the STARTTLS OK and before the TLS
+	        // handshake. upgradeToSTARTTLS() uses this to reject a plaintext injection.
+	        connection._starttlsHadTrailingData = !!(response && response.hasTrailingData);
 	        response.next();
 	        return true;
 	    } catch (err) {
@@ -48538,6 +50645,82 @@ function requireStarttls () {
 	    }
 	};
 	return starttls;
+}
+
+var statusFields;
+var hasRequiredStatusFields;
+
+function requireStatusFields () {
+	if (hasRequiredStatusFields) return statusFields;
+	hasRequiredStatusFields = 1;
+
+	const { parseBigIntValue, parseUintValue, MAX_UINT32_DIGITS } = /*@__PURE__*/ requireTools();
+
+	// STATUS data items (RFC 3501 section 6.3.10, RFC 7162 for HIGHESTMODSEQ, RFC 9051 for SIZE
+	// and DELETED) mapped to the property name each one is exposed under, together with the
+	// parser that turns the raw response token into a usable value. Shared by the STATUS command
+	// and by the inline STATUS responses of LIST-STATUS (RFC 5819) so the two cannot drift apart.
+	//
+	// Every parser rejects anything that is not a bounded decimal digit run, returning false.
+	// These values are server-controlled and several of them are written straight into the live
+	// mailbox state, where a NaN or a value coerced to Infinity corrupts every later range
+	// computation. A plain isNaN() test is not enough: it passes '1e5', ' 12 ' and 'Infinity',
+	// and BigInt() throws on all three, aborting the walk over the remaining fields.
+	const uint32 = value => parseUintValue(value, MAX_UINT32_DIGITS);
+
+	const STATUS_FIELDS = {
+	    MESSAGES: { key: 'messages', parser: uint32 },
+	    RECENT: { key: 'recent', parser: uint32 },
+	    UIDNEXT: { key: 'uidNext', parser: uint32 },
+	    // Nominally 32-bit, but stored as a BigInt precisely so a server that exceeds that still
+	    // round-trips, so the wider bound applies
+	    UIDVALIDITY: { key: 'uidValidity', parser: value => parseBigIntValue(value) },
+	    UNSEEN: { key: 'unseen', parser: uint32 },
+	    HIGHESTMODSEQ: { key: 'highestModseq', parser: value => parseBigIntValue(value) },
+	    // IMAP4rev2 additions (RFC 9051): total mailbox size in octets (number64, exact as a JS
+	    // number up to 2^53-1) and count of messages carrying the \Deleted flag
+	    SIZE: { key: 'size', parser: value => parseUintValue(value) },
+	    DELETED: { key: 'deleted', parser: uint32 }
+	};
+
+	/**
+	 * Walks a STATUS data-item list - alternating item-name and item-value tokens - and reports
+	 * every recognized field that parsed successfully. Unknown item names and unusable values are
+	 * skipped, so one bad field never costs the rest of the response.
+	 *
+	 * @param {Array} list - Parsed attribute list from the untagged STATUS response.
+	 * @param {Function} onField - Called as (key, value) for each usable field.
+	 */
+	const parseStatusList = (list, onField) => {
+	    let name;
+	    list.forEach((entry, i) => {
+	        if (i % 2 === 0) {
+	            name = entry && typeof entry.value === 'string' ? entry.value : false;
+	            return;
+	        }
+
+	        if (!name || !entry) {
+	            return;
+	        }
+
+	        // The item name is server-controlled, but uppercasing it before the lookup means no
+	        // Object.prototype member can be reached: every builtin name has a lowercase letter.
+	        const field = STATUS_FIELDS[name.toUpperCase()];
+	        if (!field) {
+	            return;
+	        }
+
+	        const value = field.parser(entry.value);
+	        if (value === false) {
+	            return;
+	        }
+
+	        onField(field.key, value);
+	    });
+	};
+
+	statusFields = { parseStatusList };
+	return statusFields;
 }
 
 var specialUse = {exports: {}};
@@ -48549,6 +50732,81 @@ function requireSpecialUse () {
 	hasRequiredSpecialUse = 1;
 	(function (module) {
 
+		// Generic mail nouns that decorate a special-use folder name without changing what
+		// it means: "Sent Mail", "Gelöschte Elemente", "Отправленные письма". Stripping them
+		// lets a decorated name fall back to its core word. A name that still has more than
+		// one meaningful word left after stripping is treated as a user folder and rejected,
+		// which is what separates "Sent Mail" (a real Sent folder) from "Sent to clients".
+		// Words that name a special-use folder on their own (like "bin") do not belong here,
+		// and neither do hyphenated words, since TOKEN_SPLIT below splits on the hyphen and
+		// no such token could ever be produced.
+		// Folded by construction so the set matches the form tokens are compared against,
+		// the same invariant the name tables are tested for.
+		const GENERIC_TOKENS = new Set(
+		    [
+		        // English. "e" is here because TOKEN_SPLIT breaks on the hyphen, so the
+		        // "e-mail" / "e-posta" / "e-kirjad" family arrives as a bare "e" token.
+		        'e',
+		        'mail',
+		        'mails',
+		        'email',
+		        'emails',
+		        'message',
+		        'messages',
+		        'item',
+		        'items',
+		        'folder',
+		        'my',
+		        // German, Dutch, Nordic
+		        'objekt',
+		        'objekte',
+		        'objekten',
+		        'objekter',
+		        'elemente',
+		        'elementen',
+		        'elementer',
+		        'nachrichten',
+		        'berichten',
+		        'post',
+		        'poster',
+		        'viestit',
+		        'kirjad',
+		        'meldinger',
+		        'beskeder',
+		        // Romance
+		        'correo',
+		        'posta',
+		        'courrier',
+		        'elementos',
+		        'elementi',
+		        'éléments',
+		        'mensajes',
+		        'messaggi',
+		        'mensagens',
+		        'itens',
+		        // Slavic
+		        'poczta',
+		        'pošta',
+		        'elementy',
+		        'wiadomości',
+		        'položky',
+		        'správy',
+		        'письма',
+		        'письмо',
+		        'элементы',
+		        'сообщения',
+		        'пошта',
+		        // Other
+		        'öğeler',
+		        'mesajlar',
+		        'μηνύματα',
+		        'στοιχεία'
+		    ].map(token => token.toLowerCase().normalize('NFKC'))
+		);
+
+		// Word separators seen in folder names across clients.
+		const TOKEN_SPLIT = /[\s\-_/.,()[\]]+/;
+
 		// Localized folder name mappings for detecting special-use mailboxes.
 		// When the server does not advertise the SPECIAL-USE extension (RFC 6154),
 		// we fall back to matching folder names against these lists of known
@@ -48558,308 +50816,842 @@ function requireSpecialUse () {
 		    names: {
 		        '\\Sent': [
 		            'aika',
+		            'air a chur',
+		            'am post cuirte',
+		            'anfonwyd',
+		            'bidalia',
 		            'bidaliak',
 		            'bidalita',
+		            'bidalitakoak',
+		            'currieru mandatu',
+		            'danfonwyd',
 		            'dihantar',
 		            'e rometsweng',
 		            'e tindami',
-		            'elküldött',
-		            'elküldöttek',
 		            'elementos enviados',
-		            'éléments envoyés',
-		            'enviadas',
+		            'elküldött',
+		            'elküldött elemek',
+		            'elküldött üzenetek',
+		            'elküldöttek',
 		            'enviadas',
 		            'enviados',
+		            'enviat',
 		            'enviats',
 		            'envoyés',
 		            'ethunyelweyo',
 		            'expediate',
 		            'ezipuru',
+		            'ferstjoerd',
+		            'gesendet',
 		            'gesendete',
 		            'gesendete elemente',
 		            'gestuur',
+		            'gönderilmiş',
 		            'gönderilmiş öğeler',
 		            'göndərilənlər',
+		            'hantar',
 		            'iberilen',
+		            'inviata',
+		            'inviate',
 		            'inviati',
+		            'išsiųsti',
+		            'išsiųsti laiškai',
 		            'išsiųstieji',
+		            'jo`natilgan xatlar',
+		            'jo‘natilgan',
+		            'kaset',
 		            'kuthunyelwe',
+		            'küldöttek',
 		            'lasa',
 		            'lähetetyt',
+		            'mesaje trimise',
 		            'messages envoyés',
 		            'naipadala',
 		            'nalefa',
 		            'napadala',
+		            'nosūtīts',
+		            'nosūtītās',
 		            'nosūtītās ziņas',
-		            'odeslané',
 		            'odeslaná pošta',
+		            'odeslané',
+		            'odoslaná',
+		            'odoslaná pošta',
+		            'odoslané',
 		            'padala',
+		            'poslana pošta',
 		            'poslane',
-		            'poslano',
 		            'poslano',
 		            'poslané',
 		            'poslato',
+		            'posta inviata',
+		            'pósłane',
+		            'pósłany',
 		            'saadetud',
 		            'saadetud kirjad',
 		            'saadetud üksused',
+		            'senditujo',
 		            'sendt',
-		            'sendt',
+		            'sendt post',
+		            'sendte',
+		            'sendte beskeder',
 		            'sent',
 		            'sent items',
 		            'sent messages',
+		            'seolta',
+		            'siūsti',
+		            'skickat',
 		            'sända poster',
 		            'sänt',
+		            'sūtīt',
 		            'terkirim',
+		            'thư đã gửi',
 		            'ti fi ranṣẹ',
+		            'titaq',
+		            'tramess',
+		            'trimis',
+		            'trimise',
+		            'ttwaznen',
+		            'të dërguar',
 		            'të dërguara',
+		            'unviaos',
+		            'unvios fechos',
+		            'verschéckt',
 		            'verzonden',
+		            'verzonden berichten',
 		            'vilivyotumwa',
 		            'wysłane',
+		            'éléments envoyés',
 		            'đã gửi',
+		            'şandî',
+		            'απεσταλμένα',
 		            'σταλθέντα',
+		            'адпраўлена',
 		            'жиберилген',
+		            'жіберілген',
+		            'жіберілген хаттар',
 		            'жіберілгендер',
 		            'изпратени',
+		            'изпратени писма',
 		            'илгээсэн',
 		            'ирсол шуд',
+		            'испратени',
 		            'испратено',
 		            'надіслані',
 		            'отправленные',
 		            'пасланыя',
+		            'послате',
+		            'послато',
+		            'пратени',
 		            'юборилган',
+		            'ուղարկուած',
 		            'ուղարկված',
+		            'נשלח',
 		            'נשלחו',
 		            'פריטים שנשלחו',
+		            'ئەۋەتىلگەن',
+		            'ارسال شده',
+		            'ارسالی',
+		            'البريد المرسل',
+		            'المرسل',
 		            'المرسلة',
+		            'المُرسَل',
+		            'بھیجا ہوا میل',
 		            'بھیجے گئے',
 		            'سوزمژہ',
+		            'لېږل شوي ليکونه',
 		            'لېګل شوی',
 		            'موارد ارسال شده',
+		            'مُرسَل',
+		            'نێردراو',
+		            'पठईएका मेलहरु',
+		            'पाठवलेले',
 		            'पाठविले',
 		            'पाठविलेले',
 		            'प्रेषित',
 		            'भेजा गया',
+		            'भेजे गए',
+		            'পাঠানো হয়েছে',
 		            'প্রেরিত',
-		            'প্রেরিত',
+		            'প্রেরিত(পাঠানো মেইল)',
 		            'প্ৰেৰিত',
 		            'ਭੇਜੇ',
 		            'મોકલેલા',
+		            'મોકલેલ્યા',
 		            'ପଠାଗଲା',
+		            'அனுப்பிய அஞ்சல்',
 		            'அனுப்பியவை',
 		            'పంపించబడింది',
 		            'ಕಳುಹಿಸಲಾದ',
+		            'അയച്ചവ',
 		            'അയച്ചു',
 		            'යැවු පණිවුඩ',
+		            'යැවූ',
+		            'ที่ส่งแล้ว',
+		            'ส่ง',
 		            'ส่งแล้ว',
 		            'გაგზავნილი',
+		            'ዝተለኣኸ',
 		            'የተላኩ',
 		            'បាន​ផ្ញើ',
-		            '寄件備份',
+		            'សំបុត្រដែលបានបញ្ជូន',
 		            '寄件備份',
 		            '已发信息',
-		            '送信済みﾒｰﾙ',
+		            '已发送',
+		            '已发送消息',
+		            '已发送邮件',
+		            '送信済み',
+		            '送信済みアイテム',
+		            '送信済みトレイ',
+		            '送信済みメール',
 		            '발신 메시지',
-		            '보낸 편지함'
+		            '보낸 편지함',
+		            '보냄'
 		        ],
 		        '\\Trash': [
+		            'an sgudal',
 		            'articole șterse',
+		            'atkritne',
 		            'bin',
+		            'borttaget',
 		            'borttagna objekt',
+		            'bosca bruscair',
+		            'bruscar',
+		            'cestino',
+		            'chanaster da palpiri',
+		            'chiqitdon',
+		            'corbe a papiro',
+		            'corbeille',
+		            'coș de gunoi',
+		            'curbella',
 		            'deleted',
 		            'deleted items',
 		            'deleted messages',
+		            'dzēstie vienumi',
 		            'elementi eliminati',
 		            'elementos borrados',
 		            'elementos eliminados',
-		            'gelöschte objekte',
+		            'elements suprimits',
+		            'eliminata',
+		            'gelöscht',
 		            'gelöschte elemente',
+		            'gelöschte objekte',
+		            'gunoi',
+		            'hedhurina',
 		            'item dipadam',
 		            'itens apagados',
+		            'itens eliminados',
 		            'itens excluídos',
+		            'ištrinti',
+		            'iḍuman',
+		            'jiskefet',
+		            'jêbirdank',
+		            'kanta',
+		            'kest',
+		            'kosz',
+		            'koš',
+		            'kuka',
+		            'kustutatud',
 		            'kustutatud üksused',
+		            'kôš',
+		            'lixeira',
+		            'lixo',
+		            'lomtár',
+		            'molwuj',
 		            'mục đã xóa',
-		            'odstraněné položky',
+		            'obrisane stavke',
+		            'odpadkový kôš',
 		            'odstraněná pošta',
+		            'odstraněné položky',
+		            'papeleira',
+		            'papelera',
+		            'paperera',
+		            'papierkorb',
+		            'papirkorg',
+		            'papirkurv',
+		            'papjernik',
+		            'papperskorg',
+		            'papperskorgen',
+		            'papīrgrozs',
+		            'papīrkurvis',
 		            'pesan terhapus',
+		            'pod-lastez',
 		            'poistetut',
+		            'poubelle',
 		            'praht',
+		            'prullenbak',
 		            'prügikast',
+		            'reciclagem',
+		            'roskakori',
+		            'rubujo',
+		            'rusl',
+		            'savat',
+		            'sbwriel',
+		            'sgudal',
 		            'silinmiş öğeler',
+		            'skrell',
+		            'sletta',
 		            'slettede beskeder',
 		            'slettede elementer',
+		            'slettet',
+		            'smeti',
+		            'smeće',
+		            'snippermandjie',
+		            'surat terhapus',
+		            'səbət',
+		            'thùng rác',
+		            'tong sampah',
 		            'trash',
-		            'törölt elemek',
 		            'törölt',
+		            'törölt elemek',
+		            'usunięte',
 		            'usunięte wiadomości',
 		            'verwijderde items',
 		            'vymazané správy',
+		            'zakarrontzia',
+		            'çöp',
+		            'çöp kutusu',
 		            'éléments supprimés',
+		            'šiukšliadėžė',
+		            'šiukšlinė',
+		            'šiukšlių dėžė',
+		            'șterse',
+		            'απορρίμματα',
+		            'διαγραμμένα',
+		            'κάδος απορριμάτων',
+		            'κάδος απορριμμάτων',
 		            'видалені',
+		            'выдаленыя',
 		            'жойылғандар',
+		            'избришани',
+		            'изтрити',
+		            'канта',
+		            'корзина',
+		            'корпа',
+		            'кошик',
+		            'кошче',
+		            'обрисане ставке',
+		            'себет',
+		            'сметніца',
+		            'смеће',
+		            'смітник',
 		            'удаленные',
+		            'удалённые',
+		            'хогийн сав',
+		            'қоқыс шелегі',
+		            'աղբարկղ',
+		            'אשפה',
 		            'פריטים שנמחקו',
+		            'اشغال دانی',
 		            'العناصر المحذوفة',
+		            'المهملات',
+		            'ردی کی ٹوکری',
+		            'زباله‌دان',
+		            'زبڵدان',
 		            'موارد حذف شده',
+		            'مُهملات',
+		            'کثافت دانۍ',
+		            'कचरा',
+		            'कचरा पेटी',
+		            'रद्दी',
+		            'रद्दी टोकरी',
+		            'ঝুড়ি',
+		            'ডাস্টবিন',
+		            'કચરો',
+		            'குப்பை',
+		            'ചവറ്റുകുട്ട',
+		            'ඉවතලන බඳුන',
+		            'ถังขยะ',
 		            'รายการที่ลบ',
+		            'ნაგავი',
+		            'ურნა',
+		            'წაშლილი',
+		            'እንዳጉሓፍ',
+		            'ធុងសំរាម',
+		            'ごみ箱',
+		            'ゴミ箱',
+		            '削除済みアイテム',
+		            '回收站',
+		            '垃圾桶',
 		            '已删除邮件',
 		            '已刪除項目',
-		            '已刪除項目'
+		            '废件箱',
+		            '지운 편지함',
+		            '휴지통'
 		        ],
 		        '\\Junk': [
+		            'aspam',
+		            'basura',
+		            'brukalas',
 		            'bulk mail',
+		            'cajk',
+		            'correo basura',
+		            'correo lixo',
 		            'correo no deseado',
+		            'correu brossa',
+		            'corréu puxarra',
 		            'courrier indésirable',
+		            'dramhaíl',
+		            'dramhphost',
+		            'gemors',
+		            'gemorspos',
+		            'gereksiz',
+		            'indesiderata',
+		            'indesirate',
+		            'indésirables',
 		            'istenmeyen',
 		            'istenmeyen e-posta',
+		            'i̇stenmeyen',
 		            'junk',
 		            'junk e-mail',
 		            'junk email',
+		            'junk mail',
 		            'junk-e-mail',
+		            'kéretlen',
+		            'lastez',
 		            'levélszemét',
+		            'lixo electrónico',
+		            'lixo eletrónico',
+		            'lixo eletrônico',
+		            'mel remeh',
+		            'mesaje nedorite',
+		            'møsn',
+		            'mēstule',
+		            'mēstules',
+		            'nepoželjne',
+		            'nesolicitate',
+		            'net-winske',
 		            'nevyžiadaná pošta',
+		            'nevyžádaná',
 		            'nevyžádaná pošta',
+		            'nevēlams',
+		            'nezaželeno',
+		            'neželena pošta',
+		            'neželena sporočila',
+		            'neželjena pošta',
+		            'niechciane',
 		            'no deseado',
+		            'nungiavischà',
+		            'ongewenst',
+		            'ongewenste e-mail',
 		            'posta indesiderata',
+		            'posta indesirate',
 		            'pourriel',
+		            'pourriels',
+		            'puxarra',
+		            'roskaa',
 		            'roskaposti',
+		            'roskapostit',
+		            'ruslpóstur',
+		            'rämps',
 		            'rämpspost',
+		            'sbam',
+		            "seq'",
+		            'skräp',
 		            'skräppost',
-		            'spam',
+		            'sothach',
 		            'spam',
 		            'spamowanie',
+		            'spamujo',
+		            'stroboù',
+		            'szemét',
 		            'søppelpost',
 		            'thư rác',
+		            'truilleis',
+		            'të pavlera',
+		            'të pavlerë',
+		            'uønsket',
+		            'uønsket e-mail',
+		            'uønsket e-post',
+		            'uønsket post',
+		            'uønskt',
 		            'wiadomości-śmieci',
+		            'zabor-posta',
+		            'zaborra',
+		            'önemsiz',
+		            'čapor',
+		            'šiukšlės',
+		            'šlamštas',
+		            'ανεπιθύμητα',
+		            'ανεπιθύμητη αλληλογραφία',
+		            'небажана пошта',
+		            'нежелана поща',
+		            'нежелательная почта',
+		            'непажаданая пошта',
+		            'непожељна пошта',
+		            'непожељне',
+		            'непожељно',
+		            'непосакувана пошта',
 		            'спам',
+		            'қалаусыз пошта',
+		            'անպիտան',
+		            'թափոն',
+		            'սպամ',
 		            'דואר זבל',
+		            'זבל',
 		            'الرسائل العشوائية',
+		            'الرسائل غير المرغوب فيها',
+		            'بنجل',
+		            'بیکاره',
+		            'بێکه‌ڵک',
+		            'جنک',
+		            'جنک میل',
+		            'سُخام',
+		            'غير المرغوب',
 		            'هرزنامه',
+		            'नको असलेले कचरा संदेश',
+		            'स्पाम',
+		            'स्पैम',
+		            'আজেবাজে মেইল',
+		            'எரிதம்',
+		            'ആവശ്യമില്ലാത്തവ',
+		            'සුන්බුන්',
+		            'กล่องจดหมายขยะ',
+		            'ขยะ',
 		            'สแปม',
-		            '垃圾郵件',
+		            'อีเมลขยะ',
+		            'სპამი',
+		            'ჯართი',
+		            'እንዳቅንጠመንጢ',
+		            'សំបុត្រមិនល្អ',
+		            'ឥត​បាន​ការ',
+		            '垃圾',
+		            '垃圾信件',
 		            '垃圾邮件',
-		            '垃圾電郵'
+		            '垃圾郵件',
+		            '垃圾電郵',
+		            '迷惑メール',
+		            '스팸',
+		            '스팸 편지함',
+		            '정크',
+		            '정크 메일'
 		        ],
 		        '\\Drafts': [
+		            'arewway',
 		            'ba brouillon',
-		            'borrador',
 		            'borrador',
 		            'borradores',
 		            'bozze',
+		            'brouilhedoù',
+		            'brouillonen',
 		            'brouillons',
+		            'bruttacopie',
 		            'bản thảo',
 		            'ciorne',
 		            'concepten',
 		            'draf',
+		            'drafftiau',
 		            'draft',
 		            'drafts',
+		            'dreachdan',
+		            'dréachtaí',
 		            'drög',
 		            'entwürfe',
 		            'esborranys',
+		            'esbossos',
 		            'garalamalar',
 		            'ihe edeturu',
 		            'iidrafti',
 		            'izinhlaka',
 		            'juodraščiai',
+		            'jusamaj',
 		            'kladd',
+		            'kladdar',
 		            'kladder',
-		            'koncepty',
 		            'koncepty',
 		            'konsep',
 		            'konsepte',
+		            'konsepten',
 		            'kopie robocze',
 		            'layihələr',
 		            'luonnokset',
+		            'malnetujo',
 		            'melnraksti',
 		            'meralo',
+		            'mesaje nefinalizate',
 		            'mesazhe të padërguara',
 		            'mga draft',
 		            'mustandid',
+		            'nacerjenja',
 		            'nacrti',
-		            'nacrti',
+		            'naćiski',
+		            'nedovršene',
+		            'nedovršeno',
+		            'onvoltooid',
 		            'osnutki',
 		            'piszkozatok',
+		            'qaralamalar',
+		            'qoralama xatlar',
+		            'qoralamalar',
 		            'rascunhos',
 		            'rasimu',
+		            'reşnivîs',
+		            'rozepsané',
+		            'sbozs',
+		            'skica',
 		            'skice',
+		            'skitsur',
+		            'szkice',
+		            'taslak',
 		            'taslaklar',
+		            'thư nháp',
 		            'tsararrun saƙonni',
 		            'utkast',
+		            'uzmetumi',
 		            'vakiraoka',
+		            'versiones provisori',
 		            'vázlatok',
+		            'wersje robocze',
 		            'zirriborroak',
 		            'àwọn àkọpamọ́',
+		            'προσχέδια',
 		            'πρόχειρα',
+		            'драфтови',
+		            'жоба жазбалар',
 		            'жобалар',
 		            'нацрти',
+		            'недовршене',
+		            'недовршено',
+		            'непратени',
 		            'нооргууд',
+		            'ноорог',
 		            'сиёҳнавис',
+		            'скици',
 		            'хомаки хатлар',
 		            'чарнавікі',
 		            'чернетки',
 		            'чернови',
 		            'черновики',
 		            'черновиктер',
-		            'սևագրեր',
+		            'шимай қағаз',
+		            'սեւագրեր',
 		            'טיוטות',
+		            'المسودات',
+		            'بارليک',
+		            'قوليازمىلار',
 		            'مسودات',
-		            'مسودات',
+		            'مسوّدات',
 		            'موسودې',
+		            'نامه های ناتکمیل',
 		            'پیش نویسها',
+		            'پیش‌نویس‌ها',
+		            'ڈرافٹ',
 		            'ڈرافٹ/',
-		            'ड्राफ़्ट',
+		            'ڕه‌شنووسەکان',
+		            'ड्राफ़ट',
+		            'ड्राफ़्ट',
+		            'ड्राफ्ट',
+		            'ड्राफ्टहरू',
 		            'प्रारूप',
-		            'খসড়া',
-		            'খসড়া',
+		            'मसुदा',
+		            'খসড়া',
 		            'ড্ৰাফ্ট',
 		            'ਡ੍ਰਾਫਟ',
+		            'ડ્રાફ્ટ',
 		            'ડ્રાફ્ટસ',
 		            'ଡ୍ରାଫ୍ଟ',
 		            'வரைவுகள்',
 		            'చిత్తు ప్రతులు',
 		            'ಕರಡುಗಳು',
 		            'കരടുകള്‍',
+		            'ഡ്രാഫ്റ്റുകൾ',
+		            'പൂര്‍ത്തിയാകാത്തവ',
+		            'කටු සටහන්',
 		            'කෙටුම් පත්',
+		            'กล่องจดหมายร่าง',
 		            'ฉบับร่าง',
+		            'ร่าง',
+		            'လိက်အပြောံ',
+		            'დროებითი',
 		            'მონახაზები',
+		            'წინასწარი',
 		            'ረቂቆች',
+		            'ወጡን ጽሑፍ',
 		            'សារព្រាង',
+		            'សេចក្ដី​ព្រាង​',
+		            'សំបុត្រពង្រៀង',
 		            '下書き',
 		            '草稿',
-		            '草稿',
-		            '草稿',
-		            '임시 보관함'
+		            '草稿匣',
+		            '草稿箱',
+		            '임시 보관함',
+		            '초안'
 		        ],
 
-		        '\\Archive': ['archive']
-		    },
-
-		    specialUse(hasSpecialUseExtension, folder) {
-		        // If the server supports SPECIAL-USE (RFC 6154), check for special-use flags first.
-		        // Extension-provided flags take precedence over name-based detection because they
-		        // are authoritative -- the server explicitly marks the folder's role.
-		        if (hasSpecialUseExtension) {
-		            const flag = module.exports.flags.find(flag => folder.flags.has(flag));
-		            if (flag) {
-		                return { flag, source: 'extension' };
-		            }
-		        }
-
-		        // Fallback: match folder name against known localized names.
-		        // Remove U+200E (LEFT-TO-RIGHT MARK) which some mail clients (especially for
-		        // RTL languages like Arabic, Hebrew) insert into folder names for display purposes.
-		        // These invisible marks would otherwise prevent exact string matching.
-		        let name = folder.name
-		            .toLowerCase()
-		            .replace(/\u200e/g, '')
-		            .trim();
-
-		        const flag = Object.keys(module.exports.names).find(flag => module.exports.names[flag].includes(name));
-		        if (flag) {
-		            return { flag, source: 'name' };
-		        }
-
-		        return { flag: null };
+		        '\\Archive': [
+		            'an chartlann',
+		            'archief',
+		            'archieven',
+		            'archif',
+		            'archifau',
+		            'archiv',
+		            'archivados',
+		            'archivar',
+		            'archive',
+		            'archives',
+		            'archivi',
+		            'archivio',
+		            'archivo',
+		            'archivos',
+		            'archivovať',
+		            'archivs',
+		            'archivu',
+		            'archiválás',
+		            'archiwum',
+		            'archiwy',
+		            'archyvas',
+		            'archyvuoti',
+		            'archív',
+		            'archívum',
+		            'archívy',
+		            'argief',
+		            'argiven',
+		            'argyf',
+		            'arhiiv',
+		            'arhiv',
+		            'arhiva',
+		            'arhive',
+		            'arhivi',
+		            'arhivă',
+		            'arhīvi',
+		            'arhīvs',
+		            'arkib',
+		            'arkisto',
+		            'arkiv',
+		            'arkiva',
+		            'arkiver',
+		            'arkivo',
+		            'arkivoje',
+		            'arquivamento',
+		            'arquivo',
+		            'arquivo morto',
+		            'arquivos',
+		            'arsip',
+		            'artxibatu',
+		            'artxiboa',
+		            'artxiboak',
+		            'arxiu',
+		            'arxiv',
+		            'arxivlar',
+		            'arşiv',
+		            'arşivler',
+		            'aḥraz',
+		            'cartlanna',
+		            'diell',
+		            'dielloù',
+		            'erşîv',
+		            'geymsla',
+		            'goym í skjalasavni',
+		            'iɣbaren',
+		            'lưu trữ',
+		            'skjalageymsla',
+		            "taq yakb'äl",
+		            'tasg-lannan',
+		            'αρχειοθέτηση',
+		            'αρχειοθήκη',
+		            'архив',
+		            'архива',
+		            'архиве',
+		            'архиви',
+		            'архивирай',
+		            'архивтер',
+		            'архивы',
+		            'архів',
+		            'архіви',
+		            'архівы',
+		            'архіў',
+		            'мұрағат',
+		            'արխիվ',
+		            'արխիւներ',
+		            'ארכיון',
+		            'أرشفة',
+		            'أرشيف',
+		            'ئارخىپ',
+		            'ئەرشیف',
+		            'ارشیو',
+		            'الأرشيف',
+		            'بایگانی',
+		            'जतन केलेला',
+		            'संग्रह',
+		            'ശേഖരം',
+		            'සංරක්‍ෂණය',
+		            'การเก็บถาวร',
+		            'ที่เก็บถาวร',
+		            'არქივები',
+		            'არქივი',
+		            'ប័ណ្ណសារ',
+		            'ប័ណ្ណសារ​',
+		            'アーカイブ',
+		            '備存',
+		            '存档',
+		            '存檔',
+		            '封存',
+		            '归档',
+		            '보관 편지함',
+		            '보관함',
+		            '저장 편지함'
+		        ]
 		    }
+		};
+
+		// Exact lookup index over the tables above, built once at module load. `names` is
+		// treated as read-only from here on; nothing in the library mutates it after this point.
+		const NAME_INDEX = new Map();
+		for (let flag of Object.keys(module.exports.names)) {
+		    for (let entry of module.exports.names[flag]) {
+		        NAME_INDEX.set(entry, flag);
+		    }
+		}
+
+		// Fold a folder name into the form the name tables are stored in.
+		// Remove U+200E (LEFT-TO-RIGHT MARK) which some mail clients (especially for
+		// RTL languages like Arabic, Hebrew) insert into folder names for display purposes.
+		// These invisible marks would otherwise prevent exact string matching.
+		// Normalize with NFKC last: the same folder name can arrive in different but
+		// equivalent forms depending on the client that created it, and matching is exact.
+		// NFKC rather than NFC because the compatibility folding is what maps halfwidth
+		// katakana and fullwidth Latin onto the regular forms that servers actually send.
+		// Every entry in the tables above is stored in NFKC form, which a test asserts.
+		function normalizeName(name) {
+		    return name
+		        .toLowerCase()
+		        .replace(/\u200e/g, '')
+		        .trim()
+		        .normalize('NFKC');
+		}
+
+		module.exports.specialUse = (hasSpecialUseExtension, folder) => {
+		    // If the server supports SPECIAL-USE (RFC 6154), check for special-use flags first.
+		    // Extension-provided flags take precedence over name-based detection because they
+		    // are authoritative -- the server explicitly marks the folder's role.
+		    if (hasSpecialUseExtension) {
+		        const flag = module.exports.flags.find(flag => folder.flags.has(flag));
+		        if (flag) {
+		            return { flag, source: 'extension' };
+		        }
+		    }
+
+		    let name = normalizeName(folder.name);
+
+		    // Fallback 1: the name is exactly a known localized folder name.
+		    let flag = NAME_INDEX.get(name);
+		    if (flag) {
+		        return { flag, source: 'name' };
+		    }
+
+		    // Fallback 2: the name is a known folder name decorated with generic mail nouns
+		    // ("Sent Mail", "Otpravlennye pisma"). Stripping them has to leave exactly one word,
+		    // and that word still has to be a known name - this tier never matches approximately.
+		    // Reported as a separate, lower priority source because the decoration makes it a
+		    // weaker signal than an exactly named folder.
+		    let core = name.split(TOKEN_SPLIT).filter(token => token && !GENERIC_TOKENS.has(token));
+		    if (core.length === 1 && core[0] !== name) {
+		        flag = NAME_INDEX.get(core[0]);
+		        if (flag) {
+		            return { flag, source: 'name-guess' };
+		        }
+		    }
+
+		    return { flag: null };
 		}; 
 	} (specialUse));
 	return specialUse.exports;
@@ -48872,7 +51664,17 @@ function requireList () {
 	if (hasRequiredList) return list;
 	hasRequiredList = 1;
 
-	const { decodePath, encodePath, normalizePath } = /*@__PURE__*/ requireTools();
+	const {
+	    decodePath,
+	    encodePath,
+	    normalizePath,
+	    enhanceCommandError,
+	    hasCapability,
+	    isRev2Active,
+	    buildStatusQueryAttributes,
+	    getStringList
+	} = /*@__PURE__*/ requireTools();
+	const { parseStatusList } = /*@__PURE__*/ requireStatusFields();
 	const { specialUse } = /*@__PURE__*/ requireSpecialUse();
 
 	/**
@@ -48895,63 +51697,90 @@ function requireList () {
 	    // Used in the final sort to group special-use mailboxes at the top of the list.
 	    const FLAG_SORT_ORDER = ['\\Inbox', '\\Flagged', '\\Sent', '\\Drafts', '\\All', '\\Archive', '\\Junk', '\\Trash'];
 	    // Priority for how a special-use flag was determined: explicit user hint > server
-	    // extension flag (SPECIAL-USE/XLIST) > name-based guess. When multiple mailboxes
-	    // claim the same special-use type, the highest-priority source wins.
-	    const SOURCE_SORT_ORDER = ['user', 'extension', 'name'];
+	    // extension flag (SPECIAL-USE/XLIST) > known localized name > relaxed name guess.
+	    // When multiple mailboxes claim the same special-use type, the highest-priority
+	    // source wins, so an exactly named folder beats one matched by a decorated or
+	    // morphological variant of that name.
+	    const SOURCE_SORT_ORDER = ['user', 'extension', 'name', 'name-guess'];
+	    // "name-guess" is an internal precedence tier only. It is reported as "name" so
+	    // that specialUseSource keeps its documented set of values for consumers.
+	    const PUBLIC_SOURCE = { 'name-guess': 'name' };
+	    const isNameSource = source => source === 'name' || source === 'name-guess';
 
 	    // Prefer XLIST (legacy Gmail extension) only if SPECIAL-USE (RFC 6154) is unavailable.
 	    // Both provide special-use flags, but SPECIAL-USE is the standardized approach.
-	    let listCommand = connection.capabilities.has('XLIST') && !connection.capabilities.has('SPECIAL-USE') ? 'XLIST' : 'LIST';
+	    // SPECIAL-USE is checked with rev2 folding - a rev2 session implies SPECIAL-USE,
+	    // so LIST is preferred even if a rev2 server also advertised legacy XLIST.
+	    let listCommand = connection.capabilities.has('XLIST') && !hasCapability(connection, 'SPECIAL-USE') ? 'XLIST' : 'LIST';
 
-	    let response;
 	    try {
-	        let entries = [];
+	        // Accumulators filled by the untagged LIST/STATUS handlers below. statusMap
+	        // caches STATUS responses received inline via LIST-STATUS extension, keyed by
+	        // normalized mailbox path (avoids separate STATUS commands per mailbox), and
+	        // specialUseMatches tracks candidate mailboxes for each special-use type.
+	        // (Re)initialized at the start of each retry stage of the main listing.
+	        let entries;
+	        let statusMap;
+	        let specialUseMatches;
 
-	        // statusMap caches STATUS responses received inline via LIST-STATUS extension,
-	        // keyed by normalized mailbox path. This avoids separate STATUS commands per mailbox.
-	        let statusMap = new Map();
-	        let returnArgs = [];
-	        let statusQueryAttributes = [];
+	        // STATUS data items to request (MESSAGES, UIDNEXT, etc.)
+	        let statusQueryAttributes = buildStatusQueryAttributes(connection, options.statusQuery);
 
-	        // Build the list of STATUS data items to request (MESSAGES, UIDNEXT, etc.)
-	        if (options.statusQuery) {
-	            Object.keys(options.statusQuery).forEach(key => {
-	                if (!options.statusQuery[key]) {
-	                    return;
-	                }
+	        // Extended LIST syntax (RETURN options) is understood by servers advertising
+	        // LIST-EXTENDED (RFC 5258) or IMAP4rev2 (RFC 9051). Deliberately keyed on the
+	        // advertisement alone (not hasCapability/isRev2Active): the staged retry below
+	        // handles servers that advertise but reject RETURN options, so the wider gate
+	        // is safe for anything it covers, while gates without a retry ladder stay
+	        // conservative.
+	        let supportsExtendedList = connection.capabilities.has('LIST-EXTENDED') || connection.capabilities.has('IMAP4rev2');
 
-	                switch (key.toUpperCase()) {
-	                    case 'MESSAGES':
-	                    case 'RECENT':
-	                    case 'UIDNEXT':
-	                    case 'UIDVALIDITY':
-	                    case 'UNSEEN':
-	                        statusQueryAttributes.push({ type: 'ATOM', value: key.toUpperCase() });
-	                        break;
+	        // RETURN options for the LIST command. Servers occasionally advertise the
+	        // extensions but still reject RETURN options - the staged retry below then
+	        // re-runs the LIST with fewer options and latches a skip flag for the option
+	        // group the server proved to reject, keeping later listings efficient.
 
-	                    case 'HIGHESTMODSEQ':
-	                        if (connection.capabilities.has('CONDSTORE')) {
-	                            statusQueryAttributes.push({ type: 'ATOM', value: key.toUpperCase() });
-	                        }
-	                        break;
-	                }
-	            });
-	        }
+	        // LIST-STATUS (RFC 5819, folded into base IMAP4rev2): request STATUS data
+	        // inline with LIST, avoiding a separate STATUS command for each mailbox.
+	        let canRequestStatus =
+	            listCommand === 'LIST' && !connection.skipListStatusArgs && hasCapability(connection, 'LIST-STATUS') && !!statusQueryAttributes.length;
 
-	        // LIST-STATUS (RFC 5819): allows requesting STATUS data inline with LIST,
-	        // avoiding a separate STATUS command for each mailbox. Adds RETURN (STATUS (...))
-	        // and optionally SPECIAL-USE to the LIST command arguments.
-	        if (listCommand === 'LIST' && connection.capabilities.has('LIST-STATUS') && statusQueryAttributes.length) {
-	            returnArgs.push({ type: 'ATOM', value: 'STATUS' }, statusQueryAttributes);
-	            if (connection.capabilities.has('SPECIAL-USE')) {
-	                returnArgs.push({ type: 'ATOM', value: 'SPECIAL-USE' });
+	        // RETURN (SUBSCRIBED): request subscription state inline instead of a separate
+	        // LSUB command. IMAP4rev2 removed LSUB entirely, and some servers (e.g.
+	        // Exchange in IMAP4rev2 mode) reject it with BAD even while still advertising
+	        // IMAP4rev1.
+	        let canRequestSubscribed = listCommand === 'LIST' && !options.listOnly && !connection.skipListSubscribedArg && supportsExtendedList;
+
+	        // Auxiliary RETURN options (SPECIAL-USE/CHILDREN) that ride along with the
+	        // STATUS/SUBSCRIBED option groups. When RETURN options are present, servers
+	        // may report only what was explicitly requested (verified against Dovecot
+	        // 2.4: special-use and child attributes disappear from such responses), so
+	        // request everything a plain LIST would have provided.
+	        let auxArgsAvailable = hasCapability(connection, 'SPECIAL-USE') || connection.capabilities.has('CHILDREN') || supportsExtendedList;
+	        let stageHasAuxArgs = stage => (stage.status || stage.subscribed) && stage.aux !== false && !connection.skipListAuxArgs && auxArgsAvailable;
+
+	        // Builds the RETURN (...) argument list for one retry stage
+	        let buildListArgs = stage => {
+	            let args = [];
+	            if (stage.status) {
+	                args.push({ type: 'ATOM', value: 'STATUS' }, statusQueryAttributes);
 	            }
-	        }
+	            if (stageHasAuxArgs(stage)) {
+	                if (hasCapability(connection, 'SPECIAL-USE')) {
+	                    args.push({ type: 'ATOM', value: 'SPECIAL-USE' });
+	                }
+	                if (connection.capabilities.has('CHILDREN') || supportsExtendedList) {
+	                    args.push({ type: 'ATOM', value: 'CHILDREN' });
+	                }
+	            }
+	            if (stage.subscribed) {
+	                args.push({ type: 'ATOM', value: 'SUBSCRIBED' });
+	            }
+	            return args;
+	        };
 
-	        // Tracks all candidate mailboxes for each special-use type (e.g., \\Sent).
-	        // Multiple mailboxes may claim the same type via different sources (user hint,
-	        // server extension, name match). After listing, the best match wins.
-	        let specialUseMatches = {};
+	        // Multiple mailboxes may claim the same special-use type (e.g., \\Sent) via
+	        // different sources (user hint, server extension, name match). After listing,
+	        // the best match wins.
 	        let addSpecialUseMatch = (entry, type, source) => {
 	            if (!specialUseMatches[type]) {
 	                specialUseMatches[type] = [];
@@ -48959,10 +51788,28 @@ function requireList () {
 	            specialUseMatches[type].push({ entry, source });
 	        };
 
+	        // RFC 5258: the \NonExistent attribute implies \Noselect. Some servers only
+	        // return \NonExistent for phantom folders, so add \Noselect as well to keep
+	        // the flags consistent for consumers that only check \Noselect.
+	        // RETURN (SUBSCRIBED) - and some LSUB implementations - report subscription
+	        // state as a \Subscribed attribute. Move it to the subscribed property so the
+	        // output shape is the same however the state was delivered.
+	        let normalizeFlags = entry => {
+	            if (entry.flags.has('\\NonExistent')) {
+	                entry.flags.add('\\Noselect');
+	            }
+	            if (entry.flags.has('\\Subscribed')) {
+	                entry.flags.delete('\\Subscribed');
+	                entry.subscribed = true;
+	            }
+	        };
+
 	        // User-provided hints map mailbox paths to special-use types (e.g., {sent: "Sent Items"}).
 	        // These override server-reported flags and name-based guesses. Converted to a
 	        // path-keyed lookup: { "Sent Items" => "\\Sent" }
-	        let specialUseHints = {};
+	        // Keyed by server-supplied mailbox paths further down, so a null prototype keeps a
+	        // path like "constructor" from resolving to an inherited member on lookup
+	        let specialUseHints = Object.create(null);
 	        if (options.specialUseHints && typeof options.specialUseHints === 'object') {
 	            for (let type of Object.keys(options.specialUseHints)) {
 	                if (
@@ -48979,14 +51826,14 @@ function requireList () {
 	        // Executes a LIST (or XLIST) command and collects mailbox entries.
 	        // Called once for the main listing and optionally again for INBOX if a
 	        // namespace prefix was used (INBOX may live outside the namespace).
-	        let runList = async (reference, mailbox) => {
+	        let runList = async (reference, mailbox, returnArgs) => {
 	            const cmdArgs = [encodePath(connection, reference), encodePath(connection, mailbox)];
 
 	            if (returnArgs.length) {
 	                cmdArgs.push({ type: 'ATOM', value: 'RETURN' }, returnArgs);
 	            }
 
-	            response = await connection.exec(listCommand, cmdArgs, {
+	            let response = await connection.exec(listCommand, cmdArgs, {
 	                untagged: {
 	                    // Each untagged LIST response: * LIST (<flags>) "<delimiter>" "<mailbox name>"
 	                    // attributes[0] = flags array, attributes[1] = delimiter, attributes[2] = mailbox name
@@ -48999,10 +51846,12 @@ function requireList () {
 	                            // Decode from modified UTF-7 wire format and normalize the path
 	                            path: normalizePath(connection, decodePath(connection, (untagged.attributes[2] && untagged.attributes[2].value) || '')),
 	                            pathAsListed: (untagged.attributes[2] && untagged.attributes[2].value) || '',
-	                            flags: new Set(untagged.attributes[0].map(entry => entry.value)),
+	                            flags: new Set(getStringList(untagged.attributes[0])),
 	                            delimiter: untagged.attributes[1] && untagged.attributes[1].value,
 	                            listed: true
 	                        };
+
+	                        normalizeFlags(entry);
 
 	                        // Check user-provided hints first (highest priority)
 	                        if (specialUseHints[entry.path]) {
@@ -49020,8 +51869,9 @@ function requireList () {
 	                        }
 
 	                        // Name-based INBOX detection: any mailbox named "INBOX" (case-insensitive)
-	                        // is the inbox per RFC 3501.
-	                        if (entry.path.toUpperCase() === 'INBOX') {
+	                        // is the inbox per RFC 3501. Phantom \NonExistent entries (subscribed
+	                        // leftovers of deleted mailboxes) must not claim the slot by name.
+	                        if (entry.path.toUpperCase() === 'INBOX' && !entry.flags.has('\\NonExistent')) {
 	                            addSpecialUseMatch(entry, '\\Inbox', 'name');
 	                        }
 
@@ -49038,11 +51888,15 @@ function requireList () {
 	                        // Try to detect special-use from server flags or well-known names
 	                        // (e.g., "Sent", "Drafts", "Junk", "Trash")
 	                        let { flag: specialUseFlag, source: flagSource } = specialUse(
-	                            connection.capabilities.has('XLIST') || connection.capabilities.has('SPECIAL-USE'),
+	                            connection.capabilities.has('XLIST') || hasCapability(connection, 'SPECIAL-USE'),
 	                            entry
 	                        );
 
-	                        if (specialUseFlag) {
+	                        // A name-based match for a \NonExistent phantom entry could win the
+	                        // special-use slot over the real folder - only server-provided flags
+	                        // are trusted for nonexistent entries. Covers every name-derived
+	                        // source, exact and relaxed alike.
+	                        if (specialUseFlag && (!isNameSource(flagSource) || !entry.flags.has('\\NonExistent'))) {
 	                            addSpecialUseMatch(entry, specialUseFlag, flagSource);
 	                        }
 
@@ -49058,38 +51912,9 @@ function requireList () {
 	                            return;
 	                        }
 
-	                        const STATUS_FIELD_MAP = {
-	                            MESSAGES: { key: 'messages', parser: Number },
-	                            RECENT: { key: 'recent', parser: Number },
-	                            UIDNEXT: { key: 'uidNext', parser: Number },
-	                            UIDVALIDITY: { key: 'uidValidity', parser: BigInt },
-	                            UNSEEN: { key: 'unseen', parser: Number },
-	                            HIGHESTMODSEQ: { key: 'highestModseq', parser: BigInt }
-	                        };
-
-	                        let key;
 	                        let map = { path: statusPath };
-
-	                        statusList.forEach((entry, i) => {
-	                            if (i % 2 === 0) {
-	                                key = entry && typeof entry.value === 'string' ? entry.value : false;
-	                                return;
-	                            }
-	                            if (!key || !entry || typeof entry.value !== 'string') {
-	                                return;
-	                            }
-
-	                            const fieldConfig = STATUS_FIELD_MAP[key.toUpperCase()];
-	                            if (!fieldConfig) {
-	                                return;
-	                            }
-
-	                            const value = !isNaN(entry.value) ? fieldConfig.parser(entry.value) : false;
-	                            if (value === false) {
-	                                return;
-	                            }
-
-	                            map[fieldConfig.key] = value;
+	                        parseStatusList(statusList, (key, value) => {
+	                            map[key] = value;
 	                        });
 
 	                        statusMap.set(statusPath, map);
@@ -49100,7 +51925,96 @@ function requireList () {
 	        };
 
 	        let normalizedReference = normalizePath(connection, reference || '');
-	        await runList(normalizedReference, normalizePath(connection, mailbox || '', true));
+	        let normalizedMailbox = normalizePath(connection, mailbox || '', true);
+
+	        // Retry stages for the main listing: start with all applicable RETURN options
+	        // and drop one option group per retry. Consecutive stages differ by exactly one
+	        // group, so a success right after a rejection identifies the offending group
+	        // and only that group's skip flag is latched for the rest of the connection.
+	        // When a stage carrying the auxiliary SPECIAL-USE/CHILDREN options is rejected,
+	        // a copy of the same stage without them is inserted first (once per listing),
+	        // so an auxiliary-only rejection does not get a whole option group blamed.
+	        let stages = [];
+	        if (canRequestStatus && canRequestSubscribed) {
+	            stages.push({ status: true, subscribed: true });
+	        }
+	        if (canRequestStatus) {
+	            stages.push({ status: true, subscribed: false });
+	        } else if (canRequestSubscribed) {
+	            stages.push({ status: false, subscribed: true });
+	        }
+	        stages.push({ status: false, subscribed: false });
+
+	        // A tagged BAD is how servers reject unrecognized RETURN options (RFC 9051
+	        // section 6.3.9). A tagged NO is an operational failure, and throttling
+	        // errors (code ETHROTTLE) also surface with a BAD status - neither says
+	        // anything about the RETURN options, so they propagate to the caller.
+	        let isRejectedCommand = err => err.responseStatus === 'BAD' && err.code !== 'ETHROTTLE';
+
+	        // Stage of the successful attempt - reused by the INBOX fixup and the LSUB
+	        // decision below
+	        let successStage = null;
+
+	        // Whether any source actually reported subscription state. RETURN (SUBSCRIBED)
+	        // and LSUB are the only two, and a server can refuse both
+	        let subscriptionStateKnown = false;
+
+	        // A server may also volunteer \Subscribed on a plain LIST, which normalizeFlags
+	        // folds into the entry - that counts as the state having been reported
+	        let anyEntrySubscribed = () => entries.some(entry => entry.subscribed);
+
+	        let lastRejectedStage = null;
+	        let auxRetryInserted = false;
+	        for (let i = 0; i < stages.length; i++) {
+	            let stage = stages[i];
+	            let stageArgs = buildListArgs(stage);
+	            // Discard partial results from a rejected attempt
+	            entries = [];
+	            statusMap = new Map();
+	            specialUseMatches = {};
+	            try {
+	                await runList(normalizedReference, normalizedMailbox, stageArgs);
+	                if (lastRejectedStage) {
+	                    // Latch only the option group that was present in the rejected
+	                    // attempt but missing from this successful one - that group is
+	                    // proven to be what the server rejects. An unproven group (e.g.
+	                    // SUBSCRIBED when both groups were dropped one by one) is decided
+	                    // by the reduced stage list of the next listing.
+	                    if (lastRejectedStage.subscribed && !stage.subscribed) {
+	                        connection.skipListSubscribedArg = true;
+	                    }
+	                    if (lastRejectedStage.status && !stage.status) {
+	                        connection.skipListStatusArgs = true;
+	                    }
+	                    if (
+	                        stageHasAuxArgs(lastRejectedStage) &&
+	                        stage.aux === false &&
+	                        lastRejectedStage.status === stage.status &&
+	                        lastRejectedStage.subscribed === stage.subscribed
+	                    ) {
+	                        // Same option groups, only the auxiliary args dropped - the
+	                        // auxiliaries are proven to be what the server rejects
+	                        connection.skipListAuxArgs = true;
+	                    }
+	                }
+	                successStage = stage;
+	                subscriptionStateKnown = !!stage.subscribed;
+	                break;
+	            } catch (err) {
+	                if (i === stages.length - 1 || !isRejectedCommand(err)) {
+	                    throw err;
+	                }
+	                lastRejectedStage = stage;
+	                if (!auxRetryInserted && stageHasAuxArgs(stage)) {
+	                    // The rejection may be about the auxiliary options rather than the
+	                    // option groups - try the same groups without the auxiliaries before
+	                    // dropping a group
+	                    stages.splice(i + 1, 0, { ...stage, aux: false });
+	                    auxRetryInserted = true;
+	                }
+	                connection.log.warn({ msg: 'LIST RETURN options rejected, retrying with reduced options', err, cid: connection.id });
+	            }
+	        }
 
 	        if (options.listOnly) {
 	            return entries;
@@ -49109,17 +52023,55 @@ function requireList () {
 	        // When listing with a namespace prefix (e.g., "INBOX."), INBOX itself may
 	        // not appear in results. Run a separate LIST for INBOX to ensure it's included.
 	        if (normalizedReference && !specialUseMatches['\\Inbox']) {
-	            await runList('', 'INBOX');
+	            let returnArgs = buildListArgs(successStage);
+	            // Snapshot the accumulator sizes: a rejected fixup attempt may have
+	            // streamed partial untagged responses before its tagged BAD, and those
+	            // must be discarded before the retry or INBOX would be listed twice -
+	            // while the main run's results must be kept
+	            let entryCountBefore = entries.length;
+	            let specialUseCountsBefore = {};
+	            for (let type of Object.keys(specialUseMatches)) {
+	                specialUseCountsBefore[type] = specialUseMatches[type].length;
+	            }
+	            try {
+	                await runList('', 'INBOX', returnArgs);
+	            } catch (err) {
+	                // The main listing just succeeded with the same RETURN options, so a
+	                // rejection here says nothing about the options themselves - retry
+	                // this one call plain without latching any skip flags. Accepted edge:
+	                // if the main run filled statusMap, INBOX ends up without inline
+	                // status data.
+	                if (!returnArgs.length || !isRejectedCommand(err)) {
+	                    throw err;
+	                }
+	                entries.length = entryCountBefore;
+	                for (let type of Object.keys(specialUseMatches)) {
+	                    if (!(type in specialUseCountsBefore)) {
+	                        delete specialUseMatches[type];
+	                    } else {
+	                        specialUseMatches[type].length = specialUseCountsBefore[type];
+	                    }
+	                }
+	                connection.log.warn({ msg: 'INBOX LIST with RETURN options failed, retrying plain', err, cid: connection.id });
+	                await runList('', 'INBOX', []);
+	            }
 	        }
 
 	        // Attach STATUS data to each selectable mailbox. If LIST-STATUS was used,
 	        // data is already in statusMap; otherwise, fall back to individual STATUS commands.
 	        if (options.statusQuery) {
+	            // RECENT does not exist in IMAP4rev2, so it is never requested from a rev2
+	            // session - its defined value there is always 0 (the STATUS command module
+	            // applies the same rule on the per-mailbox fallback path)
+	            let syntheticRecent = options.statusQuery.recent && isRev2Active(connection);
 	            for (let entry of entries) {
 	                // \\Noselect and \\NonExistent mailboxes cannot hold messages
 	                if (!entry.flags.has('\\Noselect') && !entry.flags.has('\\NonExistent')) {
 	                    if (statusMap.has(entry.path)) {
 	                        entry.status = statusMap.get(entry.path);
+	                        if (syntheticRecent) {
+	                            entry.status.recent = 0;
+	                        }
 	                    } else if (!statusMap.size) {
 	                        // Server didn't support LIST-STATUS; fall back to per-mailbox STATUS
 	                        try {
@@ -49136,10 +52088,8 @@ function requireList () {
 	        // We merge subscription info into the entries already collected from LIST.
 	        // Subscribed-only mailboxes that weren't in LIST are intentionally ignored
 	        // (they may be phantom entries from old subscriptions to deleted mailboxes).
-	        response = await connection.exec(
-	            'LSUB',
-	            [encodePath(connection, normalizePath(connection, reference || '')), encodePath(connection, normalizePath(connection, mailbox || '', true))],
-	            {
+	        let runLsub = async () => {
+	            let response = await connection.exec('LSUB', [encodePath(connection, normalizedReference), encodePath(connection, normalizedMailbox)], {
 	                untagged: {
 	                    LSUB: async untagged => {
 	                        if (!untagged.attributes || !untagged.attributes.length) {
@@ -49149,7 +52099,7 @@ function requireList () {
 	                        let entry = {
 	                            path: normalizePath(connection, decodePath(connection, (untagged.attributes[2] && untagged.attributes[2].value) || '')),
 	                            pathAsListed: (untagged.attributes[2] && untagged.attributes[2].value) || '',
-	                            flags: new Set(untagged.attributes[0].map(entry => entry.value)),
+	                            flags: new Set(getStringList(untagged.attributes[0])),
 	                            delimiter: untagged.attributes[1] && untagged.attributes[1].value,
 	                            subscribed: true
 	                        };
@@ -49172,13 +52122,48 @@ function requireList () {
 	                            existing.subscribed = true;
 	                            // Merge any additional flags from LSUB into the LIST entry
 	                            entry.flags.forEach(flag => existing.flags.add(flag));
+	                            normalizeFlags(existing);
 	                        }
 	                        // Non-listed subscribed folders are intentionally ignored
 	                    }
 	                }
+	            });
+	            response.next();
+	        };
+
+	        // Never sent on a rev2 session - LSUB is not part of that protocol version, and
+	        // some servers break the rest of the session over the rejection, so this is
+	        // decided up front rather than left to the skipLsub latch below. On rev1 it is
+	        // skipped when RETURN (SUBSCRIBED) already answered. Safety net: if the extended
+	        // LIST was accepted but not a single mailbox came back subscribed, assume the
+	        // server silently ignored the option and fall back to LSUB anyway (an account
+	        // with no subscriptions legitimately looks the same).
+	        let needsLsub = !isRev2Active(connection) && (!successStage.subscribed || !anyEntrySubscribed());
+	        if (needsLsub) {
+	            // Reaching here means the listing did not settle the question after all -
+	            // either no RETURN (SUBSCRIBED) was granted, or one was and the server
+	            // ignored it. Only LSUB can answer now
+	            subscriptionStateKnown = false;
+	        }
+	        if (needsLsub && !connection.skipLsub) {
+	            try {
+	                await runLsub();
+	                subscriptionStateKnown = true;
+	            } catch (err) {
+	                if (isRejectedCommand(err)) {
+	                    // Tagged BAD: the server does not implement LSUB despite advertising
+	                    // rev1 - skip it for the rest of this connection
+	                    connection.skipLsub = true;
+	                } else if (err.responseStatus !== 'NO' || err.code === 'ETHROTTLE') {
+	                    // Transport failures and throttling: rethrow, every follow-up
+	                    // command would fail too or the caller needs to back off
+	                    throw err;
+	                }
+	                // Subscription state is auxiliary - keep the LIST results usable. A
+	                // tagged NO is treated as transient, so the next listing tries again.
+	                connection.log.warn({ msg: 'Failed to request subscription info', err, cid: connection.id });
 	            }
-	        );
-	        response.next();
+	        }
 
 	        // Resolve special-use conflicts: for each type, pick the best candidate
 	        // based on source priority (user > extension > name), then alphabetically.
@@ -49194,8 +52179,24 @@ function requireList () {
 	            });
 
 	            if (!sortedEntries[0].entry.specialUse) {
+	                let source = sortedEntries[0].source;
 	                sortedEntries[0].entry.specialUse = type;
-	                sortedEntries[0].entry.specialUseSource = sortedEntries[0].source;
+	                sortedEntries[0].entry.specialUseSource = PUBLIC_SOURCE[source] || source;
+	            }
+	        }
+
+	        // No source answered, so "not subscribed" was never actually reported for any of
+	        // these folders - the state is unknown, not false. Reporting the whole listing as
+	        // unsubscribed would hide every folder from a client that filters on subscription
+	        // state, so assume subscribed instead. Phantom entries are excluded, the same way
+	        // the rest of this file declines to trust them. NB! a transient LSUB NO lands here
+	        // too, so the assumption can hold for one listing and be replaced by real state on
+	        // the next
+	        if (!subscriptionStateKnown && !anyEntrySubscribed()) {
+	            for (let entry of entries) {
+	                if (!entry.flags.has('\\NonExistent')) {
+	                    entry.subscribed = true;
+	                }
 	            }
 	        }
 
@@ -49232,6 +52233,9 @@ function requireList () {
 	            return a.path.localeCompare(b.path);
 	        });
 	    } catch (err) {
+	        // Rewrite the parsed err.response into the response text and set
+	        // serverResponseCode, same as the other command modules
+	        await enhanceCommandError(err);
 	        connection.log.warn({ msg: 'Failed to list folders', err, cid: connection.id });
 	        throw err;
 	    }
@@ -49246,6 +52250,8 @@ function requireEnable () {
 	if (hasRequiredEnable) return enable;
 	hasRequiredEnable = 1;
 
+	const { hasCapability } = /*@__PURE__*/ requireTools();
+
 	/**
 	 * Enables IMAP extensions on the server.
 	 *
@@ -49254,14 +52260,18 @@ function requireEnable () {
 	 * @returns {Promise<Set|boolean|undefined>} Set of enabled extensions, false on failure, or undefined if not applicable
 	 */
 	enable = async (connection, extensionList) => {
-	    if (!connection.capabilities.has('ENABLE') || connection.state !== connection.states.AUTHENTICATED) {
+	    // ENABLE is part of base IMAP4rev2, so rev2-only servers may omit the token
+	    if (!hasCapability(connection, 'ENABLE') || connection.state !== connection.states.AUTHENTICATED) {
 	        // nothing to do here
 	        return;
 	    }
 
 	    // Pre-filter: only request extensions the server actually advertised in its
 	    // CAPABILITY response. Requesting unsupported extensions would cause an error.
-	    extensionList = extensionList.filter(extension => connection.capabilities.has(extension.toUpperCase()));
+	    // Compared case-insensitively - the capability map keeps canonical casing for
+	    // some keys (e.g. IMAP4rev2).
+	    let advertised = new Set([...connection.capabilities.keys()].map(capability => capability.toUpperCase()));
+	    extensionList = extensionList.filter(extension => advertised.has(extension.toUpperCase()));
 	    if (!extensionList.length) {
 	        return;
 	    }
@@ -49290,9 +52300,12 @@ function requireEnable () {
 	                }
 	            }
 	        );
-	        connection.enabled = enabled;
+	        // Merge instead of replace - the untagged ENABLED response only lists
+	        // extensions enabled by this command (RFC 5161), so a replace would drop
+	        // grants from an earlier ENABLE call
+	        connection.enabled = new Set([...connection.enabled, ...enabled]);
 	        response.next();
-	        return enabled;
+	        return connection.enabled;
 	    } catch (err) {
 	        connection.log.warn({ err, cid: connection.id });
 	        return false;
@@ -49308,7 +52321,58 @@ function requireSelect () {
 	if (hasRequiredSelect) return select;
 	hasRequiredSelect = 1;
 
-	const { encodePath, normalizePath, enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const { encodePath, normalizePath, enhanceCommandError, parseBigIntValue, parseUintValue, getStringList, MAX_UINT32_DIGITS } = /*@__PURE__*/ requireTools();
+
+	// Response codes carrying a value that SELECT/EXAMINE may write to the mailbox object, keyed by
+	// the lowercased code, mapped to the fixed public property name and the parser for the value.
+	// Every parser returns false for a value it cannot use, and the field is then left unset.
+	//
+	// This is an allowlist on purpose. The mailbox object is API surface: without one, an arbitrary
+	// server-sent [KEY value] code could overwrite `path` (defeating the DELETE/RENAME guards that
+	// compare paths) or `flags`, and a parenthesized value under "__proto__" would replace the
+	// object's prototype. The lookup itself is on a null-prototype object for the same reason - the
+	// key is lowercased, so "constructor" would otherwise resolve to an inherited member.
+	const VALUED_RESPONSE_CODES = Object.assign(Object.create(null), {
+	    // CONDSTORE (RFC 7162): highest mod-sequence value for the mailbox, used for incremental
+	    // sync. Stored as a BigInt since modseq values can exceed Number.MAX_SAFE_INTEGER.
+	    //
+	    // A value that is not a bounded digit run is dropped rather than stored raw: every consumer
+	    // compares highestModseq relationally, and a relational compare against a non-numeric string
+	    // is false in both directions, so the value could never advance and delta sync would stop.
+	    highestmodseq: { key: 'highestModseq', parse: value => parseBigIntValue(value) },
+
+	    // Unique identifier validity. If this changes between sessions, all previously cached UIDs
+	    // are invalid and the client must re-sync from scratch. Nominally 32-bit, but stored as a
+	    // BigInt precisely so a server that exceeds that still round-trips, hence the wider bound.
+	    uidvalidity: { key: 'uidValidity', parse: value => parseBigIntValue(value) },
+
+	    // The next UID to be assigned in this mailbox, useful for detecting new arrivals. A huge
+	    // digit run would coerce to Infinity and corrupt every later UID range computation.
+	    uidnext: { key: 'uidNext', parse: value => parseUintValue(value, MAX_UINT32_DIGITS) },
+
+	    // Sequence number of the first unseen message (RFC 3501 section 7.1). Not a count of unseen
+	    // messages - use mailboxStatus() with {unseen: true} for that.
+	    unseen: { key: 'unseen', parse: value => parseUintValue(value, MAX_UINT32_DIGITS) },
+
+	    // APPENDLIMIT (RFC 7889): largest message size in octets the server accepts for APPEND into
+	    // this mailbox. Spelled all lowercase, unlike the camelCase fields around it, because that is
+	    // the name this object has always exposed.
+	    appendlimit: { key: 'appendlimit', parse: value => parseUintValue(value) },
+
+	    // OBJECTID (RFC 8474): server-assigned mailbox identifier that survives renames. Sent as a
+	    // parenthesized list, but servers in the wild send it bare too.
+	    mailboxid: {
+	        key: 'mailboxId',
+	        parse: value => (Array.isArray(value) ? value.length > 0 && value[0] : typeof value === 'string' && value)
+	    },
+
+	    // Flags the client may change permanently on messages in this mailbox, including \* if the
+	    // server allows custom flags. Only the parenthesized form carries flags, and a malformed
+	    // value must leave permanentFlags unset rather than set an empty Set: canUseFlag() reads
+	    // unset as permissive and empty as deny-all, so an empty Set would turn every later flag
+	    // update into a silent no-op for the rest of the session.
+	    permanentflags: { key: 'permanentFlags', parse: value => Array.isArray(value) && new Set(value) }
+	});
 
 	/**
 	 * Selects or examines a mailbox, making it the current mailbox for subsequent operations.
@@ -49333,6 +52397,11 @@ function requireSelect () {
 
 	    // Ensure we have folder metadata (delimiter, flags, specialUse) by running LIST if needed.
 	    // This is cached in connection.folders to avoid repeated LIST calls.
+	    // Note: this uses run() rather than runInternal(), so it terminates a running IDLE first,
+	    // which is what a caller-issued mailboxOpen() needs. Fallback polling reaches SELECT through
+	    // runInternal(), and on a cache miss this LIST awaits the polling session's own preCheck and
+	    // so cancels that session. Not a deadlock, and only reachable when the folder is uncached,
+	    // but a polled SELECT of an unlisted folder ends the poll early.
 	    if (!connection.folders.has(path)) {
 	        let folders = await connection.run('LIST', '', path);
 	        if (!folders) {
@@ -49378,6 +52447,7 @@ function requireSelect () {
 	        // send as quoted STRING to avoid parser issues with the ampersand.
 	        let selectCommand = {
 	            command: !options.readOnly ? 'SELECT' : 'EXAMINE',
+	            /* c8 ignore next */ // extraArgs is always initialised to an array, so the [] fallback is unreachable
 	            arguments: [{ type: encodedPath.indexOf('&') >= 0 ? 'STRING' : 'ATOM', value: encodedPath }].concat(extraArgs || [])
 	        };
 
@@ -49394,96 +52464,52 @@ function requireSelect () {
 	                    }
 	                    let section = !untagged.attributes[0].value && untagged.attributes[0].section;
 	                    // Handle response codes with a key-value pair (section has 2+ elements)
-	                    if (section && section.length > 1 && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
+	                    if (section && section.length > 1 && section[0] && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
 	                        let key = section[0].value.toLowerCase();
 	                        let value;
 
-	                        // Value can be a single string or a list of strings (e.g., PERMANENTFLAGS)
-	                        if (typeof section[1].value === 'string') {
+	                        // Value can be a single string or a list of strings (e.g., PERMANENTFLAGS).
+	                        // section[1] can be a parsed NIL (null), and so can any element inside a
+	                        // parenthesized list, so both levels need the guard
+	                        if (section[1] && typeof section[1].value === 'string') {
 	                            value = section[1].value;
 	                        } else if (Array.isArray(section[1])) {
-	                            value = section[1].map(entry => (typeof entry.value === 'string' ? entry.value : false)).filter(entry => entry);
+	                            value = getStringList(section[1]);
 	                        }
 
-	                        switch (key) {
-	                            // CONDSTORE (RFC 7162): highest mod-sequence value for the mailbox.
-	                            // Used for incremental sync -- clients compare against their cached
-	                            // value to detect changes. Stored as BigInt since modseq values
-	                            // can exceed Number.MAX_SAFE_INTEGER.
-	                            case 'highestmodseq':
-	                                key = 'highestModseq';
-	                                if (/^[0-9]+$/.test(value)) {
-	                                    value = BigInt(value);
-	                                }
-	                                break;
-
-	                            // OBJECTID (RFC 8474): server-assigned unique mailbox identifier.
-	                            // Unlike path, this ID survives renames. Value comes as a
-	                            // parenthesized list, so extract the first (only) element.
-	                            case 'mailboxid':
-	                                key = 'mailboxId';
-	                                if (Array.isArray(value) && value.length) {
-	                                    value = value[0];
-	                                }
-	                                break;
-
-	                            // Flags that the client can change permanently on messages in
-	                            // this mailbox. Includes \* if the server allows custom flags.
-	                            case 'permanentflags':
-	                                key = 'permanentFlags';
-	                                value = new Set(value);
-	                                break;
-
-	                            // The next UID that will be assigned to a new message in this
-	                            // mailbox. Useful for detecting new arrivals.
-	                            case 'uidnext':
-	                                key = 'uidNext';
-	                                value = Number(value);
-	                                break;
-
-	                            // Unique identifier validity value. If this changes between
-	                            // sessions, all previously cached UIDs are invalid and the
-	                            // client must re-sync from scratch.
-	                            case 'uidvalidity':
-	                                key = 'uidValidity';
-	                                if (/^[0-9]+$/.test(value)) {
-	                                    value = BigInt(value);
-	                                }
-	                                break;
+	                        let field = VALUED_RESPONSE_CODES[key];
+	                        if (field) {
+	                            let parsed = field.parse(value);
+	                            if (parsed !== false) {
+	                                map[field.key] = parsed;
+	                            }
 	                        }
-
-	                        map[key] = value;
 	                    }
 
-	                    // Handle response codes with only a keyword (no value), e.g., [NOMODSEQ]
-	                    if (section && section.length === 1 && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
-	                        let key = section[0].value.toLowerCase();
-	                        switch (key) {
-	                            // NOMODSEQ means the mailbox does not support mod-sequences.
-	                            // CONDSTORE/QRESYNC features are unavailable for this mailbox.
-	                            case 'nomodseq':
-	                                key = 'noModseq';
-	                                map[key] = true;
-	                                break;
-	                        }
+	                    // Handle response codes with only a keyword (no value), e.g., [NOMODSEQ].
+	                    // NOMODSEQ means the mailbox does not support mod-sequences, so the
+	                    // CONDSTORE/QRESYNC features are unavailable for it.
+	                    if (section && section.length === 1 && section[0] && section[0].type === 'ATOM' && section[0].value?.toUpperCase() === 'NOMODSEQ') {
+	                        map.noModseq = true;
 	                    }
 	                },
 
 	                // Untagged FLAGS response lists all flags defined for this mailbox
 	                // (both system flags and custom flags). Example: * FLAGS (\Seen \Answered \Flagged)
 	                FLAGS: async untagged => {
-	                    if (!untagged.attributes || (!untagged.attributes.length && Array.isArray(untagged.attributes[0]))) {
+	                    if (!untagged.attributes || !untagged.attributes.length || !Array.isArray(untagged.attributes[0])) {
 	                        return;
 	                    }
-	                    let flags = untagged.attributes[0].map(flag => (typeof flag.value === 'string' ? flag.value : false)).filter(flag => flag);
-	                    map.flags = new Set(flags);
+	                    map.flags = new Set(getStringList(untagged.attributes[0]));
 	                },
 
 	                // Untagged EXISTS response: "* <count> EXISTS" tells us the total number
 	                // of messages in the mailbox. The count is in the command field (numeric prefix).
 	                EXISTS: async untagged => {
-	                    let num = Number(untagged.command);
-	                    if (isNaN(num)) {
+	                    // Not a usable count: anything but a bounded digit run. A long digit run
+	                    // coerces to Infinity, which would corrupt every later range computation
+	                    let num = parseUintValue(untagged.command, MAX_UINT32_DIGITS);
+	                    if (num === false) {
 	                        return false;
 	                    }
 
@@ -49506,9 +52532,13 @@ function requireSelect () {
 	        });
 
 	        // The tagged OK response to SELECT/EXAMINE includes [READ-ONLY] or [READ-WRITE]
-	        // in its response code, indicating the access mode the server granted.
-	        let section = !response.response.attributes[0].value && response.response.attributes[0].section;
-	        if (section && section.length && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
+	        // in its response code, indicating the access mode the server granted. A tagged OK
+	        // with no resp-text has no `attributes` property at all, and unlike the untagged
+	        // handlers above this runs in the command body, where a throw would tear down the
+	        // mailbox state the server has actually selected.
+	        let okAttributes = (response.response && response.response.attributes) || [];
+	        let section = okAttributes[0] && !okAttributes[0].value && okAttributes[0].section;
+	        if (section && section.length && section[0] && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
 	            map.readOnly = section[0].value.toUpperCase() === 'READ-ONLY';
 	        }
 
@@ -49575,7 +52605,7 @@ function requireFetch () {
 	if (hasRequiredFetch) return fetch;
 	hasRequiredFetch = 1;
 
-	const { formatMessageResponse } = /*@__PURE__*/ requireTools();
+	const { formatMessageResponse, isRev2Active } = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Fetches emails from the server.
@@ -49600,8 +52630,12 @@ function requireFetch () {
 
 	    let mailbox = connection.mailbox;
 
-	    // Use BINARY extension for fetching if supported and requested, otherwise fall back to BODY
-	    const commandKey = connection.capabilities.has('BINARY') && options.binary && !connection.disableBinary ? 'BINARY' : 'BODY';
+	    // Use BINARY extension for fetching if supported and requested, otherwise fall back to BODY.
+	    // RFC 9051 folds the FETCH side of the BINARY extension into base IMAP4rev2, so an active
+	    // rev2 session can use it even without the BINARY capability token (the APPEND side is NOT
+	    // folded in and stays gated on the token in append.js)
+	    const canUseBinary = connection.capabilities.has('BINARY') || isRev2Active(connection);
+	    const commandKey = canUseBinary && options.binary && !connection.disableBinary ? 'BINARY' : 'BODY';
 
 	    // Retry logic for ETHROTTLE errors (server rate limiting) with exponential backoff
 	    let retryCount = 0;
@@ -49616,6 +52650,7 @@ function requireFetch () {
 
 	        let response;
 	        try {
+	            /* c8 ignore next */ // range is guaranteed truthy by the early-return guard above, so the '*' fallback is unreachable
 	            let attributes = [{ type: 'SEQUENCE', value: (range || '*').toString() }];
 
 	            let queryStructure = [];
@@ -49624,20 +52659,20 @@ function requireFetch () {
 	            // PEEK avoids marking messages as \Seen. Section identifies what to fetch (HEADER, specific part, etc.)
 	            // Partial is an optional byte range [start, maxLength].
 	            let setBodyPeek = (attributes, partial) => {
+	                let section = [].concat(attributes || []);
+
+	                // BINARY may only address the empty section or a numeric part specifier
+	                // (RFC 3516 / RFC 9051 section-binary) - HEADER, HEADER.FIELDS, TEXT and
+	                // n.MIME are invalid after BINARY and must stay BODY fetches
+	                let binaryAddressable =
+	                    !section.length || (section.length === 1 && typeof section[0].value === 'string' && /^\d+(\.\d+)*$/.test(section[0].value));
+
 	                let bodyPeek = {
 	                    type: 'ATOM',
-	                    value: `${commandKey}.PEEK`,
-	                    section: [],
+	                    value: `${binaryAddressable ? commandKey : 'BODY'}.PEEK`,
+	                    section,
 	                    partial
 	                };
-
-	                if (Array.isArray(attributes)) {
-	                    attributes.forEach(attribute => {
-	                        bodyPeek.section.push(attribute);
-	                    });
-	                } else if (attributes) {
-	                    bodyPeek.section.push(attributes);
-	                }
 
 	                queryStructure.push(bodyPeek);
 	            };
@@ -49662,7 +52697,7 @@ function requireFetch () {
 	                        partial.push(Number(query.source.maxLength));
 	                    }
 	                }
-	                queryStructure.push({ type: 'ATOM', value: `${commandKey}.PEEK`, section: [], partial });
+	                setBodyPeek(null, partial);
 	            }
 
 	            // Always request a unique email ID for message deduplication.
@@ -49805,7 +52840,9 @@ function requireFetch () {
 	                // If server provides a throttleReset hint, use that if longer.
 	                const backoffDelay = Math.min(baseDelay * Math.pow(2, retryCount), 30000); // Cap at 30 seconds
 
-	                // Use throttle reset time if provided and longer than backoff
+	                // Use throttle reset time if provided and longer than backoff. The hint is
+	                // server-controlled, so the wait goes through connection.throttleWait(), which caps
+	                // it and keeps the timer tracked and abortable.
 	                const delay = err.throttleReset && err.throttleReset > backoffDelay ? err.throttleReset : backoffDelay;
 
 	                connection.log.warn({
@@ -49818,8 +52855,12 @@ function requireFetch () {
 	                    delayMs: delay
 	                });
 
-	                // Wait before retrying
-	                await new Promise(resolve => setTimeout(resolve, delay));
+	                // An aborted wait means the client was closed, so give up rather than reissuing
+	                // the FETCH on a connection that is already gone.
+	                let aborted = await connection.throttleWait(delay);
+	                if (aborted) {
+	                    throw connection.createNoConnectionError(connection.byeReason, { rejectedFrom: 'throttleAbort', command: 'FETCH' });
+	                }
 
 	                retryCount++;
 	                continue;
@@ -50185,6 +53226,7 @@ function requireStore () {
 	        return false;
 	    }
 
+	    /* c8 ignore next */ // options.useLabels is dereferenced in the guard above, so options is always defined here
 	    options = options || {};
 
 	    // Build the IMAP STORE operation name. The format is:
@@ -50220,7 +53262,7 @@ function requireStore () {
 	        .map(flag => {
 	            flag = formatFlag(flag);
 
-	            if (!canUseFlag(connection.mailbox, flag) && operation !== 'remove') {
+	            if (!canUseFlag(connection.mailbox, flag) && options.operation !== 'remove') {
 	                return false;
 	            }
 
@@ -50276,7 +53318,7 @@ function requireSearchCompiler () {
 	if (hasRequiredSearchCompiler) return searchCompiler;
 	hasRequiredSearchCompiler = 1;
 
-	const { formatDate, formatFlag, canUseFlag, isDate } = /*@__PURE__*/ requireTools();
+	const { formatDate, formatFlag, canUseFlag, toValidDate, isRev2Active } = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Sets a boolean flag in the IMAP search attributes.
@@ -50305,29 +53347,37 @@ function requireSearchCompiler () {
 	};
 
 	/**
+	 * Normalizes a user-supplied sequence set (string, number, bigint, or an array of
+	 * them) into the single string value of a SEQUENCE token. An array is one
+	 * comma-joined set: separate tokens would be parsed by the server as extra
+	 * sequence-number search keys ANDed to the query, not as part of the set.
+	 *
+	 * @param {*} value - The sequence set value(s)
+	 * @returns {string} The joined sequence set string
+	 */
+	let toSequenceValue = value => [].concat(value).join(',');
+
+	/**
 	 * Adds a search option with its value(s) to the attributes array.
 	 * Handles NOT operations and array values.
 	 *
 	 * @param {Array} attributes - Array to append the attribute to
 	 * @param {string} term - The search term (e.g., 'FROM', 'SUBJECT')
 	 * @param {*} value - The value for the search term (string, array, or falsy for NOT)
-	 * @param {string} [type='ATOM'] - The attribute type
 	 */
-	let setOpt = (attributes, term, value, type) => {
-	    type = type || 'ATOM';
-
+	let setOpt = (attributes, term, value) => {
 	    // Handle NOT operations for false or null values
 	    if (value === false || value === null) {
-	        attributes.push({ type, value: 'NOT' });
+	        attributes.push({ type: 'ATOM', value: 'NOT' });
 	    }
 
-	    attributes.push({ type, value: term.toUpperCase() });
+	    attributes.push({ type: 'ATOM', value: term.toUpperCase() });
 
-	    // Handle array values (e.g., multiple UIDs)
+	    // Handle array values (e.g. HEADER name/value pairs)
 	    if (Array.isArray(value)) {
-	        value.forEach(entry => attributes.push({ type, value: (entry || '').toString() }));
+	        value.forEach(entry => attributes.push({ type: 'ATOM', value: (entry || '').toString() }));
 	    } else {
-	        attributes.push({ type, value: value.toString() });
+	        attributes.push({ type: 'ATOM', value: value.toString() });
 	    }
 	};
 
@@ -50337,15 +53387,25 @@ function requireSearchCompiler () {
 	 *
 	 * @param {Array} attributes - Array to append the attribute to
 	 * @param {string} term - The date search term (e.g., 'BEFORE', 'SINCE')
-	 * @param {*} value - Date value to format
+	 * @param {Date|String} value - Date value to format
 	 */
 	let processDateField = (attributes, term, value) => {
-	    if (['BEFORE', 'SENTBEFORE'].includes(term.toUpperCase()) && isDate(value) && value.toISOString().substring(11) !== '00:00:00.000Z') {
+	    // Normalize first. A Date brand check is not enough on its own: an invalid
+	    // Date is still a Date and toISOString() throws on it. Normalizing here also
+	    // means a date string behaves exactly like the equivalent Date object.
+	    value = toValidDate(value);
+	    if (!value) {
+	        return;
+	    }
+
+	    if (['BEFORE', 'SENTBEFORE'].includes(term.toUpperCase()) && value.toISOString().substring(11) !== '00:00:00.000Z') {
 	        // Set to next day to include current day as well, othwerise BEFORE+AFTER
 	        // searches for the same day but different time values do not match anything
 	        value = new Date(value.getTime() + 24 * 3600 * 1000);
 	    }
 
+	    // Still reachable after the guard above: the +24h shift can push a near-max
+	    // Date past the representable range
 	    let date = formatDate(value);
 	    if (!date) {
 	        return;
@@ -50432,12 +53492,12 @@ function requireSearchCompiler () {
 	                // Custom sequence range support (non-standard)
 	                case 'SEQ':
 	                    {
-	                        let value = params[term];
-	                        if (typeof value === 'number') {
-	                            value = value.toString();
-	                        }
-	                        // Only accept valid sequence strings (no whitespace)
-	                        if (typeof value === 'string' && /^\S+$/.test(value)) {
+	                        // Passed through as a SEQUENCE token: the compiler validates the
+	                        // set grammar and throws a coded error. An invalid value used to
+	                        // be dropped silently here, which turned a bad filter into an
+	                        // unrestricted search that matched every message.
+	                        let value = params[term] || params[term] === 0 ? toSequenceValue(params[term]) : '';
+	                        if (value) {
 	                            attributes.push({ type: 'SEQUENCE', value });
 	                        }
 	                    }
@@ -50460,10 +53520,24 @@ function requireSearchCompiler () {
 
 	                // Simple boolean flags without UN- support
 	                case 'ALL':
+	                    if (params[term]) {
+	                        setBoolOpt(attributes, term, true);
+	                    }
+	                    break;
+
 	                case 'NEW':
 	                case 'OLD':
 	                case 'RECENT':
 	                    if (params[term]) {
+	                        // The \Recent flag and the NEW/OLD/RECENT search keys were
+	                        // removed in IMAP4rev2 (RFC 9051) - a rev2 session would
+	                        // reject the whole search with a tagged BAD, so fail with a
+	                        // descriptive error instead
+	                        if (isRev2Active(connection)) {
+	                            let error = new Error(`The "${term.toLowerCase()}" search key does not exist in IMAP4rev2`);
+	                            error.code = 'MissingServerExtension';
+	                            throw error;
+	                        }
 	                        setBoolOpt(attributes, term, true);
 	                    }
 	                    break;
@@ -50493,10 +53567,13 @@ function requireSearchCompiler () {
 	                    }
 	                    break;
 
-	                // UID sequences
+	                // UID sequences. The key stays an ATOM and only the value is a
+	                // SEQUENCE token, so the compiler validates the sequence set
+	                // itself rather than the "UID" keyword in front of it.
 	                case 'UID':
 	                    if (params[term]) {
-	                        setOpt(attributes, term, params[term], 'SEQUENCE');
+	                        attributes.push({ type: 'ATOM', value: 'UID' });
+	                        attributes.push({ type: 'SEQUENCE', value: toSequenceValue(params[term]) });
 	                    }
 	                    break;
 
@@ -50535,22 +53612,77 @@ function requireSearchCompiler () {
 	                    }
 	                    break;
 
+	                // Gmail label search. Compiles { has, not } into an X-GM-RAW "label:"/"-label:" query
+	                // since Gmail labels are not a native IMAP SEARCH key. Gmail-only (X-GM-EXT-1).
+	                case 'LABELS': {
+	                    let labelQuery = params[term];
+	                    if (!labelQuery || typeof labelQuery !== 'object') {
+	                        break;
+	                    }
+
+	                    // Collapse whitespace/quotes and quote multi-word names so they survive as a single token
+	                    let formatLabel = name => {
+	                        name = (name || '')
+	                            .toString()
+	                            .replace(/[\s"]+/g, ' ')
+	                            .trim();
+	                        return name.indexOf(' ') >= 0 ? `"${name}"` : name;
+	                    };
+
+	                    let rawParts = [];
+	                    for (let name of [].concat(labelQuery.has || [])) {
+	                        if (name) {
+	                            rawParts.push(`label:${formatLabel(name)}`);
+	                        }
+	                    }
+	                    for (let name of [].concat(labelQuery.not || [])) {
+	                        if (name) {
+	                            rawParts.push(`-label:${formatLabel(name)}`);
+	                        }
+	                    }
+
+	                    // Empty filter is a no-op on any server (do not require the extension)
+	                    if (!rawParts.length) {
+	                        break;
+	                    }
+
+	                    if (!connection.capabilities.has('X-GM-EXT-1')) {
+	                        let error = new Error('Server does not support X-GM-EXT-1 extension required for label search');
+	                        error.code = 'MissingServerExtension';
+	                        throw error;
+	                    }
+
+	                    let rawQuery = rawParts.join(' ');
+	                    if (isUnicodeString(rawQuery)) {
+	                        hasUnicode = true;
+	                    }
+	                    setOpt(attributes, 'X-GM-RAW', rawQuery);
+	                    break;
+	                }
+
 	                // Date searches with WITHIN extension support
 	                case 'BEFORE':
 	                case 'SINCE':
 	                    {
+	                        // Normalize above the capability check so the WITHIN shortcut
+	                        // and the standard path agree on what counts as a usable date
+	                        let value = toValidDate(params[term]);
+	                        if (!value) {
+	                            break;
+	                        }
+
 	                        // Use WITHIN extension for better timezone handling if available
-	                        if (connection.capabilities.has('WITHIN') && isDate(params[term])) {
+	                        if (connection.capabilities.has('WITHIN')) {
 	                            // Convert to seconds ago from now
 	                            const now = Date.now();
-	                            const withinSeconds = Math.round(Math.max(0, now - params[term].getTime()) / 1000);
+	                            const withinSeconds = Math.round(Math.max(0, now - value.getTime()) / 1000);
 	                            const withinKeyword = term.toUpperCase() === 'BEFORE' ? 'OLDER' : 'YOUNGER';
 	                            setOpt(attributes, withinKeyword, withinSeconds.toString());
 	                            break;
 	                        }
 
 	                        // Fallback to standard date search
-	                        processDateField(attributes, term, params[term]);
+	                        processDateField(attributes, term, value);
 	                    }
 	                    break;
 
@@ -50719,8 +53851,32 @@ function requireSearch () {
 	if (hasRequiredSearch) return search.exports;
 	hasRequiredSearch = 1;
 
-	const { enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const {
+	    enhanceCommandError,
+	    hasCapability,
+	    isValidSequenceValue,
+	    parseBigIntValue,
+	    parseUintValue,
+	    MAX_UINT32_DIGITS,
+	    EXPANDED_RANGE_LIMIT
+	} = /*@__PURE__*/ requireTools();
 	const { searchCompiler } = /*@__PURE__*/ requireSearchCompiler();
+
+	/**
+	 * Strips the leading (TAG "X") correlator list and the optional UID atom from an
+	 * ESEARCH untagged response, leaving only the result keyword/value pairs.
+	 * The IMAP parser represents parenthesized groups as plain Arrays, not objects
+	 * with type: 'LIST'.
+	 *
+	 * @param {Array} attrs - Raw attribute array from the IMAP parser
+	 * @returns {Array} Attribute array starting at the first result keyword
+	 */
+	const stripEsearchPrefix = attrs => {
+	    let start = 0;
+	    if (attrs[start] && Array.isArray(attrs[start])) start++;
+	    if (attrs[start] && typeof attrs[start].value === 'string' && attrs[start].value.toUpperCase() === 'UID') start++;
+	    return attrs.slice(start);
+	};
 
 	/**
 	 * Parses the key-value attributes from an ESEARCH untagged response.
@@ -50730,6 +53886,8 @@ function requireSearch () {
 	 *
 	 * ALL and PARTIAL.messages are kept as compact sequence-set strings.
 	 * Use expandRange() from tools.js if you need to expand them.
+	 * MODSEQ (RFC 7162, sent when the search used a MODSEQ criterion) is
+	 * returned as a BigInt.
 	 *
 	 * @param {Array} attrs - Attribute array from the IMAP parser
 	 * @returns {Object} ESearchResult object
@@ -50749,19 +53907,29 @@ function requireSearch () {
 	            continue;
 	        }
 	        switch (key) {
+	            // COUNT is a plain message count; MIN and MAX are sequence numbers or UIDs. All
+	            // three are bounded decimal runs - isNaN() would also admit '1e400' (Infinity)
 	            case 'COUNT': {
-	                const n = Number(attrs[++i]?.value);
-	                if (!isNaN(n)) result.count = n;
+	                const n = parseUintValue(attrs[++i]?.value, MAX_UINT32_DIGITS);
+	                if (n !== false) result.count = n;
 	                break;
 	            }
 	            case 'MIN': {
-	                const n = Number(attrs[++i]?.value);
-	                if (!isNaN(n)) result.min = n;
+	                const n = parseUintValue(attrs[++i]?.value, MAX_UINT32_DIGITS);
+	                if (n !== false) result.min = n;
 	                break;
 	            }
 	            case 'MAX': {
-	                const n = Number(attrs[++i]?.value);
-	                if (!isNaN(n)) result.max = n;
+	                const n = parseUintValue(attrs[++i]?.value, MAX_UINT32_DIGITS);
+	                if (n !== false) result.max = n;
+	                break;
+	            }
+	            case 'MODSEQ': {
+	                // RFC 7162 section 3.1.5: present when the SEARCH used a MODSEQ
+	                // criterion on a CONDSTORE-enabled session. BigInt because
+	                // mod-sequence values are unsigned 63-bit
+	                const modseq = parseBigIntValue(attrs[++i]?.value);
+	                if (modseq !== false) result.modseq = modseq;
 	                break;
 	            }
 	            case 'ALL': {
@@ -50773,9 +53941,7 @@ function requireSearch () {
 	            }
 	            case 'PARTIAL': {
 	                const listToken = attrs[++i];
-	                // Parser represents parenthesized groups as plain Arrays,
-	                // but check both forms for robustness.
-	                const items = Array.isArray(listToken) ? listToken : listToken && Array.isArray(listToken.attributes) ? listToken.attributes : null;
+	                const items = Array.isArray(listToken) ? listToken : null;
 	                if (!items || items.length < 2) break;
 	                result.partial = {
 	                    range: items[0].value,
@@ -50832,7 +53998,8 @@ function requireSearch () {
 	        return false;
 	    }
 
-	    const useEsearch = options.returnOptions && options.returnOptions.length > 0 && connection.capabilities.has('ESEARCH');
+	    // ESEARCH is part of base IMAP4rev2
+	    const useEsearch = options.returnOptions && options.returnOptions.length > 0 && hasCapability(connection, 'ESEARCH');
 
 	    if (useEsearch) {
 	        // Build RETURN (...) item list
@@ -50861,14 +54028,7 @@ function requireSearch () {
 	                    untagged: {
 	                        ESEARCH: async untagged => {
 	                            if (!untagged || !untagged.attributes) return;
-	                            // Strip leading (TAG "X") list and optional UID atom.
-	                            // The IMAP parser represents parenthesized groups as
-	                            // plain Arrays, not objects with type: 'LIST'.
-	                            let attrs = untagged.attributes;
-	                            let start = 0;
-	                            if (attrs[start] && (Array.isArray(attrs[start]) || attrs[start].type === 'LIST')) start++;
-	                            if (attrs[start] && typeof attrs[start].value === 'string' && attrs[start].value.toUpperCase() === 'UID') start++;
-	                            esearchResult = parseEsearchResponse(attrs.slice(start));
+	                            esearchResult = parseEsearchResponse(stripEsearchPrefix(untagged.attributes));
 	                        }
 	                    }
 	                });
@@ -50893,11 +54053,108 @@ function requireSearch () {
 	            untagged: {
 	                SEARCH: async untagged => {
 	                    if (untagged && untagged.attributes && untagged.attributes.length) {
-	                        untagged.attributes.forEach(attribute => {
-	                            if (attribute && attribute.value && typeof attribute.value === 'string' && !isNaN(attribute.value)) {
-	                                results.add(Number(attribute.value));
+	                        let truncated = false;
+	                        let discarded = false;
+	                        for (let attribute of untagged.attributes) {
+	                            // The result set is server-controlled and accumulated across
+	                            // responses, so stop at the same absolute ceiling expandRange()
+	                            // uses - a server streaming SEARCH responses could otherwise
+	                            // grow the set until the process runs out of memory
+	                            /* c8 ignore next 4 */ // reaching the ceiling needs 2^24 accumulated results, which no unit test can produce in reasonable time
+	                            if (results.size >= EXPANDED_RANGE_LIMIT) {
+	                                truncated = true;
+	                                break;
 	                            }
-	                        });
+	                            // Same nz-number check the ESEARCH branch below applies. isNaN()
+	                            // is not enough: it passes '1e400' (Infinity), '-3' and '2.5', and
+	                            // a single one of those makes the sequence set compiled from this
+	                            // result set invalid, failing the caller's whole follow-up command
+	                            let value = attribute && typeof attribute.value === 'string' ? Number(attribute.value) : NaN;
+	                            if (!isValidSequenceValue(value)) {
+	                                discarded = true;
+	                                continue;
+	                            }
+	                            results.add(value);
+	                        }
+	                        if (truncated || discarded) {
+	                            connection.log.warn({
+	                                msg: 'Invalid entries in the SEARCH result',
+	                                truncated,
+	                                discarded,
+	                                cid: connection.id
+	                            });
+	                        }
+	                    }
+	                },
+
+	                // IMAP4rev2 servers answer even a plain SEARCH with an untagged
+	                // ESEARCH response (RFC 9051 deprecated the SEARCH response), so
+	                // both forms are collected into the same result set
+	                ESEARCH: async untagged => {
+	                    if (!untagged || !untagged.attributes) {
+	                        return;
+	                    }
+	                    let parsed = parseEsearchResponse(stripEsearchPrefix(untagged.attributes));
+	                    if (parsed.all) {
+	                        // Walk the compact sequence-set directly into the Set - the ALL
+	                        // result may cover the entire mailbox, so expanding it into an
+	                        // intermediate array first would double the peak memory use.
+	                        // The set comes from an untrusted server: endpoints must be
+	                        // valid nz-numbers ('Infinity' would otherwise loop forever)
+	                        // and the expansion stops at the mailbox EXISTS count - a
+	                        // conforming server cannot match more messages than exist, so
+	                        // a hostile range like 1:4294967295 cannot exhaust memory.
+	                        // A '*' means "largest number in use": that is exactly EXISTS
+	                        // for message sequence numbers, while server-sent UID sets may
+	                        // not contain '*' at all (RFC 9051 section 4.1.1), so UID
+	                        // parts with '*' are dropped
+	                        let existsCount = () => (connection.mailbox && connection.mailbox.exists) || 0;
+	                        // The mailbox EXISTS count is itself server-supplied and can be
+	                        // absurdly large, so the budget is additionally capped at the same
+	                        // absolute ceiling expandRange() uses - a hostile server cannot
+	                        // bypass it by inflating EXISTS first
+	                        let overBudget = () => results.size >= existsCount() || results.size >= EXPANDED_RANGE_LIMIT;
+	                        let resolveId = part => (part === '*' ? (options.uid ? 0 : existsCount()) : Number(part));
+	                        let truncated = false;
+	                        let discarded = false;
+	                        sequenceSetLoop: for (let part of parsed.all.split(',')) {
+	                            part = part.trim();
+	                            let colon = part.indexOf(':');
+	                            if (colon < 0) {
+	                                let value = resolveId(part);
+	                                if (!isValidSequenceValue(value)) {
+	                                    discarded = true;
+	                                    continue;
+	                                }
+	                                if (overBudget()) {
+	                                    truncated = true;
+	                                    break;
+	                                }
+	                                results.add(value);
+	                                continue;
+	                            }
+	                            let first = resolveId(part.substr(0, colon));
+	                            let second = resolveId(part.substr(colon + 1));
+	                            if (!isValidSequenceValue(first) || !isValidSequenceValue(second)) {
+	                                discarded = true;
+	                                continue;
+	                            }
+	                            for (let id = Math.min(first, second); id <= Math.max(first, second); id++) {
+	                                if (overBudget()) {
+	                                    truncated = true;
+	                                    break sequenceSetLoop;
+	                                }
+	                                results.add(id);
+	                            }
+	                        }
+	                        if (truncated || discarded) {
+	                            connection.log.warn({
+	                                msg: 'Invalid entries in the ESEARCH ALL result',
+	                                truncated,
+	                                discarded,
+	                                cid: connection.id
+	                            });
+	                        }
 	                    }
 	                }
 	            }
@@ -50950,7 +54207,7 @@ function requireExpunge () {
 	if (hasRequiredExpunge) return expunge;
 	hasRequiredExpunge = 1;
 
-	const { enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const { enhanceCommandError, hasCapability, parseBigIntValue } = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Deletes specified messages by flagging them as Deleted and expunging.
@@ -50977,7 +54234,7 @@ function requireExpunge () {
 	    // With UIDPLUS (RFC 4315): "UID EXPUNGE <uids>" removes only the specified UIDs,
 	    // leaving other \Deleted messages untouched -- important for concurrent access.
 	    // Without UIDPLUS: plain "EXPUNGE" removes ALL messages flagged \Deleted in the mailbox.
-	    let byUid = options.uid && connection.capabilities.has('UIDPLUS');
+	    let byUid = options.uid && hasCapability(connection, 'UIDPLUS');
 	    let command = byUid ? 'UID EXPUNGE' : 'EXPUNGE';
 	    let attributes = byUid ? [{ type: 'SEQUENCE', value: range }] : false;
 
@@ -50991,7 +54248,10 @@ function requireExpunge () {
 	        let section = response.response.attributes && response.response.attributes[0] && response.response.attributes[0].section;
 	        let responseCode = section && section.length && section[0] && typeof section[0].value === 'string' ? section[0].value : '';
 	        if (responseCode.toUpperCase() === 'HIGHESTMODSEQ') {
-	            let highestModseq = section[1] && typeof section[1].value === 'string' && !isNaN(section[1].value) ? BigInt(section[1].value) : false;
+	            // Bounded digit runs only: isNaN() also passes '1e5', which BigInt() rejects with
+	            // a throw that the catch below would swallow, making messageDelete() report false
+	            // even though the server expunged the messages.
+	            let highestModseq = parseBigIntValue(section[1] && section[1].value);
 	            if (highestModseq && (!connection.mailbox.highestModseq || highestModseq > connection.mailbox.highestModseq)) {
 	                connection.mailbox.highestModseq = highestModseq;
 	            }
@@ -51015,7 +54275,18 @@ function requireAppend () {
 	if (hasRequiredAppend) return append;
 	hasRequiredAppend = 1;
 
-	const { formatFlag, canUseFlag, formatDateTime, normalizePath, encodePath, comparePaths, enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const {
+	    formatFlag,
+	    canUseFlag,
+	    formatDateTime,
+	    normalizePath,
+	    encodePath,
+	    comparePaths,
+	    enhanceCommandError,
+	    parseBigIntValue,
+	    parseUintValue,
+	    MAX_UINT32_DIGITS
+	} = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Appends a message to a mailbox.
@@ -51094,7 +54365,15 @@ function requireAppend () {
 	    // Handler for untagged EXISTS: captures the new message count which gives
 	    // us the sequence number of the appended message (it's the latest message).
 	    const handleExistsUpdate = untagged => {
-	        map.seq = Number(untagged.command);
+	        // The count is written into the live mailbox state below, so it has to clear the
+	        // same bar untaggedExists() applies: a digit run long enough to coerce to Infinity
+	        // would make resolveRange('*') compile to the literal string "Infinity" and break
+	        // every range-based command until the next SELECT.
+	        let seq = parseUintValue(untagged.command, MAX_UINT32_DIGITS);
+	        if (seq === false) {
+	            return;
+	        }
+	        map.seq = seq;
 
 	        // Update the connection's mailbox state and emit 'exists' event if the
 	        // count changed (notifies listeners about the new message).
@@ -51124,8 +54403,11 @@ function requireAppend () {
 	        if (section && section.length) {
 	            let responseCode = section[0] && typeof section[0].value === 'string' ? section[0].value : '';
 	            if (responseCode.toUpperCase() === 'APPENDUID') {
-	                let uidValidity = section[1] && typeof section[1].value === 'string' && !isNaN(section[1].value) ? BigInt(section[1].value) : false;
-	                let uid = section[2] && typeof section[2].value === 'string' && !isNaN(section[2].value) ? Number(section[2].value) : false;
+	                // Bounded digit runs only: isNaN() also passes '1e5', which BigInt() rejects
+	                // with a throw - and this catch rethrows, so the append would reject after the
+	                // message was already stored and a retrying caller would duplicate it.
+	                let uidValidity = parseBigIntValue(section[1] && section[1].value, MAX_UINT32_DIGITS);
+	                let uid = parseUintValue(section[2] && section[2].value, MAX_UINT32_DIGITS);
 	                if (uidValidity !== false) {
 	                    map.uidValidity = uidValidity;
 	                }
@@ -51177,7 +54459,26 @@ function requireStatus () {
 	if (hasRequiredStatus) return status;
 	hasRequiredStatus = 1;
 
-	const { encodePath, normalizePath } = /*@__PURE__*/ requireTools();
+	const { encodePath, normalizePath, buildStatusQueryAttributes, isRev2Active } = /*@__PURE__*/ requireTools();
+	const { parseStatusList } = /*@__PURE__*/ requireStatusFields();
+
+	// STATUS fields that also refresh the live mailbox state when the queried mailbox is the
+	// currently selected one. Keyed by the output property name parseStatusList() reports.
+	const MAILBOX_UPDATERS = {
+	    messages: (value, connection, path) => {
+	        let prevCount = connection.mailbox.exists;
+	        if (prevCount !== value) {
+	            connection.mailbox.exists = value;
+	            connection.emit('exists', { path, count: value, prevCount });
+	        }
+	    },
+	    uidNext: (value, connection) => {
+	        connection.mailbox.uidNext = value;
+	    },
+	    highestModseq: (value, connection) => {
+	        connection.mailbox.highestModseq = value;
+	    }
+	};
 
 	/**
 	 * Requests status information about a mailbox.
@@ -51201,33 +54502,18 @@ function requireStatus () {
 	    // otherwise use unquoted ATOM. Same approach as in SELECT.
 	    let attributes = [{ type: encodedPath.indexOf('&') >= 0 ? 'STRING' : 'ATOM', value: encodedPath }];
 
-	    // Build the list of STATUS data items the caller wants.
-	    // HIGHESTMODSEQ requires the CONDSTORE extension to be available.
-	    let queryAttributes = [];
-	    Object.keys(query || {}).forEach(key => {
-	        if (!query[key]) {
-	            return;
-	        }
+	    // Build the list of STATUS data items the caller wants
+	    let queryAttributes = buildStatusQueryAttributes(connection, query);
 
-	        switch (key.toUpperCase()) {
-	            case 'MESSAGES':
-	            case 'RECENT':
-	            case 'UIDNEXT':
-	            case 'UIDVALIDITY':
-	            case 'UNSEEN':
-	                queryAttributes.push({ type: 'ATOM', value: key.toUpperCase() });
-	                break;
-
-	            case 'HIGHESTMODSEQ':
-	                if (connection.capabilities.has('CONDSTORE')) {
-	                    queryAttributes.push({ type: 'ATOM', value: key.toUpperCase() });
-	                }
-	                break;
-	        }
-	    });
+	    // RECENT does not exist in IMAP4rev2 so it is never requested from a rev2
+	    // session; its defined value there is always 0. Synthesizing it keeps the
+	    // return shape identical to a rev1 session for the same query.
+	    let syntheticRecent = query && query.recent && isRev2Active(connection);
 
 	    if (!queryAttributes.length) {
-	        return false;
+	        // A query that only contained items unavailable on this session - the
+	        // caller still gets a status object if every such item has a defined value
+	        return syntheticRecent ? { path, recent: 0 } : false;
 	    }
 
 	    attributes.push(queryAttributes);
@@ -51248,74 +54534,29 @@ function requireStatus () {
 	                    if (!list) {
 	                        return;
 	                    }
-	                    // Maps IMAP STATUS field names to their output key names, type parsers,
-	                    // and optional callbacks to update the live mailbox state.
-	                    const STATUS_FIELD_MAP = {
-	                        MESSAGES: {
-	                            key: 'messages',
-	                            parser: Number,
-	                            updateMailbox: (val, conn) => {
-	                                let prevCount = conn.mailbox.exists;
-	                                if (prevCount !== val) {
-	                                    conn.mailbox.exists = val;
-	                                    conn.emit('exists', { path, count: val, prevCount });
-	                                }
-	                            }
-	                        },
-	                        RECENT: { key: 'recent', parser: Number },
-	                        UIDNEXT: {
-	                            key: 'uidNext',
-	                            parser: Number,
-	                            updateMailbox: (val, conn) => {
-	                                conn.mailbox.uidNext = val;
-	                            }
-	                        },
-	                        UIDVALIDITY: { key: 'uidValidity', parser: BigInt },
-	                        UNSEEN: { key: 'unseen', parser: Number },
-	                        HIGHESTMODSEQ: {
-	                            key: 'highestModseq',
-	                            parser: BigInt,
-	                            updateMailbox: (val, conn) => {
-	                                conn.mailbox.highestModseq = val;
-	                            }
-	                        }
-	                    };
+	                    parseStatusList(list, (key, value) => {
+	                        map[key] = value;
 
-	                    let key;
-	                    list.forEach((entry, i) => {
-	                        if (i % 2 === 0) {
-	                            key = entry && typeof entry.value === 'string' ? entry.value : false;
-	                            return;
-	                        }
-	                        if (!key || !entry || typeof entry.value !== 'string') {
-	                            return;
-	                        }
-
-	                        const fieldConfig = STATUS_FIELD_MAP[key.toUpperCase()];
-	                        if (!fieldConfig) {
-	                            return;
-	                        }
-
-	                        const value = !isNaN(entry.value) ? fieldConfig.parser(entry.value) : false;
-	                        if (value === false) {
-	                            return;
-	                        }
-
-	                        map[fieldConfig.key] = value;
-
-	                        if (updateCurrent && fieldConfig.updateMailbox) {
-	                            fieldConfig.updateMailbox(value, connection);
+	                        if (updateCurrent && MAILBOX_UPDATERS[key]) {
+	                            MAILBOX_UPDATERS[key](value, connection, path);
 	                        }
 	                    });
 	                }
 	            }
 	        });
 	        response.next();
+	        if (syntheticRecent) {
+	            map.recent = 0;
+	        }
 	        return map;
 	    } catch (err) {
 	        // A NO response usually means the mailbox doesn't exist. Verify by
 	        // running LIST -- if no results, throw a clear NotFound error instead
 	        // of the generic IMAP error.
+	        // Note: this uses run(), so when STATUS was dispatched by fallback polling through
+	        // runInternal() the LIST awaits that polling session's own preCheck and cancels it.
+	        // Not a deadlock, and only reachable when the server rejects the STATUS, but a polled
+	        // STATUS of a missing folder ends the poll early.
 	        if (err.responseStatus === 'NO') {
 	            let folders = await connection.run('LIST', '', path, { listOnly: true });
 	            if (folders && !folders.length) {
@@ -51340,7 +54581,7 @@ function requireCopyuidParser () {
 	if (hasRequiredCopyuidParser) return copyuidParser;
 	hasRequiredCopyuidParser = 1;
 
-	const { expandRange } = /*@__PURE__*/ requireTools();
+	const { expandRange, parseBigIntValue } = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Parses COPYUID response code from an IMAP response (RFC 4315).
@@ -51358,7 +54599,9 @@ function requireCopyuidParser () {
 	        return;
 	    }
 
-	    let uidValidity = section[1] && typeof section[1].value === 'string' && !isNaN(section[1].value) ? BigInt(section[1].value) : false;
+	    // Only a bounded pure digit string is accepted: isNaN() also passes values like "1e5" or
+	    // "Infinity", which BigInt() then rejects with a throw that loses the uidMap.
+	    let uidValidity = parseBigIntValue(section[1] && section[1].value);
 	    if (uidValidity !== false) {
 	        map.uidValidity = uidValidity;
 	    }
@@ -51436,7 +54679,7 @@ function requireMove () {
 	if (hasRequiredMove) return move;
 	hasRequiredMove = 1;
 
-	const { normalizePath, encodePath, enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const { normalizePath, encodePath, enhanceCommandError, hasCapability } = /*@__PURE__*/ requireTools();
 	const { parseCopyUid } = /*@__PURE__*/ requireCopyuidParser();
 
 	/**
@@ -51467,7 +54710,7 @@ function requireMove () {
 
 	    // Fallback for servers without the MOVE extension (RFC 6851):
 	    // emulate MOVE using COPY + flag as \Deleted + EXPUNGE.
-	    if (!connection.capabilities.has('MOVE')) {
+	    if (!hasCapability(connection, 'MOVE')) {
 	        let result = await connection.messageCopy(range, destination, options);
 	        await connection.messageDelete(range, Object.assign({ silent: true }, options));
 	        return result;
@@ -51523,12 +54766,39 @@ function requireCompress () {
 	    let response;
 	    try {
 	        response = await connection.exec('COMPRESS', [{ type: 'ATOM', value: 'DEFLATE' }]);
-	        response.next();
-	        return true;
 	    } catch (err) {
+	        // The server declined (NO/BAD): nothing switched, staying uncompressed is safe.
 	        connection.log.warn({ err, cid: connection.id });
 	        return false;
 	    }
+
+	    // Everything after the tagged OK is already deflate-framed (RFC 4978 section 4) -
+	    // the server switches at the OK, so declining the upgrade at this point is not a
+	    // protocol option. The socket stays piped into the plaintext parser until the
+	    // transport swaps in the inflater, so bytes that arrived in the same chunk as the
+	    // OK have been consumed as cleartext and are missing from the head of the deflate
+	    // stream: the session is unrecoverable in both directions. Fail it immediately
+	    // (the same way STARTTLS treats post-OK trailing data) instead of letting it die
+	    // slowly on garbage. Closing this window without failing needs the stream to hand
+	    // back its unconsumed tail on unpipe so the transport can feed it into the
+	    // inflater - not something a command module can reach from here.
+	    if (response.hasTrailingData) {
+	        let error = new Error('Server sent data between the COMPRESS response and the compression layer switch');
+	        error.code = 'COMPRESS_TRAILING_DATA';
+	        connection.log.error({ err: error, cid: connection.id });
+	        // Schedule the close before releasing parser backpressure, so the buffered
+	        // deflate-framed bytes cannot settle anything before teardown begins. This is
+	        // why the decision lives here rather than at the connection layer the way the
+	        // STARTTLS guard does (starttls.js records a flag, upgradeToSTARTTLS decides):
+	        // only the command module holds the response before its backpressure release,
+	        // so only it can order teardown ahead of that release.
+	        connection.closeAfter();
+	        response.next();
+	        throw error;
+	    }
+
+	    response.next();
+	    return true;
 	};
 	return compress;
 }
@@ -51540,7 +54810,7 @@ function requireQuota () {
 	if (hasRequiredQuota) return quota;
 	hasRequiredQuota = 1;
 
-	const { encodePath, normalizePath, enhanceCommandError } = /*@__PURE__*/ requireTools();
+	const { encodePath, normalizePath, enhanceCommandError, parseUintValue, isUnsafeKey } = /*@__PURE__*/ requireTools();
 
 	/**
 	 * Requests quota information for a mailbox.
@@ -51587,8 +54857,16 @@ function requireQuota () {
 	                return;
 	            }
 
-	            let value = attribute && typeof attribute.value === 'string' && !isNaN(attribute.value) ? Number(attribute.value) : false;
+	            // isNaN() also passes '1e5', ' 12 ' and 'Infinity', none of which is a usable octet count
+	            let value = parseUintValue(attribute && attribute.value);
 	            if (value === false) {
+	                return;
+	            }
+
+	            // Resource names are server-controlled. This object is returned to the caller, so it
+	            // keeps a normal prototype and unsafe names are dropped instead; the fixed fields
+	            // must keep their values too.
+	            if (isUnsafeKey(key) || key === 'path' || key === 'quotaroot') {
 	                return;
 	            }
 
@@ -51650,6 +54928,9 @@ function requireQuota () {
 	                    }
 	                }
 	            });
+	            // Release the parser: without this the connection stalls, because the reader loop
+	            // waits for the response to be handed back before parsing any further input.
+	            response.next();
 	        }
 
 	        return map;
@@ -51669,7 +54950,32 @@ function requireIdle () {
 	if (hasRequiredIdle) return idle;
 	hasRequiredIdle = 1;
 
+	const { guardedPromise, hasCapability, logConnectionError, restampConnectionError, unrefTimer } = /*@__PURE__*/ requireTools();
+
 	const NOOP_INTERVAL = 2 * 60 * 1000;
+
+	/**
+	 * Marks the connection as idling on behalf of one session and returns a release function.
+	 *
+	 * Both IDLE modes use this so ownership of the shared `idling` flag is explicit: a session that
+	 * finishes late (a poll that completes after cancellation, an IDLE that unwinds after a restart)
+	 * cannot clear the flag of the session that has since taken over.
+	 *
+	 * @param {Object} connection - IMAP connection instance
+	 * @returns {Function} Release function, safe to call more than once
+	 */
+	function claimIdling(connection) {
+	    let token = {};
+	    connection._idleSession = token;
+	    connection.idling = true;
+
+	    return () => {
+	        if (connection._idleSession === token) {
+	            connection._idleSession = null;
+	            connection.idling = false;
+	        }
+	    };
+	}
 
 	/**
 	 * Runs a single IDLE session on the connection.
@@ -51683,9 +54989,13 @@ function requireIdle () {
 	    // Queue of promises waiting for IDLE to break. When another command needs to run,
 	    // it calls connection.preCheck() which queues a promise here and sends DONE to break IDLE.
 	    let preCheckWaitQueue = [];
-	    try {
-	        connection.idling = true;
 
+	    // The preCheck function this session owns. Only this session may clear it from the
+	    // connection, so a newer IDLE session that already installed its own is left alone.
+	    let ownPreCheck = null;
+	    let releaseIdling = claimIdling(connection);
+
+	    try {
 	        // State flags for the IDLE lifecycle:
 	        // - doneRequested: someone wants to break IDLE (e.g., to run another command)
 	        // - doneSent: we've already sent the DONE command to server
@@ -51704,13 +55014,16 @@ function requireIdle () {
 	                    msg: `DONE`,
 	                    comment: `breaking IDLE`,
 	                    lockId: connection.currentLock?.lockId,
-	                    path: connection.mailbox && connection.mailbox.path
+	                    path: connection.mailbox && connection.mailbox.path,
+	                    cid: connection.id
 	                });
 	                connection.write('DONE');
 	                doneSent = true;
 
-	                connection.idling = false;
-	                connection.preCheck = false; // unset itself
+	                releaseIdling();
+	                if (connection.preCheck === ownPreCheck) {
+	                    connection.preCheck = false; // unset itself
+	                }
 
 	                while (preCheckWaitQueue.length) {
 	                    let { resolve } = preCheckWaitQueue.shift();
@@ -51722,7 +55035,9 @@ function requireIdle () {
 	        // Public interface for breaking IDLE. Returns a promise that resolves when
 	        // IDLE is actually broken and the connection is free for other commands.
 	        let connectionPreCheck = () => {
-	            let handler = new Promise((resolve, reject) => {
+	            // Guarded: the catch block below rejects every queued waiter synchronously while
+	            // close() tears the connection down. See guardedPromise().
+	            let handler = guardedPromise((resolve, reject) => {
 	                preCheckWaitQueue.push({ resolve, reject });
 	            });
 
@@ -51733,15 +55048,17 @@ function requireIdle () {
 	                queued: preCheckWaitQueue.length,
 	                doneRequested,
 	                canEnd,
-	                doneSent
+	                doneSent,
+	                cid: connection.id
 	            });
 
-	            preCheck().catch(err => connection.log.warn({ err, cid: connection.id }));
+	            preCheck().catch(err => logConnectionError(connection, 'Failed to break IDLE', err));
 
 	            return handler;
 	        };
 
 	        // Register preCheck on the connection so other code (e.g., getMailboxLock) can break IDLE
+	        ownPreCheck = connectionPreCheck;
 	        connection.preCheck = connectionPreCheck;
 
 	        response = await connection.exec('IDLE', false, {
@@ -51749,50 +55066,210 @@ function requireIdle () {
 	            // After this, the server will push untagged responses for mailbox changes.
 	            // We can now safely send DONE if a break was already requested.
 	            onPlusTag: async () => {
-	                connection.log.debug({ msg: `Initiated IDLE, waiting for server input`, lockId: connection.currentLock?.lockId, doneRequested });
+	                connection.log.debug({
+	                    msg: `Initiated IDLE, waiting for server input`,
+	                    lockId: connection.currentLock?.lockId,
+	                    doneRequested,
+	                    cid: connection.id
+	                });
 	                canEnd = true;
 	                if (doneRequested) {
 	                    try {
 	                        await preCheck();
 	                    } catch (err) {
-	                        connection.log.warn({ err, cid: connection.id });
+	                        logConnectionError(connection, 'Failed to break IDLE', err);
 	                    }
 	                }
 	            },
 	            onSend: () => {}
 	        });
 
-	        // Clean up: unset preCheck and resolve any remaining waiters before processing the response.
-	        // Usually preCheck is already cleared by the DONE handler, but this handles edge cases.
-	        if (typeof connection.preCheck === 'function' && connection.preCheck === connectionPreCheck) {
-	            connection.log.trace({
-	                msg: 'Clearing pre-check function',
-	                lockId: connection.currentLock?.lockId,
-	                path: connection.mailbox && connection.mailbox.path,
-	                queued: preCheckWaitQueue.length,
-	                doneRequested,
-	                canEnd,
-	                doneSent
-	            });
-	            connection.preCheck = false;
-	            while (preCheckWaitQueue.length) {
-	                let { resolve } = preCheckWaitQueue.shift();
-	                resolve();
-	            }
-	        }
-
 	        response.next();
 	        return;
 	    } catch (err) {
-	        connection.preCheck = false;
-	        connection.idling = false;
-
-	        connection.log.warn({ err, cid: connection.id });
-	        while (preCheckWaitQueue.length) {
-	            let { reject } = preCheckWaitQueue.shift();
-	            reject(err);
+	        logConnectionError(connection, 'IDLE session failed', err);
+	        if (preCheckWaitQueue.length) {
+	            // One error for the whole queue: every waiter failed at the same site, for the same
+	            // reason. Built inside the guard so a teardown with nothing queued - the common case -
+	            // does not pay for an Error and its stack capture.
+	            let waiterError = restampConnectionError(err, { rejectedFrom: 'preCheckWaiter' });
+	            while (preCheckWaitQueue.length) {
+	                let { reject } = preCheckWaitQueue.shift();
+	                reject(waiterError);
+	            }
 	        }
 	        return false;
+	    } finally {
+	        // Single ownership cleanup for every outcome: explicit break, tagged completion
+	        // (including a server-terminated IDLE, where preCheck never ran), rejected command,
+	        // parser failure and connection close. `idling` drives socket-timeout handling, so it
+	        // must always describe reality rather than being left over from a previous state.
+	        releaseIdling();
+	        if (connection.preCheck === ownPreCheck) {
+	            connection.preCheck = false;
+	        }
+	        while (preCheckWaitQueue.length) {
+	            let { resolve } = preCheckWaitQueue.shift();
+	            resolve();
+	        }
+	    }
+	}
+
+	/**
+	 * Runs one fallback poll. The real SELECT and STATUS commands are reused instead of replaying the
+	 * saved wire arguments, so a poll applies exactly the same mailbox state transitions, events and
+	 * failure handling as a caller-issued command. They go through connection.runInternal() rather
+	 * than connection.run(), because run() awaits preCheck() - and the preCheck it would await is the
+	 * one this very polling session installed, so the session would cancel itself.
+	 *
+	 * @param {Object} connection - IMAP connection instance
+	 * @param {Object} session - Polling session state
+	 * @returns {Promise<void>}
+	 */
+	async function pollOnce(connection, session) {
+	    let path = connection.mailbox && connection.mailbox.path;
+
+	    switch (connection.missingIdleCommand) {
+	        case 'SELECT':
+	            connection.log.debug({ msg: `Running SELECT to detect changes in folder`, cid: connection.id });
+	            await connection.runInternal('SELECT', path, { readOnly: session.selectCommand.command === 'EXAMINE' });
+	            break;
+
+	        case 'STATUS': {
+	            connection.log.debug({ msg: `Running STATUS to detect changes in folder`, cid: connection.id });
+	            // HIGHESTMODSEQ is filtered out again unless the server advertises CONDSTORE, so a
+	            // CONDSTORE session keeps mailbox.highestModseq current without asking a plain
+	            // server for an item it does not know.
+	            let status = await connection.runInternal('STATUS', path, {
+	                messages: true,
+	                uidNext: true,
+	                uidValidity: true,
+	                unseen: true,
+	                highestModseq: true
+	            });
+	            if (!status) {
+	                let err = new Error('STATUS poll failed');
+	                err.code = 'PollFailed';
+	                throw err;
+	            }
+	            break;
+	        }
+
+	        case 'NOOP':
+	        default: {
+	            let response = await connection.exec('NOOP', false, { comment: 'IDLE not supported' });
+	            response.next();
+	            break;
+	        }
+	    }
+	}
+
+	/**
+	 * Polls the selected mailbox at a fixed interval, for servers without IDLE support.
+	 *
+	 * The loop is one explicitly identified session: cancellation is idempotent, is checked before
+	 * a poll starts and again before the next timer is scheduled, and a poll that completes after
+	 * cancellation can neither run again nor take ownership away from a newer IDLE session.
+	 *
+	 * @param {Object} connection - IMAP connection instance
+	 * @param {number} [maxIdleTime] - Upper bound for the polling interval
+	 * @returns {Promise<void>}
+	 */
+	async function runPollingFallback(connection, maxIdleTime) {
+	    if (!connection.currentSelectCommand) {
+	        return;
+	    }
+
+	    let session = {
+	        cancelled: false,
+	        timer: null,
+	        preCheck: null,
+	        selectCommand: connection.currentSelectCommand
+	    };
+
+	    let interval = maxIdleTime ? Math.min(NOOP_INTERVAL, maxIdleTime) : NOOP_INTERVAL;
+	    let releaseIdling = claimIdling(connection);
+
+	    try {
+	        await new Promise(resolve => {
+	            // Idempotent cancellation. Never keyed off connection.preCheck, because a newer IDLE
+	            // session may already own that property by the time an old poll settles.
+	            const cancel = () => {
+	                if (session.cancelled) {
+	                    return;
+	                }
+	                session.cancelled = true;
+	                clearTimeout(session.timer);
+	                session.timer = null;
+	                resolve();
+	            };
+
+	            session.preCheck = async () => {
+	                connection.log.debug({ msg: `Breaking NOOP loop`, cid: connection.id });
+	                cancel();
+	            };
+	            connection.preCheck = session.preCheck;
+
+	            const runPoll = () => {
+	                if (session.cancelled) {
+	                    return;
+	                }
+
+	                // The transport or the mailbox may be gone by the time the timer fires
+	                if (!connection.socket || connection.socket.destroyed || connection.state !== connection.states.SELECTED || !connection.mailbox) {
+	                    return cancel();
+	                }
+
+	                pollOnce(connection, session)
+	                    .then(() => {
+	                        // Stamped only after a poll actually completed: a failed poll must not
+	                        // satisfy the resumed schedule below, or the next session would defer
+	                        // its first poll a full interval past an attempt that checked nothing.
+	                        connection._lastPollAt = Date.now();
+	                        // Cancellation is re-checked here: the session may have been broken while
+	                        // this poll was in flight, and an orphaned poller must not schedule again.
+	                        if (session.cancelled) {
+	                            return;
+	                        }
+	                        scheduleNextPoll(interval);
+	                    })
+	                    .catch(err => {
+	                        logConnectionError(connection, 'Failed to poll for mailbox changes', err);
+	                        cancel();
+	                    });
+	            };
+
+	            function scheduleNextPoll(delay) {
+	                session.timer = setTimeout(runPoll, delay);
+	                // Background polling must not keep the process alive
+	                unrefTimer(session.timer);
+	            }
+
+	            connection.log.debug({ msg: `Initiated NOOP loop`, cid: connection.id });
+
+	            // Every auto-IDLE restart begins a fresh polling session, so an unconditional first
+	            // poll would tie the poll rate to how often the caller runs commands rather than to
+	            // `interval`: with a short autoIdleDelay, a command every few seconds turns into a
+	            // poll every few seconds. The last poll timestamp lives on the connection, so a new
+	            // session resumes the previous one's schedule instead of restarting it.
+	            // Clamped at zero because a backward wall-clock step (NTP, VM resume) leaves the
+	            // stamp in the future; however large the jump, the next poll must never be more
+	            // than one full interval away.
+	            let sinceLastPoll = Math.max(0, Date.now() - (connection._lastPollAt || 0));
+	            if (sinceLastPoll >= interval) {
+	                runPoll();
+	            } else {
+	                scheduleNextPoll(interval - sinceLastPoll);
+	            }
+	        });
+	    } finally {
+	        session.cancelled = true;
+	        clearTimeout(session.timer);
+	        session.timer = null;
+	        releaseIdling();
+	        if (connection.preCheck === session.preCheck) {
+	            connection.preCheck = false;
+	        }
 	    }
 	}
 
@@ -51809,14 +55286,17 @@ function requireIdle () {
 	        return;
 	    }
 
-	    // If server supports IDLE (RFC 2177), use it for real-time push notifications.
-	    // Otherwise, fall back to periodic polling with NOOP/STATUS/SELECT.
-	    if (connection.capabilities.has('IDLE')) {
+	    // If server supports IDLE (RFC 2177, folded into base IMAP4rev2), use it for
+	    // real-time push notifications. Otherwise, fall back to periodic polling with
+	    // NOOP/STATUS/SELECT.
+	    if (hasCapability(connection, 'IDLE')) {
 	        let idleTimer;
 	        let stillIdling = false;
-	        // IDLE loop: runs IDLE, and if maxIdleTime is reached, breaks and restarts
-	        // to keep the connection alive (some servers drop long-running IDLEs).
-	        let runIdleLoop = async () => {
+	        // IDLE loop: runs IDLE, and if maxIdleTime is reached, breaks and restarts to keep the
+	        // connection alive (some servers drop long-running IDLEs). Iterative rather than
+	        // recursive, so a long-lived idling connection does not retain one pending frame per
+	        // restart.
+	        for (;;) {
 	            if (maxIdleTime) {
 	                idleTimer = setTimeout(() => {
 	                    if (connection.idling) {
@@ -51824,92 +55304,25 @@ function requireIdle () {
 	                            stillIdling = true;
 	                            // request IDLE break if IDLE has been running for allowed time
 	                            connection.log.trace({ msg: 'Max allowed IDLE time reached', cid: connection.id });
-	                            connection.preCheck().catch(err => connection.log.warn({ err, cid: connection.id }));
+	                            connection.preCheck().catch(err => logConnectionError(connection, 'Failed to break IDLE for restart', err));
 	                        }
 	                    }
 	                }, maxIdleTime);
+	                // Background IDLE restart timer must not keep the process alive
+	                unrefTimer(idleTimer);
 	            }
 	            let resp = await runIdle(connection);
 	            clearTimeout(idleTimer);
-	            if (stillIdling) {
-	                stillIdling = false;
-	                return runIdleLoop();
+	            if (!stillIdling) {
+	                return resp;
 	            }
-	            return resp;
-	        };
-	        return runIdleLoop();
+	            stillIdling = false;
+	        }
 	    }
 
 	    // Fallback for servers without IDLE support: poll at regular intervals using
 	    // NOOP (default), STATUS, or SELECT depending on missingIdleCommand config.
-	    let idleTimer;
-	    return new Promise(resolve => {
-	        if (!connection.currentSelectCommand) {
-	            return resolve();
-	        }
-
-	        // Set up preCheck so other commands can break the polling loop
-	        connection.preCheck = async () => {
-	            connection.preCheck = false; // unset itself
-	            clearTimeout(idleTimer);
-	            connection.log.debug({ src: 'c', msg: `breaking NOOP loop` });
-	            connection.idling = false;
-	            resolve();
-	        };
-
-	        let selectCommand = connection.currentSelectCommand;
-
-	        // Run one polling check. The method used depends on configuration:
-	        // SELECT re-selects the mailbox (may detect changes), STATUS queries mailbox counters,
-	        // NOOP is the simplest but relies on server pushing untagged responses.
-	        let idleCheck = async () => {
-	            let response;
-	            switch (connection.missingIdleCommand) {
-	                case 'SELECT':
-	                    // FIXME: somehow a loop occurs after some time of idling with SELECT
-	                    connection.log.debug({ src: 'c', msg: `Running SELECT to detect changes in folder` });
-	                    response = await connection.exec(selectCommand.command, selectCommand.arguments);
-	                    break;
-
-	                case 'STATUS':
-	                    {
-	                        let statusArgs = [
-	                            selectCommand.arguments[0],
-	                            ['MESSAGES', 'UIDNEXT', 'UIDVALIDITY', 'UNSEEN'].map(key => ({ type: 'ATOM', value: key }))
-	                        ];
-	                        connection.log.debug({ src: 'c', msg: `Running STATUS to detect changes in folder` });
-	                        response = await connection.exec('STATUS', statusArgs);
-	                    }
-	                    break;
-
-	                case 'NOOP':
-	                default:
-	                    response = await connection.exec('NOOP', false, { comment: 'IDLE not supported' });
-	                    break;
-	            }
-	            response.next();
-	        };
-
-	        let noopInterval = maxIdleTime ? Math.min(NOOP_INTERVAL, maxIdleTime) : NOOP_INTERVAL;
-
-	        let runLoop = () => {
-	            idleCheck()
-	                .then(() => {
-	                    clearTimeout(idleTimer);
-	                    idleTimer = setTimeout(runLoop, noopInterval);
-	                })
-	                .catch(err => {
-	                    clearTimeout(idleTimer);
-	                    connection.preCheck = false;
-	                    connection.log.warn({ err, cid: connection.id });
-	                    resolve();
-	                });
-	        };
-
-	        connection.log.debug({ src: 'c', msg: `initiated NOOP loop` });
-	        connection.idling = true;
-	        runLoop();
-	    });
+	    return runPollingFallback(connection, maxIdleTime);
 	};
 	return idle;
 }
@@ -51928,7 +55341,7 @@ function requireAuthenticate () {
 	 *
 	 * @param {Error} err - The original authentication error
 	 * @param {Object} [errorResponse] - Optional OAuth error response from the server
-	 * @throws {Error} Always throws the enriched error
+	 * @returns {Error} The enriched error; the caller is expected to throw it
 	 */
 	async function handleAuthError(err, errorResponse) {
 	    let errorCode = getStatusCode(err.response);
@@ -51940,7 +55353,7 @@ function requireAuthenticate () {
 	    if (errorResponse) {
 	        err.oauthError = errorResponse;
 	    }
-	    throw err;
+	    return err;
 	}
 
 	/**
@@ -51961,7 +55374,19 @@ function requireAuthenticate () {
 	        // OAUTHBEARER payload per RFC 7628: fields separated by \x01 (SASL GS2 framing).
 	        // Format: "n,a=<user>," \x01 "host=..." \x01 "port=..." \x01 "auth=Bearer <token>" \x01 \x01
 	        // The trailing empty strings produce the required double-\x01 terminator.
-	        oauthbearer = [`n,a=${username},`, `host=${connection.servername}`, `port=993`, `auth=Bearer ${accessToken}`, '', ''].join('\x01');
+	        // Both fields must describe the connection actually in use. The port was hardcoded to 993,
+	        // so an OAuth2 server reached over 143/STARTTLS advertised a payload that did not match, and
+	        // `servername` is set to false for a bare-IP host, which rendered as a literal "host=false".
+	        // A server validating either field rejects with status `invalid_request` - a permanent
+	        // failure that refreshing the access token can never clear.
+	        oauthbearer = [
+	            `n,a=${username},`,
+	            `host=${connection.servername || connection.host}`,
+	            `port=${connection.port}`,
+	            `auth=Bearer ${accessToken}`,
+	            '',
+	            ''
+	        ].join('\x01');
 	        command = 'OAUTHBEARER';
 	        // "AQ==" is base64 for \x01 -- sent as the error continuation to abort the SASL exchange
 	        breaker = 'AQ==';
@@ -51990,11 +55415,16 @@ function requireAuthenticate () {
 	                        try {
 	                            errorResponse = JSON.parse(Buffer.from(resp.attributes[0].value, 'base64').toString());
 	                        } catch (err) {
-	                            connection.log.debug({ errorResponse: resp.attributes[0].value, err });
+	                            connection.log.debug({
+	                                msg: 'Failed to parse OAuth error response',
+	                                errorResponse: resp.attributes[0].value,
+	                                err,
+	                                cid: connection.id
+	                            });
 	                        }
 	                    }
 
-	                    connection.log.debug({ src: 'c', msg: breaker, comment: `Error response for ${command}` });
+	                    connection.log.debug({ src: 'c', msg: breaker, comment: `Error response for ${command}`, cid: connection.id });
 	                    connection.write(breaker);
 	                }
 	            }
@@ -52005,7 +55435,7 @@ function requireAuthenticate () {
 
 	        return username;
 	    } catch (err) {
-	        await handleAuthError(err, errorResponse);
+	        throw await handleAuthError(err, errorResponse);
 	    }
 	}
 
@@ -52035,10 +55465,10 @@ function requireAuthenticate () {
 
 	                    if (question === 'username' || question === 'user name') {
 	                        let encodedUsername = Buffer.from(username).toString('base64');
-	                        connection.log.debug({ src: 'c', msg: encodedUsername, comment: `Encoded username for AUTH=LOGIN` });
+	                        connection.log.debug({ src: 'c', msg: encodedUsername, comment: `Encoded username for AUTH=LOGIN`, cid: connection.id });
 	                        connection.write(encodedUsername);
 	                    } else if (question === 'password') {
-	                        connection.log.debug({ src: 'c', msg: '(* value hidden *)', comment: `Encoded password for AUTH=LOGIN` });
+	                        connection.log.debug({ src: 'c', msg: '(* value hidden *)', comment: `Encoded password for AUTH=LOGIN`, cid: connection.id });
 	                        connection.write(Buffer.from(password).toString('base64'));
 	                    } else {
 	                        throw new Error(`Unknown LOGIN question "${question}"`);
@@ -52053,7 +55483,7 @@ function requireAuthenticate () {
 
 	        return username;
 	    } catch (err) {
-	        await handleAuthError(err, errorResponse);
+	        throw await handleAuthError(err, errorResponse);
 	    }
 	}
 
@@ -52078,7 +55508,12 @@ function requireAuthenticate () {
 	                let authzidValue = authzid || '';
 	                let encodedResponse = Buffer.from([authzidValue, username, password].join('\x00')).toString('base64');
 	                let loggedResponse = Buffer.from([authzidValue, username, '(* value hidden *)'].join('\x00')).toString('base64');
-	                connection.log.debug({ src: 'c', msg: loggedResponse, comment: `Encoded response for AUTH=PLAIN${authzid ? ' with authzid' : ''}` });
+	                connection.log.debug({
+	                    src: 'c',
+	                    msg: loggedResponse,
+	                    comment: `Encoded response for AUTH=PLAIN${authzid ? ' with authzid' : ''}`,
+	                    cid: connection.id
+	                });
 	                connection.write(encodedResponse);
 	            }
 	        });
@@ -52090,7 +55525,7 @@ function requireAuthenticate () {
 	        // Return the identity we're authorized as (authzid if provided, otherwise username)
 	        return authzid || username;
 	    } catch (err) {
-	        await handleAuthError(err, errorResponse);
+	        throw await handleAuthError(err, errorResponse);
 	    }
 	}
 
@@ -52206,15 +55641,15 @@ function requireImapFlow () {
 	 * @module imapflow
 	 */
 
-	const tls = require$$1$6;
-	const net = require$$4$4;
+	const tls = require$$3$4;
+	const net = require$$1$6;
 	const crypto = require$$3$5;
 	const { EventEmitter } = require$$1$2;
 	const logger = /*@__PURE__*/ requireLogger();
 	const libmime = /*@__PURE__*/ requireLibmime();
 	const zlib = require$$6$2;
 	const { Headers } = /*@__PURE__*/ requireMailsplit();
-	const { LimitedPassthrough } = /*@__PURE__*/ requireLimitedPassthrough();
+	const { LimitedPassthrough, normalizeByteLimit } = /*@__PURE__*/ requireLimitedPassthrough();
 
 	const { ImapStream } = /*@__PURE__*/ requireImapStream();
 	const { parser, compiler } = /*@__PURE__*/ requireImapHandler();
@@ -52225,7 +55660,8 @@ function requireImapFlow () {
 	const FlowedDecoder = /*@__PURE__*/ requireFlowedDecoder();
 	const { PassThrough } = require$$0$a;
 
-	const { proxyConnection } = /*@__PURE__*/ requireProxyConnection();
+	const { proxyConnection, detachEarlyErrorHandler } = /*@__PURE__*/ requireProxyConnection();
+	const { ConnectionDeadline } = /*@__PURE__*/ requireConnectionDeadline();
 
 	const {
 	    comparePaths,
@@ -52237,18 +55673,29 @@ function requireImapFlow () {
 	    normalizePath,
 	    expandRange,
 	    AuthenticationFailure,
-	    getColorFlags
+	    getColorFlags,
+	    hasCapability,
+	    logConnectionError,
+	    unrefTimer,
+	    parseUintValue,
+	    isUnsafeKey,
+	    getStringList,
+	    buildConnectionError,
+	    guardedPromise,
+	    guardedReject,
+	    MAX_UINT32_DIGITS
 	} = /*@__PURE__*/ requireTools();
 
 	const imapCommands = /*@__PURE__*/ requireImapCommands();
 
-	const noop = () => {};
-
-	const CONNECT_TIMEOUT = 90 * 1000;
 	const GREETING_TIMEOUT = 16 * 1000;
 	const UPGRADE_TIMEOUT = 10 * 1000;
 
 	const SOCKET_TIMEOUT = 5 * 60 * 1000;
+
+	// Ceiling for any throttle back-off wait. Both the connection-level back-off and the per-command
+	// retries derive their delay from server-supplied hints, which are unbounded.
+	const MAX_THROTTLE_DELAY = 5 * 60 * 1000;
 
 	// Default threshold for warning that a mailbox lock has been held for a long
 	// time. Intended to catch forgotten release() calls, not legitimate long ops
@@ -52256,11 +55703,139 @@ function requireImapFlow () {
 	// ImapFlow constructor option `maxLockHoldTime`. Set to 0 or false to disable.
 	const HELD_LOCK_WARN_MS = 30 * 60 * 1000;
 
+	// How long the connection has to stay inactive before auto-IDLE starts. Long enough that a caller
+	// running a sequence of commands is not interrupted by an IDLE it immediately has to break.
+	// Configurable via the ImapFlow constructor option `autoIdleDelay`.
+	const AUTO_IDLE_DELAY = 15 * 1000;
+
+	// Headroom kept between the auto-IDLE delay and the socket inactivity watchdog, so IDLE reaches
+	// the wire before the watchdog can fire. See normalizeAutoIdleDelay().
+	const AUTO_IDLE_SOCKET_MARGIN = 1000;
+
+	// Commands whose client frames carry credentials; the raw traffic log withholds frame content
+	// while one of these is in flight. See the logRaw branch in write().
+	const RAW_SENSITIVE_COMMANDS = new Set(['LOGIN', 'AUTHENTICATE']);
+
+	// Stand-in payload for a withheld raw client frame. Fixed width, so the entry says nothing
+	// about the length of what it replaced.
+	const RAW_HIDDEN_PLACEHOLDER = Buffer.from('(* value hidden *)\r\n').toString('base64');
+
+	// Whether any attribute of a command is marked as a secret. Recurses into nested lists because
+	// the command compiler honors `sensitive` at any depth, and the two must agree on what counts.
+	function hasSensitiveAttribute(attributes) {
+	    return [].concat(attributes || []).some(node => (Array.isArray(node) ? hasSensitiveAttribute(node) : !!node && node.sensitive));
+	}
+
+	// How deep flattenLoggedError() follows a chain of errors. Bounded because the chain comes from
+	// whatever failed, not from this library: a cause chain can be arbitrarily long, and the cycle
+	// check below only catches errors that repeat.
+	const MAX_ERROR_FLATTEN_DEPTH = 4;
+
+	// Recognizes an Error without instanceof, which fails for an error that crossed a realm boundary
+	// (worker thread, vm context) even though it serializes exactly the same way.
+	function isErrorLike(value) {
+	    return value instanceof Error || (!!value && typeof value === 'object' && typeof value.message === 'string' && typeof value.stack === 'string');
+	}
+
+	// An Error carries `message` and `stack` on its prototype rather than as own enumerable
+	// properties, so JSON.stringify() renders one as `{}` and both logger fallback paths (the console
+	// fallback and emitLogs) would drop everything identifying it. Flattening happens here for both,
+	// so their shapes cannot drift apart.
+	//
+	// Nested errors are flattened too, because the top level is often not where the answer is: this
+	// library attaches the underlying failure as an enumerable `_err` (proxy setup, response
+	// processing, normalized connection deadlines), and Node reports a multi-address connect failure
+	// as an AggregateError whose members hold the per-address causes.
+	function flattenLoggedError(value, depth = 0, seen = new Set()) {
+	    if (depth >= MAX_ERROR_FLATTEN_DEPTH) {
+	        return isErrorLike(value) ? value.message : value;
+	    }
+
+	    if (Array.isArray(value)) {
+	        return value.map(entry => flattenLoggedError(entry, depth + 1, seen));
+	    }
+
+	    if (!isErrorLike(value)) {
+	        // Anything else is left alone: exploding a Buffer would produce one key per byte, and a
+	        // Date would become a pair of undefined fields.
+	        return value;
+	    }
+
+	    // A repeat renders as its message alone, so a chain that loops back does not restate a full
+	    // stack for every level down to the depth cap
+	    if (seen.has(value)) {
+	        return value.message;
+	    }
+	    seen.add(value);
+
+	    let flatErr = {
+	        message: value.message,
+	        stack: value.stack
+	    };
+
+	    // `cause` (passed through the Error options argument) and the AggregateError members are own
+	    // properties but not enumerable, so Object.keys does not list them
+	    for (let key of new Set([...Object.keys(value), 'cause', 'errors'])) {
+	        if (key in value) {
+	            flatErr[key] = flattenLoggedError(value[key], depth + 1, seen);
+	        }
+	    }
+
+	    return flatErr;
+	}
+
+	// The largest delay setTimeout can honor (2^31 - 1 ms). Anything above fires after 1 ms instead,
+	// so the auto-IDLE delay cap has to stay inside this range even when socketTimeout is not.
+	const MAX_TIMER_DELAY = 2 ** 31 - 1;
+
 	const states = {
 	    NOT_AUTHENTICATED: 0x01,
 	    AUTHENTICATED: 0x02,
 	    SELECTED: 0x03,
 	    LOGOUT: 0x04
+	};
+
+	/**
+	 * Normalizes the configured auto-IDLE delay into a value `setTimeout` can honor. Anything Node
+	 * would silently turn into a 1ms timer - NaN, a negative number, a value above the 32-bit range -
+	 * falls back to the default instead, because a 1ms delay means an IDLE/DONE round trip around
+	 * every single command. The delay is also capped below `socketTimeout`, see AUTO_IDLE_SOCKET_MARGIN.
+	 *
+	 * @param {*} value - The configured `autoIdleDelay` option.
+	 * @param {Number} socketTimeout - The normalized socket inactivity timeout.
+	 * @param {Object} log - Logger, used to report a value that could not be used as given.
+	 * @param {String} cid - Connection id for the log entry.
+	 * @returns {Number} Delay in milliseconds.
+	 */
+	const normalizeAutoIdleDelay = (value, socketTimeout, log, cid) => {
+	    const maxDelay = Math.max(0, Math.min(socketTimeout, MAX_TIMER_DELAY) - AUTO_IDLE_SOCKET_MARGIN);
+	    const configured = value !== undefined && value !== null;
+
+	    // Numeric strings are accepted, because configuration usually arrives from an environment
+	    // variable or a JSON file. Booleans and blank strings are not: Number() would read them as 0,
+	    // i.e. "IDLE around every command", the opposite of the "off" they suggest.
+	    let delay = typeof value === 'number' || (typeof value === 'string' && value.trim()) ? Number(value) : NaN;
+	    let reason = null;
+
+	    if (!Number.isFinite(delay) || delay < 0) {
+	        reason = 'not a non-negative finite number';
+	        delay = AUTO_IDLE_DELAY;
+	    }
+
+	    if (delay > maxDelay) {
+	        // An invalid value keeps its own reason: the cap then applies to the fallback default,
+	        // not to anything the caller asked for.
+	        reason = reason || `above socketTimeout (${socketTimeout} ms)`;
+	        delay = maxDelay;
+	    }
+
+	    // Only an explicitly configured value is worth warning about. Capping the default because the
+	    // caller picked a short socketTimeout is expected behavior, not a misconfiguration.
+	    if (configured && reason) {
+	        log.warn({ msg: 'Adjusted unusable autoIdleDelay option', requested: value, autoIdleDelay: delay, reason, cid });
+	    }
+
+	    return Math.floor(delay);
 	};
 
 	/**
@@ -52271,7 +55846,7 @@ function requireImapFlow () {
 	 * @property {Set<string>} flags list of flags for this mailbox
 	 * @property {String} [specialUse] one of special-use flags (if applicable): "\All", "\Archive", "\Drafts", "\Flagged", "\Junk", "\Sent", "\Trash". Additionally INBOX has non-standard "\Inbox" flag set
 	 * @property {Boolean} listed `true` if mailbox was found from the output of LIST command
-	 * @property {Boolean} subscribed `true` if mailbox was found from the output of LSUB command
+	 * @property {Boolean} subscribed `true` if the mailbox is subscribed - reported by LSUB or by LIST RETURN (SUBSCRIBED) on LIST-EXTENDED/IMAP4rev2 servers. Servers that answer neither report no subscription state at all, and every mailbox is then assumed to be subscribed
 	 * @property {Set<string>} permanentFlags A Set of flags available to use in this mailbox. If it is not set or includes special flag "\\\*" then any flag can be used.
 	 * @property {String} [mailboxId] unique mailbox ID if server has `OBJECTID` extension enabled
 	 * @property {BigInt} [highestModseq] latest known modseq value if server has CONDSTORE or XYMHIGHESTMODSEQ enabled
@@ -52380,6 +55955,15 @@ function requireImapFlow () {
 	     * @property {Boolean} [disableAutoIdle=false]
 	     *     If `true`, do not start IDLE automatically. Useful when only specific operations are needed.
 	     *
+	     * @property {Number} [autoIdleDelay=15000]
+	     *     How long (in milliseconds) the connection has to be inactive before IDLE is started automatically.
+	     *     Keep it above the pause your own code usually leaves between two commands, otherwise every command is
+	     *     followed by an IDLE that the next command has to break, costing two extra round-trips per command.
+	     *     To turn auto-IDLE off entirely use `disableAutoIdle` rather than a very large delay: the value is
+	     *     capped below `socketTimeout`, because auto-IDLE has to start before the inactivity watchdog fires.
+	     *     On servers without IDLE support this controls when the polling fallback starts, not how often it
+	     *     polls - the poll interval is `maxIdleTime`, capped at 2 minutes.
+	     *
 	     * @property {Object} [tls]
 	     *     Additional TLS options. For details, see [Node.js TLS connect](https://nodejs.org/api/tls.html#tls_tls_connect_options_callback).
 	     *
@@ -52398,6 +55982,7 @@ function requireImapFlow () {
 	     *
 	     * @property {Boolean} [logRaw=false]
 	     *     If `true`, logs all raw data (read and written) in base64 encoding. You can pipe such logs to [eerawlog](https://github.com/postalsys/eerawlog) command for readable output.
+	     *     Client frames that carry credentials are replaced with a fixed placeholder and the entry is marked with `hidden: true`.
 	     *
 	     * @property {Boolean} [emitLogs=false]
 	     *     If `true`, emits `'log'` events with the same data passed to the logger.
@@ -52406,7 +55991,21 @@ function requireImapFlow () {
 	     *     If `true`, disconnects after successful authentication without performing other actions.
 	     *
 	     * @property {String} [proxy]
-	     *     Proxy URL. Supports HTTP CONNECT (`http://`, `https://`) and SOCKS (`socks://`, `socks4://`, `socks5://`).
+	     *     Proxy URL. Supports HTTP CONNECT (`http://`, `https://`) and SOCKS (`socks://`, `socks4://`, `socks4a://`, `socks5://`).
+	     *     IPv6 proxy endpoints use the URL form, e.g. `socks5://[2001:db8::1]:1080`.
+	     *
+	     *     DNS behaviour depends on the proxy protocol:
+	     *       - `http`/`https`: the destination hostname is sent to the proxy unresolved.
+	     *       - `socks4`: destination hostnames are resolved locally to IPv4, because SOCKS4 carries
+	     *         only IPv4 destination addresses and a hostname would silently become a SOCKS4a
+	     *         request. IPv6 destinations are rejected.
+	     *       - `socks4a`: destination hostnames are sent to the proxy for remote DNS. IPv6
+	     *         destinations are rejected.
+	     *       - `socks`/`socks5`: destination hostnames are sent to the proxy for remote DNS, and
+	     *         IPv4/IPv6 literals are passed through unchanged.
+	     *
+	     *     The proxy endpoint itself is never resolved by ImapFlow - a hostname endpoint is handed
+	     *     to Node as-is, keeping its normal lookup and connection behaviour.
 	     *
 	     * @property {Boolean} [qresync=false]
 	     *     If `true`, enables QRESYNC support so that EXPUNGE notifications include `uid` instead of `seq`.
@@ -52423,8 +56022,15 @@ function requireImapFlow () {
 	     * @property {Boolean} [disableAutoEnable=false]
 	     *     If `true`, do not automatically enable supported IMAP extensions.
 	     *
+	     * @property {Boolean} [disableIMAP4rev2=false]
+	     *     If `true`, do not enable IMAP4rev2 mode even if the server supports it.
+	     *     Use as a targeted opt-out for servers with broken IMAP4rev2 implementations
+	     *     without losing the other auto-enabled extensions.
+	     *
 	     * @property {Number} [connectionTimeout=90000]
-	     *     Maximum time (in milliseconds) to wait for the connection to establish. Defaults to 90 seconds.
+	     *     Maximum time (in milliseconds) to wait for a usable transport. Covers DNS resolution,
+	     *     proxy negotiation and the TCP/TLS handshake as a single budget, so an expiry in any of
+	     *     those phases rejects with error code `CONNECT_TIMEOUT`. Defaults to 90 seconds.
 	     *
 	     * @property {Number} [greetingTimeout=16000]
 	     *     Maximum time (in milliseconds) to wait for the server greeting after a connection is established. Defaults to 16 seconds.
@@ -52479,26 +56085,46 @@ function requireImapFlow () {
 	         */
 	        this.secureConnection = !!this.options.secure;
 
-	        this.port = Number(this.options.port) || (this.secureConnection ? 993 : 110);
+	        // 993 is IMAPS, 143 is IMAP over cleartext/STARTTLS. The non-secure default used to be 110,
+	        // which is POP3 - a client created without an explicit port could never connect.
+	        this.port = Number(this.options.port) || (this.secureConnection ? 993 : 143);
 	        this.host = this.options.host || 'localhost';
 	        this.servername = this.options.servername ? this.options.servername : !net.isIP(this.host) ? this.host : false;
 
 	        if (typeof this.options.secure === 'undefined' && this.port === 993) {
-	            // if secure option is not set but port is 465, then default to secure
+	            // if secure option is not set but port is 993, then default to secure
 	            this.secureConnection = true;
 	        }
+
+	        // Normalized once so direct TLS, cleartext, proxied and STARTTLS-upgraded transports
+	        // cannot end up with different inactivity watchdogs. As documented, 0 (and any other
+	        // falsy or invalid value) means "use the default", not "disable".
+	        this.socketTimeout = Number(this.options.socketTimeout) || SOCKET_TIMEOUT;
 
 	        this.logRaw = this.options.logRaw;
 	        this.streamer = new ImapStream({
 	            logger: this.log,
 	            cid: this.id,
 	            logRaw: this.logRaw,
-	            secureConnection: this.secureConnection
+	            secureConnection: this.secureConnection,
+	            maxLineLength: this.options.maxLineLength,
+	            maxLiteralSize: this.options.maxLiteralSize,
+	            maxResponseSize: this.options.maxResponseSize
 	        });
 
 	        this.reading = false;
 	        this.socket = false;
 	        this.writeSocket = false;
+
+	        // In-flight throttle back-offs (see throttleWait()). Tracked as a set because more than
+	        // one can be pending at a time: the reader's connection-level back-off and a command
+	        // retrying its own throttled request. close() clears them all.
+	        this._throttleWaits = new Set();
+
+	        // Pending rejector of the in-flight STARTTLS upgrade promise (see upgradeToSTARTTLS()).
+	        // Stored so emitError() can route a streamer-originated error into the upgrade's single
+	        // error path instead of dropping it (which could hang a verifyOnly connect()).
+	        this._upgradeReject = null;
 
 	        this.isClosed = false;
 
@@ -52512,9 +56138,24 @@ function requireImapFlow () {
 	        this.requestQueue = [];
 	        this.currentRequest = false;
 
+	        // Count of tagged responses whose tag was never issued by this connection. Tolerated
+	        // (non-conforming servers do this) but tracked, so the compatibility decision in
+	        // countUnknownTag() can be revisited with field data instead of guesses. Warnings are
+	        // emitted at the milestones below (1, 2, 4, 8, ...) so the count stays exact without
+	        // turning a spraying server into a log flood.
+	        this._unknownTagCount = 0;
+	        this._nextUnknownTagWarn = 1;
+
 	        this.writeBytesCounter = 0;
 
 	        this.commandParts = [];
+
+	        // Whether the command currently being written carries credentials. send() sets this for
+	        // every command before its first frame reaches the socket, and the raw traffic log reads
+	        // it; every write belongs to the command send() dispatched last, because trySend() keeps
+	        // one command in flight at a time. The initial value only covers a write before the
+	        // first command, which no current path performs. See write().
+	        this.rawSensitiveCommand = true;
 
 	        /**
 	         * Active IMAP capabilities. Value is either `true` for toggleable capabilities (eg. `UIDPLUS`)
@@ -52527,6 +56168,10 @@ function requireImapFlow () {
 	        this.rawCapabilities = null;
 
 	        this.expectCapabilityUpdate = false; // force CAPABILITY after LOGIN
+
+	        // Set true if the server sent data after the STARTTLS OK and before the TLS
+	        // handshake (a plaintext-injection signal). See upgradeToSTARTTLS().
+	        this._starttlsHadTrailingData = false;
 
 	        /**
 	         * Enabled capabilities. Usually `CONDSTORE` and `UTF8=ACCEPT` if server supports these.
@@ -52577,9 +56222,25 @@ function requireImapFlow () {
 	        this.idRequested = false;
 
 	        this.maxIdleTime = this.options.maxIdleTime || false;
+	        this.autoIdleDelay = normalizeAutoIdleDelay(this.options.autoIdleDelay, this.socketTimeout, this.log, this.id);
+
+	        // Wall-clock time of the last fallback poll, owned by lib/commands/idle.js
+	        this._lastPollAt = 0;
+
+	        // Download streams still fetching chunks. Counted, not a flag, so overlapping downloads
+	        // cannot clear each other's suppression of auto-IDLE.
+	        this._openDownloads = 0;
 	        this.missingIdleCommand = (this.options.missingIdleCommand || '').toString().toUpperCase().trim() || 'NOOP';
 
 	        this.disableBinary = !!this.options.disableBinary;
+
+	        // Set when the server rejects a LIST RETURN option group, the auxiliary
+	        // SPECIAL-USE/CHILDREN return options, or the LSUB command, so later
+	        // listings on this connection skip what the server does not support
+	        this.skipListSubscribedArg = false;
+	        this.skipListStatusArgs = false;
+	        this.skipListAuxArgs = false;
+	        this.skipLsub = false;
 
 	        // Named error handler for proper cleanup. Certain error codes represent
 	        // expected socket/network issues (buffer exhaustion, connection reset, broken pipe,
@@ -52606,6 +56267,36 @@ function requireImapFlow () {
 	        }
 	        err._connId = err._connId || this.id;
 
+	        // During a STARTTLS handshake the upgrade owns the single error path (its settle()
+	        // helper). Route the error there so a streamer-originated failure is surfaced with its
+	        // real code (instead of a generic ClosedAfterConnect*) and cannot hang a verifyOnly
+	        // connect() waiting on a 'close' that never rejects. Fall back to closing if the upgrade
+	        // has no pending rejector.
+	        if (this.upgrading) {
+	            let reject = this._upgradeReject;
+	            this._upgradeReject = null;
+	            if (typeof reject === 'function') {
+	                // settle() clears the upgrade timer and flags, and closes the connection
+	                reject(err);
+	                return;
+	            }
+	            this.upgrading = false;
+	            this.closeAfter();
+	            return;
+	        }
+
+	        // While the initial connect promise is still pending it owns error reporting:
+	        // reject it once instead of emitting a duplicate 'error' event (which would also
+	        // throw if the caller has not attached an 'error' listener yet).
+	        if (typeof this.initialReject === 'function') {
+	            let reject = this.initialReject;
+	            this.initialResolve = false;
+	            this.initialReject = false;
+	            this.closeAfter();
+	            reject(err);
+	            return;
+	        }
+
 	        this.closeAfter();
 	        this.emit('error', err);
 	    }
@@ -52624,16 +56315,12 @@ function requireImapFlow () {
 	    write(chunk) {
 	        if (!this.socket || this.socket.destroyed) {
 	            // do not write after connection end or logout
-	            const error = new Error('Socket is already closed');
-	            error.code = 'NoConnection';
-	            throw error;
+	            throw this.createConnectionError('NoConnection', 'Socket is already closed', { rejectedFrom: 'writeNoSocket' });
 	        }
 
 	        if (this.state === this.states.LOGOUT) {
 	            // should not happen
-	            const error = new Error('Can not send data after logged out');
-	            error.code = 'StateLogout';
-	            throw error;
+	            throw this.createConnectionError('StateLogout', 'Can not send data after logged out', { rejectedFrom: 'writeAfterLogout' });
 	        }
 
 	        if (this.writeSocket.destroyed) {
@@ -52660,10 +56347,17 @@ function requireImapFlow () {
 	        }
 
 	        if (this.logRaw) {
+	            // Client frames of an authentication exchange carry credentials: the LOGIN
+	            // arguments, and for AUTHENTICATE also the continuation writes (SASL PLAIN
+	            // response, AUTH=LOGIN password, OAuth token payload) that bypass send(). The
+	            // parsed command log masks these, so the raw log must withhold them too, but
+	            // `data` still carries the placeholder rather than being dropped - the field is
+	            // part of the documented log format and consumers decode it unconditionally.
 	            this.log.trace({
 	                src: 'c',
 	                msg: 'write to socket',
-	                data: chunk.toString('base64'),
+	                data: this.rawSensitiveCommand ? RAW_HIDDEN_PLACEHOLDER : chunk.toString('base64'),
+	                ...(this.rawSensitiveCommand ? { hidden: true } : {}),
 	                compress: !!this._deflate,
 	                secure: !!this.secureConnection,
 	                cid: this.id
@@ -52711,20 +56405,32 @@ function requireImapFlow () {
 	                let request = this.requestTagMap.get(data.tag);
 	                if (request) {
 	                    this.requestTagMap.delete(request.tag);
-	                    const error = new Error('Connection not available');
-	                    error.code = 'NoConnection';
-	                    request.reject(error);
+	                    request.reject(this.createNoConnectionError(false, { rejectedFrom: 'sendAfterLogout', command: request.command }));
 	                }
 	            }
 	            return;
 	        }
+
+	        // Classify before the first await. Every frame of this command - the command line and
+	        // any continuation write that follows it - belongs to it until the next send(), because
+	        // trySend() keeps one command in flight at a time. Reading currentRequest inside write()
+	        // instead would be racy: rejectCurrentRequest() can clear it while the two compiler
+	        // awaits below are pending, and the credential frame would then be logged in the clear.
+	        // Uppercased because the wire protocol is case-insensitive and exec() passes the
+	        // caller's spelling through unchanged. The command list covers the mechanisms whose
+	        // secret arrives in a continuation frame, which carries no attributes of its own; the
+	        // `sensitive` marker catches anything that instead puts a secret on the command line,
+	        // so marking an attribute is enough to keep a new command out of the raw log too.
+	        this.rawSensitiveCommand =
+	            RAW_SENSITIVE_COMMANDS.has(typeof data.command === 'string' ? data.command.toUpperCase() : '') || hasSensitiveAttribute(data.attributes);
 
 	        // Compile with asArray=true: splits output into parts for literal handling.
 	        // First part is the command text up to the first literal, remaining parts
 	        // are stored in this.commandParts and sent after server "+" continuations.
 	        let compiled = await compiler(data, {
 	            asArray: true,
-	            literalMinus: this.capabilities.has('LITERAL-') || this.capabilities.has('LITERAL+')
+	            // LITERAL- is part of base IMAP4rev2
+	            literalMinus: hasCapability(this, 'LITERAL-') || this.capabilities.has('LITERAL+')
 	        });
 	        this.commandParts = compiled;
 
@@ -52734,6 +56440,7 @@ function requireImapFlow () {
 	            isLogging: true
 	        });
 
+	        /* c8 ignore next */ // send() is always invoked with a request object carrying options, so the {} fallback is unreachable
 	        let options = data.options || {};
 
 	        this.log.debug({ src: 'c', msg: logCompiled.toString(), cid: this.id, comment: options.comment });
@@ -52743,72 +56450,83 @@ function requireImapFlow () {
 	        // send each remaining part from this.commandParts.
 	        this.write(this.commandParts.shift());
 
+	        // The command is on the wire now. Tagged-response correlation requires this, so a server
+	        // that guesses the next (sequential) tag cannot settle a command during the window between
+	        // it becoming current and actually being written.
+	        if (this.currentRequest && this.currentRequest.tag === data.tag) {
+	            this.currentRequest.sent = true;
+	        }
+
 	        if (typeof options.onSend === 'function') {
-	            options.onSend();
+	            // The command is already on the wire, so a throwing onSend callback must not
+	            // reach trySend()'s catch - that would reject the request and dispatch the
+	            // next command into the server's pending state for this one.
+	            try {
+	                options.onSend();
+	            } catch (err) {
+	                this.log.warn({ err, cid: this.id });
+	            }
 	        }
 	    }
 
 	    async trySend() {
-	        if (this.currentRequest || !this.requestQueue.length) {
-	            return;
-	        }
-	        this.currentRequest = this.requestQueue.shift();
+	        while (!this.currentRequest && this.requestQueue.length) {
+	            this.currentRequest = this.requestQueue.shift();
 
-	        await this.send({
-	            tag: this.currentRequest.tag,
-	            command: this.currentRequest.command,
-	            attributes: this.currentRequest.attributes,
-	            options: this.currentRequest.options
-	        });
+	            try {
+	                await this.send({
+	                    tag: this.currentRequest.tag,
+	                    command: this.currentRequest.command,
+	                    attributes: this.currentRequest.attributes,
+	                    options: this.currentRequest.options
+	                });
+	                return;
+	            } catch (err) {
+	                // A failure here (most likely the compiler refusing an invalid
+	                // user-supplied value) belongs to the command that was being dispatched.
+	                // Without this the shifted request would stay currentRequest forever:
+	                // nothing reached the wire, so no tagged response ever clears it, and
+	                // every later command would queue behind it until the socket timeout.
+	                // Reject the failed command and keep draining the queue.
+	                this.commandParts = [];
+	                this.rejectCurrentRequest(err);
+	            }
+	        }
 	    }
 
 	    exec(command, attributes, options) {
 	        if (this.state === this.states.LOGOUT || this.isClosed) {
-	            const error = new Error('Connection not available');
-	            error.code = 'NoConnection';
-	            let p = Promise.reject(error);
-	            p.catch(noop);
-	            return p;
+	            return guardedReject(this.createNoConnectionError(false, { rejectedFrom: 'execClosed', command }));
 	        }
 
 	        if (!this.socket || this.socket.destroyed) {
-	            let error = new Error('Connection closed');
-	            error.code = 'EConnectionClosed';
-	            let p = Promise.reject(error);
-	            p.catch(noop);
-	            return p;
+	            return guardedReject(this.createConnectionError('EConnectionClosed', 'Connection closed', { rejectedFrom: 'execNoSocket', command }));
 	        }
 
 	        let tag = (++this.tagCounter).toString(16).toUpperCase();
 
 	        options = options || {};
 
-	        let promise = new Promise((resolve, reject) => {
+	        // Guarded: close() rejects this request synchronously, possibly before the caller has
+	        // attached its handler. See guardedPromise().
+	        return guardedPromise((resolve, reject) => {
 	            this.requestTagMap.set(tag, { command, attributes, options, resolve, reject });
 	            this.requestQueue.push({ tag, command, attributes, options });
-	            this.trySend().catch(err => {
-	                this.requestTagMap.delete(tag);
-	                reject(err);
-	            });
+	            // trySend() settles dispatch failures itself, by rejecting the affected
+	            // command through requestTagMap; this catch exists only so a throw from the
+	            // dispatch machinery itself can never surface as a floating rejection.
+	            this.trySend().catch(err => logConnectionError(this, 'Failed to dispatch command', err));
 	        });
-
-	        // Prevent unhandled promise rejection if close() rejects this request
-	        // synchronously before the caller's handler is attached. The rejection
-	        // still propagates normally to the caller's await/.catch().
-	        promise.catch(noop);
-
-	        return promise;
 	    }
 
-	    // Resolves the handler for an untagged server response. IMAP untagged responses
-	    // come in two forms:
+	    // Resolves an untagged server response to the keyword it is dispatched on. IMAP untagged
+	    // responses come in two forms:
 	    //   * CAPABILITY ...       (keyword as command)
 	    //   * 42 FETCH (...)       (numeric prefix + keyword)
-	    // For numeric-prefixed responses, we extract the keyword (FETCH, EXISTS, EXPUNGE, etc.)
-	    // and look up the handler by that keyword instead.
-	    // Handler priority: command-specific handlers (registered per exec() call) take
-	    // precedence over global handlers (registered on the connection).
-	    getUntaggedHandler(command, attributes) {
+	    // For numeric-prefixed responses the keyword sits in the first attribute, because `command`
+	    // holds the sequence number. Also used for logging, so a failure reports FETCH rather than
+	    // the message number that happened to precede it.
+	    normalizeUntaggedCommand(command, attributes) {
 	        if (/^[0-9]+$/.test(command)) {
 	            let type = attributes && attributes.length && typeof attributes[0].value === 'string' ? attributes[0].value.toUpperCase() : false;
 	            if (type) {
@@ -52816,7 +56534,13 @@ function requireImapFlow () {
 	            }
 	        }
 
-	        command = command.toUpperCase().trim();
+	        return command.toUpperCase().trim();
+	    }
+
+	    // Handler priority: command-specific handlers (registered per exec() call) take
+	    // precedence over global handlers (registered on the connection).
+	    getUntaggedHandler(command, attributes) {
+	        command = this.normalizeUntaggedCommand(command, attributes);
 	        // Check command-specific handler first (registered in exec() options.untagged)
 	        if (this.currentRequest && this.currentRequest.options && this.currentRequest.options.untagged && this.currentRequest.options.untagged[command]) {
 	            return this.currentRequest.options.untagged[command];
@@ -52834,193 +56558,449 @@ function requireImapFlow () {
 	        }
 	    }
 
+	    // Releases a readable stream item exactly once. The item's `next` callback is the parser's
+	    // backpressure token: until it is called, ImapStream stops feeding the connection. Every
+	    // path out of response handling - success, handled error, or unexpected throw - has to go
+	    // through here, otherwise the parser stalls permanently.
+	    releaseStreamData(data) {
+	        if (!data || data.released) {
+	            return;
+	        }
+	        data.released = true;
+	        if (typeof data.next === 'function') {
+	            data.next();
+	        }
+	    }
+
+	    // Records a tagged response whose tag was never issued by this connection. ImapFlow talks
+	    // to a wide range of non-conforming servers, so this is tolerated rather than terminal, but
+	    // it must not pass silently. Warnings are emitted for the first occurrence and then at
+	    // powers of two so a server spraying stray tagged lines cannot flood the log, while the
+	    // counter itself stays exact and is reported when the connection closes.
+	    countUnknownTag(tag) {
+	        if (this.isClosed) {
+	            // teardown crossover, not a server compatibility signal
+	            return;
+	        }
+
+	        this._unknownTagCount++;
+	        if (this._unknownTagCount === this._nextUnknownTagWarn) {
+	            this._nextUnknownTagWarn *= 2;
+	            this.log.warn({
+	                msg: 'Tagged response for an unknown tag',
+	                tag,
+	                unknownTagCount: this._unknownTagCount,
+	                cid: this.id
+	            });
+	        }
+	    }
+
+	    // Terminally fails the connection on a protocol violation: stop parsing, then report. Both
+	    // steps are explicit here rather than destroying the parser *with* the error and relying on
+	    // its error listener to report, so the reporting path does not depend on teardown ordering or
+	    // on the streamer error handler's suppression list.
+	    failProtocol(err) {
+	        if (this.streamer && !this.streamer.destroyed) {
+	            // Destroyed without an error: nothing after a protocol violation may reach
+	            // application state, and emitError() below owns reporting.
+	            this.streamer.destroy();
+	        }
+	        this.emitError(err);
+	    }
+
+	    // Rejects the in-flight request, if any, exactly once. Used when response handling fails in
+	    // a way that leaves the command's outcome unknown.
+	    rejectCurrentRequest(err) {
+	        if (!this.currentRequest) {
+	            return;
+	        }
+	        let tag = this.currentRequest.tag;
+	        this.currentRequest = false;
+	        let request = this.requestTagMap.get(tag);
+	        if (request) {
+	            this.requestTagMap.delete(tag);
+	            request.reject(err);
+	        }
+	    }
+
+	    /**
+	     * Waits out a throttle back-off.
+	     *
+	     * The delay is capped at MAX_THROTTLE_DELAY because it can come straight from a server hint
+	     * (a Microsoft 365 "Suggested Backoff Time", say) and an uncapped hint would park the caller
+	     * for weeks. The timer is unref'd and tracked so it can never outlive the client: a bare
+	     * setTimeout here keeps a short-lived process alive for the full delay after close(), and
+	     * leaves the caller waiting on a connection that is already gone.
+	     *
+	     * @param {Number} delay - Requested delay in milliseconds.
+	     * @returns {Promise<Boolean>} True if close() aborted the wait, false on normal expiry.
+	     */
+	    async throttleWait(delay) {
+	        delay = Math.min(Math.max(Number(delay) || 0, 0), MAX_THROTTLE_DELAY);
+
+	        return await new Promise(resolve => {
+	            let entry = { resolve };
+	            entry.timer = setTimeout(() => {
+	                this._throttleWaits.delete(entry);
+	                resolve(false);
+	            }, delay);
+	            unrefTimer(entry.timer);
+	            this._throttleWaits.add(entry);
+	        });
+	    }
+
 	    async reader() {
 	        let data;
 	        let processedCount = 0;
 	        while ((data = this.streamer.read()) !== null) {
-	            let parsed;
+	            let keepReading;
 
 	            try {
-	                parsed = await parser(data.payload, { literals: data.literals });
-	                if (parsed.tag && !['*', '+'].includes(parsed.tag) && parsed.command) {
-	                    let payload = { response: parsed.command };
-
-	                    if (
-	                        parsed.attributes &&
-	                        parsed.attributes[0] &&
-	                        parsed.attributes[0].section &&
-	                        parsed.attributes[0].section[0] &&
-	                        parsed.attributes[0].section[0].type === 'ATOM'
-	                    ) {
-	                        payload.code = parsed.attributes[0].section[0].value;
-	                    }
-	                    this.emit('response', payload);
-	                }
+	                keepReading = await this.handleResponse(data);
 	            } catch (err) {
-	                // can not make sense of this
-	                this.log.error({ src: 's', msg: data.payload.toString(), err, cid: this.id });
-	                data.next();
-	                continue;
+	                // Response handling past the parse step (log compilation, response shape
+	                // assumptions, an untagged handler bug) must never throw out of this loop: the
+	                // parser would keep waiting on its backpressure callback forever, which is a
+	                // silent permanent hang. Fail closed instead.
+	                keepReading = false;
+	                let error = new Error('Failed to process server response');
+	                error.code = 'ResponseProcessingFailed';
+	                error._err = err;
+	                this.log.error({ msg: 'Failed to process server response', err, cid: this.id });
+	                this.rejectCurrentRequest(error);
+	                this.failProtocol(error);
+	            } finally {
+	                this.releaseStreamData(data);
 	            }
 
-	            let logCompiled = await compiler(parsed, {
-	                isLogging: true
-	            });
-
-	            if (/^\d+$/.test(parsed.command) && parsed.attributes && parsed.attributes[0] && parsed.attributes[0].value === 'FETCH') {
-	                // too many FETCH responses, might want to filter these out
-	                this.log.trace({ src: 's', msg: logCompiled.toString(), cid: this.id, nullBytesRemoved: parsed.nullBytesRemoved });
-	            } else {
-	                this.log.debug({ src: 's', msg: logCompiled.toString(), cid: this.id, nullBytesRemoved: parsed.nullBytesRemoved });
+	            if (!keepReading) {
+	                return;
 	            }
-
-	            // IMAP "+" (continuation request) handling. The server sends "+" in two cases:
-	            // 1. During IDLE or AUTHENTICATE, where a custom handler (onPlusTag) processes it
-	            // 2. During literal data transfer, where we send the next queued literal chunk
-	            if (parsed.tag === '+' && this.currentRequest && this.currentRequest.options && typeof this.currentRequest.options.onPlusTag === 'function') {
-	                try {
-	                    await this.currentRequest.options.onPlusTag(parsed);
-	                } catch (err) {
-	                    this.log.warn({ err, cid: this.id });
-	                }
-	                data.next();
-	                continue;
-	            }
-
-	            // Server acknowledged our literal size with "+", send the actual literal data
-	            if (parsed.tag === '+' && this.commandParts.length) {
-	                let content = this.commandParts.shift();
-	                this.write(content);
-	                this.log.debug({ src: 'c', msg: `(* ${content.length}B continuation *)`, cid: this.id });
-	                data.next();
-	                continue;
-	            }
-
-	            let section = parsed.attributes && parsed.attributes.length && parsed.attributes[0] && !parsed.attributes[0].value && parsed.attributes[0].section;
-	            if (section && section.length && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
-	                let sectionHandler = this.getSectionHandler(section[0].value.toUpperCase().trim());
-	                if (sectionHandler) {
-	                    try {
-	                        await sectionHandler(section.slice(1));
-	                    } catch (err) {
-	                        this.log.warn({ err, cid: this.id });
-	                    }
-	                }
-	            }
-
-	            if (parsed.tag === '*' && parsed.command) {
-	                let untaggedHandler = this.getUntaggedHandler(parsed.command, parsed.attributes);
-	                if (untaggedHandler) {
-	                    try {
-	                        await untaggedHandler(parsed);
-	                    } catch (err) {
-	                        this.log.warn({ err, cid: this.id });
-	                        data.next();
-	                        continue;
-	                    }
-	                }
-	            }
-
-	            if (this.requestTagMap.has(parsed.tag)) {
-	                let request = this.requestTagMap.get(parsed.tag);
-	                this.requestTagMap.delete(parsed.tag);
-
-	                if (this.currentRequest && this.currentRequest.tag === parsed.tag) {
-	                    // send next pending command
-	                    this.currentRequest = false;
-	                    await this.trySend();
-	                }
-
-	                switch (parsed.command.toUpperCase()) {
-	                    case 'OK':
-	                    case 'BYE':
-	                        await new Promise(resolve => request.resolve({ response: parsed, next: resolve }));
-	                        break;
-
-	                    case 'NO':
-	                    case 'BAD': {
-	                        let txt =
-	                            parsed.attributes &&
-	                            parsed.attributes
-	                                .filter(val => val.type === 'TEXT')
-	                                .map(val => val.value.trim())
-	                                .join(' ');
-
-	                        let err = new Error('Command failed');
-	                        err.response = parsed;
-	                        err.responseStatus = parsed.command.toUpperCase();
-
-	                        try {
-	                            err.executedCommand =
-	                                parsed.tag +
-	                                (
-	                                    await compiler(request, {
-	                                        isLogging: true
-	                                    })
-	                                ).toString();
-	                        } catch {
-	                            // ignore
-	                        }
-
-	                        if (txt) {
-	                            err.responseText = txt;
-
-	                            if (err.responseStatus === 'NO' && txt.includes('Some of the requested messages no longer exist')) {
-	                                // Treat as successful response
-	                                this.log.warn({ msg: 'Partial FETCH response', cid: this.id, err });
-	                                await new Promise(resolve => request.resolve({ response: parsed, next: resolve }));
-	                                break;
-	                            }
-
-	                            let throttleDelay = false;
-
-	                            // MS365 throttling detection: Office 365 returns BAD with a human-readable
-	                            // backoff time when rate limits are hit. Parse the delay from the response text.
-	                            // Example: "tag BAD Request is throttled. Suggested Backoff Time: 92415 milliseconds"
-	                            if (/Request is throttled/i.test(txt) && /Backoff Time/i.test(txt)) {
-	                                let throttlingMatch = txt.match(/Backoff Time[:=\s]+(\d+)/i);
-	                                if (throttlingMatch && throttlingMatch[1] && !isNaN(throttlingMatch[1])) {
-	                                    throttleDelay = Number(throttlingMatch[1]);
-	                                }
-	                            }
-
-	                            // Wait and return a throttling error
-	                            if (throttleDelay) {
-	                                err.code = 'ETHROTTLE';
-	                                err.throttleReset = throttleDelay;
-
-	                                let delayResponse = throttleDelay;
-	                                if (delayResponse > 5 * 60 * 1000) {
-	                                    // Cap wait at 5 minutes to avoid hanging connections indefinitely.
-	                                    // The server-suggested delay can be very large.
-	                                    delayResponse = 5 * 60 * 1000;
-	                                }
-
-	                                this.log.warn({ msg: 'Throttling detected', cid: this.id, throttleDelay, delayResponse, err });
-	                                await new Promise(r => setTimeout(r, delayResponse));
-	                            }
-	                        }
-
-	                        request.reject(err);
-	                        break;
-	                    }
-
-	                    default: {
-	                        let err = new Error('Invalid server response');
-	                        err.code = 'InvalidResponse';
-	                        err.response = parsed;
-	                        request.reject(err);
-	                        break;
-	                    }
-	                }
-	            }
-
-	            data.next();
 
 	            // Yield to event loop every 10 processed messages to prevent CPU blocking
 	            processedCount++;
 	            if (processedCount % 10 === 0) {
 	                await new Promise(resolve => setImmediate(resolve));
+	            }
+	        }
+	    }
+
+	    /**
+	     * Fails the in-flight command when a line that could not be parsed was addressed to its tag.
+	     * Only the leading tag is read from the raw payload - the rest of the line is by definition
+	     * not trustworthy - and only the command that is actually on the wire may be settled this way,
+	     * the same invariant the parsed tagged-response path enforces.
+	     *
+	     * @param {Buffer} payload - Raw bytes of the line that failed to parse.
+	     * @param {Error} parserError - The error the parser raised.
+	     */
+	    rejectUnparsedCompletion(payload, parserError) {
+	        if (!this.currentRequest || !this.currentRequest.sent) {
+	            return;
+	        }
+
+	        // Prefer the tag the parser had already extracted before it failed - it went
+	        // through the same leading-NUL workaround as every parsed response. Fall back
+	        // to the raw bytes for lines whose tag itself was unparseable: skip the NUL
+	        // padding buggy servers prepend and stop at the first byte a tag cannot contain.
+	        let tag = parserError && parserError.parsedTag;
+	        if (!tag) {
+	            // eslint-disable-next-line no-control-regex
+	            let match = payload.toString('latin1', 0, 64).match(/^\0*([^\s\x00-\x1f\x7f]+)/);
+	            tag = match && match[1];
+	        }
+	        if (!tag || tag !== this.currentRequest.tag) {
+	            return;
+	        }
+
+	        let err = new Error('Failed to parse the server response for this command');
+	        err.code = parserError.code || 'ParserError';
+	        err.parserError = parserError;
+	        this.rejectCurrentRequest(err);
+
+	        this.trySend().catch(sendErr => logConnectionError(this, 'Failed to dispatch command', sendErr));
+	    }
+
+	    /**
+	     * Handles a single parsed server response: telemetry, continuation requests, response-code
+	     * section handlers, untagged handlers and tagged command completion.
+	     *
+	     * @param {Object} data - Readable item from the parser stream.
+	     * @returns {Promise<Boolean>} `true` to keep reading, `false` to stop (connection is failing).
+	     */
+	    async handleResponse(data) {
+	        let parsed;
+
+	        try {
+	            parsed = await parser(data.payload, { literals: data.literals });
+	        } catch (err) {
+	            // can not make sense of this. The payload can be up to the configured line
+	            // cap (1GB by default), so log only a bounded prefix: a server looping
+	            // unparseable garbage would otherwise turn this error log into a disk filler.
+	            this.log.error({ src: 's', msg: data.payload.toString('latin1', 0, 1024), payloadBytes: data.payload.length, err, cid: this.id });
+	            // An unparseable untagged line is junk that can be skipped, but the line may
+	            // have been the in-flight command's tagged completion. Dropping that one
+	            // silently strands the command: currentRequest is never cleared, so trySend()
+	            // stops dispatching and every later command queues behind it until the socket
+	            // timeout fires. The tag is recovered from the raw bytes (a tag is
+	            // ASTRING-CHAR only, so it survives whatever made the rest unparseable) and
+	            // the command is failed with the parser error instead of hanging.
+	            this.rejectUnparsedCompletion(data.payload, err);
+	            return true;
+	        }
+
+	        if (parsed.tag && !['*', '+'].includes(parsed.tag) && parsed.command) {
+	            let payload = { response: parsed.command };
+
+	            if (
+	                parsed.attributes &&
+	                parsed.attributes[0] &&
+	                parsed.attributes[0].section &&
+	                parsed.attributes[0].section[0] &&
+	                parsed.attributes[0].section[0].type === 'ATOM'
+	            ) {
+	                payload.code = parsed.attributes[0].section[0].value;
+	            }
+	            // Outside the parse try/catch on purpose: a throwing user 'response' listener
+	            // is not a parse failure and must not settle the in-flight command or fail the
+	            // connection - the same contract untagged handlers get.
+	            try {
+	                this.emit('response', payload);
+	            } catch (err) {
+	                this.log.warn({ err, cid: this.id });
+	            }
+	        }
+
+	        let logCompiled = await compiler(parsed, {
+	            isLogging: true
+	        });
+
+	        if (/^\d+$/.test(parsed.command) && parsed.attributes && parsed.attributes[0] && parsed.attributes[0].value === 'FETCH') {
+	            // too many FETCH responses, might want to filter these out
+	            this.log.trace({ src: 's', msg: logCompiled.toString(), cid: this.id, nullBytesRemoved: parsed.nullBytesRemoved });
+	        } else {
+	            this.log.debug({ src: 's', msg: logCompiled.toString(), cid: this.id, nullBytesRemoved: parsed.nullBytesRemoved });
+	        }
+
+	        // IMAP "+" (continuation request) handling. The server sends "+" in two cases:
+	        // 1. During IDLE or AUTHENTICATE, where a custom handler (onPlusTag) processes it
+	        // 2. During literal data transfer, where we send the next queued literal chunk
+	        if (parsed.tag === '+' && this.currentRequest && this.currentRequest.options && typeof this.currentRequest.options.onPlusTag === 'function') {
+	            try {
+	                await this.currentRequest.options.onPlusTag(parsed);
+	            } catch (err) {
+	                // The handler ran across an await and may have closed the connection, which
+	                // clears currentRequest, so the command name is read defensively
+	                this.log.warn({ msg: 'Failed to process continuation response', command: this.currentRequest?.command, err, cid: this.id });
+	            }
+	            return true;
+	        }
+
+	        // Server acknowledged our literal size with "+", send the actual literal data
+	        if (parsed.tag === '+' && this.commandParts.length) {
+	            let content = this.commandParts.shift();
+	            // A write() failure here (e.g. socket closed mid-command) must not fail the whole
+	            // connection; the command's own tagged response or the close path reports it.
+	            try {
+	                this.write(content);
+	                this.log.debug({ src: 'c', msg: `(* ${content.length}B continuation *)`, cid: this.id });
+	            } catch (err) {
+	                logConnectionError(this, 'Failed to send literal continuation', err);
+	            }
+	            return true;
+	        }
+
+	        let section = parsed.attributes && parsed.attributes.length && parsed.attributes[0] && !parsed.attributes[0].value && parsed.attributes[0].section;
+	        // section[0] can be a parsed NIL (null), e.g. from a "[NIL]" response code - the
+	        // dereference must be guarded or one such line tears down the whole connection
+	        if (section && section.length && section[0] && section[0].type === 'ATOM' && typeof section[0].value === 'string') {
+	            let sectionKey = section[0].value.toUpperCase().trim();
+	            let sectionHandler = this.getSectionHandler(sectionKey);
+	            if (sectionHandler) {
+	                try {
+	                    await sectionHandler(section.slice(1));
+	                } catch (err) {
+	                    this.log.warn({ msg: 'Failed to process response section', section: sectionKey, err, cid: this.id });
+	                }
+	            }
+	        }
+
+	        if (parsed.tag === '*' && parsed.command) {
+	            let untaggedHandler = this.getUntaggedHandler(parsed.command, parsed.attributes);
+	            if (untaggedHandler) {
+	                try {
+	                    await untaggedHandler(parsed);
+	                } catch (err) {
+	                    // Normalized only here: this runs for every untagged response, including
+	                    // every FETCH, and the keyword is needed only to describe a failure
+	                    this.log.warn({
+	                        msg: 'Failed to process untagged response',
+	                        command: this.normalizeUntaggedCommand(parsed.command, parsed.attributes),
+	                        err,
+	                        cid: this.id
+	                    });
+	                    return true;
+	                }
+	            }
+	        }
+
+	        // Tagged response correlation. A tagged response may only complete the command that was
+	        // actually written to the socket (invariant 2), so the three cases below are kept apart:
+	        // the active command completes, a command that has not been written yet is proof of
+	        // desynchronization (queued behind another command, or current but not yet on the wire),
+	        // and an entirely unknown tag is recorded but tolerated.
+	        if (parsed.tag && !['*', '+'].includes(parsed.tag)) {
+	            if (this.currentRequest && this.currentRequest.tag === parsed.tag && this.currentRequest.sent) {
+	                let request = this.requestTagMap.get(parsed.tag);
+	                this.requestTagMap.delete(parsed.tag);
+	                this.currentRequest = false;
+
+	                if (request) {
+	                    await this.settleRequest(request, parsed, !!data.trailingAfterLine);
+	                }
+
+	                // Send the next queued command only after the completed command's handler has
+	                // applied its own state (e.g. select.js publishing the new mailbox), so the next
+	                // command cannot reach the wire against half-updated state. A failure here must
+	                // not propagate, or the whole connection would be failed over a send error that
+	                // the command's own promise already reports.
+	                // Note: on a rejected command the handler's catch block runs on its own microtask
+	                // chain, so only the success path is fully ordered.
+	                try {
+	                    await this.trySend();
+	                } catch (err) {
+	                    this.log.warn({ err, cid: this.id });
+	                }
+	            } else if (this.requestTagMap.has(parsed.tag)) {
+	                // The server answered a command that has not been written to the socket yet.
+	                // Continuing would report unsent mutations as successful and leave every later
+	                // response ambiguous, so reject this request and fail the connection closed.
+	                let request = this.requestTagMap.get(parsed.tag);
+	                this.requestTagMap.delete(parsed.tag);
+
+	                let err = new Error('Server sent a tagged response for a command that was not in flight');
+	                err.code = 'UnexpectedTag';
+	                err.details = {
+	                    received: parsed.tag,
+	                    expected: this.currentRequest ? this.currentRequest.tag : null
+	                };
+
+	                this.log.error({ msg: 'Protocol desynchronization', err, cid: this.id });
+	                request.reject(err);
+	                this.failProtocol(err);
+	                return false;
+	            } else {
+	                this.countUnknownTag(parsed.tag);
+	            }
+	        }
+
+	        return true;
+	    }
+
+	    /**
+	     * Settles a request with its tagged completion response.
+	     *
+	     * On success the returned promise stays pending until the command handler calls `next()` on
+	     * the response, which is what orders state application before the next queued command is
+	     * dispatched. A command handler must therefore always release its own response before
+	     * awaiting another command on the same connection.
+	     *
+	     * @param {Object} request - Pending request entry (resolve/reject and the compiled command).
+	     * @param {Object} parsed - Parsed tagged response.
+	     * @param {Boolean} hasTrailingData - Whether more input was already buffered after this line.
+	     * @returns {Promise<void>}
+	     */
+	    async settleRequest(request, parsed, hasTrailingData) {
+	        switch ((parsed.command || '').toUpperCase()) {
+	            case 'OK':
+	            case 'BYE':
+	                // hasTrailingData is forwarded so STARTTLS can detect a plaintext
+	                // injection (data buffered after the tagged OK, before the handshake).
+	                await new Promise(resolve => request.resolve({ response: parsed, next: resolve, hasTrailingData }));
+	                break;
+
+	            case 'NO':
+	            case 'BAD': {
+	                let txt =
+	                    parsed.attributes &&
+	                    parsed.attributes
+	                        .filter(val => val.type === 'TEXT')
+	                        .map(val => val.value.trim())
+	                        .join(' ');
+
+	                let err = new Error('Command failed');
+	                err.response = parsed;
+	                err.responseStatus = parsed.command.toUpperCase();
+
+	                try {
+	                    err.executedCommand =
+	                        parsed.tag +
+	                        (
+	                            await compiler(request, {
+	                                isLogging: true
+	                            })
+	                        ).toString();
+	                } catch {
+	                    // ignore
+	                }
+
+	                if (txt) {
+	                    err.responseText = txt;
+
+	                    if (err.responseStatus === 'NO' && txt.includes('Some of the requested messages no longer exist')) {
+	                        // Treat as successful response
+	                        // Kept at warn: the caller is handed fewer messages than it asked for and
+	                        // is told nothing else about it, so this entry is the only record that
+	                        // the response was truncated.
+	                        this.log.warn({ msg: 'Partial FETCH response', cid: this.id, err });
+	                        await new Promise(resolve => request.resolve({ response: parsed, next: resolve }));
+	                        break;
+	                    }
+
+	                    let throttleDelay = false;
+
+	                    // MS365 throttling detection: Office 365 returns BAD with a human-readable
+	                    // backoff time when rate limits are hit. Parse the delay from the response text.
+	                    // Example: "tag BAD Request is throttled. Suggested Backoff Time: 92415 milliseconds"
+	                    if (/Request is throttled/i.test(txt) && /Backoff Time/i.test(txt)) {
+	                        let throttlingMatch = txt.match(/Backoff Time[:=\s]+(\d+)/i);
+	                        if (throttlingMatch && throttlingMatch[1] && !isNaN(throttlingMatch[1])) {
+	                            throttleDelay = Number(throttlingMatch[1]);
+	                        }
+	                    }
+
+	                    // Wait and return a throttling error
+	                    if (throttleDelay) {
+	                        err.code = 'ETHROTTLE';
+	                        err.throttleReset = throttleDelay;
+
+	                        // The server-suggested delay can be very large, so throttleWait() caps it
+	                        let delayResponse = Math.min(throttleDelay, MAX_THROTTLE_DELAY);
+
+	                        this.log.warn({ msg: 'Throttling detected', cid: this.id, throttleDelay, delayResponse, err });
+
+	                        let aborted = await this.throttleWait(delayResponse);
+
+	                        if (aborted) {
+	                            // Connection closed during back-off: reject promptly with a
+	                            // connection error (carrying any server BYE reason) instead of
+	                            // waiting out the throttle delay.
+	                            request.reject(this.createNoConnectionError(this.byeReason, { rejectedFrom: 'throttleAbort', command: request.command }));
+	                            break;
+	                        }
+	                    }
+	                }
+
+	                request.reject(err);
+	                break;
+	            }
+
+	            default: {
+	                let err = new Error('Invalid server response');
+	                err.code = 'InvalidResponse';
+	                err.response = parsed;
+	                request.reject(err);
+	                break;
 	            }
 	        }
 	    }
@@ -53044,15 +57024,32 @@ function requireImapFlow () {
 	        this.streamer.on('readable', this.socketReadable);
 	    }
 
+	    /**
+	     * Applies the transport options every established application socket needs: TCP keepalive and
+	     * the inactivity watchdog. Called for direct TLS, cleartext, proxied and STARTTLS-upgraded
+	     * sockets, so the watchdog cannot silently differ between transports (a STARTTLS session used
+	     * to end up with no armed timer at all).
+	     *
+	     * @param {Object} socket - The socket that now carries the IMAP session.
+	     */
+	    configureSocket(socket) {
+	        /* c8 ignore next 3 */ // defensive: connect() only calls this with an established socket
+	        if (!socket) {
+	            return;
+	        }
+
+	        if (typeof socket.setKeepAlive === 'function') {
+	            socket.setKeepAlive(true, 5 * 1000);
+	        }
+
+	        if (typeof socket.setTimeout === 'function') {
+	            socket.setTimeout(this.socketTimeout);
+	        }
+	    }
+
 	    setSocketHandlers() {
 	        // Clear any existing handlers first to prevent duplicates
 	        this.clearSocketHandlers();
-
-	        // Remove temporary connection error handler if present
-	        if (this._connectErrorHandler && this.socket) {
-	            this.socket.removeListener('error', this._connectErrorHandler);
-	            this._connectErrorHandler = null;
-	        }
 
 	        this._socketError =
 	            this._socketError ||
@@ -53066,10 +57063,22 @@ function requireImapFlow () {
 	        /**
 	         * Socket timeout event handler.
 	         *
-	         * When a socket timeout occurs during IDLE, the handler attempts to recover the connection
-	         * by sending a NOOP command and then returning to IDLE state.
+	         * A quiet socket is only a dead connection when something was supposed to be talking. An
+	         * idling session, a download whose consumer stopped draining, and a held mailbox lock
+	         * whose owner is busy between commands are all expected to go quiet, so the handler keeps
+	         * such a connection alive with a NOOP instead of tearing it down. An in-flight command is
+	         * the opposite: its reply is overdue, a recovery NOOP would only queue up behind it and
+	         * never reach the wire, so the timeout is reported as an error. The IDLE command itself is
+	         * the one exception - it stays in flight for as long as idling lasts, and run() breaks it
+	         * through preCheck() before the NOOP is dispatched.
 	         *
-	         * @fires ImapFlow#error Emits error event unless the current command is IDLE
+	         * IDLE is not restarted here: run() re-arms auto-IDLE once the NOOP settles, and
+	         * autoidle() knows whether the connection is actually free for IDLE - an open download or
+	         * a held lock keeps just the keepalive, and with disableAutoIdle nothing restarts at all.
+	         * If the server is dead the NOOP never settles, and the next timeout fires with the NOOP
+	         * as the stuck in-flight command, which lands in the error branch below.
+	         *
+	         * @fires ImapFlow#error Emits error event if the connection cannot be recovered
 	         */
 	        this._socketTimeout =
 	            this._socketTimeout ||
@@ -53077,22 +57086,21 @@ function requireImapFlow () {
 	                const err = new Error('Socket timeout');
 	                err.code = 'ETIMEOUT';
 
-	                if (this.idling) {
+	                const quietExpected = this.idling || this._openDownloads || this.currentLock;
+	                const commandStuck = this.currentRequest && !(this.idling && this.currentRequest.command === 'IDLE');
+
+	                if (quietExpected && !commandStuck) {
 	                    if (!this.usable || !this.socket || this.socket.destroyed) {
 	                        this.emitError(err);
 	                        return;
 	                    }
-	                    // Attempt to recover IDLE connections
-	                    this.run('NOOP')
-	                        .then(() => this.idle())
-	                        .catch(err => {
-	                            this.log.warn({ msg: 'IDLE recovery failed after timeout', err, cid: this.id });
-	                            if (!this.isClosed) {
-	                                this.close();
-	                            }
-	                        });
+	                    this.run('NOOP').catch(err => {
+	                        this.log.warn({ msg: 'Connection recovery failed after timeout', err, cid: this.id });
+	                        if (!this.isClosed) {
+	                            this.close();
+	                        }
+	                    });
 	                } else {
-	                    // Close immediately for non-IDLE operations
 	                    this.log.debug({ msg: 'Socket timeout', cid: this.id });
 	                    this.emitError(err);
 	                }
@@ -53179,11 +57187,27 @@ function requireImapFlow () {
 	        }
 
 	        if (!this.options.disableAutoEnable) {
-	            // enable extensions if possible
-	            await this.run('ENABLE', ['CONDSTORE', 'UTF8=ACCEPT'].concat(this.options.qresync ? 'QRESYNC' : []));
+	            await this.autoEnable();
 	        }
 
 	        this.usable = true;
+	    }
+
+	    // Enable extensions if possible. IMAP4rev2 must be enabled explicitly on
+	    // servers that advertise both rev1 and rev2 (RFC 9051 Appendix A); a single
+	    // ENABLE call is used so the enabled set is built in one round trip.
+	    async autoEnable() {
+	        let enableList = ['CONDSTORE', 'UTF8=ACCEPT'].concat(this.options.qresync ? 'QRESYNC' : []).concat(this.options.disableIMAP4rev2 ? [] : 'IMAP4rev2');
+	        let enableResult = await this.run('ENABLE', enableList);
+	        if (enableResult === false && enableList.includes('IMAP4rev2')) {
+	            // RFC 5161 requires servers to ignore unknown ENABLE arguments, but a
+	            // broken implementation may reject the whole command over IMAP4rev2 -
+	            // retry without it so CONDSTORE/QRESYNC are not lost as collateral
+	            await this.run(
+	                'ENABLE',
+	                enableList.filter(extension => extension !== 'IMAP4rev2')
+	            );
+	        }
 	    }
 
 	    async compress() {
@@ -53214,7 +57238,13 @@ function requireImapFlow () {
 	        this.streamer.compress = true;
 	        this.socket.pipe(this._inflate).pipe(this.streamer);
 	        this._inflate.on('error', err => {
-	            this.streamer.emit('error', err);
+	            // Only forward into the streamer while it is alive and still has an error
+	            // listener. After close() the streamer is destroyed and its listener removed,
+	            // so emitting 'error' would throw an unhandled error and crash the process.
+	            // (this.streamer is assigned once in the constructor and never nulled.)
+	            if (!this.streamer.destroyed && this.streamer.listenerCount('error')) {
+	                this.streamer.emit('error', err);
+	            }
 	        });
 
 	        // For outgoing data, replace the writeSocket with a PassThrough buffer.
@@ -53225,6 +57255,7 @@ function requireImapFlow () {
 	            highWaterMark: 64 * 1024 // 64KB buffer limit to prevent excessive memory usage
 	        });
 
+	        /* c8 ignore start */ // destroySoon override is never invoked by ImapFlow (close() calls destroy()); kept for stream API completeness
 	        this.writeSocket.destroySoon = () => {
 	            try {
 	                if (this.socket) {
@@ -53232,14 +57263,16 @@ function requireImapFlow () {
 	                }
 	                this.writeSocket.end();
 	            } catch (err) {
-	                this.log.error({ err, info: 'Failed to destroy PassThrough socket', cid: this.id });
+	                this.log.error({ err, msg: 'Failed to destroy PassThrough socket', cid: this.id });
 	                throw err;
 	            }
 	        };
+	        /* c8 ignore stop */
 
-	        Object.defineProperty(this.writeSocket, 'destroyed', {
-	            get: () => !this.socket || this.socket.destroyed
-	        });
+	        // The PassThrough reports its own `destroyed` state. It used to proxy the raw socket's
+	        // instead, which made close() skip destroying it and left the second raw-socket teardown
+	        // branch unreachable. write() checks the raw socket separately, so nothing depends on the
+	        // two states being conflated.
 
 	        // Manual pump loop: reads chunks from writeSocket, pushes them into
 	        // deflate, and flushes when the buffer is drained. This ensures each
@@ -53259,6 +57292,7 @@ function requireImapFlow () {
 
 	                    // Yield to event loop every 100 chunks to prevent CPU blocking
 	                    processedChunks++;
+	                    /* c8 ignore next 6 */ // requires 100+ queued chunks in a single pump pass; not reproducible deterministically
 	                    if (processedChunks % 100 === 0) {
 	                        await new Promise(resolve => setImmediate(resolve));
 	                        if (!this.writeSocket) {
@@ -53273,6 +57307,7 @@ function requireImapFlow () {
 	                }
 
 	                reading = false;
+	                /* c8 ignore next 3 */ // defensive: the pump body does not throw under normal operation
 	            } catch (ex) {
 	                this.emitError(ex);
 	            }
@@ -53340,15 +57375,50 @@ function requireImapFlow () {
 	            return this._failSTARTTLS();
 	        }
 
+	        // STARTTLS plaintext-injection guard (RFC 3501 §6.2.1): a compliant server stays
+	        // silent after the tagged STARTTLS OK until the TLS handshake, so any data that
+	        // followed the OK was injected by a MITM and must not be treated as if it arrived
+	        // over TLS. Two complementary best-effort checks fail closed before wrapping the
+	        // socket; injection that still races in afterwards corrupts the TLS handshake and
+	        // is rejected there instead (with a generic TLS error rather than STARTTLS_INJECTION).
+	        const failSTARTTLSInjection = () => {
+	            let err = new Error('Server sent data after the STARTTLS response and before the TLS handshake; possible plaintext-injection attack');
+	            err.code = 'STARTTLS_INJECTION';
+	            err.tlsFailed = true;
+	            this.closeAfter();
+	            return err;
+	        };
+
+	        // Check 1: the parser saw more input already buffered right after the tagged OK
+	        // (same TCP segment, or an already-queued chunk) — see hasTrailingData / starttls.js.
+	        if (this._starttlsHadTrailingData) {
+	            throw failSTARTTLSInjection();
+	        }
+
 	        // STARTTLS upgrade sequence: detach the plain socket from the parser,
 	        // wrap it in a TLS socket, then reconnect the new TLS socket to the
 	        // parser. The plain socket becomes the underlying transport for TLS.
 	        this.socket.unpipe(this.streamer);
+
+	        // Check 2: now that the parser is detached, any bytes still buffered on the plain
+	        // socket arrived after the OK and were not consumed by the handshake — i.e. injected.
+	        // This catches late/fragmented injection that the parse-time snapshot cannot see.
+	        let injectedTail = typeof this.socket.read === 'function' ? this.socket.read() : null;
+	        /* c8 ignore next 3 */ // late/fragmented post-OK injection is timing-dependent and not deterministically reproducible
+	        if (injectedTail && injectedTail.length) {
+	            throw failSTARTTLSInjection();
+	        }
 	        let upgraded = await new Promise((resolve, reject) => {
 	            let socketPlain = this.socket;
 	            let opts = Object.assign(
 	                {
 	                    socket: this.socket,
+	                    // host is required even though the socket is already connected: without
+	                    // it, a connection made to an IP literal (servername=false) has its
+	                    // certificate verified against Node's fallback name "localhost" instead
+	                    // of the IP - accepting any "localhost" certificate for any IP-hosted
+	                    // server, and rejecting legitimate IP-SAN certificates.
+	                    host: this.host,
 	                    servername: this.servername,
 	                    port: this.port
 	                },
@@ -53356,47 +57426,74 @@ function requireImapFlow () {
 	            );
 	            this.clearSocketHandlers();
 
-	            // Store error handler for cleanup after successful upgrade
-	            const socketPlainErrorHandler = err => {
-	                clearTimeout(this.connectTimeout);
-	                clearTimeout(this.upgradeTimeout);
-	                if (!this.upgrading) {
-	                    // don't care anymore
-	                    return;
-	                }
-	                this.closeAfter();
-	                this.upgrading = false;
-	                err.tlsFailed = true;
-	                reject(err);
-	            };
-	            socketPlain.once('error', socketPlainErrorHandler);
+	            let settled = false;
 
-	            this.upgradeTimeout = setTimeout(() => {
-	                if (!this.upgrading) {
+	            // Single settlement path for the upgrade. Every terminal outcome - handshake
+	            // success, an error on the plain or the TLS socket, the upgrade timeout, an
+	            // explicit close(), or a streamer error routed here by emitError() - goes through
+	            // this helper exactly once. It owns clearing the upgrade timer, the exposed
+	            // rejector, the `upgrading` flag and the temporary handshake handlers, so a late
+	            // socket event cannot re-enter an already settled upgrade or leave state behind.
+	            const settle = (err, result) => {
+	                if (settled) {
 	                    return;
 	                }
-	                this.closeAfter();
+	                settled = true;
+
+	                clearTimeout(this.upgradeTimeout);
+	                this.upgradeTimeout = null;
+	                this.upgrading = false;
+	                this._upgradeReject = null;
+
+	                socketPlain.removeListener('error', settle);
+	                if (this.socket && this.socket !== socketPlain) {
+	                    this.socket.removeListener('error', settle);
+	                }
+
+	                if (err) {
+	                    clearTimeout(this.connectTimeout);
+	                    // Preserve the original error, marked as a TLS failure so callers can tell
+	                    // an upgrade failure from an ordinary command failure.
+	                    err.tlsFailed = true;
+	                    this.closeAfter();
+	                    return reject(err);
+	                }
+
+	                resolve(result);
+	            };
+
+	            // Exposed so emitError() and close() can settle the upgrade through the same path.
+	            this._upgradeReject = settle;
+
+	            // An error on either socket settles the upgrade, so settle() is the listener itself:
+	            // one function, one settlement, and removeListener() in settle() needs no separate
+	            // handler references. A TLS handshake failure (bad certificate, protocol mismatch)
+	            // is emitted on the new TLS socket rather than on the plain one, so both are covered.
+	            socketPlain.once('error', settle);
+
+	            /* c8 ignore start */ // UPGRADE_TIMEOUT is 10s; firing it deterministically would make the test suite hang
+	            this.upgradeTimeout = setTimeout(() => {
 	                let err = new Error('Failed to upgrade connection in required time');
-	                err.tlsFailed = true;
 	                err.code = 'UPGRADE_TIMEOUT';
-	                reject(err);
+	                settle(err);
 	            }, UPGRADE_TIMEOUT);
+	            /* c8 ignore stop */
 
 	            this.upgrading = true;
 	            this.socket = tls.connect(opts, () => {
 	                try {
-	                    clearTimeout(this.upgradeTimeout);
+	                    /* c8 ignore start */ // race: connection closed during the TLS handshake window
 	                    if (this.isClosed) {
-	                        // not sure if this is possible?
-	                        return this.close();
+	                        return settle(this.createNoConnectionError(false, { rejectedFrom: 'tlsUpgrade' }));
 	                    }
+	                    /* c8 ignore stop */
 
 	                    // TLS handshake complete. Reconnect the now-encrypted socket
 	                    // to the IMAP parser stream and record the cipher details.
 	                    this.secureConnection = true;
-	                    this.upgrading = false;
 	                    this.streamer.secureConnection = true;
 	                    this.socket.pipe(this.streamer);
+	                    /* c8 ignore next */ // an upgraded TLS socket always exposes getCipher(), so the false fallback is unreachable
 	                    this.tls = typeof this.socket.getCipher === 'function' ? this.socket.getCipher() : false;
 	                    if (this.tls) {
 	                        this.tls.authorized = this.socket.authorized;
@@ -53405,32 +57502,58 @@ function requireImapFlow () {
 	                            msg: 'Established TLS session',
 	                            cid: this.id,
 	                            authorized: this.tls.authorized,
+	                            /* c8 ignore next */ // cipher.standardName is present on modern Node, so the .name fallback rarely runs
 	                            algo: this.tls.standardName || this.tls.name,
 	                            version: this.tls.version
 	                        });
 	                    }
 
-	                    // Clean up the plain socket error handler after successful upgrade
-	                    socketPlain.removeListener('error', socketPlainErrorHandler);
+	                    // The plain socket is now only the TLS transport: drop its superseded
+	                    // inactivity timer so no armed timer is left behind without a listener.
+	                    if (typeof socketPlain.setTimeout === 'function') {
+	                        socketPlain.setTimeout(0);
+	                    }
 
-	                    return resolve(true);
+	                    // Install the normal socket handlers only now that the handshake
+	                    // succeeded. Doing this during the handshake would leave both settle() and
+	                    // the generic _socketError on the socket; a handshake 'error' would then fire
+	                    // BOTH (EventEmitter clones its listener array on emit), causing a duplicate
+	                    // error and a possible unhandled 'error' crash. Keeping settle() as the sole
+	                    // listener until here guarantees a single error path for the upgrade.
+	                    this.setSocketHandlers();
+
+	                    // Arm the inactivity watchdog on the socket that now carries the session.
+	                    // Without this a STARTTLS-upgraded connection has no watchdog at all: the
+	                    // timer was armed on the plain socket, while the timeout listener lives on
+	                    // the TLS socket.
+	                    this.configureSocket(this.socket);
+
+	                    // settle() also removes the temporary handshake handlers
+	                    settle(null, true);
+	                    /* c8 ignore next 3 */ // defensive: the success callback body does not throw under normal operation
 	                } catch (ex) {
 	                    this.emitError(ex);
 	                }
 	            });
 
-	            this.writeSocket = this.socket;
+	            // Registered after tls.connect (the TLS socket now exists). This is the ONLY
+	            // error listener during the handshake window; the generic handlers are installed
+	            // by setSocketHandlers() inside the success callback above, so a handshake error
+	            // has a single error path.
+	            this.socket.once('error', settle);
 
-	            this.setSocketHandlers();
+	            this.writeSocket = this.socket;
 	        });
 
-	        if (upgraded && this.expectCapabilityUpdate) {
-	            // After STARTTLS the server may advertise a different capability set
-	            // (e.g., LOGINDISABLED removed, new AUTH= methods). Clear the pre-TLS
-	            // map before re-fetching so stale capabilities cannot leak through
-	            // if the CAPABILITY response is delayed or absent.
-	            this.capabilities.clear();
-	            this.authCapabilities.clear();
+	        if (upgraded) {
+	            // RFC 9051 section 6.2.1: once TLS is started the client MUST discard the
+	            // cached capabilities and reissue CAPABILITY, because everything learned
+	            // before the handshake was plaintext an active attacker could rewrite.
+	            // Unconditional on purpose: a server that stamps [CAPABILITY ...] on the
+	            // STARTTLS OK itself clears expectCapabilityUpdate, so keying the discard
+	            // on that flag would keep exactly the pre-TLS list an attacker controls -
+	            // the list that then picks the AUTH mechanism and answers LOGINDISABLED.
+	            this.clearCapabilities();
 	            await this.run('CAPABILITY');
 	        }
 
@@ -53551,6 +57674,9 @@ function requireImapFlow () {
 	            return;
 	        }
 	        this.state = this.states.AUTHENTICATED;
+	        // documented contract for the `authenticated` property: `true` when the
+	        // connection was authenticated by a PREAUTH greeting (no credentials known)
+	        this.authenticated = true;
 	        this.beginSession(err => {
 	            this.log.error({ err, cid: this.id });
 	            this.closeAfter();
@@ -53570,6 +57696,17 @@ function requireImapFlow () {
 	        this.byeReason = reason || 'Server closed connection';
 	        this.untaggedHandlers.BYE = null;
 	        this.state = this.states.LOGOUT;
+	    }
+
+	    // Drops every capability-derived field together - the counterpart of
+	    // updateCapabilitiesFromRaw() below, which sets them together. rawCapabilities is
+	    // public surface external consumers read, so a discard (RFC 9051 6.2.1 requires
+	    // one after STARTTLS) that missed it would leave the stale list visible if the
+	    // re-fetch fails.
+	    clearCapabilities() {
+	        this.capabilities.clear();
+	        this.authCapabilities.clear();
+	        this.rawCapabilities = null;
 	    }
 
 	    updateCapabilitiesFromRaw(rawCapabilities) {
@@ -53603,11 +57740,18 @@ function requireImapFlow () {
 	            return;
 	        }
 
-	        if (!untagged || !untagged.command || isNaN(untagged.command)) {
+	        if (!untagged) {
 	            return;
 	        }
 
-	        let count = Number(untagged.command);
+	        // Not a usable count: anything but a bounded digit run. A digit run long enough
+	        // coerces to Infinity, which would corrupt mailbox state (resolveRange('*') would
+	        // compile to the literal "Infinity" and every range-based command would fail until
+	        // the next SELECT)
+	        let count = parseUintValue(untagged.command, MAX_UINT32_DIGITS);
+	        if (count === false) {
+	            return;
+	        }
 	        if (count === this.mailbox.exists) {
 	            // nothing changed?
 	            return;
@@ -53623,17 +57767,34 @@ function requireImapFlow () {
 	        });
 	    }
 
+	    // Reports one expunged message, either through the caller's expungeHandler or as an
+	    // 'expunge' event. Shared by the EXPUNGE and VANISHED paths so the two cannot drift.
+	    async notifyExpunge(payload) {
+	        if (typeof this.options.expungeHandler !== 'function') {
+	            this.emit('expunge', payload);
+	            return;
+	        }
+
+	        try {
+	            await this.options.expungeHandler(payload);
+	        } catch (err) {
+	            // The throw comes from the caller's own handler, not from this library
+	            this.log.error({ msg: 'Failed to notify expunge event', payload, err, cid: this.id });
+	        }
+	    }
+
 	    async untaggedExpunge(untagged) {
 	        if (!this.mailbox) {
 	            // mailbox closed, ignore
 	            return;
 	        }
 
-	        if (!untagged || !untagged.command || isNaN(untagged.command)) {
+	        if (!untagged) {
 	            return;
 	        }
 
-	        let seq = Number(untagged.command);
+	        // Same bound untaggedExists() applies: only a bounded decimal run is a usable sequence number
+	        let seq = parseUintValue(untagged.command, MAX_UINT32_DIGITS);
 	        if (seq && seq <= this.mailbox.exists) {
 	            this.mailbox.exists--;
 	            let payload = {
@@ -53642,15 +57803,7 @@ function requireImapFlow () {
 	                vanished: false
 	            };
 
-	            if (typeof this.options.expungeHandler === 'function') {
-	                try {
-	                    await this.options.expungeHandler(payload);
-	                } catch (err) {
-	                    this.log.error({ msg: 'Failed to notify expunge event', payload, error: err, cid: this.id });
-	                }
-	            } else {
-	                this.emit('expunge', payload);
-	            }
+	            await this.notifyExpunge(payload);
 	        }
 	    }
 
@@ -53664,8 +57817,14 @@ function requireImapFlow () {
 	        let tags = [];
 	        let uids = false;
 
+	        // A malformed VANISHED can carry no attributes at all, and one carrying only the
+	        // (EARLIER) tag leaves `uids` false - expandRange() handles that and yields nothing
+	        if (!untagged.attributes || !untagged.attributes.length) {
+	            return;
+	        }
+
 	        if (untagged.attributes.length > 1 && Array.isArray(untagged.attributes[0])) {
-	            tags = untagged.attributes[0].map(entry => (typeof entry.value === 'string' ? entry.value.toUpperCase() : false)).filter(value => value);
+	            tags = getStringList(untagged.attributes[0]).map(value => value.toUpperCase());
 	            untagged.attributes.shift();
 	        }
 
@@ -53683,15 +57842,7 @@ function requireImapFlow () {
 	                earlier: tags.includes('EARLIER')
 	            };
 
-	            if (typeof this.options.expungeHandler === 'function') {
-	                try {
-	                    await this.options.expungeHandler(payload);
-	                } catch (err) {
-	                    this.log.error({ msg: 'Failed to notify expunge event', payload, error: err, cid: this.id });
-	                }
-	            } else {
-	                this.emit('expunge', payload);
-	            }
+	            await this.notifyExpunge(payload);
 	        }
 	    }
 
@@ -53785,14 +57936,43 @@ function requireImapFlow () {
 	        return range;
 	    }
 
+	    // The single definition of "the connection is not free". A held or queued mailbox lock, a
+	    // command in flight or queued, and an open download stream all mean a caller is
+	    // mid-sequence: starting IDLE there injects an IDLE/DONE round trip - or, with
+	    // `missingIdleCommand` set to SELECT or STATUS, a mailbox poll - between two of that
+	    // caller's own commands. Every one of those states ends by calling autoidle() again, so
+	    // declining while busy postpones IDLE, it never cancels it.
+	    connectionBusy() {
+	        return !!(this.currentLock || this.locks.length || this.currentRequest || this.requestQueue.length || this._openDownloads);
+	    }
+
+	    // Timer process-liveness policy: connection establishment and greeting deadlines keep the
+	    // process alive, because a caller is waiting on connect() to settle. Background timers
+	    // (auto-IDLE, IDLE restart, fallback polling, throttle back-off, the held-lock diagnostic) are
+	    // unref'd, so an otherwise idle process is not held open by them. Every timer is still cleared
+	    // explicitly on close().
 	    autoidle() {
 	        clearTimeout(this.idleStartTimer);
 	        if (this.options.disableAutoIdle || this.state !== this.states.SELECTED) {
 	            return;
 	        }
+
+	        if (this.connectionBusy()) {
+	            return;
+	        }
+
 	        this.idleStartTimer = setTimeout(() => {
-	            this.idle().catch(err => this.log.warn({ err, cid: this.id }));
-	        }, 15 * 1000);
+	            // Re-checked at fire time: paths that take ownership of the connection clear this
+	            // timer, but the guard must not depend on every one of them doing so - a single
+	            // missed clearTimeout would inject IDLE between a caller's own commands. Declining
+	            // postpones rather than cancels: whatever made the connection busy calls autoidle()
+	            // again when it finishes.
+	            if (this.state !== this.states.SELECTED || this.connectionBusy()) {
+	                return;
+	            }
+	            this.idle().catch(err => logConnectionError(this, 'Auto-IDLE failed', err));
+	        }, this.autoIdleDelay);
+	        unrefTimer(this.idleStartTimer);
 	    }
 
 	    // PUBLIC API METHODS
@@ -53812,6 +57992,11 @@ function requireImapFlow () {
 	            throw new Error('Can not re-use ImapFlow instance');
 	        }
 	        this._connectCalled = true;
+
+	        // One deadline for the whole attempt, started before anything is resolved or negotiated.
+	        // Proxy DNS and proxy negotiation used to run entirely outside the timer, so a stalled
+	        // proxy could hang far beyond the documented connectionTimeout.
+	        let deadline = new ConnectionDeadline(this.options.connectionTimeout);
 
 	        let connector = this.secureConnection ? tls : net;
 
@@ -53841,43 +58026,58 @@ function requireImapFlow () {
 	        let socket = false;
 	        if (this.options.proxy) {
 	            try {
-	                socket = await proxyConnection(this.log, this.options.proxy, this.host, this.port);
+	                socket = await proxyConnection(this.log, this.options.proxy, this.host, this.port, { deadline });
 	                if (!socket) {
 	                    throw new Error('Failed to setup proxy connection');
 	                }
 	            } catch (err) {
+	                // Logged here rather than relying on proxy-connection.js, which only reports
+	                // failures from inside the two connect helpers. An unsupported scheme, a proxy URL
+	                // that will not parse and a deadline that expired before the connect started all
+	                // reject before any logging happens there, so this is the one place that sees
+	                // every way proxy setup can fail.
+	                this.log.error({ msg: 'Failed to setup proxy connection', err, cid: this.id });
+
+	                if (err.code === 'CONNECT_TIMEOUT') {
+	                    // The shared deadline expired during proxy setup. Report it as the documented
+	                    // connection timeout rather than as a generic proxy failure.
+	                    throw err;
+	                }
 	                let error = new Error('Failed to setup proxy connection');
 	                error.code = err.code || 'ProxyError';
 	                error._err = err;
-	                this.log.error({ error, cid: this.id });
 	                throw error;
 	            }
 	        }
 
-	        let connectPromise = new Promise((resolve, reject) => {
+	        // Guarded: close() rejects a pending connect() synchronously. See guardedPromise().
+	        let connectPromise = guardedPromise((resolve, reject) => {
+	            // Whatever the proxy phase already used is gone from the budget
 	            this.connectTimeout = setTimeout(() => {
-	                let err = new Error('Failed to establish connection in required time');
-	                err.code = 'CONNECT_TIMEOUT';
-	                err.details = {
-	                    connectionTimeout: this.options.connectionTimeout || CONNECT_TIMEOUT
-	                };
+	                let err = deadline.error();
 	                this.log.error({ err, cid: this.id });
 	                this.closeAfter();
 	                reject(err);
-	            }, this.options.connectionTimeout || CONNECT_TIMEOUT);
+	            }, deadline.remaining());
 
 	            let onConnect = () => {
 	                try {
 	                    clearTimeout(this.connectTimeout);
-	                    this.socket.setKeepAlive(true, 5 * 1000);
-	                    this.socket.setTimeout(this.options.socketTimeout || SOCKET_TIMEOUT);
+
+	                    // ImapFlow now owns the socket; drop the proxy's early error handler
+	                    // (its "before connection setup" message no longer applies).
+	                    detachEarlyErrorHandler(socket);
+
+	                    this.configureSocket(this.socket);
 
 	                    this.greetingTimeout = setTimeout(() => {
 	                        let err = new Error(
+	                            /* c8 ignore next */ // the greeting-timeout test uses a plaintext socket; the secure-socket branch of this hint is not separately exercised
 	                            `Failed to receive greeting from server in required time${!this.secureConnection ? '. Maybe should use TLS?' : ''}`
 	                        );
 	                        err.code = 'GREETING_TIMEOUT';
 	                        err.details = {
+	                            /* c8 ignore next */ // firing the timeout with the default (large) value would hang the suite, so only the explicit-option path is tested
 	                            greetingTimeout: this.options.greetingTimeout || GREETING_TIMEOUT
 	                        };
 	                        this.log.error({ err, cid: this.id });
@@ -53902,6 +58102,7 @@ function requireImapFlow () {
 
 	                    if (this.tls) {
 	                        logInfo.authorized = this.tls.authorized = this.socket.authorized;
+	                        /* c8 ignore next */ // cipher.standardName is present on modern Node, so the .name fallback rarely runs
 	                        logInfo.algo = this.tls.standardName || this.tls.name;
 	                        logInfo.version = this.tls.version;
 	                    }
@@ -53915,6 +58116,7 @@ function requireImapFlow () {
 	                    // executed by initial "* OK"
 	                    this.initialResolve = resolve;
 	                    this.initialReject = reject;
+	                    /* c8 ignore next 4 */ // defensive: the onConnect setup body does not throw under normal operation
 	                } catch (ex) {
 	                    // connect failed
 	                    reject(ex);
@@ -53949,10 +58151,6 @@ function requireImapFlow () {
 	            this.socket.on('error', this._connectErrorHandler);
 	        });
 
-	        // Prevent unhandled promise rejection if close() rejects the connect
-	        // promise synchronously. The rejection still propagates to the caller.
-	        connectPromise.catch(noop);
-
 	        await connectPromise;
 	    }
 
@@ -53979,6 +58177,21 @@ function requireImapFlow () {
 	        setImmediate(() => this.close());
 	    }
 
+	    // Connection-scoped wrapper around the shared stamping helper; see buildConnectionError().
+	    createConnectionError(code, message, meta) {
+	        return buildConnectionError(this.id, code, message, meta);
+	    }
+
+	    // The standard "connection not available" error, optionally annotated with the server's BYE
+	    // reason. Single source of truth so every NoConnection rejection is consistent.
+	    createNoConnectionError(byeReason, meta) {
+	        const error = this.createConnectionError('NoConnection', 'Connection not available', meta);
+	        if (byeReason) {
+	            error.reason = byeReason;
+	        }
+	        return error;
+	    }
+
 	    /**
 	     * Closes TCP connection without notifying the server.
 	     *
@@ -53996,8 +58209,29 @@ function requireImapFlow () {
 	            clearTimeout(this.connectTimeout);
 	            clearTimeout(this.greetingTimeout);
 
+	            // Abort every in-flight throttle back-off so each waiter unblocks and its request is
+	            // settled promptly rather than after the full delay.
+	            for (let entry of this._throttleWaits) {
+	                clearTimeout(entry.timer);
+	                entry.resolve(true);
+	            }
+	            this._throttleWaits.clear();
+
 	            this.usable = false;
+	            // close() takes over ownership of the idling state: dropping the session token means a
+	            // poll or IDLE that unwinds after this point sees that it no longer owns the flag and
+	            // leaves it alone (see claimIdling() in commands/idle.js).
+	            this._idleSession = null;
 	            this.idling = false;
+
+	            // An in-flight STARTTLS upgrade has to be settled through its own single settlement
+	            // path, otherwise the upgrade promise (and the session it belongs to) stays pending
+	            // for the lifetime of the process.
+	            if (typeof this._upgradeReject === 'function') {
+	                let reject = this._upgradeReject;
+	                this._upgradeReject = null;
+	                reject(this.createNoConnectionError(false, { rejectedFrom: 'upgrade' }));
+	            }
 
 	            if (typeof this.initialReject === 'function' && !this.options.verifyOnly) {
 	                clearTimeout(this.greetingTimeout);
@@ -54005,15 +58239,45 @@ function requireImapFlow () {
 	                this.initialResolve = false;
 	                this.initialReject = false;
 	                let err = new Error('Unexpected close');
+	                /* c8 ignore next */ // closing a pending connect over an already-secure socket (the TLS branch) is not separately exercised
 	                err.code = `ClosedAfterConnect${this.secureConnection ? 'TLS' : 'Text'}`;
-	                // Synchronous rejection is safe: connectPromise.catch(noop) is already
-	                // attached, so the rejection is observed immediately. close() is synchronous,
-	                // so all cleanup completes before any microtask rejection handler runs.
+	                // Surface the server's BYE reason (e.g. "Too many connections") when the
+	                // connection was closed by an untagged BYE, so the caller sees why.
+	                if (this.byeReason) {
+	                    err.reason = this.byeReason;
+	                }
+	                // Synchronous rejection is safe: connectPromise was built by guardedPromise(),
+	                // so the rejection is already observed. close() is synchronous, so all cleanup
+	                // completes before any microtask rejection handler runs.
 	                reject(err);
 	            }
 
 	            if (typeof this.preCheck === 'function') {
-	                this.preCheck().catch(err => this.log.warn({ err, cid: this.id }));
+	                // Runs while the connection is being torn down, so the rejection this sees is
+	                // almost always the NoConnection close() is about to raise itself.
+	                this.preCheck().catch(err => logConnectionError(this, 'Failed to break IDLE while closing', err));
+	            }
+
+	            // Session-only public state must not survive the connection it describes: callers read
+	            // these properties in reconnect logic and would otherwise mistake cached objects for
+	            // live server state. Cleared during the first close only, so repeated close() calls
+	            // stay idempotent and cannot emit an event twice.
+	            // `byeReason` is deliberately kept: it explains why the session ended.
+	            //
+	            // `authenticated` is kept for a verifyOnly connection, where it is the result rather
+	            // than live state. That mode authenticates, optionally lists, and logs out before
+	            // connect() resolves, so clearing it here left every caller reading `false` off a
+	            // connection that had just authenticated successfully - there is no later moment at
+	            // which the answer could be read, and such a client is never reconnected.
+	            let closedMailbox = false;
+	            if (!this.isClosed) {
+	                closedMailbox = this.mailbox;
+	                this.mailbox = false;
+	                this.currentSelectCommand = false;
+	                if (!this.options.verifyOnly) {
+	                    this.authenticated = false;
+	                }
+	                this.preCheck = false;
 	            }
 
 	            // Collect all pending requests to reject
@@ -54042,25 +58306,18 @@ function requireImapFlow () {
 	                }
 	            }
 
-	            // Helper to create connection error
-	            const createNoConnectionError = byeReason => {
-	                const error = new Error('Connection not available');
-	                error.code = 'NoConnection';
-	                if (byeReason) {
-	                    error.reason = byeReason;
-	                }
-	                return error;
-	            };
-
-	            // Reject pending requests and locks synchronously. Each exec() and
-	            // getMailboxLock() promise already has .catch(noop) attached, so the
-	            // rejection is observed immediately and will not trigger
-	            // unhandledRejection. close() is synchronous, so all remaining cleanup
-	            // runs before any microtask rejection handler fires.
+	            // Reject pending requests and locks synchronously. Every promise rejected here was
+	            // built by guardedPromise(), so its rejection is already observed and cannot trigger
+	            // unhandledRejection. close() is synchronous, so all remaining cleanup runs before
+	            // any microtask rejection handler fires.
+	            //
+	            // The error travels on, though, through await chains and .then() links that
+	            // guardedPromise() knows nothing about. Read a crash stack ending here as "this is
+	            // the value that escaped", never as "this is the promise that escaped".
 	            let byeReason = this.byeReason;
 
 	            for (let request of pendingRequests) {
-	                request.reject(createNoConnectionError(byeReason));
+	                request.reject(this.createNoConnectionError(byeReason, { rejectedFrom: 'pendingRequest', command: request.command }));
 	            }
 
 	            // Clear current lock - holder will see errors when they try operations.
@@ -54079,7 +58336,7 @@ function requireImapFlow () {
 	                        lock.acquireTimer = null;
 	                    }
 	                    if (typeof lock.reject === 'function') {
-	                        lock.reject(createNoConnectionError(byeReason));
+	                        lock.reject(this.createNoConnectionError(byeReason, { rejectedFrom: 'mailboxLock', path: lock.path }));
 	                    }
 	                }
 	            }
@@ -54091,7 +58348,7 @@ function requireImapFlow () {
 	                    this._inflate.destroy();
 	                    this._inflate = null;
 	                } catch (err) {
-	                    this.log.error({ err, info: 'Failed to destroy inflate stream', cid: this.id });
+	                    this.log.error({ err, msg: 'Failed to destroy inflate stream', cid: this.id });
 	                }
 	            }
 
@@ -54101,7 +58358,7 @@ function requireImapFlow () {
 	                    this._deflate.destroy();
 	                    this._deflate = null;
 	                } catch (err) {
-	                    this.log.error({ err, info: 'Failed to destroy deflate stream', cid: this.id });
+	                    this.log.error({ err, msg: 'Failed to destroy deflate stream', cid: this.id });
 	                }
 	            }
 
@@ -54119,7 +58376,7 @@ function requireImapFlow () {
 	                        this.streamer.destroy();
 	                    }
 	                } catch (err) {
-	                    this.log.error({ err, info: 'Failed to cleanup streamer', cid: this.id });
+	                    this.log.error({ err, msg: 'Failed to cleanup streamer', cid: this.id });
 	                }
 	            }
 
@@ -54134,22 +58391,16 @@ function requireImapFlow () {
 	            if (this.isClosed) {
 	                return;
 	            }
-
-	            // Socket teardown order matters when compression is active:
-	            // writeSocket may be a PassThrough (compression) or the raw socket (no compression).
-	            // Destroy the underlying socket first, then writeSocket (if different).
-	            // The second socket.destroy() block handles the case where writeSocket.destroy()
-	            // did not also destroy the underlying socket.
-	            if (this.socket && !this.socket.destroyed && this.writeSocket !== this.socket) {
-	                try {
-	                    this.socket.destroy();
-	                } catch (err) {
-	                    this.log.error({ err, cid: this.id });
-	                }
-	            }
+	            // Set before teardown so a socket event that re-enters close() during destruction
+	            // cannot run this block a second time.
 	            this.isClosed = true;
 
-	            if (this.writeSocket && !this.writeSocket.destroyed) {
+	            // Socket teardown, in one documented order. Each stream owns and reports its own
+	            // lifecycle, so each is destroyed exactly once:
+	            //   1. the compression PassThrough (writeSocket), if compression replaced it
+	            //   2. the raw socket, which is also writeSocket when compression is not active
+	            // The compression streams themselves were destroyed above.
+	            if (this.writeSocket && this.writeSocket !== this.socket && !this.writeSocket.destroyed) {
 	                try {
 	                    this.writeSocket.destroy();
 	                } catch (err) {
@@ -54157,7 +58408,7 @@ function requireImapFlow () {
 	                }
 	            }
 
-	            if (this.socket && !this.socket.destroyed && this.writeSocket !== this.socket) {
+	            if (this.socket && !this.socket.destroyed) {
 	                try {
 	                    this.socket.destroy();
 	                } catch (err) {
@@ -54178,11 +58429,23 @@ function requireImapFlow () {
 	            this._socketEnd = null;
 	            this._socketTimeout = null;
 
-	            this.log.trace({ msg: 'Connection closed', cid: this.id });
+	            this.log.debug({
+	                msg: 'Connection closed',
+	                cid: this.id,
+	                ...(this._unknownTagCount ? { unknownTagCount: this._unknownTagCount } : {})
+	            });
+
+	            // A mailbox that was still selected is now closed, so the transition is reported once,
+	            // whether the session ended with a clean logout or a lost transport. Emitted before
+	            // 'close' and only from the first close(), so no consumer sees it twice.
+	            if (closedMailbox) {
+	                this.emit('mailboxClose', closedMailbox);
+	            }
+
 	            this.emit('close');
 	        } catch (ex) {
 	            // close failed
-	            this.log.error(ex);
+	            this.log.error({ err: ex, cid: this.id });
 	        }
 	    }
 
@@ -54201,7 +58464,7 @@ function requireImapFlow () {
 	    /**
 	     * Returns current quota
 	     *
-	     * @param {String} [path] Optional mailbox path if you want to check quota for specific folder
+	     * @param {string|array} [path] Optional mailbox path if you want to check quota for specific folder. If value is an array then it is joined using current delimiter symbols. Namespace prefix is added automatically if required.
 	     * @returns {Promise<QuotaResponse|Boolean>} Quota information or `false` if QUOTA extension is not supported or requested path does not exist
 	     *
 	     * @example
@@ -54224,8 +58487,9 @@ function requireImapFlow () {
 	     * @property {String} parentPath Same as `parent`, but as a complete string path (unicode string)
 	     * @property {Set<string>} flags a set of flags for this mailbox
 	     * @property {String} specialUse one of special-use flags (if applicable): "\All", "\Archive", "\Drafts", "\Flagged", "\Junk", "\Sent", "\Trash". Additionally INBOX has non-standard "\Inbox" flag set
+	     * @property {String} [specialUseSource] how `specialUse` was determined: `"user"` (from `specialUseHints`), `"extension"` (SPECIAL-USE or XLIST flag reported by the server) or `"name"` (matched against known localized folder names)
 	     * @property {Boolean} listed `true` if mailbox was found from the output of LIST command
-	     * @property {Boolean} subscribed `true` if mailbox was found from the output of LSUB command
+	     * @property {Boolean} subscribed `true` if the mailbox is subscribed - reported by LSUB or by LIST RETURN (SUBSCRIBED) on LIST-EXTENDED/IMAP4rev2 servers. Servers that answer neither report no subscription state at all, and every mailbox is then assumed to be subscribed
 	     * @property {StatusObject} [status] If `statusQuery` was used, then this value includes the status response
 	     */
 
@@ -54239,11 +58503,14 @@ function requireImapFlow () {
 	     * @property {Boolean} [statusQuery.uidValidity] if `true` request mailbox `UIDVALIDITY` value
 	     * @property {Boolean} [statusQuery.unseen] if `true` request count of unseen messages
 	     * @property {Boolean} [statusQuery.highestModseq] if `true` request last known modseq value
+	     * @property {Boolean} [statusQuery.size] if `true` request total mailbox size in octets (requires STATUS=SIZE or IMAP4rev2)
+	     * @property {Boolean} [statusQuery.deleted] if `true` request count of messages with \\Deleted flag (requires IMAP4rev2)
 	     * @property {Object} [specialUseHints] set specific paths as special use folders, this would override special use flags provided from the server
 	     * @property {String} [specialUseHints.sent] Path to "Sent Mail" folder
 	     * @property {String} [specialUseHints.trash] Path to "Trash" folder
 	     * @property {String} [specialUseHints.junk] Path to "Junk Mail" folder
 	     * @property {String} [specialUseHints.drafts] Path to "Drafts" folder
+	     * @property {String} [specialUseHints.archive] Path to "Archive" folder
 	     */
 
 	    /**
@@ -54273,9 +58540,10 @@ function requireImapFlow () {
 	     * @property {Set<string>} flags list of flags for this mailbox
 	     * @property {String} specialUse one of special-use flags (if applicable): "\All", "\Archive", "\Drafts", "\Flagged", "\Junk", "\Sent", "\Trash". Additionally INBOX has non-standard "\Inbox" flag set
 	     * @property {Boolean} listed `true` if mailbox was found from the output of LIST command
-	     * @property {Boolean} subscribed `true` if mailbox was found from the output of LSUB command
+	     * @property {Boolean} subscribed `true` if the mailbox is subscribed - reported by LSUB or by LIST RETURN (SUBSCRIBED) on LIST-EXTENDED/IMAP4rev2 servers. Servers that answer neither report no subscription state at all, and every mailbox is then assumed to be subscribed
 	     * @property {Boolean} disabled If `true` then this mailbox can not be selected in the UI
 	     * @property {ListTreeResponse[]} folders An array of subfolders
+	     * @property {StatusObject} [status] If `statusQuery` was used, then this value includes the status response
 	     */
 
 	    /**
@@ -54442,12 +58710,14 @@ function requireImapFlow () {
 	     * @property {BigInt} [uidValidity] Mailbox `UIDVALIDITY` value
 	     * @property {Number} [unseen] Count of unseen messages
 	     * @property {BigInt} [highestModseq] Last known modseq value (if CONDSTORE extension is enabled)
+	     * @property {Number} [size] Total size of the mailbox in octets (only if requested and the server supports STATUS=SIZE or IMAP4rev2)
+	     * @property {Number} [deleted] Count of messages with \\Deleted flag (only if requested and IMAP4rev2 is active)
 	     */
 
 	    /**
 	     * Requests the status of the indicated mailbox. Only requested status values will be returned.
 	     *
-	     * @param {String} path mailbox path to check for (unicode string)
+	     * @param {string|array} path mailbox path to check for (unicode string). If value is an array then it is joined using current delimiter symbols. Namespace prefix is added automatically if required.
 	     * @param {Object} query defines requested status items
 	     * @param {Boolean} query.messages if `true` request count of messages
 	     * @param {Boolean} query.recent if `true` request count of messages with \\Recent tag
@@ -54455,6 +58725,8 @@ function requireImapFlow () {
 	     * @param {Boolean} query.uidValidity if `true` request mailbox `UIDVALIDITY` value
 	     * @param {Boolean} query.unseen if `true` request count of unseen messages
 	     * @param {Boolean} query.highestModseq if `true` request last known modseq value
+	     * @param {Boolean} query.size if `true` request total mailbox size in octets (requires STATUS=SIZE or IMAP4rev2)
+	     * @param {Boolean} query.deleted if `true` request count of messages with \\Deleted flag (requires IMAP4rev2)
 	     * @returns {Promise<StatusObject>} status of the indicated mailbox
 	     *
 	     * @example
@@ -54733,7 +59005,7 @@ function requireImapFlow () {
 	    /**
 	     * Appends a new message to a mailbox
 	     *
-	     * @param {String} path Mailbox path to upload the message to (unicode string)
+	     * @param {string|array} path Mailbox path to upload the message to (unicode string). If value is an array then it is joined using current delimiter symbols. Namespace prefix is added automatically if required.
 	     * @param {string|Buffer} content RFC822 formatted email message
 	     * @param {string[]} [flags] an array of flags to be set for the uploaded message
 	     * @param {Date|string} [idate=now] internal date to be set for the message
@@ -54759,7 +59031,7 @@ function requireImapFlow () {
 	     * Copies messages from current mailbox to destination mailbox
 	     *
 	     * @param {SequenceString | Number[] | SearchObject} range Range of messages to copy
-	     * @param {String} destination Mailbox path to copy the messages to
+	     * @param {string|array} destination Mailbox path to copy the messages to. If value is an array then it is joined using current delimiter symbols. Namespace prefix is added automatically if required.
 	     * @param {Object} [options]
 	     * @param {Boolean} [options.uid] If `true` then uses UID {@link SequenceString} instead of sequence numbers
 	     * @returns {Promise<CopyResponseObject>} info about copies messages
@@ -54783,7 +59055,7 @@ function requireImapFlow () {
 	     * Moves messages from current mailbox to destination mailbox
 	     *
 	     * @param {SequenceString | Number[] | SearchObject} range Range of messages to move
-	     * @param {String} destination Mailbox path to move the messages to
+	     * @param {string|array} destination Mailbox path to move the messages to. If value is an array then it is joined using current delimiter symbols. Namespace prefix is added automatically if required.
 	     * @param {Object} [options]
 	     * @param {Boolean} [options.uid] If `true` then uses UID {@link SequenceString} instead of sequence numbers
 	     * @returns {Promise<CopyResponseObject>} info about moved messages
@@ -54949,6 +59221,7 @@ function requireImapFlow () {
 	     * @property {MessageStructureObject} [bodyStructure] message body structure
 	     * @property {Date} [internalDate] message internal date
 	     * @property {Map<string, Buffer>} [bodyParts] a Map of message body parts where key is requested part identifier and value is a Buffer
+	     * @property {Set<string>} [binaryParts] part identifiers from `bodyParts` that arrived via FETCH BINARY, i.e. with the content-transfer-encoding already decoded by the server
 	     * @property {Buffer} [headers] Requested header lines as Buffer
 	     */
 
@@ -55063,9 +59336,7 @@ function requireImapFlow () {
 	                lastRes = res;
 
 	                if (this.isClosed || !this.socket || this.socket.destroyed) {
-	                    let error = new Error('Connection closed');
-	                    error.code = 'EConnectionClosed';
-	                    throw error;
+	                    throw this.createConnectionError('EConnectionClosed', 'Connection closed', { rejectedFrom: 'fetchStream', command: 'FETCH' });
 	                }
 
 	                yield res.response;
@@ -55208,7 +59479,8 @@ function requireImapFlow () {
 	        let processed = 0;
 
 	        let chunkSize = Number(options.chunkSize) || 64 * 1024;
-	        let maxBytes = Number(options.maxBytes) || Infinity;
+	        // Normalized once here so every bounded stage of the pipeline below agrees on the budget
+	        let maxBytes = normalizeByteLimit(options.maxBytes);
 
 	        let uid = false;
 
@@ -55345,6 +59617,7 @@ function requireImapFlow () {
 	            }
 
 	            if (disposition.value) {
+	                /* c8 ignore next */ // a parsed disposition value is never all-whitespace, so the `false` fallback is unreachable
 	                meta.disposition = disposition.value.toLowerCase().trim() || false;
 	                try {
 	                    meta.disposition = libmime.decodeWords(meta.disposition);
@@ -55382,7 +59655,11 @@ function requireImapFlow () {
 	        //   4. Byte limiter (enforces maxBytes cap)
 	        // `stream` is the head of the pipeline (where raw chunks are written),
 	        // `output` is the tail (what the caller reads from).
-	        switch (meta.encoding) {
+	        // Parts that arrived via FETCH BINARY (response.binaryParts) are already
+	        // decoded by the server - decoding again would corrupt the data, so stage 1
+	        // is skipped for them.
+	        let clientEncoding = response.binaryParts && response.binaryParts.has(part) ? false : meta.encoding;
+	        switch (clientEncoding) {
 	            case 'base64':
 	                output = stream = new libbase64.Decoder();
 	                break;
@@ -55393,24 +59670,43 @@ function requireImapFlow () {
 	                output = stream = new PassThrough();
 	        }
 
+	        // Every byte-bounded stage of the pipeline. The fetch loop below stops as soon as any of
+	        // them has taken all it will accept. The limiter at the tail is not enough on its own: a
+	        // transform in the middle that buffers its whole input before emitting anything (the
+	        // format=flowed decoder, the Japanese charset decoder) leaves the tail limiter reporting
+	        // `limited === false` however much the server sends, so a download with a small maxBytes
+	        // would still pull the entire part off the wire.
+	        let limiters = [];
+	        let isLimited = () => limiters.some(entry => entry.limited);
+
+	        // Appending a stage means forwarding the current tail's errors to it before piping, so a
+	        // failure anywhere reaches the stream the caller is reading
+	        let pipeStage = stage => {
+	            output.on('error', err => {
+	                stage.emit('error', err);
+	            });
+	            output = output.pipe(stage);
+	            return stage;
+	        };
+
 	        let isTextNode = ['text/html', 'text/plain', 'text/x-amp-html'].includes(meta.contentType) || (part === '1' && !meta.contentType);
 	        if ((!meta.disposition || meta.disposition === 'inline') && isTextNode) {
 	            // RFC 3676 format=flowed text: unwrap soft line breaks
 	            if (meta.flowed) {
-	                let flowDecoder = new FlowedDecoder({
-	                    delSp: meta.delSp
-	                });
-	                output.on('error', err => {
-	                    flowDecoder.emit('error', err);
-	                });
-	                output = output.pipe(flowDecoder);
+	                // FlowedDecoder buffers its whole input before emitting, and being third party it
+	                // carries no bound of its own, so bound what it can ever be handed. Unwrapping only
+	                // removes bytes, so capping its input at maxBytes cannot push the delivered output
+	                // above the cap either.
+	                limiters.push(pipeStage(new LimitedPassthrough({ maxBytes })));
+
+	                pipeStage(new FlowedDecoder({ delSp: meta.delSp }));
 	            }
 
 	            // Convert non-UTF-8 charsets to UTF-8 via a streaming decoder.
 	            // ASCII and UTF-8 need no conversion. Unknown charsets are left as-is.
 	            if (meta.charset && !['ascii', 'usascii', 'utf8'].includes(meta.charset.toLowerCase().replace(/[^a-z0-9]+/g, ''))) {
 	                try {
-	                    let decoder = getDecoder(meta.charset);
+	                    let decoder = getDecoder(meta.charset, maxBytes);
 	                    // Safety listener attached first so the decoder always has at least
 	                    // one 'error' listener. Prevents Node.js from throwing
 	                    // ERR_UNHANDLED_ERROR if a later pipe setup step throws and leaves
@@ -55420,10 +59716,10 @@ function requireImapFlow () {
 	                    decoder.on('error', err => {
 	                        this.log.warn({ err, charset: meta.charset, cid: this.id });
 	                    });
-	                    output.on('error', err => {
-	                        decoder.emit('error', err);
-	                    });
-	                    output = output.pipe(decoder);
+	                    // The Japanese decoder buffers its whole input as well, and reports the same
+	                    // `limited` flag the limiters do so the fetch loop can stop once it is full.
+	                    // A streaming decoder has no such flag, which reads as false and is correct.
+	                    limiters.push(pipeStage(decoder));
 	                    // force to utf-8 for output
 	                    meta.charset = 'utf-8';
 	                } catch {
@@ -55432,11 +59728,8 @@ function requireImapFlow () {
 	            }
 	        }
 
-	        let limiter = new LimitedPassthrough({ maxBytes });
-	        output.on('error', err => {
-	            limiter.emit('error', err);
-	        });
-	        output = output.pipe(limiter);
+	        let limiter = pipeStage(new LimitedPassthrough({ maxBytes }));
+	        limiters.push(limiter);
 
 	        // Cleanup function
 	        const cleanup = () => {
@@ -55451,7 +59744,7 @@ function requireImapFlow () {
 	        output.once('close', cleanup);
 
 	        let writeChunk = chunk => {
-	            if (limiter.limited || fetchAborted || stream.destroyed) {
+	            if (isLimited() || fetchAborted || stream.destroyed) {
 	                return true;
 	            }
 	            return stream.write(chunk);
@@ -55461,7 +59754,7 @@ function requireImapFlow () {
 	        // Stops when the server returns a short chunk (< chunkSize), the byte
 	        // limiter is satisfied, or the consumer destroys the output stream.
 	        let fetchAllParts = async () => {
-	            while (hasMore && !limiter.limited && !fetchAborted) {
+	            while (hasMore && !isLimited() && !fetchAborted) {
 	                let { chunk } = await getNextPart();
 	                if (!chunk || fetchAborted) {
 	                    break;
@@ -55472,17 +59765,19 @@ function requireImapFlow () {
 	                    // Wait for drain event before continuing
 	                    try {
 	                        await new Promise((resolve, reject) => {
-	                            let resolved = false;
-
+	                            // finish() is the listener itself, as settle() is for the TLS upgrade:
+	                            // 'drain' and 'close' emit no arguments, 'error' emits the error, and
+	                            // removal needs no separate handler references. It removes only the
+	                            // three listeners this wait installed - removeAllListeners('error')
+	                            // also took off the forwarder pipeStage() attached to the head stream
+	                            // when the pipeline was built, and the head must keep that forwarder
+	                            // for the life of the download or a chunk failure has nowhere to go.
 	                            const finish = err => {
-	                                if (resolved) return;
-	                                resolved = true;
+	                                for (let event of ['drain', 'error', 'close']) {
+	                                    stream.removeListener(event, finish);
+	                                }
 
-	                                // Remove all listeners
-	                                stream.removeAllListeners('drain');
-	                                stream.removeAllListeners('error');
-	                                stream.removeAllListeners('close');
-
+	                                /* c8 ignore next 2 */ // stream error during a backpressure drain wait is timing-dependent
 	                                if (err) {
 	                                    reject(err);
 	                                } else {
@@ -55490,22 +59785,41 @@ function requireImapFlow () {
 	                                }
 	                            };
 
-	                            stream.once('drain', () => finish());
-	                            stream.once('error', err => finish(err));
-	                            stream.once('close', () => finish());
+	                            stream.once('drain', finish);
+	                            stream.once('error', finish);
+	                            stream.once('close', finish);
 	                        });
+	                        /* c8 ignore start */ // re-throw path only triggers on a stream error mid-drain, which is timing-dependent
 	                    } catch (err) {
 	                        // Re-throw only if not aborted
 	                        if (!fetchAborted) {
 	                            throw err;
 	                        }
 	                    }
+	                    /* c8 ignore stop */
 
 	                    // Check if we should abort after waiting
 	                    if (fetchAborted) {
 	                        break;
 	                    }
 	                }
+	            }
+	        };
+
+	        // A download is a sequence of chunk FETCHes with a backpressure wait in between. Those
+	        // gaps look exactly like an inactive connection, so without this auto-IDLE would start
+	        // between chunks and the next chunk would have to break it again - two extra round
+	        // trips per chunk, for as long as the consumer is slow. Counted before control returns
+	        // to the event loop: the head chunk's own FETCH already armed the auto-IDLE timer, and
+	        // with a very short autoIdleDelay that timer could otherwise fire before the deferred
+	        // chunk loop below has marked the download open.
+	        this._openDownloads++;
+	        let downloadDone = false;
+	        let finishDownload = () => {
+	            if (!downloadDone) {
+	                downloadDone = true;
+	                this._openDownloads--;
+	                this.autoidle();
 	            }
 	        };
 
@@ -55519,6 +59833,7 @@ function requireImapFlow () {
 	                .catch(err => {
 	                    if (!fetchAborted && stream && !stream.destroyed) {
 	                        stream.emit('error', err);
+	                        /* c8 ignore start */ // the else logs when a fetch error arrives after the stream was already torn down (timing-dependent)
 	                    } else {
 	                        // Log when error cannot be emitted to stream
 	                        this.log.warn({
@@ -55529,12 +59844,21 @@ function requireImapFlow () {
 	                            cid: this.id
 	                        });
 	                    }
+	                    /* c8 ignore stop */
 	                })
 	                .finally(() => {
+	                    finishDownload();
 	                    if (!fetchAborted && stream && !stream.destroyed) {
 	                        stream.end();
 	                    }
-	                });
+	                })
+	                // Terminal guard: nothing consumes this chain, so a throw from either handler
+	                // above rejects a promise nobody holds and takes the process down on
+	                // unhandledRejection. Reaching it always means an invariant broke - the head
+	                // stream kept pipeStage()'s error forwarder for the life of the download, so
+	                // emit('error') above has somewhere to go - which is why it logs at error even
+	                // for a routine-looking connection code.
+	                .catch(err => this.log.error({ msg: 'Failed to fail the download stream', err, cid: this.id }));
 	        };
 
 	        setImmediate(() => {
@@ -55543,17 +59867,22 @@ function requireImapFlow () {
 	                writeResult = writeChunk(chunk);
 	            } catch (err) {
 	                stream.emit('error', err);
+	                finishDownload();
+	                /* c8 ignore next 3 */ // emitting the error above triggers cleanup (fetchAborted=true), so this end() guard is already false here
 	                if (!fetchAborted && stream && !stream.destroyed) {
 	                    stream.end();
 	                }
 	                return;
 	            }
 
+	            /* c8 ignore next 9 */ // `stream` is piped to the limiter before this runs, so the head write drains synchronously and always returns true (verified for chunkSize up to 8MB); the drain-wait branch is unreachable
 	            if (!writeResult) {
 	                // Initial chunk filled the buffer, wait for drain
 	                stream.once('drain', () => {
 	                    if (!fetchAborted) {
 	                        runFetchAllParts();
+	                    } else {
+	                        finishDownload();
 	                    }
 	                });
 	            } else {
@@ -55614,6 +59943,12 @@ function requireImapFlow () {
 
 	        for (let [part, content] of response.bodyParts) {
 	            let keyParts = part.split('.mime');
+	            // The server chooses the BODY[...] keys it answers with: never let one be a
+	            // prototype-chain name, or the assignments below write onto Object.prototype
+	            // (process-wide pollution) instead of the result object.
+	            if (isUnsafeKey(keyParts[0])) {
+	                continue;
+	            }
 	            if (keyParts.length === 1) {
 	                // content
 	                let key = keyParts[0];
@@ -55653,6 +59988,7 @@ function requireImapFlow () {
 	                }
 
 	                if (disposition.value) {
+	                    /* c8 ignore next */ // a parsed disposition value is never all-whitespace, so the `false` fallback is unreachable
 	                    data[key].meta.disposition = disposition.value.toLowerCase().trim() || false;
 	                    try {
 	                        data[key].meta.disposition = libmime.decodeWords(data[key].meta.disposition);
@@ -55681,9 +60017,16 @@ function requireImapFlow () {
 	        }
 
 	        for (let part of Object.keys(data)) {
-	            let meta = data[part].meta;
+	            // `meta` is only built from the companion BODY[<part>.MIME] item. A server may
+	            // legally answer with fewer items than were requested, and one part arriving
+	            // without its MIME headers must not cost the caller the whole download.
+	            let meta = data[part].meta || {};
+	            data[part].meta = meta;
 
-	            switch (meta.encoding) {
+	            // parts that arrived via FETCH BINARY (response.binaryParts) are already
+	            // decoded by the server - decoding again would corrupt the data
+	            let clientEncoding = response.binaryParts && response.binaryParts.has(part) ? false : meta.encoding;
+	            switch (clientEncoding) {
 	                case 'base64':
 	                    data[part].content = data[part].content ? libbase64.decode(data[part].content.toString()) : null;
 	                    break;
@@ -55704,27 +60047,54 @@ function requireImapFlow () {
 	        }
 
 	        if (!this.socket || this.socket.destroyed) {
-	            const error = new Error('Connection not available');
-	            error.code = 'NoConnection';
-	            throw error;
+	            throw this.createNoConnectionError(false, { rejectedFrom: 'noSocket', command });
 	        }
 
 	        clearTimeout(this.idleStartTimer);
 
-	        if (typeof this.preCheck === 'function') {
-	            await this.preCheck();
+	        try {
+	            // The preCheck (breaking an active IDLE) sits inside the try on purpose: the
+	            // clearTimeout above is unconditional, so every exit - a failed command or a
+	            // preCheck that rejects - must still reach the finally, or auto-IDLE would stay
+	            // disarmed on an otherwise healthy connection until some later command succeeded.
+	            if (typeof this.preCheck === 'function') {
+	                await this.preCheck();
+	            }
+
+	            return await this.runInternal(command, ...args);
+	        } finally {
+	            if (command !== 'IDLE') {
+	                // do not autostart IDLE, if IDLE itself was stopped
+	                this.autoidle();
+	            }
+	        }
+	    }
+
+	    /**
+	     * Dispatches a command without the IDLE handshake that `run()` performs.
+	     *
+	     * Used by callers that already own the connection's idle state - fallback polling issues its
+	     * commands through here, because `run()` would await `preCheck()`, and the preCheck it would
+	     * await belongs to the very polling session making the call, so the session would cancel
+	     * itself. Auto-IDLE is not restarted either, for the same reason: the caller is the idle loop.
+	     *
+	     * @param {String} command Command name, as registered in the command registry.
+	     * @param {...*} args Arguments forwarded to the command implementation.
+	     * @returns {Promise<*>} Whatever the command implementation returns, or `false` for an
+	     *   unknown command.
+	     */
+	    async runInternal(command, ...args) {
+	        command = command.toUpperCase();
+	        if (!this.commands.has(command)) {
+	            return false;
+	        }
+
+	        if (!this.socket || this.socket.destroyed) {
+	            throw this.createNoConnectionError(false, { rejectedFrom: 'noSocket', command });
 	        }
 
 	        let handler = this.commands.get(command);
-
-	        let result = await handler(this, ...args);
-
-	        if (command !== 'IDLE') {
-	            // do not autostart IDLE, if IDLE itself was stopped
-	            this.autoidle();
-	        }
-
-	        return result;
+	        return await handler(this, ...args);
 	    }
 
 	    // Mailbox lock queue processor. Implements a mutex pattern: only one lock
@@ -55784,6 +60154,7 @@ function requireImapFlow () {
 	                        return;
 	                    }
 	                    lock.heldAt = Date.now();
+	                    // Background diagnostic: must not keep the process alive on its own
 	                    lock.heldWarnTimer = setTimeout(() => {
 	                        lock.heldWarnTimer = null;
 	                        this.log.warn({
@@ -55791,10 +60162,12 @@ function requireImapFlow () {
 	                            lockId: lock.lockId,
 	                            path,
 	                            heldFor: Date.now() - lock.heldAt,
+	                            /* c8 ignore next */ // the held-lock-warning diagnostic with a description set is a timing-dependent log detail
 	                            ...(options.description && { description: options.description }),
 	                            cid: this.id
 	                        });
 	                    }, threshold);
+	                    unrefTimer(lock.heldWarnTimer);
 	                };
 
 	                // release() is captured per-lock. It must only clear this.currentLock
@@ -55815,6 +60188,10 @@ function requireImapFlow () {
 	                            idling: this.idling
 	                        });
 	                        this.currentLock = false;
+	                        // autoidle() will not arm while a lock is held, so the release is what
+	                        // restarts it. It re-checks the queue itself, so a lock waiting behind
+	                        // this one still keeps IDLE off.
+	                        this.autoidle();
 	                        // Use setImmediate to avoid stack overflow
 	                        setImmediate(() => {
 	                            this.processLocks().catch(err => this.log.error({ err, cid: this.id }));
@@ -55830,11 +60207,21 @@ function requireImapFlow () {
 
 	                if (!this.usable || !this.socket || this.socket.destroyed) {
 	                    this.log.trace({ msg: 'Failed to acquire mailbox lock', path, lockId, idling: this.idling });
-	                    let error = new Error('Connection not available');
-	                    error.code = 'NoConnection';
-	                    reject(error);
+	                    reject(this.createNoConnectionError(false, { rejectedFrom: 'mailboxLock', path }));
 	                    continue; // Process next lock in queue
 	                }
+
+	                // Both grant paths finish the same way. autoidle() is re-checked because a stale
+	                // auto-IDLE timer may still be armed at this point: on the SELECT path run()
+	                // re-arms auto-IDLE when the SELECT settles - a moment before currentLock is set -
+	                // and the fast path can inherit a timer from an earlier command. Either way the
+	                // timer must not fire inside the lock.
+	                const grantLock = () => {
+	                    this.currentLock = lock;
+	                    armHeldTimer();
+	                    this.autoidle();
+	                    resolve({ path, release });
+	                };
 
 	                if (this.mailbox && this.mailbox.path === path && !!this.mailbox.readOnly === !!options.readOnly) {
 	                    // Fast path: mailbox is already selected with the right access mode
@@ -55845,9 +60232,7 @@ function requireImapFlow () {
 	                        idling: this.idling,
 	                        ...(options.description && { description: options.description })
 	                    });
-	                    this.currentLock = lock;
-	                    armHeldTimer();
-	                    resolve({ path, release });
+	                    grantLock();
 	                    break; // Stop processing; next lock waits for release()
 	                }
 
@@ -55861,9 +60246,7 @@ function requireImapFlow () {
 	                        idling: this.idling,
 	                        ...(options.description && { description: options.description })
 	                    });
-	                    this.currentLock = lock;
-	                    armHeldTimer();
-	                    resolve({ path, release });
+	                    grantLock();
 	                    break; // Wait for this lock to be released
 	                } catch (err) {
 	                    if (err.responseStatus === 'NO') {
@@ -55898,11 +60281,13 @@ function requireImapFlow () {
 	            // New locks may have been queued while we were processing (e.g.,
 	            // a lock that failed immediately and the next getMailboxLock call
 	            // arrived before we finished). Schedule another run if needed.
+	            /* c8 ignore start */ // requires a lock to be enqueued during an in-flight processLocks pass; not reproducible deterministically
 	            if (this.locks.length && !this.currentLock) {
 	                setImmediate(() => {
 	                    this.processLocks().catch(err => this.log.error({ err, cid: this.id }));
 	                });
 	            }
+	            /* c8 ignore stop */
 	        }
 	    }
 
@@ -55946,7 +60331,8 @@ function requireImapFlow () {
 	                : null
 	        });
 
-	        let lockPromise = new Promise((resolve, reject) => {
+	        // Guarded: close() rejects every queued lock synchronously. See guardedPromise().
+	        let lockPromise = guardedPromise((resolve, reject) => {
 	            let lockEntry = { resolve, reject, path, options, lockId };
 	            this.locks.push(lockEntry);
 
@@ -55970,10 +60356,6 @@ function requireImapFlow () {
 	            this.processLocks().catch(err => reject(err));
 	        });
 
-	        // Prevent unhandled promise rejection if close() rejects this lock
-	        // synchronously. The rejection still propagates to the caller.
-	        lockPromise.catch(noop);
-
 	        return lockPromise;
 	    }
 
@@ -55996,7 +60378,19 @@ function requireImapFlow () {
 	                        // we are checking to make sure the level is supported.
 	                        // if it isn't supported but the level is error or fatal, log to console anyway.
 	                        if (level === 'fatal' || level === 'error') {
-	                            console.log(JSON.stringify(...args));
+	                            let entry = args[0];
+	                            try {
+	                                if (entry && typeof entry === 'object' && entry.err) {
+	                                    entry = Object.assign({}, entry, { err: flattenLoggedError(entry.err) });
+	                                }
+	                                console.error(JSON.stringify(entry));
+	                            } catch {
+	                                // Serializing failed (a circular structure, a BigInt, a throwing
+	                                // getter). This fallback exists so an error is never lost, so hand
+	                                // the entry to console.error itself - it inspects rather than
+	                                // serializes, and handles all three - instead of dropping it.
+	                                console.error(entry);
+	                            }
 	                        }
 	                    } else {
 	                        mainLogger[level](...args);
@@ -56004,18 +60398,21 @@ function requireImapFlow () {
 	                }
 
 	                if (this.emitLogs && args && args[0] && typeof args[0] === 'object') {
-	                    let logEntry = Object.assign({ level, t: Date.now(), cid: this.id, lo: ++this.lo }, args[0]);
-	                    if (logEntry.err && typeof logEntry.err === 'object') {
-	                        let err = logEntry.err;
-	                        logEntry.err = {
-	                            stack: err.stack
-	                        };
-	                        // enumerable error fields
-	                        Object.keys(err).forEach(key => {
-	                            logEntry.err[key] = err[key];
-	                        });
+	                    // Guarded for the same reason as the console fallback above: a log call must
+	                    // never throw. Most of these run inside catch blocks in the protocol
+	                    // machinery, where a throw would escape the handler that was recovering from
+	                    // something else and strand the connection. A throwing property getter on the
+	                    // logged error and a throwing 'log' listener both end up here.
+	                    try {
+	                        let logEntry = Object.assign({ level, t: Date.now(), cid: this.id, lo: ++this.lo }, args[0]);
+	                        if (logEntry.err) {
+	                            logEntry.err = flattenLoggedError(logEntry.err);
+	                        }
+	                        this.emit('log', logEntry);
+	                    } catch {
+	                        // Nothing to do with it: reporting the failure would re-enter this
+	                        // same path
 	                    }
-	                    this.emit('log', logEntry);
 	                }
 	            };
 	        }
@@ -56030,6 +60427,7 @@ function requireImapFlow () {
 	     * @returns {Object} Socket objects
 	     * @returns {Object} return.readSocket The read socket (inflated socket if compression is enabled, raw socket otherwise)
 	     * @returns {Object} return.writeSocket The write socket
+	     * @returns {Object} return.socket The raw underlying socket (same as readSocket/writeSocket when compression is disabled)
 	     */
 	    unbind() {
 	        this.socket.unpipe(this.streamer);
@@ -56037,15 +60435,32 @@ function requireImapFlow () {
 	            this._inflate.unpipe(this.streamer);
 	        }
 
-	        this.socket.removeListener('error', this._socketError);
-	        this.socket.removeListener('close', this._socketClose);
-	        this.socket.removeListener('end', this._socketEnd);
-	        this.socket.removeListener('tlsClientError', this._socketError);
-	        this.socket.removeListener('timeout', this._socketTimeout);
+	        // Detach all of ImapFlow's socket listeners — the raw socket plus, when
+	        // compression is active, the PassThrough writeSocket — so the connection
+	        // is fully released to the caller.
+	        this.clearSocketHandlers();
+
+	        const readSocket = this._inflate || this.socket;
+	        const writeSocket = this.writeSocket || this.socket;
+
+	        // Defense-in-depth: when compression is active the raw socket is orphaned
+	        // (neither readSocket nor writeSocket) yet still live and still the target
+	        // of the deflate/writeSocket error forwarders. We just stripped our own
+	        // error listener, so any post-unbind error (e.g. an upstream ECONNRESET)
+	        // would become an unhandled 'error' that crashes the host process. Attach
+	        // a benign listener so the orphaned socket can never throw after handoff.
+	        // Non-compression path: socket === readSocket === writeSocket and the
+	        // caller owns it directly, so leave it untouched (no behavior change).
+	        if (this.socket !== readSocket && this.socket !== writeSocket) {
+	            this.socket.on('error', err => {
+	                this.log.debug({ msg: 'Suppressed error on unbound socket', err, cid: this.id });
+	            });
+	        }
 
 	        return {
-	            readSocket: this._inflate || this.socket,
-	            writeSocket: this.writeSocket || this.socket
+	            readSocket,
+	            writeSocket,
+	            socket: this.socket
 	        };
 	    }
 	}
@@ -56129,6 +60544,11 @@ function requireImapFlow () {
 
 	/**
 	 * Mailbox was closed
+	 *
+	 * Emitted both when a selected mailbox is closed explicitly, by `mailboxClose()` or by
+	 * selecting a different mailbox, and when the connection itself goes away while a mailbox
+	 * was still selected, whether through a clean logout or a lost transport. The transition is
+	 * reported once per selected mailbox, before the `close` event.
 	 *
 	 * @event module:imapflow~ImapFlow#mailboxClose
 	 * @type {MailboxObject}
