@@ -27,7 +27,7 @@ import type { LoginFacade } from "../../../../platform-kit/base/facades/LoginFac
 import type { CustomerFacade } from "../worker/facades/lazy/CustomerFacade.js"
 import type { GiftCardFacade } from "../worker/facades/lazy/GiftCardFacade.js"
 import type { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
-import type { ConfigurationDatabase } from "../worker/facades/lazy/ConfigurationDatabase.js"
+import type { ConfigurationDatabase } from "../worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import type { CalendarFacade } from "../worker/facades/lazy/CalendarFacade.js"
 import type { MailFacade } from "../worker/facades/lazy/MailFacade.js"
 
