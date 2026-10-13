@@ -485,7 +485,7 @@ void duplicateWorkspace(String source, ArrayList<String> targets) {
 			cd ${source}/..
 			TARGETS="${targets.join(" ")}"
 			ls -halt
-			rm -f \$TARGETS
+			rm -rf \$TARGETS
 			ls -halt
 			for target in \${TARGETS}; do
 				ln -s ${source} \$target
