@@ -41,7 +41,7 @@ import "./network/facades/BlobAccessTokenFacadeTest.js"
 import "./api/worker/facades/BlobFacadeTest.js"
 import "./api/worker/facades/CalendarFacadeTest.js"
 import "./api/worker/facades/AlarmFacadeTest.js"
-import "./api/worker/facades/ConfigurationDbTest.js"
+import "./api/worker/facades/IndexedDbConfigurationDatabaseTest.js"
 import "./api/worker/facades/ContactFacadeTest.js"
 import "./api/worker/facades/DriveFacadeTest.js"
 import "./network/facades/lazy/GroupManagementFacadeTest.js"
@@ -369,6 +369,7 @@ async function setupSuite({ integration }: { integration?: boolean }) {
 		await import("./api/worker/facades/OfflineStorageAutosaveFacadeTest.js")
 		await import("./api/worker/facades/OfflineStorageSpamClassifierStorageFacadeTest.js")
 		await import("./restClient/RestClientTest.js")
+		await import("./api/worker/facades/OfflineConfigurationDatabaseTest.js")
 	}
 
 	// testdouble complains about certain mocking related code smells, and also prints a warning whenever you replace a property on an object.
