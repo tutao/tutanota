@@ -66,6 +66,7 @@ private enum class State {
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
+	private val jobState = PushNotificationJobState(false)
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
 	private var state = State.STOPPED
@@ -102,7 +103,7 @@ class PushNotificationService : LifecycleJobService() {
 		sseClient = SseClient(
 			crypto,
 			sseStorage,
-			NetworkObserver(this, this),
+			NetworkObserver(this, this, jobState),
 			NotificationSseListener(
 				localNotificationsFacade,
 				sseStorage,
@@ -157,6 +158,7 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onStartJob(params: JobParameters): Boolean {
 		Log.d(TAG, "onStartJob")
 		jobParameters = params
+		jobState.active = true
 		return true
 	}
 
@@ -181,6 +183,7 @@ class PushNotificationService : LifecycleJobService() {
 			// mind so we can run a bit more.
 			jobFinished(jobParameters, true)
 			jobParameters = null
+			jobState.active = false
 		}
 	}
 
@@ -262,4 +265,10 @@ class PushNotificationService : LifecycleJobService() {
 			finishJobIfNeeded()
 		}
 	}
+
+
+	internal class PushNotificationJobState(
+		/** Whether jobParameters is not null; should be true when a job is currently running. */
+		var active: Boolean
+	)
 }
