@@ -1,5 +1,5 @@
 import { NativePushServiceApp } from "../native/NativePushServiceApp.js"
-import { ConfigurationDatabase } from "../api/worker/facades/lazy/ConfigurationDatabase.js"
+import { ConfigurationDatabase } from "../api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import { CredentialsInfo } from "@tutao/native-bridge/generatedIpc/types"
 import { DeviceStorageUnavailableError } from "../api/common/error/DeviceStorageUnavailableError"
 
