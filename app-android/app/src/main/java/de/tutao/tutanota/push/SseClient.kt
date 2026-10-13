@@ -92,7 +92,7 @@ class SseClient internal constructor(
 				return
 			}
 
-			BufferedReader(InputStreamReader(response.body!!.byteStream())).forEachLine {
+			BufferedReader(InputStreamReader(response.body.byteStream())).forEachLine {
 				handleLine(it)
 				if (shouldNotifyAboutEstablishedConnection) {
 					// We expect to get at least one event right away so we don't consider the connection "established"
@@ -260,9 +260,11 @@ class SseClient internal constructor(
 
 	init {
 		looperThread.start()
-		networkObserver.setNetworkConnectivityListener { connected ->
-			val connection = response.get()
-			if (connected && connection == null) {
+		networkObserver.setNetworkConnectivityListener { connected, hasActiveJob ->
+
+			val noConnection = response.get() == null
+			Log.d(TAG, "Connection state changed. Is connected? $connected. Connection is null? $noConnection. Has active job listening for push notifications? $hasActiveJob")
+			if (connected && noConnection && !hasActiveJob) {
 				Log.d(TAG, "ConnectionRef not available, schedule connect because of network state change")
 				reschedule(0)
 			}
