@@ -171,6 +171,15 @@ export class MainStyles {
 					"--safe-area-inset-top": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
 					"--safe-area-inset-right": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
 					"--safe-area-inset-left": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
+
+					// Setting "color-scheme" ensures that native input dialogs, opened from the WebView, do not appear
+					// as white-on-black or black-on-white when the system's light/dark-mode setting is the opposite
+					// of the Tuta theme.
+					//
+					//     NOTE: Firefox does not seem to respect "color-scheme" when rendering its native inputs, so
+					//           this will likely not work with Firefox WebView
+					//
+					"color-scheme": isLightTheme() ? "light" : "dark",
 				},
 				"html, body": {
 					height: "100%",

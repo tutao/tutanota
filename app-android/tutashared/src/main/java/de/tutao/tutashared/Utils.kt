@@ -23,9 +23,6 @@ import java.io.IOException
 import java.nio.charset.Charset
 import java.security.SecureRandom
 import java.text.SimpleDateFormat
-import java.time.LocalDateTime
-import java.time.ZoneId
-import java.time.temporal.ChronoUnit
 import java.util.Base64
 import java.util.Calendar
 import java.util.Date
@@ -105,8 +102,6 @@ fun getFileInfo(context: Context, fileUri: Uri): FileInfo {
 
 fun atLeastTiramisu(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
 
-fun atLeastQuinceTart(): Boolean = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q
-
 @Throws(JSONException::class)
 fun JSONObject.toMap(): MutableMap<String, String> {
 	val map: MutableMap<String, String> = HashMap()
@@ -118,11 +113,10 @@ fun JSONObject.toMap(): MutableMap<String, String> {
 	return map
 }
 
-fun String.isLightHexColor(): Boolean {
-	val argb = parseColor(this)
-	val r = argb shr 16 and 0xff // extract red
-	val g = argb shr 8 and 0xff // extract green
-	val b = argb and 0xff // extract blue
+fun Int.isLightColor(): Boolean {
+	val r = this shr 16 and 0xff // extract red
+	val g = this shr 8 and 0xff // extract green
+	val b = this and 0xff // extract blue
 
 	// Counting the perceptive luminance
 	// human eye favors green color...
@@ -130,28 +124,32 @@ fun String.isLightHexColor(): Boolean {
 	return a < 0.5
 }
 
+fun String.isLightHexColor(): Boolean {
+	return parseColor(this).isLightColor()
+}
+
 /** parse #RGB or #RRGGBB color codes into an 0xAARRGGBB int  */
 @ColorInt
 fun parseColor(color: String): Int {
-	require(color[0] == '#' && (color.length == 4 || color.length == 7)) { "Invalid color format: $color" }
-	val normalizedColor = if (color.length == 4) {
-		val chars = charArrayOf(
-			'#',
-			color[1],
-			color[1],
-			color[2],
-			color[2],
-			color[3],
-			color[3]
-		)
-		String(chars)
-	} else {
-		color
-	}
-	val rgb = normalizedColor.substring(1).toInt(16)
-
-	// alpha channel is always max
-	return rgb or -0x1000000
+	val rrggbb =
+		when (color.length) {
+			7 -> {
+				if (color[0] != '#') throw IllegalArgumentException("Invalid color format: $color")
+				color.substring(1).toInt(16)
+			}
+			4 -> {
+				if (color[0] != '#') throw IllegalArgumentException("Invalid color format: $color")
+				val rgb = color.substring(1).toInt(16)
+				val r = rgb shr 8
+				val g = (rgb shr 4) and 0xF
+				val b = rgb and 0xF
+				(r shl 20) or (r shl 16) or (g shl 12) or (g shl 8) or (b shl 4) or b or 0x00FFFFFF.inv()
+			}
+			else -> {
+				throw IllegalArgumentException("Invalid color format: $color")
+			}
+		}
+	return rrggbb or 0x00FFFFFF.inv()
 }
 
 fun Int.toPx(): Int = (this * Resources.getSystem().displayMetrics.density).toInt()
@@ -218,22 +216,6 @@ fun isSameDay(time1: Long, time2: Long, timeZone: TimeZone = TimeZone.getDefault
 	val customDateFormat = SimpleDateFormat("yyyy-MM-dd")
 	customDateFormat.setTimeZone(timeZone)
 	return customDateFormat.format(time1).equals(customDateFormat.format(time2))
-}
-
-/**
- * Returns the epoch millisecond timestamp representing midnight (00:00) of the given date
- * in the specified time zone.
- *
- * The input date is truncated to remove time components (hours, minutes, seconds, etc.),
- * then converted to an instant using the offset rules of the provided ZoneId, and finally
- * converted to milliseconds since the epoch (1970-01-01T00:00:00Z).
- *
- * @param zoneId the time zone to apply when determining the midnight instant
- * @param date the local date and time to be truncated to midnight
- * @return the number of milliseconds since the Unix epoch for midnight of the given date in the specified time zone
- */
-fun midnightInDate(zoneId: ZoneId, date: LocalDateTime): Long {
-	return date.truncatedTo(ChronoUnit.DAYS).toInstant(zoneId.rules.getOffset(date)).toEpochMilli()
 }
 
 fun Long.toIntChecked(): Int {

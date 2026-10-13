@@ -2,20 +2,17 @@ package de.tutao.tutashared
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
-import android.graphics.drawable.ColorDrawable
+import android.content.res.Configuration.UI_MODE_NIGHT_MASK
+import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.util.Log
 import androidx.activity.ComponentActivity
-import androidx.annotation.ColorInt
+import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.edit
+import androidx.core.graphics.drawable.toDrawable
 import androidx.core.view.WindowInsetsControllerCompat
 import de.tutao.tutashared.ipc.ThemeFacade
 import org.json.JSONException
 import org.json.JSONObject
-import java.util.Objects
-
-typealias Theme = Map<String, String>
-typealias ThemeId = String
-typealias ThemePreference = String
 
 class AndroidThemeFacade(
 	private val context: Context,
@@ -25,140 +22,151 @@ class AndroidThemeFacade(
 		private const val CURRENT_THEME_KEY = "theme"
 		private const val THEMES_KEY = "themes"
 		private const val TAG = "AndroidThemeFacade"
-		private val LIGHT_FALLBACK_THEME = mapOf(
+		private val FALLBACK_THEME = mapOf(
 			"themeId" to "light-fallback",
-			"surface" to "#ffffff",
 			"surface" to "#ffffff",
 			"surface_container" to "#f6f6f6",
 		)
 	}
 
-	private val prefs: SharedPreferences
-		get() = getDefaultSharedPreferences(context)
-
-	private var themePreference: ThemePreference?
-		get() = prefs.getString(CURRENT_THEME_KEY, null)
-		set(value) {
-			prefs.edit().putString(CURRENT_THEME_KEY, value).apply()
-		}
-
-
-	private val currentTheme: Theme?
-		get() {
-			val themeId = resolveThemePreference()
-			val themes = themes
-			for (theme in themes) {
-				if (themeId == theme["themeId"]) {
-					return theme
-				}
-			}
-			return null
-		}
-
-	private fun resolveThemePreference(): ThemeId {
-		val pref = themePreference
-		return if (pref == "auto:light|dark") {
-			if (prefersDarkMode) "dark" else "light"
-		} else pref ?: "light"
-	}
-
-	override suspend fun prefersDark(): Boolean = this.prefersDarkMode
-
-	private val prefersDarkMode: Boolean
-		get() = (context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) == Configuration.UI_MODE_NIGHT_YES
-
-	val currentThemeWithFallback: Theme
-		get() {
-			return currentTheme ?: LIGHT_FALLBACK_THEME
-		}
-
-	val themes: List<Theme>
-		get() {
-			val themesStrings = Objects.requireNonNull(prefs.getStringSet(THEMES_KEY, emptySet()))
-			val themes = mutableListOf<Theme>()
-			for (string in themesStrings) {
-				try {
-					val jsonTheme = JSONObject(string)
-					val theme = jsonTheme.toMap()
-					themes.add(theme)
-				} catch (e: JSONException) {
-					Log.e(TAG, "Could not parse theme", e)
-				}
-			}
-			return themes
-		}
-
-	private fun applyTheme() {
-		val theme = this.currentThemeWithFallback
-		activity.runOnUiThread { doApplyTheme(theme) }
-	}
-
-	fun applyCurrentTheme() {
-		doApplyTheme(currentThemeWithFallback)
-	}
-
-	private fun doApplyTheme(theme: Theme) {
-		Log.d(TAG, "changeTheme: " + theme["themeId"])
-		@ColorInt val backgroundColor = parseColor(getColor(theme, "surface"))
-		activity.window.setBackgroundDrawable(ColorDrawable(backgroundColor))
-
-		// It is not an accident that navBg and headerBg seem to be swapped, the original color scheme was reused in
-		// this way.
-
-		val navBg = getColor(theme, "surface")
-
-		@ColorInt val navColor = parseColor(navBg)
-		val isNavBarLight = navBg.isLightHexColor()
-		activity.window.navigationBarColor = navColor
-
-		val windowInsetController = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
-
-		if (isNavBarLight) {
-			windowInsetController.isAppearanceLightNavigationBars = true
-		}
-
-		val headerBg = getColor(theme, "surface_container")
-		@ColorInt val statusBarColor = parseColor(headerBg)
-		val isStatusBarLight = headerBg.isLightHexColor()
-
-		// Changing status bar color
-		// Before Android M there was no flag to use lightStatusBar (so that text is white or
-		// black). As our primary color is red, Android thinks that the status bar color text
-		// should be white. So we cannot use white status bar color.
-		// So for Android M and above we alternate between white and dark status bar colors and
-		// we change lightStatusBar flag accordingly.
-		activity.window.statusBarColor = statusBarColor
-		windowInsetController.isAppearanceLightStatusBars = isStatusBarLight
-	}
-
-	private fun getColor(theme: Map<String, String>, key: String): String =
-		theme[key] ?: LIGHT_FALLBACK_THEME[key] ?: "#FFFFFF"
+	private var themes: MutableList<Map<String, String>> = mutableListOf()
+	private var currentThemeId: String? = null
+	private var currentThemeOrFallback: Map<String, String>? = null
 
 	override suspend fun getThemes(): List<Map<String, String>> {
-		return this.themes
+		if (themes.count() == 0) {
+			loadState(getDefaultSharedPreferences(context))
+		}
+		return themes
 	}
 
 	override suspend fun setThemes(themes: List<Map<String, String>>) {
+		this.themes.clear()
+		this.themes.addAll(themes)
+
 		val themeStrings: MutableSet<String> = HashSet()
 		for (theme in themes) {
+			if (theme["themeId"] == currentThemeId) {
+				currentThemeOrFallback = theme
+			}
 			try {
 				themeStrings.add(JSONObject(theme).toString())
 			} catch (e: JSONException) {
 				Log.e(TAG, "Could not parse theme", e)
 			}
 		}
-		prefs.edit().putStringSet(THEMES_KEY, themeStrings).apply()
-		applyTheme() // reapply theme in case the current selected theme definition has changed
-		return
+		getDefaultSharedPreferences(context).edit { putStringSet(THEMES_KEY, themeStrings) }
+		applyCurrentTheme() // reapply theme in case the current selected theme definition has changed
 	}
 
-	override suspend fun getThemePreference(): ThemePreference? {
-		return this.themePreference
+	override suspend fun getThemePreference(): String {
+		if (currentThemeId == null) {
+			loadState(getDefaultSharedPreferences(context))
+		}
+		return requireNotNull(currentThemeId)
 	}
 
-	override suspend fun setThemePreference(themePreference: ThemePreference) {
-		this.themePreference = themePreference
-		applyTheme()
-		return
+	override suspend fun setThemePreference(themePreference: String) {
+		val defaultSharedPreferences = getDefaultSharedPreferences(context)
+
+		currentThemeId = themePreference
+		if (themes.count() == 0) {
+			loadState(defaultSharedPreferences)
+		} else {
+			currentThemeOrFallback = themes.firstOrNull { it["themeId"] == currentThemeId } ?: FALLBACK_THEME
+		}
+
+		defaultSharedPreferences.edit { putString(CURRENT_THEME_KEY, themePreference) }
+		applyCurrentTheme()
+	}
+
+	override suspend fun prefersDark(): Boolean {
+		return prefersDarkSynchronous()
+	}
+
+	private fun prefersDarkSynchronous(): Boolean {
+		return (context.resources.configuration.uiMode and UI_MODE_NIGHT_MASK) == UI_MODE_NIGHT_YES
+	}
+
+	fun getCurrentThemeOrFallback(): Map<String, String> {
+		if (currentThemeOrFallback == null) {
+			loadState(getDefaultSharedPreferences(context))
+		}
+		return requireNotNull(currentThemeOrFallback)
+	}
+
+	fun applyCurrentTheme() {
+		val theme = this.getCurrentThemeOrFallback()
+
+		// TODO: Figure out why the app cannot link with rust SDK
+		// TODO: Unify Calendar facade with common facade
+
+		// TODO: Why does this need to run in the UI thread
+		activity.runOnUiThread {
+			Log.d(TAG, "changeTheme: $currentThemeId")
+
+			val surfaceContainerColor = getColorInt(theme, "surface_container")
+			val surfaceColor = getColorInt(theme, "surface")
+			val surfaceColorIsLight = surfaceColor.isLightColor()
+
+			// Make all app components light or dark by default by setting the default night mode
+			AppCompatDelegate.setDefaultNightMode(
+				if (currentThemeId == "light") {
+					AppCompatDelegate.MODE_NIGHT_NO
+				} else if (currentThemeId == "dark") {
+					AppCompatDelegate.MODE_NIGHT_YES
+				} else if (surfaceColorIsLight) {
+					AppCompatDelegate.MODE_NIGHT_NO
+				} else {
+					AppCompatDelegate.MODE_NIGHT_YES
+				}
+			)
+
+			val windowInsetController = WindowInsetsControllerCompat(activity.window, activity.window.decorView)
+
+			activity.window.setBackgroundDrawable(surfaceColor.toDrawable())
+
+			activity.window.navigationBarColor = surfaceColor
+			if (surfaceColorIsLight) {
+				windowInsetController.isAppearanceLightNavigationBars = true
+			}
+
+			// Changing status bar color
+			// Before Android M there was no flag to use lightStatusBar (so that text is white or
+			// black). As our primary color is red, Android thinks that the status bar color text
+			// should be white. So we cannot use white status bar color.
+			// So for Android M and above we alternate between white and dark status bar colors and
+			// we change lightStatusBar flag accordingly.
+			activity.window.statusBarColor = surfaceContainerColor
+			windowInsetController.isAppearanceLightStatusBars = surfaceContainerColor.isLightColor()
+		}
+	}
+
+	private fun getColorInt(theme: Map<String, String>, key: String): Int {
+		// The fallback return value -1 is the signed version of UInt(0xFFFFFF) for white
+		val colorString = theme[key] ?: FALLBACK_THEME[key] ?: return -1
+		return parseColor(colorString)
+	}
+
+	private fun loadState(defaultSharedPreferences: SharedPreferences) {
+		currentThemeId = defaultSharedPreferences.getString(CURRENT_THEME_KEY, "light")
+		if (currentThemeId == "auto:light|dark") {
+			currentThemeId = if (prefersDarkSynchronous()) "dark" else "light"
+		}
+
+		themes.clear()
+		currentThemeOrFallback = FALLBACK_THEME
+		for (jsonString in defaultSharedPreferences.getStringSet(THEMES_KEY, null).orEmpty()) {
+			try {
+				val jsonTheme = JSONObject(jsonString)
+				val theme = jsonTheme.toMap()
+				themes.add(theme)
+				if (jsonTheme.get("themeId") == currentThemeId) {
+					currentThemeOrFallback = theme
+				}
+			} catch (e: JSONException) {
+				Log.e(TAG, "Could not parse theme", e)
+			}
+		}
 	}
 }

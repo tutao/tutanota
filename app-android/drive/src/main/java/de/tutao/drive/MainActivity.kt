@@ -31,6 +31,7 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
+import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -55,7 +56,6 @@ import de.tutao.tutashared.AppType
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.TempDir
-import de.tutao.tutashared.Theme
 import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
@@ -100,7 +100,7 @@ interface WebauthnHandler {
 	fun onNoResult()
 }
 
-class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
+class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
 	private lateinit var webView: WebView
 	private lateinit var themeFacade: AndroidThemeFacade
 	private lateinit var remoteBridge: RemoteBridge
@@ -476,7 +476,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 	@MainThread
 	private fun startWebApp(parameters: MutableMap<String, String>) {
-		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
+		webView.loadUrl(getInitialUrl(parameters, themeFacade.getCurrentThemeOrFallback()))
 		remoteBridge.setup()
 	}
 
@@ -537,7 +537,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		}
 	}
 
-	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
+	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Map<String, String>?): String {
 		if (theme != null) {
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}

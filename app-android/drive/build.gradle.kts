@@ -60,10 +60,10 @@ android {
 			isJniDebuggable = true
 		}
 		release {
-			isMinifyEnabled = true
+			manifestPlaceholders += mapOf()
+            isMinifyEnabled = true
 			resValue("string", "package_name", "de.tutao.drive")
-			setProguardFiles(listOf(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro"))
-			manifestPlaceholders["contentProviderAuthority"] = "de.tutao.drive.fileprovider"
+            manifestPlaceholders["contentProviderAuthority"] = "de.tutao.drive.fileprovider"
 		}
 		create("releaseTest") {
 			initWith(getByName("release"))
@@ -160,7 +160,8 @@ tasks.register("itest") {
 }
 
 dependencies {
-	implementation(libs.tutasdk)
+	implementation(libs.appcompat)
+    implementation(libs.tutasdk)
 	implementation(project(":tutashared"))
 
 	implementation(libs.commons.io)
