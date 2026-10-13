@@ -25,13 +25,18 @@ import { windowFacade } from "../misc/WindowFacade.js"
 import { EnvProvider, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
 import { isEmpty, noOp } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog.js"
-import { SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
+import { createUserSettingsGroupRoot, SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
 import { getCurrentDate } from "../../mail-app/mail/MailUtils"
+import { locator } from "../api/main/CommonLocator.js"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 
 export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "androidPlayStore" | "supportTuta" | "suggestion" | "contactSupport"
 
 export async function showUserSatisfactionDialog(triggerType: TriggerType): Promise<void> {
 	const { ContactSupportPage } = await import("../support/pages/ContactSupportPage.js")
+	if (triggerType !== "ManualFeedback" && locator.logins.getUserController().userSettingsGroupRoot.satisfactionDialogDisabled) {
+		return
+	}
 	completeTriggerStage(triggerType)
 
 	deviceConfig.setNextEvaluationDate(DateTime.now().plus({ month: 4 }).toJSDate())
@@ -59,6 +64,19 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 					dialog,
 					navigate: navigateToPage,
 				}),
+				leftAction: {
+					label: "neverAgain_label",
+					type: ButtonType.Secondary,
+					click: async () => {
+						if (!(await Dialog.confirm("disableSatisfactionDialogConfirm_msg", "neverAgain_label"))) return
+						const userController = locator.logins.getUserController()
+						const settings = createUserSettingsGroupRoot(userController.userSettingsGroupRoot)
+						settings.satisfactionDialogDisabled = true
+						await showProgressDialog("pleaseWait_msg", locator.entityClient.update(settings))
+						userController.userSettingsGroupRoot.satisfactionDialogDisabled = true
+						dialog.close()
+					},
+				},
 				rightAction: {
 					label: "notNow_label",
 					click: () => {
