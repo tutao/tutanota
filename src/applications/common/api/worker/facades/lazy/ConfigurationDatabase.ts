@@ -57,7 +57,6 @@ type ConfigDb = {
  */
 export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStorageFacade {
 	private readonly db: LazyLoaded<ConfigDb | null>
-	private canLoadDb: boolean = false
 
 	constructor(
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
@@ -87,7 +86,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @param draftData data to write
 	 */
 	async setAutosavedDraftData(draftData: LocalAutosavedDraftData): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -111,7 +110,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @return the locally stored draft data, if any, or null
 	 */
 	async getAutosavedDraftData(): Promise<LocalAutosavedDraftData | null> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return null
 		}
@@ -139,7 +138,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * Deletes any locally saved draft data, if any
 	 */
 	async clearAutosavedDraftData(): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -162,7 +161,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @param model to write
 	 */
 	async setSpamClassificationModel(model: SpamClassificationModel): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -186,7 +185,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * @return the locally stored SpamClassificationModel for an ownerGroup, if any, or null
 	 */
 	async getSpamClassificationModel(ownerGroup: Id): Promise<Nullable<SpamClassificationModel>> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return null
 		}
@@ -214,7 +213,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	 * Deletes a SpamClassificationModel for an ownerGroup, if any
 	 */
 	async deleteSpamClassificationModel(ownerGroup: Id): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -233,7 +232,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async addExternalImageRule(address: string, rule: ExternalImageRule): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -243,7 +242,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async getExternalImageRule(address: string): Promise<ExternalImageRule> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return ExternalImageRule.None
 		}
@@ -267,7 +266,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
@@ -277,7 +276,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	}
 
 	async getNewsletterBannerRule(address: string): Promise<NewsletterBannerRule> {
-		const config = await this.getDb()
+		const config = await this.db.getAsync()
 		if (!config) {
 			return NewsletterBannerRule.Allow
 		}
@@ -352,7 +351,7 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 			if (!(event.operation === OperationType.UPDATE && isUpdateForTypeRef(UserTypeRef, event))) {
 				continue
 			}
-			const configDb = await this.getDb()
+			const configDb = await this.db.getAsync()
 			if (configDb?.db.isSameDbId(this.getDbId(event.instanceId))) {
 				return updateEncryptionMetadata(configDb.db, this.keyLoaderFacade, ConfigurationMetaDataOS, this.aes, this.keyEncryption, this.cryptoWrapper)
 			}
@@ -362,30 +361,15 @@ export class ConfigurationDatabase implements AutosaveFacade, SpamClassifierStor
 	async delete(userId: Id): Promise<void> {
 		const dbId = this.getDbId(userId)
 		if (this.db.isLoadedOrLoading()) {
-			const db = await this.getDb()
+			const db = await this.db.getAsync()
 			await db?.db.deleteDatabase(dbId)
 		} else {
 			await DbFacade.deleteDb(dbId)
 		}
 	}
 
-	/**
-	 * Should be called when fully logged in and the user group key is available
-	 */
-	async onFullyLoggedIn() {
-		this.canLoadDb = true
-	}
-
 	private getDbId(userId: Id): string {
 		return `${DB_KEY_PREFIX}_${b64UserIdHash(userId)}`
-	}
-
-	private async getDb(): Promise<ConfigDb | null> {
-		if (this.canLoadDb) {
-			return await this.db.getAsync()
-		} else {
-			return null
-		}
 	}
 
 	/** @PublicForTesting */
