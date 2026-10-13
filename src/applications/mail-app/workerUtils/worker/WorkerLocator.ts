@@ -11,7 +11,7 @@ import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef,
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
-import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
+import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import {
 	ExportFacadeSendDispatcher,
@@ -85,6 +85,8 @@ import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailSta
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
 import type { MailIndexerBackend } from "../index/MailIndexerBackend"
+import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
+import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -308,6 +310,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			const { SearchTableDefinitions } = await import("../index/OfflineStoragePersistence.js")
 			const { AutosaveDraftsTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageAutosaveFacade.js")
 			const { SpamClassificationTableDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineStorageSpamClassifierStorageFacade.js")
+			const { OfflineConfigurationDatabaseDefinitions } = await import("../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase.js")
+
 			// fastCache does not need the CustomUserCacheHandler as the delegate on the CachingOfflineStorage already has it and will call the deleteAllOwnedBy
 			// on fastCache whenever the user is removed from a group
 			const fastCache = new EphemeralCacheStorage(locator.base.instancePipeline.modelMapper, locator.base.typeModelResolver, new CustomCacheHandlerMap())
@@ -342,7 +346,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				locator.base.typeModelResolver,
 				new OfflineMapper(locator.base.typeModelResolver),
 				customCacheHandler,
-				Object.assign({}, KeyVerificationTableDefinitions, SearchTableDefinitions, AutosaveDraftsTableDefinitions, SpamClassificationTableDefinitions),
+				Object.assign(
+					{},
+					KeyVerificationTableDefinitions,
+					SearchTableDefinitions,
+					AutosaveDraftsTableDefinitions,
+					SpamClassificationTableDefinitions,
+					OfflineConfigurationDatabaseDefinitions,
+				),
 			)
 			return new CachingOfflineStorage(offlineStorage, fastCache, locator.base.instancePipeline.modelMapper)
 		}
@@ -549,8 +560,13 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
+			const { OfflineConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase.js")
+			return new OfflineConfigurationDatabase(locator.sqlCipherFacade)
+		} else {
+			const { IndexedDbConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
+			return new IndexedDbConfigurationDatabase(locator.base.keyLoader, locator.base.user)
+		}
 	})
 
 	if (EnvProvider.get().isOfflineStorageAvailable()) {
@@ -559,7 +575,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			return new OfflineStorageAutosaveFacade(locator.sqlCipherFacade)
 		})
 	} else {
-		locator.autosaveFacade = locator.configFacade
+		locator.autosaveFacade = locator.configFacade as lazyAsync<IndexedDbConfigurationDatabase>
 	}
 
 	if (EnvProvider.get().isOfflineStorageAvailable()) {
@@ -570,7 +586,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			return new OfflineStorageSpamClassifierStorageFacade(locator.sqlCipherFacade)
 		})
 	} else {
-		locator.spamClassifierStorageFacade = locator.configFacade
+		locator.spamClassifierStorageFacade = locator.configFacade as lazyAsync<IndexedDbConfigurationDatabase>
 	}
 
 	locator.indexer = lazyMemoized(async () => {

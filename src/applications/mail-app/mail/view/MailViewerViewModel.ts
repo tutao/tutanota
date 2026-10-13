@@ -1,7 +1,7 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import { ContactModel } from "../../../common/contactsFunctionality/ContactModel.js"
-import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import stream from "mithril/stream"
 import {
 	addAll,
@@ -35,7 +35,7 @@ import {
 	showLabelsPopup,
 	showMoveMailsDropdown,
 } from "./MailGuiUtils"
-import { DownloadPostProcessing, DownloadReturn, FileController } from "../../../common/file/FileController"
+import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -744,7 +744,7 @@ export class MailViewerViewModel {
 	}
 
 	canPersistBlockingStatus(): boolean {
-		return this.mailModel.indexingSupported
+		return EnvProvider.get().isOfflineStorageAvailable() || this.mailModel.indexingSupported
 	}
 
 	async exportMail(): Promise<void> {
