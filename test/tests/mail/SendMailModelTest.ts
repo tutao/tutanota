@@ -19,7 +19,7 @@ import { MailboxDetail, MailboxModel } from "../../../src/applications/common/ma
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
-import { ConfigurationDatabase } from "../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase"
+import { ConfigurationDatabase } from "../../../src/applications/common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker"
 import { DateProvider } from "../../../src/platform-kit/utils/DateProvider"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"

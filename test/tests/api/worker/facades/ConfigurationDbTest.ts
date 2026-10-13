@@ -6,7 +6,7 @@ import {
 	initializeDb,
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
-} from "../../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
+} from "../../../../../src/applications/common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { DbStub } from "../search/DbStub.js"
 import {
