@@ -2083,6 +2083,8 @@ pub struct UserSettingsGroupRoot {
 	#[serde(rename = "1850")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2224")]
+	pub satisfactionDialogDisabled: bool,
 	#[serde(rename = "979")]
 	pub groupSettings: Vec<GroupSettings>,
 
@@ -4898,8 +4900,7 @@ pub struct ImapPutIn {
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "2223")]
-	pub imapAccountSyncStateWithNewPostponedUntil:
-		Option<UpdateImapAccountSyncStateTransferAggregatedType>,
+	pub imapAccountSyncStateWithNewPostponedUntil: Option<UpdateImapAccountSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
