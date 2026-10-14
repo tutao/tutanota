@@ -238,7 +238,7 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 			return
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await this.encryptItem(address, metaData.key, metaData.initializationVector)
+		const encryptedAddress = this.encryptItem(address, metaData.key, metaData.initializationVector)
 		return addAddressToImageList(db, encryptedAddress, rule)
 	}
 
@@ -248,7 +248,7 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 			return ExternalImageRule.None
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await this.encryptItem(address, metaData.key, metaData.initializationVector)
+		const encryptedAddress = this.encryptItem(address, metaData.key, metaData.initializationVector)
 		const transaction = await db.createTransaction(true, [ExternalImageListOS])
 		const entry = await transaction.get(ExternalImageListOS, encryptedAddress)
 		let rule = ExternalImageRule.None
@@ -266,13 +266,49 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 		return rule
 	}
 
+	async dumpRules(): Promise<{ imageRules: Record<string, ExternalImageRule>; newsletterBannerRules: Record<string, NewsletterBannerRule> } | null> {
+		// NOTE: We are just doing this for migrating from IndexedDbConfigurationDatabase to OfflineConfigurationDatabase.
+		// Therefore, if anything is added, we don't need to handle it.
+
+		const config = await this.db.getAsync()
+		if (!config) {
+			return null
+		}
+		const { db, metaData } = config
+
+		const imageRules: Record<string, ExternalImageRule> = {}
+		const newsletterBannerRules: Record<string, NewsletterBannerRule> = {}
+
+		{
+			const transaction = await db.createTransaction(true, [ExternalImageListOS])
+			const entry = await transaction.getAll(ExternalImageListOS)
+
+			for (const e of entry) {
+				const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
+				imageRules[address] = e.value.rule as ExternalImageRule
+			}
+		}
+
+		{
+			const transaction = await db.createTransaction(true, [NewsletterBannerListOS])
+			const entry = await transaction.getAll(NewsletterBannerListOS)
+
+			for (const e of entry) {
+				const address = this.decryptItem(e.value.address, metaData.key, metaData.initializationVector)
+				newsletterBannerRules[address] = e.value.rule as NewsletterBannerRule
+			}
+		}
+
+		return { imageRules, newsletterBannerRules }
+	}
+
 	async addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void> {
 		const config = await this.db.getAsync()
 		if (!config) {
 			return
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await this.encryptItem(address, metaData.key, metaData.initializationVector)
+		const encryptedAddress = this.encryptItem(address, metaData.key, metaData.initializationVector)
 		return addAddressToNewsletterBannerList(db, encryptedAddress, rule)
 	}
 
@@ -282,7 +318,7 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 			return NewsletterBannerRule.Allow
 		}
 		const { db, metaData } = config
-		const encryptedAddress = await this.encryptItem(address, metaData.key, metaData.initializationVector)
+		const encryptedAddress = this.encryptItem(address, metaData.key, metaData.initializationVector)
 		const transaction = await db.createTransaction(true, [NewsletterBannerListOS])
 		const entry = await transaction.get(NewsletterBannerListOS, encryptedAddress)
 		let rule = NewsletterBannerRule.Allow
@@ -374,8 +410,13 @@ export class IndexedDbConfigurationDatabase implements AutosaveFacade, SpamClass
 	}
 
 	/** @PublicForTesting */
-	async encryptItem(item: string, key: Aes256Key, initializationVector: InitializationVector): Promise<Uint8Array<ArrayBuffer>> {
+	encryptItem(item: string, key: Aes256Key, initializationVector: InitializationVector): Uint8Array<ArrayBuffer> {
 		return this.aes.aesEncryptConfigurationDatabaseItem(key, stringToUtf8Uint8Array(item), initializationVector)
+	}
+
+	/** @PublicForTesting */
+	decryptItem(item: Uint8Array<ArrayBuffer>, key: Aes256Key, initializationVector: InitializationVector): string {
+		return utf8Uint8ArrayToString(this.aes.aesDecryptConfigurationDatabaseItem(key, item, initializationVector))
 	}
 
 	async decryptLegacyItem(encryptedAddress: Uint8Array<ArrayBuffer>, key: Aes256Key, initializationVector: InitializationVector): Promise<string> {
