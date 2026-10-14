@@ -17,12 +17,22 @@ import {
 } from "../../../src/platform-kit/instance-pipeline"
 import { aes256RandomKey, SubKeyInfoWithSessionKeyCbcThenHmac } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
-import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
-import { createTestEntityWithDummyResolver } from "../TestUtils"
+import {
+	AssociationTypeEnum,
+	CardinalityEnum,
+	Entity,
+	EntityTypeEnum,
+	GENERATED_MAX_ID,
+	GENERATED_MIN_ID,
+	TypeModel,
+	TypeRef,
+	ValueTypeEnum,
+} from "../../../src/platform-kit/meta"
+import { createTestEntityWithDummyResolver, withOverriddenEnv } from "../TestUtils"
 
 import { object } from "testdouble"
 
-import { createPatch } from "@tutao/entities/sys"
+import { createPatch, createPatchList } from "@tutao/entities/sys"
 import { SYMMETRIC_CIPHER_FACADE } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
@@ -461,6 +471,420 @@ o.spec("computePatches", function () {
 			}),
 		])
 	})
+
+	o.spec("computePatchPayload", function () {
+		o("wraps the computed patches in a PatchList", async function () {
+			const testEntity = await createFilledTestEntity()
+			const date = new Date()
+			testEntity.testDate = date
+			testEntity.testListElementAssociation.push(["listId", "elementId"])
+
+			const sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
+			const currentEncryptedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
+
+			const patchList = await patchGenerator.computePatchPayload(originalParsedInstance, currentParsedInstance, currentEncryptedInstance)
+
+			o(patchList).deepEquals(
+				createPatchList({
+					patches: [
+						createPatch({ attributePath: "5", value: `${date.valueOf()}`, patchOperation: PatchOperationType.REPLACE }),
+						createPatch({ attributePath: "8", value: '[["listId","elementId"]]', patchOperation: PatchOperationType.ADD_ITEM }),
+					],
+				}),
+			)
+		})
+
+		o("returns an empty PatchList when nothing changed", async function () {
+			const testEntity = await createFilledTestEntity()
+
+			const sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
+			const currentEncryptedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
+
+			const patchList = await patchGenerator.computePatchPayload(originalParsedInstance, currentParsedInstance, currentEncryptedInstance)
+
+			o(patchList).deepEquals(createPatchList({ patches: [] }))
+		})
+	})
+
+	o.spec("computePatches combined and edge cases", function () {
+		o("combines value, aggregate and id list changes in model order", async function () {
+			const testEntity = await createFilledTestEntity()
+			const date = new Date()
+			testEntity.testDate = date
+			testEntity.testAssociation[0].testNumber = "1234"
+			testEntity.testListElementAssociation.push(["listId", "elementId"])
+
+			const objectDiff = await computeFixturePatches(testEntity)
+
+			o(objectDiff).deepEquals([
+				createPatch({ attributePath: "5", value: `${date.valueOf()}`, patchOperation: PatchOperationType.REPLACE }),
+				createPatch({ attributePath: "3/aggId/2", value: "1234", patchOperation: PatchOperationType.REPLACE }),
+				createPatch({ attributePath: "8", value: '[["listId","elementId"]]', patchOperation: PatchOperationType.ADD_ITEM }),
+			])
+		})
+
+		o("returns empty when a value is changed and set back", async function () {
+			const testEntity = await createFilledTestEntity()
+			const originalDate = new Date(testEntity.testDate.getTime())
+			testEntity.testDate = new Date()
+			testEntity.testDate = originalDate
+			testEntity.testAssociation[0].testNumber = "1234"
+			testEntity.testAssociation[0].testNumber = "123456"
+			testEntity.testBoolean = null
+			testEntity.testBoolean = false
+
+			o(await computeFixturePatches(testEntity)).deepEquals([])
+		})
+
+		o("returns empty when an id list element is removed and added back", async function () {
+			const testEntity = await createFilledTestEntity()
+			const removed = assertNotNull(testEntity.testListElementAssociation.pop())
+			testEntity.testListElementAssociation.push(removed)
+
+			o(await computeFixturePatches(testEntity)).deepEquals([])
+		})
+
+		o("returns empty when a Date is mutated in place and restored", async function () {
+			const testEntity = await createFilledTestEntity()
+			const originalTime = testEntity.testDate.getTime()
+			testEntity.testDate.setTime(originalTime + 1000)
+			testEntity.testDate.setTime(originalTime)
+
+			o(await computeFixturePatches(testEntity)).deepEquals([])
+		})
+
+		o("detects a Date mutated in place", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testDate.setTime(testEntity.testDate.getTime() + 1000)
+
+			o(await computeFixturePatches(testEntity)).deepEquals([
+				createPatch({ attributePath: "5", value: `${testEntity.testDate.getTime()}`, patchOperation: PatchOperationType.REPLACE }),
+			])
+		})
+
+		o("detects a Uint8Array mutated in place", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testAssociation[0].testSecondLevelAssociation[0].testBytes = new Uint8Array([1, 2, 3])
+			testEntity._original = structuredClone(testEntity)
+			assertNotNull(testEntity.testAssociation[0].testSecondLevelAssociation[0].testBytes)[0] = 9
+
+			o(await computeFixturePatches(testEntity)).deepEquals([
+				createPatch({
+					attributePath: "3/aggId/9/aggOnAggId/10",
+					value: uint8ArrayToBase64(new Uint8Array([9, 2, 3])),
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			])
+		})
+
+		o("emits REMOVE_ITEM and ADD_ITEM together when one aggregate is replaced and another is kept", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testAssociation.push(await createTestEntityWithDummyResolver(TestAggregateRef, { _id: "keptAgId", testNumber: "1" }))
+			testEntity._original = structuredClone(testEntity)
+
+			testEntity.testAssociation.splice(0, 1)
+			const added = await createTestEntityWithDummyResolver(TestAggregateRef, { _id: "addedAgId", testNumber: "2" })
+			testEntity.testAssociation.push(added)
+
+			const sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
+			const encrypted = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, new SubKeyInfoWithSessionKeyCbcThenHmac(sk))
+			const addedEncrypted = encrypted.getAttributeByName("testAssociation").asNestedObjList()[1]
+			const addedJson = await dummyInstancePipeline.typeMapper.makeServerJson(addedEncrypted)
+
+			const objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, encrypted)
+
+			o(objectDiff).deepEquals([
+				createPatch({ attributePath: "3", value: '["aggId"]', patchOperation: PatchOperationType.REMOVE_ITEM }),
+				createPatch({
+					attributePath: "3",
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([addedJson]),
+					patchOperation: PatchOperationType.ADD_ITEM,
+				}),
+			])
+		})
+
+		o("replaces the whole aggregate list when the list becomes disjoint from the original", async function () {
+			const testEntity = await createFilledTestEntity()
+			testEntity.testAssociation.pop()
+			const added = await createTestEntityWithDummyResolver(TestAggregateRef, { _id: "addedAgId", testNumber: "2" })
+			testEntity.testAssociation.push(added)
+
+			const sk = aes256RandomKey()
+			const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
+			const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
+			const encrypted = await dummyInstancePipeline.cryptoMapper.encryptParsedInstance(currentParsedInstance, new SubKeyInfoWithSessionKeyCbcThenHmac(sk))
+			const addedJson = await dummyInstancePipeline.typeMapper.makeServerJson(encrypted.getAttributeByName("testAssociation").asNestedObjList()[0])
+
+			const objectDiff = await patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, encrypted)
+
+			o(objectDiff).deepEquals([
+				createPatch({
+					attributePath: "3",
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([addedJson]),
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			])
+		})
+
+		o("emits network debugging attribute names on root and nested paths", async function () {
+			await withOverriddenEnv({ networkDebugging: true }, async () => {
+				const testEntity = await createFilledTestEntity()
+				const date = new Date()
+				testEntity.testDate = date
+				testEntity.testAssociation[0].testNumber = "1234"
+
+				o(await computeFixturePatches(testEntity)).deepEquals([
+					createPatch({ attributePath: "5:testDate", value: `${date.valueOf()}`, patchOperation: PatchOperationType.REPLACE }),
+					createPatch({ attributePath: "3/aggId/2:testNumber", value: "1234", patchOperation: PatchOperationType.REPLACE }),
+				])
+			})
+		})
+	})
+
+	o.spec("computePatches guards and uncommon model shapes", function () {
+		o("throws when the instances have different type refs", async function () {
+			const entity = createExtEntity()
+			const originalParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(assertNotNull(entity._original))
+			const aggregateParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(entity.extAggOne)
+			const encrypted = await extPipeline.cryptoMapper.encryptParsedInstance(
+				originalParsedInstance,
+				new SubKeyInfoWithSessionKeyCbcThenHmac(aes256RandomKey()),
+			)
+
+			const error = await assertThrows(Error, () => extPatchGenerator.computePatches(originalParsedInstance, aggregateParsedInstance, encrypted))
+			o(error.message.includes("different TypeRef")).equals(true)
+		})
+
+		o("throws a ProgrammingError when the modified instance has duplicate aggregate ids", async function () {
+			const entity = createExtEntity()
+			entity.extAggAny.push(createExtAggregate("agg1", "dup"))
+
+			const error = await assertThrows(ProgrammingError, () => extDiff(entity))
+			o(error.message.includes("Duplicate aggregate ids for association extAggAny")).equals(true)
+		})
+
+		o("throws when a common aggregate cannot be found in the modified instance", async function () {
+			const entity = createExtEntity()
+			const modified = createExtEntity({ extAggAny: [createExtAggregate("other", "1")] })
+			const originalParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(assertNotNull(entity._original))
+			const modifiedParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(modified)
+			// encrypted instance still contains the original aggregate ids
+			const encryptedOfOriginal = await extPipeline.cryptoMapper.encryptParsedInstance(
+				originalParsedInstance,
+				new SubKeyInfoWithSessionKeyCbcThenHmac(aes256RandomKey()),
+			)
+
+			await assertThrows(Error, () => extPatchGenerator.computePatches(originalParsedInstance, modifiedParsedInstance, encryptedOfOriginal))
+		})
+
+		o("emits ADD_ITEM and REMOVE_ITEM for a SingleId association with Any cardinality", async function () {
+			const entity = createExtEntity()
+			entity.extSingleIdAny = ["b", "c"]
+
+			const { patches } = await extDiff(entity)
+
+			o(patches).deepEquals([
+				createPatch({ attributePath: "4", value: '["c"]', patchOperation: PatchOperationType.ADD_ITEM }),
+				createPatch({ attributePath: "4", value: '["a"]', patchOperation: PatchOperationType.REMOVE_ITEM }),
+			])
+		})
+
+		o("emits only ADD_ITEM for a SingleId association with Any cardinality when ids are only added", async function () {
+			const entity = createExtEntity()
+			entity.extSingleIdAny.push("c")
+
+			const { patches } = await extDiff(entity)
+
+			o(patches).deepEquals([createPatch({ attributePath: "4", value: '["c"]', patchOperation: PatchOperationType.ADD_ITEM })])
+		})
+
+		o("ignores changes to a final association", async function () {
+			const entity = createExtEntity()
+			entity.extFinalAssoc = "changed"
+
+			const { patches } = await extDiff(entity)
+
+			o(patches).deepEquals([])
+		})
+
+		o("replaces an aggregation with One cardinality when the aggregate id changes", async function () {
+			const entity = createExtEntity()
+			entity.extAggOne = createExtAggregate("aggOne2", "x")
+
+			const { patches, encrypted } = await extDiff(entity)
+			const json = await extPipeline.typeMapper.makeServerJson(encrypted.getAttributeByName("extAggOne").asNestedObjList()[0])
+
+			o(patches).deepEquals([
+				createPatch({
+					attributePath: "5",
+					value: OutgoingServerJson.getJsonRepresentationOfMultiple([json]),
+					patchOperation: PatchOperationType.REPLACE,
+				}),
+			])
+		})
+
+		o("patches a value inside an aggregation with One cardinality", async function () {
+			const entity = createExtEntity()
+			entity.extAggOne.extAggValue = "changed"
+
+			const { patches } = await extDiff(entity)
+
+			o(patches).deepEquals([createPatch({ attributePath: "5/aggOne/9", value: "changed", patchOperation: PatchOperationType.REPLACE })])
+		})
+
+		o("ignores changes to a final value", async function () {
+			const entity = createExtEntity()
+			entity.extFinalValue = "changed"
+
+			const { patches } = await extDiff(entity)
+
+			o(patches).deepEquals([])
+		})
+	})
+
+	// A second, independent model that contains the association shapes missing from the shared fixtures:
+	// SingleId with Any cardinality, Aggregation with One cardinality and a final association.
+	const ExtTypeRef = new TypeRef<ExtEntity>("tutanota", 142)
+	const ExtAggregateRef = new TypeRef<ExtAggregate>("tutanota", 143)
+
+	type ExtAggregate = Entity & { _id: Id; extAggValue: string }
+	type ExtEntity = Entity & {
+		_id: [null, Id]
+		extValue: string
+		extFinalValue: string
+		extSingleIdAny: Id[]
+		extAggOne: ExtAggregate
+		extFinalAssoc: Id | null
+		extAggAny: ExtAggregate[]
+	}
+
+	const extTypeModel: TypeModel = {
+		app: "tutanota",
+		encrypted: true,
+		id: 142,
+		name: "ExtType",
+		rootId: "SoMeId",
+		since: 41,
+		type: EntityTypeEnum.Element,
+		isPublic: true,
+		dependsOnVersion: null,
+		values: {
+			"1": { id: 1, name: "_id", type: ValueTypeEnum.GeneratedId, cardinality: CardinalityEnum.One, final: false, encrypted: false },
+			"2": { id: 2, name: "extValue", type: ValueTypeEnum.String, cardinality: CardinalityEnum.One, final: false, encrypted: false },
+			"3": { id: 3, name: "extFinalValue", type: ValueTypeEnum.String, cardinality: CardinalityEnum.One, final: true, encrypted: false },
+		},
+		associations: {
+			"4": {
+				id: 4,
+				name: "extSingleIdAny",
+				type: AssociationTypeEnum.ElementAssociation,
+				cardinality: CardinalityEnum.Any,
+				refTypeId: 44,
+				final: false,
+				dependency: null,
+			},
+			"5": {
+				id: 5,
+				name: "extAggOne",
+				type: AssociationTypeEnum.Aggregation,
+				cardinality: CardinalityEnum.One,
+				refTypeId: 143,
+				final: false,
+				dependency: "tutanota",
+			},
+			"6": {
+				id: 6,
+				name: "extFinalAssoc",
+				type: AssociationTypeEnum.ElementAssociation,
+				cardinality: CardinalityEnum.ZeroOrOne,
+				refTypeId: 44,
+				final: true,
+				dependency: null,
+			},
+			"7": {
+				id: 7,
+				name: "extAggAny",
+				type: AssociationTypeEnum.Aggregation,
+				cardinality: CardinalityEnum.Any,
+				refTypeId: 143,
+				final: false,
+				dependency: "tutanota",
+			},
+		},
+		version: 0,
+		versioned: false,
+	}
+
+	const extAggregateModel: TypeModel = {
+		app: "tutanota",
+		encrypted: true,
+		id: 143,
+		name: "ExtAggregate",
+		rootId: "SoMeId",
+		since: 41,
+		type: EntityTypeEnum.Aggregated,
+		isPublic: true,
+		dependsOnVersion: null,
+		values: {
+			"8": { id: 8, name: "_id", type: ValueTypeEnum.CustomId, cardinality: CardinalityEnum.One, final: true, encrypted: false },
+			"9": { id: 9, name: "extAggValue", type: ValueTypeEnum.String, cardinality: CardinalityEnum.One, final: false, encrypted: false },
+		},
+		associations: {},
+		version: 0,
+		versioned: false,
+	}
+
+	const extTypeModelResolver: TypeModelResolver = object()
+	extTypeModelResolver.resolveClientTypeReference = ((typeRef: TypeRef<Entity>) =>
+		Promise.resolve(typeRef.typeId === extAggregateModel.id ? extAggregateModel : extTypeModel)) as any
+	const extPipeline = new InstancePipeline(extTypeModelResolver, object(), SYMMETRIC_CIPHER_FACADE)
+	const extPatchGenerator = new PatchGenerator(extPipeline)
+
+	function createExtAggregate(id: Id, value: string): ExtAggregate {
+		return { _type: ExtAggregateRef, _id: id, _original: null, extAggValue: value } as ExtAggregate
+	}
+
+	function createExtEntity(overrides: Partial<ExtEntity> = {}): ExtEntity {
+		const entity = {
+			_type: ExtTypeRef,
+			_original: null,
+			_id: [null, GENERATED_MIN_ID],
+			extValue: "value",
+			extFinalValue: "final",
+			extSingleIdAny: ["a", "b"],
+			extAggOne: createExtAggregate("aggOne", "x"),
+			extFinalAssoc: null,
+			extAggAny: [createExtAggregate("agg1", "1"), createExtAggregate("agg2", "2")],
+			...overrides,
+		} as ExtEntity
+		entity._original = structuredClone(entity)
+		return entity
+	}
+
+	async function extDiff(entity: ExtEntity) {
+		const originalParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(assertNotNull(entity._original))
+		const currentParsedInstance = await extPipeline.modelMapper.mapToDecryptedInstance(entity)
+		const encrypted = await extPipeline.cryptoMapper.encryptParsedInstance(
+			currentParsedInstance,
+			new SubKeyInfoWithSessionKeyCbcThenHmac(aes256RandomKey()),
+		)
+		const patches = await extPatchGenerator.computePatches(originalParsedInstance, currentParsedInstance, encrypted)
+		return { patches, encrypted }
+	}
+
+	async function computeFixturePatches(testEntity: TestEntity) {
+		const sk = aes256RandomKey()
+		const originalParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(testEntity._original))
+		const currentParsedInstance = await dummyInstancePipeline.modelMapper.mapToDecryptedInstance(testEntity)
+		const currentEncryptedInstance = await dummyInstancePipeline.mapAndEncryptToParsedInstance(TestTypeRef, testEntity, sk)
+		return patchGenerator.computePatches(originalParsedInstance, currentParsedInstance, currentEncryptedInstance)
+	}
 
 	async function createTestEntityWithOriginal(overrides: Partial<TestEntity>): Promise<TestEntity> {
 		const instance: TestEntity = await createTestEntityWithDummyResolver(TestTypeRef, overrides)

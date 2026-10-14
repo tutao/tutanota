@@ -54,12 +54,14 @@ import {
 	createPatchList,
 	CustomerTypeRef,
 	GroupMemberTypeRef,
+	PatchList,
 	PatchListTypeRef,
 	sysModelInfo,
 	UpdateKdfNoncePostIn,
 	UpdateKdfNoncePostOutTypeRef,
 	UpdateKdfNonceService_POST,
 } from "@tutao/entities/sys"
+import { PatchOperationType } from "../../../src/platform-kit/instance-pipeline"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
@@ -1359,6 +1361,48 @@ o.spec("EntityRestClient", function () {
 			const newCustomer = createTestEntity(CustomerTypeRef, { _id: undefined })
 			const result = await assertThrows(Error, async () => await entityRestClient.update(newCustomer))
 			o(result.message).equals("AssertNotNull failed: Id must be defined while updating an instance")
+		})
+
+		o("Update sends no request when the entity is unchanged", async function () {
+			const file = createTestEntity(FileTypeRef, { name: "filename", _id: ["listId", "elementId"] })
+			file._original = structuredClone(file)
+
+			await entityRestClient.update(file)
+
+			verify(restClient.request(matchers.anything(), HttpMethod.PATCH, matchers.anything()), { times: 0, ignoreExtraArgs: true })
+		})
+
+		o("Update sends exactly the patches computed against _original", async function () {
+			const file = createTestEntity(FileTypeRef, { name: "filename", _id: ["listId", "elementId"] })
+			file._original = structuredClone(file)
+			file.name = "new name"
+			const optionsCaptor = matchers.captor()
+
+			await entityRestClient.update(file)
+
+			verify(restClient.request("/rest/tutanota/file/listId/elementId", HttpMethod.PATCH, optionsCaptor.capture()))
+			const sentOptions = optionsCaptor.value
+			const patchListModel = await typeModelResolver.resolveServerTypeReference(PatchListTypeRef)
+			const patchList = await instancePipeline.decryptAndMap<PatchList>(
+				IncomingServerJson.expectSingleInstance((sentOptions.body as RestTextBody).payload, patchListModel),
+				null,
+			)
+			const nameAttributeId = (await typeModelResolver.resolveClientTypeReference(FileTypeRef)).values
+			const nameValue = Object.values(nameAttributeId).find((value) => value.name === "name")!
+			// the patch value is the ciphertext of the encrypted "name" value
+			o(patchList.patches.map((patch) => [patch.attributePath, patch.patchOperation, patch.value != null && patch.value !== "new name"])).deepEquals([
+				[String(nameValue.id), PatchOperationType.REPLACE, true],
+			])
+		})
+
+		o("Update throws when the entity has no _original", async function () {
+			const file = createTestEntity(FileTypeRef, { name: "filename", _id: ["listId", "elementId"] })
+			file._original = null
+
+			const error = await assertThrows(Error, async () => await entityRestClient.update(file))
+
+			o(error.message.startsWith("AssertNotNull failed")).equals(true)
+			verify(restClient.request(matchers.anything(), HttpMethod.PATCH, matchers.anything()), { times: 0, ignoreExtraArgs: true })
 		})
 
 		o("Update creates new KDF nonce when it is missing and required", async function () {
