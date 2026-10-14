@@ -275,18 +275,15 @@ export class PriceAndConfigProvider {
 	}
 
 	/**
-	 * Return if the user is eligible for paid plans with an introductory discount offer from Apple Payment.
+	 * Return if the user is eligible for paid plans with an introductory discount offer from appstore/playstore.
 	 */
-	getIosIntroOfferEligibility(): boolean {
-		if (!EnvProvider.get().isIOSApp()) return false
-
-		let res = false
-		for (const [key, price] of assertNotNull(this.mobilePrices)) {
-			if (price.isEligibleForIntroOffer) {
-				res = true
-			}
+	isEligibleForIntroOffer(): boolean {
+		const paymentSetup = EnvProvider.get().getPaymentSetup()
+		if (paymentSetup !== PaymentSetup.Appstore && paymentSetup !== PaymentSetup.Playstore) return false
+		for (const price of this.mobilePrices?.values() ?? []) {
+			if (price.isEligibleForIntroOffer) return true
 		}
-		return res
+		return false
 	}
 }
 

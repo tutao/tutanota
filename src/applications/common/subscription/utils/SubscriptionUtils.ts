@@ -486,7 +486,7 @@ export function getApplePriceStr({ priceAndConfigProvider, targetPlan, paymentIn
 	let priceStr: string
 	let referencePriceStr: string | undefined = undefined
 	if (paymentInterval === PaymentInterval.Yearly) {
-		if (priceAndConfigProvider.getIosIntroOfferEligibility()) {
+		if (priceAndConfigProvider.isEligibleForIntroOffer()) {
 			priceStr = displayOfferYearlyPerYear ?? displayYearlyPerYear
 			referencePriceStr = displayOfferYearlyPerYear ? displayYearlyPerYear : undefined
 		} else {
@@ -518,7 +518,7 @@ export function getRawApplePrice({ priceAndConfigProvider, targetPlan, paymentIn
 	let referencePrice: number
 	if (paymentInterval === PaymentInterval.Yearly) {
 		referencePrice = rawYearlyPerYear
-		if (priceAndConfigProvider.getIosIntroOfferEligibility()) {
+		if (priceAndConfigProvider.isEligibleForIntroOffer()) {
 			price = rawOfferYearlyPerYear ?? rawYearlyPerYear
 		} else {
 			price = rawYearlyPerYear

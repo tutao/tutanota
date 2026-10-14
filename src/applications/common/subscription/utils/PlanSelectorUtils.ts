@@ -182,7 +182,7 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 
 	function getFirstYearDiscount(priceKey: PriceKey, targetPlan: PlanType): number {
 		if (isApplePrice) {
-			if (priceAndConfigProvider.getIosIntroOfferEligibility() && hasAppleIntroOffer(priceAndConfigProvider)) {
+			if (priceAndConfigProvider.isEligibleForIntroOffer() && hasAppleIntroOffer(priceAndConfigProvider)) {
 				const { referencePrice: rawYearlyPrice, price: rawOfferYearlyPrice } = getRawApplePrice({
 					priceAndConfigProvider,
 					targetPlan,
@@ -199,7 +199,7 @@ export function getDiscountDetails(isApplePrice: boolean, priceAndConfigProvider
 	function hasGlobalFirstYearDiscount(firstYearDiscount: number): boolean {
 		if (firstYearDiscount === 0) return false
 		return isApplePrice
-			? priceAndConfigProvider.getIosIntroOfferEligibility() && hasAppleIntroOffer(priceAndConfigProvider)
+			? priceAndConfigProvider.isEligibleForIntroOffer() && hasAppleIntroOffer(priceAndConfigProvider)
 			: priceAndConfigProvider.getRawPricingData().hasGlobalFirstYearDiscount
 	}
 
