@@ -3,7 +3,7 @@ import { EnvProvider, PaymentSetup, SessionType } from "@tutao/app-env"
 import { BaseTopLevelView } from "../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../ui/base/TopLevelView.js"
 import { createWizard, WizardAttrs } from "../../../ui/base/wizard/Wizard"
-import type { WizardStepAttrs, WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
+import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
 import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
@@ -104,6 +104,10 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	}
 
 	onNewUrl(args: Record<string, any>, requestedPath: string) {}
+
+	handleBackButton(): boolean {
+		return this.SignupWizard.goBack()
+	}
 
 	view({ attrs }: Vnode<SignupViewAttrs>) {
 		return m(
