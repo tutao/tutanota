@@ -5,7 +5,8 @@ import { makeEvent } from "../../../calendar/CalendarTestUtils"
 import { incrementDate } from "../../../../../src/platform-kit/utils"
 
 o.spec("TimeOverview", function () {
-	const interval = 30
+	const interval30m = 30
+	const interval60m = 60
 	const baseDate = new Date(2026, 6, 22)
 
 	function makeDate(hour: number, minute: number) {
@@ -13,31 +14,45 @@ o.spec("TimeOverview", function () {
 	}
 
 	o.spec("getTimeRange", function () {
+		o.test("get time range for full hour", function () {
+			const focus = makeDate(8, 0)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(7, 0))
+			o.check(range.end).deepEquals(new Time(9, 0))
+		})
+
 		o.test("normal middle-of-day event", function () {
 			const focus = makeDate(12, 45)
 
-			const range = TimeOverview.getTimeRange(focus, interval)
+			const range = TimeOverview.getTimeRange(focus)
 
-			o.check(range.start).deepEquals(new Time(12, 15))
-			o.check(range.end).deepEquals(new Time(13, 15))
+			o.check(range.start).deepEquals(new Time(12, 0))
+			o.check(range.end).deepEquals(new Time(14, 0))
 		})
 
 		o.test("event close to midnight should clip range to beginning of day", function () {
 			const focus = makeDate(0, 15)
 
-			const range = TimeOverview.getTimeRange(focus, interval)
+			const range = TimeOverview.getTimeRange(focus)
 
 			o.check(range.start).deepEquals(new Time(0, 0))
-			o.check(range.end).deepEquals(new Time(1, 0))
+			o.check(range.end).deepEquals(new Time(2, 0))
 		})
 
 		o.test("event close to end of day should clip to end of day", function () {
 			const focus = makeDate(23, 45)
 
-			const range = TimeOverview.getTimeRange(focus, interval)
+			const range = TimeOverview.getTimeRange(focus)
 
-			o.check(range.start).deepEquals(new Time(22, 30))
-			o.check(range.end).deepEquals(new Time(23, 30))
+			o.check(range.start).deepEquals(new Time(23, 0))
+			o.check(range.end).deepEquals(new Time(1, 0))
+		})
+
+		o.test("get time range for unusal uneven time ", function () {
+			const focus = makeDate(8, 29)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(8, 0))
+			o.check(range.end).deepEquals(new Time(10, 0))
 		})
 	})
 
@@ -52,25 +67,25 @@ o.spec("TimeOverview", function () {
 		o.spec("Valid events", function () {
 			o.test("completely inside the range", function () {
 				const event = makeEvent(eventId, makeDate(12, 15), makeDate(12, 45))
-				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval)
+				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval30m)
 				o.check(result).deepEquals([event])
 			})
 
 			o.test("overlaps range start", function () {
 				const event = makeEvent(eventId, makeDate(11, 45), makeDate(12, 15))
-				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval)
+				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval30m)
 				o.check(result).deepEquals([event])
 			})
 
 			o.test("overlaps range end", function () {
 				const event = makeEvent(eventId, makeDate(12, 45), makeDate(13, 15))
-				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval)
+				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval30m)
 				o.check(result).deepEquals([event])
 			})
 
 			o.test("completely overlaps the given range", function () {
 				const event = makeEvent(eventId, makeDate(11, 30), makeDate(13, 45))
-				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval)
+				const result = TimeOverview.filterOutOfRangeEvents(range, [event], baseDate, interval30m)
 				o.check(result).deepEquals([event])
 			})
 		})
@@ -78,7 +93,7 @@ o.spec("TimeOverview", function () {
 		o.test("events completely outside the range should be filtered out", function () {
 			const beforeRange = makeEvent(eventId, makeDate(10, 0), makeDate(11, 0))
 			const afterRange = makeEvent(eventId, makeDate(14, 0), makeDate(15, 0))
-			const result = TimeOverview.filterOutOfRangeEvents(range, [beforeRange, afterRange], baseDate, interval)
+			const result = TimeOverview.filterOutOfRangeEvents(range, [beforeRange, afterRange], baseDate, interval30m)
 			o.check(result).deepEquals([])
 		})
 
@@ -97,7 +112,7 @@ o.spec("TimeOverview", function () {
 			afterMidnight.event.startTime = incrementDate(afterMidnight.event.startTime, 1)
 			afterMidnight.event.endTime = incrementDate(afterMidnight.event.endTime, 1)
 
-			const result = TimeOverview.filterOutOfRangeEvents(overnightRange, [beforeMidnight, crossesMidnight, afterMidnight], baseDate, interval)
+			const result = TimeOverview.filterOutOfRangeEvents(overnightRange, [beforeMidnight, crossesMidnight, afterMidnight], baseDate, interval30m)
 
 			o.check(result).deepEquals([beforeMidnight, crossesMidnight])
 		})

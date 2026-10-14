@@ -20,17 +20,17 @@ import { filterNull, getStartOfDay, getStartOfNextDay, isSameDay } from "@tutao/
 import { EventBannerAreas, InviteAgenda } from "./EventBannerImpl"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { layout_size, px, size } from "../../../../ui/size"
-import { isAllDayEvent, isBefore } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { formatDateTime, formatTime } from "../../../../ui/utils/Formatter"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { clone } from "@tutao/meta"
-import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/Time"
 import { getCalendarEventDurationInMinutes } from "../../../common/calendar/date/CalendarUtils"
 import { EventBannerIconVariant, EventBannerIconWithText } from "./EventBannerIconWithText"
 import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { Styles } from "../../../../ui/styles"
+import { DateTime } from "luxon"
 
 export type TimeOverviewAttrs = {
 	agenda: InviteAgenda | null
@@ -295,7 +295,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 		const timeScale = 1
 		const timeInterval = getIntervalAsMinutes(timeScale)
-		const timeRange: TimeRange = TimeOverview.getTimeRange(eventFocusBound, timeInterval)
+		const timeRange: TimeRange = TimeOverview.getTimeRange(eventFocusBound)
 
 		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
 		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
@@ -332,35 +332,25 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	 * while still spanning three time slots.
 	 *
 	 * @param eventFocusBound The point in time that should be centered in the TimeOverview.
-	 * @param timeInterval The duration of a single time slot, in minutes.
 	 *
 	 * @VisibleForTesting
 	 */
-	static getTimeRange(eventFocusBound: Date, timeInterval: number): TimeRange {
-		let startDate = DateTime.fromJSDate(eventFocusBound).minus({ minutes: timeInterval }).toJSDate()
-		let endDate = DateTime.fromJSDate(eventFocusBound).plus({ minutes: timeInterval }).toJSDate()
+	static getTimeRange(eventFocusBound: Date): TimeRange {
+		let calculationDate = DateTime.fromJSDate(eventFocusBound)
 
-		// If the start date falls on the previous day, clamp the range to the start of the focused day while keeping
-		// the total span at three intervals.
-		if (isBefore(startDate, eventFocusBound, "date")) {
-			startDate = getStartOfDay(eventFocusBound)
-			endDate = DateTime.fromJSDate(startDate)
-				.plus({ minutes: timeInterval * 2 }) // e.g. 00:00, 00:30, 01:00 (30-minute interval)
-				.toJSDate()
+		// if the events start exactly at the full hour, we want to show one hour before
+		if (calculationDate.minute === 0) {
+			calculationDate = calculationDate.plus({ hours: -1 })
 		}
-		// If the end date falls on the following day, clamp the range to the end of the focused day while keeping
-		// the total span at three intervals.
-		else if (isBefore(eventFocusBound, endDate, "date")) {
-			endDate = DateTime.fromJSDate(eventFocusBound).startOf("day").plus({ day: 1 }).minus({ minutes: timeInterval }).toJSDate()
+		const startTime = new Time(calculationDate.hour, 0)
 
-			startDate = DateTime.fromJSDate(endDate)
-				.minus({ minutes: timeInterval * 2 }) // e.g. 22:30, 23:00, 23:30 (30-minute interval)
-				.toJSDate()
-		}
+		// calculate end time, we always show three full hours
+		const endDate = calculationDate.plus({ hours: 2 })
+		const endTime = new Time(endDate.hour, 0)
 
 		return {
-			start: Time.fromDate(startDate),
-			end: Time.fromDate(endDate),
+			start: startTime,
+			end: endTime,
 		}
 	}
 
