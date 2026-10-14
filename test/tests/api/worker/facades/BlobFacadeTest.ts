@@ -1,5 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 import {
+	ArchiveDownloadResumeParams,
 	BlobFacade,
 	FileData,
 	KeyedNewBlobWrapper,
@@ -9,11 +10,11 @@ import {
 	serializeNewBlobsInBinaryChunks,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { MAX_BLOB_SIZE_BYTES, RestClient, restSuspension } from "../../../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../../../src/platform-kit/rest-client/types"
+import { HttpMethod, RestBinaryBody, RestClientOptions, RestTextBody } from "../../../../../src/platform-kit/rest-client/types"
 import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
 import { AesApp } from "../../../../../src/app-kit/native-bridge/worker/AesApp.js"
 import { Mode, ProgrammingError } from "../../../../../src/platform-kit/app-env"
-import { ClientTypeModel, elementIdPart, getElementId, listIdPart, ServerTypeModel } from "../../../../../src/platform-kit/meta"
+import { elementIdPart, getElementId, getTypeString, listIdPart, ServerTypeModel } from "../../../../../src/platform-kit/meta"
 import { func, instance, matchers, object, verify, when } from "testdouble"
 import {
 	arrayEquals,
@@ -55,6 +56,7 @@ import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { NotAuthorizedError, NotFoundError } from "../../../../../src/platform-kit/rest-client/error"
+import { ArchiveDownloaderFacade } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 
 const { anything, captor } = matchers
 
@@ -1370,69 +1372,92 @@ o.spec("BlobFacadeTest", function () {
 		})
 	})
 
-	o.spec("downloadFullEncryptedBlobElementEntityArchive", () => {
-		o.test("downloads all encrypted entities", async () => {
-			const archiveId = "some-archive"
-			const clientTypeModel = {
-				app: MailDetailsBlobTypeRef.app,
-				name: "MailDetailsBlob",
-				version: 123,
-				dependsOnVersion: 456,
-			} as ClientTypeModel
-			when(typeModelResolver.resolveClientTypeReference(MailDetailsBlobTypeRef)).thenResolve(clientTypeModel)
+	o.spec("downloadAndStoreEncryptedBlobArchive", () => {
+		const archiveId = "blob-it-to-the-limit"
+		let serverTypeModel: ServerTypeModel
+		let archiveDownloader: ArchiveDownloaderFacade
+
+		o.beforeEach(async () => {
+			serverTypeModel = await typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)
+			archiveDownloader = object()
 
 			const blobServerAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
 				servers: [
 					createBlobServerUrl({
 						url: "https://blobworld.net",
 					}),
+					createBlobServerUrl({
+						url: "https://blobworld2.net",
+					}),
+					createBlobServerUrl({
+						url: "https://blobworld3.net",
+					}),
 				],
 			})
 			when(blobAccessTokenFacade.requestReadTokenArchive(archiveId)).thenResolve(blobServerAccessInfo)
 
 			const someQueryParams = {
-				"whoooo query params": "let's go!!!!",
+				someQueryParam: "someQueryParamValue",
 			}
 			when(blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, MailDetailsBlobTypeRef)).thenResolve(someQueryParams)
+		})
 
-			const serverTypeModel = {
-				app: MailDetailsBlobTypeRef.app,
-				name: "MailDetailsBlob",
-			} as ServerTypeModel
-			when(typeModelResolver.resolveServerTypeReference(MailDetailsBlobTypeRef)).thenResolve(serverTypeModel)
-
-			const mailDetailsBlobs = [
-				createTestEntity(MailDetailsBlobTypeRef, {}, { populateAggregates: true }),
-				createTestEntity(MailDetailsBlobTypeRef, {}, { populateAggregates: true }),
-				createTestEntity(MailDetailsBlobTypeRef, {}, { populateAggregates: true }),
-			]
-			const encryptedBlobsJson = await promiseMap(mailDetailsBlobs, (b) =>
-				realInstancePipeline.mapAndEncryptToParsedInstance(MailDetailsBlobTypeRef, b, aes256RandomKey()),
+		o.test("initial download without resume params", async () => {
+			await blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, null)
+			const urlCaptor = matchers.captor()
+			verify(
+				archiveDownloader.downloadAndStoreArchive(urlCaptor.capture(), archiveId, getTypeString(MailDetailsBlobTypeRef), serverTypeModel.version, null),
+				{
+					times: 1,
+				},
 			)
-			const serverResponse = OutgoingServerJson.getJsonRepresentationOfMultiple(
-				await Promise.all(
-					encryptedBlobsJson.map((i) => {
-						return realInstancePipeline.typeMapper.makeServerJson(i)
-					}),
+			o.check(urlCaptor.value).equals(`https://blobworld.net/rest/tutanota/maildetailsblob/${archiveId}?someQueryParam=someQueryParamValue`)
+		})
+
+		o.test("initial download with non-matching resume server", async () => {
+			const resumeParams: ArchiveDownloadResumeParams = {
+				serverHostname: "bobworld3.net",
+				rangeHeaders: {
+					rangeStart: 42,
+					reprDigest: "not-a-real-hash",
+				},
+			}
+
+			await blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, resumeParams)
+			const urlCaptor = matchers.captor()
+			verify(
+				archiveDownloader.downloadAndStoreArchive(urlCaptor.capture(), archiveId, getTypeString(MailDetailsBlobTypeRef), serverTypeModel.version, null),
+				{
+					times: 1,
+				},
+			)
+			o.check(urlCaptor.value).equals(`https://blobworld.net/rest/tutanota/maildetailsblob/${archiveId}?someQueryParam=someQueryParamValue`)
+		})
+
+		o.test("download with matching resume server", async () => {
+			const resumeParams: ArchiveDownloadResumeParams = {
+				serverHostname: "blobworld2.net",
+				rangeHeaders: {
+					rangeStart: 42,
+					reprDigest: "not-a-real-hash",
+				},
+			}
+
+			await blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, resumeParams)
+			const urlCaptor = matchers.captor()
+			verify(
+				archiveDownloader.downloadAndStoreArchive(
+					urlCaptor.capture(),
+					archiveId,
+					getTypeString(MailDetailsBlobTypeRef),
+					serverTypeModel.version,
+					resumeParams.rangeHeaders,
 				),
+				{
+					times: 1,
+				},
 			)
-			when(
-				restClientMock.request(
-					`/rest/tutanota/maildetailsblob/${archiveId}`,
-					HttpMethod.GET,
-					matchers.argThat(
-						(arg) => arg.baseUrl === "https://blobworld.net" && arg.responseType === MediaType.Json && arg.queryParams === someQueryParams,
-					),
-				),
-			).thenResolve(serverResponse)
-
-			const downloadedBlobs = (await blobFacade.downloadFullEncryptedBlobElementEntityArchive(MailDetailsBlobTypeRef, archiveId)).map((j) =>
-				j.getInnerJson(),
-			)
-			const expectedBlobs = (await Promise.all(encryptedBlobsJson.map((e) => realInstancePipeline.typeMapper.makeServerJson(e)))).map((j) =>
-				j.getInnerJson(),
-			)
-			o.check(downloadedBlobs).deepEquals(expectedBlobs)
+			o.check(urlCaptor.value).equals(`https://blobworld2.net/rest/tutanota/maildetailsblob/${archiveId}?someQueryParam=someQueryParamValue`)
 		})
 	})
 

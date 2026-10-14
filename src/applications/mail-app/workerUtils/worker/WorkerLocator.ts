@@ -160,9 +160,6 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const fileFacadeSendDispatcher = new FileFacadeSendDispatcher(worker)
 	const fileApp = new NativeFileApp(fileFacadeSendDispatcher, new ExportFacadeSendDispatcher(worker))
 
-	locator.archiveDownloader = lazyMemoized(async () => {
-		return new ArchiveDownloaderFacadeSendDispatcher(worker)
-	})
 	locator.native = worker
 
 	locator.pdfWriter = async () => {
@@ -200,6 +197,8 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
+			const archiveDownloader = new ArchiveDownloaderFacadeSendDispatcher(worker)
+
 			return new OfflineMailIndexer(
 				persistence,
 				blob,
@@ -211,6 +210,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				newMailDownloader,
 				locator.base.instancePipeline,
 				locator.cacheStorage,
+				archiveDownloader,
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()
