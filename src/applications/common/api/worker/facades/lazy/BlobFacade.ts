@@ -2,7 +2,7 @@ import { addParamsToUrl, DEFAULT_REST_CLIENT_OPTIONS, MAX_BLOB_SIZE_BYTES, RestC
 import { handleRestError, NotFoundError } from "@tutao/rest-client/error"
 import { Blob, BlobReferenceTokenWrapper, createBlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
-import { HttpMethod, MediaType, RestBinaryBody, RestTextBody, SuspensionBehavior } from "@tutao/rest-client/types"
+import { HttpMethod, MediaType, RestBinaryBody, RestTextBody } from "@tutao/rest-client/types"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import {
 	assertNonNull,
@@ -620,52 +620,6 @@ export class BlobFacade {
 			blobChunks.delete(blob.blobId)
 		}
 		return resultBuffer
-	}
-
-	/**
-	 * Download a full archive of (encrypted) blob entities.
-	 *
-	 * To decrypt the entities, you will have to call {@link CryptoMapper#decryptParsedInstance}.
-	 */
-	async downloadFullEncryptedBlobElementEntityArchive<T extends BlobElementEntity>(typeRef: TypeRef<T>, archiveId: Id): Promise<Array<IncomingServerJson>> {
-		const clientTypeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
-		const headers: Dict = {
-			v: String(clientTypeModel.version),
-		}
-
-		if (clientTypeModel.dependsOnVersion) {
-			headers.dv = String(clientTypeModel.dependsOnVersion)
-		}
-
-		const blobServerAccessInfo = await this.blobAccessTokenFacade.requestReadTokenArchive(archiveId)
-		const allParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, typeRef)
-		const serversToTry = blobServerAccessInfo.servers
-
-		// blob element types are accessed with a specific rest path
-		const path = `${EntityUtils.typeModelToRestPath(clientTypeModel)}/${archiveId}`
-
-		const t = () =>
-			tryServers(
-				serversToTry,
-				async (serverUrl) =>
-					this.restClient.request(path, HttpMethod.GET, {
-						queryParams: allParams,
-						headers: {}, // prevent CORS request due to non standard header usage
-						responseType: MediaType.Json,
-						baseUrl: serverUrl,
-						noCORS: true,
-						suspensionBehavior: SuspensionBehavior.Suspend,
-						body: null,
-						uploadProgressListener: null,
-						downloadProgressListener: null,
-						abortSignal: null,
-					}),
-				`can't load instances from server `,
-			)
-
-		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		const doEvictToken = () => this.blobAccessTokenFacade.evictArchiveToken(archiveId)
-		return IncomingServerJson.expectMultipleInstance(await doBlobRequestWithRetry(t, doEvictToken), serverTypeModel)
 	}
 
 	/**

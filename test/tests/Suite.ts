@@ -274,8 +274,7 @@ import "./plugin-kit/plugins/nextcloud/NextcloudApiTest.js"
 
 import * as td from "testdouble"
 import { EntropySource } from "../../src/platform-kit/crypto"
-import { EnvProvider, Mode } from "../../src/platform-kit/app-env"
-import { assert } from "../../src/platform-kit/utils"
+import { EnvProvider } from "../../src/platform-kit/app-env"
 
 export async function run({
 	integration,

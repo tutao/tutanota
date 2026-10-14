@@ -317,7 +317,6 @@ VALUES (
 	private pendingEncryptedMailDetailsBlobRetrieval: Promise<Map<Id, IncomingServerJson>> | null = null
 	private pendingEncryptedMailDetailsBlobItems: Set<Id> = new Set()
 
-	// FIXME use blobIdTuple to retrieve
 	retrieveEncryptedMailDetailsBlob(serverTypeModel: ServerTypeModel, blobId: Id): Promise<IncomingServerJson | null> {
 		const typeString = `${serverTypeModel.app}/${serverTypeModel.id}`
 		if (serverTypeModel.type !== EntityTypeEnum.BlobElement) {

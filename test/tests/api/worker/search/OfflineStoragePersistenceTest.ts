@@ -20,6 +20,7 @@ import {
 	ContactTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
+	MailDetailsBlobTypeRef,
 	MailDetailsTypeRef,
 	MailTypeRef,
 	RecipientsTypeRef,
@@ -128,20 +129,54 @@ o.spec("OfflineStoragePersistence", () => {
 		for (let a = 10; a < 15; a++) {
 			for (let b = 100; b < 105; b++) {
 				const { query, params } = sql`INSERT
-				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, typeRef, modelVersion) VALUES (
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES (
 				${`${a + b}`},
 				${`${b}`},
 				${new Uint8Array([1, 2, 3, 4])},
-				'tutanota/mail',
+				${getTypeString(MailDetailsBlobTypeRef)},
 				1337
 				)`
 				await sqlCipherFacade.run(query, params)
 			}
+
+			const { query, params } = sql`INSERT
+				OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES (
+				${`${a}`},
+				${"wwoww"},
+				${new Uint8Array([5, 6, 7, 8])},
+				${getTypeString(FileTypeRef)},
+				1337
+				)`
+			await sqlCipherFacade.run(query, params)
 		}
 
-		o.check(await persistence.getDownloadedArchives()).deepEquals([])
-		await persistence.clearEncryptedBlobsForType()
-		o.check((await persistence.getDownloadedArchives()).sort()).deepEquals(["100", "101", "102", "103", "104"])
+		{
+			const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs WHERE type = ${getTypeString(MailDetailsBlobTypeRef)}`
+			const result = await sqlCipherFacade.get(query, params)
+			const mailDetailsBlobsCount = untagSqlValue(assertNotNull(result)["total"]) as number
+			o.check(mailDetailsBlobsCount).equals(25)
+		}
+		{
+			const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs WHERE type = ${getTypeString(FileTypeRef)}`
+			const result = await sqlCipherFacade.get(query, params)
+			const filesCount = untagSqlValue(assertNotNull(result)["total"]) as number
+			o.check(filesCount).equals(5)
+		}
+
+		await persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef)
+
+		{
+			const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs`
+			const result = await sqlCipherFacade.get(query, params)
+			const filesCount = untagSqlValue(assertNotNull(result)["total"]) as number
+			o.check(filesCount).equals(5)
+		}
+		{
+			const { query, params } = sql`SELECT COUNT(*) as total FROM encrypted_blobs WHERE type = ${getTypeString(MailDetailsBlobTypeRef)}`
+			const result = await sqlCipherFacade.get(query, params)
+			const mailDetailsBlobsCount = untagSqlValue(assertNotNull(result)["total"]) as number
+			o.check(mailDetailsBlobsCount).equals(0)
+		}
 	})
 
 	o.test("addIndexedGroup", async () => {
