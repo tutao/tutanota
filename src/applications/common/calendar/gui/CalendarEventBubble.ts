@@ -18,8 +18,10 @@ import { Time } from "../Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { formatEventTime, formatTimeWithZoneInfo, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
-export const MIN_ROW_SPAN = 3
+export const MIN_ROW_SPAN_FOR_CALENDAR_VIEW = 3
+export const MIN_ROW_SPAN_FOR_EVENT_BANNER = 4
 
+export const MIN_EVENT_BUBBLE_HEIGHT = 20
 export interface RangeOverflowData {
 	start: boolean
 	end: boolean
@@ -75,7 +77,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		} satisfies Partial<CSSStyleDeclaration>
 
 		return m(
-			".flex.z2.b.darker-hover.small",
+			"#event-bubble.flex.z2.b.darker-hover.small",
 			{
 				style: {
 					pointerEvents: canReceiveFocus ? "auto" : "none",
@@ -146,6 +148,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		const featuredEventStyle = {
 			border: `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`,
 			color: eventWrapper.flags.isConflict ? theme.on_warning_container : theme.on_success_container,
+			paddingTop: "0px",
+			paddingBottom: "0px",
+			overflow: "hidden",
 		}
 
 		const ghostStyle = {
@@ -164,7 +169,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 	}
 
 	private renderFeaturedTexts(title: string, color: string, isConflict: boolean) {
-		return m(".flex.items-start", [
+		return m("#render-featured-text.flex.items-start", [
 			m(Icon, {
 				icon: isConflict ? Icons.ExclamationFilled : Icons.Checkmark,
 				container: "div",
@@ -174,10 +179,10 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				},
 			}),
 			m(
-				".break-word.b.text-ellipsis-multi-line.lh",
+				".break-word.b",
 				{
 					style: {
-						"-webkit-line-clamp": 2,
+						// "-webkit-line-clamp": 2,
 						color,
 					},
 				},
@@ -203,9 +208,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		timeZoneText: string | null,
 	) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
-		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN * 2
-		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN * 3 && timeZoneText
-		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN) / MIN_ROW_SPAN)
+		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN_FOR_CALENDAR_VIEW * 2
+		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN_FOR_CALENDAR_VIEW * 3 && timeZoneText
+		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN_FOR_CALENDAR_VIEW) / MIN_ROW_SPAN_FOR_CALENDAR_VIEW)
 
 		const hasEventTime = eventTime !== ""
 
@@ -223,7 +228,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				}),
 			)
 
-		return m(".flex", [
+		return m("#non-featured-text.flex", [
 			...flagIcons,
 			m(".flex.overflow-hidden", { class: showTimeInSecondLine ? "col" : "" }, [
 				m(
