@@ -62,7 +62,7 @@ import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils
 import { isDraft } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
-import { locator } from "../worker/WorkerLocator"
+import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -97,6 +97,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly newMailDownloader: MailIndexerNewMailDownloader,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cacheStorage: CacheStorage,
+		private readonly archiveDownloader: ArchiveDownloaderFacade,
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
@@ -381,18 +382,17 @@ export class OfflineMailIndexer implements MailIndexer {
 		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
 		const preloadStart = performance.now()
 
-		const archiveDownloader = await locator.archiveDownloader()
 		for (const { archiveId, resumeParams } of archivesToLoad) {
 			console.log(TAG, `Downloading archive ${archiveId} starting from row ${resumeParams?.rangeHeaders.rangeStart ?? 0}`)
 			await abortAwareWithCleanup(
 				this.abortController,
 				async () => {
 					const downloadAndStoreBlobsStart = performance.now()
-					await this.blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, archiveDownloader, resumeParams)
+					await this.blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, this.archiveDownloader, resumeParams)
 					const downloadAndStoreBlobsEnd = performance.now()
 					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
 				},
-				async () => archiveDownloader.abortDownloadAndStoreArchive(archiveId),
+				async () => this.archiveDownloader.abortDownloadAndStoreArchive(archiveId),
 			)
 		}
 
