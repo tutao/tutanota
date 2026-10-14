@@ -30,7 +30,7 @@ export interface WizardAttrs<TViewModel> {
 /**
  * this indirection allows us to pass a Component type with a generic parameter to mithril without TS complaining.
  */
-export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>> {
+export function createWizard<TViewModel>() {
 	let controller: WizardController
 	let isFirstView = true
 
@@ -44,7 +44,8 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 		transitionTo = to
 	}
 
-	return {
+	const wizard = {
+		goBack: () => false,
 		oninit({ attrs }: Vnode<WizardAttrs<TViewModel>>) {
 			isFirstView = true
 			controller = new WizardController(attrs.steps.map((step) => step.title ?? ""))
@@ -168,6 +169,15 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 							width: "flex",
 						}))
 
+			wizard.goBack = () => {
+				if (backButton) {
+					ctx.goPrev()
+					return true
+				} else {
+					return false
+				}
+			}
+
 			return m(
 				attrs.layout,
 				{
@@ -183,4 +193,5 @@ export function createWizard<TViewModel>(): m.Component<WizardAttrs<TViewModel>>
 			)
 		},
 	}
+	return wizard
 }
