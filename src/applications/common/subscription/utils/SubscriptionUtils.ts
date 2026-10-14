@@ -1,4 +1,4 @@
-import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
+import { InfoLink, lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
@@ -40,7 +40,6 @@ import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority 
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
 import { idToElementId } from "@tutao/meta"
-import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
 
 export const enum UpgradeType {
 	/**
@@ -355,6 +354,18 @@ function hasMatchingExternalSubscription(lastBooking: Booking | null): boolean {
 		return isMatching && !isExpired
 	}
 	return false
+}
+
+export async function getExternalSubscriptionError(foreignKey: string | null = null): Promise<Translation | null> {
+	// We pass `null` because we expect no subscription when upgrading
+	const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(foreignKey)
+	if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.Unknown) {
+		return lang.getTranslation("appStoreSubscriptionError_msg")
+	}
+	if (externalSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
+		return lang.getTranslation("storeMultiSubscriptionError_msg", { "{AppStorePayment}": InfoLink.AppStorePayment })
+	}
+	return null
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */
