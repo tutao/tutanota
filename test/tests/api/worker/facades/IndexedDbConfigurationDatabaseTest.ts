@@ -1,8 +1,8 @@
 import o from "@tutao/otest"
 import {
-	IndexedDbConfigurationDatabase,
 	ConfigurationMetaDataOS,
 	encryptItem,
+	IndexedDbConfigurationDatabase,
 	initializeDb,
 	loadEncryptionMetadata,
 	updateEncryptionMetadata,
@@ -59,7 +59,7 @@ o.spec("IndexedDbConfigurationDatabase", function () {
 
 			for (let entry of allowListTable) {
 				const transaction = await stub.createTransaction()
-				const encryptedAddress = await encryptItem(entry.address, key, initializationVector)
+				const encryptedAddress = encryptItem(entry.address, key, initializationVector)
 				await transaction.put("ExternalAllowListOS", null, {
 					address: encryptedAddress,
 					rule: entry.rule,
@@ -101,7 +101,7 @@ o.spec("IndexedDbConfigurationDatabase", function () {
 
 			for (let entry of allowListTable) {
 				const transaction = await stub.createTransaction()
-				const encryptedAddress = await encryptItem(entry.address, key, initializationVector)
+				const encryptedAddress = encryptItem(entry.address, key, initializationVector)
 				await transaction.put("NewsletterBannerListOS", null, {
 					address: encryptedAddress,
 					rule: entry.rule,
@@ -281,6 +281,68 @@ o.spec("IndexedDbConfigurationDatabase", function () {
 			o(await configDb.getNewsletterBannerRule("fomo@server.com")).equals(NewsletterBannerRule.Block)
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Allow)
 			o(await configDb.getNewsletterBannerRule("fomo@server.com")).equals(NewsletterBannerRule.Allow)
+		})
+	})
+
+	o.spec("dumping the database", () => {
+		let logins: UserFacade
+		let loadDb: any
+		o.beforeEach(() => {
+			logins = downcast({
+				getLoggedInUser() {
+					return createTestEntity(UserTypeRef)
+				},
+				getUserGroupKey() {},
+			})
+
+			loadDb = downcast(async function () {
+				const stub = new DbStub()
+				stub.addObjectStore("ExternalAllowListOS", false, "address")
+				stub.addObjectStore("NewsletterBannerListOS", false, "address")
+
+				return {
+					db: stub,
+					metaData: {
+						key: aes256RandomKey(),
+						initializationVector: generateInitializationVector(),
+					},
+				}
+			})
+		})
+
+		o.test("db not available", async () => {
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, () => {
+				throw new Error("oh no it's broken :(")
+			})
+
+			await configDb.addExternalImageRule("something@something.com", ExternalImageRule.Allow)
+			await configDb.addExternalImageRule("orrather@something.com", ExternalImageRule.Block)
+
+			await configDb.addNewsletterBannerRule("1234@something.com", NewsletterBannerRule.Allow)
+			await configDb.addNewsletterBannerRule("5678@something.com", NewsletterBannerRule.Block)
+
+			o.check(await configDb.dumpRules()).equals(null)
+		})
+
+		o.test("db is available", async () => {
+			const configDb = new IndexedDbConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+
+			await configDb.addExternalImageRule("something@something.com", ExternalImageRule.Allow)
+			await configDb.addExternalImageRule("orrather@something.com", ExternalImageRule.Block)
+
+			await configDb.addNewsletterBannerRule("1234@something.com", NewsletterBannerRule.Allow)
+			await configDb.addNewsletterBannerRule("5678@something.com", NewsletterBannerRule.Block)
+
+			o.check(await configDb.dumpRules()).deepEquals({
+				imageRules: {
+					"something@something.com": ExternalImageRule.Allow,
+					"orrather@something.com": ExternalImageRule.Block,
+				},
+				newsletterBannerRules: {
+					"1234@something.com": NewsletterBannerRule.Allow,
+					"5678@something.com": NewsletterBannerRule.Block,
+				},
+			})
 		})
 	})
 })
