@@ -25,6 +25,7 @@ import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
 import { TypeChecks } from "../app-env/TsTypeChecks"
+import { snapshotEntity } from "./EntitySnapshot"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -205,7 +206,7 @@ export class ClientEntity {
 		) as T
 
 		if (parentTypeModel.type !== EntityTypeEnum.DataTransfer && parentTypeModel.type !== EntityTypeEnum.BlobElement) {
-			entity._original = structuredClone(entity)
+			entity._original = snapshotEntity(entity)
 		}
 
 		return entity
