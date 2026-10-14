@@ -4,10 +4,12 @@ import { CacheInfo, LoginListener } from "../../../../platform-kit/base/facades/
 import { Credentials } from "@tutao/network/types"
 import { locator } from "./WorkerLocator"
 import type { WorkerImpl } from "./WorkerImpl"
-import { assertNotNull, delay, lazy } from "@tutao/utils"
+import { assertNotNull, delay, lazy, lazyAsync } from "@tutao/utils"
 import { ConnectionError, ServiceUnavailableError } from "@tutao/rest-client/error"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
+import { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase"
+import { OfflineConfigurationDatabase } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
 
 export class MailLoginListener extends DefaultLoginListener {
 	constructor(
@@ -15,6 +17,7 @@ export class MailLoginListener extends DefaultLoginListener {
 		mainLoginListener: LoginListener,
 		userFacade: UserFacade,
 		private readonly worker: WorkerImpl,
+		private readonly config: lazyAsync<ConfigurationDatabase>,
 	) {
 		super(eventBusClient, mainLoginListener, userFacade)
 	}
@@ -32,6 +35,11 @@ export class MailLoginListener extends DefaultLoginListener {
 			// index new items in background
 			console.log("initIndexer and SpamClassifier after log in")
 			await fullLoginIndexerInit(this.worker)
+		}
+
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
+			const config = (await this.config()) as OfflineConfigurationDatabase
+			config.triggerMigrationIfNeeded()
 		}
 
 		await super.onFullLoginSuccess(sessionType, cacheInfo, credentials)
