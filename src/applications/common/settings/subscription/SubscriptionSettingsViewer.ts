@@ -43,6 +43,7 @@ import {
 import {
 	externalStorePlanName,
 	getCurrentCount,
+	getExternalSubscriptionError,
 	getPaymentMethodType,
 	getTotalStorageCapacityPerCustomer,
 	hasMatchingExternalPaymentSetup,
@@ -570,17 +571,9 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 
 	private async handleUpgradeSubscription() {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
-			// We pass `null` because we expect no subscription when upgrading
-			const externalSubscriptionOwnership = await queryExternalSubscriptionOwnership(null)
-			if (externalSubscriptionOwnership === MobilePaymentSubscriptionOwnership.Unknown) {
-				return Dialog.message("appStoreSubscriptionError_msg")
-			}
-			if (externalSubscriptionOwnership !== MobilePaymentSubscriptionOwnership.NoSubscription) {
-				return Dialog.message(
-					lang.getTranslation("storeMultiSubscriptionError_msg", {
-						"{AppStorePayment}": InfoLink.AppStorePayment,
-					}),
-				)
+			const term = await getExternalSubscriptionError()
+			if (term) {
+				return Dialog.message(term)
 			}
 		}
 

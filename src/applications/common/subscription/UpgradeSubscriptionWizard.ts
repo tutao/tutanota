@@ -2,7 +2,7 @@ import { EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
 import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
-import { PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
+import { getExternalSubscriptionError, PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
 import { OfferPrice, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { LoginController } from "../api/main/LoginController.js"
 import { Styles } from "../../../ui/styles.js"
@@ -79,6 +79,12 @@ export async function showUpgradeWizard({
 }): Promise<void> {
 	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
 		return Dialog.message("appStoreSubscriptionError_msg")
+	}
+	if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+		const term = await getExternalSubscriptionError()
+		if (term) {
+			return Dialog.message(term)
+		}
 	}
 	let upgradeUsageTest: UsageTest | null = null
 	if (logins.getUserController().isFreeAccount() && upgradePromptType != null) {
