@@ -12,27 +12,26 @@ import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
 	getIntervalAsMinutes,
+	ROW_CONFIG_FOR_EVENT_BANNER,
 	SUBROWS_PER_INTERVAL,
-	TIME_SCALE_BASE_VALUE,
 	TimeRange,
 	TimeScale,
-	TimeScaleTuple,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
 import { filterNull, getStartOfDay, getStartOfNextDay, isSameDay } from "@tutao/utils"
 import { EventBannerAreas, InviteAgenda } from "./EventBannerImpl"
 import { EventWrapper } from "../../../calendar-app/calendar/view/CalendarViewModel"
 import { layout_size, px, size } from "../../../../ui/size"
-import { isAllDayEvent, isBefore } from "../../../common/api/common/utils/CommonCalendarUtils"
+import { isAllDayEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
 import { formatDateTime, formatTime } from "../../../../ui/utils/Formatter"
 import { CalendarEvent } from "@tutao/entities/tutanota"
 import { IcsCalendarEvent } from "../../../calendar-app/calendar/export/CalendarParser"
 import { clone } from "@tutao/meta"
-import { DateTime } from "luxon"
 import { Time } from "../../../common/calendar/Time"
 import { getCalendarEventDurationInMinutes } from "../../../common/calendar/date/CalendarUtils"
 import { EventBannerIconVariant, EventBannerIconWithText } from "./EventBannerIconWithText"
 import { ExpanderPanel } from "../../../../ui/base/Expander"
 import { Styles } from "../../../../ui/styles"
+import { DateTime } from "luxon"
 
 export type TimeOverviewAttrs = {
 	agenda: InviteAgenda | null
@@ -58,8 +57,6 @@ type GridParams = {
  * around the main event(invitation)
  */
 export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
-	private readonly gridRowHeight = 4
-
 	private displayConflictingAgenda: boolean = false
 	private timeColumnWidth: number = 0
 	private gridParams: GridParams | null = null
@@ -148,6 +145,8 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 	private renderConflictTimeGrid(attrs: TimeOverviewAttrs, gridParams: GridParams | null): Children {
 		const { agenda, amPm } = attrs
+		const rowConfig = ROW_CONFIG_FOR_EVENT_BANNER
+
 		if (agenda && gridParams) {
 			return m(".flex.rel", [
 				m(CalendarTimeColumn, {
@@ -156,7 +155,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 						width: this.timeColumnWidth,
 						subColumnCount: 1,
 						rowCount: gridParams.rowCountForRange,
-						gridRowHeight: this.gridRowHeight,
+						gridRowHeight: rowConfig.rowHeight,
 					},
 					amPm: amPm,
 				} satisfies CalendarTimeColumnAttrs),
@@ -174,7 +173,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 						dates: [getStartOfDay(agenda.main.event.startTime)],
 						intervals: gridParams.intervals,
 						layout: {
-							gridRowHeight: this.gridRowHeight,
+							gridRowConfig: rowConfig,
 							rowCountForRange: gridParams.rowCountForRange,
 							hideRightBorder: true,
 							showLeftBorderAtFirstColumn: false,
@@ -284,20 +283,9 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 		const mainEvent = agenda.main.event
 		let eventFocusBound = mainEvent.startTime
 
-		let shortestTimeFrame: number = this.findShortestDuration(mainEvent, mainEvent) // In this case we just get the event duration and later reevaluate
-		if (agenda.before) {
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.before.event)
-		} else if (!agenda.before && agenda.after) {
-			if (agenda.after?.flags?.isConflict) {
-				// focuses on the start of the conflicting event, to show that it conflicts with the end of the main event.
-				eventFocusBound = agenda.after.event.startTime
-			}
-			shortestTimeFrame = this.findShortestDuration(agenda.main.event, agenda.after.event)
-		}
-
-		const timeScale = this.getTimeScaleAccordingToEventDuration(shortestTimeFrame)
+		const timeScale = 1
 		const timeInterval = getIntervalAsMinutes(timeScale)
-		const timeRange: TimeRange = TimeOverview.getTimeRange(eventFocusBound, timeInterval)
+		const timeRange: TimeRange = TimeOverview.getTimeRange(eventFocusBound)
 
 		const intervals = CalendarTimeColumn.createTimeColumnIntervals(timeScale, timeRange)
 		const rowCountForRange = SUBROWS_PER_INTERVAL * intervals.length
@@ -325,63 +313,38 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	/**
 	 * Creates the time range displayed in the TimeOverview around the focused event.
 	 *
-	 * The preferred range consists of three time slots:
-	 * - one interval before the event,
-	 * - the interval containing the event,
-	 * - one interval after the event.
-	 *
 	 * If that range would extend beyond the current day, it is clamped so that it stays within the day's boundaries
 	 * while still spanning three time slots.
 	 *
 	 * @param eventFocusBound The point in time that should be centered in the TimeOverview.
-	 * @param timeInterval The duration of a single time slot, in minutes.
 	 *
 	 * @VisibleForTesting
 	 */
-	static getTimeRange(eventFocusBound: Date, timeInterval: number): TimeRange {
-		let startDate = DateTime.fromJSDate(eventFocusBound).minus({ minutes: timeInterval }).toJSDate()
-		let endDate = DateTime.fromJSDate(eventFocusBound).plus({ minutes: timeInterval }).toJSDate()
+	static getTimeRange(eventFocusBound: Date): TimeRange {
+		let calculationDate = DateTime.fromJSDate(eventFocusBound)
 
-		// If the start date falls on the previous day, clamp the range to the start of the focused day while keeping
-		// the total span at three intervals.
-		if (isBefore(startDate, eventFocusBound, "date")) {
-			startDate = getStartOfDay(eventFocusBound)
-			endDate = DateTime.fromJSDate(startDate)
-				.plus({ minutes: timeInterval * 2 }) // e.g. 00:00, 00:30, 01:00 (30-minute interval)
-				.toJSDate()
-		}
-		// If the end date falls on the following day, clamp the range to the end of the focused day while keeping
-		// the total span at three intervals.
-		else if (isBefore(eventFocusBound, endDate, "date")) {
-			endDate = DateTime.fromJSDate(eventFocusBound).startOf("day").plus({ day: 1 }).minus({ minutes: timeInterval }).toJSDate()
+		// By default the range start is one hour before the actual start of the event,
+		// to make the event appear closer to the middle of the conflict section.
+		let rangeStart = new Time(calculationDate.minus({ hours: 1 }).hour, 0)
 
-			startDate = DateTime.fromJSDate(endDate)
-				.minus({ minutes: timeInterval * 2 }) // e.g. 22:30, 23:00, 23:30 (30-minute interval)
-				.toJSDate()
+		if (calculationDate.hour === 0) {
+			// Special handling for events starting at or after midnight as CalendarTimeColumn can only events of one day
+			rangeStart = new Time(calculationDate.hour, 0)
+		} else if (calculationDate.hour >= 21 && calculationDate.hour <= 23) {
+			// Special handling for events starting  before midnight as CalendarTimeColumn can only events of one day
+			rangeStart = new Time(21, 0)
+		} else if (calculationDate.minute >= 40) {
+			// When the event start is close to the next hour, just set the range start to the event start hour
+			// and don't add an extra hour.
+			rangeStart = new Time(calculationDate.hour, 0)
 		}
 
+		// calculate range end, we always show three full hour
+		const rangeEnd = new Time(rangeStart.hour + 2, 0)
 		return {
-			start: Time.fromDate(startDate),
-			end: Time.fromDate(endDate),
+			start: rangeStart,
+			end: rangeEnd,
 		}
-	}
-
-	/**
-	 * @param eventDuration - Duration in minutes
-	 * @private
-	 */
-	private getTimeScaleAccordingToEventDuration(eventDuration: number): TimeScale {
-		const scalesInMinutes: Array<TimeScaleTuple> = [
-			[1, TIME_SCALE_BASE_VALUE],
-			[2, TIME_SCALE_BASE_VALUE / 2],
-			[4, TIME_SCALE_BASE_VALUE / 4],
-		]
-		const entry = scalesInMinutes.reduce((smallestScale, currentScale) => {
-			const [_, scaleInMinutes] = currentScale
-			if (eventDuration <= scaleInMinutes) return currentScale
-			return smallestScale
-		}, scalesInMinutes[0])
-		return (entry ? entry[0] : 1) as TimeScale
 	}
 
 	/**

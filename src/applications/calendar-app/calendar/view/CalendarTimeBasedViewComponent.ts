@@ -6,7 +6,15 @@ import { WeekDaysComponent, WeekDaysComponentAttrs } from "./WeekDaysComponent"
 import { CalendarTimeColumn, CalendarTimeColumnAttrs, getTimeColumnWidth } from "../../../common/calendar/gui/CalendarTimeColumn"
 import { Time } from "../../../common/calendar/Time"
 import { px } from "../../../../ui/size"
-import { CalendarTimeGrid, CalendarTimeGridAttributes, SUBROWS_PER_INTERVAL, TimeRange, TimeScale } from "../../../common/calendar/gui/CalendarTimeGrid"
+import {
+	CalendarTimeGrid,
+	CalendarTimeGridAttributes,
+	CalendarTimeGridRowConfig,
+	ROW_CONFIG_FOR_CALENDAR_VIEW,
+	SUBROWS_PER_INTERVAL,
+	TimeRange,
+	TimeScale,
+} from "../../../common/calendar/gui/CalendarTimeGrid"
 import { EventWrapper, ScrollByListener } from "./CalendarViewModel"
 import { EventBubbleInteractions } from "../../../common/calendar/gui/CalendarEventBubble"
 import { EventDragHandler, type EventDragHandlerCallbacks, type MousePos } from "./EventDragHandler"
@@ -88,12 +96,10 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		dayHeight: number | null
 		pageViewWidth: number | null
 		rowCountPerDay: number
-		gridRowHeight: number
 	} = {
 		dayHeight: null,
 		pageViewWidth: null,
 		rowCountPerDay: 0,
-		gridRowHeight: 6,
 	}
 
 	private dragState: {
@@ -209,6 +215,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			console.warn("CalendarTimeBasedViewComponent: No dates provided")
 			return null
 		}
+		const gridRowConfig = ROW_CONFIG_FOR_CALENDAR_VIEW
 
 		const periodHasToday = attrs.headerComponentAttrs.dates.some((date) => isToday(date))
 		const timeColumnWidth = getTimeColumnWidth()
@@ -253,7 +260,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 							width: timeColumnWidth,
 							subColumnCount: 1,
 							rowCount: this.layoutState.rowCountPerDay,
-							gridRowHeight: this.layoutState.gridRowHeight,
+							gridRowHeight: gridRowConfig.rowHeight,
 						},
 						currentTime: shouldRenderTimeIndicator ? currentTime : undefined,
 						amPm: attrs.bodyComponentAttrs.amPm,
@@ -286,6 +293,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 								currentTime,
 								false,
 								false,
+								gridRowConfig,
 							),
 						},
 						currentPage: {
@@ -299,6 +307,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 								currentTime,
 								true,
 								false,
+								gridRowConfig,
 							),
 						},
 						nextPage: {
@@ -312,6 +321,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 								currentTime,
 								false,
 								true,
+								gridRowConfig,
 							),
 						},
 						onChangePage: (next) => attrs.bodyComponentAttrs.onChangePage(next),
@@ -363,6 +373,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 		currentTime: Time,
 		hideRightBorder: boolean,
 		showLeftBorderAtFirstColumn: boolean,
+		gridRowConfig: CalendarTimeGridRowConfig,
 	) {
 		return m(CalendarTimeGrid, {
 			intervals: this.viewConfig.intervals,
@@ -377,7 +388,7 @@ export class CalendarTimeBasedViewComponent implements ClassComponent<CalendarTi
 			timeRange,
 			layout: {
 				rowCountForRange: this.layoutState.rowCountPerDay,
-				gridRowHeight: this.layoutState.gridRowHeight,
+				gridRowConfig,
 				hideRightBorder,
 				showLeftBorderAtFirstColumn,
 			},
