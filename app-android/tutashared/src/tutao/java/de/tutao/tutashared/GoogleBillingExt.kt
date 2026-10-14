@@ -24,24 +24,35 @@ import kotlin.String
  * map google's ProductDetails to something the web app can work with
  */
 fun ProductDetails.toMobilePlanPrice(): MobilePlanPrice {
-	val offers = subscriptionOfferDetails!!
-	// only take offers without an offerId (these are non-discounted)
-	val basePlans = offers.filter { it.offerId == null }
-	// these only have one pricing phase since we're not doing 50% off the first year stuff here.
-	val monthlyPlan = basePlans.find { it.basePlanId == "monthly" }!!.pricingPhases.pricingPhaseList.last()
-	val yearlyPlan = basePlans.find { it.basePlanId == "yearly" }!!.pricingPhases.pricingPhaseList.last()
+	val monthlyPlan = getSubscriptionOffer("monthly", includeOffers = false).pricingPhases.pricingPhaseList.last()
+	val yearlyPlan = getSubscriptionOffer("yearly", includeOffers = false).pricingPhases.pricingPhaseList.last()
+	val yearlyOfferPlan = getSubscriptionOffer("yearly")
+		.takeIf { it.offerId != null }?.pricingPhases?.pricingPhaseList?.first()
 
 	return MobilePlanPrice(
 		// eg plans.yearly -> yearly
 		productId.substringAfterLast("."),
 		monthlyPlan.priceAmountMicros,
 		yearlyPlan.priceAmountMicros,
-		null,
+		yearlyOfferPlan?.priceAmountMicros,
 		monthlyPlan.formattedPrice,
 		yearlyPlan.formattedPrice,
-		null,
-		false
+		yearlyOfferPlan?.formattedPrice,
+		yearlyOfferPlan != null
 	)
+}
+
+internal fun ProductDetails.getSubscriptionOffer(
+	basePlanId: String,
+	includeOffers: Boolean = true,
+): ProductDetails.SubscriptionOfferDetails {
+	val offers = subscriptionOfferDetails.orEmpty()
+	val basePlan = offers.singleOrNull { it.basePlanId == basePlanId && it.offerId == null }
+		?: error("Could not find base plan $basePlanId for product $productId")
+	if (!includeOffers) return basePlan
+
+	return offers.filter { it.basePlanId == basePlanId && it.offerId != null }
+		.minWithOrNull(compareBy({ it.pricingPhases.pricingPhaseList.first().priceAmountMicros }, { it.offerId })) ?: basePlan
 }
 
 /**

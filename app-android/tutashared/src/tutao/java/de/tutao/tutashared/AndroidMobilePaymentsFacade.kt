@@ -55,11 +55,6 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		}
 
 		val productDetails = billingClient.queryProduct(productId)
-		val offerDetails = productDetails.subscriptionOfferDetails
-			.orEmpty()
-			.singleOrNull() { offer ->
-				offer.basePlanId == basePlanId && offer.offerId == null
-			} ?: error("Could not find base plan $basePlanId for product $productId")
 
 		val accountId = customerIdBytes.toObfuscatedAccountId()
 		val currentPurchases = billingClient.queryPurchases(
@@ -76,6 +71,7 @@ class AndroidMobilePaymentsFacade(val activity: Activity, val app: AppType) : Mo
 		val currentPurchase = currentPurchases.singleOrNull()
 		if (currentPurchases.size > 1) error("Multiple subscriptions found for this account")
 		if (foreignKey != null && currentPurchase == null) error("Could not find subscription to replace")
+		val offerDetails = productDetails.getSubscriptionOffer(basePlanId)
 		if (currentPurchase != null) {
 			return replaceSubscription(productId, accountId, productDetails, offerDetails, currentPurchase)
 		}
