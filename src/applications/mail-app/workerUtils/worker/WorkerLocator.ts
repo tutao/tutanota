@@ -87,6 +87,7 @@ import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncSta
 import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase"
 import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
+import { getElementId, getEtId } from "@tutao/meta"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -395,7 +396,14 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		worker,
 		clientModelInfo,
 		browserData,
-		loginListenerProvider: (user) => new MailLoginListener(() => locator.eventBusClient, mainInterface.loginListener, user, worker),
+		loginListenerProvider: (user) =>
+			new MailLoginListener(
+				() => locator.eventBusClient,
+				mainInterface.loginListener,
+				user,
+				worker,
+				() => locator.configFacade(),
+			),
 		maybeUninitializedStorage,
 		lastProcessedEventBatchStorageFacade,
 		cacheManagement: locator.cacheManagement,
@@ -561,12 +569,22 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		if (EnvProvider.get().isOfflineStorageAvailable()) {
-			const { OfflineConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase.js")
-			return new OfflineConfigurationDatabase(locator.sqlCipherFacade)
-		} else {
+		const indexedDbConfigurationDatabase = lazyMemoized(async () => {
 			const { IndexedDbConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
 			return new IndexedDbConfigurationDatabase(locator.base.keyLoader, locator.base.user)
+		})
+
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
+			const { OfflineConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase.js")
+			const db = new OfflineConfigurationDatabase(locator.sqlCipherFacade)
+
+			if (await db.needsMigratedFromIndexedDbConfigurationDatabase()) {
+				void db.migrateFromIndexedDbConfigurationDatabase(indexedDbConfigurationDatabase, () => getEtId(locator.base.user.getLoggedInUser()))
+			}
+
+			return db
+		} else {
+			return await indexedDbConfigurationDatabase()
 		}
 	})
 

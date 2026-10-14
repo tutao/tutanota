@@ -24,6 +24,20 @@ export function aesEncryptConfigurationDatabaseItem(
 }
 
 /**
+ * @deprecated use aesDecrypt instead
+ */
+export function aesDecryptConfigurationDatabaseItem(
+	key: AesKey,
+	encryptedBytes: Uint8Array<ArrayBuffer>,
+	initializationVector: InitializationVector,
+): Uint8Array<ArrayBuffer> {
+	const ciphertext = new Uint8Array(encryptedBytes.length + initializationVector.bytes.length)
+	ciphertext.slice(0, initializationVector.bytes.length).set(initializationVector.bytes)
+	ciphertext.slice(initializationVector.bytes.length).set(encryptedBytes)
+	return SYMMETRIC_CIPHER_FACADE.decryptBytesDeprecatedUnauthenticated(key, encryptedBytes)
+}
+
+/**
  * Encrypts bytes with AES 256 in CBC mode without mac. This is legacy code and should be removed once the index has been migrated.
  * @deprecated
  */
