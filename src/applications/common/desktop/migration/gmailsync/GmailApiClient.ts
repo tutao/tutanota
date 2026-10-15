@@ -152,7 +152,7 @@ export class GmailApiClient implements GmailMailApi {
 					throw lastFailure ?? new GmailApiError("Gmail batch request was not completed", 500)
 				}
 				const idsToRequest = pending.map((index) => idsForChunk[index])
-				const responseParts = await this.pacer.withRetry(GMAIL_API_QUOTA_COST_GET_MESSAGE, () => this.postBatch(idsToRequest))
+				const responseParts = await this.pacer.withRetry(GMAIL_API_QUOTA_COST_GET_MESSAGE * idsToRequest.length, () => this.postBatch(idsToRequest))
 
 				const stillPending: number[] = []
 				let retryAfterMs: number | null = null
