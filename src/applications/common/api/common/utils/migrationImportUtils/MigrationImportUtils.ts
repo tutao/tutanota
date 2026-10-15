@@ -161,6 +161,7 @@ export function migrationMailToImportMailParams(
 
 	const bodyText = migrationMail.body?.html.trim() || (migrationMail.body?.plaintext.trim() ? plainTextToHtml(migrationMail.body.plaintext) : "")
 
+	const isLegacyGmail = migrationMail.imapUid !== undefined && migrationMail.labels !== undefined
 	return {
 		subject: migrationMail.envelope?.subject ?? "",
 		bodyText: bodyText,
@@ -186,11 +187,28 @@ export function migrationMailToImportMailParams(
 		imapUid: migrationMail.imapUid ?? null,
 		imapModSeq: migrationMail.modSeq ?? null,
 		mailboxMigrationFolderSyncState: folderSyncStateId,
-		labels: migrationMail.labels ? labelsFromMigrationLabels(migrationMail.labels, migrationFolderSyncStates) : [],
+		labels: migrationMail.labels
+			? isLegacyGmail
+				? labelsFromMigrationLabelsLegacy(migrationMail.labels, migrationFolderSyncStates)
+				: labelsFromMigrationLabels(migrationMail.labels, migrationFolderSyncStates)
+			: [],
 	}
 }
 
-export function labelsFromMigrationLabels(migrationLabels: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
+export function labelsFromMigrationLabels(migrationLabelIds: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
+	let result: Set<IdTuple> = new Set()
+
+	for (const migrationLabelId of migrationLabelIds) {
+		let folderSyncState: MailboxMigrationFolderSyncState | null
+		folderSyncState = mailboxMigrationFolderSyncStates.find((folderSyncState) => folderSyncState.sourceId === migrationLabelId) ?? null
+		if (folderSyncState?.mailSet) {
+			result.add(folderSyncState.mailSet)
+		}
+	}
+	return Array.from(result)
+}
+
+export function labelsFromMigrationLabelsLegacy(migrationLabels: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
 	for (const migrationLabel of migrationLabels) {

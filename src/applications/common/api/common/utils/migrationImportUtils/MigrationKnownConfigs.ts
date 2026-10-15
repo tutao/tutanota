@@ -24,8 +24,15 @@ export type ImapConfigParams = {
 	port: number
 }
 
+export const enum MigrationFetchMethod {
+	Imap = "imap",
+	GraphApi = "graphApi",
+	GoogleApi = "googleApi",
+}
+
 export type ServerMigrationConfig = {
 	domains: string[]
+	fetchMethod: MigrationFetchMethod
 	authMethod: MigrationAuthMethod
 	oauthConfig?: OauthConfigParams
 	imapConfig?: ImapConfigParams
@@ -38,12 +45,13 @@ const migrationKnownConfigs = {
 	// See also https://autoconfig.thunderbird.net/v1.1/
 	gmail: {
 		domains: ["gmail.com", "googlemail.com"],
+		fetchMethod: MigrationFetchMethod.GoogleApi,
 		authMethod: MigrationAuthMethod.Oauth2,
 		oauthConfig: {
 			server: "https://accounts.google.com",
-			clientId: "397205111573-me3bs8q166tgsrpjb7jg5k89ghb3jlm7.apps.googleusercontent.com", // webapp id
+			clientId: "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com", // webapp id
 			redirectUri: "http://localhost/",
-			scope: "https://mail.google.com/",
+			scope: "https://www.googleapis.com/auth/gmail.readonly",
 			providerSpecificParams: {
 				access_type: "offline", // required for refresh token
 			},
@@ -155,12 +163,13 @@ const migrationKnownConfigs = {
 			"live.com.sg",
 			"livemail.tw",
 		],
+		fetchMethod: MigrationFetchMethod.GraphApi,
 		authMethod: MigrationAuthMethod.Oauth2,
 		oauthConfig: {
 			server: "https://login.microsoftonline.com/common/v2.0",
 			clientId: "5e304219-20c3-4627-a9e9-ae884703bf62",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
-			scope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
+			scope: "offline_access Mail.Read",
 			providerSpecificParams: {
 				response_mode: "query",
 				tenant: "common",
@@ -172,6 +181,7 @@ const migrationKnownConfigs = {
 			// See also: https://hilfe.gmx.net/pop-imap/imap/imap-serverdaten.html
 			// GMX Requires user to allow access beforehand in the account settings.
 			domains: ["gmx.net", "gmx.de", "gmx.at", "gmx.ch", "gmx.eu", "gmx.biz", "gmx.org", "gmx.info", "mein.gmx", "mail.gmx", "email.gmx"],
+			fetchMethod: MigrationFetchMethod.Imap,
 			authMethod: MigrationAuthMethod.Password,
 			imapConfig: {
 				host: "imap.gmx.net",
@@ -182,6 +192,7 @@ const migrationKnownConfigs = {
 			domains: ["web.de"],
 			// See also: https://hilfe.web.de/pop-imap/imap/imap-serverdaten.htm
 			// web.de Requires user to allow access beforehand in the account settings.
+			fetchMethod: MigrationFetchMethod.Imap,
 			authMethod: MigrationAuthMethod.Password,
 			imapConfig: {
 				host: "imap.web.de",
@@ -243,6 +254,7 @@ const migrationKnownConfigs = {
 			],
 			// See also: https://hilfe.web.de/pop-imap/imap/imap-serverdaten.htm
 			// web.de Requires user to allow access beforehand in the account settings.
+			fetchMethod: MigrationFetchMethod.Imap,
 			authMethod: MigrationAuthMethod.Password,
 			imapConfig: {
 				host: "posteo.de",
