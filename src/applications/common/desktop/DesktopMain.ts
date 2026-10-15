@@ -92,8 +92,11 @@ import { DesktopOauthWindowFacade } from "./DesktopOauthWindowFacade"
 import { MigrationSyncEventListener } from "./migration/MigrationSyncEventListener"
 import { DesktopMigrationSyncSystemFacade, MigrationInitFolderSyncFactory, MigrationSyncFactory } from "./migration/DesktopMigrationSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
+import { MigrationFetchMethod } from "../api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { MigrationSyncSession } from "./migration/MigrationSyncSession"
 import { createImapSyncSession } from "./migration/imapsync/ImapSyncSession"
+import { createGmailSyncSession } from "./migration/gmailsync/GmailSyncSession"
+import { createM365SyncSession } from "./migration/m365sync/M365SyncSession"
 
 mp()
 
@@ -384,10 +387,17 @@ async function createComponents(): Promise<Components> {
 			},
 		}
 		const certificateProvider = new CertificateProvider(commandExecutor)
-		const createMigrationSync = (listener: MigrationSyncEventListener): MigrationSyncSession => {
-			return createImapSyncSession(listener, certificateProvider)
+		const createMigrationSync = (fetchMethod: MigrationFetchMethod, listener: MigrationSyncEventListener): MigrationSyncSession => {
+			switch (fetchMethod) {
+				case MigrationFetchMethod.GraphApi:
+					return createM365SyncSession(listener)
+				case MigrationFetchMethod.GoogleApi:
+					return createGmailSyncSession(listener)
+				case MigrationFetchMethod.Imap:
+					return createImapSyncSession(listener, certificateProvider)
+			}
 		}
-		const migrationSyncFactory: MigrationSyncFactory = (accountSyncId: IdTuple) => {
+		const migrationSyncFactory: MigrationSyncFactory = (accountSyncId: IdTuple, fetchMethod: MigrationFetchMethod) => {
 			const wrappedListener: MigrationSyncEventListener = {
 				onMultipleMails: async (mails, type) => await window.migrationSyncFacade.onMultipleMails(accountSyncId, mails, type),
 				onMailbox: async (mb, type) => await window.migrationSyncFacade.onMailbox(accountSyncId, mb, type),
@@ -396,9 +406,9 @@ async function createComponents(): Promise<Components> {
 				onFinish: async () => await window.migrationSyncFacade.onFinish(accountSyncId),
 				onError: async (err) => await window.migrationSyncFacade.onError(accountSyncId, err),
 			}
-			return createMigrationSync(wrappedListener)
+			return createMigrationSync(fetchMethod, wrappedListener)
 		}
-		const migrationInitFolderSyncFactory: MigrationInitFolderSyncFactory = () => {
+		const migrationInitFolderSyncFactory: MigrationInitFolderSyncFactory = (fetchMethod: MigrationFetchMethod) => {
 			const noopListener = {
 				onMultipleMails: async () => {},
 				onMailbox: async () => {},
@@ -407,7 +417,7 @@ async function createComponents(): Promise<Components> {
 				onFinish: async () => {},
 				onError: async () => {},
 			}
-			return createMigrationSync(noopListener)
+			return createMigrationSync(fetchMethod, noopListener)
 		}
 		const dispatcher = new DesktopGlobalDispatcher(
 			desktopCommonSystemFacade,
