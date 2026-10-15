@@ -3,7 +3,7 @@ import {
 	getFolderSyncStateForMailboxPath,
 	guessServerMigrationParamsFromEmail,
 	migrationMailToImportMailParams,
-	labelsFromMigrationLabels,
+	labelsFromMigrationLabelsLegacy,
 	migrationSyncStateToMigrationCredentials,
 	oAuthTokenToTokenEndpointResponse,
 	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
@@ -275,8 +275,43 @@ o.spec("MigrationImportUtils", () => {
 			o.check(new Set(result.labels)).deepEquals(expectedLabels)
 		})
 
+		o.test("converts basic mail without attachments with draft label legacy gmail", () => {
+			migrationMail.labels?.add("\\Draft")
+			migrationMail.imapUid = 1235
+
+			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
+			o.check(result.subject).equals("Test subject")
+			o.check(result.bodyText).equals("<p>HTML body</p>")
+			o.check(result.sentDate).equals(migrationMail.envelope!.date)
+			o.check(result.receivedDate).equals(migrationMail.internalDate)
+			o.check(result.state).equals(MailState.DRAFT)
+			o.check(result.unread).equals(true)
+			o.check(result.senderMailAddress).equals("sender@example.com")
+			o.check(result.senderName).equals("Sender")
+			o.check(result.method).equals(MailMethod.NONE)
+			o.check(result.replyType).equals(ReplyType.NONE)
+			o.check(result.differentEnvelopeSender).equals(null)
+			o.check(result.headers).equals("Header: value")
+			o.check(result.replyTos).deepEquals([])
+			o.check(result.toRecipients).deepEquals([{ address: "to@example.com", name: "Recipient" }])
+			o.check(result.ccRecipients).deepEquals([])
+			o.check(result.bccRecipients).deepEquals([])
+			o.check(result.attachments).deepEquals([])
+			o.check(result.inReplyTo).equals(null)
+			o.check(result.references).deepEquals([])
+			o.check(result.sourceId).equals("123")
+			o.check(result.imapModSeq).equals(456n)
+			o.check(result.mailboxMigrationFolderSyncState).equals(folderSyncStateIdMock)
+			o.check(result.labels).deepEquals([
+				["mailSetsListId", "importantLabelSet"],
+				["mailSetsListId", "customLabelSet"],
+				["mailSetsListId", "draftsLabelSet"],
+			])
+		})
+
 		o.test("converts basic mail without attachments with draft label", () => {
 			migrationMail.labels?.add("\\Draft")
+			migrationMail.imapUid = 1235
 
 			const result = migrationMailToImportMailParams(migrationMail, folderSyncStateIdMock, null, folderSyncStatesMock)
 			o.check(result.subject).equals("Test subject")
@@ -398,7 +433,7 @@ o.spec("MigrationImportUtils", () => {
 
 		o.test("labelsFromMigrationLabels works correctly", () => {
 			const labels = new Set(["\\Inbox", "\\Important", "\\Draft", "Custom", "RandomLabelShouldNotBeImported"])
-			const result = labelsFromMigrationLabels(labels, folderSyncStatesMock)
+			const result = labelsFromMigrationLabelsLegacy(labels, folderSyncStatesMock)
 			o.check(result[0]).equals(folderSyncStatesMock[0].mailSet)
 			o.check(result[1]).equals(folderSyncStatesMock[1].mailSet)
 			o.check(result[2]).equals(folderSyncStatesMock[2].mailSet)
