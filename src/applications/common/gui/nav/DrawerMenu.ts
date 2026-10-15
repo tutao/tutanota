@@ -21,6 +21,7 @@ import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
+import { mailLocator } from "../../../mail-app/mailLocator"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -143,7 +144,11 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				m(IconButton, {
 					icon: Icons.Logout,
 					label: "switchAccount_action",
-					click: () => m.route.set(LogoutUrl),
+					click: () =>
+						mailLocator
+							.getMailboxMigrationController()
+							.stopAllLocalImports()
+							.then(() => m.route.set(LogoutUrl)),
 					colors: ButtonColor.DrawerNav,
 				}),
 			],

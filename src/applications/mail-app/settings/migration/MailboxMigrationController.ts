@@ -258,6 +258,10 @@ export class MailboxMigrationController {
 		this.isInStateTransition = false
 	}
 
+	async stopAllLocalImports() {
+		await promiseMap(this.activeMigrationUiSessions, async (session) => await this.stopLocalImport(session.mailboxMigrationSyncStateId))
+	}
+
 	async stopLocalImport(mailboxMigrationSyncStateId: IdTuple) {
 		this.isInStateTransition = true
 		await this.mailboxImporter.stopLocalImport(mailboxMigrationSyncStateId)
