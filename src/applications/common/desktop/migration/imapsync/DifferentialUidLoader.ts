@@ -1,6 +1,7 @@
 import { MigrationMailId } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import type { ImapFlow } from "./imapflow-custom.js"
 import { MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
+import { MAIL_DOWNLOAD_BATCH_SIZE } from "../MigrationSyncSession"
 
 interface UidFetchSequence {
 	fromUid: number
@@ -17,7 +18,6 @@ export enum UidFetchRequestType {
 export const UID_FETCH_REQUEST_WAIT_TIME = 10 // in ms
 
 export const UID_DIFF_DOWNLOAD_BATCH_SIZE = 2500
-export const MAIL_DOWNLOAD_BATCH_SIZE = 125
 
 export interface UidFetchRequest {
 	uidFetchSequenceString: string

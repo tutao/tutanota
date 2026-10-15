@@ -1,8 +1,7 @@
 import { MailboxMigrationFolderSyncStatus, MailSetKind, SystemFolderType } from "../../../../../../entities/tutanota/Utils"
-import { ListTreeResponse } from "imapflow"
 
 export type MigrationMailboxStatus = {
-	path: string
+	sourceId: string
 	messageCount?: number
 	uidNext: number
 	uidValidity: bigint
@@ -31,29 +30,6 @@ export type MigrationMailbox = {
 	disabled?: boolean
 	parentFolder?: MigrationMailbox | null
 	subFolders?: MigrationMailbox[]
-}
-
-export function migrationMailboxFromImapFlowListTreeResponse(listTreeResponse: ListTreeResponse, parentFolder: MigrationMailbox | null): MigrationMailbox {
-	let migrationMailbox: MigrationMailbox = {
-		sourceId: listTreeResponse.path ?? "-",
-		name: listTreeResponse.name ?? "-",
-		pathDelimiter: listTreeResponse.delimiter ?? "/",
-		flags: Array.from(listTreeResponse.flags ?? []),
-		// the Gmail \Important special use is on the flags
-		specialUse: listTreeResponse.flags?.has(MigrationMailboxSpecialUse.IMPORTANT)
-			? MigrationMailboxSpecialUse.IMPORTANT
-			: (listTreeResponse.specialUse as MigrationMailboxSpecialUse),
-		disabled: listTreeResponse.disabled ?? false,
-		parentFolder: parentFolder,
-	}
-
-	if (listTreeResponse.folders) {
-		migrationMailbox.subFolders = listTreeResponse.folders.map((value: ListTreeResponse) =>
-			migrationMailboxFromImapFlowListTreeResponse(value, migrationMailbox),
-		)
-	}
-
-	return migrationMailbox
 }
 
 export function getSpecialUseAsSystemFolderType(mailbox: MigrationMailbox): SystemFolderType | null {

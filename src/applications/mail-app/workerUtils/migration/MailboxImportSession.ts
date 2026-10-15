@@ -5,7 +5,6 @@ export type MailboxImportSession = {
 	mailboxMigrationSyncState: MailboxMigrationSyncState
 	mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]
 	userMigrationInformation: UserMigrationInformation | null
-	importedMessageIds: Set<string>
 	syncProgress?: {
 		completed: number
 		total: number
@@ -21,6 +20,5 @@ export function newMailboxImportSession(
 		mailboxMigrationSyncState: accountSyncState,
 		mailboxMigrationFolderSyncStates: folderSyncStates,
 		userMigrationInformation,
-		importedMessageIds: new Set(),
 	}
 }

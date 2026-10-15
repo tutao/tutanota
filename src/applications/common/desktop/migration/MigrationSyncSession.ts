@@ -3,7 +3,7 @@ import { MigrationMailbox } from "../../api/common/utils/migrationImportUtils/Mi
 import { MigrationError } from "../../api/common/error/MigrationError.js"
 import { MigrationSyncEventType } from "../../../../entities/tutanota/Utils.js"
 import type { MigrationSyncEventListener } from "./MigrationSyncEventListener.js"
-import { MigrationSessionMailbox, migrationMailboxFromSyncSessionMailbox, SyncSessionMailboxImportance } from "./MigrationSessionMailbox.js"
+import { migrationMailboxFromSyncSessionMailbox, MigrationSessionMailbox, SyncSessionMailboxImportance } from "./MigrationSessionMailbox.js"
 import { ProgrammingError } from "@tutao/app-env"
 import { assertNotNull, first, isEmpty } from "@tutao/utils"
 
@@ -25,6 +25,8 @@ export enum ShutdownSyncAction {
 	UNKNOWN,
 }
 
+export const MAIL_DOWNLOAD_BATCH_SIZE = 125
+
 export interface SyncSessionEventListener {
 	startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void
 
@@ -44,7 +46,6 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 	protected migrationSyncContext?: MigrationSyncContext
 	// Visible for testing
 	syncSessionMailboxes: MigrationSessionMailbox[] = []
-	protected readonly migrationMailboxByPath = new Map<string, MigrationMailbox>()
 
 	protected constructor(protected readonly migrationSyncEventListener: MigrationSyncEventListener) {}
 
@@ -60,7 +61,7 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	protected abstract toMigrationError(e: any): MigrationError
 
-	protected abstract handleSetupError(e: any): Promise<MigrationError | null>
+	protected abstract handleSetupError(e: any): Promise<MigrationError>
 
 	abstract startMailboxSync(syncSessionMailbox: MigrationSessionMailbox): void
 
@@ -68,10 +69,6 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	protected selectSyncSessionMailboxes(syncSessionMailboxes: MigrationSessionMailbox[]): MigrationSessionMailbox[] {
 		return syncSessionMailboxes
-	}
-
-	protected get stopped(): boolean {
-		return this.state !== SyncSessionState.RUNNING
 	}
 
 	async startSync(migrationSyncContext: MigrationSyncContext): Promise<void> {
@@ -107,17 +104,12 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 			throw setupResult
 		}
 
-		if (setupResult === null || this.state !== SyncSessionState.RUNNING) {
-			// postponed or stopped during the setup
-			return
-		}
-
 		this.syncSessionMailboxes = this.selectSyncSessionMailboxes(setupResult)
 
 		this.startNextMailboxSync()
 	}
 
-	private async setupSyncSession(): Promise<MigrationSessionMailbox[] | MigrationError | null> {
+	private async setupSyncSession(): Promise<MigrationSessionMailbox[] | MigrationError> {
 		const migrationSyncContext = this.migrationSyncContext
 		if (!migrationSyncContext) {
 			throw new ProgrammingError("The migrationSyncContext has not been set!")
@@ -179,7 +171,7 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 		for (const knownMailbox of knownMailboxes) {
 			const index = resultMailboxes.findIndex((mailbox) => {
-				return mailbox.mailboxState.path === knownMailbox.mailboxState.path
+				return mailbox.mailboxState.sourceId === knownMailbox.mailboxState.sourceId
 			})
 
 			if (index === -1) {
@@ -197,13 +189,13 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 	): Promise<MigrationSessionMailbox[]> {
 		const result: MigrationSessionMailbox[] = []
 
-		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.path === migrationMailbox.sourceId)
+		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.sourceId === migrationMailbox.sourceId)
 		if (syncSessionMailbox === undefined) {
 			await this.migrationSyncEventListener.onMailbox(migrationMailbox, MigrationSyncEventType.CREATE)
-			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.path === migrationMailbox.parentFolder?.sourceId)
+			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.sourceId === migrationMailbox.parentFolder?.sourceId)
 			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
 			syncSessionMailbox = new MigrationSessionMailbox({
-				path: migrationMailbox.sourceId,
+				sourceId: migrationMailbox.sourceId,
 				importedSourceIdToMailIdsMap: new Map(),
 				noSync,
 			})
@@ -211,7 +203,6 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 		if (migrationMailbox.specialUse) {
 			syncSessionMailbox.specialUse = migrationMailbox.specialUse
 		}
-		this.migrationMailboxByPath.set(migrationMailbox.sourceId, migrationMailbox)
 
 		// some settings lead to importance "NO_SYNC" which means that the mailbox should not be imported / migrated
 		if (syncSessionMailbox.importance !== SyncSessionMailboxImportance.NO_SYNC) {
@@ -228,8 +219,9 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	onMailboxFinish(syncSessionMailbox: MigrationSessionMailbox): void {
 		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
+			return mailbox.mailboxState.sourceId === syncSessionMailbox.mailboxState.sourceId
 		})
+
 		if (mailboxIndex !== -1) {
 			const isLastMailboxFinish = this.syncSessionMailboxes.length === 1
 			this.syncSessionMailboxes.splice(mailboxIndex, 1)
@@ -246,7 +238,7 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 
 	onMailboxInterrupted(syncSessionMailbox: MigrationSessionMailbox): void {
 		const mailboxIndex = this.syncSessionMailboxes.findIndex((mailbox) => {
-			return mailbox.mailboxState.path === syncSessionMailbox.mailboxState.path
+			return mailbox.mailboxState.sourceId === syncSessionMailbox.mailboxState.sourceId
 		})
 
 		if (mailboxIndex !== -1) {

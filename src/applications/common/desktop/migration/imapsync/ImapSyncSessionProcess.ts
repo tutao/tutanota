@@ -3,13 +3,13 @@ import type { MigrationSyncEventListener } from "../MigrationSyncEventListener.j
 import { MigrationCredentials, MigrationMailId } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMail } from "../../../api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationMailbox, MigrationMailboxStatus } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
-import { DifferentialUidLoader, MAIL_DOWNLOAD_BATCH_SIZE, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
+import { DifferentialUidLoader, UID_FETCH_REQUEST_WAIT_TIME, UidFetchRequestType } from "./DifferentialUidLoader.js"
 import { setTimeout } from "node:timers/promises"
 import { assertNotNull, isEmpty, isNotEmpty } from "@tutao/utils"
 import { migrationMailFromImapFlowFetchMessageObject } from "../mailparser/MailParserUtils"
 import type { ImapFlow } from "imapflow"
 import { ImapFlowFactory, ImapSyncConfig } from "./ImapSyncSession"
-import { SyncSessionEventListener } from "../MigrationSyncSession"
+import { MAIL_DOWNLOAD_BATCH_SIZE, SyncSessionEventListener } from "../MigrationSyncSession"
 import { MailboxMigrationFolderSyncStatus, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { MigrationError } from "../../../api/common/error/MigrationError"
 
@@ -88,11 +88,11 @@ export class ImapSyncSessionProcess {
 
 		try {
 			// open mailbox readonly
-			const mailboxObject = await this.imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.path, { readOnly: true })
+			const mailboxObject = await this.imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.sourceId, { readOnly: true })
 
 			// emit MigrationMailboxStatus and update SyncSessionMailbox
 			const migrationMailboxStatus: MigrationMailboxStatus = {
-				path: mailboxObject.path,
+				sourceId: mailboxObject.path,
 				uidValidity: mailboxObject.uidValidity,
 				uidNext: mailboxObject.uidNext,
 				messageCount: mailboxObject.exists,
@@ -112,7 +112,7 @@ export class ImapSyncSessionProcess {
 			let imapQresyncMigrationMails: MigrationMail[] = []
 
 			const importedUidToMailIdsMap = new Map(
-				[...this.syncSessionProcessMailbox.mailboxState.importedSourceIdToMailIdsMap].map(([key, value]) => [Number(key), value]),
+				Array.from(this.syncSessionProcessMailbox.mailboxState.importedSourceIdToMailIdsMap).map(([key, value]) => [parseInt(key), value]),
 			)
 
 			// calculate UID differences

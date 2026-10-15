@@ -1,9 +1,9 @@
 import { EnvProvider } from "@tutao/app-env"
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel"
-import { MailboxImporter, ImportResult, InitializeMigrationParams, MailSetMapping } from "../../workerUtils/migration/MailboxImporter"
+import { ImportResult, InitializeMigrationParams, MailboxImporter, MailSetMapping } from "../../workerUtils/migration/MailboxImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, first } from "@tutao/utils"
+import { assertNotNull, first, promiseMap } from "@tutao/utils"
 import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
@@ -251,23 +251,23 @@ export class MailboxMigrationController {
 		}
 	}
 
-	async pauseImport(accountSyncStateId: IdTuple) {
+	async pauseImport(mailboxMigrationSyncStateId: IdTuple) {
 		this.isInStateTransition = true
-		await this.mailboxImporter.pauseImport(accountSyncStateId)
+		await this.mailboxImporter.pauseImport(mailboxMigrationSyncStateId)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}
 
-	async stopLocalImport(accountSyncStateId: IdTuple) {
+	async stopLocalImport(mailboxMigrationSyncStateId: IdTuple) {
 		this.isInStateTransition = true
-		await this.mailboxImporter.stopLocalImport(accountSyncStateId)
+		await this.mailboxImporter.stopLocalImport(mailboxMigrationSyncStateId)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}
 
-	async deleteImport(accountSyncStateId: IdTuple) {
+	async deleteImport(mailboxMigrationSyncStateId: IdTuple) {
 		this.isInStateTransition = true
-		await this.mailboxImporter.deleteImport(accountSyncStateId)
+		await this.mailboxImporter.deleteImport(mailboxMigrationSyncStateId)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}

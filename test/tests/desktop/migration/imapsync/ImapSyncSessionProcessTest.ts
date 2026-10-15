@@ -44,7 +44,7 @@ o.spec("ImapSyncSessionProcess", () => {
 		imapCredentialsMock = object<MigrationCredentials>()
 
 		syncSessionMailboxMock = new MigrationSessionMailbox({
-			path: mailboxPath,
+			sourceId: mailboxPath,
 			importedSourceIdToMailIdsMap: new Map(),
 			noSync: false,
 		})
@@ -94,7 +94,7 @@ o.spec("ImapSyncSessionProcess", () => {
 		imapSyncConfigMock.isEnableImapQresync = false
 		when(imapClientMock.connect()).thenResolve()
 		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({
-			path: syncSessionMailboxMock.mailboxState.path,
+			path: syncSessionMailboxMock.mailboxState.sourceId,
 			uidValidity: 12345n,
 			uidNext: 100,
 			highestModseq: 67890n,
@@ -110,7 +110,7 @@ o.spec("ImapSyncSessionProcess", () => {
 
 		when(imapClientMock.connect()).thenResolve()
 		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({
-			path: syncSessionMailboxMock.mailboxState.path,
+			path: syncSessionMailboxMock.mailboxState.sourceId,
 			uidValidity: 12345n,
 			uidNext: 100,
 			highestModseq: 67890n,
@@ -155,7 +155,7 @@ o.spec("ImapSyncSessionProcess", () => {
 		imapSyncConfigMock.isEnableImapQresync = false
 		when(imapClientMock.connect()).thenResolve()
 		when(imapClientMock.mailboxOpen(anything(), anything())).thenResolve({
-			path: syncSessionMailboxMock.mailboxState.path,
+			path: syncSessionMailboxMock.mailboxState.sourceId,
 			uidValidity: 12345n,
 			uidNext: 100,
 			highestModseq: 67890n,

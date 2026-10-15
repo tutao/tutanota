@@ -93,7 +93,7 @@ import { MigrationSyncEventListener } from "./migration/MigrationSyncEventListen
 import { DesktopMigrationSyncSystemFacade, MigrationInitFolderSyncFactory, MigrationSyncFactory } from "./migration/DesktopMigrationSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
 import { MigrationSyncSession } from "./migration/MigrationSyncSession"
-import { createImapSync } from "./migration/imapsync/ImapSyncSession"
+import { createImapSyncSession } from "./migration/imapsync/ImapSyncSession"
 
 mp()
 
@@ -385,7 +385,7 @@ async function createComponents(): Promise<Components> {
 		}
 		const certificateProvider = new CertificateProvider(commandExecutor)
 		const createMigrationSync = (listener: MigrationSyncEventListener): MigrationSyncSession => {
-			return createImapSync(listener, certificateProvider)
+			return createImapSyncSession(listener, certificateProvider)
 		}
 		const migrationSyncFactory: MigrationSyncFactory = (accountSyncId: IdTuple) => {
 			const wrappedListener: MigrationSyncEventListener = {

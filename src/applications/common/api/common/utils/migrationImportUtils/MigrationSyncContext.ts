@@ -4,11 +4,10 @@ import { MailboxMigrationProvider } from "./MigrationKnownConfigs"
 export type MigrationMailId = {
 	sourceId: string
 	modSeq?: bigint
-	messageId?: string
 }
 
 export type MigrationMailboxState = {
-	path: string
+	sourceId: string
 	uidValidity?: bigint
 	uidNext?: number
 	highestModSeq?: bigint | null // null indicates that the CONDSTORE (and QRESYNC) IMAP extension, and therefore highestModSeq, is not supported

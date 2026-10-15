@@ -71,7 +71,7 @@ o.spec("MailboxImporter", () => {
 	}
 	const migrationMailbox: MigrationMailbox = { sourceId: "INBOX", name: "INBOX" }
 	const migrationMailboxStatus: MigrationMailboxStatus = {
-		path: "INBOX",
+		sourceId: "INBOX",
 		uidNext: 100,
 		uidValidity: 12345n,
 		highestModSeq: 67890n,
@@ -351,7 +351,6 @@ o.spec("MailboxImporter", () => {
 
 	o.test("onMultipleMails - imports mails that are not yet imported", async () => {
 		const session = newMailboxImportSession(accountSyncStateMock, [folderSyncStateMock], null)
-		session.importedMessageIds = new Set()
 		importer.mailboxImportSessions.set(importer.getMailboxImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const migrationMails = [migrationMail]
@@ -364,7 +363,6 @@ o.spec("MailboxImporter", () => {
 
 	o.test("onMultipleMails - imports even if messageId already seen", async () => {
 		const session = newMailboxImportSession(accountSyncStateMock, [folderSyncStateMock], null)
-		session.importedMessageIds = new Set(["msg123"])
 		importer.mailboxImportSessions.set(importer.getMailboxImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const migrationMails = [migrationMail]
@@ -376,7 +374,6 @@ o.spec("MailboxImporter", () => {
 
 	o.test("onMultipleMails - handles SuspensionError by postponing import", async () => {
 		const session = newMailboxImportSession(accountSyncStateMock, [folderSyncStateMock], null)
-		session.importedMessageIds = new Set()
 		importer.mailboxImportSessions.set(importer.getMailboxImportSessionsMapKey(accountSyncStateIdMock), session)
 
 		const migrationMails = [migrationMail]

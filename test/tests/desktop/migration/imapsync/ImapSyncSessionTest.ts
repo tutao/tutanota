@@ -109,7 +109,7 @@ o.spec("ImapSyncSession", () => {
 
 	o.test("startNextMailboxSync - starts the next mailbox sorted by importance if failureCount is 0", async () => {
 		const draftFolderState = {
-			path: "DRAFT",
+			sourceId: "DRAFT",
 			uidValidity: 1n,
 			uidNext: 2,
 			highestModSeq: 1n,
@@ -138,12 +138,12 @@ o.spec("ImapSyncSession", () => {
 
 		await session.onMailboxFinish(syncSessionMailbox)
 
-		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.path).equals("Custom")
+		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.sourceId).equals("Custom")
 	})
 
 	o.test("startNextMailboxSync - starts the next mailbox sorted by failure count if failureCount is same", async () => {
 		const draftFolderState = {
-			path: "DRAFT",
+			sourceId: "DRAFT",
 			uidValidity: 1n,
 			uidNext: 2,
 			highestModSeq: 1n,
@@ -173,12 +173,12 @@ o.spec("ImapSyncSession", () => {
 
 		await session.onMailboxFinish(syncSessionMailbox)
 
-		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.path).equals("INBOX")
+		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.sourceId).equals("INBOX")
 	})
 
 	o.test("startNextMailboxSync - sorts by failure count and then importance", async () => {
 		const draftFolderState = {
-			path: "DRAFT",
+			sourceId: "DRAFT",
 			uidValidity: 1n,
 			uidNext: 2,
 			highestModSeq: 1n,
@@ -211,7 +211,7 @@ o.spec("ImapSyncSession", () => {
 
 		await session.onMailboxFinish(syncSessionMailbox)
 
-		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.path).equals("Custom")
+		o(session.runningSyncSessionProcess?.syncSessionProcessMailbox.mailboxState.sourceId).equals("Custom")
 	})
 
 	o.test("startNextMailboxSync - only syncSessionMailbox is ALL mailbox if isGmail is true", async () => {

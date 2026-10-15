@@ -52,5 +52,5 @@ export class MigrationSessionMailbox {
 }
 
 export function migrationMailboxFromSyncSessionMailbox(syncSessionMailbox: MigrationSessionMailbox): MigrationMailbox {
-	return { sourceId: syncSessionMailbox.mailboxState.path, specialUse: syncSessionMailbox.specialUse ?? undefined }
+	return { sourceId: syncSessionMailbox.mailboxState.sourceId, specialUse: syncSessionMailbox.specialUse ?? undefined }
 }

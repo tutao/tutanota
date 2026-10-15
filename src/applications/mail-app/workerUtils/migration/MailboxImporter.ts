@@ -1,20 +1,20 @@
 import {
-	MigrationMailId,
 	MigrationCredentials,
 	MigrationMailboxState,
+	MigrationMailId,
 	MigrationSyncContext,
 } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } from "../../../common/api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationMail, MigrationMailAttachment } from "../../../common/api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationError } from "../../../common/api/common/error/MigrationError.js"
 
-import { assertNotNull, base64UrlCustomIdToString, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import {
-	MigrationImportDataFile,
-	MigrationImportTutaFileId,
 	ImportMailFacade,
 	ImportMailParams,
+	MigrationImportDataFile,
+	MigrationImportTutaFileId,
 } from "../../../common/api/worker/facades/lazy/ImportMailFacade"
 import { SuspensionError } from "../../../common/api/common/error/SuspensionError"
 import { MailboxImportSession, newMailboxImportSession } from "./MailboxImportSession"
@@ -41,7 +41,7 @@ import { UserMigrationCredentialParams, UserMigrationInformation } from "@tutao/
 import { collapseId, elementIdPart, isSameId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { MailboxMigrationFacade } from "../../../common/api/worker/facades/lazy/MailboxMigrationFacade"
-import { MigrationSyncSystemFacade, MigrationSyncFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { MigrationSyncFacade, MigrationSyncSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { MailboxMigrationUiSession } from "../../settings/migration/MailboxMigrationController"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
@@ -99,7 +99,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 	) {}
 
 	private async loadUserMigrationInformationForSyncState(
-		migrationSyncStateId: IdTuple,
+		mailboxMigrationSyncStateId: IdTuple,
 		userMigrationInfoListId?: IdTuple,
 	): Promise<UserMigrationInformation | null> {
 		if (userMigrationInfoListId) {
@@ -108,7 +108,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 			// legacy case
 			const userMigrationInfoListId = this.userFacade.getLoggedInUser().userMigrationInfos
 			const userMigrationInfos = await this.mailboxMigrationFacade.getAllUserMigrationInformation(userMigrationInfoListId)
-			return findUserMigrationInfoForSyncState(userMigrationInfos, migrationSyncStateId)
+			return findUserMigrationInfoForSyncState(userMigrationInfos, mailboxMigrationSyncStateId)
 		}
 	}
 
@@ -243,8 +243,8 @@ export class MailboxImporter implements MigrationSyncFacade {
 		})
 	}
 
-	async pauseImport(accountSyncStateId: IdTuple): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async pauseImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
 			await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
@@ -255,15 +255,15 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 	}
 
-	async stopLocalImport(accountSyncStateId: IdTuple): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async stopLocalImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
 		}
 	}
 
-	async postponeImport(accountSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async postponeImport(mailboxMigrationSyncStateId: IdTuple, postponedUntil: Date): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
 			await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
@@ -275,8 +275,8 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 	}
 
-	async setGmailAllMailsImapDisabledOnImport(accountSyncStateId: IdTuple): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async setGmailAllMailsImapDisabledOnImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session !== null) {
 			await this.migrationSyncSystemFacade.stopSync(session.mailboxMigrationSyncState._id)
 			await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
@@ -309,19 +309,18 @@ export class MailboxImporter implements MigrationSyncFacade {
 			if (!(folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC)) {
 				const importedMigrationMails = await this.mailboxMigrationFacade.getImportedMails(folderSyncState.importedMails)
 				for (const importedMigrationMail of importedMigrationMails) {
-					const { sourceId, imapModSeq, messageId } = importedMigrationMail
-					const migrationMailId: MigrationMailId = { sourceId, messageId }
+					const { sourceId, imapModSeq } = importedMigrationMail
+					const migrationMailId: MigrationMailId = { sourceId }
 					if (imapModSeq !== null) {
 						migrationMailId.modSeq = BigInt(imapModSeq)
 					}
-					session.importedMessageIds.add(messageId)
 
 					importedSourceIdToMigrationMailId.set(importedMigrationMail.sourceId, migrationMailId)
 				}
 			}
 
 			const migrationMailboxState: MigrationMailboxState = {
-				path: folderSyncState.sourceId,
+				sourceId: folderSyncState.sourceId,
 				importedSourceIdToMailIdsMap: importedSourceIdToMigrationMailId,
 				noSync: folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC,
 			}
@@ -400,8 +399,8 @@ export class MailboxImporter implements MigrationSyncFacade {
 		})
 	}
 
-	async onMailbox(accountSyncStateId: IdTuple, migrationMailbox: MigrationMailbox, eventType: MigrationSyncEventType): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async onMailbox(mailboxMigrationSyncStateId: IdTuple, migrationMailbox: MigrationMailbox, eventType: MigrationSyncEventType): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (!session) {
 			return Promise.resolve()
 		}
@@ -456,9 +455,9 @@ export class MailboxImporter implements MigrationSyncFacade {
 		return Promise.resolve()
 	}
 
-	async onMailboxStatus(accountSyncStateId: IdTuple, migrationMailboxStatus: MigrationMailboxStatus): Promise<void> {
-		const session = assertNotNull(this.getMailboxImportSessionOrNull(accountSyncStateId))
-		const folderSyncState = getFolderSyncStateForMailboxPath(migrationMailboxStatus.path, session.mailboxMigrationFolderSyncStates)
+	async onMailboxStatus(mailboxMigrationSyncStateId: IdTuple, migrationMailboxStatus: MigrationMailboxStatus): Promise<void> {
+		const session = assertNotNull(this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId))
+		const folderSyncState = getFolderSyncStateForMailboxPath(migrationMailboxStatus.sourceId, session.mailboxMigrationFolderSyncStates)
 		if (folderSyncState !== null && folderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC) {
 			// If the uidvalidity of a folder has changed, it means all IMAP uids are invalidated, and we cannot continue with the sync.
 			// This should usually never happen, only with bad IMAP server implementations.
@@ -470,15 +469,15 @@ export class MailboxImporter implements MigrationSyncFacade {
 					undefined,
 				)
 				console.error(
-					`uidvalidity of a folder has changed for the account sync state ${accountSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
+					`uidvalidity of a folder has changed for the migration sync state ${mailboxMigrationSyncStateId} on mail group ${folderSyncState._ownerGroup}.`,
 				)
 			}
 			await this.mailboxMigrationFacade.updateMigrationFolderSyncState(migrationMailboxStatus, folderSyncState)
 		}
 	}
 
-	async onMultipleMails(accountSyncStateId: IdTuple, migrationMails: MigrationMail[], eventType: MigrationSyncEventType) {
-		const session = assertNotNull(this.getMailboxImportSessionOrNull(accountSyncStateId))
+	async onMultipleMails(mailboxMigrationSyncStateId: IdTuple, migrationMails: MigrationMail[], eventType: MigrationSyncEventType) {
+		const session = assertNotNull(this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId))
 		const mailGroupId = assertNotNull(session.mailboxMigrationSyncState._ownerGroup)
 
 		if (isEmpty(migrationMails)) {
@@ -516,13 +515,13 @@ export class MailboxImporter implements MigrationSyncFacade {
 					if (error.name === "SuspensionError") {
 						console.log("SuspensionError while importing using mailbox importer ... ", error)
 						await this.postponeImport(
-							accountSyncStateId,
+							mailboxMigrationSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_SUSPENSION_POSTPONE_TIME)),
 						)
 					} else if (error.name === "InsufficientStorageError") {
 						console.error("There was a storage error while importing using mailbox importer, postponing for a day ... ", error)
 						await this.postponeImport(
-							accountSyncStateId,
+							mailboxMigrationSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_STORAGE_ERROR_POSTPONE_TIME)),
 						)
 					} else if (error.name === "LockedError") {
@@ -530,11 +529,11 @@ export class MailboxImporter implements MigrationSyncFacade {
 							"There was a locked error while importing using mailbox importer, caused by two clients importing simultaneously. Stopping sync on this client ... ",
 							error,
 						)
-						await this.migrationSyncSystemFacade.stopSync(accountSyncStateId)
+						await this.stopLocalImport(mailboxMigrationSyncStateId)
 					} else {
 						console.error("There was some unknown error while importing using mailbox importer ... ", error)
 						await this.postponeImport(
-							accountSyncStateId,
+							mailboxMigrationSyncStateId,
 							new Date(Date.now() + (error.data ? parseInt(error.data) : DEFAULT_TUTA_SERVER_ERROR_POSTPONE_TIME)),
 						)
 					}
@@ -550,12 +549,12 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 	}
 
-	async onPostpone(accountSyncStateId: IdTuple, postponedUntil: number): Promise<void> {
-		return await this.postponeImport(accountSyncStateId, new Date(postponedUntil))
+	async onPostpone(mailboxMigrationSyncStateId: IdTuple, postponedUntil: number): Promise<void> {
+		return await this.postponeImport(mailboxMigrationSyncStateId, new Date(postponedUntil))
 	}
 
-	async onFinish(accountSyncStateId: IdTuple): Promise<void> {
-		const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+	async onFinish(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
+		const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 		if (session) {
 			await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
 				session.mailboxMigrationSyncState,
@@ -565,31 +564,31 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 	}
 
-	async onError(accountSyncStateId: IdTuple, migrationError: MigrationError): Promise<void> {
-		console.error(`Error while migrating account with accountSyncState ${accountSyncStateId}, error`, migrationError)
+	async onError(mailboxMigrationSyncStateId: IdTuple, migrationError: MigrationError): Promise<void> {
+		console.error(`Error while migrating account with mailboxMigrationSyncState ${mailboxMigrationSyncStateId}, error`, migrationError)
 		return Promise.resolve()
 	}
 
 	async onEntityUpdatesReceived(updates: readonly EntityUpdateData[], groupId: Id) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
-				const accountSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
-				const idKey = this.getMailboxImportSessionsMapKey(accountSyncStateId)
-				const accountSyncState = await this.mailboxMigrationFacade.getMailboxMigrationSyncStateById(accountSyncStateId)
+				const mailboxMigrationSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
+				const idKey = this.getMailboxImportSessionsMapKey(mailboxMigrationSyncStateId)
+				const mailboxMigrationSyncState = await this.mailboxMigrationFacade.getMailboxMigrationSyncStateById(mailboxMigrationSyncStateId)
 				if (update.operation === OperationType.CREATE || update.operation === OperationType.UPDATE) {
-					const session = this.getMailboxImportSessionOrNull(accountSyncStateId)
+					const session = this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId)
 					if (session) {
-						session.mailboxMigrationSyncState = await this.mailboxMigrationFacade.getMailboxMigrationSyncStateById(accountSyncStateId)
+						session.mailboxMigrationSyncState = await this.mailboxMigrationFacade.getMailboxMigrationSyncStateById(mailboxMigrationSyncStateId)
 						session.userMigrationInformation = await this.loadUserMigrationInformationForSyncState(
-							accountSyncStateId,
+							mailboxMigrationSyncStateId,
 							session.userMigrationInformation?._id,
 						)
 					} else {
 						const folderSyncStates = await this.mailboxMigrationFacade.getAllMailboxMigrationFolderSyncStates(
-							accountSyncState.mailboxMigrationFolderSyncStates,
+							mailboxMigrationSyncState.mailboxMigrationFolderSyncStates,
 						)
-						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(accountSyncStateId)
-						const session = newMailboxImportSession(accountSyncState, folderSyncStates, userMigrationInformation)
+						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(mailboxMigrationSyncStateId)
+						const session = newMailboxImportSession(mailboxMigrationSyncState, folderSyncStates, userMigrationInformation)
 						this.mailboxImportSessions.set(idKey, session)
 					}
 				} else if (update.operation === OperationType.DELETE) {
@@ -651,8 +650,8 @@ export class MailboxImporter implements MigrationSyncFacade {
 		return id.join("/")
 	}
 
-	private getMailboxImportSessionOrNull(accountSyncId: IdTuple): MailboxImportSession | null {
-		const session = this.mailboxImportSessions.get(this.getMailboxImportSessionsMapKey(accountSyncId))
+	private getMailboxImportSessionOrNull(mailboxMigrationSyncStateId: IdTuple): MailboxImportSession | null {
+		const session = this.mailboxImportSessions.get(this.getMailboxImportSessionsMapKey(mailboxMigrationSyncStateId))
 		return session ?? null
 	}
 

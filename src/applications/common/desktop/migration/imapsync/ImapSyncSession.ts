@@ -3,14 +3,10 @@ import { MigrationCredentials } from "../../../api/common/utils/migrationImportU
 import { MigrationSyncEventListener } from "../MigrationSyncEventListener.js"
 import { ImapSyncSessionProcess, SyncSessionProcessState } from "./ImapSyncSessionProcess.js"
 import { ProgrammingError } from "@tutao/app-env"
-import {
-	MigrationMailbox,
-	migrationMailboxFromImapFlowListTreeResponse,
-	MigrationMailboxSpecialUse,
-} from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
+import { MigrationMailbox, MigrationMailboxSpecialUse } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationSyncSession, ShutdownSyncAction, SyncSessionState } from "../MigrationSyncSession.js"
 import { MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError"
-import type { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
+import { ImapFlow, ImapFlowOptions, ListTreeResponse } from "imapflow"
 import { MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { assertNotNull, first, isEmpty, isNotEmpty, noOp, utf8Uint8ArrayToString } from "@tutao/utils"
 import { CertificateProvider } from "../../CertificateProvider"
@@ -219,7 +215,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 		if (listTreeResponse) {
 			const migrationMailboxes = this.filterDisabledAndPromoteChildren(listTreeResponse.folders ?? []).map((listTreeResponse) => {
-				return migrationMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
+				return this.migrationMailboxFromImapFlowListTreeResponse(listTreeResponse, null)
 			})
 			// Some providers, e.g. one.com, return a single folder (Inbox) with subfolders.
 			// We want to flatten this to a single folder so that the user can map these folders to their own Tuta folders.
@@ -231,6 +227,29 @@ export class ImapSyncSession extends MigrationSyncSession {
 			return migrationMailboxes ?? []
 		}
 		return []
+	}
+
+	private migrationMailboxFromImapFlowListTreeResponse(listTreeResponse: ListTreeResponse, parentFolder: MigrationMailbox | null): MigrationMailbox {
+		let migrationMailbox: MigrationMailbox = {
+			sourceId: listTreeResponse.path ?? "-",
+			name: listTreeResponse.name ?? "-",
+			pathDelimiter: listTreeResponse.delimiter ?? "/",
+			flags: Array.from(listTreeResponse.flags ?? []),
+			// the Gmail \Important special use is on the flags
+			specialUse: listTreeResponse.flags?.has(MigrationMailboxSpecialUse.IMPORTANT)
+				? MigrationMailboxSpecialUse.IMPORTANT
+				: (listTreeResponse.specialUse as MigrationMailboxSpecialUse),
+			disabled: listTreeResponse.disabled ?? false,
+			parentFolder: parentFolder,
+		}
+
+		if (listTreeResponse.folders) {
+			migrationMailbox.subFolders = listTreeResponse.folders.map((value: ListTreeResponse) =>
+				this.migrationMailboxFromImapFlowListTreeResponse(value, migrationMailbox),
+			)
+		}
+
+		return migrationMailbox
 	}
 
 	/**
@@ -306,7 +325,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 	}
 }
 
-export function createImapSync(
+export function createImapSyncSession(
 	migrationSyncEventListener: MigrationSyncEventListener,
 	certificateProvider: CertificateProvider,
 	imapSyncConfig: ImapSyncConfig = defaultImapSyncConfig,
