@@ -5,14 +5,13 @@ import {
 	AsymmetricKeyPair,
 	cryptoUtils,
 	CryptoWrapper,
-	decryptKey,
-	decryptKeyPair,
 	Ed25519PrivateKey,
 	EncryptedKeyPairs,
 	EncryptedPqKeyPairs,
 	EncryptedRsaKeyPairs,
 	EncryptedRsaX25519KeyPairs,
 	isRsaOrRsaX25519KeyPair,
+	KeyEncryption,
 	SessionKeyDecryptor,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -45,6 +44,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		private readonly cacheManagementFacade: lazyAsync<CacheManager>,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly formerKeyResolver: FormerKeyResolver,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	/**
@@ -228,7 +228,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		const requiredUserGroupKey = await this.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(groupMembership.symKeyVersion))
 		return {
 			version: cryptoUtils.parseKeyVersion(groupMembership.groupKeyVersion),
-			object: decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
+			object: this.cryptoWrapper.decryptKey(requiredUserGroupKey, groupMembership.symEncGKey),
 		}
 	}
 
@@ -237,7 +237,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			throw new NotFoundError(`no key pair on group ${groupId}`)
 		}
 		// this cast is acceptable as those are the constraints we have on KeyPair. we just cannot know which one we have statically
-		const decryptedKeyPair = decryptKeyPair(groupKey.object, toEncryptedKeyPairs(keyPair))
+		const decryptedKeyPair = this.cryptoWrapper.decryptKeyPair(groupKey.object, toEncryptedKeyPairs(keyPair))
 		if (groupKey.version !== 0 && isRsaOrRsaX25519KeyPair(decryptedKeyPair)) {
 			throw new CryptoError("received an rsa key pair in a version other than 0: " + groupKey.version)
 		}
@@ -259,7 +259,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		const internalUserEncExternalUserKey = assertNotNull(externalUserGroup.adminGroupEncGKey, "no adminGroupEncGKey on external user group")
 		const requiredInternalUserGroupKey = await this.loadSymGroupKey(this.userFacade.getUserGroupId(), requiredInternalUserGroupKeyVersion)
 		return {
-			object: decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
+			object: this.cryptoWrapper.decryptKey(requiredInternalUserGroupKey, internalUserEncExternalUserKey),
 			version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
 		}
 	}
@@ -274,7 +274,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 		const externalUserEncExternalMailKey = assertNotNull(externalMailGroup.adminGroupEncGKey, "no adminGroupEncGKey on external mail group")
 		const requiredExternalUserGroupKey = await this.loadSymGroupKey(externalUserGroupId, requiredExternalUserGroupKeyVersion, currentExternalUserGroupKey)
 		return {
-			object: decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
+			object: this.cryptoWrapper.decryptKey(requiredExternalUserGroupKey, externalUserEncExternalMailKey),
 			version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
 		}
 	}
@@ -295,7 +295,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			currentOwnerKey = await this.getCurrentSymGroupKey(ownerGroup)
 		}
 
-		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey)
+		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey, this.keyEncryption)
 		return { ownerKey: currentOwnerKey, sessionKeyDecryptor, aeadCipherVersion }
 	}
 
@@ -310,7 +310,7 @@ export class KeyLoaderFacade implements SymmetricGroupKeyLoader {
 			currentOwnerKey = ownerKeyToDecryptSessionKey
 		}
 
-		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey)
+		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey, this.keyEncryption)
 		return { ownerKey: currentOwnerKey, sessionKeyDecryptor, aeadCipherVersion }
 	}
 }

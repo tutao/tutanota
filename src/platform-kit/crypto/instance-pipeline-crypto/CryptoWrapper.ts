@@ -1,9 +1,7 @@
 import { arrayEquals, stringToUtf8Uint8Array, Versioned } from "@tutao/utils"
 import { CryptoError } from "@tutao/crypto/error"
-import { aes256RandomKey, generateKdfNonce, KdfNonce, keyToUint8Array, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
-import { aesDecrypt, aesEncrypt } from "./Aes.js"
-import { decrypt256Key, decryptKey, decryptKeyPair, encryptKey, encryptKyberKey, encryptX25519Key } from "./KeyEncryption.js"
-import { deriveX25519PublicKey, generateX25519KeyPair, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
+import { keyToUint8Array, SymmetricCipherUtils, uint8ArrayToKey } from "../encryption/symmetric/SymmetricCipherUtils.js"
+import { X25519, X25519KeyPair, X25519PrivateKey, X25519PublicKey } from "../encryption/X25519.js"
 import { bytesToEd25519PrivateKey, Ed25519PrivateKey, ed25519PrivateKeyToBytes, Ed25519PublicKey, ed25519PublicKeyToBytes } from "../encryption/Ed25519.js"
 import {
 	extractKyberPublicKeyFromKyberPrivateKey,
@@ -23,6 +21,8 @@ import { PQKeyPairs } from "../encryption/PQKeyPairs.js"
 import { hkdf } from "../hashes/HKDF.js"
 import { HkdfKeyDerivationDomains, MacTag, VersionedEncryptedKey, VersionedKey } from "../CryptoTypes"
 import { EncryptedKeyPairs, EncryptedPqKeyPairs, EncryptedRsaKeyPairs, EncryptedRsaX25519KeyPairs } from "../encryption/EncryptedKeyPairs"
+import { Aes } from "./Aes"
+import { KeyEncryption } from "./KeyEncryption"
 
 export type IdentityKeyPair = {
 	privateEd25519Key: Uint8Array<ArrayBuffer>
@@ -39,58 +39,68 @@ export type HkdfDerivedKey = {
  * This class is useful to bundle all the crypto primitives and make the code testable without using the real crypto implementations.
  */
 export class CryptoWrapper {
+	constructor(
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly aes: Aes,
+		private readonly keyEncryption: KeyEncryption,
+		private readonly x25519: X25519,
+	) {}
+
 	aes256RandomKey(): Aes256Key {
-		return aes256RandomKey()
+		return this.symmetricCipherUtils.aes256RandomKey()
 	}
 
 	aesDecrypt(key: AesKey, encryptedBytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
-		return aesDecrypt(key, encryptedBytes)
+		return this.aes.aesDecrypt(key, encryptedBytes)
 	}
 
 	aesEncrypt(key: AesKey, bytes: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
-		return aesEncrypt(key, bytes)
+		return this.aes.aesEncrypt(key, bytes)
 	}
 
 	decryptKey(encryptionKey: AesKey, key: Uint8Array<ArrayBuffer>): AesKey {
-		return decryptKey(encryptionKey, key)
+		return this.keyEncryption.decryptKey(encryptionKey, key)
 	}
 
 	decryptAes256Key(encryptionKey: AesKey, keyToBeDecrypted: Uint8Array<ArrayBuffer>): Aes256Key {
-		return decrypt256Key(encryptionKey, keyToBeDecrypted)
+		return this.keyEncryption.decrypt256Key(encryptionKey, keyToBeDecrypted)
 	}
 
 	encryptX25519Key(encryptionKey: AesKey, privateKey: X25519PrivateKey): Uint8Array<ArrayBuffer> {
-		return encryptX25519Key(encryptionKey, privateKey)
+		return this.keyEncryption.encryptX25519Key(encryptionKey, privateKey)
 	}
 
 	encryptEd25519Key(encryptionKey: VersionedKey, privateKey: Ed25519PrivateKey): VersionedEncryptedKey {
 		return {
 			encryptingKeyVersion: encryptionKey.version,
-			key: aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey)),
+			key: this.aes.aesEncrypt(encryptionKey.object, ed25519PrivateKeyToBytes(privateKey)),
 		}
 	}
 
 	decryptEd25519PrivateKey(encryptedIdentityKeyPair: IdentityKeyPair, decryptionKey: AesKey): Versioned<Ed25519PrivateKey> {
 		return {
-			object: bytesToEd25519PrivateKey(aesDecrypt(decryptionKey, encryptedIdentityKeyPair.privateEd25519Key)),
+			object: bytesToEd25519PrivateKey(this.aes.aesDecrypt(decryptionKey, encryptedIdentityKeyPair.privateEd25519Key)),
 			version: cryptoUtils.parseKeyVersion(encryptedIdentityKeyPair.identityKeyVersion),
 		}
 	}
 
 	encryptKey(encryptingKey: AesKey, keyToBeEncrypted: AesKey): Uint8Array<ArrayBuffer> {
-		return encryptKey(encryptingKey, keyToBeEncrypted)
+		return this.keyEncryption.encryptKey(encryptingKey, keyToBeEncrypted)
 	}
 
 	encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
-		return _encryptKeyWithVersionedKey(encryptingKey, key)
+		return {
+			encryptingKeyVersion: encryptingKey.version,
+			key: this.keyEncryption.encryptKey(encryptingKey.object, key),
+		}
 	}
 
 	generateEccKeyPair(): X25519KeyPair {
-		return generateX25519KeyPair()
+		return this.x25519.generateX25519KeyPair()
 	}
 
 	encryptKyberKey(encryptionKey: AesKey, privateKey: KyberPrivateKey): Uint8Array<ArrayBuffer> {
-		return encryptKyberKey(encryptionKey, privateKey)
+		return this.keyEncryption.encryptKyberKey(encryptionKey, privateKey)
 	}
 
 	kyberPublicKeyToBytes(kyberPublicKey: KyberPublicKey): Uint8Array<ArrayBuffer> {
@@ -102,11 +112,11 @@ export class CryptoWrapper {
 	}
 
 	encryptBytes(sk: AesKey, value: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
-		return _encryptBytes(sk, value)
+		return this.aes.aesEncrypt(sk, value)
 	}
 
 	encryptString(sk: AesKey, value: string): Uint8Array<ArrayBuffer> {
-		return _encryptString(sk, value)
+		return this.aes.aesEncrypt(sk, stringToUtf8Uint8Array(value))
 	}
 
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedPqKeyPairs): PQKeyPairs
@@ -114,7 +124,7 @@ export class CryptoWrapper {
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedRsaX25519KeyPairs): RsaX25519KeyPair
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair
 	decryptKeyPair(encryptionKey: AesKey, keyPair: EncryptedKeyPairs): AsymmetricKeyPair {
-		return decryptKeyPair(encryptionKey, keyPair)
+		return this.keyEncryption.decryptKeyPair(encryptionKey, keyPair)
 	}
 
 	sha256Hash(data: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
@@ -139,7 +149,7 @@ export class CryptoWrapper {
 	}
 
 	verifyPublicX25519Key(x25519KeyPair: X25519KeyPair): X25519PublicKey {
-		const extractedPubKey = deriveX25519PublicKey(x25519KeyPair.privateKey)
+		const extractedPubKey = this.x25519.deriveX25519PublicKey(x25519KeyPair.privateKey)
 		if (!arrayEquals(extractedPubKey, x25519KeyPair.publicKey)) {
 			throw new CryptoError("Extracted public key does not match the provided public key")
 		}
@@ -167,10 +177,6 @@ export class CryptoWrapper {
 		}
 		return providedPublicKey
 	}
-
-	generateKdfNonce(): KdfNonce {
-		return generateKdfNonce()
-	}
 }
 
 type DeriveKeyParams = { salt: string; key: AesKey; info: string; length: number }
@@ -179,31 +185,4 @@ function deriveKey(deriveKeyParams: DeriveKeyParams): AesKey {
 	const salt = sha256Hash(stringToUtf8Uint8Array(deriveKeyParams.salt))
 	const info = stringToUtf8Uint8Array(deriveKeyParams.info)
 	return uint8ArrayToKey(hkdf(salt, keyToUint8Array(deriveKeyParams.key), info, deriveKeyParams.length))
-}
-
-/**
- @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
- */
-export function _encryptBytes(sk: AesKey, value: Uint8Array<ArrayBuffer>): Uint8Array<ArrayBuffer> {
-	return aesEncrypt(sk, value)
-}
-
-/**
- @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
- */
-export function _encryptString(sk: AesKey, value: string): Uint8Array<ArrayBuffer> {
-	return aesEncrypt(sk, stringToUtf8Uint8Array(value))
-}
-
-/**
- * Encrypts the key with the encryptingKey and return the encrypted key and the version of the encryptingKey.
- * @deprecated use the CryptoWrapper instance instead. This function will be hidden in the future
- * @param encryptingKey the encrypting key.
- * @param key the key to be encrypted.
- */
-export function _encryptKeyWithVersionedKey(encryptingKey: VersionedKey, key: AesKey): VersionedEncryptedKey {
-	return {
-		encryptingKeyVersion: encryptingKey.version,
-		key: encryptKey(encryptingKey.object, key),
-	}
 }

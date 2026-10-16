@@ -1,13 +1,4 @@
-export {
-	type X25519PrivateKey,
-	type X25519PublicKey,
-	type X25519KeyPair,
-	type X25519SharedSecrets,
-	generateX25519KeyPair,
-	x25519Encapsulate,
-	x25519Decapsulate,
-	deriveX25519PublicKey,
-} from "./encryption/X25519"
+export { type X25519PrivateKey, type X25519PublicKey, type X25519KeyPair, type X25519SharedSecrets, X25519 } from "./encryption/X25519"
 import {
 	bytesToEd25519PrivateKey,
 	bytesToEd25519PublicKey,
@@ -47,7 +38,7 @@ export {
 	bytesToEd25519Signature,
 	ed25519SignatureToBytes,
 }
-export { generateRandomSalt, generateKeyFromPassphrase as generateKeyFromPassphraseBcrypt } from "./hashes/Bcrypt.js"
+export { Bcrypt } from "./hashes/Bcrypt.js"
 export {
 	type LibOQSExports,
 	generateKeyPair as generateKeyPairKyber,
@@ -115,7 +106,6 @@ export { murmurHash } from "./hashes/MurmurHash.js"
 export { hkdf } from "./hashes/HKDF.js"
 export { hmacSha256, verifyHmacSha256, verifyHmacSha256Async, hmacSha256Async } from "./encryption/Hmac.js"
 export {
-	aes256RandomKey,
 	keyToUint8Array,
 	uint8ArrayToKey,
 	uint8ArrayTo256Key,
@@ -130,16 +120,16 @@ export {
 	FIXED_INITIALIZATION_VECTOR,
 	type InitializationVector,
 	type KdfNonce,
-	generateInitializationVector,
-	generateKdfNonce,
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
+	SymmetricCipherUtils,
 } from "./encryption/symmetric/SymmetricCipherUtils.js"
 export { AesKey, Aes256Key, Aes128Key, AesKeyLength, getKeyLengthInBytes, assert256BitKey, assert256BitVersionedKey } from "./encryption/symmetric/AesKey.js"
 export { blake3Hash, blake3Mac, blake3MacVerify, blake3Kdf } from "./hashes/Blake3.js"
-export { PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
+export { AeadFacade, PADDING_BYTE } from "./encryption/symmetric/AeadFacade.js"
 export * as cryptoUtils from "./CryptoUtils.js"
 export {
+	SymmetricKeyDeriver,
 	SymmetricSubKeys,
 	AeadSubKeys,
 	AeadWithInstanceKeySubKeys,

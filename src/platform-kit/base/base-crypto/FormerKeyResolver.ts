@@ -1,6 +1,6 @@
 import { EntityClient } from "../../network/EntityClient"
 import { base64UrlCustomIdToString, KeyVersion, Nullable, stringToBase64UrlCustomId } from "@tutao/utils"
-import { assert256BitVersionedKey, decryptKey, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
+import { assert256BitVersionedKey, KeyEncryption, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { cryptoUtils } from "../../../platform-kit/crypto"
 import { GroupKey, GroupKeyTypeRef, InstanceKey, InstanceKeyTypeRef } from "@tutao/entities/sys"
 import { getElementId, isSameSingleId, isSameTypeRef, ListElementEntity, TypeRef } from "@tutao/meta"
@@ -21,7 +21,10 @@ export type GroupKeyAndGroupKeyInstance = VersionedKeyAndKeyInstance<GroupKey>
  * Resolves symmetric former key instances for different types such as InstanceKey and GroupKey.
  */
 export class FormerKeyResolver {
-	constructor(private readonly entityClient: EntityClient) {}
+	constructor(
+		private readonly entityClient: EntityClient,
+		private readonly keyEncryption: KeyEncryption,
+	) {}
 
 	async findFormerInstanceKey(formerInstanceKeysList: Id, currentInstanceKey: VersionedAes256Key, targetKeyVersion: KeyVersion): Promise<VersionedAes256Key> {
 		return assert256BitVersionedKey(
@@ -65,7 +68,7 @@ export class FormerKeyResolver {
 			const formerKeyVersion = convertCustomIdToKeyVersion(getElementId(formerKey))
 			if (formerKeyVersion + 1 === lastKey.version) {
 				lastKey = {
-					object: decryptKey(lastKey.object, this.getEncryptedFormerKeyBytes(typeRef, formerKey)),
+					object: this.keyEncryption.decryptKey(lastKey.object, this.getEncryptedFormerKeyBytes(typeRef, formerKey)),
 					version: formerKeyVersion,
 				}
 				lastKeyInstance = formerKey

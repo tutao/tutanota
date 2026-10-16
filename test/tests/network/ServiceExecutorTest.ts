@@ -9,12 +9,15 @@ import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
-	aes256RandomKey,
+	Aes,
+	AesCbcFacade,
 	AesKey,
-	encryptKey,
+	KeyEncryption,
 	PartialSubKeyInfoAesCbcThenHmac,
+	random,
 	SessionKeyDecryptor,
 	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	SymmetricEncryptionScheme,
 	VersionedEncryptedKey,
 	VersionedKey,
@@ -35,14 +38,15 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { IncomingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
-import { AEAD_FACADE } from "@tutao/crypto/aead-facade"
-import { AES_CBC_FACADE } from "@tutao/crypto/aes-cbc-facade"
-import { SYMMETRIC_KEY_DERIVER } from "@tutao/crypto/symmetric-key-deriver"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything } = matchers
 
 o.spec("ServiceExecutor", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let keyEncryption: KeyEncryption
 	const service = {
 		app: "testApp",
 		name: "testService",
@@ -77,21 +81,32 @@ o.spec("ServiceExecutor", function () {
 	})
 
 	o.beforeEach(async () => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+
 		restClient = object()
 		authHeaders = {}
 		fullyLoggedIn = true
 
 		typeModelResolver = clientInitializedTypeModelResolver()
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
 		instancePipeline = new InstancePipeline(
 			typeModelResolver,
 			() => null!,
-			new SymmetricCipherFacade(AES_CBC_FACADE, AEAD_FACADE, SYMMETRIC_KEY_DERIVER),
+			symmetricCipherFacade,
 			authDataProvider,
 			() => object(),
+			random,
+			keyEncryption,
 		)
-		sessionKey = aes256RandomKey()
-		ownerKey = { object: aes256RandomKey(), version: 0 }
-		ownerEncSessionKey = { key: encryptKey(ownerKey.object, sessionKey), encryptingKeyVersion: ownerKey.version }
+		sessionKey = symmetricCipherUtils.aes256RandomKey()
+		ownerKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
+		ownerEncSessionKey = { key: keyEncryption.encryptKey(ownerKey.object, sessionKey), encryptingKeyVersion: ownerKey.version }
 
 		cryptoFacade = object()
 		executor = new ServiceExecutor(restClient, authDataProvider, instancePipeline, () => cryptoFacade, typeModelResolver)
@@ -124,7 +139,7 @@ o.spec("ServiceExecutor", function () {
 			await instancePipeline.mapAndEncryptWithSubKeyInfo(
 				alarmServicePostData._type,
 				alarmServicePostData,
-				new PartialSubKeyInfoAesCbcThenHmac(new SessionKeyDecryptor(ownerKey)),
+				new PartialSubKeyInfoAesCbcThenHmac(new SessionKeyDecryptor(ownerKey, keyEncryption)),
 				ownerKey,
 			)
 		).getJsonRepresentation()
@@ -172,7 +187,7 @@ o.spec("ServiceExecutor", function () {
 
 			const response = await executor.execute(getService, alarmServicePostData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey),
+				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey, keyEncryption),
 			})
 
 			o(response).equals(NULL_ENTITY)
@@ -267,7 +282,7 @@ o.spec("ServiceExecutor", function () {
 			respondWith(null)
 			const response = await executor.execute(postService, alarmServicePostData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey),
+				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey, keyEncryption),
 			})
 
 			const requestOptionsCaptor = matchers.captor()
@@ -326,7 +341,7 @@ o.spec("ServiceExecutor", function () {
 			respondWith(null)
 			const response = await executor.execute(putService, alarmServicePostData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey),
+				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey, keyEncryption),
 			})
 
 			const optionsCaptor = matchers.captor()
@@ -366,7 +381,7 @@ o.spec("ServiceExecutor", function () {
 
 			const response = await executor.execute(deleteService, alarmServicePostData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey),
+				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey, keyEncryption),
 			})
 
 			const optionsCaptor = matchers.captor()
@@ -476,7 +491,7 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sk = aes256RandomKey()
+			const sk = symmetricCipherUtils.aes256RandomKey()
 			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sk)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(sk)
 
@@ -500,7 +515,7 @@ o.spec("ServiceExecutor", function () {
 				postings: [],
 			})
 
-			const sessionKey = aes256RandomKey()
+			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const untypedInstance = await instancePipeline.mapAndEncrypt(CustomerAccountReturnTypeRef, customerAccountReturn, sessionKey)
 			when(cryptoFacade.resolveServiceSessionKey(anything())).thenResolve(null)
 
@@ -536,7 +551,7 @@ o.spec("ServiceExecutor", function () {
 			respondWith(null)
 			const response = await executor.execute(getService, giftCardCreateData, {
 				...DEFAULT_EXTRA_SERVICE_PARAMS,
-				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey),
+				sessionKeyDecryptor: new SessionKeyDecryptor(ownerKey, keyEncryption),
 			})
 
 			const optionsCaptor = matchers.captor()

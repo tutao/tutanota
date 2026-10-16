@@ -5,7 +5,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { BlobFacade } from "./BlobFacade"
 import { InstancePipeline } from "@tutao/instance-pipeline"
-import { AeadCipherVersion, aes256RandomKey, AesKey, CryptoWrapper, SessionKeyDecryptor, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, AesKey, CryptoWrapper, KeyEncryption, SessionKeyDecryptor, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import {
 	createFileTransferAggregatedType,
 	createImportAttachment,
@@ -90,6 +90,8 @@ export class ImportMailFacade {
 		private readonly keyLoader: KeyLoaderFacade,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	async importMails(importMailsParamsList: Array<ImportMailParams>, mailGroupId: Id): Promise<void> {
@@ -102,8 +104,8 @@ export class ImportMailFacade {
 		let currentEstimatedCallSize = 0
 		const chunkedEncImports2: Array<Array<StringWrapper>> = []
 		for (const importMailParams of importMailsParamsList) {
-			const sessionKey = aes256RandomKey()
-			const kdfNonce = this.cryptoWrapper.generateKdfNonce()
+			const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
+			const kdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 			const firstPartialRecipient: Nullable<PartialRecipient> =
@@ -190,7 +192,7 @@ export class ImportMailFacade {
 				importMailData2,
 				mailGroupKey,
 				AeadCipherVersion.WithInstanceKey,
-				new SessionKeyDecryptor(mailGroupKey),
+				new SessionKeyDecryptor(mailGroupKey, this.keyEncryption),
 			)
 
 			const encImport2 = createStringWrapper({
@@ -268,7 +270,7 @@ export class ImportMailFacade {
 		const fileDataForUpload = await promiseMap(filesToUpload, async ({ key, file }) => ({
 			key,
 			data: file.data,
-			sessionKey: this.cryptoWrapper.aes256RandomKey(),
+			sessionKey: this.symmetricCipherUtils.aes256RandomKey(),
 			original: file,
 		}))
 
@@ -300,13 +302,13 @@ export class ImportMailFacade {
 		mailGroupKey: VersionedKey,
 	): ImportAttachment {
 		const ownerEncFileSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileSessionKey)
-		const fileKdfNonce = this.cryptoWrapper.generateKdfNonce()
+		const fileKdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 
 		const fileHash = newFile.fileHash
 
-		const fileHashSessionKey = aes256RandomKey()
+		const fileHashSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncFileHashSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, fileHashSessionKey)
-		const fileHashKdfNonce = this.cryptoWrapper.generateKdfNonce()
+		const fileHashKdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 
 		let deduplicatedImportedAttachment: Nullable<ImportedDeduplicatedImportedAttachment> = null
 		if (fileHash) {

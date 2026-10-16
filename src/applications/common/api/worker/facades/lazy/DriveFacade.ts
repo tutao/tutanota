@@ -4,7 +4,7 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import { AeadCipherVersion, aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, CryptoWrapper, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { assertNotNull, first, groupBy, isEmpty, Nullable, partition, promiseMap, Require } from "@tutao/utils"
 import { getElementId, getListId, idToElementId, isSameId, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
@@ -96,6 +96,7 @@ export class DriveFacade {
 		private readonly cryptoFacade: CryptoFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly cacheStorage: ExposedCacheStorage,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	public async rename(item: DriveFile | DriveFolder, newName: string) {
@@ -227,7 +228,7 @@ export class DriveFacade {
 	public async uploadFile(file: WebFile | FileReference, fileId: TransferId, fileName: string, to: IdTuple): Promise<DriveFile | null> {
 		const { fileGroupId, fileGroupKey } = await this.getCryptoInfo()
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
 		const blobRefTokens: BlobReferenceTokenWrapper[] = []
@@ -294,7 +295,7 @@ export class DriveFacade {
 	public async createFolder(folderName: string, parentFolder: IdTuple): Promise<DriveFolder> {
 		const { fileGroupKey } = await this.getCryptoInfo()
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, sessionKey)
 
 		const folder = createDriveFolderTransferAggregatedType({
@@ -437,8 +438,8 @@ export class DriveFacade {
 
 	private async createGroupRoot(fileGroupId: Id): Promise<DriveGroupRoot> {
 		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
-		const rootFolderSessionKey = aes256RandomKey()
-		const trashFolderSessionKey = aes256RandomKey()
+		const rootFolderSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const trashFolderSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const encRootFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, rootFolderSessionKey)
 		const encTrashFolderSessionKey = this.cryptoWrapper.encryptKey(fileGroupKey.object, trashFolderSessionKey)
 		const data = createDrivePostIn({

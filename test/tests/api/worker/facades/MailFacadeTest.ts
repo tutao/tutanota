@@ -14,7 +14,18 @@ import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platfo
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
-import { Aes128Key, AesKey, VersionedEncryptedKey } from "../../../../../src/platform-kit/crypto"
+import {
+	Aes,
+	Aes128Key,
+	AesCbcFacade,
+	AesKey,
+	Bcrypt,
+	KeyEncryption,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	VersionedEncryptedKey,
+} from "../../../../../src/platform-kit/crypto"
 import { RecipientsNotFoundError } from "../../../../../src/platform-kit/network/error/RecipientsNotFoundError"
 import { KeyVerificationMismatchError } from "../../../../../src/platform-kit/network/error/KeyVerificationMismatchError"
 import { SpamClassifier } from "../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifier"
@@ -52,6 +63,8 @@ import { DataFile } from "../../../../../src/entities/tutanota/MailBundle"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { OwnerEncSessionKeyProvider } from "../../../../../src/platform-kit/instance-pipeline"
 import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("MailFacade test", function () {
 	let facade: MailFacade
@@ -68,6 +81,7 @@ o.spec("MailFacade test", function () {
 	let instanceKeyFacade: InstanceKeyFacade
 	let cacheStorage: CacheStorage
 	let spamClassifier: SpamClassifier
+	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
 		userFacade = object()
@@ -81,6 +95,15 @@ o.spec("MailFacade test", function () {
 		keyLoaderFacade = object()
 		publicEncryptionKeyProvider = object()
 		instanceKeyFacade = object()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const aes = new Aes(symmetricCipherFacade)
+		const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
 		facade = new MailFacade(
 			userFacade,
 			entityClient,
@@ -93,6 +116,11 @@ o.spec("MailFacade test", function () {
 			keyLoaderFacade,
 			publicEncryptionKeyProvider,
 			instanceKeyFacade,
+			random,
+			symmetricCipherUtils,
+			aes,
+			keyEncryption,
+			new Bcrypt(random),
 		)
 	})
 

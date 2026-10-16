@@ -10,7 +10,6 @@ import { instance, matchers, object, verify, when } from "testdouble"
 import { createTestEntity } from "../../../TestUtils.js"
 import {
 	Aes256Key,
-	aes256RandomKey,
 	AesKey,
 	bitArrayToUint8Array,
 	createAuthVerifier,
@@ -21,7 +20,9 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
+	random,
 	RsaPublicKey,
+	SymmetricCipherUtils,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
@@ -2241,6 +2242,12 @@ o.spec("KeyRotationFacade", function () {
 		})
 
 		o.spec("KeyRotationRolloutAction", function () {
+			let symmetricCipherUtils: SymmetricCipherUtils
+
+			o.beforeEach(() => {
+				symmetricCipherUtils = new SymmetricCipherUtils(random)
+			})
+
 			o("Execute key rotations and delete the passphrase key afterwards", async function () {
 				const keyRotationFacadeMock: KeyRotationFacade = object()
 				const userFacadeMock: UserFacade = object()
@@ -2248,7 +2255,7 @@ o.spec("KeyRotationFacade", function () {
 				when(userFacadeMock.getUser()).thenReturn(user)
 
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
-				const passphraseKey: Aes256Key = aes256RandomKey()
+				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
 					keyRotationFacadeMock,
@@ -2271,7 +2278,7 @@ o.spec("KeyRotationFacade", function () {
 				when(userFacadeMock.getUser()).thenReturn(user)
 
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
-				const passphraseKey: Aes256Key = aes256RandomKey()
+				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(keyRotationFacadeMock, userFacadeMock, rolloutType, passphraseKey, true, SessionType.Login)
 				await rolloutAction.execute()
@@ -2285,7 +2292,7 @@ o.spec("KeyRotationFacade", function () {
 				when(userFacadeMock.getUser()).thenReturn(user)
 
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
-				const passphraseKey: Aes256Key = aes256RandomKey()
+				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
 					keyRotationFacadeMock,
@@ -2306,7 +2313,7 @@ o.spec("KeyRotationFacade", function () {
 				when(userFacadeMock.getUser()).thenReturn(user)
 
 				const rolloutType = RolloutType.AdminOrUserGroupKeyRotation
-				const passphraseKey: Aes256Key = aes256RandomKey()
+				const passphraseKey: Aes256Key = symmetricCipherUtils.aes256RandomKey()
 
 				const rolloutAction = new KeyRotationRolloutAction(
 					keyRotationFacadeMock,

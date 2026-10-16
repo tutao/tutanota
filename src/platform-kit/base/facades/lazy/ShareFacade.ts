@@ -1,7 +1,7 @@
 import { EnvProvider, ShareCapability } from "@tutao/app-env"
 import { isNotNull, neverNull } from "@tutao/utils"
 import { RecipientsNotFoundError } from "../../../network/error/RecipientsNotFoundError.js"
-import { aes256RandomKey, cryptoUtils, CryptoWrapper, encryptKey, keyToUint8Array, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
+import { cryptoUtils, CryptoWrapper, KeyEncryption, keyToUint8Array, SymmetricCipherUtils, uint8ArrayToKey, VersionedKey } from "@tutao/crypto"
 import { IServiceExecutor } from "../../../network/ServiceRequest.js"
 import { UserFacade } from "../UserFacade.js"
 import { KeyLoaderFacade } from "../../base-crypto/KeyLoaderFacade.js"
@@ -33,6 +33,8 @@ export class ShareFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly instanceKeyFacade: InstanceKeyFacade,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	async sendGroupInvitation(
@@ -58,8 +60,8 @@ export class ShareFacade {
 		const userGroupInfo = await this.entityClient.load(GroupInfoTypeRef, this.userFacade.getLoggedInUser().userGroup.groupInfo)
 		const userGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(userGroupInfo)
 		const sharedGroupInfoSessionKey = await this.cryptoFacade.resolveSessionKey(sharedGroupInfo)
-		const bucketKey = aes256RandomKey()
-		const invitationSessionKey = aes256RandomKey()
+		const bucketKey = this.symmetricCipherUtils.aes256RandomKey()
+		const invitationSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const sharedGroupEncInviterGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const sharedGroupEncSharedGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(sharedGroupInfoSessionKey))
 		const inviterUserGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(userGroupInfo)
@@ -84,7 +86,7 @@ export class ShareFacade {
 			sessionEncInviterName: this.cryptoWrapper.encryptString(invitationSessionKey, userGroupInfo.name),
 			sessionEncSharedGroupKey: this.cryptoWrapper.encryptBytes(invitationSessionKey, keyToUint8Array(sharedGroupKey.object)),
 			sessionEncSharedGroupName: this.cryptoWrapper.encryptString(invitationSessionKey, sharedGroupInfo.name),
-			bucketEncInvitationSessionKey: encryptKey(bucketKey, invitationSessionKey),
+			bucketEncInvitationSessionKey: this.keyEncryption.encryptKey(bucketKey, invitationSessionKey),
 			capability: shareCapability,
 			sharedGroup: sharedGroupInfo.group,
 			sharedGroupEncInviterGroupInfoSessionKey: sharedGroupEncInviterGroupInfoSessionKey.key,
@@ -142,7 +144,6 @@ export class ShareFacade {
 		const sharedGroupEncInviteeGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, neverNull(userGroupInfoSessionKey))
 		const userGroupInfoCurrentInstanceKey = await this.instanceKeyFacade.getCurrentInstanceKey(userGroupInfo)
 		const sharedGroupEncInviteeGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(sharedGroupKey, userGroupInfoCurrentInstanceKey.object)
-
 		const serviceData = createGroupInvitationPutData({
 			receivedInvitation: invitation._id,
 			userGroupEncGroupKey: userGroupEncGroupKey.key,

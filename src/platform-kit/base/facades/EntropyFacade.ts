@@ -1,4 +1,4 @@
-import { _encryptBytes, aesDecrypt, cryptoUtils, EntropyDataChunk, random, Randomizer } from "@tutao/crypto"
+import { Aes, cryptoUtils, EntropyDataChunk, Randomizer } from "@tutao/crypto"
 import { UserFacade } from "./UserFacade.js"
 import { isNotNull, lazy, noOp, ofClass } from "@tutao/utils"
 import { ConnectionError, LockedError, ServiceUnavailableError } from "@tutao/rest-client/error"
@@ -17,6 +17,7 @@ export class EntropyFacade {
 		private readonly serviceExecutor: IServiceExecutor,
 		private readonly random: Randomizer,
 		private readonly lazyKeyLoaderFacade: lazy<KeyLoaderFacade>,
+		private readonly aes: Aes,
 	) {}
 
 	/**
@@ -42,7 +43,7 @@ export class EntropyFacade {
 		if (!this.userFacade.isFullyLoggedIn() || !this.userFacade.isLeader()) return Promise.resolve()
 		const userGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const entropyData = createEntropyData({
-			userEncEntropy: _encryptBytes(userGroupKey.object, this.random.generateRandomData(32)),
+			userEncEntropy: this.aes.aesEncrypt(userGroupKey.object, this.random.generateRandomData(32)),
 			userKeyVersion: userGroupKey.version.toString(),
 		})
 		return this.serviceExecutor
@@ -69,8 +70,8 @@ export class EntropyFacade {
 			try {
 				const keyLoaderFacade = this.lazyKeyLoaderFacade()
 				const userGroupKey = await keyLoaderFacade.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(tutanotaProperties.userKeyVersion ?? "0"))
-				const entropy = aesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
-				random.addStaticEntropy(entropy)
+				const entropy = this.aes.aesDecrypt(userGroupKey, tutanotaProperties.userEncEntropy)
+				this.random.addStaticEntropy(entropy)
 			} catch (error) {
 				console.log("could not decrypt entropy", error)
 			}
