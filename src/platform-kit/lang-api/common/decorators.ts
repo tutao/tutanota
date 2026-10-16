@@ -18,7 +18,7 @@ export const enum TMutableStaticSafetyKind {
 export type TMutableStaticSafetyOpts = { kind: TMutableStaticSafetyKind }
 
 export function TMutableStaticSafety(opts: TMutableStaticSafetyOpts) {
-	return function (target: any, ctx: ClassFieldDecoratorContext) {
+	return function (target: any, ctx: ClassFieldDecoratorContext | ClassMethodDecoratorContext) {
 		// FIXME:
 		// this assertion is correct. pls do not just remove it while reviewing :)
 		// assert(ctx.static && ctx.private && ctx.name === "singleton", "Must be a private static field with name 'singleton'")
