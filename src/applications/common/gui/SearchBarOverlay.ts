@@ -1,7 +1,7 @@
 import type { ShowMoreAction } from "./QuickSearchBar"
 import { px, size } from "../../../ui/size"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { EnvProvider, FULL_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { formatDate } from "../../../ui/utils/Formatter"
 import m, { Children, Component, Vnode } from "mithril"
 import { pureComponent } from "../../../ui/base/PureComponent"
@@ -94,7 +94,7 @@ export class SearchBarOverlay<T> implements Component<SearchBarOverlayAttrs<T>> 
 			infoText = lang.getTranslationText("showMore_action")
 		}
 
-		if (indexTimestamp > FULL_INDEXED_TIMESTAMP && !indexInfo) {
+		if (indexTimestamp > TutanotaConstants.FULL_INDEXED_TIMESTAMP && !indexInfo) {
 			indexInfo = !EnvProvider.get().isOfflineStorageAvailable() // we have isNonBlockingSearchAvailable() at home
 				? lang.getTranslationText("searchedUntil_msg") + " " + formatDate(new Date(indexTimestamp))
 				: lang.getTranslationText("notAllMailsSearchable_msg")

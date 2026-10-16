@@ -27,9 +27,8 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason, TutanotaConstants } from "@tutao/app-env"
 import stream from "mithril/stream"
-import Stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
@@ -82,11 +81,10 @@ export async function showSwitchDialog({
 	reason: TranslationKey | null
 }): Promise<void> {
 	const paymentMethod = getPaymentMethodType(accountingInfo)
-	if (paymentMethod == null) {
+	if (isNull(paymentMethod)) {
 		Dialog.message("noPaymentMethodError_msg")
 		return
-	}
-	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
+	} else if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
 		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return
 	}
@@ -457,7 +455,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
-		date: Const.CURRENT_DATE,
+		date: TutanotaConstants.Const.CURRENT_DATE,
 		customer: elementIdToId(customer._id),
 		specialPriceUserSingle: null,
 		referralCode: null,
@@ -552,7 +550,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		const postIn = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			plan: targetSubscription,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			referralCode: null,
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,

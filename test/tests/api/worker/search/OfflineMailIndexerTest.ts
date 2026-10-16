@@ -47,7 +47,7 @@ import {
 import { func, matchers, object, verify, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { ArchiveDataType, GroupType } from "../../../../../src/entities/sys/Utils"
-import { FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { assertNotNull, collectToMap, deepEqual, last, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade"
@@ -274,7 +274,7 @@ o.spec("OfflineMailIndexer", () => {
 			{
 				groupId: mailGroupId,
 				type: GroupType.Mail,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: GENERATED_MAX_ID,
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			},
@@ -474,7 +474,7 @@ o.spec("OfflineMailIndexer", () => {
 			{ times: 1 },
 		)
 
-		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
+		verify(persistence.updateIndexingTimestamp(mailGroupId, TutanotaConstants.FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 	})
 
@@ -549,7 +549,7 @@ o.spec("OfflineMailIndexer", () => {
 			{
 				groupId: mailGroupId,
 				type: GroupType.Mail,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: GENERATED_MAX_ID,
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 			},
@@ -593,7 +593,7 @@ o.spec("OfflineMailIndexer", () => {
 		verify(cacheStorage.putMultiple(MailDetailsBlobTypeRef, blobCaptor.capture()))
 		o.check(blobCaptor.values?.flat().every((a) => allBlobs.has(a))).equals(true)
 
-		verify(persistence.updateIndexingTimestamp(mailGroupId, FULL_INDEXED_TIMESTAMP))
+		verify(persistence.updateIndexingTimestamp(mailGroupId, TutanotaConstants.FULL_INDEXED_TIMESTAMP))
 		verify(persistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef))
 	})
 
