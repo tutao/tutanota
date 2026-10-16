@@ -1,5 +1,5 @@
 import { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { assertNotNull, downcast, isEmpty, LazyLoaded } from "@tutao/utils"
+import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
@@ -357,8 +357,8 @@ function hasMatchingExternalSubscription(lastBooking: Booking | null): boolean {
 }
 
 /** Check if the latest transaction using the current Store Account belongs to the user */
-export async function queryExternalSubscriptionOwnership(userIdBytes: Uint8Array<ArrayBuffer> | null): Promise<MobilePaymentSubscriptionOwnership> {
-	return await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(userIdBytes)
+export async function queryExternalSubscriptionOwnership(foreignKey: string | null): Promise<MobilePaymentSubscriptionOwnership> {
+	return await locator.mobilePaymentsFacade.queryExternalSubscriptionOwnership(foreignKey)
 }
 
 // we can't do the upgrade from the client because apple or google is supposed to contact us.
