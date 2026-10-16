@@ -123,6 +123,7 @@ export class EnvProvider {
 	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
 	private static singleton: EnvProvider | null = null
 
+	@TTranspileIgnore({ reason: "This method is only used from locator" })
 	public static get(): EnvProvider {
 		const singleton = EnvProvider.tryInitWithGlobalEnv()
 		if (isNull(singleton)) {
@@ -137,6 +138,7 @@ export class EnvProvider {
 		return EnvProvider.isMainOrNode()
 	}
 
+	@TMutableStaticSafety({ kind: TMutableStaticSafetyKind.MainThreadInitialized })
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
 		if (isNull(EnvProvider.singleton)) {
 			const env = RuntimeInfo.globallyDefinedEnv<EnvType>()
@@ -295,6 +297,9 @@ export class EnvProvider {
 		return url
 	}
 
+	@TTranspileIgnore({
+		reason: "This is irrelevant to the transpiled code",
+	})
 	public static assertMainOrNode(): void {
 		if (!assertionsEnabled) {
 			return
