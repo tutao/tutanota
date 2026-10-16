@@ -1,5 +1,3 @@
-import { DataFile } from "./Utils"
-
 /**
  * Used to pass all downloaded mail stuff to the desktop side to be exported as a file
  * Ideally this would just be {Mail, Headers, Body, FileReference[]}
@@ -25,4 +23,14 @@ export type MailBundle = {
 	receivedOn: number // UNIX timestamp,
 	headers: string | null
 	attachments: DataFile[]
+}
+
+export interface DataFile {
+	readonly _type: "DataFile"
+	name: string
+	mimeType: string
+	data: Uint8Array<ArrayBuffer>
+	size: number
+	id?: IdTuple
+	cid?: string
 }
