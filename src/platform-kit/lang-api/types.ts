@@ -42,7 +42,7 @@ export const TsInt = {
 		return Number.parseInt(str.asString()) as TsInt
 	},
 
-	isNaN(num: number): boolean {
+	isNaN(num: TsInt | number): boolean {
 		return Number.isNaN(num)
 	},
 }
@@ -54,11 +54,11 @@ export class TsDoubleBrand extends TsBrand {
 export type TsDouble = BrandedType<number, TsDoubleBrand>
 
 export const TsDouble = {
-	from(num: number): TsDouble {
+	from(num: number | TsInt): TsDouble {
 		return num as TsDouble
 	},
-	parseFloat(str: TsString): TsInt {
-		return Number.parseFloat(str.asString()) as TsInt
+	parseDouble(str: TsString): TsDouble {
+		return Number.parseFloat(str.asString()) as TsDouble
 	},
 }
 
