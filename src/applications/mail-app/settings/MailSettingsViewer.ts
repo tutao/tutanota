@@ -1,5 +1,5 @@
 import m, { Children } from "mithril"
-import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS } from "../../../platform-kit/app-env"
+import { EnvProvider, FeatureType, TutanotaConstants, UpgradePromptType } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { OperationType } from "../../../platform-kit/meta"
 import { LazyLoaded, ofClass } from "../../../platform-kit/utils"
@@ -123,7 +123,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 		// Done to avoid displaying negative storage capacity to the user, storage counter will be modified in the future to fix the negative values bug
 		let sizeInBytesCorrected = sizeInBytes > MINIMUM_DISPLAYED_STORAGE_IN_BYTES ? sizeInBytes : MINIMUM_DISPLAYED_STORAGE_IN_BYTES
 		const usedStorage = formatStorageSize(sizeInBytesCorrected)
-		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
+		const totalStorage = formatStorageSize(Number(customerInfo.perUserStorageCapacity) * TutanotaConstants.Const.MEMORY_GB_FACTOR)
 		this._storageFieldValue(
 			lang.get("amountUsedOf_label", {
 				"{amount}": usedStorage,
@@ -513,7 +513,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			dropdownWidth: 350,
 			helpLabel: () =>
 				lang.getTranslation("undoSendMail_msg", {
-					"{time}": UNDO_SEND_TIMEOUT_SECONDS,
+					"{time}": TutanotaConstants.UNDO_SEND_TIMEOUT_SECONDS,
 				}).text,
 		}
 	}

@@ -33,7 +33,7 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { NOTHING_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 import { sha256Hash } from "@tutao/crypto/sha256"
 
 const offlineDatabaseTestKey = new Uint8Array([3957386659, 354339016, 3786337319, 3366334248])
@@ -142,7 +142,7 @@ o.spec("OfflineStoragePersistence", () => {
 
 		{
 			const { query, params } = sql`INSERT
-			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES 
+			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES
 			('blob-1', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
 			('blob-2', ${archiveId}, ${data}, ${mailDetailsType}, ${modelVersion}),
 			('blob-2', ${archiveId}, ${data}, ${fileType}, ${modelVersion})`
@@ -252,7 +252,7 @@ o.spec("OfflineStoragePersistence", () => {
 
 		{
 			const { query, params } = sql`INSERT
-			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES 
+			OR REPLACE INTO encrypted_blobs (blobId, archiveId, data, type, modelVersion) VALUES
 			('blob-2', ${archiveId}, ${data}, ${mailDetailsType}, 123),
 			('blob-1', ${archiveId}, ${data}, ${mailDetailsType}, 123),
 			('blob-5', ${archiveId}, ${data}, ${mailDetailsType}, 124),
@@ -754,7 +754,7 @@ o.spec("OfflineStoragePersistence", () => {
 		o.check(indexedGroupsAfterReset).deepEquals([
 			{
 				...mailGroupData,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityElementId: GENERATED_MAX_ID,
 				lastIndexedEntityListId: GENERATED_MAX_ID,
 			},

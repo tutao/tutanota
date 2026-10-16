@@ -1,7 +1,7 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
-import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
+import { CancelledError, EnvProvider, TutanotaConstants } from "@tutao/app-env"
+import { BlobFacade, ArchiveDownloadResumeParams } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
 	collectToMap,
@@ -109,7 +109,7 @@ export class OfflineMailIndexer implements MailIndexer {
 	private abortController: AbortController = new AbortController()
 
 	get currentIndexTimestamp(): number {
-		return this.fullyIndexed ? FULL_INDEXED_TIMESTAMP : NOTHING_INDEXED_TIMESTAMP
+		return this.fullyIndexed ? TutanotaConstants.FULL_INDEXED_TIMESTAMP : TutanotaConstants.NOTHING_INDEXED_TIMESTAMP
 	}
 
 	get mailIndexingEnabled(): boolean {
@@ -124,7 +124,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			autoRestartEnabled: true,
 			progress,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
-			aimedMailIndexTimestamp: FULL_INDEXED_TIMESTAMP,
+			aimedMailIndexTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 			indexedMailCount,
 			failedIndexingUpTo: null,
 		}
@@ -132,7 +132,8 @@ export class OfflineMailIndexer implements MailIndexer {
 
 	async init(): Promise<void> {
 		const mailIndexedGroups = (await this.offlineStoragePersistence.getIndexedGroups()).filter((indexedGroup) => indexedGroup.type === GroupType.Mail)
-		this.fullyIndexed = isNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === FULL_INDEXED_TIMESTAMP)
+		this.fullyIndexed =
+			isNotEmpty(mailIndexedGroups) && mailIndexedGroups.every(({ indexedTimestamp }) => indexedTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 		await this.infoMessageHandler.onSearchIndexStateUpdate(this.createSearchIndexStateInfo(0))
 	}
 
@@ -213,7 +214,9 @@ export class OfflineMailIndexer implements MailIndexer {
 			(g) => g.groupId,
 		)
 
-		const indexedMailGroups = [...mailGroupData.values()].filter((group) => group.indexedTimestamp === FULL_INDEXED_TIMESTAMP).map((group) => group.groupId)
+		const indexedMailGroups = [...mailGroupData.values()]
+			.filter((group) => group.indexedTimestamp === TutanotaConstants.FULL_INDEXED_TIMESTAMP)
+			.map((group) => group.groupId)
 
 		const mailGroupsToAdd = difference(mailGroups, indexedMailGroups)
 		const mailGroupsToRemove = difference(indexedMailGroups, mailGroups)
@@ -263,7 +266,7 @@ export class OfflineMailIndexer implements MailIndexer {
 					resetProgress,
 				)
 
-				await this.offlineStoragePersistence.updateIndexingTimestamp(group, FULL_INDEXED_TIMESTAMP)
+				await this.offlineStoragePersistence.updateIndexingTimestamp(group, TutanotaConstants.FULL_INDEXED_TIMESTAMP)
 
 				indexedMailboxes += 1
 			}

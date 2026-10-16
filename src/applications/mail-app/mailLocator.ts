@@ -1,4 +1,4 @@
-import { AppType, Const, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES, ProgrammingError } from "@tutao/app-env"
+import { AppType, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES, ProgrammingError, TutanotaConstants } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -976,7 +976,7 @@ class MailLocator implements CommonLocator {
 			this.clientModelInfo,
 		)
 		this.usageTestController = new UsageTestController(this.usageTestModel)
-		this.Const = Const
+		this.Const = TutanotaConstants.Const
 		this.whitelabelThemeGenerator = new WhitelabelThemeGenerator()
 		this.spamClassifier = spamClassifier
 

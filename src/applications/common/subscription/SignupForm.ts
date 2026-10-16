@@ -4,7 +4,7 @@ import Stream from "mithril/stream"
 import { Dialog } from "../../../ui/base/Dialog"
 import { Autocomplete, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { SelectMailAddressForm, SelectMailAddressFormAttrs } from "../settings/SelectMailAddressForm"
-import { DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN, DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN, TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 
 import type { CheckboxAttrs } from "../../../ui/base/Checkbox.js"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
@@ -63,7 +63,7 @@ export class SignupForm implements Component<SignupFormAttrs> {
 	private isNextButtonDisabled = false
 
 	private readonly availableDomains: readonly EmailDomainData[] = (locator.domainConfigProvider().getCurrentDomainConfig().firstPartyDomain
-		? TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
+		? TutanotaConstants.TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS
 		: getWhitelabelRegistrationDomains()
 	).map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))
 
@@ -77,7 +77,9 @@ export class SignupForm implements Component<SignupFormAttrs> {
 		this.selectedDomain = getFirstOrThrow(this.availableDomains)
 
 		// tuta.com gets preference user is signing up for a paid account and it is available
-		const defaultDomain = vnode.attrs.isPaidSubscription() ? DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN : DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN
+		const defaultDomain = vnode.attrs.isPaidSubscription()
+			? TutanotaConstants.DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN
+			: TutanotaConstants.DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN
 		const desiredDomain = this.domainFrom(vnode.attrs.emailInputStore) ?? defaultDomain
 		const match = this.availableDomains.find((d) => d.domain === desiredDomain)
 		if (match) this.selectedDomain = match
