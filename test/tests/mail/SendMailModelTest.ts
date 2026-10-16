@@ -19,7 +19,6 @@ import { MailboxDetail, MailboxModel } from "../../../src/applications/common/ma
 import { SendMailModel, TOO_MANY_VISIBLE_RECIPIENTS } from "../../../src/applications/common/mailFunctionality/SendMailModel.js"
 import { RecipientField } from "../../../src/applications/common/mailFunctionality/SharedMailUtils.js"
 import { getContactDisplayName } from "../../../src/applications/common/contactsFunctionality/ContactUtils.js"
-import { ConfigurationDatabase } from "../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase"
 import { SyncTracker } from "../../../src/applications/common/api/main/SyncTracker"
 import { DateProvider } from "../../../src/platform-kit/utils/DateProvider"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
@@ -50,6 +49,7 @@ import { CustomerTypeRef, GroupInfoTypeRef, GroupMembershipTypeRef, GroupTypeRef
 import { isSameId, isSameTypeRef, OperationType } from "../../../src/platform-kit/meta"
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { ConversationType, MailMethod } from "../../../src/entities/tutanota/Utils"
+import { AutosaveFacade } from "../../../src/applications/common/api/worker/facades/lazy/AutosaveFacade"
 
 const { anything, argThat } = matchers
 
@@ -100,7 +100,7 @@ o.spec("SendMailModel", () => {
 
 	let model: SendMailModel
 	let userController: UserController
-	let db: ConfigurationDatabase
+	let db: AutosaveFacade
 	let syncTracker: SyncTracker
 	let now: number
 
