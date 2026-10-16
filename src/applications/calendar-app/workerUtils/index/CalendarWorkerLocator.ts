@@ -110,7 +110,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator._worker = worker
 	locator._browserData = browserData
 	locator._apps = apps
-	locator.workerFacade = new WorkerFacade()
+	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
 	locator.native = worker
 
 	const mainInterface = worker.getMainInterface()
@@ -195,7 +195,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker),
+		rsa: await createRsaImplementation(worker, locator.base.random),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
@@ -209,6 +209,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			instancePipeline,
 			restClient,
 			crypto,
+			symmetricCipherUtils,
+			keyEncryption,
 		}) =>
 			new TutanotaEntityMigrator(
 				cryptoWrapper,
@@ -220,6 +222,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 				instancePipeline,
 				restClient,
 				crypto,
+				symmetricCipherUtils,
+				keyEncryption,
 			),
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
@@ -246,6 +250,11 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			await locator.base.recoverCode(),
 			locator.base.adminKeyLoader,
 			await locator.base.identityKeyCreator(),
+			locator.base.random,
+			locator.base.symmetricCipherUtils,
+			locator.base.keyEncryption,
+			locator.base.cryptoWrapper,
+			locator.base.bcrypt,
 		)
 	})
 
@@ -272,7 +281,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		)
 	})
 
-	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker))
+	const aesApp = new AesApp(new NativeCryptoFacadeSendDispatcher(worker), locator.base.symmetricCipherUtils)
 	locator.blob = lazyMemoized(async () => {
 		const { BlobFacade } = await import("../../../common/api/worker/facades/lazy/BlobFacade.js")
 		return new BlobFacade(
@@ -286,6 +295,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			mainInterface.uploadProgressListener,
 			locator.base.typeModelResolver,
 			locator.base.serviceExecutor,
+			locator.base.aes,
 		)
 	})
 
@@ -303,6 +313,11 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.keyLoader,
 			locator.base.publicEncryptionKeyProvider,
 			locator.base.instanceKey,
+			locator.base.random,
+			locator.base.symmetricCipherUtils,
+			locator.base.aes,
+			locator.base.keyEncryption,
+			locator.base.bcrypt,
 		)
 	})
 
@@ -317,6 +332,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			nativePushFacade,
 			locator.base.instancePipeline,
 			mainInterface.infoMessageHandler,
+			locator.base.symmetricCipherUtils,
+			locator.base.keyEncryption,
 		)
 	})
 
@@ -349,7 +366,14 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 
 	locator.configFacade = lazyMemoized(async () => {
 		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
+		return new ConfigurationDatabase(
+			locator.base.symmetricCipherUtils,
+			locator.base.aes,
+			locator.base.keyEncryption,
+			locator.base.cryptoWrapper,
+			locator.base.keyLoader,
+			locator.base.user,
+		)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(
@@ -408,6 +432,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 			locator.base.crypto,
 			locator.base.keyLoader,
 			locator.base.cryptoWrapper,
+			locator.base.symmetricCipherUtils,
 		)
 	})
 

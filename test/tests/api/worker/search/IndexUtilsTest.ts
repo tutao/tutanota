@@ -10,58 +10,60 @@ import {
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 
-import { aes256RandomKey, FIXED_INITIALIZATION_VECTOR, generateInitializationVector, InitializationVector } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, InitializationVector, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import {
-	decryptMetaData,
-	decryptSearchIndexEntry,
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-} from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
-import { aesDecryptUnauthenticated } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { IndexEncryptionUtils } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 o.spec("Index Utils", () => {
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let aes: Aes
+	let indexEncryptionUtils: IndexEncryptionUtils
 	let INITIALIZATION_VECTOR: InitializationVector
-	o.before(() => {
-		INITIALIZATION_VECTOR = generateInitializationVector()
-	})
-	o("encryptIndexKey", function () {
-		let key = aes256RandomKey()
 
-		let encryptedKey = encryptIndexKeyBase64(key, "blubb", INITIALIZATION_VECTOR)
-		let decrypted = aesDecryptUnauthenticated(key, concat(INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
+	o.beforeEach(() => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		aes = new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils))
+		indexEncryptionUtils = new IndexEncryptionUtils(aes)
+		INITIALIZATION_VECTOR = symmetricCipherUtils.generateInitializationVector()
+	})
+
+	o("encryptIndexKey", function () {
+		let key = symmetricCipherUtils.aes256RandomKey()
+
+		let encryptedKey = indexEncryptionUtils.encryptIndexKeyBase64(key, "blubb", INITIALIZATION_VECTOR)
+		let decrypted = aes.aesDecryptUnauthenticated(key, concat(INITIALIZATION_VECTOR.bytes, base64ToUint8Array(encryptedKey)))
 		o(utf8Uint8ArrayToString(decrypted)).equals("blubb")
 	})
 	o("encryptSearchIndexEntry + decryptSearchIndexEntry", function () {
-		let key = aes256RandomKey()
+		let key = symmetricCipherUtils.aes256RandomKey()
 		let entry: SearchIndexEntry = {
 			id: "L0YED5d----1",
 			attribute: 84,
 			positions: [12, 536, 3],
 		}
-		let encId = encryptIndexKeyUint8Array(key, entry.id, INITIALIZATION_VECTOR)
-		let encryptedEntry = encryptSearchIndexEntry(key, entry, encId)
+		let encId = indexEncryptionUtils.encryptIndexKeyUint8Array(key, entry.id, INITIALIZATION_VECTOR)
+		let encryptedEntry = indexEncryptionUtils.encryptSearchIndexEntry(key, entry, encId)
 		// attribute 84 => 0x54,
 		// position[0] 12 => 0xC
 		// position[1] 536 = 0x218 => length of number = 2 | 0x80 = 0x82 numbers: 0x02, 0x18
 		// position[2] 3 => 0x03
 		const encodedIndexEntry = [0x54, 0xc, 0x82, 0x02, 0x18, 0x03]
-		const result = aesDecryptUnauthenticated(key, encryptedEntry.slice(16))
+		const result = aes.aesDecryptUnauthenticated(key, encryptedEntry.slice(16))
 		o(Array.from(result)).deepEquals(Array.from(encodedIndexEntry))
-		let decrypted = decryptSearchIndexEntry(key, encryptedEntry, INITIALIZATION_VECTOR)
+		let decrypted = indexEncryptionUtils.decryptSearchIndexEntry(key, encryptedEntry, INITIALIZATION_VECTOR)
 		o(JSON.stringify(decrypted.encId)).equals(JSON.stringify(encId))
 		const withoutEncId: any = decrypted
 		delete withoutEncId.encId
 		o(JSON.stringify(decrypted)).equals(JSON.stringify(entry))
 	})
 	o("encryptMetaData", function () {
-		const key = aes256RandomKey()
+		const key = symmetricCipherUtils.aes256RandomKey()
 		const meta: SearchIndexMetaDataRow = {
 			id: 3,
 			word: "asdsadasds",
@@ -82,10 +84,10 @@ o.spec("Index Utils", () => {
 				},
 			],
 		}
-		const encryptedMeta = encryptMetaData(key, meta)
+		const encryptedMeta = indexEncryptionUtils.encryptMetaData(key, meta)
 		o(encryptedMeta.id).equals(meta.id)
 		o(encryptedMeta.word).equals(meta.word)
-		o(Array.from(aesDecryptUnauthenticated(key, encryptedMeta.rows))).deepEquals([
+		o(Array.from(aes.aesDecryptUnauthenticated(key, encryptedMeta.rows))).deepEquals([
 			// First row
 			1,
 			64,
@@ -98,11 +100,11 @@ o.spec("Index Utils", () => {
 			8,
 			15,
 		])
-		o(decryptMetaData(key, encryptedMeta)).deepEquals(meta)
+		o(indexEncryptionUtils.decryptMetaData(key, encryptedMeta)).deepEquals(meta)
 	})
 	o("decryptMetaData with empty rows", function () {
 		o(
-			decryptMetaData(aes256RandomKey(), {
+			indexEncryptionUtils.decryptMetaData(symmetricCipherUtils.aes256RandomKey(), {
 				id: 1,
 				word: "tuta",
 				rows: new Uint8Array(0),

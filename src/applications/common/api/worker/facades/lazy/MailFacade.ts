@@ -15,20 +15,20 @@ import {
 import { CryptoProtocolVersion, EncryptionAuthStatus, EnvProvider, MailAuthenticationStatus, ProgrammingError } from "@tutao/app-env"
 import {
 	AeadCipherVersion,
+	Aes,
 	Aes256Key,
-	aes256RandomKey,
 	AesKey,
+	Bcrypt,
 	createAuthVerifier,
 	cryptoUtils,
 	CryptoWrapper,
-	encryptKey,
-	generateKdfNonce,
-	generateRandomSalt,
+	KeyEncryption,
 	keyToUint8Array,
 	murmurHash,
 	PublicKeyIdentifierType,
-	random,
+	Randomizer,
 	sha256Hash,
+	SymmetricCipherUtils,
 	VersionedKey,
 } from "@tutao/crypto"
 import { RecipientsNotFoundError } from "../../../../../../platform-kit/network/error/RecipientsNotFoundError.js"
@@ -193,7 +193,6 @@ import {
 import { DEFAULT_KDF_TYPE, KdfType } from "../../../../../../platform-kit/base/base-crypto/Constants.js"
 import { SimpleMoveMailTarget } from "../../../../../mail-app/mail/MailUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { aesEncrypt } from "../../../../../../platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { InstanceKeyFacade } from "../../../../../../platform-kit/base/base-crypto/InstanceKeyFacade"
@@ -248,19 +247,24 @@ export class MailFacade {
 		private readonly keyLoaderFacade: KeyLoaderFacade,
 		private readonly publicEncryptionKeyProvider: PublicEncryptionKeyProvider,
 		private readonly instanceKeyFacade: InstanceKeyFacade,
+		private readonly random: Randomizer,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly aes: Aes,
+		private readonly keyEncryption: KeyEncryption,
+		private readonly bcrypt: Bcrypt,
 	) {}
 
 	async createMailFolder(name: string, parent: IdTuple | null, ownerGroupId: Id): Promise<IdTuple> {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(ownerGroupId)
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const mailSet = createMailSetTransferAggregatedType({
 			_ownerGroup: ownerGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+			_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 			name,
 			parentFolder: parent,
 		})
@@ -352,9 +356,8 @@ export class MailFacade {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), senderMailAddress)
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(senderMailGroupId)
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
-
 		const service = createDraftCreateData({
 			previousMessageId: previousMessageId,
 			conversationType: conversationType,
@@ -421,7 +424,7 @@ export class MailFacade {
 	}
 
 	async uploadAttachments(providedFile: DataFile | FileReference, senderMailGroupId: Id, mailGroupKey: VersionedKey): Promise<NewDraftAttachment> {
-		const fileSessionKey = aes256RandomKey()
+		const fileSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const transferId = await this.blobFacade.generateTransferId()
 		let referenceTokens: Array<BlobReferenceTokenWrapper>
 		if (isFileReference(providedFile)) {
@@ -463,7 +466,7 @@ export class MailFacade {
 		mailGroupKey: VersionedKey,
 	): NewDraftAttachment {
 		const transferFile = createFileTransferAggregatedType({
-			_ownerEncSessionKey: encryptKey(mailGroupKey.object, fileSessionKey),
+			_ownerEncSessionKey: this.keyEncryption.encryptKey(mailGroupKey.object, fileSessionKey),
 			_ownerKeyVersion: mailGroupKey.version.toString(),
 			_kdfNonce: null,
 			name: providedFile.name,
@@ -743,7 +746,7 @@ export class MailFacade {
 
 	async sendDraft(draft: Mail, recipients: Array<Recipient>, language: string, sendAt: Date | null, allowUndo: boolean = false): Promise<SendDraftReturn> {
 		const senderMailGroupId = await this._getMailGroupIdForMailAddress(this.userFacade.getLoggedInUser(), draft.sender.address)
-		const bucketKey = aes256RandomKey()
+		const bucketKey = this.symmetricCipherUtils.aes256RandomKey()
 		const parameters: SendDraftParametersParams = {
 			language: language,
 			mail: draft._id,
@@ -770,7 +773,7 @@ export class MailFacade {
 			})
 
 			if (draft.confidential) {
-				data.bucketEncFileSessionKey = encryptKey(bucketKey, fileSessionKey)
+				data.bucketEncFileSessionKey = this.keyEncryption.encryptKey(bucketKey, fileSessionKey)
 			} else {
 				data.fileSessionKey = keyToUint8Array(fileSessionKey)
 			}
@@ -787,7 +790,7 @@ export class MailFacade {
 				parameters.calendarMethod = draft.method !== MailMethod.NONE
 
 				if (draft.confidential) {
-					parameters.bucketEncMailSessionKey = encryptKey(bucketKey, sk)
+					parameters.bucketEncMailSessionKey = this.keyEncryption.encryptKey(bucketKey, sk)
 					const hasExternalSecureRecipient = recipients.some((r) => r.type === RecipientType.EXTERNAL && !!this.getContactPassword(r.contact)?.trim())
 
 					if (hasExternalSecureRecipient) {
@@ -973,7 +976,7 @@ export class MailFacade {
 					continue
 				}
 
-				const salt = generateRandomSalt()
+				const salt = this.bcrypt.generateRandomSalt()
 				const kdfType = DEFAULT_KDF_TYPE
 				const passwordKey = await this.loginFacade.deriveUserPassphraseKey({ kdfType, passphrase, salt })
 				const passwordVerifier = createAuthVerifier(passwordKey)
@@ -987,7 +990,7 @@ export class MailFacade {
 					passwordVerifier: passwordVerifier,
 					salt: salt,
 					saltHash: sha256Hash(salt),
-					pwEncCommunicationKey: encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
+					pwEncCommunicationKey: this.keyEncryption.encryptKey(passwordKey, externalGroupKeys.currentExternalUserGroupKey.object),
 					userGroupKeyVersion: String(externalGroupKeys.currentExternalUserGroupKey.version),
 				})
 				sendDraftParameters.secureExternalRecipientKeyData.push(data)
@@ -1131,18 +1134,18 @@ export class MailFacade {
 		const internalUserGroupKey = this.userFacade.getCurrentUserGroupKey()
 		const internalMailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(this.userFacade.getGroupId(GroupType.Mail))
 
-		const currentExternalUserGroupKey = freshVersioned(aes256RandomKey())
-		const currentExternalMailGroupKey = freshVersioned(aes256RandomKey())
-		const externalUserGroupInfoSessionKey = aes256RandomKey()
-		const externalMailGroupInfoSessionKey = aes256RandomKey()
-		const tutanotaPropertiesSessionKey = aes256RandomKey()
-		const mailboxSessionKey = aes256RandomKey()
-		const externalUserEncEntropy = this.cryptoWrapper.encryptBytes(currentExternalUserGroupKey.object, random.generateRandomData(32))
+		const currentExternalUserGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const currentExternalMailGroupKey = freshVersioned(this.symmetricCipherUtils.aes256RandomKey())
+		const externalUserGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const externalMailGroupInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const tutanotaPropertiesSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const mailboxSessionKey = this.symmetricCipherUtils.aes256RandomKey()
+		const externalUserEncEntropy = this.cryptoWrapper.encryptBytes(currentExternalUserGroupKey.object, this.random.generateRandomData(32))
 
 		const internalUserEncGroupKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalUserGroupKey, currentExternalUserGroupKey.object)
 		const userGroupData = createCreateExternalUserGroupData({
 			mailAddress: cleanedMailAddress,
-			externalPwEncUserGroupKey: encryptKey(externalUserPwKey, currentExternalUserGroupKey.object),
+			externalPwEncUserGroupKey: this.keyEncryption.encryptKey(externalUserPwKey, currentExternalUserGroupKey.object),
 			internalUserEncUserGroupKey: internalUserEncGroupKey.key,
 			internalUserGroupKeyVersion: internalUserEncGroupKey.encryptingKeyVersion.toString(),
 		})
@@ -1167,14 +1170,14 @@ export class MailFacade {
 		const internalMailEncMailGroupInfoSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(internalMailGroupKey, externalMailGroupInfoSessionKey)
 
 		// the internal mail group is the owner group of the external [user|mail] group info instances
-		const externalUserGroupInfoKdfNonce = generateKdfNonce()
+		const externalUserGroupInfoKdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 		const currentExternalUserGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalUserGroupInfoKdfNonce)
 		const externalUserEncUserGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
 			currentExternalUserGroupKey,
 			currentExternalUserGroupInfoInstanceKey.object,
 		)
 
-		const externalMailGroupInfoKdfNonce = generateKdfNonce()
+		const externalMailGroupInfoKdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 		const currentExternalMailGroupInfoInstanceKey = this.instanceKeyFacade.deriveInstanceKey(internalMailGroupKey, externalMailGroupInfoKdfNonce)
 		const externalMailEncMailGroupInfoInstanceKey = this.cryptoWrapper.encryptKeyWithVersionedKey(
 			currentExternalMailGroupKey,
@@ -1344,14 +1347,14 @@ export class MailFacade {
 	 */
 	async createLabel(mailGroupId: Id, labelData: { name: string; color: string; parentLabelId?: IdTuple }) {
 		const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sessionKey)
 
 		const mailSet = createLabelPostTransferAggregatedType({
 			_ownerGroup: mailGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: String(ownerEncSessionKey.encryptingKeyVersion),
-			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+			_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 			name: labelData.name,
 			parentFolder: labelData.parentLabelId ?? null,
 			color: labelData.color,
@@ -1463,13 +1466,13 @@ export class MailFacade {
 		for (const unencryptedProcessInboxDatum of unencryptedProcessInboxData) {
 			const { targetMoveFolder, classifierType, mailId, vectorLegacy, vectorWithServerClassifiers } = unencryptedProcessInboxDatum
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
-			const sk = aes256RandomKey()
+			const sk = this.symmetricCipherUtils.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const processInboxDatum = createProcessInboxDatum({
 				ownerEncVectorSessionKey: ownerEncSessionKey.key,
 				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				encVectorLegacy: aesEncrypt(sk, vectorLegacy),
-				encVectorWithServerClassifiers: aesEncrypt(sk, vectorWithServerClassifiers),
+				encVectorLegacy: this.aes.aesEncrypt(sk, vectorLegacy),
+				encVectorWithServerClassifiers: this.aes.aesEncrypt(sk, vectorWithServerClassifiers),
 				classifierType,
 				mailId,
 				targetMoveFolder,
@@ -1504,14 +1507,14 @@ export class MailFacade {
 		const populateClientSpamTrainingData: PopulateClientSpamTrainingDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedPopulateClientSpamTrainingData) {
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
-			const sk = aes256RandomKey()
+			const sk = this.symmetricCipherUtils.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
 			const { isSpam, confidence, mailId, vector, vectorNewFormat } = unencryptedProcessInboxDatum
 			const populateClientSpamTrainingDatum = createPopulateClientSpamTrainingDatum({
 				ownerEncVectorSessionKey: ownerEncSessionKey.key,
 				ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				encVectorLegacy: aesEncrypt(sk, vector),
-				encVectorWithServerClassifiers: aesEncrypt(sk, vectorNewFormat),
+				encVectorLegacy: this.aes.aesEncrypt(sk, vector),
+				encVectorWithServerClassifiers: this.aes.aesEncrypt(sk, vectorNewFormat),
 				isSpam,
 				mailId,
 				confidence,

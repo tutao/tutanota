@@ -8,9 +8,9 @@ import { SymmetricCipherVersion, symmetricCipherVersionToUint8Array } from "@tut
 import { AesCbcFacade, PaddingStandard } from "@tutao/crypto/aes-cbc-facade"
 import { matchers, object, verify, when } from "testdouble"
 import {
-	aes256RandomKey,
 	InitializationVector,
 	KDF_NONCE_LENGTH_BYTES,
+	SymmetricCipherUtils,
 	validateInitializationVectorLength,
 	validateKdfNonceLength,
 } from "@tutao/crypto/symmetric-cipher-utils"
@@ -23,6 +23,7 @@ import {
 	KeyDerivationContext,
 	MacTag,
 	OwnerKeyProvider,
+	random,
 	VersionedAes256Key,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -36,6 +37,7 @@ import { ValuePath } from "../../../src/platform-kit/instance-pipeline/Encryptio
 import { makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 
 o.spec("ValueDecryptorTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let symmetricCipherFacade: SymmetricCipherFacade
 	let aesCbcFacade: AesCbcFacade
 	let aeadFacade: AeadFacade
@@ -49,11 +51,12 @@ o.spec("ValueDecryptorTest", function () {
 	let ownerKeyProvider: OwnerKeyProvider
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		aesCbcFacade = object()
 		aeadFacade = object()
 		symmetricKeyDeriver = object()
-		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver)
-		aes256Key = aes256RandomKey()
+		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
+		aes256Key = symmetricCipherUtils.aes256RandomKey()
 		macTag = new Uint8Array(32) as MacTag
 		initializationVector = validateInitializationVectorLength(new Uint8Array(16))
 		app = AppNameEnum.Tutanota
@@ -161,7 +164,7 @@ o.spec("ValueDecryptorTest", function () {
 
 	o.test("AeadWithInstanceKey from instance key", async function () {
 		const groupKeyVersion = 0
-		const instanceKey: VersionedAes256Key = { object: aes256RandomKey(), version: groupKeyVersion }
+		const instanceKey: VersionedAes256Key = { object: symmetricCipherUtils.aes256RandomKey(), version: groupKeyVersion }
 		const instanceKeyProvider: InstanceKeyProvider = async (groupKeyVersion) => instanceKey
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, null, null, null, instanceKeyProvider)
 		const keyVersionLengthByte = 0

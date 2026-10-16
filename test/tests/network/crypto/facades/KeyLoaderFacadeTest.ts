@@ -3,15 +3,21 @@ import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFac
 import { PQFacade } from "../../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 import {
-	aes256RandomKey,
+	Aes,
+	AesCbcFacade,
 	AesKey,
 	cryptoUtils,
+	KeyEncryption,
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
+	random,
 	RsaKeyPair,
 	rsaPublicKeyToHex,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	VersionedKey,
+	X25519,
 } from "../../../../../src/platform-kit/crypto"
 import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
 import { createTestEntity } from "../../../TestUtils.js"
@@ -38,13 +44,16 @@ import {
 	User,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { encryptKey, encryptRsaKey, encryptX25519Key } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
-import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { FormerKeyResolver } from "../../../../../src/platform-kit/base/base-crypto/FormerKeyResolver"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("KeyLoaderFacadeTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let aes: Aes
+	let keyEncryption: KeyEncryption
 	let keyCache: KeyCache
 	let userFacade: UserFacade
 	let entityClient: EntityClient
@@ -68,39 +77,62 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let realFormerKeyResolver: FormerKeyResolver
 
 	o.beforeEach(async () => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		aes = new Aes(symmetricCipherFacade)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+
 		keyCache = new KeyCache()
 		userFacade = object()
 		entityClient = object()
 		cacheManagementFacade = object()
-		pqFacade = new PQFacade(new WASMKyberFacade(await loadLibOQSWASM()))
-		cryptoWrapper = object()
-		realFormerKeyResolver = new FormerKeyResolver(entityClient)
-		keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
+		const x25519 = new X25519(random)
+		pqFacade = new PQFacade(
+			new WASMKyberFacade(random, await loadLibOQSWASM()),
+			new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519),
+			x25519,
+		)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
+		realFormerKeyResolver = new FormerKeyResolver(entityClient, keyEncryption)
+		keyLoaderFacade = new KeyLoaderFacade(
+			keyCache,
+			userFacade,
+			entityClient,
+			async () => cacheManagementFacade,
+			cryptoWrapper,
+			realFormerKeyResolver,
+			keyEncryption,
+		)
 
 		formerKeys = []
 		formerKeyPairsDecrypted = []
 		formerKeysDecrypted = []
 		for (let i = 0; i < FORMER_KEYS_LENGTH; i++) {
-			formerKeysDecrypted.push(aes256RandomKey())
+			formerKeysDecrypted.push(symmetricCipherUtils.aes256RandomKey())
 			formerKeyPairsDecrypted.push(await pqFacade.generateKeyPairs())
 		}
 
 		currentGroupKeyVersion = formerKeysDecrypted.length as KeyVersion
-		currentGroupKey = { object: aes256RandomKey(), version: currentGroupKeyVersion }
+		currentGroupKey = { object: symmetricCipherUtils.aes256RandomKey(), version: currentGroupKeyVersion }
 
 		let lastKey = currentGroupKey.object
 
 		for (let i = formerKeysDecrypted.length - 1; i >= 0; i--) {
 			const key: GroupKey = createTestEntity(GroupKeyTypeRef)
 			key._id = ["list", stringToBase64UrlCustomId(i.toString())]
-			key.ownerEncGKey = encryptKey(lastKey, formerKeysDecrypted[i])
+			key.ownerEncGKey = keyEncryption.encryptKey(lastKey, formerKeysDecrypted[i])
 			const pqKeyPair = formerKeyPairsDecrypted[i]
 
 			key.keyPair = createTestEntity(KeyPairTypeRef, {
 				pubEccKey: pqKeyPair.x25519KeyPair.publicKey,
 				pubKyberKey: kyberPublicKeyToBytes(pqKeyPair.kyberKeyPair.publicKey),
-				symEncPrivEccKey: encryptX25519Key(formerKeysDecrypted[i], pqKeyPair.x25519KeyPair.privateKey),
-				symEncPrivKyberKey: aesEncrypt(formerKeysDecrypted[i], kyberPrivateKeyToBytes(pqKeyPair.kyberKeyPair.privateKey)),
+				symEncPrivEccKey: keyEncryption.encryptX25519Key(formerKeysDecrypted[i], pqKeyPair.x25519KeyPair.privateKey),
+				symEncPrivKyberKey: aes.aesEncrypt(formerKeysDecrypted[i], kyberPrivateKeyToBytes(pqKeyPair.kyberKeyPair.privateKey)),
 			})
 			lastKey = formerKeysDecrypted[i]
 			formerKeys.unshift(key)
@@ -109,9 +141,9 @@ o.spec("KeyLoaderFacadeTest", function () {
 
 		currentKeys = createTestEntity(KeyPairTypeRef, {
 			pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
-			symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
+			symEncPrivEccKey: keyEncryption.encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 			pubKyberKey: kyberPublicKeyToBytes(currentKeyPair.kyberKeyPair.publicKey),
-			symEncPrivKyberKey: aesEncrypt(currentGroupKey.object, kyberPrivateKeyToBytes(currentKeyPair.kyberKeyPair.privateKey)),
+			symEncPrivKyberKey: aes.aesEncrypt(currentGroupKey.object, kyberPrivateKeyToBytes(currentKeyPair.kyberKeyPair.privateKey)),
 			pubRsaKey: null,
 			symEncPrivRsaKey: null,
 		})
@@ -121,7 +153,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 			formerGroupKeys: createTestEntity(GroupKeysRefTypeRef, { list: "list" }),
 			groupKeyVersion: String(currentGroupKeyVersion),
 		})
-		userGroupKey = freshVersioned(aes256RandomKey())
+		userGroupKey = freshVersioned(symmetricCipherUtils.aes256RandomKey())
 		userGroup = createTestEntity(GroupTypeRef, {
 			_id: idToElementId("my userGroup"),
 			groupKeyVersion: String(userGroupKey.version),
@@ -132,7 +164,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 		membership = createTestEntity(GroupMembershipTypeRef, {
 			group: elementIdToId(group._id),
 			symKeyVersion: String(userGroupKey.version),
-			symEncGKey: encryptKey(userGroupKey.object, currentGroupKey.object),
+			symEncGKey: keyEncryption.encryptKey(userGroupKey.object, currentGroupKey.object),
 			groupKeyVersion: String(currentGroupKey.version),
 		})
 		when(userFacade.getCurrentUserGroupKey()).thenReturn(userGroupKey)
@@ -240,15 +272,23 @@ o.spec("KeyLoaderFacadeTest", function () {
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
 				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
-				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
+				symEncPrivEccKey: keyEncryption.encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
-				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				symEncPrivRsaKey: keyEncryption.encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
+			keyLoaderFacade = new KeyLoaderFacade(
+				keyCache,
+				userFacade,
+				entityClient,
+				async () => cacheManagementFacade,
+				cryptoWrapper,
+				realFormerKeyResolver,
+				keyEncryption,
+			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 
@@ -260,15 +300,23 @@ o.spec("KeyLoaderFacadeTest", function () {
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
 				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
-				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
+				symEncPrivEccKey: keyEncryption.encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
-				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				symEncPrivRsaKey: keyEncryption.encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
+			keyLoaderFacade = new KeyLoaderFacade(
+				keyCache,
+				userFacade,
+				entityClient,
+				async () => cacheManagementFacade,
+				cryptoWrapper,
+				realFormerKeyResolver,
+				keyEncryption,
+			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 
@@ -290,15 +338,23 @@ o.spec("KeyLoaderFacadeTest", function () {
 			group.groupKeyVersion = String(currentGroupKey.version)
 			group.currentKeys = createKeyPair({
 				pubEccKey: currentKeyPair.x25519KeyPair.publicKey,
-				symEncPrivEccKey: encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
+				symEncPrivEccKey: keyEncryption.encryptX25519Key(currentGroupKey.object, currentKeyPair.x25519KeyPair.privateKey),
 				pubKyberKey: null,
 				symEncPrivKyberKey: null,
-				symEncPrivRsaKey: encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
+				symEncPrivRsaKey: keyEncryption.encryptRsaKey(currentGroupKey.object, RSA_TEST_KEYPAIR.privateKey),
 				pubRsaKey: hexToUint8Array(rsaPublicKeyToHex(RSA_TEST_KEYPAIR.publicKey)),
 				signature: null,
 			})
 			keyCache = object()
-			keyLoaderFacade = new KeyLoaderFacade(keyCache, userFacade, entityClient, async () => cacheManagementFacade, cryptoWrapper, realFormerKeyResolver)
+			keyLoaderFacade = new KeyLoaderFacade(
+				keyCache,
+				userFacade,
+				entityClient,
+				async () => cacheManagementFacade,
+				cryptoWrapper,
+				realFormerKeyResolver,
+				keyEncryption,
+			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
 
@@ -354,7 +410,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 	o.spec("loadSymUserGroupKey", function () {
 		o("key cache is outdated and refreshes", async function () {
 			const requestedGroupKeyVersion = cryptoUtils.checkKeyVersionConstraints(Number(userGroup.groupKeyVersion) + 1)
-			const refreshedUserGroupKey = { version: requestedGroupKeyVersion, object: aes256RandomKey() }
+			const refreshedUserGroupKey = { version: requestedGroupKeyVersion, object: symmetricCipherUtils.aes256RandomKey() }
 			when(cacheManagementFacade.refreshKeyCache(elementIdToId(userGroup._id))).thenDo(() => {
 				// cached key version is less than the requested one, but we can refresh successfully
 				when(userFacade.getCurrentUserGroupKey()).thenReturn(refreshedUserGroupKey)
@@ -375,7 +431,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 			outOfDateMembership = createTestEntity(GroupMembershipTypeRef, {
 				group: elementIdToId(group._id),
 				symKeyVersion: String(userGroupKey.version),
-				symEncGKey: encryptKey(userGroupKey.object, formerKeysDecrypted[currentGroupKeyVersion - 1]),
+				symEncGKey: keyEncryption.encryptKey(userGroupKey.object, formerKeysDecrypted[currentGroupKeyVersion - 1]),
 				groupKeyVersion: String(currentGroupKeyVersion - 1),
 			})
 		})

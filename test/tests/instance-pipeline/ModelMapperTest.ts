@@ -29,7 +29,7 @@ o.spec("ModelMapperTest", function () {
 	let instance: TestEntity
 
 	o.beforeEach(async () => {
-		modelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver)
+		modelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver, random)
 
 		instance = await createTestEntityWithDummyResolver(TestTypeRef, {
 			testAssociation: [

@@ -13,6 +13,7 @@ import { CustomCacheHandlerMap } from "../../../../src/app-kit/local-store/Custo
 import { LastUpdateTime } from "../../../../src/app-kit/local-store/CacheStorage"
 import { MailSetEntry, MailSetEntryTypeRef } from "@tutao/entities/tutanota"
 import { downcast } from "../../../../src/platform-kit/utils"
+import { random } from "../../../../src/platform-kit/crypto"
 
 const { anything } = matchers
 o.spec("CachingOfflineStorageTest", function () {
@@ -29,7 +30,7 @@ o.spec("CachingOfflineStorageTest", function () {
 	const dummyElementId = "elementId"
 	const dummyElementId2 = "elementId2"
 	const dummyOwner = "ownerGroup"
-	const dummyModelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver)
+	const dummyModelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver, random)
 	let typeModelResolver: TypeModelResolver
 	let testModelMapper: ModelMapper
 

@@ -3,11 +3,12 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { ClientSpamTrainingDatumTypeRef, InboxRuleTypeRef, MailTypeRef, SendDraftDataTypeRef, UnreadMailStatePostInTypeRef } from "@tutao/entities/tutanota"
 import { CalendarEventRefTypeRef, NotificationInfoTypeRef } from "@tutao/entities/sys"
 import { InstancePipeline } from "../../../src/platform-kit/instance-pipeline"
-import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
-import { Aes256Key } from "../../../src/platform-kit/crypto"
+import { Aes256Key, AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { DriveFileTypeRef } from "@tutao/entities/drive"
 import { IncomingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { Entity, TypeRef } from "../../../src/platform-kit/meta"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("InstancePipelineTest", () => {
 	let instancePipeline: InstancePipeline
@@ -15,8 +16,13 @@ o.spec("InstancePipelineTest", () => {
 	let sessionKey: Aes256Key
 
 	o.beforeEach(async () => {
-		sessionKey = aes256RandomKey()
-		instancePipeline = instancePipelineFromTypeModelResolver(clientInitializedTypeModelResolver())
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		sessionKey = symmetricCipherUtils.aes256RandomKey()
+		instancePipeline = instancePipelineFromTypeModelResolver(
+			random,
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+			clientInitializedTypeModelResolver(),
+		)
 		testEntities = [
 			createTestEntity(MailTypeRef, {}, { populateAggregates: true }),
 			createTestEntity(CalendarEventRefTypeRef, {}, { populateAggregates: true }),

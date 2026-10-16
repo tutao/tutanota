@@ -3,7 +3,7 @@ import o from "@tutao/otest"
 import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import type { CryptoFunctions } from "../../../src/applications/common/desktop/CryptoFns.js"
-import { aes256RandomKey, AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, uint8ArrayTo256Key } from "../../../src/platform-kit/crypto"
+import { AesKeyLength, Argon2IDExports, getKeyLengthInBytes, random, SymmetricCipherUtils, uint8ArrayTo256Key } from "../../../src/platform-kit/crypto"
 import { matchers, object, verify, when } from "testdouble"
 import { TempFs } from "../../../src/applications/common/desktop/files/TempFs.js"
 import { mockFsReadStream } from "./desktopTestUtils"
@@ -12,8 +12,9 @@ import { uint8ArrayTo128Key } from "@tutao/crypto/symmetric-cipher-utils"
 o.spec("DesktopCryptoFacadeTest", () => {
 	const data = Buffer.from([42])
 	const aes128Key = uint8ArrayTo128Key(random.generateRandomData(getKeyLengthInBytes(AesKeyLength.Aes128)))
-	const aes256Key = aes256RandomKey()
-	const aes256DecryptedKey = aes256RandomKey()
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const aes256Key = symmetricCipherUtils.aes256RandomKey()
+	const aes256DecryptedKey = symmetricCipherUtils.aes256RandomKey()
 	const aes256EncryptedKey = new Uint8Array([2, 5, 6, 1])
 	const decryptedUint8 = stringToUtf8Uint8Array("decrypted")
 	const someKey = new Uint8Array([1, 2])

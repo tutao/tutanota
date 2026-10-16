@@ -1,13 +1,13 @@
 import o from "@tutao/otest"
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
-import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "../../../../../src/platform-kit/crypto"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, random } from "../../../../../src/platform-kit/crypto"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 
 o.spec("KyberFacade", function () {
 	let kyberFacade: WASMKyberFacade
 	o.before(async () => {
-		kyberFacade = new WASMKyberFacade(await loadLibOQSWASM())
+		kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 	})
 	o("encoding roundtrip", async function () {
 		const keyPair = await kyberFacade.generateKeypair()

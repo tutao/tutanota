@@ -1,4 +1,4 @@
-import { aes256RandomKey, keyToBase64 } from "@tutao/crypto"
+import { keyToBase64, SymmetricCipherUtils } from "@tutao/crypto"
 import { Logger } from "../../common/Logger.js"
 
 /**
@@ -6,8 +6,10 @@ import { Logger } from "../../common/Logger.js"
  *  (read: kitchen sink).
  */
 export class WorkerFacade {
-	async generateSsePushIdentifer(): Promise<string> {
-		return keyToBase64(aes256RandomKey())
+	constructor(private readonly symmetricCipherUtils: SymmetricCipherUtils) {}
+
+	async generateSsePushIdentifier(): Promise<string> {
+		return keyToBase64(this.symmetricCipherUtils.aes256RandomKey())
 	}
 
 	async getLog(): Promise<string[]> {

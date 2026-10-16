@@ -31,22 +31,21 @@ import {
 import { DEFAULT_REST_CLIENT_OPTIONS, RestClientInterface } from "@tutao/rest-client"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import {
-	aes256RandomKey,
-	aesEncrypt,
+	Aes,
 	AesKey,
 	cryptoUtils,
 	CryptoWrapper,
-	decryptKey,
-	encryptKey,
 	InstanceKeyProvider,
 	isPqKeyPairs,
 	isVersionedPqPublicKey,
+	KeyEncryption,
 	keyToUint8Array,
 	OwnerKeyProvider,
 	PublicKey,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
 	sha256Hash,
+	SymmetricCipherUtils,
 	validateKdfNonceLength,
 	VersionedEncryptedKey,
 	VersionedKey,
@@ -139,6 +138,9 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sendError: (error: Error) => Promise<void>,
 		private readonly instanceKeyProviderMaker: InstanceKeyProviderMaker,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly aes: Aes,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	async makeInstanceKeyProvider(instance: PersistentEntity): Promise<Nullable<InstanceKeyProvider>> {
@@ -147,7 +149,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
 	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>, ownerKey: AesKey): AesKey {
-		return decryptKey(ownerKey, ownerEncSessionKey)
+		return this.keyEncryption.decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
 	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
@@ -321,7 +323,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		if (this.userFacade.hasGroup(keyGroup)) {
 			// the logged-in user (most likely external) is a member of that group. Then we have the group key from the memberships
 			const groupKey = await this.symGroupKeyLoader.loadSymGroupKey(keyGroup, groupKeyVersion, null)
-			return decryptKey(groupKey, groupEncBucketKey)
+			return this.keyEncryption.decryptKey(groupKey, groupEncBucketKey)
 		} else {
 			// internal user receiving a mail from secure external:
 			// internal user group key -> external user group key -> external mail group key -> bucket key
@@ -344,19 +346,19 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 			const internalUserGroupKeyVersion = cryptoUtils.parseKeyVersion(externalUserGroup.adminGroupKeyVersion ?? "0")
 			const internalUserGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(internalUserGroupId, internalUserGroupKeyVersion, null)
 
-			const currentExternalUserGroupKey = decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
+			const currentExternalUserGroupKey = this.keyEncryption.decryptKey(internalUserGroupKey, assertNotNull(externalUserGroup.adminGroupEncGKey))
 			const externalUserGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(externalUserGroupId, externalUserGroupKeyVersion, {
 				object: currentExternalUserGroupKey,
 				version: cryptoUtils.parseKeyVersion(externalUserGroup.groupKeyVersion),
 			})
 
-			const currentExternalMailGroupKey = decryptKey(externalUserGroupKey, assertNotNull(externalMailGroup.adminGroupEncGKey))
+			const currentExternalMailGroupKey = this.keyEncryption.decryptKey(externalUserGroupKey, assertNotNull(externalMailGroup.adminGroupEncGKey))
 			const externalMailGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(externalMailGroupId, externalMailGroupKeyVersion, {
 				object: currentExternalMailGroupKey,
 				version: cryptoUtils.parseKeyVersion(externalMailGroup.groupKeyVersion),
 			})
 
-			return decryptKey(externalMailGroupKey, groupEncBucketKey)
+			return this.keyEncryption.decryptKey(externalMailGroupKey, groupEncBucketKey)
 		}
 	}
 
@@ -375,7 +377,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 				cryptoUtils.parseKeyVersion(symmetricPermission._ownerKeyVersion ?? "0"),
 				null,
 			)
-			return decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
+			return this.keyEncryption.decryptKey(gk, assertNotNull(symmetricPermission._ownerEncSessionKey))
 		} else {
 			return null
 		}
@@ -397,7 +399,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 		let resolvedSessionKeyForInstance: AesKey | null = null
 		const instanceSessionKeys = await promiseMap(bucketKey.bucketEncSessionKeys, async (instanceSessionKey) => {
-			const decryptedSessionKey = decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
+			const decryptedSessionKey = this.keyEncryption.decryptKey(decBucketKey, instanceSessionKey.symEncSessionKey)
 			const groupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(assertNotNull(instance._ownerGroup))
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(groupKey, decryptedSessionKey)
 			const instanceSessionKeyWithOwnerEncSessionKey = createInstanceSessionKey(instanceSessionKey)
@@ -472,11 +474,17 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 						assertNotNull(pqMessageSenderKeyVersion),
 					)
 					encryptionAuthStatus = authStatus
-					instanceSessionKeyWithOwnerEncSessionKey.keyVerificationState = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(verificationState))
+					instanceSessionKeyWithOwnerEncSessionKey.keyVerificationState = this.aes.aesEncrypt(
+						decryptedSessionKey,
+						stringToUtf8Uint8Array(verificationState),
+					)
 				}
 			}
 			mail.encryptionAuthStatus = encryptionAuthStatus // we set the encryptionAuthStatus on mail early, so we can already use it before the entityUpdate is received
-			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = aesEncrypt(decryptedSessionKey, stringToUtf8Uint8Array(encryptionAuthStatus))
+			instanceSessionKeyWithOwnerEncSessionKey.encryptionAuthStatus = this.aes.aesEncrypt(
+				decryptedSessionKey,
+				stringToUtf8Uint8Array(encryptionAuthStatus),
+			)
 		}
 	}
 
@@ -574,21 +582,21 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 				cryptoUtils.parseKeyVersion(bucketPermission.ownerKeyVersion ?? "0"),
 				null,
 			)
-			bucketKey = decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
+			bucketKey = this.keyEncryption.decryptKey(ownerGroupKey, bucketPermission.ownerEncBucketKey)
 		} else if (isNotNull(bucketPermission.symEncBucketKey)) {
 			// legacy case: for very old email sent to external user we used symEncBucketKey on the bucket permission.
 			// The bucket key is encrypted with the user group key of the external user.
 			// We maintain this code as we still have some old BucketKeys in some external mailboxes.
 			// Can be removed if we finished mail details migration or when we do cleanup of external mailboxes.
 			const userGroupKey = await this.symGroupKeyLoader.loadSymUserGroupKey(cryptoUtils.parseKeyVersion(bucketPermission.symKeyVersion ?? "0"))
-			bucketKey = decryptKey(userGroupKey, bucketPermission.symEncBucketKey)
+			bucketKey = this.keyEncryption.decryptKey(userGroupKey, bucketPermission.symEncBucketKey)
 		} else {
 			throw new SessionKeyNotFoundError(
 				`BucketEncSessionKey is not defined for Permission ${pubOrExtPermission._id} (Instance: ${JSON.stringify(instance)})`,
 			)
 		}
 
-		return decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
+		return this.keyEncryption.decryptKey(bucketKey, neverNull(pubOrExtPermission.bucketEncSessionKey))
 	}
 
 	private async decryptWithPublicBucketWithoutAuthentication(
@@ -617,7 +625,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 			instance._type.typeId,
 		)
 
-		const sk = decryptKey(decryptedAesKey, bucketEncSessionKey)
+		const sk = this.keyEncryption.decryptKey(decryptedAesKey, bucketEncSessionKey)
 
 		if (isNotNull(bucketPermission._ownerGroup)) {
 			// is not defined for some old AccountingInfos
@@ -743,7 +751,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		const externalMailGroupKey = await this.symGroupKeyLoader.getCurrentSymGroupKey(keyGroup)
 		return createSymEncInternalRecipientKeyData({
 			mailAddress: recipientIdentifier.identifier,
-			symEncBucketKey: encryptKey(externalMailGroupKey.object, bucketKey),
+			symEncBucketKey: this.keyEncryption.encryptKey(externalMailGroupKey.object, bucketKey),
 			keyGroup,
 			symKeyVersion: String(externalMailGroupKey.version),
 		})
@@ -843,7 +851,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 		if (clientTypeModel.encrypted) {
 			assert(isNull(instance._ownerEncSessionKey), `ownerEncSessionKey already set ${JSON.stringify(instance)}`)
-			const sessionKey = aes256RandomKey()
+			const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 			const effectiveKeyToEncryptSessionKey = keyToEncryptSessionKey ?? (await this.getCurrentSymGroupKey(ownerGroup))
 			const encryptedSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(effectiveKeyToEncryptSessionKey, sessionKey)
 
@@ -863,7 +871,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 	async decryptSessionKey(ownerGroup: Id, ownerEncSessionKey: VersionedEncryptedKey): Promise<AesKey> {
 		const gk = await this.symGroupKeyLoader.loadSymGroupKey(ownerGroup, ownerEncSessionKey.encryptingKeyVersion, null)
-		return decryptKey(gk, ownerEncSessionKey.key)
+		return this.keyEncryption.decryptKey(gk, ownerEncSessionKey.key)
 	}
 
 	async postUpdateKdfNonceService(instanceKdfNonce: InstanceKdfNonce): Promise<UpdateKdfNoncePostOut> {

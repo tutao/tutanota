@@ -16,7 +16,7 @@ import { CounterFacade } from "../../../../platform-kit/network/CounterFacade.js
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade.js"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade.js"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../../../common/api/common/WorkerProxy.js"
-import { CryptoWrapper, random } from "../../../../platform-kit/crypto"
+import { CryptoWrapper } from "../../../../platform-kit/crypto"
 import { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Commands, Request } from "../../../../app-kit/native-bridge/shared/MessageTypes"
@@ -287,7 +287,7 @@ export class WorkerImpl implements NativeInterface {
 			async random() {
 				return {
 					async generateRandomNumber(nbrOfBytes: number) {
-						return random.generateRandomNumber(nbrOfBytes)
+						return locator.base.random.generateRandomNumber(nbrOfBytes)
 					},
 				}
 			},

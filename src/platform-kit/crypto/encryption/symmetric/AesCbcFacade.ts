@@ -172,5 +172,3 @@ export class AesCbcFacade {
 		}
 	}
 }
-
-export const AES_CBC_FACADE = new AesCbcFacade()
