@@ -24,21 +24,23 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
 /** @typedef {"x64"|"arm64"|"universal"} ArchParam */
 
-/**
- * @param obj {object}
- * @param obj.projectRoot {string} directory this was called from
- * @param obj.version {string} application version that gets built
- * @param obj.platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
- * @param obj.architecture {ArchParam} the instruction set used in the built desktop binary
- * @param [obj.updateUrl] {string} where the client should pull its updates from, if any
- * @param obj.nameSuffix {string} suffix used to distinguish test-, prod- or snapshot builds on the same machine
- * @param obj.notarize {boolean} for the macOS notarization feature
- * @param obj.outDir {string} where copy the finished artifacts
- * @param obj.unpacked {boolean} output desktop client without packing it into an installer
- * @param [obj.disableMinify] {boolean} whether to disible code minified
- * @param [obj.networkDebugging] {boolean} whether the app should be built with API debugging (transmitting human-readible field names)
- * @returns {Promise<void>}
- */
+/** @typedef BuildDesktopParam
+ * @type {object}
+ * @property projectRoot {string} directory this was called from
+ * @property version {string} application version that gets built
+ * @property platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
+ * @property architecture {ArchParam} the instruction set used in the built desktop binary
+ * @property updateUrl {string | undefined} where the client should pull its updates from, if any
+ * @property nameSuffix {string} suffix used to distinguish test-, prod- or snapshot builds on the same machine
+ * @property notarize {boolean} for the macOS notarization feature
+ * @property [outDir] {string} where copy the finished artifacts
+ * @property unpacked {boolean} output desktop client without packing it into an installer
+ * @property signed {boolean} Whether to check signature when downloading updates
+ * @property disableMinify {boolean | undefined} whether to disible code minified
+ * @property networkDebugging {boolean | undefined} whether the app should be built with API debugging (transmitting human-readible field names)
+ **/
+
+/** @param param {BuildDesktopParam} */
 export async function buildDesktop({
 	projectRoot,
 	version,
@@ -49,6 +51,7 @@ export async function buildDesktop({
 	notarize,
 	outDir,
 	unpacked,
+	signed,
 	disableMinify,
 	networkDebugging,
 }) {
@@ -80,7 +83,7 @@ export async function buildDesktop({
 		iconPath: path.join(projectRoot, "/resources/desktop-icons/logo-solo-red.png" + (platform === "win32" ? ".ico" : "")),
 		notarize,
 		unpacked,
-		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
+		sign: signed,
 		architecture,
 	})
 	console.log("updateUrl is", updateUrl)

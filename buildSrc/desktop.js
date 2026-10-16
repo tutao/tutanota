@@ -26,12 +26,15 @@ await program
 	.option("-e, --existing", "Use existing prebuilt Webapp files in /build/")
 	.option("-p, --platform <platform>", "For which platform to build: linux|win|mac", process.platform)
 	.option("-a, --architecture <architecture>", "For which CPU architecture to build: x64|arm_64|universal", process.arch)
+	// provide both options so that we can be explicit and default to signed
+	.option("--signed", "Whether desktop client checks the signature on update", true)
+	.option("--no-signed", "DO NOT check desktop client signature. Dangerous!")
 	.option(
 		"-c,--custom-desktop-release",
 		"use if manually building desktop client from source. doesn't install auto updates, but may still notify about new releases.",
 	)
 	.option("-d,--disable-minify", "disable minification", false)
-	.option("-u,--unpacked", "don't pack the app into an installer")
+	.option("-u,--unpacked", "don't pack the app into an installer", false)
 	.option("-o,--out-dir <outDir>", "where to copy the client")
 	.action(async (stage, host, opts) => {
 		if ((stage === "host" && host == null) || (stage !== "host" && host != null)) {
@@ -53,12 +56,38 @@ await program
 			throw new Error(`Platform ${opts.platform} on ${opts.architecture} is not supported`)
 		}
 		const hostDescription = opts.host ? ` (${opts.host})` : ""
-		console.log(`Building desktop client (dist) ${opts.platform}-${opts.architecture} ${opts.stage}${hostDescription}`)
+
+		// Safeguard against accidentally disabling signature checking.
+		// JENKINS_HOME is *not* propagated to containers but "JENKINS_URL" is.
+		if (Boolean(process.env["JENKINS_URL"]) && opts.signed !== true) {
+			throw new Error("Building in Jenkins but not checking for signature on update! Check the parameters to desktop.js")
+		}
+
+		console.log(`Building desktop client (dist) ${opts.platform}-${opts.architecture} ${opts.stage}${hostDescription} signed ${opts.signed}`)
 
 		await doBuild(opts)
 	})
 	.parseAsync(process.argv)
 
+/**
+ * @import {ArchParam} from "./DesktopBuilder.js"
+ *
+ * @typedef Opts
+ * @type {object}
+ * @property stage {"release" | "test" | "prod" | "local" | "host" }
+ * @property [host] {string}
+ * @property platform {import("./buildUtils.js").CanonicalPlatformName}
+ * @property architecture {ArchParam}
+ * @property app {"mail" | "calendar"}
+ * @property unpacked {boolean}
+ * @property signed {boolean}
+ * @property [existing] {boolean}
+ * @property [customDesktopRelease] {boolean}
+ * @property [disableMinify] {boolean}
+ * @property [outDir] {string}
+ */
+
+/** @param opts {Opts} */
 async function doBuild(opts) {
 	try {
 		measure()
@@ -92,26 +121,33 @@ async function doBuild(opts) {
 	}
 }
 
-async function buildDesktopClient(version, { stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify }) {
+/**
+ * @param version {string}
+ * @param opts {Opts}
+ */
+async function buildDesktopClient(version, { stage, host, platform, architecture, customDesktopRelease, unpacked, outDir, disableMinify, signed }) {
 	const { buildDesktop } = await import("./DesktopBuilder.js")
-	const updateUrl = new URL(tutaAppUrl)
-	updateUrl.pathname = "desktop"
+	const updateUrlObject = new URL(tutaAppUrl)
+	updateUrlObject.pathname = "desktop"
+
+	/** @type {import("./DesktopBuilder.js").BuildDesktopParam} */
 	const desktopBaseOpts = {
 		projectRoot,
 		version,
 		platform: platform,
 		architecture,
-		updateUrl: customDesktopRelease ? "" : updateUrl,
+		updateUrl: customDesktopRelease ? "" : updateUrlObject.toString(),
 		nameSuffix: "",
 		notarize: !customDesktopRelease,
 		outDir: outDir,
 		unpacked: unpacked,
 		disableMinify,
 		networkDebugging: false,
+		signed: signed,
 	}
 
 	if (stage === "release") {
-		await createHtml(env.create({ staticUrl: tutaAppUrl, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+		await createHtml(env.create({ staticUrl: tutaAppUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
 		await buildDesktop(desktopBaseOpts)
 		if (!customDesktopRelease) {
 			const updateUrl = new URL(tutaTestUrl)
@@ -123,13 +159,14 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 				// Do not notarize test build
 				notarize: false,
 			})
-			await createHtml(env.create({ staticUrl: tutaTestUrl, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+			await createHtml(env.create({ staticUrl: tutaTestUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
 			await buildDesktop(desktopTestOpts)
 		}
 	} else if (stage === "local") {
 		// this is the only way to contact the local server from localhost, a VM and
 		// from other machines in the LAN with the same url.
-		const addr = privateIpv4Address() ?? Object.values(os.networkInterfaces())[0]?.address
+		const networkInterfaces = Object.values(os.networkInterfaces())
+		const addr = privateIpv4Address() ?? networkInterfaces[0]?.[0].address
 		if (addr == null) {
 			throw new Error("Unable to pick auto-update address, please specify manually with 'host'")
 		}
@@ -160,7 +197,7 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 			notarize: false,
 			networkDebugging: true,
 		})
-		await createHtml(env.create({ staticUrl: tutaTestUrl, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: true }))
+		await createHtml(env.create({ staticUrl: tutaTestUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: true }))
 		await buildDesktop(desktopTestOpts)
 	} else if (stage === "prod") {
 		const desktopProdOpts = Object.assign({}, desktopBaseOpts, {
@@ -168,9 +205,13 @@ async function buildDesktopClient(version, { stage, host, platform, architecture
 			updateUrl: "http://localhost:9000/desktop",
 			notarize: false,
 		})
-		await createHtml(env.create({ staticUrl: tutaAppUrl, version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
+		await createHtml(env.create({ staticUrl: tutaAppUrl.toString(), version, mode: "Desktop", dist: true, domainConfigs, networkDebugging: false }))
 		await buildDesktop(desktopProdOpts)
 	} else {
+		if (host == null) {
+			throw new Error("no host??")
+		}
+
 		// stage = host
 		const desktopHostOpts = Object.assign({}, desktopBaseOpts, {
 			version,
@@ -199,7 +240,7 @@ function isPrivateIpv4Address(address) {
 /** @return {string|undefined} */
 function privateIpv4Address() {
 	return Object.values(os.networkInterfaces())
-		.map((net) => net.find((a) => a.family === "IPv4"))
-		.filter(Boolean)
+		.map((net) => net?.find((a) => a.family === "IPv4"))
+		.filter((net) => net != null)
 		.filter((net) => !net.internal && isPrivateIpv4Address(net.address))[0]?.address
 }

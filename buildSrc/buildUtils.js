@@ -8,8 +8,9 @@ import stream from "node:stream"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-/** global used by the measure() function to mark the start of measurement **/
-var measureStartTime
+/** global used by the measure() function to mark the start of measurement
+ * @type {number | undefined} **/
+let measureStartTime
 
 /**
  * Returns tutanota app version (as in package.json).
@@ -39,7 +40,8 @@ export function getDefaultDistDirectory() {
 	return path.resolve("build")
 }
 
-/** Throws if result has a value other than 0. **/
+/** Throws if result has a value other than 0.
+ * @param result {import("node:child_process").SpawnSyncReturns<unknown>} **/
 export function exitOnFail(result) {
 	if (result.status !== 0) {
 		throw new Error("error invoking process" + JSON.stringify(result))
@@ -51,7 +53,7 @@ export function exitOnFail(result) {
  */
 export class LogWriter extends stream.Writable {
 	/**
-	 * @param logger {(string) => void}
+	 * @param logger {(_: string) => void}
 	 */
 	constructor(logger) {
 		super({
@@ -76,11 +78,13 @@ export async function fileExists(filePath) {
 		.catch(() => false)
 }
 
+/** @typedef {"darwin"|"win32"|"linux"} CanonicalPlatformName */
+
 /**
  * There are various possibilities for how a given platform could be identified
  * We need to make sure to be consistent at certain points, such as when caching files or processing CLI args
  * @param platformName {string}
- * @returns {"darwin"|"win32"|"linux"}
+ * @returns {CanonicalPlatformName}
  */
 export function getCanonicalPlatformName(platformName) {
 	switch (platformName) {
@@ -128,6 +132,11 @@ export function getValidArchitecture(platformName, architecture) {
 	return architecture
 }
 
+/**
+ * @param name {string}
+ * @param cmd {() => Promise<unknown> | unknown}
+ * @return {Promise<void>}
+ */
 export async function runStep(name, cmd) {
 	const before = Date.now()
 	console.log("Build >", name)
@@ -135,23 +144,39 @@ export async function runStep(name, cmd) {
 	console.log("Build >", name, "took", Date.now() - before, "ms")
 }
 
+/**
+ * @param targetFile {string}
+ * @param content {string}
+ * @return {Promise<void>}
+ */
 export function writeFile(targetFile, content) {
 	return fs.mkdir(path.dirname(targetFile), { recursive: true }).then(() => fs.writeFile(targetFile, content, "utf-8"))
 }
 
+/**
+ * @param target {string}
+ * @return {string}
+ */
 export function normalizeCopyTarget(target) {
 	return removeNpmNamespacePrefix(changeHypenToUnderscore(target))
 }
 
+/**
+ * @param target {string}
+ * @return {string}
+ */
 export function changeHypenToUnderscore(target) {
 	// because its name is used as a C identifier
 	return target.replace("-", "_")
 }
 
+/**
+ * @param target {string}
+ * @return {string}
+ */
 export function removeNpmNamespacePrefix(target) {
-	// linear complexity Array.last(), wth not?
 	// gets us the moduleName out of @tutao/moduleName
-	return target.split("/").reduce((p, c) => c, null)
+	return target.split("/").at(-1) ?? ""
 }
 
 /**
