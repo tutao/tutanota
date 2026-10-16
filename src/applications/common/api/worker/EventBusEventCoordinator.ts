@@ -52,7 +52,7 @@ export class EventBusEventCoordinator implements EventBusListener {
 		await this.eventController.onEntityUpdatesReceived(events, groupId, isInitialSyncDone)
 		// Call the indexer in this last step because now the processed event is stored and the indexer has a separate event queue that
 		// shall not receive the event twice.
-		if (!EnvProvider.isTest() && !EnvProvider.get().isAdminClient() && !EnvProvider.get().isOfflineStorageAvailable()) {
+		if (!EnvProvider.get().isTest() && !EnvProvider.get().isAdminClient() && !EnvProvider.get().isOfflineStorageAvailable()) {
 			const configurationDatabase = (await this.configurationDatabase()) as IndexedDbConfigurationDatabase
 			await configurationDatabase.onEntityUpdatesReceived(events, batchId, groupId)
 			this.appSpecificBatchHandling(events, batchId, groupId, isInitialSyncDone)
