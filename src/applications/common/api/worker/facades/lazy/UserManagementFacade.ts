@@ -1,4 +1,4 @@
-import { Const, EnvProvider } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { freshVersioned, getFirstOrThrow, neverNull } from "@tutao/utils"
 import type { GroupManagementFacade } from "../../../../../../platform-kit/base/facades/lazy/GroupManagementFacade.js"
 import { LoginFacade } from "../../../../../../platform-kit/base/facades/LoginFacade.js"
@@ -84,7 +84,7 @@ export class UserManagementFacade {
 		const data = createUserDataDelete({
 			user: elementIdToId(user._id),
 			restore,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 		})
 		await this.serviceExecutor.execute(UserService_DELETE, data, null)
 	}
@@ -118,7 +118,7 @@ export class UserManagementFacade {
 		await this.operationProgressTracker.onProgress(operationId, ((userIndex + 0.8) / overallNbrOfUsersToCreate) * 100)
 
 		let data = createUserAccountCreateData({
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			userGroupData: userGroupData,
 			userData: await this.generateUserAccountData(
 				userGroupKey,

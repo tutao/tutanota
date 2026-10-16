@@ -1,4 +1,4 @@
-import { TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { LoginController } from "../../api/main/LoginController.js"
 import { getCustomMailDomains } from "../../api/common/utils/CustomerUtils.js"
 
@@ -18,7 +18,7 @@ export async function getAvailableDomains(logins: LoginController, onlyCustomDom
 		logins.getUserController().user.accountType !== AccountType.STARTER &&
 		(availableDomains.length === 0 || logins.getUserController().isGlobalAdmin())
 	) {
-		availableDomains.push(...TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS)
+		availableDomains.push(...TutanotaConstants.TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS)
 	}
 
 	return availableDomains.map((domain) => ({ domain, isPaid: isPaidPlanDomain(domain) }))

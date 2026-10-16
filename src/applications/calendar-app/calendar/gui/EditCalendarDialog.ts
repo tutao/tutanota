@@ -10,7 +10,7 @@ import { AlarmInterval, CalendarType } from "../../../common/calendar/date/Calen
 import { RemindersEditor } from "./RemindersEditor.js"
 import { locator } from "../../../common/api/main/CommonLocator.js"
 import type { CalendarModel } from "../model/CalendarModel.js"
-import { DEFAULT_ERROR } from "../../../../platform-kit/app-env"
+import { TutanotaConstants } from "../../../../platform-kit/app-env"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons.js"
 import { LegacyColorPickerView } from "../../../../ui/base/colorPicker/LegacyColorPickerView"
 import { generateRandomColor } from "./CalendarGuiUtils.js"
@@ -52,7 +52,7 @@ function sourceUrlInputField(urlStream: Stream<string>, errorMessageStream: Stre
 	const errorMessage = errorMessageStream().trim()
 	let helperMessage = ""
 	if (urlStream().trim() === "") helperMessage = "E.g: https://tuta.com/ics/example.ics - webcals://example.com/calendar.ics"
-	else if (isNotNull(errorMessage) && errorMessage !== DEFAULT_ERROR) helperMessage = errorMessage
+	else if (isNotNull(errorMessage) && errorMessage !== TutanotaConstants.DEFAULT_ERROR) helperMessage = errorMessage
 	return m(LegacyTextField, {
 		class: `pt-16 pb-16 ${helperMessage.length ? "" : "mb-small-line-height"}`,
 		value: urlStream(),
@@ -134,7 +134,7 @@ export function showCreateEditCalendarDialog({
 
 	const colorStream = stream(color)
 	const urlStream = stream(sourceUrl ?? "")
-	const errorMessageStream = stream(DEFAULT_ERROR)
+	const errorMessageStream = stream(TutanotaConstants.DEFAULT_ERROR)
 
 	const externalCalendarValidator = async () => {
 		const assertionResult = checkURLString(urlStream())

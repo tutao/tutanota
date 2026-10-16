@@ -449,7 +449,7 @@ export class IndexedDbIndexer implements Indexer {
 				groupId: membership.group,
 				groupData: {
 					lastBatchIds: [lastProcessedBatchId],
-					indexTimestamp: NOTHING_INDEXED_TIMESTAMP,
+					indexTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 					groupType: getMembershipGroupType(membership),
 				} as GroupData,
 			}
@@ -590,7 +590,7 @@ export class IndexedDbIndexer implements Indexer {
 
 			const timeSinceLastIndex = now - lastIndexTimeMs
 
-			if (timeSinceLastIndex >= TimeConstants.daysToMillis(ENTITY_EVENT_BATCH_TTL_DAYS)) {
+			if (timeSinceLastIndex >= TimeConstants.daysToMillis(TutanotaConstants.ENTITY_EVENT_BATCH_TTL_DAYS)) {
 				throw new OutOfSyncError(
 					`we haven't updated the index in ${millisToDays(timeSinceLastIndex)} days. last update was ${new Date(
 						neverNull(lastIndexTimeMs),

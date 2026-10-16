@@ -85,7 +85,7 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 			const { getAvailableMatchingPlans } = await import("../subscription/utils/SubscriptionUtils.js")
 			const plansWithMoreStorage = await getAvailableMatchingPlans(
 				locator.serviceExecutor,
-				(config) => Number(config.storageGb) * Const.MEMORY_GB_FACTOR > usedStorage,
+				(config) => Number(config.storageGb) * TutanotaConstants.Const.MEMORY_GB_FACTOR > usedStorage,
 			)
 			if (isEmpty(plansWithMoreStorage)) {
 				await Dialog.message(userController.isGlobalAdmin() ? "insufficientStorageAdmin_msg" : "insufficientStorageUser_msg")
