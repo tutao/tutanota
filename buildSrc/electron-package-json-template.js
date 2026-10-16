@@ -10,7 +10,7 @@ import { getElectronVersion } from "./getInstalledModuleVersion.js"
  * @param p {object}
  * @param p.nameSuffix {string}
  * @param p.version {string}
- * @param p.updateUrl {string}
+ * @param [p.updateUrl] {string}
  * @param p.iconPath {string}
  * @param p.sign {boolean}
  * @param [p.notarize] {boolean}

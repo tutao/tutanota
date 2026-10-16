@@ -1,4 +1,4 @@
-import { bundleDependencyCheckPlugin, resolveLibs } from "./RollupConfig.js"
+import { resolveLibs } from "./RollupConfig.js"
 import nodeResolve from "@rollup/plugin-node-resolve"
 import fs from "node:fs"
 import path, { dirname } from "node:path"
@@ -22,17 +22,21 @@ const exec = util.promisify(cp.exec)
 const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
+/** @typedef {"x64"|"arm64"|"universal"} ArchParam */
+
 /**
- * @param dirname directory this was called from
- * @param version application version that gets built
- * @param platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
- * @param architecture {"arm64"|"x64"|"universal"} the instruction set used in the built desktop binary
- * @param updateUrl where the client should pull its updates from, if any
- * @param nameSuffix suffix used to distinguish test-, prod- or snapshot builds on the same machine
- * @param notarize {boolean} for the macOS notarization feature
- * @param outDir where copy the finished artifacts
- * @param unpacked output desktop client without packing it into an installer
- * @param [disableMinify] {boolean} whether to disible code minified
+ * @param obj {object}
+ * @param obj.dirname {string} directory this was called from
+ * @param obj.version {string} application version that gets built
+ * @param obj.platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
+ * @param obj.architecture {ArchParam} the instruction set used in the built desktop binary
+ * @param [obj.updateUrl] {string} where the client should pull its updates from, if any
+ * @param obj.nameSuffix {string} suffix used to distinguish test-, prod- or snapshot builds on the same machine
+ * @param obj.notarize {boolean} for the macOS notarization feature
+ * @param obj.outDir {string} where copy the finished artifacts
+ * @param obj.unpacked {boolean} output desktop client without packing it into an installer
+ * @param [obj.disableMinify] {boolean} whether to disible code minified
+ * @param [obj.networkDebugging] {boolean} whether the app should be built with API debugging (transmitting human-readible field names)
  * @returns {Promise<void>}
  */
 export async function buildDesktop({
@@ -86,14 +90,14 @@ export async function buildDesktop({
 	// prepare files
 	try {
 		await fs.promises.rm(path.join(distDir, updateSubDir), { recursive: true })
-	} catch (e) {
+	} catch (/** @type {any} */ e) {
 		if (e.code !== "ENOENT") {
 			throw e
 		}
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify, networkDebugging)
+	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify ?? false, networkDebugging ?? false)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
@@ -147,8 +151,18 @@ export async function buildDesktop({
 	])
 }
 
+/**
+ * @param dirname {string}
+ * @param outDir {string}
+ * @param version {string}
+ * @param platform {string}
+ * @param architecture {ArchParam}
+ * @param disableMinify {boolean}
+ * @param networkDebugging {boolean}
+ * @return {Promise<void>}
+ */
 async function rollupDesktop(dirname, outDir, version, platform, architecture, disableMinify, networkDebugging) {
-	platform = getCanonicalPlatformName(platform)
+	const canonicalPlatform = getCanonicalPlatformName(platform)
 
 	const mainFiles = ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"]
 	const mainBundle = await rollup({
@@ -169,7 +183,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 			}),
 			nodeGypPlugin({
 				rootDir: projectRoot,
-				platform: platform,
+				platform: canonicalPlatform,
 				architecture: architecture,
 				nodeModule: "@signalapp/sqlcipher",
 				// we build for Electron, but it uses NAPI so it's fine to build for node
@@ -177,10 +191,10 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 				targetName: "node_sqlcipher",
 			}),
 			// the build script for simple-windows-notifications does not build anything on non-win32 so we get errors when trying to copy files
-			platform === "win32"
+			canonicalPlatform === "win32"
 				? nodeGypPlugin({
 						rootDir: projectRoot,
-						platform,
+						platform: canonicalPlatform,
 						architecture,
 						nodeModule: "@indutny/simple-windows-notifications",
 						environment: "node",
@@ -188,7 +202,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
 					})
 				: undefined,
 			napiPlugin({
-				platform,
+				platform: canonicalPlatform,
 				architecture,
 				modulePath: "src/app-kit/mimimi",
 			}),
@@ -218,7 +232,7 @@ async function rollupDesktop(dirname, outDir, version, platform, architecture, d
  * get the DLL that's needed for the windows client to handle "Send as Mail..." context
  * menu actions.
  * Tries to get a locally built version before delegating to downloadLatestMapirs
- * @param distDir the directory to put the DLL
+ * @param distDir {string} the directory to put the DLL
  * @returns {Promise<void>}
  */
 async function getMapirs(distDir) {
@@ -254,7 +268,10 @@ async function downloadLatestMapirs(dllName, dllTrg) {
 		console.log("getting latest mapirs release")
 		const res = await octokit.request("GET /repos/{owner}/{repo}/releases/latest", opts)
 		console.log("latest mapirs release", res.url)
-		const asset_id = res.data.assets.find((a) => a.name.startsWith(dllName)).id
+		const asset_id = res.data.assets.find((a) => a.name.startsWith(dllName))?.id
+		if (asset_id == null) {
+			throw new Error(`Cannot find mapirs assert at ${res}`)
+		}
 		console.log("Downloading mapirs asset", asset_id)
 		const assetResponse = await octokit.repos.getReleaseAsset({
 			...opts,

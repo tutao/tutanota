@@ -42,9 +42,6 @@ declare type JsRequestType = "ipc"
 declare type IntegrationPlatformName = "Nextcloud"
 declare type EnvMode = Mode
 
-/** A map from hostname to parameters for that domain. */
-type DomainConfigMap = Record<string, DomainConfig>
-
 declare var env: EnvType
 
 type EventRedraw<T extends Event> = T & { redraw?: boolean }
