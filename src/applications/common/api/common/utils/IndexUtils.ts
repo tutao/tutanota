@@ -291,7 +291,7 @@ export function markEnd(name: string) {
 }
 
 export function shouldMeasure(): boolean {
-	return !env.dist && !EnvProvider.isTest()
+	return !env.dist && !EnvProvider.get().isTest()
 }
 
 export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restriction: SearchRestriction): number {

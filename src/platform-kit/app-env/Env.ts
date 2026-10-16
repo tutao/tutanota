@@ -99,27 +99,30 @@ export const enum Mode {
 const assertionsEnabled: boolean = false
 
 export class EnvProvider {
+	private readonly env: EnvType
 	/** @TTranspileIgnore This is all method that uses this field is @TranspileIgnore */
-	private static boot: boolean =
-		RuntimeInfo._isNode &&
-		!RuntimeInfo._isWorker &&
-		isNotNull(EnvProvider.tryInitWithGlobalEnv()) &&
-		(EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	/** @TMutableStaticSafety MainThreadInitialized */
 	private static singleton: EnvProvider | null = null
 
 	/** @TTranspileIgnore This method is only used from locator */
 	public static get(): EnvProvider {
-		const singleton = EnvProvider.tryInitWithGlobalEnv()
-		if (isNull(singleton)) {
-			throw new ProgrammingError("global var env is not defined yet")
+		if (isNull(EnvProvider.singleton)) {
+			EnvProvider.singleton = new EnvProvider()
 		}
-		return singleton
+		return EnvProvider.singleton
 	}
 
-	private constructor(private readonly env: EnvType) {}
+	private constructor() {
+		this.env = TsJson.parse(RuntimeInfo.globallyDefinedEnv())
+	}
 
+	/** @TTranspileIgnore
+	 * shadowDomAppRoot should be passed as argument to the constructor
+	 * since the constructor is supposed to be invoked only once in app.ts,
+	 * we already have that information there and shadowDomAppRoot does not change afterwards
+	 */
 	public setShadowDomAppRoot(shadowDomAppRoot: string): void {
 		this.env.shadowDomAppRoot = shadowDomAppRoot
 	}
@@ -130,21 +133,6 @@ export class EnvProvider {
 
 	public getEnvAsJson(): string {
 		return TsJson.stringify(this.env)
-	}
-
-	public isMainOrNode(): boolean {
-		return EnvProvider.isMainOrNode()
-	}
-
-	/** @TMutableStaticSafety MainThreadInitialized */
-	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (isNull(EnvProvider.singleton)) {
-			const env = RuntimeInfo.globallyDefinedEnv()
-			if (isNotNull(env)) {
-				EnvProvider.singleton = new EnvProvider(TsJson.parse(env))
-			}
-		}
-		return EnvProvider.singleton
 	}
 
 	public getVersionNumber(): TsString {
@@ -239,25 +227,20 @@ export class EnvProvider {
 		return this.isDesktop() || this.isAdminClient()
 	}
 
-	public static isMainOrNode(): boolean {
-		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
+	public isMainOrNode(): boolean {
+		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
 	}
 
-	public static isWorkerOrNode(): boolean {
-		return RuntimeInfo._isWorker || RuntimeInfo._isNode || EnvProvider.isTest()
+	public isWorkerOrNode(): boolean {
+		return RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
 	}
 
-	public static isWorker(): boolean {
+	public isWorker(): boolean {
 		return RuntimeInfo._isWorker
 	}
 
-	public static isMain(): boolean {
-		return !RuntimeInfo._isWorker && !RuntimeInfo._isNode
-	}
-
-	public static isTest(): boolean {
-		EnvProvider.tryInitWithGlobalEnv()
-		return isNotNull(EnvProvider.singleton) && EnvProvider.singleton.env.mode === Mode.Test
+	public isTest(): boolean {
+		return this.env.mode === Mode.Test
 	}
 
 	/**
@@ -305,7 +288,7 @@ export class EnvProvider {
 			return
 		}
 
-		if (!EnvProvider.isMainOrNode()) {
+		if (!EnvProvider.get().isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 
@@ -319,7 +302,7 @@ export class EnvProvider {
 			return
 		}
 
-		if (!EnvProvider.isMainOrNode()) {
+		if (!EnvProvider.get().isMainOrNode()) {
 			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 	}
@@ -329,13 +312,13 @@ export class EnvProvider {
 			return
 		}
 
-		if (!EnvProvider.isWorkerOrNode()) {
+		if (!EnvProvider.get().isWorkerOrNode()) {
 			throw new ProgrammingError("this code must not run in the gui thread")
 		}
 	}
 
 	/** @TTranspileIgnore This method is only used from locator */
 	public static overrideEnv(env: EnvType): void {
-		EnvProvider.singleton = new EnvProvider(env)
+		;(EnvProvider.get().env as EnvType) = env
 	}
 }
