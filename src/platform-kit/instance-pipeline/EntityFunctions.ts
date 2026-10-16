@@ -16,7 +16,7 @@ import {
 } from "@tutao/meta"
 import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
-import { TypeChecks } from "../app-env/TsTypeChecks"
+import { TypeChecks } from "@tutao/lang-api"
 import { AccountingInfoTypeRef, OrderProcessingAgreementTypeRef } from "@tutao/entities/sys"
 
 export type ApplicationTypesHash = string
