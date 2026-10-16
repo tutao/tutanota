@@ -18,12 +18,12 @@ class MobilePaymentsFacadeReceiveDispatcher(
 				val plan: String = json.decodeFromString(arg[0])
 				val interval: Long = json.decodeFromString(arg[1])
 				val customerIdBytes: DataWrapper = json.decodeFromString(arg[2])
-				val currentInterval: Long? = json.decodeFromString(arg[3])
+				val foreignKey: String? = json.decodeFromString(arg[3])
 				val result: MobilePaymentResult = this.facade.requestSubscriptionToPlan(
 					plan,
 					interval,
 					customerIdBytes,
-					currentInterval,
+					foreignKey,
 				)
 				return json.encodeToString(result)
 			}
@@ -38,9 +38,9 @@ class MobilePaymentsFacadeReceiveDispatcher(
 				return json.encodeToString(result)
 			}
 			"queryExternalSubscriptionOwnership" -> {
-				val customerIdBytes: DataWrapper? = json.decodeFromString(arg[0])
+				val foreignKey: String? = json.decodeFromString(arg[0])
 				val result: MobilePaymentSubscriptionOwnership = this.facade.queryExternalSubscriptionOwnership(
-					customerIdBytes,
+					foreignKey,
 				)
 				return json.encodeToString(result)
 			}
