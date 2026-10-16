@@ -89,7 +89,7 @@ async function signWithHSM(filePath, signatureFileName, dir) {
 			"-m",
 			"SHA512-RSA-PKCS",
 			"--token-label",
-			"SmartCard-HSM (UserPIN)",
+			"SmartCard-HSM",
 			"--id",
 			"10", // this is the index of the installer verification key
 			"--pin",
