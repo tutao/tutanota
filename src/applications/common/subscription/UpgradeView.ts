@@ -2,10 +2,10 @@ import m, { ClassComponent, ComponentTypes, Vnode } from "mithril"
 import { createWizard, WizardLayoutAttrs } from "../../../ui/base/wizard/Wizard"
 import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { PlanSelectorPage, PlanSelectorPageAttrs } from "../signup/PlanSelectorPage"
-import InvoiceAndPaymentDataPageNew from "../signup/InvoiceAndPaymentDataPageNew"
+import InvoiceAndPaymentDataPage from "../signup/InvoiceAndPaymentDataPage"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { UpgradeViewModel } from "./UpgradeViewModel"
-import { UpgradeConfirmSubscriptionPageNew } from "./UpgradeConfirmSubscriptionPageNew"
+import { UpgradeConfirmSubscriptionPage } from "./UpgradeConfirmSubscriptionPage"
 import { upgrade } from "./SubscriptionConfirmationUtils"
 import { EnvProvider, PaymentSetup } from "@tutao/app-env"
 import { px } from "../../../ui/size"
@@ -105,7 +105,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 	private readonly Wizard = createWizard<UpgradeViewModel>()
 	private readonly ConfirmationPage: m.Component<WizardStepComponentAttrs<UpgradeViewModel>> = {
 		view: ({ attrs: { ctx } }) =>
-			m(UpgradeConfirmSubscriptionPageNew, {
+			m(UpgradeConfirmSubscriptionPage, {
 				ctx,
 				onEditPlan: () => {
 					ctx.controller.setStepUnreachable(ctx.index)
@@ -142,7 +142,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					},
 					{
 						title: "Payment",
-						content: InvoiceAndPaymentDataPageNew,
+						content: InvoiceAndPaymentDataPage,
 						isEnabled: () => EnvProvider.get().getPaymentSetup() === PaymentSetup.Default,
 					},
 					{ title: "Order Confirmation", content: this.ConfirmationPage },

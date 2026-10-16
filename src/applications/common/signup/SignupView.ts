@@ -6,11 +6,11 @@ import { createWizard, WizardAttrs } from "../../../ui/base/wizard/Wizard"
 import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
 import { PlanSelectorPage } from "./PlanSelectorPage"
 import { SignupFormPage } from "./SignupFormPage"
-import InvoiceAndPaymentDataPageNew from "./InvoiceAndPaymentDataPageNew"
+import InvoiceAndPaymentDataPage from "./InvoiceAndPaymentDataPage"
 import { IconMessageBox, InfoMessaggeBoxAttrs } from "../../../ui/base/ColumnEmptyMessageBox"
 import { theme } from "../../../ui/theme"
 import { RecoveryKitPage } from "../subscription/RecoveryKitPage"
-import { UpgradeConfirmSubscriptionPageNew } from "../subscription/UpgradeConfirmSubscriptionPageNew"
+import { UpgradeConfirmSubscriptionPage } from "../subscription/UpgradeConfirmSubscriptionPage"
 import { ReferralType, SignupFlowStage, SignupFlowUsageTestController } from "../subscription/usagetest/UpgradeSubscriptionWizardUsageTestUtils"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
 import { windowFacade } from "../misc/WindowFacade"
@@ -43,7 +43,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 	private readonly ConfirmationPage: m.Component<WizardStepComponentAttrs<SignupViewModel>> = {
 		view: ({ attrs: { ctx } }) => {
 			const data = ctx.viewModel
-			return m(UpgradeConfirmSubscriptionPageNew, {
+			return m(UpgradeConfirmSubscriptionPage, {
 				ctx,
 				onEditPlan: () => {
 					if (Styles.get().bodyWidth >= layout_size.wizard_show_illustration_min_width && !data.options.businessUse()) {
@@ -180,7 +180,7 @@ export class SignupView extends BaseTopLevelView implements TopLevelView<SignupV
 				},
 				{
 					title: "Payment",
-					content: InvoiceAndPaymentDataPageNew,
+					content: InvoiceAndPaymentDataPage,
 					onNext: () => {
 						SignupFlowUsageTestController.completeStage(
 							SignupFlowStage.SELECT_PAYMENT_METHOD,
