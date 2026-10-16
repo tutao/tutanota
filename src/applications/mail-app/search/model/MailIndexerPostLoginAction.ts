@@ -1,5 +1,5 @@
 import { Indexer } from "../../workerUtils/index/Indexer"
-import { SessionType } from "@tutao/app-env"
+import { SessionType, TutanotaConstants } from "@tutao/app-env"
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction.js"
 import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"

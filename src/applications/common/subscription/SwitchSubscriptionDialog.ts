@@ -27,7 +27,7 @@ import {
 	PaymentMethodType,
 	PlanType,
 } from "../../../entities/sys/Utils"
-import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason } from "@tutao/app-env"
+import { BookingFailureReason, Const, EnvProvider, PaymentSetup, UnsubscribeFailureReason, TutanotaConstants } from "@tutao/app-env"
 import { SubscriptionActionButtons } from "./SubscriptionSelector"
 import stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
@@ -423,7 +423,7 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 export async function tryDowngradePremiumToFree(customer: Customer, currentPlanType: PlanType): Promise<PlanType> {
 	const switchAccountTypeData = createSwitchAccountTypePostIn({
 		accountType: AccountType.FREE,
-		date: Const.CURRENT_DATE,
+		date: TutanotaConstants.Const.CURRENT_DATE,
 		customer: elementIdToId(customer._id),
 		specialPriceUserSingle: null,
 		referralCode: null,
@@ -518,7 +518,7 @@ async function switchSubscription(targetSubscription: PlanType, dialog: Dialog, 
 		const postIn = createSwitchAccountTypePostIn({
 			accountType: AccountType.PAID,
 			plan: targetSubscription,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			referralCode: null,
 			customer: elementIdToId(customer._id),
 			specialPriceUserSingle: null,

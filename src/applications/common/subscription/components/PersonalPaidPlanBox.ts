@@ -2,7 +2,7 @@ import m, { Component, Vnode } from "mithril"
 import { component_size, font_size, px, size } from "../../../../ui/size"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { type Callback } from "@tutao/utils"
-import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import Stream from "mithril/stream"
 import { isLightTheme, theme, Theme } from "../../../../ui/theme.js"
@@ -73,7 +73,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 			freePlanVisible,
 		},
 	}: Vnode<PersonalPlanBoxAttrs>) {
-		this.scale = isSelected && !this.preventRescaling ? PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
+		this.scale = isSelected && !this.preventRescaling ? TutanotaConstants.PLAN_SELECTOR_SELECTED_BOX_SCALE : "initial"
 		const isYearly = selectedPaymentInterval() === PaymentInterval.Yearly
 		const hasCampaign = getHasCampaign(discountDetail, isYearly)
 		const campaignName = priceAndConfigProvider.getRawPricingData().globalCampaignName

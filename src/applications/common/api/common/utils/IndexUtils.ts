@@ -1,6 +1,6 @@
 import { AppName, Entity, TypeModel, TypeRef } from "@tutao/meta"
 import { IndexUpdate, SearchCategoryType, SearchIndexMetadataEntry, SearchRestriction } from "../../worker/search/SearchTypes"
-import { EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { GroupMembership, User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../../entities/sys/Utils"
 import { ContactTypeRef, MailTypeRef, tutanotaTypeModels } from "@tutao/entities/tutanota"
@@ -298,12 +298,12 @@ export function getSearchEndTimestamp(currentMailIndexTimestamp: number, restric
 	if (restriction.end) {
 		return restriction.end
 	} else if (restriction.type === SearchCategoryType.mail) {
-		return currentMailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : currentMailIndexTimestamp
+		return currentMailIndexTimestamp === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP ? Date.now() : currentMailIndexTimestamp
 	} else {
-		return FULL_INDEXED_TIMESTAMP
+		return TutanotaConstants.FULL_INDEXED_TIMESTAMP
 	}
 }
 
 export function getMailIndexTimestampForSearch(mailIndexTimestamp: number): number {
-	return mailIndexTimestamp === NOTHING_INDEXED_TIMESTAMP ? Date.now() : mailIndexTimestamp
+	return mailIndexTimestamp === TutanotaConstants.NOTHING_INDEXED_TIMESTAMP ? Date.now() : mailIndexTimestamp
 }

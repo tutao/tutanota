@@ -1,6 +1,6 @@
 import { arrayHashUnsigned, downcast, promiseMap, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
 import { env, PlatformStub, stringToHashBucketFast, tensor1d } from "./tensorflow-custom"
-import { MAX_WORD_FREQUENCY } from "../../../../platform-kit/app-env"
+import { TutanotaConstants } from "../../../../platform-kit/app-env"
 
 export class HashingVectorizer {
 	private readonly hasher: (tokens: Array<string>) => Promise<Array<number>> = this.tensorHash
@@ -12,7 +12,7 @@ export class HashingVectorizer {
 
 		const indexes = await this.hasher(downcast<Array<string>>(tokens))
 		for (const index of indexes) {
-			if (vector[index] < MAX_WORD_FREQUENCY) {
+			if (vector[index] < TutanotaConstants.MAX_WORD_FREQUENCY) {
 				vector[index] += 1
 			}
 		}

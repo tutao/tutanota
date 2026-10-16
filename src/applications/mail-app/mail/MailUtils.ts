@@ -169,5 +169,5 @@ export function getOfflineStorageDefaultIndexRangeDays(accountType: AccountType)
  * If null, fall back to the given parameter which defaults to `new Date()`
  */
 export function getCurrentDate(fallback = new Date()) {
-	return Const.CURRENT_DATE ?? fallback
+	return TutanotaConstants.Const.CURRENT_DATE ?? fallback
 }

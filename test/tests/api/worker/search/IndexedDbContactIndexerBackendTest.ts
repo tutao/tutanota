@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { AttributeModel, getElementId } from "../../../../../src/platform-kit/meta"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 import { _createNewIndexUpdate, typeRefToTypeInfo } from "../../../../../src/applications/common/api/common/utils/IndexUtils.js"
 import { clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
@@ -147,7 +147,7 @@ o.spec("IndexedDbContactIndexerBackend", () => {
 				[
 					{
 						groupId: assertNotNull(contactList._ownerGroup),
-						indexTimestamp: FULL_INDEXED_TIMESTAMP,
+						indexTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 					},
 				],
 				matchers.anything(),

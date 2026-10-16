@@ -10,7 +10,7 @@ import {
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
 import { getInvitationGroupType, GroupMemberInfo, GroupType } from "../../../entities/sys/Utils"
-import { enumKeyByValue, ShareCapability } from "@tutao/app-env"
+import { ShareCapability, TutanotaConstants } from "@tutao/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { downcast, ofClass, promiseMap } from "@tutao/utils"
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
@@ -73,7 +73,7 @@ export function getDefaultGroupName(groupType: GroupType): string {
 		case GroupType.Template:
 			return lang.getTranslationText("templateGroupDefaultName_label")
 		default:
-			return enumKeyByValue(GroupType, groupType)
+			return TutanotaConstants.enumKeyByValue(GroupType, groupType)
 	}
 }
 
