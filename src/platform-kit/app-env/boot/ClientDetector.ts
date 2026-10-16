@@ -8,7 +8,13 @@ import {
 	_expectedBuiltInsArePresent,
 	_expectedJsSyntaxes,
 	_haveWebsocket,
+	_indexedDbIsSupported,
 	_isSupportedBrowserVersion,
+	_isTouchSupported,
+	_supportsHistory,
+	_supportsLookBehindRegex,
+	_supportsXhr2,
+	_webAssemblyIsSupported,
 } from "../TsPlatformConstants"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -68,7 +74,9 @@ export class ClientDetector {
 			_expectedBuiltInsArePresent &&
 			_haveWebsocket() &&
 			_cssQuerySelectorIsSupported() &&
-			this.lookBehindRegex()
+			_supportsLookBehindRegex() &&
+			_supportsHistory() &&
+			_supportsXhr2()
 		)
 	}
 
@@ -99,38 +107,7 @@ export class ClientDetector {
 	 * @returns true if webassembly is supported
 	 */
 	webassembly(): boolean {
-		return TypeChecks.isObject(WebAssembly) && TypeChecks.isFunction(WebAssembly.instantiate)
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/history.js
-	 */
-	history(): boolean {
-		return window.history != null && "pushState" in window.history
-	}
-
-	/**
-	 * @see https://github.com/Modernizr/Modernizr/blob/master/feature-detects/network/xhr2.js
-	 */
-	xhr2(): boolean {
-		return "XMLHttpRequest" in window
-	}
-
-	lookBehindRegex(): boolean {
-		try {
-			;/(?<=([ab]+)([bc]+))$/.exec("abc")
-			return true
-		} catch (e) {
-			return false
-		}
-	}
-
-	indexedDb(): boolean {
-		try {
-			return window.indexedDB != null
-		} catch (e) {
-			return false
-		}
+		return _webAssemblyIsSupported()
 	}
 
 	_setBrowserAndVersion(): void {
@@ -282,7 +259,7 @@ export class ClientDetector {
 	}
 
 	isTouchSupported(): boolean {
-		return "ontouchstart" in window
+		return _isTouchSupported()
 	}
 
 	isIos(): boolean {
@@ -334,7 +311,7 @@ export class ClientDetector {
 		return {
 			needsMicrotaskHack: this.needsMicrotaskHack(),
 			needsExplicitIDBIds: this.needsExplicitIDBIds(),
-			indexedDbSupported: this.indexedDb(),
+			indexedDbSupported: _indexedDbIsSupported(),
 			clientPlatform: this.getClientPlatform(),
 		}
 	}
