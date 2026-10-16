@@ -1059,6 +1059,12 @@ export class CalendarModel {
 			return
 		}
 
+		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+		const firstPrivateCalendar = await this.resolveFirstPrivateOwnedCalendar()
+		const firstPrivateCalendarGroupSettings = groupSettings.find((groupSetting) => groupSetting.group === firstPrivateCalendar.group._id[1])
+
+		const defaultAlarms: DefaultAlarmInfo[] = firstPrivateCalendarGroupSettings?.defaultAlarmsList ?? []
+
 		if (resolvedPersistedCalendarEvent) {
 			const method = parsedCalendarData.method
 			for (const content of parsedCalendarData.contents) {
@@ -1078,8 +1084,9 @@ export class CalendarModel {
 			}
 		} else {
 			// we DO want to apply default alarms
+			// if the event doesn't exist yet, we don't have an owner group we can get, so we need to assume it will go into the first private calendar, so we get the first private calendar and figure out what its default alarms are.
 
-			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData, latestPersistedEventsIndexEntry)
+			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData, latestPersistedEventsIndexEntry, defaultAlarms)
 		}
 	}
 
@@ -1126,7 +1133,12 @@ export class CalendarModel {
 	/**
 	 * Handles new Calendar Invitations. The server takes care of inserting an index entry into CalendarEventUidIndexTypeRef
 	 */
-	async handleNewCalendarEventInvitationFromIcs(sender: string, calendarData: ParsedCalendarData, uidIndexEntry: ResolvedUidIndexEntry | null) {
+	async handleNewCalendarEventInvitationFromIcs(
+		sender: string,
+		calendarData: ParsedCalendarData,
+		uidIndexEntry: ResolvedUidIndexEntry | null,
+		defaultAlarms: DefaultAlarmInfo[],
+	) {
 		if (calendarData.method !== CalendarMethod.REQUEST) {
 			console.log(TAG, `got something that's not a REQUEST for nonexistent server event on uid: `, calendarData.method)
 			return // We don't handle anything different from an invitation
@@ -1156,7 +1168,7 @@ export class CalendarModel {
 			}
 
 			// here we DO want alarms, but right now we are discarding them
-			promisses.push(this.processNewAlteredInstanceOrNewEvent(uidIndexEntry, calendarEvent, sender))
+			promisses.push(this.processNewAlteredInstanceOrNewEvent(uidIndexEntry, calendarEvent, sender, defaultAlarms))
 
 			return promisses
 		})
@@ -1275,7 +1287,12 @@ export class CalendarModel {
 	 * @param alarms alarms to set up for this user/event
 	 * @param sender email address that the event request was received from
 	 */
-	private async processNewAlteredInstanceOrNewEvent(dbTarget: ResolvedUidIndexEntry | null, updateEvent: CalendarEvent, sender: string): Promise<void> {
+	private async processNewAlteredInstanceOrNewEvent(
+		dbTarget: ResolvedUidIndexEntry | null,
+		updateEvent: CalendarEvent,
+		sender: string,
+		defaultAlarms: DefaultAlarmInfo[],
+	): Promise<void> {
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 
 		let firstPrivateOwnedCalendar = await this.resolveFirstPrivateOwnedCalendar()
@@ -1286,26 +1303,6 @@ export class CalendarModel {
 			ownerGroup = (await this.resolveFirstPrivateOwnedCalendar()).id
 			assertNotNull(ownerGroup, "Missing private calendar")
 		}
-
-		// firstPrivateOwnedCalendar
-
-		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
-
-		const foundGroupSettings = groupSettings.find((groupSetting) => groupSetting.group === firstPrivateOwnedCalendarGroup._id.toString())
-
-		console.log("group settings ", foundGroupSettings)
-		// const eventCalendarGroupSettings = groupSettings.find((groupSetting) => {
-		// 	console.log("calendar event owner group: ", resolvedPersistedCalendarEvent._ownerGroup)
-		// 	return groupSetting.group === resolvedPersistedCalendarEvent._ownerGroup
-		// })
-		//
-		// const defaultAlarms: DefaultAlarmInfo[] = eventCalendarGroupSettings!.defaultAlarmsList
-
-		// we need to take the default alarms and turn them into real alarms that can be set on the event.
-		// const instantiatedAlarms: AlarmInfoTemplate[] = []
-		// for (let defaultAlarm of defaultAlarms) {
-		// 	instantiatedAlarms.push({ alarmIdentifier: generateEventElementId(DateTime.now().toMillis()), trigger: defaultAlarm.trigger })
-		// }
 
 		if (dbTarget) {
 			const isAlteredInstance = updateEvent.recurrenceId != null
@@ -1337,7 +1334,14 @@ export class CalendarModel {
 			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
 			return
 		}
-		return await this.doCreate(updateEvent, "", calendarGroupRoot, [])
+
+		// turn defaultalarminfos into alarminfotemplates
+		console.log("running processNewAlteredInstanceOrNewEvent")
+		const defaultAlarmTemplates: AlarmInfoTemplate[] = defaultAlarms.map((alarm: DefaultAlarmInfo) => {
+			return { alarmIdentifier: alarm._id, trigger: alarm.trigger }
+		})
+
+		return await this.doCreate(updateEvent, "", calendarGroupRoot, defaultAlarmTemplates)
 	}
 
 	/** Someone replied whether they attend an event or not. this MUST be applied to all instances in our

@@ -14,12 +14,13 @@ import { SendMailModel } from "../../../common/mailFunctionality/SendMailModel.j
 import { RecipientField } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { ResolvedUidIndexEntry } from "../../../common/api/worker/facades/lazy/CalendarFacade"
-import { CalendarEvent, CalendarEventAttendee, File, Mail, MailboxProperties } from "@tutao/entities/tutanota"
+import { CalendarEvent, CalendarEventAttendee, DefaultAlarmInfo, File, Mail, MailboxProperties } from "@tutao/entities/tutanota"
 import { CalendarAttendeeStatus, CalendarMethod, ConversationType, Recipient, RecipientList } from "../../../../entities/tutanota/Utils"
 import { clone, getAsEnumValue } from "@tutao/meta"
 import { DataFile } from "../../../../entities/tutanota/MailBundle"
 import { IcsCalendarEvent, parseCalendarFile } from "../export/CalendarParser"
 import { makeCalendarEventFromIcsCalendarEvent } from "../../../common/calendar/import/ImportExportUtils"
+import { findFirstPrivateCalendar } from "../../../common/calendar/date/CalendarUtils"
 // not picking the status directly from CalendarEventAttendee because it's a NumberString
 export type Guest = Recipient & { status: CalendarAttendeeStatus }
 
@@ -293,6 +294,16 @@ export class CalendarInviteHandler {
 
 	private async createEventFromIcsFile(sender: string, eventUserIsReplyingTo: IcsCalendarEvent, dbEvents: ResolvedUidIndexEntry | null) {
 		console.log("running createEventFromIcsFile")
+
+		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+		locator.logins.getUserController().getCalendarMemberships()
+		const calendarInfos = await this.calendarModel.getCalendarInfos()
+
+		const firstPrivateCalendar = findFirstPrivateCalendar(calendarInfos)
+		const firstPrivateCalendarGroupSettings = groupSettings.find((groupSetting) => groupSetting.group === firstPrivateCalendar!.group._id[1])
+
+		const defaultAlarms: DefaultAlarmInfo[] = firstPrivateCalendarGroupSettings?.defaultAlarmsList ?? []
+
 		await this.calendarModel.handleNewCalendarEventInvitationFromIcs(
 			sender,
 			{
@@ -301,6 +312,7 @@ export class CalendarInviteHandler {
 				parseEventErrors: [],
 			},
 			dbEvents,
+			defaultAlarms,
 		)
 	}
 	private shouldTreatAsNewInvitation(dbEvents: ResolvedUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
