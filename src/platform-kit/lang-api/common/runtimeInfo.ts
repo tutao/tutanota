@@ -18,7 +18,9 @@ export class RuntimeInfo {
 		return isNotNull(window.TouchEvent)
 	}
 
-	public static globallyDefinedEnv<E>(): Nullable<E> {
-		return globalThis.env as Nullable<E>
+	public static globallyDefinedEnv(): Nullable<string> {
+		// Note:
+		// since we do not have access to EnvType here, we cannot return that type
+		return isNotNull(globalThis.env) ? JSON.stringify(globalThis.env) : null
 	}
 }

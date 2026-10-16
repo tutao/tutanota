@@ -136,9 +136,9 @@ export class EnvProvider {
 	/** @TMutableStaticSafety MainThreadInitialized */
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
 		if (isNull(EnvProvider.singleton)) {
-			const env = RuntimeInfo.globallyDefinedEnv<EnvType>()
+			const env = RuntimeInfo.globallyDefinedEnv()
 			if (isNotNull(env)) {
-				EnvProvider.singleton = new EnvProvider(env)
+				EnvProvider.singleton = new EnvProvider(TsJson.parse(env))
 			}
 		}
 		return EnvProvider.singleton
