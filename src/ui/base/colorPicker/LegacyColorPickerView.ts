@@ -5,12 +5,12 @@ import { LegacyTextField } from "../LegacyTextField.js"
 import { lang } from "../../utils/LanguageViewModel.js"
 import { hexToHSL, hslToHex, isValidCSSHexColor, MAX_HUE_ANGLE, normalizeHueAngle } from "../Color.js"
 import { ColorPickerModel } from "./ColorPickerModel.js"
-import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { isDarkTheme, theme } from "../../theme.js"
 import { isKeyPressed } from "../../utils/KeyManager"
 import { assertNotNull, clamp, filterInt } from "@tutao/utils"
 import { TabIndex } from "@tutao/app-env"
 import { Keys } from "../../utils/KeyboardKeys"
+import { CheckBrowser } from "../../CheckBrowser"
 
 const HUE_GRADIENT_BORDER_WIDTH = 1
 const HUE_GRADIENT_HEIGHT = 40
@@ -347,12 +347,12 @@ export class LegacyColorPickerView implements Component<ColorPickerViewAttrs> {
 								this.postionSliderOnHue(hueImgDom, this.hueSliderDom)
 							}
 						},
-						[ClientDetector.get().isTouchSupported() ? "ontouchstart" : "onpointerdown"]: (e: PointerEvent | TouchEvent) => {
+						[CheckBrowser.isTouchSupported() ? "ontouchstart" : "onpointerdown"]: (e: PointerEvent | TouchEvent) => {
 							const abortController = new AbortController()
 							const hueImgDom = e.target as HTMLElement
 
 							hueImgDom.addEventListener(
-								ClientDetector.get().isTouchSupported() ? "touchmove" : "pointermove",
+								CheckBrowser.isTouchSupported() ? "touchmove" : "pointermove",
 								(e) => this.handleHueChange(e, hueImgDom),
 								{
 									signal: abortController.signal,
@@ -370,10 +370,10 @@ export class LegacyColorPickerView implements Component<ColorPickerViewAttrs> {
 								m.redraw()
 							}
 
-							hueImgDom.addEventListener(ClientDetector.get().isTouchSupported() ? "touchcancel" : "pointercancel", endListener, {
+							hueImgDom.addEventListener(CheckBrowser.isTouchSupported() ? "touchcancel" : "pointercancel", endListener, {
 								signal: abortController.signal,
 							})
-							document.addEventListener(ClientDetector.get().isTouchSupported() ? "touchend" : "pointerup", endListener, {
+							document.addEventListener(CheckBrowser.isTouchSupported() ? "touchend" : "pointerup", endListener, {
 								signal: abortController.signal,
 							})
 
