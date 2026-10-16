@@ -350,6 +350,7 @@ export const enum UnsubscribeFailureReason {
 	LABEL_LIMIT_EXCEEDED = "unsubscribe.label_limit_exceeded",
 	HAS_SCHEDULED_MAILS = "unsubscribe.has_scheduled_mails",
 	DRIVE_NOT_EMPTY = "unsubscribe.drive_not_empty",
+	NO_PAYMENT_METHOD = "unsubscribe.no_payment_method",
 }
 
 // legacy, should be deleted after clients older than 3.114 have been disabled.

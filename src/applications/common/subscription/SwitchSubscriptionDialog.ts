@@ -80,7 +80,11 @@ export async function showSwitchDialog({
 	acceptedPlans: readonly AvailablePlanType[]
 	reason: TranslationKey | null
 }): Promise<void> {
-	const paymentMethod = assertNotNull(getPaymentMethodType(accountingInfo))
+	const paymentMethod = getPaymentMethodType(accountingInfo)
+	if (paymentMethod == null) {
+		Dialog.message("noPaymentMethodError_msg")
+		return
+	}
 	if (isExternalPaymentMethod(paymentMethod) && !hasMatchingExternalPaymentSetup(paymentMethod)) {
 		await showManageSubscriptionThroughExternalStoreDialog(paymentMethod)
 		return
@@ -404,6 +408,10 @@ export async function handleSwitchAccountPreconditionFailed(customer: Customer, 
 
 			case UnsubscribeFailureReason.DRIVE_NOT_EMPTY:
 				detailMsg = lang.getTranslationText("driveNotEmpty_msg")
+				break
+
+			case UnsubscribeFailureReason.NO_PAYMENT_METHOD:
+				detailMsg = lang.getTranslationText("noPaymentMethodError_msg")
 				break
 
 			default:

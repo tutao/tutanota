@@ -2588,3 +2588,4 @@ export type TranslationKeyType =
 	| "accessDeactivated_msg"
 	| "afterProxyStoreAction_msg"
 	| "campaignBlackFridayTitle2026_label"
+	| "noPaymentMethodError_msg"
