@@ -177,7 +177,7 @@ language.
 ## Code Transpilation
 
 [Transpiler](../../tuta-transpiler) takes the [root tsconfig file](../tsconfig.json) and
-generates [swift source](../transpiled/swift-sdk)
-and [kotlin source](../transpiled/kotlin-sdk) equivalent in
+generates [swift source](../tuta-sdk/swift-lang-api)
+and [kotlin source](../tuta-sdk/kotlin-lang-api) equivalent in
 [transpiled directory](). Lang-api on both kotlin & swift is manually maintained to satisfy the Api surface provided by
 typescript's lang-api.
