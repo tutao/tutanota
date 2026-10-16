@@ -8,14 +8,18 @@ export abstract class TsBrand {
 export type BrandedType<T, B extends TsBrand> = { __brand: B } & T
 
 export type TsArray<T> = {
-	find(predicate: (value: T, index: TsNumber, obj: T[]) => unknown, thisArg?: any): Nullable<T>
-	map<U>(callbackfn: (value: T, index: TsNumber, array: T[]) => U, thisArg?: any): TsArray<U>
+	find(predicate: (value: T, index: TsInt, obj: T[]) => unknown, thisArg?: any): Nullable<T>
+	map<U>(callbackfn: (value: T, index: TsInt, array: T[]) => U, thisArg?: any): TsArray<U>
 }
+
 export const TsArray = {
 	from<T>(arr: Array<T>): TsArray<T> {
 		return arr as unknown as TsArray<T>
 	},
 }
+
+export type TsList<T> = TsArray<T>
+export const TsList = TsArray
 
 export const TsObject = {
 	keys(obj: any): TsArray<TsString> {
@@ -29,9 +33,13 @@ export const TsObject = {
 
 export type TsRecord<K extends string | number, V> = Record<K, V>
 
-export const TsNumber = {
-	parseInt(str: TsString): TsNumber {
-		return Number.parseInt(str.asString()) as TsNumber
+export class TsIntBrand extends TsBrand {
+	protected __brand: Nullable<never> = null
+}
+export type TsInt = BrandedType<number, TsIntBrand>
+export const TsInt = {
+	parseInt(str: TsString): TsInt {
+		return Number.parseInt(str.asString()) as TsInt
 	},
 
 	isNaN(num: number): boolean {
@@ -39,15 +47,9 @@ export const TsNumber = {
 	},
 }
 
-export class TsNumberBrand extends TsBrand {
-	protected __brand: Nullable<never> = null
-}
-
 export class TsDoubleBrand extends TsBrand {
 	protected __brand: Nullable<never> = null
 }
-
-export type TsNumber = BrandedType<number, TsNumberBrand>
 
 export type TsDouble = BrandedType<number, TsDoubleBrand>
 
@@ -55,8 +57,8 @@ export const TsDouble = {
 	from(num: number): TsDouble {
 		return num as TsDouble
 	},
-	parseFloat(str: TsString): TsNumber {
-		return Number.parseFloat(str.asString()) as TsNumber
+	parseFloat(str: TsString): TsInt {
+		return Number.parseFloat(str.asString()) as TsInt
 	},
 }
 
@@ -67,12 +69,12 @@ export const TsString = {
 	},
 }
 export type TsString = {
-	length: TsNumber
+	length: TsInt
 	replace(f: TsRegex, r: TsString | string): TsString
 	match(m: TsRegex): Nullable<RegExpMatchArray>
-	indexOf(s: TsString | string, position?: TsNumber | number): TsNumber
-	substring(start: TsNumber | number, end?: TsNumber | number): TsString
-	charAt(pos: TsNumber | number): TsString
+	indexOf(s: TsString | string, position?: TsInt | number): TsInt
+	substring(start: TsInt | number, end?: TsInt | number): TsString
+	charAt(pos: TsInt | number): TsString
 
 	// FIXME:
 	// extend string prototype so that this function actually exists during runtime
@@ -110,9 +112,5 @@ export class TypeChecks {
 
 	public static getTypeOf(a: any): string {
 		return typeof a
-	}
-
-	static isNaN(number: number): boolean {
-		return isNaN(number)
 	}
 }
