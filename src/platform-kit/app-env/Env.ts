@@ -5,6 +5,7 @@ import {
 	RuntimeInfo,
 	TMutableStaticSafety,
 	TMutableStaticSafetyKind,
+	TsInt,
 	TsRecord,
 	TsString,
 	TTranspileIgnore,
@@ -27,7 +28,7 @@ export type EnvType = {
 	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: string
-	timeout: number
+	timeout: TsInt
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
 	clientName: string | null
@@ -156,7 +157,7 @@ export class EnvProvider {
 		return this.env.versionNumber
 	}
 
-	public getTimeOutValue(): number {
+	public getTimeOutValue(): TsInt {
 		return this.env.timeout
 	}
 
