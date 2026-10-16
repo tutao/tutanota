@@ -20,14 +20,38 @@ o.spec("TimeOverview", function () {
 			o.check(range.start).deepEquals(new Time(7, 0))
 			o.check(range.end).deepEquals(new Time(9, 0))
 		})
-
-		o.test("normal middle-of-day event", function () {
-			const focus = makeDate(12, 45)
-
+		o.test("get time range for quarter past", function () {
+			const focus = makeDate(8, 15)
 			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(7, 0))
+			o.check(range.end).deepEquals(new Time(9, 0))
+		})
 
-			o.check(range.start).deepEquals(new Time(12, 0))
-			o.check(range.end).deepEquals(new Time(14, 0))
+		o.test("get time range just before half past ", function () {
+			const focus = makeDate(8, 29)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(7, 0))
+			o.check(range.end).deepEquals(new Time(9, 0))
+		})
+
+		o.test("get time range for half past", function () {
+			const focus = makeDate(8, 30)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(8, 0))
+			o.check(range.end).deepEquals(new Time(10, 0))
+		})
+		o.test("get time range for quarter to", function () {
+			const focus = makeDate(8, 45)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(8, 0))
+			o.check(range.end).deepEquals(new Time(10, 0))
+		})
+
+		o.test("get time range before full hour ", function () {
+			const focus = makeDate(8, 59)
+			const range = TimeOverview.getTimeRange(focus)
+			o.check(range.start).deepEquals(new Time(8, 0))
+			o.check(range.end).deepEquals(new Time(10, 0))
 		})
 
 		o.test("event close to midnight should clip range to beginning of day", function () {
@@ -35,8 +59,8 @@ o.spec("TimeOverview", function () {
 
 			const range = TimeOverview.getTimeRange(focus)
 
-			o.check(range.start).deepEquals(new Time(0, 0))
-			o.check(range.end).deepEquals(new Time(2, 0))
+			o.check(range.start).deepEquals(new Time(23, 0))
+			o.check(range.end).deepEquals(new Time(1, 0))
 		})
 
 		o.test("event close to end of day should clip to end of day", function () {
@@ -46,13 +70,6 @@ o.spec("TimeOverview", function () {
 
 			o.check(range.start).deepEquals(new Time(23, 0))
 			o.check(range.end).deepEquals(new Time(1, 0))
-		})
-
-		o.test("get time range for unusal uneven time ", function () {
-			const focus = makeDate(8, 29)
-			const range = TimeOverview.getTimeRange(focus)
-			o.check(range.start).deepEquals(new Time(8, 0))
-			o.check(range.end).deepEquals(new Time(10, 0))
 		})
 	})
 

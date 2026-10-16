@@ -338,8 +338,9 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 	static getTimeRange(eventFocusBound: Date): TimeRange {
 		let calculationDate = DateTime.fromJSDate(eventFocusBound)
 
-		// if the events start exactly at the full hour, we want to show one hour before
-		if (calculationDate.minute === 0) {
+		// if the events starts within the first 30 minutes of an hour we want to render an additional hour before
+		// the actual event start time so the event does not start on the top for the conflict section.
+		if (calculationDate.minute === 0 || calculationDate.minute < 30) {
 			calculationDate = calculationDate.plus({ hours: -1 })
 		}
 		const startTime = new Time(calculationDate.hour, 0)
