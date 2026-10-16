@@ -62,7 +62,7 @@ import {
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, generateEventElementId, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -99,6 +99,7 @@ import {
 	CalendarGroupRootTypeRef,
 	createDefaultAlarmInfo,
 	createGroupSettings,
+	DefaultAlarmInfo,
 	FileTypeRef,
 	GroupSettings,
 	UserSettingsGroupRoot,
@@ -296,15 +297,39 @@ export class CalendarModel {
 
 	/**
 	 * Provides public access to this.doCreate, so it can be used by Strategies.
+	 * In practice this is used when creating a calendar event from the Event Editor. (as of 22/10/2026)
 	 */
 	async createEvent(event: CalendarEvent, alarmInfos: ReadonlyArray<AlarmInfoTemplate>, zone: string, groupRoot: CalendarGroupRoot): Promise<void> {
 		await this.doCreate(event, zone, groupRoot, alarmInfos)
 	}
 
 	/**
-	 * Provides public access to {@link CalendarFacade.createCalendarEvents}
+	 * In practice this is only used in bulk import operations. (as of 22/10/2026)
+	 *
+	 * @param events an EventAlarmInfoTemplatesTuple containing all the events to create and their respective alarms,
+	 * before any default alarms are applied.
+	 *
+	 * @param operationId the identifier used by the progress tracker to display import progress dialog
+	 *
+	 * @returns a CreateCalendarEventsResult containing details of which events and alarms succeeded and failed, and why.
 	 */
 	async createCalendarEvents(events: EventAlarmInfoTemplatesTuple[], operationId: OperationId) {
+		const groupSettingsList = this.logins.getUserController().userSettingsGroupRoot.groupSettings
+
+		// figure out if any default alarms need to be applied
+		for (let eventTuple of events) {
+			const eventCalendarGroupSettings = groupSettingsList.find((groupSetting) => {
+				console.log("calendar event owner group: ", eventTuple.event._ownerGroup)
+				return groupSetting.group === eventTuple.event._ownerGroup
+			})
+			// prettier-ignore
+			const defaultAlarms: AlarmInfoTemplate[] = eventCalendarGroupSettings
+				? this.makeDefaultAlarmTemplatesForCalendar(eventCalendarGroupSettings)
+				: [];
+
+			// apply default alarms, and keep any existing alarms
+			eventTuple.alarmInfoTemplates = [...eventTuple.alarmInfoTemplates, ...defaultAlarms]
+		}
 		return await this.calendarFacade.createCalendarEvents(events, operationId)
 	}
 
@@ -1064,6 +1089,7 @@ export class CalendarModel {
 				const updateEvent = content.icsCalendarEvent
 				// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
 				// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
+
 				await this.handleExistingCalendarEventInvitationFromIcs(
 					sender,
 					method,
@@ -1075,6 +1101,23 @@ export class CalendarModel {
 		} else {
 			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData, latestPersistedEventsIndexEntry)
 		}
+	}
+
+	/**
+	 *
+	 * @param calendarGroupSettings the group settings of the calendar that your new event belongs to.
+	 *
+	 * @returns Templates for the alarm infos that will be created for the event.
+	 */
+	public makeDefaultAlarmTemplatesForCalendar(calendarGroupSettings: GroupSettings): AlarmInfoTemplate[] {
+		const defaultAlarms: DefaultAlarmInfo[] = calendarGroupSettings.defaultAlarmsList
+
+		// we need to take the default alarms and turn them into real alarms that can be set on the event.
+		const defaultAlarmTemplates: AlarmInfoTemplate[] = []
+		for (const defaultAlarm of defaultAlarms) {
+			defaultAlarmTemplates.push({ alarmIdentifier: generateEventElementId(Date.now()), trigger: defaultAlarm.trigger })
+		}
+		return defaultAlarmTemplates
 	}
 
 	public async getFirstUidIndexEntryMatchInPrivateCalendars(uid: string): Promise<ResolvedUidIndexEntry | null> {
@@ -1116,7 +1159,7 @@ export class CalendarModel {
 			const calendarEvent: CalendarEvent = makeCalendarEventFromIcsCalendarEvent(parsed.icsCalendarEvent)
 			calendarEvent.sender = sender
 
-			const promisses: Promise<void>[] = []
+			const promises: Promise<void>[] = []
 
 			if (uidIndexEntry?.progenitor?.repeatRule != null && calendarEvent.recurrenceId != null && calendarData.method === CalendarMethod.CANCEL) {
 				// some calendaring apps send a cancellation for an altered instance with a RECURRENCE-ID when
@@ -1125,12 +1168,13 @@ export class CalendarModel {
 				// altered-instance-exclusions in some way distinct from "normal" exclusions
 				uidIndexEntry.alteredInstances.push(calendarEvent as CalendarEventAlteredInstance)
 				// this will now modify the progenitor to have the required exclusions
-				promisses.push(this.processUpdateToCalendarEventFromIcs(uidIndexEntry, uidIndexEntry.progenitor, uidIndexEntry.progenitor))
+
+				promises.push(this.processUpdateToCalendarEventFromIcs(uidIndexEntry, uidIndexEntry.progenitor, uidIndexEntry.progenitor))
 			}
 
-			promisses.push(this.processNewAlteredInstanceOrNewEvent(uidIndexEntry, calendarEvent, sender))
+			promises.push(this.processNewAlteredInstanceOrNewEventFromInvite(uidIndexEntry, calendarEvent, sender))
 
-			return promisses
+			return promises
 		})
 
 		await Promise.all(eventsPromises.flat())
@@ -1179,8 +1223,8 @@ export class CalendarModel {
 
 	private async processCalendarCancel(target: ResolvedUidIndexEntry, targetDbEvent: CalendarEventInstance) {
 		const progenitor = target.progenitor
-		const shouldRemoveAlteredIntanceFromProgenitorExcludedDates = progenitor && progenitor.repeatRule?.excludedDates
-		if (shouldRemoveAlteredIntanceFromProgenitorExcludedDates) {
+		const shouldRemoveAlteredInstanceFromProgenitorExcludedDates = progenitor && progenitor.repeatRule?.excludedDates
+		if (shouldRemoveAlteredInstanceFromProgenitorExcludedDates) {
 			const newProgenitor = clone(progenitor)
 			const exclusionDateRemoved = findAndRemove(
 				newProgenitor.repeatRule!.excludedDates,
@@ -1242,17 +1286,17 @@ export class CalendarModel {
 	 * do not call this for anything but a REQUEST
 	 * @param dbTarget the progenitor that must have a repeat rule and an exclusion for this event to be accepted, the known altered instances and the ownergroup.
 	 * @param updateEvent the event to create
-	 * @param alarms alarms to set up for this user/event
 	 * @param sender email address that the event request was received from
 	 */
-	private async processNewAlteredInstanceOrNewEvent(dbTarget: ResolvedUidIndexEntry | null, updateEvent: CalendarEvent, sender: string): Promise<void> {
+	private async processNewAlteredInstanceOrNewEventFromInvite(
+		dbTarget: ResolvedUidIndexEntry | null,
+		updateEvent: CalendarEvent,
+		sender: string,
+	): Promise<void> {
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 
-		let ownerGroup = dbTarget?.ownerGroup
-		if (ownerGroup == null) {
-			ownerGroup = (await this.resolveFirstPrivateOwnedCalendar()).id
-			assertNotNull(ownerGroup, "Missing private calendar")
-		}
+		const eventOwnerGroup = dbTarget?.ownerGroup ?? (await this.resolveFirstPrivateOwnedCalendar()).id
+		assertNotNull(eventOwnerGroup, "Missing private calendar")
 
 		if (dbTarget) {
 			const isAlteredInstance = updateEvent.recurrenceId != null
@@ -1277,14 +1321,23 @@ export class CalendarModel {
 
 		let calendarGroupRoot
 		try {
-			const ownerGroupId = idToElementId(ownerGroup)
+			const ownerGroupId = idToElementId(eventOwnerGroup)
 			calendarGroupRoot = await this.entityClient.load(CalendarGroupRootTypeRef, ownerGroupId)
 		} catch (e) {
 			if (!(e instanceof NotFoundError) && !(e instanceof NotAuthorizedError)) throw e
 			console.log(TAG, "tried to create new progenitor or got new altered instance for progenitor in nonexistent/inaccessible calendar, ignoring")
 			return
 		}
-		return await this.doCreate(updateEvent, "", calendarGroupRoot, [])
+
+		const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
+		const eventCalendarGroupSettings = groupSettings.find((groupSetting) => {
+			return groupSetting.group === eventOwnerGroup
+		})!
+
+		// turn defaultalarminfos into alarminfotemplates
+		const defaultAlarmTemplates: AlarmInfoTemplate[] = this.makeDefaultAlarmTemplatesForCalendar(eventCalendarGroupSettings)
+
+		return await this.doCreate(updateEvent, "", calendarGroupRoot, defaultAlarmTemplates)
 	}
 
 	/** Someone replied whether they attend an event or not. this MUST be applied to all instances in our

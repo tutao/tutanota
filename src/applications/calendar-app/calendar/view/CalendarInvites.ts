@@ -243,7 +243,6 @@ export class CalendarInviteHandler {
 			if (usersDecision === CalendarAttendeeStatus.DECLINED) {
 				return ReplyResult.ReplySent
 			}
-
 			await this.createEventFromIcsFile(sender, eventUserIsReplyingTo, dbEvents)
 		} else {
 			await this.handleInvitationForExistingEntries(eventUserIsReplyingTo, dbEvents, originalEventOccurrence, sender)
@@ -288,7 +287,6 @@ export class CalendarInviteHandler {
 			dbEvents,
 		)
 	}
-
 	private shouldTreatAsNewInvitation(dbEvents: ResolvedUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
 		if (!dbEvents) return true
 

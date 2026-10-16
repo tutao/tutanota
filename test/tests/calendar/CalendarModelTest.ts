@@ -1,4 +1,4 @@
-import o, { verify } from "@tutao/otest"
+import o from "@tutao/otest"
 
 import { getFirstOrThrow, neverNull, Require } from "../../../src/platform-kit/utils"
 import { CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
@@ -10,6 +10,7 @@ import { LoginController } from "../../../src/applications/common/api/main/Login
 import { ProgressTracker } from "../../../src/applications/common/api/main/ProgressTracker.js"
 import { EntityClient } from "../../../src/platform-kit/network/EntityClient.js"
 import {
+	AlarmInfoTemplate,
 	CachingMode,
 	CalendarEventAlteredInstance,
 	CalendarEventProgenitor,
@@ -38,7 +39,12 @@ import {
 	Contact,
 	ContactMailAddressTypeRef,
 	ContactTypeRef,
+	DefaultAlarmInfo,
+	DefaultAlarmInfoTypeRef,
 	EncryptedMailAddressTypeRef,
+	GroupSettings,
+	GroupSettingsTypeRef,
+	UserSettingsGroupRoot,
 } from "@tutao/entities/tutanota"
 import {
 	AlarmInfoTypeRef,
@@ -64,7 +70,9 @@ import { GroupType } from "../../../src/entities/sys/Utils"
 import { CalendarAttendeeStatus, CalendarMethod } from "../../../src/entities/tutanota/Utils"
 import { IcsCalendarEvent, ParsedCalendarData, ParsedEventAlarmTuple } from "../../../src/applications/calendar-app/calendar/export/CalendarParser"
 import en from "../../../src/ui/translations/en"
-import { DoubledObject, matchers, object, when } from "testdouble"
+import td, { DoubledObject, matchers, object, verify, when } from "testdouble"
+import { CommonLocator } from "../../../src/applications/common/api/main/CommonLocator"
+import { generateEventElementId } from "../../../src/applications/common/api/common/utils/CommonCalendarUtils"
 
 o.spec("CalendarModel", function () {
 	const { anything } = matchers
@@ -73,6 +81,8 @@ o.spec("CalendarModel", function () {
 	const UNKNOWN_SENDER = "sender@example.com"
 	const ORGANIZER = "organizer@example.com"
 	const GUEST = "guest@example.com"
+	const CALENDAR_GROUP_ID = "calendar-group-id"
+	const STUB_PROGRESS_TRACKER_PROCESS_ID = 42
 	const baseStartTime = DateTime.fromObject(
 		{
 			year: 1993,
@@ -91,6 +101,7 @@ o.spec("CalendarModel", function () {
 		{ zone: "UTC" },
 	).toJSDate()
 
+	let locatorMock: CommonLocator
 	let calendarGroupRoot: CalendarGroupRoot
 	let calendarModel: CalendarModel
 	let notificationsMock: Notifications
@@ -109,6 +120,7 @@ o.spec("CalendarModel", function () {
 	let syncTrackMock: SyncTracker
 	let languageViewModelMock: LanguageViewModel
 	let groupMemberMock: GroupMember
+	let calendarGroupSettingsMock: GroupSettings
 
 	let baseInvitation: ParsedCalendarData
 	let baseExistingProgenitor: CalendarEvent
@@ -118,6 +130,7 @@ o.spec("CalendarModel", function () {
 		user: User
 		userGroupInfo: GroupInfo
 		getCalendarMemberships: () => Array<GroupMembership>
+		userSettingsGroupRoot: UserSettingsGroupRoot
 	}>
 	let userMock: User
 
@@ -125,6 +138,7 @@ o.spec("CalendarModel", function () {
 	let externalCalendarFacadeMock: ExternalCalendarFacade
 	let userGroupInfo: GroupInfo
 	let contactModelMock: ContactModel
+	let userSettingsGroupRootMock: UserSettingsGroupRoot
 
 	o.before(() => {
 		// CalendarModel needs LanguageViewModel initialized
@@ -138,7 +152,7 @@ o.spec("CalendarModel", function () {
 		serviceExecutorMock = object()
 		loginControllerMock = object()
 		userControllerMock = object()
-		progressTrackerMock = object()
+		progressTrackerMock = object<ProgressTracker>()
 		operationProgressTracker = object()
 		entityClientMock = object()
 		mailboxModelMock = object()
@@ -150,6 +164,7 @@ o.spec("CalendarModel", function () {
 		syncTrackMock = object()
 		languageViewModelMock = object()
 		externalCalendarFacadeMock = object()
+		userSettingsGroupRootMock = object()
 
 		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
 		const userId = "user-id"
@@ -164,15 +179,25 @@ o.spec("CalendarModel", function () {
 			return [calendarGroupMembership]
 		}
 
+		calendarGroupSettingsMock = createTestEntity(GroupSettingsTypeRef, { group: CALENDAR_GROUP_ID })
+
+		userControllerMock.userSettingsGroupRoot = userSettingsGroupRootMock
+		userSettingsGroupRootMock.groupSettings = [calendarGroupSettingsMock]
+
+		userGroupInfo = object()
+		userGroupInfo.mailAddressAliases = new Array<MailAddressAlias>()
+		userGroupInfo.mailAddress = ORGANIZER
+		userControllerMock.userGroupInfo = userGroupInfo
+
 		const progressMonitorMock = object<ProgressMonitorInterface>()
+		when(progressTrackerMock.registerMonitorSync(anything())).thenReturn(STUB_PROGRESS_TRACKER_PROCESS_ID)
 		when(progressTrackerMock.getMonitor(anything())).thenReturn(progressMonitorMock)
 
 		calendarGroupMembership = createTestEntity(GroupMembershipTypeRef, {
-			group: "calendar-group-id",
+			group: CALENDAR_GROUP_ID,
 			groupType: GroupType.Calendar,
 			groupInfo: ["group-info-listId", "calendar-group-info-id"],
 		})
-		// when(userControllerMock.getCalendarMemberships()).thenReturn([calendarGroupMembership])
 
 		calendarGroupRoot = createTestEntity(CalendarGroupRootTypeRef, {
 			_id: idToElementId(calendarGroupMembership.group),
@@ -598,9 +623,8 @@ o.spec("CalendarModel", function () {
 					parseEventErrors: [],
 				})
 
-				verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
-				verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
-				verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
+				td.verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
+				td.verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
 			})
 		})
 
@@ -833,8 +857,10 @@ o.spec("CalendarModel", function () {
 				parseEventErrors: [],
 			})
 			verify(calendarFacadeMock.getEventsByUid(anything(), anything(), anything()), { times: 1 })
-			verify(calendarModel.handleNewCalendarEventInvitationFromIcs(anything(), anything(), anything()), { times: 0 })
-			verify(calendarModel.handleExistingCalendarEventInvitationFromIcs(anything(), anything(), anything(), anything(), anything()), { times: 0 })
+			// ASSERT
+			// checks that neither update or create route was taken
+			verify(calendarFacadeMock.updateCalendarEvent(anything(), anything(), anything()), { times: 0 })
+			verify(calendarFacadeMock.createCalendarEvent(anything(), anything()), { times: 0 })
 		})
 
 		o("Updates to previously replied/interacted calendarEvents should still be applied if the update comes from the organizer", async function () {
@@ -863,6 +889,100 @@ o.spec("CalendarModel", function () {
 			o(updatedEvent.sequence).equals(sentEvent.sequence)
 			o(updatedEvent.pendingInvitation).equals(false)
 			o(oldEvent).deepEquals(baseExistingProgenitor)
+		})
+	})
+
+	o.spec("Default Alarms tests", function () {
+		let defaultAlarmInfo0: DefaultAlarmInfo
+
+		o.beforeEach(function () {
+			defaultAlarmInfo0 = createTestEntity(DefaultAlarmInfoTypeRef, { trigger: "-PT30M" })
+			calendarGroupSettingsMock.defaultAlarmsList = [defaultAlarmInfo0]
+
+			baseInvitation = {
+				method: CalendarMethod.REQUEST,
+				contents: [
+					{
+						icsCalendarEvent: baseExistingProgenitor as CalendarEventProgenitor,
+						alarms: [],
+					},
+				],
+				parseEventErrors: [],
+			}
+		})
+
+		o.test("Default alarms are applied for new event invitations from trusted contacts", async function () {
+			// Arrange
+			const successfulCreateCalendarEventsResult: CreateCalendarEventsResult = {
+				successfulEvents: [baseExistingProgenitor],
+				failedEvents: [],
+				failedEventErrors: [],
+				failedAlarms: [],
+				failedAlarmErrors: [],
+			}
+			when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(successfulCreateCalendarEventsResult)
+
+			// Act
+			await calendarModel.handleNewCalendarEventInvitationFromIcs(ORGANIZER, baseInvitation, null)
+
+			// Assert
+			const createdAlarmsCaptor = matchers.captor()
+			verify(calendarFacadeMock.createCalendarEvent(anything(), createdAlarmsCaptor.capture()))
+
+			const capturedAlarms: AlarmInfoTemplate[] = createdAlarmsCaptor.value
+
+			o(capturedAlarms.some((alarmInfoTemplate: AlarmInfoTemplate) => alarmInfoTemplate.trigger === defaultAlarmInfo0.trigger)).equals(true)
+		})
+		o.test("Default alarms are applied during import operations", async function () {
+			// Arrange
+			const successfulCreateCalendarEventsResult: CreateCalendarEventsResult = {
+				successfulEvents: [baseExistingProgenitor],
+				failedEvents: [],
+				failedEventErrors: [],
+				failedAlarms: [],
+				failedAlarmErrors: [],
+			}
+			when(calendarFacadeMock.createCalendarEvent(anything(), anything())).thenResolve(successfulCreateCalendarEventsResult)
+
+			// Act
+			await calendarModel.createCalendarEvents([{ event: baseExistingProgenitor, alarmInfoTemplates: [] }], STUB_PROGRESS_TRACKER_PROCESS_ID)
+
+			// Assert
+			const createdEventAlarmTuplesCaptor = matchers.captor()
+			verify(calendarFacadeMock.createCalendarEvents(createdEventAlarmTuplesCaptor.capture(), anything()))
+
+			const capturedAlarms: AlarmInfoTemplate[] = createdEventAlarmTuplesCaptor.value[0].alarmInfoTemplates
+
+			o(capturedAlarms.some((alarmInfoTemplate: AlarmInfoTemplate) => alarmInfoTemplate.trigger === defaultAlarmInfo0.trigger)).equals(true)
+		})
+
+		o.test("Imported alarms are applied in addition to default alarms", async function () {
+			const preexistingAlarmIdentifier = generateEventElementId(Date.now())
+			const oneMinTrigger = "-PT1M"
+
+			// Arrange
+			const preexistingAlarmInfoTemplate: AlarmInfoTemplate = { alarmIdentifier: preexistingAlarmIdentifier, trigger: oneMinTrigger }
+
+			// Act
+			await calendarModel.createCalendarEvents(
+				[{ event: baseExistingProgenitor, alarmInfoTemplates: [preexistingAlarmInfoTemplate] }],
+				STUB_PROGRESS_TRACKER_PROCESS_ID,
+			)
+
+			// Assert
+			const createdEventAlarmTuplesCaptor = matchers.captor()
+			verify(calendarFacadeMock.createCalendarEvents(createdEventAlarmTuplesCaptor.capture(), anything()))
+
+			const capturedAlarms: AlarmInfoTemplate[] = createdEventAlarmTuplesCaptor.value[0].alarmInfoTemplates
+
+			o(capturedAlarms.length).equals(2)
+			o(capturedAlarms.some((alarmInfoTemplate: AlarmInfoTemplate) => alarmInfoTemplate.trigger === defaultAlarmInfo0.trigger)).equals(true)
+			o(
+				capturedAlarms.some(
+					(alarmInfoTemplate: AlarmInfoTemplate) =>
+						alarmInfoTemplate.trigger === oneMinTrigger && alarmInfoTemplate.alarmIdentifier === preexistingAlarmIdentifier,
+				),
+			).equals(true)
 		})
 	})
 
