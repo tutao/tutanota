@@ -153,7 +153,7 @@ export async function showDowngradeOrResubscribeDialog(mainText: TranslationKey,
 	])
 }
 
-export async function showManageSubscriptionThroughExternalStoreDialog(paymentMethod: PaymentMethodType): Promise<void> {
+export async function showManageSubscriptionThroughExternalStoreDialog(paymentMethod: PaymentMethodType | null): Promise<void> {
 	const term = paymentMethod === PaymentMethodType.AppStore ? "storeSubscription_msg" : "storeSubscriptionGoogle_msg"
 	const confirmed = await Dialog.confirm(
 		lang.getTranslation(term, {

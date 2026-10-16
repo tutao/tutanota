@@ -2582,6 +2582,7 @@ export default {
 		"sendFeedback_action": "Send feedback",
 		"feedbackAnonymousAndHelpUs_label": "Your feedback is anonymous and helps us improve Tuta.",
 		"afterProxyStoreAction_msg": "After purchasing your gift card, please follow the steps provided on ProxyStore to continue the process.",
-		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!"
+		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
+		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set."
 	}
 }

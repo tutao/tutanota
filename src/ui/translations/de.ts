@@ -2582,6 +2582,7 @@ export default {
 		"feedbackAnonymousAndHelpUs_label": "Dein Feedback ist anonym und hilft uns, Tuta zu verbessern.",
 		"accessDeactivated_msg": "Dein Account wurde deaktiviert.",
 		"afterProxyStoreAction_msg": "Bitte folge nach dem Kauf des Gutscheins den Anweisungen auf ProxyStore um fortzufahren.",
-		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!"
+		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
+		"noPaymentMethodError_msg": "Du kannst dein Abo nicht wechseln, weil du keine gültige Zahlungsmethode hast."
 	}
 }
