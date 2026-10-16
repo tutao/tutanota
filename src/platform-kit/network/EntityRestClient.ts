@@ -60,13 +60,13 @@ import {
 import {
 	AesKey,
 	cryptoUtils,
-	generateKdfNonce,
 	InstanceKeyProvider,
 	KdfNonce,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
 	OwnerKeyProvider,
 	SubKeyInfo,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
+	SymmetricCipherUtils,
 	SymmetricEncryptionScheme,
 	validateKdfNonceLength,
 	VersionedKey,
@@ -138,6 +138,7 @@ export class EntityRestClient implements EntityRestInterface {
 		private readonly typeModelResolver: TypeModelResolver,
 		private readonly sessionKeyResolver: lazy<SessionAndInstanceKeyResolver>,
 		private readonly entityMigrator: lazy<EntityMigrator>,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {
 		this.patchGenerator = new PatchGenerator(instancePipeline)
 	}
@@ -739,7 +740,7 @@ export class EntityRestClient implements EntityRestInterface {
 				console.log(`overwriting KDF nonce previously found on instance of type ${instance._type} with ID ${instance._id}`)
 			}
 
-			const kdfNonce: KdfNonce = generateKdfNonce()
+			const kdfNonce: KdfNonce = this.symmetricCipherUtils.generateKdfNonce()
 			instance._kdfNonce = kdfNonce
 			return new SubKeyInfoAeadWithInstanceKeyFromGroupKey(ownerKey, kdfNonce)
 		}
@@ -898,7 +899,7 @@ export class EntityRestClient implements EntityRestInterface {
 			const typeId = instance._type.typeId.toString()
 			const typeInfo = createTypeInfo({ application, typeId })
 			const out = await this._crypto.postUpdateKdfNonceService(
-				createInstanceKdfNonce({ kdfNonce: generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
+				createInstanceKdfNonce({ kdfNonce: this.symmetricCipherUtils.generateKdfNonce(), instanceId, instanceCustomId, instanceList, typeInfo }),
 			)
 			const kdfNonce = validateKdfNonceLength(out.kdfNonce)
 			instance._kdfNonce = kdfNonce

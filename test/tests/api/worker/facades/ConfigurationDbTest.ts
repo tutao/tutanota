@@ -2,21 +2,23 @@ import o from "@tutao/otest"
 import {
 	ConfigurationDatabase,
 	ConfigurationMetaDataOS,
-	encryptItem,
-	initializeDb,
-	loadEncryptionMetadata,
 	updateEncryptionMetadata,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { downcast, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { DbStub } from "../search/DbStub.js"
 import {
+	Aes,
 	Aes256Key,
-	aes256RandomKey,
+	AesCbcFacade,
+	CryptoWrapper,
 	EntropySource,
-	generateInitializationVector,
 	InitializationVector,
+	KeyEncryption,
 	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
 	VersionedKey,
+	X25519,
 } from "../../../../../src/platform-kit/crypto"
 import { createTestEntity } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
@@ -27,15 +29,34 @@ import { Metadata } from "../../../../../src/applications/common/api/worker/sear
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ExternalImageRule, NewsletterBannerRule } from "../../../../../src/entities/tutanota/Utils"
-import { aesEncrypt } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/Aes"
-import { decryptKey, encryptKey } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/KeyEncryption"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("ConfigurationDbTest", function () {
 	let keyLoaderFacade: KeyLoaderFacade
+	let symmetricCipherUtils: SymmetricCipherUtils
+	let aes: Aes
+	let keyEncryption: KeyEncryption
+	let cryptoWrapper: CryptoWrapper
+	let configurationDatabase: ConfigurationDatabase
 
 	o.beforeEach(async function () {
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		keyLoaderFacade = object()
+
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		aes = new Aes(symmetricCipherFacade)
+		keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
+		const x25519 = new X25519(random)
+		cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
+
+		configurationDatabase = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, object(), object())
 	})
 
 	function makeExternalImageMocks(
@@ -44,8 +65,8 @@ o.spec("ConfigurationDbTest", function () {
 			rule?: ExternalImageRule
 		}>,
 	) {
-		const key = aes256RandomKey()
-		const initializationVector = generateInitializationVector()
+		const key = symmetricCipherUtils.aes256RandomKey()
+		const initializationVector = symmetricCipherUtils.generateInitializationVector()
 		const logins = downcast({
 			getLoggedInUser() {
 				return createTestEntity(UserTypeRef)
@@ -59,7 +80,7 @@ o.spec("ConfigurationDbTest", function () {
 
 			for (let entry of allowListTable) {
 				const transaction = await stub.createTransaction()
-				const encryptedAddress = await encryptItem(entry.address, key, initializationVector)
+				const encryptedAddress = await configurationDatabase.encryptItem(entry.address, key, initializationVector)
 				await transaction.put("ExternalAllowListOS", null, {
 					address: encryptedAddress,
 					rule: entry.rule,
@@ -86,8 +107,8 @@ o.spec("ConfigurationDbTest", function () {
 			rule?: NewsletterBannerRule
 		}>,
 	) {
-		const key = aes256RandomKey()
-		const initializationVector = generateInitializationVector()
+		const key = symmetricCipherUtils.aes256RandomKey()
+		const initializationVector = symmetricCipherUtils.generateInitializationVector()
 		const logins = downcast({
 			getLoggedInUser() {
 				return createTestEntity(UserTypeRef)
@@ -101,7 +122,7 @@ o.spec("ConfigurationDbTest", function () {
 
 			for (let entry of allowListTable) {
 				const transaction = await stub.createTransaction()
-				const encryptedAddress = await encryptItem(entry.address, key, initializationVector)
+				const encryptedAddress = await configurationDatabase.encryptItem(entry.address, key, initializationVector)
 				await transaction.put("NewsletterBannerListOS", null, {
 					address: encryptedAddress,
 					rule: entry.rule,
@@ -129,7 +150,7 @@ o.spec("ConfigurationDbTest", function () {
 					address: "fomo@server.com",
 				},
 			])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.onFullyLoggedIn()
 			const shouldBeAllow = await configDb.getExternalImageRule("fomo@server.com")
 			o(shouldBeAllow).equals(ExternalImageRule.Allow)
@@ -138,7 +159,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.onFullyLoggedIn()
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Allow)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Allow)
@@ -161,7 +182,7 @@ o.spec("ConfigurationDbTest", function () {
 						rule: ExternalImageRule.Block,
 					},
 				])
-				configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+				configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			})
 
 			o.test("before onFullyLoggedIn always shows banner", async () => {
@@ -185,7 +206,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeExternalImageMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.onFullyLoggedIn()
 			await configDb.addExternalImageRule("fomo@server.com", ExternalImageRule.Block)
 			o(await configDb.getExternalImageRule("fomo@server.com")).equals(ExternalImageRule.Block)
@@ -210,11 +231,11 @@ o.spec("ConfigurationDbTest", function () {
 			dbFacade = object()
 			transaction = object()
 			when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
-			currentUserGroupKey = { version: 42, object: aes256RandomKey() }
+			currentUserGroupKey = { version: 42, object: symmetricCipherUtils.aes256RandomKey() }
 			when(keyLoaderFacade.getCurrentSymUserGroupKey()).thenReturn(currentUserGroupKey)
-			dbKey = aes256RandomKey()
-			initializationVector = generateInitializationVector()
-			encIv = aesEncrypt(dbKey, initializationVector.bytes)
+			dbKey = symmetricCipherUtils.aes256RandomKey()
+			initializationVector = symmetricCipherUtils.generateInitializationVector()
+			encIv = aes.aesEncrypt(dbKey, initializationVector.bytes)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.encDbIv)).thenResolve(encIv)
 		})
 
@@ -223,7 +244,7 @@ o.spec("ConfigurationDbTest", function () {
 			const transaction: DbTransaction = object()
 			when(dbFacade.createTransaction(matchers.anything(), matchers.anything())).thenResolve(transaction)
 
-			await initializeDb(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
+			await configurationDatabase.initializeDb(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 
 			verify(keyLoaderFacade.getCurrentSymUserGroupKey())
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
@@ -231,14 +252,14 @@ o.spec("ConfigurationDbTest", function () {
 
 		o("read group key version when opening database", async function () {
 			const groupKeyVersion = 6
-			const groupKey = aes256RandomKey()
+			const groupKey = symmetricCipherUtils.aes256RandomKey()
 
-			const encDBKey = encryptKey(groupKey, dbKey)
+			const encDBKey = keyEncryption.encryptKey(groupKey, dbKey)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(groupKeyVersion)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
-			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
+			const encryptionMetadata = await configurationDatabase.loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 
 			verify(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion))
 			o(encryptionMetadata?.key).deepEquals(dbKey)
@@ -246,30 +267,30 @@ o.spec("ConfigurationDbTest", function () {
 		})
 
 		o("write group key version when updating database", async function () {
-			const oldGroupKey = { version: (currentUserGroupKey.version - 1) as KeyVersion, object: aes256RandomKey() }
+			const oldGroupKey = { version: (currentUserGroupKey.version - 1) as KeyVersion, object: symmetricCipherUtils.aes256RandomKey() }
 			when(keyLoaderFacade.loadSymUserGroupKey(oldGroupKey.version)).thenResolve(oldGroupKey.object)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(oldGroupKey.version)
-			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encryptKey(oldGroupKey.object, dbKey))
+			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(keyEncryption.encryptKey(oldGroupKey.object, dbKey))
 
-			await updateEncryptionMetadata(dbFacade, keyLoaderFacade, ConfigurationMetaDataOS)
+			await updateEncryptionMetadata(dbFacade, keyLoaderFacade, ConfigurationMetaDataOS, aes, keyEncryption, cryptoWrapper)
 
 			verify(keyLoaderFacade.getCurrentSymUserGroupKey())
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion, currentUserGroupKey.version))
 			const encDbKeyCaptor = matchers.captor()
 			verify(transaction.put(ConfigurationMetaDataOS, Metadata.userEncDbKey, encDbKeyCaptor.capture()))
-			const capturedDbKey = decryptKey(currentUserGroupKey.object, encDbKeyCaptor.value)
+			const capturedDbKey = keyEncryption.decryptKey(currentUserGroupKey.object, encDbKeyCaptor.value)
 			o(capturedDbKey).deepEquals(dbKey)
 		})
 
 		o("read group key version when without meta data entry", async function () {
 			const groupKeyVersion = 0
-			const groupKey = aes256RandomKey()
-			const encDBKey = encryptKey(groupKey, dbKey)
+			const groupKey = symmetricCipherUtils.aes256RandomKey()
+			const encDBKey = keyEncryption.encryptKey(groupKey, dbKey)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userGroupKeyVersion)).thenResolve(undefined)
 			when(transaction.get(ConfigurationMetaDataOS, Metadata.userEncDbKey)).thenResolve(encDBKey)
 			when(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion)).thenResolve(groupKey)
 
-			const encryptionMetadata = await loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
+			const encryptionMetadata = await configurationDatabase.loadEncryptionMetadata(dbFacade, "dbId", keyLoaderFacade, ConfigurationMetaDataOS)
 			verify(keyLoaderFacade.loadSymUserGroupKey(groupKeyVersion))
 			o(encryptionMetadata?.key).deepEquals(dbKey)
 			o(encryptionMetadata?.initializationVector).deepEquals(initializationVector)
@@ -288,7 +309,7 @@ o.spec("ConfigurationDbTest", function () {
 					rule: NewsletterBannerRule.Block,
 				},
 			])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.onFullyLoggedIn()
 			const shouldBeAllow = await configDb.getNewsletterBannerRule("fomo@server.com")
 			o(shouldBeAllow).equals(NewsletterBannerRule.Allow)
@@ -297,7 +318,7 @@ o.spec("ConfigurationDbTest", function () {
 		})
 		o("write", async function () {
 			const { logins, loadDb } = makeNewsletterBannerRuleMocks([])
-			const configDb = new ConfigurationDatabase(keyLoaderFacade, logins, loadDb)
+			const configDb = new ConfigurationDatabase(symmetricCipherUtils, aes, keyEncryption, cryptoWrapper, keyLoaderFacade, logins, loadDb)
 			await configDb.onFullyLoggedIn()
 			await configDb.addNewsletterBannerRule("fomo@server.com", NewsletterBannerRule.Block)
 			o(await configDb.getNewsletterBannerRule("fomo@server.com")).equals(NewsletterBannerRule.Block)

@@ -18,6 +18,7 @@ import {
 	KdfNonce,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	SymmetricCipherUtils,
 	VersionedAes256Key,
 	VersionedKey,
 } from "@tutao/crypto"
@@ -68,6 +69,7 @@ export class InstanceKeyFacade {
 		private readonly entityClient: EntityClient,
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly serviceExecutor: IServiceExecutor,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	async loadAndProcessPendingInstanceKeySharing(user: User): Promise<void> {

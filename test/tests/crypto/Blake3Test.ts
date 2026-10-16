@@ -1,8 +1,14 @@
 import o, { assertThrows } from "@tutao/otest"
-import { aes256RandomKey, blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array } from "../../../src/platform-kit/crypto"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array, random, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 
 o.spec("blake3", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
+
+	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
+	})
+
 	o.spec("hash", function () {
 		o("is reproducible", function () {
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
@@ -20,21 +26,21 @@ o.spec("blake3", function () {
 	})
 	o.spec("mac", function () {
 		o("round trip", function () {
-			const key = keyToUint8Array(aes256RandomKey())
+			const key = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const tag = blake3Mac(key, data)
 			blake3MacVerify(key, data, tag)
 		})
 		o("throws if data is not the same", async function () {
-			const key = keyToUint8Array(aes256RandomKey())
+			const key = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const badData = new Uint8Array([6, 5, 4, 3, 2, 1, 0])
 			const tag = blake3Mac(key, data)
 			await assertThrows(CryptoError, async () => blake3MacVerify(key, badData, tag))
 		})
 		o("throws if key is not the same", async function () {
-			const key = keyToUint8Array(aes256RandomKey())
-			const badKey = keyToUint8Array(aes256RandomKey())
+			const key = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
+			const badKey = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const data = new Uint8Array([0, 1, 2, 3, 4, 5, 6])
 			const tag = blake3Mac(key, data)
 			await assertThrows(CryptoError, async () => blake3MacVerify(badKey, data, tag))
@@ -42,7 +48,7 @@ o.spec("blake3", function () {
 	})
 	o.spec("kdf", function () {
 		o("is reproducible", function () {
-			const inputKeyMaterial = keyToUint8Array(aes256RandomKey())
+			const inputKeyMaterial = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const context = "my test context"
 			const key1 = blake3Kdf(inputKeyMaterial, context, 32)
 			const key2 = blake3Kdf(inputKeyMaterial, context, 32)
@@ -50,7 +56,7 @@ o.spec("blake3", function () {
 		})
 
 		o("output depends on context", function () {
-			const inputKeyMaterial = keyToUint8Array(aes256RandomKey())
+			const inputKeyMaterial = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const context1 = "my test context"
 			const context2 = "my test context has now changed"
 			const key1 = blake3Kdf(inputKeyMaterial, context1, 32)
@@ -59,8 +65,8 @@ o.spec("blake3", function () {
 		})
 
 		o("output depends on input key material", function () {
-			const inputKeyMaterial1 = keyToUint8Array(aes256RandomKey())
-			const inputKeyMaterial2 = keyToUint8Array(aes256RandomKey())
+			const inputKeyMaterial1 = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
+			const inputKeyMaterial2 = keyToUint8Array(symmetricCipherUtils.aes256RandomKey())
 			const context = "my test context"
 			const key1 = blake3Kdf(inputKeyMaterial1, context, 32)
 			const key2 = blake3Kdf(inputKeyMaterial2, context, 32)

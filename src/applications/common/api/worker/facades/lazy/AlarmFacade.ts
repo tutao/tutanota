@@ -1,4 +1,4 @@
-import { AeadCipherVersion, aes256RandomKey, AesKey, CryptoWrapper, keyToBase64, SessionKeyDecryptor, VersionedKey } from "@tutao/crypto"
+import { AeadCipherVersion, AesKey, CryptoWrapper, KeyEncryption, keyToBase64, SessionKeyDecryptor, SymmetricCipherUtils, VersionedKey } from "@tutao/crypto"
 import { elementIdPart, elementIdToId, listIdPart, OperationType } from "@tutao/meta"
 import { TooManyRequestsError } from "@tutao/rest-client/error"
 import { EventWithUserAlarmInfos } from "./CalendarFacade"
@@ -50,6 +50,8 @@ export class AlarmFacade {
 		private readonly nativePushFacade: NativePushFacade,
 		private readonly instancePipeline: InstancePipeline,
 		private readonly infoMessageHandler: InfoMessageHandler,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	public async createAlarms(loggedInUser: User, eventAlarmsTuples: EventAlarmInfoTemplatesTuple[], pushIdentifiers: PushIdentifier[]): Promise<void> {
@@ -61,7 +63,7 @@ export class AlarmFacade {
 			eventAlarmsTuples,
 			pushIdentifiers,
 		)
-		await this.postAlarmServiceRequest(alarmServicePostRequestData, new SessionKeyDecryptor(userGroupKey))
+		await this.postAlarmServiceRequest(alarmServicePostRequestData, new SessionKeyDecryptor(userGroupKey, this.keyEncryption))
 	}
 
 	public async scheduleAlarmsForNewDevice(pushIdentifier: PushIdentifier, eventsWithAlarmInfos: Array<EventWithUserAlarmInfos>): Promise<void> {
@@ -71,7 +73,7 @@ export class AlarmFacade {
 			userAlarmInfos.map((userAlarmInfo) => this.createAlarmNotificationForEvent(event, userAlarmInfo.alarmInfo, elementIdToId(user._id))),
 		)
 
-		const sessionKey = aes256RandomKey()
+		const sessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		await this.encryptNotificationKeyForDevices(sessionKey, alarmNotifications, [pushIdentifier])
 
 		const encryptedNotificationsWireFormat = await Promise.all(
@@ -94,7 +96,7 @@ export class AlarmFacade {
 		eventAlarmTuples: Array<EventAlarmInfoTemplatesTuple>,
 		pushIdentifiers: PushIdentifier[],
 	): Promise<AlarmServicePost> {
-		const notificationSessionKey = aes256RandomKey()
+		const notificationSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 		const notification = createNotificationTransferAggregatedType({
 			_ownerKeyVersion: userGroupKey.version.toString(),
 			_ownerEncSessionKey: this.cryptoWrapper.encryptKey(userGroupKey.object, notificationSessionKey),
@@ -118,7 +120,7 @@ export class AlarmFacade {
 			})
 
 			for (const alarmInfoTemplate of alarmInfoTemplates) {
-				const userAlarmInfoSessionKey = aes256RandomKey()
+				const userAlarmInfoSessionKey = this.symmetricCipherUtils.aes256RandomKey()
 				const calendarEventRefTransferAggregatedType = createCalendarEventRefTransferAggregatedType({
 					listId: eventRef.listId,
 					elementId: eventRef.elementId,

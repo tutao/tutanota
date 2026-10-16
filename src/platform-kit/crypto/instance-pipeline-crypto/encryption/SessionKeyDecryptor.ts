@@ -1,9 +1,12 @@
-import { AesKey, decryptKey, VersionedKey } from "@tutao/crypto"
+import { AesKey, KeyEncryption, VersionedKey } from "@tutao/crypto"
 
 export class SessionKeyDecryptor {
-	constructor(private readonly ownerKey: VersionedKey) {}
+	constructor(
+		private readonly ownerKey: VersionedKey,
+		private readonly keyEncryption: KeyEncryption,
+	) {}
 
 	decryptSessionKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>): AesKey {
-		return decryptKey(this.ownerKey.object, ownerEncSessionKey)
+		return this.keyEncryption.decryptKey(this.ownerKey.object, ownerEncSessionKey)
 	}
 }

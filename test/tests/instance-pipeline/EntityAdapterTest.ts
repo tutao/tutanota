@@ -7,17 +7,26 @@ import { EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../src
 import { ImportMailGetInTypeRef, MailAddressTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "@tutao/entities/sys"
-import { aes256RandomKey } from "@tutao/crypto/symmetric-cipher-utils"
 import { changeInstanceDirection } from "./InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../src/platform-kit/crypto"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("EntityAdapter", () => {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let typeModelResolver: TypeModelResolver
 	let instancePipeline: InstancePipeline
 
 	o.beforeEach(() => {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+		instancePipeline = instancePipelineFromTypeModelResolver(
+			random,
+			new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils),
+			typeModelResolver,
+		)
 	})
 
 	o.test("can create local mapped/decrypted instance - GroupInfo", async () => {
@@ -31,7 +40,7 @@ o.spec("EntityAdapter", () => {
 			_listEncSessionKey: stringToUtf8Uint8Array("listEncSessionKey"),
 			group: "someGroup",
 		})
-		const groupInfoParsed = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, groupInfo, aes256RandomKey())
+		const groupInfoParsed = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, groupInfo, symmetricCipherUtils.aes256RandomKey())
 		changeInstanceDirection(groupInfoParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(groupInfoParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
@@ -59,7 +68,7 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, symmetricCipherUtils.aes256RandomKey())
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const mailBucketKey = await instancePipeline.decryptAndMapEncryptedInstance<BucketKey>(mailParsed.getAttributeById(1310).asNestedObjList()[0], null)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
@@ -80,7 +89,11 @@ o.spec("EntityAdapter", () => {
 			ownerEncSessionKey: stringToUtf8Uint8Array("ownerEncSessionKey"),
 			ownerKeyVersion: "99",
 		})
-		const importMailGetInParsed = await instancePipeline.mapAndEncryptToParsedInstance(ImportMailGetInTypeRef, importMailGetIn, aes256RandomKey())
+		const importMailGetInParsed = await instancePipeline.mapAndEncryptToParsedInstance(
+			ImportMailGetInTypeRef,
+			importMailGetIn,
+			symmetricCipherUtils.aes256RandomKey(),
+		)
 		changeInstanceDirection(importMailGetInParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
 			importMailGetInParsed,
@@ -100,7 +113,7 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, symmetricCipherUtils.aes256RandomKey())
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
@@ -123,7 +136,7 @@ o.spec("EntityAdapter", () => {
 			conversationEntry: ["list", "element"],
 		})
 
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, symmetricCipherUtils.aes256RandomKey())
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 
@@ -142,7 +155,7 @@ o.spec("EntityAdapter", () => {
 			sender: createTestEntity(MailAddressTypeRef, { name: "a", address: "a@a.a" }),
 			conversationEntry: ["list", "element"],
 		})
-		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, aes256RandomKey())
+		const mailParsed = await instancePipeline.mapAndEncryptToParsedInstance(MailTypeRef, mail, symmetricCipherUtils.aes256RandomKey())
 		changeInstanceDirection(mailParsed, InstanceDirection.IncomingFromServer)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(mailParsed, instancePipeline.modelMapper, instancePipeline.cryptoMapper)
 

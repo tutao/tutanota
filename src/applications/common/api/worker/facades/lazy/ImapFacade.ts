@@ -4,7 +4,7 @@
  * The ImapFolderSyncState is needed to store relevant IMAP synchronization information for a single folder, most importantly the IMAP UID to Tuta mailId.
  * The facade communicates directly with the ImapService and ImapFolderService.
  */
-import { CryptoWrapper } from "@tutao/crypto"
+import { CryptoWrapper, SymmetricCipherUtils } from "@tutao/crypto"
 import { MailFacade } from "./MailFacade.js"
 import { InitializeImapImportParams, MailSetMapping } from "../../../../../mail-app/workerUtils/imapimport/ImapImporter"
 import { assertNotNull, Nullable } from "@tutao/utils"
@@ -59,6 +59,7 @@ export class ImapFacade {
 		private readonly entityClient: EntityClient,
 		private readonly keyLoader: KeyLoaderFacade,
 		private readonly cryptoWrapper: CryptoWrapper,
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 	) {}
 
 	async initializeImapImport(
@@ -105,7 +106,7 @@ export class ImapFacade {
 			_ownerGroup: mailGroupId,
 			_ownerEncSessionKey: ownerEncSessionKey.key,
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-			_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+			_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 			maxQuota: initializeParams.maxQuota,
 			postponedUntil: Date.now().toString(),
 			rootImportMailSet: rootImportMailSetId,
@@ -225,7 +226,7 @@ export class ImapFacade {
 				_ownerGroup: mailGroupId,
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 				mailSet: shouldSync ? [mailbox.mailSets.mailSets, mailSetElementId] : null,
 				imapSpecialUse: specialUse,
 				path: imapMailboxPath,
@@ -291,7 +292,7 @@ export class ImapFacade {
 				_ownerGroup: mailGroupId,
 				_ownerEncSessionKey: ownerEncSessionKey.key,
 				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
-				_kdfNonce: this.cryptoWrapper.generateKdfNonce(),
+				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 				mailSet: mailSetId,
 				imapSpecialUse: imapMailbox.specialUse ?? null,
 				path: imapMailbox.path,
