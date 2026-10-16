@@ -20,7 +20,7 @@ export class FileControllerNative extends FileController {
 		private readonly fileApp: NativeFileApp,
 	) {
 		assert(
-			EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient() || EnvProvider.get().isApp() || EnvProvider.isTest(),
+			EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient() || EnvProvider.get().isApp() || EnvProvider.get().isTest(),
 			"Don't make native file controller when not in native",
 		)
 		super(blobFacade)

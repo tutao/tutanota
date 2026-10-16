@@ -756,7 +756,7 @@ export class EventBusClient {
 
 	private eventGroups(): Id[] {
 		const user = this.loggedInUserProvider.getLoggedInUser()
-		if ((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest()) {
+		if ((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.get().isTest()) {
 			return user.memberships
 				.filter((membership) => membership.groupType !== GroupType.MailingList)
 				.concat(user.userGroup)

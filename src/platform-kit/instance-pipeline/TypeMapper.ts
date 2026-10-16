@@ -281,7 +281,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null): OutgoingServerJson {
-		assert(EnvProvider.isTest(), "Do not construct with raw record in non-test environment")
+		assert(EnvProvider.get().isTest(), "Do not construct with raw record in non-test environment")
 		return new OutgoingServerJson(clientModel as any, json)
 	}
 

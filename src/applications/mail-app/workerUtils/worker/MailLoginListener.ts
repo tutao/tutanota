@@ -20,7 +20,7 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onPartialLoginSuccess(sessionType: SessionType, _cacheInfo: CacheInfo, _credentials: Credentials): Promise<void> {
-		if (!EnvProvider.isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
+		if (!EnvProvider.get().isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
 			const indexer = await locator.indexer()
 			await indexer.partialLoginInit()
 		}
@@ -28,7 +28,7 @@ export class MailLoginListener extends DefaultLoginListener {
 	}
 
 	async onFullLoginSuccess(sessionType: SessionType, cacheInfo: CacheInfo, credentials: Credentials): Promise<void> {
-		if (!EnvProvider.isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
+		if (!EnvProvider.get().isTest() && sessionType !== SessionType.Temporary && !EnvProvider.get().isAdminClient()) {
 			// index new items in background
 			console.log("initIndexer and SpamClassifier after log in")
 			await fullLoginIndexerInit(this.worker)

@@ -281,7 +281,7 @@ export class ClientEntity {
 	}
 
 	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>): void {
-		assert(EnvProvider.isTest(), "This method is only meant for testing")
+		assert(EnvProvider.get().isTest(), "This method is only meant for testing")
 		return this.setAssociation(associationId, associationList)
 	}
 }
