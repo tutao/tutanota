@@ -5,13 +5,16 @@ import { downcast } from "../../../../../src/platform-kit/utils"
 import { makeKeyStoreFacade } from "../../../TestUtils.js"
 import { DesktopKeyStoreFacade } from "../../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { DesktopConfigKey } from "../../../../../src/platform-kit/app-env/ConfigKeys.js"
-import { aes256RandomKey } from "../../../../../src/platform-kit/crypto"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { random } from "../../../../../src/platform-kit/crypto"
 
 o.spec("DesktopConfigMigrator", function () {
+	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+
 	let migrator
 	let crypto: DesktopNativeCryptoFacade
 	let keyStoreFacade: DesktopKeyStoreFacade
-	const key = aes256RandomKey()
+	const key = symmetricCipherUtils.aes256RandomKey()
 
 	o.before(function () {
 		crypto = downcast({

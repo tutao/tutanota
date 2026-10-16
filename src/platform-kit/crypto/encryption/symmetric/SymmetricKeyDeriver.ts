@@ -1,6 +1,6 @@
 import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, getKeyLengthInBytes } from "./AesKey.js"
 import { SymmetricCipherVersion } from "./SymmetricCipherVersion.js"
-import { KdfNonce, keyToUint8Array, uint8ArrayToKey, uint8ArrayTo256Key } from "./SymmetricCipherUtils.js"
+import { KdfNonce, keyToUint8Array, uint8ArrayTo256Key, uint8ArrayToKey } from "./SymmetricCipherUtils.js"
 import { sha256Hash } from "../../hashes/Sha256.js"
 import { sha512Hash } from "../../hashes/Sha512.js"
 import { blake3Kdf } from "../../hashes/Blake3.js"
@@ -173,5 +173,3 @@ export function deriveInstanceKey(groupKey: VersionedKey, kdfNonce: KdfNonce): V
 	const derivedBytes = blake3Kdf(inputKeyMaterial, context, DEFAULT_LENGTH_PER_KEY_BYTES)
 	return { object: uint8ArrayTo256Key(derivedBytes), version: groupKey.version }
 }
-
-export const SYMMETRIC_KEY_DERIVER = new SymmetricKeyDeriver()

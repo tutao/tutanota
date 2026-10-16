@@ -8,13 +8,25 @@ import { GroupInfo, GroupInfoTypeRef, InstanceKey, InstanceKeysRefTypeRef, Insta
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { assertNotNull, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { AssociationTypeEnum, CardinalityEnum, ModelAssociation } from "../../../../../src/platform-kit/meta"
-import { aes256RandomKey, AesKey, cryptoUtils, CryptoWrapper, VersionedAes256Key } from "../../../../../src/platform-kit/crypto"
+import {
+	AeadFacade,
+	AesCbcFacade,
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	SymmetricKeyDeriver,
+	VersionedAes256Key,
+} from "../../../../../src/platform-kit/crypto"
 import o, { assertThrows } from "@tutao/otest"
 import { PermissionType } from "../../../../../src/entities/sys/Utils"
 import { changeInstanceDirection } from "../../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 o.spec("InstanceKeyProviderMakerTest", function () {
+	let symmetricCipherUtils: SymmetricCipherUtils
 	let providerMaker: InstanceKeyProviderMaker
 	let userFacade: UserFacade
 	let entityClient: EntityClient
@@ -44,6 +56,7 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 	}
 
 	o.beforeEach(function () {
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		userFacade = object()
 		entityClient = object()
 		symGroupKeyLoader = object()
@@ -111,7 +124,11 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 			let instancePipeline: InstancePipeline
 
 			async function convertInstanceToEntityAdapter(instancePipeline: InstancePipeline, entityAdapter: EntityAdapter) {
-				const encryptedParsedInstance = await instancePipeline.mapAndEncryptToParsedInstance(GroupInfoTypeRef, instance, aes256RandomKey())
+				const encryptedParsedInstance = await instancePipeline.mapAndEncryptToParsedInstance(
+					GroupInfoTypeRef,
+					instance,
+					symmetricCipherUtils.aes256RandomKey(),
+				)
 				changeInstanceDirection(encryptedParsedInstance, InstanceDirection.IncomingFromServer)
 				entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(
 					encryptedParsedInstance,
@@ -122,8 +139,14 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 			}
 
 			o.beforeEach(async function () {
+				const symmetricCipherFacade = new SymmetricCipherFacade(
+					new AesCbcFacade(),
+					new AeadFacade(symmetricCipherUtils),
+					new SymmetricKeyDeriver(),
+					symmetricCipherUtils,
+				)
 				const typeModelResolver = clientInitializedTypeModelResolver()
-				instancePipeline = instancePipelineFromTypeModelResolver(typeModelResolver)
+				instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 			})
 
 			o.test("success - current instance key on permission", async function () {

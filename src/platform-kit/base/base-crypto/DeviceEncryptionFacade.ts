@@ -1,11 +1,16 @@
-import { aes256RandomKey, aesDecrypt, aesEncrypt, keyToUint8Array, uint8ArrayToKey } from "@tutao/crypto"
+import { Aes, keyToUint8Array, SymmetricCipherUtils, uint8ArrayToKey } from "@tutao/crypto"
 
 export class DeviceEncryptionFacade {
+	constructor(
+		private readonly symmetricCipherUtils: SymmetricCipherUtils,
+		private readonly aes: Aes,
+	) {}
+
 	/**
 	 * Generates an encryption key.
 	 */
 	async generateKey(): Promise<Uint8Array<ArrayBuffer>> {
-		return keyToUint8Array(aes256RandomKey())
+		return keyToUint8Array(this.symmetricCipherUtils.aes256RandomKey())
 	}
 
 	/**
@@ -14,7 +19,7 @@ export class DeviceEncryptionFacade {
 	 * @param data Data to encrypt.
 	 */
 	async encrypt(deviceKey: Uint8Array<ArrayBuffer>, data: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
-		return aesEncrypt(uint8ArrayToKey(deviceKey), data)
+		return this.aes.aesEncrypt(uint8ArrayToKey(deviceKey), data)
 	}
 
 	/**
@@ -23,6 +28,6 @@ export class DeviceEncryptionFacade {
 	 * @param encryptedData Data to be decrypted.
 	 */
 	async decrypt(deviceKey: Uint8Array<ArrayBuffer>, encryptedData: Uint8Array<ArrayBuffer>): Promise<Uint8Array<ArrayBuffer>> {
-		return aesDecrypt(uint8ArrayToKey(deviceKey), encryptedData)
+		return this.aes.aesDecrypt(uint8ArrayToKey(deviceKey), encryptedData)
 	}
 }

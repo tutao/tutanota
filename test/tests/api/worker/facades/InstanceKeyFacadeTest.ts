@@ -33,10 +33,11 @@ import {
 	Aes256Key,
 	AesKey,
 	CryptoWrapper,
-	generateKdfNonce,
 	KdfNonce,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	random,
+	SymmetricCipherUtils,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
@@ -73,6 +74,8 @@ o.spec("InstanceKeyFacadeTest", function () {
 	let currentDerivedInstanceKeyInVersion1: VersionedAes256Key
 	let olderVersionDerivedInstanceKey: Aes256Key
 	let instancePermissionsId: Id
+	let derivedInstanceKey: VersionedAes256Key
+	let symmetricCipherUtils: SymmetricCipherUtils
 
 	let deriveInstanceKeyMethod: (groupKey: VersionedKey, kdfNonce: KdfNonce) => VersionedAes256Key
 
@@ -84,6 +87,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 		cryptoWrapper = object()
 		serviceExecutor = object()
 		adminKeyLoaderFacade = object()
+		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		instanceKeyFacade = new InstanceKeyFacade(
 			adminKeyLoaderFacade,
 			keyLoaderFacade,
@@ -92,12 +96,13 @@ o.spec("InstanceKeyFacadeTest", function () {
 			entityClient,
 			cryptoWrapper,
 			serviceExecutor,
+			symmetricCipherUtils,
 		)
 		instanceGroupId = "instanceGroupId"
 		instancePermissionsId = "instancePermissionsId"
 		currentInstanceGroupKey = { object: object(), version: 0 }
 		instance = createTestEntity(GroupInfoTypeRef, {
-			_kdfNonce: generateKdfNonce(),
+			_kdfNonce: symmetricCipherUtils.generateKdfNonce(),
 			_ownerGroup: instanceGroupId,
 			_permissions: instancePermissionsId,
 			_formerInstanceKeys: createTestEntity(InstanceKeysRefTypeRef, { list: "listid" }),
@@ -158,7 +163,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 		o.test("success - kdfNonce must be created", async function () {
 			instance._kdfNonce = null
-			when(entityClient.ensureKdfNonce(anything())).thenResolve(generateKdfNonce())
+			when(entityClient.ensureKdfNonce(anything())).thenResolve(symmetricCipherUtils.generateKdfNonce())
 			const instanceKey = await instanceKeyFacade.getCurrentInstanceKey(instance)
 			o.check(instanceKey).deepEquals(versionedDerivedInstanceKey)
 			verify(entityClient.ensureKdfNonce(anything()), { times: 1 })
@@ -374,7 +379,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 
 			o.beforeEach(function () {
 				instance = createTestEntity(GroupInfoTypeRef, {
-					_kdfNonce: generateKdfNonce(),
+					_kdfNonce: symmetricCipherUtils.generateKdfNonce(),
 					_ownerGroup: instanceGroupId,
 					_permissions: instancePermissionsId,
 				})

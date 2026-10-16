@@ -23,24 +23,22 @@ import { appendBinaryBlocks } from "../../../../../src/applications/common/api/w
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { aes256RandomKey, generateInitializationVector } from "../../../../../src/platform-kit/crypto"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { IndexedDbSearchFacade } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbSearchFacade"
 import { DbFacade } from "../../../../../src/applications/common/api/worker/search/DbFacade"
 import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/worker/search/EncryptedDbWrapper"
-import {
-	encryptIndexKeyBase64,
-	encryptIndexKeyUint8Array,
-	encryptMetaData,
-	encryptSearchIndexEntry,
-} from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
+import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
+import { Aes, AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { IndexEncryptionUtils } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
+import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 type SearchIndexEntryWithType = SearchIndexEntry & {
 	typeInfo: TypeInfo
@@ -70,9 +68,6 @@ o.spec("IndexedDbSearchFacade", () => {
 		const db = new EncryptedDbWrapper(dbFacade)
 		db.init({ key: dbKey, initializationVector: DB_INITIALIZATION_VECTOR })
 		return new IndexedDbSearchFacade(
-			{
-				getLoggedInUser: () => user,
-			} as any,
 			db,
 			{
 				mailboxIndexingPromise: Promise.resolve(),
@@ -82,6 +77,7 @@ o.spec("IndexedDbSearchFacade", () => {
 			browserData,
 			entityClient,
 			makePopulatedClientModelInfo(),
+			indexEncryptionUtils,
 		)
 	}
 
@@ -114,14 +110,20 @@ o.spec("IndexedDbSearchFacade", () => {
 						oldestElementTimestamp: generatedIdToTimestamp(chunk[0].id),
 					})
 					const encSearchIndexRow = appendBinaryBlocks(
-						chunk.map((entry) => encryptSearchIndexEntry(dbKey, entry, encryptIndexKeyUint8Array(dbKey, entry.id, DB_INITIALIZATION_VECTOR))),
+						chunk.map((entry) =>
+							indexEncryptionUtils.encryptSearchIndexEntry(
+								dbKey,
+								entry,
+								indexEncryptionUtils.encryptIndexKeyUint8Array(dbKey, entry.id, DB_INITIALIZATION_VECTOR),
+							),
+						),
 					)
 					transaction.put(SearchIndexOS, counter, encSearchIndexRow)
 				}
 			}
-			transaction.put(SearchIndexMetaDataOS, null, encryptMetaData(dbKey, metaDataRow))
+			transaction.put(SearchIndexMetaDataOS, null, indexEncryptionUtils.encryptMetaData(dbKey, metaDataRow))
 			for (const id of fullIds) {
-				let encId = encryptIndexKeyBase64(dbKey, elementIdPart(id), DB_INITIALIZATION_VECTOR)
+				let encId = indexEncryptionUtils.encryptIndexKeyBase64(dbKey, elementIdPart(id), DB_INITIALIZATION_VECTOR)
 				const elementDataEntry: ElementDataDbRow = [listIdPart(id), new Uint8Array(0), ""] // rows not needed for search
 
 				transaction.put(ElementDataOS, encId, elementDataEntry)
@@ -131,7 +133,7 @@ o.spec("IndexedDbSearchFacade", () => {
 
 	let createKeyToIndexEntries = (word: string, entries: SearchIndexEntryWithType[]): KeyToIndexEntriesWithType => {
 		return {
-			indexKey: encryptIndexKeyBase64(dbKey, word, DB_INITIALIZATION_VECTOR),
+			indexKey: indexEncryptionUtils.encryptIndexKeyBase64(dbKey, word, DB_INITIALIZATION_VECTOR),
 			indexEntries: entries,
 		}
 	}
@@ -190,9 +192,14 @@ o.spec("IndexedDbSearchFacade", () => {
 
 	let dbStub: DbStub
 	let transaction: DbStubTransaction
+	let indexEncryptionUtils: IndexEncryptionUtils
 	o.beforeEach(async () => {
-		dbKey = aes256RandomKey()
-		DB_INITIALIZATION_VECTOR = generateInitializationVector()
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		indexEncryptionUtils = new IndexEncryptionUtils(
+			new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils)),
+		)
+		dbKey = symmetricCipherUtils.aes256RandomKey()
+		DB_INITIALIZATION_VECTOR = symmetricCipherUtils.generateInitializationVector()
 		dbStub = createSearchIndexDbStub()
 		transaction = await dbStub.createTransaction()
 	})

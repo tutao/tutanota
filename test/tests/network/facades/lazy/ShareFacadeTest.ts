@@ -4,10 +4,17 @@ import { matchers, object, verify, when } from "testdouble"
 import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-crypto/InstanceKeyFacade"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade"
 import {
-	aes256RandomKey,
+	AeadFacade,
+	Aes,
+	AesCbcFacade,
 	AesKey,
 	CryptoWrapper,
+	KeyEncryption,
 	keyToUint8Array,
+	random,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+	SymmetricKeyDeriver,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
 	VersionedKey,
@@ -69,9 +76,27 @@ o.spec("ShareFacadeTest", function () {
 		cryptoWrapper = object()
 		instanceKeyFacade = object()
 
-		shareFacade = new ShareFacade(userFacade, cryptoFacade, serviceExecutor, entityClient, keyLoaderFacade, cryptoWrapper, instanceKeyFacade)
+		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherFacade = new SymmetricCipherFacade(
+			new AesCbcFacade(),
+			new AeadFacade(symmetricCipherUtils),
+			new SymmetricKeyDeriver(),
+			symmetricCipherUtils,
+		)
+		const keyEncryption = new KeyEncryption(symmetricCipherFacade, new Aes(symmetricCipherFacade))
+		shareFacade = new ShareFacade(
+			userFacade,
+			cryptoFacade,
+			serviceExecutor,
+			entityClient,
+			keyLoaderFacade,
+			cryptoWrapper,
+			instanceKeyFacade,
+			symmetricCipherUtils,
+			keyEncryption,
+		)
 
-		sharedGroupKey = { object: aes256RandomKey(), version: 0 }
+		sharedGroupKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
 		sharedGroupInfo = createTestEntity(GroupInfoTypeRef, {
 			_formerInstanceKeys: createTestEntity(InstanceKeysRefTypeRef),
 			_id: ["groupInfoInviterListId", "sharedGroupInfoId"],
