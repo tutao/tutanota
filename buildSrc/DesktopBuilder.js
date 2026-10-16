@@ -26,7 +26,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
 /**
  * @param obj {object}
- * @param obj.dirname {string} directory this was called from
+ * @param obj.projectRoot {string} directory this was called from
  * @param obj.version {string} application version that gets built
  * @param obj.platform {"linux"|"win32"|"darwin"} - Canonical platform name of the desktop target to be built
  * @param obj.architecture {ArchParam} the instruction set used in the built desktop binary
@@ -40,7 +40,7 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @returns {Promise<void>}
  */
 export async function buildDesktop({
-	dirname,
+	projectRoot,
 	version,
 	platform,
 	architecture,
@@ -62,7 +62,7 @@ export async function buildDesktop({
 	console.log(`Building ${architecture} ${platform} desktop client for v${version}`)
 	updateUrl = updateUrl?.toString()
 	const updateSubDir = `desktop${nameSuffix}`
-	const distDir = path.join(dirname, "build")
+	const distDir = path.join(projectRoot, "build")
 
 	// this prevents us from outputting artifacts into the "desktop" build folder that contains the desktop clients js files that get bundled
 	outDir = path.join(outDir ?? distDir, "..", "artifacts", updateSubDir)
@@ -77,7 +77,7 @@ export async function buildDesktop({
 		nameSuffix,
 		version,
 		updateUrl,
-		iconPath: path.join(dirname, "/resources/desktop-icons/logo-solo-red.png" + (platform === "win32" ? ".ico" : "")),
+		iconPath: path.join(projectRoot, "/resources/desktop-icons/logo-solo-red.png" + (platform === "win32" ? ".ico" : "")),
 		notarize,
 		unpacked,
 		sign: (process.env.DEBUG_SIGN && updateUrl !== "") || !!process.env.JENKINS_HOME,
@@ -97,7 +97,7 @@ export async function buildDesktop({
 	}
 
 	console.log("Bundling desktop client")
-	await rollupDesktop(dirname, path.join(distDir, "desktop"), version, platform, architecture, disableMinify ?? false, networkDebugging ?? false)
+	await rollupDesktop(projectRoot, path.join(distDir, "desktop"), version, platform, architecture, disableMinify ?? false, networkDebugging ?? false)
 
 	console.log("Starting installer build...")
 	if (process.platform.startsWith("darwin")) {
