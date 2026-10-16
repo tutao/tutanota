@@ -2574,6 +2574,7 @@ export default {
 		"afterProxyStoreAction_msg": "Nachdem Sie Ihre Giftcard gekauft haben, folgen Sie bitte den Schritten auf ProxyStore, um den Vorgang fortzusetzen.",
 		"campaignBlackFridayTitle2026_label": "Black Friday: 2 für 1!",
 		"neverAgain_label": "Nie wieder fragen",
-		"disableSatisfactionDialogConfirm_msg": "Auf keinem Gerät mehr um Feedback gebeten werden? Sie können weiterhin über Hilfe Feedback senden."
+		"disableSatisfactionDialogConfirm_msg": "Auf keinem Gerät mehr um Feedback gebeten werden? Sie können weiterhin über Hilfe Feedback senden.",
+		"noPaymentMethodError_msg": "Sie können Ihren Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist"
 	}
 }

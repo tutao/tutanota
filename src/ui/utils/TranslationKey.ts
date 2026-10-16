@@ -2575,3 +2575,4 @@ export type TranslationKeyType =
 	| "disableSatisfactionDialogConfirm_msg"
 	| "campaignBlackFridayTitle2026_label"
 	| "businessPlansNotAvailableForExternal_msg"
+	| "noPaymentMethodError_msg"
