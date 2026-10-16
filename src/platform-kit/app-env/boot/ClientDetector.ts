@@ -7,7 +7,7 @@ import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJ
 EnvProvider.assertMainOrNodeBoot()
 
 export class ClientDetector {
-	private userAgent: string | null = null
+	private userAgent: TsString | null = null
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
@@ -28,7 +28,7 @@ export class ClientDetector {
 
 	constructor() {}
 
-	init(userAgent: string, platform: TsString, appType: AppType = AppType.Integrated): ClientDetector {
+	init(userAgent: TsString, platform: TsString, appType: AppType = AppType.Integrated): ClientDetector {
 		this.userAgent = userAgent
 		this.appType = appType
 		this._setBrowserAndVersion()
@@ -136,7 +136,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = TsNumber(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = TsNumber.parseInt(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -166,7 +166,7 @@ export class ClientDetector {
 				while (pos < userAgent.length) {
 					pos++
 
-					if (TypeChecks.isNaN(TsNumber(userAgent.charAt(pos)))) {
+					if (TypeChecks.isNaN(TsNumber.parseInt(userAgent.charAt(pos)))) {
 						if (hadNan) {
 							break
 						} else {
@@ -176,7 +176,7 @@ export class ClientDetector {
 				}
 
 				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = TsNumber(numberString.replace(/_/g, "."))
+				this.browserVersion = TsNumber.parseInt(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
 			}
@@ -190,9 +190,9 @@ export class ClientDetector {
 		if (
 			userAgent.match(/iPad.*AppleWebKit/) != null || // iPadOS does not differ in UserAgent from Safari on macOS. Use hack with TouchEvent to detect iPad
 			// Desktop Chrome has TouchEvent but it also has Chrome in it. Mobile iOS has CriOS in it and not Chrome.
-			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent as string) &&
+			(/Macintosh; Intel Mac OS X.*AppleWebKit/.test(userAgent.asString()) &&
 				RuntimeInfo.hasTouchEvent() &&
-				/.*Chrome.*/.test(userAgent as string) === false)
+				/.*Chrome.*/.test(userAgent.asString()) === false)
 		) {
 			this.device = DeviceType.IPAD
 		} else if (userAgent.match(/iPhone.*AppleWebKit/) != null) {
