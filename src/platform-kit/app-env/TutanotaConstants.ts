@@ -51,14 +51,9 @@ export const Const: ConstType = {
 	EXECUTE_KDF_MIGRATION: true,
 } as const
 
-export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
-	"tuta.com",
-	"tutamail.com",
-	"tuta.io",
-	"tutanota.com",
-	"tutanota.de",
-	"keemail.me",
-])
+export const TUTA_MAIL_ADDRESS_DOMAINS: TsList<string> = TsObject.freeze(
+	TsList.from("tuta.com", "tutamail.com", "tuta.io", "tutanota.com", "tutanota.de", "keemail.me"),
+)
 export const TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTA_MAIL_ADDRESS_DOMAINS
 export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"
 export const DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN = "tutamail.com"
@@ -166,7 +161,7 @@ export enum PresentableKeyVerificationState {
 
 export const MAX_LOGO_SIZE = 1024 * 100
 export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
-export const ALLOWED_IMAGE_FORMATS: TsList<string> = TsObject.freeze(TsList.from(["png", "jpg", "jpeg", "svg"]))
+export const ALLOWED_IMAGE_FORMATS: TsList<string> = TsObject.freeze(TsList.from("png", "jpg", "jpeg", "svg"))
 
 // Keep non-const for admin
 export enum FeatureType {
