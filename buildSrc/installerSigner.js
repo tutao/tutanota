@@ -81,29 +81,25 @@ export async function sign(filePath, signatureFileName, ymlFileName) {
 }
 
 async function signWithHSM(filePath, signatureFileName, dir) {
-	console.log("sign with HSM")
-	const result = spawnSync(
-		"/usr/bin/pkcs11-tool",
-		[
-			"-s",
-			"-m",
-			"SHA512-RSA-PKCS",
-			"--token-label",
-			"SmartCard-HSM",
-			"--id",
-			"10", // this is the index of the installer verification key
-			"--pin",
-			"env:HSM_USER_PIN",
-			"-i",
-			path.basename(filePath),
-			"-o",
-			signatureFileName,
-		],
-		{
-			cwd: dir,
-			stdio: [process.stdin, process.stdout, process.stderr],
-		},
-	)
+	spawnSync("/usr/bin/pkcs11-tool", ["--list-slots"], { stdio: "inherit" })
+
+	const args = [
+		"-s",
+		"-m",
+		"SHA512-RSA-PKCS",
+		"--token-label",
+		"SmartCard-HSM",
+		"--id",
+		"10", // this is the index of the installer verification key
+		"--pin",
+		"env:HSM_USER_PIN",
+		"-i",
+		path.basename(filePath),
+		"-o",
+		signatureFileName,
+	]
+	console.log(`Signing with HSM pkcs11-tool ${args.join(" ")}`)
+	const result = spawnSync("/usr/bin/pkcs11-tool", args, { cwd: dir, stdio: "inherit" })
 
 	if (result.status !== 0) {
 		throw new Error("error during hsm signing process" + JSON.stringify(result))
