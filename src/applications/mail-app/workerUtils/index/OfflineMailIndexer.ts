@@ -1,5 +1,5 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
-import { abortAware, abortAwareWithCleanup, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
+import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
@@ -384,16 +384,17 @@ export class OfflineMailIndexer implements MailIndexer {
 
 		for (const { archiveId, resumeParams } of archivesToLoad) {
 			console.log(TAG, `Downloading archive ${archiveId} starting from row ${resumeParams?.rangeHeaders.rangeStart ?? 0}`)
-			await abortAwareWithCleanup(
-				this.abortController,
-				async () => {
+			try {
+				await abortAware(this.abortController, async () => {
 					const downloadAndStoreBlobsStart = performance.now()
 					await this.blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, this.archiveDownloader, resumeParams)
 					const downloadAndStoreBlobsEnd = performance.now()
 					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
-				},
-				async () => this.archiveDownloader.abortDownloadAndStoreArchive(archiveId),
-			)
+				})
+			} catch (e) {
+				await this.archiveDownloader.abortDownloadAndStoreArchive(archiveId)
+				throw e
+			}
 		}
 
 		const preloadEnd = performance.now()
