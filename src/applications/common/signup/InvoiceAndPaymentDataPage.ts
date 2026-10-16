@@ -18,7 +18,7 @@ import { CreditCardInput } from "../subscription/CreditCardInput"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { px, size } from "../../../ui/size"
 import { TextField } from "../../../ui/base/TextField"
-import { PaypalButtonNew } from "../subscription/PaypalButtonNew"
+import { PaypalButton } from "../subscription/PaypalButton"
 import { Styles } from "../../../ui/styles"
 import { LegacyTextFieldType } from "../../../ui/base/LegacyTextField"
 import { Icons } from "../../../ui/base/icons/Icons"
@@ -29,7 +29,7 @@ import { Countries, Country, CountryType } from "../gui/CountryList"
 import { NULL_ENTITY } from "@tutao/meta"
 import { windowFacade } from "../misc/WindowFacade"
 
-class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponentAttrs<PaymentDetailsModel>> {
+class InvoiceAndPaymentDataPage implements ClassComponent<WizardStepComponentAttrs<PaymentDetailsModel>> {
 	private _hasClickedNext: boolean = false
 	private paypalRequestUrl: LazyLoaded<string>
 	private readonly formGap = Styles.get().isMobileLayout() ? ".gap-16" : ".gap-24"
@@ -293,7 +293,7 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 					m(
 						"",
 						{ style: isPaypalConnected || Styles.get().isMobileLayout() ? { width: "100%" } : { "margin-left": "auto" } },
-						m(PaypalButtonNew, {
+						m(PaypalButton, {
 							data: ctx.viewModel,
 							onclick: async () => {
 								const error = validateInvoiceData({
@@ -418,4 +418,4 @@ class InvoiceAndPaymentDataPageNew implements ClassComponent<WizardStepComponent
 	}
 }
 
-export default InvoiceAndPaymentDataPageNew
+export default InvoiceAndPaymentDataPage

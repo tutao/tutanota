@@ -32,7 +32,7 @@ export const PlanTypeToIcon: Record<AvailablePlanType, AllIcons> = {
 	[PlanType.Advanced]: Icons.StoreOutline,
 	[PlanType.Unlimited]: Icons.CityOutline,
 }
-export class UpgradeConfirmSubscriptionPageNew implements ClassComponent<OrderConfirmationPageAttrs> {
+export class UpgradeConfirmSubscriptionPage implements ClassComponent<OrderConfirmationPageAttrs> {
 	view({ attrs }: Vnode<OrderConfirmationPageAttrs>): Children {
 		const { ctx } = attrs
 		const data = ctx.viewModel
