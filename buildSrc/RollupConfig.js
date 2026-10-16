@@ -376,7 +376,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		// Perhaps contact form should be separate
 		// Recover things depends on HtmlEditor which we don't want to load on each login
 		return "ui-extra"
-	} else if (isIn("src/applications/common/signup/PlanSelectorPage.ts") || isIn("src/applications/common/signup/InvoiceAndPaymentDataPageNew.ts")) {
+	} else if (isIn("src/applications/common/signup/PlanSelectorPage.ts") || isIn("src/applications/common/signup/InvoiceAndPaymentDataPage.ts")) {
 		// These pages are shared by signup and subscription settings.
 		return "settings"
 	} else if (isIn("src/applications/common/signup")) {

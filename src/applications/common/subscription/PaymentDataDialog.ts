@@ -19,7 +19,7 @@ import { px } from "../../../ui/size"
  * @returns {boolean} true if the payment data update was successful
  */
 export async function show(customer: Customer, accountingInfo: AccountingInfo, price: number, defaultPaymentMethod: PaymentMethodType): Promise<boolean> {
-	const InvoiceAndPaymentDataPageNew = (await import("../signup/InvoiceAndPaymentDataPageNew")).default
+	const InvoiceAndPaymentDataPage = (await import("../signup/InvoiceAndPaymentDataPage")).default
 	const viewModel: PaymentDetailsModel = {
 		customer,
 		accountingInfo: { ...accountingInfo },
@@ -56,7 +56,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 					m(Wizard, {
 						viewModel,
 						layout,
-						steps: [{ content: InvoiceAndPaymentDataPageNew, isBackButtonEnabled: () => false }],
+						steps: [{ content: InvoiceAndPaymentDataPage, isBackButtonEnabled: () => false }],
 						onComplete: () => {
 							dialog.close()
 							resolve(true)

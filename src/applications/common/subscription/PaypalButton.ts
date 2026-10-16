@@ -11,22 +11,22 @@ import { EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../
 import { AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 
-export interface PaypalButtonNewAttrs {
+export interface PaypalButtonAttrs {
 	data: Pick<SignupViewModel, "accountingInfo">
 	onclick: ClickHandler
 	oncomplete?: () => void
 	disabled?: boolean
 }
 
-export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
+export class PaypalButton implements Component<PaypalButtonAttrs> {
 	private entityUpdatesListener: EntityUpdatesListener
 	private isPaypalLinked = false
 
-	constructor({ attrs }: Vnode<PaypalButtonNewAttrs>) {
+	constructor({ attrs }: Vnode<PaypalButtonAttrs>) {
 		const { accountingInfo } = attrs.data
 		this.isPaypalLinked = accountingInfo?.paypalBillingAgreement != null
 		this.entityUpdatesListener = {
-			id: "PaypalButtonNew",
+			id: "PaypalButton",
 			onEntityUpdatesReceived: (updates) => {
 				return promiseMap(updates, (update) => {
 					if (isUpdateForTypeRef(AccountingInfoTypeRef, update)) {
@@ -52,7 +52,7 @@ export class PaypalButtonNew implements Component<PaypalButtonNewAttrs> {
 		locator.eventController.addEntityUpdatesListener(this.entityUpdatesListener)
 	}
 
-	view({ attrs: { data, onclick, disabled } }: Vnode<PaypalButtonNewAttrs>): Children {
+	view({ attrs: { data, onclick, disabled } }: Vnode<PaypalButtonAttrs>): Children {
 		return [
 			m(
 				".flex-center.justify-center",
