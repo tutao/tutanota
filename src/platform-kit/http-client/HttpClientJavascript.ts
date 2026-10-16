@@ -25,7 +25,7 @@ export class HttpClientJavascript implements HttpClient {
 
 		// @ts-ignore
 		const debug: boolean = TypeChecks.hasProperty("self") && self.debug
-		this.verbose = EnvProvider.isWorker() && debug
+		this.verbose = EnvProvider.get().isWorker() && debug
 	}
 
 	async request(

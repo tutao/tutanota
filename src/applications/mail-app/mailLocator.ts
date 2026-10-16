@@ -1142,7 +1142,7 @@ class MailLocator implements CommonLocator {
 			EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => mailLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
-		const lazySanitizer = EnvProvider.isTest()
+		const lazySanitizer = EnvProvider.get().isTest()
 			? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 			: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 

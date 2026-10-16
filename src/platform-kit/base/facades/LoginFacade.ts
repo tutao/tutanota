@@ -586,7 +586,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.isTest() ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.get().isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}

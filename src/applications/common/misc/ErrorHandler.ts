@@ -41,7 +41,7 @@ function produceThrottledFunction<R>(ms: number, fn: () => Promise<R>): () => Pr
 const importErrorHandler = produceThrottledFunction(200, () => import("./ErrorHandlerImpl.js"))
 
 export async function handleUncaughtError(e: Error) {
-	if (EnvProvider.isTest()) {
+	if (EnvProvider.get().isTest()) {
 		throw e
 	}
 

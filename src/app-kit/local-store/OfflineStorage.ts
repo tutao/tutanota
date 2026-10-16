@@ -210,7 +210,7 @@ export class OfflineStorage implements CacheStorage {
 		private readonly customCacheHandler: CustomCacheHandlerMap,
 		additionalTables: Record<string, OfflineStorageTable>,
 	) {
-		assert((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.isTest(), "Offline storage is not available.")
+		assert((!EnvProvider.get().isBrowser() && !EnvProvider.get().isAdminClient()) || EnvProvider.get().isTest(), "Offline storage is not available.")
 		this.allTables = Object.freeze(Object.assign({}, additionalTables, TableDefinitions))
 	}
 

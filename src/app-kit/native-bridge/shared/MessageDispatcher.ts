@@ -89,7 +89,7 @@ export class MessageDispatcher<OutgoingRequestType extends string, IncomingReque
 			} else {
 				let error = new Error(`unexpected request: ${message.id}, ${message.requestType}`)
 
-				if (EnvProvider.isWorker()) {
+				if (EnvProvider.get().isWorker()) {
 					this.transport.postMessage(new RequestError(message.id!, error))
 				} else {
 					throw error
