@@ -17,7 +17,7 @@ interface MobilePaymentsFacade {
 		plan: String,
 		interval: Long,
 		customerIdBytes: DataWrapper,
-		currentInterval: Long?,
+		foreignKey: String?,
 	): MobilePaymentResult
 	/**
 	 * Returns displayable prices for all plans
@@ -33,7 +33,7 @@ interface MobilePaymentsFacade {
 	 * Check if the latest transaction using the current Store Account belongs to the tuta customer
 	 */
 	suspend fun queryExternalSubscriptionOwnership(
-		customerIdBytes: DataWrapper?,
+		foreignKey: String?,
 	): MobilePaymentSubscriptionOwnership
 	/**
 	 * Check if there's a subscription with google or apple and if it has auto-renew enabled
