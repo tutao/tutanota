@@ -61,7 +61,7 @@ import { ArchiveDownloaderFacade } from "../../../../../src/app-kit/native-bridg
 
 const { anything, captor } = matchers
 
-o.spec("BlobFacadeTest", function () {
+o.spec("BlobFacade", function () {
 	let blobFacade: BlobFacade
 	let blobAccessTokenFacade: BlobAccessTokenFacade
 	let restClientMock: RestClient
@@ -125,7 +125,7 @@ o.spec("BlobFacadeTest", function () {
 	})
 
 	o.spec("upload", function () {
-		o("parseBlobPostOutResponse should remove network debugging info", async function () {
+		o.test("parseBlobPostOutResponse should remove network debugging info", async function () {
 			env.networkDebugging = true
 
 			const newBlobFacade = new BlobFacade(
@@ -150,10 +150,10 @@ o.spec("BlobFacadeTest", function () {
 			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
 
 			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
-			o(referenceTokens).deepEquals(expectedReferenceToken)
+			o.check(referenceTokens).deepEquals(expectedReferenceToken)
 		})
 
-		o("encryptAndUpload single blob", async function () {
+		o.test("encryptAndUpload single blob", async function () {
 			const ownerGroup = "ownerId"
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const blobData = new Uint8Array([1, 2, 3])
@@ -176,18 +176,18 @@ o.spec("BlobFacadeTest", function () {
 			)
 
 			const referenceTokens = await blobFacade.encryptAndUpload(archiveDataType, blobData, ownerGroup, sessionKey, transferId)
-			o(referenceTokens).deepEquals(expectedReferenceTokens)
+			o.check(referenceTokens).deepEquals(expectedReferenceTokens)
 
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, optionsCaptor.capture()))
 			const encryptedData = (optionsCaptor.value.body as RestBinaryBody).payload
 			const decryptedData = aes.aesDecrypt(sessionKey, encryptedData)
-			o(arrayEquals(decryptedData, blobData)).equals(true)
-			o(optionsCaptor.value.baseUrl).equals("w1")
+			o.check(arrayEquals(decryptedData, blobData)).equals(true)
+			o.check(optionsCaptor.value.baseUrl).equals("w1")
 		})
 
 		o.spec("encryptAndUploadMultiple tests", function () {
-			o("encryptAndUploadMultiple - multiple small attachments in single request", async function () {
+			o.test("encryptAndUploadMultiple - multiple small attachments in single request", async function () {
 				const ownerGroup = "ownerGroupId"
 				const transferId = "t1" as TransferId
 
@@ -226,12 +226,12 @@ o.spec("BlobFacadeTest", function () {
 
 				const tokensArray = expectedTokens.map((t) => Array.of(t.blobReferenceToken))
 				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
-				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals(tokensArray)
+				o.check(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals(tokensArray)
 				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 1 })
 				verify(blobAccessTokenFacade.requestWriteToken(anything(), anything()), { times: 1 })
 			})
 
-			o("encryptAndUploadMultiple - multiple attachments including one large", async function () {
+			o.test("encryptAndUploadMultiple - multiple attachments including one large", async function () {
 				const ownerGroup = "ownerGroupId"
 				const transferId = "t2" as TransferId
 
@@ -286,11 +286,11 @@ o.spec("BlobFacadeTest", function () {
 				const restTokens = [secondAttachmentToken, thirdAttachmentToken, fourthAttachmentToken].map((t) => Array.of(t.blobReferenceToken))
 
 				const result = await blobFacade.encryptAndUploadMultiple(archiveDataType, ownerGroup, fileData, transferId)
-				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([firstAttachmentTokens, ...restTokens])
+				o.check(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([firstAttachmentTokens, ...restTokens])
 				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 2 })
 			})
 
-			o("encryptAndUploadMultiple - worst case", async function () {
+			o.test("encryptAndUploadMultiple - worst case", async function () {
 				const ownerGroup = "ownerGroupId"
 				const transferId = "t3" as TransferId
 
@@ -347,12 +347,16 @@ o.spec("BlobFacadeTest", function () {
 				const secondAttachmentToken = blobRefTokenWrappers[2].blobReferenceToken
 				const thirdAttachmentToken = blobRefTokenWrappers[3].blobReferenceToken
 
-				o(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([firstAttachmentTokens, [secondAttachmentToken], [thirdAttachmentToken]])
+				o.check(result.map((r) => r.map((i) => i.blobReferenceToken))).deepEquals([
+					firstAttachmentTokens,
+					[secondAttachmentToken],
+					[thirdAttachmentToken],
+				])
 				verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.POST, anything()), { times: 4 })
 			})
 		})
 
-		o("encryptAndUploadNative", async function () {
+		o.test("encryptAndUploadNative", async function () {
 			env.networkDebugging = false
 			const ownerGroup = "ownerId"
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
@@ -397,7 +401,7 @@ o.spec("BlobFacadeTest", function () {
 				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
 			)
 
-			o(referenceTokens).deepEquals(expectedReferenceTokens)
+			o.check(referenceTokens).deepEquals(expectedReferenceTokens)
 			verify(
 				fileAppMock.upload(
 					encryptedFileInfo.uri,
@@ -414,7 +418,7 @@ o.spec("BlobFacadeTest", function () {
 	})
 
 	o.spec("download", function () {
-		o("downloadAndDecrypt", async function () {
+		o.test("downloadAndDecrypt", async function () {
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
@@ -457,11 +461,11 @@ o.spec("BlobFacadeTest", function () {
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
-			o(decryptedData).deepEquals(blobData)("decrypted data is equal")
+			o.check(decryptedData).deepEquals(blobData)("decrypted data is equal")
 			const optionsCaptor = captor()
 			verify(restClientMock.request(BlobService_GET.serviceRestPath, HttpMethod.GET, optionsCaptor.capture()))
-			o(optionsCaptor.value.baseUrl).equals("someBaseUrl")
-			o(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
+			o.check(optionsCaptor.value.baseUrl).equals("someBaseUrl")
+			o.check(optionsCaptor.value.queryParams.blobAccessToken).deepEquals(blobAccessInfo.blobAccessToken)
 
 			// The captured request body has a randomly generated id on the aggregate, which is expected but makes
 			// the assertion fail so we overwrite it manually here:
@@ -470,10 +474,10 @@ o.spec("BlobFacadeTest", function () {
 			// 193 is blobIds aggregation, 145 is _id on each aggregate
 			requestBody.getInnerJson()["193"][0]["145"] = JSON.parse(capturedRequestBody)["193"][0]["145"]
 
-			o(capturedRequestBody).deepEquals(requestBody.getJsonRepresentation())
+			o.check(capturedRequestBody).deepEquals(requestBody.getJsonRepresentation())
 		})
 
-		o("downloadAndDecrypt multiple", async function () {
+		o.test("downloadAndDecrypt multiple", async function () {
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
@@ -523,10 +527,10 @@ o.spec("BlobFacadeTest", function () {
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
-			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
+			o.check(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
 		})
 
-		o("downloadAndDecrypt multiple from different archives", async function () {
+		o.test("downloadAndDecrypt multiple from different archives", async function () {
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 			const blobData1 = new Uint8Array([1, 2, 3])
@@ -584,10 +588,10 @@ o.spec("BlobFacadeTest", function () {
 
 			const decryptedData = await blobFacade.downloadAndDecrypt(archiveDataType, wrapTutanotaFile(file), transferId)
 
-			o(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
+			o.check(decryptedData).deepEquals(concat(blobData1, blobData2))("decrypted data is equal")
 		})
 
-		o("downloadAndDecryptNative", async function () {
+		o.test("downloadAndDecryptNative", async function () {
 			env.networkDebugging = false
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
@@ -627,7 +631,7 @@ o.spec("BlobFacadeTest", function () {
 				size,
 				location: decryptedUri,
 			}
-			o(decryptedFileReference).deepEquals(expectedFileReference)
+			o.check(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
 				fileAppMock.download(
 					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
@@ -642,7 +646,7 @@ o.spec("BlobFacadeTest", function () {
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 		})
 
-		o("downloadAndDecryptNative multiple from different archives", async function () {
+		o.test("downloadAndDecryptNative multiple from different archives", async function () {
 			env.networkDebugging = false
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
@@ -702,7 +706,7 @@ o.spec("BlobFacadeTest", function () {
 				size,
 				location: decryptedUri,
 			}
-			o(decryptedFileReference).deepEquals(expectedFileReference)
+			o.check(decryptedFileReference).deepEquals(expectedFileReference)
 			verify(
 				fileAppMock.download(
 					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
@@ -728,7 +732,7 @@ o.spec("BlobFacadeTest", function () {
 			verify(fileAppMock.deleteFile(encryptedFileUri))
 		})
 
-		o("downloadAndDecryptNative_delete_on_error", async function () {
+		o.test("downloadAndDecryptNative_delete_on_error", async function () {
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
@@ -836,7 +840,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(
+			o.check(result).deepEquals(
 				new Map([
 					[getElementId(file), concat(blobData1, blobData2)],
 					[getElementId(anotherFile), blobData3],
@@ -965,7 +969,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(
+			o.check(result).deepEquals(
 				new Map([
 					[getElementId(file), concat(blobData1, blobData2)],
 					[getElementId(anotherFile), blobData3],
@@ -1032,7 +1036,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(
+			o.check(result).deepEquals(
 				new Map([
 					[getElementId(file), concat(blobData1, blobData2)],
 					[getElementId(anotherFile), null],
@@ -1109,7 +1113,7 @@ o.spec("BlobFacadeTest", function () {
 
 			const result = await blobFacade.downloadAndDecryptBlobsOfMultipleInstances(archiveDataType, [wrapTutanotaFile(file), wrapTutanotaFile(anotherFile)])
 
-			o(result).deepEquals(
+			o.check(result).deepEquals(
 				new Map([
 					[getElementId(file), null],
 					[getElementId(anotherFile), blobData3],
@@ -1144,7 +1148,7 @@ o.spec("BlobFacadeTest", function () {
 			])
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
-			o(result).deepEquals(
+			o.check(result).deepEquals(
 				new Map([
 					["OETv4XP----0", new Uint8Array([1, 2, 3])],
 					["OETv4XS----0", new Uint8Array([1, 2, 3, 4, 5, 6])],
@@ -1168,7 +1172,7 @@ o.spec("BlobFacadeTest", function () {
 			])
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
-			o(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array([1, 2, 3])]]))
+			o.check(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array([1, 2, 3])]]))
 		})
 
 		o.test("parses blob with big size", function () {
@@ -1188,7 +1192,7 @@ o.spec("BlobFacadeTest", function () {
 			)
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
-			o(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array(blobDataNumbers)]]))
+			o.check(result).deepEquals(new Map([["OETv4XP----0", new Uint8Array(blobDataNumbers)]]))
 		})
 
 		o.test("parse empty blob response", function () {
@@ -1198,7 +1202,7 @@ o.spec("BlobFacadeTest", function () {
 			])
 
 			const result = parseMultipleBlobsResponse(new Uint8Array(binaryData))
-			o(result).deepEquals(new Map<Id, Uint8Array<ArrayBuffer>>())
+			o.check(result).deepEquals(new Map<Id, Uint8Array<ArrayBuffer>>())
 		})
 	})
 
@@ -1356,13 +1360,13 @@ o.spec("BlobFacadeTest", function () {
 				MAX_NUMBER_OF_BLOBS_IN_BINARY,
 			)
 
-			o(result.length).deepEquals(2)
+			o.check(result.length).deepEquals(2)
 
-			o(result[0].sessionKeys).deepEquals([sessionKey1])
-			o(result[1].sessionKeys).deepEquals([sessionKey2])
+			o.check(result[0].sessionKeys).deepEquals([sessionKey1])
+			o.check(result[1].sessionKeys).deepEquals([sessionKey2])
 
-			o(result[0].binary.length > 0).equals(true)
-			o(result[1].binary.length > 0).equals(true)
+			o.check(result[0].binary.length > 0).equals(true)
+			o.check(result[1].binary.length > 0).equals(true)
 		})
 		o.test("serializeNewBlobsInBinaryChunks does not exceed max blobs per chunk", function () {
 			const sessionKey1 = symmetricCipherUtils.aes256RandomKey()
@@ -1389,10 +1393,10 @@ o.spec("BlobFacadeTest", function () {
 				1, // force single blob per chunk
 			)
 
-			o(result.length).deepEquals(2)
+			o.check(result.length).deepEquals(2)
 
-			o(result[0].sessionKeys).deepEquals([sessionKey1])
-			o(result[1].sessionKeys).deepEquals([sessionKey2])
+			o.check(result[0].sessionKeys).deepEquals([sessionKey1])
+			o.check(result[1].sessionKeys).deepEquals([sessionKey2])
 		})
 	})
 
