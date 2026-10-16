@@ -62,7 +62,7 @@ import {
 } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
 import { FileController } from "../../../common/file/FileController"
-import { findAttendeeInAddresses, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { findAttendeeInAddresses, generateEventElementId, isAllDayEvent, serializeAlarmInterval } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ObservableLazyLoaded } from "../../../common/api/common/utils/ObservableLazyLoaded.js"
 import { UserController } from "../../../common/api/main/UserController.js"
@@ -99,6 +99,7 @@ import {
 	CalendarGroupRootTypeRef,
 	createDefaultAlarmInfo,
 	createGroupSettings,
+	DefaultAlarmInfo,
 	FileTypeRef,
 	GroupSettings,
 	UserSettingsGroupRoot,
@@ -136,6 +137,7 @@ import { $Promisable } from "../../../mail-app/workerUtils/index/IndexerPromiseU
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { removeTechnicalFields } from "../gui/eventeditor-model/CalendarEventModel"
 import { errorsToString, errToErrorInfo } from "../../../../platform-kit/utils/ErrorInfo"
+import { DateTime } from "luxon"
 
 const TAG = "[CalendarModel]"
 const EXTERNAL_CALENDAR_RETRY_LIMIT = 3
@@ -1064,6 +1066,8 @@ export class CalendarModel {
 				const updateEvent = content.icsCalendarEvent
 				// this automatically applies REQUESTs for creating parts of the existing event series that do not exist yet
 				// like accepting another altered instance invite or accepting the progenitor after accepting only an altered instance.
+
+				// we DO want to apply default alarms
 				await this.handleExistingCalendarEventInvitationFromIcs(
 					sender,
 					method,
@@ -1073,8 +1077,29 @@ export class CalendarModel {
 				)
 			}
 		} else {
+			// we DO want to apply default alarms
+
 			return await this.handleNewCalendarEventInvitationFromIcs(sender, parsedCalendarData, latestPersistedEventsIndexEntry)
 		}
+	}
+
+	public getDefaultAlarmsForEvent(calendarEvent: CalendarEvent) {
+		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+
+		console.log("group settings ", groupSettings)
+		const eventCalendarGroupSettings = groupSettings.find((groupSetting) => {
+			console.log("calendar event owner group: ", calendarEvent._ownerGroup)
+			return groupSetting.group === calendarEvent._ownerGroup
+		})
+
+		const defaultAlarms: DefaultAlarmInfo[] = eventCalendarGroupSettings!.defaultAlarmsList
+
+		// we need to take the default alarms and turn them into real alarms that can be set on the event.
+		const instantiatedAlarms: AlarmInfoTemplate[] = []
+		for (let defaultAlarm of defaultAlarms) {
+			instantiatedAlarms.push({ alarmIdentifier: generateEventElementId(DateTime.now().toMillis()), trigger: defaultAlarm.trigger })
+		}
+		return instantiatedAlarms
 	}
 
 	public async getFirstUidIndexEntryMatchInPrivateCalendars(uid: string): Promise<ResolvedUidIndexEntry | null> {
@@ -1125,9 +1150,12 @@ export class CalendarModel {
 				// altered-instance-exclusions in some way distinct from "normal" exclusions
 				uidIndexEntry.alteredInstances.push(calendarEvent as CalendarEventAlteredInstance)
 				// this will now modify the progenitor to have the required exclusions
+
+				// here we dont care about alarms because it is a cancellation
 				promisses.push(this.processUpdateToCalendarEventFromIcs(uidIndexEntry, uidIndexEntry.progenitor, uidIndexEntry.progenitor))
 			}
 
+			// here we DO want alarms, but right now we are discarding them
 			promisses.push(this.processNewAlteredInstanceOrNewEvent(uidIndexEntry, calendarEvent, sender))
 
 			return promisses
@@ -1166,6 +1194,7 @@ export class CalendarModel {
 		// the same email that invited the user in the first place, it is safe to assume that we want to process it.
 		const sentByOriginalSender = resolvedPersistedCalendarEvent.sender === sender
 
+		// the ics file received has a type of Reply
 		if (method === CalendarMethod.REPLY) {
 			return this.processCalendarReply(sender, resolvedPersistedCalendarEvent, calendarEvent) // TODO: why are alarms NOT passed in here
 		} else if ((sentByOrganizer || sentByOriginalSender) && method === CalendarMethod.REQUEST) {
@@ -1202,6 +1231,7 @@ export class CalendarModel {
 		dbEvent: CalendarEventInstance,
 		updateEvent: CalendarEvent,
 	): Promise<void> {
+		console.log("running processUpdateToCalendarEventFromIcs")
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 		// some providers do not increment the sequence for all edit operations (like google when changing the summary)
 		// we'd rather apply the same update too often than miss some, and this enables us to update our own status easily
@@ -1248,11 +1278,34 @@ export class CalendarModel {
 	private async processNewAlteredInstanceOrNewEvent(dbTarget: ResolvedUidIndexEntry | null, updateEvent: CalendarEvent, sender: string): Promise<void> {
 		const { repeatRuleWithExcludedAlteredInstances } = await import("../gui/eventeditor-model/CalendarEventWhenModel.js")
 
+		let firstPrivateOwnedCalendar = await this.resolveFirstPrivateOwnedCalendar()
+		const firstPrivateOwnedCalendarGroup = firstPrivateOwnedCalendar.group
+
 		let ownerGroup = dbTarget?.ownerGroup
 		if (ownerGroup == null) {
 			ownerGroup = (await this.resolveFirstPrivateOwnedCalendar()).id
 			assertNotNull(ownerGroup, "Missing private calendar")
 		}
+
+		// firstPrivateOwnedCalendar
+
+		const groupSettings = locator.logins.getUserController().userSettingsGroupRoot.groupSettings
+
+		const foundGroupSettings = groupSettings.find((groupSetting) => groupSetting.group === firstPrivateOwnedCalendarGroup._id.toString())
+
+		console.log("group settings ", foundGroupSettings)
+		// const eventCalendarGroupSettings = groupSettings.find((groupSetting) => {
+		// 	console.log("calendar event owner group: ", resolvedPersistedCalendarEvent._ownerGroup)
+		// 	return groupSetting.group === resolvedPersistedCalendarEvent._ownerGroup
+		// })
+		//
+		// const defaultAlarms: DefaultAlarmInfo[] = eventCalendarGroupSettings!.defaultAlarmsList
+
+		// we need to take the default alarms and turn them into real alarms that can be set on the event.
+		// const instantiatedAlarms: AlarmInfoTemplate[] = []
+		// for (let defaultAlarm of defaultAlarms) {
+		// 	instantiatedAlarms.push({ alarmIdentifier: generateEventElementId(DateTime.now().toMillis()), trigger: defaultAlarm.trigger })
+		// }
 
 		if (dbTarget) {
 			const isAlteredInstance = updateEvent.recurrenceId != null
@@ -1328,7 +1381,7 @@ export class CalendarModel {
 	/**
 	 * Update {@param dbEvent} stored on the server with {@param icsEvent} from the ics file.
 	 */
-	async updateEventWithExternal(dbEvent: CalendarEvent, icsEvent: CalendarEvent): Promise<CalendarEvent> {
+	async updateEventWithExternal(dbEvent: CalendarEvent, icsEvent: CalendarEvent, defaultAlarms = []): Promise<CalendarEvent> {
 		const newEvent = clone(dbEvent)
 		newEvent.startTime = icsEvent.startTime
 		newEvent.endTime = icsEvent.endTime
@@ -1342,7 +1395,7 @@ export class CalendarModel {
 		newEvent.recurrenceId = icsEvent.recurrenceId
 
 		// do not take pendingInvitation status from icsEvent, as it will never be part of the ics file.
-		return await this.doUpdateEvent(dbEvent, newEvent)
+		return await this.doUpdateEvent(dbEvent, newEvent, defaultAlarms)
 	}
 
 	/**
@@ -1356,13 +1409,14 @@ export class CalendarModel {
 	 *
 	 * @return Promise<CalendarEvent> - A promise with the newly updated event
 	 */
-	async doUpdateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent): Promise<CalendarEvent> {
+	async doUpdateEvent(dbEvent: CalendarEvent, newEvent: CalendarEvent, defaultAlarms: AlarmInfoTemplate[] = []): Promise<CalendarEvent> {
 		const eventOwnerGroupId = idToElementId(assertNotNull(dbEvent._ownerGroup))
 		const [alarms, groupRoot] = await Promise.all([
 			this.loadAlarms(dbEvent.alarmInfos, this.logins.getUserController().user),
 			this.entityClient.load<CalendarGroupRoot>(CalendarGroupRootTypeRef, eventOwnerGroupId),
 		])
 		const alarmInfos = alarms.map((a) => a.alarmInfo)
+
 		return await this.updateEvent(newEvent, alarmInfos, "", groupRoot, dbEvent)
 	}
 

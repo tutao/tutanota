@@ -230,6 +230,17 @@ export class CalendarInviteHandler {
 		return model
 	}
 
+	/*
+	Cases to handle:
+	1. New request from unknown sender - an event is not created in the user's calendar.  Do NOT create alarm
+	2. New request from known sender - a pending event is created in the user's calendar.  Do NOT create alarm
+	3. Respond no to an event - Do NOT create an alarm.
+	4. Respond Yes or Maybe to an event - CREATE AN ALARM
+
+	handleCalendarEventAfterUserReply will handle cases 3 and 4.
+
+	how do we get info here about what default alarms are set for the user's first private calendar?
+	 */
 	private async handleCalendarEventAfterUserReply(
 		eventUserIsReplyingTo: Require<"uid", CalendarEvent>,
 		originalEventOccurrence: Date | null,
@@ -240,11 +251,12 @@ export class CalendarInviteHandler {
 			? await this.calendarModel.getEventsByUid(eventUserIsReplyingTo.uid, eventUserIsReplyingTo._ownerGroup)
 			: null
 
+		// we want to set the default alarms, but we don't want to add additional ones if they've already been set before.
+
 		if (this.shouldTreatAsNewInvitation(dbEvents, originalEventOccurrence)) {
 			if (usersDecision === CalendarAttendeeStatus.DECLINED) {
 				return ReplyResult.ReplySent
 			}
-
 			await this.createEventFromIcsFile(sender, eventUserIsReplyingTo, dbEvents)
 		} else {
 			await this.handleInvitationForExistingEntries(eventUserIsReplyingTo, dbEvents, originalEventOccurrence, sender)
@@ -258,6 +270,7 @@ export class CalendarInviteHandler {
 		originalEventOccurrence: Date | null,
 		sender: string,
 	) {
+		console.log("running handleInvitationForExistingEntries")
 		const resolvedEvent = eventUserIsReplyingTo.repeatRule !== null ? dbEvents?.progenitor : eventUserIsReplyingTo
 		if (!resolvedEvent) {
 			throw new Error("Could not resolve event series progenitor when processing an update to it.")
@@ -279,6 +292,7 @@ export class CalendarInviteHandler {
 	}
 
 	private async createEventFromIcsFile(sender: string, eventUserIsReplyingTo: IcsCalendarEvent, dbEvents: ResolvedUidIndexEntry | null) {
+		console.log("running createEventFromIcsFile")
 		await this.calendarModel.handleNewCalendarEventInvitationFromIcs(
 			sender,
 			{
@@ -289,7 +303,6 @@ export class CalendarInviteHandler {
 			dbEvents,
 		)
 	}
-
 	private shouldTreatAsNewInvitation(dbEvents: ResolvedUidIndexEntry | null, originalEventOccurrence: Date | null): boolean {
 		if (!dbEvents) return true
 
