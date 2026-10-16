@@ -267,7 +267,6 @@ o.spec("CalendarInviteHandlerTest", function () {
 				}),
 			]
 			ownAttendee = findAttendeeInAddresses(event.attendees, [ownAlias])!
-
 			const replyResult = await calendarInviteHandler.replyToEventInvitation(event, ownAttendee, CalendarAttendeeStatus.ACCEPTED, null, mailboxDetails)
 			o.check(replyResult).equals(ReplyResult.ReplySent)
 

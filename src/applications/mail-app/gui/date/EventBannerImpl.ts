@@ -12,7 +12,6 @@ import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtil
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
-import stream from "mithril/stream"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
 import type { EventBannerAttrs } from "../../mail/view/EventBanner"
