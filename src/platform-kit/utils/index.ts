@@ -130,6 +130,7 @@ export {
 	neverNull,
 	assertNotNull,
 	assertNonNull,
+	assertNull,
 	assert,
 	isNotNull,
 	downcast,
