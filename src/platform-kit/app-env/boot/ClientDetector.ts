@@ -1,7 +1,7 @@
 import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
-import { console, getStringEnumValue, ProgrammingError, RuntimeInfo, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
+import { console, getStringEnumValue, ProgrammingError, RuntimeInfo, TsDouble, TsInt, TsString, TutanotaError, TypeChecks } from "@tutao/lang-api"
 import { BotdResult, BotKind, FingerprintJs } from "@tutao/lang-api/fingerprintJs"
 
 EnvProvider.assertMainOrNodeBoot()
@@ -11,19 +11,19 @@ export class ClientDetector {
 	isMacOS: boolean | null = null
 	appType: AppType | null = null
 	isAutomatedBrowser: boolean = false
-	browserVersion: number = 0
+	browserVersion: TsDouble = TsDouble.from(0)
 	browser: BrowserType = BrowserType.OTHER
 	device: DeviceType = DeviceType.DESKTOP
 
-	private static singeleton: ClientDetector | null = null
+	private static singleton: ClientDetector | null = null
 
 	public static get(): ClientDetector {
-		if (ClientDetector.singeleton != null) {
-			return ClientDetector.singeleton
+		if (ClientDetector.singleton != null) {
+			return ClientDetector.singleton
 		}
 
-		ClientDetector.singeleton = new ClientDetector()
-		return ClientDetector.singeleton
+		ClientDetector.singleton = new ClientDetector()
+		return ClientDetector.singleton
 	}
 
 	constructor() {}
@@ -136,7 +136,7 @@ export class ClientDetector {
 
 			if (mainVersionEndIndex !== -1) {
 				try {
-					this.browserVersion = TsInt.parseInt(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
+					this.browserVersion = TsDouble.parseDouble(userAgent.substring(versionIndex, mainVersionEndIndex + 2)) // we recognize one digit after the '.'
 				} catch (e) {
 					/* empty */
 				}
@@ -176,7 +176,7 @@ export class ClientDetector {
 				}
 
 				const numberString = userAgent.substring(versionIndex + 4, pos)
-				this.browserVersion = TsInt.parseInt(numberString.replace(/_/g, "."))
+				this.browserVersion = TsDouble.parseDouble(numberString.replace(/_/g, "."))
 			} catch (e) {
 				/* empty */
 			}
@@ -246,7 +246,7 @@ export class ClientDetector {
 	}
 
 	needsExplicitIDBIds(): boolean {
-		return this.browser === BrowserType.SAFARI && this.browserVersion < 12.2
+		return this.browser === BrowserType.SAFARI && this.browserVersion < TsDouble.from(12.2)
 	}
 
 	browserData(): BrowserData {
