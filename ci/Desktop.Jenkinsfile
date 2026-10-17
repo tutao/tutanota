@@ -216,14 +216,6 @@ pipeline {
 		stage('Sign clients and upload to Nexus') {
 			when { expression { return params.UPLOAD } }
 
-            agent {
-                docker {
-                    image "tuta-wasm:${params.wasmToolsVersion}" // this image is build with TutaWasmDockerImage.Jenkinsfile
-                    reuseNode true
-                    args "--network host -v /run:/run:rw,z -v /opt/repository:/opt/repository:rw,z --device=${env.DEVICE_PATH}"
-                } // docker
-            } // agent
-
 			environment {
 				PATH = "${env.NODE_PATH}:${env.PATH}"
 			}
