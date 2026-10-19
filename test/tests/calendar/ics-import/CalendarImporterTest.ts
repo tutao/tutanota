@@ -12,7 +12,7 @@ import {
 import { ImportInteractionHandler } from "../../../../src/applications/common/calendar/gui/ImportInteractionHandler"
 import { matchers, object, verify, when } from "testdouble"
 import { CalendarInfoBase, CalendarModel } from "../../../../src/applications/calendar-app/calendar/model/CalendarModel"
-import { OperationProgressTracker } from "../../../../src/applications/common/api/main/OperationProgressTracker"
+import { OperationHandle, OperationProgressTracker } from "../../../../src/applications/common/api/main/OperationProgressTracker"
 import { assignEventId, CalendarType } from "../../../../src/applications/common/calendar/date/CalendarUtils"
 import { DateTime } from "luxon"
 import { clone, elementIdToId } from "../../../../src/platform-kit/meta"
@@ -25,6 +25,8 @@ import {
 	CalendarEventAlteredInstance,
 	CalendarEventProgenitor,
 } from "../../../../src/applications/common/api/worker/facades/lazy/CalendarFacade"
+import { TranslationKey } from "../../../../src/ui/utils/LanguageViewModel"
+import { Dialog } from "../../../../src/ui/base/Dialog"
 
 const { anything } = matchers
 o.spec("CalendarImporter", function () {
@@ -38,6 +40,8 @@ o.spec("CalendarImporter", function () {
 
 	let calendarGroupRoot: CalendarGroupRoot
 	let calendarInfoBase: CalendarInfoBase
+
+	let confirmActionResult: unknown
 
 	function makeIcsEvent(overrides?: { uid?: string; repeatRule?: CalendarRepeatRule; recurrenceId?: Date }): IcsCalendarEvent {
 		const startTime = DateTime.fromObject({ year: 1993, month: 5, day: 12, hour: 12 })
@@ -60,13 +64,18 @@ o.spec("CalendarImporter", function () {
 
 	function mockImportDialogConfirmation(expectedSuccessfulEvents: CalendarEvent[]) {
 		when(mockImportInteractionHandler.showImportSummaryDialog("importEvents_label", expectedSuccessfulEvents, anything(), calendarInfoBase)).thenDo(
-			async (label, calendarEvents, onConfirmAction, calendarInfoBase) => {
-				await onConfirmAction(object())
+			(
+				_dialogLabel: TranslationKey,
+				_calendarEvents: CalendarEvent[],
+				onConfirmAction: (dialog: Dialog) => unknown,
+				_calendarInfo: CalendarInfoBase,
+			): void => {
+				confirmActionResult = onConfirmAction(object())
 			},
 		)
 		when(mockImportInteractionHandler.doActionWithProgressDialog("importCalendar_label", anything(), anything())).thenDo(
-			async (label, deferedActionPromise, operation) => {
-				await deferedActionPromise
+			async <T>(_message: TranslationKey, action: Promise<T>, _operation: OperationHandle): Promise<T> => {
+				return await action
 			},
 		)
 	}
@@ -80,6 +89,8 @@ o.spec("CalendarImporter", function () {
 			mockOperationProgressTracker = object()
 			mockCalendarModel = object()
 			mockEventSeriesResolver = object()
+
+			confirmActionResult = null
 
 			calendarImporter = new CalendarImporter(
 				mockCalendarModel,
@@ -136,16 +147,7 @@ o.spec("CalendarImporter", function () {
 				}
 
 				when(mockImportInteractionHandler.confirmPartialImport(new Map(), parsedEventAlarmTuples)).thenResolve(true)
-				when(mockImportInteractionHandler.showImportSummaryDialog("importEvents_label", [calendarEvent], anything(), calendarInfoBase)).thenDo(
-					async (label, calendarEvents, onConfirmAction, calendarInfoBase) => {
-						await onConfirmAction(object())
-					},
-				)
-				when(mockImportInteractionHandler.doActionWithProgressDialog("importCalendar_label", anything(), anything())).thenDo(
-					async (label, deferedActionPromise, operation) => {
-						await deferedActionPromise
-					},
-				)
+				mockImportDialogConfirmation([calendarEvent])
 
 				when(mockCalendarModel.createCalendarEvents([eventAlarmInfoTemplatesTuple], anything())).thenResolve({
 					failedAlarmErrors: [],
@@ -317,6 +319,13 @@ o.spec("CalendarImporter", function () {
 				})
 
 				const result = await calendarImporter.import(calendarGroupRoot, calendarInfoBase, [{ icsCalendarEvent, alarms: [] }], classifyEventsStub)
+				// DO NOT REMOVE THIS! The test might still pass, but it won't do the correct thing.
+				try {
+					// We need to await this here to catch the error, otherwise it will blow up the test framework later somehow.
+					await confirmActionResult
+				} catch (e) {
+					/* empty */
+				}
 
 				o.check(result).equals(null)
 				verify(mockImportInteractionHandler.showImportEventsError(anything(), anything()), { times: 1 })
@@ -332,6 +341,13 @@ o.spec("CalendarImporter", function () {
 				})
 
 				const result = await calendarImporter.import(calendarGroupRoot, calendarInfoBase, [{ icsCalendarEvent, alarms: [] }], classifyEventsStub)
+				// DO NOT REMOVE THIS! The test might still pass, but it won't do the correct thing.
+				try {
+					// We need to await this here to catch the error, otherwise it will blow up the test framework later somehow.
+					await confirmActionResult
+				} catch (e) {
+					/* empty */
+				}
 
 				o.check(result).equals(null)
 				verify(mockImportInteractionHandler.showImportAlarmsError(anything()), { times: 1 })
