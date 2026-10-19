@@ -77,7 +77,7 @@ pipeline {
 			when { expression { return params.STAGING || params.PROD } }
 			environment {
 				MAC_NODE_PATH = "/usr/local/opt/node@20/bin/"
-				PATH="/opt/homebrew/bin:${MAC_NODE_PATH}:${env.PATH}"
+				PATH="/opt/homebrew/bin:${MAC_NODE_PATH}:${env.PATH}:/bin"
 				MATCH_GIT_URL = "git@gitlab:/tuta/apple-certificates.git"
 				LC_ALL = "en_US.UTF-8"
 				LANG = "en_US.UTF-8"
