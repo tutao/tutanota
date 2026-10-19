@@ -15,25 +15,25 @@ use crate::entities::generated::storage::BlobPostOut;
 use crate::entities::generated::storage::BlobGetIn;
 pub struct ArchiveEnumerationService;
 
-crate::service_impl!(declare, ArchiveEnumerationService, "storage/archiveenumerationservice", 15);
+crate::service_impl!(declare, ArchiveEnumerationService, "storage/archiveenumerationservice", 16);
 crate::service_impl!(GET, ArchiveEnumerationService, ArchiveEnumerationGetIn, ArchiveEnumerationGetOut);
 
 
 pub struct BlobAccessTokenService;
 
-crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 15);
+crate::service_impl!(declare, BlobAccessTokenService, "storage/blobaccesstokenservice", 16);
 crate::service_impl!(POST, BlobAccessTokenService, BlobAccessTokenPostIn, BlobAccessTokenPostOut);
 
 
 pub struct BlobReferenceService;
 
-crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 15);
+crate::service_impl!(declare, BlobReferenceService, "storage/blobreferenceservice", 16);
 crate::service_impl!(PUT, BlobReferenceService, BlobReferencePutIn, ());
 crate::service_impl!(DELETE, BlobReferenceService, BlobReferenceDeleteIn, ());
 
 
 pub struct BlobService;
 
-crate::service_impl!(declare, BlobService, "storage/blobservice", 15);
+crate::service_impl!(declare, BlobService, "storage/blobservice", 16);
 crate::service_impl!(POST, BlobService, (), BlobPostOut);
 crate::service_impl!(GET, BlobService, BlobGetIn, ());

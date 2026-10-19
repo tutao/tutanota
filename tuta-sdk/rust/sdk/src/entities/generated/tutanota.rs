@@ -4898,8 +4898,7 @@ pub struct ImapPutIn {
 	#[serde(rename = "1981")]
 	pub imapAccountSyncState: IdTupleGenerated,
 	#[serde(rename = "2223")]
-	pub imapAccountSyncStateWithNewPostponedUntil:
-		Option<UpdateImapAccountSyncStateTransferAggregatedType>,
+	pub imapAccountSyncStateWithNewPostponedUntil: Option<UpdateImapAccountSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
 	pub _errors: Errors,
