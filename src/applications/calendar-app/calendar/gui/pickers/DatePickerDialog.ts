@@ -55,7 +55,6 @@ export function showDateRangeSelectionDialog({
 						m(
 							".flex-grow.flex-space-between.flex-column",
 							m(DatePicker, {
-								useInputButton: true,
 								date: startDate,
 								onDateSelected: (date) => {
 									warning = null
@@ -72,7 +71,6 @@ export function showDateRangeSelectionDialog({
 						m(
 							".flex-grow.flex-space-between.flex-column",
 							m(DatePicker, {
-								useInputButton: true,
 								date: endDate,
 								onDateSelected: (date) => {
 									warning = null

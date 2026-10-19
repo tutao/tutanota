@@ -219,7 +219,6 @@ export class RepeatRuleEditor implements Component<RepeatRuleEditorAttrs> {
 				disabled: attrs.model.repeatEndType !== EndType.UntilDate,
 				onDateSelected: (date) => date && (attrs.model.repeatEndDateForDisplay = date),
 				label: lang.getTranslation("endDate_label"),
-				useInputButton: true,
 				startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 				position: PickerPosition.TOP,
 				classes: ["full-width", "flex-grow", attrs.model.repeatEndType !== EndType.UntilDate ? "disabled" : ""],
