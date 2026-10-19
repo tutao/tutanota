@@ -58,6 +58,7 @@ o.spec("MailAddressFacadeTest", function () {
 			})
 
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(adminKeyLoaderFacade.getGroupKeyViaUser(mailGroupId, mailGroupKey.version, viaUser)).thenResolve(mailGroupKey.object)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.load(
@@ -114,6 +115,7 @@ o.spec("MailAddressFacadeTest", function () {
 			when(nonCachingEntityClient.load(UserTypeRef, idToElementId(viaUser))).thenResolve(user)
 			when(nonCachingEntityClient.load(GroupInfoTypeRef, userGroupInfoId)).thenResolve(userGroupInfo)
 			when(adminKeyLoaderFacade.getCurrentGroupKeyViaUser(mailGroupId, viaUser)).thenResolve(mailGroupKey)
+			when(adminKeyLoaderFacade.getGroupKeyViaUser(mailGroupId, mailGroupKey.version, viaUser)).thenResolve(mailGroupKey.object)
 			when(nonCachingEntityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))).thenResolve(mailboxGroupRoot)
 			when(
 				nonCachingEntityClient.setup(null, matchers.anything(), matchers.anything(), {

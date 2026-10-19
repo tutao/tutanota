@@ -1,6 +1,6 @@
 import o, { assertThrows, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
-import { HttpMethod, MediaType, RestTextBody } from "../../../src/platform-kit/rest-client/types"
+import { HttpMethod, MediaType, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
 import { Entity, idToElementId, TypeRef } from "../../../src/platform-kit/meta"
 import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
@@ -860,7 +860,7 @@ o.spec("EntityRestClient", function () {
 					headers: { ...authHeader, v: String(version), dv: String(dependsOnVersion) },
 					responseType: MediaType.Json,
 					body: argThat(async (json: RestTextBody) => {
-						const accountingInfoTypeModel = await typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef)
+						const accountingInfoTypeModel = await typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
 						const untypedInstance = IncomingServerJson.expectSingleInstance(json.payload, accountingInfoTypeModel)
 						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, sk)
 						return deepEqual(newCalendar, calendarInstance)
@@ -1325,13 +1325,13 @@ o.spec("EntityRestClient", function () {
 				restClient.request(
 					"/rest/tutanota/supportdata/id",
 					HttpMethod.PATCH,
-					argThat(async (options) => {
+					argThat(async (options: RestClientOptions) => {
 						o(options.headers).deepEquals({ ...authHeader, v: String(version) })
 						const patchListTypeModel = await typeModelResolver.resolveServerTypeReference(PatchListTypeRef)
-						const actual = IncomingServerJson.expectSingleInstance(options.body, patchListTypeModel)
+						const actual = IncomingServerJson.expectSingleInstance(downcast<RestTextBody>(options.body).payload, patchListTypeModel)
 						o(untypedPatchPayload.getAttributeByName("patches")).deepEquals(actual.getValueByName("patches"))
-						o(options.queryParams).equals(undefined)
-						o(options.baseUrl).equals(undefined)
+						o(options.queryParams).equals(null)
+						o(options.baseUrl).equals(null)
 						o(options.responseType).equals(MediaType.Json)
 					}),
 				),
@@ -1355,19 +1355,19 @@ o.spec("EntityRestClient", function () {
 				restClient.request(
 					"/rest/tutanota/file/listId/elementId",
 					HttpMethod.PATCH,
-					argThat(async (options) => {
+					argThat(async (options: RestClientOptions) => {
 						o(options.headers).deepEquals({
 							...authHeader,
 							v: String(version),
 							dv: String(dependsOnVersion),
 						})
 						const actual = IncomingServerJson.expectSingleInstance(
-							options.body,
+							downcast<RestTextBody>(options.body).payload,
 							await typeModelResolver.resolveServerTypeReference(PatchListTypeRef),
 						)
 						o(untypedPatchPayload.getAttributeByName("patches")).deepEquals(actual.getValueByName("patches"))
-						o(options.queryParams).equals(undefined)
-						o(options.baseUrl).equals(undefined)
+						o(options.queryParams).equals(null)
+						o(options.baseUrl).equals(null)
 						o(options.responseType).equals(MediaType.Json)
 					}),
 				),
