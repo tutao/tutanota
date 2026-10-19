@@ -41,7 +41,6 @@ export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: nu
 
 export class ElectronUpdater {
 	private updatePollInterval: IntervalID | null = null
-	private checkUpdateSignature: boolean = false
 	private errorCount: number = 0
 	private readonly logger: UpdaterLogger
 	private _updateInfo: TutanotaUpdateInfo | null = null
@@ -100,15 +99,16 @@ export class ElectronUpdater {
 
 				const data = await this.fs.promises.readFile(info.downloadedFile)
 				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
-				const verified = publicKeys.some((pk) => this.verifySignature(pk, assertNotNull(info), data))
-
-				if (verified) {
-					this.notifyAndInstall(info)
-				} else {
-					this._updateInfo = null
-					this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
-					this.fs.promises.unlink(info.downloadedFile)
+				for (const publicKey of publicKeys) {
+					if (await this.verifySignature(publicKey, assertNotNull(info), data)) {
+						this.notifyAndInstall(info)
+						return
+					}
 				}
+
+				this._updateInfo = null
+				this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
+				this.fs.promises.unlink(info.downloadedFile)
 			})
 			.on("error", (e) => {
 				this.stopPolling()
@@ -154,17 +154,23 @@ export class ElectronUpdater {
 			return
 		}
 
-		this.checkUpdateSignature = await this.conf.getConst(BuildConfigKey.checkUpdateSignature)
 		this.startPolling()
 		// the first check is immediate, all others are done with a delay
 		// and random exponential backoff
 		this.checkUpdate()
 	}
 
-	private verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array<ArrayBuffer>): boolean {
-		if (!this.checkUpdateSignature) {
+	/**
+	 * returns true if the signature is okay.
+	 * if this returns false, the given key doesn't fit the signature, but another one might.
+	 */
+	private async verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array<ArrayBuffer>): Promise<boolean> {
+		const skipSignatureCheck = !(await this.conf.getConst(BuildConfigKey.checkUpdateSignature))
+
+		if (skipSignatureCheck) {
 			return true
 		}
+
 		try {
 			const signature = Buffer.from(updateInfo.signature, "base64")
 
