@@ -75,16 +75,19 @@ export interface DatePickerAttrs {
  * See also {@class VisualDatePicker}
  */
 export class DatePicker implements Component<DatePickerAttrs> {
-	private inputText: string = ""
-	private showingDropdown: boolean = false
-	private domInput: HTMLElement | null = null
+	private inputText = ""
+	private showingDropdown = false
+	private inputDateEl: HTMLInputElement | null = null
+	private inputTextEl: HTMLInputElement | null = null
 	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
-	private textFieldHasFocus: boolean = false
 	private previousPassedDownDate: Nullable<Date> = null
+	private shouldUseNativePicker = false
 
 	constructor({ attrs }: Vnode<DatePickerAttrs>) {
 		this.inputText = attrs.date ? formatDate(attrs.date) : ""
 		this.previousPassedDownDate = attrs.date
+		// Check once rather than each render
+		this.shouldUseNativePicker = ClientDetector.get().isMobileDevice()
 	}
 
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
@@ -95,7 +98,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		// The same day check is because sometimes focus is lost when trying to update the date. handleInput
 		//  or handleSelectedDate should be called first, but it is not and the date trying to be selected is
 		//  lost. So checking if the date was actually passed in "from above" is a band-aid solution for now.
-		if (!this.textFieldHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
+		const inputTextHasFocus = document.activeElement === this.inputTextEl
+		if (!inputTextHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
 			this.inputText = date ? formatDate(date) : ""
 			this.previousPassedDownDate = date
 		}
@@ -105,7 +109,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			this.showingDropdown ? this.renderDropdown(attrs) : null,
 			// For mobile devices we render a native date picker, it's easier to use and more accessible.
 			// We render invisible input which opens native picker on interaction.
-			ClientDetector.get().isMobileDevice() && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
+			this.shouldUseNativePicker && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
 		])
 	}
 
@@ -125,8 +129,11 @@ export class DatePicker implements Component<DatePickerAttrs> {
 							opacity: disabled ? 0.7 : 1.0,
 						},
 						value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
+						oncreate: (input) => {
+							this.inputDateEl = input.dom as HTMLInputElement
+						},
 						oninput: (event: InputEvent) => {
-							this.handleNativeInput(event.target as HTMLInputElement, onDateSelected)
+							this.handleNativeInput(this.inputDateEl!, onDateSelected)
 						},
 					})
 				: null,
@@ -144,16 +151,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						this.showingDropdown = true
 					}
 				},
-				onfocus: (_, input) => {
-					this.textFieldHasFocus = true
-				},
-				oncreate: (input: any) => {
-					if (this.domInput == null) {
-						this.domInput = input.dom as HTMLInputElement
-					}
-				},
-				onblur: () => {
-					this.textFieldHasFocus = false
+				oncreate: (input) => {
+					this.inputTextEl = input.dom as HTMLInputElement
 				},
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
@@ -198,15 +197,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					if (!disabled) {
 						this.showingDropdown = true
 					}
-					this.textFieldHasFocus = true
 				},
 				onDomInputCreated: (input) => {
-					if (this.domInput == null) {
-						this.domInput = input
+					// This is also set in renderInputButtonPicker()
+					// Note that the main render view() is a ternary so either-or not both
+					if (this.inputTextEl == null) {
+						this.inputTextEl = input
 					}
-				},
-				onblur: () => {
-					this.textFieldHasFocus = false
 				},
 				keyHandler: (key) => {
 					return this.handleInputKeyEvents(key, disabled, onDateSelected)
@@ -217,7 +214,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 	private handleEscapePress(key: KeyPress): boolean {
 		if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-			this.domInput?.focus()
+			this.inputTextEl?.focus()
 			this.showingDropdown = false
 			return false
 		}
@@ -247,7 +244,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				class: position === PickerPosition.TOP ? "abs" : "fixed",
 				oncreate: (vnode) => {
 					const listener = (e: MouseEvent) => {
-						if (!vnode.dom.contains(e.target as HTMLElement) && !this.domInput?.contains(e.target as HTMLElement)) {
+						if (!vnode.dom.contains(e.target as HTMLElement) && !this.inputTextEl?.contains(e.target as HTMLElement)) {
 							// We are subscribed to two events so this listener *will* be invoked twice, but we only need to do the work once.
 							if (this.showingDropdown) {
 								this.showingDropdown = false
@@ -282,24 +279,23 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					// We differentiate between different selections as we sometimes* want to keep the dropdown open but still want to select the date
 					// * with keyboard-based navigation space selects the date but keeps it open while return key will work like click
 					this.handleSelectedDate(newDate, onDateSelected)
-					if (dayClick) {
-						// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
-						if (this.domInput) {
-							// Focus the dom input but then override the showingDropdown right after focus.
-							// It should be invoked after the normal listener since the listeners are appended to the end.
+					if (!dayClick) return
+					// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
+					if (this.inputTextEl) {
+						// Focus the dom input but then override the showingDropdown right after focus.
+						// It should be invoked after the normal listener since the listeners are appended to the end.
 
-							// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
-							// So make sure to add the listener first.
-							this.domInput.addEventListener(
-								"focus",
-								() => {
-									this.showingDropdown = false
-									m.redraw()
-								},
-								{ once: true },
-							)
-							this.domInput.focus()
-						}
+						// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
+						// So make sure to add the listener first.
+						this.inputTextEl.addEventListener(
+							"focus",
+							() => {
+								this.showingDropdown = false
+								m.redraw()
+							},
+							{ once: true },
+						)
+						this.inputTextEl.focus()
 					}
 				},
 				keyHandler: (key: KeyPress) => this.handleEscapePress(key),
