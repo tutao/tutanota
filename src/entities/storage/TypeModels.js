@@ -9,7 +9,7 @@ const typeModels = {
 	50: {
 		name: "BlobGetIn",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "DATA_TRANSFER_TYPE",
 		id: 50,
@@ -58,7 +58,7 @@ const typeModels = {
 	73: {
 		name: "BlobWriteData",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "AGGREGATED_TYPE",
 		id: 73,
@@ -89,7 +89,7 @@ const typeModels = {
 	77: {
 		name: "BlobAccessTokenPostIn",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "DATA_TRANSFER_TYPE",
 		id: 77,
@@ -139,7 +139,7 @@ const typeModels = {
 	81: {
 		name: "BlobAccessTokenPostOut",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "DATA_TRANSFER_TYPE",
 		id: 81,
@@ -172,7 +172,7 @@ const typeModels = {
 	94: {
 		name: "BlobReferencePutIn",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "DATA_TRANSFER_TYPE",
 		id: 94,
@@ -229,7 +229,7 @@ const typeModels = {
 	100: {
 		name: "BlobReferenceDeleteIn",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 1,
 		type: "DATA_TRANSFER_TYPE",
 		id: 100,
@@ -286,7 +286,7 @@ const typeModels = {
 	125: {
 		name: "BlobPostOut",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "DATA_TRANSFER_TYPE",
 		id: 125,
@@ -327,7 +327,7 @@ const typeModels = {
 	129: {
 		name: "BlobArchiveRef",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "LIST_ELEMENT_TYPE",
 		id: 129,
@@ -384,7 +384,7 @@ const typeModels = {
 	144: {
 		name: "BlobId",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "AGGREGATED_TYPE",
 		id: 144,
@@ -415,7 +415,7 @@ const typeModels = {
 	154: {
 		name: "BlobServerUrl",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "AGGREGATED_TYPE",
 		id: 154,
@@ -446,7 +446,7 @@ const typeModels = {
 	157: {
 		name: "BlobServerAccessInfo",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "AGGREGATED_TYPE",
 		id: 157,
@@ -503,7 +503,7 @@ const typeModels = {
 	172: {
 		name: "InstanceId",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "AGGREGATED_TYPE",
 		id: 172,
@@ -534,7 +534,7 @@ const typeModels = {
 	175: {
 		name: "BlobReadData",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 4,
 		type: "AGGREGATED_TYPE",
 		id: 175,
@@ -583,7 +583,7 @@ const typeModels = {
 	211: {
 		name: "ArchiveEnumerationGetIn",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 15,
 		type: "DATA_TRANSFER_TYPE",
 		id: 211,
@@ -624,7 +624,7 @@ const typeModels = {
 	215: {
 		name: "ArchiveEnumerationGetOut",
 		app: "storage",
-		version: 15,
+		version: 16,
 		since: 15,
 		type: "DATA_TRANSFER_TYPE",
 		id: 215,
@@ -649,6 +649,56 @@ const typeModels = {
 				id: 217,
 				type: "ELEMENT_ASSOCIATION",
 				cardinality: "Any",
+				refTypeId: 22,
+				dependency: null,
+			},
+			223: {
+				final: false,
+				name: "archiveMetadata",
+				id: 223,
+				type: "AGGREGATION",
+				cardinality: "Any",
+				refTypeId: 219,
+				dependency: null,
+			},
+		},
+	},
+	219: {
+		name: "ArchiveMetadata",
+		app: "storage",
+		version: 16,
+		since: 16,
+		type: "AGGREGATED_TYPE",
+		id: 219,
+		rootId: "B3N0b3JhZ2UAANs",
+		versioned: false,
+		encrypted: false,
+		isPublic: true,
+		values: {
+			220: {
+				final: true,
+				name: "_id",
+				id: 220,
+				type: "CustomId",
+				cardinality: "One",
+				encrypted: false,
+			},
+			222: {
+				final: false,
+				name: "calculatedSize",
+				id: 222,
+				type: "Number",
+				cardinality: "ZeroOrOne",
+				encrypted: false,
+			},
+		},
+		associations: {
+			221: {
+				final: false,
+				name: "archiveId",
+				id: 221,
+				type: "ELEMENT_ASSOCIATION",
+				cardinality: "One",
 				refTypeId: 22,
 				dependency: null,
 			},
