@@ -1089,9 +1089,6 @@ export class MainStyles {
 				".large-button-width": {
 					width: px(component_size.button_floating_size),
 				},
-				".notification-min-width": {
-					"min-width": px(400),
-				},
 				// Stretch editor a little bit more than parent so that the content is visible
 				".full-height": {
 					"min-height": ClientDetector.get().isIos() ? "101%" : "100%",
@@ -2780,9 +2777,17 @@ export class MainStyles {
 					"-moz-appearance": "textfield",
 					appearance: "none",
 				},
+				".notification-overlay": {
+					width: "fit-content",
+					"min-width": px(400),
+					"max-width": "100%",
+				},
 				// media query for small devices where elements should be arranged in one column
 				// also adaptions for table column widths
 				"@media (max-width: 400px)": {
+					".notification-overlay": {
+						"min-width": "0",
+					},
 					// currently used for the reminder dialog
 					".flex-direction-change": {
 						display: "flex",

@@ -57,11 +57,8 @@ export function show(message: Component, closeButtonAttrs: Partial<ButtonAttrs>,
 function showNextNotification() {
 	const { message, buttons, closeButtonAttrs } = notificationQueue[0]
 	currentAnimationTimeout = null
-	const width = window.innerWidth
-	const margin = (width - Math.min(400, width)) / 2
 	const allButtons = buttons.slice()
 	const overlayRect = {
-		width: "fit-content",
 		top: px(0),
 		left: px(0),
 		right: px(0),
@@ -77,7 +74,7 @@ function showNextNotification() {
 		},
 		"slide-top",
 		undefined,
-		"dropdown-shadow center-h notification-min-width",
+		"dropdown-shadow center-h notification-overlay",
 	)
 
 	const closeAndOpenNext = () => {
