@@ -74,7 +74,6 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
 					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 					label: lang.getTranslation("dateFrom_label"),
-					useInputButton: true,
 					disabled: attrs.disabled,
 				}),
 				m(TimePicker, {
@@ -96,7 +95,6 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 					onDateSelected: (date) => date && (attrs.editModel.endDate = date),
 					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 					label: lang.getTranslation("dateTo_label"),
-					useInputButton: true,
 					disabled: attrs.disabled,
 				}),
 				m(TimePicker, {
