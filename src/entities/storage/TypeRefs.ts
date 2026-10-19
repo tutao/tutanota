@@ -552,6 +552,7 @@ export function createArchiveEnumerationGetOut(values: ArchiveEnumerationGetOutP
 
 export type ArchiveEnumerationGetOutParams = {
 	archives: Id[]
+	archiveMetadata: ArchiveMetadata[]
 }
 
 export type ArchiveEnumerationGetOut = {
@@ -565,6 +566,7 @@ export type ArchiveEnumerationGetOut = {
 	// == associations
 
 	archives: Id[]
+	archiveMetadata: ArchiveMetadata[]
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -579,5 +581,42 @@ export type ArchiveEnumerationGetOut = {
 	// === these are not present in metamodel
 	_type: TypeRef<ArchiveEnumerationGetOut>
 	_original: Nullable<ArchiveEnumerationGetOut>
+	isAdapter: false
+}
+export const ArchiveMetadataTypeRef: TypeRef<ArchiveMetadata> = new TypeRef("storage", 219)
+
+export function createArchiveMetadata(values: ArchiveMetadataParams): ArchiveMetadata {
+	return Object.assign(create(typeModels[ArchiveMetadataTypeRef.typeId], ArchiveMetadataTypeRef), values)
+}
+
+export type ArchiveMetadataParams = {
+	calculatedSize: null | NumberString
+
+	archiveId: Id
+}
+
+export type ArchiveMetadata = {
+	// == values
+
+	_id: Id
+	calculatedSize: null | NumberString
+
+	// == associations
+
+	archiveId: Id
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<ArchiveMetadata>
+	_original: Nullable<ArchiveMetadata>
 	isAdapter: false
 }

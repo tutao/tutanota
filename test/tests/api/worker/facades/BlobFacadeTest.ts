@@ -32,6 +32,7 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	ArchiveEnumerationService_GET,
+	ArchiveMetadataTypeRef,
 	BlobGetInTypeRef,
 	BlobIdTypeRef,
 	BlobPostOut,
@@ -1491,13 +1492,19 @@ o.spec("BlobFacade", function () {
 
 	o.spec("enumerateArchivesForGroup", () => {
 		o.test("success", async () => {
+			const archiveMetadata = [_createArchiveMetadata("archive 1"), _createArchiveMetadata("archive 2"), _createArchiveMetadata("archive 3")]
 			when(
 				serviceExecutor.execute(
 					ArchiveEnumerationService_GET,
 					createArchiveEnumerationGetIn({ group: "a group", archiveType: ArchiveDataType.MailDetails }),
 					null,
 				),
-			).thenResolve(createArchiveEnumerationGetOut({ archives: ["archive 1", "archive 2", "archive 3"] }))
+			).thenResolve(
+				createArchiveEnumerationGetOut({
+					archives: ["archive 1", "archive 2", "archive 3"],
+					archiveMetadata,
+				}),
+			)
 
 			o.check(await blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).deepEquals(["archive 1", "archive 2", "archive 3"])
 		})
@@ -1535,4 +1542,11 @@ function wrapTutanotaFile(tutanotaFile: File): BlobReferencingInstance {
 		listId: listIdPart(tutanotaFile._id),
 		entity: tutanotaFile,
 	}
+}
+
+function _createArchiveMetadata(archiveId: string, calculatedSize: number = 0) {
+	let archiveMetadata = createTestEntity(ArchiveMetadataTypeRef)
+	archiveMetadata.archiveId = archiveId
+	archiveMetadata.calculatedSize = String(calculatedSize)
+	return archiveMetadata
 }
