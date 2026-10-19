@@ -1,6 +1,6 @@
 import path from "node:path"
 import { ElectronExports, FsExports } from "../ElectronExportTypes.js"
-import { CryptoFunctions } from "../CryptoFns.js"
+import { CryptoFunctions } from "../CryptoFunctions.js"
 import { base64ToBase64Url, uint8ArrayToBase64, uint8ArrayToHex } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { FileNotFoundError } from "../../api/common/error/FileNotFoundError"

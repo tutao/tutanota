@@ -101,7 +101,7 @@ import { ImapSyncEventListener } from "./imapimport/imapsync/ImapSyncEventListen
 import { createImapSync } from "./imapimport/imapsync/ImapSync"
 import { DesktopImapSyncSystemFacade, ImapInitFolderSyncFactory, ImapSyncFactory } from "./imapimport/DesktopImapSyncSystemFacade"
 import { CertificateProvider } from "./CertificateProvider"
-import { CryptoFunctions } from "./CryptoFns"
+import { CryptoFunctions } from "./CryptoFunctions"
 import { AeadFacade } from "../../../platform-kit/crypto/encryption/symmetric/AeadFacade"
 import { SymmetricKeyDeriver } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
 
