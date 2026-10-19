@@ -1,5 +1,5 @@
 import { base64ToBase64Url, base64ToUint8Array, stringToUtf8Uint8Array, uint8ArrayToBase64, utf8Uint8ArrayToString } from "@tutao/utils"
-import type { CryptoFunctions } from "./CryptoFns.js"
+import type { CryptoFunctions } from "./CryptoFunctions.js"
 import type * as FsModule from "node:fs"
 import { Aes256Key, AesKey, Argon2IDExports, generateKeyFromPassphraseArgon2id, keyToUint8Array } from "@tutao/crypto"
 import {
