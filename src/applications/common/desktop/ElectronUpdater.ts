@@ -8,6 +8,7 @@ import type { UpdaterWrapper } from "./UpdaterWrapper"
 import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
 import { BuildConfigKey, DesktopConfigKey } from "../../../platform-kit/app-env"
 import { FsExports } from "./ElectronExportTypes.js"
+import { WindowManager } from "./DesktopWindowManager"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -55,6 +56,7 @@ export class ElectronUpdater {
 
 	constructor(
 		private readonly conf: DesktopConfig,
+		private readonly wm: WindowManager,
 		private readonly notifier: DesktopNotifier,
 		private readonly crypto: DesktopNativeCryptoFacade,
 		private readonly app: App,
@@ -93,7 +95,7 @@ export class ElectronUpdater {
 				this.logger.debug("update dl progress:", prg)
 			})
 			.on("update-downloaded", async (info: UpdateDownloadedEvent & { signature: string }) => {
-				this._updateInfo = info
+				this._updateInfo = null
 				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
 				this.stopPolling()
 
@@ -106,8 +108,7 @@ export class ElectronUpdater {
 					}
 				}
 
-				this._updateInfo = null
-				this.logger.warn(`all signatures invalid, could not update. Deleting ${info.downloadedFile}.`)
+				this.logger.warn(`could not find valid update signature. Deleting ${info.downloadedFile}.`)
 				this.fs.promises.unlink(info.downloadedFile)
 			})
 			.on("error", (e) => {
@@ -183,10 +184,6 @@ export class ElectronUpdater {
 			return false
 		}
 		return false
-	}
-
-	setUpdateDownloadedListener(listener: () => void): void {
-		this.updater.electronUpdater.on("update-downloaded", listener)
 	}
 
 	private async startPolling() {
@@ -274,7 +271,12 @@ export class ElectronUpdater {
 
 	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
 		this.logger.debug("notifying for update")
+		this._updateInfo = info
 		try {
+			for (let applicationWindow of this.wm.getAll()) {
+				await applicationWindow.desktopFacade.appUpdateDownloaded()
+			}
+
 			const icon = await this.icon.getAsync()
 			await this.notifier.showOneShot({
 				title: lang.get("updateAvailable_label", { "{version}": info.version }),
@@ -284,6 +286,8 @@ export class ElectronUpdater {
 			})
 		} catch (e) {
 			this.logger.error("Notification failed, error message:", e?.message)
+		} finally {
+			this._updateInfo = null
 		}
 	}
 

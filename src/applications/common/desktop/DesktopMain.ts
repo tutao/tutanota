@@ -235,22 +235,18 @@ async function createComponents(): Promise<Components> {
 		SYMMETRIC_CIPHER_FACADE,
 	)
 	const sseStorage = new SseStorage(conf)
-	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
-	const updater = new ElectronUpdater(conf, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const shortcutManager = new LocalShortcutManager()
+	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
+	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
+	const updater = new ElectronUpdater(conf, wm, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
 		const last = await wm.getLastFocused(true)
 		return last.commonNativeFacade
 	})
 	const keychainManager = new KeychainEncryption(appPassHandler, desktopCrypto, keyStoreFacade)
-	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(desktopCrypto, credentialsDb, keychainManager)
 
-	updater.setUpdateDownloadedListener(() => {
-		for (let applicationWindow of wm.getAll()) {
-			applicationWindow.desktopFacade.appUpdateDownloaded()
-		}
-	})
+	const nativeCredentialsFacade = new DesktopNativeCredentialsFacade(desktopCrypto, credentialsDb, keychainManager)
 
 	/** functions to create and delete the physical db file on disk */
 	const offlineDbFactory: OfflineDbFactory = {
@@ -278,8 +274,6 @@ async function createComponents(): Promise<Components> {
 	const offlineDbRefCounter = new OfflineDbRefCounter(offlineDbFactory)
 
 	const desktopExportLock = new DesktopExportLock()
-
-	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
 	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
 	const alarmScheduler = new AlarmScheduler(dateProvider, schedulerImpl)

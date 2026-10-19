@@ -11,6 +11,7 @@ import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../src/ui/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FsExports } from "../../../src/applications/common/desktop/ElectronExportTypes.js"
+import { WindowManager } from "../../../src/applications/common/desktop/DesktopWindowManager"
 
 lang.init(en)
 
@@ -23,6 +24,7 @@ o.spec("ElectronUpdater", function () {
 		app: App
 	}
 	let fs: FsExports
+	let wm: WindowManager
 	let crypto: DesktopNativeCryptoFacade
 	let autoUpdater
 	let conf: DesktopConfig
@@ -30,8 +32,10 @@ o.spec("ElectronUpdater", function () {
 	let updaterImpl: UpdaterWrapper
 	o.beforeEach(function () {
 		fs = object()
+		wm = object()
 		when(fs.promises.unlink("downloadedFile.AppImage")).thenResolve()
 		when(fs.promises.readFile("downloadedFile.AppImage")).thenResolve(data)
+		when(wm.getAll()).thenReturn([])
 		notifier = downcast({
 			showOneShot: spy((props: { title: string; body: string; icon: any; onClick?: () => unknown }) => {
 				Promise.resolve().then(() => props.onClick?.())
@@ -146,7 +150,7 @@ o.spec("ElectronUpdater", function () {
 	o.test("update is available", async function () {
 		downcast(updaterImpl).updatesEnabledInBuild = () => true
 
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		o.check(conf.setVar.callCount).equals(1)
 		o.check(conf.setVar.args).deepEquals(["showAutoUpdateOption", true])
@@ -165,7 +169,7 @@ o.spec("ElectronUpdater", function () {
 	})
 	o.test("update is not available", async function () {
 		autoUpdater.checkForUpdates = spy(() => Promise.resolve())
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		await delay(190)
 		o.check(autoUpdater.checkForUpdates.callCount).equals(1)
@@ -210,7 +214,7 @@ o.spec("ElectronUpdater", function () {
 				},
 			})
 			.set()
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		await delay(100)
 		// entered start() twice
@@ -249,7 +253,7 @@ o.spec("ElectronUpdater", function () {
 
 		const scheduler = (fn, time) => setInterval(fn, 10)
 
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
 		upd.start()
 		// after the error
 		await delay(2)
@@ -269,7 +273,7 @@ o.spec("ElectronUpdater", function () {
 
 		const scheduler = (fn) => setInterval(fn, 5)
 
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
 		upd.start()
 		await delay(150)
 
@@ -280,7 +284,7 @@ o.spec("ElectronUpdater", function () {
 	})
 	o.test("works if second key is right one", async function () {
 		o.timeout(1000)
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		upd.start()
 		// there is only one enableAutoUpdate listener
 		o.check(conf.removeListener.callCount).equals(1)
@@ -304,7 +308,7 @@ o.spec("ElectronUpdater", function () {
 	o.test("updater disables itself if accessSync throws", async function () {
 		downcast(updaterImpl).updatesEnabledInBuild = () => false
 
-		const upd = new ElectronUpdater(conf, notifier, crypto, electron.app, object(), updaterImpl, fs)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
 		await updaterImpl.electronUpdater
 		o.check(autoUpdater.on.callCount).equals(6)
 		upd.start()
