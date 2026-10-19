@@ -12,7 +12,7 @@ WASM2JS=wasm2js
 TUTA_CRYPTO_LIB=../../src/platform-kit/crypto/encryption/Liboqs
 FPRINTF_PATCH=remove-fprintf.patch
 LIBOQS_DIR=liboqs
-INCLUDE_OQS_DIR=include/oqs
+INCLUDE_OQS_DIR=${WASM_INCLUDE_DIR}/oqs
 
 SRC_FILES = \
 	"${LIBOQS_DIR}/src/kem/kem.c" \
@@ -41,9 +41,9 @@ SRC_FILES = \
 
 clean:
 	rm -f "${WASM}"
-	rm -rf include
+	rm -rf "${WASM_INCLUDE_DIR}"
 
-include:
+$(INCLUDE_OQS_DIR):
 	mkdir -p "${INCLUDE_OQS_DIR}"
 	cp "${LIBOQS_DIR}/src/sig_stfl/sig_stfl.h" ${INCLUDE_OQS_DIR}
 	cp "${LIBOQS_DIR}/src/common/aes/aes_ops.h" ${INCLUDE_OQS_DIR}
@@ -66,10 +66,10 @@ include:
 
 build: $(WASM)
 
-$(WASM): include
+$(WASM): $(INCLUDE_OQS_DIR)
 	${CC} \
 		$(SRC_FILES) \
-    	-I "include" \
+    	-I "${WASM_INCLUDE_DIR}" \
     	-I "${LIBOQS_DIR}/src/kem/ml_kem/pqcrystals-kyber-standard_ml-kem-1024_ref" \
     	-I "${LIBOQS_DIR}/src/common/pqclean_shims" \
     	-DOQS_VERSION_TEXT=\"tutamlkem\" \

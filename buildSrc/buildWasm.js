@@ -4,6 +4,7 @@ import path from "node:path"
 
 export async function buildLibOqs(resolvedBuildDir) {
 	const outputPath = path.join(resolvedBuildDir, "liboqs.wasm")
+	const includePath = path.join(resolvedBuildDir, "liboqs_include")
 	let workingDir
 	if (process.cwd().endsWith("/admin")) {
 		workingDir = `${process.cwd()}/../../tutanota/libs/webassembly/`
@@ -14,7 +15,7 @@ export async function buildLibOqs(resolvedBuildDir) {
 	}
 	await runCommand("make -f Makefile_liboqs build", {
 		workingDir: workingDir,
-		env: { WASM: outputPath },
+		env: { WASM: outputPath, WASM_INCLUDE_DIR: includePath },
 	})
 }
 
