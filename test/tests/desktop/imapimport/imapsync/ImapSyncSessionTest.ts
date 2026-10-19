@@ -49,7 +49,8 @@ o.spec("ImapSyncSession", () => {
 		const listTreeResponse = { folders: [{ disabled: false, path: "INBOX" }] }
 		when(imapFlowMock.listTree()).thenResolve(listTreeResponse)
 		when(imapFlowMock.mailboxOpen(matchers.anything(), matchers.anything())).thenResolve({})
-		when(imapFlowMock.fetch(matchers.anything(), matchers.anything())).thenResolve((async function* () {})())
+		when(imapFlowMock.fetch(matchers.anything(), matchers.anything())).thenReturn((async function* () {})())
+		when(imapFlowMock.fetch(matchers.anything(), matchers.anything(), matchers.anything())).thenReturn((async function* () {})())
 		session = new ImapSyncSession(eventListenerMock, certificateProviderMock, configMock, imapFlowFactory)
 	})
 
