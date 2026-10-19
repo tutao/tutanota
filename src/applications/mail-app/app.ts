@@ -63,6 +63,7 @@ import { DriveSearchViewModel } from "../drive-app/search/view/DriveSearchViewMo
 import { FolderItem } from "../drive-app/drive/view/DriveUtils"
 import { KeyManager } from "../../ui/utils/KeyManager"
 import { PickedDestinationAction } from "../drive-app/drive/view/DriveItemPicker"
+import { MigrationPreLogoutAction } from "./mail/migration/MigrationPreLogoutAction"
 
 EnvProvider.assertMainOrNodeBoot()
 EnvProvider.bootFinished()
@@ -330,6 +331,10 @@ import("../../ui/translations/en.js")
 					mailLocator.entityClient,
 					mailLocator.syncTracker,
 				)
+			})
+			mailLocator.logins.addPreLogoutAction(async () => {
+				const { MigrationPreLogoutAction } = await import("./mail/migration/MigrationPreLogoutAction")
+				return new MigrationPreLogoutAction(mailLocator.getMailboxMigrationController())
 			})
 		}
 

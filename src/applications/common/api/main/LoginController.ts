@@ -15,6 +15,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 
 import { CacheMode } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { elementIdToId } from "@tutao/meta"
+import { PreLogoutAction } from "../../../../app-kit/native-bridge/common/PreLogoutAction"
 
 EnvProvider.assertMainOrNodeBoot()
 
@@ -25,6 +26,7 @@ export class LoginController {
 	private partialLogin: DeferredObject<void> = defer()
 	private _isWhitelabel: boolean = !!getWhitelabelCustomizations(window)
 	private postLoginActions: Array<lazy<Promise<PostLoginAction>>> = []
+	private preLogoutActions: Array<lazy<Promise<PreLogoutAction>>> = []
 	private fullyLoggedIn: boolean = false
 	private atLeastPartiallyLoggedIn: boolean = false
 
@@ -98,6 +100,10 @@ export class LoginController {
 
 	addPostLoginAction(handler: lazy<Promise<PostLoginAction>>) {
 		this.postLoginActions.push(handler)
+	}
+
+	addPreLogoutAction(handler: lazy<Promise<PreLogoutAction>>) {
+		this.preLogoutActions.push(handler)
 	}
 
 	async onPartialLoginSuccess(initData: UserControllerInitData, sessionType: SessionType): Promise<void> {
@@ -246,6 +252,10 @@ export class LoginController {
 	 * @param sync whether to try and close the session before the window is closed
 	 */
 	async logout(sync: boolean): Promise<void> {
+		for (const lazyHandler of this.preLogoutActions) {
+			const handler = await lazyHandler()
+			await handler.onBeforeLogout()
+		}
 		// make all parts of LoginController usable for another login
 		if (this.userController) {
 			await this.userController.deleteSession(sync)
