@@ -224,36 +224,39 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 									}),
 								],
 							]),
-							m(".flex-grow.flex.col.gap-16.justify-end", [
-								m("hr.hr.mt-8"),
-								newFolderName == null
-									? m(
-											".flex.row",
+							attrs.mode === DriveItemPickerBehavior.PickDestination
+								? m(".flex-grow.flex.col.gap-16.justify-end", [
+										m("hr.hr.mt-8"),
+										newFolderName == null
+											? m(
+													".flex.row",
 
-											m(TertiaryButton, {
-												icon: Icons.Plus,
-												width: "flex",
-												label: "createFolder_action",
-												onclick: () => {
-													state.newFolderName = ""
-												},
-											} satisfies TertiaryButtonAttrs),
-										)
-									: [
-											m(
-												".small.uppercase.font-weight-700",
-												lang.getTranslation(`createNewFolderIn_label`, { "{folderName}": driveFolderName(currentFolder.folder).text })
-													.text,
-											),
-											m(DriveFolderBrowserNewFolderEntry, {
-												newFolderName: newFolderName,
-												onNewFolderNameInput: (name) => {
-													state.newFolderName = name
-												},
-												onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder.folder),
-											}),
-										],
-							]),
+													m(TertiaryButton, {
+														icon: Icons.Plus,
+														width: "flex",
+														label: "createFolder_action",
+														onclick: () => {
+															state.newFolderName = ""
+														},
+													} satisfies TertiaryButtonAttrs),
+												)
+											: [
+													m(
+														".small.uppercase.font-weight-700",
+														lang.getTranslation(`createNewFolderIn_label`, {
+															"{folderName}": driveFolderName(currentFolder.folder).text,
+														}).text,
+													),
+													m(DriveFolderBrowserNewFolderEntry, {
+														newFolderName: newFolderName,
+														onNewFolderNameInput: (name) => {
+															state.newFolderName = name
+														},
+														onCreateFolder: () => this.onCreateFolder(newFolderName, currentFolder.folder),
+													}),
+												],
+									])
+								: null,
 						],
 					),
 				]
