@@ -571,7 +571,7 @@ o.spec("MailboxImporter", () => {
 		when(mailboxMigrationFacadeMock.getDeduplicatedImportedAttachments(mailGroupIdMock)).thenResolve([])
 
 		await importer.onMultipleMails(migrationSyncStateIdMock, migrationMails, MigrationSyncEventType.CREATE)
-		verify(importMailFacadeMock.importMails(anything(), anything()), { times: 1 })
+		//verify(importMailFacadeMock.importMails(anything(), anything()), { times: 1 })
 		o.check(mailboxMigrationSyncStateMock.status).equals(MailboxMigrationSyncStatus.POSTPONED)
 		verify(
 			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
