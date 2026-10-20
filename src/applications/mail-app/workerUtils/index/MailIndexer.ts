@@ -12,6 +12,7 @@ import { cryptoUtils } from "@tutao/crypto"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { CancelledError } from "@tutao/app-env"
 import { MailImportType } from "../../../../entities/tutanota/Utils"
+import { CryptoError } from "@tutao/crypto/error"
 
 export const enum MailIndexingAbortReason {
 	Cancelled = "MailIndexingCancelled",
@@ -100,6 +101,9 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 				return null
 			} else if (e instanceof NotAuthorizedError) {
 				console.log("tried to index mail without permission", mailId)
+				return null
+			} else if (e instanceof CryptoError) {
+				console.warn("tried to index corrupted mail", mailId)
 				return null
 			} else {
 				throw e
