@@ -2599,6 +2599,12 @@ export default {
 		"affectedInboxRules_msg": "{1} inbox rules would be affected",
 		"pleaseSelectFolder_msg": "Please select a folder.",
 		"inboxRuleInvalid_label": "This inbox rule contains invalid values. Please edit it to fix the fault condition.",
-		"invalidateInboxRulesUsingDeletedMailSet_msg": "These inbox rules use '{1}'. They may become invalid when removing '{1}'.\n\nInvalid rules will be neither matched nor applied anymore. You must assign valid values to them in the settings again."
+		"invalidateInboxRulesUsingDeletedMailSet_msg": "These inbox rules use '{1}'. They may become invalid when removing '{1}'.\n\nInvalid rules will be neither matched nor applied anymore. You must assign valid values to them in the settings again.",
+		"meteredConnectionWarning_label": "Metered Connection Warning",
+		"extendSearchDataAmount_msg": "To extend search, we need to download up to {1}",
+		"allowDownloadingSearchMeteredConnection_msg": "Would you like to allow downloading search data on metered connections?",
+		"allow_action": "Allow",
+		"deny_action": "Deny",
+		"extendSearchIndex_label": "Extend search index",
 	}
 }

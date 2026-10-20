@@ -38,7 +38,7 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isMailDeletable } from "../../mail/model/MailChecks"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { deviceConfig, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
@@ -367,6 +367,7 @@ export class MailSearchViewModel {
 
 	cancelMailIndexing() {
 		this.indexerFacade.cancelMailIndexing()
+		deviceConfig.setAcceptedContinueIndexingOnMeteredConnection(false)
 	}
 
 	getUserId(): string {

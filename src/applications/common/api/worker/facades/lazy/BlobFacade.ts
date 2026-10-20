@@ -36,6 +36,7 @@ import { doBlobRequestWithRetry, tryServers } from "../../../../../../platform-k
 import { TransferId, UploadProgressInfo } from "../../../../../../entities/drive/Utils"
 import {
 	ArchiveEnumerationService_GET,
+	ArchiveMetadata,
 	BlobGetInTypeRef,
 	BlobPostOut,
 	BlobPostOutTypeRef,
@@ -283,7 +284,7 @@ export class BlobFacade {
 	 * @throws NotAuthorizedError if the user does not have a membership to that group (regardless of if it exists)
 	 * @throws BadRequestError if the archive type can't be enumerated by the service
 	 */
-	async enumerateArchivesForGroup(group: Id, archiveType: ArchiveDataType): Promise<Id[]> {
+	async enumerateArchivesForGroup(group: Id, archiveType: ArchiveDataType): Promise<ArchiveMetadata[]> {
 		try {
 			const result = await this.serviceExecutor.execute(
 				ArchiveEnumerationService_GET,
@@ -293,7 +294,7 @@ export class BlobFacade {
 				}),
 				null,
 			)
-			return result.archives
+			return result.archiveMetadata
 		} catch (e) {
 			if (e instanceof NotFoundError) {
 				return []

@@ -33,4 +33,6 @@ export interface Indexer {
 	rebuildMailIndex(): Promise<void>
 
 	cancelMailIndexing(): void
+	remainingDataInBytes(): Promise<number>
+	isCurrentlyDownloadingArchives(): Promise<boolean>
 }
