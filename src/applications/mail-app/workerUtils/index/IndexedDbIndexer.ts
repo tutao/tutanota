@@ -1,4 +1,4 @@
-import { CancelledError, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { CancelledError, ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
 import { ConnectionError, NotAuthorizedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { elementIdToId, idToElementId, isSameId, isSameTypeRef, OperationType, timestampToGeneratedId } from "../../../../platform-kit/meta"
 import type { DatabaseEntry, DbKey, DbTransaction } from "../../../common/api/worker/search/DbFacade.js"
@@ -47,6 +47,7 @@ import { GroupMembership, User, UserTypeRef } from "@tutao/entities/sys"
 import { getMembershipGroupType, GroupType } from "../../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { WebMailIndexer } from "./WebMailIndexer.js"
+import { MailIndexingAbortReason } from "./MailIndexer"
 
 export type InitParams = {
 	user: User
@@ -166,6 +167,7 @@ export class IndexedDbIndexer implements Indexer {
 			await this.infoMessageHandler.onSearchIndexStateUpdate({
 				initializing: false,
 				mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
+				autoRestartEnabled: true,
 				progress: 0,
 				currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
 				aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
@@ -192,6 +194,7 @@ export class IndexedDbIndexer implements Indexer {
 				await this.infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: this.mailIndexer.mailIndexingEnabled,
+					autoRestartEnabled: true,
 					progress: 0,
 					currentMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
 					aimedMailIndexTimestamp: this.mailIndexer.currentIndexTimestamp,
@@ -283,8 +286,8 @@ export class IndexedDbIndexer implements Indexer {
 		}
 	}
 
-	cancelMailIndexing() {
-		this.mailIndexer.cancelMailIndexing()
+	cancelMailIndexing(abortReason: MailIndexingAbortReason) {
+		this.mailIndexer.cancelMailIndexing(abortReason)
 		this.eventQueue.resume()
 	}
 
@@ -617,6 +620,10 @@ export class IndexedDbIndexer implements Indexer {
 
 	async rebuildMailIndex() {
 		await this.mailIndexer.rebuildIndex(this.initParams.user)
+	}
+
+	async remainingDataInBytes(): Promise<number> {
+		return this.mailIndexer.remainingDataInBytes()
 	}
 }
 

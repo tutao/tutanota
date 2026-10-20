@@ -1,4 +1,4 @@
-import { AppType, Const, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -63,7 +63,7 @@ import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
-import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig, DownloadArchivesOnMeteredConnection } from "../common/misc/DeviceConfig.js"
 import { ExpandedInboxRuleHandler } from "./mail/model/ExpandedInboxRuleHandler.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener, MailViewModel } from "./mail/view/MailViewModel.js"
@@ -176,6 +176,8 @@ import { PluginConfigurationProvider } from "../common/plugin/PluginConfiguratio
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
+import { showMeteredConnectionWarningDialog } from "../common/gui/dialogs/MeteredConnectionWarningDialog"
+import { MailIndexingAbortReason } from "./workerUtils/index/MailIndexer"
 
 EnvProvider.assertMainOrNode()
 
@@ -1004,7 +1006,54 @@ class MailLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
+
+			let isHandlingConnectionTypeUpdated = false
+
+			const handleConnectionTypeUpdated = async (isMetered: boolean) => {
+				// wait with indexing stuff until sync is done
+				if (!this.syncTracker.isSyncDone) return
+
+				// skip if fully indexed already
+				const indexState = (await this.mailSearchModel()).indexState()
+				if (indexState.currentMailIndexTimestamp === FULL_INDEXED_TIMESTAMP) return
+
+				// do not show two popups etc.
+				if (isHandlingConnectionTypeUpdated) {
+					return
+				} else {
+					isHandlingConnectionTypeUpdated = true
+				}
+
+				try {
+					const expectedDataInBytes = await indexerFacade.remainingDataInBytes()
+					const state = deviceConfig.getContinueDownloadArchivesOnMeteredConnection()
+					if (
+						isMetered &&
+						expectedDataInBytes > METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES &&
+						state !== DownloadArchivesOnMeteredConnection.ACCEPTED
+					) {
+						indexerFacade.cancelMailIndexing(MailIndexingAbortReason.Cancelled)
+
+						if (state === DownloadArchivesOnMeteredConnection.DECLINED) return
+
+						const choice = await showMeteredConnectionWarningDialog(expectedDataInBytes)
+						if (choice === "continueIndexing") {
+							deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.ACCEPTED)
+						} else {
+							deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.DECLINED)
+							return
+						}
+					}
+
+					if (indexState.autoRestartEnabled) {
+						// default: resume when indexing was not cancelled and just failed for another reason
+						void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+					}
+				} finally {
+					isHandlingConnectionTypeUpdated = false
+				}
+			}
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX, handleConnectionTypeUpdated)
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,

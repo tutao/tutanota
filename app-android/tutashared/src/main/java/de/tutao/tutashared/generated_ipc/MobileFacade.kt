@@ -33,4 +33,10 @@ interface MobileFacade {
 	suspend fun handleAppleInAppEvents(
 		action: String,
 	): Unit
+	/**
+	 * Called sometimes when the network updates, contains whether the connection is metered.
+	 */
+	suspend fun connectionTypeUpdate(
+		isMetered: Boolean,
+	): Unit
 }

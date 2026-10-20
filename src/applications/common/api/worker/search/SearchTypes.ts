@@ -1,5 +1,4 @@
 import type { TypeInfo } from "../../common/utils/IndexUtils"
-import { TypeRef } from "@tutao/meta"
 import { Aes256Key, InitializationVector } from "@tutao/crypto"
 import { SearchToken } from "../../../../../ui/utils/QueryTokenUtils"
 import { GroupType } from "../../../../../entities/sys/Utils"
@@ -158,6 +157,8 @@ export const enum IndexingErrorReason {
 export type SearchIndexStateInfo = {
 	initializing: boolean
 	mailIndexEnabled: boolean
+	// never auto restart when user cancelled manually
+	autoRestartEnabled: boolean
 	progress: number
 	currentMailIndexTimestamp: number
 	aimedMailIndexTimestamp: number
