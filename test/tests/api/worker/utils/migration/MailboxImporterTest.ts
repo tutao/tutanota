@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
 
-import { MailboxImporter, InitializeMigrationParams } from "../../../../../../src/applications/mail-app/workerUtils/migration/MailboxImporter"
+import { InitializeMigrationParams, MailboxImporter } from "../../../../../../src/applications/mail-app/workerUtils/migration/MailboxImporter"
 import { createTestEntity } from "../../../../TestUtils"
 import { MigrationCredentials } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationSyncContext"
 import { MigrationMailbox, MigrationMailboxStatus } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationMailbox"
@@ -14,16 +14,17 @@ import { MailboxMigrationProvider } from "../../../../../../src/applications/com
 import { migrationMailToImportMailParams } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationImportUtils"
 import { newMailboxImportSession } from "../../../../../../src/applications/mail-app/workerUtils/migration/MailboxImportSession"
 import { MigrationError, MigrationErrorCause } from "../../../../../../src/applications/common/api/common/error/MigrationError"
-import { MailboxMigrationSyncStatus, MailboxMigrationFolderSyncStatus, MigrationSyncEventType } from "../../../../../../src/entities/tutanota/Utils"
-import { MigrationImportTutaFileId, ImportMailFacade } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
+import { MailboxMigrationFolderSyncStatus, MailboxMigrationSyncStatus, MigrationSyncEventType } from "../../../../../../src/entities/tutanota/Utils"
+import { ImportMailFacade, MigrationImportTutaFileId } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
 import {
+	ImportedMigrationMail,
+	ImportedMigrationMailTypeRef,
+	MailboxMigrationFolderSyncState,
+	MailboxMigrationFolderSyncStateTypeRef,
 	MailboxMigrationImapConfigurationTypeRef,
 	MailboxMigrationSyncState,
 	MailboxMigrationSyncStateTypeRef,
-	MailboxMigrationFolderSyncState,
-	MailboxMigrationFolderSyncStateTypeRef,
-	ImportedMigrationMail,
-	ImportedMigrationMailTypeRef,
+	MailBoxTypeRef,
 } from "@tutao/entities/tutanota"
 import { isSameId, OperationType } from "../../../../../../src/platform-kit/meta"
 import { SuspensionError } from "../../../../../../src/platform-kit/rest-client/error"
@@ -36,6 +37,7 @@ import { noPatchesAndInstance } from "../../EventBusClientTest"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { UserFacade } from "../../../../../../src/platform-kit/base/facades/UserFacade"
 import { MigrationSyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
+import { createIdTupleWrapper, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 
 const { anything } = matchers
 
@@ -135,6 +137,84 @@ o.spec("MailboxImporter", () => {
 		).thenDo(() => {
 			mailboxMigrationSyncStateMock.status = statusArgumentCaptor.value
 		})
+	})
+
+	o.test("init - marks sync state permanently deleted when every folder is NO_SYNC or CANCELED", async () => {
+		const nonLegacySyncState = {
+			...mailboxMigrationSyncStateMock,
+			legacyProvider: null,
+		}
+		const canceledFolder = {
+			...folderSyncStateMock,
+			status: MailboxMigrationFolderSyncStatus.CANCELED,
+		}
+		const noSyncFolder = {
+			...folderSyncStateMock,
+			status: MailboxMigrationFolderSyncStatus.NO_SYNC,
+		}
+		const userMigrationInformation = createTestEntity(UserMigrationInformationTypeRef, {
+			mailboxMigrationSyncStates: [
+				createIdTupleWrapper({
+					listId: migrationSyncStateIdMock[0],
+					listElementId: migrationSyncStateIdMock[1],
+				}),
+			],
+		})
+		const mailbox = createTestEntity(MailBoxTypeRef, {
+			mailboxMigrationSyncStates: "syncStatesListId",
+		})
+
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
+		when(mailboxMigrationFacadeMock.getAllUserMigrationInformation(userMigrationInfosListIdMock)).thenResolve([userMigrationInformation])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([canceledFolder, noSyncFolder])
+
+		await importer.init([mailbox])
+
+		verify(
+			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
+				nonLegacySyncState,
+				MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
+				MailboxMigrationFolderSyncStatus.CANCELED,
+				undefined,
+			),
+			{ times: 1 },
+		)
+		o.check(importer.mailboxImportSessions.size).equals(1)
+	})
+
+	o.test("init - does not mark sync state permanently deleted when there are folder(s) still syncing", async () => {
+		const nonLegacySyncState = {
+			...mailboxMigrationSyncStateMock,
+			legacyProvider: null,
+		}
+		const userMigrationInformation = createTestEntity(UserMigrationInformationTypeRef, {
+			mailboxMigrationSyncStates: [
+				createIdTupleWrapper({
+					listId: migrationSyncStateIdMock[0],
+					listElementId: migrationSyncStateIdMock[1],
+				}),
+			],
+		})
+		const mailbox = createTestEntity(MailBoxTypeRef, {
+			mailboxMigrationSyncStates: "syncStatesListId",
+		})
+
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
+		when(mailboxMigrationFacadeMock.getAllUserMigrationInformation(userMigrationInfosListIdMock)).thenResolve([userMigrationInformation])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
+
+		await importer.init([mailbox])
+
+		verify(
+			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
+				nonLegacySyncState,
+				MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
+				MailboxMigrationFolderSyncStatus.CANCELED,
+				undefined,
+			),
+			{ times: 0 },
+		)
+		o.check(importer.mailboxImportSessions.size).equals(1)
 	})
 
 	o.test("initializeImport - creates new session when no existing sync state", async () => {

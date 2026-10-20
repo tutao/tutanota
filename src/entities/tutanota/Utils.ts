@@ -337,6 +337,7 @@ export enum MailboxMigrationSyncStatus {
 	AUTH_ERROR = "5",
 	CANCELED = "6",
 	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7",
+	ALL_FOLDERS_PERMANENTLY_DELETED = "8",
 }
 
 export enum SpamDecision {

@@ -3,7 +3,7 @@ import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/M
 import { ImportResult, InitializeMigrationParams, MailboxImporter, MailSetMapping } from "../../workerUtils/migration/MailboxImporter"
 import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, first, promiseMap } from "@tutao/utils"
+import { assertNotNull, first } from "@tutao/utils"
 import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
 import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
@@ -98,7 +98,9 @@ export class MailboxMigrationController {
 						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(mailboxMigrationSyncStateId)
 						this.displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState, userMigrationInformation)
 					}
-					const shouldDisplayErrorDialog = mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR
+					const shouldDisplayErrorDialog =
+						mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR ||
+						mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED
 					if (shouldDisplayErrorDialog) {
 						Dialog.message("migrationSyncFailure_msg")
 					}
@@ -241,7 +243,8 @@ export class MailboxMigrationController {
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.CANCELED ||
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.PAUSED ||
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR ||
-				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED
 			) {
 				continue
 			}
@@ -319,7 +322,8 @@ export class MailboxMigrationController {
 	shouldRenderErrorIcon(session: MailboxMigrationUiSession) {
 		return (
 			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.ERROR ||
-			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR ||
+			session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED
 		)
 	}
 
@@ -329,6 +333,10 @@ export class MailboxMigrationController {
 
 	shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session: MailboxMigrationUiSession) {
 		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR
+	}
+
+	shouldRenderAllFoldersPermanentlyDeletedMessage(session: MailboxMigrationUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED
 	}
 
 	shouldDisableButtons() {
