@@ -16,6 +16,7 @@ import { CryptoError } from "@tutao/crypto/error"
 
 export const enum MailIndexingAbortReason {
 	Cancelled = "MailIndexingCancelled",
+	UserCancelled = "MailIndexingUserCancelled",
 	Restarting = "MailIndexingRestarting",
 }
 
@@ -35,7 +36,8 @@ export interface MailIndexer {
 	beforeImportedMailFinished(importedMailsList: Id, mailImportType: MailImportType): Promise<void>
 	rebuildIndex(user: User): Promise<void>
 	extendMailIndex(user: User): Promise<void>
-	cancelMailIndexing(): void
+	cancelMailIndexing(abortReason: MailIndexingAbortReason): void
+	remainingDataInBytes(): Promise<number>
 }
 
 /**
