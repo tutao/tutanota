@@ -203,6 +203,9 @@ export const GENERATED_ID_MIN_TIMESTAMP: number = 0
 export const FULL_INDEXED_TIMESTAMP: number = GENERATED_ID_MIN_TIMESTAMP
 export const NOTHING_INDEXED_TIMESTAMP: number = GENERATED_ID_MAX_TIMESTAMP
 
+export const METERED_CONNECTION_DOWNLOAD_LIMIT_MB = 50
+export const MAX_EXPECTED_ARCHIVE_SIZE_IN_MB = 250
+
 export const ENTITY_EVENT_BATCH_TTL_DAYS: number = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
 
 export const enum PaymentDataResultType {

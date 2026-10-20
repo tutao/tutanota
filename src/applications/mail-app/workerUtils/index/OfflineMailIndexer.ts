@@ -1,11 +1,12 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, MAX_EXPECTED_ARCHIVE_SIZE_IN_MB, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
 	collectToMap,
 	difference,
+	filterInt,
 	getFirstOrThrow,
 	groupByAndMap,
 	isEmpty,
@@ -101,7 +102,9 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
+	private currentlyDownloadingArchive = false
 	private fullyIndexed: boolean = false
+	private remainingDataToDownloadInMB: number = 0
 	private currentlyIndexingPromise: Promise<void> | null = null
 	private indexTasks: (() => Promise<unknown>)[] = []
 	private abortController: AbortController = new AbortController()
@@ -375,9 +378,23 @@ export class OfflineMailIndexer implements MailIndexer {
 	 */
 	private async preloadEncryptedArchivesForGroup(mailGroupId: Id): Promise<Id[]> {
 		const allArchives = await this.blobFacade.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)
-		const archivesToLoad = await this.preparePreloadArchives(allArchives)
+		const allArchiveIds = allArchives.map((a) => a.archiveId)
+		const archivesToLoad = await this.preparePreloadArchives(allArchiveIds)
+		const archiveSizes = new Map(
+			allArchives
+				.filter(({ archiveId }) => archivesToLoad.some((a) => a.archiveId === archiveId))
+				.map((metadata) => [
+					metadata.archiveId,
+					isNotNull(metadata.calculatedSize) && Number.isFinite(filterInt(metadata.calculatedSize))
+						? Math.ceil(filterInt(metadata.calculatedSize) / 1_000_000)
+						: MAX_EXPECTED_ARCHIVE_SIZE_IN_MB,
+				]),
+		)
 
-		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
+		const remainingSizeInMB = archivesToLoad.reduce((sum, { archiveId }) => sum + assertNotNull(archiveSizes.get(archiveId)), 0)
+		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s), about ${remainingSizeInMB} Bytes remaining`)
+		this.remainingDataToDownloadInMB = remainingSizeInMB
+		this.currentlyDownloadingArchive = true
 		const preloadStart = performance.now()
 
 		for (const { archiveId, resumeParams } of archivesToLoad) {
@@ -388,17 +405,24 @@ export class OfflineMailIndexer implements MailIndexer {
 					await this.blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, this.archiveDownloader, resumeParams)
 					const downloadAndStoreBlobsEnd = performance.now()
 					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
+
+					// subtract archive's size from remaining data to download
+					this.remainingDataToDownloadInMB -= assertNotNull(archiveSizes.get(archiveId))
+					archiveSizes.delete(archiveId)
 				})
 			} catch (e) {
 				await this.archiveDownloader.abortDownloadAndStoreArchive(archiveId)
+				this.currentlyDownloadingArchive = false
 				throw e
 			}
 		}
 
+		this.remainingDataToDownloadInMB = 0
+		this.currentlyDownloadingArchive = false
 		const preloadEnd = performance.now()
 		console.log(TAG, `Finished preloading ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
 
-		return allArchives
+		return allArchiveIds
 	}
 
 	private async indexMailbag(
@@ -687,5 +711,14 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.offlineStoragePersistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef)
 		const end = performance.now()
 		console.log(TAG, `Cleanup after indexing done (took ${end - start} ms)`)
+	}
+
+	// these need to be async, so we just Promise.resolve
+	async remainingDataInMB(): Promise<number> {
+		return this.remainingDataToDownloadInMB
+	}
+
+	async isCurrentlyDownloadingArchives(): Promise<boolean> {
+		return this.currentlyDownloadingArchive
 	}
 }
