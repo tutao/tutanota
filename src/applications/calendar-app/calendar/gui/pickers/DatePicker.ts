@@ -150,13 +150,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						} else {
 							this.inputDateEl!.focus()
 							// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
-							this.inputDateEl!.addEventListener(
-								"blur",
-								() => {
-									this.inputTextEl!.focus()
-								},
-								{ once: true },
-							)
+							// prettier-ignore
+							this.inputDateEl!.addEventListener("blur", () => {
+								this.inputTextEl!.focus()
+							}, { once: true })
 						}
 					} else {
 						// Show the VisualDatePicker HTML version
@@ -248,14 +245,11 @@ export class DatePicker implements Component<DatePickerAttrs> {
 
 									// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
 									// So make sure to add the listener first.
-									this.inputTextEl.addEventListener(
-										"focus",
-										() => {
-											this.showingDropdown = false
-											m.redraw()
-										},
-										{ once: true },
-									)
+									// prettier-ignore
+									this.inputTextEl.addEventListener("focus", () => {
+										this.showingDropdown = false
+										m.redraw()
+									}, { once: true })
 									this.inputTextEl.focus()
 								}
 							},
