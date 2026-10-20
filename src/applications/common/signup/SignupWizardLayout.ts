@@ -11,7 +11,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { SignupInlinePlanSelector } from "./components/SignupInlinePlanSelector"
 import { DefaultAnimationTime } from "../../../ui/animation/Animations"
 import { WizardProgressCircular } from "../../../ui/base/wizard/WizardProgressCircular"
-import { getTutaLogo, getTutaLogoSignetSvg } from "../../../ui/base/Logo"
+import { getTutaLogoSignetSvg, getTutaLogoSvg } from "../../../ui/base/Logo"
 import { LanguageDropdown } from "../gui/LanguageDropdown"
 import { theme } from "../../../ui/theme"
 import { getSafeAreaInsetTop } from "../../../ui/HtmlUtils"
@@ -367,7 +367,7 @@ export class SignupWizardLayout implements Component<WizardLayoutAttrs<SignupVie
 					m(
 						"",
 						{ style: { height: px(32), width: Styles.get().isMobileLayout() ? px(32) : px(90) } },
-						m.trust(Styles.get().isMobileLayout() ? getTutaLogoSignetSvg() : getTutaLogo()),
+						m.trust(Styles.get().isMobileLayout() ? getTutaLogoSignetSvg(theme.outline_variant) : getTutaLogoSvg(theme.outline_variant)),
 					),
 					m(LanguageDropdown, { variant: "Link", deviceConfig }),
 				],

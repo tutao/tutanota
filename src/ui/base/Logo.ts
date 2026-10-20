@@ -1,15 +1,6 @@
 import { AppType, EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
-import { isColorLight } from "./Color.js"
-import { theme } from "../theme.js"
 
 EnvProvider.assertMainOrNodeBoot()
-
-export function getTutaLogo(): string {
-	if (isColorLight(theme.surface)) {
-		return getTutaLogoSvg(theme.outline_variant)
-	}
-	return getTutaLogoSvg("#fff")
-}
 
 export function getAppLogo(fillColor?: string) {
 	if (!EnvProvider.get().isApp()) {
