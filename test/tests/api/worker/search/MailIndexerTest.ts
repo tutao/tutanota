@@ -21,6 +21,7 @@ import {
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { assertNotNull } from "../../../../../src/platform-kit/utils"
 import { CancelledError } from "../../../../../src/platform-kit/app-env"
+import { CryptoError } from "../../../../../src/platform-kit/crypto/error"
 
 // NOTE: Refer to OfflineMailIndexerTest or WebMailIndexerTest for the actual mail indexer implementations.
 //
@@ -76,6 +77,13 @@ o.spec("MailIndexer", () => {
 			o.check(download.mail).deepEquals(mail)
 			o.check(download.attachments).deepEquals(attachments)
 			o.check(download.mailDetails).deepEquals(mailDetails)
+		})
+
+		o.test("corrupted mail", async () => {
+			const brokenEntityClient: EntityClient = object()
+			when(brokenEntityClient.load(MailTypeRef, mailId)).thenReject(new CryptoError(":("))
+			const brokenDownloader = defaultMailIndexerNewMailDownloader(brokenEntityClient, mailFacade)
+			o.check(await brokenDownloader(mailId)).equals(null)
 		})
 
 		o.test("non-draft", async () => {
