@@ -8,10 +8,11 @@ import { UserError } from "../api/main/UserError.js"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
 import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { px, size } from "../../../ui/size.js"
-import { getTutaLogo } from "../../../ui/base/Logo.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 import { EnvProvider } from "@tutao/app-env"
+import { getTutaLogoSvg } from "../../../ui/base/Logo"
+import { theme } from "../../../ui/theme"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -30,7 +31,7 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 						margin: px(size.spacing_48),
 					},
 				},
-				m.trust(getTutaLogo()),
+				m.trust(getTutaLogoSvg(theme.outline_variant)),
 			),
 			m(".flex.justify-center.flex-wrap", [
 				m(ExternalLink, {
