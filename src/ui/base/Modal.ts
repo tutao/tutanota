@@ -60,11 +60,18 @@ class Modal implements Component {
 							if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
 						},
 						onclick: (event: MouseEvent) => {
-							this.clickBackgroundWithCheck(event, wrapper.component)
-						},
-						oncontextmenu: (event: MouseEvent) => {
-							event.preventDefault()
-							this.clickBackgroundWithCheck(event, wrapper.component)
+							const element = event.currentTarget as HTMLElement
+							// This layer div has a single child, the modal component
+							const child = element.firstElementChild
+
+							// child shouldn't be null but maybe the user click fast idk
+							if (child) {
+								const childRect = child.getBoundingClientRect()
+
+								if (!insideRect(event, childRect)) {
+									wrapper.component.backgroundClick(event)
+								}
+							}
 						},
 						style: {
 							zIndex: this.getComponentLayer(i + 1),
@@ -116,21 +123,6 @@ class Modal implements Component {
 
 	private getComponentLayer(componentIndex: number) {
 		return LayerType.Modal + componentIndex
-	}
-
-	private clickBackgroundWithCheck(event: MouseEvent, component: ModalComponent) {
-		const element = event.currentTarget as HTMLElement
-		// This layer div has a single child, the modal component
-		const child = element.firstElementChild
-
-		// child shouldn't be null but maybe the user click fast idk
-		if (child) {
-			const childRect = child.getBoundingClientRect()
-
-			if (!insideRect(event, childRect)) {
-				component.backgroundClick(event)
-			}
-		}
 	}
 
 	/**
