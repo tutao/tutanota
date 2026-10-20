@@ -117,7 +117,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					this.inputDateEl = input.dom as HTMLInputElement
 				},
 				oninput: (event: InputEvent) => {
-					this.handleNativeInput(this.inputDateEl!, onDateSelected)
+					// valueAsDate is always 00:00 UTC
+					// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
+					const htmlDate = (event.target as HTMLInputElement).valueAsDate
+					// It can be null if user clicks "clear". Ignore it.
+					if (htmlDate != null) {
+						this.handleSelectedDate(getAllDayDateLocal(htmlDate), attrs.onDateSelected)
+					}
 				},
 			}),
 			m("input[type=text].tutaui-button-outline", {
@@ -135,8 +141,26 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				oninput: (newValue: string) => (this.inputText = newValue),
 				onfocus: () => {
 					if (attrs.disabled) return
-					// Show the VisualDatePicker HTML version
-					this.showingDropdown = true
+					if (this.shouldUseNativePicker) {
+						// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
+						// using ClientDetector.get().isIos() in case they add support soon.
+						if ("showPicker" in HTMLInputElement.prototype) {
+							this.inputDateEl!.showPicker()
+						} else {
+							this.inputDateEl!.focus()
+							// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
+							this.inputDateEl!.addEventListener(
+								"blur",
+								() => {
+									this.inputTextEl!.focus()
+								},
+								{ once: true },
+							)
+						}
+					} else {
+						// Show the VisualDatePicker HTML version
+						this.showingDropdown = true
+					}
 				},
 				// On focus opens the dropdown, the user can tab into it, so we shouldn't close it on blur.
 				// i.e. Do not use `onblur: () => { this.showingDropdown = false },`
@@ -274,16 +298,6 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		return null
 	})
-
-	private handleNativeInput(inputElement: HTMLInputElement, onDateSelected: (date: Date) => unknown) {
-		// valueAsDate is always 00:00 UTC
-		// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-		const htmlDate = inputElement.valueAsDate
-		// It can be null if user clicks "clear". Ignore it.
-		if (htmlDate != null) {
-			this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
-		}
-	}
 }
 
 type VisualDatePickerAttrs = {
