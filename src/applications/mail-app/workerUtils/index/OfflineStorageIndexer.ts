@@ -1,5 +1,5 @@
 import { UserFacade } from "../../../../platform-kit/base/facades/UserFacade"
-import { MailIndexer } from "./MailIndexer"
+import { MailIndexer, MailIndexingAbortReason } from "./MailIndexer"
 import { assertNotNull, difference } from "../../../../platform-kit/utils"
 import { filterIndexMemberships } from "../../../common/api/common/utils/IndexUtils"
 import { NOTHING_INDEXED_TIMESTAMP, ProgrammingError } from "../../../../platform-kit/app-env"
@@ -64,11 +64,15 @@ export class OfflineStorageIndexer implements Indexer {
 		/* no-op */
 	}
 
-	cancelMailIndexing() {
-		this.mailIndexer.cancelMailIndexing()
+	cancelMailIndexing(abortReason: MailIndexingAbortReason) {
+		this.mailIndexer.cancelMailIndexing(abortReason)
 	}
 
 	async rebuildMailIndex() {
 		await this.mailIndexer.rebuildIndex(assertNotNull(this.userFacade.getUser()))
+	}
+
+	async remainingDataInBytes(): Promise<number> {
+		return await this.mailIndexer.remainingDataInBytes()
 	}
 }

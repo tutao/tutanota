@@ -1,11 +1,12 @@
 import { IndexedGroupData, OfflineStoragePersistence } from "./OfflineStoragePersistence"
 import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES, NOTHING_INDEXED_TIMESTAMP } from "@tutao/app-env"
 import { ArchiveDownloadResumeParams, BlobFacade } from "../../../common/api/worker/facades/lazy/BlobFacade"
 import {
 	assertNotNull,
 	collectToMap,
 	difference,
+	filterInt,
 	getFirstOrThrow,
 	groupByAndMap,
 	isEmpty,
@@ -102,6 +103,7 @@ export class OfflineMailIndexer implements MailIndexer {
 	) {}
 
 	private fullyIndexed: boolean = false
+	private remainingDataToDownloadInBytes: number = 0
 	private currentlyIndexingPromise: Promise<void> | null = null
 	private indexTasks: (() => Promise<unknown>)[] = []
 	private abortController: AbortController = new AbortController()
@@ -119,6 +121,7 @@ export class OfflineMailIndexer implements MailIndexer {
 		return {
 			initializing: false,
 			mailIndexEnabled: this.mailIndexingEnabled,
+			autoRestartEnabled: true,
 			progress,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
 			aimedMailIndexTimestamp: FULL_INDEXED_TIMESTAMP,
@@ -375,9 +378,22 @@ export class OfflineMailIndexer implements MailIndexer {
 	 */
 	private async preloadEncryptedArchivesForGroup(mailGroupId: Id): Promise<Id[]> {
 		const allArchives = await this.blobFacade.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)
-		const archivesToLoad = await this.preparePreloadArchives(allArchives)
+		const allArchiveIds = allArchives.map((a) => a.archiveId)
+		const archivesToLoad = await this.preparePreloadArchives(allArchiveIds)
+		const archiveSizes = new Map(
+			allArchives
+				.filter(({ archiveId }) => archivesToLoad.some((a) => a.archiveId === archiveId))
+				.map((metadata) => [
+					metadata.archiveId,
+					isNotNull(metadata.calculatedSize) && Number.isFinite(filterInt(metadata.calculatedSize))
+						? Math.ceil(filterInt(metadata.calculatedSize))
+						: MAX_EXPECTED_ARCHIVE_SIZE_IN_BYTES,
+				]),
+		)
 
-		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s)`)
+		const remainingSize = archivesToLoad.reduce((sum, { archiveId }) => sum + assertNotNull(archiveSizes.get(archiveId)), 0)
+		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s), about ${remainingSize} Bytes remaining`)
+		this.remainingDataToDownloadInBytes = remainingSize
 		const preloadStart = performance.now()
 
 		for (const { archiveId, resumeParams } of archivesToLoad) {
@@ -388,6 +404,10 @@ export class OfflineMailIndexer implements MailIndexer {
 					await this.blobFacade.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, archiveId, this.archiveDownloader, resumeParams)
 					const downloadAndStoreBlobsEnd = performance.now()
 					console.log(TAG, `Finished storing archive ${archiveId} in offline db (took ${downloadAndStoreBlobsEnd - downloadAndStoreBlobsStart} ms)`)
+
+					// subtract archive's size from remaining data to download
+					this.remainingDataToDownloadInBytes -= assertNotNull(archiveSizes.get(archiveId))
+					archiveSizes.delete(archiveId)
 				})
 			} catch (e) {
 				await this.archiveDownloader.abortDownloadAndStoreArchive(archiveId)
@@ -395,10 +415,11 @@ export class OfflineMailIndexer implements MailIndexer {
 			}
 		}
 
+		this.remainingDataToDownloadInBytes = 0
 		const preloadEnd = performance.now()
 		console.log(TAG, `Finished preloading ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
 
-		return allArchives
+		return allArchiveIds
 	}
 
 	private async indexMailbag(
@@ -562,6 +583,10 @@ export class OfflineMailIndexer implements MailIndexer {
 				this.indexTasks = []
 
 				const update = this.createSearchIndexStateInfo(0)
+
+				// only auto restart if it was cancelled automatically (e.g. network changed to metered)
+				update.autoRestartEnabled = e.reason !== MailIndexingAbortReason.UserCancelled
+
 				if (e instanceof CancelledError) {
 					console.log("Mail indexing cancelled finally!")
 					update.error = null
@@ -570,6 +595,7 @@ export class OfflineMailIndexer implements MailIndexer {
 					update.error = e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown
 					update.failedIndexingUpTo = e instanceof ConnectionError ? this.currentIndexTimestamp : null
 				}
+
 				await this.infoMessageHandler.onSearchIndexStateUpdate(update)
 			} finally {
 				this.currentlyIndexingPromise = null
@@ -677,8 +703,8 @@ export class OfflineMailIndexer implements MailIndexer {
 		}
 	}
 
-	cancelMailIndexing(): void {
-		this.abortController.abort(MailIndexingAbortReason.Cancelled)
+	cancelMailIndexing(abortReason: MailIndexingAbortReason = MailIndexingAbortReason.Cancelled): void {
+		this.abortController.abort(abortReason)
 	}
 
 	async cleanupAfterIndexing(): Promise<void> {
@@ -687,5 +713,9 @@ export class OfflineMailIndexer implements MailIndexer {
 		await this.offlineStoragePersistence.clearEncryptedBlobsForType(MailDetailsBlobTypeRef)
 		const end = performance.now()
 		console.log(TAG, `Cleanup after indexing done (took ${end - start} ms)`)
+	}
+
+	async remainingDataInBytes(): Promise<number> {
+		return this.remainingDataToDownloadInBytes
 	}
 }

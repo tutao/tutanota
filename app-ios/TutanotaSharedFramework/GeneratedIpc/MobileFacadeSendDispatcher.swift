@@ -50,4 +50,15 @@ public final class MobileFacadeSendDispatcher : MobileFacade {
 		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
 		}
 	
+	 public func connectionTypeUpdate(
+		_ isMetered: Bool
+	) async throws -> Void
+		{
+		var args = [String]()
+		args.append(toJson(isMetered))
+		let encodedFacadeName = toJson("MobileFacade")
+		let encodedMethodName = toJson("connectionTypeUpdate")
+		let _ = try await self.transport.sendRequest(requestType: "ipc",  args: [encodedFacadeName, encodedMethodName] + args)
+		}
+	
 }

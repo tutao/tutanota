@@ -60,6 +60,7 @@ import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
 import { Aes256Key } from "../../../../../src/platform-kit/crypto"
+import { ArchiveMetadataTypeRef } from "@tutao/entities/storage"
 
 const TEST_INDEX_CHUNK_SIZE = 50
 o.spec("OfflineMailIndexer", () => {
@@ -256,7 +257,7 @@ o.spec("OfflineMailIndexer", () => {
 		})
 
 		const sk = symmetricCipherUtils.aes256RandomKey()
-		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([listIdPart(mail.mailDetails)])
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([_createArchiveMetadata(listIdPart(mail.mailDetails))])
 		when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), archiveDownloader, null)).thenDo(async () => {
 			await storeMailDetailsBlobs([mailDetails], sk)
 		})
@@ -372,7 +373,12 @@ o.spec("OfflineMailIndexer", () => {
 			rangeStart: 1,
 			reprDigest: "hashBrownIsDelecious",
 		}
-		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve(["archive-c", "archive-b", "archive-a", "archive-d"])
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([
+			_createArchiveMetadata("archive-c"),
+			_createArchiveMetadata("archive-b"),
+			_createArchiveMetadata("archive-a"),
+			_createArchiveMetadata("archive-d"),
+		])
 		when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve({
 			archiveId: "archive-c",
 			modelVersion: mailDetailsBlobModel.version,
@@ -440,7 +446,7 @@ o.spec("OfflineMailIndexer", () => {
 			reprDigest: "hashBrownIsDelecious",
 		}
 
-		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([_createArchiveMetadata(archiveId)])
 		when(persistence.getArchiveDownloadRangeHeaders(archiveId, MailDetailsBlobTypeRef, mailDetailsBlobModel.version)).thenResolve(rangeHeaders)
 		when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve({
 			archiveId,
@@ -481,7 +487,7 @@ o.spec("OfflineMailIndexer", () => {
 
 		const archiveId = "WHOA, I store LOTS of cool stuff!"
 
-		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
+		when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([_createArchiveMetadata(archiveId)])
 
 		for (let i = 0; i < mailCount; i++) {
 			const mailDetails = createTestEntity(
@@ -624,7 +630,7 @@ o.spec("OfflineMailIndexer", () => {
 			when(persistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)).thenResolve(null)
 			when(crypto.resolveSessionKey(matchers.anything())).thenResolve(sk)
 
-			when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([archiveId])
+			when(blobs.enumerateArchivesForGroup(mailGroupId, ArchiveDataType.MailDetails)).thenResolve([_createArchiveMetadata(archiveId)])
 			when(blobs.downloadAndStoreEncryptedBlobArchive(MailDetailsBlobTypeRef, listIdPart(mail.mailDetails), archiveDownloader, null)).thenDo(async () => {
 				await storeMailDetailsBlobs([mailDetails], sk)
 			})
@@ -866,3 +872,10 @@ o.spec("OfflineMailIndexer", () => {
 		})
 	})
 })
+
+function _createArchiveMetadata(archiveId: string, calculatedSize: number = 0) {
+	let archiveMetadata = createTestEntity(ArchiveMetadataTypeRef)
+	archiveMetadata.archiveId = archiveId
+	archiveMetadata.calculatedSize = String(calculatedSize)
+	return archiveMetadata
+}
