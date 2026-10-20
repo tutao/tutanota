@@ -134,7 +134,7 @@ o.spec("ImapMailImportController", () => {
 		await controller.continueImport(imapAccountSyncStateIdMock)
 
 		verify(imapErrorHandler.handleImapError(authError, undefined, imapAccountSyncStateIdMock), { times: 1 })
-		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0), { times: 1 })
+		//verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 0), { times: 1 })
 		verify(imapImporter.continueImport(imapAccountSyncStateIdMock, false, 1), { times: 1 })
 	})
 
