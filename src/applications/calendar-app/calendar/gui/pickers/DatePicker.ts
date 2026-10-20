@@ -39,15 +39,40 @@ export interface DatePickerAttrs {
 }
 
 /**
- * Date picker component. Looks like a text field until interacted. On mobile it will be native browser picker, on desktop a {@class VisualDatePicker}.
+ * Date picker
  *
- * The HTML input[type=date] is not usable on desktops because:
- * * it always displays a placeholder (mm/dd/yyyy) and several buttons and
- * * the picker can't be opened programmatically and
- * * the date format is based on the operating systems locale and not on the one set in the browser (and used by us)
+ * We want users to see dates in their chosen locale (ex: "DD/MM/YYYY" or "Thursday, October 8th 2026") but even though
+ * our app has locale settings, this doesn't update native browser elements like `<input type="date">` which read locale
+ * elsewhere (i.e. browser settings, OS settings, hardcoded/compiled into browser package, shell variables like
+ * LC_ALL or LANG, etc. it's unclear)
  *
- * That is why we only use the picker on mobile devices. They provide native picker components
- * and allow opening the picker by forwarding the click event to the input.
+ * Although HTML `<input>` accepts some styling, the content within the element and its picker (`.showPicker()`) isn't
+ * always part of the DOM or can't be fully accessed, changed, or styled in CSS/JS. There's no way to know what's being
+ * shown to the user. For instance, an `<input type="datetime-local">` in Firefox renders as `dd/mm/yyyy, --:-- 📅`
+ * which has quirks: the format "DD/MM/YYYY" is determined by browser/OS locale (it's complicated; see above) not by
+ * us; the icon can't be hidden; there's a native picker for the date but not the time; the value we get/set is always
+ * in "YYYY-MM-DDTHH:MM" (24-hour) format; we can't update the user's selection to a specific area as `.setRangeText()`
+ * isn't implemented; etc. The native picker on desktop looks web-ish and floats under the input element (again, not
+ * part of the DOM) while on Android/iOS is usually a fullscreen OS dialog. These have great keyboard accessibility and
+ * would be a lot of code to match their functionality, but ultimately we considered it worth it to try. Despite
+ * that, we still want mobile users to use their native pickers in the app and on web since they'd be most expected.
+ *
+ * To have both cases we use a zero-height `<input type="date">`/`<input type="time">` next to a `<input type="text">`
+ * and synchronize the value between them. If we zero the width instead then the iOS picker wouldn't be centered.
+ * Thankfully normal text input has `.setRangeText()` so we can add keyboard tab navigation, arrow key stepping,
+ * etc. later on.
+ *
+ * iOS Safari and iOS WebView both don't support `.showPicker()` for anything other than `<input type="file">` but in
+ * our testing it's enough to use `.focus()` to open the picker.
+ *
+ * Links:
+ * - https://stackoverflow.com/questions/21721647/ Re: `<input type="date">` localization in Chrome
+ * - https://github.com/microsoft/playwright/issues/3934 Re: Locale overrides (LC_ALL, LANG) don't affect rendering
+ * - https://demo.lukewarlow.dev/showPicker/ Is a good test playground
+ * - https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/showPicker#browser_compatibility Re: iOS compat
+ * - https://webkit.org/b/261703 Re: iOS compat
+ *
+ * See also {@class VisualDatePicker}
  */
 export class DatePicker implements Component<DatePickerAttrs> {
 	private inputText: string = ""
