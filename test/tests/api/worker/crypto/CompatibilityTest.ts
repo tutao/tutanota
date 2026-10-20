@@ -80,6 +80,7 @@ import { uncompress } from "../../../../../src/platform-kit/instance-pipeline/Co
 import { uint8ArrayTo128Key, uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 import { AssociatedData } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
 import { InstanceTypeId, makeKeyDerivationContext } from "../../../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
+import { beforeEach } from "node:test"
 
 const originalRandom = random.generateRandomData
 
@@ -92,6 +93,8 @@ o.spec("CompatibilityTest", function () {
 	let x25519: X25519
 	let cryptoWrapper: CryptoWrapper
 	let bcrypt: Bcrypt
+
+	beforeEach(function () {})
 
 	o.beforeEach(function () {
 		const symmetricCipherUtils = new SymmetricCipherUtils(random)

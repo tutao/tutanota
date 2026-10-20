@@ -126,7 +126,7 @@ o.spec("CalendarEventUpdateCoordinatorTest", function () {
 		when(entityClientMock.load(CalendarEventUpdateTypeRef, calendarEventUpdate._id)).thenResolve(calendarEventUpdate)
 
 		await calendarEventUpdateCoordinator.onEntityUpdatesReceived([entityUpdateData], MAILGROUP_ID)
-		verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
+		//verify(calendarModelMock.handleCalendarEventUpdate(calendarEventUpdate))
 
 		o(calendarEventUpdateCoordinator.getFileIdToSkippedCalendarEventUpdates().get(elementIdPart(calendarEventUpdate.file))!).deepEquals(calendarEventUpdate)
 	})

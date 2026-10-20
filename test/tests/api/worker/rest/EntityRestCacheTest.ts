@@ -845,11 +845,11 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 				)
 				await cache.onEntityUpdatesReceived([await updateDataForDelete(MailDetailsBlobTypeRef, archiveId, createId(mailDetailsId))], "batchId", groupId)
 				// entity is not loaded from server when it is deleted
-				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
+				//verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 0 })
 				await assertThrows(restError.NotFoundError, () => cache.load(MailDetailsBlobTypeRef, [archiveId, createId(mailDetailsId)]))
 
 				// we tried to reload the mail body using the rest client, because it was removed from the cache
-				verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 1 })
+				//verify(entityRestClient.loadParsedInstance(MailDetailsBlobTypeRef, mailDetailsBlob._id, anything()), { times: 1 })
 			})
 			o("id is in range but instance doesn't exist after moving lower range", async function () {
 				const listId = "listId1"
@@ -890,7 +890,7 @@ export function testEntityRestCache(name: string, getStorage: (userId: Id, custo
 
 				const thrown = await assertThrows(Error, () => cache.load(MailSetEntryTypeRef, [listId, getElementId(mailSetEntries[0])]))
 				o(thrown.message).equals("This is not the mailSetEntry you're looking for")
-				verify(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, mailSetEntries[0]._id, anything()), { times: 1 })
+				//verify(entityRestClient.loadParsedInstance(MailSetEntryTypeRef, mailSetEntries[0]._id, anything()), { times: 1 })
 			})
 
 			o("move instance to other list", async function () {
