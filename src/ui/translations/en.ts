@@ -2541,7 +2541,7 @@ export default {
 		"updatingShare_msg":"Updating share link",
 		"creatingShare_msg": "Creating share link",
 		"setPasswordAndExpiration_label":"Set password and expiration date",
-		"deleteLink_action":"Delete link",
+		"deleteLink_action":"Stop sharing",
 		"shareDeleted_msg":"Share link for {fileName} has been deleted",
 		"fileNotFound_msg":"File not found",
 		"fileDoesNotExist_msg":"This file does not exist. It may have been deleted or unshared.",
