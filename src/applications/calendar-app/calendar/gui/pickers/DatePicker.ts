@@ -17,9 +17,14 @@ import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHand
 import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
 
+// TODO: Ideally this would be auto-detected on available space and flip automatically but that logic would be large and
+// best factored out into a more general purpose Popover-type wrapper component. IntersectionObserver and ResizeObserver
+// might be overkill; viewport and getClientBoundingRect is probably enough as long as the popover is above all other
+// containers (as native date picker is) and won't get stuck in a modal. Libraries like React Aria from Adobe prevent
+// scrolling while the picker is open (!) which also means the math is done once at render not while scrolling.
 export enum PickerPosition {
 	TOP,
-	BOTTOM,
+	BOTTOM, // Default. Never explicitly used.
 }
 
 export interface DatePickerAttrs {
@@ -192,6 +197,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						style: {
 							width: "240px",
 							right: attrs.rightAlignDropdown ? "0" : null,
+							// bottom: px() TODO: NEAT. PickerPosition.TOP goes UP above the element...
 						},
 						oncreate: (vnode) => {
 							const listener = (e: MouseEvent) => {
@@ -208,6 +214,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 									}
 								}
 							}
+							// TODO: PickerPosition.TOP used `position: fixed` but we used `transform: translateX(0px)`
+							// so fixed positioning didn't work. It'd pull the element out of the stacking context, but
+							// wouldn't be "fixed" during scroll - it'd just scroll with the page - so I removed that.
+							// This is only used in RepeatRuleEditor.ts where the picker could hit the modal bottom.
 							if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
 								const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
 								;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
