@@ -159,8 +159,11 @@ export class OfflineMailIndexer implements MailIndexer {
 		try {
 			const mail = await this.entityClient.load(MailTypeRef, mailId)
 			if (mail.mailDetails != null) {
+				// Drop deleted MailDetailsBlob so that archive download can be resumed (so Repr-Digest matches).
+				//
+				// MailDetailsBlob will not be dropped if its Mail isn't cached. We can ensure all mails are cached by
+				// preloading mails before starting archive download, but that would impact indexing time, so we don't.
 				const [archiveId, blobId] = mail.mailDetails
-				// drop deleted MailDetailsBlob so that archive download can be resumed
 				await this.offlineStoragePersistence.deleteEncryptedBlob(MailDetailsBlobTypeRef, archiveId, blobId)
 			}
 		} catch (e) {
@@ -281,7 +284,6 @@ export class OfflineMailIndexer implements MailIndexer {
 		abortProgress: () => Promise<unknown>,
 	) {
 		console.log(TAG, `Began indexing mail group ${mailbox._id}`)
-
 		const indexStart = performance.now()
 
 		// Sort in reverse order to keep a consistent list
@@ -290,11 +292,7 @@ export class OfflineMailIndexer implements MailIndexer {
 			.map((mailBag) => mailBag.mails)
 			.sort((a, b) => compareNewestFirst(a, b, EntityIdEncoding.Base64Ext))
 
-		// Preload mails into cache before preloading archives, otherwise we won't be able to drop deleted MailDetailsBlobs
-		// from encrypted_blobs table, and so the resume hash won't match, and we won't be able to resume archive download.
-		await this.preloadMails(mailBagsToLoad, groupData)
 		const allArchives = await this.preloadEncryptedArchivesForGroup(assertNotNull(mailbox._ownerGroup))
-
 		let estimatedMailsWithBlobs = await this.offlineStoragePersistence.estimateTotalBlobCountForArchives(groupData.groupId, allArchives)
 		let totalMailsIndexedWithBlobs = 0
 		let totalMailsIndexed = 0
@@ -401,39 +399,6 @@ export class OfflineMailIndexer implements MailIndexer {
 		console.log(TAG, `Finished preloading ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
 
 		return allArchives
-	}
-
-	/**
-	 * Preload mailLists into cache
-	 */
-	private async preloadMails(mailLists: Id[], groupData: IndexedGroupData): Promise<void> {
-		console.log(TAG, `Preloading ${mailLists.length} mailBag(s)`)
-		const preloadStart = performance.now()
-
-		for (const mailList of mailLists) {
-			let startId = mailList === groupData.lastIndexedEntityListId ? groupData.lastIndexedEntityElementId : GENERATED_MAX_ID
-
-			while (!this.abortController.signal.aborted) {
-				try {
-					const mails = await this.entityClient.loadRange(MailTypeRef, mailList, startId, this.indexChunkSize, true)
-					if (mails.length < this.indexChunkSize) {
-						break
-					}
-
-					startId = getElementId(lastThrow(mails))
-				} catch (e) {
-					if (e instanceof NotAuthorizedError) {
-						console.warn("NotAuthorized: ", e)
-						return
-					} else {
-						throw e
-					}
-				}
-			}
-		}
-
-		const preloadEnd = performance.now()
-		console.log(TAG, `Finished preloading ${mailLists.length} mailBag(s) (took ${preloadEnd - preloadStart} ms)`)
 	}
 
 	private async indexMailbag(
