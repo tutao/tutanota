@@ -27,6 +27,23 @@ interface TimeOption {
 	name: string
 }
 
+/**
+ * Time picker
+ *
+ * See also DatePicker.ts
+ *
+ * This implements the same HTML structure as {@class DatePicker} which uses an `<input type="time"><input type="text">`
+ * together where the native time picker is zero-width and not directly clickable. For mobile devices (not only the app)
+ * we show the native time picker rendered by the browser/WebView.
+ *
+ * TODO:
+ *  - ClientDetector.get().isMobile() not only Env's isApp
+ *  - Replace inputIsFocused onFocus onBlur with document.activeElement as done in DatePicker
+ *  - Variable renaming, nativeInputDOMElement -> inputTextEl, inputTimeEl
+ *  - Replace returnValue.push() with a ternary and "&&" JSX-like calls
+ *  - Note about lack of PickerPosition.TOP, call for Popover in the future
+ *  - Testing on iPhones especially...
+ */
 export class TimePicker implements Component<TimePickerAttrs> {
 	private selectedTime: Time
 	private timeDropdownOptions: TimeOption[] = []
