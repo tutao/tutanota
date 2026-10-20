@@ -142,7 +142,8 @@ export async function showItemPicker(entityClient: EntityClient, driveFacade: Dr
 									}
 									pickerDialog.close()
 								},
-								type: ButtonType.Secondary,
+								type: ButtonType.Primary,
+								isDisabled: attrs.mode === DriveItemPickerBehavior.PickItems && listModel.state.selectedItems.size === 0,
 							},
 						],
 					}),
