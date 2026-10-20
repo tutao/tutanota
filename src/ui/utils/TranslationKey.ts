@@ -2560,3 +2560,4 @@ export type TranslationKeyType =
 	| "openDriveDestinationPickerForAttachment_action"
 	| "skipThisFile_action"
 	| "duplicateFileNames_title"
+	| "migrationSyncStateAllFoldersPermanentlyDeleted_msg"

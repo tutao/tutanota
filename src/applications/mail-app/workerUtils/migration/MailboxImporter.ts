@@ -8,7 +8,7 @@ import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } 
 import { MigrationMail, MigrationMailAttachment } from "../../../common/api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationError } from "../../../common/api/common/error/MigrationError.js"
 
-import { assertNotNull, getFirstOrThrow, isEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, isEmpty, isNotEmpty, partition, promiseMap, uint8ArrayToString } from "@tutao/utils"
 import { sha256Hash } from "@tutao/crypto"
 import {
 	ImportMailFacade,
@@ -126,6 +126,21 @@ export class MailboxImporter implements MigrationSyncFacade {
 					const folderSyncStates = await this.mailboxMigrationFacade.getAllMailboxMigrationFolderSyncStates(
 						mailboxMigrationSyncState.mailboxMigrationFolderSyncStates,
 					)
+					if (
+						isNotEmpty(folderSyncStates) &&
+						folderSyncStates.every(
+							(folderSyncState) =>
+								folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC ||
+								folderSyncState.status === MailboxMigrationFolderSyncStatus.CANCELED,
+						)
+					) {
+						await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
+							mailboxMigrationSyncState,
+							MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
+							MailboxMigrationFolderSyncStatus.CANCELED,
+							undefined,
+						)
+					}
 					const session = newMailboxImportSession(mailboxMigrationSyncState, folderSyncStates, null)
 					this.mailboxImportSessions.set(this.getMailboxImportSessionsMapKey(mailboxMigrationSyncState._id), session)
 				}
@@ -146,6 +161,21 @@ export class MailboxImporter implements MigrationSyncFacade {
 				const folderSyncStates = await this.mailboxMigrationFacade.getAllMailboxMigrationFolderSyncStates(
 					mailboxMigrationSyncState.mailboxMigrationFolderSyncStates,
 				)
+				if (
+					isNotEmpty(folderSyncStates) &&
+					folderSyncStates.every(
+						(folderSyncState) =>
+							folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC ||
+							folderSyncState.status === MailboxMigrationFolderSyncStatus.CANCELED,
+					)
+				) {
+					await this.mailboxMigrationFacade.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
+						mailboxMigrationSyncState,
+						MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
+						MailboxMigrationFolderSyncStatus.CANCELED,
+						undefined,
+					)
+				}
 				const session = newMailboxImportSession(mailboxMigrationSyncState, folderSyncStates, userMigrationInfo)
 				this.mailboxImportSessions.set(this.getMailboxImportSessionsMapKey(mailboxMigrationSyncState._id), session)
 			}
@@ -306,7 +336,9 @@ export class MailboxImporter implements MigrationSyncFacade {
 
 		for (const folderSyncState of mailboxMigrationFolderSyncStates) {
 			const importedSourceIdToMigrationMailId = new Map<string, MigrationMailId>()
-			if (!(folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC)) {
+			const noSync =
+				folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC || folderSyncState.status === MailboxMigrationFolderSyncStatus.CANCELED
+			if (!noSync) {
 				const importedMigrationMails = await this.mailboxMigrationFacade.getImportedMails(folderSyncState.importedMails)
 				for (const importedMigrationMail of importedMigrationMails) {
 					const { sourceId, imapModSeq } = importedMigrationMail
@@ -322,7 +354,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 			const migrationMailboxState: MigrationMailboxState = {
 				sourceId: folderSyncState.sourceId,
 				importedSourceIdToMailIdsMap: importedSourceIdToMigrationMailId,
-				noSync: folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC,
+				noSync,
 			}
 			migrationMailboxState.uidNext = folderSyncState.uidnext ? parseInt(folderSyncState.uidnext) : undefined
 			migrationMailboxState.uidValidity = folderSyncState.uidvalidity ? BigInt(folderSyncState.uidvalidity) : undefined
@@ -458,7 +490,11 @@ export class MailboxImporter implements MigrationSyncFacade {
 	async onMailboxStatus(mailboxMigrationSyncStateId: IdTuple, migrationMailboxStatus: MigrationMailboxStatus): Promise<void> {
 		const session = assertNotNull(this.getMailboxImportSessionOrNull(mailboxMigrationSyncStateId))
 		const folderSyncState = getFolderSyncStateForMailboxPath(migrationMailboxStatus.sourceId, session.mailboxMigrationFolderSyncStates)
-		if (folderSyncState !== null && folderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC) {
+		if (
+			folderSyncState !== null &&
+			folderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC &&
+			folderSyncState.status !== MailboxMigrationFolderSyncStatus.CANCELED
+		) {
 			// If the uidvalidity of a folder has changed, it means all IMAP uids are invalidated, and we cannot continue with the sync.
 			// This should usually never happen, only with bad IMAP server implementations.
 			if (folderSyncState.uidvalidity && !(folderSyncState.uidvalidity === migrationMailboxStatus.uidValidity.toString())) {
@@ -488,8 +524,12 @@ export class MailboxImporter implements MigrationSyncFacade {
 			getFirstOrThrow(migrationMails).belongsToMailbox.sourceId,
 			session.mailboxMigrationFolderSyncStates,
 		)
-		if (folderSyncState === null || folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC) {
-			console.log("folder sync state is null or no sync")
+		if (
+			folderSyncState === null ||
+			folderSyncState.status === MailboxMigrationFolderSyncStatus.NO_SYNC ||
+			folderSyncState.status === MailboxMigrationFolderSyncStatus.CANCELED
+		) {
+			console.log("folder sync state is null or no sync or canceled")
 			return Promise.resolve()
 		}
 		const importMailParamsList: ImportMailParams[] = []
@@ -530,6 +570,8 @@ export class MailboxImporter implements MigrationSyncFacade {
 							error,
 						)
 						await this.stopLocalImport(mailboxMigrationSyncStateId)
+					} else if (error.name === "PreconditionFailedError") {
+						console.error("The mails could not be imported since the syncing folder was permanently deleted...")
 					} else {
 						console.error("There was some unknown error while importing using mailbox importer ... ", error)
 						await this.postponeImport(
