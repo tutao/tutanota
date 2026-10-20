@@ -7310,6 +7310,7 @@ export type ImapPutIn = {
 
 	// === these are not present in metamodel
 	_type: TypeRef<ImapPutIn>
+	_errors: Object
 	_original: Nullable<ImapPutIn>
 	isAdapter: false
 }
