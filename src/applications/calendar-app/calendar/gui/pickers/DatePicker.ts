@@ -99,164 +99,159 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			this.inputText = date ? formatDate(date) : ""
 			this.previousPassedDownDate = date
 		}
-		return m(
-			".rel",
-			{
-				class: attrs.classes?.join(" "),
-			},
-			[
-				// Zero-width (TODO: Zero-height 100% width might be better?)
-				m("input[type=date]", {
-					disabled: attrs.disabled,
-					style: {
-						// Must have exactly the same height at the input[type=text] below, so the picker doesn't overlap
-						// the input field when it appears (for non-fullscreen native pickers i.e. desktop/tablets). We
-						// don't set a height manually, so we just match the font/line-height/border/padding instead :)
-						"border-width": "1px 0 1px",
-						"border-color": "transparent",
-						width: 0,
-						padding: "8px 0",
-						appearance: "none",
-					},
-					value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
-					oncreate: (input) => {
-						this.inputDateEl = input.dom as HTMLInputElement
-					},
-					oninput: (event: InputEvent) => {
-						this.handleNativeInput(this.inputDateEl!, onDateSelected)
-					},
-				}),
-				m("input[type=text].tutaui-button-outline", {
-					tabIndex: Number(EnvProvider.get().isApp() ? TabIndex.Programmatic : TabIndex.Default),
-					disabled: attrs.disabled,
-					ariaLabel: attrs.label.text,
-					style: {
-						"border-color": theme.outline,
-						opacity: attrs.disabled ? 0.7 : 1.0,
-					},
-					value: date ? formatDateWithWeekdayAndYear(date) : attrs.nullSelectionText ? lang.getTranslationText(attrs.nullSelectionText) : NBSP,
-					oncreate: (input) => {
-						this.inputTextEl = input.dom as HTMLInputElement
-					},
-					oninput: (newValue: string) => (this.inputText = newValue),
-					onfocus: () => {
-						if (attrs.disabled) return
-						// Show the VisualDatePicker HTML version
-						this.showingDropdown = true
-					},
-					// On focus opens the dropdown, the user can tab into it, so we shouldn't close it on blur.
-					// i.e. Do not use `onblur: () => { this.showingDropdown = false },`
-					onkeydown: (event: KeyboardEvent) => {
-						const key = keyboardEventToKeyPress(event)
-						// Toggle on enter key
-						if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
-							if (this.showingDropdown) {
-								this.handleInput(this.inputText, attrs.onDateSelected)
-								this.showingDropdown = false
-							} else {
-								this.showingDropdown = true
-							}
-						}
-						if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-							this.inputTextEl?.focus()
+		return m(".rel", { class: attrs.classes?.join(" ") }, [
+			// Zero-width (TODO: Zero-height 100% width might be better?)
+			m("input[type=date]", {
+				disabled: attrs.disabled,
+				style: {
+					// Must have exactly the same height at the input[type=text] below, so the picker doesn't overlap
+					// the input field when it appears (for non-fullscreen native pickers i.e. desktop/tablets). We
+					// don't set a height manually, so we just match the font/line-height/border/padding instead :)
+					"border-width": "1px 0 1px",
+					"border-color": "transparent",
+					width: 0,
+					padding: "8px 0",
+					appearance: "none",
+				},
+				value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
+				oncreate: (input) => {
+					this.inputDateEl = input.dom as HTMLInputElement
+				},
+				oninput: (event: InputEvent) => {
+					this.handleNativeInput(this.inputDateEl!, onDateSelected)
+				},
+			}),
+			m("input[type=text].tutaui-button-outline", {
+				tabIndex: Number(EnvProvider.get().isApp() ? TabIndex.Programmatic : TabIndex.Default),
+				disabled: attrs.disabled,
+				ariaLabel: attrs.label.text,
+				style: {
+					"border-color": theme.outline,
+					opacity: attrs.disabled ? 0.7 : 1.0,
+				},
+				value: date ? formatDateWithWeekdayAndYear(date) : attrs.nullSelectionText ? lang.getTranslationText(attrs.nullSelectionText) : NBSP,
+				oncreate: (input) => {
+					this.inputTextEl = input.dom as HTMLInputElement
+				},
+				oninput: (newValue: string) => (this.inputText = newValue),
+				onfocus: () => {
+					if (attrs.disabled) return
+					// Show the VisualDatePicker HTML version
+					this.showingDropdown = true
+				},
+				// On focus opens the dropdown, the user can tab into it, so we shouldn't close it on blur.
+				// i.e. Do not use `onblur: () => { this.showingDropdown = false },`
+				onkeydown: (event: KeyboardEvent) => {
+					const key = keyboardEventToKeyPress(event)
+					// Toggle on enter key
+					if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
+						if (this.showingDropdown) {
+							this.handleInput(this.inputText, attrs.onDateSelected)
 							this.showingDropdown = false
-							// Closes VisualDatePicker but not any parent dialogs like CalendarEventEditDialog for example:
-							event.preventDefault()
-							event.stopPropagation()
+						} else {
+							this.showingDropdown = true
 						}
-					},
-				}),
-				// TODO: We would like to show the date being typed in the dropdown
-				this.showingDropdown &&
-					m(
-						".abs.content-bg.z3.menu-shadow.plr-12.pb-8",
-						{
-							"aria-modal": "true",
-							"aria-label": lang.getTranslationText(attrs.label),
-							style: {
-								width: "240px",
-								right: attrs.rightAlignDropdown ? "0" : null,
-							},
-							class: position === PickerPosition.TOP ? "abs" : "fixed",
-							oncreate: (vnode) => {
-								const listener = (e: MouseEvent) => {
-									if (
-										// i.e. "if click/focus is NOT inside the VisualDatePicker" then hide dropdown
-										!vnode.dom.contains(e.target as HTMLElement)
-									) {
-										// We are subscribed to two events so this listener *will* be invoked twice, but we only
-										// need to do the work once.
-										if (this.showingDropdown) {
-											this.showingDropdown = false
-											this.handleInput(this.inputText, attrs.onDateSelected)
-											m.redraw()
-										}
-									}
-								}
-								if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
-									const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
-									;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
-								}
-
-								this.documentInteractionListener = listener
-
-								const inputViewDom = window.tutao.root.getDom()
-								inputViewDom.addEventListener("click", listener, true)
-								inputViewDom.addEventListener("focus", listener, true)
-							},
-							onremove: () => {
-								if (this.documentInteractionListener) {
-									const mainViewDom = window.tutao.root.getDom()
-									mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
-									mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
-								}
-							},
+					}
+					if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+						this.inputTextEl?.focus()
+						this.showingDropdown = false
+						// Closes VisualDatePicker but not any parent dialogs like CalendarEventEditDialog for example:
+						event.preventDefault()
+						event.stopPropagation()
+					}
+				},
+			}),
+			// TODO: We would like to show the date being typed in the dropdown
+			this.showingDropdown &&
+				m(
+					".abs.content-bg.z3.menu-shadow.plr-12.pb-8",
+					{
+						"aria-modal": "true",
+						"aria-label": lang.getTranslationText(attrs.label),
+						style: {
+							width: "240px",
+							right: attrs.rightAlignDropdown ? "0" : null,
 						},
-						[
-							m(VisualDatePicker, {
-								// TODO: Are we sure we want `new Date()`? What are the implications of this.
-								selectedDate: this.parseDate(this.inputText) ?? date ?? new Date(),
-								onDateSelected: (newDate, dayClick) => {
-									// We differentiate between different selections as we sometimes* want to keep the dropdown open but still want to select the date
-									// * with keyboard-based navigation space selects the date but keeps it open while return key will work like click
-									this.handleSelectedDate(newDate, attrs.onDateSelected)
-									if (!dayClick) return
-									// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
-									if (this.inputTextEl) {
-										// Focus the dom input but then override the showingDropdown right after focus.
-										// It should be invoked after the normal listener since the listeners are appended to the end.
-
-										// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
-										// So make sure to add the listener first.
-										this.inputTextEl.addEventListener(
-											"focus",
-											() => {
-												this.showingDropdown = false
-												m.redraw()
-											},
-											{ once: true },
-										)
-										this.inputTextEl.focus()
-									}
-								},
-								keyHandler: (key: KeyPress) => {
-									if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-										this.inputTextEl?.focus()
+						oncreate: (vnode) => {
+							const listener = (e: MouseEvent) => {
+								if (
+									// i.e. "if click/focus is NOT inside the VisualDatePicker" then hide dropdown
+									!vnode.dom.contains(e.target as HTMLElement)
+								) {
+									// We are subscribed to two events so this listener *will* be invoked twice, but we only
+									// need to do the work once.
+									if (this.showingDropdown) {
 										this.showingDropdown = false
-										return false
+										this.handleInput(this.inputText, attrs.onDateSelected)
+										m.redraw()
 									}
-									return true
-									// TODO:
-									// event.preventDefault()
-									// event.stopPropagation()
-								},
-								wide: false,
-								startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-							}),
-						],
-					),
-			],
-		)
+								}
+							}
+							if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
+								const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
+								;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
+							}
+
+							// TODO: What's the purpose of this? The `window.tutao.root.getDom()` is the modal overlay so
+							// why not just listen on blur of the VisualDatePicker?
+							this.documentInteractionListener = listener
+
+							const inputViewDom = window.tutao.root.getDom()
+							inputViewDom.addEventListener("click", listener, true)
+							inputViewDom.addEventListener("focus", listener, true)
+						},
+						onremove: () => {
+							if (this.documentInteractionListener) {
+								const mainViewDom = window.tutao.root.getDom()
+								mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
+								mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
+							}
+						},
+					},
+					[
+						m(VisualDatePicker, {
+							// TODO: Are we sure we want `new Date()`? What are the implications of this.
+							selectedDate: this.parseDate(this.inputText) ?? date ?? new Date(),
+							onDateSelected: (newDate, dayClick) => {
+								// We differentiate between different selections as we sometimes* want to keep the dropdown open but still want to select the date
+								// * with keyboard-based navigation space selects the date but keeps it open while return key will work like click
+								this.handleSelectedDate(newDate, attrs.onDateSelected)
+								if (!dayClick) return
+								// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
+								if (this.inputTextEl) {
+									// Focus the dom input but then override the showingDropdown right after focus.
+									// It should be invoked after the normal listener since the listeners are appended to the end.
+
+									// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
+									// So make sure to add the listener first.
+									this.inputTextEl.addEventListener(
+										"focus",
+										() => {
+											this.showingDropdown = false
+											m.redraw()
+										},
+										{ once: true },
+									)
+									this.inputTextEl.focus()
+								}
+							},
+							keyHandler: (key: KeyPress) => {
+								if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+									this.inputTextEl?.focus()
+									this.showingDropdown = false
+									return false
+								}
+								return true
+								// TODO:
+								// event.preventDefault()
+								// event.stopPropagation()
+							},
+							wide: false,
+							startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+						}),
+					],
+				),
+		])
 	}
 
 	private handleInput(text: string, onDateSelected: DatePickerAttrs["onDateSelected"]) {
