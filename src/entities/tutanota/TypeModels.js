@@ -12742,7 +12742,7 @@ const typeModels = {
 		id: 1979,
 		rootId: "CHR1dGFub3RhAAe7",
 		versioned: false,
-		encrypted: false,
+		encrypted: true,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
