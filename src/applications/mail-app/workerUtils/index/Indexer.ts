@@ -1,5 +1,6 @@
 import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { User } from "@tutao/entities/sys"
+import { MailIndexingAbortReason } from "./MailIndexer"
 
 export interface IndexerInitParams {
 	user: User
@@ -32,5 +33,7 @@ export interface Indexer {
 
 	rebuildMailIndex(): Promise<void>
 
-	cancelMailIndexing(): void
+	cancelMailIndexing(abortReason: MailIndexingAbortReason): void
+
+	remainingDataInBytes(): Promise<number>
 }

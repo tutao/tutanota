@@ -55,7 +55,11 @@ import { GroupMembershipTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
 import { ProgressMonitor } from "../../../../../src/platform-kit/network/ProgressMonitorInterface"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { MailState } from "../../../../../src/entities/tutanota/Utils"
-import { defaultMailIndexerNewMailDownloader, MailIndexerNewMailDownloader } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
+import {
+	defaultMailIndexerNewMailDownloader,
+	MailIndexerNewMailDownloader,
+	MailIndexingAbortReason,
+} from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexer"
 
 class FixedDateProvider implements DateProvider {
 	now: number
@@ -555,6 +559,7 @@ o.spec("WebMailIndexer", () => {
 				infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: true,
+					autoRestartEnabled: true,
 					progress: 0,
 					currentMailIndexTimestamp: now,
 					aimedMailIndexTimestamp: indexingTimestampAim,
@@ -596,6 +601,7 @@ o.spec("WebMailIndexer", () => {
 				infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: true,
+					autoRestartEnabled: true,
 					// progress is set to 1 when indexing is cancelled before restarting
 					progress: 1,
 					currentMailIndexTimestamp: now,
@@ -838,6 +844,7 @@ o.spec("WebMailIndexer", () => {
 				infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: true,
+					autoRestartEnabled: true,
 					progress: 0,
 					currentMailIndexTimestamp: currentTimestamp,
 					aimedMailIndexTimestamp: currentTimestamp,
@@ -1115,6 +1122,7 @@ o.spec("WebMailIndexer", () => {
 				infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: true,
+					autoRestartEnabled: true,
 					progress: 0,
 					currentMailIndexTimestamp: now,
 					// aimedMailIndexTimestamp is set to currentMailIndexTimestamp when indexing is cancelled
@@ -1153,13 +1161,14 @@ o.spec("WebMailIndexer", () => {
 
 			const mailboxIndexingPromise = indexer.indexMailboxes(user, indexingTimestampAim)
 			await initPromise
-			indexer.cancelMailIndexingBeforeRestart()
+			indexer.cancelMailIndexing(MailIndexingAbortReason.Restarting)
 			await mailboxIndexingPromise
 
 			verify(
 				infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: true,
+					autoRestartEnabled: true,
 					// progress is set to 1 when indexing is cancelled before restarting
 					progress: 1,
 					currentMailIndexTimestamp: now,
@@ -1228,6 +1237,7 @@ function updateIndexingState(info?: Partial<SearchIndexStateInfo>): SearchIndexS
 	const defaultInfo: SearchIndexStateInfo = {
 		initializing: false,
 		mailIndexEnabled: false,
+		autoRestartEnabled: true,
 		progress: 0,
 		currentMailIndexTimestamp: 0,
 		aimedMailIndexTimestamp: 0,

@@ -1,4 +1,4 @@
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -53,7 +53,7 @@ import {
 	MailTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { abortAware, MailIndexer, MailIndexerNewMailDownloader } from "./MailIndexer"
+import { abortAware, MailIndexer, MailIndexerNewMailDownloader, MailIndexingAbortReason } from "./MailIndexer"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -61,11 +61,6 @@ export const INITIAL_MAIL_INDEX_INTERVAL_DAYS = 28
 const MAIL_INDEX_BATCH_INTERVAL = TimeConstants.DAY_IN_MILLIS // one day
 
 const TAG = "WebMailIndexer"
-
-const enum MailIndexingAbortReason {
-	Cancelled = "MailIndexingCancelled",
-	Restarting = "MailIndexingRestarting",
-}
 
 type CommonImportStateFields = {
 	status: NumberString
@@ -187,12 +182,8 @@ export class WebMailIndexer implements MailIndexer {
 		}
 	}
 
-	cancelMailIndexing() {
-		this.abortController.abort(MailIndexingAbortReason.Cancelled)
-	}
-
-	cancelMailIndexingBeforeRestart() {
-		this.abortController.abort(MailIndexingAbortReason.Restarting)
+	cancelMailIndexing(abortReason: MailIndexingAbortReason = MailIndexingAbortReason.Cancelled) {
+		this.abortController.abort(abortReason)
 	}
 
 	async doInitialMailIndexing(user: User): Promise<void> {
@@ -222,7 +213,7 @@ export class WebMailIndexer implements MailIndexer {
 		}
 
 		if (this._isIndexing) {
-			this.cancelMailIndexingBeforeRestart()
+			this.cancelMailIndexing(MailIndexingAbortReason.Restarting)
 			await this._mailboxIndexingPromise.promise
 		}
 
@@ -260,6 +251,7 @@ export class WebMailIndexer implements MailIndexer {
 				progress: restarting ? 1 : 0,
 				failedIndexingUpTo: cancelled ? null : oldestTimestamp,
 				error: cancelled ? null : e instanceof ConnectionError ? IndexingErrorReason.ConnectionLost : IndexingErrorReason.Unknown,
+				autoRestartEnabled: e.reason !== MailIndexingAbortReason.UserCancelled,
 			}
 
 			if (cancelled) {
@@ -310,6 +302,7 @@ export class WebMailIndexer implements MailIndexer {
 				await this.infoMessageHandler.onSearchIndexStateUpdate({
 					initializing: false,
 					mailIndexEnabled: this.mailIndexingEnabled,
+					autoRestartEnabled: true,
 					progress: 0,
 					currentMailIndexTimestamp: this.currentIndexTimestamp,
 					aimedMailIndexTimestamp: this.currentIndexTimestamp,
@@ -324,6 +317,7 @@ export class WebMailIndexer implements MailIndexer {
 		const update: SearchIndexStateInfo = {
 			initializing: false,
 			mailIndexEnabled: this._mailIndexingEnabled,
+			autoRestartEnabled: true,
 			progress: 1,
 			currentMailIndexTimestamp: this.currentIndexTimestamp,
 			aimedMailIndexTimestamp: oldestTimestamp,
@@ -670,6 +664,10 @@ export class WebMailIndexer implements MailIndexer {
 
 	async extendMailIndex(): Promise<void> {
 		// no-op on web
+	}
+
+	remainingDataInBytes(): Promise<number> {
+		throw new ProgrammingError("Tried to get remaining data to download using web client")
 	}
 }
 

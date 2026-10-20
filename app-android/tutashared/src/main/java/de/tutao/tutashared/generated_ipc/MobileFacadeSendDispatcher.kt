@@ -50,4 +50,14 @@ class MobileFacadeSendDispatcher (
 		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
 	}
 	
+	override suspend fun connectionTypeUpdate(
+		isMetered: Boolean,
+	): Unit
+	{
+		val encodedMethod = json.encodeToString("connectionTypeUpdate")
+		val args : MutableList<String> = mutableListOf()
+		args.add(json.encodeToString(isMetered))
+		this.transport.sendRequest("ipc", listOf(encodedFacade, encodedMethod) + args)
+	}
+	
 }

@@ -43,6 +43,7 @@ import { CustomerInfo } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { MailSearchModel } from "../search/model/MailSearchModel"
+import { MailIndexingAbortReason } from "../workerUtils/index/MailIndexer"
 
 EnvProvider.assertMainOrNode()
 
@@ -442,7 +443,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			await showProgressDialog(
 				"clearCache_action",
 				Promise.resolve().then(async () => {
-					mailLocator.indexerFacade.cancelMailIndexing()
+					mailLocator.indexerFacade.cancelMailIndexing(MailIndexingAbortReason.Cancelled)
 					await mailLocator.cacheStorage.purgeStorage()
 
 					// we need to reload the page, as purging storage will put the client in a broken state

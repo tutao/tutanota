@@ -32,6 +32,7 @@ export class MailSearchModel {
 		this.indexState = stream<SearchIndexStateInfo>({
 			initializing: true,
 			mailIndexEnabled: false,
+			autoRestartEnabled: true,
 			progress: 0,
 			currentMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
 			aimedMailIndexTimestamp: NOTHING_INDEXED_TIMESTAMP,
