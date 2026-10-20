@@ -2562,5 +2562,6 @@ export default {
 		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
 		"skipThisFile_action": "Skip this file",
 		"duplicateFileNames_title": "Duplicate file names",
+		"migrationSyncStateAllFoldersPermanentlyDeleted_msg": "Ihre Migration kann nicht fortgesetzt werden, da alle Zielordner gelöscht wurden.",
 	}
 }

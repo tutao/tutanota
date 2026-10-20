@@ -2,14 +2,14 @@ import m, { Children } from "mithril"
 import { showAddMigrationWizard } from "./AddMigrationWizard.js"
 import { EnvProvider, UpgradePromptType } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
-import { MailboxMigrationUiSession, MailboxMigrationController } from "./MailboxMigrationController.js"
+import { MailboxMigrationController, MailboxMigrationUiSession } from "./MailboxMigrationController.js"
 import { mailLocator } from "../../mailLocator.js"
 import { theme } from "../../../../ui/theme"
 import { TitleSection } from "../../../../ui/TitleSection.js"
 import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { MailboxMigrationSyncStateTypeRef, MailboxMigrationFolderSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MailboxMigrationFolderSyncStateTypeRef, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { Icon, IconAttrs, IconSize } from "../../../../ui/base/Icon"
 import { Card } from "../../../../ui/base/Card"
 import { getMailboxName } from "../../../common/mailFunctionality/SharedMailUtils"
@@ -201,7 +201,9 @@ class MigrationSettingsViewer implements UpdatableSettingsViewer {
 			} else if (this.mailboxMigrationController().shouldRenderErrorIcon(session)) {
 				syncMessage = this.mailboxMigrationController().shouldRenderGmailAllMailsIMAPDisabledErrorMessage(session)
 					? lang.getTranslation("migrationSyncStateGmailAllMailsDisabledImapError_msg")
-					: lang.getTranslation("migrationSyncFailure_msg")
+					: this.mailboxMigrationController().shouldRenderAllFoldersPermanentlyDeletedMessage(session)
+						? lang.getTranslation("migrationSyncStateAllFoldersPermanentlyDeleted_msg")
+						: lang.getTranslation("migrationSyncFailure_msg")
 			}
 
 			const mailboxDetail = this.mailboxMigrationController().getDestinationMailboxDetailForSession(session)
