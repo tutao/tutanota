@@ -169,7 +169,7 @@ const migrationKnownConfigs = {
 			server: "https://login.microsoftonline.com/common/v2.0",
 			clientId: "5e304219-20c3-4627-a9e9-ae884703bf62",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
-			scope: "offline_access Mail.Read",
+			scope: "offline_access Mail.Read Mail.Read.Shared",
 			providerSpecificParams: {
 				response_mode: "query",
 				tenant: "common",
