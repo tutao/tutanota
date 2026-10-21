@@ -429,6 +429,7 @@ export class MailboxMigrationController {
 			migrationMailboxes: [],
 			folderSystem: new FolderSystem([]),
 			provider: MailboxMigrationProvider.Other,
+			isExchange: false,
 			customCertificateData: null,
 			ignoreCertificateErrors: false,
 			useSSL: true,
