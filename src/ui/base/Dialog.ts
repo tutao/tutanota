@@ -280,7 +280,7 @@ export class Dialog implements ModalComponent {
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
 		} else if (dialogType === DialogType.SetupWizard) {
-			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-l.border-radius-bottom-8.nav-bg"
+			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-xl.border-radius-bottom-8.nav-bg"
 		}
 
 		return dialogStyle
