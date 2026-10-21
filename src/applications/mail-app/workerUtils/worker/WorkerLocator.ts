@@ -14,6 +14,7 @@ import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/Gif
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import type { NativeInterface } from "../../../../app-kit/native-bridge/common/NativeInterface.js"
 import {
+	ArchiveDownloaderFacadeSendDispatcher,
 	ExportFacadeSendDispatcher,
 	FileFacadeSendDispatcher,
 	ImapSyncSystemFacadeSendDispatcher,
@@ -23,7 +24,7 @@ import {
 	SqlCipherFacadeSendDispatcher,
 } from "@tutao/native-bridge/generatedIpc/dispatchers"
 import { NativeFileApp } from "../../../../app-kit/native-bridge/common/FileApp.js"
-import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { ArchiveDownloaderFacade, SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { AdminClientDummyEntityRestCache } from "../../../common/api/worker/rest/AdminClientDummyEntityRestCache.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
 import { SchedulerImpl } from "../../../common/api/common/utils/Scheduler.js"
@@ -84,7 +85,6 @@ import { WebMailIndexer } from "../index/WebMailIndexer"
 import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailStateCacheHandler"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
-import type { MailIndexerBackend } from "../index/MailIndexerBackend"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -112,6 +112,7 @@ export type WorkerLocatorType = {
 	search: lazyAsync<SearchFacade>
 	contactSearch: lazyAsync<ContactSearchFacade>
 	bulkMailLoader: lazyAsync<BulkMailLoader>
+	archiveDownloader: lazyAsync<ArchiveDownloaderFacade>
 
 	// Management facades
 	userManagement: lazyAsync<UserManagementFacade>
@@ -188,13 +189,12 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		const mailFacade = await locator.mail()
 		const newMailDownloader = defaultMailIndexerNewMailDownloader(locator.base.cachingEntityClient, mailFacade)
 
-		const isOfflineStorage = EnvProvider.get().isOfflineStorageAvailable()
-		const isFullArchiveSearch = EnvProvider.get().isFullArchiveSearchAvailable()
-
-		if (isOfflineStorage && isFullArchiveSearch) {
+		if (EnvProvider.get().isOfflineStorageAvailable()) {
 			const { OfflineMailIndexer } = await import("../index/OfflineMailIndexer.js")
 			const persistence = await offlineStorageIndexerPersistence()
 			const blob = await locator.blob()
+			const archiveDownloader = new ArchiveDownloaderFacadeSendDispatcher(worker)
+
 			return new OfflineMailIndexer(
 				persistence,
 				blob,
@@ -206,28 +206,19 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 				newMailDownloader,
 				locator.base.instancePipeline,
 				locator.cacheStorage,
+				archiveDownloader,
 			)
 		} else {
 			const dateProvider = new LocalTimeDateProvider()
-
-			let mailIndexerBackendProvider: (userId: Id) => MailIndexerBackend
-			if (isOfflineStorage) {
-				const persistence = await offlineStorageIndexerPersistence()
-				const { OfflineStorageMailIndexerBackend } = await import("../index/OfflineStorageMailIndexerBackend.js")
-				mailIndexerBackendProvider = () => new OfflineStorageMailIndexerBackend(persistence)
-			} else {
-				const core = await indexerCore()
-				const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend.js")
-				mailIndexerBackendProvider = (userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver)
-			}
-
+			const { IndexedDbMailIndexerBackend } = await import("../index/IndexedDbMailIndexerBackend")
 			const { WebMailIndexer } = await import("../index/WebMailIndexer.js")
+			const core = await indexerCore()
 			return new WebMailIndexer(
 				mainInterface.infoMessageHandler,
 				locator.bulkMailLoader,
 				locator.base.cachingEntityClient,
 				dateProvider,
-				mailIndexerBackendProvider,
+				(userId: Id) => new IndexedDbMailIndexerBackend(core, userId, locator.base.typeModelResolver),
 				newMailDownloader,
 			)
 		}
