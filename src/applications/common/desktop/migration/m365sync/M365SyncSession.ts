@@ -1,15 +1,13 @@
 import { MigrationCredentials, MigrationMailboxState } from "../../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
 import { MigrationMailbox, MigrationMailboxSpecialUse } from "../../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
-import { MigrationMail } from "../../../api/common/utils/migrationImportUtils/MigrationMail.js"
 import { MigrationError, MigrationErrorCause } from "../../../api/common/error/MigrationError.js"
 import { MigrationSyncEventType } from "../../../../../entities/tutanota/Utils.js"
 import { GraphApiClient, GraphApiMailFolderResource, GraphMailApi } from "./GraphApiClient.js"
 import type { MigrationSyncEventListener } from "../MigrationSyncEventListener.js"
 import { ApiMigrationSyncSession } from "../ApiMigrationSyncSession.js"
-import { migrationMailFromGmailMessage, migrationMailFromGraphMessage } from "../mailparser/MailParserUtils.js"
-import { isEmpty, isNotEmpty, promiseMap, splitInChunks } from "@tutao/utils"
-import { MAIL_DOWNLOAD_BATCH_SIZE, SyncSessionState } from "../MigrationSyncSession"
-import { GmailMailApi } from "../gmailsync/GmailApiClient"
+import { migrationMailFromGraphMessage } from "../mailparser/MailParserUtils.js"
+import { isNotEmpty, promiseMap } from "@tutao/utils"
+import { SyncSessionState } from "../MigrationSyncSession"
 
 //https://learn.microsoft.com/en-us/graph/api/resources/mailfolder?view=graph-rest-1.0
 const MICROSOFT_SYSTEM_FOLDERS: ReadonlyArray<{ name: string; specialUse: MigrationMailboxSpecialUse }> = [
@@ -21,12 +19,12 @@ const MICROSOFT_SYSTEM_FOLDERS: ReadonlyArray<{ name: string; specialUse: Migrat
 	{ name: "archive", specialUse: MigrationMailboxSpecialUse.ARCHIVE },
 ]
 
-export type GraphClientFactory = (accessToken: string) => GraphMailApi
+export type GraphClientFactory = (username: string, accessToken: string) => GraphMailApi
 
 export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 	constructor(
 		migrationSyncEventListener: MigrationSyncEventListener,
-		private readonly graphClientFactory: GraphClientFactory = (accessToken) => new GraphApiClient(accessToken),
+		private readonly graphClientFactory: GraphClientFactory = (username, accessToken) => new GraphApiClient(username, accessToken),
 	) {
 		super(migrationSyncEventListener)
 	}
@@ -36,7 +34,7 @@ export class M365SyncSession extends ApiMigrationSyncSession<GraphMailApi> {
 		if (!accessToken) {
 			throw new MigrationError("No Microsoft Graph access token available", MigrationErrorCause.AUTH_FAILED)
 		}
-		return this.graphClientFactory(accessToken)
+		return this.graphClientFactory(migrationCredentials.username, accessToken)
 	}
 
 	protected async syncMailbox(client: GraphMailApi, migrationMailbox: MigrationMailbox, mailboxState: MigrationMailboxState): Promise<boolean> {
