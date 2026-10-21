@@ -400,6 +400,7 @@ export class ImapMailImportController {
 			imapMailboxes: [],
 			folderSystem: new FolderSystem([]),
 			imapProvider: ImapProvider.Other,
+			isExchange: false,
 			customCertificateData: null,
 			ignoreCertificateErrors: false,
 			useSSL: true,

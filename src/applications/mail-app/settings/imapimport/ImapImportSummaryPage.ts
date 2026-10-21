@@ -492,7 +492,7 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 				let postponedErrorMsg = "migrationStartedPostponed_msg" as TranslationKey
 				const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 				const postponedErrorMessageReplaced = lang.getTranslation(postponedErrorMsg, {
-					"{provider}": lang.getTranslationText(getTranslationForImapProvider(this.data.imapProvider, businessUse)),
+					"{provider}": lang.getTranslationText(getTranslationForImapProvider(this.data.imapProvider, businessUse, this.data.isExchange)),
 				})
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}

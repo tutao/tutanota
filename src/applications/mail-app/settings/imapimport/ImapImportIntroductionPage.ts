@@ -5,7 +5,7 @@ import { ImapImportData } from "./AddImapImportWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -19,6 +19,7 @@ import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { ImapProviderUI, toImapProviderUI } from "./ImapImportProviderSelectionPage"
 
 EnvProvider.assertMainOrNode()
 
@@ -32,29 +33,36 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 	oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
 		const provider = imapImportData.imapProvider
-		switch (provider) {
-			case ImapProvider.Gmail:
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
+		switch (toImapProviderUI(provider, imapImportData.isExchange)) {
+			case ImapProviderUI.Gmail:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(GmailLogo)
 				imapImportData.matchImapMailboxesToTutaMailSets = false
 				imapImportData.addLabelToImportedMails = false
 				break
-			case ImapProvider.Outlook:
+			case ImapProviderUI.Outlook:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(businessUse ? MicrosoftLogo : OutlookLogo)
+				break
+			case ImapProviderUI.Exchange:
+				this.titleSectionParams.customIcon = m.trust(ExchangeLogo)
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
 				break
 			default:
 				this.titleSectionParams.customIcon = undefined
 				this.titleSectionParams.icon = Icons.MailFilled
 				this.titleSectionParams.iconOptions = { color: theme.on_surface_variant }
+				break
 		}
 	}
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		const imapProvider = vnode.attrs.data.imapProvider
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
-		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider, businessUse))
+		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider, businessUse, vnode.attrs.data.isExchange))
 		return m(".mt-24", [
 			m(TitleSection, {
 				...this.titleSectionParams,

@@ -2563,5 +2563,6 @@ export default {
 		"skipThisFile_action": "Skip this file",
 		"duplicateFileNames_title": "Duplicate file names",
 		"migrationProviderMicrosoft365_label": "Microsoft 365",
+		"migrationProviderExchange_label": "Exchange",
 	}
 }

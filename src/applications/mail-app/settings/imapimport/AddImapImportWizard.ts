@@ -22,6 +22,7 @@ export type ImapImportData = {
 	oauthConfig?: OauthConfigParams
 	imapAccountOAuthToken?: TokenEndpointResponse
 	imapProvider: ImapProvider
+	isExchange: boolean
 	imapAccountHost: string
 	imapAccountPort: number
 	useSSL: boolean

@@ -57,7 +57,7 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
-			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider, businessUse)),
+			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider, businessUse, imapImportData.isExchange)),
 		}).text
 		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
