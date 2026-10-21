@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { MigrationData } from "./AddMigrationWizard.js"
 import { EnvProvider } from "@tutao/app-env"
-import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
@@ -20,8 +20,41 @@ import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
+export const enum MailboxMigrationProviderUI {
+	Other,
+	Outlook,
+	Gmail,
+	Exchange,
+}
+
+function toMigrationProvider(provider: MailboxMigrationProviderUI): MailboxMigrationProvider {
+	switch (provider) {
+		case MailboxMigrationProviderUI.Gmail:
+			return MailboxMigrationProvider.Gmail
+		case MailboxMigrationProviderUI.Outlook:
+			return MailboxMigrationProvider.Outlook
+		case MailboxMigrationProviderUI.Exchange:
+		case MailboxMigrationProviderUI.Other:
+			return MailboxMigrationProvider.Other
+	}
+}
+
+export function toMigrationProviderUI(provider: MailboxMigrationProvider, isExchange: boolean): MailboxMigrationProviderUI {
+	switch (provider) {
+		case MailboxMigrationProvider.Gmail:
+			return MailboxMigrationProviderUI.Gmail
+		case MailboxMigrationProvider.Outlook:
+			return MailboxMigrationProviderUI.Outlook
+		case MailboxMigrationProvider.Other:
+			return isExchange ? MailboxMigrationProviderUI.Exchange : MailboxMigrationProviderUI.Other
+	}
+}
+
+type ProviderOption = RadioSelectorOption<MailboxMigrationProviderUI>
+
 export class MigrationProviderSelectionPage implements WizardPageN<MigrationData> {
-	private selectedProvider: MailboxMigrationProvider = MailboxMigrationProvider.Gmail
+	private selectedProvider: MailboxMigrationProviderUI = MailboxMigrationProviderUI.Gmail
+
 	private titleSectionParams = {
 		icon: Icons.DownloadFilled,
 		iconOptions: { color: theme.on_surface_variant },
@@ -29,10 +62,10 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 	}
 
 	oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
-		this.selectedProvider = vnode.attrs.data.provider
+		this.selectedProvider = toMigrationProviderUI(vnode.attrs.data.provider, vnode.attrs.data.isExchange)
 		vnode.attrs.data.oauthConfig = undefined
 		vnode.attrs.data.oAuthToken = undefined
-		const serverMigrationConfig = getServerMigrationConfigForProvider(this.selectedProvider)
+		const serverMigrationConfig = getServerMigrationConfigForProvider(vnode.attrs.data.provider)
 		if (serverMigrationConfig !== null && serverMigrationConfig.imapConfig) {
 			const { host, port } = serverMigrationConfig.imapConfig
 			vnode.attrs.data.imapHost = host
@@ -64,7 +97,8 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 						label: "continue_action",
 						class: "wizard-next-button",
 						onclick: async (_, dom) => {
-							const serverMigrationConfig = getServerMigrationConfigForProvider(this.selectedProvider)
+							const provider = toMigrationProvider(this.selectedProvider)
+							const serverMigrationConfig = getServerMigrationConfigForProvider(provider)
 							const isConfigAvailableForSelectedProvider = serverMigrationConfig !== null
 							if (isConfigAvailableForSelectedProvider) {
 								if (serverMigrationConfig.authMethod === MigrationAuthMethod.Oauth2) {
@@ -79,7 +113,7 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 								}
 							}
 
-							vnode.attrs.data.provider = this.selectedProvider
+							vnode.attrs.data.provider = provider
 							emitWizardEvent(dom, WizardEventType.SHOW_NEXT_PAGE)
 						},
 						disabled: this.selectedProvider === null,
@@ -91,21 +125,29 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 
 	private renderOptionButtons(data: MigrationData): Children {
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
-		const options: ReadonlyArray<RadioSelectorOption<MailboxMigrationProvider>> = [
+		const options: ReadonlyArray<ProviderOption> = [
 			{
 				name: "migrationProviderGmail_label",
-				value: MailboxMigrationProvider.Gmail,
+				value: MailboxMigrationProviderUI.Gmail,
 				icon: m(".flex.ml-4", m.trust(GmailLogo)),
 			},
 			{
 				name: businessUse ? "migrationProviderMicrosoft365_label" : "migrationProviderOutlook_label",
-				value: MailboxMigrationProvider.Outlook,
-				icon: m(".flex.ml-4", m.trust(OutlookLogo)),
+				value: MailboxMigrationProviderUI.Outlook,
 				icon: m(".flex.ml-4", m.trust(businessUse ? MicrosoftLogo : OutlookLogo)),
 			},
+			...(businessUse
+				? [
+						{
+							name: "migrationProviderExchange_label",
+							value: MailboxMigrationProviderUI.Exchange,
+							icon: m(".flex.ml-4", m.trust(ExchangeLogo)),
+						} satisfies ProviderOption,
+					]
+				: []),
 			{
 				name: "migrationProviderOther_label",
-				value: MailboxMigrationProvider.Other,
+				value: MailboxMigrationProviderUI.Other,
 				icon: m(Icon, {
 					icon: Icons.MailFilled,
 					size: IconSize.PX40,
@@ -121,10 +163,12 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 				options,
 				optionClass: ".flex.row",
 				selectedOption: this.selectedProvider,
-				onOptionSelected: (provider: MailboxMigrationProvider) => {
+				onOptionSelected: (provider: MailboxMigrationProviderUI) => {
 					this.selectedProvider = provider
 					data.username = ""
-					const serverMigrationConfig = getServerMigrationConfigForProvider(provider)
+					data.isExchange = provider === MailboxMigrationProviderUI.Exchange
+					const migrationProvider = toMigrationProvider(provider)
+					const serverMigrationConfig = getServerMigrationConfigForProvider(migrationProvider)
 					if (serverMigrationConfig !== null && serverMigrationConfig.imapConfig) {
 						const { host, port } = serverMigrationConfig.imapConfig
 						data.imapHost = host
@@ -135,7 +179,7 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 					}
 				},
 				horizontalLayout: true,
-			} satisfies RadioSelectorAttrs<MailboxMigrationProvider>),
+			} satisfies RadioSelectorAttrs<MailboxMigrationProviderUI>),
 		)
 	}
 }

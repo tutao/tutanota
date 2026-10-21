@@ -5,7 +5,7 @@ import { MigrationData } from "./AddMigrationWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
-import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -19,6 +19,7 @@ import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { MailboxMigrationProviderUI, toMigrationProviderUI } from "./MigrationProviderSelectionPage"
 
 EnvProvider.assertMainOrNode()
 
@@ -32,29 +33,38 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 	oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
 		const migrationData = vnode.attrs.data
 		const provider = migrationData.provider
-		switch (provider) {
-			case MailboxMigrationProvider.Gmail:
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
+		switch (toMigrationProviderUI(provider, migrationData.isExchange)) {
+			case MailboxMigrationProviderUI.Gmail:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(GmailLogo)
 				migrationData.matchMigrationMailboxesToTutaMailSets = false
 				migrationData.addLabelToImportedMails = false
 				break
-			case MailboxMigrationProvider.Outlook:
+			case MailboxMigrationProviderUI.Outlook:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(businessUse ? MicrosoftLogo : OutlookLogo)
 				break
-			default:
+			case MailboxMigrationProviderUI.Exchange:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(ExchangeLogo)
+				break
+			case MailboxMigrationProviderUI.Other:
 				this.titleSectionParams.customIcon = undefined
 				this.titleSectionParams.icon = Icons.MailFilled
 				this.titleSectionParams.iconOptions = { color: theme.on_surface_variant }
+				break
 		}
 	}
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		const mailboxMigrationProvider = vnode.attrs.data.provider
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
-		const providerTranslationText = lang.getTranslationText(getTranslationForMigrationProvider(mailboxMigrationProvider, businessUse))
+		const providerTranslationText = lang.getTranslationText(
+			getTranslationForMigrationProvider(mailboxMigrationProvider, businessUse, vnode.attrs.data.isExchange),
+		)
 		return m(".mt-24", [
 			m(TitleSection, {
 				...this.titleSectionParams,

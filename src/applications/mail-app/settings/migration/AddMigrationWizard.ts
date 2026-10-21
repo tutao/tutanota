@@ -20,6 +20,7 @@ EnvProvider.assertMainOrNode()
 
 export type MigrationData = {
 	provider: MailboxMigrationProvider
+	isExchange: boolean
 	username: string
 	imapHost?: string
 	imapPort?: number

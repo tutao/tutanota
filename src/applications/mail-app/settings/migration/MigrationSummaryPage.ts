@@ -503,7 +503,7 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 				let postponedErrorMsg = "migrationStartedPostponed_msg" as TranslationKey
 				const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 				const postponedErrorMessageReplaced = lang.getTranslation(postponedErrorMsg, {
-					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.provider, businessUse)),
+					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.provider, businessUse, this.data.isExchange)),
 				})
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}
