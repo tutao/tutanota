@@ -1091,6 +1091,9 @@ export class MainStyles {
 				".half-width": {
 					width: "50%",
 				},
+				".three-quarter-width": {
+					width: "75%",
+				},
 				".block": {
 					display: "block",
 				},

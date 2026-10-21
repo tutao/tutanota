@@ -23,6 +23,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { idToElementId } from "@tutao/meta"
 import { isNull } from "../../../../platform-kit/utils/Utils"
 import { DriveFileSharingFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
+import { Styles } from "../../../../ui/styles"
 
 type ShareDialogState = "busy" | "done"
 
@@ -70,6 +71,13 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 			async updateShareAndReload(password: string | null, expirationDate: Date | null): Promise<void> {
 				await driveFileSharingFacade.updateShare(assertNotNull(shareInfo?.share), password, expirationDate)
 				await this.reloadShare()
+			}
+
+			resolveInputFieldClasses(fieldIsActive: boolean): string[] {
+				const classes: string[] = []
+				if (!fieldIsActive) classes.push("translucent")
+				classes.push(Styles.get().isMobileLayout() ? "full-width" : "three-quarter-width")
+				return classes
 			}
 
 			view(): Children {
@@ -131,7 +139,7 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 											lang.getTranslationText("secureWithPassword_label"),
 										),
 										m(PasswordFieldNew, {
-											class: this.doPassword ? "" : "translucent",
+											class: this.resolveInputFieldClasses(this.doPassword).join(" "),
 											value: this.passwordValue,
 											disabled: !this.doPassword,
 											oninput: (passwordValue) => (this.passwordValue = passwordValue),
@@ -151,7 +159,7 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 											lang.getTranslationText("setExpirationDate_label"),
 										),
 										m(DatePicker, {
-											classes: this.doExpiry ? [] : ["translucent"],
+											classes: this.resolveInputFieldClasses(this.doExpiry),
 											date: this.expirationDate,
 											label: lang.getTranslation("selectExpiryDate_label"),
 											onDateSelected: (selectedDate) => {

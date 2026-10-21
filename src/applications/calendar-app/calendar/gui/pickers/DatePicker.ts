@@ -170,7 +170,6 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				class: noPadding ? "" : undefined,
 				value: this.inputText,
 				label,
-				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
 				disabled,
 				hasPopup: AriaPopupType.Dialog,
 				oninput: (text) => {
