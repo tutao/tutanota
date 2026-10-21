@@ -92,6 +92,7 @@ export class GraphApiClient implements GraphMailApi {
 	messageBatchSize = BATCH_SIZE
 
 	constructor(
+		private readonly mailAddress: string,
 		private readonly accessToken: string,
 		private readonly fetchFunction: typeof fetch = fetch,
 		private readonly pacer: ApiClientRequestPacer = new ApiClientRequestPacer(
@@ -105,7 +106,7 @@ export class GraphApiClient implements GraphMailApi {
 
 	async getSystemFolderId(name: string): Promise<string | null> {
 		try {
-			const folder = await this.get<{ id: string }>(`${GRAPH_API_BASE_URL}/me/mailFolders/${encodeURIComponent(name)}?$select=id`)
+			const folder = await this.get<{ id: string }>(`${GRAPH_API_BASE_URL}/users/${this.mailAddress}/mailFolders/${encodeURIComponent(name)}?$select=id`)
 			return folder.id
 		} catch (e) {
 			// not every mailbox has every well-known folder (e.g. Archive)
@@ -117,17 +118,17 @@ export class GraphApiClient implements GraphMailApi {
 	}
 
 	async listFolders(): Promise<GraphApiMailFolderResource[]> {
-		return this.getAllPages<GraphApiMailFolderResource>(`${GRAPH_API_BASE_URL}/me/mailFolders?includeHiddenFolders=true`)
+		return this.getAllPages<GraphApiMailFolderResource>(`${GRAPH_API_BASE_URL}/users/${this.mailAddress}/mailFolders?includeHiddenFolders=true`)
 	}
 
 	async listChildFolders(folderId: string): Promise<GraphApiMailFolderResource[]> {
 		return this.getAllPages<GraphApiMailFolderResource>(
-			`${GRAPH_API_BASE_URL}/me/mailFolders/${encodeURIComponent(folderId)}/childFolders?includeHiddenFolders=true`,
+			`${GRAPH_API_BASE_URL}/users/${this.mailAddress}/mailFolders/${encodeURIComponent(folderId)}/childFolders?includeHiddenFolders=true`,
 		)
 	}
 
 	async listMessageIds(folderId: string, nextLink?: string | null): Promise<GraphApiMessageIdPage> {
-		const url = nextLink ?? `${GRAPH_API_BASE_URL}/me/mailFolders/${encodeURIComponent(folderId)}/messages/delta?$select=id`
+		const url = nextLink ?? `${GRAPH_API_BASE_URL}/users/${this.mailAddress}/mailFolders/${encodeURIComponent(folderId)}/messages/delta?$select=id`
 		const response = await this.pacer.withRetry(GRAPH_API_QUOTA_COST, () =>
 			this.get<GraphApiPagedResponse<GraphApiMessageResource>>(url, [`odata.maxpagesize=${MAIL_DOWNLOAD_BATCH_SIZE}`]),
 		)
@@ -220,7 +221,7 @@ export class GraphApiClient implements GraphMailApi {
 			requests: ids.map((id, position) => ({
 				id: String(position),
 				method: "GET",
-				url: `/me/messages/${encodeURIComponent(id)}?$expand=attachments`,
+				url: `/users/${this.mailAddress}/messages/${encodeURIComponent(id)}?$expand=attachments`,
 				headers: { Prefer: 'IdType="ImmutableId"' },
 			})),
 		}
