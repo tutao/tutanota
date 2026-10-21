@@ -171,6 +171,17 @@ export class MainStyles {
 					"--safe-area-inset-top": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-top)" : "env(safe-area-inset-top)",
 					"--safe-area-inset-right": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-right)" : "env(safe-area-inset-right)",
 					"--safe-area-inset-left": EnvProvider.get().isAndroidApp() ? "var(--safe-area-inset-left)" : "env(safe-area-inset-left)",
+
+					// Setting "color-scheme" ensures that browser input dialogs -- such as those for date and time
+					// inputs -- do not get rendered as white-on-black or black-on-white when the browser or system
+					// theme does not match the Tuta theme.
+					//
+					// Unfortunately, as of writing, Firefox does not seem to respect "color-scheme" when rendering its
+					// inputs.
+					//
+					// On Android, input dialogs are not styled by the WebView and they must set to light- or dark-mode
+					// separately, such as by calling `AppCompatDelegate.setDefaultNightMode` (see AndroidThemeFacade.kt).
+					"color-scheme": isLightTheme() ? "light" : "dark",
 				},
 				"html, body": {
 					height: "100%",
