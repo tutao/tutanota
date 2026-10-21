@@ -148,6 +148,7 @@ tasks.register("itest") {
 }
 
 dependencies {
+	implementation(libs.appcompat)
 	implementation(libs.commons.io)
 	implementation(libs.tutasdk)
 

@@ -39,6 +39,7 @@ import androidx.activity.addCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
 import androidx.annotation.RequiresPermission
+import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -49,7 +50,6 @@ import androidx.core.view.WindowInsetsCompat.Type.displayCutout
 import androidx.core.view.WindowInsetsCompat.Type.ime
 import androidx.core.view.WindowInsetsCompat.Type.systemBars
 import androidx.core.view.doOnLayout
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -72,7 +72,6 @@ import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.TempDir
-import de.tutao.tutashared.Theme
 import de.tutao.tutashared.WebViewReloader
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
@@ -128,7 +127,7 @@ interface WebauthnHandler {
 }
 
 
-class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
+class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, WebauthnFlowRunner {
 	lateinit var webView: WebView
 		private set
 	private lateinit var sseStorage: SseStorage
@@ -250,7 +249,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 			commonSystemFacade,
 		)
 
-		themeFacade.applyCurrentTheme()
+		themeFacade.applyTheme(resources.configuration)
 
 		installSplashScreen()
 
@@ -543,7 +542,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 	override fun onConfigurationChanged(newConfig: Configuration) {
 		super.onConfigurationChanged(newConfig)
 		// Since the activity is not being re-created we need to re-apply our theming manually.
-		themeFacade.applyCurrentTheme()
+		themeFacade.applyTheme(newConfig)
 		lifecycleScope.launch {
 			commonNativeFacade.updateTheme()
 		}
@@ -551,7 +550,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 	@MainThread
 	private fun startWebApp(parameters: MutableMap<String, String>) {
-		webView.loadUrl(getInitialUrl(parameters, themeFacade.currentThemeWithFallback))
+		webView.loadUrl(getInitialUrl(parameters, themeFacade.getCurrentThemeOrFallback()))
 		remoteBridge.setup()
 	}
 
@@ -638,7 +637,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		}
 	}
 
-	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Theme?): String {
+	private fun getInitialUrl(parameters: MutableMap<String, String>, theme: Map<String, String>?): String {
 		if (theme != null) {
 			parameters["theme"] = JSONObject.wrap(theme)!!.toString()
 		}
