@@ -22,6 +22,7 @@ export class WebMobileFacade implements MobileFacade {
 	constructor(
 		private readonly connectivityModel: WebsocketConnectivityModel,
 		private readonly baseViewPrefix: string,
+		private readonly handleConnectionTypeUpdate: (isMetered: boolean) => Promise<void> = async () => {},
 	) {}
 
 	public getIsAppVisible(): stream<boolean> {
@@ -121,5 +122,9 @@ export class WebMobileFacade implements MobileFacade {
 		}
 
 		console.warn("Unknown Apple in-app event action", action)
+	}
+
+	async connectionTypeUpdate(isMetered: boolean): Promise<void> {
+		await this.handleConnectionTypeUpdate?.(isMetered)
 	}
 }

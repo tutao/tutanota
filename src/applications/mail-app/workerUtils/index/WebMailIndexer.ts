@@ -1,4 +1,4 @@
-import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, TimeConstants } from "@tutao/app-env"
+import { CancelledError, EnvProvider, FULL_INDEXED_TIMESTAMP, NOTHING_INDEXED_TIMESTAMP, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import {
 	assertNotNull,
 	clamp,
@@ -670,6 +670,14 @@ export class WebMailIndexer implements MailIndexer {
 
 	async extendMailIndex(): Promise<void> {
 		// no-op on web
+	}
+
+	remainingDataInMB(): Promise<number> {
+		throw new ProgrammingError("Tried to get remaining data to download using web client")
+	}
+
+	isCurrentlyDownloadingArchives(): Promise<boolean> {
+		throw new ProgrammingError("Tried to get downloading state using web client")
 	}
 }
 

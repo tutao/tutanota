@@ -71,4 +71,12 @@ export class OfflineStorageIndexer implements Indexer {
 	async rebuildMailIndex() {
 		await this.mailIndexer.rebuildIndex(assertNotNull(this.userFacade.getUser()))
 	}
+
+	async remainingDataInMB(): Promise<number> {
+		return await this.mailIndexer.remainingDataInMB()
+	}
+
+	async isCurrentlyDownloadingArchives(): Promise<boolean> {
+		return await this.mailIndexer.isCurrentlyDownloadingArchives()
+	}
 }

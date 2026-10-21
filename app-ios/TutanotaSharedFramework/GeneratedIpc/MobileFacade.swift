@@ -30,4 +30,10 @@ public protocol MobileFacade : Sendable {
 	func handleAppleInAppEvents(
 		_ action: String
 	) async throws -> Void
+	/**
+	 * Called sometimes when the network updates, contains whether the connection is metered.
+	 */
+	func connectionTypeUpdate(
+		_ isMetered: Bool
+	) async throws -> Void
 }

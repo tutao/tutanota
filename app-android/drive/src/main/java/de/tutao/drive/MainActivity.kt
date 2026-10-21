@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
+import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
@@ -33,6 +34,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
@@ -117,6 +119,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 
 	private var firstLoaded = false
 	private var webauthnResultHandler: WebauthnHandler? = null
+	private lateinit var connectivityManager: ConnectivityManager
 
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -164,11 +167,12 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
 		themeFacade = AndroidThemeFacade(this, this)
+		connectivityManager = applicationContext.getSystemService<ConnectivityManager>()!!
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, tempDir, NetworkUtils.defaultClient)
-		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade)
+		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade, connectivityManager)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutadrive", BuildConfig.APPLICATION_ID)
 
@@ -213,6 +217,7 @@ class MainActivity : FragmentActivity(), ActivityUtils, WebViewReloader, Webauth
 		actionBar?.hide()
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
+		archiveDownloaderFacade.setMobileFacade(mobileFacade)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
 
 		webView.setBackgroundColor(Color.TRANSPARENT)

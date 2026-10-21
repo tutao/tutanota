@@ -73,6 +73,8 @@ interface ConfigObject {
 	mailListSize: Record<Id, number>
 	folderListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
+	/** continue indexing even though we are on a metered connection */
+	hasAcceptedContinueIndexingOnMeteredConnection: boolean
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -166,6 +168,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			scrollTime: loadedConfig.scrollTime ?? 8,
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
+			hasAcceptedContinueIndexingOnMeteredConnection: loadedConfig.hasAcceptedContinueIndexingOnMeteredConnection ?? false,
 			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
 		}
 
@@ -530,6 +533,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	setIsUndoSendEnabled(status: boolean) {
 		this.config.isUndoSendEnabled = status
+		this.writeToStorage()
+	}
+
+	getAcceptedContinueIndexingOnMeteredConnection() {
+		return this.config.hasAcceptedContinueIndexingOnMeteredConnection
+	}
+
+	setAcceptedContinueIndexingOnMeteredConnection(decision: boolean) {
+		this.config.hasAcceptedContinueIndexingOnMeteredConnection = decision
 		this.writeToStorage()
 	}
 

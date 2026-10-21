@@ -12,6 +12,7 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
+import android.net.ConnectivityManager
 import android.net.MailTo
 import android.net.Uri
 import android.os.Bundle
@@ -37,6 +38,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.annotation.MainThread
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
@@ -74,7 +76,6 @@ import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
-import de.tutao.tutashared.ipc.ArchiveDownloaderFacade
 import de.tutao.tutashared.ipc.CalendarOpenAction
 import de.tutao.tutashared.ipc.CommonNativeFacade
 import de.tutao.tutashared.ipc.CommonNativeFacadeSendDispatcher
@@ -125,6 +126,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 	private lateinit var commonNativeFacade: CommonNativeFacade
 	private lateinit var commonSystemFacade: AndroidCommonSystemFacade
 	private lateinit var sqlCipherFacade: SqlCipherFacade
+	private lateinit var archiveDownloaderFacade: AndroidArchiveDownloaderFacade
 	private lateinit var paymentsFacade: AndroidMobilePaymentsFacade
 
 	private val permissionsRequests: MutableMap<Int, Continuation<Unit>> = ConcurrentHashMap()
@@ -132,6 +134,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 	private var firstLoaded = false
 	private var webauthnResultHandler: WebauthnHandler? = null
+	private lateinit var connectivityManager: ConnectivityManager
 
 	private var widgetRefresher: WidgetRefresher = WidgetRefresher()
 
@@ -200,10 +203,12 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
 		themeFacade = AndroidThemeFacade(this, this)
+		connectivityManager = applicationContext.getSystemService<ConnectivityManager>()!!
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, tempDir, NetworkUtils.defaultClient)
+		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade, connectivityManager)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson)
 
@@ -211,7 +216,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 
 		val globalDispatcher = AndroidGlobalDispatcher(
 			ipcJson,
-			AndroidArchiveDownloaderFacade(sqlCipherFacade),
+			archiveDownloaderFacade,
 			commonSystemFacade,
 			calendarFacade,
 			fileFacade,
@@ -249,6 +254,7 @@ class MainActivity : FragmentActivity(), ActivityUtils {
 		actionBar?.hide()
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
+		archiveDownloaderFacade.setMobileFacade(mobileFacade)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
 
 		setupPushNotifications()

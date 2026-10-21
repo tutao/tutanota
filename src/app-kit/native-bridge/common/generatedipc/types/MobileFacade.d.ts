@@ -23,4 +23,9 @@ export interface MobileFacade {
 	 * iOS: called when an Apple in-app event should open signup or the upgrade flow.
 	 */
 	handleAppleInAppEvents(action: string): Promise<void>
+
+	/**
+	 * Called sometimes when the network updates, contains whether the connection is metered.
+	 */
+	connectionTypeUpdate(isMetered: boolean): Promise<void>
 }

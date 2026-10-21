@@ -2585,6 +2585,12 @@ export default {
 		"affectedInboxRules_msg": "{1} Posteingangsregeln wären betroffen",
 		"pleaseSelectFolder_msg": "Bitte wählen Sie einen Ordner aus.",
 		"inboxRuleInvalid_label": "Diese Posteingangsregel enthält ungültige Werte. Bitte bearbeiten Sie sie, um den Fehlerzustand zu beheben.",
-		"invalidateInboxRulesUsingDeletedMailSet_msg": "Diese Posteingangsregeln verwenden '{1}'. Sie werden eventuell ungültig, wenn '{1}' entfernt wird.\n\nUngültige Regeln werden nicht mehr angewandt. In den Einstellugen müssen ihnen neue, valide Werte zugewiesen werden."
+		"invalidateInboxRulesUsingDeletedMailSet_msg": "Diese Posteingangsregeln verwenden '{1}'. Sie werden eventuell ungültig, wenn '{1}' entfernt wird.\n\nUngültige Regeln werden nicht mehr angewandt. In den Einstellugen müssen ihnen neue, valide Werte zugewiesen werden.",
+		"meteredConnectionWarning_label": "Warnung: Gebührenpflichtige Netzwerkverbindung",
+		"extendSearchDataAmount_msg": "Um den Suchindex zu erweitern, müssen heruntergeladen werden: Bis zu {1} MB",
+		"allowDownloadingSearchMeteredConnection_msg": "Möchten Sie das Herunterladen von Suchdaten erlauben, während Sie mit einem gebührenpflichtigen Netzwerk verbunden sind?",
+		"allow_action": "Erlauben",
+		"deny_action": "Ablehnen",
+		"extendSearchIndex_label": "Suchindex erweitern",
 	}
 }

@@ -24,6 +24,11 @@
 			"doc": "iOS: called when an Apple in-app event should open signup or the upgrade flow.",
 			"arg": [{ "action": "string" }],
 			"ret": "void"
+		},
+		"connectionTypeUpdate": {
+			"doc": "Called sometimes when the network updates, contains whether the connection is metered.",
+			"arg": [{ "isMetered": "boolean" }],
+			"ret": "void"
 		}
 	}
 }

@@ -1,10 +1,14 @@
 package de.tutao.tutashared.data
 
+import android.Manifest
+import android.net.ConnectivityManager
 import android.util.Log
+import androidx.annotation.RequiresPermission
 import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.NetworkUtils.Companion.defaultClient
 import de.tutao.tutashared.ipc.ArchiveDownloadRangeHeaders
 import de.tutao.tutashared.ipc.ArchiveDownloaderFacade
+import de.tutao.tutashared.ipc.MobileFacade
 import de.tutao.tutashared.ipc.SqlCipherFacade
 import de.tutao.tutashared.offline.TaggedSqlValue
 import kotlinx.coroutines.Dispatchers
@@ -20,12 +24,15 @@ import java.util.concurrent.TimeUnit
 import kotlin.time.TimeSource
 
 class AndroidArchiveDownloaderFacade(
-	private val sqlCipherFacade: SqlCipherFacade
+	private val sqlCipherFacade: SqlCipherFacade,
+	private val connectivityManager: ConnectivityManager
 ) : ArchiveDownloaderFacade {
 
 	private val activeRequests = ConcurrentHashMap<String, Call>()
 	private val storageForArchive = ConcurrentHashMap<String, ArchiveStorageHelper>()
+	private lateinit var mobileFacade: MobileFacade
 
+	@RequiresPermission(Manifest.permission.ACCESS_NETWORK_STATE)
 	override suspend fun downloadAndStoreArchive(
 		sourceUrl: String,
 		archiveId: String,
@@ -33,6 +40,10 @@ class AndroidArchiveDownloaderFacade(
 		modelVersion: Long,
 		rangeHeaders: ArchiveDownloadRangeHeaders?,
 	) {
+		if (::mobileFacade.isInitialized && connectivityManager.isActiveNetworkMetered) {
+			mobileFacade.connectionTypeUpdate(true)
+		}
+
 		// Create a new child coroutine scope so that if the request fails it cancels our progress job as well
 		// Also if the whole operation is canceled the child scope also gets canceled
 		return coroutineScope {
@@ -147,6 +158,10 @@ class AndroidArchiveDownloaderFacade(
 
 		val timeToStore = TimeSource.Monotonic.markNow().minus(startTime).inWholeMilliseconds
 		Log.d(TAG, "Finished storing archive $archiveId (took $timeToStore ms)")
+	}
+
+	fun setMobileFacade(mobileFacade: MobileFacade) {
+		this.mobileFacade = mobileFacade
 	}
 
 	private companion object {

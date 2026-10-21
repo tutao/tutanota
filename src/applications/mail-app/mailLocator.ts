@@ -1,4 +1,4 @@
-import { AppType, Const, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_MB, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -57,7 +57,7 @@ import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivity
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assert, assertNotNull, defer, DeferredObject, isNotNull, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
@@ -176,6 +176,7 @@ import { PluginConfigurationProvider } from "../common/plugin/PluginConfiguratio
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
+import { showMeteredConnectionWarningDialog } from "../common/gui/dialogs/MeteredConnectionWarningDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -1004,7 +1005,32 @@ class MailLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
+			const handleConnectionTypeUpdated = async (isMetered: boolean) => {
+				const isCurrentlyDownloadingArchives = await indexerFacade.isCurrentlyDownloadingArchives()
+				const expectedDataInMB = await indexerFacade.remainingDataInMB()
+
+				const mailSearchModel = await this.mailSearchModel()
+				if (
+					isMetered &&
+					isCurrentlyDownloadingArchives &&
+					!deviceConfig.getAcceptedContinueIndexingOnMeteredConnection() &&
+					expectedDataInMB > METERED_CONNECTION_DOWNLOAD_LIMIT_MB
+				) {
+					indexerFacade.cancelMailIndexing()
+					const choice = await showMeteredConnectionWarningDialog(expectedDataInMB)
+					if (choice === "continueIndexing") {
+						deviceConfig.setAcceptedContinueIndexingOnMeteredConnection(true)
+						void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+					} else {
+						// should just stay false, but to be sure ...
+						deviceConfig.setAcceptedContinueIndexingOnMeteredConnection(false)
+					}
+				} else if (!isMetered && !isCurrentlyDownloadingArchives && expectedDataInMB > 0 && isNotNull(mailSearchModel.indexState().error)) {
+					// resume when in unmetered connection again
+					void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+				}
+			}
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX, handleConnectionTypeUpdated)
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,
