@@ -17,6 +17,7 @@ androidxAppCompat = "1.7.1"
 androidxSplashscreen = "1.0.1"
 androidxCompose = "2025.01.01"
 androidxGlance = "1.1.1"
+appcompat = "1.8.0"
 
 [libraries]
 android-tools-build-gradle-plugin = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -76,6 +77,7 @@ mockito-core = { module = "org.mockito:mockito-core", version = "5.20.0" }
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.20.0" }
 billing = { module = "com.android.billingclient:billing-ktx", version = "8.3.0" }
 tutasdk = { module = "de.tutao:tutasdk", version = "unspecified" }
+appcompat = { group = "androidx.appcompat", name = "appcompat", version.ref = "appcompat" }
 
 [plugins]
 tutao-testconvention = { id = "de.tutao.testconvention", version = "unspecified" }

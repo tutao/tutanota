@@ -1,6 +1,7 @@
 package de.tutao.tutanota
 
-import de.tutao.tutashared.isLightHexColor
+import de.tutao.tutashared.MAX_COLOR_ALPHA
+import de.tutao.tutashared.isLightColor
 import de.tutao.tutashared.parseColor
 import org.junit.Assert
 import org.junit.Test
@@ -8,27 +9,27 @@ import org.junit.Test
 class UtilsTest {
 	@Test
 	fun testIsColorLightPinkDark() {
-		Assert.assertFalse("#B73A9A".isLightHexColor())
+		Assert.assertFalse((0xB73A9A or MAX_COLOR_ALPHA).isLightColor())
 	}
 
 	@Test
 	fun testIsColorLightBlueLight() {
-		Assert.assertTrue("#3A9AFF".isLightHexColor())
+		Assert.assertTrue((0x3A9AFF or MAX_COLOR_ALPHA).isLightColor())
 	}
 
 	@Test
 	fun testIsThreeDigitBlackDark() {
-		Assert.assertFalse("#000".isLightHexColor())
+		Assert.assertFalse((0 or MAX_COLOR_ALPHA).isLightColor())
 	}
 
 	@Test
 	fun testIsThreeDigitWhiteLight() {
-		Assert.assertTrue("#FFF".isLightHexColor())
+		Assert.assertTrue((0xFFFFFF or MAX_COLOR_ALPHA).isLightColor())
 	}
 
 	@Test
 	fun testIsThreeDigitCyanLight() {
-		Assert.assertTrue("#0FF".isLightHexColor())
+		Assert.assertTrue((0x00FFFF or MAX_COLOR_ALPHA).isLightColor())
 	}
 
 	@Test
