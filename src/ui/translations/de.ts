@@ -2563,5 +2563,6 @@ export default {
 		"skipThisFile_action": "Skip this file",
 		"duplicateFileNames_title": "Duplicate file names",
 		"migrationSyncStateAllFoldersPermanentlyDeleted_msg": "Deine Migration kann nicht fortgesetzt werden, da alle Zielordner gelöscht wurden.",
+		"migrationProviderMicrosoft365_label": "Microsoft 365",
 	}
 }

@@ -2561,3 +2561,4 @@ export type TranslationKeyType =
 	| "skipThisFile_action"
 	| "duplicateFileNames_title"
 	| "migrationSyncStateAllFoldersPermanentlyDeleted_msg"
+	| "migrationProviderMicrosoft365_label"
