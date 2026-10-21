@@ -264,14 +264,14 @@ const migrationKnownConfigs = {
 	],
 }
 
-export function getTranslationForMigrationProvider(provider: MailboxMigrationProvider, businessUse: boolean): TranslationKey {
+export function getTranslationForMigrationProvider(provider: MailboxMigrationProvider, businessUse: boolean, isExchange?: boolean): TranslationKey {
 	switch (provider) {
 		case MailboxMigrationProvider.Gmail:
 			return "migrationProviderGmail_label"
 		case MailboxMigrationProvider.Outlook:
 			return businessUse ? "migrationProviderMicrosoft365_label" : "migrationProviderOutlook_label"
 		default:
-			return "migrationImapProvider_label"
+			return (isExchange ?? false) ? "migrationProviderExchange_label" : "migrationImapProvider_label"
 	}
 }
 
