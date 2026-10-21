@@ -1318,7 +1318,6 @@ export type DeleteMailFolderData = {
 
 	// === these are not present in metamodel
 	_type: TypeRef<DeleteMailFolderData>
-	_errors: Object
 	_original: Nullable<DeleteMailFolderData>
 	isAdapter: false
 }

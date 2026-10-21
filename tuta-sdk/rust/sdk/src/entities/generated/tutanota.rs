@@ -977,9 +977,6 @@ pub struct DeleteMailFolderData {
 	pub _format: i64,
 	#[serde(rename = "460")]
 	pub folders: Vec<IdTupleGenerated>,
-
-	#[serde(default)]
-	pub _errors: Errors,
 }
 
 impl Entity for DeleteMailFolderData {
