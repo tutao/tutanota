@@ -24,11 +24,16 @@ import { idToElementId } from "@tutao/meta"
 import { isNull } from "../../../../platform-kit/utils/Utils"
 import { DriveFileSharingFacade, DriveShareInfo } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
 import { Styles } from "../../../../ui/styles"
+import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
+import { LoginController } from "../../../common/api/main/LoginController"
 
 type ShareDialogState = "busy" | "done"
 
 export class DriveFileShareDialog {
-	constructor(private readonly driveFileSharingFacade: DriveFileSharingFacade) {}
+	constructor(
+		private readonly driveFileSharingFacade: DriveFileSharingFacade,
+		private readonly logins: LoginController,
+	) {}
 
 	async show(item: FileFolderItem) {
 		let file = item.file
@@ -36,11 +41,11 @@ export class DriveFileShareDialog {
 			;[file] = await showProgressDialog(lang.getTranslation("creatingShare_msg"), this.driveFileSharingFacade.createShareLink(file, null, null))
 		}
 
-		showFileShareDialog(this.driveFileSharingFacade, file)
+		showFileShareDialog(this.driveFileSharingFacade, this.logins, file)
 	}
 }
 
-async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacade, file: DriveFile) {
+async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacade, logins: LoginController, file: DriveFile) {
 	let shareInfo: DriveShareInfo | null = null
 	let state: ShareDialogState = "busy"
 
@@ -165,7 +170,7 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 											onDateSelected: (selectedDate) => {
 												this.expirationDate = normalizeShareExpirationDate(selectedDate)
 											},
-											startOfTheWeekOffset: 0, //FIXME
+											startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
 											noPadding: true,
 											useNewTextField: true,
 											disabled: !this.doExpiry,

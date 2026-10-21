@@ -1099,7 +1099,7 @@ class DriveLocator implements CommonLocator {
 
 	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
 		const { DriveFileShareDialog } = await import("./drive/view/DriveFileShareDialog")
-		return new DriveFileShareDialog(this.driveFileSharingFacade)
+		return new DriveFileShareDialog(this.driveFileSharingFacade, this.logins)
 	})
 }
 

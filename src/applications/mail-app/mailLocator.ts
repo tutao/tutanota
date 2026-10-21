@@ -1612,7 +1612,7 @@ class MailLocator implements CommonLocator {
 
 	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
 		const { DriveFileShareDialog } = await import("../drive-app/drive/view/DriveFileShareDialog.js")
-		return new DriveFileShareDialog(this.driveFileSharingFacade)
+		return new DriveFileShareDialog(this.driveFileSharingFacade, this.logins)
 	})
 }
 
