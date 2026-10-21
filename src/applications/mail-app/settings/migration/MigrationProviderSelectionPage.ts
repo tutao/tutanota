@@ -1,7 +1,7 @@
 import m, { Children, Vnode } from "mithril"
 import { MigrationData } from "./AddMigrationWizard.js"
 import { EnvProvider } from "@tutao/app-env"
-import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
@@ -16,6 +16,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { RadioSelectorOption } from "../../../../ui/base/RadioSelectorItem"
 import { RadioSelector, RadioSelectorAttrs } from "../../../../ui/base/RadioSelector"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -89,6 +90,7 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 	}
 
 	private renderOptionButtons(data: MigrationData): Children {
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 		const options: ReadonlyArray<RadioSelectorOption<MailboxMigrationProvider>> = [
 			{
 				name: "migrationProviderGmail_label",
@@ -96,9 +98,10 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 				icon: m(".flex.ml-4", m.trust(GmailLogo)),
 			},
 			{
-				name: "migrationProviderOutlook_label",
+				name: businessUse ? "migrationProviderMicrosoft365_label" : "migrationProviderOutlook_label",
 				value: MailboxMigrationProvider.Outlook,
 				icon: m(".flex.ml-4", m.trust(OutlookLogo)),
+				icon: m(".flex.ml-4", m.trust(businessUse ? MicrosoftLogo : OutlookLogo)),
 			},
 			{
 				name: "migrationProviderOther_label",
