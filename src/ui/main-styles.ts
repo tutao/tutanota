@@ -1837,6 +1837,9 @@ export class MainStyles {
 				".dialog": {
 					"min-width": px(200),
 				},
+				".dialog-width-xl": {
+					"max-width": px(1000),
+				},
 				".dialog-width-l": {
 					"max-width": px(800),
 				},
