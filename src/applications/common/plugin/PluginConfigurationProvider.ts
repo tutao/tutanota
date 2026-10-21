@@ -45,9 +45,10 @@ export class PluginConfigurationProvider implements ConfigurationAdapter, PostLo
 			this.customerGroup = assertNotNull(customer.customerGroup)
 		}
 		this.userOwnerGroup = assertNotNull(loggedInUser._ownerGroup)
-		this.userPluginListId = assertNotNull(loggedInUser.plugins).pluginConfigs
-
-		await this.pluginManager.loadAllPlugins()
+		if (this.logins.isInternalUserLoggedIn()) {
+			this.userPluginListId = assertNotNull(loggedInUser.plugins).pluginConfigs
+			await this.pluginManager.loadAllPlugins()
+		}
 	}
 
 	setPluginManager(pm: PluginManager): void {
