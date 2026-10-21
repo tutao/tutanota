@@ -13,7 +13,11 @@ import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.graphics.Color
 import android.graphics.Rect
+import android.net.ConnectivityManager
+import android.net.ConnectivityManager.NetworkCallback
 import android.net.MailTo
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Bundle
 import android.os.PowerManager
@@ -43,6 +47,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.browser.customtabs.CustomTabsIntent
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.getSystemService
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.core.view.ViewCompat
 import androidx.core.view.ViewCompat.setSystemGestureExclusionRects
@@ -77,8 +82,8 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
-import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.AndroidArchiveDownloaderFacade
+import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.AndroidFileFacade
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.AndroidGlobalDispatcher
@@ -147,6 +152,8 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 	private var firstLoaded = false
 	private var webauthnResultHandler: WebauthnHandler? = null
 
+	private lateinit var connectivityManager: ConnectivityManager
+
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
 		Log.d(TAG, "App started")
@@ -212,11 +219,12 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 		val ipcJson = Json { ignoreUnknownKeys = true }
 
 		themeFacade = AndroidThemeFacade(this, this)
+		connectivityManager = applicationContext.getSystemService<ConnectivityManager>()!!
 
 		sqlCipherFacade = AndroidSqlCipherFacade(this)
 		commonSystemFacade =
 			AndroidCommonSystemFacade(this, sqlCipherFacade, tempDir, NetworkUtils.defaultClient)
-		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade)
+		archiveDownloaderFacade = AndroidArchiveDownloaderFacade(sqlCipherFacade, connectivityManager)
 
 		val webauthnFacade = AndroidWebauthnFacade(this, ipcJson, "tutanota", BuildConfig.APPLICATION_ID)
 
@@ -261,6 +269,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 		actionBar?.hide()
 
 		mobileFacade = MobileFacadeSendDispatcher(ipcJson, remoteBridge)
+		archiveDownloaderFacade.setMobileFacade(mobileFacade)
 		commonNativeFacade = CommonNativeFacadeSendDispatcher(ipcJson, remoteBridge)
 
 		setupPushNotifications()
@@ -444,6 +453,21 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 			}
 
 			startWebApp(queryParameters)
+
+			val networkObserverCallback = object : NetworkCallback() {
+				override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
+					launch {
+						val isMetered =
+							!networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED)
+						mobileFacade.connectionTypeUpdate(isMetered)
+						Log.d(
+							TAG,
+							isMetered.toString()
+						)
+					}
+				}
+			}
+			connectivityManager.registerDefaultNetworkCallback(networkObserverCallback)
 		}
 
 		// Exclude bottom left screen area from system (back) gestures to open the drawer menu with a swipe from the
