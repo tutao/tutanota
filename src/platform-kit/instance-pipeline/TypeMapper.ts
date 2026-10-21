@@ -20,7 +20,6 @@ import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
 import { EnvProvider } from "@tutao/app-env"
-import { TypeChecks } from "../app-env/TsTypeChecks"
 
 export class TypeMapper {
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
@@ -116,11 +115,6 @@ export class IncomingServerJson implements DeepEquals {
 		})
 		assert(!Array.isArray(parsedJson), "Expected single instance. But response is an array")
 		return new IncomingServerJson(parsedJson, typeModel)
-	}
-
-	public static expectSingleMailDetailsBlob(data: any, typeModel: ServerTypeModel): IncomingServerJson {
-		assert(TypeChecks.isObject(data) && !Array.isArray(data), "Expected single instance. But response is an array")
-		return new IncomingServerJson(data, typeModel)
 	}
 
 	public static expectMultipleInstance(data: any, typeModel: ServerTypeModel): Array<IncomingServerJson> {

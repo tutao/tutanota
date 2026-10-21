@@ -303,6 +303,8 @@ pub struct ArchiveEnumerationGetOut {
 	pub _format: i64,
 	#[serde(rename = "217")]
 	pub archives: Vec<GeneratedId>,
+	#[serde(rename = "223")]
+	pub archiveMetadata: Vec<ArchiveMetadata>,
 }
 
 impl Entity for ArchiveEnumerationGetOut {
@@ -310,6 +312,26 @@ impl Entity for ArchiveEnumerationGetOut {
 		TypeRef {
 			app: AppName::Storage,
 			type_id: TypeId::from(215),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct ArchiveMetadata {
+	#[serde(rename = "220")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "222")]
+	pub calculatedSize: Option<i64>,
+	#[serde(rename = "221")]
+	pub archiveId: GeneratedId,
+}
+
+impl Entity for ArchiveMetadata {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Storage,
+			type_id: TypeId::from(219),
 		}
 	}
 }
