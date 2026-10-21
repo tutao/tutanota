@@ -57,7 +57,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 		this.isGmail = migrationData.provider === MailboxMigrationProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
-			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.provider, businessUse)),
+			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.provider, businessUse, migrationData.isExchange)),
 		}).text
 		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchMigrationMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails
