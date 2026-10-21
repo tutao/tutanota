@@ -13,6 +13,7 @@ o.spec("GraphApiClient", () => {
 
 	function client(fetchFunction: typeof fetch, sleeps: number[] = []) {
 		return new GraphApiClient(
+			"user@test.com",
 			"token",
 			fetchFunction,
 			new ApiClientRequestPacer(
@@ -33,7 +34,7 @@ o.spec("GraphApiClient", () => {
 		const id = await client(fetchFunction).getSystemFolderId("inbox")
 
 		o.check(id).equals("id-inbox")
-		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/me/mailFolders/inbox?$select=id")
+		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders/inbox?$select=id")
 		o.check(headersOf(requests[0]).Authorization).equals("Bearer token")
 		o.check(headersOf(requests[0]).Prefer).equals('IdType="ImmutableId"')
 	})
@@ -48,7 +49,7 @@ o.spec("GraphApiClient", () => {
 	})
 
 	o.test("lists all pages of the folders, including hidden ones, and of the child folders", async () => {
-		const next = "https://graph.microsoft.com/v1.0/me/mailFolders?$skiptoken=abc"
+		const next = "https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders?$skiptoken=abc"
 		const { fetchFunction, requests } = mockedFetch(
 			json(200, { value: [{ id: "a" }], "@odata.nextLink": next }),
 			json(200, { value: [{ id: "b" }] }),
@@ -57,14 +58,14 @@ o.spec("GraphApiClient", () => {
 		const graphClient = client(fetchFunction)
 
 		o.check((await graphClient.listFolders()).map((folder) => folder.id)).deepEquals(["a", "b"])
-		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/me/mailFolders?includeHiddenFolders=true")
+		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders?includeHiddenFolders=true")
 		o.check(requests[1].url).equals(next)
 		o.check((await graphClient.listChildFolders("a/b")).map((folder) => folder.id)).deepEquals(["c"])
-		o.check(requests[2].url).equals("https://graph.microsoft.com/v1.0/me/mailFolders/a%2Fb/childFolders?includeHiddenFolders=true")
+		o.check(requests[2].url).equals("https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders/a%2Fb/childFolders?includeHiddenFolders=true")
 	})
 
 	o.test("lists the ids of the messages of a folder page by page, removed messages separately", async () => {
-		const next = "https://graph.microsoft.com/v1.0/me/mailFolders/f/messages/delta?$skiptoken=abc"
+		const next = "https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders/f/messages/delta?$skiptoken=abc"
 		const { fetchFunction, requests } = mockedFetch(
 			json(200, { value: [{ id: "m1" }, { id: "gone", "@removed": { reason: "deleted" } }], "@odata.nextLink": next }),
 			json(200, { value: [{ id: "m2" }] }),
@@ -75,7 +76,7 @@ o.spec("GraphApiClient", () => {
 		const second = await graphClient.listMessageIds("f", first.nextLink)
 
 		// only the ids, the mails are downloaded afterwards and only if they were not imported yet
-		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/me/mailFolders/f/messages/delta?$select=id")
+		o.check(requests[0].url).equals("https://graph.microsoft.com/v1.0/users/user@test.com/mailFolders/f/messages/delta?$select=id")
 		o.check(headersOf(requests[0]).Prefer).equals(`IdType="ImmutableId", odata.maxpagesize=${MAIL_DOWNLOAD_BATCH_SIZE}`)
 		o.check(headersOf(requests[1]).Prefer).equals(`IdType="ImmutableId", odata.maxpagesize=${MAIL_DOWNLOAD_BATCH_SIZE}`)
 		o.check(first).deepEquals({ ids: ["m1"], removedIds: ["gone"], nextLink: next })
@@ -111,7 +112,7 @@ o.spec("GraphApiClient", () => {
 		o.check(batchRequests[2]).deepEquals({
 			id: "2",
 			method: "GET",
-			url: "/me/messages/c?$expand=attachments",
+			url: "/users/user@test.com/messages/c?$expand=attachments",
 			headers: { Prefer: 'IdType="ImmutableId"' },
 		})
 	})
@@ -152,7 +153,7 @@ o.spec("GraphApiClient", () => {
 		o.check(messages.map((m) => m.id)).deepEquals(["a", "b", "c"])
 		o.check(sleeps).deepEquals([3000]) // no request starts before the Retry-After is over
 		const retried = JSON.parse(requests[1].init.body as string).requests.map((r: any) => r.url)
-		o.check(retried).deepEquals(["/me/messages/b?$expand=attachments", "/me/messages/c?$expand=attachments"])
+		o.check(retried).deepEquals(["/users/user@test.com/messages/b?$expand=attachments", "/users/user@test.com/messages/c?$expand=attachments"])
 	})
 
 	o.test("a request of the batch that fails for good makes the call fail", async () => {
