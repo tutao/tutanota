@@ -3073,7 +3073,7 @@ export class MainStyles {
 				".tutaui-switch": {
 					display: "flex",
 					"align-items": "center",
-					gap: px(size.spacing_8),
+					gap: px(size.spacing_16),
 				},
 				".tutaui-toggle-pill": {
 					position: "relative",
