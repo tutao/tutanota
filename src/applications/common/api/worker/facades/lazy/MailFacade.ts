@@ -929,8 +929,7 @@ export class MailFacade {
 		const deleteMailFolderData = createDeleteMailFolderData({
 			folders: [id],
 		})
-		// TODO make DeleteMailFolderData unencrypted in next model version
-		await this.serviceExecutor.execute(MailFolderService_DELETE, deleteMailFolderData, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: "dummy" as any })
+		await this.serviceExecutor.execute(MailFolderService_DELETE, deleteMailFolderData, { ...DEFAULT_EXTRA_SERVICE_PARAMS })
 	}
 
 	async fixupCounterForFolder(groupId: Id, folder: MailSet, unreadMails: number): Promise<void> {
