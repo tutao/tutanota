@@ -37,6 +37,7 @@ import { ColorOptionButton } from "../../../../ui/base/colorPicker/ColorOptionBu
 import { ImapMailboxSpecialUse } from "../../../common/api/common/utils/imapImportUtils/ImapMailbox"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -489,8 +490,9 @@ export class ImapImportSummaryPageAttrs implements WizardPageAttrs<ImapImportDat
 
 			if (this.data.imapAccountSyncStatus === ImapAccountSyncStatus.POSTPONED) {
 				let postponedErrorMsg = "migrationStartedPostponed_msg" as TranslationKey
+				const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 				const postponedErrorMessageReplaced = lang.getTranslation(postponedErrorMsg, {
-					"{provider}": lang.getTranslationText(getTranslationForImapProvider(this.data.imapProvider)),
+					"{provider}": lang.getTranslationText(getTranslationForImapProvider(this.data.imapProvider, businessUse)),
 				})
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}

@@ -5,7 +5,7 @@ import { ImapImportData } from "./AddImapImportWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
 import { getTranslationForImapProvider, ImapProvider } from "../../../common/api/common/utils/imapImportUtils/ImapKnownConfigs"
-import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -18,6 +18,7 @@ import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -42,7 +43,7 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 			case ImapProvider.Outlook:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
-				this.titleSectionParams.customIcon = m.trust(OutlookLogo)
+				this.titleSectionParams.customIcon = m.trust(businessUse ? MicrosoftLogo : OutlookLogo)
 				break
 			default:
 				this.titleSectionParams.customIcon = undefined
@@ -52,7 +53,8 @@ export class ImapImportIntroductionPage implements WizardPageN<ImapImportData> {
 	}
 	view(vnode: Vnode<WizardPageAttrs<ImapImportData>>): Children {
 		const imapProvider = vnode.attrs.data.imapProvider
-		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider))
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
+		const providerTranslationText = lang.getTranslationText(getTranslationForImapProvider(imapProvider, businessUse))
 		return m(".mt-24", [
 			m(TitleSection, {
 				...this.titleSectionParams,

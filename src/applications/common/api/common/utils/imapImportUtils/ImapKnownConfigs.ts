@@ -105,12 +105,12 @@ export function getImapConfigForProvider(provider: ImapProvider): ServerImapImpo
 	}
 }
 
-export function getTranslationForImapProvider(provider: ImapProvider): TranslationKey {
+export function getTranslationForImapProvider(provider: ImapProvider, businessUse: boolean): TranslationKey {
 	switch (provider) {
 		case ImapProvider.Gmail:
 			return "migrationProviderGmail_label"
 		case ImapProvider.Outlook:
-			return "migrationProviderOutlook_label"
+			return businessUse ? "migrationProviderMicrosoft365_label" : "migrationProviderOutlook_label"
 		default:
 			return "migrationImapProvider_label"
 	}

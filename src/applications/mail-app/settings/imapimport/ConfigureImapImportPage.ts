@@ -32,6 +32,7 @@ import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { ImapCredentials } from "../../../common/api/common/utils/imapImportUtils/ImapSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -53,10 +54,10 @@ class ConfigureImapImportPage implements WizardPageN<ImapImportData> {
 
 	async oninit(vnode: Vnode<WizardPageAttrs<ImapImportData>>) {
 		const imapImportData = vnode.attrs.data
-
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 		this.isGmail = imapImportData.imapProvider === ImapProvider.Gmail
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
-			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider)),
+			"{provider}": lang.getTranslationText(getTranslationForImapProvider(vnode.attrs.data.imapProvider, businessUse)),
 		}).text
 		this.shouldDisplayRootImportMailSetTextField = !vnode.attrs.data.matchImapMailboxesToTutaMailSets
 		this.shouldDisplayLabelField = vnode.attrs.data.addLabelToImportedMails

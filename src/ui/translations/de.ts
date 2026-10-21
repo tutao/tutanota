@@ -2562,5 +2562,6 @@ export default {
 		"openDriveDestinationPickerForAttachment_action": "Attach drive files",
 		"skipThisFile_action": "Skip this file",
 		"duplicateFileNames_title": "Duplicate file names",
+		"migrationProviderMicrosoft365_label": "Microsoft 365",
 	}
 }
