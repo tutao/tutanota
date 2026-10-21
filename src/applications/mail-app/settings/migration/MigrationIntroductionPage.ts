@@ -1,11 +1,11 @@
 import m, { Children, Vnode } from "mithril"
-import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog"
 import { MigrationData } from "./AddMigrationWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
-import { GmailLogo, Icons, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -18,6 +18,7 @@ import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { isMailAddress } from "@tutao/utils"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { createManageLabelServiceLabelData } from "@tutao/entities/tutanota"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -42,7 +43,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 			case MailboxMigrationProvider.Outlook:
 				this.titleSectionParams.icon = undefined
 				this.titleSectionParams.iconOptions = undefined
-				this.titleSectionParams.customIcon = m.trust(OutlookLogo)
+				this.titleSectionParams.customIcon = m.trust(businessUse ? MicrosoftLogo : OutlookLogo)
 				break
 			default:
 				this.titleSectionParams.customIcon = undefined
@@ -52,7 +53,8 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 	}
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		const mailboxMigrationProvider = vnode.attrs.data.provider
-		const providerTranslationText = lang.getTranslationText(getTranslationForMigrationProvider(mailboxMigrationProvider))
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
+		const providerTranslationText = lang.getTranslationText(getTranslationForMigrationProvider(mailboxMigrationProvider, businessUse))
 		return m(".mt-24", [
 			m(TitleSection, {
 				...this.titleSectionParams,
