@@ -34,6 +34,7 @@ import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "..
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { UserMigrationCredentialParams } from "@tutao/entities/sys"
 import { tokenEndpointResponseToOAuthToken } from "../../../common/api/common/utils/migrationImportUtils/MigrationImportUtils"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -496,8 +497,9 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 
 			if (this.data.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.POSTPONED) {
 				let postponedErrorMsg = "migrationStartedPostponed_msg" as TranslationKey
+				const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 				const postponedErrorMessageReplaced = lang.getTranslation(postponedErrorMsg, {
-					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.provider)),
+					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(this.data.provider, businessUse)),
 				})
 				return showErrorDialog ? Dialog.message(postponedErrorMessageReplaced).then(() => true) : Promise.resolve(true)
 			}
