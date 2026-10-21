@@ -28,6 +28,7 @@ import { MigrationErrorCause } from "../../../common/api/common/error/MigrationE
 import { MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
 import { showUpgradeWizardOrSwitchSubscriptionDialog } from "../../../common/misc/SubscriptionDialogs"
 import { elementIdToId, isSameSingleId } from "@tutao/meta"
+import { locator } from "../../../common/api/main/CommonLocator"
 
 EnvProvider.assertMainOrNode()
 
@@ -187,8 +188,9 @@ class MigrationSettingsViewer implements UpdatableSettingsViewer {
 			if (this.mailboxMigrationController().shouldRenderPlayButton(session)) {
 				syncMessage = lang.getTranslation("migrationPausedProgressInfo_msg", { "{mailCount}": session.importedMailCount })
 			} else if (this.mailboxMigrationController().shouldRenderClockIcon(session)) {
+				const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
 				syncMessage = lang.getTranslation("migrationPostponed_msg", {
-					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(session.provider)),
+					"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(session.provider, businessUse)),
 					"{postponedUntil}": session.postponedUntil.toLocaleString("en-GB", {
 						day: "2-digit",
 						month: "2-digit",
