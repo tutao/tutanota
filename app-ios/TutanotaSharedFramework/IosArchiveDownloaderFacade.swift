@@ -6,11 +6,13 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 	private let schemeHandler: ApiSchemeHandler
 	private let urlSession: URLSession
 	private let activeJobsLock = OSAllocatedUnfairLock(initialState: [String: URLSessionTask]())
+	private let networkMonitor: NetworkMonitor
 
-	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession) {
+	public init(sqlCipherFacade: IosSqlCipherFacade, schemeHandler: ApiSchemeHandler, urlSession: URLSession, networkMonitor: NetworkMonitor) {
 		self.sqlCipherFacade = sqlCipherFacade
 		self.schemeHandler = schemeHandler
 		self.urlSession = urlSession
+		self.networkMonitor = networkMonitor
 	}
 
 	public func downloadAndStoreArchive(
@@ -31,6 +33,7 @@ public final class IosArchiveDownloaderFacade: ArchiveDownloaderFacade {
 
 		request.allHTTPHeaderFields = headers
 		defer { _ = self.activeJobsLock.withLock { $0.removeValue(forKey: archiveId) } }
+		self.networkMonitor.check()
 
 		// Concurrency is not an issue, we only mutate observation once to keep a reference to it
 		final class DownloadDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {

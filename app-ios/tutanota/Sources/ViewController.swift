@@ -20,6 +20,7 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 
 	private var keyboardSize = 0
 	private var isDarkTheme = false
+	private var monitor = NetworkMonitor()
 
 	init(
 		crypto: TutanotaSharedFramework.IosNativeCryptoFacade,
@@ -70,7 +71,12 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		let globalDispatcher = IosGlobalDispatcher(
-			archiveDownloaderFacade: IosArchiveDownloaderFacade(sqlCipherFacade: sqlCipherFacade, schemeHandler: apiSchemeHandler, urlSession: urlSession),
+			archiveDownloaderFacade: IosArchiveDownloaderFacade(
+				sqlCipherFacade: sqlCipherFacade,
+				schemeHandler: apiSchemeHandler,
+				urlSession: urlSession,
+				networkMonitor: monitor
+			),
 			commonSystemFacade: commonSystemFacade,
 			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
 			fileFacade: IosFileFacade(
@@ -105,6 +111,8 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate, UISc
 		)
 		self.bridge = RemoteBridge(webView: self.webView, commonSystemFacade: commonSystemFacade, globalDispatcher: globalDispatcher)
 		self.commonNativeFacade = CommonNativeFacadeSendDispatcher(transport: self.bridge)
+
+		monitor.setCallback { isMetered in Task { try await MobileFacadeSendDispatcher(transport: self.bridge).connectionTypeUpdate(isMetered) } }
 	}
 
 	required init?(coder: NSCoder) { fatalError("Not NSCodable") }
