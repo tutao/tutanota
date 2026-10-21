@@ -2564,5 +2564,6 @@ export default {
 		"duplicateFileNames_title": "Duplicate file names",
 		"migrationSyncStateAllFoldersPermanentlyDeleted_msg": "Deine Migration kann nicht fortgesetzt werden, da alle Zielordner gelöscht wurden.",
 		"migrationProviderMicrosoft365_label": "Microsoft 365",
+		"migrationProviderExchange_label": "Exchange",
 	}
 }
