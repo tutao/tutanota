@@ -6,7 +6,7 @@ import type { OfflineStorageTable } from "../../../../../../app-kit/local-store/
 import { sql } from "../../../../../../app-kit/local-store/Sql"
 import { untagSqlValue } from "../../../../../../app-kit/local-store/SqlValue"
 import { IndexedDbConfigurationDatabase } from "./IndexedDbConfigurationDatabase"
-import { defer, DeferredObject, lazyAsync, lazy } from "@tutao/utils"
+import { defer, DeferredObject, lazy, lazyAsync } from "@tutao/utils"
 
 export const OfflineConfigurationDatabaseDefinitions: Record<string, OfflineStorageTable> = Object.freeze({
 	offline_configuration_db_metadata: {
@@ -57,7 +57,7 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 	async getExternalImageRule(address: string): Promise<ExternalImageRule> {
 		const { query, params } = sql`SELECT rule
 									  FROM external_image_rules
-									  WHERE address = ${address} LIMIT 1`
+									  WHERE address = ${address}`
 
 		const result = await this.sql.get(query, params)
 		if (result == null) {
@@ -70,7 +70,7 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 	async getNewsletterBannerRule(address: string): Promise<NewsletterBannerRule> {
 		const { query, params } = sql`SELECT rule
 									  FROM newsletter_banner_rules
-									  WHERE address = ${address} LIMIT 1`
+									  WHERE address = ${address}`
 
 		const result = await this.sql.get(query, params)
 		if (result == null) {
@@ -87,7 +87,26 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 		return result == null
 	}
 
+	async onEntityUpdatesReceived(_events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<void> {
+		// no-op
+	}
+
+	async delete(_userId: Id): Promise<void> {
+		// no-op - deleted with the offline database
+	}
+
 	async migrateFromIndexedDbConfigurationDatabase(oldDatabaseProvider: lazyAsync<IndexedDbConfigurationDatabase>, userIdProvider: lazy<Id>) {
+		// This requires a trigger from a login listener before actually activating, which creates a bit of spaghetti
+		// code where we have to call two functions to trigger the action. Sadly, we need it for a few reasons:
+		//
+		// - We can't access IndexedDbConfigurationDatabase until we're fully logged in (we might not be)
+		//
+		// - Accessing IndexedDbConfigurationDatabase when not fully logged in fails, and because db is memoized, it'll
+		//   be stuck broken until re-login
+		//
+		// - We also don't want to put the legacy IndexedDbConfigurationDatabase on the worker locator or have code for
+		//   instantiating it outside WorkerLocator.
+		//
 		await this.migrateTrigger.promise
 
 		const db = await oldDatabaseProvider()
@@ -112,14 +131,6 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 
 		await db.delete(userIdProvider())
 		await this.sql.run(`INSERT OR REPLACE INTO offline_configuration_db_metadata (key, value) VALUES ('${MIGRATED_FROM_INDEXED_DB_FLAG}', '1')`, [])
-	}
-
-	async onEntityUpdatesReceived(_events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<void> {
-		// no-op
-	}
-
-	async delete(_userId: Id): Promise<void> {
-		// no-op - deleted with the offline database
 	}
 
 	triggerMigrationIfNeeded() {
