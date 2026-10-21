@@ -292,8 +292,8 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 	const scheduler = new SchedulerImpl(dateProvider, self, self)
 
 	locator.configFacade = lazyMemoized(async () => {
-		const { ConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/ConfigurationDatabase.js")
-		return new ConfigurationDatabase(locator.base.keyLoader, locator.base.user)
+		const { IndexedDbConfigurationDatabase } = await import("../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js")
+		return new IndexedDbConfigurationDatabase(locator.base.keyLoader, locator.base.user)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

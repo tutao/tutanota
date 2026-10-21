@@ -37,7 +37,7 @@ import {
 	SearchTermSuggestionsOS,
 } from "../../../common/api/worker/search/IndexTables.js"
 import { KeyLoaderFacade } from "../../../../platform-kit/base/base-crypto/KeyLoaderFacade.js"
-import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
+import { getIndexerMetaData, updateEncryptionMetadata } from "../../../common/api/worker/facades/lazy/IndexedDbConfigurationDatabase.js"
 import { Indexer, IndexerInitParams } from "./Indexer"
 import { EncryptedDbWrapper } from "../../../common/api/worker/search/EncryptedDbWrapper"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"

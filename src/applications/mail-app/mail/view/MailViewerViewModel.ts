@@ -36,7 +36,7 @@ import {
 	showLabelsPopup,
 	showMoveMailsDropdown,
 } from "./MailGuiUtils"
-import { DownloadPostProcessing, DownloadReturn, FileController } from "../../../common/file/FileController"
+import { DownloadPostProcessing, FileController } from "../../../common/file/FileController"
 import { exportMails } from "../export/Exporter.js"
 import { IndexingNotSupportedError } from "../../../common/api/common/error/IndexingNotSupportedError"
 import { FileOpenError } from "../../../common/api/common/error/FileOpenError"
@@ -808,9 +808,7 @@ export class MailViewerViewModel {
 	}
 
 	canPersistBlockingStatus(): boolean {
-		// we need to be fully logged in to persist the status, as ConfigurationDatabase currently requires being fully
-		// logged for group key
-		return this.mailModel.indexingSupported && this.logins.isFullyLoggedIn()
+		return EnvProvider.get().isOfflineStorageAvailable() || this.mailModel.indexingSupported
 	}
 
 	async exportMail(): Promise<void> {
