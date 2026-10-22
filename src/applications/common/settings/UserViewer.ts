@@ -12,7 +12,17 @@ import { SecondFactorsEditForm } from "./login/secondfactor/SecondFactorsEditFor
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 import { elementIdToId, idToElementId, isSameId, isSameSingleId, OperationType } from "../../../platform-kit/meta"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { Customer, GroupInfo, GroupInfoTypeRef, GroupMembership, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import {
+	Customer,
+	CustomerMigrationInfo,
+	CustomerUserMigrationInfoTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMembership,
+	GroupTypeRef,
+	User,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../entities/sys/Utils"
 import { HtmlEditor, HtmlEditorMode } from "../../../ui/editor/HtmlEditor.js"
 import { checkAndImportUserData, CSV_USER_FORMAT } from "./ImportUsersViewer.js"
@@ -30,6 +40,8 @@ import { progressIcon } from "../../../ui/base/Icon.js"
 import { toFeatureType } from "../subscription/utils/SubscriptionUtils.js"
 import { UpdatableSettingsDetailsViewer } from "./Interfaces.js"
 import { getHtmlSanitizer } from "../misc/HtmlSanitizer"
+import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons"
+import { showAddToRunningMigrationDialog } from "../gui/dialogs/AddToRunningMigrationDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -43,10 +55,12 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 	private mailAddressTableModel: MailAddressTableModel | null = null
 	private mailAddressTableExpanded = false
 	private isPurchasingNewSharedMailboxGroup: boolean
+	private shouldShowAddUserToMigrationDialog: boolean = false
 
 	constructor(
 		public userGroupInfo: GroupInfo,
 		private isAdmin: boolean,
+		private readonly activeCustomerMigrationInfo: LazyLoaded<CustomerMigrationInfo | null>,
 	) {
 		this.userGroupInfo = userGroupInfo
 		this.isPurchasingNewSharedMailboxGroup = false
@@ -88,6 +102,16 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 			if (mailMembership == null) {
 				console.error("User doesn't have a mailbox?", user._id)
 				return
+			}
+			const activeCustomerMigrationInfo = await this.activeCustomerMigrationInfo.getAsync()
+			if (activeCustomerMigrationInfo) {
+				const customerUserMigrationInfos = await locator.entityClient.loadAll(
+					CustomerUserMigrationInfoTypeRef,
+					activeCustomerMigrationInfo.customerUserMigrationInfos,
+				)
+				if (!customerUserMigrationInfos.some((customerUserMigrationInfo) => isSameId(idToElementId(customerUserMigrationInfo.user), user._id))) {
+					this.shouldShowAddUserToMigrationDialog = true
+				}
 			}
 			this.mailAddressTableModel = this.isItMe()
 				? await locator.mailAddressTableModelForOwnMailbox()
@@ -149,6 +173,7 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 						onExpanded: (newExpanded) => (this.mailAddressTableExpanded = newExpanded),
 					})
 				: progressIcon(),
+			this.shouldShowAddUserToMigrationDialog ? this.renderCreateMigrationButton() : null,
 		])
 	}
 
@@ -375,6 +400,19 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 		return user.memberships.filter((m) => m.groupInfo[0] === customer.teamGroups)
 	}
 
+	private showAddToMigrationDialog(): void {
+		if (this.userGroupInfo.deleted) {
+			Dialog.message("userAccountDeactivated_msg")
+			return
+		}
+
+		const user = this.user.getSync()
+		const customerMigrationInformation = this.activeCustomerMigrationInfo.getSync()
+		if (user == null || customerMigrationInformation == null) return
+
+		showAddToRunningMigrationDialog({ kind: "user", user }, customerMigrationInformation)
+	}
+
 	private isAdminUser(user: User): boolean {
 		return user.memberships.some((m) => m.groupType === GroupType.Admin)
 	}
@@ -466,6 +504,19 @@ export class UserViewer implements UpdatableSettingsDetailsViewer {
 
 	private loadTeamGroupInfos(): Promise<Array<GroupInfo>> {
 		return this.customer.getAsync().then((customer) => locator.entityClient.loadAll(GroupInfoTypeRef, customer.teamGroups))
+	}
+
+	private renderCreateMigrationButton() {
+		return this.activeCustomerMigrationInfo !== null
+			? m(
+					".mt-32.flex.justify-center",
+					m(PrimaryButton, {
+						label: "migrationAddUserToRunning_action",
+						width: "flex",
+						onclick: () => this.showAddToMigrationDialog(),
+					}),
+				)
+			: null
 	}
 }
 

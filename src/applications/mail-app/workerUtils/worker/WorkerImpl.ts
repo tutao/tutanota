@@ -55,6 +55,7 @@ import { NamedClientModel } from "@tutao/instance-pipeline"
 import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { MailboxImporter } from "../migration/MailboxImporter"
+import { CustomerMigrationFacade } from "../../../common/api/worker/facades/lazy/CustomerMigrationFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -103,6 +104,7 @@ export interface WorkerInterface {
 	readonly autosaveFacade: AutosaveFacade
 	readonly driveFacade: DriveFacade
 	readonly mailboxImporter: MailboxImporter
+	readonly customerMigrationFacade: CustomerMigrationFacade
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -327,6 +329,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async mailboxImporter() {
 				return locator.mailboxImporter()
+			},
+			async customerMigrationFacade() {
+				return locator.customerMigrationFacade()
 			},
 		}
 	}

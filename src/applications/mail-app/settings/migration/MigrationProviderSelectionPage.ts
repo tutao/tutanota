@@ -27,7 +27,7 @@ export const enum MailboxMigrationProviderUI {
 	Exchange,
 }
 
-function toMigrationProvider(provider: MailboxMigrationProviderUI): MailboxMigrationProvider {
+export function toMigrationProvider(provider: MailboxMigrationProviderUI): MailboxMigrationProvider {
 	switch (provider) {
 		case MailboxMigrationProviderUI.Gmail:
 			return MailboxMigrationProvider.Gmail

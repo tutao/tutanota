@@ -49,7 +49,7 @@ export function getMailboxMigrationCredential(
 		const userMigrationCredential = userMigrationInfo.credential
 		return {
 			provider: parseInt(userMigrationInfo.provider) as MailboxMigrationProvider,
-			username: imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
+			username: migrationSyncState.sharedMailboxName ?? imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
 			password: imapConfiguration?.sharedPassword ?? userMigrationCredential?.password ?? null,
 			oAuthToken: imapConfiguration?.legacyOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
 		}
