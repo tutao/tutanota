@@ -19,7 +19,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
-import { AesKey } from "../../encryption/symmetric/AesKey"
+import { AesKey, MaybeSessionKeySomeday } from "../../encryption/symmetric/AesKey"
 import { AssociatedData, KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 export interface OwnerKeyProvider {
@@ -35,7 +35,7 @@ export class InstanceDecryptor {
 	private readonly instanceAeadSubKeyCache = new InstanceSubKeyCache<AeadSubKeys>()
 
 	constructor(
-		private readonly sessionKey: Nullable<AesKey>,
+		private readonly sessionKey: MaybeSessionKeySomeday,
 		private readonly kdfNonce: Nullable<KdfNonce>,
 		private readonly instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		private readonly ownerKeyProvider: Nullable<OwnerKeyProvider>,

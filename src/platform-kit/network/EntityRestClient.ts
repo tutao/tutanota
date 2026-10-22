@@ -19,6 +19,7 @@ import {
 	isNotEmpty,
 	isNotNull,
 	lazy,
+	lazyMemoized,
 	Mapper,
 	Nullable,
 	ofClass,
@@ -177,7 +178,13 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		const migratedEntity = await this.entityMigrator().applyMigrations(typeRef, entityAdapter)
 		const sessionKeyResolver = this.sessionKeyResolver()
-		const sessionKey = await sessionKeyResolver.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
+		const sessionKey = lazyMemoized(async (): Promise<AesKey> => {
+			const sessionKey = await sessionKeyResolver.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
+			if (sessionKey == null) {
+				throw new SessionKeyNotFoundError("session key not found")
+			}
+			return sessionKey
+		})
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			migratedEntity.getWrappedEncryptedInstance(),
 			sessionKey,
@@ -411,26 +418,33 @@ export class EntityRestClient implements EntityRestInterface {
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
-		let sessionKey: AesKey | null
-		if (isNotNull(ownerEncSessionKeyProvider)) {
-			const { elementId } = expandId(entityAdapter._id)
+		const sessionKey = lazyMemoized(async (): Promise<AesKey> => {
+			if (isNotNull(ownerEncSessionKeyProvider)) {
+				const { elementId } = expandId(entityAdapter._id)
 
-			const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
-			const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
+				const ownerEncSessionKey = await ownerEncSessionKeyProvider(elementId, entityAdapter)
+				const ownerGroup = assertNotNull(entityAdapter._ownerGroup)
 
-			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
-		} else {
-			try {
-				sessionKey = await this.sessionKeyResolver().resolveSessionKey(entityAdapter)
-			} catch (e) {
-				if (e instanceof SessionKeyNotFoundError) {
-					console.log("could not resolve session key", e, e.message, e.stack)
-					sessionKey = null // will result in _errors being set on the instance
-				} else {
+				return await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
+			} else {
+				let sessionKey: AesKey | null
+				try {
+					sessionKey = await this.sessionKeyResolver().resolveSessionKey(entityAdapter)
+				} catch (e) {
+					if (e instanceof SessionKeyNotFoundError) {
+						console.log("could not resolve session key", e, e.message, e.stack)
+					}
 					throw e
 				}
+
+				if (sessionKey == null) {
+					throw new SessionKeyNotFoundError("session key not found")
+				}
+
+				return sessionKey
 			}
-		}
+		})
+
 		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			entityAdapter.getWrappedEncryptedInstance(),
 			sessionKey,

@@ -9,7 +9,7 @@ import {
 import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, MaybeSessionKeySomeday } from "../encryption/symmetric/AesKey"
 import { AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
@@ -58,7 +58,7 @@ export class SymmetricCipherFacade {
 	 */
 	getInstanceDecryptor(
 		keyDerivationContext: KeyDerivationContext,
-		sessionKey: Nullable<AesKey>,
+		sessionKey: MaybeSessionKeySomeday,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,

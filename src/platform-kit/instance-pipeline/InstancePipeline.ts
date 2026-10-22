@@ -12,6 +12,7 @@ import {
 	AeadCipherVersion,
 	AesKey,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
+	MaybeSessionKeySomeday,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
 	PartialSubKeyInfoAeadWithSessionKey,
@@ -138,13 +139,13 @@ export class InstancePipeline {
 	 * @param sk The session key, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: AesKey | null): Promise<T> {
+	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: MaybeSessionKeySomeday): Promise<T> {
 		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
 	}
 
 	async decryptAndMapEncryptedInstance<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sessionKey: AesKey | null,
+		sessionKey: MaybeSessionKeySomeday,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<T> {
@@ -153,7 +154,7 @@ export class InstancePipeline {
 
 	async decryptAndMapEncryptedInstanceParsed<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sessionKey: AesKey | null,
+		sessionKey: MaybeSessionKeySomeday,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<MappedDecryptedInstance<T>> {

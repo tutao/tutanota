@@ -18,6 +18,7 @@ import {
 	AesKey,
 	KdfNonce,
 	KeyEncryption,
+	lazify,
 	OwnerKeyProvider,
 	random,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
@@ -862,7 +863,7 @@ o.spec("EntityRestClient", function () {
 					body: argThat(async (json: RestTextBody) => {
 						const accountingInfoTypeModel = await typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
 						const untypedInstance = IncomingServerJson.expectSingleInstance(json.payload, accountingInfoTypeModel)
-						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, sk)
+						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, lazify(sk))
 						return deepEqual(newCalendar, calendarInstance)
 					}),
 				}),
@@ -1046,7 +1047,7 @@ o.spec("EntityRestClient", function () {
 							json.payload,
 							await typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef),
 						)
-						const actualAccountingInfo = await instancePipeline.decryptAndMap(untypedInstance, sk)
+						const actualAccountingInfo = await instancePipeline.decryptAndMap(untypedInstance, lazify(sk))
 						return deepEqual(newAccountingInfo, actualAccountingInfo)
 					}),
 				}),

@@ -7,6 +7,7 @@ import {
 	AesKey,
 	base64ToKey,
 	KeyEncryption,
+	lazify,
 	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -218,7 +219,7 @@ o.spec("AlarmFacadeTest", function () {
 			const typeModel = await typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
 			const incoming = IncomingServerJson.expectMultipleInstance(allInstanceSentToFacade, typeModel)
 			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
-			const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(incoming[0], sessionKey)
+			const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(incoming[0], lazify(sessionKey))
 			o(instanceSentToFacade.operation).equals(OperationType.CREATE)
 		})
 	})

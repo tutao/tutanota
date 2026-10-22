@@ -41,6 +41,7 @@ import {
 	InstanceDecryptor,
 	InstanceKeyProvider,
 	KdfNonce,
+	MaybeSessionKeySomeday,
 	OwnerKeyProvider,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
@@ -119,7 +120,7 @@ export class CryptoMapper {
 
 	public async decryptParsedInstance(
 		encryptedInstance: EncryptedParsedInstance,
-		sessionKey: Nullable<AesKey>,
+		sessionKey: MaybeSessionKeySomeday,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
@@ -441,7 +442,7 @@ export class CryptoMapper {
 		}
 		const ciphertext = base64ToUint8Array(value)
 		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, new ValueAssociatedData(valuePath))
-		const decryptedBytes = valueDecryptor.getValue()
+		const decryptedBytes = await valueDecryptor.getValue()
 
 		switch (valueType.type) {
 			case ValueTypeEnum.String:
