@@ -18,6 +18,7 @@ import {
 	AesKey,
 	InstanceDecryptor,
 	InstanceKeyProvider,
+	lazify,
 	OwnerKeyProvider,
 	SymmetricCipherFacade,
 	validateKdfNonceLength,
@@ -122,7 +123,7 @@ export class PatchMerger {
 			const ownerKeyProvider = this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(ownerGroup)
 
 			const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
-			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, sk, kdfNonce, ownerKeyProvider, null)
+			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(sk), kdfNonce, ownerKeyProvider, null)
 			// We need to preserve the order of patches, so no promiseMap here
 			for (const patch of patches) {
 				const appliedSuccessfully = await this.applySinglePatch(parsedInstance, typeModel, patch, instanceDecryptor)

@@ -9,7 +9,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
-import { AeadCipherVersion, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
+import { AeadCipherVersion, lazify, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
 import { PaymentDataService_PUT } from "@tutao/entities/sys"
 
 EnvProvider.assertWorkerOrNode()
@@ -144,6 +144,6 @@ export class ServiceExecutor implements IServiceExecutor {
 		)
 		const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
 
-		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKey)
+		return await this.instancePipeline.decryptAndMap(incomingJson, lazify(sessionKey))
 	}
 }

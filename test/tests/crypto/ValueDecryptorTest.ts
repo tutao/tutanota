@@ -21,6 +21,7 @@ import {
 	AssociatedData,
 	InstanceKeyProvider,
 	KeyDerivationContext,
+	lazify,
 	MacTag,
 	OwnerKeyProvider,
 	random,
@@ -70,19 +71,19 @@ o.spec("ValueDecryptorTest", function () {
 	})
 
 	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, aes256Key, null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
 		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
 		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector.bytes, parsedCiphertext.ciphertext)
 		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, emptyAssociatedData)
-		valueDecryptor.getValue()
+		await valueDecryptor.getValue()
 		const plaintext = stringToUtf8Uint8Array("AesCbc with session key present plaintext")
 
 		when(aesCbcFacade.decrypt(matchers.anything(), parsedCiphertext, PaddingStandard.Pkcs5)).thenReturn(plaintext)
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 	})
 
 	o.test("AesCbcThenHmac, with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, aes256Key, null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
 		const ciphertextRaw = new Uint8Array([1, 2])
 		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag)
 
@@ -98,9 +99,9 @@ o.spec("ValueDecryptorTest", function () {
 		when(aesCbcFacade.decrypt(matchers.anything(), parsedCiphertext, PaddingStandard.Pkcs5)).thenReturn(plaintext)
 		const subKeys: AesCbcThenHmacSubKeys = object()
 		when(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion)).thenReturn(subKeys)
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion), { times: 1 })
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAesCbc(aes256Key, parsedCiphertext.cipherVersion), { times: 1 })
 	})
 
@@ -134,11 +135,11 @@ o.spec("ValueDecryptorTest", function () {
 		const versionedGroupKey: VersionedKey = { object: aes256Key, version: groupKeyVersion }
 		const subKeys: AeadWithInstanceKeySubKeys = object()
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(versionedGroupKey, kdfNonce, keyDerivationContext)).thenReturn(subKeys)
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey(versionedGroupKey, kdfNonce, keyDerivationContext), {
 			times: 1,
 		})
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(
 			symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromGroupKey({ object: aes256Key, version: groupKeyVersion }, kdfNonce, keyDerivationContext),
 			{
@@ -181,16 +182,16 @@ o.spec("ValueDecryptorTest", function () {
 		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
 		const subKeys: AeadWithInstanceKeySubKeys = object()
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext)).thenReturn(subKeys)
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext), {
 			times: 1,
 		})
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithInstanceKeyFromInstanceKey(instanceKey, keyDerivationContext), { times: 1 })
 	})
 
 	o.test("AeadWithSessionKey with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, aes256Key, null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)
@@ -200,9 +201,9 @@ o.spec("ValueDecryptorTest", function () {
 		when(aeadFacade.decrypt(matchers.anything(), parsedCiphertext, matchers.anything())).thenReturn(plaintext)
 		const subKeys: AeadWithSessionKeySubKeys = object()
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, keyDerivationContext)).thenReturn(subKeys)
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, keyDerivationContext), { times: 1 })
-		o.check(valueDecryptor.getValue()).equals(plaintext)
+		o.check(await valueDecryptor.getValue()).equals(plaintext)
 		verify(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(aes256Key, keyDerivationContext), { times: 1 })
 	})
 
