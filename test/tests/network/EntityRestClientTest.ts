@@ -1,29 +1,53 @@
-import o, { assertThrows, spy } from "@tutao/otest"
+import o, { assertThrows, mock, spy } from "@tutao/otest"
 import { RestClient, restError } from "../../../src/platform-kit/rest-client"
 import { HttpMethod, MediaType, RestClientOptions, RestTextBody } from "../../../src/platform-kit/rest-client/types"
 import { SetupMultipleError } from "../../../src/platform-kit/network/error/SetupMultipleError.js"
-import { Entity, idToElementId, TypeRef } from "../../../src/platform-kit/meta"
+import { CardinalityEnum, Entity, EntityTypeEnum, idToElementId, ServerTypeModel, TypeModel, TypeRef, ValueTypeEnum } from "../../../src/platform-kit/meta"
 import { doBlobRequestWithRetry, EntityMigrator, EntityRestClient, tryServers } from "../../../src/platform-kit/network/EntityRestClient"
 import { CryptoFacade } from "../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { explain, func, instance, matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
-import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
+import {
+	arrayEquals,
+	deepEqual,
+	downcast,
+	KeyVersion,
+	Mapper,
+	noOp,
+	Nullable,
+	ofClass,
+	promiseMap,
+	stringToUtf8Uint8Array,
+} from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
-import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
+	DecryptedParsedInstance,
+	EncryptedParsedInstance,
+	EntityAdapter,
+	InstancePipeline,
+	LoggedInUserProvider,
+	SessionAndInstanceKeyResolver,
+	TypeModelResolver,
+} from "../../../src/platform-kit/instance-pipeline"
+import {
+	AeadWithInstanceKeySubKeys,
+	AeadWithSessionKeySubKeys,
 	Aes,
 	AesCbcFacade,
 	AesKey,
+	CryptoWrapper,
 	KdfNonce,
 	KeyEncryption,
 	OwnerKeyProvider,
 	random,
+	sessionKeyProviderFromAvailableSessionKey,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	SymmetricCipherVersion,
+	SymmetricEncryptionScheme,
 	VersionedKey,
 	X25519,
 } from "../../../src/platform-kit/crypto"
@@ -61,8 +85,6 @@ import {
 } from "@tutao/entities/sys"
 import { ServiceExecutor } from "../../../src/platform-kit/network/ServiceExecutor"
 import { CacheManager } from "../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
-import { SymmetricEncryptionScheme } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
-import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { IncomingServerJson, OutgoingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { InstanceSessionKeysCache } from "../../../src/platform-kit/base/base-crypto/persistence/InstanceSessionKeysCache"
@@ -70,6 +92,8 @@ import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, DEFAULT_REST_CLIENT_OPTIONS } f
 import { InstanceKeyProviderMaker } from "../../../src/platform-kit/base/base-crypto/InstanceKeyProviderMaker"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { KDF_NONCE_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
+import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 
 const { anything, argThat } = matchers
 
@@ -113,6 +137,7 @@ type TestLoggedInUserProvider = LoggedInUserProvider & { encryptionScheme: Symme
 
 o.spec("EntityRestClient", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
+	let aeadFacade: AeadFacade
 	let entityRestClient: EntityRestClient
 	let restClient: RestClient
 	let instancePipeline: InstancePipeline
@@ -139,12 +164,8 @@ o.spec("EntityRestClient", function () {
 		currentDebuggingStatus = env.networkDebugging
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
-		const symmetricCipherFacade = new SymmetricCipherFacade(
-			new AesCbcFacade(),
-			new AeadFacade(symmetricCipherUtils),
-			new SymmetricKeyDeriver(),
-			symmetricCipherUtils,
-		)
+		aeadFacade = new AeadFacade(symmetricCipherUtils)
+		const symmetricCipherFacade = new SymmetricCipherFacade(new AesCbcFacade(), aeadFacade, new SymmetricKeyDeriver(), symmetricCipherUtils)
 		instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
 		// instead of mocking the instance pipeline itself, mock it's internal mapper.
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
@@ -862,7 +883,7 @@ o.spec("EntityRestClient", function () {
 					body: argThat(async (json: RestTextBody) => {
 						const accountingInfoTypeModel = await typeModelResolver.resolveServerTypeReference(CalendarEventTypeRef)
 						const untypedInstance = IncomingServerJson.expectSingleInstance(json.payload, accountingInfoTypeModel)
-						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, sk)
+						const calendarInstance = await instancePipeline.decryptAndMap(untypedInstance, sessionKeyProviderFromAvailableSessionKey(sk))
 						return deepEqual(newCalendar, calendarInstance)
 					}),
 				}),
@@ -1046,7 +1067,7 @@ o.spec("EntityRestClient", function () {
 							json.payload,
 							await typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef),
 						)
-						const actualAccountingInfo = await instancePipeline.decryptAndMap(untypedInstance, sk)
+						const actualAccountingInfo = await instancePipeline.decryptAndMap(untypedInstance, sessionKeyProviderFromAvailableSessionKey(sk))
 						return deepEqual(newAccountingInfo, actualAccountingInfo)
 					}),
 				}),
@@ -1654,5 +1675,88 @@ o.spec("EntityRestClient", function () {
 			o(blobRequestCallCount).equals(1)
 			o(evictCacheCallCount).equals(1)
 		})
+	})
+
+	const verifyThatSessionKeyIsResolvedOnlyWhenNeeded = async function (withSessionKey: boolean) {
+		const serverModel: ServerTypeModel = {
+			app: "tutanota",
+			encrypted: true,
+			id: 42,
+			name: "TestType",
+			rootId: "SoMeId",
+			since: 0,
+			type: EntityTypeEnum.ListElement,
+			isPublic: true,
+			values: {
+				"1": {
+					id: 1,
+					transferredAttributeId: null,
+					name: "testValue",
+					type: ValueTypeEnum.String,
+					cardinality: CardinalityEnum.ZeroOrOne,
+					final: true,
+					encrypted: true,
+				},
+			},
+			associations: {},
+			version: 0,
+			versioned: false,
+			dependsOnVersion: null,
+			targetTypeId: null,
+		} as TypeModel as any as ServerTypeModel
+
+		const entityAdapter: Writeable<EntityAdapter> = object()
+		entityAdapter._id = idToElementId("someId")
+		entityAdapter._kdfNonce = new Uint8Array(KDF_NONCE_LENGTH_BYTES)
+		entityAdapter._ownerGroup = "ownerGroup"
+		const encryptedInstance: EncryptedParsedInstance = object()
+		when(entityAdapter.getWrappedEncryptedInstance()).thenReturn(encryptedInstance)
+		when(encryptedInstance.getInstanceTypeId()).thenReturn(serverModel)
+		when(encryptedInstance.ensureIncoming()).thenReturn(serverModel)
+		when(encryptedInstance.getAttributeById(1)).thenReturn(
+			ParsedValue.fromByteArray(
+				aeadFacade.encrypt(
+					withSessionKey
+						? new AeadWithSessionKeySubKeys(symmetricCipherUtils.aes256RandomKey(), symmetricCipherUtils.aes256RandomKey())
+						: new AeadWithInstanceKeySubKeys(0, symmetricCipherUtils.aes256RandomKey(), symmetricCipherUtils.aes256RandomKey()),
+					stringToUtf8Uint8Array("cool string"),
+					{
+						asBytes(_cipherVersion: SymmetricCipherVersion): Uint8Array<ArrayBuffer> {
+							return new Uint8Array()
+						},
+					},
+				),
+			),
+		)
+
+		const sessionAndInstanceKeyResolver: SessionAndInstanceKeyResolver = object()
+		when(sessionAndInstanceKeyResolver.resolveSessionKey(matchers.anything())).thenResolve(symmetricCipherUtils.aes256RandomKey())
+
+		entityRestClient = mock(entityRestClient, (entityRestClient: EntityRestClient) => {
+			// @ts-ignore
+			entityRestClient.sessionKeyResolver = () => sessionAndInstanceKeyResolver
+		})
+
+		instancePipeline = mock(instancePipeline, (instancePipeline: InstancePipeline) => {
+			// @ts-ignore
+			instancePipeline.cryptoMapper.symmetricCipherFacade.aeadFacade = object()
+		})
+
+		await entityRestClient._decryptAndMap(
+			serverModel,
+			entityAdapter as any,
+			async (_ownerKeyVersion: KeyVersion): Promise<AesKey> => {
+				return symmetricCipherUtils.aes256RandomKey()
+			},
+			null,
+			null,
+		)
+
+		verify(sessionAndInstanceKeyResolver.resolveSessionKeyWithOwnerKeyProvider(matchers.anything(), matchers.anything()), { times: withSessionKey ? 1 : 0 })
+	}
+
+	o.test("only resolves session key when really needed", async function () {
+		await verifyThatSessionKeyIsResolvedOnlyWhenNeeded(true)
+		await verifyThatSessionKeyIsResolvedOnlyWhenNeeded(false)
 	})
 })

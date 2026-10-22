@@ -9,7 +9,7 @@ import {
 import { AesCbcFacade, AuthenticationEnforcement, PaddingStandard } from "../encryption/symmetric/AesCbcFacade.js"
 import { SymmetricCipherVersion } from "../encryption/symmetric/SymmetricCipherVersion.js"
 import { Nullable } from "@tutao/utils"
-import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys } from "../encryption/symmetric/AesKey"
+import { Aes128Key, Aes256Key, AesKey, AesKeyLength, AesKeyOrSubKeys, SessionKeyProvider } from "../encryption/symmetric/AesKey"
 import { AeadFacade } from "../encryption/symmetric/AeadFacade.js"
 import { AeadSubKeys, AesCbcSubKeys, SymmetricKeyDeriver } from "../encryption/symmetric/SymmetricKeyDeriver.js"
 import { SubKeyInfo, SubKeyProvider } from "./encryption/SubKeyProvider"
@@ -50,7 +50,7 @@ export class SymmetricCipherFacade {
 	 * Gets an instance decryptor which provides value decryptors to decrypt the values of a given instance.
 	 *
 	 * @param keyDerivationContext	The context of the instance being decrypted used to derive sub-keys.
-	 * @param sessionKey		    The session key of the instance. It can be null if no value is encrypted using it.
+	 * @param sessionKeyProvider	The session key provider for the instance. It can be null if no value is encrypted using the session key.
 	 * @param kdfNonce				The KDF nonce of the instance. It can be null if no value is encrypted using the group key.
 	 * @param ownerKeyProvider		Must be set iff kdfNonce is set.
 	 * @param instanceKeyProvider	The instance key provider for the instance.
@@ -58,13 +58,13 @@ export class SymmetricCipherFacade {
 	 */
 	getInstanceDecryptor(
 		keyDerivationContext: KeyDerivationContext,
-		sessionKey: Nullable<AesKey>,
+		sessionKeyProvider: Nullable<SessionKeyProvider>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 	): InstanceDecryptor {
 		return new InstanceDecryptor(
-			sessionKey,
+			sessionKeyProvider,
 			kdfNonce,
 			instanceKeyProvider,
 			ownerKeyProvider,
