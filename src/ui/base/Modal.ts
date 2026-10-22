@@ -2,7 +2,7 @@ import m, { Component } from "mithril"
 import { alpha, AlphaEnum, animations } from "../animation/Animations"
 import { theme } from "../theme"
 import { KeyManager, Shortcut } from "../utils/KeyManager"
-import { insideRect, lastIndex, remove } from "../../platform-kit/utils"
+import { lastIndex, remove } from "../../platform-kit/utils"
 import { LayerType } from "./RootView"
 import { EnvProvider, ProgrammingError } from "../../platform-kit/app-env"
 import { IWindowFacade } from "../IWindowFacade"
@@ -50,6 +50,7 @@ class Modal implements Component {
 					{
 						key: wrapper.key,
 						"data-id": wrapper.key,
+						"data-modal-bg": true,
 						inert: i !== lastIndex(array),
 						oncreate: (vnode) => {
 							// do not set visible=true already in display() because it leads to modal staying open in a second window in Chrome
@@ -60,18 +61,10 @@ class Modal implements Component {
 							if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
 						},
 						onclick: (event: MouseEvent) => {
-							const element = event.currentTarget as HTMLElement
-							// This layer div has a single child, the modal component
-							const child = element.firstElementChild
-
-							// child shouldn't be null but maybe the user click fast idk
-							if (child) {
-								const childRect = child.getBoundingClientRect()
-
-								if (!insideRect(event, childRect)) {
-									wrapper.component.backgroundClick(event)
-								}
-							}
+							this.clickBackgroundWithCheck(event, wrapper.component, "click")
+						},
+						oncontextmenu: (event: MouseEvent) => {
+							this.clickBackgroundWithCheck(event, wrapper.component, "contextmenu")
 						},
 						style: {
 							zIndex: this.getComponentLayer(i + 1),
@@ -123,6 +116,20 @@ class Modal implements Component {
 
 	private getComponentLayer(componentIndex: number) {
 		return LayerType.Modal + componentIndex
+	}
+
+	private clickBackgroundWithCheck(event: MouseEvent, component: ModalComponent, clickEvent: "click" | "contextmenu") {
+		if (event.target !== event.currentTarget) {
+			// Event bubbled up, ignore it, we only care about events fired on the modal component wrapper directly.
+			// If we don't do this then all the right clicks from inside the modal would end up here.
+			return
+		}
+
+		if (clickEvent === "contextmenu") {
+			event.preventDefault()
+		}
+
+		component.backgroundClick(event)
 	}
 
 	/**
