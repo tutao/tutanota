@@ -338,6 +338,31 @@ export enum MailboxMigrationSyncStatus {
 	CANCELED = "6",
 	GMAIL_ALL_MAILS_IMAP_DISABLED_ERROR = "7",
 	ALL_FOLDERS_PERMANENTLY_DELETED = "8",
+	COMPLETED_SUCCESSFULLY = "9",
+	SCHEDULED = "10",
+}
+
+export enum CustomerMigrationInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	FINISHING_MIGRATION = "2",
+	COMPLETED_SUCCESSFULLY = "3",
+	CANCELLED = "4",
+}
+
+export enum CustomerMailboxMigrationInfoStatus {
+	CREATED = "0",
+	RUNNING = "1",
+	ERROR = "2",
+	CANCELLED = "3",
+	FINISHED_SYNC = "4",
+	COMPLETED_SUCCESSFULLY = "5",
+}
+
+export enum UserListProvider {
+	CSV,
+	GRAPH_API,
+	GOOGLE_API,
 }
 
 export enum SpamDecision {

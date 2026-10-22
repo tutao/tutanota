@@ -133,6 +133,7 @@ o.spec("MailboxImporter", () => {
 				statusArgumentCaptor.capture(),
 				anything(),
 				anything(),
+				anything(),
 			),
 		).thenDo(() => {
 			mailboxMigrationSyncStateMock.status = statusArgumentCaptor.value
@@ -437,6 +438,7 @@ o.spec("MailboxImporter", () => {
 				mailboxMigrationSyncStateMock,
 				MailboxMigrationSyncStatus.PAUSED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				null,
 			),
 		).thenDo(() => {
 			session.mailboxMigrationSyncState.status = MailboxMigrationSyncStatus.PAUSED
@@ -453,6 +455,7 @@ o.spec("MailboxImporter", () => {
 				mailboxMigrationSyncStateMock,
 				MailboxMigrationSyncStatus.PAUSED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				null,
 			),
 			{
 				times: 1,
@@ -592,6 +595,7 @@ o.spec("MailboxImporter", () => {
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.POSTPONED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				null,
 				anything(),
 			),
 			{ times: 1 },
@@ -610,6 +614,7 @@ o.spec("MailboxImporter", () => {
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.POSTPONED,
 				MailboxMigrationFolderSyncStatus.PAUSED,
+				null,
 				postponedUntil.toString(),
 			),
 		).thenDo(() => {
@@ -631,9 +636,10 @@ o.spec("MailboxImporter", () => {
 				mailboxMigrationSyncStateMock,
 				MailboxMigrationSyncStatus.FINISHED,
 				MailboxMigrationFolderSyncStatus.FINISHED,
-				anything(),
 			),
-		).thenResolve()
+		).thenDo(() => {
+			mailboxMigrationSyncStateMock.status = MailboxMigrationSyncStatus.FINISHED
+		})
 
 		await importer.onFinish(migrationSyncStateIdMock)
 
@@ -656,6 +662,7 @@ o.spec("MailboxImporter", () => {
 			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
 				session.mailboxMigrationSyncState,
 				MailboxMigrationSyncStatus.PAUSED,
+				anything(),
 				anything(),
 				anything(),
 			),
@@ -801,7 +808,7 @@ o.spec("MailboxImporter", () => {
 					provider: MailboxMigrationProvider.Other,
 				} as MailboxMigrationUiSession,
 			],
-			canceledSessions: [],
+			concludedSessions: [],
 		})
 	})
 })
