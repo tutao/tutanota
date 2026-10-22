@@ -25,9 +25,10 @@ import { KeyManager } from "../../../ui/utils/KeyManager.js"
 import { ListAutoSelectBehavior } from "../misc/DeviceConfig.js"
 import { UpdatableSettingsViewer } from "./Interfaces.js"
 import { ListElementListModel } from "../misc/ListElementListModel"
-import { GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
+import { CustomerMigrationInfo, CustomerMigrationInfoTypeRef, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
 import { EntityUpdateData, isUpdateFor, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { CustomerMigrationInfoStatus } from "../../../entities/tutanota/Utils"
 
 EnvProvider.assertMainOrNode()
 
@@ -51,6 +52,7 @@ export class UserListView implements UpdatableSettingsViewer {
 	}
 
 	private readonly listId: LazyLoaded<Id>
+	private readonly activeCustomerMigrationInfo: LazyLoaded<CustomerMigrationInfo | null>
 	private adminUserGroupInfoIds: Id[] = []
 	private listStateSubscription: Stream<unknown> | null = null
 	private listSelectionSubscription: Stream<unknown> | null = null
@@ -67,6 +69,23 @@ export class UserListView implements UpdatableSettingsViewer {
 		this.listId = new LazyLoaded(async () => {
 			const customer = await locator.logins.getUserController().reloadCustomer()
 			return customer.userGroups
+		})
+
+		this.activeCustomerMigrationInfo = new LazyLoaded(async () => {
+			const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+			if (customerInfo.migrationInfos) {
+				return locator.entityClient
+					.loadAll(CustomerMigrationInfoTypeRef, customerInfo.migrationInfos)
+					.then(
+						(migrationInfos) =>
+							migrationInfos.find(
+								(migrationInfo) =>
+									migrationInfo.status === CustomerMigrationInfoStatus.RUNNING ||
+									migrationInfo.status === CustomerMigrationInfoStatus.CREATED,
+							) ?? null,
+					)
+			}
+			return null
 		})
 
 		this.listModel.loadInitial()
@@ -242,7 +261,7 @@ export class UserListView implements UpdatableSettingsViewer {
 				detailsViewer = null
 			} else {
 				const item = newSelection.values().next().value
-				detailsViewer = new UserViewer(item, this.isAdmin(item))
+				detailsViewer = new UserViewer(item, this.isAdmin(item), this.activeCustomerMigrationInfo)
 			}
 			this.updateDetailsViewer(detailsViewer)
 			m.redraw()

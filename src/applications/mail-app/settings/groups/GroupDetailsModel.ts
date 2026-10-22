@@ -8,7 +8,18 @@ import { compareGroupInfos, getGroupInfoDisplayName } from "../../../../platform
 import { UserError } from "../../../common/api/main/UserError.js"
 import { BookingParams } from "../../../common/subscription/BuyDialog.js"
 import { toFeatureType } from "../../../common/subscription/utils/SubscriptionUtils.js"
-import { createGroupInfo, CustomerTypeRef, Group, GroupInfo, GroupInfoTypeRef, GroupMemberTypeRef, GroupTypeRef, UserTypeRef } from "@tutao/entities/sys"
+import {
+	createGroupInfo,
+	CustomerMigrationInfo,
+	CustomerTypeRef,
+	Group,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupMemberTypeRef,
+	GroupTypeRef,
+	MailboxMigrationInfoTypeRef,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { BookingItemFeatureType, GroupType } from "../../../../entities/sys/Utils"
 import { MailboxPropertiesTypeRef } from "@tutao/entities/tutanota"
 import { GENERATED_MIN_ID, idToElementId, isSameId, OperationType } from "../../../../platform-kit/meta"
@@ -23,10 +34,12 @@ export class GroupDetailsModel {
 	private readonly members: LazyLoaded<Array<GroupInfo>>
 	private senderName!: LazyLoaded<string>
 	private mailAddressTableModel!: LazyLoaded<MailAddressTableModel>
+	public shouldShowAddMailboxToMigrationDialog: boolean = false
 
 	constructor(
 		groupInfo: GroupInfo,
 		private readonly entityClient: EntityClient,
+		readonly activeCustomerMigrationInfo: LazyLoaded<CustomerMigrationInfo | null>,
 		private readonly updateViewCallback: () => void,
 	) {
 		this.entityClient = entityClient
@@ -34,7 +47,21 @@ export class GroupDetailsModel {
 
 		this.group = new LazyLoaded(() => this.entityClient.load(GroupTypeRef, idToElementId(this.groupInfo.group)))
 		this.group.getAsync().then(() => this.updateViewCallback())
-
+		this.activeCustomerMigrationInfo.getAsync().then(async (activeCustomerMigrationInfo) => {
+			if (activeCustomerMigrationInfo) {
+				const mailboxMigrationInfos = await this.entityClient.loadAll(
+					MailboxMigrationInfoTypeRef,
+					activeCustomerMigrationInfo.customerMailboxMigrationInfos,
+				)
+				if (
+					!mailboxMigrationInfos.some((mailboxMigrationInfo) =>
+						isSameId(idToElementId(mailboxMigrationInfo.mailGroup), idToElementId(groupInfo.group)),
+					)
+				) {
+					this.shouldShowAddMailboxToMigrationDialog = true
+				}
+			}
+		})
 		this.members = new LazyLoaded(async () => {
 			const group = await this.group.getAsync()
 			// load only up to 200 members to avoid too long loading, like for account groups

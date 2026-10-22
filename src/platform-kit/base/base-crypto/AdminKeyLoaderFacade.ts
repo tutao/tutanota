@@ -1,15 +1,26 @@
 import { EnvProvider, ProgrammingError, TutanotaError } from "@tutao/app-env"
-import { assertNotNull, KeyVersion, lazyAsync } from "@tutao/utils"
+import { assertNotNull, KeyVersion, lazyAsync, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient.js"
 import { UserFacade } from "../facades/UserFacade.js"
 import { KeyLoaderFacade } from "./KeyLoaderFacade.js"
 import { AsymmetricCryptoFacade } from "./AsymmetricCryptoFacade.js"
-import { AesKey, cryptoUtils, CryptoWrapper, PublicKeyIdentifierType, VersionedAes256Key, VersionedEncryptedKey, VersionedKey } from "@tutao/crypto"
+import {
+	AeadCipherVersion,
+	AesKey,
+	cryptoUtils,
+	CryptoWrapper,
+	PublicKeyIdentifierType,
+	SessionKeyDecryptor,
+	VersionedAes256Key,
+	VersionedEncryptedKey,
+	VersionedKey,
+} from "@tutao/crypto"
 import { brandKeyMac, KeyAuthenticationFacade, SystemMapKind } from "../../network/KeyAuthenticationFacade.js"
 import { Group, PubEncKeyData, UserTypeRef } from "@tutao/entities/sys"
 import { CacheManager } from "./persistence/CacheManager"
 import { elementIdToId, idToElementId } from "@tutao/meta"
 import { isNull } from "../../utils/Utils"
+import { ServiceEncryptionParams } from "../../instance-pipeline/RestClientOptions"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -184,5 +195,22 @@ export class AdminKeyLoaderFacade {
 			},
 			givenUserGroupKeyMac.tag,
 		)
+	}
+
+	public async assembleServiceEncryptionParamsForPost(
+		ownerGroup: string,
+		viaUser: string | null,
+		aeadCipherVersion: AeadCipherVersion = AeadCipherVersion.WithInstanceKey,
+	): Promise<ServiceEncryptionParams> {
+		const ownerKeyToDecryptSessionKey =
+			viaUser !== null ? await this.getCurrentGroupKeyViaUser(ownerGroup, viaUser) : await this.getCurrentGroupKeyViaAdminEncGKey(ownerGroup)
+
+		let currentOwnerKey: Nullable<VersionedKey> = null
+		if (aeadCipherVersion === AeadCipherVersion.WithInstanceKey) {
+			currentOwnerKey = ownerKeyToDecryptSessionKey
+		}
+
+		const sessionKeyDecryptor = new SessionKeyDecryptor(ownerKeyToDecryptSessionKey, this.keyLoaderFacade["keyEncryption"])
+		return { ownerKey: currentOwnerKey, sessionKeyDecryptor, aeadCipherVersion }
 	}
 }
