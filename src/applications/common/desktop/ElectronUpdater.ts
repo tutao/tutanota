@@ -44,6 +44,7 @@ export class ElectronUpdater {
 	private updatePollInterval: IntervalID | null = null
 	private errorCount: number = 0
 	private readonly logger: UpdaterLogger
+	/** verified update info */
 	private _updateInfo: TutanotaUpdateInfo | null = null
 
 	readonly enableAutoUpdateListener = () => {
@@ -95,21 +96,23 @@ export class ElectronUpdater {
 				this.logger.debug("update dl progress:", prg)
 			})
 			.on("update-downloaded", async (info: UpdateDownloadedEvent & { signature: string }) => {
+				// reset updateInfo to make sure we only assign it when it's valid
 				this._updateInfo = null
 				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
 				this.stopPolling()
 
 				const data = await this.fs.promises.readFile(info.downloadedFile)
 				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
-				for (const publicKey of publicKeys) {
-					if (await this.verifySignature(publicKey, assertNotNull(info), data)) {
-						this.notifyAndInstall(info)
-						return
-					}
+				const skipSignatureCheck = (await this.conf.getConst(BuildConfigKey.checkUpdateSignature)) === false
+				if (skipSignatureCheck) {
+					this.logger.info("Update signature checking is disabled, proceeding with the update")
+					this.notifyAndInstall(info)
+				} else if (await this.verifySignature(publicKeys, assertNotNull(info), data)) {
+					this.notifyAndInstall(info)
+				} else {
+					this.logger.warn(`could not find valid update signature. Deleting ${info.downloadedFile}.`)
+					this.fs.promises.unlink(info.downloadedFile)
 				}
-
-				this.logger.warn(`could not find valid update signature. Deleting ${info.downloadedFile}.`)
-				this.fs.promises.unlink(info.downloadedFile)
 			})
 			.on("error", (e) => {
 				this.stopPolling()
@@ -162,27 +165,22 @@ export class ElectronUpdater {
 	}
 
 	/**
-	 * returns true if the signature is okay.
-	 * if this returns false, the given key doesn't fit the signature, but another one might.
+	 * @return true iff signature from {@param updateInfo} for {@param data} is valid for **any** of {@param pubKeys} .
 	 */
-	private async verifySignature(pubKey: string, updateInfo: TutanotaUpdateInfo, data: Uint8Array<ArrayBuffer>): Promise<boolean> {
-		const skipSignatureCheck = !(await this.conf.getConst(BuildConfigKey.checkUpdateSignature))
+	private async verifySignature(pubKeys: readonly string[], updateInfo: TutanotaUpdateInfo, data: Uint8Array<ArrayBuffer>): Promise<boolean> {
+		const signature = Buffer.from(updateInfo.signature, "base64")
 
-		if (skipSignatureCheck) {
-			return true
-		}
-
-		try {
-			const signature = Buffer.from(updateInfo.signature, "base64")
-
-			if (this.crypto.verifySignature(pubKey, data, signature)) {
-				this.logger.info("Signature verification successful, installing update")
-				return true
+		for (const publicKey of pubKeys) {
+			try {
+				if (this.crypto.verifySignature(publicKey, data, signature)) {
+					this.logger.info("Signature verification successful, installing update")
+					return true
+				}
+			} catch (e) {
+				this.logger.error("Failed to verify update signature", e)
 			}
-		} catch (e) {
-			this.logger.error("Failed to verify update signature", e)
-			return false
 		}
+
 		return false
 	}
 
@@ -223,7 +221,9 @@ export class ElectronUpdater {
 	 * @returns {Promise} true if an update was downloaded, false otherwise
 	 */
 	private async checkUpdate(): Promise<boolean> {
-		const autoUpdater = await this.updater.electronUpdater
+		// reset updateInfo before we check for updates to ensure we have correct state
+		this._updateInfo = null
+		const autoUpdater = this.updater.electronUpdater
 		return newPromise((resolve) => {
 			let cleanup = (hasUpdate: boolean) => {
 				cleanup = (hasUpdate) => {}
