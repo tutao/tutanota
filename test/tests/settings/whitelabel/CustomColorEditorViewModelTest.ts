@@ -3,7 +3,7 @@ import { CustomColorsEditorViewModel } from "../../../../src/applications/common
 import { ThemeController } from "../../../../src/ui/ThemeController.js"
 import { downcast } from "../../../../src/platform-kit/utils"
 import { EntityClient } from "../../../../src/platform-kit/network/EntityClient.js"
-import { themes } from "../../../../src/ui/builtinThemes.js"
+import { generateThemes } from "../../../../src/ui/builtinThemes.js"
 import type { LoginController } from "../../../../src/applications/common/api/main/LoginController.js"
 import { createTestEntity } from "../../TestUtils.js"
 import { WhitelabelThemeGenerator } from "../../../../src/ui/WhitelabelThemeGenerator"
@@ -38,10 +38,10 @@ o.spec("CustomColorEditorViewModel", () => {
 			applyCustomizations: spy(),
 			resetTheme: spy(),
 			getDefaultTheme: () => {
-				return themes()["light"]
+				return generateThemes()["light"]
 			},
 			getBaseTheme(baseId: BaseThemeId): Theme {
-				return themes()[baseId]
+				return generateThemes()[baseId]
 			},
 		} as Partial<ThemeController> as ThemeController
 		whitelabelThemeGenerator = object()
