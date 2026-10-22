@@ -21,6 +21,7 @@ EnvProvider.assertMainOrNode()
 
 export type MultiUserMigrationData = {
 	provider: MailboxMigrationProvider
+	isExchange: boolean
 	host: string
 	port: number
 	useSSL: boolean
@@ -42,6 +43,7 @@ export function newMultiUserMigrationData(): MultiUserMigrationData {
 	const defaultConfig = getServerMigrationConfigForProvider(defaultProvider)
 	return {
 		provider: defaultProvider,
+		isExchange: false,
 		host: defaultConfig?.imapConfig?.host ?? "",
 		port: defaultConfig?.imapConfig?.port ? defaultConfig.imapConfig.port : IMAP_SSL_PORT,
 		useSSL: true,

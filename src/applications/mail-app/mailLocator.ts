@@ -1067,6 +1067,7 @@ class MailLocator implements CommonLocator {
 						groupManagementFacade,
 						mailAddressFacade,
 						this.entityClient,
+						this.eventController,
 						async () => {
 							const { PasswordGenerator } = await import("../common/misc/passwords/PasswordGenerator.js")
 							const baseUrl = location.protocol + "//" + location.hostname + (location.port ? ":" + location.port : "")

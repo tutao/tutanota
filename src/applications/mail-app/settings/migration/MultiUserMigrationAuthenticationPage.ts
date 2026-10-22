@@ -4,7 +4,7 @@ import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { WizardStepComponentAttrs } from "../../../../ui/base/wizard/WizardStep"
 import { WizardStepContext } from "../../../../ui/base/wizard/WizardController"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
-import { Icons } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -14,13 +14,19 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { isMailAddress } from "@tutao/utils"
-import { IMAP_SSL_PORT, IMAP_UNSAFE_PORT } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+import {
+	getTranslationForMigrationProvider,
+	IMAP_SSL_PORT,
+	IMAP_UNSAFE_PORT,
+} from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { mailLocator } from "../../mailLocator"
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
+import { locator } from "../../../common/api/main/CommonLocator"
+import { MailboxMigrationProviderUI, toMigrationProviderUI } from "./MigrationProviderSelectionPage"
 
 EnvProvider.assertMainOrNode()
 
@@ -29,18 +35,46 @@ export class MultiUserMigrationAuthenticationPage implements Component<WizardSte
 	shouldDisplayUseSSLSwitch = false
 	/** true while the OAuth window is open and/or the connection is being verified - disables the Continue button. */
 	private isProcessing = false
+	private titleSectionParams: Partial<TitleSectionAttrs> = {
+		icon: Icons.MailFilled,
+		iconOptions: { color: theme.on_surface_variant },
+	}
 
 	oninit(vnode: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>) {
-		this.shouldDisplayUseSSLSwitch = vnode.attrs.ctx.viewModel.port !== IMAP_SSL_PORT
+		const data = vnode.attrs.ctx.viewModel
+		this.shouldDisplayUseSSLSwitch = data.port !== IMAP_SSL_PORT
+		switch (toMigrationProviderUI(data.provider, data.isExchange)) {
+			case MailboxMigrationProviderUI.Gmail:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(GmailLogo)
+				break
+			case MailboxMigrationProviderUI.Outlook:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(locator.logins.getUserController().getCustomer()?.businessUse ? MicrosoftLogo : OutlookLogo)
+				break
+			case MailboxMigrationProviderUI.Exchange:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.iconOptions = undefined
+				this.titleSectionParams.customIcon = m.trust(ExchangeLogo)
+				break
+			case MailboxMigrationProviderUI.Other:
+				this.titleSectionParams.customIcon = undefined
+				this.titleSectionParams.icon = Icons.MailFilled
+				this.titleSectionParams.iconOptions = { color: theme.on_surface_variant }
+				break
+		}
 	}
 
 	view({ attrs: { ctx } }: Vnode<WizardStepComponentAttrs<MultiUserMigrationData>>): Children {
 		const data = ctx.viewModel
+		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
+		const providerTranslationText = lang.getTranslationText(getTranslationForMigrationProvider(data.provider, businessUse, data.isExchange))
 		return m("", [
 			m(TitleSection, {
-				icon: Icons.MailFilled,
-				iconOptions: { color: theme.on_surface_variant },
-				subTitle: lang.getTranslationText("migrationImapCredentials_title"),
+				...this.titleSectionParams,
+				subTitle: lang.getTranslation("migrationIntroductionInfo_msg", { "{provider}": providerTranslationText }).text,
 				title: "",
 				style: {
 					marginTop: px(size.spacing_16),

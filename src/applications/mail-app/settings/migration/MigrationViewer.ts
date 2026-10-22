@@ -1,9 +1,9 @@
 import m, { Children } from "mithril"
 import { EnvProvider } from "@tutao/app-env"
 import { UpdatableSettingsViewer } from "../../../common/settings/Interfaces"
-import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { lazy, promiseMap } from "@tutao/utils"
-import { CustomerMigrationController } from "./CustomerMigrationController"
+import { EntityUpdateData } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { lazy } from "@tutao/utils"
+import { CustomerMigrationController, MigrationBatchView } from "./CustomerMigrationController"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
@@ -13,19 +13,10 @@ import { ExpanderButton, ExpanderPanel } from "../../../../ui/base/Expander"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { renderCsv, stringToUtf8Uint8Array } from "../../../../platform-kit/utils"
 import { createDataFile } from "../../../common/api/worker/utils/DataFile"
-import { generatedIdToTimestamp } from "../../../../platform-kit/meta/EntityUtils"
 import { mailLocator } from "../../mailLocator"
-import {
-	CustomerMigrationInfo,
-	CustomerMigrationInfoTypeRef,
-	CustomerUserMigrationInfoTypeRef,
-	MailboxMigrationInfo,
-	MailboxMigrationInfoTypeRef,
-} from "@tutao/entities/sys"
-import { MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { createMigrationWizard, migrationWizardSteps, MultiUserMigrationData, newMultiUserMigrationData } from "./AddMultiUserMigrationWizard"
 import { MigrationWizardLayout } from "./MigrationWizardLayout"
-import { CustomerMigrationInfoStatus, CustomerMailboxMigrationInfoStatus } from "../../../../entities/tutanota/Utils"
+import { CustomerMailboxMigrationInfoStatus, CustomerMigrationInfoStatus } from "../../../../entities/tutanota/Utils"
 import { MigrationMailboxTable } from "./MigrationMailboxTable"
 import { MigrationMailboxRowView } from "./MigrationMailboxTableRow"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -33,13 +24,6 @@ import { MigrationErrorCause } from "../../../common/api/common/error/MigrationE
 import { migrationErrorCauseToReadableMigrationError } from "./MigrationErrorHandler"
 
 EnvProvider.assertMainOrNode()
-
-type MigrationBatchView = {
-	id: IdTuple
-	status: CustomerMigrationInfoStatus
-	startedAt: number
-	rows: MigrationMailboxRowView[]
-}
 
 const ACTIVE_MIGRATION_STATUSES: ReadonlySet<CustomerMigrationInfoStatus> = new Set([
 	CustomerMigrationInfoStatus.CREATED,
@@ -49,8 +33,6 @@ const ACTIVE_MIGRATION_STATUSES: ReadonlySet<CustomerMigrationInfoStatus> = new 
 
 class MigrationViewer implements UpdatableSettingsViewer {
 	private showWizard = false
-	private loading = true
-	private batches: MigrationBatchView[] = []
 	private wizard: ReturnType<typeof createMigrationWizard> | null = null
 	private wizardData: MultiUserMigrationData | null = null
 	private showPastMigrations = false
@@ -58,18 +40,7 @@ class MigrationViewer implements UpdatableSettingsViewer {
 	constructor(private readonly customerMigrationController: lazy<CustomerMigrationController>) {}
 
 	async oninit() {
-		await this.reload()
-	}
-
-	private async reload(): Promise<void> {
-		this.loading = true
-		m.redraw()
-		try {
-			this.batches = await loadMigrationBatches()
-		} finally {
-			this.loading = false
-			m.redraw()
-		}
+		await this.customerMigrationController().init()
 	}
 
 	view(): Children {
@@ -77,15 +48,16 @@ class MigrationViewer implements UpdatableSettingsViewer {
 	}
 
 	private renderOverview(): Children {
-		const activeBatch = this.batches.find((batch) => ACTIVE_MIGRATION_STATUSES.has(batch.status))
-		const pastBatches = this.batches.filter((batch) => !ACTIVE_MIGRATION_STATUSES.has(batch.status))
+		const batches = this.customerMigrationController().batches
+		const activeBatch = batches.find((batch) => ACTIVE_MIGRATION_STATUSES.has(batch.status))
+		const pastBatches = batches.filter((batch) => !ACTIVE_MIGRATION_STATUSES.has(batch.status))
 		return [
 			m(TitleSection, {
 				icon: Icons.SimpleArrowRight,
 				title: lang.getTranslationText("migrationSetup_title"),
 				subTitle: lang.getTranslationText("migrationMultiUserDescription_msg"),
 			}),
-			this.loading
+			this.customerMigrationController().loading
 				? null
 				: activeBatch == null
 					? m(InfoBanner, {
@@ -124,28 +96,17 @@ class MigrationViewer implements UpdatableSettingsViewer {
 				? m(PrimaryButton, {
 						width: "flex",
 						label: "migrationFinish_action",
-						onclick: async () => {
-							const customerMigrationInformation = await mailLocator.entityClient.load(CustomerMigrationInfoTypeRef, activeBatch.id)
-							customerMigrationInformation.status = CustomerMigrationInfoStatus.FINISHING_MIGRATION
-							showProgressDialog("migrationFinishing_msg", mailLocator.entityClient.update(customerMigrationInformation))
-							await this.reload()
-						},
+						onclick: () => showProgressDialog("migrationFinishing_msg", this.customerMigrationController().finishMigration(activeBatch.id)),
 					})
 				: m(PrimaryButton, {
 						width: "flex",
 						label: "migrationComplete_action",
 						onclick: async () => {
-							const customerMigrationInformation = await mailLocator.entityClient.load(CustomerMigrationInfoTypeRef, activeBatch.id)
-							const allMailboxesCompletedMigrationSuccessfully = activeBatch.rows.every(
-								(row) => row.status === CustomerMailboxMigrationInfoStatus.COMPLETED_SUCCESSFULLY,
-							)
-							if (allMailboxesCompletedMigrationSuccessfully) {
-								customerMigrationInformation.status = CustomerMigrationInfoStatus.COMPLETED_SUCCESSFULLY
-								showProgressDialog("migrationCompleting_msg", mailLocator.entityClient.update(customerMigrationInformation))
+							if (this.customerMigrationController().batchAllMailboxesCompleted(activeBatch)) {
+								await showProgressDialog("migrationCompleting_msg", this.customerMigrationController().completeMigration(activeBatch.id))
 							} else {
 								Dialog.message("migrationNotAllMailboxesCompleteYet_msg")
 							}
-							await this.reload()
 						},
 					}),
 		])
@@ -155,7 +116,6 @@ class MigrationViewer implements UpdatableSettingsViewer {
 		const confirmed = await Dialog.confirm("migrationCancelConfirm_msg")
 		if (!confirmed) return
 		await this.customerMigrationController().cancelMigration(batch.id)
-		await this.reload()
 	}
 
 	private renderPastMigrations(pastBatches: ReadonlyArray<MigrationBatchView>): Children {
@@ -219,7 +179,7 @@ class MigrationViewer implements UpdatableSettingsViewer {
 				layout: MigrationWizardLayout,
 				onComplete: () => {
 					this.closeWizard()
-					this.reload()
+					this.customerMigrationController().refresh()
 				},
 			}),
 		]
@@ -232,49 +192,8 @@ class MigrationViewer implements UpdatableSettingsViewer {
 	}
 
 	async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
-		for (const update of updates) {
-			if (
-				isUpdateForTypeRef(CustomerUserMigrationInfoTypeRef, update) ||
-				isUpdateForTypeRef(CustomerUserMigrationInfoTypeRef, update) ||
-				isUpdateForTypeRef(MailboxMigrationInfoTypeRef, update) ||
-				isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)
-			) {
-				await this.reload()
-				return
-			}
-		}
+		// no-op: CustomerMigrationController listens for the relevant entity updates itself and refreshes its own state.
 	}
-}
-
-async function loadMigrationBatches(): Promise<MigrationBatchView[]> {
-	const customerInfo = await mailLocator.logins.getUserController().loadCustomerInfo()
-	if (customerInfo.migrationInfos == null) return []
-
-	const batches: CustomerMigrationInfo[] = await mailLocator.entityClient.loadAll(CustomerMigrationInfoTypeRef, customerInfo.migrationInfos)
-	return await promiseMap(batches, async (batch) => {
-		const customerUserMigrationInfos = await mailLocator.entityClient.loadAll(CustomerUserMigrationInfoTypeRef, batch.customerUserMigrationInfos)
-		const rowsPerUser = await promiseMap(customerUserMigrationInfos, async (customerUserMigrationInfo) => {
-			const mailboxInfos: MailboxMigrationInfo[] = await mailLocator.entityClient.loadAll(
-				MailboxMigrationInfoTypeRef,
-				customerUserMigrationInfo.mailboxMigrationInfos,
-			)
-			return mailboxInfos.map(
-				(info): MigrationMailboxRowView => ({
-					name: customerUserMigrationInfo.tutaName,
-					mailAddress: customerUserMigrationInfo.tutaMailAddress,
-					status: info.status as CustomerMailboxMigrationInfoStatus,
-					initialPassword: customerUserMigrationInfo.initialPassword,
-					errorCode: info.errorCode,
-				}),
-			)
-		})
-		return {
-			id: batch._id,
-			status: batch.status as CustomerMigrationInfoStatus,
-			startedAt: generatedIdToTimestamp(batch._id[1]),
-			rows: rowsPerUser.flat(),
-		}
-	})
 }
 
 async function downloadCredentials(rows: ReadonlyArray<MigrationMailboxRowView>, startedAt: number): Promise<void> {

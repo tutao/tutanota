@@ -1,15 +1,41 @@
+import m from "mithril"
 import { CustomerMigrationFacade, MailboxMigrationInitializationParameters } from "../../../common/api/worker/facades/lazy/CustomerMigrationFacade"
 import { UserManagementFacade } from "../../../common/api/worker/facades/lazy/UserManagementFacade"
 import { MailAddressFacade } from "../../../common/api/worker/facades/lazy/MailAddressFacade"
 import { GroupManagementFacade } from "../../../../platform-kit/base/facades/lazy/GroupManagementFacade"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxType, MigrationMailboxRow } from "./MigrationCsvParser"
-import { CustomerMigrationInfo, GroupInfo, GroupInfoTypeRef, GroupTypeRef, User, UserTypeRef } from "@tutao/entities/sys"
+import {
+	CustomerMigrationInfo,
+	CustomerMigrationInfoTypeRef,
+	CustomerUserMigrationInfoTypeRef,
+	GroupInfo,
+	GroupInfoTypeRef,
+	GroupTypeRef,
+	MailboxMigrationInfo,
+	MailboxMigrationInfoTypeRef,
+	User,
+	UserTypeRef,
+} from "@tutao/entities/sys"
 import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { OperationId } from "../../../common/api/main/OperationProgressTracker"
-import { assertNotNull, getFirstOrThrow } from "@tutao/utils"
+import { assertNotNull, getFirstOrThrow, promiseMap } from "@tutao/utils"
 import { elementIdToId, idToElementId } from "@tutao/meta"
 import { filterMailMemberships } from "../../../common/api/common/utils/IndexUtils"
+import { CustomerMailboxMigrationInfoStatus, CustomerMigrationInfoStatus } from "../../../../entities/tutanota/Utils"
+import { MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
+import { MigrationMailboxRowView } from "./MigrationMailboxTableRow"
+import { generatedIdToTimestamp } from "../../../../platform-kit/meta/EntityUtils"
+import { EventController } from "../../../common/api/main/EventController"
+import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { mailLocator } from "../../mailLocator"
+
+export type MigrationBatchView = {
+	id: IdTuple
+	status: CustomerMigrationInfoStatus
+	startedAt: number
+	rows: MigrationMailboxRowView[]
+}
 
 export type MultiUserMigrationConfig = {
 	provider: MailboxMigrationProvider
@@ -36,14 +62,102 @@ export type TutaEmailClassification =
 	| { kind: "unavailable" }
 
 export class CustomerMigrationController {
+	public batches: MigrationBatchView[] = []
+	public loading = true
+
 	constructor(
 		private readonly customerMigrationFacade: CustomerMigrationFacade,
 		private readonly userManagementFacade: UserManagementFacade,
 		private readonly groupManagementFacade: GroupManagementFacade,
 		private readonly mailAddressFacade: MailAddressFacade,
 		private readonly entityClient: EntityClient,
+		private readonly eventController: EventController,
 		private readonly generatePassword: () => Promise<string>,
-	) {}
+	) {
+		this.eventController.addEntityUpdatesListener({
+			id: "CustomerMigrationController",
+			onEntityUpdatesReceived: (updates) => this.onEntityUpdatesReceived(updates),
+			priority: ListenerPriority.HIGH,
+		})
+	}
+
+	async init(): Promise<void> {
+		await this.refresh()
+	}
+
+	async refresh(): Promise<void> {
+		this.loading = true
+		m.redraw()
+		try {
+			this.batches = await this.loadMigrationBatches()
+		} finally {
+			this.loading = false
+			m.redraw()
+		}
+	}
+
+	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>): Promise<void> {
+		for (const update of updates) {
+			if (
+				isUpdateForTypeRef(CustomerMigrationInfoTypeRef, update) ||
+				isUpdateForTypeRef(CustomerUserMigrationInfoTypeRef, update) ||
+				isUpdateForTypeRef(MailboxMigrationInfoTypeRef, update) ||
+				isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)
+			) {
+				await this.refresh()
+				return
+			}
+		}
+	}
+
+	private async loadMigrationBatches(): Promise<MigrationBatchView[]> {
+		const customerInfo = await mailLocator.logins.getUserController().loadCustomerInfo()
+		if (customerInfo.migrationInfos == null) return []
+
+		const batches: CustomerMigrationInfo[] = await this.entityClient.loadAll(CustomerMigrationInfoTypeRef, customerInfo.migrationInfos)
+		return await promiseMap(batches, async (batch) => {
+			const customerUserMigrationInfos = await this.entityClient.loadAll(CustomerUserMigrationInfoTypeRef, batch.customerUserMigrationInfos)
+			const rowsPerUser = await promiseMap(customerUserMigrationInfos, async (customerUserMigrationInfo) => {
+				const mailboxInfos: MailboxMigrationInfo[] = await this.entityClient.loadAll(
+					MailboxMigrationInfoTypeRef,
+					customerUserMigrationInfo.mailboxMigrationInfos,
+				)
+				return mailboxInfos.map(
+					(info): MigrationMailboxRowView => ({
+						name: customerUserMigrationInfo.tutaName,
+						mailAddress: customerUserMigrationInfo.tutaMailAddress,
+						status: info.status as CustomerMailboxMigrationInfoStatus,
+						initialPassword: customerUserMigrationInfo.initialPassword,
+						errorCode: info.errorCode,
+					}),
+				)
+			})
+			return {
+				id: batch._id,
+				status: batch.status as CustomerMigrationInfoStatus,
+				startedAt: generatedIdToTimestamp(batch._id[1]),
+				rows: rowsPerUser.flat(),
+			}
+		})
+	}
+
+	batchAllMailboxesCompleted(batch: MigrationBatchView): boolean {
+		return batch.rows.every((row) => row.status === CustomerMailboxMigrationInfoStatus.COMPLETED_SUCCESSFULLY)
+	}
+
+	async finishMigration(customerMigrationInfoId: IdTuple): Promise<void> {
+		const customerMigrationInfo = await this.entityClient.load(CustomerMigrationInfoTypeRef, customerMigrationInfoId)
+		customerMigrationInfo.status = CustomerMigrationInfoStatus.FINISHING_MIGRATION
+		await this.entityClient.update(customerMigrationInfo)
+		await this.refresh()
+	}
+
+	async completeMigration(customerMigrationInfoId: IdTuple): Promise<void> {
+		const customerMigrationInfo = await this.entityClient.load(CustomerMigrationInfoTypeRef, customerMigrationInfoId)
+		customerMigrationInfo.status = CustomerMigrationInfoStatus.COMPLETED_SUCCESSFULLY
+		await this.entityClient.update(customerMigrationInfo)
+		await this.refresh()
+	}
 
 	async scheduleMigration(mailboxMigrationInitializationParameters: MailboxMigrationInitializationParameters): Promise<void> {
 		return await this.customerMigrationFacade.scheduleMailboxMigration(mailboxMigrationInitializationParameters)
@@ -52,6 +166,7 @@ export class CustomerMigrationController {
 	/** Cancels an admin-driven multi-user migration batch. */
 	async cancelMigration(customerMigrationInfo: IdTuple): Promise<void> {
 		await this.customerMigrationFacade.cancelMigration(customerMigrationInfo)
+		await this.refresh()
 	}
 
 	/**
