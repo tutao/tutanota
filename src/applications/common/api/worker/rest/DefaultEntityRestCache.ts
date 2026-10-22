@@ -450,7 +450,13 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		opts: EntityRestClientLoadOptions,
 	) {
 		while (true) {
-			const range = assertNotNull(await this.cacheStorage.getRangeForList(typeRef, listId))
+			const range = await this.cacheStorage.getRangeForList(typeRef, listId)
+
+			// Range was deleted while we were requesting it?
+			if (range == null) {
+				console.warn(`List ${listId} of type ${typeRef.app}${typeRef.typeId} was deleted while we were requesting it; retrying`)
+				return await this.loadRange(typeRef, listId, start, count, reverse, opts)
+			}
 
 			const loadStartId = reverse ? range.upper : range.lower
 
