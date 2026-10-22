@@ -170,7 +170,7 @@ class WidgetRepositoryTest {
 
 
 		// Act
-		val loadedEvents = repository.loadEvents(
+		val loadedEvents = repository.loadEventsFromServer(
 			mockedDataStore,
 			1,
 			"a",
@@ -220,7 +220,7 @@ class WidgetRepositoryTest {
 
 
 		// Act
-		val loadedEvents = repository.loadEvents(
+		val loadedEvents = repository.loadEventsFromServer(
 			mockedDataStore,
 			1,
 			"a",

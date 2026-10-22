@@ -78,7 +78,7 @@ abstract class WidgetRepository() {
 		})
 	}
 
-	open suspend fun loadEvents(
+	open suspend fun loadEventsFromServer(
 		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		userId: GeneratedId,

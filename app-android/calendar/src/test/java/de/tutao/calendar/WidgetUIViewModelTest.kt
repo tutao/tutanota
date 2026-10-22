@@ -37,7 +37,6 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.mockito.kotlin.wheneverBlocking
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.Calendar
@@ -98,7 +97,7 @@ class WidgetUIViewModelTest {
 		model.loadUIState(mockWidgetDataStore, mockWidgetCacheDataStore, TEST_LOCAL_DATE_TIME)
 
 		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
-		verify(mockWidgetRepository, times(0)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(0)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 	}
 
 	@Test
@@ -107,7 +106,7 @@ class WidgetUIViewModelTest {
 			givenConfiguredWidget(lastSync = null)
 
 			wheneverBlocking {
-				mockWidgetRepository.loadEvents(
+				mockWidgetRepository.loadEventsFromServer(
 					any(),
 					any(),
 					eq(USER_ID),
@@ -122,7 +121,7 @@ class WidgetUIViewModelTest {
 			model.loadUIState(mockWidgetDataStore, mockWidgetCacheDataStore, TEST_LOCAL_DATE_TIME)
 
 			verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
-			verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+			verify(mockWidgetRepository, times(1)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 		}
 
 	@Test
@@ -131,7 +130,7 @@ class WidgetUIViewModelTest {
 			givenConfiguredWidget(lastSync = makeLastSync(forceFetch = true))
 
 			wheneverBlocking {
-				mockWidgetRepository.loadEvents(
+				mockWidgetRepository.loadEventsFromServer(
 					any(),
 					any(),
 					eq(USER_ID),
@@ -146,7 +145,7 @@ class WidgetUIViewModelTest {
 			model.loadUIState(mockWidgetDataStore, mockWidgetCacheDataStore, TEST_LOCAL_DATE_TIME)
 
 			verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
-			verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+			verify(mockWidgetRepository, times(1)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 		}
 
 	@Test
@@ -172,20 +171,12 @@ class WidgetUIViewModelTest {
 			model.loadUIState(mockWidgetDataStore, mockWidgetCacheDataStore, TEST_LOCAL_DATE_TIME)
 
 		verify(mockWidgetRepository, times(1)).loadEventsFromCache(any(), any(), any(), any(), any())
-		verify(mockWidgetRepository, times(0)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(0)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 		assertTrue(result is WidgetUIState.Available)
 
-		val today = TEST_LOCAL_DATE_TIME.toLocalDate()
-		assertEquals(
-			"Normal events map should be empty",
-			mapOf<LocalDate, List<UIEvent>>(today to emptyList()),
-			(result as WidgetUIState.Available).normalEvents
-		)
-		assertEquals(
-			"All day events map should be empty",
-			mapOf<LocalDate, List<UIEvent>>(today to emptyList()),
-			result.allDayEvents
-		)
+		for (eventsOnDay in (result as WidgetUIState.Available).daysAndEvents) {
+			assertEquals("Event list should be empty", emptyList<UIEvent>(), eventsOnDay)
+		}
 	}
 
 	@Test
@@ -199,7 +190,7 @@ class WidgetUIViewModelTest {
 
 		// Modifies non-cached loadEvents function to throw an error
 		wheneverBlocking {
-			mockWidgetRepository.loadEvents(any(), any(), any(), any(), any(), any(), any())
+			mockWidgetRepository.loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 		}.doThrow(RuntimeException())
 
 		val model = makeUiViewModel()
@@ -234,7 +225,7 @@ class WidgetUIViewModelTest {
 			end = TEST_LOCAL_DATE_TIME.plusHours(3),
 		)
 		wheneverBlocking {
-			mockWidgetRepository.loadEvents(
+			mockWidgetRepository.loadEventsFromServer(
 				any(),
 				any(),
 				eq(USER_ID),
@@ -252,12 +243,15 @@ class WidgetUIViewModelTest {
 
 		assertTrue(state is WidgetUIState.Available)
 		val availableState = state as WidgetUIState.Available
-		assertEquals(1, availableState.normalEvents.size)
+		assert(availableState.daysAndEvents[0].isNotEmpty())
+		for (i in 1..<7) {
+			assert(availableState.daysAndEvents[i].isEmpty())
+		}
 
 		verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
-		verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(1)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 
-		val eventsIds = availableState.normalEvents.values.first().map { uIEvent -> uIEvent.eventId }
+		val eventsIds = availableState.daysAndEvents[0].map { uIEvent -> uIEvent.eventId }
 		assertEquals(listOf(eventFour, eventTwo, eventThree, eventOne).map { eventDao -> eventDao.id }, eventsIds)
 	}
 
@@ -268,7 +262,7 @@ class WidgetUIViewModelTest {
 		wheneverBlocking { mockWidgetRepository.loadCalendars(any(), any(), any()) }.doThrow(RuntimeException())
 
 		wheneverBlocking {
-			mockWidgetRepository.loadEvents(
+			mockWidgetRepository.loadEventsFromServer(
 				any(),
 				any(),
 				eq(USER_ID),
@@ -284,10 +278,12 @@ class WidgetUIViewModelTest {
 
 		assertTrue(state is WidgetUIState.Available)
 		val availableState = state as WidgetUIState.Available
-		assertEquals(1, availableState.normalEvents.size)
+		for (eventsOnDay in availableState.daysAndEvents) {
+			assertEquals(emptyList<UIEvent>(), eventsOnDay)
+		}
 
 		verify(mockWidgetRepository, times(1)).loadCalendars(any(), any(), any())
-		verify(mockWidgetRepository, times(1)).loadEvents(any(), any(), any(), any(), any(), any(), any())
+		verify(mockWidgetRepository, times(1)).loadEventsFromServer(any(), any(), any(), any(), any(), any(), any())
 		verify(mockWidgetRepository, times(0)).loadEventsFromCache(any(), any(), any(), any(), any())
 	}
 
