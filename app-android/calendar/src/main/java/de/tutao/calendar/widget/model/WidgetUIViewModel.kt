@@ -399,14 +399,14 @@ class WidgetUIViewModel(
 		settings: SettingsDao,
 		calendars: List<GeneratedId>
 	): Map<GeneratedId, CalendarEventListDao> {
+		var eventsFromServer: Map<GeneratedId, CalendarEventListDao>? = null
 		Log.d(TAG, "shouldFetchFromServer: $shouldFetchFromServer")
 		if (shouldFetchFromServer && sdk != null) {
 			try {
 				val sdkCredentials = credentials.toSdkCredentials()
 				val loggedInSdk = sdk.login(sdkCredentials)
-				var events: Map<GeneratedId, CalendarEventListDao>
 				val time = measureTimedValue {
-					events = repository.loadEvents(
+					eventsFromServer = repository.loadEventsFromServer(
 						widgetCacheDataStore,
 						widgetId,
 						settings.userId,
@@ -417,43 +417,26 @@ class WidgetUIViewModel(
 					)
 				}
 				Log.d(TAG, "[$widgetId] LoadEvents time: $time")
-
-				return events
 			} catch (e: LoginException) {
-				// Fallback to cached events. We don't set an error here because we still able to display "something"
-				// to the user.
 				Log.e(
 					TAG,
 					"[$widgetId] Missing credentials for user ${settings.userId} when trying to load widget content}",
 					e
 				)
-				return repository.loadEventsFromCache(
-					widgetCacheDataStore,
-					widgetId,
-					calendars,
-					credentials,
-					cryptoFacade
-				)
 			} catch (e: Exception) {
 				Log.e(TAG, "[$widgetId] Unknown exception occurred", e)
+			}
+		}
 
-				return repository.loadEventsFromCache(
+		return eventsFromServer
+			?: // Return events from cache instead
+				repository.loadEventsFromCache(
 					widgetCacheDataStore,
 					widgetId,
 					calendars,
 					credentials,
 					cryptoFacade
 				)
-			}
-		} else {
-			return repository.loadEventsFromCache(
-				widgetCacheDataStore,
-				widgetId,
-				calendars,
-				credentials,
-				cryptoFacade
-			)
-		}
 	}
 
 	private data class WidgetSetupData(

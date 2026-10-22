@@ -140,7 +140,7 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		return eventsMap
 	}
 
-	override suspend fun loadEvents(
+	override suspend fun loadEventsFromServer(
 		cacheDataStore: DataStore<Preferences>,
 		widgetId: Int,
 		userId: GeneratedId,
@@ -216,20 +216,20 @@ class WidgetDataRepository private constructor() : WidgetRepository() {
 		cryptoFacade: AndroidNativeCryptoFacade
 	): Map<GeneratedId, CalendarEventListDao> {
 		Log.i(TAG, "[$widgetId] Init loadEvents from cache...")
+
 		val now = Calendar.getInstance(TimeZone.getDefault()).timeInMillis.toULong()
 
-		val cachedEventsMap = loadCache(cacheDataStore, widgetId, cryptoFacade, credentials).toMutableMap()
-		val selectedCachedEvents = cachedEventsMap.filterKeys { calendars.contains(it) }
-
-		for ((id, events) in selectedCachedEvents.entries) {
-			cachedEventsMap[id] = CalendarEventListDao(
-				shortEvents = events.shortEvents.filter { it.endTime >= now },
-				longEvents = events.longEvents.filter { it.endTime >= now },
-				birthdayEvents = events.birthdayEvents.filter { it.eventDao.endTime >= now }
-			)
+		val result = mutableMapOf<GeneratedId, CalendarEventListDao>()
+		for ((calendarId, events) in loadCache(cacheDataStore, widgetId, cryptoFacade, credentials)) {
+			if (calendars.contains(calendarId)) {
+				result[calendarId] = CalendarEventListDao(
+					shortEvents = events.shortEvents.filter { it.endTime >= now },
+					longEvents = events.longEvents.filter { it.endTime >= now },
+					birthdayEvents = events.birthdayEvents.filter { it.eventDao.endTime >= now }
+				)
+			}
 		}
-
-		return cachedEventsMap.filterKeys { calendars.contains(it) }
+		return result
 	}
 
 	private fun List<CalendarEvent>.toDao(): List<CalendarEventDao> {
