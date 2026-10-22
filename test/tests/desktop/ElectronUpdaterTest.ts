@@ -1,23 +1,82 @@
-import o, { spy } from "@tutao/otest"
+import o from "@tutao/otest"
 import type { App } from "electron"
 import type { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
-import { delay, downcast } from "../../../src/platform-kit/utils"
+import { delay, lastThrow } from "../../../src/platform-kit/utils"
 import { ElectronUpdater } from "../../../src/applications/common/desktop/ElectronUpdater.js"
-import type { UpdaterWrapper } from "../../../src/applications/common/desktop/UpdaterWrapper.js"
-import n from "../nodemocker.js"
-import type { DesktopConfig } from "../../../src/applications/common/desktop/config/DesktopConfig.js"
+import type { TutaAppDownloadedEvent, TutaAppUpdater, UpdaterWrapper } from "../../../src/applications/common/desktop/UpdaterWrapper.js"
+import { AllConfigKeys, ConfigValue, DesktopConfig } from "../../../src/applications/common/desktop/config/DesktopConfig.js"
 import type { DesktopNotifier } from "../../../src/applications/common/desktop/notifications/DesktopNotifier.js"
 import { lang } from "../../../src/ui/utils/LanguageViewModel.js"
 import en from "../../../src/ui/translations/en.js"
 import { matchers, object, verify, when } from "testdouble"
 import { FsExports } from "../../../src/applications/common/desktop/ElectronExportTypes.js"
 import { WindowManager } from "../../../src/applications/common/desktop/DesktopWindowManager"
+import EventEmitter from "node:events"
+import { UpdateInfo } from "electron-updater"
+import { BuildConfigKey, DesktopConfigEncKey, DesktopConfigKey } from "../../../src/platform-kit/app-env"
+import { SchedulerMock } from "../TestUtils"
 
 lang.init(en)
+
+class DesktopConfigMock extends DesktopConfig {
+	readonly vars = new Map<AllConfigKeys, any>()
+	_buildConfig = new Map<BuildConfigKey, any>()
+
+	constructor() {
+		super(object(), object(), object())
+	}
+
+	async getVar<K extends AllConfigKeys>(key: K): Promise<any> {
+		return this.vars.get(key)
+	}
+
+	async getConst(key?: BuildConfigKey): Promise<any> {
+		const config = this._buildConfig
+		return key ? config.get(key) : config
+	}
+
+	async setVar(key: DesktopConfigKey | DesktopConfigEncKey, value: ConfigValue | null): Promise<void> {
+		this.vars.set(key, value)
+		this._notifyChangeListeners(key, value)
+	}
+
+	private _notifyChangeListeners(key: AllConfigKeys, value: ConfigValue | null) {
+		const listeners = this.onValueSetListeners[key]
+		if (listeners == null) return
+		for (const { cb } of listeners) cb(value)
+		this.onValueSetListeners[key] = listeners.filter((listener) => !listener.once)
+	}
+}
 
 const sigB64 = "c2lnbmF0dXJlCg=="
 const shaB64 = "c2hhNTEyCg=="
 const data = Buffer.from([1, 2, 3])
+
+const UPDATE_INFO: Readonly<UpdateInfo> = {
+	files: [],
+	releaseDate: "",
+	minimumSystemVersion: undefined,
+	releaseName: undefined,
+	releaseNotes: undefined,
+	stagingPercentage: undefined,
+	version: "4.5.0",
+	path: "/path/to/update",
+	sha512: "sha512-fake",
+}
+
+const DOWNLOAD_INFO: Readonly<TutaAppDownloadedEvent> = {
+	files: [],
+	releaseDate: "",
+	minimumSystemVersion: undefined,
+	releaseName: undefined,
+	releaseNotes: undefined,
+	stagingPercentage: undefined,
+	version: "4.5.0",
+	path: "/path/to/update",
+	sha512: "sha512-fake",
+	signature: sigB64,
+	downloadedFile: "downloadedFile.AppImage",
+}
 
 o.spec("ElectronUpdater", function () {
 	let electron: {
@@ -26,56 +85,32 @@ o.spec("ElectronUpdater", function () {
 	let fs: FsExports
 	let wm: WindowManager
 	let crypto: DesktopNativeCryptoFacade
-	let autoUpdater
-	let conf: DesktopConfig
+	let autoUpdater: TutaAppUpdater
+	let conf: DesktopConfigMock
 	let notifier: DesktopNotifier
 	let updaterImpl: UpdaterWrapper
+	let scheduler: SchedulerMock
+
+	let updatesEnabledInBuild = true
 	o.beforeEach(function () {
+		updatesEnabledInBuild = true
 		fs = object()
 		wm = object()
 		when(fs.promises.unlink("downloadedFile.AppImage")).thenResolve()
 		when(fs.promises.readFile("downloadedFile.AppImage")).thenResolve(data)
 		when(wm.getAll()).thenReturn([])
-		notifier = downcast({
-			showOneShot: spy((props: { title: string; body: string; icon: any; onClick?: () => unknown }) => {
-				Promise.resolve().then(() => props.onClick?.())
-			}),
+		notifier = object()
+		when(notifier.showOneShot(matchers.anything())).thenDo((props: { title: string; body: string; icon: any; onClick?: () => unknown }) => {
+			Promise.resolve().then(() => props.onClick?.())
 		})
-		conf = downcast({
-			removeListener: spy((key: string, cb: () => void) => conf),
-			on: spy((key: string) => conf),
-			setVar: spy(),
-			getVar: (key: string) => {
-				switch (key) {
-					case "enableAutoUpdate":
-						return true
+		conf = new DesktopConfigMock()
+		conf._buildConfig.set(BuildConfigKey.checkUpdateSignature, true)
+		conf._buildConfig.set(BuildConfigKey.pubKeys, ["no", "yes"])
+		conf._buildConfig.set(BuildConfigKey.pollingInterval, 100)
+		conf._buildConfig.set(BuildConfigKey.iconName, "iconName.name")
 
-					case "showAutoUpdateOption":
-						return true
-
-					default:
-						throw new Error(`unexpected getVar key ${key}`)
-				}
-			},
-			getConst: (key: string) => {
-				switch (key) {
-					case "checkUpdateSignature":
-						return true
-
-					case "pubKeys":
-						return ["no", "yes"]
-
-					case "pollingInterval":
-						return 300
-
-					case "iconName":
-						return "iconName.name"
-
-					default:
-						throw new Error(`unexpected getConst key ${key}`)
-				}
-			},
-		})
+		conf.setVar(DesktopConfigKey.enableAutoUpdate, true)
+		conf.setVar(DesktopConfigKey.showAutoUpdateOption, true)
 		const app: Electron.App = object()
 		when(app.getVersion()).thenReturn("3.45.0")
 		electron = { app }
@@ -87,233 +122,169 @@ o.spec("ElectronUpdater", function () {
 		when(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64"))).thenReturn(true)
 		when(crypto.verifySignature("no", matchers.anything(), matchers.anything())).thenReturn(false)
 
-		autoUpdater = {
-			callbacks: {},
-			logger: undefined,
-			on: spy(function (ev: string, cb: (arg0: any) => void) {
-				if (!this.callbacks[ev]) this.callbacks[ev] = []
-				this.callbacks[ev].push({
-					fn: spy(cb),
-					once: false,
-				})
-				return this
-			}),
-			once: function (ev: string, cb: (arg0: any) => void) {
-				if (!this.callbacks[ev]) this.callbacks[ev] = []
-				this.callbacks[ev].push({
-					fn: spy(cb),
-					once: true,
-				})
-				return this
-			},
-			removeListener: function (ev: string, cb: (arg0: any) => void) {
-				if (!this.callbacks[ev]) return
-				this.callbacks[ev] = this.callbacks[ev].filter((entry) => entry.fn !== cb)
-			},
-			removeAllListeners: spy(function (ev: string) {
-				this.callbacks[ev] = []
-				return this
-			}),
-			emit: function (ev: string, args: any) {
-				const entries = this.callbacks[ev]
-				for (const entry of entries) {
-					setTimeout(() => entry.fn(args), 1)
-				}
-				this.callbacks[ev] = entries.filter((entry) => !entry.once)
-			},
-			checkForUpdates: spy(function () {
-				this.emit("update-available", {
-					downloadedFile: "downloadedFile.AppImage",
-					sha512: shaB64,
-					signature: sigB64,
-					version: "4.5.0",
-				})
-				return Promise.resolve()
-			}),
-			downloadUpdate: spy(function () {
-				this.emit("update-downloaded", {
-					downloadedFile: "downloadedFile.AppImage",
-					sha512: shaB64, // "sha512"
-					signature: sigB64,
-					version: "4.5.0",
-				})
-				return Promise.resolve()
-			}),
-			quitAndInstall: spy(),
-		}
-
-		updaterImpl = downcast({
-			electronUpdater: autoUpdater,
-			updatesEnabledInBuild: () => true,
+		const autoUpdaterEmitter = new EventEmitter()
+		autoUpdater = object()
+		when(autoUpdater.on(matchers.anything(), matchers.anything())).thenDo((event, cb) => {
+			autoUpdaterEmitter.on(event, cb)
+			return autoUpdater
 		})
-	})
-	o.test("update is available", async function () {
-		downcast(updaterImpl).updatesEnabledInBuild = () => true
+		when(autoUpdater.once(matchers.anything(), matchers.anything())).thenDo((event, cb) => {
+			autoUpdaterEmitter.once(event, cb)
+			return autoUpdater
+		})
+		when(autoUpdater.removeListener(matchers.anything(), matchers.anything())).thenDo((event, cb) => {
+			autoUpdaterEmitter.removeListener(event, cb)
+			return autoUpdater
+		})
+		when(autoUpdater.removeAllListeners(matchers.anything())).thenDo((event) => {
+			autoUpdaterEmitter.removeAllListeners(event)
+			return autoUpdater
+		})
+		when(autoUpdater.emit(matchers.anything(), matchers.anything())).thenDo((event, args) => {
+			autoUpdaterEmitter.emit(event, args)
+			return autoUpdater
+		})
 
-		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
-		upd.start()
-		o.check(conf.setVar.callCount).equals(1)
-		o.check(conf.setVar.args).deepEquals(["showAutoUpdateOption", true])
-		// there is only one enableAutoUpdate listener
-		o.check(conf.removeListener.callCount).equals(1)
-		o.check(conf.removeListener.args[0]).equals("enableAutoUpdate")
-		o.check(conf.on.callCount).equals(1)
-		await updaterImpl.electronUpdater
-		await delay(190)
+		updaterImpl = {
+			electronUpdater: autoUpdater,
+			updatesEnabledInBuild: () => updatesEnabledInBuild,
+		}
+		scheduler = new SchedulerMock()
+	})
+
+	function waitForInstall(): Promise<void> {
+		return new Promise<void>((resolve) => {
+			when(autoUpdater.quitAndInstall(false, true)).thenDo(() => resolve())
+		})
+	}
+
+	o.test("update is available", async function () {
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", DOWNLOAD_INFO)
+		})
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const installPromise = waitForInstall()
+		await upd.start()
+		o.check(await conf.getVar(DesktopConfigKey.showAutoUpdateOption)).equals(true)
+		await installPromise
 		// show notification
-		o.check(notifier.showOneShot.callCount).equals(1)
+		verify(notifier.showOneShot(matchers.anything()), { times: 1 })
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
-		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
 	o.test("update is not available", async function () {
-		autoUpdater.checkForUpdates = spy(() => Promise.resolve())
-		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
-		upd.start()
-		await delay(190)
-		o.check(autoUpdater.checkForUpdates.callCount).equals(1)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-not-available", UPDATE_INFO)
+			return null
+		})
+
+		await upd.start()
 		// don't check signature
 		verify(crypto.verifySignature(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
 		// don't show notification
-		o.check(notifier.showOneShot.callCount).equals(0)
-		o.check(autoUpdater.quitAndInstall.callCount).equals(0)
-
-		// @ts-ignore makes the test halt
-		upd.stopPolling()
+		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
+		verify(autoUpdater.quitAndInstall(), { times: 0 })
 	})
 	o.test("enable autoUpdate while running", async function () {
-		//mock instances
-		let enabled = false
-		const oldConf = conf
-		conf = n
-			.mock<DesktopConfig>("__conf", oldConf)
-			.with({
-				removeListener: () => conf,
-				on: (key: string, cb: any) => {
-					if (!enabled) {
-						setTimeout(() => {
-							enabled = true
-							cb()
-						}, 25)
-					}
+		await conf.setVar(DesktopConfigKey.enableAutoUpdate, false)
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", DOWNLOAD_INFO)
+		})
 
-					return conf
-				},
-				getVar: (key: string) => {
-					switch (key) {
-						case "enableAutoUpdate":
-							return enabled
-
-						case "showAutoUpdateOption":
-							return true
-
-						default:
-							throw new Error(`unexpected getVar key ${key}`)
-					}
-				},
-			})
-			.set()
-		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
-		upd.start()
-		await delay(100)
-		// entered start() twice
-		o.check(conf.removeListener.callCount).equals(2)
-		o.check(conf.on.callCount).equals(2)
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const installPromise = waitForInstall()
+		await upd.start()
+		// this should trigger the update
+		await conf.setVar(DesktopConfigKey.enableAutoUpdate, true)
+		await installPromise
 		// check signature
 		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
 		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
 		// show notification
-		o.check(notifier.showOneShot.callCount).equals(1)
+		verify(notifier.showOneShot(matchers.anything()), { times: 1 })
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
-		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
 	})
+
 	o.test("retry after autoUpdater reports an error", async function () {
-		o.timeout(500) // this is very slow for some reason
-
 		let first = true
-
-		autoUpdater.checkForUpdates = function () {
+		when(autoUpdater.checkForUpdates()).thenDo(() => {
 			if (first) {
 				first = false
-				this.emit("error", {
-					message: "this is an autoUpdater error",
-				})
+				autoUpdater.emit("error", new Error("this is an autoUpdater error"))
 				return Promise.reject("oops")
 			} else {
-				this.emit("update-available", {
-					sha512: "sha512",
-					signature: "signature",
-				})
+				autoUpdater.emit("update-available", UPDATE_INFO)
 				return Promise.resolve()
 			}
-		}
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", DOWNLOAD_INFO)
+		})
 
-		const scheduler = (fn, time) => setInterval(fn, 10)
-
+		const installPromise = waitForInstall()
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
-		upd.start()
-		// after the error
-		await delay(2)
-		o.check(autoUpdater.downloadUpdate.callCount).equals(0)("downloadUpdate after error")
-		//after the download
-		await delay(200)
-		o.check(notifier.showOneShot.callCount).equals(1)("showOneShot")
-		o.check(autoUpdater.downloadUpdate.callCount).equals(1)("downloadUpdate after download")
+		await upd.start()
+		// retry once
+		scheduler.getAllPeriodThunks()[0]()
+		await installPromise
+		verify(notifier.showOneShot(matchers.anything()))
 	})
+
 	o.test("shut down autoUpdater after errors", async function () {
-		autoUpdater.downloadUpdate = function () {
-			autoUpdater.emit("error", {
-				message: "this is an autoUpdater error",
-			})
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(() => {
+			autoUpdater.emit("error", new Error("this is an autoUpdater error"))
 			return Promise.resolve()
-		}
-
-		const scheduler = (fn) => setInterval(fn, 5)
+		})
 
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
-		upd.start()
-		await delay(150)
+		// a bit cursed
+		// notifier will reschedule periodic check and show a notification after multiple failures
+		// we don't have any observable event other than notification so we just wait for it
+		let shownNotification = false
+		when(notifier.showOneShot(matchers.anything())).thenDo(() => (shownNotification = true))
+		await upd.start()
+		while (!shownNotification) {
+			const scheduledCheck = lastThrow(scheduler.getAllPeriodThunks())
+			scheduledCheck()
+			await delay(1)
+		}
 
-		// @ts-ignore
-		upd.stopPolling()
-
-		o.check(notifier.showOneShot.callCount).equals(1)("showOneShot")
+		o.check(scheduler.allPeriodicCanceled()).equals(true)("update check wasn't rescheduled")
 	})
-	o.test("works if second key is right one", async function () {
-		o.timeout(1000)
-		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
-		upd.start()
-		// there is only one enableAutoUpdate listener
-		o.check(conf.removeListener.callCount).equals(1)
-		o.check(conf.removeListener.args[0]).equals("enableAutoUpdate")
-		o.check(conf.on.callCount).equals(1)
-		await delay(250)
-		o.check(autoUpdater.checkForUpdates.callCount).equals(1)
-		// check signature
-		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
-		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
-		// show notification
-		o.check(notifier.showOneShot.callCount).equals(1)
-		verify(electron.app.emit("enable-force-quit"), { times: 1 })
-		o.check(autoUpdater.quitAndInstall.callCount).equals(1)
-		o.check(autoUpdater.quitAndInstall.args[0]).equals(false)
-		o.check(autoUpdater.quitAndInstall.args[1]).equals(true)
+	o.test("when updates are disabled in build it doesn't check for updates", async function () {
+		updatesEnabledInBuild = false
 
-		// @ts-ignore
-		upd.stopPolling()
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		await upd.start()
+		verify(autoUpdater.checkForUpdates(), { times: 0 })
+		o.check(scheduler.getAllPeriodThunks().length).equals(0)("nothing is scheduled")
 	})
-	o.test("updater disables itself if accessSync throws", async function () {
-		downcast(updaterImpl).updatesEnabledInBuild = () => false
 
-		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs)
-		await updaterImpl.electronUpdater
-		o.check(autoUpdater.on.callCount).equals(6)
-		upd.start()
-		o.check(conf.setVar.callCount).equals(1)
-		o.check(conf.setVar.args).deepEquals(["showAutoUpdateOption", false])
-		o.check(conf.removeListener.callCount).equals(0)
+	o.test("when all signature checks fail, nothing is installed", async function () {
+		conf._buildConfig.set(BuildConfigKey.pubKeys, ["no", "yes"])
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", { ...DOWNLOAD_INFO, signature: "bogus!" })
+		})
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const deletePromise = new Promise((resolve) => {
+			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(resolve)
+		})
+		await upd.start()
+		await deletePromise
+		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
+		verify(electron.app.emit("enable-force-quit"), { times: 0 })
+		verify(autoUpdater.quitAndInstall(matchers.anything(), matchers.anything()), { times: 0 })
 	})
 })

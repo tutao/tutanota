@@ -238,7 +238,8 @@ async function createComponents(): Promise<Components> {
 	const shortcutManager = new LocalShortcutManager()
 	const alarmStorage = new DesktopAlarmStorage(conf, desktopCrypto, keyStoreFacade, nativeInstancePipeline)
 	const wm = new WindowManager(conf, tray, notifier, electron, shortcutManager, appIcon)
-	const updater = new ElectronUpdater(conf, wm, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs)
+	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
+	const updater = new ElectronUpdater(conf, wm, notifier, desktopCrypto, app, appIcon, new UpdaterWrapper(), fs, schedulerImpl)
 	const credentialsDb = new DesktopCredentialsStorage(makeDbPath("credentials"), app)
 	const appPassHandler = new AppPassHandler(desktopCrypto, conf, loadArgon2(), lang, async () => {
 		const last = await wm.getLastFocused(true)
@@ -275,7 +276,6 @@ async function createComponents(): Promise<Components> {
 
 	const desktopExportLock = new DesktopExportLock()
 	const themeFacade = new DesktopThemeFacade(conf, wm, electron.nativeTheme)
-	const schedulerImpl = new SchedulerImpl(dateProvider, global, global)
 	const alarmScheduler = new AlarmScheduler(dateProvider, schedulerImpl)
 	const desktopAlarmScheduler = new DesktopAlarmScheduler(wm, notifier, alarmStorage, alarmScheduler)
 	desktopAlarmScheduler.rescheduleAll().catch((e) => {

@@ -9,6 +9,7 @@ import type { UpdateDownloadedEvent, UpdateInfo } from "electron-updater"
 import { BuildConfigKey, DesktopConfigKey } from "../../../platform-kit/app-env"
 import { FsExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager"
+import { ScheduledPeriodicId, Scheduler } from "../api/common/utils/Scheduler"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -41,7 +42,7 @@ type IntervalID = ReturnType<typeof setTimeout>
 export type IntervalSetter = (fn: (...arr: Array<unknown>) => unknown, time?: number) => IntervalID
 
 export class ElectronUpdater {
-	private updatePollInterval: IntervalID | null = null
+	private updatePollInterval: ScheduledPeriodicId | null = null
 	private errorCount: number = 0
 	private readonly logger: UpdaterLogger
 	/** verified update info */
@@ -64,7 +65,7 @@ export class ElectronUpdater {
 		private readonly icon: LazyLoaded<NativeImage>,
 		private readonly updater: UpdaterWrapper,
 		private readonly fs: FsExports,
-		private readonly scheduler: IntervalSetter = setInterval,
+		private readonly scheduler: Scheduler,
 	) {
 		this.logger = {
 			info: (m: string, ...args: any) => console.log.apply(console, [TAG, "INFO:", m].concat(args)),
@@ -158,10 +159,10 @@ export class ElectronUpdater {
 			return
 		}
 
-		this.startPolling()
+		await this.startPolling()
 		// the first check is immediate, all others are done with a delay
 		// and random exponential backoff
-		this.checkUpdate()
+		await this.checkUpdate()
 	}
 
 	/**
@@ -190,7 +191,7 @@ export class ElectronUpdater {
 			// between (base value) and (base value) * 2^(errorCount)
 			const multiplier = Math.floor(Math.random() * Math.pow(2, this.errorCount)) + 1
 			const interval = await this.conf.getConst(BuildConfigKey.pollingInterval)
-			this.updatePollInterval = this.scheduler(() => this.checkUpdate(), interval * multiplier)
+			this.updatePollInterval = this.scheduler.schedulePeriodic(() => this.checkUpdate(), interval * multiplier)
 		}
 	}
 
@@ -206,7 +207,7 @@ export class ElectronUpdater {
 	}
 
 	private stopPolling() {
-		clearInterval(neverNull(this.updatePollInterval))
+		this.scheduler.unschedulePeriodic(this.updatePollInterval)
 		this.updatePollInterval = null
 	}
 
@@ -234,12 +235,13 @@ export class ElectronUpdater {
 			}
 			const updateNotAvailable = () => cleanup(false)
 			const updateDownloaded = () => cleanup(true)
+
+			autoUpdater.once("update-not-available", updateNotAvailable).once("update-downloaded", updateDownloaded).once("error", updateNotAvailable)
+
 			autoUpdater.checkForUpdates().catch((e: Error) => {
 				this.logger.error("Update check failed,", e.message)
 				cleanup(false)
 			})
-
-			autoUpdater.once("update-not-available", updateNotAvailable).once("update-downloaded", updateDownloaded).once("error", updateNotAvailable)
 		})
 	}
 

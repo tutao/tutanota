@@ -159,6 +159,10 @@ export class SchedulerMock implements Scheduler {
 		this.cancelledPeriodic.add(id)
 	}
 
+	allPeriodicCanceled(): boolean {
+		return [...this.scheduledPeriodic.values()].every((idThunk) => this.cancelledPeriodic.has(idThunk.id))
+	}
+
 	_incAlarmId(): ScheduledTimeoutId {
 		return this.alarmId++
 	}

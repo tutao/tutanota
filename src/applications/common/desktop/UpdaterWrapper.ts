@@ -6,6 +6,7 @@ import path from "node:path"
 import fs from "node:fs"
 import { app } from "electron"
 import electronUpdater, { AppUpdater } from "electron-updater"
+import { UpdateDownloadedEvent } from "electron-updater/out/types"
 
 const { autoUpdater } = electronUpdater
 
@@ -23,6 +24,14 @@ export class UpdaterWrapper {
 
 	electronUpdater: AppUpdater = env.dist ? autoUpdater : downcast<AppUpdater>(fakeAutoUpdater)
 }
+
+export type TutaAppDownloadedEvent = UpdateDownloadedEvent & { signature: string }
+
+interface TutaAppUpdaterOverrides {
+	emit(event: "update-downloaded", args: TutaAppDownloadedEvent): this
+	on(event: "update-downloaded", listener: (event: TutaAppDownloadedEvent) => any): this
+}
+export type TutaAppUpdater = AppUpdater & TutaAppUpdaterOverrides
 
 const fakeAutoUpdater = new (class {
 	on(): this {

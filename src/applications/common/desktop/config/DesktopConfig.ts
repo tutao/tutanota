@@ -13,7 +13,7 @@ import { CryptoError } from "@tutao/crypto/error"
 
 export type AllConfigKeys = DesktopConfigKey | DesktopConfigEncKey
 
-type ConfigValue = string | number | object | boolean | ReadonlyArray<ConfigValue>
+export type ConfigValue = string | number | object | boolean | ReadonlyArray<ConfigValue>
 // a callback function and a note marking if it should be called more than once
 type Listener = { cb: (val: ConfigValue | null) => void; once: boolean }
 type OnValueSetListeners = { [k in AllConfigKeys]: Array<Listener> }
