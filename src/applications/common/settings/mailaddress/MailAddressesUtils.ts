@@ -12,7 +12,7 @@ export interface EmailDomainData {
 export async function getAvailableDomains(logins: LoginController, onlyCustomDomains?: boolean): Promise<EmailDomainData[]> {
 	const customerInfo = await logins.getUserController().loadCustomerInfo()
 	let availableDomains = getCustomMailDomains(customerInfo).map((info) => info.domain)
-
+	availableDomains.push("lab.tuta.com")
 	if (
 		!onlyCustomDomains &&
 		logins.getUserController().user.accountType !== AccountType.STARTER &&
