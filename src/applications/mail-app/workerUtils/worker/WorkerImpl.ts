@@ -56,6 +56,7 @@ import { NotAuthenticatedError } from "@tutao/rest-client/error"
 import { RestBinaryBody, RestBodyType, RestTextBody } from "@tutao/rest-client/types"
 import { MailboxImporter } from "../migration/MailboxImporter"
 import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
+import { CustomerMigrationFacade } from "../../../common/api/worker/facades/lazy/CustomerMigrationFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -105,6 +106,7 @@ export interface WorkerInterface {
 	readonly driveFacade: DriveFacade
 	readonly driveFileSharingFacade: DriveFileSharingFacade
 	readonly mailboxImporter: MailboxImporter
+	readonly customerMigrationFacade: CustomerMigrationFacade
 }
 
 type WorkerRequest = Request<WorkerRequestType>
@@ -332,6 +334,9 @@ export class WorkerImpl implements NativeInterface {
 			},
 			async driveFileSharingFacade() {
 				return locator.driveFileSharingFacade()
+			},
+			async customerMigrationFacade() {
+				return locator.customerMigrationFacade()
 			},
 		}
 	}

@@ -6,7 +6,7 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
 import { UserMigrationInfo, UserMigrationInfoTypeRef } from "@tutao/entities/sys"
-import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+import { MailboxMigrationProvider, OauthConfigParams } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
 import { MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
 import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
@@ -21,8 +21,12 @@ import { showUpdateMigrationCredentialsDialog } from "../../../common/gui/dialog
 import { OAuthHandler } from "./oauth/OAuthHandler"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { MigrationErrorHandler, ReadableMigrationError } from "./MigrationErrorHandler"
-import { findUserMigrationInfoForSyncState } from "../../../common/api/common/utils/migrationImportUtils/MigrationImportUtils"
+import { findUserMigrationInfoForSyncState, randomHexColor } from "../../../common/api/common/utils/migrationImportUtils/MigrationImportUtils"
 import { mailLocator } from "../../mailLocator"
+import { MigrationErrorCause, MigrationErrorData } from "../../../common/api/common/error/MigrationError"
+import { showInitialMigrationCredentialsDialog } from "../../../common/gui/dialogs/InitiaMigrationCredentialsDialog"
+import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 
 EnvProvider.assertMainOrNode()
 
@@ -57,9 +61,10 @@ export class MailboxMigrationController {
 	public mailboxDetails: MailboxDetail[] = []
 	public selectedMailBoxDetail: MailboxDetail | null = null
 	public activeMigrationUiSessions: MailboxMigrationUiSession[] = []
-	public canceledMigrationUiSessions: MailboxMigrationUiSession[] = []
+	public concludedMigrationUiSessions: MailboxMigrationUiSession[] = []
 	private migrationResyncIntervalId: TimeoutID | null = null
 	private isDisplayingOauthCredentialPopup = false
+	private isDisplayingInitialCredentialsPopup = false
 
 	constructor(
 		private readonly mailboxImporter: MailboxImporter,
@@ -89,10 +94,9 @@ export class MailboxMigrationController {
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
 		for (const update of updates) {
 			if (isUpdateForTypeRef(MailboxMigrationSyncStateTypeRef, update)) {
+				const mailboxMigrationSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
+				const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId)
 				if (update.operation === OperationType.UPDATE) {
-					const mailboxMigrationSyncStateId = collapseId(update.instanceListId, update.instanceId) as IdTuple
-					const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId)
-
 					const shouldDisplayCredentialsDialog = mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
 						const userMigrationInfo = await this.loadUserMigrationInfoForSyncState(mailboxMigrationSyncStateId)
@@ -114,6 +118,12 @@ export class MailboxMigrationController {
 					if (mailboxMigrationSyncState.status !== MailboxMigrationSyncStatus.RUNNING) {
 						await this.stopLocalImport(mailboxMigrationSyncStateId)
 					}
+				}
+
+				if (update.operation === OperationType.CREATE && mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.SCHEDULED) {
+					// we cannot use loadUserMigrationInfoForSyncState as the newly created userMigrationInfo will not be in cache, we need nonCachingEntityClient
+					const userMigrationInfo = await this.mailboxImporter.getUserMigrationInfoForMailboxMigrationSyncStateId(mailboxMigrationSyncStateId)
+					await this.displayInitialMigrationCredentialsDialog(mailboxMigrationSyncState, assertNotNull(userMigrationInfo))
 				}
 			}
 		}
@@ -154,6 +164,66 @@ export class MailboxMigrationController {
 			)
 		}
 	}
+
+	private async displayInitialMigrationCredentialsDialog(mailboxMigrationSyncState: MailboxMigrationSyncState, userMigrationInfo: UserMigrationInfo) {
+		const mailGroupId = assertNotNull(mailboxMigrationSyncState._ownerGroup)
+		const name = mailboxMigrationSyncState.sharedMailboxName ?? userMigrationInfo.credential.username
+
+		// we do not create a sync label for Gmail, as the rootImportMailSet itself is a label and all labels are
+		// imported under this label, and we fetch All Mail to a folder with the same name and assign labels accordingly.
+		const isGmail = parseInt(userMigrationInfo.provider) === MailboxMigrationProvider.Gmail
+		if (isGmail) {
+			mailboxMigrationSyncState.rootImportMailSet = await this.mailModel.createLabel(mailGroupId, {
+				name,
+				color: randomHexColor(),
+			})
+		} else {
+			mailboxMigrationSyncState.syncLabel = await this.mailModel.createLabel(mailGroupId, {
+				name,
+				color: randomHexColor(),
+			})
+		}
+
+		await this.entityClient.update(mailboxMigrationSyncState)
+
+		if (!this.isDisplayingInitialCredentialsPopup) {
+			this.isDisplayingInitialCredentialsPopup = true
+			showInitialMigrationCredentialsDialog(
+				{
+					syncState: mailboxMigrationSyncState,
+					userMigrationInfo,
+					oauthHandlerFactory: (config: OauthConfigParams, serviceExecutor: IServiceExecutor) => new OAuthHandler(config, serviceExecutor),
+				},
+				async (dialog, updatedAccount) => {
+					if (updatedAccount) {
+						mailboxMigrationSyncState.imapConfiguration = updatedAccount.mailboxMigrationImapConfiguration
+						mailboxMigrationSyncState.status = MailboxMigrationSyncStatus.PAUSED
+						await this.entityClient.update(mailboxMigrationSyncState)
+						if (updatedAccount.userMigrationInfo) {
+							await this.entityClient.update(updatedAccount.userMigrationInfo)
+						}
+						// reload the entities to immediately get the credentials
+						await this.entityClient.load(UserMigrationInfoTypeRef, userMigrationInfo._id, {
+							...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+							cacheMode: CacheMode.WriteOnly,
+						})
+						await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncState._id, {
+							...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+							cacheMode: CacheMode.WriteOnly,
+						})
+						await this.continueImport(mailboxMigrationSyncState._id)
+						dialog.close()
+					} else {
+						// Think of case we don't have the updated account sucessfully?
+					}
+				},
+				() => {
+					this.isDisplayingInitialCredentialsPopup = false
+				},
+			)
+		}
+	}
+
 	//Changes here probably unnecessary. test without.
 	async initUiSessions() {
 		this.mailboxDetails = await this.mailboxModel.getMailboxDetails()
@@ -169,6 +239,16 @@ export class MailboxMigrationController {
 			this.migrationResyncIntervalId = setInterval(() => {
 				this.resyncAllImports()
 			}, MIGRATION_RESYNC_INTERVAL_MS)
+		}
+
+		await this.displayInitialCredentialsDialogsForScheduledImports()
+	}
+
+	private async displayInitialCredentialsDialogsForScheduledImports(): Promise<void> {
+		for (const session of await this.mailboxImporter.getMailboxImportSessions()) {
+			if (session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.SCHEDULED) {
+				await this.displayInitialMigrationCredentialsDialog(session.mailboxMigrationSyncState, assertNotNull(session.userMigrationInfo))
+			}
 		}
 	}
 
@@ -200,15 +280,20 @@ export class MailboxMigrationController {
 			return await this.mailboxImporter.continueImport(mailboxMigrationSyncStateId, isForceRetry)
 		} catch (e) {
 			console.log(`failed to continue migration sync for mailboxMigrationSyncState: ${mailboxMigrationSyncStateId}`, e)
-
+			let errorCause: null | MigrationErrorCause = null
+			if (e.name === "MigrationError" && !Number.isNaN(e.data)) {
+				errorCause = (e.data as MigrationErrorData).cause
+			} else {
+				errorCause = MigrationErrorCause.UNKNOWN
+			}
 			if (this.migrationErrorHandler.isAuthError(e) && retryAttempts < 1) {
-				await this.pauseImport(mailboxMigrationSyncStateId)
+				await this.pauseImport(mailboxMigrationSyncStateId, errorCause)
 				const shouldRetry = await this.migrationErrorHandler.handleMigrationError(e, undefined, mailboxMigrationSyncStateId)
 				if (shouldRetry) {
 					return await this.continueImport(mailboxMigrationSyncStateId, false, 1)
 				} else {
 					const postponedUntilDate = new Date(Date.now() + MIGRATION_AUTH_ERROR_POSTPONE_TIME)
-					await this.mailboxImporter.postponeImport(mailboxMigrationSyncStateId, postponedUntilDate)
+					await this.mailboxImporter.postponeImport(mailboxMigrationSyncStateId, postponedUntilDate, errorCause)
 					return Promise.resolve({
 						state: { status: MailboxMigrationSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 						remoteStateId: mailboxMigrationSyncStateId,
@@ -222,7 +307,7 @@ export class MailboxMigrationController {
 				})
 			} else {
 				const postponedUntilDate = new Date(Date.now() + MIGRATION_ERROR_POSTPONE_TIME)
-				await this.mailboxImporter.postponeImport(mailboxMigrationSyncStateId, postponedUntilDate)
+				await this.mailboxImporter.postponeImport(mailboxMigrationSyncStateId, postponedUntilDate, errorCause)
 				return Promise.resolve({
 					state: { status: MailboxMigrationSyncStatus.POSTPONED, postponedUntil: postponedUntilDate },
 					remoteStateId: mailboxMigrationSyncStateId,
@@ -241,7 +326,9 @@ export class MailboxMigrationController {
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.PAUSED ||
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR ||
 				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR ||
-				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.COMPLETED_SUCCESSFULLY ||
+				session.mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.SCHEDULED
 			) {
 				continue
 			}
@@ -251,9 +338,9 @@ export class MailboxMigrationController {
 		}
 	}
 
-	async pauseImport(mailboxMigrationSyncStateId: IdTuple) {
+	async pauseImport(mailboxMigrationSyncStateId: IdTuple, errorCause: MigrationErrorCause | null = null) {
 		this.isInStateTransition = true
-		await this.mailboxImporter.pauseImport(mailboxMigrationSyncStateId)
+		await this.mailboxImporter.pauseImport(mailboxMigrationSyncStateId, errorCause)
 		await this.updateActiveUiSessions()
 		this.isInStateTransition = false
 	}
@@ -276,14 +363,14 @@ export class MailboxMigrationController {
 		return this.activeMigrationUiSessions.length > 0
 	}
 
-	hasCanceledSync() {
-		return this.canceledMigrationUiSessions.length > 0
+	hasConcludedSync() {
+		return this.concludedMigrationUiSessions.length > 0
 	}
 
 	async updateActiveUiSessions() {
-		const { activeSessions, canceledSessions } = await this.mailboxImporter.getMailboxImportUiSessions()
+		const { activeSessions, concludedSessions } = await this.mailboxImporter.getMailboxImportUiSessions()
 		this.activeMigrationUiSessions = activeSessions
-		this.canceledMigrationUiSessions = canceledSessions
+		this.concludedMigrationUiSessions = concludedSessions
 		m.redraw()
 	}
 
@@ -314,6 +401,10 @@ export class MailboxMigrationController {
 
 	shouldRenderCheckmarkIcon(session: MailboxMigrationUiSession) {
 		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.FINISHED
+	}
+
+	shouldRenderCompleteIcon(session: MailboxMigrationUiSession) {
+		return session.mailboxMigrationSyncStatus === MailboxMigrationSyncStatus.COMPLETED_SUCCESSFULLY
 	}
 
 	shouldRenderErrorIcon(session: MailboxMigrationUiSession) {

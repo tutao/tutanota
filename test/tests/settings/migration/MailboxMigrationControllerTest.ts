@@ -72,7 +72,7 @@ o.spec("MailboxMigrationController", () => {
 		const mailboxImportSession = newMailboxImportSession(mailboxMigrationSyncStateMock, [], null)
 		mailboxImportSession.mailboxMigrationFolderSyncStates = [{ ...folderSyncStateMock, status: MailboxMigrationFolderSyncStatus.FINISHED }]
 		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateMock._id } as MailboxMigrationUiSession] as MailboxMigrationUiSession[]
-		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, concludedSessions: [] })
 		await controller.initUiSessions()
 		o.check(controller.mailboxDetails).deepEquals([mailboxDetail1Mock, mailboxDetail2Mock])
 		o.check(controller.selectedMailBoxDetail).equals(mailboxDetail1Mock)
@@ -85,7 +85,7 @@ o.spec("MailboxMigrationController", () => {
 		const activeSessions = [
 			{ mailboxMigrationSyncStateId: expectedSession.mailboxMigrationSyncState._id } as MailboxMigrationUiSession,
 		] as MailboxMigrationUiSession[]
-		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, concludedSessions: [] })
 		const result = await controller.initializeImport(params)
 
 		o.check(result).equals(expectedSession)
@@ -150,7 +150,7 @@ o.spec("MailboxMigrationController", () => {
 		const importResult = await controller.continueImport(mailboxMigrationSyncStateMock._id)
 
 		o.check(importResult.state.status).deepEquals(MailboxMigrationSyncStatus.POSTPONED)
-		verify(mailboxImporter.postponeImport(mailboxMigrationSyncStateMock._id, anything()), { times: 1 })
+		verify(mailboxImporter.postponeImport(mailboxMigrationSyncStateMock._id, anything(), MigrationErrorCause.UNKNOWN), { times: 1 })
 	})
 
 	o.test("continue import rejects when error happens", async () => {
@@ -165,14 +165,14 @@ o.spec("MailboxMigrationController", () => {
 
 	o.test("pauseImport - delegates to mailboxImporter", async () => {
 		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxMigrationUiSession] as MailboxMigrationUiSession[]
-		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, concludedSessions: [] })
 		await controller.pauseImport(mailboxMigrationSyncStateIdMock)
-		verify(mailboxImporter.pauseImport(mailboxMigrationSyncStateIdMock), { times: 1 })
+		verify(mailboxImporter.pauseImport(mailboxMigrationSyncStateIdMock, null), { times: 1 })
 	})
 
 	o.test("deleteImport - delegates to mailboxImporter", async () => {
 		const activeSessions = [{ mailboxMigrationSyncStateId: mailboxMigrationSyncStateIdMock } as MailboxMigrationUiSession] as MailboxMigrationUiSession[]
-		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, canceledSessions: [] })
+		when(mailboxImporter.getMailboxImportUiSessions()).thenResolve({ activeSessions, concludedSessions: [] })
 		await controller.deleteImport(mailboxMigrationSyncStateIdMock)
 		verify(mailboxImporter.deleteImport(mailboxMigrationSyncStateIdMock), { times: 1 })
 	})

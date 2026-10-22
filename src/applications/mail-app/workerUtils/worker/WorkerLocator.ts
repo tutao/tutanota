@@ -91,6 +91,7 @@ import { IndexedDbConfigurationDatabase } from "../../../common/api/worker/facad
 import { OfflineConfigurationDatabaseDefinitions } from "../../../common/api/worker/facades/lazy/OfflineConfigurationDatabase"
 import { getEtId } from "@tutao/meta"
 import { DriveFileSharingFacade } from "../../../common/api/worker/facades/lazy/DriveFileSharingFacade"
+import type { CustomerMigrationFacade } from "../../../common/api/worker/facades/lazy/CustomerMigrationFacade"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -146,6 +147,8 @@ export type WorkerLocatorType = {
 
 	// Migration mail import
 	mailboxImporter: lazyAsync<MailboxImporter>
+	// customer migration
+	customerMigrationFacade: lazyAsync<CustomerMigrationFacade>
 }
 
 export const locator: WorkerLocatorType = {} as any
@@ -723,9 +726,23 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.cryptoWrapper,
 			locator.base.symmetricCipherUtils,
 			locator.base.user,
+			locator.base.nonCachingEntityClient,
 		)
 
 		return new MailboxImporter(new MigrationSyncSystemFacadeSendDispatcher(worker), mailboxMigrationFacade, importMailFacade, locator.base.user)
+	})
+
+	locator.customerMigrationFacade = lazyMemoized(async () => {
+		const { CustomerMigrationFacade } = await import("../../../common/api/worker/facades/lazy/CustomerMigrationFacade.js")
+		return new CustomerMigrationFacade(
+			locator.base.user,
+			locator.base.serviceExecutor,
+			locator.base.cachingEntityClient,
+			locator.base.adminKeyLoader,
+			locator.base.keyLoader,
+			locator.base.cryptoWrapper,
+			locator.base.symmetricCipherUtils,
+		)
 	})
 
 	const eventBusCoordinator = new EventBusEventCoordinator(

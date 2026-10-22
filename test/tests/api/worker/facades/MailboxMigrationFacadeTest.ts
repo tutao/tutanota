@@ -76,6 +76,7 @@ o.spec("MailboxMigrationFacade", () => {
 			cryptoWrapperMock,
 			symmetricCipherUtils,
 			userFacadeMock,
+			entityClientMock,
 		)
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve({ object: object(), version: 1 })
 		when(cryptoWrapperMock.aes256RandomKey()).thenReturn(symmetricCipherUtils.aes256RandomKey())

@@ -33,6 +33,7 @@ import {
 	MailboxMigrationSyncState,
 	MailboxMigrationSyncStateTypeRef,
 	MailBoxTypeRef,
+	MailSet,
 	MailSetTypeRef,
 	UpdateMailboxMigrationSyncStateTransferAggregatedType,
 } from "@tutao/entities/tutanota"
@@ -49,18 +50,25 @@ import { EntityClient } from "../../../../../../platform-kit/network/EntityClien
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { ProgrammingError } from "@tutao/app-env"
 import { MailboxMigrationFolderSyncStatus, MailboxMigrationSyncStatus, MailSetKind } from "../../../../../../entities/tutanota/Utils"
-import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } from "../../../common/utils/migrationImportUtils/MigrationMailbox"
+import {
+	getSpecialUseAsSystemFolderType,
+	MigrationMailbox,
+	MigrationMailboxSpecialUse,
+	MigrationMailboxStatus,
+} from "../../../common/utils/migrationImportUtils/MigrationMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import {
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { getElementId, idToElementId } from "@tutao/meta"
+import { getElementId, idToElementId, isSameId } from "@tutao/meta"
 import { randomHexColor } from "../../../common/utils/migrationImportUtils/MigrationImportUtils"
 import { MailboxMigrationProvider } from "../../../common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
+import { FolderSystem } from "../../../common/mail/FolderSystem"
+import { MigrationErrorCause } from "../../../common/error/MigrationError"
 
 export class MailboxMigrationFacade {
 	constructor(
@@ -71,6 +79,7 @@ export class MailboxMigrationFacade {
 		private readonly cryptoWrapper: CryptoWrapper,
 		private readonly symmetricCipherUtils: SymmetricCipherUtils,
 		private readonly userFacade: UserFacade,
+		private readonly nonCachingEntityClient: EntityClient,
 	) {}
 
 	async initializeMailboxImport(initializeParams: InitializeMigrationParams): Promise<{
@@ -142,6 +151,7 @@ export class MailboxMigrationFacade {
 			_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 			postponedUntil: Date.now().toString(),
 			legacyProvider: null,
+			sharedMailboxName: null, // fixme we can also send the shared mailbox name here, but doesn't matter for single user case
 			imapConfiguration:
 				initializeParams.imapConfiguration &&
 				createMailboxMigrationImapConfigurationTransferAggregatedType({
@@ -202,6 +212,7 @@ export class MailboxMigrationFacade {
 		mailboxMigrationSyncState: MailboxMigrationSyncState,
 		newMailboxMigrationSyncStatus: MailboxMigrationSyncStatus,
 		newMailboxMigrationFolderSyncStatus: MailboxMigrationFolderSyncStatus,
+		errorCause: MigrationErrorCause | null = null,
 		newPostponedUntil?: string,
 	) {
 		let mailboxMigrationSyncStateWithNewPostponedUntil: Nullable<UpdateMailboxMigrationSyncStateTransferAggregatedType> = null
@@ -220,6 +231,7 @@ export class MailboxMigrationFacade {
 			newMailboxMigrationSyncStatus,
 			newMailboxMigrationFolderSyncStatus,
 			mailboxMigrationSyncStateWithNewPostponedUntil,
+			errorCause: errorCause != null ? errorCause.toString() : null,
 		})
 		const ownerKeyVersion = parseKeyVersion(assertNotNull(mailboxMigrationSyncState._ownerKeyVersion))
 		const mailGroupKey = await this.keyLoader.loadSymGroupKey(assertNotNull(mailboxMigrationSyncState._ownerGroup), ownerKeyVersion)
@@ -368,6 +380,19 @@ export class MailboxMigrationFacade {
 		return userMigrationInfosListId ? this.entityClient.loadAll(UserMigrationInfoTypeRef, userMigrationInfosListId) : []
 	}
 
+	async getUserMigrationInfoForMailboxMigrationSyncStateId(mailboxMigrationSyncStateId: IdTuple): Promise<UserMigrationInfo | null> {
+		const userMigrationInfosListId = this.userFacade.getLoggedInUser().userMigrationInfos
+		if (userMigrationInfosListId === null) {
+			return null
+		}
+		const allUserMigrationInfos = await this.nonCachingEntityClient.loadAll(UserMigrationInfoTypeRef, userMigrationInfosListId)
+		return (
+			allUserMigrationInfos.find((userMigrationInfo) =>
+				userMigrationInfo.mailboxMigrationSyncStates.some((wrapper) => isSameId([wrapper.listId, wrapper.listElementId], mailboxMigrationSyncStateId)),
+			) ?? null
+		)
+	}
+
 	async getImportedMails(importedMailListId: Id): Promise<ImportedMigrationMail[]> {
 		return this.entityClient.loadAll(ImportedMigrationMailTypeRef, importedMailListId)
 	}
@@ -394,5 +419,52 @@ export class MailboxMigrationFacade {
 
 	async getAllMailboxMigrationFolderSyncStates(mailboxMigrationFolderSyncStateListId: Id): Promise<MailboxMigrationFolderSyncState[]> {
 		return this.entityClient.loadAll(MailboxMigrationFolderSyncStateTypeRef, mailboxMigrationFolderSyncStateListId)
+	}
+
+	async getFolderForMigrationMailboxIfExists(migrationMailbox: MigrationMailbox, mailGroupId: string): Promise<MailSet | null> {
+		const mailBoxGroupRoot = await this.entityClient.load(MailboxGroupRootTypeRef, idToElementId(mailGroupId))
+		const mailBox = await this.entityClient.load(MailBoxTypeRef, idToElementId(mailBoxGroupRoot.mailbox))
+		const allMailSets = await this.entityClient.loadAll(MailSetTypeRef, mailBox.mailSets.mailSets)
+		const folderSystem = new FolderSystem(allMailSets)
+		if (migrationMailbox.subFolders) {
+			const specialUseAsSystemFolderType = getSpecialUseAsSystemFolderType(migrationMailbox)
+			if (specialUseAsSystemFolderType) {
+				return folderSystem.getSystemFolderByType(specialUseAsSystemFolderType)
+			} else {
+				return folderSystem.getFolderByName(migrationMailbox.name ?? "")
+			}
+		}
+		return null
+	}
+
+	async createMailboxMigrationFolderSyncStateForExistingFolder(
+		migrationMailbox: MigrationMailbox,
+		mailboxMigrationSyncState: MailboxMigrationSyncState,
+		mailSet: MailSet,
+	) {
+		const mailGroupId = assertNotNull(mailSet._ownerGroup)
+		const mailGroupKey = await this.keyLoader.getCurrentSymGroupKey(mailGroupId)
+		const sk = this.cryptoWrapper.aes256RandomKey()
+		const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
+
+		const mailboxMigrationFolderPostIn = createMailboxMigrationFolderPostIn({
+			mailboxMigrationFolderSyncState: createMailboxMigrationFolderSyncStateTransferAggregatedType({
+				_ownerGroup: mailGroupId,
+				_ownerEncSessionKey: ownerEncSessionKey.key,
+				_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
+				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
+				sourceId: migrationMailbox.sourceId,
+				mailSet: mailSet._id,
+				specialUse: migrationMailbox.specialUse ?? null,
+			}),
+			mailboxMigrationSyncState: mailboxMigrationSyncState._id,
+			shouldSync: true,
+		})
+
+		const mailboxMigrationFolderPostOut = await this.serviceExecutor.execute(MailboxMigrationFolderService_POST, mailboxMigrationFolderPostIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			...(await this.keyLoader.assembleServiceEncryptionParamsForPost(mailGroupId)),
+		})
+		return this.entityClient.load(MailboxMigrationFolderSyncStateTypeRef, mailboxMigrationFolderPostOut.mailboxMigrationFolderSyncState)
 	}
 }
