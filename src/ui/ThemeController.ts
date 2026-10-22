@@ -4,7 +4,7 @@ import { AppType, EnvProvider } from "../platform-kit/app-env"
 import { downcast, findAndRemove, LazyLoaded, mapAndFilterNull, typedValues } from "../platform-kit/utils"
 import m from "mithril"
 import { BaseThemeId, BaseThemeProvider, Theme, ThemeId, ThemePreference } from "./theme"
-import { themes } from "./builtinThemes"
+import { generateThemes } from "./builtinThemes"
 import { getWhitelabelCustomizations } from "./utils/WhitelabelUtils"
 import { getCalendarLogoSvg, getMailLogoSvg } from "./base/Logo"
 import type { WhitelabelThemeGenerator } from "./WhitelabelThemeGenerator"
@@ -122,9 +122,7 @@ export class ThemeController implements BaseThemeProvider {
 
 	private async updateSavedBuiltinThemes() {
 		// In case we change built-in themes we want to save new copy on the device.
-		for (const theme of typedValues(themes())) {
-			await this.updateSavedThemeDefinition(theme)
-		}
+		await this.addOrOverwriteSavedThemes(typedValues(generateThemes()))
 
 		// Remove blue theme because we don't have it anymore
 		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
@@ -152,9 +150,9 @@ export class ThemeController implements BaseThemeProvider {
 	}
 
 	private async getTheme(themeId: ThemeId): Promise<Theme> {
-		if (themes()[themeId]) {
+		if (generateThemes()[themeId]) {
 			// Make a defensive copy so that original theme definition is not modified.
-			return Object.assign({}, themes()[themeId])
+			return Object.assign({}, generateThemes()[themeId])
 		} else {
 			const loadedThemes = (await this.themeFacade.getThemes()) as ReadonlyArray<Theme>
 			const customTheme = loadedThemes.find((t) => t.themeId === themeId)
@@ -241,7 +239,7 @@ export class ThemeController implements BaseThemeProvider {
 
 		if (permanent) {
 			this._themePreference = updatedTheme.themeId
-			await this.updateSavedThemeDefinition(updatedTheme)
+			await this.addOrOverwriteSavedThemes([updatedTheme])
 			await this.themeFacade.setThemePreference(updatedTheme.themeId)
 		}
 
@@ -254,7 +252,7 @@ export class ThemeController implements BaseThemeProvider {
 
 	async storeCustomThemeForCustomizations(customizations: ThemeCustomizations) {
 		const newTheme = this.assembleTheme(customizations)
-		await this.updateSavedThemeDefinition(newTheme)
+		await this.addOrOverwriteSavedThemes([newTheme])
 	}
 
 	private async sanitizeTheme(theme: Theme) {
@@ -268,23 +266,30 @@ export class ThemeController implements BaseThemeProvider {
 	/**
 	 * Save theme to the storage.
 	 */
-	private async updateSavedThemeDefinition(updatedTheme: Theme): Promise<Theme> {
-		const nonNullTheme = Object.assign({}, this.getDefaultTheme(), updatedTheme)
-		await this.sanitizeTheme(nonNullTheme)
-		const oldThemes = (await this.themeFacade.getThemes()) as Array<Theme>
-		findAndRemove(oldThemes, (t) => t.themeId === updatedTheme.themeId)
-		oldThemes.push(nonNullTheme)
-		await this.themeFacade.setThemes(oldThemes)
-		return nonNullTheme
+	private async addOrOverwriteSavedThemes(newThemes: Theme[]) {
+		const themes = (await this.themeFacade.getThemes()) as Theme[]
+		const defaultTheme = generateThemes()[defaultThemeId] ?? {}
+
+		for (let newTheme of newThemes) {
+			// Use default values for missing fields
+			newTheme = { ...defaultTheme, ...newTheme }
+			await this.sanitizeTheme(newTheme)
+			// Overwrite existing theme with the same themeId, or add to list
+			const i = themes.findIndex((theme) => newTheme.themeId === theme.themeId)
+			if (i >= 0) themes[i] = newTheme
+			else themes.push(newTheme)
+		}
+
+		await this.themeFacade.setThemes(themes)
 	}
 
 	getDefaultTheme(): Theme {
-		return Object.assign({}, themes()[defaultThemeId])
+		return Object.assign({}, generateThemes()[defaultThemeId])
 	}
 
 	getBaseTheme(baseId: BaseThemeId): Theme {
 		// Make a defensive copy so that original theme definition is not modified.
-		return Object.assign({}, themes()[baseId])
+		return Object.assign({}, generateThemes()[baseId])
 	}
 
 	shouldAllowChangingTheme(): boolean {
@@ -312,7 +317,7 @@ export class ThemeController implements BaseThemeProvider {
 
 	async getCustomThemes(): Promise<Array<ThemeId>> {
 		return mapAndFilterNull(await this.themeFacade.getThemes(), (theme) => {
-			return !(theme.themeId in themes()) ? theme.themeId : null
+			return !(theme.themeId in generateThemes()) ? theme.themeId : null
 		})
 	}
 

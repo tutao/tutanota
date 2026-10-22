@@ -50,7 +50,7 @@ const semanticColorsDark = {
  * When a new color role is needed, please follow the instructions below.
  * https://m3.material.io/styles/color/advanced/define-new-colors#baed14ce-4be8-46aa-8223-ace5d45af005
  */
-export const themes = (): Themes => {
+export const generateThemes = (): Themes => {
 	const isCalendarApp = ClientDetector.get().isCalendarApp()
 	const isDriveApp = ClientDetector.get().isDriveApp()
 	const lightRed = Object.freeze<Theme>({
