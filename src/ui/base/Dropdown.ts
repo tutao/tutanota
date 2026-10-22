@@ -330,6 +330,8 @@ export class Dropdown implements ModalComponent {
 		}
 	}
 
+	allowContextMenu = false
+
 	_createShortcuts(): Array<Shortcut> {
 		return [
 			{

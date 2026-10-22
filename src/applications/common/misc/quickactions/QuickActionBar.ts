@@ -1,7 +1,7 @@
 import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { px, size } from "../../../../ui/size"
 import { LegacyTextField } from "../../../../ui/base/LegacyTextField"
-import { modal } from "../../../../ui/base/Modal"
+import { modal, ModalComponent } from "../../../../ui/base/Modal"
 import { isKeyPressed, Shortcut } from "../../../../ui/utils/KeyManager"
 import { lastIndex } from "../../../../platform-kit/utils"
 import { highlightTextInQueryAsChildren } from "../../../../ui/TextHighlightViewUtils"
@@ -138,7 +138,7 @@ export function showQuickActionBar(model: QuickActionsModel) {
 		return
 	}
 	const activeElement = document.activeElement
-	const modalComponent = {
+	const modalComponent: ModalComponent = {
 		view: () => {
 			return m(QuickActionBar, {
 				getInitialActions: async () => {
@@ -164,6 +164,8 @@ export function showQuickActionBar(model: QuickActionsModel) {
 		backgroundClick(e: MouseEvent): void {
 			modalComponent.onClose()
 		},
+
+		allowContextMenu: true,
 
 		/**
 		 * will be called by the main modal if no other component above this one blocked the event (previous components returned true)
