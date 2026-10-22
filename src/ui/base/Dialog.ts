@@ -977,6 +977,16 @@ export class Dialog implements ModalComponent {
 			}
 		}
 
+		// only respect first call in 500ms
+		let preventAction = false
+		const throttledDoAction = () => {
+			if (!preventAction) {
+				preventAction = true
+				doAction()
+				setTimeout(() => (preventAction = false), 500)
+			}
+		}
+
 		const actionBarAttrs: DialogHeaderBarAttrs = {
 			left: mapLazily(allowCancel, (allow) =>
 				allow
@@ -993,7 +1003,7 @@ export class Dialog implements ModalComponent {
 				? [
 						{
 							label: okActionTextId,
-							click: doAction,
+							click: throttledDoAction,
 							type: ButtonType.Primary,
 						},
 					]
@@ -1018,7 +1028,7 @@ export class Dialog implements ModalComponent {
 			dialog.addShortcut({
 				key: Keys.RETURN,
 				shift: false,
-				exec: doAction,
+				exec: throttledDoAction,
 				help: "ok_action",
 			})
 		}
