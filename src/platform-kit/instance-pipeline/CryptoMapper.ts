@@ -45,6 +45,7 @@ import {
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
 	PartialSubKeyInfoWithSessionKey,
+	SessionKeyProvider,
 	SubKeyFactory,
 	SubKeyInfo,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
@@ -64,6 +65,7 @@ import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { AssociationPath, InstancePath, RootPath, ValuePath } from "./EncryptionContextPath"
 import { ValueAssociatedData } from "./ValueAssociatedData"
 import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
+import { isNull } from "../utils/Utils.js"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
@@ -119,7 +121,7 @@ export class CryptoMapper {
 
 	public async decryptParsedInstance(
 		encryptedInstance: EncryptedParsedInstance,
-		sessionKey: Nullable<AesKey>,
+		sessionKeyProvider: Nullable<SessionKeyProvider>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
@@ -129,11 +131,18 @@ export class CryptoMapper {
 		const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
 			keyDerivationContext,
-			sessionKey,
+			sessionKeyProvider,
 			kdfNonce,
 			ownerKeyProvider,
 			instanceKeyProvider,
 		)
+
+		// Ensure the _ownerEncSessionKey is written for bucket key encrypted instances before copying it over into the decrypted instance
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedInstance, this.modelMapper, this)
+		if (isNull(entityAdapter._ownerEncSessionKey) && isNotNull(entityAdapter.bucketKey)) {
+			await instanceDecryptor.forceResolveSessionKey()
+		}
+
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}
 
@@ -441,7 +450,7 @@ export class CryptoMapper {
 		}
 		const ciphertext = base64ToUint8Array(value)
 		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, new ValueAssociatedData(valuePath))
-		const decryptedBytes = valueDecryptor.getValue()
+		const decryptedBytes = await valueDecryptor.getValue()
 
 		switch (valueType.type) {
 			case ValueTypeEnum.String:

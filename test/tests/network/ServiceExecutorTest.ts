@@ -16,6 +16,7 @@ import {
 	PartialSubKeyInfoAesCbcThenHmac,
 	random,
 	SessionKeyDecryptor,
+	sessionKeyProviderFromAvailableSessionKey,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	SymmetricEncryptionScheme,
@@ -196,7 +197,7 @@ o.spec("ServiceExecutor", function () {
 
 			const requestedEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(
 				IncomingServerJson.expectSingleInstance((requestCaptor.value.body as RestTextBody).payload, alarmServicePostDataTypeModel),
-				sessionKey,
+				sessionKeyProviderFromAvailableSessionKey(sessionKey),
 			)
 
 			o(removeOriginals(requestedEntity)).deepEquals(alarmServicePostData)
@@ -287,7 +288,7 @@ o.spec("ServiceExecutor", function () {
 			const requestOptionsCaptor = matchers.captor()
 			verify(restClient.request("/rest/testapp/testservice", HttpMethod.POST, requestOptionsCaptor.capture()))
 			const postedJson = IncomingServerJson.expectSingleInstance((requestOptionsCaptor.value.body as RestTextBody).payload, alarmServicePostDataTypeModel)
-			const requestedEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(postedJson, sessionKey)
+			const requestedEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(postedJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
 
 			o(response).equals(NULL_ENTITY)
 			o(removeOriginals(requestedEntity!)).deepEquals(alarmServicePostData)
@@ -346,7 +347,7 @@ o.spec("ServiceExecutor", function () {
 			const optionsCaptor = matchers.captor()
 			verify(restClient.request("/rest/testapp/testservice", HttpMethod.PUT, optionsCaptor.capture()))
 			const putJson = IncomingServerJson.expectSingleInstance((optionsCaptor.value.body as RestTextBody).payload, alarmServicePostDataTypeModel)
-			const putEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(putJson, sessionKey)
+			const putEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(putJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
 			o(removeOriginals(putEntity!)).deepEquals(alarmServicePostData)
 			o(response).equals(NULL_ENTITY)
 		})
@@ -386,7 +387,7 @@ o.spec("ServiceExecutor", function () {
 			const optionsCaptor = matchers.captor()
 			verify(restClient.request("/rest/testapp/testservice", HttpMethod.DELETE, optionsCaptor.capture()))
 			const deleteJson = IncomingServerJson.expectSingleInstance((optionsCaptor.value.body as RestTextBody).payload, alarmServicePostDataTypeModel)
-			const deleteEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(deleteJson, sessionKey)
+			const deleteEntity = await instancePipeline.decryptAndMap<AlarmServicePost>(deleteJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
 			o(removeOriginals(deleteEntity)).deepEquals(alarmServicePostData)
 			o(response).equals(NULL_ENTITY)
 		})
@@ -556,7 +557,7 @@ o.spec("ServiceExecutor", function () {
 			const optionsCaptor = matchers.captor()
 			verify(restClient.request("/rest/testapp/testservice", HttpMethod.GET, optionsCaptor.capture()))
 			const getJson = IncomingServerJson.expectSingleInstance((optionsCaptor.value.body as RestTextBody).payload, giftCardTypeModel)
-			const getEntity = await instancePipeline.decryptAndMap<GiftCardCreateData>(getJson, sessionKey)
+			const getEntity = await instancePipeline.decryptAndMap<GiftCardCreateData>(getJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
 			o(removeOriginals(getEntity)).deepEquals(giftCardCreateData)
 			o(response).equals(NULL_ENTITY)
 		})

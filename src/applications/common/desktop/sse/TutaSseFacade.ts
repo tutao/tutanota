@@ -35,6 +35,7 @@ import {
 } from "@tutao/entities/sys"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { RootPath } from "../../../../platform-kit/instance-pipeline/EncryptionContextPath"
+import { sessionKeyProviderFromAvailableSessionKey } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
 
 const log = makeTaggedLogger("[SSEFacade]")
 
@@ -190,7 +191,7 @@ export class TutaSseFacade implements SseEventHandler {
 					.addAggregateId(encryptedAlarmNotification.getId())
 				const alarmNotification = await this.nativeInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 					alarmNotificationUntyped,
-					sessionKeys.sessionKey,
+					sessionKeyProviderFromAvailableSessionKey(sessionKeys.sessionKey),
 					notificationTypeModel,
 					instancePath,
 				)

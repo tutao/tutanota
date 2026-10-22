@@ -64,6 +64,7 @@ import { isDraft, isMailWithoutDetails } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { sessionKeyProviderFromAvailableSessionKey } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -550,7 +551,10 @@ export class OfflineMailIndexer implements MailIndexer {
 		try {
 			const mailSessionKey = assertNotNull(await this.crypto.resolveSessionKey(mail))
 			const json = await this.instancePipeline.typeMapper.parseServerJson(storedBlobJson)
-			const mailDetails = await this.instancePipeline.decryptAndMapEncryptedInstanceParsed<MailDetailsBlob>(json, mailSessionKey)
+			const mailDetails = await this.instancePipeline.decryptAndMapEncryptedInstanceParsed<MailDetailsBlob>(
+				json,
+				sessionKeyProviderFromAvailableSessionKey(mailSessionKey),
+			)
 			return {
 				mail,
 				mailDetails: mailDetails.instance.details,

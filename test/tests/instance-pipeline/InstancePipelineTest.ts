@@ -3,7 +3,14 @@ import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineF
 import { ClientSpamTrainingDatumTypeRef, InboxRuleTypeRef, MailTypeRef, SendDraftDataTypeRef, UnreadMailStatePostInTypeRef } from "@tutao/entities/tutanota"
 import { CalendarEventRefTypeRef, NotificationInfoTypeRef } from "@tutao/entities/sys"
 import { InstancePipeline } from "../../../src/platform-kit/instance-pipeline"
-import { Aes256Key, AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
+import {
+	Aes256Key,
+	AesCbcFacade,
+	random,
+	sessionKeyProviderFromAvailableSessionKey,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+} from "../../../src/platform-kit/crypto"
 import { DriveFileTypeRef } from "@tutao/entities/drive"
 import { IncomingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { Entity, TypeRef } from "../../../src/platform-kit/meta"
@@ -71,7 +78,7 @@ o.spec("InstancePipelineTest", () => {
 			for (const [entityJson, typeRef] of testJsons) {
 				const typeModel = await instancePipeline.typeModelResolver.resolveServerTypeReference(typeRef)
 				const incomingServerJson = IncomingServerJson.expectSingleInstance(entityJson, typeModel)
-				const _no_use = await instancePipeline.decryptAndMap(incomingServerJson, sessionKey)
+				const _no_use = await instancePipeline.decryptAndMap(incomingServerJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
 			}
 		})
 		console.log(`Time taken to decrypt ${testEntities.length} entities: ${time}ms`)
