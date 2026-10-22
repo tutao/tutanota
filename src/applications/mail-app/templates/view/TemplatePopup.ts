@@ -453,6 +453,8 @@ export class TemplatePopup implements ModalComponent {
 		this._close()
 	}
 
+	allowContextMenu = true
+
 	hideAnimation(): Promise<void> {
 		return Promise.resolve()
 	}

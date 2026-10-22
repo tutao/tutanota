@@ -188,6 +188,8 @@ export class EditFoldersDialog implements ModalComponent {
 
 	backgroundClick(e: MouseEvent) {}
 
+	allowContextMenu = false
+
 	popState(e: Event): boolean {
 		this.onClose()
 		return false

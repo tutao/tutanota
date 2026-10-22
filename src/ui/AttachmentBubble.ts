@@ -342,6 +342,8 @@ export class AttachmentDetailsPopup implements ModalComponent {
 		modal.remove(this)
 	}
 
+	allowContextMenu = false
+
 	async hideAnimation(): Promise<void> {
 		if (this.domPanel == null) return
 		const startHeight = this.domPanel.offsetHeight
