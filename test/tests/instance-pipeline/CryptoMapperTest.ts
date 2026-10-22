@@ -8,6 +8,7 @@ import {
 	InstanceKeyProvider,
 	KdfNonce,
 	KeyEncryption,
+	lazify,
 	PartialSubKeyInfoAesCbcThenHmac,
 	random,
 	SessionKeyDecryptor,
@@ -137,7 +138,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("decrypt string / number value", async () => {
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = "this is a string value"
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(
 				createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One),
 				ParsedValue.fromByteArray(aes.aesEncrypt(sk, stringToUtf8Uint8Array(value))),
@@ -150,7 +151,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("decrypt number value", async () => {
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = "516546"
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(
 				createEncryptedValueType(ValueTypeEnum.Number, CardinalityEnum.One),
 				ParsedValue.fromByteArray(aes.aesEncrypt(sk, stringToUtf8Uint8Array(value))),
@@ -163,7 +164,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("decrypt boolean value", async () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Boolean, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 
 			let value = "0"
 			let encryptedValue = aes.aesEncrypt(sk, stringToUtf8Uint8Array(value))
@@ -184,7 +185,7 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Date, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = new Date()
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aes.aesEncrypt(sk, stringToUtf8Uint8Array(value.getTime().toString())))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asDate()).deepEquals(value)
@@ -194,7 +195,7 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = random.generateRandomData(5)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aes.aesEncrypt(sk, value))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(Array.from(decryptedValue.asByteArray())).deepEquals(Array.from(value))
@@ -204,7 +205,7 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = base64ToUint8Array("QHRlc3Q=")
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aes.aesEncrypt(sk, value))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asString()).equals("test")
@@ -214,7 +215,7 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
 			const value = base64ToUint8Array("X3RleHQgBQD//1FQdGV4dCA=")
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aes.aesEncrypt(sk, value))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asString()).equals(
@@ -225,7 +226,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("decrypt empty compressedString", async () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.CompressedString, CardinalityEnum.One)
 			const sk = symmetricCipherUtils.aes256RandomKey()
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const encryptedValue: EncryptedParsedValue = ParsedValue.fromByteArray(aes.aesEncrypt(sk, new Uint8Array([])))
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asString()).equals("")
@@ -233,7 +234,7 @@ o.spec("CryptoMapperTest", () => {
 
 		o.test("do not decrypt null values", async () => {
 			const sk = symmetricCipherUtils.aes256RandomKey()
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 
 			const decryptNullValue = async (modelValue: ModelValue) => {
 				const dec = await cryptoMapper.decryptValue(modelValue, ParsedValue.fromNull(), instanceDecryptor, dummyValuePath)
@@ -250,7 +251,7 @@ o.spec("CryptoMapperTest", () => {
 
 		o.test("do not decrypt empty values with Cardinality.ZeroOrOne", async () => {
 			const sk = symmetricCipherUtils.aes256RandomKey()
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptEmptyValue = async (modelValue: ModelValue) => {
 				const dec = await cryptoMapper.decryptValue(modelValue, ParsedValue.fromString(""), instanceDecryptor, dummyValuePath)
 				return dec.getNullWhenNull()
@@ -273,7 +274,7 @@ o.spec("CryptoMapperTest", () => {
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const encryptedValue = assertNotNull(cryptoMapper.encryptValue(valueType, ParsedValue.fromString(value), subKeyProvider, dummyValuePath))
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asString()).equals(value)
 		})
@@ -284,7 +285,7 @@ o.spec("CryptoMapperTest", () => {
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			let encryptedValue = assertNotNull(cryptoMapper.encryptValue(valueType, ParsedValue.fromBoolean(value), subKeyProvider, dummyValuePath))
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			let decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asBoolean()).equals(false)
 			value = true
@@ -302,7 +303,7 @@ o.spec("CryptoMapperTest", () => {
 			const encryptedValue = assertNotNull(
 				cryptoMapper.encryptValue(valueType, ParsedValue.fromString(value.getTime().toString()), subKeyProvider, dummyValuePath),
 			)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(decryptedValue.asDate()).deepEquals(value)
 		})
@@ -314,7 +315,7 @@ o.spec("CryptoMapperTest", () => {
 			const subKeyInfo = new SubKeyInfoWithSessionKeyCbcThenHmac(sk)
 			const subKeyProvider = symmetricCipherFacade.getSubKeyProvider(subKeyInfo, object())
 			const encryptedValue = cryptoMapper.encryptValue(valueType, ParsedValue.fromByteArray(value), subKeyProvider, dummyValuePath)
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sk, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sk), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(valueType, encryptedValue, instanceDecryptor, dummyValuePath)
 			o.check(Array.from(decryptedValue.asByteArray())).deepEquals(Array.from(value))
 		})
@@ -348,7 +349,7 @@ o.spec("CryptoMapperTest", () => {
 				id: clientTypeModel.id,
 				name: "name",
 			}
-			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), sessionKey, null, null, null)
+			const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(makeKeyDerivationContext(instanceTypeId), lazify(sessionKey), null, null, null)
 			const decryptedValue = await cryptoMapper.decryptValue(
 				valueType,
 				encryptedValue,
@@ -433,7 +434,7 @@ o.spec("CryptoMapperTest", () => {
 		const sk = new Aes256Key([4136869568, 4101282953, 2038999435, 962526794, 1053028316, 3236029410, 1618615449, 3232287205])
 		const encryptedParsedInstance = sampleEncryptedParsedInstance(sk)
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => symmetricCipherUtils.aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, lazify(sk), null, ownerKeyProvider, null)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("encrypted string")
 		o.check(decryptedInstance.getAttributeById(5).asDate().toISOString()).equals("2025-01-01T13:00:00.000Z")
@@ -527,7 +528,7 @@ o.spec("CryptoMapperTest", () => {
 			.addAttributeById(2, ParsedValue.fromString(""))
 
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => symmetricCipherUtils.aes256RandomKey()
-		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
+		const decryptedInstance = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, lazify(sk), null, ownerKeyProvider, null)
 
 		o.check(decryptedInstance.getAttributeById(1).asString()).equals("")
 		o.check(decryptedInstance.getAttributeById(2).getNullWhenNull()).equals(null)
@@ -544,7 +545,7 @@ o.spec("CryptoMapperTest", () => {
 		const ownerKeyProvider = async (_groupKeyVersion: KeyVersion) => symmetricCipherUtils.aes256RandomKey()
 		const consoleError = console.error
 		console.error = noOp
-		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, sk, null, ownerKeyProvider, null)
+		const instanceWithErrors = await cryptoMapper.decryptParsedInstance(encryptedParsedInstance, lazify(sk), null, ownerKeyProvider, null)
 		console.error = consoleError
 		o.check(typeof instanceWithErrors.getErrors()[1]).equals("string")
 	})
@@ -557,7 +558,7 @@ o.spec("CryptoMapperTest", () => {
 
 		o.beforeEach(() => {
 			valueDecryptor = object()
-			when(valueDecryptor.getValue()).thenReturn(new Uint8Array())
+			when(valueDecryptor.getValue()).thenResolve(new Uint8Array())
 			instanceDecryptor = object()
 			valueType = createEncryptedValueType(ValueTypeEnum.String, CardinalityEnum.One)
 			const nonEmptyNumberArray = [0]
@@ -594,7 +595,7 @@ o.spec("CryptoMapperTest", () => {
 		o.test("assembles correct field path", async () => {
 			let valueDecryptor: ValueDecryptor = object()
 			replace(valueDecryptor, "requiredGroupKeyVersion", null)
-			when(valueDecryptor.getValue()).thenReturn(new Uint8Array(0))
+			when(valueDecryptor.getValue()).thenResolve(new Uint8Array(0))
 			let instanceDecryptor: InstanceDecryptor = object()
 			when(instanceDecryptor.getValueDecryptor(matchers.anything(), matchers.anything())).thenResolve(valueDecryptor)
 			const symmetricCipherFacade: SymmetricCipherFacade = object()
@@ -610,7 +611,7 @@ o.spec("CryptoMapperTest", () => {
 			replace(cryptoMapper, "symmetricCipherFacade", symmetricCipherFacade)
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const encryptedInstance = sampleEncryptedParsedInstance(sessionKey)
-			await cryptoMapper.decryptParsedInstance(encryptedInstance, sessionKey, null, null, null)
+			await cryptoMapper.decryptParsedInstance(encryptedInstance, lazify(sessionKey), null, null, null)
 			verify(
 				instanceDecryptor.getValueDecryptor(
 					matchers.anything(),

@@ -1,5 +1,6 @@
 import { CryptoError } from "@tutao/crypto/error"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
+import { lazy, lazyAsync, Nullable } from "@tutao/utils"
 
 export type BitArray = number[]
 
@@ -56,4 +57,9 @@ export function assert256BitKey(key: AesKey): Aes256Key {
 
 export function assert256BitVersionedKey(key: VersionedKey): VersionedAes256Key {
 	return { version: key.version, object: assert256BitKey(key.object) }
+}
+export type MaybeSessionKeySomeday = Nullable<lazyAsync<AesKey>>
+
+export function lazify(key: Nullable<AesKey>): MaybeSessionKeySomeday {
+	return key == null ? null : async (): Promise<AesKey> => key
 }
