@@ -971,7 +971,19 @@ export class Dialog implements ModalComponent {
 
 			if (validationResult instanceof Promise) {
 				// breaking hard circular dependency
-				import("../dialogs/ProgressDialog").then((module) => module.showProgressDialog("pleaseWait_msg", finalizer))
+				import("../dialogs/ProgressDialog").then((module) =>
+					module.showProgressDialog("pleaseWait_msg", finalizer, { delayDisplayMillis: 200, minDialogVisibilityMillis: 0 }),
+				)
+			}
+		}
+
+		// only respect first call in 500ms
+		let preventAction = false
+		const throttledDoAction = () => {
+			if (!preventAction) {
+				preventAction = true
+				doAction()
+				setTimeout(() => (preventAction = false), 500)
 			}
 		}
 
@@ -991,7 +1003,7 @@ export class Dialog implements ModalComponent {
 				? [
 						{
 							label: okActionTextId,
-							click: doAction,
+							click: throttledDoAction,
 							type: ButtonType.Primary,
 						},
 					]
@@ -1016,7 +1028,7 @@ export class Dialog implements ModalComponent {
 			dialog.addShortcut({
 				key: Keys.RETURN,
 				shift: false,
-				exec: doAction,
+				exec: throttledDoAction,
 				help: "ok_action",
 			})
 		}
