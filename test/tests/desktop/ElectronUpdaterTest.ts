@@ -173,6 +173,7 @@ o.spec("ElectronUpdater", function () {
 		// show notification
 		verify(notifier.showOneShot(matchers.anything()), { times: 1 })
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
+		o.check(upd.updateInfo).equals(null)("no update info")
 	})
 	o.test("update is not available", async function () {
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
@@ -187,6 +188,7 @@ o.spec("ElectronUpdater", function () {
 		// don't show notification
 		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
 		verify(autoUpdater.quitAndInstall(), { times: 0 })
+		o.check(upd.updateInfo).equals(null)("no update info")
 	})
 	o.test("enable autoUpdate while running", async function () {
 		await conf.setVar(DesktopConfigKey.enableAutoUpdate, false)
@@ -234,6 +236,7 @@ o.spec("ElectronUpdater", function () {
 		scheduler.getAllPeriodThunks()[0]()
 		await installPromise
 		verify(notifier.showOneShot(matchers.anything()))
+		o.check(upd.updateInfo).equals(null)("no update info")
 	})
 
 	o.test("shut down autoUpdater after errors", async function () {
@@ -259,12 +262,14 @@ o.spec("ElectronUpdater", function () {
 		}
 
 		o.check(scheduler.allPeriodicCanceled()).equals(true)("update check wasn't rescheduled")
+		o.check(upd.updateInfo).equals(null)("no update info")
 	})
 	o.test("when updates are disabled in build it doesn't check for updates", async function () {
 		updatesEnabledInBuild = false
 
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
 		await upd.start()
+		o.check(upd.updateInfo).equals(null)("no update info")
 		verify(autoUpdater.checkForUpdates(), { times: 0 })
 		o.check(scheduler.getAllPeriodThunks().length).equals(0)("nothing is scheduled")
 	})
@@ -283,6 +288,52 @@ o.spec("ElectronUpdater", function () {
 		})
 		await upd.start()
 		await deletePromise
+		o.check(upd.updateInfo).equals(null)("no update info")
+		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
+		verify(electron.app.emit("enable-force-quit"), { times: 0 })
+		verify(autoUpdater.quitAndInstall(matchers.anything(), matchers.anything()), { times: 0 })
+	})
+
+	o.test("when auto updates are disabled manual update fails on invalid signature", async function () {
+		await conf.setVar(DesktopConfigKey.enableAutoUpdate, false)
+		conf._buildConfig.set(BuildConfigKey.pubKeys, ["no", "yes"])
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		await upd.start()
+
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", { ...DOWNLOAD_INFO, signature: "bogus!" })
+		})
+		const deletePromise = new Promise((resolve) => {
+			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(resolve)
+		})
+
+		await upd.manualUpdate()
+		await deletePromise
+		await upd.manualUpdate() // check again just to be sure nothing gets installed
+		o.check(upd.updateInfo).equals(null)("no update info")
+		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
+		verify(electron.app.emit("enable-force-quit"), { times: 0 })
+		verify(autoUpdater.quitAndInstall(matchers.anything(), matchers.anything()), { times: 0 })
+	})
+
+	o.test("if the update verification fails due to fs error, no update is possible", async function () {
+		conf._buildConfig.set(BuildConfigKey.pubKeys, ["no", "yes"])
+		when(autoUpdater.checkForUpdates()).thenDo(async () => {
+			autoUpdater.emit("update-available", UPDATE_INFO)
+		})
+		when(autoUpdater.downloadUpdate()).thenDo(async () => {
+			autoUpdater.emit("update-downloaded", { ...DOWNLOAD_INFO, signature: "bogus!" })
+		})
+		when(fs.promises.readFile(DOWNLOAD_INFO.downloadedFile)).thenReject(new Error("too big"))
+		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
+		const deletePromise = new Promise((resolve) => when(fs.promises.unlink(DOWNLOAD_INFO.downloadedFile)).thenDo(resolve))
+
+		await upd.start()
+		await deletePromise
+		o.check(upd.updateInfo).equals(null)("no update info")
 		verify(notifier.showOneShot(matchers.anything()), { times: 0 })
 		verify(electron.app.emit("enable-force-quit"), { times: 0 })
 		verify(autoUpdater.quitAndInstall(matchers.anything(), matchers.anything()), { times: 0 })

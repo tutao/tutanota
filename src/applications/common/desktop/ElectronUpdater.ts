@@ -1,7 +1,7 @@
 import type { DesktopNotifier } from "./notifications/DesktopNotifier"
 import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel"
 import type { DesktopConfig } from "./config/DesktopConfig"
-import { assertNotNull, delay, downcast, LazyLoaded, neverNull, newPromise } from "../../../platform-kit/utils"
+import { assertNotNull, delay, downcast, LazyLoaded, newPromise } from "../../../platform-kit/utils"
 import { DesktopNativeCryptoFacade } from "./DesktopNativeCryptoFacade"
 import electron, { App, NativeImage } from "electron"
 import type { UpdaterWrapper } from "./UpdaterWrapper"
@@ -10,6 +10,7 @@ import { BuildConfigKey, DesktopConfigKey } from "../../../platform-kit/app-env"
 import { FsExports } from "./ElectronExportTypes.js"
 import { WindowManager } from "./DesktopWindowManager"
 import { ScheduledPeriodicId, Scheduler } from "../api/common/utils/Scheduler"
+import { Buffer } from "node:buffer"
 
 /**
  * Wraps electron-updater for Tutanota Desktop
@@ -102,7 +103,16 @@ export class ElectronUpdater {
 				this.logger.info(`update-downloaded: ${JSON.stringify(info)}`)
 				this.stopPolling()
 
-				const data = await this.fs.promises.readFile(info.downloadedFile)
+				let data: Buffer<ArrayBuffer>
+				try {
+					data = await this.fs.promises.readFile(info.downloadedFile)
+				} catch (e) {
+					this.logger.warn("Could not read update file", info.downloadedFile, e)
+					await this.fs.promises.unlink(info.downloadedFile).catch((e) => {
+						this.logger.warn("Could not delete update file", info.downloadedFile, e)
+					})
+					return
+				}
 				const publicKeys: string[] = await this.conf.getConst(BuildConfigKey.pubKeys)
 				const skipSignatureCheck = (await this.conf.getConst(BuildConfigKey.checkUpdateSignature)) === false
 				if (skipSignatureCheck) {
@@ -112,7 +122,7 @@ export class ElectronUpdater {
 					this.notifyAndInstall(info)
 				} else {
 					this.logger.warn(`could not find valid update signature. Deleting ${info.downloadedFile}.`)
-					this.fs.promises.unlink(info.downloadedFile)
+					await this.fs.promises.unlink(info.downloadedFile)
 				}
 			})
 			.on("error", (e) => {
@@ -293,7 +303,11 @@ export class ElectronUpdater {
 		}
 	}
 
-	installUpdate() {
+	private installUpdate() {
+		if (this.updateInfo == null) {
+			this.logger.error("Trying to install the update, even if there is not update info!")
+			return
+		}
 		// We cannot reliably update on macOS if the app is not in the applications folder (e.g. might be in a DMG)
 		if (process.platform === "darwin" && !this.app.isInApplicationsFolder()) {
 			console.log("Not in the Applications folder on an Apple device. Refusing to automatically update.")
