@@ -1,4 +1,4 @@
-import { ExpandedInboxRule, Mail, MailSet, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
+import { ExpandedInboxRule, Mail, MailDetails, MailSet, ProcessInboxDatumParams } from "@tutao/entities/tutanota"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { InstanceSessionKey } from "@tutao/entities/sys"
 import { SkipClientSpamClassificationReason, SpamClassificationHandler } from "./SpamClassificationHandler"
@@ -10,7 +10,7 @@ import { MailboxDetail } from "../../../common/mailFunctionality/MailboxModel"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { CryptoFacade } from "../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { LockedError } from "../../../../platform-kit/rest-client/error"
+import { LockedError, NotFoundError } from "../../../../platform-kit/rest-client/error"
 import { ClientClassifierType } from "../../../common/api/common/ClientClassifierType"
 import { InboxRuleHandler, SomeInboxRule } from "./InboxRuleHandler"
 import { extractServerClassifiers } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -99,7 +99,17 @@ export class ProcessInboxHandler {
 			instanceSessionKeys = resolvedSessionKeys.instanceSessionKeys
 		}
 
-		const mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		let mailDetails: MailDetails
+		try {
+			mailDetails = await this.mailFacade.loadMailDetailsBlob(mail)
+		} catch (e) {
+			if (e instanceof NotFoundError) {
+				console.error("Could not process incoming e-mail, no mail details blob found")
+				return sourceFolder
+			} else {
+				throw e
+			}
+		}
 		const { modelInput, uploadableVectorLegacy, uploadableVector, skipPredictionReason } = await this.spamHandler().preparePredictSpamForNewMail(
 			mail,
 			mailDetails,
