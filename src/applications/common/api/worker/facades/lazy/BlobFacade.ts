@@ -746,6 +746,7 @@ export class BlobFacade {
 
 				blobIdToDecryptedFileUri = new Map()
 				const blobLoadOpt: BlobLoadOptions = {
+					queryParams: null,
 					extraHeaders: null,
 					suspensionBehavior: null,
 					baseUrl: null,
@@ -1004,7 +1005,7 @@ export class BlobFacade {
 				blobIds: processBlobs.map(({ blobId }) => createBlobId({ blobId: blobId })),
 			})
 			const outgoingJson = await this.instancePipeline.mapAndEncrypt(BlobGetInTypeRef, getData, null)
-			const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, {}, BlobGetInTypeRef)
+			const queryParams = await this.blobAccessTokenFacade.createQueryParams(blobServerAccessInfo, blobLoadOptions.queryParams ?? {}, BlobGetInTypeRef)
 			const concatBinaryData = await tryServers(
 				blobServerAccessInfo.servers,
 				async (serverUrl) => {

@@ -17,6 +17,7 @@ EnvProvider.assertWorkerOrNode()
 export type AccessTokenProvider = (archiveDataType: ArchiveDataType, referencingInstance: BlobReferencingInstance) => Promise<Map<Id, BlobServerAccessInfo>>
 
 export interface BlobLoadOptions {
+	queryParams: Nullable<Dict>
 	extraHeaders: Nullable<Dict>
 	suspensionBehavior: Nullable<SuspensionBehavior>
 	/** override origin for the request */
@@ -29,6 +30,7 @@ export interface SingleBlobLoadOptions extends BlobLoadOptions {
 }
 
 export const DEFAULT_BLOB_LOAD_OPTIONS: BlobLoadOptions = {
+	queryParams: null,
 	extraHeaders: null,
 	suspensionBehavior: null,
 	baseUrl: null,

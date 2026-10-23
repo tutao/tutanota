@@ -286,7 +286,8 @@ export class DriveFileSharingFacade {
 	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64): Promise<DataFile> {
 		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
 			baseUrl: null,
-			extraHeaders: { authToken: authToken },
+			extraHeaders: {},
+			queryParams: { authToken: authToken },
 			suspensionBehavior: null,
 			sessionKey: uint8ArrayToKey(fileSessionKey),
 			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
