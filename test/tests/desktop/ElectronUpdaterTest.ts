@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import type { App } from "electron"
 import type { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
-import { delay, lastThrow } from "../../../src/platform-kit/utils"
+import { defer, delay, lastThrow, Thunk } from "../../../src/platform-kit/utils"
 import { ElectronUpdater } from "../../../src/applications/common/desktop/ElectronUpdater.js"
 import type { TutaAppDownloadedEvent, TutaAppUpdater, UpdaterWrapper } from "../../../src/applications/common/desktop/UpdaterWrapper.js"
 import { AllConfigKeys, ConfigValue, DesktopConfig } from "../../../src/applications/common/desktop/config/DesktopConfig.js"
@@ -92,6 +92,7 @@ o.spec("ElectronUpdater", function () {
 	let scheduler: SchedulerMock
 
 	let updatesEnabledInBuild = true
+	let notificationPromise: Promise<Thunk | null>
 	o.beforeEach(function () {
 		updatesEnabledInBuild = true
 		fs = object()
@@ -100,8 +101,10 @@ o.spec("ElectronUpdater", function () {
 		when(fs.promises.readFile("downloadedFile.AppImage")).thenResolve(data)
 		when(wm.getAll()).thenReturn([])
 		notifier = object()
+		const notificationDeferred = defer<Thunk | null>()
+		notificationPromise = notificationDeferred.promise
 		when(notifier.showOneShot(matchers.anything())).thenDo((props: { title: string; body: string; icon: any; onClick?: () => unknown }) => {
-			Promise.resolve().then(() => props.onClick?.())
+			notificationDeferred.resolve(props.onClick ?? null)
 		})
 		conf = new DesktopConfigMock()
 		conf._buildConfig.set(BuildConfigKey.checkUpdateSignature, true)
@@ -158,6 +161,11 @@ o.spec("ElectronUpdater", function () {
 		})
 	}
 
+	async function clickOnInstallNotificationEventually() {
+		const click = await notificationPromise
+		click?.()
+	}
+
 	o.test("update is available", async function () {
 		when(autoUpdater.checkForUpdates()).thenDo(async () => {
 			autoUpdater.emit("update-available", UPDATE_INFO)
@@ -169,9 +177,9 @@ o.spec("ElectronUpdater", function () {
 		const installPromise = waitForInstall()
 		await upd.start()
 		o.check(await conf.getVar(DesktopConfigKey.showAutoUpdateOption)).equals(true)
+		// notification was shown to user
+		await clickOnInstallNotificationEventually()
 		await installPromise
-		// show notification
-		verify(notifier.showOneShot(matchers.anything()), { times: 1 })
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
 		o.check(upd.updateInfo).equals(null)("no update info")
 	})
@@ -204,12 +212,12 @@ o.spec("ElectronUpdater", function () {
 		await upd.start()
 		// this should trigger the update
 		await conf.setVar(DesktopConfigKey.enableAutoUpdate, true)
+		// notification was shown to the user, click it.
+		await clickOnInstallNotificationEventually()
 		await installPromise
 		// check signature
 		verify(crypto.verifySignature("yes", data, Buffer.from(sigB64, "base64")))
 		verify(crypto.verifySignature("no", data, Buffer.from(sigB64, "base64")))
-		// show notification
-		verify(notifier.showOneShot(matchers.anything()), { times: 1 })
 		verify(electron.app.emit("enable-force-quit"), { times: 1 })
 	})
 
@@ -234,8 +242,8 @@ o.spec("ElectronUpdater", function () {
 		await upd.start()
 		// retry once
 		scheduler.getAllPeriodThunks()[0]()
+		await clickOnInstallNotificationEventually()
 		await installPromise
-		verify(notifier.showOneShot(matchers.anything()))
 		o.check(upd.updateInfo).equals(null)("no update info")
 	})
 

@@ -117,9 +117,11 @@ export class ElectronUpdater {
 				const skipSignatureCheck = (await this.conf.getConst(BuildConfigKey.checkUpdateSignature)) === false
 				if (skipSignatureCheck) {
 					this.logger.info("Update signature checking is disabled, proceeding with the update")
-					this.notifyAndInstall(info)
+					this._updateInfo = info
+					this.showUpdateAvailableNotification()
 				} else if (await this.verifySignature(publicKeys, assertNotNull(info), data)) {
-					this.notifyAndInstall(info)
+					this._updateInfo = info
+					this.showUpdateAvailableNotification()
 				} else {
 					this.logger.warn(`could not find valid update signature. Deleting ${info.downloadedFile}.`)
 					await this.fs.promises.unlink(info.downloadedFile)
@@ -281,9 +283,13 @@ export class ElectronUpdater {
 		}
 	}
 
-	private async notifyAndInstall(info: TutanotaUpdateInfo): Promise<void> {
+	private async showUpdateAvailableNotification(): Promise<void> {
+		if (this._updateInfo == null) {
+			this.logger.error("tried to notify about update without validated updateInfo")
+			return
+		}
+		const info = this._updateInfo
 		this.logger.debug("notifying for update")
-		this._updateInfo = info
 		try {
 			for (let applicationWindow of this.wm.getAll()) {
 				await applicationWindow.desktopFacade.appUpdateDownloaded()
@@ -298,8 +304,6 @@ export class ElectronUpdater {
 			})
 		} catch (e) {
 			this.logger.error("Notification failed, error message:", e?.message)
-		} finally {
-			this._updateInfo = null
 		}
 	}
 
