@@ -184,6 +184,7 @@ import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/ins
 import { UNCOMPRESSED_MAX_SIZE } from "../../../../../../platform-kit/instance-pipeline/Compression"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 import { InboxRuleModel } from "../../../../../mail-app/mail/model/InboxRuleModel"
+import { isNull } from "../../../../../../platform-kit/utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 type Attachments = ReadonlyArray<File | DataFile | FileReference>
@@ -739,8 +740,15 @@ export class MailFacade {
 		let score = 0
 		const senderAddress = mail.sender.address
 
-		const mailDetails = await this.loadMailDetailsBlob(mail)
-		const senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		let senderAuthenticated = false
+		try {
+			const mailDetails = await this.loadMailDetailsBlob(mail)
+			senderAuthenticated = mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED
+		} catch (e) {
+			if (!(e instanceof NotFoundError)) {
+				throw e
+			}
+		}
 
 		if (senderAuthenticated) {
 			if (this._checkFieldForPhishing(ReportedMailFieldType.FROM_ADDRESS, senderAddress)) {
@@ -1166,7 +1174,11 @@ export class MailFacade {
 		if (mail.mailDetailsDraft != null) {
 			throw new ProgrammingError("not supported, must be mail details blob")
 		} else {
-			const mailDetailsBlobId = assertNotNull(mail.mailDetails, `null mailDetails on non-draft mail with id: ${getListId(mail)}/${getElementId(mail)}`)
+			if (isNull(mail.mailDetails)) {
+				throw new NotFoundError(`null mailDetails on non-draft mail with id: ${getListId(mail)}/${getElementId(mail)}`)
+			}
+
+			const mailDetailsBlobId = assertNotNull(mail.mailDetails)
 
 			const mailDetailsBlobs = await this.entityClient.loadMultiple(
 				MailDetailsBlobTypeRef,
