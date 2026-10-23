@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { ButtonColor } from "../../../../ui/base/Button.js"
-import { showSupportDialog, showUpgradeDialog } from "./NavFunctions"
+import { showSupportDialog } from "./NavFunctions"
 import { LogoutUrl, PARTNER_PREFIX, SETTINGS_PREFIX } from "../../../../ui/utils/RouteChange"
 import { getSafeAreaInsetLeft } from "../../../../ui/HtmlUtils"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -16,11 +16,12 @@ import { NewsModel } from "../../misc/news/NewsModel.js"
 import { DesktopSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { Styles } from "../../../../ui/styles.js"
 import { IconButton } from "../../../../ui/base/IconButton.js"
-import { EnvProvider, FeatureType, UpgradePromptType } from "@tutao/app-env"
+import { EnvProvider, FeatureType } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
+import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -95,23 +96,12 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							colors: ButtonColor.DrawerNav,
 						})
 					: null,
-				isLoggedIn && userController.isFreeAccount()
+				isLoggedIn
 					? m(IconButton, {
 							icon: Icons.TrophyFilled,
 							label: "upgradePremium_label",
 							click: async () => {
-								//Only shown for free user, so check for paid plan is not necessary
-								await showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON)
-								const { showUserUpgradedDeclinedDialog } = await import("../../ratings/UserUpgradedDeclinedDialog")
-
-								//Check if the customer upgraded in the upgrade dialog
-								if (logins.getUserController().isFreeAccount()) {
-									//Not upgraded
-									void showUserUpgradedDeclinedDialog("DeclineUpgrade")
-								} else {
-									//Upgraded
-									void showUserUpgradedDeclinedDialog("DidUpgrade")
-								}
+								await showUserSatisfactionDialog("Upgrade")
 							},
 							colors: ButtonColor.DrawerNav,
 						})
