@@ -20,7 +20,7 @@ android {
 		applicationId = "de.tutao.drive"
 		minSdk = 26
 		targetSdk = 36
-		versionCode = 69
+		versionCode = 70
 		versionName = "362.261020.0"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
