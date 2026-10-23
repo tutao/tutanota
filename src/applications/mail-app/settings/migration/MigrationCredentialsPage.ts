@@ -69,7 +69,7 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 				m(TextField, {
 					label: "migrationImapAccountHost_label",
 					class: "",
-					value: vnode.attrs.data.imapHost,
+					value: vnode.attrs.data.imapHost ?? "",
 					oninput: (value) => (vnode.attrs.data.imapHost = value),
 					leadingIcon: {
 						icon: Icons.ServerFilled,
@@ -79,7 +79,7 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 				m(TextField, {
 					label: "migrationImapAccountPort_label",
 					class: "",
-					value: vnode.attrs.data.imapPort.toString(),
+					value: vnode.attrs.data.imapPort?.toString() ?? "",
 					oninput: (value) => {
 						const typedNumber = Number.parseInt(value)
 						vnode.attrs.data.imapPort = Number.isNaN(typedNumber) ? 0 : typedNumber
@@ -129,7 +129,9 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 							isMailAddress(vnode.attrs.data.username, true) &&
 							vnode.attrs.data.imapPassword &&
 							vnode.attrs.data.imapPassword.length > 0 &&
+							vnode.attrs.data.imapHost &&
 							vnode.attrs.data.imapHost.length > 0 &&
+							vnode.attrs.data.imapPort &&
 							!Number.isNaN(vnode.attrs.data.imapPort) &&
 							vnode.attrs.data.imapPort > 0
 						),

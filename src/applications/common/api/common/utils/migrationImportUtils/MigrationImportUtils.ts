@@ -48,17 +48,24 @@ export function getMailboxMigrationCredential(
 	if (userMigrationInformation) {
 		const userMigrationCredential = userMigrationInformation.credential
 		return {
-			provider: parseInt(assertNotNull(userMigrationInformation?.provider)) as MailboxMigrationProvider,
-			username: imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
+			provider: parseInt(userMigrationInformation.provider) as MailboxMigrationProvider,
+			username: migrationSyncState.sharedMailboxName ?? imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
 			password: imapConfiguration?.sharedPassword ?? userMigrationCredential?.password ?? null,
-			oAuthToken: imapConfiguration?.sharedOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
+			oAuthToken: imapConfiguration?.legacyOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
+		}
+	} else if (migrationSyncState.sharedMailboxName !== null) {
+		return {
+			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
+			username: migrationSyncState.sharedMailboxName,
+			password: null,
+			oAuthToken: null,
 		}
 	} else if (imapConfiguration) {
 		return {
-			provider: parseInt(assertNotNull(migrationSyncState.legacyProvider)) as MailboxMigrationProvider,
+			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
 			username: assertNotNull(imapConfiguration.sharedUsername),
 			password: imapConfiguration.sharedPassword,
-			oAuthToken: imapConfiguration.sharedOauthToken,
+			oAuthToken: imapConfiguration.legacyOauthToken,
 		}
 	} else {
 		throw new ProgrammingError("no mailbox migration credential available")
@@ -81,16 +88,16 @@ export function migrationSyncStateToMigrationCredentials(
 	migrationSyncState: MailboxMigrationSyncState,
 	userMigrationInformation: UserMigrationInformation | null,
 ): MigrationCredentials {
-	const mailboxMigrationImapConfiguration = assertNotNull(migrationSyncState.imapConfiguration)
+	const mailboxMigrationImapConfiguration = migrationSyncState.imapConfiguration
 	const migrationCredential = getMailboxMigrationCredential(migrationSyncState, userMigrationInformation)
 	const migrationCredentials: MigrationCredentials = {
-		host: mailboxMigrationImapConfiguration.host,
-		port: parseInt(mailboxMigrationImapConfiguration.port),
+		host: mailboxMigrationImapConfiguration?.host,
+		port: mailboxMigrationImapConfiguration ? parseInt(mailboxMigrationImapConfiguration.port) : undefined,
 		username: migrationCredential.username,
-		ignoreCertificateErrors: mailboxMigrationImapConfiguration.ignoreCertificateErrors,
-		customCertificateData: mailboxMigrationImapConfiguration.customCertificateData,
+		ignoreCertificateErrors: mailboxMigrationImapConfiguration?.ignoreCertificateErrors,
+		customCertificateData: mailboxMigrationImapConfiguration?.customCertificateData ?? null,
 		provider: migrationCredential.provider,
-		useSSL: mailboxMigrationImapConfiguration.useSSL,
+		useSSL: mailboxMigrationImapConfiguration?.useSSL,
 		isLegacy: userMigrationInformation === null,
 	}
 	migrationCredentials.password = migrationCredential.password ?? undefined

@@ -304,14 +304,14 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 				? m(".flex", [
 						m(TextField, {
 							label: "migrationSummaryImapAccountHost_label",
-							value: data.imapHost,
+							value: data.imapHost ?? "",
 							isReadOnly: true,
 							class: "surface-background",
 							leadingIcon: { icon: Icons.ServerFilled, color: theme.on_surface_variant },
 						}),
 						m(TextField, {
 							label: "migrationImapAccountPort_label",
-							value: data.imapPort.toString(),
+							value: data.imapPort?.toString() ?? "",
 							isReadOnly: true,
 							class: "surface-background",
 							leadingIcon: { icon: Icons.KeyFilled, color: theme.on_surface_variant },
@@ -450,16 +450,20 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 			return Promise.resolve(false)
 		}
 		const mailboxMigrationController = mailLocator.getMailboxMigrationController()
-		const mailboxMigrationImapConfiguration = createMailboxMigrationImapConfiguration({
-			host: this.data.imapHost,
-			port: this.data.imapPort.toString(),
-			sharedUsername: null,
-			sharedPassword: null,
-			sharedOauthToken: null,
-			customCertificateData: this.data.customCertificateData,
-			ignoreCertificateErrors: this.data.ignoreCertificateErrors,
-			useSSL: this.data.useSSL,
-		})
+		const isSharedMailbox = mailboxMigrationController.selectedMailBoxDetail?.mailGroup.adminGroupEncGKey !== null
+		const imapConfiguration =
+			this.data.provider === MailboxMigrationProvider.Other
+				? createMailboxMigrationImapConfiguration({
+						host: assertNotNull(this.data.imapHost),
+						port: assertNotNull(this.data.imapPort).toString(),
+						sharedUsername: isSharedMailbox ? this.data.username : null,
+						sharedPassword: isSharedMailbox ? (this.data.imapPassword ?? null) : null,
+						legacyOauthToken: null,
+						customCertificateData: this.data.customCertificateData,
+						ignoreCertificateErrors: assertNotNull(this.data.ignoreCertificateErrors),
+						useSSL: this.data.useSSL,
+					})
+				: null
 
 		const userMigrationParams: UserMigrationCredentialParams = {
 			username: this.data.username,
@@ -471,10 +475,11 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 			mailGroupId: elementIdToId(mailboxMigrationController.selectedMailBoxDetail!.mailGroup._id),
 			migrationSyncLabelData: this.data.syncLabelData,
 			provider: this.data.provider,
+			sharedMailboxName: isSharedMailbox ? this.data.username : null,
+			imapConfiguration,
 		}
 		const initializeMigrationParams: InitializeMigrationParams = this.data.matchMigrationMailboxesToTutaMailSets
 			? {
-					imapConfiguration: mailboxMigrationImapConfiguration,
 					credential: userMigrationParams,
 					...commonMigrationParams,
 
@@ -482,7 +487,6 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 					migrationMailboxesToTutaMailSets: assertNotNull(this.data.migrationMailboxesToTutaMailSets),
 				}
 			: {
-					imapConfiguration: mailboxMigrationImapConfiguration,
 					credential: userMigrationParams,
 					...commonMigrationParams,
 					matchMigrationMailboxesToTutaMailSets: false,

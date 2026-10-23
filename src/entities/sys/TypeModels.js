@@ -15959,7 +15959,7 @@ const typeModels = {
 				dependency: null,
 			},
 			2838: {
-				final: true,
+				final: false,
 				name: "mailboxMigrationSyncStates",
 				id: 2838,
 				type: "AGGREGATION",

@@ -58,7 +58,7 @@ o.spec("MailboxImporter", () => {
 		port: "993",
 		sharedUsername: "user@test.com",
 		sharedPassword: "pass",
-		sharedOauthToken: null,
+		legacyOauthToken: null,
 	})
 	const migrationCredentials: MigrationCredentials = {
 		host: "imap.test.com",
@@ -108,7 +108,7 @@ o.spec("MailboxImporter", () => {
 			rootImportMailSet: null,
 			mailboxMigrationFolderSyncStates: "folderSyncStateListId",
 			status: MailboxMigrationSyncStatus.RUNNING.toString(),
-			legacyProvider: MailboxMigrationProvider.Other.toString(),
+			provider: MailboxMigrationProvider.Other.toString(),
 		})
 		folderSyncStateMock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
 			_id: folderSyncStateIdMock,
@@ -142,7 +142,7 @@ o.spec("MailboxImporter", () => {
 	o.test("init - marks sync state permanently deleted when every folder is NO_SYNC or CANCELED", async () => {
 		const nonLegacySyncState = {
 			...mailboxMigrationSyncStateMock,
-			legacyProvider: null,
+			sharedProvider: null,
 		}
 		const canceledFolder = {
 			...folderSyncStateMock,
@@ -185,7 +185,7 @@ o.spec("MailboxImporter", () => {
 	o.test("init - does not mark sync state permanently deleted when there are folder(s) still syncing", async () => {
 		const nonLegacySyncState = {
 			...mailboxMigrationSyncStateMock,
-			legacyProvider: null,
+			sharedProvider: null,
 		}
 		const userMigrationInformation = createTestEntity(UserMigrationInformationTypeRef, {
 			mailboxMigrationSyncStates: [

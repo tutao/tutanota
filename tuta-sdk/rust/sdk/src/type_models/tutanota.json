@@ -8602,10 +8602,10 @@
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
 			},
-			"2062": {
+			"2064": {
 				"final": false,
 				"name": "sourceId",
-				"id": 2062,
+				"id": 2064,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
@@ -10442,7 +10442,7 @@
 		"associations": {
 			"1872": {
 				"final": false,
-				"name": "sharedOauthToken",
+				"name": "legacyOauthToken",
 				"id": 1872,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
@@ -10846,10 +10846,10 @@
 			},
 			"1922": {
 				"final": true,
-				"name": "legacyProvider",
+				"name": "provider",
 				"id": 1922,
 				"type": "Number",
-				"cardinality": "ZeroOrOne",
+				"cardinality": "One",
 				"encrypted": true
 			},
 			"1923": {
@@ -10867,6 +10867,14 @@
 				"type": "Number",
 				"cardinality": "ZeroOrOne",
 				"encrypted": false
+			},
+			"2021": {
+				"final": true,
+				"name": "sharedMailboxName",
+				"id": 2021,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
 			}
 		},
 		"associations": {
@@ -11567,89 +11575,89 @@
 			}
 		}
 	},
-	"2021": {
+	"2022": {
 		"name": "MailboxMigrationFolderPostIn",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2021,
-		"rootId": "CHR1dGFub3RhAAfl",
+		"id": 2022,
+		"rootId": "CHR1dGFub3RhAAfm",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"2022": {
+			"2023": {
 				"final": false,
 				"name": "_format",
-				"id": 2022,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2023": {
-				"final": true,
-				"name": "ownerEncSessionKey",
 				"id": 2023,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2024": {
 				"final": true,
-				"name": "ownerKeyVersion",
+				"name": "ownerEncSessionKey",
 				"id": 2024,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2025": {
 				"final": true,
-				"name": "ownerGroup",
+				"name": "ownerKeyVersion",
 				"id": 2025,
-				"type": "GeneratedId",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2026": {
 				"final": true,
-				"name": "sourceId",
+				"name": "ownerGroup",
 				"id": 2026,
+				"type": "GeneratedId",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2027": {
+				"final": true,
+				"name": "sourceId",
+				"id": 2027,
 				"type": "String",
 				"cardinality": "One",
 				"encrypted": true
 			},
-			"2027": {
+			"2028": {
 				"final": false,
 				"name": "shouldSync",
-				"id": 2027,
+				"id": 2028,
 				"type": "Boolean",
 				"cardinality": "One",
 				"encrypted": false
 			},
-			"2028": {
+			"2029": {
 				"final": false,
 				"name": "specialUse",
-				"id": 2028,
+				"id": 2029,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2029": {
+			"2030": {
 				"final": true,
 				"name": "mailboxMigrationSyncState",
-				"id": 2029,
+				"id": 2030,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1911,
 				"dependency": null
 			},
-			"2030": {
+			"2031": {
 				"final": true,
 				"name": "mailSet",
-				"id": 2030,
+				"id": 2031,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 429,
@@ -11657,32 +11665,32 @@
 			}
 		}
 	},
-	"2031": {
+	"2032": {
 		"name": "MailboxMigrationFolderPostOut",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2031,
-		"rootId": "CHR1dGFub3RhAAfv",
+		"id": 2032,
+		"rootId": "CHR1dGFub3RhAAfw",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2032": {
+			"2033": {
 				"final": false,
 				"name": "_format",
-				"id": 2032,
+				"id": 2033,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2033": {
+			"2034": {
 				"final": false,
 				"name": "mailboxMigrationFolderSyncState",
-				"id": 2033,
+				"id": 2034,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1895,
@@ -11690,32 +11698,32 @@
 			}
 		}
 	},
-	"2034": {
+	"2035": {
 		"name": "MailboxMigrationFolderDeleteIn",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2034,
-		"rootId": "CHR1dGFub3RhAAfy",
+		"id": 2035,
+		"rootId": "CHR1dGFub3RhAAfz",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2035": {
+			"2036": {
 				"final": false,
 				"name": "_format",
-				"id": 2035,
+				"id": 2036,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2036": {
+			"2037": {
 				"final": false,
 				"name": "mailboxMigrationFolderSyncState",
-				"id": 2036,
+				"id": 2037,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1895,
@@ -11723,99 +11731,107 @@
 			}
 		}
 	},
-	"2038": {
+	"2039": {
 		"name": "MailboxMigrationPostIn",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2038,
-		"rootId": "CHR1dGFub3RhAAf2",
+		"id": 2039,
+		"rootId": "CHR1dGFub3RhAAf3",
 		"versioned": false,
 		"encrypted": true,
 		"isPublic": true,
 		"values": {
-			"2039": {
+			"2040": {
 				"final": false,
 				"name": "_format",
-				"id": 2039,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2040": {
-				"final": true,
-				"name": "ownerEncSessionKey",
 				"id": 2040,
-				"type": "Bytes",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2041": {
 				"final": true,
-				"name": "ownerKeyVersion",
+				"name": "ownerEncSessionKey",
 				"id": 2041,
-				"type": "Number",
+				"type": "Bytes",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2042": {
 				"final": true,
-				"name": "ownerGroup",
+				"name": "ownerKeyVersion",
 				"id": 2042,
-				"type": "GeneratedId",
+				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2043": {
 				"final": true,
-				"name": "postponedUntil",
+				"name": "ownerGroup",
 				"id": 2043,
-				"type": "Number",
+				"type": "GeneratedId",
 				"cardinality": "One",
-				"encrypted": true
+				"encrypted": false
 			},
 			"2044": {
 				"final": true,
-				"name": "provider",
+				"name": "postponedUntil",
 				"id": 2044,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": true
+			},
+			"2045": {
+				"final": true,
+				"name": "provider",
+				"id": 2045,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": true
+			},
+			"2046": {
+				"final": true,
+				"name": "sharedMailboxName",
+				"id": 2046,
+				"type": "String",
+				"cardinality": "ZeroOrOne",
+				"encrypted": true
 			}
 		},
 		"associations": {
-			"2045": {
+			"2047": {
 				"final": true,
 				"name": "imapConfiguration",
-				"id": 2045,
+				"id": 2047,
 				"type": "AGGREGATION",
 				"cardinality": "ZeroOrOne",
 				"refTypeId": 1866,
 				"dependency": null
 			},
-			"2046": {
-				"final": true,
-				"name": "syncLabel",
-				"id": 2046,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 429,
-				"dependency": null
-			},
-			"2047": {
-				"final": true,
-				"name": "rootImportMailSet",
-				"id": 2047,
-				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
-				"cardinality": "ZeroOrOne",
-				"refTypeId": 429,
-				"dependency": null
-			},
 			"2048": {
 				"final": true,
-				"name": "userMigrationInfo",
+				"name": "syncLabel",
 				"id": 2048,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"2049": {
+				"final": true,
+				"name": "rootImportMailSet",
+				"id": 2049,
+				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
+				"cardinality": "ZeroOrOne",
+				"refTypeId": 429,
+				"dependency": null
+			},
+			"2050": {
+				"final": true,
+				"name": "userMigrationInfo",
+				"id": 2050,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 2827,
@@ -11823,32 +11839,32 @@
 			}
 		}
 	},
-	"2049": {
+	"2051": {
 		"name": "MailboxMigrationPostOut",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2049,
-		"rootId": "CHR1dGFub3RhAAgB",
+		"id": 2051,
+		"rootId": "CHR1dGFub3RhAAgD",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2050": {
+			"2052": {
 				"final": false,
 				"name": "_format",
-				"id": 2050,
+				"id": 2052,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2051": {
+			"2053": {
 				"final": false,
 				"name": "mailboxMigrationSyncState",
-				"id": 2051,
+				"id": 2053,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1911,
@@ -11856,32 +11872,32 @@
 			}
 		}
 	},
-	"2052": {
+	"2054": {
 		"name": "MailboxMigrationDeleteIn",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2052,
-		"rootId": "CHR1dGFub3RhAAgE",
+		"id": 2054,
+		"rootId": "CHR1dGFub3RhAAgG",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2053": {
+			"2055": {
 				"final": false,
 				"name": "_format",
-				"id": 2053,
+				"id": 2055,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			}
 		},
 		"associations": {
-			"2054": {
+			"2056": {
 				"final": false,
 				"name": "mailboxMigrationSyncState",
-				"id": 2054,
+				"id": 2056,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1911,
@@ -11889,56 +11905,56 @@
 			}
 		}
 	},
-	"2055": {
+	"2057": {
 		"name": "MailboxMigrationPutIn",
 		"app": "tutanota",
 		"version": 116,
 		"since": 116,
 		"type": "DATA_TRANSFER_TYPE",
-		"id": 2055,
-		"rootId": "CHR1dGFub3RhAAgH",
+		"id": 2057,
+		"rootId": "CHR1dGFub3RhAAgJ",
 		"versioned": false,
 		"encrypted": false,
 		"isPublic": true,
 		"values": {
-			"2056": {
-				"final": false,
-				"name": "_format",
-				"id": 2056,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
 			"2058": {
 				"final": false,
-				"name": "newMailboxMigrationSyncStatus",
+				"name": "_format",
 				"id": 2058,
-				"type": "Number",
-				"cardinality": "One",
-				"encrypted": false
-			},
-			"2059": {
-				"final": false,
-				"name": "newMailboxMigrationFolderSyncStatus",
-				"id": 2059,
 				"type": "Number",
 				"cardinality": "One",
 				"encrypted": false
 			},
 			"2060": {
 				"final": false,
-				"name": "newPostponedUntil",
+				"name": "newMailboxMigrationSyncStatus",
 				"id": 2060,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2061": {
+				"final": false,
+				"name": "newMailboxMigrationFolderSyncStatus",
+				"id": 2061,
+				"type": "Number",
+				"cardinality": "One",
+				"encrypted": false
+			},
+			"2062": {
+				"final": false,
+				"name": "newPostponedUntil",
+				"id": 2062,
 				"type": "String",
 				"cardinality": "ZeroOrOne",
 				"encrypted": true
 			}
 		},
 		"associations": {
-			"2057": {
+			"2059": {
 				"final": false,
 				"name": "mailboxMigrationSyncState",
-				"id": 2057,
+				"id": 2059,
 				"type": "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				"cardinality": "One",
 				"refTypeId": 1911,

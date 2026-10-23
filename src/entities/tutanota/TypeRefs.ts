@@ -6646,7 +6646,7 @@ export type MailboxMigrationImapConfigurationParams = {
 	customCertificateData: null | Uint8Array<ArrayBuffer>
 	useSSL: null | boolean
 
-	sharedOauthToken: null | OAuthTokenEndpointResponseLegacy
+	legacyOauthToken: null | OAuthTokenEndpointResponseLegacy
 }
 
 export type MailboxMigrationImapConfiguration = {
@@ -6663,7 +6663,7 @@ export type MailboxMigrationImapConfiguration = {
 
 	// == associations
 
-	sharedOauthToken: null | OAuthTokenEndpointResponseLegacy
+	legacyOauthToken: null | OAuthTokenEndpointResponseLegacy
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -6828,9 +6828,10 @@ export function createMailboxMigrationSyncState(values: MailboxMigrationSyncStat
 
 export type MailboxMigrationSyncStateParams = {
 	postponedUntil: NumberString
-	legacyProvider: null | NumberString
+	provider: NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	sharedMailboxName: null | string
 
 	mailboxMigrationFolderSyncStates: Id
 	imapConfiguration: null | MailboxMigrationImapConfiguration
@@ -6849,9 +6850,10 @@ export type MailboxMigrationSyncState = {
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	postponedUntil: NumberString
-	legacyProvider: null | NumberString
+	provider: NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	sharedMailboxName: null | string
 
 	// == associations
 
@@ -7388,7 +7390,7 @@ export type ExpandedInboxRuleList = {
 	_original: Nullable<ExpandedInboxRuleList>
 	isAdapter: false
 }
-export const MailboxMigrationFolderPostInTypeRef: TypeRef<MailboxMigrationFolderPostIn> = new TypeRef("tutanota", 2021)
+export const MailboxMigrationFolderPostInTypeRef: TypeRef<MailboxMigrationFolderPostIn> = new TypeRef("tutanota", 2022)
 
 export function createMailboxMigrationFolderPostIn(values: MailboxMigrationFolderPostInParams): MailboxMigrationFolderPostIn {
 	return Object.assign(create(typeModels[MailboxMigrationFolderPostInTypeRef.typeId], MailboxMigrationFolderPostInTypeRef), values)
@@ -7438,7 +7440,7 @@ export type MailboxMigrationFolderPostIn = {
 	_original: Nullable<MailboxMigrationFolderPostIn>
 	isAdapter: false
 }
-export const MailboxMigrationFolderPostOutTypeRef: TypeRef<MailboxMigrationFolderPostOut> = new TypeRef("tutanota", 2031)
+export const MailboxMigrationFolderPostOutTypeRef: TypeRef<MailboxMigrationFolderPostOut> = new TypeRef("tutanota", 2032)
 
 export function createMailboxMigrationFolderPostOut(values: MailboxMigrationFolderPostOutParams): MailboxMigrationFolderPostOut {
 	return Object.assign(create(typeModels[MailboxMigrationFolderPostOutTypeRef.typeId], MailboxMigrationFolderPostOutTypeRef), values)
@@ -7475,7 +7477,7 @@ export type MailboxMigrationFolderPostOut = {
 	_original: Nullable<MailboxMigrationFolderPostOut>
 	isAdapter: false
 }
-export const MailboxMigrationFolderDeleteInTypeRef: TypeRef<MailboxMigrationFolderDeleteIn> = new TypeRef("tutanota", 2034)
+export const MailboxMigrationFolderDeleteInTypeRef: TypeRef<MailboxMigrationFolderDeleteIn> = new TypeRef("tutanota", 2035)
 
 export function createMailboxMigrationFolderDeleteIn(values: MailboxMigrationFolderDeleteInParams): MailboxMigrationFolderDeleteIn {
 	return Object.assign(create(typeModels[MailboxMigrationFolderDeleteInTypeRef.typeId], MailboxMigrationFolderDeleteInTypeRef), values)
@@ -7512,7 +7514,7 @@ export type MailboxMigrationFolderDeleteIn = {
 	_original: Nullable<MailboxMigrationFolderDeleteIn>
 	isAdapter: false
 }
-export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 2038)
+export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 2039)
 
 export function createMailboxMigrationPostIn(values: MailboxMigrationPostInParams): MailboxMigrationPostIn {
 	return Object.assign(create(typeModels[MailboxMigrationPostInTypeRef.typeId], MailboxMigrationPostInTypeRef), values)
@@ -7521,6 +7523,7 @@ export function createMailboxMigrationPostIn(values: MailboxMigrationPostInParam
 export type MailboxMigrationPostInParams = {
 	postponedUntil: NumberString
 	provider: NumberString
+	sharedMailboxName: null | string
 
 	imapConfiguration: null | MailboxMigrationImapConfiguration
 	syncLabel: null | IdTuple
@@ -7537,6 +7540,7 @@ export type MailboxMigrationPostIn = {
 	ownerGroup: Id
 	postponedUntil: NumberString
 	provider: NumberString
+	sharedMailboxName: null | string
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -7564,7 +7568,7 @@ export type MailboxMigrationPostIn = {
 	_original: Nullable<MailboxMigrationPostIn>
 	isAdapter: false
 }
-export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2049)
+export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2051)
 
 export function createMailboxMigrationPostOut(values: MailboxMigrationPostOutParams): MailboxMigrationPostOut {
 	return Object.assign(create(typeModels[MailboxMigrationPostOutTypeRef.typeId], MailboxMigrationPostOutTypeRef), values)
@@ -7601,7 +7605,7 @@ export type MailboxMigrationPostOut = {
 	_original: Nullable<MailboxMigrationPostOut>
 	isAdapter: false
 }
-export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2052)
+export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2054)
 
 export function createMailboxMigrationDeleteIn(values: MailboxMigrationDeleteInParams): MailboxMigrationDeleteIn {
 	return Object.assign(create(typeModels[MailboxMigrationDeleteInTypeRef.typeId], MailboxMigrationDeleteInTypeRef), values)
@@ -7638,7 +7642,7 @@ export type MailboxMigrationDeleteIn = {
 	_original: Nullable<MailboxMigrationDeleteIn>
 	isAdapter: false
 }
-export const MailboxMigrationPutInTypeRef: TypeRef<MailboxMigrationPutIn> = new TypeRef("tutanota", 2055)
+export const MailboxMigrationPutInTypeRef: TypeRef<MailboxMigrationPutIn> = new TypeRef("tutanota", 2057)
 
 export function createMailboxMigrationPutIn(values: MailboxMigrationPutInParams): MailboxMigrationPutIn {
 	return Object.assign(create(typeModels[MailboxMigrationPutInTypeRef.typeId], MailboxMigrationPutInTypeRef), values)

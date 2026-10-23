@@ -32,7 +32,7 @@ export interface UpdateMigrationCredentialsDialogAttrs {
 }
 
 export type UpdatedMigrationCredentials = {
-	mailboxMigrationImapConfiguration: MailboxMigrationImapConfiguration
+	mailboxMigrationImapConfiguration: MailboxMigrationImapConfiguration | null
 	userMigrationInformation: UserMigrationInformation | null
 }
 
@@ -148,7 +148,6 @@ function renderContent(viewModel: UpdateMigrationCredentialsDialogViewModel) {
 			class: "",
 			disabled: true,
 			value: viewModel.username,
-			oninput: (value) => (viewModel.username = value),
 			leadingIcon: {
 				icon: Icons.MailFilled,
 				color: theme.on_surface_variant,
@@ -198,7 +197,7 @@ function renderMigrationCredentials(viewModel: UpdateMigrationCredentialsDialogV
 			m(TextField, {
 				label: "migrationImapAccountHost_label",
 				class: "",
-				value: viewModel.host,
+				value: viewModel.host ?? "",
 				oninput: (value) => (viewModel.host = value),
 				leadingIcon: {
 					icon: Icons.ServerFilled,
@@ -208,7 +207,7 @@ function renderMigrationCredentials(viewModel: UpdateMigrationCredentialsDialogV
 			m(TextField, {
 				label: "migrationImapAccountPort_label",
 				class: "",
-				value: viewModel.port,
+				value: viewModel.port ?? "",
 				oninput: (value) => {
 					const typedNumber = Number.parseInt(value)
 					viewModel.port = Number.isNaN(typedNumber) ? "0" : typedNumber.toString()
@@ -228,8 +227,8 @@ class UpdateMigrationCredentialsDialogViewModel {
 	public readonly provider: MailboxMigrationProvider
 	public username: string
 	public password: string
-	public host: string
-	public port: string
+	public host?: string
+	public port?: string
 
 	constructor(
 		readonly updateUi: () => void,
@@ -240,29 +239,29 @@ class UpdateMigrationCredentialsDialogViewModel {
 		this.provider = credentialSource.provider
 		this.username = credentialSource.username
 		this.password = credentialSource.password ?? ""
-		this.host = assertNotNull(syncState.imapConfiguration).host
-		this.port = assertNotNull(syncState.imapConfiguration).port
+		this.host = syncState.imapConfiguration?.host
+		this.port = syncState.imapConfiguration?.port
 	}
 
 	setOAuthToken(tokenEndpointResponse: TokenEndpointResponse) {
 		if (this.userMigrationInformation?.credential) {
 			this.userMigrationInformation.credential.oAuthToken = tokenEndpointResponseToOAuthToken(tokenEndpointResponse)
 		} else {
-			assertNotNull(this.syncState.imapConfiguration).sharedOauthToken = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse)
+			assertNotNull(this.syncState.imapConfiguration).legacyOauthToken = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse)
 		}
 	}
 
 	buildResult(): UpdatedMigrationCredentials {
-		const mailboxMigrationImapConfiguration = assertNotNull(this.syncState.imapConfiguration)
-		mailboxMigrationImapConfiguration.host = this.host
-		mailboxMigrationImapConfiguration.port = this.port
+		const mailboxMigrationImapConfiguration = this.syncState.imapConfiguration
+		if (mailboxMigrationImapConfiguration) {
+			mailboxMigrationImapConfiguration.host = this.host!
+			mailboxMigrationImapConfiguration.port = this.port!
+		}
 		if (this.userMigrationInformation?.credential) {
-			this.userMigrationInformation.credential.username = this.username
 			this.userMigrationInformation.credential.password = this.password || null
-		} else {
-			mailboxMigrationImapConfiguration.sharedUsername = this.username
+		} else if (mailboxMigrationImapConfiguration) {
 			mailboxMigrationImapConfiguration.sharedPassword = this.password || null
 		}
-		return { mailboxMigrationImapConfiguration: mailboxMigrationImapConfiguration, userMigrationInformation: this.userMigrationInformation }
+		return { mailboxMigrationImapConfiguration, userMigrationInformation: this.userMigrationInformation }
 	}
 }

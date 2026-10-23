@@ -113,9 +113,9 @@ o.spec("MailboxMigrationController", () => {
 		}
 		when(mailboxImporter.continueImport(mailboxMigrationSyncStateIdMock, false)).thenReject(authError, successResult)
 
-		mailboxMigrationSyncStateMock.legacyProvider = MailboxMigrationProvider.Gmail.toString()
+		mailboxMigrationSyncStateMock.provider = MailboxMigrationProvider.Gmail.toString()
 		mailboxMigrationSyncStateMock.imapConfiguration = createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
-			sharedOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
+			legacyOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 				refreshToken: "oldRefreshToken123",
 			}),
 		})

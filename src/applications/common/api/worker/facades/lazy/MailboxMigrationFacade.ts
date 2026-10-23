@@ -31,6 +31,7 @@ import {
 	MailSetTypeRef,
 } from "@tutao/entities/tutanota"
 import {
+	createIdTupleWrapper,
 	createUserMigrationCredential,
 	createUserMigrationServicePostIn,
 	UserMigrationInformation,
@@ -44,11 +45,12 @@ import { MailboxMigrationFolderSyncStatus, MailboxMigrationSyncStatus, MailSetKi
 import { MigrationMailbox, MigrationMailboxSpecialUse, MigrationMailboxStatus } from "../../../common/utils/migrationImportUtils/MigrationMailbox"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
 import {
+	CacheMode,
 	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { getElementId, idToElementId } from "@tutao/meta"
+import { getElementId, getListId, idToElementId } from "@tutao/meta"
 import { randomHexColor } from "../../../common/utils/migrationImportUtils/MigrationImportUtils"
 import { MailboxMigrationProvider } from "../../../common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
@@ -117,6 +119,7 @@ export class MailboxMigrationFacade {
 			postponedUntil: Date.now().toString(),
 			provider: initializeParams.provider.toString(),
 			imapConfiguration: initializeParams.imapConfiguration,
+			sharedMailboxName: initializeParams.sharedMailboxName,
 			rootImportMailSet: rootImportMailSetId,
 			syncLabel: syncLabelId,
 			userMigrationInfo: userMigrationServicePostOut.userMigrationInfo,
@@ -175,6 +178,34 @@ export class MailboxMigrationFacade {
 			...DEFAULT_EXTRA_SERVICE_PARAMS,
 			sessionKey,
 		})
+	}
+
+	async createUserMigrationInfoForSyncState(mailboxMigrationSyncState: MailboxMigrationSyncState) {
+		const userGroupKey = this.keyLoader.getCurrentSymUserGroupKey()
+		const userMigrationSessionKey = this.cryptoWrapper.aes256RandomKey()
+		const userMigrationOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, userMigrationSessionKey)
+		const userMigrationCredential = createUserMigrationCredential({
+			username: mailboxMigrationSyncState.sharedMailboxName ?? "",
+			password: null,
+			oAuthToken: null,
+		})
+		const userMigrationServicePostIn = createUserMigrationServicePostIn({
+			provider: mailboxMigrationSyncState.provider.toString(),
+			credential: userMigrationCredential,
+		})
+		userMigrationServicePostIn.ownerEncSessionKey = userMigrationOwnerEncSessionKey.key
+		userMigrationServicePostIn.ownerKeyVersion = userMigrationOwnerEncSessionKey.encryptingKeyVersion.toString()
+		const userMigrationServicePostOut = await this.serviceExecutor.execute(UserMigrationService_POST, userMigrationServicePostIn, {
+			...DEFAULT_EXTRA_SERVICE_PARAMS,
+			sessionKey: userMigrationSessionKey,
+		})
+		const userMigrationInfo = await this.entityClient.load(UserMigrationInformationTypeRef, userMigrationServicePostOut.userMigrationInfo)
+		userMigrationInfo.mailboxMigrationSyncStates.push(
+			createIdTupleWrapper({ listId: getListId(mailboxMigrationSyncState), listElementId: getElementId(mailboxMigrationSyncState) }),
+		)
+		// fixme move this PATCH inside the POST with a nullable IdTupleWrapper existingMailboxMigrationSyncState (or add PUT) and make mailboxMigrationSyncStates final again
+		await this.entityClient.update(userMigrationInfo)
+		return this.getUserMigrationInformationById(userMigrationInfo._id, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, cacheMode: CacheMode.WriteOnly })
 	}
 
 	async deleteMigrationImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {
@@ -292,16 +323,16 @@ export class MailboxMigrationFacade {
 		return await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId, opts)
 	}
 
+	async getUserMigrationInformationById(userMigrationInformationId: IdTuple, opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS) {
+		return await this.entityClient.load(UserMigrationInformationTypeRef, userMigrationInformationId, opts)
+	}
+
 	async getMailboxMigrationFolderSyncStateById(mailboxMigrationFolderSyncStateId: IdTuple): Promise<MailboxMigrationFolderSyncState> {
 		return this.entityClient.load(MailboxMigrationFolderSyncStateTypeRef, mailboxMigrationFolderSyncStateId)
 	}
 
 	async getAllUserMigrationInformation(userMigrationInfosListId: Id | null): Promise<UserMigrationInformation[]> {
 		return userMigrationInfosListId ? this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfosListId) : []
-	}
-
-	async getUserMigrationInformationById(userMigrationInformationId: IdTuple): Promise<UserMigrationInformation> {
-		return this.entityClient.load(UserMigrationInformationTypeRef, userMigrationInformationId)
 	}
 
 	async getImportedMails(importedMailListId: Id): Promise<ImportedMigrationMail[]> {

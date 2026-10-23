@@ -184,7 +184,7 @@ export class MigrationErrorHandler {
 							if (oAuthTokenEndpointResponse.refreshToken === null) {
 								oAuthTokenEndpointResponse.refreshToken = previousRefreshToken
 							}
-							assertNotNull(mailboxMigrationSyncState.imapConfiguration).sharedOauthToken = oAuthTokenEndpointResponse
+							assertNotNull(mailboxMigrationSyncState.imapConfiguration).legacyOauthToken = oAuthTokenEndpointResponse
 							await this.entityClient.update(mailboxMigrationSyncState)
 						}
 

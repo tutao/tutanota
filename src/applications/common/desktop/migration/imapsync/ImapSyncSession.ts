@@ -39,8 +39,8 @@ export class ImapSyncSession extends MigrationSyncSession {
 			const customCertificateData = imapCredentials.customCertificateData
 			const customCertificate = customCertificateData !== null ? [utf8Uint8ArrayToString(customCertificateData)] : []
 			const options: ImapFlowOptions = {
-				host: imapCredentials.host,
-				port: imapCredentials.port,
+				host: assertNotNull(imapCredentials.host),
+				port: assertNotNull(imapCredentials.port),
 				auth: {
 					// We can safely pass password and accessToken because ImapFlow tests for token accessToken being truthy
 					// using it instead of password (https://github.com/postalsys/imapflow/blob/b7e57f0e540c789f3b1cb17112edbce2b2085880/lib/imap-flow.js#L1269)
