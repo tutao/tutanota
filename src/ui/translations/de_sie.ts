@@ -2581,8 +2581,9 @@ export default {
 		"sendFeedback_action": "Feedback senden",
 		"feedbackAnonymousAndHelpUs_label": "Ihr Feedback ist anonym und hilft uns, Tuta zu verbessern.",
 		"accessDeactivated_msg": "Ihr Account wurde deaktiviert.",
-		"afterProxyStoreAction_msg": "Bitte folgen Sie nach dem Kauf des Gutscheins den Anweisungen auf ProxyStore um fortzufahren.",
-		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
-		"noPaymentMethodError_msg": "Sie können Ihr Abo nicht wechseln, weil sie keine gültige Zahlungsmethode haben."
+		"afterProxyStoreAction_msg": "Nachdem Sie Ihre Giftcard gekauft haben, folgen Sie bitte den Schritten auf ProxyStore, um den Vorgang fortzusetzen.",
+		"campaignBlackFridayTitle2026_label": "Black Friday: 2 für 1!",
+		"noPaymentMethodError_msg": "Sie können Ihren Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist",
+		"ratingTrustpilot_msg":"Wenn Ihnen die App gefällt und Sie ein Trustpilot-Konto haben, würden wir uns über eine ehrliche Bewertung freuen.",
 	}
 }
