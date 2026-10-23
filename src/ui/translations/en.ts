@@ -2575,6 +2575,7 @@ export default {
 		"disableSatisfactionDialogConfirm_msg": "Stop asking for your feedback on all devices? You can still send feedback from Help.",
 		"neverAgain_label": "Never ask again",
 		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
-		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set."
+		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set.",
+		"ratingTrustpilot_msg":"If you're enjoying the app and have a Trustpilot account, we'd appreciate an honest review",
 	}
 }

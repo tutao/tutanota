@@ -2575,6 +2575,7 @@ export default {
 		"neverAgain_label": "Nie wieder fragen",
 		"disableSatisfactionDialogConfirm_msg": "Auf keinem Gerät mehr um Feedback gebeten werden? Du kannst weiterhin über Hilfe Feedback senden.",
 		"campaignBlackFridayTitle2026_label": "Black Friday: 2 für 1!",
-		"noPaymentMethodError_msg": "Du kannst deinen Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist"
+		"noPaymentMethodError_msg": "Du kannst deinen Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist",
+		"ratingTrustpilot_msg":"Wenn dir die App gefällt und du ein Trustpilot-Konto hast, würden wir uns über eine ehrliche Bewertung freuen.",
 	}
 }
