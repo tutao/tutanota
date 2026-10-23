@@ -12,7 +12,7 @@ import { EvaluationPage } from "./pages/EvaluationPage.js"
 import m from "mithril"
 import { DateTime } from "luxon"
 import { ButtonType } from "../../../ui/base/Button.js"
-import { AndroidPlayStorePage } from "./pages/AndroidPlayStorePage.js"
+import { RateUsPage } from "./pages/RateUsPage.js"
 import { SupportTutaPage } from "./pages/SupportTutaPage.js"
 import { DissatisfactionPage } from "./pages/DissatisfactionPage.js"
 import { SuggestionPage } from "./pages/SuggestionPage.js"
@@ -30,7 +30,7 @@ import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 import { locator } from "../api/main/CommonLocator.js"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog.js"
 
-export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "androidPlayStore" | "supportTuta" | "suggestion" | "contactSupport"
+export type UserSatisfactionDialogPage = "evaluation" | "dissatisfaction" | "rateUs" | "supportTuta" | "suggestion" | "contactSupport"
 
 export async function showUserSatisfactionDialog(triggerType: TriggerType): Promise<void> {
 	const { ContactSupportPage } = await import("../support/pages/ContactSupportPage.js")
@@ -95,8 +95,8 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 					completeEvaluationStage(triggerType, "NotNow")
 				},
 			},
-			androidPlayStore: {
-				content: m(AndroidPlayStorePage, { triggerType, dialog }),
+			rateUs: {
+				content: m(RateUsPage, { triggerType, dialog }),
 			},
 			dissatisfaction: {
 				content: m(DissatisfactionPage, {
