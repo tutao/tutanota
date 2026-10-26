@@ -5,6 +5,9 @@ import { ClientType } from "./TutanotaConstants"
 export const LOGIN_TITLE: TsString = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
 export const NEXTCLOUD_PREFIX: TsString = "/index.php/apps/tutamail"
+export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
+	Nextcloud: "Nextcloud",
+})
 
 export type DomainConfigMap = TsRecord<TsString, DomainConfig>
 export type EnvType = {
@@ -86,7 +89,6 @@ export const enum Mode {
 	Browser = "Browser",
 	App = "App",
 	Test = "Test",
-	Playground = "Playground",
 	Desktop = "Desktop",
 	Admin = "Admin",
 }
@@ -99,40 +101,11 @@ export const enum Mode {
 const assertionsEnabled: boolean = false
 
 export class EnvProvider {
-	private readonly env: EnvType
-	/** @TTranspileIgnore This is all method that uses this field is @TranspileIgnore */
 	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
-	/** @TMutableStaticSafety MainThreadInitialized */
-	private static singleton: EnvProvider | null = null
-
-	/** @TTranspileIgnore This method is only used from locator */
+	private static singleton: EnvProvider = new EnvProvider(TsJson.parse(RuntimeInfo.globallyDefinedEnv()))
 	public static get(): EnvProvider {
-		if (isNull(EnvProvider.singleton)) {
-			EnvProvider.singleton = new EnvProvider()
-		}
 		return EnvProvider.singleton
-	}
-
-	private constructor() {
-		this.env = TsJson.parse(RuntimeInfo.globallyDefinedEnv())
-	}
-
-	/** @TTranspileIgnore
-	 * shadowDomAppRoot should be passed as argument to the constructor
-	 * since the constructor is supposed to be invoked only once in app.ts,
-	 * we already have that information there and shadowDomAppRoot does not change afterwards
-	 */
-	public setShadowDomAppRoot(shadowDomAppRoot: string): void {
-		this.env.shadowDomAppRoot = shadowDomAppRoot
-	}
-
-	public getShadowDomAppRoot(): string | null {
-		return this.env.shadowDomAppRoot
-	}
-
-	public getEnvAsJson(): string {
-		return TsJson.stringify(this.env)
 	}
 
 	public getVersionNumber(): TsString {
@@ -142,6 +115,8 @@ export class EnvProvider {
 	public getTimeOutValue(): TsInt {
 		return this.env.timeout
 	}
+
+	private constructor(private readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -163,7 +138,7 @@ export class EnvProvider {
 	}
 
 	public isNextCloudPlugin(): boolean {
-		return this.env.integrationPlatform === "Nextcloud"
+		return env.integrationPlatform === IntegrationPlatform.Nextcloud
 	}
 
 	public getPathPrefix(): string {
@@ -178,6 +153,10 @@ export class EnvProvider {
 		} else {
 			return ClientType.Browser
 		}
+	}
+
+	public setPathPrefix(pathPrefix: string): void {
+		this.env.shadowDomAppRoot = pathPrefix
 	}
 
 	/**
@@ -221,6 +200,10 @@ export class EnvProvider {
 
 	public isAdminClient(): boolean {
 		return this.env.mode === Mode.Admin
+	}
+
+	public getMode(): Mode {
+		return this.env.mode
 	}
 
 	isElectronClient(): boolean {

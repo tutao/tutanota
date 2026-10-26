@@ -12,6 +12,7 @@ import { ApplicationTypesService_GET, baseModelInfo } from "@tutao/entities/base
 import { DEFAULT_REST_CLIENT_OPTIONS } from "../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityUtils"
 import { RestClient } from "../../../src/platform-kit/rest-client"
+import { downcast } from "../../../src/platform-kit/lang-api/common"
 
 const { anything } = matchers
 
@@ -163,21 +164,24 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		// did not throw
 	})
 
-	o("Server model should persist to filefacade", async () => {
-		when(
-			restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
-				...DEFAULT_REST_CLIENT_OPTIONS,
-				headers: { v: baseModelInfo.version.toString() },
-				responseType: MediaType.Binary,
-			}),
-		).thenResolve(mockResponse)
-		when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve())
-		const expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
-		const actualResult = await applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash)
+	for (const targetEnv of [Mode.App, Mode.Admin, Mode.Test, Mode.Browser, Mode.Desktop]) {
+		const shouldPersist = targetEnv === Mode.Desktop || targetEnv === Mode.App
 
-		o(actualResult).deepEquals(expectedResult)
-		verify(fileFacade.writeToAppDir(anything(), anything()), { times: 1 })
-	})
+		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {
+			when(
+				restClient.request(ApplicationTypesService_GET.serviceRestPath, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					headers: { v: baseModelInfo.version.toString() },
+					responseType: MediaType.Binary,
+				}),
+			).thenResolve(mockResponse)
+			when(fileFacade.writeToAppDir(anything(), anything())).thenReturn(Promise.resolve(downcast({})))
+			let expectedResult = createApplicationTypesGetOutFromResponse(mockResponse)
+			let actualResult = await withOverriddenEnv({ mode: targetEnv }, () => applicationTypesFacade.getServerApplicationTypesJson(mockResponseTypeHash))
+			o(actualResult).deepEquals(expectedResult)
+			verify(fileFacade.writeToAppDir(anything(), anything()), { times: shouldPersist ? 1 : 0 })
+		})
+	}
 
 	o("Server model is always fetched when there is not fileFacade", async () => {
 		// application types facade have no fileFacade to persist  the JSON
