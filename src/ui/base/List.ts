@@ -262,6 +262,7 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			},
 			oncreate: (vnode: VnodeDOM) => {
 				const dom = vnode.dom as HTMLElement
+				if (renderConfig.swipe && ClientDetector.get().isMobileDevice()) applySafeAreaInsetMarginLR(dom)
 				const row = {
 					row: renderConfig.createElement(dom),
 					domElement: dom,
@@ -632,10 +633,6 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.domSwipeSpacerRight.style.width = px(this.width)
 			this.domSwipeSpacerLeft.style.transform = `translateX(${-translateX}px) translateY(0px)`
 			this.domSwipeSpacerRight.style.transform = `translateX(${translateX}px) translateY(0px)`
-
-			for (const row of this.rows) {
-				if (row.domElement) applySafeAreaInsetMarginLR(row.domElement)
-			}
 
 			this.domSwipeSpacerLeft.style.opacity = "1"
 			this.domSwipeSpacerRight.style.opacity = "1"
