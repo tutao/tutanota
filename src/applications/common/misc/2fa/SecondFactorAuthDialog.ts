@@ -229,6 +229,6 @@ export class SecondFactorAuthDialog {
 	private async recoverLogin(mailAddress: string) {
 		this.cancel()
 		const dialog = await import("../../login/recover/RecoverLoginDialog")
-		dialog.show(mailAddress, "secondFactor")
+		dialog.showRecoveryDialog(mailAddress, "secondFactor")
 	}
 }

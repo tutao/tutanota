@@ -284,5 +284,5 @@ export async function showGiftCardDialog(urlHash: string) {
 
 export async function showRecoverDialog(mailAddress: string, resetAction: ResetAction) {
 	const dialog = await import("../login/recover/RecoverLoginDialog")
-	dialog.show(mailAddress, resetAction)
+	dialog.showRecoveryDialog(mailAddress, resetAction)
 }
