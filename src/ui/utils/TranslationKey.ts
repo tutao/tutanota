@@ -2590,3 +2590,4 @@ export type TranslationKeyType =
 	| "campaignBlackFridayTitle2026_label"
 	| "noPaymentMethodError_msg"
 	| "ratingTrustpilot_msg"
+	| "deactivatedAccessLogin_msg"

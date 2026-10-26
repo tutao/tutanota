@@ -23,6 +23,7 @@ import { renderInfoLinks } from "../gui/RenderLoginInfoLinks.js"
 import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { Icons } from "../../../ui/base/icons/Icons"
 import { px } from "../../../ui/size"
+import { Dialog } from "../../../ui/base/Dialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -285,6 +286,8 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 		if (this.viewModel.state === LoginState.LoggedIn) {
 			m.route.set(this.selectedRedirect)
+		} else if (this.viewModel.state === LoginState.AccessDeactivated) {
+			await Dialog.message("deactivatedAccessLogin_msg")
 		}
 	}
 

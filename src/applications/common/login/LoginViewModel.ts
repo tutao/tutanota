@@ -1,4 +1,4 @@
-import { AccessExpiredError, BadRequestError, isOfflineError, NotAuthenticatedError } from "@tutao/rest-client/error"
+import { AccessDeactivatedError, AccessExpiredError, BadRequestError, isOfflineError, NotAuthenticatedError } from "@tutao/rest-client/error"
 import { lang, MaybeTranslation } from "../../../ui/utils/LanguageViewModel.js"
 import { SecondFactorHandler } from "../misc/2fa/SecondFactorHandler.js"
 import { getLoginErrorMessage, handleExpectedLoginError } from "../misc/LoginUtils.js"
@@ -467,6 +467,8 @@ export class LoginViewModel implements ILoginViewModel {
 			this.state = LoginState.InvalidCredentials
 		} else if (error instanceof AccessExpiredError) {
 			this.state = LoginState.AccessExpired
+		} else if (error instanceof AccessDeactivatedError) {
+			this.state = LoginState.AccessDeactivated
 		} else {
 			this.state = LoginState.UnknownError
 		}
