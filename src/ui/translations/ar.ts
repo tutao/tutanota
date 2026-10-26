@@ -2037,6 +2037,7 @@ export default {
 		"sortNeutral_label": "غير مرتّب",
 		"sourceColor_label": "اللون المصدر",
 		"spam_action": "بريد مؤذي",
+		"spam_label": "بريد مؤذي",
 		"spamReports_label": "الإبلاغ عن رسالة عشوائية",
 		"spamRuleEnterValue_msg": "الرجاء إدخال قيمة.",
 		"spelling_label": "الإملاء",
