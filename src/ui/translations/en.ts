@@ -2585,5 +2585,6 @@ export default {
 		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
 		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set.",
 		"ratingTrustpilot_msg":"If you're enjoying the app and have a Trustpilot account, we'd appreciate an honest review",
+		"deactivatedAccessLogin_msg": "Your account has been deactivated as part of our anti-spam measures to protect users’ privacy and security.\n\nIf this was a mistake, please contact us at appeals@tutao.de."
 	}
 }
