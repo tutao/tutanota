@@ -1,7 +1,7 @@
 import m, { Children } from "mithril"
-import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS, UpgradePromptType } from "../../../platform-kit/app-env"
+import { Const, EnvProvider, FeatureType, UNDO_SEND_TIMEOUT_SECONDS } from "../../../platform-kit/app-env"
 import { lang } from "../../../ui/utils/LanguageViewModel"
-import { elementIdPart, OperationType } from "../../../platform-kit/meta"
+import { OperationType } from "../../../platform-kit/meta"
 import { LazyLoaded, ofClass } from "../../../platform-kit/utils"
 import { MailAddressTable } from "../../common/settings/mailaddress/MailAddressTable.js"
 import { Dialog } from "../../../ui/base/Dialog"
@@ -27,7 +27,6 @@ import { formatStorageSize } from "../../../ui/utils/Formatter.js"
 import { getDefaultSenderFromUser, getMailAddressDisplayText } from "../../common/mailFunctionality/SharedMailUtils.js"
 import { UpdatableSettingsViewer } from "../../common/settings/Interfaces.js"
 import { mailLocator } from "../mailLocator.js"
-import { getMailSetName } from "../mail/model/MailUtils.js"
 import { ProgressBar, ProgressBarType } from "../../../ui/base/ProgressBar"
 import { PrimaryButton } from "../../../ui/base/buttons/VariantButtons.js"
 import {
@@ -44,7 +43,6 @@ import { CustomerInfo } from "@tutao/entities/sys"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { windowFacade } from "../../common/misc/WindowFacade"
 import { MailSearchModel } from "../search/model/MailSearchModel"
-import { MailboxDetail } from "../../common/mailFunctionality/MailboxModel"
 
 EnvProvider.assertMainOrNode()
 
@@ -444,6 +442,7 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			await showProgressDialog(
 				"clearCache_action",
 				Promise.resolve().then(async () => {
+					mailLocator.indexerFacade.cancelMailIndexing()
 					await mailLocator.cacheStorage.purgeStorage()
 
 					// we need to reload the page, as purging storage will put the client in a broken state
