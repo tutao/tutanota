@@ -535,7 +535,7 @@ void lintSwift() {
 }
 
 void merge(String srcBranch, String targetBranch) {
-	def sucessfulMerge = sh(returnStatus: true, script: "git merge ${srcBranch}").toInteger()
+	def sucessfulMerge = sh(returnStatus: true, script: "git merge --ff-only ${srcBranch}").toInteger()
 	if (sucessfulMerge != 0) {
 		error("Failed to merge branch ${srcBranch} into ${targetBranch}. Please rebase and try again.")
 	}
