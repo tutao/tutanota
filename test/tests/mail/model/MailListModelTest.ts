@@ -530,5 +530,40 @@ o.spec("MailListModel", () => {
 			await model.handleEntityUpdate(entityUpdateData)
 			o(model.getMail(getElementId(mail))).deepEquals(mail)
 		})
+
+		o.test("when create MailSetEntry event is received for an already loaded item, the state stays consistent", async () => {
+			// This test checks that the list model and the mail map are updated in lockstep.
+			// If MailSetEntry is already in the list state, it will not get added again and will not be replaced.
+			// A desync can be caused by updating a mail in the mailMap but not adding it to the list (there will be two
+			// instances of the same mail in two different places), and that desync will break referential checks for
+			// ListModelState#selectedItems.
+
+			await setUpTestData(PageSize, labels, false)
+			await model.loadInitial()
+
+			// return a copy of the mail so that it is no longer the same object and does not match
+			const mail = { ...model.items[2] }
+			const mailSetEntryId: IdTuple = [mailSetEntriesListId, makeMailSetElementId(2)]
+			const entityCreationData: EntityUpdateData = {
+				typeRef: MailSetEntryTypeRef,
+				instanceListId: listIdPart(mailSetEntryId) as NonEmptyString,
+				instanceId: elementIdPart(mailSetEntryId),
+				operation: OperationType.CREATE,
+				...noPatchesAndInstance,
+			}
+			when(entityClient.loadMultiple(MailTypeRef, getListId(mail), [getElementId(mail)])).thenResolve([mail])
+			when(entityClient.load(MailSetEntryTypeRef, mailSetEntryId)).thenResolve(
+				createTestEntity(MailSetEntryTypeRef, {
+					_id: mailSetEntryId,
+					_ownerGroup,
+					_permissions: "1234",
+					mail: mail._id,
+				}),
+			)
+
+			await model.handleEntityUpdate(entityCreationData)
+			model.onSingleInclusiveSelection(model.items[2])
+			o.check(model.stateStream().selectedItems.has(model.items[2])).equals(true)("email is in selected items")
+		})
 	})
 })

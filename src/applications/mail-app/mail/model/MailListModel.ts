@@ -188,7 +188,10 @@ export class MailListModel implements MailSetListModel {
 				if (loadedMail) {
 					await this.listModel.waitLoad(async () => {
 						if (this.listModel.canInsertItem(loadedMail)) {
-							this.listModel.insertLoadedItem(loadedMail)
+							if (this.listModel.insertLoadedItem(loadedMail)) {
+								// Only update mail map if the item is inserted so that they stay in sync
+								this.updateMailMap([loadedMail])
+							}
 						}
 					})
 				}
@@ -377,7 +380,6 @@ export class MailListModel implements MailSetListModel {
 		try {
 			const mailSetEntry = await this.entityClient.load(MailSetEntryTypeRef, id)
 			const loadedMails = await this.resolveMailSetEntries([mailSetEntry], this.defaultMailProvider)
-			this.updateMailMap(loadedMails)
 			return assertNotNull(loadedMails[0])
 		} catch (e) {
 			if (isExpectedErrorForSynchronization(e)) {
