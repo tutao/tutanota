@@ -2,8 +2,7 @@ import path, { dirname } from "node:path"
 import fs from "fs-extra"
 import { getCanonicalPlatformName, getTutanotaAppVersion, getValidArchitecture, runStep, writeFile } from "./buildUtils.js"
 import "zx/globals"
-import * as env from "./env.js"
-import { preludeEnvPlugin } from "./env.js"
+import { create as createEnv, preludeEnvPlugin } from "./env.js"
 import { fileURLToPath } from "node:url"
 import * as LaunchHtml from "./LaunchHtml.js"
 import os from "node:os"
@@ -19,16 +18,18 @@ const buildSrc = dirname(fileURLToPath(import.meta.url))
 const projectRoot = path.resolve(path.join(buildSrc, ".."))
 
 /**
- * @param stage
- * @param host
- * @param desktop
- * @param clean
- * @param networkDebugging
- * @param debuggable
- * @param app {"mail"|"calendar"|"drive"}
+ * @param p {object}
+ * @param p.stage {string}
+ * @param p.host {string | null}
+ * @param p.desktop { boolean }
+ * @param p.clean {boolean}
+ * @param p.networkDebugging {boolean}
+ * @param p.debuggable {boolean}
+ * @param p.app {"mail"|"calendar"|"drive"}
+ * @param p.mode {import("../src/platform-kit/app-env/Env.ts").Mode}
  * @returns {Promise<void>}
  */
-export async function runDevBuild({ stage, host, desktop, clean, networkDebugging, debuggable, app }) {
+export async function runDevBuild({ stage, host, clean, networkDebugging, debuggable, app, mode }) {
 	const version = await getTutanotaAppVersion()
 	const liboqsIncludeDir = "libs/webassembly/include"
 	const buildDir = buildDirForApp(app)
@@ -66,7 +67,7 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	/**
 	 * @param host {string|null}
-	 * @return {DomainConfigMap}
+	 * @return {import("../src/platform-kit/app-env/Env.ts").DomainConfigMap}
 	 */
 	function updateDomainConfigForHostname(host) {
 		// Non-webapp builds default to local hostname, make sure we add a domain config for it and not fall back on generic whitelabel one
@@ -102,12 +103,31 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
-	await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, networkDebugging, debuggable, app })
+	await runStep("Build Webpart", async () => {
+		if (mode === "Desktop") {
+			// When building for desktop, also make the web part ready,
+			// helpful when testing locally with desktop client & dev wants to check something on browser
+			await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode: "Browser", networkDebugging })
+		}
+		await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode, networkDebugging })
+	})
 
-	await buildPlugins(buildDir, debuggable)
+	await runStep("Build bundled plugins", async () => {
+		await buildPlugins(buildDir, debuggable)
+	})
 
-	if (desktop) {
-		await buildDesktopPart({ version, networkDebugging, debuggable, app })
+	if (mode === "Desktop") {
+		await runStep("Run desktop build", async () => {
+			const desktopEnv = createEnv({
+				staticUrl: null,
+				dist: false,
+				version,
+				mode,
+				domainConfigs,
+				networkDebugging,
+			})
+			await buildDesktopPart({ version, desktopEnv })
+		})
 	}
 }
 
@@ -116,16 +136,25 @@ export async function runDevBuild({ stage, host, desktop, clean, networkDebuggin
  * @param p.stage {string}
  * @param p.host {string|null}
  * @param p.version {string}
- * @param p.domainConfigs {DomainConfigMap}
+ * @param p.domainConfigs {import("../src/platform-kit/app-env/Env.ts").DomainConfigMap}
+ * @param p.app {"mail"| "calendar" | "drive"}
+ * @param p.mode {import("../src/platform-kit/app-env/Env.ts").Mode}
  * @param p.networkDebugging {boolean}
  * @param p.debuggable {boolean}
- * @param p.app {"mail"|"calendar"}
  * @return {Promise<void>}
  */
-export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, debuggable, app }) {
+export async function buildWebPart({ stage, host, version, domainConfigs, networkDebugging, debuggable, app, mode }) {
 	const buildDir = buildDirForApp(app)
 	const { entry, worker } = entryPointsForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
+	const env = createEnv({
+		staticUrl: getStaticUrl(stage, mode, host),
+		version,
+		mode,
+		dist: false,
+		domainConfigs,
+		networkDebugging,
+	})
 
 	await runStep("Web: Rolldown", async () => {
 		// In devBuild this aliases are resolved by rolldown itself,
@@ -177,12 +206,12 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	})
 
 	// Do assets last so that server that listens to index.html changes does not reload too early
-
 	await runStep("Web: Assets", async () => {
-		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging)
+		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, mode)
 		await fs.promises.writeFile(
-			`${buildDir}/worker-bootstrap.js`,
-			`import "./polyfill.js"
+			`${buildDir}/worker-bootstrap-${mode}.js`,
+			`globalThis.env = ${JSON.stringify(env)}
+	import "./polyfill.js"
 	import "./worker.js"
 	`,
 		)
@@ -216,7 +245,7 @@ export async function buildPlugins(buildDir, debuggable) {
 	await bundle.write(outputOptions)
 }
 
-async function buildDesktopPart({ version, networkDebugging, debuggable }) {
+async function buildDesktopPart({ version, desktopEnv, debuggable }) {
 	const buildDir = buildDirForApp("mail")
 
 	await runStep("Desktop: Rolldown", async () => {
@@ -257,16 +286,7 @@ async function buildDesktopPart({ version, networkDebugging, debuggable }) {
 							targetName: "simple-windows-notifications",
 						})
 					: undefined,
-				preludeEnvPlugin(
-					env.create({
-						staticUrl: null,
-						version,
-						mode: "Desktop",
-						dist: false,
-						domainConfigs,
-						networkDebugging,
-					}),
-				),
+				preludeEnvPlugin(desktopEnv),
 			],
 		}
 		if (debuggable) {
@@ -381,9 +401,10 @@ function getStaticUrl(stage, mode, host) {
  * @param domainConfigs {DomainConfigMap}
  * @param buildDir {string}
  * @param networkDebugging {boolean}
+ * @param mode {import("../src/platform-kit/app-env/Env.ts").Mode}
  * @return {Promise<void>}
  */
-export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging) {
+export async function prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, mode) {
 	await fs.emptyDir(path.join(root, `${buildDir}/images`))
 	await Promise.all([
 		fs.copy(path.join(root, "/resources/favicon"), path.join(root, `/${buildDir}/images`)),
@@ -397,22 +418,17 @@ export async function prepareAssets(stage, host, version, domainConfigs, buildDi
 	// write empty file
 	await fs.writeFile(`${buildDir}/polyfill.js`, "")
 
-	/** @type {EnvMode[]} */
-	const modes = ["Browser", "App", "Desktop"]
-	for (const mode of modes) {
-		await createBootstrap(
-			env.create({
-				staticUrl: getStaticUrl(stage, mode, host),
-				version,
-				mode,
-				dist: false,
-				domainConfigs,
-				networkDebugging,
-				integrationPlatform: null,
-			}),
-			buildDir,
-		)
-	}
+	await createBootstrap(
+		createEnv({
+			staticUrl: getStaticUrl(stage, mode, host),
+			version,
+			mode,
+			dist: false,
+			domainConfigs,
+			networkDebugging,
+		}),
+		buildDir,
+	)
 }
 
 export function buildDirForApp(app) {
@@ -423,6 +439,8 @@ export function buildDirForApp(app) {
 			return "build-calendar-app"
 		case "drive":
 			return "build-drive-app"
+		default:
+			throw new Error(`Unknown app: ${app}`)
 	}
 }
 
@@ -443,6 +461,8 @@ export function entryPointsForApp(app) {
 				entry: "src/applications/drive-app/drive-app.ts",
 				worker: "src/applications/drive-app/workerUtils/worker/drive-worker.ts",
 			}
+		default:
+			throw new Error(`Unknown app: ${app}`)
 	}
 }
 
@@ -455,5 +475,7 @@ export function appTypeForApp(app) {
 			return `"2"`
 		case "drive":
 			return `"3"`
+		default:
+			throw new Error(`Unknown app: ${app}`)
 	}
 }

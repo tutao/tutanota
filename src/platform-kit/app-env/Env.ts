@@ -1,6 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./TsPlatformConstants"
-import { TypeChecks } from "./TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -91,7 +90,6 @@ export const enum Mode {
 	Browser = "Browser",
 	App = "App",
 	Test = "Test",
-	Playground = "Playground",
 	Desktop = "Desktop",
 	Admin = "Admin",
 }
@@ -104,28 +102,15 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
-	private static boot: boolean =
-		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
-
-	private static singleton: EnvProvider | null = null
+	private static singleton: EnvProvider = new EnvProvider(env)
+	private static boot: boolean = _isNode && !_isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	public static get(): EnvProvider {
-		EnvProvider.tryInitWithGlobalEnv()
-		if (EnvProvider.singleton == null) {
-			throw new Error("global var env is not defined yet")
-		}
 		return EnvProvider.singleton
 	}
 
 	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
-	}
-
-	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider(env)
-		}
-		return EnvProvider.singleton
 	}
 
 	public getVersionNumber(): string {
@@ -136,7 +121,11 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	private constructor(public readonly env: EnvType) {}
+	private constructor(private readonly env: EnvType) {}
+
+	public getStringifiedEnv(): string {
+		return JSON.stringify(this.env)
+	}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -163,6 +152,10 @@ export class EnvProvider {
 
 	public getPathPrefix(): string {
 		return this.env.shadowDomAppRoot != null ? this.env.shadowDomAppRoot : ""
+	}
+
+	public setPathPrefix(pathPrefix: string): void {
+		this.env.shadowDomAppRoot = pathPrefix
 	}
 
 	/**
@@ -204,6 +197,10 @@ export class EnvProvider {
 		return this.env.mode === Mode.Admin
 	}
 
+	public getMode(): Mode {
+		return this.env.mode
+	}
+
 	isElectronClient(): boolean {
 		return this.isDesktop() || this.isAdminClient()
 	}
@@ -225,8 +222,7 @@ export class EnvProvider {
 	}
 
 	public static isTest(): boolean {
-		EnvProvider.tryInitWithGlobalEnv()
-		return EnvProvider.singleton?.env.mode === Mode.Test
+		return EnvProvider.get().env.mode === Mode.Test
 	}
 
 	/**
