@@ -101,6 +101,7 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
+	public readonly env: EnvType
 	private static boot: boolean =
 		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
@@ -120,7 +121,7 @@ export class EnvProvider {
 
 	private static tryInitWithGlobalEnv(): EnvProvider | null {
 		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider(env)
+			EnvProvider.singleton = new EnvProvider()
 		}
 		return EnvProvider.singleton
 	}
@@ -133,7 +134,9 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	private constructor(public readonly env: EnvType) {}
+	public constructor() {
+		this.env = globalThis.env
+	}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -222,8 +225,7 @@ export class EnvProvider {
 	}
 
 	public static isTest(): boolean {
-		EnvProvider.tryInitWithGlobalEnv()
-		return EnvProvider.singleton?.env.mode === Mode.Test
+		return EnvProvider.get().env.mode === Mode.Test
 	}
 
 	/**

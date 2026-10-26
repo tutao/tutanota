@@ -252,7 +252,11 @@ export interface AggregatedEntity extends Entity {
 
 export const NullEntityTypeRef = new TypeRef<NullEntity>("non-existant-app", 0)
 class NullEntityBrand extends TsBrand {
-	protected __brand: Nullable<never> = null
+	protected __brand: Nullable<never>
+	public constructor() {
+		super()
+		this.__brand = null
+	}
 }
 export type NullEntity = BrandedType<DataTransferEntity, NullEntityBrand>
 export const NULL_ENTITY: NullEntity = {
