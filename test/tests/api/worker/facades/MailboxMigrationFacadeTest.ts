@@ -108,12 +108,13 @@ o.spec("MailboxMigrationFacade", () => {
 				oAuthToken: null,
 			},
 			matchMigrationMailboxesToTutaMailSets: false,
+			sharedMailboxName: null,
 			imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 				host: "imap.test.com",
 				port: "993",
-				sharedUsername: null,
+				legacyUsername: null,
 				sharedPassword: null,
-				sharedOauthToken: null,
+				legacyOauthToken: null,
 				ignoreCertificateErrors: false,
 				customCertificateData: null,
 			}),
@@ -123,8 +124,8 @@ o.spec("MailboxMigrationFacade", () => {
 
 		when(mailFacadeMock.createMailFolder("Migration Import", null, mailGroupId)).thenResolve(rootImportMailFolderIdMock)
 
-		const userMigrationInformationIdMock: IdTuple = ["userMigrationInfosListId", "userMigrationInfoElementId"]
-		when(serviceExecutorMock.execute(UserMigrationService_POST, anything(), anything())).thenResolve({ userMigrationInfo: userMigrationInformationIdMock })
+		const userMigrationInfoIdMock: IdTuple = ["userMigrationInfosListId", "userMigrationInfoElementId"]
+		when(serviceExecutorMock.execute(UserMigrationService_POST, anything(), anything())).thenResolve({ userMigrationInfo: userMigrationInfoIdMock })
 
 		const mailboxMigrationPostOutMock = { mailboxMigrationSyncState: mailboxMigrationSyncStateIdMock }
 		when(serviceExecutorMock.execute(MailboxMigrationService_POST, anything(), anything())).thenResolve(mailboxMigrationPostOutMock)
@@ -152,6 +153,7 @@ o.spec("MailboxMigrationFacade", () => {
 				shouldMigrateSpamFolder: false,
 				spamMailbox: null,
 			},
+			sharedMailboxName: null,
 			imapConfiguration: { ignoreCertificateErrors: false, customCertificateData: null } as any,
 			migrationSyncLabelData: null,
 			provider: MailboxMigrationProvider.Outlook,

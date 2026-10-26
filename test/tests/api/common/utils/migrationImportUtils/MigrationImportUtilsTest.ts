@@ -24,7 +24,7 @@ import {
 	MailboxMigrationSyncStateTypeRef,
 	OAuthTokenEndpointResponseLegacyTypeRef,
 } from "@tutao/entities/tutanota"
-import { UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import { UserMigrationInfoTypeRef } from "@tutao/entities/sys"
 import { MigrationImportAttachments, MigrationImportDataFile } from "../../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
 import { MailboxMigrationProvider } from "../../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 
@@ -47,11 +47,11 @@ o.spec("MigrationImportUtils", () => {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					sharedUsername: "user@test.com",
+					legacyUsername: "user@test.com",
 					sharedPassword: "secret",
-					sharedOauthToken: null,
+					legacyOauthToken: null,
 				}),
-				legacyProvider: MailboxMigrationProvider.Other.toString(),
+				provider: MailboxMigrationProvider.Other.toString(),
 			})
 			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
 			o.check(result.host).equals("imap.test.com")
@@ -73,11 +73,11 @@ o.spec("MigrationImportUtils", () => {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					sharedUsername: "user@test.com",
+					legacyUsername: "user@test.com",
 					sharedPassword: null,
-					sharedOauthToken: tokenResponseMock,
+					legacyOauthToken: tokenResponseMock,
 				}),
-				legacyProvider: MailboxMigrationProvider.Gmail.toString(),
+				provider: MailboxMigrationProvider.Gmail.toString(),
 			})
 			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
 			o.check(result.tokenEndpointResponse!.access_token).equals("access123")
@@ -87,18 +87,18 @@ o.spec("MigrationImportUtils", () => {
 			o.check(result.provider).equals(MailboxMigrationProvider.Gmail)
 		})
 
-		o.test("prefers shared credential and provider when present", () => {
+		o.test("prefers shared credential when present", () => {
 			const migrationSyncStateMock = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					sharedUsername: "fallback@test.com",
+					legacyUsername: "fallback@test.com",
 					sharedPassword: "fallbackSecret",
-					sharedOauthToken: null,
+					legacyOauthToken: null,
 				}),
-				legacyProvider: MailboxMigrationProvider.Other.toString(),
+				provider: MailboxMigrationProvider.Outlook.toString(),
 			})
-			const userMigrationInformationMock = createTestEntity(UserMigrationInformationTypeRef, {
+			const userMigrationInfoMock = createTestEntity(UserMigrationInfoTypeRef, {
 				provider: MailboxMigrationProvider.Outlook.toString(),
 				credential: {
 					_id: "credentialId",
@@ -107,7 +107,7 @@ o.spec("MigrationImportUtils", () => {
 					oAuthToken: null,
 				} as any,
 			})
-			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, userMigrationInformationMock)
+			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, userMigrationInfoMock)
 			o.check(result.username).equals("fallback@test.com")
 			o.check(result.password).equals("fallbackSecret")
 			o.check(result.provider).equals(MailboxMigrationProvider.Outlook)

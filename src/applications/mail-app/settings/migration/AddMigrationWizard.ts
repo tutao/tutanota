@@ -21,14 +21,14 @@ EnvProvider.assertMainOrNode()
 export type MigrationData = {
 	provider: MailboxMigrationProvider
 	username: string
-	imapHost: string
-	imapPort: number
+	imapHost?: string
+	imapPort?: number
 	imapPassword?: string
 	oauthConfig?: OauthConfigParams
 	oAuthToken?: TokenEndpointResponse
 	useSSL: boolean
-	customCertificateData: Uint8Array<ArrayBuffer> | null
-	ignoreCertificateErrors: boolean
+	customCertificateData?: Uint8Array<ArrayBuffer> | null
+	ignoreCertificateErrors?: boolean
 	rootImportMailSetName: string
 	syncLabelData: ManageLabelServiceLabelData | null
 	addLabelToImportedMails: boolean

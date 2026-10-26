@@ -16,15 +16,15 @@ export type MigrationMailboxState = {
 }
 
 export type MigrationCredentials = {
-	host: string
-	port: number
 	username: string
 	password?: string
 	tokenEndpointResponse?: TokenEndpointResponse
-	customCertificateData: Uint8Array<ArrayBuffer> | null
-	ignoreCertificateErrors: boolean
-	useSSL: boolean | null
 	provider: MailboxMigrationProvider
+	host?: string
+	port?: number
+	customCertificateData?: Uint8Array<ArrayBuffer> | null
+	ignoreCertificateErrors?: boolean
+	useSSL?: boolean | null
 	isLegacy: boolean
 }
 

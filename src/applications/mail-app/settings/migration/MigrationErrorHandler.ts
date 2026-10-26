@@ -1,7 +1,7 @@
 import { getServerMigrationConfigForProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
-import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import { UserMigrationInfo, UserMigrationInfoTypeRef } from "@tutao/entities/sys"
 import {
 	findUserMigrationInfoForSyncState,
 	getMailboxMigrationCredential,
@@ -97,10 +97,10 @@ export class MigrationErrorHandler {
 		},
 	) {}
 
-	private async loadUserMigrationInfoForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInformation | null> {
+	private async loadUserMigrationInfoForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInfo | null> {
 		const userMigrationInfoListId = this.loginController.getUserController().user.userMigrationInfos
 		if (userMigrationInfoListId) {
-			const userMigrationInfos = await this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfoListId)
+			const userMigrationInfos = await this.entityClient.loadAll(UserMigrationInfoTypeRef, userMigrationInfoListId)
 			return findUserMigrationInfoForSyncState(userMigrationInfos, migrationSyncStateId)
 		} else {
 			// legacy case
@@ -155,8 +155,8 @@ export class MigrationErrorHandler {
 
 	async handleAuthError(mailboxMigrationSyncStateId: IdTuple) {
 		const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId)
-		const userMigrationInformation = await this.loadUserMigrationInfoForSyncState(mailboxMigrationSyncStateId)
-		const mailboxMigrationCredential = getMailboxMigrationCredential(mailboxMigrationSyncState, userMigrationInformation)
+		const userMigrationInfo = await this.loadUserMigrationInfoForSyncState(mailboxMigrationSyncStateId)
+		const mailboxMigrationCredential = getMailboxMigrationCredential(mailboxMigrationSyncState, userMigrationInfo)
 		const isOAuth = mailboxMigrationCredential.provider !== MailboxMigrationProvider.Other
 
 		if (isOAuth) {
@@ -172,19 +172,19 @@ export class MigrationErrorHandler {
 
 						// When refreshing a token, the refresh token itself is not part of the response, so we must *not*
 						// replace the entire response.
-						if (userMigrationInformation?.credential) {
+						if (userMigrationInfo?.credential) {
 							const oAuthToken = tokenEndpointResponseToOAuthToken(tokenEndpointResponse)
 							if (oAuthToken.refreshToken === null) {
 								oAuthToken.refreshToken = previousRefreshToken
 							}
-							userMigrationInformation.credential.oAuthToken = oAuthToken
-							await this.entityClient.update(userMigrationInformation)
+							userMigrationInfo.credential.oAuthToken = oAuthToken
+							await this.entityClient.update(userMigrationInfo)
 						} else {
 							const oAuthTokenEndpointResponse = tokenEndpointResponseToOAuthTokenEndpointResponseLegacy(tokenEndpointResponse)
 							if (oAuthTokenEndpointResponse.refreshToken === null) {
 								oAuthTokenEndpointResponse.refreshToken = previousRefreshToken
 							}
-							assertNotNull(mailboxMigrationSyncState.imapConfiguration).sharedOauthToken = oAuthTokenEndpointResponse
+							assertNotNull(mailboxMigrationSyncState.imapConfiguration).legacyOauthToken = oAuthTokenEndpointResponse
 							await this.entityClient.update(mailboxMigrationSyncState)
 						}
 

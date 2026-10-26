@@ -11,7 +11,7 @@ import {
 	MailboxMigrationSyncState,
 	OAuthTokenEndpointResponseLegacy,
 } from "@tutao/entities/tutanota"
-import { createOAuthToken, OAuthToken, UserMigrationInformation } from "@tutao/entities/sys"
+import { createOAuthToken, OAuthToken, UserMigrationInfo } from "@tutao/entities/sys"
 import { ImportMailParams, MigrationImportAttachments, MigrationImportDataFile } from "../../../worker/facades/lazy/ImportMailFacade"
 import {
 	CalendarMethod,
@@ -41,24 +41,31 @@ export type MailboxMigrationCredential = {
 
 export function getMailboxMigrationCredential(
 	migrationSyncState: MailboxMigrationSyncState,
-	userMigrationInformation: UserMigrationInformation | null,
+	userMigrationInfo: UserMigrationInfo | null,
 ): MailboxMigrationCredential {
 	const imapConfiguration = migrationSyncState.imapConfiguration
 
-	if (userMigrationInformation) {
-		const userMigrationCredential = userMigrationInformation.credential
+	if (userMigrationInfo) {
+		const userMigrationCredential = userMigrationInfo.credential
 		return {
-			provider: parseInt(assertNotNull(userMigrationInformation?.provider)) as MailboxMigrationProvider,
-			username: imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
+			provider: parseInt(userMigrationInfo.provider) as MailboxMigrationProvider,
+			username: migrationSyncState.sharedMailboxName ?? imapConfiguration?.legacyUsername ?? userMigrationCredential.username,
 			password: imapConfiguration?.sharedPassword ?? userMigrationCredential?.password ?? null,
-			oAuthToken: imapConfiguration?.sharedOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
+			oAuthToken: imapConfiguration?.legacyOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
 		}
 	} else if (imapConfiguration) {
 		return {
-			provider: parseInt(assertNotNull(migrationSyncState.legacyProvider)) as MailboxMigrationProvider,
-			username: assertNotNull(imapConfiguration.sharedUsername),
+			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
+			username: migrationSyncState.sharedMailboxName ?? assertNotNull(imapConfiguration.legacyUsername),
 			password: imapConfiguration.sharedPassword,
-			oAuthToken: imapConfiguration.sharedOauthToken,
+			oAuthToken: imapConfiguration.legacyOauthToken,
+		}
+	} else if (migrationSyncState.sharedMailboxName !== null) {
+		return {
+			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
+			username: migrationSyncState.sharedMailboxName,
+			password: null,
+			oAuthToken: null,
 		}
 	} else {
 		throw new ProgrammingError("no mailbox migration credential available")
@@ -66,12 +73,12 @@ export function getMailboxMigrationCredential(
 }
 
 export function findUserMigrationInfoForSyncState(
-	userMigrationInformationList: ReadonlyArray<UserMigrationInformation>,
+	userMigrationInfoList: ReadonlyArray<UserMigrationInfo>,
 	migrationSyncStateId: IdTuple,
-): UserMigrationInformation | null {
+): UserMigrationInfo | null {
 	return (
-		userMigrationInformationList.find((userMigrationInformation) => {
-			const syncStateRefs = userMigrationInformation.mailboxMigrationSyncStates
+		userMigrationInfoList.find((userMigrationInfo) => {
+			const syncStateRefs = userMigrationInfo.mailboxMigrationSyncStates
 			return syncStateRefs.find((wrapper) => isSameId([wrapper.listId, wrapper.listElementId], migrationSyncStateId))
 		}) ?? null
 	)
@@ -79,25 +86,22 @@ export function findUserMigrationInfoForSyncState(
 
 export function migrationSyncStateToMigrationCredentials(
 	migrationSyncState: MailboxMigrationSyncState,
-	userMigrationInformation: UserMigrationInformation | null,
+	userMigrationInfo: UserMigrationInfo | null,
 ): MigrationCredentials {
-	const mailboxMigrationImapConfiguration = assertNotNull(migrationSyncState.imapConfiguration)
-	const migrationCredential = getMailboxMigrationCredential(migrationSyncState, userMigrationInformation)
-	const migrationCredentials: MigrationCredentials = {
-		host: mailboxMigrationImapConfiguration.host,
-		port: parseInt(mailboxMigrationImapConfiguration.port),
+	const mailboxMigrationImapConfiguration = migrationSyncState.imapConfiguration
+	const migrationCredential = getMailboxMigrationCredential(migrationSyncState, userMigrationInfo)
+	return {
 		username: migrationCredential.username,
-		ignoreCertificateErrors: mailboxMigrationImapConfiguration.ignoreCertificateErrors,
-		customCertificateData: mailboxMigrationImapConfiguration.customCertificateData,
+		password: migrationCredential.password ?? undefined,
+		tokenEndpointResponse: migrationCredential.oAuthToken !== null ? oAuthTokenToTokenEndpointResponse(migrationCredential.oAuthToken) : undefined,
 		provider: migrationCredential.provider,
-		useSSL: mailboxMigrationImapConfiguration.useSSL,
-		isLegacy: userMigrationInformation === null,
+		host: mailboxMigrationImapConfiguration?.host,
+		port: mailboxMigrationImapConfiguration ? parseInt(mailboxMigrationImapConfiguration.port) : undefined,
+		ignoreCertificateErrors: mailboxMigrationImapConfiguration?.ignoreCertificateErrors,
+		customCertificateData: mailboxMigrationImapConfiguration?.customCertificateData,
+		useSSL: mailboxMigrationImapConfiguration?.useSSL,
+		isLegacy: userMigrationInfo === null,
 	}
-	migrationCredentials.password = migrationCredential.password ?? undefined
-	migrationCredentials.tokenEndpointResponse =
-		migrationCredential.oAuthToken !== null ? oAuthTokenToTokenEndpointResponse(migrationCredential.oAuthToken) : undefined
-
-	return migrationCredentials
 }
 
 export function oAuthTokenToTokenEndpointResponse(oAuthToken: OAuthToken | OAuthTokenEndpointResponseLegacy): TokenEndpointResponse {

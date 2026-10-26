@@ -5,7 +5,7 @@ import { MailModel } from "../../mail/model/MailModel"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { assertNotNull, first } from "@tutao/utils"
 import { MailBox, MailboxMigrationSyncState, MailboxMigrationSyncStateTypeRef } from "@tutao/entities/tutanota"
-import { UserMigrationInformation, UserMigrationInformationTypeRef } from "@tutao/entities/sys"
+import { UserMigrationInfo, UserMigrationInfoTypeRef } from "@tutao/entities/sys"
 import { MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { collapseId, getElementId, OperationType } from "@tutao/meta"
 import { MailboxMigrationSyncStatus } from "../../../../entities/tutanota/Utils"
@@ -77,13 +77,13 @@ export class MailboxMigrationController {
 		})
 	}
 
-	private async loadUserMigrationInformationForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInformation | null> {
+	private async loadUserMigrationInfoForSyncState(migrationSyncStateId: IdTuple): Promise<UserMigrationInfo | null> {
 		const userMigrationInfosListId = mailLocator.logins.getUserController().user.userMigrationInfos
 		if (userMigrationInfosListId === null) {
 			return null
 		}
-		const userMigrationInformationList = await this.entityClient.loadAll(UserMigrationInformationTypeRef, userMigrationInfosListId)
-		return findUserMigrationInfoForSyncState(userMigrationInformationList, migrationSyncStateId)
+		const userMigrationInfoList = await this.entityClient.loadAll(UserMigrationInfoTypeRef, userMigrationInfosListId)
+		return findUserMigrationInfoForSyncState(userMigrationInfoList, migrationSyncStateId)
 	}
 
 	private async onEntityUpdatesReceived(updates: ReadonlyArray<EntityUpdateData>) {
@@ -95,8 +95,8 @@ export class MailboxMigrationController {
 
 					const shouldDisplayCredentialsDialog = mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.AUTH_ERROR
 					if (shouldDisplayCredentialsDialog) {
-						const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(mailboxMigrationSyncStateId)
-						this.displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState, userMigrationInformation)
+						const userMigrationInfo = await this.loadUserMigrationInfoForSyncState(mailboxMigrationSyncStateId)
+						this.displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState, userMigrationInfo)
 					}
 					const shouldDisplayErrorDialog =
 						mailboxMigrationSyncState.status === MailboxMigrationSyncStatus.ERROR ||
@@ -121,20 +121,17 @@ export class MailboxMigrationController {
 
 	public async promptUpdateMigrationCredentialsDialog(mailboxMigrationSyncStateId: IdTuple) {
 		const mailboxMigrationSyncState = await this.entityClient.load(MailboxMigrationSyncStateTypeRef, mailboxMigrationSyncStateId)
-		const userMigrationInformation = await this.loadUserMigrationInformationForSyncState(mailboxMigrationSyncStateId)
-		this.displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState, userMigrationInformation)
+		const userMigrationInfo = await this.loadUserMigrationInfoForSyncState(mailboxMigrationSyncStateId)
+		this.displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState, userMigrationInfo)
 	}
 
-	private displayUpdateMigrationCredentialsDialog(
-		mailboxMigrationSyncState: MailboxMigrationSyncState,
-		userMigrationInformation: UserMigrationInformation | null,
-	) {
+	private displayUpdateMigrationCredentialsDialog(mailboxMigrationSyncState: MailboxMigrationSyncState, userMigrationInfo: UserMigrationInfo | null) {
 		if (!this.isDisplayingOauthCredentialPopup) {
 			this.isDisplayingOauthCredentialPopup = true
 			showUpdateMigrationCredentialsDialog(
 				{
 					syncState: mailboxMigrationSyncState,
-					userMigrationInformation,
+					userMigrationInfo,
 					oauthHandlerFactory: (config, serviceExecutor) => new OAuthHandler(config, serviceExecutor),
 				},
 				async (dialog, updatedCredentials) => {
@@ -142,8 +139,8 @@ export class MailboxMigrationController {
 						mailboxMigrationSyncState.imapConfiguration = updatedCredentials.mailboxMigrationImapConfiguration
 						mailboxMigrationSyncState.status = MailboxMigrationSyncStatus.PAUSED
 						await this.entityClient.update(mailboxMigrationSyncState)
-						if (updatedCredentials.userMigrationInformation) {
-							await this.entityClient.update(updatedCredentials.userMigrationInformation)
+						if (updatedCredentials.userMigrationInfo) {
+							await this.entityClient.update(updatedCredentials.userMigrationInfo)
 						}
 						await this.continueImport(mailboxMigrationSyncState._id)
 						dialog.close()
