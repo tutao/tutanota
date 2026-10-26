@@ -485,6 +485,9 @@ o.spec("CachingOfflineStorageTest", function () {
 			})
 
 			o.test("getIdsInRange", async () => {
+				const otherMailSetEntryIds = ["otherMailSetEntryId1", "otherMailSetEntryId2", "otherMailSetEntryId3"]
+				when(fastCacheMock.getIdsInRange(MailSetEntryTypeRef, listId)).thenReturn(Promise.resolve(otherMailSetEntryIds))
+
 				const result = await cachingOfflineStorage.getIdsInRange(MailSetEntryTypeRef, listId)
 
 				verify(fastCacheMock.getIdsInRange(MailSetEntryTypeRef, listId))
@@ -502,17 +505,6 @@ o.spec("CachingOfflineStorageTest", function () {
 				verify(delegateMock.getIdsInRange(MailSetEntryTypeRef, listId), { times: 0 })
 
 				o.check(result).deepEquals([])
-			})
-
-			o.test("getIdsInRange - fastCache NOT empty", async () => {
-				when(fastCacheMock.getIdsInRange(MailSetEntryTypeRef, listId)).thenReturn(Promise.resolve(mailSetEntryIds))
-
-				const result = await cachingOfflineStorage.getIdsInRange(MailSetEntryTypeRef, listId)
-
-				verify(fastCacheMock.getIdsInRange(MailSetEntryTypeRef, listId))
-				verify(delegateMock.getIdsInRange(MailSetEntryTypeRef, listId), { times: 0 })
-
-				o.check(result).deepEquals(mailSetEntryIds)
 			})
 		})
 

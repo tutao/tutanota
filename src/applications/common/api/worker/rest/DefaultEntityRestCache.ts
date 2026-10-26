@@ -313,7 +313,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		if (behavior.writesToCache) {
 			if (range == null) {
 				await this.populateNewListWithRange(typeRef, listId, start, count, reverse, opts)
-			} else if (isStartIdWithinRange(range, start, typeModel)) {
+			} else if (isIdWithinRange(range, start, typeModel)) {
 				await this.extendFromWithinRange(typeRef, listId, start, count, reverse, opts)
 			} else if (isRangeRequestAwayFromExistingRange(range, reverse, start, typeModel)) {
 				await this.extendAwayFromRange(typeRef, listId, start, count, reverse, opts)
@@ -322,7 +322,7 @@ export class DefaultEntityRestCache implements EntityRestCache {
 			}
 			return await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
 		} else {
-			if (range && isStartIdWithinRange(range, start, typeModel)) {
+			if (range && isIdWithinRange(range, start, typeModel)) {
 				const provided = await this.cacheStorage.provideFromRange(typeRef, listId, start, count, reverse)
 				const { newStart, newCount } = await this.recalculateRangeRequest(typeRef, listId, start, count, reverse)
 				const newElements = newCount > 0 ? await this.entityRestClient.loadRange(typeRef, listId, newStart, newCount, reverse) : []
@@ -550,17 +550,20 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		count: number,
 		reverse: boolean,
 	): Promise<{ newStart: string; newCount: number }> {
-		let allRangeList = await this.cacheStorage.getIdsInRange(typeRef, listId)
-		let elementsToRead = count
-		let startElementId = start
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
 		const range = await this.cacheStorage.getRangeForList(typeRef, listId)
-		if (range == null) {
+		const allRangeList = await this.cacheStorage.getIdsInRange(typeRef, listId)
+
+		if (range == null || allRangeList.some((id) => !isIdWithinRange(range, id, typeModel))) {
+			console.warn(`cannot recalculate range request. type: ${getTypeString(typeRef)}, list: ${listId}, lower: ${range?.lower}, upper: ${range?.upper}`)
 			return { newStart: start, newCount: count }
 		}
-		const { lower, upper } = range
-		let indexOfStart = allRangeList.indexOf(start)
 
-		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+		let elementsToRead = count
+		let startElementId = start
+		let indexOfStart = allRangeList.indexOf(start)
+		const { lower, upper } = range
+
 		const isCustomId = isCustomIdType(typeModel)
 		const idEncoding = getServerIdEncodingForType(typeModel)
 		if (
@@ -852,11 +855,11 @@ export class DefaultEntityRestCache implements EntityRestCache {
 }
 
 /**
- * Check if a range request begins inside an existing range
+ * Check if a list element id is within an existing range
  */
-function isStartIdWithinRange(range: Range, startId: Id, typeModel: TypeModel): boolean {
+function isIdWithinRange(range: Range, listElementId: Id, typeModel: TypeModel): boolean {
 	const idEncoding = getServerIdEncodingForType(typeModel)
-	return !firstBiggerThanSecond(startId, range.upper, idEncoding) && !firstBiggerThanSecond(range.lower, startId, idEncoding)
+	return !firstBiggerThanSecond(listElementId, range.upper, idEncoding) && !firstBiggerThanSecond(range.lower, listElementId, idEncoding)
 }
 
 /**
