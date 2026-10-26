@@ -749,9 +749,11 @@ o.spec("HtmlSanitizer", function () {
 				let result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
 					blockExternalContent: true,
 				})
-				o.check(result.blockedExternalContent).equals(1)
+				// This counter won't be incremented for content that will always be removed
+				o.check(result.blockedExternalContent).equals(0)
 				o.check(result.html).equals("<div></div>")
 				result = htmlSanitizer.sanitizeHTML('<div><embed src="https://tutanota.com/images/favicon/favicon.ico"></div>', {
+					// Even after the user unblocks external content, we still refuse to allow <embed>
 					blockExternalContent: false,
 				})
 				o.check(result.blockedExternalContent).equals(0)
