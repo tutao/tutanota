@@ -12,8 +12,8 @@ import {
 	CalendarTimeGrid,
 	CalendarTimeGridAttributes,
 	getIntervalAsMinutes,
-	ROW_CONFIG_FOR_EVENT_BANNER,
 	SUBROWS_PER_INTERVAL,
+	TIME_GRID_ROW_HEIGHT,
 	TimeRange,
 	TimeScale,
 } from "../../../common/calendar/gui/CalendarTimeGrid"
@@ -145,7 +145,6 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 
 	private renderConflictTimeGrid(attrs: TimeOverviewAttrs, gridParams: GridParams | null): Children {
 		const { agenda, amPm } = attrs
-		const rowConfig = ROW_CONFIG_FOR_EVENT_BANNER
 
 		if (agenda && gridParams) {
 			return m(".flex.rel", [
@@ -155,7 +154,7 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 						width: this.timeColumnWidth,
 						subColumnCount: 1,
 						rowCount: gridParams.rowCountForRange,
-						gridRowHeight: rowConfig.rowHeight,
+						gridRowHeight: TIME_GRID_ROW_HEIGHT,
 					},
 					amPm: amPm,
 				} satisfies CalendarTimeColumnAttrs),
@@ -173,7 +172,6 @@ export class TimeOverview implements ClassComponent<TimeOverviewAttrs> {
 						dates: [getStartOfDay(agenda.main.event.startTime)],
 						intervals: gridParams.intervals,
 						layout: {
-							gridRowConfig: rowConfig,
 							rowCountForRange: gridParams.rowCountForRange,
 							hideRightBorder: true,
 							showLeftBorderAtFirstColumn: false,
