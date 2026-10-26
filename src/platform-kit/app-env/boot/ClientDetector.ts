@@ -2,7 +2,7 @@ import { EnvProvider, PlatformId } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { AppType } from "../AppType"
 import {
-	assertNotNull,
+	assert,
 	console,
 	isNotNull,
 	isNull,
@@ -26,12 +26,8 @@ export class ClientDetector {
 	public readonly browser: BrowserType
 	public readonly device: DeviceType
 
-	/** @TMutableStaticSafety MainThreadInitialized */
-	private static singleton: ClientDetector | null = null
-
-	/** @TTranspileIgnore This method is only used from locator */
 	public static get(): ClientDetector {
-		return assertNotNull(ClientDetector.singleton, "Should call .init() method before using ClientDetector")
+		throw new Error("Todo")
 	}
 
 	private constructor(
@@ -64,8 +60,7 @@ export class ClientDetector {
 				return false
 			})
 
-		ClientDetector.singleton = new ClientDetector(envProvider, userAgent, appType, isAutomatedBrowser, platform)
-		return ClientDetector.singleton
+		return new ClientDetector(envProvider, userAgent, appType, isAutomatedBrowser, platform)
 	}
 
 	getUserAgent(): NonNullable<TsString> {
@@ -87,18 +82,18 @@ export class ClientDetector {
 		let browser: BrowserType = BrowserType.OTHER
 		let browserVersion: Nullable<TsDouble> = null
 
-		const operaIndex1: TsInt = userAgent.indexOf("Opera")
-		const operaIndex2: TsInt = userAgent.indexOf("OPR/")
-		const firefoxIndex: TsInt = userAgent.indexOf("Firefox/")
-		const paleMoonIndex: TsInt = userAgent.indexOf("PaleMoon/")
-		const iceweaselIndex: TsInt = userAgent.indexOf("Iceweasel/")
-		const chromeIndex: TsInt = userAgent.indexOf("Chrome/")
-		const chromeIosIndex: TsInt = userAgent.indexOf("CriOS/")
-		const safariIndex: TsInt = userAgent.indexOf("Safari/")
-		const edgeIndex: TsInt = userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
+		const operaIndex1 = userAgent.indexOf("Opera")
+		const operaIndex2 = userAgent.indexOf("OPR/")
+		const firefoxIndex = userAgent.indexOf("Firefox/")
+		const paleMoonIndex = userAgent.indexOf("PaleMoon/")
+		const iceweaselIndex = userAgent.indexOf("Iceweasel/")
+		const chromeIndex = userAgent.indexOf("Chrome/")
+		const chromeIosIndex = userAgent.indexOf("CriOS/")
+		const safariIndex = userAgent.indexOf("Safari/")
+		const edgeIndex = userAgent.indexOf("Edge") // "Old" edge based on EdgeHTML, "new" one based on Blink has only "Edg"
 
-		const androidIndex: TsInt = userAgent.indexOf("Android")
-		let versionIndex: TsInt = -1
+		const androidIndex = userAgent.indexOf("Android")
+		let versionIndex = -1
 
 		if (edgeIndex !== -1) {
 			browser = BrowserType.EDGE
@@ -242,12 +237,11 @@ export class ClientDetector {
 
 	getIdentifier(): TsString {
 		const platformId = this.envProvider.getPlatformId()
-
 		if (this.envProvider.isApp()) {
 			if (this.appType === AppType.Integrated) {
 				throw new ProgrammingError("AppType.Integrated is not allowed for mobile apps")
 			}
-			const appType: TsString = this.appType === AppType.Mail ? "Mail" : "Calendar"
+			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
 			return `${this.device} ${appType} App`
 		} else if (this.envProvider.isBrowser()) {
 			return LangApiEnum.getStringEnumValue(this.browser) + " Browser"
@@ -334,6 +328,12 @@ export class ClientDetector {
 			// Fallback
 			return ClientPlatform.UNKNOWN
 		}
+	}
+
+	public overrideDeviceForTest(device: DeviceType): this {
+		assert(this.envProvider.isTest(), "This method is only supposed to be used from test")
+		;(this.device satisfies DeviceType) = device
+		return this
 	}
 }
 

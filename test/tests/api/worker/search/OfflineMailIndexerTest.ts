@@ -55,11 +55,10 @@ import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pip
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { Aes256Key, AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { ArchiveDownloaderFacade, ArchiveDownloadRangeHeaders } from "../../../../../src/app-kit/native-bridge/common/generatedipc/types"
-import { Aes256Key } from "../../../../../src/platform-kit/crypto"
 import { ArchiveMetadataTypeRef } from "@tutao/entities/storage"
 
 const TEST_INDEX_CHUNK_SIZE = 50
@@ -332,7 +331,7 @@ o.spec("OfflineMailIndexer", () => {
 			{
 				groupId: mailGroupId,
 				type: GroupType.Mail,
-				indexedTimestamp: FULL_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: GENERATED_MIN_ID,
 				lastIndexedEntityElementId: GENERATED_MIN_ID,
 			},
@@ -363,7 +362,7 @@ o.spec("OfflineMailIndexer", () => {
 			{
 				groupId: mailGroupId,
 				type: GroupType.Mail,
-				indexedTimestamp: NOTHING_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.NOTHING_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: GENERATED_MIN_ID,
 				lastIndexedEntityElementId: GENERATED_MIN_ID,
 			},

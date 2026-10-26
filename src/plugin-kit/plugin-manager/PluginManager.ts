@@ -12,6 +12,7 @@ import { PluginId, pluginIdFromString } from "../sdk/PluginId"
 import { CustomerConfigPluginError } from "../sdk/PluginError"
 import { PluginManifest } from "../sdk/PluginManifest"
 import { PLUGIN_REGISTRY } from "./PluginRegistry"
+import { RuntimeInfo } from "@tutao/lang-api"
 
 type PluginWrapper = {
 	pluginId: PluginId
@@ -61,7 +62,7 @@ export class PluginManager {
 			const { pluginApi, pluginAsWorker } = PluginApi.newPluginFromFile(pluginIdToEnable, pluginHost, this.dialogAdapter)
 			pluginHost.initialize(pluginManifest)
 
-			await pluginApi.setupEnv(EnvProvider.get().getEnvAsJson())
+			await pluginApi.setupEnv(RuntimeInfo.globallyDefinedEnv())
 			await pluginApi.load(pluginManifest)
 
 			let draftConfig: Record<string, any>

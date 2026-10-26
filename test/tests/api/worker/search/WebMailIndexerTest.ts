@@ -10,12 +10,7 @@ import {
 	LEGACY_TO_RECIPIENTS_ID,
 	timestampToGeneratedId,
 } from "../../../../../src/platform-kit/meta"
-import {
-	_getCurrentIndexTimestamp,
-	INITIAL_MAIL_INDEX_INTERVAL_DAYS,
-	MboxIndexData,
-	WebMailIndexer,
-} from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
+import { _getCurrentIndexTimestamp, MboxIndexData, WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
 import { assertNotNull, defer, delay, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"

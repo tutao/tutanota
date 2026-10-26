@@ -84,12 +84,12 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 			await runDevBuild({
 				stage,
 				host,
-				desktop: false,
 				clean: false,
 				watch: false,
 				serve: false,
 				networkDebugging: false,
 				app,
+				mode: "App",
 				shadowDomAppRoot: null,
 			})
 		} else {
@@ -103,6 +103,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				measure,
 				app,
 				mobileBuild: true,
+				mode: "App",
 			})
 		}
 	} else {

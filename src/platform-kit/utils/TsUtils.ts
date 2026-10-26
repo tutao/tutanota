@@ -1,6 +1,5 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils.js"
 import { TypeChecks } from "../app-env/TsTypeChecks.js"
-
 export { BrandedType, TsBrand } from "@tutao/lang-api"
 
 // This file is not transpiled
