@@ -9,12 +9,10 @@ public let TUTANOTA_SCHEME = "tutanota"
 public let MAILTO_SCHEME = "mailto"
 
 @main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-	var window: UIWindow?
-
 	private var remoteNotificationsContinuation: CheckedContinuation<String, any Error>?
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
-	private var viewController: ViewController!
+	var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
 	private var notificationStorage: UserPrefsNotificationStorage!
@@ -54,8 +52,6 @@ public let MAILTO_SCHEME = "mailto"
 			httpClient: httpClient,
 			dateProvider: dateProvider
 		)
-		self.window = UIWindow(frame: UIScreen.main.bounds)
-
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let credentialsEncryption = IosNativeCredentialsFacade(
 			keychainEncryption: keychainEncryption,
@@ -78,11 +74,9 @@ public let MAILTO_SCHEME = "mailto"
 			urlSession: self.urlSession,
 			tempFs: tempFs,
 		)
-		self.window!.rootViewController = viewController
-
 		UNUserNotificationCenter.current().delegate = self
 
-		window!.makeKeyAndVisible()
+		self.viewController.loadViewIfNeeded()
 	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -99,7 +93,7 @@ public let MAILTO_SCHEME = "mailto"
 		return true
 	}
 
-	func applicationDidBecomeActive(_ application: UIApplication) {
+	func sceneDidBecomeActive() {
 		// if running unit tests do not try to use components that might not be there
 		#if DEBUG
 			if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil { return }
@@ -122,7 +116,7 @@ public let MAILTO_SCHEME = "mailto"
 	/// handles tutanota deep links:
 	/// tutanota:// -> redirects for Apple in-app events
 	/// tutashare:// -> share requests from the sharing extension
-	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+	func openURL(_ url: URL, sourceApplication: String?) {
 		switch url.scheme {
 		case TUTANOTA_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
 		case TUTANOTA_SCHEME:
@@ -144,7 +138,7 @@ public let MAILTO_SCHEME = "mailto"
 			}
 		case TUTA_MAIL_INTEROP_SCHEME:
 			Task {
-				guard let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication] else { return }
+				guard let sourceApp = sourceApplication else { return }
 				if String(describing: sourceApp).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
 
 				TUTSLog("Tried to open Mail App from an unknown source!")
@@ -153,7 +147,6 @@ public let MAILTO_SCHEME = "mailto"
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}
-		return true
 	}
 
 	func application(
@@ -229,7 +222,7 @@ public let MAILTO_SCHEME = "mailto"
 		}
 	}
 
-	func applicationDidEnterBackground(_ application: UIApplication) { self.viewController.onApplicationDidEnterBackground() }
+	func sceneDidEnterBackground() { self.viewController?.onApplicationDidEnterBackground() }
 
 	func applicationWillTerminate(_ application: UIApplication) {
 		self.viewController.onApplicationWillTerminate()
