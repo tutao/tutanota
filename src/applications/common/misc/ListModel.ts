@@ -539,15 +539,19 @@ export class ListModel<ItemType, IdType> {
 		return settledThen(this.loading, what)
 	}
 
-	insertLoadedItem(item: ItemType) {
+	/**
+	 * @return true if the item is inserted
+	 */
+	insertLoadedItem(item: ItemType): boolean {
 		if (this.rawState.unfilteredItems.some((unfilteredItem) => this.hasSameId(unfilteredItem, item))) {
-			return
+			return false
 		}
 
 		// can we do something like binary search?
 		const unfilteredItems = this.rawState.unfilteredItems.concat(item).sort(this.config.sortCompare)
 		const filteredItems = this.rawState.filteredItems.concat(this.applyFilter([item])).sort(this.config.sortCompare)
 		this.updateState({ filteredItems, unfilteredItems })
+		return true
 	}
 
 	updateLoadedItem(item: ItemType) {
