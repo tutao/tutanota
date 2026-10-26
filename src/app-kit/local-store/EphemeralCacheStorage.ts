@@ -489,14 +489,21 @@ export class EphemeralCacheStorage implements CacheStorage {
 
 	async getIdsInRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id): Promise<Array<Id>> {
 		const typeModel = await this.typeModelResolver.resolveServerTypeReference(typeRef)
-		return (
-			this.listElementEntities
-				.get(getTypeString(typeRef))
-				?.get(listId)
-				?.allRange.map((elementId) => {
-					return localToServerIdEncoding(typeModel, elementId)
-				}) ?? []
-		)
+		const listCache = this.listElementEntities.get(getTypeString(typeRef))?.get(listId)
+
+		if (listCache == null) {
+			return []
+		}
+
+		const { allRange, lowerRangeId, upperRangeId } = listCache
+
+		return allRange
+			.filter(
+				(elementId) =>
+					(elementId === lowerRangeId || firstBiggerThanSecondBase64Ext(elementId, lowerRangeId)) &&
+					!firstBiggerThanSecondBase64Ext(elementId, upperRangeId),
+			)
+			.map((elementId) => localToServerIdEncoding(typeModel, elementId))
 	}
 
 	async getLastBatchIdForGroup(groupId: Id): Promise<Id | null> {
