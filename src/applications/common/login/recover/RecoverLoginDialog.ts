@@ -23,7 +23,7 @@ import { MoreInfoLink } from "../../misc/news/MoreInfoLink"
 EnvProvider.assertMainOrNode()
 export type ResetAction = "password" | "secondFactor"
 
-export function show(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
+export function showRecoveryDialog(mailAddress?: string | null, resetAction?: ResetAction): Dialog {
 	const selectedAction: Stream<ResetAction | null> = stream(resetAction ?? null)
 	const passwordModel = new PasswordModel(locator.usageTestController, locator.logins, { checkOldPassword: false, enforceStrength: true })
 	const passwordValueStream = stream("")
