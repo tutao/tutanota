@@ -6,13 +6,12 @@ import { defer, downcast } from "@tutao/utils"
 import { handleUncaughtError } from "../../misc/ErrorHandler"
 import { DelayedImpls, exposeLocalDelayed, exposeRemote } from "../common/WorkerProxy"
 import type { RestClient } from "@tutao/rest-client"
-import { EntropySource } from "@tutao/crypto"
+import { EntropyDataChunk, EntropySource } from "@tutao/crypto"
 import { objToError } from "../common/utils/ErrorUtils.js"
 import { CommonLocator } from "./CommonLocator.js"
 import { CommonWorkerInterface, MainInterface } from "../worker/workerInterfaces.js"
 import { MessageDispatcher } from "../../../../app-kit/native-bridge/shared/MessageDispatcher.js"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
-import { EntropyDataChunk } from "../../../../platform-kit/crypto/random/EntropyDataChunk"
 
 EnvProvider.assertMainOrNode()
 
@@ -25,7 +24,7 @@ export class WorkerClient {
 
 	private _dispatcher!: MessageDispatcher<WorkerRequestType, MainRequestType>
 
-	constructor() {
+	constructor(private readonly envProvider: EnvProvider) {
 		this.initialized.then(() => {
 			this._isInitialized = true
 		})
@@ -36,19 +35,15 @@ export class WorkerClient {
 	}
 
 	async init(locator: CommonLocator): Promise<void> {
-		if (env.mode !== "Test") {
-			// In apps/desktop we load HTML file and url ends on path/index.html so we want to load path/WorkerBootstrap.js.
-			// In browser we load at domain.com or localhost/path (locally) and we want to load domain.com/WorkerBootstrap.js or
-			// localhost/path/WorkerBootstrap.js respectively.
-			// Service worker has similar logic but it has luxury of knowing that it's served as sw.js.
-			const workerUrl = `${EnvProvider.get().getPathPrefix()}/worker-bootstrap.js`
+		if (!EnvProvider.isTest()) {
+			const workerUrl = `${this.envProvider.getPathPrefix()}/worker-bootstrap-${this.envProvider.getMode()}`
 			const worker = new Worker(workerUrl, { type: "module" })
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
 			}
 			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker", objToError)
 			await this._dispatcher.postRequest(
-				new Request("setup", [window.env, this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
+				new Request("setup", [this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
 			)
 		} else {
 			// node: we do not use workers but connect the client and the worker queues directly with each other
@@ -151,7 +146,7 @@ export class WorkerClient {
 }
 
 export function bootstrapWorker(locator: CommonLocator): WorkerClient {
-	const worker = new WorkerClient()
+	const worker = new WorkerClient(EnvProvider.get())
 	const start = Date.now()
 	worker.init(locator).then(() => console.log("worker init time (ms):", Date.now() - start))
 	return worker

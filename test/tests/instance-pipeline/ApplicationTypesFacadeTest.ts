@@ -162,7 +162,7 @@ o.spec("ApplicationTypesFacadeTest", function () {
 		// did not throw
 	})
 
-	for (const targetEnv of [Mode.App, Mode.Admin, Mode.Test, Mode.Browser, Mode.Desktop, Mode.Playground]) {
+	for (const targetEnv of [Mode.App, Mode.Admin, Mode.Test, Mode.Browser, Mode.Desktop]) {
 		const shouldPersist = targetEnv === Mode.Desktop || targetEnv === Mode.App
 
 		o(`Server model should persist for native platforms: ${targetEnv}`, async () => {

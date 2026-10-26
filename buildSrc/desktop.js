@@ -107,6 +107,7 @@ async function doBuild(opts) {
 				minify: !opts.disableMinify,
 				projectDir: projectRoot,
 				app: opts.app,
+				mode: "Desktop",
 			})
 		}
 
