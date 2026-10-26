@@ -38,6 +38,9 @@ await program
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
 		}
 
+		const desktop = startDesktop || desktopBuildOnly
+		const mode = desktop ? "Desktop" : "Browser"
+
 		try {
 			await runDevBuild({
 				stage,
@@ -45,11 +48,11 @@ await program
 				clean,
 				watch,
 				serve,
-				desktop: startDesktop || desktopBuildOnly,
 				networkDebugging,
 				debuggable,
 				app,
 				shadowDomAppRoot: null,
+				mode,
 			})
 
 			if (startDesktop) {

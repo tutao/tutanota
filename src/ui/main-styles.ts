@@ -44,8 +44,8 @@ async function loadFonts() {
 	if (!EnvProvider.get().isNextCloudPlugin()) return
 
 	const fonts = [
-		new FontFace("Ionicons", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${EnvProvider.get().getPathPrefix()}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${EnvProvider.get().getPathPrefix()}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
@@ -3554,7 +3554,7 @@ export class MainStyles {
 				".event-banner-grid-guest": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title title" 
+							"sidebar title title"
 							"sidebar middle timeoverview";
 							`,
 					"grid-template-columns": "110px 2fr 3fr;",
@@ -3565,7 +3565,7 @@ export class MainStyles {
 				".event-banner-grid-guest-mobile": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
+							"sidebar title"
 							"sidebar middle"
 							"sidebar timeoverview";
 							`,
@@ -3576,8 +3576,8 @@ export class MainStyles {
 				".event-banner-grid-organizer": {
 					display: "grid",
 					"grid-template-areas": `
-							"sidebar title" 
-							"sidebar middle"							
+							"sidebar title"
+							"sidebar middle"
 							`,
 					"grid-template-columns": "110px 1fr;",
 					"grid-template-rows": "auto 1fr;",
