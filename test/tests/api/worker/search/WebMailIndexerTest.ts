@@ -12,7 +12,7 @@ import {
 } from "../../../../../src/platform-kit/meta"
 import { _getCurrentIndexTimestamp, MboxIndexData, WebMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/WebMailIndexer.js"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils.js"
-import { assertNotNull, defer, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
+import { assertNotNull, defer, delay, downcast, getDayShifted } from "../../../../../src/platform-kit/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock.js"
 import type { DateProvider } from "../../../../../src/applications/common/api/worker/DateProvider.js"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -302,8 +302,10 @@ o.spec("WebMailIndexer", () => {
 
 			o.test("indexing disabled", async function () {
 				await initWithEnabled(false)
+				// dirty partial mock
+				entityMock.load = func<EntityRestClientMock["load"]>()
 				await indexer.indexMailboxes(user, rangeEnd)
-				verify(entityClient.load(matchers.anything(), matchers.anything()), { times: 0 })
+				verify(entityMock.load(matchers.anything(), matchers.anything()), { times: 0 })
 			})
 
 			o.test("fully indexed", async function () {
@@ -599,6 +601,9 @@ o.spec("WebMailIndexer", () => {
 					error: null,
 				}),
 			)
+
+			// prevent microtask shenanigans; this still enqueues a new task, giving enough time for the second attempt to start before the test ends
+			await delay(0)
 		})
 	})
 
