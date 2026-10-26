@@ -1,6 +1,5 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./TsPlatformConstants"
-import { TypeChecks } from "./TsTypeChecks"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -101,29 +100,16 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
-	public readonly env: EnvType
-	private static boot: boolean =
-		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private static boot: boolean = _isNode && !_isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
-	private static singleton: EnvProvider | null = null
+	private static singleton: EnvProvider = new EnvProvider(env)
 
 	public static get(): EnvProvider {
-		EnvProvider.tryInitWithGlobalEnv()
-		if (EnvProvider.singleton == null) {
-			throw new Error("global var env is not defined yet")
-		}
 		return EnvProvider.singleton
 	}
 
 	public isMainOrNode(): boolean {
 		return EnvProvider.isMainOrNode()
-	}
-
-	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider()
-		}
-		return EnvProvider.singleton
 	}
 
 	public getVersionNumber(): string {
@@ -134,9 +120,7 @@ export class EnvProvider {
 		return this.env.timeout
 	}
 
-	public constructor() {
-		this.env = globalThis.env
-	}
+	private constructor(private readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
