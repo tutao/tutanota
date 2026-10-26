@@ -112,6 +112,9 @@ export class ViewColumn implements Component<Attrs> {
 					zIndex,
 					width: this.width + "px",
 					left: this.offset + "px",
+					// only apply safe-area insets if the column touches that side
+					"--safe-area-inset-left": this.offset === 0 || this.width >= window.innerWidth ? undefined : "0px",
+					"--safe-area-inset-right": this.offset + this.width >= window.innerWidth ? undefined : "0px",
 				},
 			},
 			m(this.component),
