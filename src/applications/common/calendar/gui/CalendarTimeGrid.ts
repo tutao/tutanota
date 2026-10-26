@@ -17,21 +17,13 @@ export type TimeRange = {
 }
 export const SUBROWS_PER_INTERVAL = 12
 export const DEFAULT_EVENT_COLUMN_SPAN_SIZE = 1
+export const MIN_ROW_SPAN_FOR_EVENT_BUBBLE = 3
 
-export type CalendarTimeGridRowConfig = {
-	rowHeight: number
-	minRowsForEventBubble: number
-}
+// height of a single css grid row in px
+export const TIME_GRID_ROW_HEIGHT = 6
 
-export const ROW_CONFIG_FOR_EVENT_BANNER: CalendarTimeGridRowConfig = {
-	rowHeight: 4,
-	minRowsForEventBubble: 4,
-}
-
-export const ROW_CONFIG_FOR_CALENDAR_VIEW: CalendarTimeGridRowConfig = {
-	rowHeight: 6,
-	minRowsForEventBubble: 3,
-}
+// event bubble line height should be minimal row span size including the gaps (e.g. 3*6px + 2*1px = 20px)
+export const EVENT_BUBBLE_LINE_HEIGHT = 16
 
 export interface CalendarTimeGridAttributes {
 	dates: Array<Date>
@@ -46,7 +38,6 @@ export interface CalendarTimeGridAttributes {
 	eventBubbleHandlers?: EventBubbleInteractions & CalendarEventBubbleDragProperties
 	layout: {
 		rowCountForRange: number
-		gridRowConfig: CalendarTimeGridRowConfig
 		hideRightBorder: boolean
 		/**
 		 * Useful for rendering a border at the first columns and not 'visually' break the grid when swiping on mobile
@@ -200,12 +191,12 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 			onCellPressed: cellActionHandlers?.onCellPressed,
 			onCellContextMenuPressed: cellActionHandlers?.onCellContextMenuPressed,
 			eventInteractions: eventBubbleHandlers,
-			timeColumnGrid: this.memoizedLayoutEvents(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, baseDate, layout.gridRowConfig),
+			timeColumnGrid: this.memoizedLayoutEvents(eventsForThisDate, timeRange, subRowAsMinutes, timeScale, baseDate),
 			layout: {
 				rowCount: layout.rowCountForRange,
 				hideRightBorder,
 				showLeftBorder,
-				gridRowHeight: layout.gridRowConfig.rowHeight,
+				gridRowHeight: TIME_GRID_ROW_HEIGHT,
 			},
 			time: timeViewAttrs.time,
 			showTimeZonesAtEventBubble,
@@ -237,7 +228,6 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		subRowAsMinutes: number,
 		timeScale: TimeScale,
 		baseDate: Date,
-		gridRowConfig: CalendarTimeGridRowConfig,
 	): CalendarTimeColumnData {
 		// Sort events for optimal lay outing
 		// Primary: earlier start times first
@@ -254,7 +244,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		// Step 1: Convert events to row-based coordinates
 		const eventsMap = new Map<Id, RowBounds>(
 			orderedEvents.map((wrapper) => {
-				const rowBounds = CalendarTimeGrid.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate, gridRowConfig)
+				const rowBounds = CalendarTimeGrid.getRowBounds(wrapper.event, timeRange, subRowAsMinutes, timeScale, baseDate)
 				return [CalendarTimeGrid.getEventGridId(wrapper), rowBounds]
 			}),
 		)
@@ -398,7 +388,6 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 		subRowAsMinutes: number,
 		timeScale: TimeScale,
 		baseDate: Date,
-		gridRowConfig: CalendarTimeGridRowConfig,
 	): RowBounds {
 		const interval = getIntervalAsMinutes(timeScale)
 		const diffFromRangeStartToEventStart = Math.abs(timeRange.start.asMinutes() - Time.fromDate(eventTimeRange.startTime).asMinutes())
@@ -423,7 +412,7 @@ export class CalendarTimeGrid implements ClassComponent<CalendarTimeGridAttribut
 
 		let end = eventEndsAfterRange || eventEndsAtMidnight ? maxRows : Math.ceil(diffFromRangeStartToEventEnd / subRowAsMinutes) + 1
 		if (!eventEndsAfterRange) {
-			end = Math.max(end, start + gridRowConfig.minRowsForEventBubble)
+			end = Math.max(end, start + MIN_ROW_SPAN_FOR_EVENT_BUBBLE)
 		}
 		return { start, end }
 	}

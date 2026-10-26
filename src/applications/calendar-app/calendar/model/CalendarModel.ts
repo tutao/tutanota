@@ -1332,10 +1332,12 @@ export class CalendarModel {
 		const groupSettings = this.logins.getUserController().userSettingsGroupRoot.groupSettings
 		const eventCalendarGroupSettings = groupSettings.find((groupSetting) => {
 			return groupSetting.group === eventOwnerGroup
-		})!
+		})
 
 		// turn defaultalarminfos into alarminfotemplates
-		const defaultAlarmTemplates: AlarmInfoTemplate[] = this.makeDefaultAlarmTemplatesForCalendar(eventCalendarGroupSettings)
+		const defaultAlarmTemplates: AlarmInfoTemplate[] = eventCalendarGroupSettings
+			? this.makeDefaultAlarmTemplatesForCalendar(eventCalendarGroupSettings)
+			: []
 
 		return await this.doCreate(updateEvent, "", calendarGroupRoot, defaultAlarmTemplates)
 	}

@@ -4,7 +4,7 @@ import { Icon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { colorForBg, normalizeColorHex } from "../../../../ui/base/GuiUtils"
 import { theme } from "../../../../ui/theme"
-import { EventGridData, RowBounds } from "./CalendarTimeGrid"
+import { EVENT_BUBBLE_LINE_HEIGHT, EventGridData, MIN_ROW_SPAN_FOR_EVENT_BUBBLE, RowBounds } from "./CalendarTimeGrid"
 import {
 	type CalendarEventBubbleClickHandler,
 	CalendarEventBubbleKeyDownHandler,
@@ -18,10 +18,6 @@ import { Time } from "../Time"
 import { isAllDayEvent } from "../../api/common/utils/CommonCalendarUtils"
 import { formatEventTime, formatTimeWithZoneInfo, shouldShowTimeZones } from "../../../calendar-app/calendar/gui/DateTimeTextFormatterUtils"
 
-export const MIN_ROW_SPAN_FOR_CALENDAR_VIEW = 3
-export const MIN_ROW_SPAN_FOR_EVENT_BANNER = 4
-
-export const MIN_EVENT_BUBBLE_HEIGHT = 20
 export interface RangeOverflowData {
 	start: boolean
 	end: boolean
@@ -131,6 +127,7 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 
 	private resolveStyles({ eventWrapper, height, horizontalOverflowInfo, verticalOverflowInfo }: CalendarEventBubbleAttrs): Partial<CSSStyleDeclaration> {
 		const normalizedEventWrapperColor = normalizeColorHex(eventWrapper.color)
+
 		const defaultStyle = {
 			height: height ? px(height) : undefined,
 			color: colorForBg(normalizedEventWrapperColor),
@@ -143,14 +140,15 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			borderBottomRightRadius: verticalOverflowInfo.end || horizontalOverflowInfo.end ? "0" : undefined,
 			paddingTop: "2px",
 			paddingBottom: "2px",
+			lineHeight: px(EVENT_BUBBLE_LINE_HEIGHT),
 		}
 
 		const featuredEventStyle = {
-			border: `1.5px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`,
+			border: `1px dashed ${eventWrapper.flags?.isConflict ? theme.on_warning_container : theme.on_success_container}`,
 			color: eventWrapper.flags.isConflict ? theme.on_warning_container : theme.on_success_container,
-			paddingTop: "0px",
-			paddingBottom: "0px",
 			overflow: "hidden",
+			paddingTop: "1px",
+			paddingBottom: "1px",
 		}
 
 		const ghostStyle = {
@@ -159,6 +157,8 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 			borderLeft: horizontalOverflowInfo.start ? "none" : undefined,
 			borderRight: horizontalOverflowInfo.end ? "none" : undefined,
 			backgroundColor: theme.surface_container_high,
+			paddingTop: "1px",
+			paddingBottom: "1px",
 		}
 
 		return {
@@ -182,7 +182,6 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 				".break-word.b",
 				{
 					style: {
-						// "-webkit-line-clamp": 2,
 						color,
 					},
 				},
@@ -208,9 +207,9 @@ export class CalendarEventBubble implements Component<CalendarEventBubbleAttrs> 
 		timeZoneText: string | null,
 	) {
 		const totalRowSpan = rowBounds.end - rowBounds.start
-		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN_FOR_CALENDAR_VIEW * 2
-		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN_FOR_CALENDAR_VIEW * 3 && timeZoneText
-		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN_FOR_CALENDAR_VIEW) / MIN_ROW_SPAN_FOR_CALENDAR_VIEW)
+		const showTimeInSecondLine = totalRowSpan >= MIN_ROW_SPAN_FOR_EVENT_BUBBLE * 2
+		const showTimeZoneInThirdLine = totalRowSpan >= MIN_ROW_SPAN_FOR_EVENT_BUBBLE * 3 && timeZoneText
+		const maxLines = Math.floor((totalRowSpan - MIN_ROW_SPAN_FOR_EVENT_BUBBLE) / MIN_ROW_SPAN_FOR_EVENT_BUBBLE)
 
 		const hasEventTime = eventTime !== ""
 

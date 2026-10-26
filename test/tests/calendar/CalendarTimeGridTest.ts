@@ -4,14 +4,13 @@ import {
 	ColumnLayoutData,
 	EventGridData,
 	getSubRowAsMinutes,
-	ROW_CONFIG_FOR_CALENDAR_VIEW,
+	MIN_ROW_SPAN_FOR_EVENT_BUBBLE,
 	RowBounds,
 	TimeRange,
 	TimeScale,
 } from "../../../src/applications/common/calendar/gui/CalendarTimeGrid"
 import { Time } from "../../../src/applications/common/calendar/Time"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
-import { MIN_ROW_SPAN_FOR_CALENDAR_VIEW } from "../../../src/applications/common/calendar/gui/CalendarEventBubble"
 import { incrementDate } from "../../../src/platform-kit/utils"
 import { makeEvent } from "./CalendarTestUtils"
 import { createTestEntity } from "../TestUtils"
@@ -20,8 +19,6 @@ import { RepeatPeriod } from "../../../src/platform-kit/app-env"
 import { CalendarRepeatRuleTypeRef } from "@tutao/entities/tutanota"
 
 o.spec("CalendarTimeGrid", function () {
-	const gridRowConfig = ROW_CONFIG_FOR_CALENDAR_VIEW
-
 	const TIME_RANGE_24_HRS: TimeRange = {
 		start: new Time(0, 0),
 		end: new Time(23, 0),
@@ -54,10 +51,10 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 0, 2), // Only 1 minute duration
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(1)
-			o.check(bounds.end).equals(1 + MIN_ROW_SPAN_FOR_CALENDAR_VIEW)
+			o.check(bounds.end).equals(1 + MIN_ROW_SPAN_FOR_EVENT_BUBBLE)
 		})
 
 		o.test("Event starts yesterday and ends today", function () {
@@ -67,7 +64,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 0, 30),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(1)("Should clamped event start to midnight (start of current day)")
 			o.check(bounds.end).equals(7) // 30 minutes into current day => 5 min per row = 6 rows + 1 (CSS Grid 1-indexed)
@@ -79,7 +76,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 1, 0),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(7)
 			o.check(bounds.end).equals(13)
@@ -91,7 +88,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 0, 30),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(1)
 			o.check(bounds.end).equals(7)
@@ -103,7 +100,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 23, 30),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(277) // 23 hours * 12 rows/hour (@see SUBROWS_PER_INTERVAL) = 276 + 1 (CSS Grid 1-indexed)
 			o.check(bounds.end).equals(283)
@@ -116,7 +113,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(nextDay, 0, 30),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(283)
 			o.check(bounds.end).equals(LAST_ROW_BOUND)
@@ -130,7 +127,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(nextDay, 0, 30),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(1)
 			o.check(bounds.end).equals(LAST_ROW_BOUND)
@@ -142,7 +139,7 @@ o.spec("CalendarTimeGrid", function () {
 				endTime: createDateWithTime(REFERENCE_DATE, 11, 0),
 			}
 
-			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(bounds.start).equals(97)
 			o.check(bounds.end).equals(133)
@@ -160,8 +157,8 @@ o.spec("CalendarTimeGrid", function () {
 					endTime: createDateWithTime(REFERENCE_DATE, 0, 30),
 				}
 
-				const boundsOne = CalendarTimeGrid.getRowBounds(eventOne, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
-				const boundsTwo = CalendarTimeGrid.getRowBounds(eventTwo, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+				const boundsOne = CalendarTimeGrid.getRowBounds(eventOne, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
+				const boundsTwo = CalendarTimeGrid.getRowBounds(eventTwo, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 				o.check(boundsOne.start).equals(boundsTwo.start)("Both should round to 00:00 (row 1)")
 				o.check(boundsOne.start).equals(1)
@@ -174,10 +171,10 @@ o.spec("CalendarTimeGrid", function () {
 					endTime: createDateWithTime(REFERENCE_DATE, 0, 11),
 				}
 
-				const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+				const bounds = CalendarTimeGrid.getRowBounds(eventBounds, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 				o.check(bounds.start).equals(1)
-				o.check(bounds.end).equals(1 + MIN_ROW_SPAN_FOR_CALENDAR_VIEW)("Should enforce minimum size")
+				o.check(bounds.end).equals(1 + MIN_ROW_SPAN_FOR_EVENT_BUBBLE)("Should enforce minimum size")
 			})
 
 			o.test("Event end between intervals rounds to next boundary (normal event)", function () {
@@ -201,8 +198,8 @@ o.spec("CalendarTimeGrid", function () {
 					endTime: createDateWithTime(REFERENCE_DATE, 0, 38),
 				}
 
-				const boundsOne = CalendarTimeGrid.getRowBounds(eventOne, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
-				const boundsTwo = CalendarTimeGrid.getRowBounds(eventTwo, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+				const boundsOne = CalendarTimeGrid.getRowBounds(eventOne, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
+				const boundsTwo = CalendarTimeGrid.getRowBounds(eventTwo, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 				o.check(boundsOne.start).equals(1)
 				o.check(boundsOne.end).equals(6)("Should round to 00:25 (row 6)")
@@ -570,7 +567,7 @@ o.spec("CalendarTimeGrid", function () {
 
 	o.spec("layoutEvents", function () {
 		o.test("Empty events array returns empty grid", function () {
-			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([], TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([], TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(subColumnCount).equals(0)
 			o.check(grid.size).equals(0)
@@ -579,14 +576,7 @@ o.spec("CalendarTimeGrid", function () {
 		o.test("Single event layout", function () {
 			const events = [createTestCalendarEvent("SOLO", 10, 0, 11, 0)]
 
-			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(
-				events,
-				TIME_RANGE_24_HRS,
-				SUB_ROW_AS_MINUTES,
-				TIME_SCALE,
-				REFERENCE_DATE,
-				gridRowConfig,
-			)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(subColumnCount).equals(1)("Single event should create 1 column")
 			assertLayoutPosition(grid, CalendarTimeGrid.getEventGridId(events[0]), {
@@ -616,7 +606,7 @@ o.spec("CalendarTimeGrid", function () {
 				createTestCalendarEvent("EVH", 1, 0, 1, 30),
 			]
 
-			const { grid } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const { grid } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			assertLayoutPosition(grid, CalendarTimeGrid.getEventGridId(events[0]), {
 				row: { start: 1, end: 7 },
@@ -677,7 +667,7 @@ o.spec("CalendarTimeGrid", function () {
 				createTestCalendarEvent("EVM", 0, 45, 1, 15),
 			]
 
-			const { grid } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+			const { grid } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			assertLayoutPosition(grid, CalendarTimeGrid.getEventGridId(events[0]), {
 				row: { start: 1, end: 19 },
@@ -718,7 +708,6 @@ o.spec("CalendarTimeGrid", function () {
 				SUB_ROW_AS_MINUTES,
 				TIME_SCALE,
 				REFERENCE_DATE,
-				gridRowConfig,
 			)
 
 			o.check(subColumnCount).equals(1)("Overflow event should block its column")
@@ -741,14 +730,7 @@ o.spec("CalendarTimeGrid", function () {
 				createTestCalendarEvent("long", 10, 30, 14, 0), // 3.5 hours
 			]
 
-			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(
-				events,
-				TIME_RANGE_24_HRS,
-				SUB_ROW_AS_MINUTES,
-				TIME_SCALE,
-				REFERENCE_DATE,
-				gridRowConfig,
-			)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			o.check(subColumnCount).equals(1)("Non-overlapping events should share column")
 			o.check(grid.size).equals(3)("All events should be in grid")
@@ -773,14 +755,7 @@ o.spec("CalendarTimeGrid", function () {
 				createTestCalendarEvent("deepwork", 14, 0, 17, 0),
 			]
 
-			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(
-				events,
-				TIME_RANGE_24_HRS,
-				SUB_ROW_AS_MINUTES,
-				TIME_SCALE,
-				REFERENCE_DATE,
-				gridRowConfig,
-			)
+			const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, TIME_RANGE_24_HRS, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 			// Should efficiently pack into 2 columns
 			o.check(subColumnCount === 2).equals(true)("Should use efficient column layout")
@@ -826,7 +801,6 @@ o.spec("CalendarTimeGrid", function () {
 				SUB_ROW_AS_MINUTES,
 				TIME_SCALE,
 				nextDay,
-				gridRowConfig,
 			)
 
 			o.check(subColumnCount).equals(2)("Overflow event should block its column")
@@ -868,7 +842,6 @@ o.spec("CalendarTimeGrid", function () {
 					SUB_ROW_AS_MINUTES,
 					TIME_SCALE,
 					nextDay,
-					gridRowConfig,
 				)
 
 				o.check(subColumnCount).equals(2)("Overflow event should block its column and normal event should occupy the second")
@@ -899,7 +872,7 @@ o.spec("CalendarTimeGrid", function () {
 			o.test("Simple event", function () {
 				const events = [createTestCalendarEvent("SOLO", 15, 30, 16, 0)]
 
-				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE, gridRowConfig)
+				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(events, timeRange, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 				assertLayoutPosition(grid, CalendarTimeGrid.getEventGridId(events[0]), {
 					row: { start: 7, end: 13 },
@@ -910,14 +883,7 @@ o.spec("CalendarTimeGrid", function () {
 			o.test("Overflow event", function () {
 				const overflowEvent = createTestCalendarEvent("overflow", 15, 0, 23, 0)
 
-				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents(
-					[overflowEvent],
-					timeRange,
-					SUB_ROW_AS_MINUTES,
-					TIME_SCALE,
-					REFERENCE_DATE,
-					gridRowConfig,
-				)
+				const { grid, subColumnCount } = CalendarTimeGrid.layoutEvents([overflowEvent], timeRange, SUB_ROW_AS_MINUTES, TIME_SCALE, REFERENCE_DATE)
 
 				assertLayoutPosition(grid, CalendarTimeGrid.getEventGridId(overflowEvent), {
 					row: { start: 1, end: 25 },
