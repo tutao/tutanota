@@ -21,10 +21,11 @@ import { DomainConfig } from "../../../../../src/platform-kit/app-env"
 import { Argon2idFacade } from "../../../../../src/platform-kit/base/base-crypto/WasmArgon2idFacade"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
-import { matchers, object, when } from "testdouble"
-import { createTestEntity } from "../../../TestUtils"
+import { func, matchers, object, when } from "testdouble"
+import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
 import { DriveFileShareTypeRef, DriveFileTypeRef } from "@tutao/entities/drive"
 import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
+import { EntityRestClientMock } from "../rest/EntityRestClientMock"
 
 function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
 	const keyBytes = blake3Kdf(concat(keyToUint8Array(fileGroupKey.object), nonce), "driveFileShareShareKey", 32)
@@ -42,6 +43,7 @@ o.spec("DriveFileSharingFacade", function () {
 	let domainConfig: DomainConfig
 	let argon2IdFacade: Argon2idFacade
 	let entityClient: EntityClient
+	let entityRestClientMock: EntityRestClientMock
 	let blobFacade: BlobFacade
 
 	o.beforeEach(async function () {
@@ -52,7 +54,8 @@ o.spec("DriveFileSharingFacade", function () {
 		keyLoaderFacade = object()
 		domainConfig = object()
 		argon2IdFacade = object()
-		entityClient = object()
+		entityRestClientMock = new EntityRestClientMock()
+		entityClient = new EntityClient(entityRestClientMock, clientInitializedTypeModelResolver())
 		blobFacade = object()
 
 		fileSharingFacade = new DriveFileSharingFacade(
@@ -77,9 +80,17 @@ o.spec("DriveFileSharingFacade", function () {
 			domainConfig.apiUrl = "http://testcase"
 
 			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: shareId,
 				authToken: stringToUtf8Uint8Array("open up"),
 				nonce: stringToUtf8Uint8Array("the nonce"),
 				ownerEncPassword: stringToUtf8Uint8Array("encrypted password"),
+				groupKeyVersion: "1",
+			})
+
+			const file = createTestEntity(DriveFileTypeRef, {
+				share: elementIdToId(share._id),
+				_ownerGroup: "group",
+				_ownerKeyVersion: "1",
 			})
 
 			const encryptedShareKey = stringToUtf8Uint8Array("encrypted share key")
@@ -88,12 +99,13 @@ o.spec("DriveFileSharingFacade", function () {
 			const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
 
-			when(keyLoaderFacade.getCurrentSymGroupKey(matchers.anything())).thenResolve(fileGroupKey)
+			when(keyLoaderFacade.loadSymGroupKey("group", 1)).thenResolve(fileGroupKey.object)
+			entityRestClientMock.addElementInstances(share)
 			when(entityClient.load(DriveFileShareTypeRef, shareId)).thenResolve(share)
 			when(cryptoWrapper.decryptString(fileGroupKey.object, matchers.anything())).thenReturn(decryptedPassword)
 			when(cryptoWrapper.encryptKey(matchers.anything(), matchers.anything())).thenReturn(encryptedShareKey)
 
-			const shareInfo = await fileSharingFacade.getShareInfo(shareId)
+			const shareInfo = await fileSharingFacade.getShareInfoForManagement(file)
 
 			const queryParams = new URLSearchParams({
 				authToken: uint8ArrayToBase64(share.authToken),
@@ -117,17 +129,24 @@ o.spec("DriveFileSharingFacade", function () {
 			domainConfig.apiUrl = "http://testcase"
 
 			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: shareId,
 				authToken: stringToUtf8Uint8Array("open up"),
 				nonce: stringToUtf8Uint8Array("the nonce"),
 				ownerEncPassword: null,
+				groupKeyVersion: "1",
+			})
+			const file = createTestEntity(DriveFileTypeRef, {
+				share: elementIdToId(share._id),
+				_ownerGroup: "group",
+				_ownerKeyVersion: "1",
 			})
 
 			const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 
-			when(keyLoaderFacade.getCurrentSymGroupKey(matchers.anything())).thenResolve(fileGroupKey)
-			when(entityClient.load(DriveFileShareTypeRef, shareId)).thenResolve(share)
+			when(keyLoaderFacade.loadSymGroupKey("group", 1)).thenResolve(fileGroupKey.object)
+			entityRestClientMock.addElementInstances(share)
 
-			const shareInfo = await fileSharingFacade.getShareInfo(shareId)
+			const shareInfo = await fileSharingFacade.getShareInfoForManagement(file)
 
 			const queryParams = new URLSearchParams({
 				authToken: uint8ArrayToBase64(share.authToken),
@@ -143,18 +162,20 @@ o.spec("DriveFileSharingFacade", function () {
 		})
 	})
 	o.spec("downloadFileForShare", function () {
+		const fileId: IdTuple = ["fileListId", "fileId"]
 		o.test("downloading password protected file", async function () {
 			const shareId = "some share id"
 			const authToken = "some authToken"
 			const sharedKey = aes256RandomKey()
-			const encParam: { type: "password"; password: string; salt: string; sharedKey: Base64 } = {
+			const encParam: { type: "password"; password: string; salt: Uint8Array<ArrayBuffer>; shareKey: Uint8Array<ArrayBuffer> } = {
 				type: "password",
 				password: "some password",
-				salt: uint8ArrayToBase64(new Uint8Array([1, 2, 3])),
-				sharedKey: uint8ArrayToBase64(keyToUint8Array(sharedKey)),
+				salt: new Uint8Array([1, 2, 3]),
+				shareKey: keyToUint8Array(sharedKey),
 			}
 			const share = createTestEntity(DriveFileShareTypeRef, {
 				_id: idToElementId(shareId),
+				file: fileId,
 			})
 
 			const passwordKey = aes256RandomKey()
@@ -162,17 +183,26 @@ o.spec("DriveFileSharingFacade", function () {
 			const shareKey = aes256RandomKey()
 			const fileSessionKey = aes256RandomKey()
 
-			const file = createTestEntity(DriveFileTypeRef)
+			const file = createTestEntity(DriveFileTypeRef, {
+				_id: fileId,
+			})
+
+			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(shareKey, fileSessionKey)
 
 			const loadFileShareRequestCaptor = matchers.captor()
 			const loadFileRequestCaptor = matchers.captor()
 
-			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(shareKey, fileSessionKey)
-			when(entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenResolve(share)
-			when(entityClient.load(DriveFileTypeRef, share.file, loadFileRequestCaptor.capture())).thenResolve(file)
+			const originalLoad = entityClient.load.bind(entityClient)
+			const fakeLoad = func<EntityClient["load"]>()
+			when(fakeLoad(DriveFileTypeRef, fileId, loadFileRequestCaptor.capture())).thenDo((...args) => originalLoad(...args))
+			when(fakeLoad(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenDo((...args) => originalLoad(...args))
+			entityClient.load = fakeLoad
+
+			entityRestClientMock.addListInstances(file)
+			entityRestClientMock.addElementInstances(share)
 			when(argon2IdFacade.generateKeyFromPassphrase(matchers.anything(), matchers.anything())).thenResolve(passwordKey)
 
-			const fileInfo = await fileSharingFacade.downloadFileForShare(shareId, authToken, encParam)
+			const fileInfo = await fileSharingFacade.loadSharedFile(shareId, authToken, encParam)
 
 			o.check(fileInfo.file).deepEquals(file)
 			o.check(fileInfo.fileSessionKey).deepEquals(keyToUint8Array(fileSessionKey))
@@ -187,26 +217,36 @@ o.spec("DriveFileSharingFacade", function () {
 			const shareId = "some share id"
 			const authToken = "some authToken"
 			const sharedKey = aes256RandomKey()
-			const encParam: { type: "key"; sharedKey: Base64 } = {
+			const encParam: { type: "key"; shareKey: Uint8Array<ArrayBuffer> } = {
 				type: "key",
-				sharedKey: uint8ArrayToBase64(keyToUint8Array(sharedKey)),
+				shareKey: keyToUint8Array(sharedKey),
 			}
 			const share = createTestEntity(DriveFileShareTypeRef, {
 				_id: idToElementId(shareId),
+				file: fileId,
 			})
 
 			const fileSessionKey = aes256RandomKey()
 
-			const file = createTestEntity(DriveFileTypeRef)
+			const file = createTestEntity(DriveFileTypeRef, {
+				_id: fileId,
+				share: elementIdToId(share._id),
+			})
 
 			const loadFileShareRequestCaptor = matchers.captor()
 			const loadFileRequestCaptor = matchers.captor()
 
-			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(fileSessionKey)
-			when(entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenResolve(share)
-			when(entityClient.load(DriveFileTypeRef, share.file, loadFileRequestCaptor.capture())).thenResolve(file)
+			const originalLoad = entityClient.load.bind(entityClient)
+			const fakeLoad = func<EntityClient["load"]>()
+			when(fakeLoad(DriveFileTypeRef, fileId, loadFileRequestCaptor.capture())).thenDo((...args) => originalLoad(...args))
+			when(fakeLoad(DriveFileShareTypeRef, idToElementId(shareId), loadFileShareRequestCaptor.capture())).thenDo((...args) => originalLoad(...args))
+			entityClient.load = fakeLoad
 
-			const fileInfo = await fileSharingFacade.downloadFileForShare(shareId, authToken, encParam)
+			when(cryptoWrapper.decryptKey(matchers.anything(), matchers.anything())).thenReturn(fileSessionKey)
+			entityRestClientMock.addElementInstances(share)
+			entityRestClientMock.addListInstances(file)
+
+			const fileInfo = await fileSharingFacade.loadSharedFile(shareId, authToken, encParam)
 
 			o.check(fileInfo.file).deepEquals(file)
 			o.check(fileInfo.fileSessionKey).deepEquals(keyToUint8Array(fileSessionKey))
@@ -217,5 +257,6 @@ o.spec("DriveFileSharingFacade", function () {
 			o.check(loadFileRequestCaptor.value.extraHeaders).deepEquals({ authToken })
 			o.check(loadFileRequestCaptor.value.sessionKey).deepEquals(fileSessionKey)
 		})
+		//FIXME test for update link
 	})
 })
