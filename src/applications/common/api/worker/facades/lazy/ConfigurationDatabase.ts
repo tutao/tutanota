@@ -7,5 +7,4 @@ export interface ConfigurationDatabase {
 	addNewsletterBannerRule(address: string, rule: NewsletterBannerRule): Promise<void>
 	getNewsletterBannerRule(address: string): Promise<NewsletterBannerRule>
 	onEntityUpdatesReceived(events: readonly EntityUpdateData[], _batchId: Id, _groupId: Id): Promise<any>
-	delete(userId: Id): Promise<void>
 }
