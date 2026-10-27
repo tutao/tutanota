@@ -20,8 +20,6 @@ import { GroupInvitationDeleteData, GroupInvitationDeleteDataTypeRef } from "./T
 import { ImapFolderPostIn, ImapFolderPostInTypeRef } from "./TypeRefs.js"
 import { ImapFolderPostOut, ImapFolderPostOutTypeRef } from "./TypeRefs.js"
 import { ImapFolderDeleteIn, ImapFolderDeleteInTypeRef } from "./TypeRefs.js"
-import { ImapOauthConfigGetIn, ImapOauthConfigGetInTypeRef } from "./TypeRefs.js"
-import { ImapOauthConfigGetOut, ImapOauthConfigGetOutTypeRef } from "./TypeRefs.js"
 import { ImapPostIn, ImapPostInTypeRef } from "./TypeRefs.js"
 import { ImapPostOut, ImapPostOutTypeRef } from "./TypeRefs.js"
 import { ImapPutIn, ImapPutInTypeRef } from "./TypeRefs.js"
@@ -40,6 +38,15 @@ import { CreateMailGroupData, CreateMailGroupDataTypeRef } from "./TypeRefs.js"
 import { MailGroupPostOut, MailGroupPostOutTypeRef } from "./TypeRefs.js"
 import { DeleteGroupData, DeleteGroupDataTypeRef } from "./TypeRefs.js"
 import { DeleteMailData, DeleteMailDataTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationFolderPostIn, MailboxMigrationFolderPostInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationFolderPostOut, MailboxMigrationFolderPostOutTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationFolderDeleteIn, MailboxMigrationFolderDeleteInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationOauthConfigGetIn, MailboxMigrationOauthConfigGetInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationOauthConfigGetOut, MailboxMigrationOauthConfigGetOutTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationPostIn, MailboxMigrationPostInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationPostOut, MailboxMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationPutIn, MailboxMigrationPutInTypeRef } from "./TypeRefs.js"
+import { MailboxMigrationDeleteIn, MailboxMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostIn, ManageLabelServicePostInTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePostOut, ManageLabelServicePostOutTypeRef } from "./TypeRefs.js"
 import { ManageLabelServicePutIn, ManageLabelServicePutInTypeRef } from "./TypeRefs.js"
@@ -171,13 +178,6 @@ export const ImapFolderService_DELETE = new DeleteService<ImapFolderDeleteIn, Nu
 	NullEntityTypeRef,
 )
 
-export const ImapOauthConfigService_GET = new GetService<ImapOauthConfigGetIn, ImapOauthConfigGetOut>(
-	"tutanota",
-	"ImapOauthConfigService",
-	ImapOauthConfigGetInTypeRef,
-	ImapOauthConfigGetOutTypeRef,
-)
-
 export const ImapService_POST = new PostService<ImapPostIn, ImapPostOut>("tutanota", "ImapService", ImapPostInTypeRef, ImapPostOutTypeRef)
 export const ImapService_PUT = new PutService<ImapPutIn, NullEntity>("tutanota", "ImapService", ImapPutInTypeRef, NullEntityTypeRef)
 export const ImapService_DELETE = new DeleteService<ImapDeleteIn, NullEntity>("tutanota", "ImapService", ImapDeleteInTypeRef, NullEntityTypeRef)
@@ -237,6 +237,45 @@ export const MailGroupService_POST = new PostService<CreateMailGroupData, MailGr
 export const MailGroupService_DELETE = new DeleteService<DeleteGroupData, NullEntity>("tutanota", "MailGroupService", DeleteGroupDataTypeRef, NullEntityTypeRef)
 
 export const MailService_DELETE = new DeleteService<DeleteMailData, NullEntity>("tutanota", "MailService", DeleteMailDataTypeRef, NullEntityTypeRef)
+
+export const MailboxMigrationFolderService_POST = new PostService<MailboxMigrationFolderPostIn, MailboxMigrationFolderPostOut>(
+	"tutanota",
+	"MailboxMigrationFolderService",
+	MailboxMigrationFolderPostInTypeRef,
+	MailboxMigrationFolderPostOutTypeRef,
+)
+export const MailboxMigrationFolderService_DELETE = new DeleteService<MailboxMigrationFolderDeleteIn, NullEntity>(
+	"tutanota",
+	"MailboxMigrationFolderService",
+	MailboxMigrationFolderDeleteInTypeRef,
+	NullEntityTypeRef,
+)
+
+export const MailboxMigrationOauthConfigService_GET = new GetService<MailboxMigrationOauthConfigGetIn, MailboxMigrationOauthConfigGetOut>(
+	"tutanota",
+	"MailboxMigrationOauthConfigService",
+	MailboxMigrationOauthConfigGetInTypeRef,
+	MailboxMigrationOauthConfigGetOutTypeRef,
+)
+
+export const MailboxMigrationService_POST = new PostService<MailboxMigrationPostIn, MailboxMigrationPostOut>(
+	"tutanota",
+	"MailboxMigrationService",
+	MailboxMigrationPostInTypeRef,
+	MailboxMigrationPostOutTypeRef,
+)
+export const MailboxMigrationService_PUT = new PutService<MailboxMigrationPutIn, NullEntity>(
+	"tutanota",
+	"MailboxMigrationService",
+	MailboxMigrationPutInTypeRef,
+	NullEntityTypeRef,
+)
+export const MailboxMigrationService_DELETE = new DeleteService<MailboxMigrationDeleteIn, NullEntity>(
+	"tutanota",
+	"MailboxMigrationService",
+	MailboxMigrationDeleteInTypeRef,
+	NullEntityTypeRef,
+)
 
 export const ManageLabelService_POST = new PostService<ManageLabelServicePostIn, ManageLabelServicePostOut>(
 	"tutanota",
