@@ -228,7 +228,7 @@ export class CustomerFacade {
 			value = value.toLowerCase().trim()
 			let newListEntry = createEmailSenderListElement({
 				value,
-				hashedValue: uint8ArrayToBase64(this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(value))),
+				hashedValue: this.getHashForSpamRuleValue(value),
 				type,
 				field,
 			})
@@ -240,6 +240,7 @@ export class CustomerFacade {
 	editSpamRule(spamRule: EmailSenderListElement): Promise<void> {
 		return this.loadCustomerServerProperties().then((props) => {
 			spamRule.value = spamRule.value.toLowerCase().trim()
+			spamRule.hashedValue = this.getHashForSpamRuleValue(spamRule.value)
 			const index = props.emailSenderList.findIndex((item) => {
 				return spamRule._id === item._id
 			})
@@ -498,6 +499,30 @@ export class CustomerFacade {
 
 	async getUser(): Promise<Nullable<User>> {
 		return this.userFacade.getUser()
+	}
+
+	getHashForSpamRuleValue(value: string) {
+		return uint8ArrayToBase64(this.cryptoWrapper.sha256Hash(stringToUtf8Uint8Array(value)))
+	}
+
+	/**
+	 * This is done because of having had the edit field fail for a long time in the edit mode.
+	 */
+	updateIncorrectSpamRules(rulesWithMismatchingHashes: Map<number, EmailSenderListElement>): Promise<number> {
+		return this.loadCustomerServerProperties().then((props) => {
+			let updatedEntries = 0
+			for (const [index, rule] of rulesWithMismatchingHashes.entries()) {
+				const computedHash = this.getHashForSpamRuleValue(rule.value)
+				if (computedHash !== rule.hashedValue) {
+					rule.hashedValue = computedHash
+					props.emailSenderList[index] = rule
+					updatedEntries++
+				}
+			}
+
+			this.entityClient.update(props).catch(ofClass(LockedError, noOp))
+			return updatedEntries
+		})
 	}
 }
 
