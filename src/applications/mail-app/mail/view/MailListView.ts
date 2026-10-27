@@ -4,7 +4,6 @@ import { Mail } from "@tutao/entities/tutanota"
 import { MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { getElementId, getLetId, haveSameId } from "../../../../platform-kit/meta"
-import { component_size } from "../../../../ui/size"
 import { Styles } from "../../../../ui/styles"
 import { Icon } from "../../../../ui/base/Icon"
 import { Icons } from "../../../../ui/base/icons/Icons"
@@ -20,7 +19,7 @@ import { deduplicateFilenames } from "../../../../ui/utils/FileUtils"
 import { downloadMailBundle } from "../export/Bundler"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper"
 import { MailViewModel } from "./MailViewModel.js"
-import { List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../../ui/base/List.js"
+import { calculateRowHeight, List, ListAttrs, ListSwipeDecision, MultiselectMode, RenderConfig, SwipeConfiguration } from "../../../../ui/base/List.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
 import { theme } from "../../../../ui/theme.js"
 import { VirtualRow } from "../../../../ui/base/ListUtils.js"
@@ -71,7 +70,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	showingArchive: boolean = false
 	private attrs: MailListViewAttrs
 	private readonly renderConfig: RenderConfig<Mail, MailRow> = {
-		itemHeight: component_size.list_row_height,
+		itemHeight: calculateRowHeight(),
 		multiselectionAllowed: MultiselectMode.Enabled,
 		createElement: (dom: HTMLElement) => {
 			const mailRow = new MailRow(

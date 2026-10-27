@@ -1088,6 +1088,9 @@ export class MainStyles {
 				".button-height": {
 					height: px(component_size.button_height),
 				},
+				".min-button-height": {
+					"min-height": px(component_size.button_height),
+				},
 				".min-height-0": {
 					"min-height": px(0),
 				},
@@ -1811,7 +1814,7 @@ export class MainStyles {
             */
 					"box-sizing": "border-box",
 					"border-top": `1px solid ${theme.outline_variant}`,
-					height: `calc(${component_size.bottom_nav_bar}px + var(--safe-area-inset-bottom))`,
+					"padding-top": "2px",
 					background: theme.surface,
 					"padding-bottom": "var(--safe-area-inset-bottom)",
 					"z-index": 2,

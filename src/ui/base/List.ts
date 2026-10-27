@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
 import { createResizeObserver, debounce, memoized, numberRange } from "../../platform-kit/utils"
-import { component_size, px, size } from "../size.js"
+import { component_size, font_size, px, size } from "../size.js"
 import { isKeyPressed } from "../utils/KeyManager.js"
 import { ProgrammingError, TabIndex } from "../../platform-kit/app-env"
 import { ClientDetector } from "../../platform-kit/app-env/boot/ClientDetector.js"
@@ -641,4 +641,19 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 			this.domSwipeSpacerRight.style.opacity = "1"
 		}
 	})
+}
+
+// Calculates the row height given the font size of the body
+// The font size of the body is normally font size base (16px), so it uses the difference to calculate a ratio and apply that
+export function calculateRowHeight(): number {
+	let bodyFontSize: number = Number(window.getComputedStyle(document.body).getPropertyValue("font-size").replace("px", ""))
+	if (isNaN(bodyFontSize)) {
+		// just return the default
+		return component_size.list_row_height
+	}
+	const ratio = bodyFontSize / font_size.base
+	// A list row is two lines of text
+	// Default: top row text - font size base (16px), bottom row text - font size smaller (14px)
+	// 38 - padding around the text, does not change size
+	return Math.floor((font_size.base + font_size.smaller) * ratio) + 38
 }
