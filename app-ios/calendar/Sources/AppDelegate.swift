@@ -5,12 +5,10 @@ import UIKit
 public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 
 @main class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationCenterDelegate {
-	var window: UIWindow?
-
 	private var remoteNotificationsContinuation: CheckedContinuation<String, any Error>?
 	private var alarmManager: AlarmManager!
 	private var notificationsHandler: NotificationsHandler!
-	private var viewController: ViewController!
+	var viewController: ViewController!
 	private let urlSession: URLSession = makeUrlSession()
 
 	private var notificationStorage: UserPrefsNotificationStorage!
@@ -50,8 +48,6 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			httpClient: httpClient,
 			dateProvider: dateProvider
 		)
-		self.window = UIWindow(frame: UIScreen.main.bounds)
-
 		let credentialsDb = try! CredentialsDatabase(dbPath: credentialsDatabasePath().absoluteString)
 		let credentialsEncryption = IosNativeCredentialsFacade(
 			keychainEncryption: keychainEncryption,
@@ -74,11 +70,9 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 			urlSession: self.urlSession,
 			tempFs: tempFs,
 		)
-		self.window!.rootViewController = viewController
-
 		UNUserNotificationCenter.current().delegate = self
 
-		window!.makeKeyAndVisible()
+		self.viewController.loadViewIfNeeded()
 	}
 
 	func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
@@ -91,7 +85,7 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		return true
 	}
 
-	func applicationDidBecomeActive(_ application: UIApplication) { UIApplication.shared.applicationIconBadgeNumber = 0 }
+	func sceneDidBecomeActive() { UIApplication.shared.applicationIconBadgeNumber = 0 }
 
 	func application(_ application: UIApplication, didRegisterForRemoteNotificationsWithDeviceToken deviceToken: Data) {
 		let stringToken = deviceTokenAsString(deviceToken: deviceToken)
@@ -107,23 +101,19 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 	/// handles tutanota deep links:
 	/// tutanota:// -> ?
 	/// tutacalshare:// -> share requests from the sharing extension
-	func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+	func openURL(_ url: URL, sourceApplication: String?) {
 		switch url.scheme {
 		case CALENDAR_SHARE_SCHEME: Task { try! await self.viewController.handleShare(url) }
 		case TUTA_CALENDAR_INTEROP_SCHEME:
 			Task {
-				let sourceApp = options[UIApplication.OpenURLOptionsKey.sourceApplication]
-
-				if sourceApp == nil { return }
-
-				if String(describing: sourceApp!).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
+				guard let sourceApp = sourceApplication else { return }
+				if String(describing: sourceApp).starts(with: "de.tutao") { return try! await self.viewController.handleInterop(url) }
 
 				TUTSLog("Tried to open Mail App from an unknown source!")
 			}
 		case nil: TUTSLog("missing scheme!")
 		default: TUTSLog("unknown scheme? \(url.scheme!)")
 		}
-		return true
 	}
 
 	func application(
@@ -148,10 +138,7 @@ public let TUTA_CALENDAR_INTEROP_SCHEME = "tutacalendar"
 		}
 	}
 
-	func applicationDidEnterBackground(_ application: UIApplication) {
-		self.viewController.onApplicationDidEnterBackground()
-
-	}
+	func sceneDidEnterBackground() { self.viewController?.onApplicationDidEnterBackground() }
 
 	func applicationWillTerminate(_ application: UIApplication) {
 		self.viewController.onApplicationWillTerminate()
