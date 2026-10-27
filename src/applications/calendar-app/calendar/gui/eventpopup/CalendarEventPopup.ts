@@ -201,6 +201,8 @@ export class CalendarEventPopup implements ModalComponent {
 		modal.remove(this)
 	}
 
+	allowContextMenu = true
+
 	hideAnimation(): Promise<void> {
 		return Promise.resolve()
 	}

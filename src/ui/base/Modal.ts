@@ -60,18 +60,10 @@ class Modal implements Component {
 							if (wrapper.needsBg) this.addAnimation(vnode.dom as HTMLElement, true)
 						},
 						onclick: (event: MouseEvent) => {
-							const element = event.currentTarget as HTMLElement
-							// This layer div has a single child, the modal component
-							const child = element.firstElementChild
-
-							// child shouldn't be null but maybe the user click fast idk
-							if (child) {
-								const childRect = child.getBoundingClientRect()
-
-								if (!insideRect(event, childRect)) {
-									wrapper.component.backgroundClick(event)
-								}
-							}
+							this.clickBackgroundWithCheck(event, wrapper.component, "click")
+						},
+						oncontextmenu: (event: MouseEvent) => {
+							this.clickBackgroundWithCheck(event, wrapper.component, "contextmenu")
 						},
 						style: {
 							zIndex: this.getComponentLayer(i + 1),
@@ -123,6 +115,25 @@ class Modal implements Component {
 
 	private getComponentLayer(componentIndex: number) {
 		return LayerType.Modal + componentIndex
+	}
+
+	private clickBackgroundWithCheck(event: MouseEvent, component: ModalComponent, clickEvent: "click" | "contextmenu") {
+		const element = event.currentTarget as HTMLElement
+		// This layer div has a single child, the modal component
+		const child = element.firstElementChild
+
+		// child shouldn't be null but maybe the user click fast idk
+		if (child) {
+			const childRect = child.getBoundingClientRect()
+
+			if (clickEvent === "contextmenu" && !component.allowContextMenu) {
+				event.preventDefault()
+			}
+
+			if (!insideRect(event, childRect)) {
+				component.backgroundClick(event)
+			}
+		}
 	}
 
 	/**
@@ -284,4 +295,12 @@ export interface ModalComponent extends Component {
 
 	// The element that was interacted with to show the modal.
 	callingElement(): HTMLElement | null
+
+	// For some modals (e.g. Dropdown) we DO NOT want the generic context menu to be shown
+	// when right-clicking either inside OR outside the modal. This improves the user experience
+	// when issuing multiple right-clicks in a mail list or Drive file browser, for example.
+	//
+	// For other modals (e.g. Dialog), we DO want the generic context menu to be shown,
+	// for example because users need it to copy/cut/paste text or configure spell checking.
+	allowContextMenu: boolean
 }
