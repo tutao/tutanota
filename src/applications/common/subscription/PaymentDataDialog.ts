@@ -48,7 +48,7 @@ export async function show(customer: Customer, accountingInfo: AccountingInfo, p
 
 	return newPromise((resolve) => {
 		const dialog = Dialog.showActionDialog({
-			title: "adminPayment_action",
+			title: "adminPayment_label",
 			type: Styles.get().isMobileLayout() ? DialogType.EditLarge : DialogType.EditMedium,
 			okAction: null,
 			child: {

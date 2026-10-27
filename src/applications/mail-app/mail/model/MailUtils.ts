@@ -41,22 +41,22 @@ export function getMailSetName(mailSet: MailSet): string {
 export function getSystemFolderName(folderType: MailSetKind): string {
 	switch (folderType) {
 		case MailSetKind.INBOX:
-			return lang.getTranslationText("received_action")
+			return lang.getTranslationText("received_label")
 
 		case MailSetKind.SENT:
-			return lang.getTranslationText("sent_action")
+			return lang.getTranslationText("sent_label")
 
 		case MailSetKind.TRASH:
-			return lang.getTranslationText("driveTrash_label")
+			return lang.getTranslationText("trash_label")
 
 		case MailSetKind.ARCHIVE:
 			return lang.getTranslationText("archive_label")
 
 		case MailSetKind.SPAM:
-			return lang.getTranslationText("spam_action")
+			return lang.getTranslationText("spam_label")
 
 		case MailSetKind.DRAFT:
-			return lang.getTranslationText("draft_action")
+			return lang.getTranslationText("drafts_label")
 
 		case MailSetKind.SCHEDULED:
 			return lang.getTranslationText("scheduled_label")

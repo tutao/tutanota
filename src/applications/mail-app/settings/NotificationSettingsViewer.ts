@@ -99,7 +99,7 @@ export class NotificationSettingsViewer implements UpdatableSettingsViewer {
 
 		return m(".fill-absolute.scroll.plr-24.pb-48", [
 			m(".flex.col", [
-				m(".flex-space-between.items-center.mt-32.mb-8", [m(".h4", lang.get("notificationSettings_action"))]),
+				m(".flex-space-between.items-center.mt-32.mb-8", [m(".h4", lang.get("notificationSettings_label"))]),
 				this.extendedNotificationMode
 					? m(
 							"#content",

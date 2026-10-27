@@ -142,7 +142,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 						".flex.col.gap-32",
 						m(TitleSection, {
 							icon: Icons.TrophyOutline,
-							title: lang.getTranslationText("adminSubscription_action"),
+							title: lang.getTranslationText("adminSubscription_label"),
 							subTitle: lang.getTranslationText("subscriptionSettingsSubtitle_label"),
 						}),
 						this._customerInfo !== null

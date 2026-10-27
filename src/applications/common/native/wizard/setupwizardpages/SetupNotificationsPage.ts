@@ -86,7 +86,7 @@ export class SetupNotificationsPageAttrs implements WizardPageAttrs<Notification
 	}
 
 	headerTitle(): TranslationKey {
-		return "notificationSettings_action"
+		return "notificationSettings_label"
 	}
 
 	nextAction(showDialogs: boolean): Promise<boolean> {

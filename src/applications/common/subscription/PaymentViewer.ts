@@ -654,7 +654,7 @@ function showPayConfirmDialog(price: number): Promise<boolean> {
 					type: ButtonType.Primary,
 				},
 			],
-			middle: "adminPayment_action",
+			middle: "adminPayment_label",
 		}
 		dialog = new Dialog(DialogType.EditSmall, {
 			view: (): Children => [
@@ -686,7 +686,7 @@ function getPostingTypeText(posting: CustomerAccountPosting): string {
 			return lang.get("credit_label")
 
 		case PostingType.Payment:
-			return lang.get("adminPayment_action")
+			return lang.get("adminPayment_label")
 
 		case PostingType.Refund:
 			return lang.get("refund_label")
