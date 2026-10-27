@@ -19,9 +19,8 @@ import {
 	TestTypeRef,
 } from "./InstancePipelineTestUtils"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
-import { createTestEntityWithDummyResolver, removeOriginals } from "../TestUtils"
+import { createTestEntityWithDummyResolver, getTestRandom, removeOriginals } from "../TestUtils"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
-import { random } from "../../../src/platform-kit/crypto"
 
 o.spec("ModelMapperTest", function () {
 	let modelMapper: ModelMapper
@@ -29,6 +28,7 @@ o.spec("ModelMapperTest", function () {
 	let instance: TestEntity
 
 	o.beforeEach(async () => {
+		const random = getTestRandom()
 		modelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver, random)
 
 		instance = await createTestEntityWithDummyResolver(TestTypeRef, {

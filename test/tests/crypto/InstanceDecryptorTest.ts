@@ -12,12 +12,13 @@ import { concat, KeyVersion } from "../../../src/platform-kit/utils"
 import { AeadWithInstanceKeySubKeys, AeadWithSessionKeySubKeys, AesCbcThenHmacSubKeys, SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { AesCbcFacade } from "@tutao/crypto/aes-cbc-facade"
-import { Aes256Key, AssociatedData, InstanceKeyProvider, MacTag, OwnerKeyProvider, random, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
+import { Aes256Key, AssociatedData, InstanceKeyProvider, MacTag, OwnerKeyProvider, SymmetricCipherVersion } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { InstanceTypeId, makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { ValueAssociatedData } from "../../../src/platform-kit/instance-pipeline/ValueAssociatedData"
 import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("InstanceDecryptorTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -36,7 +37,7 @@ o.spec("InstanceDecryptorTest", function () {
 	let emptyAssociatedData: AssociatedData
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		symmetricKeyDeriver = object()
 		aesCbcFacade = object()
 		aeadFacade = object()

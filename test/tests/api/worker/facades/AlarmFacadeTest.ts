@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	Aes,
@@ -7,7 +7,6 @@ import {
 	AesKey,
 	base64ToKey,
 	KeyEncryption,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
@@ -67,6 +66,8 @@ o.spec("AlarmFacadeTest", function () {
 	let userGroupMembership: GroupMembership
 
 	o.beforeEach(function () {
+		const random = getTestRandom()
+
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

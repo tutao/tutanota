@@ -7,7 +7,7 @@ import {
 } from "../../../../../src/platform-kit/base/base-crypto/KeyRotationFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { instance, matchers, object, verify, when } from "testdouble"
-import { createTestEntity } from "../../../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../../../TestUtils.js"
 import {
 	Aes256Key,
 	AesKey,
@@ -20,7 +20,6 @@ import {
 	PQKeyPairs,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
-	random,
 	RsaPublicKey,
 	SymmetricCipherUtils,
 	VersionedAes256Key,
@@ -116,6 +115,7 @@ import { InstanceKeyFacade } from "../../../../../src/platform-kit/base/base-cry
 import { CacheManager } from "../../../../../src/platform-kit/base/base-crypto/persistence/CacheManager"
 
 const { anything } = matchers
+const random = getTestRandom()
 
 const PW_KEY: Aes256Key = new Aes256Key(new Array(8).fill(0))
 

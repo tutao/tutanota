@@ -11,7 +11,6 @@ import {
 	getKeyLengthInBytes,
 	InitializationVector,
 	keyToBase64,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 } from "../../../src/platform-kit/crypto"
@@ -19,6 +18,9 @@ import { uint8ArrayTo128Key, validateInitializationVectorLength } from "@tutao/c
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../TestUtils"
+
+const random = getTestRandom()
 
 o.spec("aes", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils

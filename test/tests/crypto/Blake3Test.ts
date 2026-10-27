@@ -1,12 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
-import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array, random, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
+import { blake3Hash, blake3Kdf, blake3Mac, blake3MacVerify, keyToUint8Array, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("blake3", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 	})
 
 	o.spec("hash", function () {

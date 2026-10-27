@@ -11,7 +11,6 @@ import {
 	hexToRsaPrivateKey,
 	KeyEncryption,
 	keyToUint8Array,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	SymmetricCipherVersion,
@@ -21,6 +20,8 @@ import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { _aes128RandomKey } from "./AesTest.js"
 import sjcl from "@tutao/crypto/sjcl"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
+import { random } from "../../../packages/tutanota-crypto/dist"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("key encryption", function () {
 	const rsaPrivateHexKey =
@@ -32,7 +33,7 @@ o.spec("key encryption", function () {
 	let keyEncryption: KeyEncryption
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),
 			new AeadFacade(symmetricCipherUtils),

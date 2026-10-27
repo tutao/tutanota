@@ -10,6 +10,7 @@ import { assertNotNull, DateProvider, deepEqual, stringToUtf8Uint8Array } from "
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
+	getTestRandom,
 	instancePipelineFromTypeModelResolver,
 	mockFetchRequest,
 	removeAggregateIds,
@@ -42,7 +43,7 @@ import { IncomingServerJson } from "../../../../src/platform-kit/instance-pipeli
 import { InstanceDirection, ParsedValue } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { Aes, AesCbcFacade, random, SymmetricCipherFacade } from "../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, SymmetricCipherFacade } from "../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -65,6 +66,7 @@ o.spec("TutaSseFacadeTest", () => {
 	let typeModelResolver: TypeModelResolver
 
 	o.beforeEach(() => {
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

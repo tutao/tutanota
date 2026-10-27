@@ -17,9 +17,11 @@ import {
 import { concat, KeyVersion } from "../../../src/platform-kit/utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { SymmetricCipherVersion } from "@tutao/crypto/symmetric-cipher-version"
-import { MacTag, random } from "../../../src/platform-kit/crypto"
+import { MacTag } from "../../../src/platform-kit/crypto"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("ParsedCiphertextTest", () => {
+	const random = getTestRandom()
 	o.spec("happy path", () => {
 		let symmetricCipherUtils: SymmetricCipherUtils
 

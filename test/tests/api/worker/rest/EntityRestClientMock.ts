@@ -24,14 +24,14 @@ import {
 import { ensureIsPersistentType, LoggedInUserProvider, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { assertNotNull, downcast, isNotNull, Nullable } from "../../../../../src/platform-kit/utils"
-import { clientInitializedTypeModelResolver, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, getTestRandom, IdGenerator, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { EntityRestClient } from "../../../../../src/platform-kit/network/EntityRestClient"
 import { object } from "testdouble"
 import { SymmetricCipherFacade, SymmetricEncryptionScheme } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/SymmetricCipherFacade"
 import { DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, EntityRestClientLoadOptions } from "../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { AesCbcFacade, random } from "../../../../../src/platform-kit/crypto"
+import { AesCbcFacade } from "../../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -58,6 +58,7 @@ export class EntityRestClientMock extends EntityRestClient {
 	private idGenerator = new IdGenerator(timestampToGeneratedId(1))
 
 	constructor() {
+		const random = getTestRandom()
 		const typeModelResolver = clientInitializedTypeModelResolver()
 		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		super(

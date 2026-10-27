@@ -5,7 +5,6 @@ import {
 	AesCbcFacade,
 	KeyEncryption,
 	KyberKeyPair,
-	random,
 	RsaKeyPair,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -19,8 +18,11 @@ import { loadLibOQSWASM } from "../crypto/WebAssemblyTestUtils"
 import { CryptoWrapper } from "../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("CryptoWrapperTest", function () {
+	const random = getTestRandom()
+
 	let cryptoWrapper: CryptoWrapper
 	let x25519: X25519
 

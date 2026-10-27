@@ -22,7 +22,6 @@ import {
 	PQPublicKeys,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
-	random,
 	RsaImplementation,
 	RsaKeyPair,
 	RsaPublicKey,
@@ -34,7 +33,7 @@ import { KeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/K
 import { IServiceExecutor } from "../../../../src/platform-kit/network/ServiceRequest.js"
 import { KeyVersion, Versioned } from "../../../../src/platform-kit/utils"
 
-import { createTestEntity } from "../../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../../TestUtils.js"
 import { VerifiedPublicEncryptionKey } from "../../../../src/platform-kit/base/facades/lazy/KeyVerificationFacade"
 import PublicEncryptionKeyProvider from "../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import { AdminKeyLoaderFacade } from "../../../../src/platform-kit/base/base-crypto/AdminKeyLoaderFacade"
@@ -52,7 +51,7 @@ o.spec("AsymmetricCryptoFacadeTest", function () {
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade
 
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
-
+	const random = getTestRandom()
 	o.beforeEach(function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		rsa = object()

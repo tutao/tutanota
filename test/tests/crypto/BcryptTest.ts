@@ -1,11 +1,12 @@
 import o from "@tutao/otest"
-import { Bcrypt, KeyLength, keyToUint8Array, random } from "../../../src/platform-kit/crypto"
+import { Bcrypt, KeyLength, keyToUint8Array } from "../../../src/platform-kit/crypto"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("Bcrypt", function () {
 	let bcrypt: Bcrypt
 
 	o.beforeEach(function () {
-		bcrypt = new Bcrypt(random)
+		bcrypt = new Bcrypt(getTestRandom())
 	})
 
 	o("GenerateRandomSalt", function () {

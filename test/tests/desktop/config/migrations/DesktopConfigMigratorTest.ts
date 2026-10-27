@@ -2,14 +2,13 @@ import o from "@tutao/otest"
 import { DesktopConfigMigrator } from "../../../../../src/applications/common/desktop/config/migrations/DesktopConfigMigrator.js"
 import { DesktopNativeCryptoFacade } from "../../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import { downcast } from "../../../../../src/platform-kit/utils"
-import { makeKeyStoreFacade } from "../../../TestUtils.js"
+import { getTestRandom, makeKeyStoreFacade } from "../../../TestUtils.js"
 import { DesktopKeyStoreFacade } from "../../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { DesktopConfigKey } from "../../../../../src/platform-kit/app-env/ConfigKeys.js"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { random } from "../../../../../src/platform-kit/crypto"
 
 o.spec("DesktopConfigMigrator", function () {
-	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 
 	let migrator
 	let crypto: DesktopNativeCryptoFacade

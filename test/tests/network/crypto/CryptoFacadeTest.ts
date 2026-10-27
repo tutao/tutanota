@@ -27,7 +27,6 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKeyIdentifierType,
-	random,
 	RsaPublicKey,
 	rsaPublicKeyToHex,
 	SymmetricCipherFacade,
@@ -43,7 +42,7 @@ import { SessionKeyNotFoundError } from "../../../../src/platform-kit/crypto/err
 import { WASMKyberFacade } from "../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
 import { PQFacade } from "../../../../src/platform-kit/base/base-crypto/PQFacade.js"
 import { encodePQMessage, PQBucketKeyEncapsulation } from "../../../../src/platform-kit/base/base-crypto/PQMessage.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver } from "../../TestUtils.js"
 import { RSA_TEST_KEYPAIR } from "../../api/worker/facades/RsaPqPerformanceTest.js"
 import { DefaultEntityRestCache } from "../../../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { AsymmetricCryptoFacade } from "../../../../src/platform-kit/base/base-crypto/AsymmetricCryptoFacade.js"
@@ -92,6 +91,7 @@ import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything, argThat } = matchers
 
+const random = getTestRandom()
 const kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 const symmetricCipherUtils = new SymmetricCipherUtils(random)
 const symmetricCipherFacade = new SymmetricCipherFacade(
@@ -106,7 +106,6 @@ const x25519 = new X25519(random)
 const cryptoWrapper = new CryptoWrapper(symmetricCipherUtils, aes, keyEncryption, x25519)
 const pqFacade: PQFacade = new PQFacade(kyberFacade, cryptoWrapper, x25519)
 let publicEncryptionKeyProvider: PublicEncryptionKeyProvider
-
 /**
  * Helper to have all the mocked items available in the test case.
  */

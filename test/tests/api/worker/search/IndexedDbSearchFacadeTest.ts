@@ -22,7 +22,7 @@ import { groupBy, numberRange, splitInChunks } from "../../../../../src/platform
 import { appendBinaryBlocks } from "../../../../../src/applications/common/api/worker/search/SearchIndexEncoding.js"
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import type { BrowserData } from "../../../../../src/platform-kit/app-env/boot/ClientConstants.js"
-import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { browserDataStub, clientInitializedTypeModelResolver, createTestEntity, getTestRandom, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { ElementDataOS, SearchIndexMetaDataOS, SearchIndexOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { object, when } from "testdouble"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
@@ -35,7 +35,7 @@ import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import { ProgrammingError } from "../../../../../src/platform-kit/app-env"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { Aes, AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
 import { IndexEncryptionUtils } from "../../../../../src/applications/common/api/worker/search/IndexEncryptionUtils"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
@@ -194,7 +194,7 @@ o.spec("IndexedDbSearchFacade", () => {
 	let transaction: DbStubTransaction
 	let indexEncryptionUtils: IndexEncryptionUtils
 	o.beforeEach(async () => {
-		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		indexEncryptionUtils = new IndexEncryptionUtils(
 			new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils)),
 		)

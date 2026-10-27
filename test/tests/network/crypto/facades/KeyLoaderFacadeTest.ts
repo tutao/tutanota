@@ -11,7 +11,6 @@ import {
 	kyberPrivateKeyToBytes,
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
-	random,
 	RsaKeyPair,
 	rsaPublicKeyToHex,
 	SymmetricCipherFacade,
@@ -20,7 +19,7 @@ import {
 	X25519,
 } from "../../../../../src/platform-kit/crypto"
 import { freshVersioned, hexToUint8Array, KeyVersion, stringToBase64UrlCustomId } from "../../../../../src/platform-kit/utils"
-import { createTestEntity } from "../../../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../../../TestUtils.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
 import { matchers, object, reset, verify, when } from "testdouble"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
@@ -75,6 +74,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 	let membership: GroupMembership
 	let cryptoWrapper: CryptoWrapper
 	let realFormerKeyResolver: FormerKeyResolver
+	const random = getTestRandom()
 
 	o.beforeEach(async () => {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)

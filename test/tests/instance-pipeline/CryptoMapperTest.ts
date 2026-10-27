@@ -9,7 +9,6 @@ import {
 	KdfNonce,
 	KeyEncryption,
 	PartialSubKeyInfoAesCbcThenHmac,
-	random,
 	SessionKeyDecryptor,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SubKeyInfoAeadWithInstanceKeyFromInstanceKey,
@@ -58,8 +57,10 @@ import { InstanceTypeId, makeKeyDerivationContext } from "../../../src/platform-
 import { ValueAssociatedData } from "../../../src/platform-kit/instance-pipeline/ValueAssociatedData"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("CryptoMapperTest", () => {
+	const random = getTestRandom()
 	const symmetricCipherUtils = new SymmetricCipherUtils(random)
 	const symmetricCipherFacade = new SymmetricCipherFacade(
 		new AesCbcFacade(),

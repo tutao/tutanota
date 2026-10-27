@@ -1,6 +1,6 @@
 import o from "@tutao/otest"
 import { concat, hexToUint8Array, stringToUtf8Uint8Array, uint8ArrayToHex } from "../../../src/platform-kit/utils"
-import { extractRawPublicRsaKeyFromPrivateRsaKey, random, RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "../../../src/platform-kit/crypto"
+import { extractRawPublicRsaKeyFromPrivateRsaKey, RsaKeyPair, RsaPrivateKey, RsaPublicKey } from "../../../src/platform-kit/crypto"
 import {
 	_getPSBlock,
 	_keyArrayToHex,
@@ -20,7 +20,9 @@ import {
 import { SecureRandom } from "@tutao/crypto/random"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { parseBigInt } from "@tutao/crypto/jsbn"
+import { getTestRandom } from "../TestUtils"
 
+const random = getTestRandom()
 const originalRandom = random.generateRandomData
 
 const privateKey = hexToRsaPrivateKey(
@@ -33,6 +35,8 @@ const publicKey = hexToRsaPublicKey(
 const RSA_TEST_KEYPAIR = new RsaKeyPair(publicKey, privateKey)
 
 o.spec("RsaTest", function () {
+	const random = getTestRandom()
+
 	o.afterEach(function () {
 		random.generateRandomData = originalRandom
 	})
@@ -179,7 +183,7 @@ o.spec("RsaTest", function () {
 
 		random.generateRandomData = (number) => seed
 
-		let secureRandom = new SecureRandom()
+		let secureRandom = new SecureRandom(random)
 		secureRandom.nextBytes(a)
 		o(a).deepEquals(Array.from(seed))
 

@@ -33,7 +33,6 @@ import {
 	pqKeyPairsToPublicKeys,
 	PQPublicKeys,
 	PublicKey,
-	random,
 	Randomizer,
 	rsaDecrypt,
 	rsaEncrypt,
@@ -80,7 +79,9 @@ import { uncompress } from "../../../../../src/platform-kit/instance-pipeline/Co
 import { uint8ArrayTo128Key, uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
 import { AssociatedData } from "../../../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
 import { InstanceTypeId, makeKeyDerivationContext } from "../../../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
+import { getTestRandom } from "../../../TestUtils"
 
+const random = getTestRandom()
 const originalRandom = random.generateRandomData
 
 const libOQS = await loadLibOQSWASM()

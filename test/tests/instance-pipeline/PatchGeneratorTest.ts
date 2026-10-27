@@ -13,14 +13,13 @@ import {
 	Aes,
 	AesCbcFacade,
 	KeyEncryption,
-	random,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 } from "../../../src/platform-kit/crypto"
 import { assertNotNull, base64ToUint8Array, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 import { GENERATED_MAX_ID, GENERATED_MIN_ID, ValueTypeEnum } from "../../../src/platform-kit/meta"
-import { createTestEntityWithDummyResolver } from "../TestUtils"
+import { createTestEntityWithDummyResolver, getTestRandom } from "../TestUtils"
 
 import { object } from "testdouble"
 
@@ -41,6 +40,7 @@ o.spec("computePatches", function () {
 	o.beforeEach(function () {
 		typeModelResolver = object()
 		typeModelResolver.resolveClientTypeReference = dummyResolver as any
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

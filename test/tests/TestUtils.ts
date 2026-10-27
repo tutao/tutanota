@@ -4,16 +4,7 @@ import { DbFacade, DbTransaction } from "../../src/applications/common/api/worke
 import { assertNotNull, base64ToUint8Array, deepEqual, defer, isNotNull, remove, Thunk, typedEntries, uint8ArrayToString } from "../../src/platform-kit/utils"
 import type { DesktopKeyStoreFacade } from "../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { mock } from "@tutao/otest"
-import {
-	Aes,
-	Aes256Key,
-	AesCbcFacade,
-	FIXED_INITIALIZATION_VECTOR,
-	KeyEncryption,
-	random,
-	Randomizer,
-	SymmetricCipherUtils,
-} from "../../src/platform-kit/crypto"
+import { Aes, Aes256Key, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, KeyEncryption, Randomizer, SymmetricCipherUtils } from "../../src/platform-kit/crypto"
 import { ScheduledPeriodicId, ScheduledTimeoutId, Scheduler } from "../../src/applications/common/api/common/utils/Scheduler.js"
 import { matchers, object, when } from "testdouble"
 import {
@@ -65,6 +56,13 @@ import { InstanceKeyProviderMaker } from "../../src/platform-kit/base/base-crypt
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { IndexEncryptionUtils } from "../../src/applications/common/api/worker/search/IndexEncryptionUtils"
+import { createSeededRandomizer } from "../../src/platform-kit/crypto/random/Randomizer"
+
+const testRandomizer = createSeededRandomizer()
+
+export function getTestRandom() {
+	return testRandomizer
+}
 
 export const browserDataStub: BrowserData = {
 	needsMicrotaskHack: false,
@@ -85,7 +83,7 @@ export function makeCore(
 	const { transaction } = safeArgs
 	const dbFacade = { createTransaction: () => Promise.resolve(transaction) } as Partial<DbFacade>
 	const defaultDb = new EncryptedDbWrapper(dbFacade as DbFacade)
-	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(testRandomizer)
 	defaultDb.init(
 		safeArgs.encryptionData ?? {
 			key: symmetricCipherUtils.aes256RandomKey(),
@@ -453,7 +451,7 @@ export function instancePipelineFromTypeModelResolver(
 		symmetricCipherFacade,
 		null,
 		() => instanceKeyProviderMaker,
-		random,
+		testRandomizer,
 		keyEncryption,
 	)
 }
@@ -463,7 +461,7 @@ export function base64Decode(base64: Base64): string {
 }
 
 export function modelMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): ModelMapper {
-	return new ModelMapper(typeModelResolver, random)
+	return new ModelMapper(typeModelResolver, testRandomizer)
 }
 
 export function offlineMapperFromTypeModelResolver(typeModelResolver: TypeModelResolver): OfflineMapper {

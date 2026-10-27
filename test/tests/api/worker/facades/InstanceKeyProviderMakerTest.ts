@@ -5,7 +5,7 @@ import { EntityAdapter, InstancePipeline, SymmetricGroupKeyLoader, TypeModelReso
 import { convertKeyVersionToCustomId, FormerKeyResolver } from "../../../../../src/platform-kit/base/base-crypto/FormerKeyResolver"
 import { matchers, object, verify, when } from "testdouble"
 import { GroupInfo, GroupInfoTypeRef, InstanceKey, InstanceKeysRefTypeRef, InstanceKeyTypeRef, Permission, PermissionTypeRef } from "@tutao/entities/sys"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
 import { assertNotNull, KeyVersion } from "../../../../../src/platform-kit/utils"
 import { AssociationTypeEnum, CardinalityEnum, ModelAssociation } from "../../../../../src/platform-kit/meta"
 import {
@@ -14,7 +14,6 @@ import {
 	AesKey,
 	cryptoUtils,
 	CryptoWrapper,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	SymmetricKeyDeriver,
@@ -54,6 +53,8 @@ o.spec("InstanceKeyProviderMakerTest", function () {
 		type: AssociationTypeEnum.Aggregation,
 		name: "_formerInstanceKeys",
 	}
+
+	const random = getTestRandom()
 
 	o.beforeEach(function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)

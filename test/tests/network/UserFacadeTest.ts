@@ -2,12 +2,12 @@ import o from "@tutao/otest"
 import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js"
 import { KeyCache } from "../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
 import { matchers, object, verify, when } from "testdouble"
-import { createTestEntity } from "../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../TestUtils.js"
 
 import { User, UserGroupKeyDistributionTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "../../../src/platform-kit/meta"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { Aes, AesCbcFacade, CryptoWrapper, KeyEncryption, random, SymmetricCipherFacade, X25519 } from "../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, CryptoWrapper, KeyEncryption, SymmetricCipherFacade, X25519 } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -16,6 +16,7 @@ o.spec("UserFacadeTest", function () {
 	let keyEncryption: KeyEncryption
 	let keyCache: KeyCache
 	let facade: UserFacade
+	const random = getTestRandom()
 
 	o.beforeEach(function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)

@@ -7,13 +7,18 @@ import { OfflineStorageArgs } from "../../../../src/platform-kit/base/facades/Ca
 import { CacheSyncStatus } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { Entity, getElementId } from "../../../../src/platform-kit/meta"
 import { DummyTypeModelResolver, TestEntity, TestTypeRef } from "../../instance-pipeline/InstancePipelineTestUtils"
-import { clientInitializedTypeModelResolver, createTestEntity, createTestEntityWithDummyResolver, modelMapperFromTypeModelResolver } from "../../TestUtils"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	createTestEntityWithDummyResolver,
+	getTestRandom,
+	modelMapperFromTypeModelResolver,
+} from "../../TestUtils"
 import { DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { CustomCacheHandlerMap } from "../../../../src/app-kit/local-store/CustomCacheHandler"
 import { LastUpdateTime } from "../../../../src/app-kit/local-store/CacheStorage"
 import { MailSetEntry, MailSetEntryTypeRef } from "@tutao/entities/tutanota"
 import { downcast } from "../../../../src/platform-kit/utils"
-import { random } from "../../../../src/platform-kit/crypto"
 
 const { anything } = matchers
 o.spec("CachingOfflineStorageTest", function () {
@@ -30,6 +35,7 @@ o.spec("CachingOfflineStorageTest", function () {
 	const dummyElementId = "elementId"
 	const dummyElementId2 = "elementId2"
 	const dummyOwner = "ownerGroup"
+	const random = getTestRandom()
 	const dummyModelMapper = new ModelMapper(new DummyTypeModelResolver() as TypeModelResolver, random)
 	let typeModelResolver: TypeModelResolver
 	let testModelMapper: ModelMapper

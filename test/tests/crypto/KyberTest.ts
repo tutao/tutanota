@@ -5,11 +5,13 @@ import {
 	extractKyberPublicKeyFromKyberPrivateKey,
 	generateKeyPairKyber,
 	LibOQSExports,
-	random,
 } from "../../../src/platform-kit/crypto"
 import { loadWasmExports, loadWasmModuleFallback } from "./WebAssemblyTestUtils.js"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("Kyber", function () {
+	const random = getTestRandom()
+
 	o("encryption roundtrip", async function () {
 		const liboqs = (await loadWasmExports("liboqs.wasm")) as LibOQSExports
 

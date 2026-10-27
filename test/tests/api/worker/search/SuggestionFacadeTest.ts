@@ -4,7 +4,7 @@
 import o, { spy } from "@tutao/otest"
 import { SuggestionFacade } from "../../../../../src/applications/mail-app/workerUtils/index/SuggestionFacade.js"
 import { downcast } from "../../../../../src/platform-kit/utils"
-import { Aes, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, FIXED_INITIALIZATION_VECTOR, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { SearchTermSuggestionsOS } from "../../../../../src/applications/common/api/worker/search/IndexTables.js"
 import { DbEncryptionData } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import { object } from "testdouble"
@@ -13,7 +13,7 @@ import { EncryptedDbWrapper } from "../../../../../src/applications/common/api/w
 import { TypeModel } from "../../../../../src/platform-kit/meta"
 import { Contact, ContactTypeRef } from "@tutao/entities/tutanota"
 import { ClientTypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
-import { makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { getTestRandom, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -26,7 +26,7 @@ o.spec("SuggestionFacade test", () => {
 	o.beforeEach(async function () {
 		db = new EncryptedDbWrapper(object())
 
-		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 
 		encryptionData = { key: symmetricCipherUtils.aes256RandomKey(), initializationVector: FIXED_INITIALIZATION_VECTOR }
 		db.init(encryptionData)

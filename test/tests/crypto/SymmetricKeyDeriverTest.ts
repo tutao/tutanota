@@ -6,7 +6,6 @@ import {
 	AesKeyLength,
 	getKeyLengthInBytes,
 	keyToUint8Array,
-	random,
 	sha256Hash,
 	sha512Hash,
 	SymmetricCipherUtils,
@@ -19,6 +18,7 @@ import { KdfNonce } from "@tutao/crypto/symmetric-cipher-utils"
 import { freshVersioned } from "../../../src/platform-kit/utils"
 import { AppNameEnum } from "../../../src/platform-kit/meta"
 import { makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("SymmetricKeyDeriverTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -28,7 +28,7 @@ o.spec("SymmetricKeyDeriverTest", function () {
 	let versionedAes256Key: VersionedKey
 	let versionedAes128Key: VersionedKey
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		aes256Key = symmetricCipherUtils.aes256RandomKey()
 		aes128Key = _aes128RandomKey()
 		versionedAes256Key = freshVersioned(aes256Key)

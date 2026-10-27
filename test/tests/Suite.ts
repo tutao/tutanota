@@ -281,8 +281,9 @@ import "./plugin-kit/plugins/nextcloud/NextcloudPluginTest.js"
 import "./plugin-kit/plugins/nextcloud/NextcloudApiTest.js"
 
 import * as td from "testdouble"
-import { EntropySource } from "../../src/platform-kit/crypto"
+import { EntropySource, Randomizer } from "../../src/platform-kit/crypto"
 import { EnvProvider } from "../../src/platform-kit/app-env"
+import { getTestRandom } from "./TestUtils"
 
 export async function run({
 	integration,
@@ -303,8 +304,9 @@ export async function run({
 	return result
 }
 
+const random = getTestRandom()
+
 async function setupSuite({ integration }: { integration?: boolean }) {
-	const { random } = await import("../../src/platform-kit/crypto")
 	const { WorkerImpl } = await import("../../src/applications/mail-app/workerUtils/worker/WorkerImpl")
 	globalThis.testWorker = WorkerImpl
 

@@ -12,7 +12,6 @@ import {
 	MacTag,
 	ParsedCiphertextAesCbcThenHmac,
 	ParsedCiphertextUnusedReservedUnauthenticated,
-	random,
 	SymmetricCipherUtils,
 	UnusedReservedUnauthenticatedSubKeys,
 	validateInitializationVectorLength,
@@ -24,6 +23,7 @@ import { SymmetricCipherFacade } from "../../../src/platform-kit/crypto/instance
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 import { AssociatedData } from "../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("SymmetricCipherFacadeTest", function () {
 	const customInitializationVector = object<InitializationVector>()
@@ -48,7 +48,7 @@ o.spec("SymmetricCipherFacadeTest", function () {
 		aesCbcFacade = object()
 		aeadFacade = object()
 		symmetricKeyDeriver = object()
-		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		symmetricCipherFacade = new SymmetricCipherFacade(aesCbcFacade, aeadFacade, symmetricKeyDeriver, symmetricCipherUtils)
 		aes256Key = symmetricCipherUtils.aes256RandomKey()
 		aes128Key = _aes128RandomKey()

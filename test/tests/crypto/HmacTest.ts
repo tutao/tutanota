@@ -1,12 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
-import { hmacSha256, random, SymmetricCipherUtils, verifyHmacSha256 } from "../../../src/platform-kit/crypto"
+import { hmacSha256, SymmetricCipherUtils, verifyHmacSha256 } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("hmac", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 	})
 
 	o("round trip", function () {

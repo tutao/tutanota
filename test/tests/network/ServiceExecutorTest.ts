@@ -6,7 +6,7 @@ import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, NULL_ENTITY, NullEntityTypeRef, PostService, PutService, ServerTypeModel } from "../../../src/platform-kit/meta"
 import { assert, deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
-import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals } from "../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, removeOriginals } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	Aes,
@@ -14,7 +14,6 @@ import {
 	AesKey,
 	KeyEncryption,
 	PartialSubKeyInfoAesCbcThenHmac,
-	random,
 	SessionKeyDecryptor,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -43,7 +42,7 @@ import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 const { anything } = matchers
-
+const random = getTestRandom()
 o.spec("ServiceExecutor", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let keyEncryption: KeyEncryption

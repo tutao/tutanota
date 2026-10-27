@@ -6,15 +6,16 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { DesktopKeyStoreFacade } from "../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
 import { CryptoError } from "../../../../src/platform-kit/crypto/error"
 import { KeyPermanentlyInvalidatedError } from "../../../../src/applications/common/api/common/error/KeyPermanentlyInvalidatedError.js"
-import { Aes256Key, random, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import { Aes256Key, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { CredentialEncryptionMode } from "../../../../src/platform-kit/app-env"
+import { getTestRandom } from "../../TestUtils"
 
 o.spec("KeychainEncryption", () => {
 	let encryption: KeychainEncryption
 	const appPassHandler: AppPassHandler = object()
 	const crypto: DesktopNativeCryptoFacade = object()
 	const keystore: DesktopKeyStoreFacade = object()
-	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 	const unencryptedKey = symmetricCipherUtils.aes256RandomKey()
 	const encryptedData = new Uint8Array([0x0e, 0x04, 0x0c, 0x01, 0x03])
 	const wrappedData = new Uint8Array([0x03, 0x01, 0x03, 0x0a, 0x07, 0x07, 0x0e, 0x0d])

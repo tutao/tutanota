@@ -17,7 +17,6 @@ import {
 	KeyEncryption,
 	KyberPublicKey,
 	PQPublicKeys,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	X25519,
@@ -28,6 +27,7 @@ import { KeyVersion } from "../../../../../src/platform-kit/utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../../../TestUtils"
 
 const WRONG_BYTES = new Uint8Array([255, 254, 253])
 const WRONG_ID: Id = "I_CLEARLY_MISSED_SOMETHING" // this must be base64 compatible
@@ -59,7 +59,7 @@ o.spec("KeyAuthenticationFacadeTest", function () {
 	let kyberPublicKey: KyberPublicKey
 	let ed25519PublicKey: Ed25519PublicKey
 	let identityKeyVersion: KeyVersion
-
+	const random = getTestRandom()
 	o.beforeEach(async function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(

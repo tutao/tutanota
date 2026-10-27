@@ -10,8 +10,8 @@ import {
 import { base64ToUint8Array, byteLength, concat, utf8Uint8ArrayToString } from "../../../../../src/platform-kit/utils"
 import type { SearchIndexEntry, SearchIndexMetaDataRow } from "../../../../../src/applications/common/api/worker/search/SearchTypes.js"
 
-import { Aes, AesCbcFacade, InitializationVector, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
-import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { Aes, AesCbcFacade, InitializationVector, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { createTestEntity, getTestRandom, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 
 import { ContactTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
@@ -27,7 +27,7 @@ o.spec("Index Utils", () => {
 	let INITIALIZATION_VECTOR: InitializationVector
 
 	o.beforeEach(() => {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		aes = new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils))
 		indexEncryptionUtils = new IndexEncryptionUtils(aes)
 		INITIALIZATION_VECTOR = symmetricCipherUtils.generateInitializationVector()

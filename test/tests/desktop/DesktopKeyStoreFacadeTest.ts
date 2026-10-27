@@ -3,16 +3,17 @@ import { CredentialsKeySpec, DesktopKeyStoreFacade, DeviceKeySpec } from "../../
 import { DesktopNativeCryptoFacade } from "../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import type { SecretStorage } from "../../../src/applications/common/desktop/sse/SecretStorage.js"
 import { spyify } from "../nodemocker.js"
-import { keyToBase64, random, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
+import { keyToBase64, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { CancelledError } from "../../../src/platform-kit/app-env"
 import { DeviceStorageUnavailableError } from "../../../src/applications/common/api/common/error/DeviceStorageUnavailableError.js"
+import { getTestRandom } from "../TestUtils"
 
 function initKeyStoreFacade(secretStorage: SecretStorage, crypto: DesktopNativeCryptoFacade): DesktopKeyStoreFacade {
 	return new DesktopKeyStoreFacade(secretStorage, crypto)
 }
 
 o.spec("DesktopKeyStoreFacade", function () {
-	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 
 	const aes256Key = symmetricCipherUtils.aes256RandomKey()
 	let cryptoFacadeSpy: DesktopNativeCryptoFacade

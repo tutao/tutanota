@@ -23,7 +23,6 @@ import {
 	KeyDerivationContext,
 	MacTag,
 	OwnerKeyProvider,
-	random,
 	VersionedAes256Key,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -35,6 +34,7 @@ import { Aes256Key } from "../../../src/platform-kit/crypto/encryption/symmetric
 import { ValueAssociatedData } from "../../../src/platform-kit/instance-pipeline/ValueAssociatedData"
 import { ValuePath } from "../../../src/platform-kit/instance-pipeline/EncryptionContextPath"
 import { makeKeyDerivationContext } from "../../../src/platform-kit/instance-pipeline/InstanceTypeContext"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("ValueDecryptorTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -51,7 +51,7 @@ o.spec("ValueDecryptorTest", function () {
 	let ownerKeyProvider: OwnerKeyProvider
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		aesCbcFacade = object()
 		aeadFacade = object()
 		symmetricKeyDeriver = object()

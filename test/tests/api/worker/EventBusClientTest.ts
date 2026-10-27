@@ -6,7 +6,7 @@ import { OutOfSyncError, ProgrammingError } from "../../../../src/platform-kit/a
 import { func, matchers, object, verify, when } from "testdouble"
 import { SleepDetector } from "../../../../src/applications/common/api/worker/utils/SleepDetector.js"
 import { UserFacade } from "../../../../src/platform-kit/base/facades/UserFacade"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils.js"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
 import { CryptoFacade } from "../../../../src/platform-kit/base/base-crypto/CryptoFacade"
 import { Thunk } from "../../../../src/platform-kit/utils"
@@ -34,7 +34,7 @@ import {
 } from "../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { GroupType } from "../../../../src/entities/sys/Utils"
 import { ProgressMonitorInterface } from "../../../../src/platform-kit/network/ProgressMonitorInterface"
-import { AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import { AesCbcFacade, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -102,6 +102,8 @@ o.spec("EventBusClient", function () {
 	})
 
 	o.beforeEach(async function () {
+		const random = getTestRandom()
+
 		listenerMock = object()
 		lastProcessedEventBatchStorageFacade = object()
 		cacheMock = object()

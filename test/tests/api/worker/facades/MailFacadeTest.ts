@@ -11,7 +11,7 @@ import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFac
 import { NativeFileApp } from "../../../../../src/app-kit/native-bridge/common/FileApp.js"
 import { LoginFacade } from "../../../../../src/platform-kit/base/facades/LoginFacade.js"
 import { downcast, KeyVersion, lazyNumberRange } from "../../../../../src/platform-kit/utils"
-import { createTestEntity } from "../../../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import PublicEncryptionKeyProvider from "../../../../../src/platform-kit/base/base-crypto/PublicEncryptionKeyProvider.js"
 import {
@@ -21,7 +21,6 @@ import {
 	AesKey,
 	Bcrypt,
 	KeyEncryption,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedEncryptedKey,
@@ -83,6 +82,8 @@ o.spec("MailFacade test", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
+		const random = getTestRandom()
+
 		userFacade = object()
 		blobFacade = object()
 		entityClient = object()

@@ -11,14 +11,20 @@ import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop
 import { LanguageViewModel } from "../../../../src/ui/utils/LanguageViewModel.js"
 import { fetch as undiciFetch } from "undici"
 import { func, matchers, object, verify, when } from "testdouble"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, mockFetchRequest } from "../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	getTestRandom,
+	instancePipelineFromTypeModelResolver,
+	mockFetchRequest,
+} from "../../TestUtils.js"
 
 import { ApplicationWindow } from "../../../../src/applications/common/desktop/ApplicationWindow.js"
 import { SseInfo } from "../../../../src/applications/common/desktop/sse/SseInfo.js"
 import { SseStorage } from "../../../../src/applications/common/desktop/sse/SseStorage.js"
 import { createSystemMail } from "../../api/common/mail/CommonMailUtilsTest"
 import { InstancePipeline } from "../../../../src/platform-kit/instance-pipeline"
-import { AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import { AesCbcFacade, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { assertNotNull } from "../../../../src/platform-kit/utils"
 
 import { Mail, MailAddressTypeRef, MailTypeRef, tutanotaModelInfo } from "@tutao/entities/tutanota"
@@ -47,6 +53,7 @@ o.spec("TutaNotificationHandlerTest", () => {
 	let nativeInstancePipeline: InstancePipeline
 
 	o.beforeEach(() => {
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		wm = object()
 		nativeCredentialsFacade = object()

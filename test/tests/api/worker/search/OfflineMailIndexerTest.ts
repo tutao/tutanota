@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver, removeOriginals } from "../../../TestUtils"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { OfflineMailIndexer } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineMailIndexer"
 import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
@@ -56,7 +56,7 @@ import { IncomingServerJson } from "../../../../../src/platform-kit/instance-pip
 import { MailImportType, MailSetKind } from "../../../../../src/entities/tutanota/Utils"
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
+import { AesCbcFacade, SymmetricCipherFacade } from "../../../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
@@ -106,6 +106,8 @@ o.spec("OfflineMailIndexer", () => {
 	let cacheStorage: CacheStorage
 
 	o.beforeEach(async () => {
+		const random = getTestRandom()
+
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
 		realInstancePipeline = instancePipelineFromTypeModelResolver(

@@ -15,7 +15,6 @@ import {
 	getKeyLengthInBytes,
 	KeyEncryption,
 	keyToUint8Array,
-	random,
 	sha256Hash,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -33,7 +32,7 @@ import { EventBusClient } from "../../../src/app-kit/local-store/event/EventBusC
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
 import { EntropyFacade } from "../../../src/platform-kit/base/facades/EntropyFacade.js"
 import { DatabaseKeyFactory } from "../../../src/platform-kit/base/base-crypto/DatabaseKeyFactory.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver } from "../TestUtils.js"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../../../src/platform-kit/base/base-crypto/KeyRotationFacade.js"
 import { InstancePipeline, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import { CacheManagementFacade } from "../../../src/applications/common/api/worker/facades/lazy/CacheManagementFacade.js"
@@ -162,6 +161,7 @@ o.spec("LoginFacadeTest", function () {
 		when(entityClientMock.loadRoot(TutanotaPropertiesTypeRef, anything())).thenResolve(createTestEntity(TutanotaPropertiesTypeRef))
 
 		typeModelResolver = clientInitializedTypeModelResolver()
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

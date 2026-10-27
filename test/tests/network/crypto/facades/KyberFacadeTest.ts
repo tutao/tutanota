@@ -1,11 +1,13 @@
 import o from "@tutao/otest"
 import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypto/KyberFacade.js"
-import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes, random } from "../../../../../src/platform-kit/crypto"
+import { bytesToKyberPrivateKey, bytesToKyberPublicKey, kyberPrivateKeyToBytes, kyberPublicKeyToBytes } from "../../../../../src/platform-kit/crypto"
 
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
+import { getTestRandom } from "../../../TestUtils"
 
 o.spec("KyberFacade", function () {
 	let kyberFacade: WASMKyberFacade
+	const random = getTestRandom()
 	o.before(async () => {
 		kyberFacade = new WASMKyberFacade(random, await loadLibOQSWASM())
 	})

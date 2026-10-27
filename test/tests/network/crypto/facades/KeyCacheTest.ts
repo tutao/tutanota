@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { KeyCache } from "../../../../../src/platform-kit/base/base-crypto/persistence/KeyCache.js"
-import { createTestEntity } from "../../../TestUtils.js"
-import { random, SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
+import { createTestEntity, getTestRandom } from "../../../TestUtils.js"
+import { SymmetricCipherUtils, VersionedKey } from "../../../../../src/platform-kit/crypto"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import { LoginIncompleteError } from "../../../../../src/platform-kit/rest-client/error"
 import { object } from "testdouble"
@@ -13,6 +13,7 @@ import { GroupMembershipTypeRef, UserTypeRef } from "@tutao/entities/sys"
 o.spec("KeyCacheTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let keyCache: KeyCache
+	const random = getTestRandom()
 
 	o.beforeEach(function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)

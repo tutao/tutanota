@@ -12,7 +12,6 @@ import {
 	AesCbcFacade,
 	CryptoWrapper,
 	KeyEncryption,
-	random,
 	SessionKeyDecryptor,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -26,7 +25,7 @@ import {
 	ImportMailFacade,
 	ImportMailParams,
 } from "../../../../../src/applications/common/api/worker/facades/lazy/ImportMailFacade"
-import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom } from "../../../TestUtils"
 import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import {
 	FileTypeRef,
@@ -116,7 +115,7 @@ o.spec("ImportMailFacade", () => {
 		instancePipelineMock = object<InstancePipeline>()
 		cryptoWrapperMock = object<CryptoWrapper>()
 		mailGroupKeyMock = { object: object(), version: 1 }
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		const symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),
 			new AeadFacade(symmetricCipherUtils),

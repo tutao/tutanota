@@ -1,7 +1,8 @@
-import { EntropySource, random } from "../../../src/platform-kit/crypto"
+import { EntropySource } from "../../../src/platform-kit/crypto"
+import { getTestRandom } from "../TestUtils"
 
 export async function bootstrapTests() {
-	await random.addEntropy([
+	await getTestRandom().addEntropy([
 		{
 			data: 36,
 			entropy: 256,

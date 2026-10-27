@@ -27,7 +27,13 @@ import {
 } from "../../../../../src/platform-kit/utils"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { BlobAccessTokenFacade } from "../../../../../src/platform-kit/network/BlobAccessTokenFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	getTestRandom,
+	instancePipelineFromTypeModelResolver,
+	withOverriddenEnv,
+} from "../../../TestUtils.js"
 import { TransferId } from "../../../../../src/entities/drive/Utils"
 import {
 	ArchiveEnumerationService_GET,
@@ -49,7 +55,7 @@ import { ArchiveDataType } from "../../../../../src/entities/sys/Utils"
 import { File, FileTypeRef, MailDetailsBlobTypeRef } from "@tutao/entities/tutanota"
 import { FileReference } from "../../../../../src/entities/tutanota/Utils"
 import { BlobReferencingInstance } from "../../../../../src/entities/storage/BlobUtils"
-import { Aes, AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import { IncomingServerJson, OutgoingServerJson } from "../../../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { InstancePipeline, TypeModelResolver } from "../../../../../src/platform-kit/instance-pipeline"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
@@ -93,6 +99,7 @@ o.spec("BlobFacadeTest", function () {
 		blobAccessTokenFacade = instance(BlobAccessTokenFacade)
 		typeModelResolver = clientInitializedTypeModelResolver()
 
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		const aesCbcFacade = new AesCbcFacade()
 		const aeadFacade = new AeadFacade(symmetricCipherUtils)

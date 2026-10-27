@@ -1,9 +1,11 @@
 import o, { assertThrows } from "@tutao/otest"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
-import { random } from "../../../src/platform-kit/crypto"
 import { uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("ParsedValueTest", () => {
+	const random = getTestRandom()
+
 	o("byteArray is base64 encoded", () => {
 		const bytes = random.generateRandomData(10)
 		o(ParsedValue.fromByteArray(bytes)).deepEquals(ParsedValue.fromString(uint8ArrayToBase64(bytes)))

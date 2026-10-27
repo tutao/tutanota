@@ -6,7 +6,6 @@ import {
 	KeyEncryption,
 	keyToUint8Array,
 	pqKeyPairsToPublicKeys,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	X25519,
@@ -17,12 +16,13 @@ import { WASMKyberFacade } from "../../../../../src/platform-kit/base/base-crypt
 import { loadLibOQSWASM } from "../../../crypto/WebAssemblyTestUtils"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../../../TestUtils"
 
 o.spec("PQFacade test", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let x25519: X25519
 	let cryptoWrapper: CryptoWrapper
-
+	const random = getTestRandom()
 	o.beforeEach(function () {
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		x25519 = new X25519(random)

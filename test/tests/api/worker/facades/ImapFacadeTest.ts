@@ -1,12 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
 import { matchers, object, verify, when } from "testdouble"
-import { createTestEntity } from "../../../TestUtils"
+import { createTestEntity, getTestRandom } from "../../../TestUtils"
 import { InitializeImapImportParams } from "../../../../../src/applications/mail-app/workerUtils/imapimport/ImapImporter"
 import { ImapMailbox, ImapMailboxStatus } from "../../../../../src/applications/common/api/common/utils/imapImportUtils/ImapMailbox"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient"
-import { CryptoWrapper, random, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { CryptoWrapper, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import {
 	createImapFolderDeleteIn,
 	DeduplicatedImportedAttachmentTypeRef,
@@ -62,6 +62,7 @@ o.spec("ImapFacade", () => {
 		entityClientMock = object<EntityClient>()
 		keyLoaderMock = object<KeyLoaderFacade>()
 		cryptoWrapperMock = object<CryptoWrapper>()
+		const random = getTestRandom()
 		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		imapFacade = new ImapFacade(mailFacadeMock, serviceExecutorMock, entityClientMock, keyLoaderMock, cryptoWrapperMock, symmetricCipherUtils)
 		when(keyLoaderMock.getCurrentSymGroupKey(mailGroupId)).thenResolve({ object: object(), version: 1 })

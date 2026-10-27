@@ -10,7 +10,7 @@ import { UserFacade } from "../../../src/platform-kit/base/facades/UserFacade.js
 import { arrayEquals, deepEqual, downcast, KeyVersion, Mapper, noOp, Nullable, ofClass, promiseMap } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
 import { BlobAccessTokenFacade } from "../../../src/platform-kit/network/BlobAccessTokenFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver, removeOriginals } from "../TestUtils.js"
 import { DecryptedParsedInstance, EntityAdapter, InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	Aes,
@@ -19,7 +19,6 @@ import {
 	KdfNonce,
 	KeyEncryption,
 	OwnerKeyProvider,
-	random,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -137,6 +136,7 @@ o.spec("EntityRestClient", function () {
 
 	o.beforeEach(function () {
 		currentDebuggingStatus = env.networkDebugging
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		typeModelResolver = clientInitializedTypeModelResolver()
 		const symmetricCipherFacade = new SymmetricCipherFacade(

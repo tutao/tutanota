@@ -11,12 +11,13 @@ import {
 	ValueTypeEnum,
 } from "../../../src/platform-kit/meta"
 import { changeInstanceDirection, DummyTypeModelResolver, TestAggregateRef, TestEntity, TestTypeRef } from "./InstancePipelineTestUtils"
-import { removeOriginals } from "../TestUtils"
+import { getTestRandom, removeOriginals } from "../TestUtils"
 import { InstanceDirection, ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { InvalidModelError, ProgrammingError } from "../../../src/platform-kit/app-env"
-import { random } from "../../../src/platform-kit/crypto"
 
 o.spec("ModelMapperTransformations", function () {
+	const random = getTestRandom()
+
 	o.spec("AddAssociation", function () {
 		o("add One aggregation", async function () {
 			const serverModel: Record<string, ServerTypeModel> = {

@@ -1,9 +1,9 @@
 import o from "@tutao/otest"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, measureAction } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver, measureAction } from "../TestUtils"
 import { ClientSpamTrainingDatumTypeRef, InboxRuleTypeRef, MailTypeRef, SendDraftDataTypeRef, UnreadMailStatePostInTypeRef } from "@tutao/entities/tutanota"
 import { CalendarEventRefTypeRef, NotificationInfoTypeRef } from "@tutao/entities/sys"
 import { InstancePipeline } from "../../../src/platform-kit/instance-pipeline"
-import { Aes256Key, AesCbcFacade, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
+import { Aes256Key, AesCbcFacade, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { DriveFileTypeRef } from "@tutao/entities/drive"
 import { IncomingServerJson } from "../../../src/platform-kit/instance-pipeline/TypeMapper"
 import { Entity, TypeRef } from "../../../src/platform-kit/meta"
@@ -16,6 +16,7 @@ o.spec("InstancePipelineTest", () => {
 	let sessionKey: Aes256Key
 
 	o.beforeEach(async () => {
+		const random = getTestRandom()
 		const symmetricCipherUtils = new SymmetricCipherUtils(random)
 		sessionKey = symmetricCipherUtils.aes256RandomKey()
 		instancePipeline = instancePipelineFromTypeModelResolver(

@@ -5,19 +5,19 @@ import {
 	bitArrayToUint8Array,
 	keyToBase64,
 	keyToUint8Array,
-	random,
 	SymmetricCipherUtils,
 	uint8ArrayToBitArray,
 	uint8ArrayToKey,
 } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
 import { uint8ArrayTo128Key, uint8ArrayTo256Key } from "@tutao/crypto/symmetric-cipher-utils"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("SymmetricCipherUtilsTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 	})
 
 	o.spec("Key conversion", function () {

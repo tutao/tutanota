@@ -6,7 +6,6 @@ import {
 	Aes256Key,
 	FIXED_INITIALIZATION_VECTOR,
 	INITIALIZATION_VECTOR_LENGTH_BYTES,
-	random,
 	SymmetricCipherUtils,
 	validateInitializationVectorLength,
 } from "../../../src/platform-kit/crypto"
@@ -19,6 +18,7 @@ import {
 } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { BLOCK_SIZE_BYTES, SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { getTestRandom } from "../TestUtils"
 
 // This does not account for padding or the initialization vector, but only the version byte and the authentication tag.
 const SYMMETRIC_CIPHER_VERSION_AND_TAG_OVERHEAD_BYTES = SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES + SYMMETRIC_AUTHENTICATION_TAG_LENGTH_BYTES
@@ -37,7 +37,7 @@ o.spec("AesCbcFacadeTest", function () {
 	let symmetricSubKeys256WithAuthenticationKey: AesCbcThenHmacSubKeys
 
 	o.beforeEach(function () {
-		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		encryption128Key = _aes128RandomKey()
 		authentication128Key = _aes128RandomKey()
 		encryption256Key = symmetricCipherUtils.aes256RandomKey()

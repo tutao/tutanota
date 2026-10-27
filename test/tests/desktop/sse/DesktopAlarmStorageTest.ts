@@ -4,7 +4,13 @@ import { DesktopAlarmStorage } from "../../../../src/applications/common/desktop
 import { DesktopConfig } from "../../../../src/applications/common/desktop/config/DesktopConfig.js"
 import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/desktop/DesktopNativeCryptoFacade.js"
 import type { DesktopKeyStoreFacade } from "../../../../src/applications/common/desktop/DesktopKeyStoreFacade.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, makeKeyStoreFacade } from "../../TestUtils.js"
+import {
+	clientInitializedTypeModelResolver,
+	createTestEntity,
+	getTestRandom,
+	instancePipelineFromTypeModelResolver,
+	makeKeyStoreFacade,
+} from "../../TestUtils.js"
 import { DesktopConfigKey } from "../../../../src/platform-kit/app-env"
 import { assertNotNull, uint8ArrayToBase64 } from "../../../../src/platform-kit/utils"
 import { InstancePipeline, TypeModelResolver } from "../../../../src/platform-kit/instance-pipeline"
@@ -13,7 +19,6 @@ import {
 	AesCbcFacade,
 	KeyEncryption,
 	keyToUint8Array,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	uint8ArrayToKey,
@@ -31,6 +36,7 @@ o.spec("DesktopAlarmStorageTest", function () {
 	let instancePipeline: InstancePipeline
 	let desktopStorage: DesktopAlarmStorage
 
+	const random = getTestRandom()
 	const symmetricCipherUtils = new SymmetricCipherUtils(random)
 	let keyEncryption: KeyEncryption
 

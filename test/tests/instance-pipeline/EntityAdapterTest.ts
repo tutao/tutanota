@@ -1,6 +1,6 @@
 import o, { assertThrows } from "@tutao/otest"
 
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver } from "../TestUtils"
 import { stringToUtf8Uint8Array } from "../../../src/platform-kit/utils"
 import { EntityAdapter, InstancePipeline, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 
@@ -10,11 +10,13 @@ import { BucketKey, BucketKeyTypeRef, GroupInfoTypeRef } from "@tutao/entities/s
 import { changeInstanceDirection } from "./InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { AesCbcFacade, random, SymmetricCipherFacade } from "../../../src/platform-kit/crypto"
+import { AesCbcFacade, SymmetricCipherFacade } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
 o.spec("EntityAdapter", () => {
+	const random = getTestRandom()
+
 	let symmetricCipherUtils: SymmetricCipherUtils
 	let typeModelResolver: TypeModelResolver
 	let instancePipeline: InstancePipeline

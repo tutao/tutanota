@@ -11,7 +11,6 @@ import {
 	CryptoWrapper,
 	KeyEncryption,
 	keyToUint8Array,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	SymmetricKeyDeriver,
@@ -32,11 +31,12 @@ import {
 	ReceivedGroupInvitationTypeRef,
 	UserTypeRef,
 } from "@tutao/entities/sys"
-import { createTestEntity } from "../../../TestUtils"
+import { createTestEntity, getTestRandom } from "../../../TestUtils"
 import { ShareCapability } from "../../../../../src/platform-kit/app-env"
 import { GroupInvitationPutData, GroupInvitationService_PUT } from "@tutao/entities/tutanota"
 
 o.spec("ShareFacadeTest", function () {
+	const random = getTestRandom()
 	let shareFacade: ShareFacade
 
 	let instanceKeyFacade: InstanceKeyFacade

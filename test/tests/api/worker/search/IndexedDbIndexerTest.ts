@@ -4,7 +4,7 @@ import { ENTITY_EVENT_BATCH_TTL_DAYS, NOTHING_INDEXED_TIMESTAMP, ProgrammingErro
 import { IndexedDbIndexer, initSearchIndexObjectStores } from "../../../../../src/applications/mail-app/workerUtils/index/IndexedDbIndexer.js"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
 import o, { mock } from "@tutao/otest"
-import { createTestEntity, makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { createTestEntity, getTestRandom, makePopulatedClientModelInfo } from "../../../TestUtils.js"
 import { EventQueue, QueuedBatch } from "../../../../../src/app-kit/local-store/event/EventQueue.js"
 import { MembershipRemovedError } from "../../../../../src/applications/common/api/common/error/MembershipRemovedError.js"
 import { defer, downcast, freshVersioned, promiseMap } from "../../../../../src/platform-kit/utils"
@@ -16,7 +16,6 @@ import {
 	FIXED_INITIALIZATION_VECTOR,
 	InitializationVector,
 	KeyEncryption,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
@@ -86,6 +85,8 @@ o.spec("IndexedDbIndexer", () => {
 	let keyEncryption: KeyEncryption
 
 	o.beforeEach(function () {
+		const random = getTestRandom()
+
 		clientTypeModelResolver = makePopulatedClientModelInfo()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		key = symmetricCipherUtils.aes256RandomKey()

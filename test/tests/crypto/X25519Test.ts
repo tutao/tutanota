@@ -1,12 +1,13 @@
 import o, { assertThrows } from "@tutao/otest"
-import { hexToRsaPublicKey, random, X25519, X25519KeyPair } from "../../../src/platform-kit/crypto"
+import { hexToRsaPublicKey, X25519, X25519KeyPair } from "../../../src/platform-kit/crypto"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("X25519Test", function () {
 	let x25519: X25519
 
 	o.beforeEach(function () {
-		x25519 = new X25519(random)
+		x25519 = new X25519(getTestRandom())
 	})
 
 	/**

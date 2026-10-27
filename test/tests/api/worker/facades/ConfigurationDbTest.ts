@@ -14,13 +14,12 @@ import {
 	EntropySource,
 	InitializationVector,
 	KeyEncryption,
-	random,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	VersionedKey,
 	X25519,
 } from "../../../../../src/platform-kit/crypto"
-import { createTestEntity } from "../../../TestUtils.js"
+import { createTestEntity, getTestRandom } from "../../../TestUtils.js"
 import { KeyLoaderFacade } from "../../../../../src/platform-kit/base/base-crypto/KeyLoaderFacade.js"
 import { matchers, object, verify, when } from "testdouble"
 import { UserFacade } from "../../../../../src/platform-kit/base/facades/UserFacade.js"
@@ -41,6 +40,7 @@ o.spec("ConfigurationDbTest", function () {
 	let configurationDatabase: ConfigurationDatabase
 
 	o.beforeEach(async function () {
+		const random = getTestRandom()
 		await random.addEntropy([{ data: 36, entropy: 256, source: EntropySource.Key }])
 		keyLoaderFacade = object()
 

@@ -14,9 +14,11 @@ import { EntityUtils } from "../../../src/platform-kit/instance-pipeline/EntityU
 import { createEncryptedValueType } from "./InstancePipelineTestUtils"
 import { ParsedValue } from "../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { stringToBase64, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
-import { random } from "../../../src/platform-kit/crypto"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("EntityUtilsTest", () => {
+	const random = getTestRandom()
+
 	o.spec("default value mappings", function () {
 		o("valueToDefault and isDefaultValue are compatible", async function () {
 			o(EntityUtils.valueToDefault(ValueTypeEnum.String).asString()).deepEquals("")

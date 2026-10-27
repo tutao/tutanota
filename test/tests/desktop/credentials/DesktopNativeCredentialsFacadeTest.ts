@@ -11,7 +11,7 @@ import { UnencryptedCredentials } from "../../../../src/app-kit/native-bridge/co
 import { stringToUtf8Uint8Array } from "../../../../src/platform-kit/utils"
 import { CredentialType } from "../../../../src/platform-kit/network/types"
 import { SymmetricCipherUtils } from "@tutao/crypto/symmetric-cipher-utils"
-import { random } from "../../../../src/platform-kit/crypto"
+import { getTestRandom } from "../../TestUtils"
 
 o.spec("DesktopNativeCredentialsFacade", () => {
 	const crypto: DesktopNativeCryptoFacade = object()
@@ -67,7 +67,7 @@ o.spec("DesktopNativeCredentialsFacade", () => {
 		accessToken: "decAccessToken2",
 	}
 
-	const symmetricCipherUtils = new SymmetricCipherUtils(random)
+	const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 
 	const encCredentialsKey = new Uint8Array([0x0e])
 	const decCredentialsKey = symmetricCipherUtils.aes256RandomKey()

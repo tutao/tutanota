@@ -17,7 +17,7 @@ import {
 	PubEncKeyData,
 	User,
 } from "@tutao/entities/sys"
-import { createTestEntity } from "../../../TestUtils"
+import { createTestEntity, getTestRandom } from "../../../TestUtils"
 import {
 	AssociationTypeEnum,
 	CardinalityEnum,
@@ -36,7 +36,6 @@ import {
 	KdfNonce,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
-	random,
 	SymmetricCipherUtils,
 	VersionedAes256Key,
 	VersionedEncryptedKey,
@@ -87,7 +86,7 @@ o.spec("InstanceKeyFacadeTest", function () {
 		cryptoWrapper = object()
 		serviceExecutor = object()
 		adminKeyLoaderFacade = object()
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		instanceKeyFacade = new InstanceKeyFacade(
 			adminKeyLoaderFacade,
 			keyLoaderFacade,

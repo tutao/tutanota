@@ -10,7 +10,6 @@ import {
 	kyberPublicKeyToBytes,
 	PQKeyPairs,
 	PQPublicKeys,
-	random,
 	RsaKeyPair,
 	RsaPublicKey,
 	rsaPublicKeyToBytes,
@@ -32,6 +31,7 @@ import { PublicKeySignatureType } from "../../../../../src/platform-kit/base/bas
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { getTestRandom } from "../../../TestUtils"
 
 o.spec("PublicKeySignatureFacadeTest", function () {
 	let ed25519Facade: Ed25519Facade
@@ -46,6 +46,7 @@ o.spec("PublicKeySignatureFacadeTest", function () {
 	let rsaOnlyPubKey: Versioned<RsaPublicKey>
 	let keyPairVersion: KeyVersion
 
+	const random = getTestRandom()
 	o.beforeEach(async function () {
 		ed25519Facade = object()
 		cryptoWrapper = object()

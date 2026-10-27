@@ -10,7 +10,7 @@ import { DesktopNativeCryptoFacade } from "../../../../src/applications/common/d
 import { makeAlarmScheduler } from "../../calendar/CalendarTestUtils.js"
 import { matchers, object, verify, when } from "testdouble"
 import { AlarmScheduler, EventInfo } from "../../../../src/applications/common/calendar/date/AlarmScheduler.js"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, getTestRandom, instancePipelineFromTypeModelResolver, removeOriginals } from "../../TestUtils"
 import { EncryptedAlarmNotification } from "../../../../src/app-kit/native-bridge/common/EncryptedAlarmNotification"
 
 import { formatNotificationForDisplay } from "../../../../src/ui/utils/Formatter"
@@ -23,12 +23,13 @@ import {
 	NotificationSessionKeyTypeRef,
 	RepeatRuleTypeRef,
 } from "@tutao/entities/sys"
-import { Aes, AesCbcFacade, KeyEncryption, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import { Aes, AesCbcFacade, KeyEncryption, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
 
+const random = getTestRandom()
 const symmetricCipherUtils = new SymmetricCipherUtils(random)
 const symmetricCipherFacade = new SymmetricCipherFacade(
 	new AesCbcFacade(),

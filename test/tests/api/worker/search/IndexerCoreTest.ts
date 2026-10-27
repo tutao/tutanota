@@ -19,8 +19,8 @@ import { appendBinaryBlocks } from "../../../../../src/applications/common/api/w
 import { createSearchIndexDbStub, DbStub, DbStubTransaction } from "./DbStub.js"
 import { IndexerCore } from "../../../../../src/applications/mail-app/workerUtils/index/IndexerCore.js"
 import { AttributeModel, elementIdPart, generatedIdToTimestamp, listIdPart, timestampToGeneratedId } from "../../../../../src/platform-kit/meta"
-import { createTestEntity, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
-import { Aes, Aes256Key, AesCbcFacade, InitializationVector, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
+import { createTestEntity, getTestRandom, makeCore, makePopulatedClientModelInfo } from "../../../TestUtils.js"
+import { Aes, Aes256Key, AesCbcFacade, InitializationVector, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../../src/platform-kit/crypto"
 import {
 	ElementDataOS,
 	GroupDataOS,
@@ -75,7 +75,7 @@ o.spec("IndexerCore", () => {
 	let encryptionData: DbEncryptionData
 
 	o.beforeEach(function () {
-		symmetricCipherUtils = new SymmetricCipherUtils(random)
+		symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		aes = new Aes(new SymmetricCipherFacade(new AesCbcFacade(), new AeadFacade(symmetricCipherUtils), new SymmetricKeyDeriver(), symmetricCipherUtils))
 		indexEncryptionUtils = new IndexEncryptionUtils(aes)
 		key = symmetricCipherUtils.aes256RandomKey()

@@ -1,9 +1,12 @@
 import o, { assertThrows } from "@tutao/otest"
-import { EntropySource, random } from "../../../src/platform-kit/crypto"
+import { EntropySource } from "../../../src/platform-kit/crypto"
 import sjcl from "@tutao/crypto/sjcl"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("Randomizer", function () {
+	const random = getTestRandom()
+
 	o.beforeEach(function () {
 		random.random = new sjcl.prng(6)
 	})

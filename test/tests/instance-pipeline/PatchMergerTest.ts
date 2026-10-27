@@ -4,7 +4,6 @@ import {
 	AesCbcFacade,
 	AesKey,
 	KeyEncryption,
-	random,
 	SubKeyInfoWithSessionKeyCbcThenHmac,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
@@ -32,6 +31,7 @@ import { RestClient } from "../../../src/platform-kit/rest-client"
 import {
 	clientInitializedTypeModelResolver,
 	createTestEntity,
+	getTestRandom,
 	instancePipelineFromTypeModelResolver,
 	modelMapperFromTypeModelResolver,
 	removeOriginals,
@@ -93,6 +93,7 @@ o.spec("PatchMergerTest", () => {
 
 	o.beforeEach(async () => {
 		instanceKeyProviderMaker = object()
+		const random = getTestRandom()
 		symmetricCipherUtils = new SymmetricCipherUtils(random)
 		symmetricCipherFacade = new SymmetricCipherFacade(
 			new AesCbcFacade(),

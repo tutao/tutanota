@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { AeadWithSessionKeySubKeys, PADDING_BYTE, random, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
+import { AeadWithSessionKeySubKeys, PADDING_BYTE, SymmetricCipherUtils } from "../../../src/platform-kit/crypto"
 import { AeadSubKeys } from "@tutao/crypto/symmetric-key-deriver"
 import { INITIALIZATION_VECTOR_LENGTH_BYTES, SYMMETRIC_CIPHER_VERSION_PREFIX_LENGTH_BYTES } from "@tutao/crypto/symmetric-cipher-utils"
 import { CryptoError } from "../../../src/platform-kit/crypto/error"
@@ -8,6 +8,7 @@ import { DEFAULT_BLAKE3_OUTPUT_LENGTH_BYTES } from "@tutao/crypto/blake3"
 import { ParsedCiphertextAead, parseVersionedCiphertext } from "../../../src/platform-kit/crypto/encryption/symmetric/ParsedCiphertext"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { AssociatedData } from "../../../src/platform-kit/crypto/encryption/symmetric/AssociatedData"
+import { getTestRandom } from "../TestUtils"
 
 o.spec("AeadFacadeTest", function () {
 	let aeadFacade: AeadFacade
@@ -19,7 +20,7 @@ o.spec("AeadFacadeTest", function () {
 	}
 	const plaintext = Uint8Array.from([15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0])
 	o.beforeEach(function () {
-		const symmetricCipherUtils = new SymmetricCipherUtils(random)
+		const symmetricCipherUtils = new SymmetricCipherUtils(getTestRandom())
 		aeadFacade = new AeadFacade(symmetricCipherUtils)
 		const encryptionKey = symmetricCipherUtils.aes256RandomKey()
 		const authenticationKey = symmetricCipherUtils.aes256RandomKey()
