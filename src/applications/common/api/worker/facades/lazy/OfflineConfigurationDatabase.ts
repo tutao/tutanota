@@ -91,10 +91,6 @@ export class OfflineConfigurationDatabase implements ConfigurationDatabase {
 		// no-op
 	}
 
-	async delete(_userId: Id): Promise<void> {
-		// no-op - deleted with the offline database
-	}
-
 	async migrateFromIndexedDbConfigurationDatabase(oldDatabaseProvider: lazyAsync<IndexedDbConfigurationDatabase>, userIdProvider: lazy<Id>) {
 		// This requires a trigger from a login listener before actually activating, which creates a bit of spaghetti
 		// code where we have to call two functions to trigger the action. Sadly, we need it for a few reasons:
