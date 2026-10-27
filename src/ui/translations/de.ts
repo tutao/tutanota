@@ -191,6 +191,7 @@ export default {
 		"boughtGiftCardPosting_label": "Gutschein gekauft",
 		"breakLink_action": "Hyperlink entfernen",
 		"brother_label": "Bruder",
+		"businessPlansNotAvailableForExternal_msg": "Abonnements für Geschäftskunden sind für Nutzer mit einer externen Zahlungsmethode nicht verfügbar.",
 		"businessUse_action": "Geschäftliche Nutzung",
 		"buy_action": "Kaufen",
 		"buyGiftCard_label": "Gutschein kaufen",
@@ -2591,6 +2592,6 @@ export default {
 		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
 		"noPaymentMethodError_msg": "Du kannst dein Abo nicht wechseln, weil du keine gültige Zahlungsmethode hast.",
 		"ratingTrustpilot_msg":"Wenn dir die App gefällt und du ein Trustpilot-Konto hast, würden wir uns über eine ehrliche Bewertung freuen.",
-		"deactivatedAccessLogin_msg": "Dein Konto wurde im Rahmen unserer Maßnahmen gegen Spam deaktiviert, um die Privatsphäre und Sicherheit unserer Nutzer zu schützen.\n\nWenn das ein Versehen war, kontaktiere uns bitte unter appeals@tutao.de."
+		"deactivatedAccessLogin_msg": "Dein Konto wurde im Rahmen unserer Maßnahmen gegen Spam deaktiviert, um die Privatsphäre und Sicherheit unserer Nutzer zu schützen.\n\nWenn das ein Versehen war, kontaktiere uns bitte unter appeals@tutao.de.",
 	}
 }

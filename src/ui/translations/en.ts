@@ -191,6 +191,7 @@ export default {
 		"boughtGiftCardPosting_label": "Purchase gift card",
 		"breakLink_action": "Remove hyperlink",
 		"brother_label": "Brother",
+		"businessPlansNotAvailableForExternal_msg": "Business plans aren’t available for users with an external payment method.",
 		"businessUse_action": "Business use",
 		"buy_action": "Buy",
 		"buyGiftCard_label": "Buy a gift card",
@@ -1151,7 +1152,6 @@ export default {
 		"loginAbuseDetected_msg": "Your account can not be used any more because the Tuta terms and conditions were violated, e.g. by sending spam emails.",
 		"loginCredentials_label": "Login credentials",
 		"loginFailed_msg": "Invalid login credentials. Please try again.",
-		"accessDeactivated_msg": "Your account has been deactivated.",
 		"loginFailedOften_msg": "Too many failed login attempts. Please try again in an hour.",
 		"loginNameInfoAdmin_msg": "Optional: the user's name.",
 		"loginOtherAccount_action": "Different account",
@@ -2274,7 +2274,6 @@ export default {
 		"surveyFeatureReasonNoIMAP_label": "No IMAP",
 		"surveyFeatureReasonOther_label": "Other feature (please specify below)",
 		"surveyMainMessageDelete_label": "We're sad to see you go!",
-		"surveySomethingNotWorking_label": "Something isn't working",
 		"surveyMissingFeature_label": "Missing Feature",
 		"surveyOtherReason_label": "Other reason",
 		"surveyOtherReasonMergeAccounts_label": "I want to merge accounts",
@@ -2579,6 +2578,8 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
+		"surveySomethingNotWorking_label": "Something isn't working",
+		"accessDeactivated_msg": "Your account has been deactivated.",
 		"upgradingFeedbackDialogThankYouTitle_msg": "Thanks for upgrading!",
 		"upgradingFeedbackDialogThankYouPlaceholder_msg": "Your feedback will make Tuta better",
 		"upgradingFeedbackDialogInput_msg": "What made you decide to upgrade today?",
@@ -2591,6 +2592,6 @@ export default {
 		"campaignBlackFridayTitle2026_label": "Black Friday: GET 2 FOR 1!",
 		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set.",
 		"ratingTrustpilot_msg":"If you're enjoying the app and have a Trustpilot account, we'd appreciate an honest review",
-		"deactivatedAccessLogin_msg": "Your account has been deactivated as part of our anti-spam measures to protect users’ privacy and security.\n\nIf this was a mistake, please contact us at appeals@tutao.de."
+		"deactivatedAccessLogin_msg": "Your account has been deactivated as part of our anti-spam measures to protect users’ privacy and security.\n\nIf this was a mistake, please contact us at appeals@tutao.de.",
 	}
 }
