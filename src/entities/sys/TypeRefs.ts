@@ -1,6 +1,6 @@
 import { create } from "../../platform-kit/meta/EntityUtils.js"
 import { TypeRef } from "../../platform-kit/meta/TypeRef.js"
-import { DataTransferId, ElementId, ListElementId } from "@tutao/meta"
+import { ListElementId, ElementId, DataTransferId } from "@tutao/meta"
 import { default as typeModels } from "./TypeModels.js"
 import { Nullable } from "@tutao/utils"
 
@@ -539,6 +539,7 @@ export type UserParams = {
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
+	userMigrationInfos: null | Id
 }
 
 export type User = {
@@ -569,6 +570,7 @@ export type User = {
 	auth: null | UserAuthentication
 	alarmInfoList: null | UserAlarmInfoListType
 	plugins: null | UserPlugins
+	userMigrationInfos: null | Id
 
 	//== some entities have these and some don't
 
@@ -11441,5 +11443,362 @@ export type NotificationTransferAggregatedType = {
 	// === these are not present in metamodel
 	_type: TypeRef<NotificationTransferAggregatedType>
 	_original: Nullable<NotificationTransferAggregatedType>
+	isAdapter: false
+}
+export const OAuthTokenTypeRef: TypeRef<OAuthToken> = new TypeRef("sys", 2937)
+
+export function createOAuthToken(values: OAuthTokenParams): OAuthToken {
+	return Object.assign(create(typeModels[OAuthTokenTypeRef.typeId], OAuthTokenTypeRef), values)
+}
+
+export type OAuthTokenParams = {
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+}
+
+export type OAuthToken = {
+	// == values
+
+	_id: Id
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<OAuthToken>
+	_original: Nullable<OAuthToken>
+	isAdapter: false
+}
+export const OAuthTokenTransferAggregatedTypeTypeRef: TypeRef<OAuthTokenTransferAggregatedType> = new TypeRef("sys", 2943)
+
+export function createOAuthTokenTransferAggregatedType(values: OAuthTokenTransferAggregatedTypeParams): OAuthTokenTransferAggregatedType {
+	return Object.assign(create(typeModels[OAuthTokenTransferAggregatedTypeTypeRef.typeId], OAuthTokenTransferAggregatedTypeTypeRef), values)
+}
+
+export type OAuthTokenTransferAggregatedTypeParams = {
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+}
+
+export type OAuthTokenTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	accessToken: string
+	refreshToken: null | string
+	expiresIn: null | NumberString
+	tokenType: string
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<OAuthTokenTransferAggregatedType>
+	_original: Nullable<OAuthTokenTransferAggregatedType>
+	isAdapter: false
+}
+export const UserMigrationCredentialTypeRef: TypeRef<UserMigrationCredential> = new TypeRef("sys", 2949)
+
+export function createUserMigrationCredential(values: UserMigrationCredentialParams): UserMigrationCredential {
+	return Object.assign(create(typeModels[UserMigrationCredentialTypeRef.typeId], UserMigrationCredentialTypeRef), values)
+}
+
+export type UserMigrationCredentialParams = {
+	username: string
+	password: null | string
+
+	oAuthToken: null | OAuthToken
+}
+
+export type UserMigrationCredential = {
+	// == values
+
+	_id: Id
+	username: string
+	password: null | string
+
+	// == associations
+
+	oAuthToken: null | OAuthToken
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationCredential>
+	_original: Nullable<UserMigrationCredential>
+	isAdapter: false
+}
+export const UserMigrationCredentialTransferAggregatedTypeTypeRef: TypeRef<UserMigrationCredentialTransferAggregatedType> = new TypeRef("sys", 2954)
+
+export function createUserMigrationCredentialTransferAggregatedType(
+	values: UserMigrationCredentialTransferAggregatedTypeParams,
+): UserMigrationCredentialTransferAggregatedType {
+	return Object.assign(
+		create(typeModels[UserMigrationCredentialTransferAggregatedTypeTypeRef.typeId], UserMigrationCredentialTransferAggregatedTypeTypeRef),
+		values,
+	)
+}
+
+export type UserMigrationCredentialTransferAggregatedTypeParams = {
+	username: string
+	password: null | string
+
+	oAuthToken: null | OAuthTokenTransferAggregatedType
+}
+
+export type UserMigrationCredentialTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	username: string
+	password: null | string
+
+	// == associations
+
+	oAuthToken: null | OAuthTokenTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationCredentialTransferAggregatedType>
+	_original: Nullable<UserMigrationCredentialTransferAggregatedType>
+	isAdapter: false
+}
+export const UserMigrationInfoTypeRef: TypeRef<UserMigrationInfo> = new TypeRef("sys", 2959)
+
+export function createUserMigrationInfo(values: UserMigrationInfoParams): UserMigrationInfo {
+	return Object.assign(create(typeModels[UserMigrationInfoTypeRef.typeId], UserMigrationInfoTypeRef), values)
+}
+
+export type UserMigrationInfoParams = {
+	provider: NumberString
+
+	credential: UserMigrationCredential
+	mailboxMigrationSyncStates: IdTupleWrapper[]
+}
+
+export type UserMigrationInfo = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	provider: NumberString
+
+	// == associations
+
+	credential: UserMigrationCredential
+	mailboxMigrationSyncStates: IdTupleWrapper[]
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationInfo>
+	_errors: Object
+	_original: Nullable<UserMigrationInfo>
+	isAdapter: false
+}
+export const IdTupleWrapperTransferAggregatedTypeTypeRef: TypeRef<IdTupleWrapperTransferAggregatedType> = new TypeRef("sys", 2971)
+
+export function createIdTupleWrapperTransferAggregatedType(values: IdTupleWrapperTransferAggregatedTypeParams): IdTupleWrapperTransferAggregatedType {
+	return Object.assign(create(typeModels[IdTupleWrapperTransferAggregatedTypeTypeRef.typeId], IdTupleWrapperTransferAggregatedTypeTypeRef), values)
+}
+
+export type IdTupleWrapperTransferAggregatedTypeParams = {
+	listId: Id
+	listElementId: Id
+}
+
+export type IdTupleWrapperTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	listId: Id
+	listElementId: Id
+
+	// == associations
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<IdTupleWrapperTransferAggregatedType>
+	_original: Nullable<IdTupleWrapperTransferAggregatedType>
+	isAdapter: false
+}
+export const UserMigrationInfoTransferAggregatedTypeTypeRef: TypeRef<UserMigrationInfoTransferAggregatedType> = new TypeRef("sys", 2975)
+
+export function createUserMigrationInfoTransferAggregatedType(values: UserMigrationInfoTransferAggregatedTypeParams): UserMigrationInfoTransferAggregatedType {
+	return Object.assign(create(typeModels[UserMigrationInfoTransferAggregatedTypeTypeRef.typeId], UserMigrationInfoTransferAggregatedTypeTypeRef), values)
+}
+
+export type UserMigrationInfoTransferAggregatedTypeParams = {
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	provider: NumberString
+
+	credential: UserMigrationCredentialTransferAggregatedType
+	mailboxMigrationSyncStates: IdTupleWrapperTransferAggregatedType[]
+}
+
+export type UserMigrationInfoTransferAggregatedType = {
+	// == values
+
+	_id: Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	provider: NumberString
+
+	// == associations
+
+	credential: UserMigrationCredentialTransferAggregatedType
+	mailboxMigrationSyncStates: IdTupleWrapperTransferAggregatedType[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationInfoTransferAggregatedType>
+	_original: Nullable<UserMigrationInfoTransferAggregatedType>
+	isAdapter: false
+}
+export const UserMigrationServicePostInTypeRef: TypeRef<UserMigrationServicePostIn> = new TypeRef("sys", 2984)
+
+export function createUserMigrationServicePostIn(values: UserMigrationServicePostInParams): UserMigrationServicePostIn {
+	return Object.assign(create(typeModels[UserMigrationServicePostInTypeRef.typeId], UserMigrationServicePostInTypeRef), values)
+}
+
+export type UserMigrationServicePostInParams = {
+	userMigrationInfo: UserMigrationInfoTransferAggregatedType
+}
+
+export type UserMigrationServicePostIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userMigrationInfo: UserMigrationInfoTransferAggregatedType
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationServicePostIn>
+	_errors: Object
+	_original: Nullable<UserMigrationServicePostIn>
+	isAdapter: false
+}
+export const UserMigrationServicePostOutTypeRef: TypeRef<UserMigrationServicePostOut> = new TypeRef("sys", 2987)
+
+export function createUserMigrationServicePostOut(values: UserMigrationServicePostOutParams): UserMigrationServicePostOut {
+	return Object.assign(create(typeModels[UserMigrationServicePostOutTypeRef.typeId], UserMigrationServicePostOutTypeRef), values)
+}
+
+export type UserMigrationServicePostOutParams = {
+	userMigrationInfo: IdTuple
+}
+
+export type UserMigrationServicePostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	userMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<UserMigrationServicePostOut>
+	_original: Nullable<UserMigrationServicePostOut>
 	isAdapter: false
 }
