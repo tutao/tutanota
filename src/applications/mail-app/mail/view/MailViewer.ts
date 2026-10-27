@@ -86,8 +86,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private domBodyDeferred: DeferredObject<HTMLElement> = defer()
 	private domBody: HTMLElement | null = null
 
-	private shadowDomRoot: ShadowRoot | null = null
-	private shadowDomMailContent: HTMLElement | null = null
+	private iframeRoot: HTMLIFrameElement | null = null
+	private iframeMailContent: HTMLElement | null = null
 	private currentlyRenderedMailBody: DocumentFragment | null = null
 	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
@@ -225,7 +225,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					toggled: this.shouldDisplayCollapsedQuotes(),
 					onToggled: () => {
 						this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"
-						if (this.shadowDomRoot) this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
+						if (this.iframeRoot) this.updateCollapsedQuotes(this.iframeRoot, this.shouldDisplayCollapsedQuotes())
 					},
 					style: {
 						height: px(component_size.button_height_sm),
@@ -314,7 +314,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
-				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
+				this.renderIFrameMailBody(sanitizedMailBody, attrs)
 				if (ClientDetector.get().isMobileDevice()) {
 					this.resizeObserverViewport?.disconnect()
 					this.resizeObserverViewport = createResizeObserver(() => {
@@ -337,16 +337,16 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.updateLineHeight(vnode.dom as HTMLElement)
 				}
 
-				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
+				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderIFrameMailBody(sanitizedMailBody, attrs)
 				// If the quote behavior changes (e.g. after loading is finished) we should update the quotes.
 				// If we already rendered it correctly it will already be set in renderShadowMailBody() so we will avoid doing it twice.
 				if (this.currentQuoteBehavior !== attrs.defaultQuoteBehavior) {
-					this.updateCollapsedQuotes(assertNotNull(this.shadowDomRoot), attrs.defaultQuoteBehavior === "expand")
+					this.updateCollapsedQuotes(assertNotNull(this.iframeRoot), attrs.defaultQuoteBehavior === "expand")
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
-				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
-					this.createPinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement)
+				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.iframeMailContent) {
+					this.createPinchZoom(this.iframeMailContent, vnode.dom as HTMLElement)
 				}
 			},
 			onbeforeremove: () => {
@@ -399,19 +399,19 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	/**
-	 * manually wrap and style a mail body to display correctly inside a shadow root
+	 * manually wrap and style a mail body to display correctly inside an iframe
 	 * @param sanitizedMailBody the mail body to display
 	 * @param attrs
-	 * @param parent the parent element that contains the shadowMailBody
 	 * @private
 	 */
-	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs, parent: HTMLElement) {
+	private renderIFrameMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs) {
 		this.currentQuoteBehavior = attrs.defaultQuoteBehavior
-		assertNonNull(this.shadowDomRoot, "shadow dom root is null!")
-		while (this.shadowDomRoot.firstChild) {
-			this.shadowDomRoot.firstChild.remove()
-		}
-		const wrapNode = document.createElement("div")
+		assertNonNull(this.iframeRoot, "shadow dom root is null!")
+
+		const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
+		iframeDocument.body.replaceChildren()
+
+		const wrapNode = iframeDocument.createElement("div")
 		wrapNode.id = "shadow-mail-body"
 		wrapNode.className = "drag selectable touch-callout break-word-links" + (ClientDetector.get().isMobileDevice() ? " break-pre" : "")
 		wrapNode.setAttribute("data-testid", "mailBody_label")
@@ -428,7 +428,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 		wrapNode.appendChild(contentRoot)
 
-		this.shadowDomMailContent = wrapNode
+		this.iframeMailContent = wrapNode
 
 		// query all top level block quotes
 		const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]
@@ -439,14 +439,17 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
-		this.shadowDomRoot.appendChild(Styles.get().getStyleSheetElement("main"))
-		this.shadowDomRoot.appendChild(wrapNode)
+		this.iframeRoot.style.border = "none"
+		iframeDocument.body.appendChild(Styles.get().getStyleSheetElement("main"))
+		iframeDocument.body.style.position = "relative"
+		iframeDocument.body.style.overflow = "auto"
+		iframeDocument.body.appendChild(wrapNode)
 
 		if (ClientDetector.get().isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = createResizeObserver(() => {
-				this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
+				this.createPinchZoom(wrapNode, iframeDocument.body) // recreate for example if images are loaded slowly
 			})
 			this.resizeObserverZoomable.observe(wrapNode)
 		} else {
@@ -455,6 +458,10 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			})
 		}
 		this.currentlyRenderedMailBody = sanitizedMailBody
+
+		// The iframe's dimensions do not take into account the iframe's contents.
+		this.iframeRoot.width = "100%" // FIXME: use css for this
+		this.iframeRoot.height = px(iframeDocument.body.scrollHeight)
 	}
 
 	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
@@ -489,17 +496,18 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private clearDomBody() {
 		this.domBodyDeferred = defer()
 		this.domBody = null
-		this.shadowDomRoot = null
+		this.iframeRoot = null
 	}
 
 	private setDomBody(dom: HTMLElement) {
-		if (dom !== this.domBody || this.shadowDomRoot == null) {
+		if (dom !== this.domBody || this.iframeRoot == null) {
 			// If the dom element hasn't been created anew in onupdate
 			// then trying to create a new shadow root on the same node will cause an error
-			this.shadowDomRoot = dom.attachShadow({ mode: "open" })
+			this.iframeRoot = document.createElement("iframe")
+			dom.appendChild(this.iframeRoot)
 
 			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
-			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => {
+			this.iframeRoot?.contentDocument?.addEventListener("keydown", (event: Event) => {
 				const { target } = event
 				if (this.eventTargetWithKeyboardInput(target)) {
 					event.stopPropagation()

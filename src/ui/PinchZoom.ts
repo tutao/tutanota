@@ -244,8 +244,8 @@ export class PinchZoom {
 		// crossbrowser version
 		let box = elem.getBoundingClientRect()
 
-		let body = document.body
-		let docEl = document.documentElement
+		let body = elem.ownerDocument.body
+		let docEl = elem.ownerDocument.documentElement
 
 		let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
 		let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
