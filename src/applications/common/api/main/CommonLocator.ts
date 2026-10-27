@@ -78,7 +78,6 @@ import { IdentityKeyCreator } from "../../../../platform-kit/base/base-crypto/Id
 
 import { PublicIdentityKeyProvider } from "../../../../platform-kit/base/base-crypto/PublicIdentityKeyProvider"
 import { LoginViewModel } from "../../login/LoginViewModel"
-import { DriveFacade } from "../worker/facades/lazy/DriveFacade.js"
 import { TransferProgressDispatcher } from "./TransferProgressDispatcher"
 import { CalendarEventUpdateCoordinator } from "../../../calendar-app/calendar/model/CalendarEventUpdateCoordinator"
 import { ExposedCacheStorage } from "../../../../app-kit/local-store/CacheStorage"
@@ -91,7 +90,6 @@ import { SearchToken } from "../../../../ui/utils/QueryTokenUtils"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { DialogAdapter } from "../../../../plugin-kit/sdk/PluginApi"
 import { Dialog } from "../../../../ui/base/Dialog"
-import { DriveFileSharingFacade } from "../worker/facades/lazy/DriveFileSharingFacade"
 
 export interface CommonLocator {
 	clientModelInfo: ClientModelInfo
@@ -137,8 +135,6 @@ export interface CommonLocator {
 	random: WorkerRandomizer
 	connectivityModel: WebsocketConnectivityModel
 	identityKeyCreator: IdentityKeyCreator
-	driveFacade: DriveFacade
-	driveFileSharingFacade: DriveFileSharingFacade
 	imapImporter: ImapSyncFacade
 
 	mailboxModel: MailboxModel
