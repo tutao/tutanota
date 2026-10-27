@@ -1,8 +1,7 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
-import { component_size } from "../../../../ui/size"
 import { ListColumnWrapper } from "../../../../ui/ListColumnWrapper"
 import { EnvProvider } from "../../../../platform-kit/app-env"
-import { List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../../ui/base/List.js"
+import { calculateRowHeight, List, ListAttrs, MultiselectMode, RenderConfig, ViewHolder } from "../../../../ui/base/List.js"
 import { ContactRow } from "./ContactRow.js"
 import { ContactViewModel } from "./ContactViewModel.js"
 import ColumnEmptyMessageBox from "../../../../ui/base/ColumnEmptyMessageBox.js"
@@ -66,7 +65,7 @@ export class ContactListView implements ClassComponent<ContactListViewAttrs> {
 	}
 
 	private readonly renderConfig: RenderConfig<Contact, KindaContactRow> = {
-		itemHeight: component_size.list_row_height,
+		itemHeight: calculateRowHeight(),
 		multiselectionAllowed: MultiselectMode.Enabled,
 		swipe: null,
 		createElement: (dom) => {

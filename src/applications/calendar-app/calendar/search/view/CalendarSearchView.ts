@@ -24,8 +24,7 @@ import { BackgroundColumnLayout } from "../../../../../ui/BackgroundColumnLayout
 import { theme } from "../../../../../ui/theme"
 import { DesktopListToolbar, DesktopViewerToolbar } from "../../../../../ui/DesktopToolbars"
 import { BaseMobileHeader } from "../../../../../ui/BaseMobileHeader"
-import { NavButton } from "../../../../../ui/base/NavButton"
-import { CALENDAR_PREFIX } from "../../../../../ui/utils/RouteChange"
+import { CALENDAR_PREFIX, throttleRoute } from "../../../../../ui/utils/RouteChange"
 import { ProgressBar } from "../../../../../ui/base/ProgressBar"
 import { IconButton } from "../../../../../ui/base/IconButton"
 import { MobileActionAttrs, MobileActionBar } from "../../../../../ui/MobileActionBar"
@@ -78,6 +77,7 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 	private readonly folderColumn: ViewColumn
 	private readonly viewSlider: ViewSlider
 	private readonly searchViewModel: CalendarSearchViewModel
+	private readonly routeTo = throttleRoute()
 	private readonly startOfTheWeekOffset: number
 
 	constructor(vnode: Vnode<CalendarSearchViewAttrs>) {
@@ -311,13 +311,10 @@ export class CalendarSearchView extends BaseTopLevelView implements TopLevelView
 		return m(BaseMobileHeader, {
 			left: m(
 				".icon-button",
-				m(NavButton, {
+				m(IconButton, {
 					label: "back_action",
-					hideLabel: true,
-					icon: () => Icons.ChevronLeft,
-					href: CALENDAR_PREFIX,
-					centred: true,
-					fillSpaceAround: false,
+					icon: Icons.ChevronLeft,
+					click: () => this.routeTo(CALENDAR_PREFIX),
 				}),
 			),
 			right: rightActions,
