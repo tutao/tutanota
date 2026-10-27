@@ -7,7 +7,6 @@ import {
 	Bcrypt,
 	CryptoWrapper,
 	KeyEncryption,
-	random,
 	Randomizer,
 	RsaImplementation,
 	SymmetricCipherFacade,
@@ -171,6 +170,7 @@ export type BaseLocatorConfig = {
 		typeModelResolver: TypeModelResolver,
 		lastProcessed: lazyAsync<LastProcessedEventBatchProvider>,
 	) => EntityRestInterface
+	random: Randomizer
 }
 
 export type EntityMigratorFactoryParams = {
@@ -203,6 +203,7 @@ export async function createBaseLocator({
 	nativeCryptoFacade,
 	entityMigratorFactory,
 	entityRestCache,
+	random,
 }: BaseLocatorConfig): Promise<BaseLocator> {
 	const keyCache = new KeyCache()
 	const symmetricCipherUtils = new SymmetricCipherUtils(random)

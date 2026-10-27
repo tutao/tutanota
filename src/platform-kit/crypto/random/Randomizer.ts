@@ -3,16 +3,23 @@ import sjcl from "../internal/sjcl.js"
 import { CryptoError } from "@tutao/crypto/error"
 
 import { EntropyDataChunk } from "./EntropyDataChunk"
+import crypto from "node:crypto"
+import { EntropySource } from "../CryptoTypes"
 
 /**
  * This Interface provides an abstraction of the random number generator implementation.
  */
-export class Randomizer {
-	random: any
+export interface Randomizer {
+	addEntropy(entropyCache: Array<EntropyDataChunk>): Promise<void>
+	addStaticEntropy(bytes: Uint8Array<ArrayBuffer>): void
+	isReady(): boolean
+	generateRandomData(nbrOfBytes: number): Uint8Array<ArrayBuffer>
+	generateRandomNumber(nbrOfBytes: number): number
+}
 
-	constructor() {
-		this.random = new sjcl.prng(6)
-	}
+// Don't export the randomizer implementation because we want to enforce seeding by calling createSeededRandomizer
+class RandomizerImplementation implements Randomizer {
+	random: any
 
 	/**
 	 * Adds entropy to the random number generator algorithm
@@ -71,6 +78,14 @@ export class Randomizer {
 		return result
 	}
 }
-// TODO singleton should be created in the app?
-// the randomizer instance (singleton) that should be used throughout the app
-export const random: Randomizer = new Randomizer()
+
+export function createSeededRandomizer() {
+	const instance = new RandomizerImplementation()
+	instance.random = new sjcl.prng(6)
+
+	// Seed the instance of the random number generator
+	const entropy = Array.from(crypto.randomBytes(128))
+	instance.addEntropy(entropy.map((b) => new EntropyDataChunk(EntropySource.Random, 128 * 8, b))).then()
+
+	return instance
+}

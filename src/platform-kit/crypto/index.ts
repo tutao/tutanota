@@ -67,7 +67,7 @@ export {
 	ARGON2ID_MEMORY_IN_KiB,
 	ARGON2ID_PARALLELISM,
 } from "./hashes/Argon2id/Argon2id.js"
-export { Randomizer, random } from "./random/Randomizer.js"
+export { Randomizer } from "./random/Randomizer.js"
 export { EntropyDataChunk } from "./random/EntropyDataChunk.js"
 export {
 	encode,

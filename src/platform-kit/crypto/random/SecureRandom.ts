@@ -1,11 +1,11 @@
-import { random, Randomizer } from "./Randomizer.js"
+import { Randomizer } from "./Randomizer.js"
 
 /**
  * This is the adapter to the PRNG interface required by JSBN.
  * @constructor
  */
 export class SecureRandom {
-	constructor(private readonly rng: Randomizer = random) {}
+	constructor(private readonly rng: Randomizer) {}
 
 	/**
 	 * Only this function is used by jsbn for getting random bytes. Each byte is a value between 0 and 255.

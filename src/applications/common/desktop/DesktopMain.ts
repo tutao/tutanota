@@ -68,7 +68,7 @@ import {
 	Argon2IDExports,
 	InstanceKeyProvider,
 	KeyEncryption,
-	random,
+	Randomizer,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 } from "../../../platform-kit/crypto"
@@ -104,6 +104,7 @@ import { CertificateProvider } from "./CertificateProvider"
 import { CryptoFunctions } from "./CryptoFunctions"
 import { AeadFacade } from "../../../platform-kit/crypto/encryption/symmetric/AeadFacade"
 import { SymmetricKeyDeriver } from "../../../platform-kit/crypto/encryption/symmetric/SymmetricKeyDeriver"
+import { createSeededRandomizer } from "../../../platform-kit/crypto/random/Randomizer"
 
 mp()
 
@@ -141,6 +142,7 @@ const windowsRegistryFacade = new LazyLoaded(async () => {
 	return new WindowsRegistryFacade(commandExecutor)
 })
 
+const random = createSeededRandomizer()
 const symmetricCipherUtils = new SymmetricCipherUtils(random)
 const symmetricCipherFacade = new SymmetricCipherFacade(
 	new AesCbcFacade(),

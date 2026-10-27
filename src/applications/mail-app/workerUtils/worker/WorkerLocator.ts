@@ -85,7 +85,8 @@ import { CustomImportFileMailStateCacheHandler } from "./CustomImportFileMailSta
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CustomImapFolderSyncStateCacheHandler } from "./CustomImapFolderSyncStateCacheHandler"
 import type { MailIndexerBackend } from "../index/MailIndexerBackend"
-import { random, SymmetricCipherUtils } from "@tutao/crypto"
+import { Randomizer } from "@tutao/crypto"
+import { createSeededRandomizer } from "../../../../platform-kit/crypto/random/Randomizer"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -145,11 +146,11 @@ export const locator: WorkerLocatorType = {} as any
 
 export async function initLocator(worker: WorkerImpl, browserData: BrowserData, apps: Array<NamedClientModel>) {
 	const { LocalIdentityKeyTrustDatabase } = await import("../../../../app-kit/local-store/LocalIdentityKeyTrustDatabase")
+	const random = createSeededRandomizer()
 
 	locator._worker = worker
 	locator._browserData = browserData
 	locator._apps = apps
-	locator.workerFacade = new WorkerFacade(new SymmetricCipherUtils(random))
 
 	const mainInterface = worker.getMainInterface()
 	const dateProvider = new NoZoneDateProvider()
@@ -425,7 +426,10 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			),
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
+		random,
 	})
+
+	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
 
 	// App-specific setup — all platform-kit deps accessed via locator.base.*
 
