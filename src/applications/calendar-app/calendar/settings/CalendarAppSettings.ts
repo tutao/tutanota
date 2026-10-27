@@ -48,7 +48,7 @@ export function makeCalendarAppSettings(
 
 export function notificationSettings(): SettingsFolder<unknown> {
 	return new SettingsFolder(
-		() => "notificationSettings_action",
+		() => "notificationSettings_label",
 		() => Icons.BellFilled,
 		"notifications",
 		() => new NotificationSettingsViewer(),

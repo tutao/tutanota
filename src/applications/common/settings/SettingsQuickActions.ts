@@ -226,7 +226,7 @@ function appearanceSettings(router: Router): readonly QuickAction[] {
 }
 
 function notificationSettings(router: Router): readonly QuickAction[] {
-	const notificationsSettingsLabel = `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("notificationSettings_action")}`
+	const notificationsSettingsLabel = `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("notificationSettings_label")}`
 	const folder = "notifications"
 	return [
 		{
@@ -297,11 +297,11 @@ function planSettings(router: Router) {
 	const folder = "subscription"
 	return [
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminSubscription_action")}`,
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminSubscription_label")}`,
 			exec: () => routeToFolder(router, folder),
 		},
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminSubscription_action")} ${lang.getTranslationText("cancel_action")}`,
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminSubscription_label")} ${lang.getTranslationText("cancel_action")}`,
 			exec: () => routeToFolderSection(router, folder, "managesubscription"),
 		},
 	]
@@ -310,7 +310,7 @@ function planSettings(router: Router) {
 function adminSettings(router: Router) {
 	return [
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminUserList_action")}`,
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminUserList_label")}`,
 			exec: () => routeToFolder(router, "users"),
 		},
 		{
@@ -327,11 +327,11 @@ function adminSettings(router: Router) {
 		},
 		...planSettings(router),
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_action")}`,
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_label")}`,
 			exec: () => routeToFolder(router, "invoice"),
 		},
 		{
-			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_action")} ${lang.getTranslationText("giftCards_label")}`,
+			description: `${lang.getTranslationText("settings_label")} ${lang.getTranslationText("adminPayment_label")} ${lang.getTranslationText("giftCards_label")}`,
 			exec: () => routeToFolderSection(router, "invoice", "giftcards"),
 		},
 		{

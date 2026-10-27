@@ -75,14 +75,14 @@ export function subscriptionSettingsSection(logins: LoginController, mobilePayme
 		name: lang.getTranslation("subscriptionSettings_label"),
 		settings: [
 			new SettingsFolder<void>(
-				() => "adminSubscription_action",
+				() => "adminSubscription_label",
 				() => Icons.TrophyFilled,
 				"subscription",
 				() => new SubscriptionSettingsViewer(EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default ? mobilePaymentsFacade : null),
 				undefined,
 			).setIsVisibleHandler(() => shouldShowSubscriptionSetting()),
 			new SettingsFolder<void>(
-				() => "adminPayment_action",
+				() => "adminPayment_label",
 				() => Icons.CreditcardFilled,
 				"invoice",
 				() => new PaymentViewer(),

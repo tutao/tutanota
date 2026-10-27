@@ -138,7 +138,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 				undefined,
 			),
 			new SettingsFolder(
-				() => "notificationSettings_action",
+				() => "notificationSettings_label",
 				() => Icons.BellFilled,
 				"notifications",
 				() => new NotificationSettingsViewer(),
@@ -432,7 +432,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 		if (await this.logins.getUserController().canHaveUsers()) {
 			adminFolders.push(
 				new SettingsFolder(
-					() => "adminUserList_action",
+					() => "adminUserList_label",
 					() => Icons.PersonFilled,
 					"users",
 					() =>
@@ -501,7 +501,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 			if (this.logins.getUserController().isGlobalAdmin()) {
 				adminFolders.push(
 					new SettingsFolder<void>(
-						() => "adminSubscription_action",
+						() => "adminSubscription_label",
 						() => Icons.TrophyFilled,
 						"subscription",
 						() =>
@@ -512,7 +512,7 @@ export class SettingsView extends BaseTopLevelView implements TopLevelView<Setti
 
 				adminFolders.push(
 					new SettingsFolder<void>(
-						() => "adminPayment_action",
+						() => "adminPayment_label",
 						() => Icons.CreditcardFilled,
 						"invoice",
 						() => new PaymentViewer(),

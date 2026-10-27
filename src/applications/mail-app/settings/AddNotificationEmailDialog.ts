@@ -24,7 +24,7 @@ export class AddNotificationEmailDialog {
 			let mailAddress = ""
 
 			Dialog.showActionDialog({
-				title: "notificationSettings_action",
+				title: "notificationSettings_label",
 				child: {
 					view: () => [
 						m(LegacyTextField, {
