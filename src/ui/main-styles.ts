@@ -369,10 +369,10 @@ export class MainStyles {
 				".outline": {
 					outline: `1px solid ${theme.outline}`,
 				},
-				"#shadow-mail-body": {
+				"#iframe-mail-body": {
 					"container-type": "inline-size",
 				},
-				"#shadow-mail-body.break-pre pre": {
+				"#iframe-mail-body.break-pre pre": {
 					"white-space": "pre-wrap",
 					"word-break": "normal",
 					"overflow-wrap": "anywhere",
