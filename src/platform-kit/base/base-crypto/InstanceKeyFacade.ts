@@ -50,7 +50,7 @@ import {
 	User,
 	UserGroupRootTypeRef,
 } from "@tutao/entities/sys"
-import { assertNotNull, groupBy, KeyVersion, Nullable } from "@tutao/utils"
+import { assertNotNull, groupBy, isEmpty, KeyVersion, Nullable } from "@tutao/utils"
 import { EntityClient } from "../../network/EntityClient"
 import { GroupType } from "../../../entities/sys/Utils"
 import { CryptoFacade } from "./CryptoFacade"
@@ -107,10 +107,8 @@ export class InstanceKeyFacade {
 	}
 
 	async confirmAndPostInstanceKeysForSharedInstances(instances: PersistentEntity[]): Promise<void> {
-		const instanceReferenceDataList: InstanceReferenceData[] = []
-		for (const instance of instances) {
-			instanceReferenceDataList.push(this.getInstanceReferenceData(instance))
-		}
+		if (isEmpty(instances)) return
+		const instanceReferenceDataList = instances.map((instance) => this.getInstanceReferenceData(instance))
 		const confirmedInstancesToMigrate = await this.confirmInstancesForInstanceKeySharing(instanceReferenceDataList)
 		//Filter for instances that actually need migration
 		const instancesToMigrate = instances.filter((instance) =>
@@ -170,6 +168,7 @@ export class InstanceKeyFacade {
 	}
 
 	private async confirmInstancesForInstanceKeySharing(instanceReferenceDataList: InstanceReferenceData[]): Promise<InstanceReferenceData[]> {
+		if (isEmpty(instanceReferenceDataList)) return []
 		return (
 			await this.serviceExecutor.execute(
 				InstanceKeyPermissionService_GET,
@@ -266,7 +265,12 @@ export class InstanceKeyFacade {
 				//also works as non-admin
 				permissionOwnerGroupKey = await this.adminKeyLoaderFacade.getCurrentGroupKeyViaAdminEncGKey(permissionOwnerGroupId)
 			} catch (e) {
-				permissionOwnerGroupKey = await this.tryGettingPermissionOwnerGroupKeyForExternalGroupInfo(instance._type, permissionOwnerGroupId)
+				try {
+					permissionOwnerGroupKey = await this.tryGettingPermissionOwnerGroupKeyForExternalGroupInfo(instance._type, permissionOwnerGroupId)
+				} catch (e) {
+					console.log(`[${this.constructor.name}] failed to get the permission owner group key for owner group ${permissionOwnerGroupId}`)
+					continue
+				}
 			}
 			const sessionKey = await this.cryptoFacade.resolveSessionKey(instance)
 			if (permissionOwnerGroupKey != null) {
