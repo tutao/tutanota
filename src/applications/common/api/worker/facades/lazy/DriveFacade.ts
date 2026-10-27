@@ -4,38 +4,9 @@ import { IServiceExecutor } from "../../../../../../platform-kit/network/Service
 import { ProgrammingError } from "@tutao/app-env"
 import { BlobFacade } from "./BlobFacade"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
-import {
-	Aes256Key,
-	aes256RandomKey,
-	bitArrayToUint8Array,
-	blake3Kdf,
-	createAuthVerifier,
-	CryptoWrapper,
-	generateKdfNonce,
-	KdfNonce,
-	keyToBase64,
-	keyToUint8Array,
-	uint8ArrayTo256Key,
-	uint8ArrayToKey,
-	VersionedKey,
-} from "@tutao/crypto"
-import {
-	assertNotNull,
-	base64ToUint8Array,
-	concat,
-	filterInt,
-	first,
-	groupBy,
-	isEmpty,
-	isNotNull,
-	Nullable,
-	partition,
-	promiseMap,
-	Require,
-	uint8ArrayToBase64,
-	stringToUtf8Uint8Array
-} from "@tutao/utils"
-import { ElementId, elementIdToId, getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
+import { aes256RandomKey, CryptoWrapper, VersionedKey } from "@tutao/crypto"
+import { assertNotNull, first, groupBy, isEmpty, partition, promiseMap, Require, stringToUtf8Uint8Array } from "@tutao/utils"
+import { getElementId, getListId, idToElementId, isSameId, isSameTypeRef, listIdPart } from "@tutao/meta"
 import { BlobReferenceTokenWrapper } from "@tutao/entities/sys"
 import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
@@ -80,11 +51,6 @@ import { ExposedCacheStorage } from "../../../../../../app-kit/local-store/Cache
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { isDriveFile } from "../../../common/drive/DriveUtils"
 import { NameTooLongError } from "../../../common/error/NameTooLongError"
-import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
-import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
-
-export const STATIC_FILE_SHARE_PASSWORD = "penguin-on-snowboard"
 
 export interface BreadcrumbEntry {
 	folderName: string

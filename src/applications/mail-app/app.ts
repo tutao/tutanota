@@ -42,7 +42,7 @@ import { AppNameEnum } from "@tutao/meta"
 import { baseModelInfo, baseTypeModels } from "@tutao/entities/base"
 import { sysModelInfo, sysTypeModels } from "@tutao/entities/sys"
 import { Contact, tutanotaModelInfo, tutanotaTypeModels } from "@tutao/entities/tutanota"
-import { DriveFile, DriveFileShare, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
+import { DriveFile, driveModelInfo, driveTypeModels } from "@tutao/entities/drive"
 import { storageModelInfo, storageTypeModels } from "@tutao/entities/storage"
 import { monitorModelInfo, monitorTypeModels } from "@tutao/entities/monitor"
 import { usageModelInfo, usageTypeModels } from "@tutao/entities/usage"
@@ -747,12 +747,8 @@ import("../../ui/translations/en.js")
 				DriveFileShareViewAttrs,
 				DriveFileShareView,
 				{
-					downloadFileForShare: (
-						shareId: Id,
-						authToken: string,
-						encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
-					) => Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }>
-					downloadBlobsForShare: (file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64) => Promise<DataFile>
+					downloadFileForShare: DriveFileShareViewAttrs["downloadFileForShare"]
+					downloadBlobsForShare: DriveFileShareViewAttrs["downloadBlobsForShare"]
 					saveDataFile: (file: DataFile) => Promise<void>
 				}
 			>(
@@ -763,8 +759,8 @@ import("../../ui/translations/en.js")
 						return {
 							component: DriveFileShareView,
 							cache: {
-								downloadFileForShare: mailLocator.driveFileSharingFacade.downloadFileForShare,
-								downloadBlobsForShare: mailLocator.driveFileSharingFacade.downloadBlobsForShare,
+								downloadFileForShare: mailLocator.driveFileSharingFacade.loadSharedFile,
+								downloadBlobsForShare: mailLocator.driveFileSharingFacade.downloadSharedFileContent,
 								saveDataFile: mailLocator.fileController.saveDataFile,
 							},
 						}

@@ -13,9 +13,10 @@ import {
 	DriveShareService_PUT,
 	DriveShareTokenService_POST,
 } from "@tutao/entities/drive"
-import { assertNotNull, base64ToUint8Array, concat, filterInt, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
+import { assertNotNull, concat, filterInt, isNotNull, uint8ArrayToBase64 } from "@tutao/utils"
 import {
 	Aes256Key,
+	AesKey,
 	bitArrayToUint8Array,
 	blake3Kdf,
 	createAuthVerifier,
@@ -28,22 +29,21 @@ import {
 	uint8ArrayToKey,
 	VersionedKey,
 } from "@tutao/crypto"
-import { ElementId, elementIdToId, idToElementId } from "@tutao/meta"
+import { elementIdToId, Entity, idToElementId } from "@tutao/meta"
 import { IServiceExecutor } from "../../../../../../platform-kit/network/ServiceRequest"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade"
-import { ArchiveDataType, GroupType } from "../../../../../../entities/sys/Utils"
-import { DriveCryptoInfo } from "./DriveFacade"
+import { ArchiveDataType } from "../../../../../../entities/sys/Utils"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
 import { KeyLoaderFacade } from "../../../../../../platform-kit/base/base-crypto/KeyLoaderFacade"
-import { DomainConfig } from "@tutao/app-env"
+import { DomainConfig, ProgrammingError } from "@tutao/app-env"
 import { Argon2idFacade } from "../../../../../../platform-kit/base/base-crypto/WasmArgon2idFacade"
 import { EntityClient } from "../../../../../../platform-kit/network/EntityClient"
 import { CacheMode } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { DataFile } from "../../../../../../entities/tutanota/Utils"
 import { createReferencingInstance } from "../../../../../../entities/storage/BlobUtils"
-import { TransferId } from "../../../../../../entities/drive/Utils"
 import { BlobServerAccessInfo, createBlobServerAccessInfo } from "@tutao/entities/storage"
 import { BlobFacade } from "./BlobFacade"
+import { parseKeyVersion } from "../../../../../../platform-kit/crypto/CryptoUtils"
 
 export interface DriveShareInfo {
 	share: DriveFileShare
@@ -62,6 +62,9 @@ function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256
 	return uint8ArrayTo256Key(keyBytes)
 }
 
+/**
+ * Manages public sharing for Drive files
+ */
 export class DriveFileSharingFacade {
 	constructor(
 		private readonly cryptoWrapper: CryptoWrapper,
@@ -75,8 +78,19 @@ export class DriveFileSharingFacade {
 		private readonly blobFacade: BlobFacade,
 	) {}
 
-	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<[DriveFile, DriveShareInfo]> {
-		const { fileGroupKey } = await this.getCryptoInfo()
+	/**
+	 * Make a {@param file} publicly accessible via a sharing link
+	 * @param file to share
+	 * @param password optional password that must be provided to access the file via a link
+	 * @param expirationDate optional date until when the public share link will be accessible. Otherwise the file is
+	 * accessible indefinitely
+	 * @return updated file instance with link to share and share info
+	 */
+	async createShareLink(file: DriveFile, password: string | null, expirationDate: Date | null): Promise<{ file: DriveFile; shareInfo: DriveShareInfo }> {
+		if (file.share != null) {
+			throw new ProgrammingError("File is already shared")
+		}
+		const fileGroupKey = await this.resolveFileGroupKey(file)
 
 		const sessionKey = assertNotNull(await this.cryptoFacade.resolveSessionKey(file))
 		// 1. Generate a random nonce (N).
@@ -91,39 +105,41 @@ export class DriveFileSharingFacade {
 			await this.serviceExecutor.execute(
 				DriveShareService_POST,
 				createDriveShareServicePostIn({
-					file: file._id,
 					expirationDate,
-					nonce,
-					ownerEncPassword: null,
-					verifier: null,
 					shareKeyEncFileSessionKey,
+					ownerEncPassword: null,
 					groupKeyVersion: String(fileGroupKey.version),
+					verifier: null, // no password therefore no verifier
+					nonce, // nonce is necessary so that we can re-derive the share key and salt in the future
+					file: file._id,
 				}),
 				null,
 			)
 		} else {
 			// 	4. Encrypt the PWD with the owner key producing the ENCPWD.
+			// enc password is useful for managing the share
 			const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
+			// verifier is how server validates the password
 			const verifier = await this.createShareVerifier(shareKey, nonce, password)
 			// 	5. Create a share with the N, the ENCFSK, the ENCPWD and the owner key version.
 			await this.serviceExecutor.execute(
 				DriveShareService_POST,
 				createDriveShareServicePostIn({
-					file: file._id,
 					expirationDate,
 					shareKeyEncFileSessionKey,
-					nonce,
 					ownerEncPassword,
-					verifier,
 					groupKeyVersion: String(fileGroupKey.version),
+					verifier,
+					nonce, // nonce is necessary so that we can re-derive the share key and salt in the future
+					file: file._id,
 				}),
 				null,
 			)
 		}
 
-		// FIXME: Do not reload the whole file maybe? Just get the share ID from DriveShareService_POST?
+		// reload DriveFile so that it has the link to share
 		const updatedFile = await this.loadDriveFile(file._id)
-		return [updatedFile, await this.getShareInfo(idToElementId(assertNotNull(updatedFile.share)))]
+		return { file: updatedFile, shareInfo: await this.getShareInfoForManagement(updatedFile) }
 	}
 	private async createShareVerifier(shareKey: Aes256Key, nonce: KdfNonce, password: string): Promise<Uint8Array<ArrayBuffer>> {
 		const salt = blake3Kdf(concat(keyToUint8Array(shareKey), nonce), "driveFileShareSalt", 32)
@@ -132,22 +148,32 @@ export class DriveFileSharingFacade {
 	}
 
 	private async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
-		const { fileGroupKey } = await this.getCryptoInfo()
+		const fileGroupKey = await this.resolveFileGroupKey(share)
+		// obtain share key again (it doesn't change with password, but it's needed to create verifier)
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 		const nonce = share.nonce as KdfNonce
+		// create new verifier so that the server can validate the new password
 		const verifier = await this.createShareVerifier(shareKey, nonce, password)
+		// re-encrypt the password for the owner so that it can be viewed
 		const ownerEncPassword = this.cryptoWrapper.encryptString(fileGroupKey.object, password)
 		return {
 			ownerEncPassword,
 			verifier,
+			// FIXME: does it already have _ownerKeyVersion?
 			groupKeyVersion: String(fileGroupKey.version),
 		}
 	}
 
-	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null) {
-		let passwordUpdate: PasswordUpdate | null = null
+	/**
+	 * Update existing {@param share}.
+	 * See {@link DriveFileSharingFacade#createShareLink}
+	 */
+	async updateShare(share: DriveFileShare, password: string | null, expirationDate: Date | null): Promise<void> {
+		let passwordUpdate: PasswordUpdate | null
 		if (isNotNull(password)) {
 			passwordUpdate = await this.constructPasswordUpdate(share, password)
+		} else {
+			passwordUpdate = null
 		}
 
 		await this.serviceExecutor.execute(
@@ -166,12 +192,11 @@ export class DriveFileSharingFacade {
 			null,
 		)
 	}
-	private async getCryptoInfo(): Promise<DriveCryptoInfo> {
-		const fileGroupId = this.userFacade.getGroupId(GroupType.File)
-		const fileGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(fileGroupId)
-		return { fileGroupId, fileGroupKey }
-	}
 
+	/**
+	 * Stop publicly sharing {@link file}.
+	 * This invalidates the share link.
+	 */
 	async deleteShareLink(file: DriveFile): Promise<void> {
 		await this.serviceExecutor.execute(
 			DriveShareService_DELETE,
@@ -182,7 +207,8 @@ export class DriveFileSharingFacade {
 		)
 	}
 
-	async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {
+	/** load {@Link DriveFile} bypassing the cache */
+	private async loadDriveFile(fileId: IdTuple): Promise<DriveFile> {
 		return await this.entityClient.load(DriveFileTypeRef, fileId, {
 			queryParams: null,
 			baseUrl: null,
@@ -194,20 +220,23 @@ export class DriveFileSharingFacade {
 		})
 	}
 
-	async getShareInfo(shareId: ElementId): Promise<DriveShareInfo> {
-		const { fileGroupKey } = await this.getCryptoInfo()
-
+	/** Obtain share info for a publicly shared {@link DriveFile}. Must be a member of the file group. */
+	async getShareInfoForManagement(file: DriveFile): Promise<DriveShareInfo> {
+		const shareId = idToElementId(assertNotNull(file.share, "file is not shared"))
 		// FIXME: I feel like there must be something more semantically useful than apiUrl, but couldn't find anything.
 		const appUrl = this.domainConfig.apiUrl
 
 		const share = await this.entityClient.load(DriveFileShareTypeRef, shareId)
-
-		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
+		if (share.groupKeyVersion !== file._ownerKeyVersion) {
+			throw new ProgrammingError("Group Key version for file and share do not match")
+		}
+		const groupKey = await this.resolveFileGroupKey(file)
+		const shareKey = deriveFileShareKey(groupKey, share.nonce as KdfNonce)
 		if (isNotNull(share.ownerEncPassword)) {
 			// share is protected with a password
 			// 1. Derive a salt (SLT) from the share key (SHK), the nonce (N), and a domain separator.
 			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
-			const password = this.cryptoWrapper.decryptString(fileGroupKey.object, share.ownerEncPassword) // FIXME: Fetch the correct version of the group key
+			const password = this.cryptoWrapper.decryptString(groupKey.object, share.ownerEncPassword)
 			// 	2. Derive a password key (PWK) from the salt (SLT) and a user provided password (PWD).
 			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(password, salt)
 			// 	3. Encrypt the share key (SHK) with the password key (PWK) producing the ENCSHK.
@@ -224,7 +253,7 @@ export class DriveFileSharingFacade {
 			const publicLink = `${appUrl}/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`
 			return { share, publicLink, password }
 		} else {
-			// share is publicly available
+			// share is publicly available without a password
 			// 1. Create a link with shareId, authToken, shareKey (SHK)
 			const queryParams = new URLSearchParams({
 				authToken: uint8ArrayToBase64(share.authToken),
@@ -238,38 +267,64 @@ export class DriveFileSharingFacade {
 		}
 	}
 
-	async downloadFileForShare(
+	private async resolveFileGroupKey(file: Entity): Promise<VersionedKey> {
+		const groupKeyVersion = parseKeyVersion(file._ownerKeyVersion ?? "0")
+		const groupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(file._ownerGroup), groupKeyVersion)
+		return { object: groupKey, version: groupKeyVersion }
+	}
+
+	/**
+	 * Download {@link DriveFile} via a public link
+	 * @param shareId that points to the file
+	 * @param authToken provided via query params
+	 * @param encParam provided via fragment. Will vary based on the presence of a password
+	 */
+	async loadSharedFile(
 		shareId: Id,
 		authToken: string,
-		encParam: { type: "key"; sharedKey: Base64 } | { type: "password"; password: string; salt: string; sharedKey: Base64 },
+		encParam:
+			| { type: "key"; shareKey: Uint8Array<ArrayBuffer> }
+			| { type: "password"; password: string; salt: Uint8Array<ArrayBuffer>; shareKey: Uint8Array<ArrayBuffer> },
 	): Promise<{ file: DriveFile; fileSessionKey: Uint8Array<ArrayBuffer>; share: DriveFileShare }> {
-		const loadFileShareHeaders: Nullable<Dict> = {
-			authToken: authToken,
-		}
-		let passwordKey
+		let shareKey: AesKey
+		let share: DriveFileShare
 		if (encParam.type === "password") {
-			passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, base64ToUint8Array(encParam.salt))
+			// Derive the password key (PWK) from the salt (SLT) and the user provided password (PWD).
+			const passwordKey = await this.argon2idFacade.generateKeyFromPassphrase(encParam.password, encParam.salt)
 
+			// Create verifier for authentication
 			const verifier = uint8ArrayToBase64(createAuthVerifier(passwordKey))
-			loadFileShareHeaders["verifier"] = verifier
+			// Download the share linked by the URL.
+			share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
+				extraHeaders: { authToken, verifier },
+				ownerKeyProvider: null,
+				sessionKey: null,
+				baseUrl: null,
+				cacheMode: null,
+				queryParams: null,
+				suspensionBehavior: null,
+			})
+			// Decrypt the encrypted share key (ENCSHK) with the password key (PWK) producing the SHK.
+			shareKey = this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), encParam.shareKey)
+		} else {
+			// Download the share linked by the URL.
+			share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
+				extraHeaders: { authToken },
+				ownerKeyProvider: null,
+				sessionKey: null,
+				baseUrl: null,
+				cacheMode: null,
+				queryParams: null,
+				suspensionBehavior: null,
+			})
+			// Without password the share key (SHK) is directly usable
+			shareKey = uint8ArrayTo256Key(encParam.shareKey)
 		}
-		const share = await this.entityClient.load(DriveFileShareTypeRef, idToElementId(shareId), {
-			extraHeaders: loadFileShareHeaders,
-			ownerKeyProvider: null,
-			sessionKey: null,
-			baseUrl: null,
-			cacheMode: null,
-			queryParams: null,
-			suspensionBehavior: null,
-		})
-		const shareKey =
-			encParam.type === "key"
-				? uint8ArrayTo256Key(base64ToUint8Array(encParam.sharedKey))
-				: this.cryptoWrapper.decryptKey(assertNotNull(passwordKey), base64ToUint8Array(encParam.sharedKey))
-
+		// Decrypt the file session key (ENCFSK) with the share key (SHK) producing the FSK.
 		const fileSessionKey = this.cryptoWrapper.decryptKey(shareKey, share.shareKeyEncFileSessionKey)
+		// Download the file and decrypt it with the file session key (FSK).
 		const file = await this.entityClient.load(DriveFileTypeRef, share.file, {
-			extraHeaders: { authToken: authToken },
+			extraHeaders: { authToken },
 			ownerKeyProvider: null,
 			sessionKey: fileSessionKey,
 			baseUrl: null,
@@ -283,24 +338,33 @@ export class DriveFileSharingFacade {
 			share,
 		}
 	}
-	async downloadBlobsForShare(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64): Promise<DataFile> {
-		const bytes = await this.blobFacade.downloadAndDecrypt(ArchiveDataType.DriveFile, createReferencingInstance(file), "123" as TransferId, {
-			baseUrl: null,
-			extraHeaders: {},
-			queryParams: { authToken: authToken },
-			suspensionBehavior: null,
-			sessionKey: uint8ArrayToKey(fileSessionKey),
-			accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
-				const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
-					extraHeaders: { authToken: authToken },
-					sessionKey: null,
-					baseUrl: null,
-					queryParams: null,
-					suspensionBehavior: null,
-				})
-				return new Map([[file.blobs[0].archiveId, createBlobServerAccessInfo(result.blobAccessInfo)]])
+
+	/**
+	 * Download content of the file shared via link
+	 */
+	async downloadSharedFileContent(file: DriveFile, fileSessionKey: Uint8Array<ArrayBuffer>, authToken: Base64): Promise<DataFile> {
+		const bytes = await this.blobFacade.downloadAndDecrypt(
+			ArchiveDataType.DriveFile,
+			createReferencingInstance(file),
+			await this.blobFacade.generateTransferId(),
+			{
+				baseUrl: null,
+				extraHeaders: {},
+				queryParams: { authToken },
+				suspensionBehavior: null,
+				sessionKey: uint8ArrayToKey(fileSessionKey),
+				accessTokenProvider: async (): Promise<Map<Id, BlobServerAccessInfo>> => {
+					const result = await this.serviceExecutor.execute(DriveShareTokenService_POST, createDriveShareTokenServicePostIn({ file: file._id }), {
+						extraHeaders: { authToken },
+						sessionKey: null,
+						baseUrl: null,
+						queryParams: null,
+						suspensionBehavior: null,
+					})
+					return new Map([[file.blobs[0].archiveId, createBlobServerAccessInfo(result.blobAccessInfo)]])
+				},
 			},
-		})
+		)
 		return {
 			_type: "DataFile",
 			data: bytes,

@@ -1624,7 +1624,7 @@ class MailLocator implements CommonLocator {
 		return new ContactEditor(this.entityClient, contact)
 	}
 
-	public driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
+	readonly driveFileShareDialog: lazyAsync<DriveFileShareDialog> = onceAsync(async () => {
 		const { DriveFileShareDialog } = await import("../drive-app/drive/view/DriveFileShareDialog.js")
 		return new DriveFileShareDialog(this.driveFileSharingFacade, this.logins)
 	})
