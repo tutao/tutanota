@@ -44,6 +44,7 @@ const NOTIFICATION_HANDLER_THROTTLE_MS = 10_000
 
 export class TutaSseFacade implements SseEventHandler {
 	private currentSseInfo: SseInfo | null = null
+	private readonly pendingNotifications: Set<string> = new Set()
 
 	constructor(
 		private readonly sseStorage: SseStorage,
@@ -136,11 +137,15 @@ export class TutaSseFacade implements SseEventHandler {
 			await this.notificationHandler.onLocalDataInvalidated()
 			return
 		}
-		let encryptedMissedNotification: EncryptedMissedNotification
+		let encryptedMissedNotification: EncryptedMissedNotification | null
 		try {
 			encryptedMissedNotification = await this.downloadMissedNotification()
 		} catch (e) {
 			log.warn("Failed to download missed notification", e)
+			return
+		}
+
+		if (encryptedMissedNotification == null) {
 			return
 		}
 
@@ -205,32 +210,43 @@ export class TutaSseFacade implements SseEventHandler {
 		}
 	}
 
-	private async downloadMissedNotification(): Promise<EncryptedMissedNotification> {
+	private async downloadMissedNotification(): Promise<EncryptedMissedNotification | null> {
 		const sseInfo = assertNotNull(this.currentSseInfo)
-		const url = this.makeMissedNotificationUrl(sseInfo)
-
-		log.debug("downloading missed notification", url)
-		const headers: Record<string, string> = {
-			userIds: sseInfo.userIds[0],
-			v: sysTypeModels[MissedNotificationTypeRef.typeId].version,
-			cv: this.appVersion,
-		}
-		const lastProcessedId = await this.sseStorage.getLastProcessedNotificationId()
-
-		if (lastProcessedId) {
-			headers["lastProcessedNotificationId"] = lastProcessedId
+		const identifier = sseInfo.identifier
+		if (this.pendingNotifications.has(identifier)) {
+			log.warn(`Already downloading missed notifications for ${identifier}`)
+			return null
 		}
 
-		const res = await this.fetch(url, { headers })
+		try {
+			this.pendingNotifications.add(identifier)
 
-		if (!res.ok) {
-			throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
-		} else {
-			const typeModel = await this.nativeInstancePipeline.typeModelResolver.resolveServerTypeReference(MissedNotificationTypeRef)
-			const incomingJson = IncomingServerJson.expectSingleInstance(await res.text(), typeModel)
-			const encryptedInstance = await this.nativeInstancePipeline.typeMapper.parseServerJson(incomingJson)
-			log.debug("downloaded missed notification")
-			return new EncryptedMissedNotification(encryptedInstance)
+			const url = this.makeMissedNotificationUrl(sseInfo)
+			log.debug("downloading missed notification", url)
+			const headers: Record<string, string> = {
+				userIds: sseInfo.userIds[0],
+				v: sysTypeModels[MissedNotificationTypeRef.typeId].version,
+				cv: this.appVersion,
+			}
+			const lastProcessedId = await this.sseStorage.getLastProcessedNotificationId()
+
+			if (lastProcessedId) {
+				headers["lastProcessedNotificationId"] = lastProcessedId
+			}
+
+			const res = await this.fetch(url, { headers })
+
+			if (!res.ok) {
+				throw handleRestError(neverNull(res.status), url, res.headers.get("error-id") as string, null)
+			} else {
+				const typeModel = await this.nativeInstancePipeline.typeModelResolver.resolveServerTypeReference(MissedNotificationTypeRef)
+				const incomingJson = IncomingServerJson.expectSingleInstance(await res.text(), typeModel)
+				const encryptedInstance = await this.nativeInstancePipeline.typeMapper.parseServerJson(incomingJson)
+				log.debug("downloaded missed notification")
+				return new EncryptedMissedNotification(encryptedInstance)
+			}
+		} finally {
+			this.pendingNotifications.delete(identifier)
 		}
 	}
 
