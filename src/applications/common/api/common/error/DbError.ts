@@ -12,7 +12,7 @@ export abstract class DbError extends TutanotaError {
 	 * @param name Name to use for this error instance
 	 */
 	protected constructor(name: string, message: string, error?: Error) {
-		super(name, error ? message + `: ${error.name}, ${error.message}> ` + (error.stack ? error.stack : error.message) : message, null)
+		super(name, error ? message + `: ${error.name}, ${error.message}> ` + (error.stack ? error.stack : error.message) : message)
 		this.error = error ?? null
 	}
 }
