@@ -1,7 +1,7 @@
 import m, { Component } from "mithril"
 import { Dialog, DialogType } from "../../../../../ui/base/Dialog.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { DatePicker } from "./DatePicker.js"
+import { DatePicker, DatePickerAttrs } from "./DatePicker.js"
 import { px, size } from "../../../../../ui/size.js"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { EnvProvider } from "../../../../../platform-kit/app-env"
@@ -21,6 +21,7 @@ export function showDateRangeSelectionDialog({
 }: {
 	startOfTheWeekOffset: number
 	start: Date | null
+	// TODO: Why is end not optional?
 	end: Date
 	optionalStartDate: boolean
 	dateValidator: (startDate: Date | null, endDate: Date | null) => string | null
@@ -55,7 +56,7 @@ export function showDateRangeSelectionDialog({
 						m(
 							".flex-grow.flex-space-between.flex-column",
 							m(DatePicker, {
-								date: startDate,
+								date: startDate as Date | undefined, // TODO(gg): SMH MY HEAD.
 								onDateSelected: (date) => {
 									warning = null
 									startDate = date
@@ -64,7 +65,7 @@ export function showDateRangeSelectionDialog({
 								startOfTheWeekOffset,
 								label: lang.getTranslation("dateFrom_label"),
 								nullSelectionText: optionalStartDate ? "unlimited_label" : undefined,
-							}),
+							} satisfies DatePickerAttrs),
 						),
 						m(".button-height.button-width-fixed"),
 						m("", lang.get("dateTo_label")),
