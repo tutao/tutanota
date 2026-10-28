@@ -184,7 +184,7 @@ const migrationKnownConfigs = {
 			fetchMethod: MigrationFetchMethod.Imap,
 			authMethod: MigrationAuthMethod.Password,
 			imapConfig: {
-				host: "imap.gmx.net",
+				host: "imap.gmx.de",
 				port: IMAP_SSL_PORT,
 			},
 		},
