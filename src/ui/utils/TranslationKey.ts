@@ -2569,4 +2569,8 @@ export type TranslationKeyType =
 	| "duplicateFileNames_title"
 	| "migrationProviderMicrosoft365_label"
 	| "migrationProviderExchange_label"
+	| "adminPayment_label"
+	| "adminSubscription_label"
+	| "adminUserList_label"
+	| "notificationSettings_label"
 	| "emptyString_msg"
