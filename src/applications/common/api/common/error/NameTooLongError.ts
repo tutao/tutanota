@@ -2,6 +2,6 @@ import { TutanotaError } from "@tutao/app-env"
 
 export class NameTooLongError extends TutanotaError {
 	constructor(message: string) {
-		super("NameTooLongError", message, null)
+		super("NameTooLongError", message)
 	}
 }
