@@ -225,6 +225,24 @@ o.spec("SseClient", function () {
 			await net.waitForRequest()
 		})
 
+		o.test("should not schedule a reconnect if the response closes while disconnect() is in progress", async () => {
+			await sseClient.connect(defaultOptions)
+			const request = await net.waitForRequest()
+			const response = new ResponseStub()
+			await request.sendResponse(response)
+			when(delay.initialConnectionDelay()).thenReturn(10)
+
+			request.doNotClose()
+			const disconnected = sseClient.disconnect()
+			await request.waitForDestroy()
+			// destroying the request closes the response before the request itself
+			response.close()
+			request.eventListeners.get("close")?.()
+			await disconnected
+
+			o(scheduler.scheduledAfter.has(10)).equals(false)("no reconnect scheduled")
+		})
+
 		o.test("should cancel timeouts if disconnect is called while waiting to reconnect", async () => {
 			await sseClient.connect(defaultOptions)
 			const request = await net.waitForRequest()
