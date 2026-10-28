@@ -170,13 +170,16 @@ export class BusinessPlanContainer implements Component<PlanBoxContainerAttrs> {
 					paymentInterval: selectedSubscriptionOptions.paymentInterval(),
 				})
 
+				const isCurrentPlanAndInterval =
+					currentPlan === planConfig.type && attrs.currentPaymentInterval === selectedSubscriptionOptions.paymentInterval()
+
 				return m(BusinessPlanBox, {
 					planConfig,
 					price: prices.priceStr,
 					referencePrice: prices.referencePriceStr,
 					isSelected: selectedPlan() === planConfig.type,
-					isDisabled: !!planConfig.isDisabled || currentPlan === planConfig.type,
-					isCurrentPlan: currentPlan === planConfig.type,
+					isDisabled: !!planConfig.isDisabled || isCurrentPlanAndInterval,
+					isCurrentPlan: isCurrentPlanAndInterval,
 					onclick: (p) => selectedPlan(p as AvailablePlans),
 					priceAndConfigProvider: priceAndConfigProvider,
 					discountDetail: discountDetails?.[planConfig.type],

@@ -146,8 +146,8 @@ export class PersonalPlanContainer implements Component<PlanBoxContainerAttrs> {
 						referencePrice: referencePriceStr,
 						isSelected: planConfig.type === selectedPlan(),
 						// We have to allow payment interval switch for iOS in the plan selector as we hide payment interval switch in the setting
-						isDisabled: !!planConfig.isDisabled || (isApplePrice ? isCurrentPlanAndInterval : currentPlan === planConfig.type),
-						isCurrentPlan: isApplePrice ? isCurrentPlanAndInterval : currentPlan === planConfig.type,
+						isDisabled: !!planConfig.isDisabled || isCurrentPlanAndInterval,
+						isCurrentPlan: isCurrentPlanAndInterval,
 						onclick: (newPlan) => selectedPlan(newPlan),
 						selectedPaymentInterval: selectedSubscriptionOptions.paymentInterval,
 						priceAndConfigProvider,

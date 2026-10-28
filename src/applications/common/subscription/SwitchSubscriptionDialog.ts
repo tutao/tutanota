@@ -29,6 +29,7 @@ import {
 } from "../../../entities/sys/Utils"
 import { BookingFailureReason, Const, EnvProvider, UnsubscribeFailureReason } from "@tutao/app-env"
 import stream from "mithril/stream"
+import Stream from "mithril/stream"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar"
 import type { CurrentPlanInfo } from "./SwitchSubscriptionDialogModel"
@@ -218,7 +219,6 @@ async function doSwitchToPaidPlan(
 ) {
 	if (hasMatchingExternalPaymentSetup(getPaymentMethodType(accountingInfo))) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
-		dialog.close()
 		try {
 			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
 				externalStorePlanName(targetSubscription),
@@ -240,6 +240,51 @@ async function doSwitchToPaidPlan(
 		}
 		await switchSubscription(targetSubscription, dialog, currentPlanInfo)
 	}
+	dialog.close()
+}
+
+async function handleButtonClick(
+	accountingInfo: AccountingInfo,
+	targetSubscription: PlanType,
+	newPaymentInterval: Stream<PaymentInterval>,
+	currentPlanInfo: CurrentPlanInfo,
+	dialog: Dialog,
+) {
+	let confirmed = false
+	const isMobilePaymentMethod = isExternalPaymentMethod(accountingInfo.paymentMethod as PaymentMethodType)
+	//Business plans are not available for external payment methods
+	if (isMobilePaymentMethod && NewBusinessPlans.includes(targetSubscription as AvailablePlanType)) {
+		await Dialog.message(lang.getTranslation("businessPlansNotAvailableForExternal_msg"))
+	} else if (newPaymentInterval() !== currentPlanInfo.paymentInterval && targetSubscription === currentPlanInfo.planType) {
+		//If plan type does not change but payment interval does
+		confirmed = await Dialog.confirm(
+			lang.getTranslation("subscriptionChangeInterval_msg", {
+				"{period}":
+					newPaymentInterval() === PaymentInterval.Monthly
+						? lang.getTranslation("pricing.monthly_label").text
+						: lang.getTranslation("pricing.yearly_label").text,
+			}),
+		)
+	} else if (isMobilePaymentMethod) {
+		confirmed = await Dialog.confirm(lang.getTranslation("switchPlanMobile_msg"))
+	} else {
+		confirmed = await Dialog.choice(
+			lang.getTranslation("switchPlanImmediately_msg", {
+				"{plan}": PlanTypeToName[targetSubscription],
+				"{interval}":
+					newPaymentInterval() === PaymentInterval.Yearly
+						? lang.getTranslationText("pricing.yearly_label").toLowerCase()
+						: lang.getTranslationText("pricing.monthly_label").toLowerCase(),
+			}),
+			[
+				{ text: lang.getTranslation("cancel_action"), value: false },
+				{ text: lang.getTranslation("confirm_action"), value: true },
+			],
+		)
+	}
+	if (confirmed) {
+		await showProgressDialog("pleaseWait_msg", doSwitchToPaidPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo))
+	}
 }
 
 function createPlanButton(
@@ -254,29 +299,7 @@ function createPlanButton(
 		label: "buy_action",
 		...(shouldApplyDiscount && { class: "go-european-button" }),
 		onclick: async () => {
-			//Business plans are not available for external payment methods
-			if (
-				isExternalPaymentMethod(accountingInfo.paymentMethod as PaymentMethodType) &&
-				NewBusinessPlans.includes(targetSubscription as AvailablePlanType)
-			) {
-				await Dialog.message(lang.getTranslation("businessPlansNotAvailableForExternal_msg"))
-			} else if (
-				await Dialog.confirm(
-					lang.getTranslation("switchPlan_msg", {
-						"{plan}": PlanTypeToName[targetSubscription],
-						"{interval}":
-							newPaymentInterval() === PaymentInterval.Yearly
-								? lang.getTranslationText("pricing.yearly_label").toLowerCase()
-								: lang.getTranslationText("pricing.monthly_label").toLowerCase(),
-					}),
-					"paymentDataValidation_action",
-				)
-			) {
-				await showProgressDialog(
-					"pleaseWait_msg",
-					doSwitchToPaidPlan(accountingInfo, newPaymentInterval(), targetSubscription, dialog, currentPlanInfo),
-				)
-			}
+			await handleButtonClick(accountingInfo, targetSubscription, newPaymentInterval, currentPlanInfo, dialog)
 		},
 	})
 }
