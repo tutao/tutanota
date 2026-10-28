@@ -148,7 +148,7 @@ export class DriveFileSharingFacade {
 	}
 
 	private async constructPasswordUpdate(share: DriveFileShare, password: string): Promise<PasswordUpdate> {
-		const fileGroupKey = await this.resolveFileGroupKey(share)
+		const fileGroupKey = await this.resolveShareOwnerKey(share)
 		// obtain share key again (it doesn't change with password, but it's needed to create verifier)
 		const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 		const nonce = share.nonce as KdfNonce
@@ -159,7 +159,6 @@ export class DriveFileSharingFacade {
 		return {
 			ownerEncPassword,
 			verifier,
-			// FIXME: does it already have _ownerKeyVersion?
 			groupKeyVersion: String(fileGroupKey.version),
 		}
 	}
@@ -230,7 +229,7 @@ export class DriveFileSharingFacade {
 		if (share.groupKeyVersion !== file._ownerKeyVersion) {
 			throw new ProgrammingError("Group Key version for file and share do not match")
 		}
-		const groupKey = await this.resolveFileGroupKey(file)
+		const groupKey = await this.resolveShareOwnerKey(share)
 		const shareKey = deriveFileShareKey(groupKey, share.nonce as KdfNonce)
 		if (isNotNull(share.ownerEncPassword)) {
 			// share is protected with a password
@@ -267,9 +266,14 @@ export class DriveFileSharingFacade {
 		}
 	}
 
-	private async resolveFileGroupKey(file: Entity): Promise<VersionedKey> {
-		const groupKeyVersion = parseKeyVersion(file._ownerKeyVersion ?? "0")
-		const groupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(file._ownerGroup), groupKeyVersion)
+	private async resolveFileGroupKey(entity: Entity): Promise<VersionedKey> {
+		const groupKeyVersion = parseKeyVersion(entity._ownerKeyVersion ?? "0")
+		const groupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(entity._ownerGroup), groupKeyVersion)
+		return { object: groupKey, version: groupKeyVersion }
+	}
+	async resolveShareOwnerKey(share: DriveFileShare): Promise<VersionedKey> {
+		const groupKeyVersion = parseKeyVersion(share.groupKeyVersion ?? "0")
+		const groupKey = await this.keyLoaderFacade.loadSymGroupKey(assertNotNull(share._ownerGroup), groupKeyVersion)
 		return { object: groupKey, version: groupKeyVersion }
 	}
 

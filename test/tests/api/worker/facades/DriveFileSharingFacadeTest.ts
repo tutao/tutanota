@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { verify } from "@tutao/otest"
 import { ElementId, elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { DriveFileSharingFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/DriveFileSharingFacade"
 import {
@@ -23,8 +23,14 @@ import { EntityClient } from "../../../../../src/platform-kit/network/EntityClie
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade"
 import { func, matchers, object, when } from "testdouble"
 import { clientInitializedTypeModelResolver, createTestEntity } from "../../../TestUtils"
-import { DriveFileShareTypeRef, DriveFileTypeRef } from "@tutao/entities/drive"
-import { concat, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
+import {
+	createDriveShareServicePasswordUpdate,
+	createDriveShareServicePutIn,
+	DriveFileShareTypeRef,
+	DriveFileTypeRef,
+	DriveShareService_PUT,
+} from "@tutao/entities/drive"
+import { base64ToUint8Array, concat, stringToBase64, stringToUtf8Uint8Array, uint8ArrayToBase64 } from "../../../../../src/platform-kit/utils"
 import { EntityRestClientMock } from "../rest/EntityRestClientMock"
 
 function deriveFileShareKey(fileGroupKey: VersionedKey, nonce: KdfNonce): Aes256Key {
@@ -75,7 +81,7 @@ o.spec("DriveFileSharingFacade", function () {
 		o.test("building public link with password-protected share", async function () {
 			const shareId: ElementId = idToElementId("some share id")
 
-			const fileGroupKey: VersionedKey = { object: aes256RandomKey(), version: 1 }
+			const fileGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 
 			domainConfig.apiUrl = "http://testcase"
 
@@ -84,13 +90,14 @@ o.spec("DriveFileSharingFacade", function () {
 				authToken: stringToUtf8Uint8Array("open up"),
 				nonce: stringToUtf8Uint8Array("the nonce"),
 				ownerEncPassword: stringToUtf8Uint8Array("encrypted password"),
-				groupKeyVersion: "1",
+				groupKeyVersion: "0",
+				_ownerGroup: "ownerGroup",
 			})
 
 			const file = createTestEntity(DriveFileTypeRef, {
 				share: elementIdToId(share._id),
 				_ownerGroup: "group",
-				_ownerKeyVersion: "1",
+				_ownerKeyVersion: "0",
 			})
 
 			const encryptedShareKey = stringToUtf8Uint8Array("encrypted share key")
@@ -99,7 +106,7 @@ o.spec("DriveFileSharingFacade", function () {
 			const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 			const salt = blake3Kdf(concat(keyToUint8Array(shareKey), share.nonce), "driveFileShareSalt", 32)
 
-			when(keyLoaderFacade.loadSymGroupKey("group", 1)).thenResolve(fileGroupKey.object)
+			when(keyLoaderFacade.loadSymGroupKey("ownerGroup", 0)).thenResolve(fileGroupKey.object)
 			entityRestClientMock.addElementInstances(share)
 			when(entityClient.load(DriveFileShareTypeRef, shareId)).thenResolve(share)
 			when(cryptoWrapper.decryptString(fileGroupKey.object, matchers.anything())).thenReturn(decryptedPassword)
@@ -124,7 +131,7 @@ o.spec("DriveFileSharingFacade", function () {
 		o.test("building public link without password-protected share", async function () {
 			const shareId: ElementId = idToElementId("some share id")
 
-			const fileGroupKey: VersionedKey = { object: aes256RandomKey(), version: 1 }
+			const fileGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
 
 			domainConfig.apiUrl = "http://testcase"
 
@@ -133,17 +140,18 @@ o.spec("DriveFileSharingFacade", function () {
 				authToken: stringToUtf8Uint8Array("open up"),
 				nonce: stringToUtf8Uint8Array("the nonce"),
 				ownerEncPassword: null,
-				groupKeyVersion: "1",
+				groupKeyVersion: "0",
+				_ownerGroup: "ownerGroup",
 			})
 			const file = createTestEntity(DriveFileTypeRef, {
 				share: elementIdToId(share._id),
 				_ownerGroup: "group",
-				_ownerKeyVersion: "1",
+				_ownerKeyVersion: "0",
 			})
 
 			const shareKey = deriveFileShareKey(fileGroupKey, share.nonce as KdfNonce)
 
-			when(keyLoaderFacade.loadSymGroupKey("group", 1)).thenResolve(fileGroupKey.object)
+			when(keyLoaderFacade.loadSymGroupKey("ownerGroup", 0)).thenResolve(fileGroupKey.object)
 			entityRestClientMock.addElementInstances(share)
 
 			const shareInfo = await fileSharingFacade.getShareInfoForManagement(file)
@@ -159,6 +167,102 @@ o.spec("DriveFileSharingFacade", function () {
 			o.check(shareInfo.share).deepEquals(share)
 			o.check(shareInfo.publicLink).equals(`http://testcase/drivefile/${elementIdToId(shareId)}?${queryParams.toString()}#${fragmentParams.toString()}`)
 			o.check(shareInfo.password).equals(undefined)
+		})
+	})
+	o.spec("updateShare", function () {
+		o.test(
+			"adding a password to an existing share, without a password, should send a server request to update the share with the password provided",
+			async function () {
+				const shareId: ElementId = idToElementId("some share id")
+
+				const share = createTestEntity(DriveFileShareTypeRef, {
+					_id: shareId,
+					authToken: stringToUtf8Uint8Array("open up"),
+					nonce: stringToUtf8Uint8Array("the nonce"),
+					ownerEncPassword: null,
+					groupKeyVersion: "0",
+					_ownerGroup: "ownerGroup",
+				})
+
+				const fileGroupKey: VersionedKey = { object: aes256RandomKey(), version: 0 }
+				const password = "password"
+				const encPassword = base64ToUint8Array(stringToBase64("encPassword"))
+				when(cryptoWrapper.encryptString(fileGroupKey.object, password)).thenReturn(encPassword)
+				entityRestClientMock.addElementInstances(share)
+				when(keyLoaderFacade.loadSymGroupKey("ownerGroup", 0)).thenResolve(fileGroupKey.object)
+				const passwordKey = aes256RandomKey()
+				when(argon2IdFacade.generateKeyFromPassphrase(matchers.anything(), matchers.anything())).thenResolve(passwordKey)
+				await fileSharingFacade.updateShare(share, password, null)
+
+				verify(
+					serviceExecutor.execute(
+						DriveShareService_PUT,
+						createDriveShareServicePutIn({
+							share: elementIdToId(shareId),
+							passwordUpdate: createDriveShareServicePasswordUpdate({
+								verifier: matchers.anything(),
+								ownerEncPassword: encPassword,
+								groupKeyVersion: matchers.anything(),
+							}),
+							expirationDate: null,
+						}),
+						null,
+					),
+				)
+			},
+		)
+		o.test("adding expiration date to a share, without an expiration, should send a server request with the expiration date provided", async function () {
+			const shareId: ElementId = idToElementId("some share id")
+
+			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: shareId,
+				authToken: stringToUtf8Uint8Array("open up"),
+				nonce: stringToUtf8Uint8Array("the nonce"),
+				ownerEncPassword: null,
+				groupKeyVersion: "0",
+				_ownerGroup: "ownerGroup",
+			})
+			const expirationDate = new Date(2028, 5, 12)
+			await fileSharingFacade.updateShare(share, null, expirationDate)
+
+			verify(
+				serviceExecutor.execute(
+					DriveShareService_PUT,
+					createDriveShareServicePutIn({
+						share: elementIdToId(shareId),
+						passwordUpdate: null,
+						expirationDate: expirationDate,
+					}),
+					null,
+				),
+			)
+		})
+		// This is a case to remove password and expiration from a share
+		o.test("updating a share with password and expirationDate as null values should send a server request with null values", async function () {
+			const shareId: ElementId = idToElementId("some share id")
+
+			const share = createTestEntity(DriveFileShareTypeRef, {
+				_id: shareId,
+				authToken: stringToUtf8Uint8Array("open up"),
+				nonce: stringToUtf8Uint8Array("the nonce"),
+				ownerEncPassword: new Uint8Array([1, 2, 3]),
+				groupKeyVersion: "0",
+				_ownerGroup: "ownerGroup",
+				expirationDate: new Date(2028, 5, 12),
+			})
+			await fileSharingFacade.updateShare(share, null, null)
+
+			verify(
+				serviceExecutor.execute(
+					DriveShareService_PUT,
+					createDriveShareServicePutIn({
+						share: elementIdToId(shareId),
+						passwordUpdate: null,
+						expirationDate: null,
+					}),
+					null,
+				),
+			)
 		})
 	})
 	o.spec("downloadFileForShare", function () {
@@ -257,6 +361,5 @@ o.spec("DriveFileSharingFacade", function () {
 			o.check(loadFileRequestCaptor.value.extraHeaders).deepEquals({ authToken })
 			o.check(loadFileRequestCaptor.value.sessionKey).deepEquals(fileSessionKey)
 		})
-		//FIXME test for update link
 	})
 })
