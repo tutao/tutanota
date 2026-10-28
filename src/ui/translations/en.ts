@@ -2309,6 +2309,7 @@ export default {
 		"switchInbox_action": "Switch to inbox folder",
 		"switchMonthView_action": "Switch to month view",
 		"switchPlan_msg": "Your plan will be switched to: {plan} {interval}",
+		"switchPlanImmediately_msg": "Starting today, your plan will be switched to: {plan} {interval}.\n\nYou will be billed immediately and your remaining subscription time will be credited.",
 		"switchScheduledFolder_action": "Switch to scheduled folder",
 		"switchSearchInMenu_label": "You can switch search type in the menu",
 		"switchSentFolder_action": "Switch to sent folder",
@@ -2591,5 +2592,6 @@ export default {
 		"noPaymentMethodError_msg": "You can't switch plans because there is no payment method set.",
 		"ratingTrustpilot_msg":"If you're enjoying the app and have a Trustpilot account, we'd appreciate an honest review",
 		"deactivatedAccessLogin_msg": "Your account has been deactivated as part of our anti-spam measures to protect users’ privacy and security.\n\nIf this was a mistake, please contact us at appeals@tutao.de.",
+		"switchPlanMobile_msg": "All new subscription details will be displayed by your subscription provider (App Store or Google Play) in the pop-up windows that follow.\n\nPlease review them carefully before confirming.",
 	}
 }

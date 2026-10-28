@@ -2589,3 +2589,6 @@ export type TranslationKeyType =
 	| "noPaymentMethodError_msg"
 	| "ratingTrustpilot_msg"
 	| "deactivatedAccessLogin_msg"
+	| "switchPlanMobile_msg"
+	| "keepCurrentPlan_action"
+	| "switchPlanImmediately_msg"

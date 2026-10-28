@@ -2309,6 +2309,7 @@ export default {
 		"switchInbox_action": "Zum Inbox-Ordner wechseln",
 		"switchMonthView_action": "Zur Monats-Ansicht wechseln",
 		"switchPlan_msg": "Ihr Abonnement wird umgestellt auf: {plan} {interval}",
+		"switchPlanImmediately_msg": "Ihr Abonnement ändert sich ab heute zu: {plan} {interval}.\n\nSie erhalten sofort eine Rechnung und die verleibende Zeit Ihres aktuellen Abonnements wird Ihnen angerechnet.",
 		"switchScheduledFolder_action": "Zum Planungs-Ordner wechseln",
 		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen",
 		"switchSentFolder_action": "Zum Gesendet-Ordner wechseln",
@@ -2591,5 +2592,6 @@ export default {
 		"noPaymentMethodError_msg": "Sie können Ihren Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist",
 		"ratingTrustpilot_msg":"Wenn Ihnen die App gefällt und Sie ein Trustpilot-Konto haben, würden wir uns über eine ehrliche Bewertung freuen.",
 		"deactivatedAccessLogin_msg": "Ihr Konto wurde im Rahmen unserer Maßnahmen gegen Spam deaktiviert, um die Privatsphäre und Sicherheit unserer Nutzer zu schützen.\n\nWenn das ein Versehen war, kontaktieren Sie uns bitte unter appeals@tutao.de.",
+		"switchPlanMobile_msg": "Alle neuen Abo-Details werden Ihnen von Ihrem Abo-Anbieter (App Store oder Google Play) im Anschluss folgenden Pop-Up Fenster angezeigt.\n\nBitte lesen Sie diese sorgfältig durch, bevor Sie bestätigen."
 	}
 }
