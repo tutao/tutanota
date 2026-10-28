@@ -1,5 +1,4 @@
-import { TypeChecks } from "./types/utility"
-
+import { Nullable, TypeChecks } from "./types/utility"
 
 /*
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
@@ -12,16 +11,10 @@ import { TypeChecks } from "./types/utility"
  * added to the ErrorNameToType map in Utils.js.
  */
 /** @TSwUncheckedSendable All fields in TutanotaError are readonly and we dont mutate anything once an error is created */
-export class TutanotaError<T = never | null> extends Error {
+export class TutanotaError extends Error {
 	constructor(
-		public readonly name: string,
-		public readonly message: string,
-		/**
-		 * Sets the data field of the TutanotaError so we can transport any additional data over the worker <-> main
-		 * thread bridge. See (errorToObj() and objToError())
-		 * data field is respected by the WorkerProtocol. Other fields might not be passed
-		 */
-		public readonly data: T,
+		public readonly name: Readonly<string>,
+		public readonly message: Readonly<string>,
 	) {
 		super(message)
 
@@ -59,9 +52,19 @@ export class TutanotaError<T = never | null> extends Error {
 	}
 }
 
+export interface TutanotaErrorWithData<Data> {
+	/**
+	 * Sets the data field of the TutanotaError so we can transport any additional data over the worker <-> main
+	 * thread bridge. See (errorToObj() and objToError())
+	 * data field is respected by the WorkerProtocol. Other fields might not be passed
+	 */
+	readonly data: Readonly<Data>
+}
+
 /** @TSwUncheckedSendable TutanotaError is TSUncheckedSendable and ProgrammingError does not introduce any new fields */
 export class ProgrammingError extends TutanotaError {
+	public readonly errorData: Readonly<Nullable<never>> = null
 	constructor(m: string | null = null) {
-		super("ProgrammingError", m ?? "Unknown programming error", null)
+		super("ProgrammingError", m ?? "Unknown programming error")
 	}
 }

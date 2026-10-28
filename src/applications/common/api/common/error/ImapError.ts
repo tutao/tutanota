@@ -2,6 +2,7 @@
 
 // Similar to PreparationError for File Imports
 import { TutanotaError } from "@tutao/app-env"
+import { TutanotaErrorWithData } from "@tutao/lang-api"
 
 export enum ImapErrorCause {
 	/** The cause was somewhere not set, we do not have much information on it */
@@ -23,9 +24,11 @@ export type ImapErrorData = {
 	code: string
 }
 
-export class ImapError extends TutanotaError<ImapErrorData> {
+export class ImapError extends TutanotaError implements TutanotaErrorWithData<ImapErrorData> {
+	public readonly data: Readonly<ImapErrorData>
 	constructor(message: string, cause: ImapErrorCause = ImapErrorCause.UNKNOWN, code: string = "") {
-		super("ImapError", message, { cause, code })
+		super("ImapError", message)
+		this.data = { cause, code }
 	}
 }
 

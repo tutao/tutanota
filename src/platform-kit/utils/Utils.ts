@@ -1,7 +1,7 @@
 import { KeyVersion } from "./TsUtils.js"
-import { downcast, isNotNull, TypeChecks } from "../lang-api/common/index.js"
+import { downcast, isNotNull, TypeChecks } from "@tutao/lang-api"
 
-export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "../lang-api/common/index.js"
+export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "@tutao/lang-api"
 
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>

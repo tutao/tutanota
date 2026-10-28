@@ -1,10 +1,9 @@
 //@bundleInto:common-min
 
 import { TutanotaError } from "@tutao/app-env"
-import { Nullable } from "@tutao/utils"
 
-export class FileNotFoundError extends TutanotaError<Nullable<never>> {
+export class FileNotFoundError extends TutanotaError {
 	constructor(msg: string) {
-		super("FileNotFoundError", msg, null)
+		super("FileNotFoundError", msg)
 	}
 }
