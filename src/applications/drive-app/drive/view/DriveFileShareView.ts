@@ -6,7 +6,7 @@ import { theme } from "../../../../ui/theme"
 import { Icons } from "../../../../ui/base/icons/Icons"
 import { Icon, IconSize, progressIcon } from "../../../../ui/base/Icon"
 import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
-import { base64ToUint8Array, base64UrlToBase64 } from "@tutao/utils"
+import { base64UrlToBase64 } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { handleUncaughtError } from "../../../common/misc/ErrorHandler"
 import { formatDateWithWeekdayAndYearLong } from "../../../../ui/utils/Formatter"
@@ -15,84 +15,7 @@ import { PasswordFieldNew } from "../../../common/signup/components/PasswordFiel
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { CryptoError } from "@tutao/crypto/error"
-
-interface PasswordShareUrl {
-	shareId: Id
-	authToken: string
-	shareKey: Uint8Array
-	salt: Uint8Array
-}
-
-interface KeyShareUrl {
-	shareId: Id
-	authToken: string
-	shareKey: Uint8Array
-}
-
-type ParsedShareUrl = { type: "password"; url: PasswordShareUrl } | { type: "key"; url: KeyShareUrl }
-
-function isValidStringParam(value: unknown): value is NonEmptyString {
-	return typeof value === "string" && value !== ""
-}
-
-function parseBase64UrlParam(param: unknown): Uint8Array | null {
-	if (!isValidStringParam(param)) {
-		return null
-	}
-	try {
-		return base64ToUint8Array(base64UrlToBase64(param))
-	} catch (e) {
-		return null
-	}
-}
-
-function parseShareUrl(params: Record<string, unknown>, hash: string): ParsedShareUrl | null {
-	const { shareId, authToken: encodedAuthToken } = params
-
-	if (!isValidStringParam(shareId) || !isValidStringParam(encodedAuthToken)) {
-		return null
-	}
-	let authToken: string
-	try {
-		authToken = base64UrlToBase64(encodedAuthToken)
-	} catch (e) {
-		return null
-	}
-
-	const fragmentParams = new URLSearchParams(hash.slice(1))
-
-	const shareKey = parseBase64UrlParam(fragmentParams.get("shareKey"))
-	if (shareKey == null) {
-		return null
-	}
-	const saltString = fragmentParams.get("salt")
-
-	if (saltString != null) {
-		// if salt is present, it is a password case
-		const salt = parseBase64UrlParam(saltString)
-		if (salt == null) {
-			return null
-		}
-		return {
-			type: "password",
-			url: {
-				shareId,
-				authToken,
-				salt,
-				shareKey,
-			},
-		}
-	} else {
-		return {
-			type: "key",
-			url: {
-				shareId,
-				authToken,
-				shareKey,
-			},
-		}
-	}
-}
+import { KeyShareUrl, parseShareUrl, PasswordShareUrl } from "./DriveUtils"
 
 export interface DriveFileShareViewAttrs extends TopLevelAttrs {
 	downloadFileForShare: (

@@ -1,7 +1,17 @@
 import { EntityClient, loadMultipleFromLists } from "../../../../platform-kit/network/EntityClient"
 import { DriveFacade, FolderContents } from "../../../common/api/worker/facades/lazy/DriveFacade"
 import { getFileBaseNameAndExtensions } from "../../../../ui/utils/FileUtils"
-import { assertNotNull, defer, isEmpty, isNotEmpty, isNotNull, partition, promiseMap } from "../../../../platform-kit/utils"
+import {
+	assertNotNull,
+	base64ToUint8Array,
+	base64UrlToBase64,
+	defer,
+	isEmpty,
+	isNotEmpty,
+	isNotNull,
+	partition,
+	promiseMap,
+} from "../../../../platform-kit/utils"
 import { DriveFile, DriveFileTypeRef, DriveFolder, DriveFolderTypeRef } from "@tutao/entities/drive"
 import { getElementId } from "@tutao/meta"
 import { WebFile } from "../../../../entities/tutanota/Utils"
@@ -346,3 +356,80 @@ export function normalizeShareExpirationDate(expirationDate: Date | null): Date 
 		return null
 	}
 }
+function isValidStringParam(value: unknown): value is NonEmptyString {
+	return typeof value === "string" && value !== ""
+}
+
+function parseBase64UrlParam(param: unknown): Uint8Array | null {
+	if (!isValidStringParam(param)) {
+		return null
+	}
+	try {
+		return base64ToUint8Array(base64UrlToBase64(param))
+	} catch (e) {
+		return null
+	}
+}
+
+export function parseShareUrl(params: Record<string, unknown>, hash: string): ParsedShareUrl | null {
+	const { shareId, authToken: encodedAuthToken } = params
+
+	if (!isValidStringParam(shareId) || !isValidStringParam(encodedAuthToken)) {
+		return null
+	}
+	let authToken: string
+	try {
+		authToken = base64UrlToBase64(encodedAuthToken)
+	} catch (e) {
+		return null
+	}
+
+	const fragmentParams = new URLSearchParams(hash.slice(1))
+
+	const shareKey = parseBase64UrlParam(fragmentParams.get("shareKey"))
+	if (shareKey == null) {
+		return null
+	}
+	const saltString = fragmentParams.get("salt")
+
+	if (saltString != null) {
+		// if salt is present, it is a password case
+		const salt = parseBase64UrlParam(saltString)
+		if (salt == null) {
+			return null
+		}
+		return {
+			type: "password",
+			url: {
+				shareId,
+				authToken,
+				salt,
+				shareKey,
+			},
+		}
+	} else {
+		return {
+			type: "key",
+			url: {
+				shareId,
+				authToken,
+				shareKey,
+			},
+		}
+	}
+}
+
+export interface PasswordShareUrl {
+	shareId: Id
+	authToken: string
+	shareKey: Uint8Array
+	salt: Uint8Array
+}
+
+export interface KeyShareUrl {
+	shareId: Id
+	authToken: string
+	shareKey: Uint8Array
+}
+
+export type ParsedShareUrl = { type: "password"; url: PasswordShareUrl } | { type: "key"; url: KeyShareUrl }
