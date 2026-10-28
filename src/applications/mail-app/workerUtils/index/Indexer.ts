@@ -34,5 +34,4 @@ export interface Indexer {
 
 	cancelMailIndexing(): void
 	remainingDataInBytes(): Promise<number>
-	isCurrentlyDownloadingArchives(): Promise<boolean>
 }

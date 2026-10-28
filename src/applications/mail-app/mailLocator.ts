@@ -63,7 +63,7 @@ import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
-import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig, DownloadArchivesOnMeteredConnection } from "../common/misc/DeviceConfig.js"
 import { ExpandedInboxRuleHandler } from "./mail/model/ExpandedInboxRuleHandler.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener, MailViewModel } from "./mail/view/MailViewModel.js"
@@ -1005,30 +1005,61 @@ class MailLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
-			const handleConnectionTypeUpdated = async (isMetered: boolean) => {
-				const isCurrentlyDownloadingArchives = await indexerFacade.isCurrentlyDownloadingArchives()
-				const expectedDataInBytes = await indexerFacade.remainingDataInBytes()
 
-				const mailSearchModel = await this.mailSearchModel()
-				if (
-					isMetered &&
-					isCurrentlyDownloadingArchives &&
-					!deviceConfig.getAcceptedContinueIndexingOnMeteredConnection() &&
-					expectedDataInBytes > METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES
-				) {
-					indexerFacade.cancelMailIndexing()
-					const choice = await showMeteredConnectionWarningDialog(expectedDataInBytes)
-					if (choice === "continueIndexing") {
-						deviceConfig.setAcceptedContinueIndexingOnMeteredConnection(true)
-						void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
-					} else {
-						// should just stay false, but to be sure ...
-						deviceConfig.setAcceptedContinueIndexingOnMeteredConnection(false)
-					}
-				} else if (!isMetered && !isCurrentlyDownloadingArchives && expectedDataInBytes > 0 && isNotNull(mailSearchModel.indexState().error)) {
-					// resume when in unmetered connection again
-					void indexerFacade.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+			let isHandlingConnectionTypeUpdated = false
+			const askContinueDownload = async (expectedDataInBytes: number) => {
+				indexerFacade.cancelMailIndexing()
+
+				const choice = await showMeteredConnectionWarningDialog(expectedDataInBytes)
+				if (choice === "continueIndexing") {
+					deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.ACCEPTED)
+					void indexerFacade
+						.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+						.then(() => deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE))
+				} else {
+					deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.DECLINED)
 				}
+			}
+			const handleConnectionTypeUpdated = async (isMetered: boolean) => {
+				// do not show two popups etc.
+				if (isHandlingConnectionTypeUpdated) {
+					return
+				} else {
+					isHandlingConnectionTypeUpdated = true
+				}
+
+				const expectedDataInBytes = await indexerFacade.remainingDataInBytes()
+				const state = deviceConfig.getContinueDownloadArchivesOnMeteredConnection()
+				const limitedDownloadApplicable = isMetered && expectedDataInBytes > METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES
+				const mailSearchModel = await this.mailSearchModel()
+
+				// accepted? just do nothing!
+				if (state !== DownloadArchivesOnMeteredConnection.ACCEPTED) {
+					if (limitedDownloadApplicable) {
+						switch (state) {
+							case DownloadArchivesOnMeteredConnection.DECLINED:
+								// cancel indexing
+								indexerFacade.cancelMailIndexing()
+								break
+							case DownloadArchivesOnMeteredConnection.NOT_APPLICABLE:
+								// set undecided and ask
+								deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
+								await askContinueDownload(expectedDataInBytes)
+								break
+							case DownloadArchivesOnMeteredConnection.UNDECIDED:
+								// ask
+								await askContinueDownload(expectedDataInBytes)
+						}
+					} else if (state !== DownloadArchivesOnMeteredConnection.NOT_APPLICABLE && isNotNull(mailSearchModel.indexState().error)) {
+						// resume when in unmetered connection again & we didn't manually cancel
+						// when cancelling, error is set to null
+						void indexerFacade
+							.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+							.then(() => deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE))
+					}
+				}
+
+				isHandlingConnectionTypeUpdated = false
 			}
 			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX, handleConnectionTypeUpdated)
 

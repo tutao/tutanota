@@ -17,7 +17,7 @@ import { IndexingNotSupportedError } from "../../common/api/common/error/Indexin
 import { showEditOutOfOfficeNotificationDialog } from "./EditOutOfOfficeNotificationDialog"
 import { formatActivateState, loadOutOfOfficeNotification } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { getSignatureType, show as showEditSignatureDialog } from "./EditSignatureDialog"
-import { deviceConfig, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
+import { deviceConfig, DownloadArchivesOnMeteredConnection, ListAutoSelectBehavior, MailListDisplayMode } from "../../common/misc/DeviceConfig"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
 import { ButtonSize } from "../../../ui/base/ButtonSize.js"
 import { getReportMovedMailsType } from "../../common/misc/MailboxPropertiesUtils.js"
@@ -418,7 +418,10 @@ export class MailSettingsViewer implements UpdatableSettingsViewer {
 			),
 		)
 		if (confirm) {
+			// always undecided, because this always starts a new indexing flow
+			deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
 			await mailLocator.indexerFacade.rebuildMailIndex()
+			deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE)
 		}
 	}
 

@@ -102,7 +102,6 @@ export class OfflineMailIndexer implements MailIndexer {
 		private readonly indexChunkSize: number = INDEX_CHUNK_SIZE,
 	) {}
 
-	private currentlyDownloadingArchive = false
 	private fullyIndexed: boolean = false
 	private remainingDataToDownloadInBytes: number = 0
 	private currentlyIndexingPromise: Promise<void> | null = null
@@ -394,7 +393,6 @@ export class OfflineMailIndexer implements MailIndexer {
 		const remainingSize = archivesToLoad.reduce((sum, { archiveId }) => sum + assertNotNull(archiveSizes.get(archiveId)), 0)
 		console.log(TAG, `Preloading ${archivesToLoad.length} archive(s), about ${remainingSize} Bytes remaining`)
 		this.remainingDataToDownloadInBytes = remainingSize
-		this.currentlyDownloadingArchive = true
 		const preloadStart = performance.now()
 
 		for (const { archiveId, resumeParams } of archivesToLoad) {
@@ -412,13 +410,11 @@ export class OfflineMailIndexer implements MailIndexer {
 				})
 			} catch (e) {
 				await this.archiveDownloader.abortDownloadAndStoreArchive(archiveId)
-				this.currentlyDownloadingArchive = false
 				throw e
 			}
 		}
 
 		this.remainingDataToDownloadInBytes = 0
-		this.currentlyDownloadingArchive = false
 		const preloadEnd = performance.now()
 		console.log(TAG, `Finished preloading ${archivesToLoad.length} archive(s) (took ${preloadEnd - preloadStart} ms)`)
 
@@ -715,9 +711,5 @@ export class OfflineMailIndexer implements MailIndexer {
 
 	async remainingDataInBytes(): Promise<number> {
 		return this.remainingDataToDownloadInBytes
-	}
-
-	async isCurrentlyDownloadingArchives(): Promise<boolean> {
-		return this.currentlyDownloadingArchive
 	}
 }

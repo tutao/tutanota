@@ -622,10 +622,6 @@ export class IndexedDbIndexer implements Indexer {
 	async remainingDataInBytes(): Promise<number> {
 		return this.mailIndexer.remainingDataInBytes()
 	}
-
-	async isCurrentlyDownloadingArchives(): Promise<boolean> {
-		return await this.mailIndexer.isCurrentlyDownloadingArchives()
-	}
 }
 
 function deleteObjectStores(db: IDBDatabase, ...oss: string[]) {

@@ -21,6 +21,13 @@ export enum ListAutoSelectBehavior {
 	NEWER,
 }
 
+export const enum DownloadArchivesOnMeteredConnection {
+	NOT_APPLICABLE = "DownloadArchivesOnMeteredConnectionNotApplicable",
+	UNDECIDED = "DownloadArchivesOnMeteredConnectionUndecided",
+	ACCEPTED = "DownloadArchivesOnMeteredConnectionAccepted",
+	DECLINED = "DownloadArchivesOnMeteredConnectionDeclined",
+}
+
 export const enum MailListDisplayMode {
 	CONVERSATIONS = "conversations",
 	MAILS = "mails",
@@ -74,7 +81,7 @@ interface ConfigObject {
 	folderListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
 	/** continue indexing even though we are on a metered connection */
-	hasAcceptedContinueIndexingOnMeteredConnection: boolean
+	downloadArchivesOnMeteredConnection: DownloadArchivesOnMeteredConnection
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -168,7 +175,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			scrollTime: loadedConfig.scrollTime ?? 8,
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
-			hasAcceptedContinueIndexingOnMeteredConnection: loadedConfig.hasAcceptedContinueIndexingOnMeteredConnection ?? false,
+			downloadArchivesOnMeteredConnection: loadedConfig.downloadArchivesOnMeteredConnection ?? DownloadArchivesOnMeteredConnection.NOT_APPLICABLE,
 			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
 		}
 
@@ -536,12 +543,12 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 		this.writeToStorage()
 	}
 
-	getAcceptedContinueIndexingOnMeteredConnection() {
-		return this.config.hasAcceptedContinueIndexingOnMeteredConnection
+	getContinueDownloadArchivesOnMeteredConnection() {
+		return this.config.downloadArchivesOnMeteredConnection
 	}
 
-	setAcceptedContinueIndexingOnMeteredConnection(decision: boolean) {
-		this.config.hasAcceptedContinueIndexingOnMeteredConnection = decision
+	setContinueDownloadArchivesOnMeteredConnection(decision: DownloadArchivesOnMeteredConnection) {
+		this.config.downloadArchivesOnMeteredConnection = decision
 		this.writeToStorage()
 	}
 

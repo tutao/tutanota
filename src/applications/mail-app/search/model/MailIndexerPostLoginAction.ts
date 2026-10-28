@@ -3,6 +3,7 @@ import { FULL_INDEXED_TIMESTAMP, SessionType } from "../../../../platform-kit/ap
 import { SyncTracker } from "../../../common/api/main/SyncTracker"
 import { LoggedInEvent, PostLoginAction } from "../../../../app-kit/native-bridge/common/PostLoginAction.js"
 import { CacheSyncStatus, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { deviceConfig, DownloadArchivesOnMeteredConnection } from "../../../common/misc/DeviceConfig"
 
 /**
  * The search range is tied to the offline storage settings.
@@ -21,7 +22,11 @@ export class MailIndexerPostLoginAction implements PostLoginAction {
 				priority: ListenerPriority.HIGH,
 				targetStatus: CacheSyncStatus.OnlineSyncDone,
 				onSyncStatusChange: async () => {
+					if (deviceConfig.getContinueDownloadArchivesOnMeteredConnection() === DownloadArchivesOnMeteredConnection.NOT_APPLICABLE) {
+						deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
+					}
 					await this.indexer.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+					deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE)
 				},
 			})
 		}

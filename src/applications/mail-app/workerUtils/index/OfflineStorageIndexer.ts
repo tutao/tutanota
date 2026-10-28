@@ -75,8 +75,4 @@ export class OfflineStorageIndexer implements Indexer {
 	async remainingDataInBytes(): Promise<number> {
 		return await this.mailIndexer.remainingDataInBytes()
 	}
-
-	async isCurrentlyDownloadingArchives(): Promise<boolean> {
-		return await this.mailIndexer.isCurrentlyDownloadingArchives()
-	}
 }

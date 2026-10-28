@@ -675,10 +675,6 @@ export class WebMailIndexer implements MailIndexer {
 	remainingDataInBytes(): Promise<number> {
 		throw new ProgrammingError("Tried to get remaining data to download using web client")
 	}
-
-	isCurrentlyDownloadingArchives(): Promise<boolean> {
-		throw new ProgrammingError("Tried to get downloading state using web client")
-	}
 }
 
 // Given all index timestamps find a common denominator.
