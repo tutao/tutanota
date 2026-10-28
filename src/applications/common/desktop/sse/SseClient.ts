@@ -172,20 +172,19 @@ export class SseClient {
 				})
 					.on("close", () => {
 						log.debug("response closed")
-						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
+						this.onConnectionLost(connection)
 					})
 					.on("error", (e) => {
 						log.error("response error:", e)
-						// This event is fired also when we close the connection manually. In this case we do not want to reconnect.
-						if (this.state.state !== ConnectionState.disconnected) this.delayedReconnect()
+						this.onConnectionLost(connection)
 					})
 			})
 			.on("information", () => log.debug("information"))
 			.on("connect", () => log.debug("connect:"))
 			.on("error", (e) => {
 				log.error("error:", e.message)
-				if (this.state.state === ConnectionState.connecting) {
+				// attempt exponential backoff reconnect only if the connection is the same object
+				if (this.state.state === ConnectionState.connecting && this.state.connection === connection) {
 					this.exponentialBackoffReconnect()
 				}
 			})
@@ -202,11 +201,11 @@ export class SseClient {
 				break
 			case ConnectionState.connected:
 			case ConnectionState.connecting:
+				// Set the state first so that close/error handlers of the response do not schedule a reconnect
+				// (and leave an orphaned timer behind) while the connection is being destroyed.
+				this.state = { state: ConnectionState.disconnected }
 				return newPromise<void>((resolve) => {
-					state.connection.once("close", () => {
-						this.state = { state: ConnectionState.disconnected }
-						resolve()
-					})
+					state.connection.once("close", () => resolve())
 					state.connection.destroy()
 				})
 		}
@@ -245,8 +244,16 @@ export class SseClient {
 		this.state = { state: ConnectionState.delayedReconnect, attempt: 0, options: this.state.options, timeout }
 	}
 
-	private async retryConnect() {
+	private onConnectionLost(connection: http.ClientRequest) {
+		// reconnect only if it is the same connection and the state is still connected
+		if (this.state.state === ConnectionState.connected && this.state.connection === connection) {
+			this.delayedReconnect()
+		}
+	}
+
+	private retryConnect() {
 		if (this.state.state !== ConnectionState.delayedReconnect) {
+			// fixme why not convert this to an error log, is this really an issue serious enough to bother users?
 			throw new ProgrammingError("Invalid state: not in delayed reconnect")
 		}
 		this.doConnect(this.state.options)
@@ -271,7 +278,9 @@ export class SseClient {
 						this.state = { ...state, receivedHeartbeat: false }
 					} else {
 						await this.disconnect()
-						this.doConnect(state.options)
+						if (this.state.state === ConnectionState.disconnected) {
+							this.doConnect(state.options)
+						}
 					}
 				}
 			},
