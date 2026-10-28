@@ -426,6 +426,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
 	})
+	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
 
 	// App-specific setup — all platform-kit deps accessed via locator.base.*
 

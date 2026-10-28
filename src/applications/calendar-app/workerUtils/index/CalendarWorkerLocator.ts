@@ -62,6 +62,7 @@ import { TutanotaEntityMigrator } from "../../../common/api/worker/TutanotaEntit
 import { initClientModels } from "../../../common/api/common/ClientModelInfoInitializer"
 import { OfflineMapper } from "../../../../platform-kit/instance-pipeline/OfflineMapper"
 import { CachingOfflineStorage } from "../../../../app-kit/local-store/CachingOfflineStorage"
+import { random } from "@tutao/crypto"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -110,7 +111,6 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 	locator._worker = worker
 	locator._browserData = browserData
 	locator._apps = apps
-	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
 	locator.native = worker
 
 	const mainInterface = worker.getMainInterface()
@@ -195,7 +195,7 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		cacheManagement: locator.cacheManagement,
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
-		rsa: await createRsaImplementation(worker, locator.base.random),
+		rsa: await createRsaImplementation(worker, random),
 		fileFacade: new FileFacadeSendDispatcher(worker),
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
@@ -228,6 +228,8 @@ export async function initLocator(worker: CalendarWorkerImpl, browserData: Brows
 		entityRestCache: (entityRestClient, patchMerger, typeModelResolver, lastProcessed) =>
 			new DefaultEntityRestCache(entityRestClient, maybeUninitializedStorage, typeModelResolver, patchMerger, lastProcessed),
 	})
+
+	locator.workerFacade = new WorkerFacade(locator.base.symmetricCipherUtils)
 
 	// App-specific setup — all platform-kit deps accessed via locator.base.*
 
