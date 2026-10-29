@@ -1,39 +1,37 @@
 import o from "@tutao/otest"
 import { ParsedShareUrl, parseShareUrl } from "../../../src/applications/drive-app/drive/view/DriveUtils"
-import { base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToBase64 } from "../../../src/platform-kit/utils"
+import { base64ToBase64Url, base64ToUint8Array, base64UrlToBase64, stringToBase64, uint8ArrayToBase64 } from "../../../src/platform-kit/utils"
 
 o.spec("DriveUtils", function () {
 	o.spec("parseShareUrl", function () {
 		o.test("a valid url without password returns KeyShareUrl params", function () {
 			const shareId = "shareId"
-			const authToken = base64ToBase64Url(stringToBase64("someAuthToken"))
-			const shareKeyString = "someShareKey"
-			const shareKey = base64ToUint8Array(shareKeyString)
-			const hash = `#shareKey=${shareKeyString}`
-			const params = { shareId, authToken }
+			const authToken = stringToBase64("someAuthToken")
+			const shareKey = new Uint8Array([1, 2, 3])
+			const hash = `#shareKey=${uint8ArrayToBase64(shareKey)}`
+			const params = { shareId, authToken: base64ToBase64Url(authToken) }
 			const result = parseShareUrl(params, hash)
-			const expectedResult: ParsedShareUrl = { type: "key", url: { shareId, shareKey, authToken: base64UrlToBase64(authToken) } }
+			const expectedResult: ParsedShareUrl = { type: "key", url: { shareId, shareKey, authToken } }
 			o.check(result).deepEquals(expectedResult)
 		})
 		o.test("a valid url with password returns PasswordShareUrl params", function () {
 			const shareId = "shareId"
-			const authToken = base64ToBase64Url(stringToBase64("someAuthToken"))
-			const shareKeyString = "someShareKey"
-			const shareKey = base64ToUint8Array(shareKeyString)
+			const authToken = stringToBase64("someAuthToken")
+			const shareKey = new Uint8Array([1, 2, 3])
 			const saltUrl = base64ToBase64Url(stringToBase64("pfeffer"))
 			const salt = base64ToUint8Array(base64UrlToBase64(saltUrl))
-			const hash = `#shareKey=${shareKeyString}&salt=${saltUrl}`
-			const params = { shareId, authToken }
+			const hash = `#shareKey=${uint8ArrayToBase64(shareKey)}&salt=${saltUrl}`
+			const params = { shareId, authToken: base64ToBase64Url(authToken) }
 			const result = parseShareUrl(params, hash)
-			const expectedResult: ParsedShareUrl = { type: "password", url: { shareId, shareKey, salt, authToken: base64UrlToBase64(authToken) } }
+			const expectedResult: ParsedShareUrl = { type: "password", url: { shareId, shareKey, salt, authToken } }
 			o.check(result).deepEquals(expectedResult)
 		})
 		o.test("an invalid url without shareKey returns null", function () {
 			const shareId = "shareId"
-			const authToken = base64ToBase64Url(stringToBase64("someAuthToken"))
+			const authToken = stringToBase64("someAuthToken")
 			const saltUrl = base64ToBase64Url(stringToBase64("pfeffer"))
 			const hash = `#shareKey=&salt=${base64ToBase64Url(stringToBase64(saltUrl))}` //hash does not have shareKey
-			const params = { shareId, authToken }
+			const params = { shareId, authToken: base64ToBase64Url(authToken) }
 			const result = parseShareUrl(params, hash)
 			o.check(result).deepEquals(null)
 		})
@@ -49,11 +47,11 @@ o.spec("DriveUtils", function () {
 		})
 		o.test("if salt is an empty string, it returns null", function () {
 			const shareId = "shareId"
-			const authToken = base64ToBase64Url(stringToBase64("someAuthToken"))
+			const authToken = stringToBase64("someAuthToken")
 			const shareKeyString = "someShareKey"
 			const saltUrl = base64ToBase64Url(stringToBase64("")) // salt is an empty string
 			const hash = `#shareKey=${shareKeyString}&salt=${saltUrl}`
-			const params = { shareId, authToken }
+			const params = { shareId, authToken: base64ToBase64Url(authToken) }
 			const result = parseShareUrl(params, hash)
 			o.check(result).deepEquals(null)
 		})

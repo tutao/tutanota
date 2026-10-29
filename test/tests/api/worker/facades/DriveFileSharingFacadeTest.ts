@@ -1,4 +1,4 @@
-import o, { verify } from "@tutao/otest"
+import o from "@tutao/otest"
 import { ElementId, elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
 import { DriveFileSharingFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/DriveFileSharingFacade"
 import {
@@ -192,9 +192,8 @@ o.spec("DriveFileSharingFacade", function () {
 				when(keyLoaderFacade.loadSymGroupKey("ownerGroup", 0)).thenResolve(fileGroupKey.object)
 				const passwordKey = aes256RandomKey()
 				when(argon2IdFacade.generateKeyFromPassphrase(matchers.anything(), matchers.anything())).thenResolve(passwordKey)
-				await fileSharingFacade.updateShare(share, password, null)
 
-				verify(
+				when(
 					serviceExecutor.execute(
 						DriveShareService_PUT,
 						createDriveShareServicePutIn({
@@ -208,7 +207,11 @@ o.spec("DriveFileSharingFacade", function () {
 						}),
 						null,
 					),
-				)
+				).thenDo(() => {
+					share.ownerEncPassword = encPassword
+				})
+				await fileSharingFacade.updateShare(share, password, null)
+				o.check(share.ownerEncPassword).deepEquals(encPassword)
 			},
 		)
 		o.test("adding expiration date to a share, without an expiration, should send a server request with the expiration date provided", async function () {
@@ -223,9 +226,8 @@ o.spec("DriveFileSharingFacade", function () {
 				_ownerGroup: "ownerGroup",
 			})
 			const expirationDate = new Date(2028, 5, 12)
-			await fileSharingFacade.updateShare(share, null, expirationDate)
 
-			verify(
+			when(
 				serviceExecutor.execute(
 					DriveShareService_PUT,
 					createDriveShareServicePutIn({
@@ -235,7 +237,11 @@ o.spec("DriveFileSharingFacade", function () {
 					}),
 					null,
 				),
-			)
+			).thenDo(() => {
+				share.expirationDate = expirationDate
+			})
+			await fileSharingFacade.updateShare(share, null, expirationDate)
+			o.check(share.expirationDate).deepEquals(expirationDate)
 		})
 		// This is a case to remove password and expiration from a share
 		o.test("updating a share with password and expirationDate as null values should send a server request with null values", async function () {
@@ -250,9 +256,8 @@ o.spec("DriveFileSharingFacade", function () {
 				_ownerGroup: "ownerGroup",
 				expirationDate: new Date(2028, 5, 12),
 			})
-			await fileSharingFacade.updateShare(share, null, null)
 
-			verify(
+			when(
 				serviceExecutor.execute(
 					DriveShareService_PUT,
 					createDriveShareServicePutIn({
@@ -262,7 +267,13 @@ o.spec("DriveFileSharingFacade", function () {
 					}),
 					null,
 				),
-			)
+			).thenDo(() => {
+				share.ownerEncPassword = null
+				share.expirationDate = null
+			})
+			await fileSharingFacade.updateShare(share, null, null)
+			o.check(share.expirationDate).deepEquals(null)
+			o.check(share.ownerEncPassword).deepEquals(null)
 		})
 	})
 	o.spec("downloadFileForShare", function () {
