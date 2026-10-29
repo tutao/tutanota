@@ -8,7 +8,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { getEnabledMailAddressesForGroupInfo } from "../../../platform-kit/network/GroupUtils.js"
 import { showPasswordGeneratorDialog } from "../misc/passwords/PasswordGeneratorDialog.js"
 import { theme } from "../../../ui/theme.js"
-import { font_size, px } from "../../../ui/size.js"
+import { rem, font_size, px } from "../../../ui/size.js"
 import { UsageTestController } from "@tutao/usagetests"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
@@ -231,7 +231,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							status: attrs.model.getOldPasswordStatus(),
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 						} satisfies PasswordFieldAttrs)
 					: null,
 				m(PasswordField, {
@@ -242,7 +242,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 					status: attrs.model.getNewPasswordStatus(),
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
-					fontSize: px(font_size.smaller),
+					fontSize: rem(font_size.smaller_em),
 				}),
 				attrs.model.config.hideConfirmation
 					? null
@@ -252,7 +252,7 @@ export class PasswordForm implements Component<PasswordFormAttrs> {
 							autocompleteAs: Autocomplete.newPassword,
 							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 						}),
 				attrs.passwordInfoKey ? m(".small.mt-8", lang.get(attrs.passwordInfoKey)) : null,
 			],

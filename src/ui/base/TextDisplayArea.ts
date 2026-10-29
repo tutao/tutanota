@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
 import { lang } from "../utils/LanguageViewModel"
 import { theme } from "../theme"
-import { font_size, px } from "../size"
+import { rem, font_size, px } from "../size"
 
 export type TextDisplayAreaAttrs = {
 	value: string
@@ -19,7 +19,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				"label.text-ellipsis.noselect.z1.i.pr-4",
 				{
 					style: {
-						fontSize: px(font_size.small),
+						fontSize: rem(font_size.small_em),
 					},
 				},
 				lang.getTranslationText(vnode.attrs.label),
@@ -29,7 +29,7 @@ export class TextDisplayArea implements Component<TextDisplayAreaAttrs> {
 				{
 					style: {
 						borderBottom: `1px solid ${theme.outline}`,
-						lineHeight: px(font_size.line_height_input),
+						lineHeight: rem(font_size.line_height_input_em),
 						minHeight: px(font_size.line_height_input),
 					},
 					isReadOnly: true,
