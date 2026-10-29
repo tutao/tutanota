@@ -433,7 +433,7 @@ export function insertIntoSortedArray<T>(
 	array.splice(i, 0, element)
 }
 
-export function zip<A, B>(arr1: Array<A>, arr2: Array<B>): Array<[A, B]> {
+export function zip<A, B>(arr1: ReadonlyArray<A>, arr2: ReadonlyArray<B>): Array<[A, B]> {
 	const zipped: Array<[A, B]> = []
 
 	for (let i = 0; i < Math.min(arr1.length, arr2.length); i++) {
