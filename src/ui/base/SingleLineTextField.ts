@@ -30,10 +30,13 @@ export interface SingleLineTextFieldAttrs<T extends LegacyTextFieldType> extends
 	 * @param {string} newValue - String value typed on the input field
 	 * @returns {unknown} Return type depends on the callback provided
 	 */
+	// TODO: Misleading. Looks like Mithril's oninput but does not call with arguments fn(ev.target, ev)
 	oninput?: (newValue: string) => unknown
 	placeholder?: string
 	classes?: Array<string>
 	style?: Partial<Pick<CSSStyleDeclaration, "padding" | "fontSize" | "textAlign" | "borderWidth">>
+	// // TODO: It'd be nicer to support any/all Mithril component lifecycle methods on all components automatically.
+	// oncreate?: Component['oncreate']
 	onclick?: (...args: unknown[]) => unknown
 	onfocus?: (...args: unknown[]) => unknown
 	onblur?: (...args: unknown[]) => unknown

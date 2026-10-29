@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, Component, Vnode, VnodeDOM } from "mithril"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
@@ -9,358 +9,311 @@ import { theme } from "../../../../../ui/theme.js"
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP, Nullable } from "../../../../../platform-kit/utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
-import { LegacyTextField, LegacyTextFieldType } from "../../../../../ui/base/LegacyTextField.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
 import { getCalendarMonth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
 import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
-import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
-import { InputButton, InputButtonAttributes, InputButtonVariant } from "../../../../../ui/base/InputButton.js"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { LegacyTextFieldType as TextFieldType } from "../../../../../ui/base/LegacyTextField"
+import { InputButton, InputButtonAttributes } from "../../../../../ui/base/InputButton"
 
+// TODO: Ideally this would be auto-detected on available space and flip automatically but that logic would be large and
+// best factored out into a more general purpose Popover-type wrapper component. IntersectionObserver and ResizeObserver
+// might be overkill; viewport and getClientBoundingRect is probably enough as long as the popover is above all other
+// containers (as native date picker is) and won't get stuck in a modal. Libraries like React Aria from Adobe prevent
+// scrolling while the picker is open (!) which also means the math is done once at render not while scrolling.
 export enum PickerPosition {
 	TOP,
-	BOTTOM,
+	BOTTOM, // Default. Never explicitly used.
 }
 
 export interface DatePickerAttrs {
-	date: Nullable<Date>
+	date?: Date
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: Translation
 	nullSelectionText?: MaybeTranslation
 	disabled?: boolean
 	rightAlignDropdown?: boolean
-	useInputButton?: boolean
 	position?: PickerPosition
 	classes?: Array<string>
 }
 
 /**
- * Date picker component. Looks like a text field until interacted. On mobile it will be native browser picker, on desktop a {@class VisualDatePicker}.
+ * Date picker
  *
- * The HTML input[type=date] is not usable on desktops because:
- * * it always displays a placeholder (mm/dd/yyyy) and several buttons and
- * * the picker can't be opened programmatically and
- * * the date format is based on the operating systems locale and not on the one set in the browser (and used by us)
+ * We want users to see dates in their chosen locale (ex: "DD/MM/YYYY" or "Thursday, October 8th 2026") but even though
+ * our app has locale settings, this doesn't update native browser elements like `<input type="date">` which read locale
+ * elsewhere (i.e. browser settings, OS settings, hardcoded/compiled into browser package, shell variables like
+ * LC_ALL or LANG, etc. it's unclear)
  *
- * That is why we only use the picker on mobile devices. They provide native picker components
- * and allow opening the picker by forwarding the click event to the input.
+ * Although HTML `<input>` accepts some styling, the content within the element and its picker (`.showPicker()`) isn't
+ * always part of the DOM or can't be fully accessed, changed, or styled in CSS/JS. There's no way to know what's being
+ * shown to the user. For instance, an `<input type="datetime-local">` in Firefox renders as `dd/mm/yyyy, --:-- 📅`
+ * which has quirks: the format "DD/MM/YYYY" is determined by browser/OS locale (it's complicated; see above) not by
+ * us; the icon can't be hidden; there's a native picker for the date but not the time; the value we get/set is always
+ * in "YYYY-MM-DDTHH:MM" (24-hour) format; we can't update the user's selection to a specific area as `.setRangeText()`
+ * isn't implemented; etc. The native picker on desktop looks web-ish and floats under the input element (again, not
+ * part of the DOM) while on Android/iOS is usually a fullscreen OS dialog. These have great keyboard accessibility and
+ * would be a lot of code to match their functionality, but ultimately we considered it worth it to try. Despite
+ * that, we still want mobile users to use their native pickers in the app and on web since they'd be most expected.
+ *
+ * To have both cases we use a zero-height `<input type="date">`/`<input type="time">` next to a `<input type="text">`
+ * and synchronize the value between them. If we zero the width instead then the iOS picker wouldn't be centered.
+ * Thankfully normal text input has `.setRangeText()` so we can add keyboard tab navigation, arrow key stepping,
+ * etc. later on.
+ *
+ * iOS Safari and iOS WebView both don't support `.showPicker()` for anything other than `<input type="file">` but in
+ * our testing it's enough to use `.focus()` to open the picker.
+ *
+ * Links:
+ * - https://stackoverflow.com/questions/21721647/ Re: `<input type="date">` localization in Chrome
+ * - https://github.com/microsoft/playwright/issues/3934 Re: Locale overrides (LC_ALL, LANG) don't affect rendering
+ * - https://demo.lukewarlow.dev/showPicker/ Is a good test playground
+ * - https://developer.mozilla.org/en-US/docs/Web/API/HTMLInputElement/showPicker#browser_compatibility Re: iOS compat
+ * - https://webkit.org/b/261703 Re: iOS compat
+ *
+ * See also {@class VisualDatePicker}
  */
 export class DatePicker implements Component<DatePickerAttrs> {
-	private inputText: string = ""
-	private showingDropdown: boolean = false
-	private domInput: HTMLElement | null = null
-	private documentInteractionListener: ((e: MouseEvent) => unknown) | null = null
-	private textFieldHasFocus: boolean = false
-	private previousPassedDownDate: Nullable<Date> = null
+	private showingDropdown = false
+	private inputDateEl?: HTMLInputElement = undefined
+	private inputTextEl?: HTMLInputElement = undefined
+	private inputTextValue = "" // Needed to maintain the user's halftyped/invalid date across redraws
+	private clickCaptureListener?: (e: MouseEvent) => unknown = undefined
 
-	constructor({ attrs }: Vnode<DatePickerAttrs>) {
-		this.inputText = attrs.date ? formatDate(attrs.date) : ""
-		this.previousPassedDownDate = attrs.date
-	}
+	/**
+	 * Concept:
+	 * <input type="date"> Zero-width, has bad locale formatting so never shown. Useful for mobile devices.
+	 * <...>               UI textbox. Shows formatDateWithWeekdayAndYear (Fri, Jun 5, 2026) until focused, then
+     *                     switches to DD/MM/YYYY and allows the user to type a new value. For any character input, if
+     *                     the text field parses as is valid date
+     * <VisualDatePicker>  Dropdown interactive calendar date picker
+	 *
+	 * State:
+     * <input type="date"> Date value "source of truth".
+	 * <input type="text"> If blurred: displays the date in localized form; if focused: displays DD/MM/YYYY editor.
+     *                     Note that this changes the `input.value` which will mess up the cursor position. For state,
+     *                     we sync the value with the date input.
+	 * vs
+	 * <input type="date"> R:attrs.date s.t native date picker opens the correct day. W:oninput:upstream(local date)
+	 * <input type="text"> Swaps display:none/block. R:attrs.date to show DD/MM/YYYY. W:oninput:upstream(local date)
+	 * <span>              Swaps display:none/block. R:attrs.date to show formatDateWithWeekdayAndYear. W:N/A
+	 * <VisualDatePicker selectedDate={attrs.date ?? NOW} onDateSelected={() => upstream(local date)} is the R/W pair.
+
+	 * Pro: Really simple state handling
+	 * Con: If the parent doesn't wire up our date+onDateSelected to the same value, then all our inputs get out of date
+	 */
+
+	constructor({ attrs }: Vnode<DatePickerAttrs>) {}
 
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
-		const date = attrs.date ?? null
-
-		// If the user is interacting with the textfield, then we want the textfield to accept their input, so never override the text
-		// Otherwise, we want to it to reflect whatever date has been passed in, because it may have been changed programmatically
-		// The same day check is because sometimes focus is lost when trying to update the date. handleInput
-		//  or handleSelectedDate should be called first, but it is not and the date trying to be selected is
-		//  lost. So checking if the date was actually passed in "from above" is a band-aid solution for now.
-		if (!this.textFieldHasFocus && !isSameDayOfDate(date, this.previousPassedDownDate)) {
-			this.inputText = date ? formatDate(date) : ""
-			this.previousPassedDownDate = date
+		// This looks like we're setting the default UI text to $NOW if the given date is null, but our parent can still
+		// set a null date/nullSelectionText if they want to show an empty box; when unfocused we show either
+		// formatDateWithWeekdayAndYear or nullSelectionText. The inputTextEl/inputTextValue is shown on focus/click,
+		// so if `attrs.date` is null we use $NOW so they know what date format we expect them to type into the box.
+		if (document.activeElement !== this.inputTextEl) {
+			this.inputTextValue = formatDate(attrs.date ?? new Date())
 		}
-
 		return m(".rel", { class: attrs.classes?.join(" ") }, [
-			!attrs.useInputButton ? this.renderTextField(attrs) : this.renderInputButtonPicker(attrs),
-			this.showingDropdown ? this.renderDropdown(attrs) : null,
-			// For mobile devices we render a native date picker, it's easier to use and more accessible.
-			// We render invisible input which opens native picker on interaction.
-			ClientDetector.get().isMobileDevice() && !attrs.useInputButton ? this.renderMobileDateInput(attrs) : null,
-		])
-	}
-
-	private renderInputButtonPicker({ disabled, date, onDateSelected, label, nullSelectionText }: DatePickerAttrs): Children {
-		return m.fragment({}, [
-			EnvProvider.get().isApp()
-				? m("input.fill-absolute.invisible.tutaui-button-outline", {
-						disabled,
-						type: LegacyTextFieldType.Date,
-						style: {
-							zIndex: 1,
-							border: `2px solid ${theme.outline}`,
-							width: "auto",
-							height: "auto",
-							padding: 0,
-							appearance: "none",
-							opacity: disabled ? 0.7 : 1.0,
-						},
-						value: date != null ? DateTime.fromJSDate(date).toISODate() : "",
-						oninput: (event: InputEvent) => {
-							this.handleNativeInput(event.target as HTMLInputElement, onDateSelected)
-						},
-					})
-				: null,
+			// Zero-width <input type="date"> (TODO: Zero-height 100% width might be better?)
+			// Note: It cannot be display:none else browsers (esp iOS) won't render the native picker at all
+			m("input", {
+				type: TextFieldType.Date,
+				tabindex: "-1",
+				disabled: attrs.disabled,
+				style: {
+					position: "absolute",
+					// Must have exactly the same height at the input[type=text] below, so the picker doesn't overlap
+					// the input field when it appears (for non-fullscreen native pickers i.e. desktop/tablets). We
+					// don't set a height manually, so we just match the font/line-height/border/padding instead :)
+					"border-width": "1px 0 1px",
+					"border-color": "transparent",
+					width: 0,
+					padding: "0",
+					appearance: "none",
+				},
+				value: attrs.date ? DateTime.fromJSDate(attrs.date).toISODate() : "",
+				oncreate: (input) => {
+					this.inputDateEl = input.dom as HTMLInputElement
+				},
+				// Called when the native picker (iOS/Android) sets a date
+				oninput: () => {
+					// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
+					// valueAsDate is always 00:00 UTC, but we need localtime via getAllDayDateLocal(). Some browsers
+					// have a "Clear" button in their native picker UI, which sets null we ignore for now since
+					// consumers of DatePicker don't expect null in their onDateSelected() function.
+					const htmlDate = this.inputDateEl!.valueAsDate
+					if (htmlDate) {
+						// this.inputTextEl!.blur() // To not trigger the document.activeElement check next redraw
+						attrs.onDateSelected(getAllDayDateLocal(htmlDate))
+					}
+				},
+				// onfocusout: () => {
+				// 	const htmlDate = this.inputDateEl!.valueAsDate
+				// 	if (htmlDate) {
+				// 		this.inputTextEl!.blur() // To not trigger the document.activeElement check next redraw?
+				// 		attrs.onDateSelected(getAllDayDateLocal(htmlDate))
+				// 	}
+				// }
+			}),
 			m(InputButton, {
+				type: TextFieldType.Text,
 				tabIndex: Number(EnvProvider.get().isApp() ? TabIndex.Programmatic : TabIndex.Default),
-				ariaLabel: label,
-				inputValue: this.inputText,
-				oninput: (newValue: string) => (this.inputText = newValue),
-				display: date ? formatDateWithWeekdayAndYear(date) : nullSelectionText ? lang.getTranslationText(nullSelectionText) : NBSP,
-				variant: InputButtonVariant.OUTLINE,
-				disabled,
-				type: LegacyTextFieldType.Text,
-				onclick: () => {
-					if (!disabled) {
+				disabled: attrs.disabled,
+				ariaLabel: attrs.label,
+				inputValue: this.inputTextValue,
+				display: attrs.date
+					? formatDateWithWeekdayAndYear(attrs.date)
+					: attrs.nullSelectionText
+						? lang.getTranslationText(attrs.nullSelectionText)
+						: NBSP,
+				oncreate: (input: VnodeDOM<InputButtonAttributes>) => {
+					// Used for focus() tricks
+					this.inputTextEl = input.dom as HTMLInputElement
+				},
+				oninput: (newValue) => {
+					this.inputTextValue = newValue // i.e. this.inputTextEl!.value
+				},
+				onfocus: () => {
+					if (attrs.disabled) return
+					if (ClientDetector.get().isMobileDevice()) {
+						// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
+						// using ClientDetector.get().isIos() in case they add support soon.
+						if ("showPicker" in HTMLInputElement.prototype) {
+							try {
+								this.inputDateEl!.showPicker()
+							} catch (e) {}
+						}
+						// this.inputTextEl!.blur() // Needed?
+						this.inputDateEl!.focus()
+						// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
+						// prettier-ignore
+						this.inputDateEl!.addEventListener("blur", () => {
+							this.inputTextEl!.focus()
+						}, { once: true })
+						// iOS hates me...
+						// this.inputDateEl!.addEventListener("focusout", () => {
+						// 	this.inputTextEl!.focus()
+						// }, { once: true })
+					} else {
+						// Show the non-native VisualDatePicker instead
 						this.showingDropdown = true
 					}
 				},
-				onfocus: (_, input) => {
-					this.textFieldHasFocus = true
-				},
-				oncreate: (input: any) => {
-					if (this.domInput == null) {
-						this.domInput = input.dom as HTMLInputElement
-					}
-				},
 				onblur: () => {
-					this.textFieldHasFocus = false
+					// Closing the dropdown does NOT happen here
+					const parsedDate = this.parseDate(this.inputTextEl!.value)
+					if (parsedDate) attrs.onDateSelected(parsedDate)
 				},
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
-					if (!this.handleInputKeyEvents(key, disabled, onDateSelected)) {
-						event.preventDefault()
+					if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
+						const parsedDate = this.parseDate(this.inputTextEl!.value)
+						if (parsedDate) attrs.onDateSelected(parsedDate)
+						// Toggle
+						this.showingDropdown = !this.showingDropdown
+					}
+					if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+						this.showingDropdown = false
+						// Don't close any parent dialogs like CalendarEventEditDialog
 						event.stopPropagation()
 					}
 				},
-				containerStyle: EnvProvider.get().isApp()
-					? {
-							zIndex: "2",
-							position: "inherit",
-							borderColor: "transparent",
-							pointerEvents: "none",
-						}
-					: {},
 			} satisfies InputButtonAttributes),
+			this.showingDropdown &&
+				m(
+					".abs.content-bg.z3.menu-shadow.plr-12.pb-8",
+					{
+						"aria-modal": "true",
+						"aria-label": lang.getTranslationText(attrs.label),
+						style: {
+							width: "240px",
+							right: attrs.rightAlignDropdown ? "0" : null,
+							// bottom: px() TODO: NEAT. PickerPosition.TOP goes UP above the element...
+						},
+						oncreate: (vnode) => {
+							// TODO: PickerPosition.TOP used `position: fixed` but we used `transform: translateX(0px)`
+							// so fixed positioning didn't work. It'd pull the element out of the stacking context, but
+							// wouldn't be "fixed" during scroll - it'd just scroll with the page - so I removed that.
+							// This is only used in RepeatRuleEditor.ts where the picker could hit the modal bottom.
+							if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
+								const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
+								;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
+							}
+
+							// TODO: Switch to `onfocusout` similar to our Select.ts (Ctrl+Shift+F for focusout)
+							const listener = ({ target }: MouseEvent) => {
+								if (
+									!vnode.dom.contains(target as Node) && // Click anywhere inside calendar
+									target !== this.inputTextEl &&
+									target !== this.inputDateEl
+								) {
+									// Two #root events so this listener runs twice. Only need to do the work once.
+									if (this.showingDropdown) {
+										this.showingDropdown = false
+										const parsedDate = this.parseDate(this.inputDateEl!.value)
+										if (parsedDate) attrs.onDateSelected(parsedDate)
+									}
+								}
+							}
+							this.clickCaptureListener = listener
+							const rootEl = window.tutao.root.getDom() as HTMLElement
+							setTimeout(() => {
+								rootEl.addEventListener("click", listener, true)
+								rootEl.addEventListener("focus", listener, true)
+							}, 100)
+						},
+						onremove: () => {
+							if (this.clickCaptureListener) {
+								const rootEl = window.tutao.root.getDom()
+								rootEl.removeEventListener("click", this.clickCaptureListener, true)
+								rootEl.removeEventListener("focus", this.clickCaptureListener, true)
+							}
+							this.inputTextEl!.focus() // TODO(gg): Useful?
+						},
+					},
+					[
+						m(VisualDatePicker, {
+							// Base the date on the typed value not attrs.date
+							selectedDate: this.parseDate(this.inputTextValue) ?? new Date(),
+							onDateSelected: (newDate, dayClick) => {
+								// Differentiate between keyboard vs click/enter selections to keep the dropdown open
+								this.inputTextValue = formatDate(newDate)
+								if (!dayClick) return
+								attrs.onDateSelected(newDate)
+								// Order of these two lines is important: onfocus() sets this.showingDropdown to true
+								this.inputTextEl!.focus()
+								this.showingDropdown = false
+							},
+							// TODO(gg): Unintuitive boolean semantics here. Returning false. Ahh it's a Mithril thing...
+							keyHandler: (key: KeyPress) => {
+								if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+									// Order of these two lines is important: onfocus() sets this.showingDropdown to true
+									this.inputTextEl!.focus()
+									this.showingDropdown = false
+									return false
+								}
+								return true
+							},
+							wide: false,
+							startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+						}),
+					],
+				),
 		])
 	}
 
-	private renderTextField({ date, onDateSelected, label, nullSelectionText, disabled }: DatePickerAttrs): Children {
-		return m(
-			"",
-			{
-				onclick: () => {
-					if (!disabled) {
-						this.showingDropdown = true
-					}
-				},
-			},
-			m(LegacyTextField, {
-				value: this.inputText,
-				label,
-				helpLabel: () => this.renderHelpLabel(date, nullSelectionText ?? null),
-				disabled,
-				hasPopup: AriaPopupType.Dialog,
-				oninput: (text) => {
-					// we want to hold on to the text for when we actually want to process it
-					this.inputText = text
-				},
-				onfocus: (_, input) => {
-					if (!disabled) {
-						this.showingDropdown = true
-					}
-					this.textFieldHasFocus = true
-				},
-				onDomInputCreated: (input) => {
-					if (this.domInput == null) {
-						this.domInput = input
-					}
-				},
-				onblur: () => {
-					this.textFieldHasFocus = false
-				},
-				keyHandler: (key) => {
-					return this.handleInputKeyEvents(key, disabled, onDateSelected)
-				},
-			}),
-		)
-	}
-
-	private handleEscapePress(key: KeyPress): boolean {
-		if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-			this.domInput?.focus()
-			this.showingDropdown = false
-			return false
-		}
-		return true
-	}
-
-	private renderHelpLabel(date: Date | null | undefined, nullSelectionText: MaybeTranslation | null): Children {
-		if (date != null) {
-			return [m("", formatDateWithWeekdayAndYear(date)), nullSelectionText ? m("", lang.getTranslationText(nullSelectionText)) : null]
-		} else {
-			return lang.getTranslationText(nullSelectionText ?? "emptyString_msg")
-		}
-	}
-
-	private renderDropdown({ date, onDateSelected, startOfTheWeekOffset, rightAlignDropdown, label, position }: DatePickerAttrs): Children {
-		// We would like to show the date being typed in the dropdown
-		const dropdownDate = this.parseDate(this.inputText) ?? date ?? new Date()
-		return m(
-			".content-bg.z3.menu-shadow.plr-12.pb-8",
-			{
-				"aria-modal": "true",
-				"aria-label": lang.getTranslationText(label),
-				style: {
-					width: "240px",
-					right: rightAlignDropdown ? "0" : null,
-				},
-				class: position === PickerPosition.TOP ? "abs" : "fixed",
-				oncreate: (vnode) => {
-					const listener = (e: MouseEvent) => {
-						if (!vnode.dom.contains(e.target as HTMLElement) && !this.domInput?.contains(e.target as HTMLElement)) {
-							// We are subscribed to two events so this listener *will* be invoked twice, but we only need to do the work once.
-							if (this.showingDropdown) {
-								this.showingDropdown = false
-								this.handleInput(this.inputText, onDateSelected)
-								m.redraw()
-							}
-						}
-					}
-
-					if (position === PickerPosition.TOP && vnode.dom.parentElement) {
-						const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
-						;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
-					}
-
-					this.documentInteractionListener = listener
-
-					const inputViewDom = window.tutao.root.getDom()
-					inputViewDom.addEventListener("click", listener, true)
-					inputViewDom.addEventListener("focus", listener, true)
-				},
-				onremove: () => {
-					if (this.documentInteractionListener) {
-						const mainViewDom = window.tutao.root.getDom()
-						mainViewDom.removeEventListener("click", this.documentInteractionListener, true)
-						mainViewDom.removeEventListener("focus", this.documentInteractionListener, true)
-					}
-				},
-			},
-			m(VisualDatePicker, {
-				selectedDate: dropdownDate,
-				onDateSelected: (newDate, dayClick) => {
-					// We differentiate between different selections as we sometimes* want to keep the dropdown open but still want to select the date
-					// * with keyboard-based navigation space selects the date but keeps it open while return key will work like click
-					this.handleSelectedDate(newDate, onDateSelected)
-					if (dayClick) {
-						// We want to retain the focus on the input for accessibility, but we still want to close the dropdown.
-						if (this.domInput) {
-							// Focus the dom input but then override the showingDropdown right after focus.
-							// It should be invoked after the normal listener since the listeners are appended to the end.
-
-							// One would think that "focus" listeners would be called on the next event loop after we call focus() but alas.
-							// So make sure to add the listener first.
-							this.domInput.addEventListener(
-								"focus",
-								() => {
-									this.showingDropdown = false
-									m.redraw()
-								},
-								{ once: true },
-							)
-							this.domInput.focus()
-						}
-					}
-				},
-				keyHandler: (key: KeyPress) => this.handleEscapePress(key),
-				wide: false,
-				startOfTheWeekOffset: startOfTheWeekOffset,
-			}),
-		)
-	}
-
-	private renderMobileDateInput({ date, onDateSelected, disabled }: DatePickerAttrs): Children {
-		return m("input.fill-absolute.z1", {
-			disabled: disabled,
-			type: LegacyTextFieldType.Date,
-			style: {
-				opacity: 0,
-				// This overrides platform-specific width setting, we want to cover the whole field
-				minWidth: "100%",
-				minHeight: "100%",
-			},
-			oncreate: (vnode) => {
-				// We set the date's value oncreate only. Otherwise, the value would be set on every redraw, and since
-				// we handle date selection onfocusout on iOS, this would result in date having an outdated value if
-				// a redraw happens between input and focusout events.
-
-				// Format as ISO date format (YYYY-MM-dd). We use luxon for that because JS Date only supports full format with time.
-				const vnodeDom = vnode.dom as HTMLInputElement
-				vnodeDom.value = date != null ? (DateTime.fromJSDate(date).toISODate() ?? "") : ""
-			},
-
-			// On iOS we use "onfocusout" instead of "oninput" because the native date picker changes the input immediately, triggering an "oninput" event.
-			// And tapping "done" has the same effect as tapping outside the picker, it only closes the picker.
-			// Note that "onfocusout" firing on picker opening and closing only happens on iOS.
-			[EnvProvider.get().isIOSApp() ? "onfocusout" : "oninput"]: ({ target }: { target: HTMLInputElement }) => {
-				this.handleNativeInput(target, onDateSelected)
-			},
-		})
-	}
-
-	private handleInput(text: string, onDateSelected: DatePickerAttrs["onDateSelected"]) {
-		this.inputText = text
-		const parsedDate = this.parseDate(text)
-		if (parsedDate) {
-			onDateSelected(parsedDate)
-		}
-	}
-
-	private handleSelectedDate(date: Date, onDateSelected: DatePickerAttrs["onDateSelected"]) {
-		this.inputText = formatDate(date)
-		onDateSelected(date)
-	}
-
 	private parseDate = memoized((text: string): Date | null => {
-		const trimmedValue = text.trim()
-
-		if (trimmedValue !== "") {
-			try {
-				return parseDate(trimmedValue, (referenceDate) => formatDate(referenceDate))
-			} catch (e) {
-				// Parsing failed so the user is probably typing
-			}
+		try {
+			return parseDate(text.trim(), (referenceDate) => formatDate(referenceDate))
+		} catch (e) {
+			// Parsing failed so the user is probably typing
+			return null
 		}
-		return null
 	})
-
-	private handleInputKeyEvents(key: KeyPress, disabled: boolean | undefined, onDateSelected: (date: Date) => unknown): boolean {
-		if (isKeyPressed(key.key, Keys.RETURN) && !disabled && !key.shift && !key.ctrl && !key.meta) {
-			if (this.showingDropdown) {
-				this.handleInput(this.inputText, onDateSelected)
-				this.showingDropdown = false
-			} else {
-				this.showingDropdown = true
-			}
-			return false
-		}
-		return this.handleEscapePress(key)
-	}
-
-	private handleNativeInput(inputElement: HTMLInputElement, onDateSelected: (date: Date) => unknown) {
-		// valueAsDate is always 00:00 UTC
-		// https://www.w3.org/TR/html52/sec-forms.html#date-state-typedate
-		const htmlDate = inputElement.valueAsDate
-		// It can be null if user clicks "clear". Ignore it.
-		if (htmlDate != null) {
-			this.handleSelectedDate(getAllDayDateLocal(htmlDate), onDateSelected)
-		}
-	}
 }
 
 type VisualDatePickerAttrs = {
@@ -394,6 +347,9 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		return m(
 			".flex.flex-column",
 			{
+				// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#the_event_listener_callback
+				// ???
+				// Ahh it's a Mithril thing. It's in the EventDict Mithril source. Yikes.
 				onkeydown: (event: KeyboardEvent) => useKeyHandler(event, vnode.attrs.keyHandler),
 			},
 			[
