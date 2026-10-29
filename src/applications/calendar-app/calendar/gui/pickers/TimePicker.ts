@@ -94,10 +94,14 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		// We're choosing between two components so factor out the click listener
 		const onclick = (event: Event) => {
 			if (this.shouldUseNativePicker) {
+				// Don't open the dropdown list
+				event.preventDefault()
 				// In some browsers this isn't correctly implemented and there's no way to know if a showPicker() was a
 				// no-op. We can't tell if it's being displayed on-screen. It's unimplemented in iOS Safari+Webview.
 				if ("showPicker" in HTMLInputElement.prototype) {
-					this.inputTimeEl!.showPicker()
+					try {
+						this.inputTimeEl!.showPicker()
+					} catch (e) {}
 				}
 				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790
 				this.inputTimeEl!.focus()
