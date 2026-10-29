@@ -1,4 +1,4 @@
-import o from "@tutao/otest"
+import o, { spy } from "@tutao/otest"
 import { IServiceExecutor } from "../../../../../src/platform-kit/network/ServiceRequest"
 import { RolloutAction, RolloutFacade } from "../../../../../src/platform-kit/base/facades/RolloutFacade"
 import { func, matchers, object, verify, when } from "testdouble"
@@ -119,5 +119,29 @@ o.spec("RolloutFacadeTest", function () {
 
 		await rolloutFacade.processRollout(RolloutType.UserIdentityKeyCreation)
 		verify(sendError(matchers.argThat((error) => error instanceof ProgrammingError)))
+	})
+
+	o("unknown rollout types are skipped", async function () {
+		const unknownRolloutType = "-1"
+		when(serviceExecutor.execute(RolloutService_GET, NULL_ENTITY, null)).thenResolve(
+			createTestEntity(RolloutGetOutTypeRef, {
+				rollouts: [createTestEntity(RolloutTypeRef, { rolloutType: unknownRolloutType })],
+			}),
+		)
+		const log = console.log
+		const logSpy = spy(log)
+		console.log = logSpy
+		try {
+			await rolloutFacade.getScheduledRolloutTypes()
+		} finally {
+			console.log = log
+		}
+
+		o.check(logSpy.invocations.length).equals(1)
+		const invocation = logSpy.invocations[0]
+		o.check(invocation.length).equals(1)
+		o.check(typeof invocation[0]).equals("string")
+		o.check((invocation[0] as string).includes("Skipping")).equals(true)
+		o.check((invocation[0] as string).includes(unknownRolloutType)).equals(true)
 	})
 })
