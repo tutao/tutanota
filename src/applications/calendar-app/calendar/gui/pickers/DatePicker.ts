@@ -176,7 +176,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
 						// using ClientDetector.get().isIos() in case they add support soon.
 						if ("showPicker" in HTMLInputElement.prototype) {
-							this.inputDateEl!.showPicker()
+							try {
+								this.inputDateEl!.showPicker()
+							} catch (e) {}
 						} else {
 							this.inputDateEl!.focus()
 							// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
