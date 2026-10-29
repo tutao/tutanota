@@ -1,12 +1,16 @@
 import o, { assertThrows } from "@tutao/otest"
-import { ClientEntity, DecryptedParsedInstance, ModelMapper, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
+import { ClientEntity, DecryptedParsedInstance, ModelMapper, OutgoingClientEntity, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
+	AssociationTypeEnum,
 	CardinalityEnum,
 	ClientTypeModel,
 	DEFAULT_ENTITY_FIELDS,
+	EntityTypeEnum,
 	ModelAssociation,
+	ModelValue,
 	ServerTypeModel,
 	TypeModel,
+	TypeRef,
 	ValueTypeEnum,
 } from "../../../src/platform-kit/meta"
 import {
@@ -125,6 +129,217 @@ o.spec("ModelMapperTest", function () {
 
 			const err = await assertThrows(InvalidModelError, async () => modelMapper.mapToInstance(decryptedParsedInstance))
 			o(err.message).equals("Cardinality ZeroOrOne can hold at max one item. Found: 2")
+		})
+
+		o("mapToInstance keeps a copy of the entity (and its aggregates) in _original", async function () {
+			const mappedEntity = (await modelMapper.mapToInstance(decryptedParsedInstance)) as any
+
+			o(mappedEntity._original).notEquals(null)
+			o(mappedEntity._original === mappedEntity).equals(false)
+			o(mappedEntity._original._original).equals(null)
+			o(mappedEntity._original._id).deepEquals(mappedEntity._id)
+			o(mappedEntity._original.testValue).equals(mappedEntity.testValue)
+
+			const aggregate = mappedEntity.testAssociation[0]
+			o(aggregate._original).notEquals(null)
+			o(aggregate._original.testNumber).equals("123")
+		})
+
+		o("mapToInstance with error in parsed instance sets _errors", async function () {
+			decryptedParsedInstance.addErrorByAttributeId(1, "decryption failed")
+
+			const result = (await modelMapper.mapToInstance(decryptedParsedInstance)) as any
+
+			o(result._errors).deepEquals({ "1": "decryption failed" })
+		})
+	})
+
+	o.spec("mapToInstances", function () {
+		o("maps every parsed instance", async function () {
+			const other = decryptedParsedInstance.clone()
+
+			const result = (await modelMapper.mapToInstances([decryptedParsedInstance, other])) as any[]
+
+			o(result.length).equals(2)
+			o(result[0]._type).deepEquals(TestTypeRef)
+			o(result[1]._type).deepEquals(TestTypeRef)
+		})
+
+		o("empty list returns empty list", async function () {
+			o(await modelMapper.mapToInstances([])).deepEquals([])
+		})
+	})
+
+	o.spec("mapToReadonlyInstance", function () {
+		o("leaves _original null on the entity and on its aggregates", async function () {
+			const result = (await modelMapper.mapToReadonlyInstance(decryptedParsedInstance)) as any
+
+			o(result._original).equals(null)
+			o(result.testAssociation.length).equals(1)
+			o(result.testAssociation[0]._original).equals(null)
+		})
+
+		o("contains the same data as mapToInstance, except _original", async function () {
+			const readonly = await modelMapper.mapToReadonlyInstance(decryptedParsedInstance)
+			const full = removeOriginals((await modelMapper.mapToInstance(decryptedParsedInstance)) as any)
+
+			o(readonly as any).deepEquals(full)
+		})
+
+		o("still validates cardinalities", async function () {
+			decryptedParsedInstance.addAttributeById(4, ParsedValue.fromIdList(["some-id", "another-id"]))
+
+			await assertThrows(InvalidModelError, async () => modelMapper.mapToReadonlyInstance(decryptedParsedInstance))
+		})
+
+		o("does not change the behaviour of mapToInstance afterwards", async function () {
+			await modelMapper.mapToReadonlyInstance(decryptedParsedInstance)
+
+			const result = (await modelMapper.mapToInstance(decryptedParsedInstance)) as any
+
+			o(result._original).notEquals(null)
+		})
+	})
+
+	o.spec("ClientEntity", function () {
+		const makeModel = (type: EntityTypeEnum, values: Record<string, ModelValue> = {}): ClientTypeModel =>
+			({ app: "tutanota", id: 1, name: "Stub", type, values, associations: {} }) as unknown as ClientTypeModel
+		const idValue = { id: 1, name: "_id" } as ModelValue
+
+		o.spec("castAsEntity", function () {
+			for (const type of [EntityTypeEnum.Element, EntityTypeEnum.ListElement, EntityTypeEnum.Aggregated]) {
+				o(`sets _original for ${type}`, function () {
+					const model = makeModel(type)
+					const entity = new ClientEntity(model, { a: "b" }).castAsEntity<any>(model, true)
+
+					o(entity._original).notEquals(null)
+					o(entity._original.a).equals("b")
+				})
+			}
+
+			for (const type of [EntityTypeEnum.DataTransfer, EntityTypeEnum.BlobElement]) {
+				o(`does not set _original for ${type}`, function () {
+					const model = makeModel(type)
+					const entity = new ClientEntity(model, { a: "b" }).castAsEntity<any>(model, true)
+
+					o(entity._original).equals(null)
+				})
+			}
+
+			o("uses the parent type model to decide about _original of an aggregate", function () {
+				const aggregateModel = makeModel(EntityTypeEnum.Aggregated)
+				const blobParent = makeModel(EntityTypeEnum.BlobElement)
+
+				o(new ClientEntity(aggregateModel).castAsEntity<any>(blobParent, true)._original).equals(null)
+				o(new ClientEntity(aggregateModel).castAsEntity<any>(makeModel(EntityTypeEnum.Element), true)._original).notEquals(null)
+			})
+
+			o("never sets _original when keepOriginal is false", function () {
+				const model = makeModel(EntityTypeEnum.Element)
+				o(new ClientEntity(model).castAsEntity<any>(model, false)._original).equals(null)
+			})
+
+			o("sets _type from the type model", function () {
+				const model = makeModel(EntityTypeEnum.Element)
+				o(new ClientEntity(model).castAsEntity<any>(model, true)._type).deepEquals(new TypeRef("tutanota", 1))
+			})
+		})
+
+		o.spec("setValue _id", function () {
+			o("BlobElement stores the id tuple", function () {
+				const record: Record<string, unknown> = {}
+				new ClientEntity(makeModel(EntityTypeEnum.BlobElement, { "1": idValue }), record).setValue(1, ParsedValue.fromIdTuple(["l", "e"]))
+				o(record["_id"]).deepEquals(["l", "e"])
+			})
+
+			o("ListElement stores the id tuple", function () {
+				const record: Record<string, unknown> = {}
+				new ClientEntity(makeModel(EntityTypeEnum.ListElement, { "1": idValue }), record).setValue(1, ParsedValue.fromIdTuple(["l", "e"]))
+				o(record["_id"]).deepEquals(["l", "e"])
+			})
+
+			o("Element stores an element id", function () {
+				const record: Record<string, unknown> = {}
+				new ClientEntity(makeModel(EntityTypeEnum.Element, { "1": idValue }), record).setValue(1, ParsedValue.fromId("e"))
+				o(record["_id"]).deepEquals([null, "e"])
+			})
+
+			o("Aggregated stores a plain id", function () {
+				const record: Record<string, unknown> = {}
+				new ClientEntity(makeModel(EntityTypeEnum.Aggregated, { "1": idValue }), record).setValue(1, ParsedValue.fromId("agg"))
+				o(record["_id"]).equals("agg")
+			})
+
+			o("DataTransfer throws", function () {
+				const entity = new ClientEntity(makeModel(EntityTypeEnum.DataTransfer, { "1": idValue }))
+				o(() => entity.setValue(1, ParsedValue.fromId("x"))).throws(ProgrammingError)
+			})
+		})
+
+		o("setErrors", function () {
+			const record: Record<string, unknown> = {}
+			new ClientEntity(makeModel(EntityTypeEnum.Element), record).setErrors({ "1": "err" })
+			o(record["_errors"]).deepEquals({ "1": "err" })
+		})
+
+		o("setIdList and setIdTupleList respect cardinality", function () {
+			const model = {
+				...makeModel(EntityTypeEnum.Element),
+				associations: {
+					"1": { id: 1, name: "ids", cardinality: CardinalityEnum.Any, type: AssociationTypeEnum.ListAssociation },
+					"2": { id: 2, name: "tuples", cardinality: CardinalityEnum.Any, type: AssociationTypeEnum.ListElementAssociationGenerated },
+				},
+			} as unknown as ClientTypeModel
+			const record: Record<string, unknown> = {}
+			const entity = new ClientEntity(model, record)
+			entity.setIdList(1, ["a", "b"])
+			entity.setIdTupleList(2, [["l", "e"]])
+			o(record["ids"]).deepEquals(["a", "b"])
+			o(record["tuples"]).deepEquals([["l", "e"]])
+		})
+	})
+
+	o.spec("OutgoingClientEntity", function () {
+		const makeModel = (type: EntityTypeEnum): ClientTypeModel =>
+			({ app: "tutanota", id: 1, name: "Stub", type, values: {}, associations: {} }) as unknown as ClientTypeModel
+		const stubEntity = (record: object) => ({ _type: new TypeRef("tutanota", 1), ...record }) as any
+		const idValue = { id: 1, name: "_id" } as ModelValue
+		const assoc = (cardinality: CardinalityEnum, type: AssociationTypeEnum, extra: object = {}) =>
+			({ id: 5, name: "assoc", cardinality, type, refTypeId: 2, dependency: null, ...extra }) as unknown as ModelAssociation
+
+		o("constructor throws if the type model does not match the entity", function () {
+			const wrongModel = { ...makeModel(EntityTypeEnum.Element), id: 99 } as ClientTypeModel
+			o(() => new OutgoingClientEntity(stubEntity({}), wrongModel)).throws(Error)
+		})
+
+		o.spec("getAggregationList", function () {
+			const aggregateModel = { ...makeModel(EntityTypeEnum.Aggregated), id: 2 } as ClientTypeModel
+
+			o("wraps each aggregate in an OutgoingClientEntity", function () {
+				const entity = new OutgoingClientEntity(stubEntity({ assoc: [{ _id: "a1" }, { _id: "a2" }] }), makeModel(EntityTypeEnum.Element))
+				const result = entity.getAggregationList(assoc(CardinalityEnum.Any, AssociationTypeEnum.Aggregation), aggregateModel)
+
+				o(result.length).equals(2)
+				o(result[0].getValue(idValue).asId()).equals("a1")
+			})
+
+			o("throws if the aggregate type model does not match the association", function () {
+				const entity = new OutgoingClientEntity(stubEntity({ assoc: [] }), makeModel(EntityTypeEnum.Element))
+				const wrong = { ...aggregateModel, id: 3 } as ClientTypeModel
+				o(() => entity.getAggregationList(assoc(CardinalityEnum.Any, AssociationTypeEnum.Aggregation), wrong)).throws(Error)
+			})
+
+			o("throws if the dependency does not match the aggregate app", function () {
+				const entity = new OutgoingClientEntity(stubEntity({ assoc: [] }), makeModel(EntityTypeEnum.Element))
+				const association = assoc(CardinalityEnum.Any, AssociationTypeEnum.Aggregation, { dependency: "sys" })
+				o(() => entity.getAggregationList(association, aggregateModel)).throws(Error)
+			})
+
+			o("accepts a matching dependency", function () {
+				const entity = new OutgoingClientEntity(stubEntity({ assoc: [] }), makeModel(EntityTypeEnum.Element))
+				const association = assoc(CardinalityEnum.Any, AssociationTypeEnum.Aggregation, { dependency: "tutanota" })
+				o(entity.getAggregationList(association, aggregateModel)).deepEquals([])
+			})
 		})
 	})
 

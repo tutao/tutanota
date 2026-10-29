@@ -41,7 +41,7 @@ import {
 	TypeModelResolver,
 } from "@tutao/instance-pipeline"
 import { CryptoNetworkHelper } from "./CryptoNetworkHelper"
-import { Entity, ListElementEntity, PersistentEntity, ServerTypeModel } from "@tutao/meta"
+import { Entity, ListElementEntity, PersistentEntity, ReadonlyEntity, ServerTypeModel } from "@tutao/meta"
 import { PersistenceResourcePostReturn, PersistenceResourcePostReturnTypeRef } from "@tutao/entities/base"
 import { createInstanceKdfNonce, createTypeInfo, PatchListTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
@@ -196,6 +196,33 @@ export class EntityRestClient implements EntityRestInterface {
 	): Promise<T> {
 		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
 		return await this.mapInstanceToEntity(parsedInstance)
+	}
+
+	/**
+	 * Use only in cases the entity will never be updated.
+	 */
+	async loadReadonly<T extends PersistentEntity>(
+		typeRef: TypeRef<T>,
+		id: T["_id"],
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>> {
+		const parsedInstance = await this.loadParsedInstance(typeRef, id, opts)
+		return await this.instancePipeline.modelMapper.mapToReadonlyInstance<T>(parsedInstance)
+	}
+
+	/** Like {@link loadRange} but without `_original`, see {@link loadReadonly}. */
+	async loadRangeReadonly<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>[]> {
+		const parsedInstances = await this.loadParsedInstancesRange(typeRef, listId, start, count, reverse, opts)
+		return await promiseMap(parsedInstances, (parsedInstance) => this.instancePipeline.modelMapper.mapToReadonlyInstance<T>(parsedInstance), {
+			concurrency: 5,
+		})
 	}
 
 	async mapInstanceToEntity<T extends PersistentEntity>(parsedInstance: DecryptedParsedInstance): Promise<T> {
@@ -699,7 +726,12 @@ export class EntityRestClient implements EntityRestInterface {
 			null,
 		)
 		// map and encrypt instance._original and the instance
-		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(assertNotNull(instance._original))
+		if (instance._original == null) {
+			throw new ProgrammingError(
+				`Cannot update ${instance._type.toString()}: the instance has no _original to compute a patch against. Was it loaded with loadReadonly()?`,
+			)
+		}
+		const originalParsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(instance._original)
 		const parsedInstance = await this.instancePipeline.modelMapper.mapToDecryptedInstance(instance)
 		const subKeyInfo = await this.getSubKeyInfoOnUpdate(options?.ownerKeyProvider, instance)
 		const modifiedEncryptedInstance = await this.instancePipeline.cryptoMapper.encryptParsedInstance(parsedInstance, subKeyInfo)
