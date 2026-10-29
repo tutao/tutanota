@@ -4,7 +4,7 @@ import m, { Children } from "mithril"
 import { DaySelector } from "./DaySelector.js"
 import { animations, opacity, transform, TransformEnum } from "../../../../../ui/animation/Animations.js"
 import { ease } from "../../../../../ui/animation/Easing.js"
-import { px } from "../../../../../ui/size.js"
+import { rem, font_size, px } from "../../../../../ui/size.js"
 import { formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import { incrementMonth } from "../../../../../platform-kit/utils"
 import { Styles } from "../../../../../ui/styles.js"
@@ -93,7 +93,7 @@ export class DaySelectorPopup implements ModalComponent {
 				".b",
 				{
 					style: {
-						fontSize: "14px",
+						fontSize: rem(font_size.smaller_em),
 						marginLeft: "6px",
 					},
 				},

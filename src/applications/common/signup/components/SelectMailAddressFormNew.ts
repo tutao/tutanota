@@ -5,7 +5,7 @@ import { EnvProvider } from "@tutao/app-env"
 import { EmailDomainData } from "../../settings/mailaddress/MailAddressesUtils"
 import { IconButton, IconButtonAttrs } from "../../../../ui/base/IconButton"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { font_size, px } from "../../../../ui/size"
+import { rem, font_size, px } from "../../../../ui/size"
 import { attachDropdown, DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { formatMailAddressFromParts } from "../../../../ui/utils/Formatter"
@@ -91,7 +91,7 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 			autocompleteAs: Autocomplete.newPassword,
 			autocapitalize: Autocapitalize.none,
 			helpLabel: () => this.addressHelpLabel(attrs.messageIdOverride),
-			fontSize: px(font_size.smaller),
+			fontSize: rem(font_size.smaller_em),
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
@@ -103,8 +103,8 @@ export class SelectMailAddressFormNew implements Component<SelectMailAddressForm
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
-							fontSize: px(font_size.smaller),
-							lineHeight: px(font_size.line_height_input),
+							fontSize: rem(font_size.smaller_em),
+							lineHeight: rem(font_size.line_height_input_em),
 						},
 					},
 					`@${attrs.selectedDomain.domain}`,

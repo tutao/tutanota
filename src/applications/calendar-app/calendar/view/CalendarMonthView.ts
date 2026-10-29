@@ -1,5 +1,5 @@
 import m, { ChildArray, Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
-import { layout_size, px, size } from "../../../../ui/size"
+import { rem, font_size, layout_size, px, size } from "../../../../ui/size"
 import { EnvProvider, EventTextTimeOption, WeekStart } from "../../../../platform-kit/app-env"
 import {
 	CalendarDay,
@@ -381,7 +381,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						style: {
 							opacity: isPaddingDay ? 0.4 : 1,
 							fontWeight: isPaddingDay ? "500" : null,
-							fontSize: Styles.get().isDesktopLayout() ? "14px" : "12px",
+							fontSize: Styles.get().isDesktopLayout() ? rem(font_size.smaller_em) : rem(font_size.small_em),
 							lineHeight: size,
 						},
 					},
