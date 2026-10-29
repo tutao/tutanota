@@ -10,8 +10,13 @@ o.spec("NetAgent", function () {
 	let url: string
 	let fakeFingerprint: string
 	let client: NetAgent
+	let minAgentAge: number
 
 	class TestAgent extends NetAgent {
+		constructor(minAgentAgeMs: number) {
+			super(minAgentAgeMs)
+		}
+
 		override networkFingerprint(): string {
 			return fakeFingerprint
 		}
@@ -34,8 +39,9 @@ o.spec("NetAgent", function () {
 
 	o.beforeEach(async function () {
 		breakConnections = false
+		minAgentAge = 10_000
 		fakeFingerprint = "wlan0|10.0.0.2"
-		client = new TestAgent()
+		client = new TestAgent(minAgentAge)
 		initialAgent = currentAgent()
 		agents = new Set([initialAgent])
 		server = http.createServer((req, res) => {
@@ -90,5 +96,39 @@ o.spec("NetAgent", function () {
 		fakeFingerprint = "eth0|192.168.1.5"
 		await fetchText()
 		o.check(agents.size).equals(3)
+	})
+
+	o.test("replaces the agent after repeated failures even if the network did not change", async function () {
+		minAgentAge = 0
+		client = new TestAgent(minAgentAge)
+		await initialAgent.destroy()
+		initialAgent = currentAgent()
+		agents = new Set([initialAgent])
+
+		breakConnections = true
+		await fetchText()
+		o.check(agents.size).equals(1)
+		await fetchText()
+		o.check(agents.size).equals(2)
+		o.check(initialAgent.destroyed).equals(true)
+
+		breakConnections = false
+		o.check(await fetchText()).equals("ok")
+	})
+
+	o.test("does not replace a young agent because of repeated failures", async function () {
+		breakConnections = true
+		await fetchText()
+		await fetchText()
+		await fetchText()
+		o.check(agents.size).equals(1)
+	})
+
+	o.test("reset replaces the agent unconditionally", async function () {
+		client.reset()
+		agents.add(currentAgent())
+		o.check(agents.size).equals(2)
+		o.check(initialAgent.destroyed).equals(true)
+		o.check(await fetchText()).equals("ok")
 	})
 })
