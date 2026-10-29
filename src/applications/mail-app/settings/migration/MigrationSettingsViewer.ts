@@ -251,15 +251,38 @@ class MigrationSettingsViewer implements UpdatableSettingsViewer {
 
 			return m(
 				Card,
-				m(".flex.items-center.justify-between", [
-					m(".flex.items-center.gap-16", [
-						m(Icon, {
-							...statusIconParameters,
-							size: IconSize.PX32,
-						} as IconAttrs),
-						m(".items-base.flex-column", [m(".text-preline", syncSourceAndDestinationMessage.text), m(".text-preline.small", syncMessage.text)]),
+				m("", [
+					m(".flex.items-center.justify-between", [
+						m(".flex.items-center.gap-16", [
+							m(Icon, {
+								...statusIconParameters,
+								size: IconSize.PX32,
+							} as IconAttrs),
+							m(".items-base.flex-column", [
+								m(".text-preline", syncSourceAndDestinationMessage.text),
+								m(".text-preline.small", syncMessage.text),
+							]),
+						]),
+						m(".flex.ml-16.items-center", buttons),
 					]),
-					m(".flex.ml-16.items-center", buttons),
+					this.canEditMigrations && statusIcon === Icons.Checkmark
+						? m(".flex-end.mt-8", [
+								m(PrimaryButton, {
+									width: "flex",
+									label: "migrationFinish_action",
+									onclick: async () => {
+										return Dialog.confirm("migrationCancelConfirm_msg").then((confirmed) => {
+											if (confirmed) {
+												showProgressDialog(
+													"pleaseWait_msg",
+													this.mailboxMigrationController().deleteImport(mailboxMigrationSyncStateId),
+												)
+											}
+										})
+									},
+								}),
+							])
+						: null,
 				]),
 			)
 		})
