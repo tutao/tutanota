@@ -200,7 +200,7 @@ export class PinchZoom {
 		}
 		this.currentScale = this.zoomBoundaries.min
 		this.update({ x: 0, y: 0 })
-		this.viewport.style.height = "auto"
+		// this.viewport.style.height = "auto"
 	}
 
 	private touchmove_handler(ev: TouchEvent) {
@@ -313,7 +313,12 @@ export class PinchZoom {
 	private rescale() {
 		const containerWidth = this.viewport.offsetWidth
 
-		if (containerWidth >= this.zoomable.scrollWidth) {
+		if (this.viewport instanceof HTMLIFrameElement) {
+			// don't need to zoom out
+			this.zoomBoundaries = { min: 1, max: this.zoomBoundaries.max }
+			const newTransformOrigin = this.setCurrentSafePosition({ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 1).newTransformOrigin
+			this.update(newTransformOrigin)
+		} else if (containerWidth >= this.zoomable.scrollWidth) {
 			this.zoomable.style.transform = ""
 			this.zoomable.style.marginBottom = ""
 		} else {
@@ -589,6 +594,15 @@ export class PinchZoom {
 			newPinchSessionTranslation,
 			newScale,
 		)
+
+		if (this.viewport instanceof HTMLIFrameElement) {
+			const memes = this.viewport.getBoundingClientRect()
+			targetedOutcome.x += memes.x
+			targetedOutcome.y += memes.y
+			targetedOutcome.x2 += memes.x
+			targetedOutcome.y2 += memes.y
+		}
+
 		const targetedHeight = targetedOutcome.y2 - targetedOutcome.y
 		const targetedWidth = targetedOutcome.x2 - targetedOutcome.x
 

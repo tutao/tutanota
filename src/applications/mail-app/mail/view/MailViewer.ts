@@ -4,7 +4,7 @@ import stream from "mithril/stream"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
+import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, delay, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
@@ -320,7 +320,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.resizeObserverViewport = createResizeObserver(() => {
 						if (this.pinchZoomable) {
 							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
-							this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement)
+							this.createPinchZoom(this.pinchZoomable.getZoomable(), assertNotNull(this.iframeRoot))
 						}
 					})
 					this.resizeObserverViewport.observe(vnode.dom as HTMLElement)
@@ -346,7 +346,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
 				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.iframeMailContent) {
-					this.createPinchZoom(this.iframeMailContent, vnode.dom as HTMLElement)
+					this.createPinchZoom(this.iframeMailContent, assertNotNull(this.iframeRoot))
 				}
 			},
 			onbeforeremove: () => {
@@ -443,9 +443,9 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		this.iframeRoot.style.border = "none"
+		this.iframeRoot.width = "100%" // FIXME: use css for this
 		iframeDocument.body.appendChild(Styles.get().getStyleSheetElement("main"))
 		iframeDocument.body.style.position = "relative"
-		iframeDocument.body.style.overflow = "auto"
 		iframeDocument.body.appendChild(wrapNode)
 
 		this.updateIframeDimensions()
@@ -470,11 +470,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			return
 		}
 
-		const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
+		const iframeContentWindow = assertNotNull(this.iframeRoot.contentWindow)
 
-		// The iframe's dimensions do not take into account the iframe's contents.
-		this.iframeRoot.width = "100%" // FIXME: use css for this
-		this.iframeRoot.height = px(iframeDocument.body.scrollHeight)
+		// The iframe's dimensions do not take into account the iframe's contents. We need to compute scroll height
+		// (which will require re-enabling scroll).
+		this.iframeRoot.style.overflow = "auto"
+		this.iframeRoot.style.height = px(iframeContentWindow.document.body.scrollHeight)
+		this.iframeRoot.style.overflow = "hidden"
 	}
 
 	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
