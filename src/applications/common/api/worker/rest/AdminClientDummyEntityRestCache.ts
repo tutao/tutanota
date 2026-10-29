@@ -1,4 +1,4 @@
-import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, ReadonlyEntity, TypeRef } from "@tutao/meta"
 import { ProgrammingError } from "@tutao/app-env"
 import { EntityRestCache } from "../../../../../platform-kit/network/EntityRestCacheInterface"
 import { CacheSyncStatus, EntityUpdateData } from "../../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
@@ -29,6 +29,20 @@ export class AdminClientDummyEntityRestCache implements EntityRestCache {
 
 	async load<T extends PersistentEntity>(_typeRef: TypeRef<T>, _id: T["_id"], _opts: EntityRestClientLoadOptions): Promise<T> {
 		throw new ProgrammingError("load not implemented")
+	}
+
+	async loadReadonly<T extends PersistentEntity>(_typeRef: TypeRef<T>, _id: T["_id"], _opts: EntityRestClientLoadOptions): Promise<ReadonlyEntity<T>> {
+		throw new ProgrammingError("loadReadonly not implemented")
+	}
+
+	async loadRangeReadonly<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+	): Promise<ReadonlyEntity<T>[]> {
+		throw new ProgrammingError("loadRangeReadonly not implemented")
 	}
 
 	async loadMultiple<T extends PersistentEntity>(typeRef: TypeRef<T>, listId: Id | null, elementIds: Array<Id>): Promise<Array<T>> {

@@ -270,6 +270,30 @@ o.spec("EntityRestClient", function () {
 			o(result as any).deepEquals(calendar)
 		})
 
+		o("loadReadonly returns the entity without _original", async function () {
+			const id1 = "id1"
+			const accountingInfo = createTestEntity(AccountingInfoTypeRef, {
+				_id: idToElementId(id1),
+				_permissions: "permissionsId",
+				_ownerGroup: ownerGroupId,
+				_ownerEncSessionKey: encryptedSessionKey.key,
+				_ownerKeyVersion: encryptedSessionKey.encryptingKeyVersion.toString(),
+			})
+			const untypedAccountingInfo = await instancePipeline.mapAndEncrypt(AccountingInfoTypeRef, accountingInfo, sk)
+			when(
+				restClient.request(`${await typeRefToRestPath(AccountingInfoTypeRef)}/${id1}`, HttpMethod.GET, {
+					...DEFAULT_REST_CLIENT_OPTIONS,
+					headers: { ...authHeader, v: String(sysModelInfo.version) },
+					responseType: MediaType.Json,
+				}),
+			).thenResolve(untypedAccountingInfo.getJsonRepresentation())
+
+			const result = await entityRestClient.loadReadonly(AccountingInfoTypeRef, idToElementId(id1))
+
+			o((result as any)._original).equals(null)
+			o(result as any).deepEquals(accountingInfo)
+		})
+
 		o("loading an element", async function () {
 			const id1 = "id1"
 			const accountingInfo = createTestEntity(AccountingInfoTypeRef, {
@@ -1295,6 +1319,18 @@ o.spec("EntityRestClient", function () {
 	})
 
 	o.spec("Update", function () {
+		o("update throws a ProgrammingError if the entity has no _original", async function () {
+			const entity = createTestEntity(SupportDataTypeRef, {
+				_id: idToElementId("id"),
+			})
+			entity._original = null
+
+			const err = await assertThrows(ProgrammingError, () => entityRestClient.update(entity))
+
+			o(err.message.includes("_original")).equals(true)
+			verify(restClient.request(anything(), HttpMethod.PATCH, anything()), { times: 0 })
+		})
+
 		o("Update entity", async function () {
 			const { version } = await typeModelResolver.resolveClientTypeReference(SupportDataTypeRef)
 			const newSupportData = createTestEntity(SupportDataTypeRef, {

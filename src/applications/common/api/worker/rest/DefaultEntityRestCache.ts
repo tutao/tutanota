@@ -19,6 +19,7 @@ import {
 	OperationType,
 	parseTypeString,
 	PersistentEntity,
+	ReadonlyEntity,
 	TypeModel,
 	TypeRef,
 	ValueTypeEnum,
@@ -163,6 +164,38 @@ export class DefaultEntityRestCache implements EntityRestCache {
 		} else {
 			return await this.entityRestClient.mapInstanceToEntity(cachedEntity)
 		}
+	}
+
+	async loadReadonly<T extends PersistentEntity>(
+		typeRef: TypeRef<T>,
+		id: T["_id"],
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>> {
+		if (!this.shouldUseCache(typeRef, opts)) {
+			return await this.entityRestClient.loadReadonly(typeRef, id, opts)
+		}
+		const { listId, elementId } = expandId(id)
+		const cachingBehavior = getCacheModeBehavior(opts.cacheMode)
+		const cachedEntity = cachingBehavior.readsFromCache ? await this.cacheStorage.getParsed(typeRef, listId, elementId) : null
+		if (cachedEntity != null) {
+			return await this.entityRestClient.instancePipeline.modelMapper.mapToReadonlyInstance<T>(cachedEntity)
+		}
+		const parsedInstance = await this.entityRestClient.loadParsedInstance(typeRef, id, opts)
+		if (cachingBehavior.writesToCache && !parsedInstance.hasError()) {
+			await this.cacheStorage.put(typeRef, parsedInstance)
+		}
+		return await this.entityRestClient.instancePipeline.modelMapper.mapToReadonlyInstance<T>(parsedInstance)
+	}
+
+	async loadRangeReadonly<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>[]> {
+		return await this.loadRange(typeRef, listId, start, count, reverse, opts)
 	}
 
 	async loadMultiple<T extends PersistentEntity>(
