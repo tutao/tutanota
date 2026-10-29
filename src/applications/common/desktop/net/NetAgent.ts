@@ -25,27 +25,37 @@ const DEFAULT_AGENT_OPTIONS: Agent.Options = {
 	allowH2: true,
 }
 
+const FAILURES_BEFORE_REPLACING = 2
+const MIN_AGENT_AGE_BEFORE_REPLACING_MS = 10_000
+
 // Underlying connection is probably dead (e.g. after the IP address changed).
 const CONNECTION_FAILURE_CODES = new Set(["UND_ERR_HEADERS_TIMEOUT", "UND_ERR_BODY_TIMEOUT", "UND_ERR_CONNECT_TIMEOUT", "UND_ERR_SOCKET"])
 
 /**
- * Wraps an undici {@link Agent} and replaces it if a request fails in a way that suggests a dead connection *and* the
- * network has changed since the agent was created.
+ * Wraps an undici {@link Agent} and replaces it if requests fail in a way that suggests a dead connection and either the
+ * network has changed since the agent was created or the failures repeat. It can also be reset explicitly, e.g. on resume from hibernation.
  *
  * With HTTP/2 all requests share one session. If the network changes underneath it, the socket is silently dead, undici
  * only resets the single timed-out stream and keeps the session, and the HTTP/2 PING has no timeout. Without replacing
  * the agent every following request would time out as well until the process is restarted.
  *
- * We deliberately do not replace the agent on timeouts alone so that a slow or unreachable server does not make us
- * throw away healthy connections.
+ * We deliberately do not replace the agent on a single timeout so that a slow or unreachable server does not make us
+ * throw away healthy connections. The network fingerprint alone is not reliable: after hibernation the addresses are often unchanged
+ * while the connections are dead.
  */
 export class NetAgent {
 	private agent: Agent
 	private currentFingerprint: string
+	private agentCreatedAt: number = Date.now()
+	private consecutiveFailures: number = 0
 
-	constructor() {
+	constructor(private readonly minAgentAgeMs: number = MIN_AGENT_AGE_BEFORE_REPLACING_MS) {
 		this.agent = new Agent(DEFAULT_AGENT_OPTIONS)
 		this.currentFingerprint = this.networkFingerprint()
+	}
+
+	reset(): void {
+		this.replaceAgent(this.agent)
 	}
 
 	readonly fetch: FetchImpl = async (target, init) => {
@@ -55,25 +65,36 @@ export class NetAgent {
 		}
 		const used = this.agent
 		try {
-			return await undiciFetch(target, { ...(init ?? {}), dispatcher: used })
+			const response = await undiciFetch(target, { ...(init ?? {}), dispatcher: used })
+			if (used === this.agent) this.consecutiveFailures = 0
+			return response
 		} catch (e) {
 			if (this.isConnectionFailure(e)) {
-				this.replaceIfNetworkChanged(used)
+				this.replaceIfDead(used)
 			}
 			throw e
 		}
 	}
 
-	private replaceIfNetworkChanged(failed: Agent) {
-		const newFingerprint = this.networkFingerprint()
-		if (failed !== this.agent || newFingerprint === this.currentFingerprint) {
-			// someone else already replaced it or nothing changed
+	private replaceIfDead(failed: Agent) {
+		if (failed !== this.agent) {
 			return
 		}
+		this.consecutiveFailures++
+		const networkChanged = this.networkFingerprint() !== this.currentFingerprint
+		const repeatedlyFailing = this.consecutiveFailures >= FAILURES_BEFORE_REPLACING && Date.now() - this.agentCreatedAt >= this.minAgentAgeMs
+		if (networkChanged || repeatedlyFailing) {
+			this.replaceAgent(failed)
+		}
+	}
+
+	private replaceAgent(old: Agent) {
 		this.agent = new Agent(DEFAULT_AGENT_OPTIONS)
-		this.currentFingerprint = newFingerprint
+		this.currentFingerprint = this.networkFingerprint()
+		this.agentCreatedAt = Date.now()
+		this.consecutiveFailures = 0
 		// fail in-flight requests right away instead of letting them time out
-		void failed.destroy().catch(() => {})
+		void old.destroy().catch(() => {})
 	}
 
 	isConnectionFailure(e: Error | null): boolean {
@@ -92,7 +113,8 @@ export class NetAgent {
 	}
 }
 
-export const customFetch: FetchImpl = new NetAgent().fetch
+export const netAgent = new NetAgent()
+export const customFetch: FetchImpl = netAgent.fetch
 
 /**
  * UndiciHeaderInit is slightly different from the Headers we handle in electron,
