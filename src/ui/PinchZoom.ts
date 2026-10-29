@@ -314,7 +314,7 @@ export class PinchZoom {
 		const containerWidth = this.viewport.offsetWidth
 
 		if (this.viewport instanceof HTMLIFrameElement) {
-			// don't need to zoom out
+			// FIXME: do we need to do anything else? overriding the height of the viewport is very much not a great idea
 			this.zoomBoundaries = { min: 1, max: this.zoomBoundaries.max }
 			const newTransformOrigin = this.setCurrentSafePosition({ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 1).newTransformOrigin
 			this.update(newTransformOrigin)
@@ -575,13 +575,26 @@ export class PinchZoom {
 		newScale: number,
 	) {
 		this.getOffsetFromInitialToCurrentViewportPosition()
-		let currentViewport = this.getCoords(this.viewport)
+		const viewportRect = this.viewport.getBoundingClientRect()
+
+		// FIXME: all PinchZoom instances are HTMLIFrameElement; should we remove the non-HTMLIFrameElement code if we won't use it?
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
-		let borders = {
-			x: currentViewport.x + 1,
-			y: currentViewport.y + 1,
-			x2: currentViewport.x2 - 1,
-			y2: currentViewport.y2 - 1,
+		let borders
+		if (this.viewport instanceof HTMLIFrameElement) {
+			borders = {
+				x: viewportRect.left + 1,
+				y: viewportRect.top + 1,
+				x2: viewportRect.right - 1,
+				y2: viewportRect.bottom - 1,
+			}
+		} else {
+			const currentViewport = this.getCoords(this.viewport)
+			borders = {
+				x: currentViewport.x + 1,
+				y: currentViewport.y + 1,
+				x2: currentViewport.x2 - 1,
+				y2: currentViewport.y2 - 1,
+			}
 		}
 
 		// keep the zooming factor within the defined boundaries
@@ -596,11 +609,10 @@ export class PinchZoom {
 		)
 
 		if (this.viewport instanceof HTMLIFrameElement) {
-			const memes = this.viewport.getBoundingClientRect()
-			targetedOutcome.x += memes.x
-			targetedOutcome.y += memes.y
-			targetedOutcome.x2 += memes.x
-			targetedOutcome.y2 += memes.y
+			targetedOutcome.x += viewportRect.x
+			targetedOutcome.y += viewportRect.y
+			targetedOutcome.x2 += viewportRect.x
+			targetedOutcome.y2 += viewportRect.y
 		}
 
 		const targetedHeight = targetedOutcome.y2 - targetedOutcome.y
@@ -616,9 +628,14 @@ export class PinchZoom {
 		const verticalTransformationAllowed = vertical1Allowed && vertical2Allowed
 
 		// find out which operation would be illegal and calculate the adjusted transformOrigin
-		const targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
-		const targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
+		let targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
+		let targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
 		if (targetX !== targetedOutcome.x || targetY !== targetedOutcome.y) {
+			if (this.viewport instanceof HTMLIFrameElement) {
+				targetX -= viewportRect.x
+				targetY -= viewportRect.y
+			}
+
 			newTransformOrigin = this.calculateTransformOriginFromTarget(
 				{
 					x: targetX,
