@@ -13,6 +13,7 @@ import {
 	mapWithout,
 	ofClass,
 	pMap,
+	throttleStart,
 } from "../../../../platform-kit/utils"
 import { ListLoadingState, ListState } from "../../../../ui/base/List.js"
 import { ConversationPrefProvider, ConversationViewModel, ConversationViewModelFactory } from "./ConversationViewModel.js"
@@ -87,7 +88,7 @@ export interface UndoAction {
 	onClear: () => unknown
 }
 
-const SYNC_RELOAD_DEBOUNCE_MS = 1000
+const REFRESH_THROTTLE_MS = 2000
 
 /** ViewModel for the overall mail view. */
 export class MailViewModel {
@@ -808,7 +809,11 @@ export class MailViewModel {
 		}
 	}
 
-	private async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
+	refreshMailSet: (mailSet: MailSet) => Promise<void> = throttleStart(REFRESH_THROTTLE_MS, (mailSet: MailSet) =>
+		this.deleteMailSetEntryRangeFolder(mailSet, true),
+	)
+
+	async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
 		// currently used when importing mails from a file or Migration.
 		// This makes sure that we keep already downloaded MailSetEntries in the cache but still show

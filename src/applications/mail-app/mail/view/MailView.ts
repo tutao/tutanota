@@ -1177,6 +1177,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 			},
 			onFolderExpanded: (folder, state) => this.setExpandedMailSetState(folder, state),
 			onExpandFolderWithDelay: (folder) => this.expandMailSetWithDelay(folder),
+			onFolderRefresh: (folder) => this.mailViewModel.refreshMailSet(folder),
 			onCancelFolderDelayedExpand: (predicate) => this.cancelOngoingDelayedMailSetExpand(predicate),
 			onShowFolderAddEditDialog: (...args) => this.showFolderAddEditDialog(...args),
 			onDeleteCustomMailFolder: (folder) => this.deleteCustomMailFolder(mailboxDetail, folder),
@@ -1217,6 +1218,7 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 					this.handleLabelInLabelDrop(dropData, label)
 				}
 			},
+			onLabelRefresh: (label) => this.mailViewModel.refreshMailSet(label),
 			inEditMode,
 			onEditMailbox,
 		})

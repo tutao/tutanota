@@ -16,6 +16,7 @@ import { DropdownButtonAttrs } from "../../../../ui/base/Dropdown"
 export type MailSetRowAttrs = {
 	count: number
 	button: NavButtonAttrs
+	refreshButton?: IconButtonAttrs
 	rightButton?: IconButtonAttrs | null
 	expanded: boolean | null
 	indentationLevel: number
@@ -38,8 +39,20 @@ export class MailSetRow implements Component<MailSetRowAttrs> {
 	private hovered: boolean = false
 
 	view(vnode: Vnode<MailSetRowAttrs>): Children {
-		const { count, button, rightButton, expanded, indentationLevel, mailSet, hasChildren, editMode, onDragEnter, onDragLeave, getIconForMailSet } =
-			vnode.attrs
+		const {
+			count,
+			button,
+			refreshButton,
+			rightButton,
+			expanded,
+			indentationLevel,
+			mailSet,
+			hasChildren,
+			editMode,
+			onDragEnter,
+			onDragLeave,
+			getIconForMailSet,
+		} = vnode.attrs
 		const iconAttrs = getIconForMailSet(mailSet, button)
 		const onHover = () => {
 			vnode.attrs.onHover()
@@ -124,13 +137,20 @@ export class MailSetRow implements Component<MailSetRowAttrs> {
 				}),
 				// show the edit button in either edit mode or on hover (excluding hover on mobile)
 				rightButton && (editMode || (!ClientDetector.get().isMobileDevice() && this.hovered))
-					? m(IconButton, {
-							...rightButton,
-							click: (event, dom) => {
-								rightButton.click(event, dom)
-							},
-							onkeydown: handleForwardsTab,
-						})
+					? [
+							refreshButton
+								? m(IconButton, {
+										...refreshButton,
+									})
+								: null,
+							m(IconButton, {
+								...rightButton,
+								click: (event, dom) => {
+									rightButton.click(event, dom)
+								},
+								onkeydown: handleForwardsTab,
+							}),
+						]
 					: m("", { style: { marginRight: px(size.spacing_8) } }, [
 							m(CounterBadge, {
 								count,
