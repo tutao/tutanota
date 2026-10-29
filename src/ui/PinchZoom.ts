@@ -581,6 +581,7 @@ export class PinchZoom {
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
 		let borders
 		if (this.viewport instanceof HTMLIFrameElement) {
+			// FIXME: we need to figure out scrolling (if you scroll down and zoom, the iframe has lots of fun)
 			borders = {
 				x: viewportRect.left + 1,
 				y: viewportRect.top + 1,
