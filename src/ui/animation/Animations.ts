@@ -355,15 +355,6 @@ export function width(begin: number, end: number): DomMutation {
 	}
 }
 
-export function fontSize(begin: number, end: number): DomMutation {
-	return {
-		updateDom: function (target: HTMLElement, percent: number, easing: EasingFunction): void {
-			target.style.fontSize = calculateValue(percent, begin, end, easing) + "px"
-		},
-		willChange: () => "",
-	}
-}
-
 function calculateValue(percent: number, begin: number, end: number, easing: (...args: Array<any>) => any): number {
 	return (end - begin) * easing(percent) + begin
 }

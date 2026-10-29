@@ -4,7 +4,7 @@ import { LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import { UpgradePromptType } from "../../../platform-kit/app-env"
 import { Checkbox } from "../../../ui/base/Checkbox.js"
-import { px } from "../../../ui/size"
+import { rem, px, size } from "../../../ui/size"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { getDefaultNotificationLabel } from "../../common/misc/OutOfOfficeNotificationUtils"
 import { showPlanUpgradeRequiredDialog } from "../../common/misc/SubscriptionDialogs"
@@ -155,7 +155,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
-								"line-height": px(24),
+								"line-height": rem(size.core_24_em),
 								opacity: "1",
 							},
 						},
@@ -178,7 +178,7 @@ class EditOutOfOfficeNotificationDialog implements Component<EditOutOfOfficeNoti
 						".flex-no-grow-no-shrink-auto.pr-4",
 						{
 							style: {
-								"line-height": px(24),
+								"line-height": rem(size.core_24_em),
 								opacity: "1",
 							},
 						},

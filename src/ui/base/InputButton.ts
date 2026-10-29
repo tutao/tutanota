@@ -1,7 +1,7 @@
 import m, { ClassComponent, Component, Vnode } from "mithril"
 import { theme } from "../theme.js"
 import { SingleLineTextField } from "./SingleLineTextField.js"
-import { font_size, px, size } from "../size.js"
+import { rem, font_size, px, size } from "../size.js"
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { TabIndex } from "@tutao/app-env"
 import { Translation } from "../utils/LanguageViewModel"
@@ -113,7 +113,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						classes: this.resolveInputClasses(attrs.variant),
 						style: {
 							padding: `${px(size.spacing_8)} 0`,
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 						},
 						type: LegacyTextFieldType.Text,
 					}),
@@ -124,7 +124,7 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 						style: {
 							display: this.isFocused ? "none" : "block",
 							padding: `${px(size.spacing_8)} 0`,
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 							...attrs.displayStyle,
 						},
 					},

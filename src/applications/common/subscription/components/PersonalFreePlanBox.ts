@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { px, size } from "../../../../ui/size"
+import { rem, px, size } from "../../../../ui/size"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/app-env"
 import { PriceAndConfigProvider } from "../utils/PriceUtils"
@@ -65,7 +65,7 @@ export class PersonalFreePlanBox implements Component<FreePlanBoxAttrs> {
 							".text-center.flex.col.center-horizontally.m-0.font-mdio",
 							{
 								style: {
-									"font-size": px(Styles.get().isMobileLayout() ? 18 : 20),
+									"font-size": rem(Styles.get().isMobileLayout() ? size.core_18_em : size.core_20_em),
 									color: isSelected ? theme.primary : theme.on_surface,
 								},
 							},

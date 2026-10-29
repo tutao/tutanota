@@ -55,7 +55,7 @@ type HTMLElementWithAttrs = Partial<
  *     disabled: model.isReadonly,
  *     classes: ["custom-font-size"], // Adding new styles
  *     style: {
- *         "font-size": px(font_size.base * 1.25) // Overriding the component style
+ *         "font-size": em(1.25) // Overriding the component style
  *     }
  * }),
  */
