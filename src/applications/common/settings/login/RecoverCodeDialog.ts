@@ -22,6 +22,7 @@ import { getEtId, isSameSingleId } from "@tutao/meta"
 import { User } from "@tutao/entities/sys"
 import { GroupType } from "../../../../entities/sys/Utils"
 import { getHtmlSanitizer } from "../../misc/HtmlSanitizer"
+import { font_size } from "../../../../ui/size"
 
 type Action = "get" | "create"
 EnvProvider.assertMainOrNode()
@@ -77,7 +78,7 @@ export function showRecoverCodeDialog(recoverCode: Hex): Promise<void> {
 						column: true,
 						recoverCode,
 						mailAddress: getDefaultSenderFromUser(locator.logins.getUserController()),
-						monoSpaceFontSize: 16,
+						monoSpaceFontSize: font_size.base_em,
 					}),
 				],
 			},

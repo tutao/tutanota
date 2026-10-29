@@ -33,6 +33,7 @@ import { Icons } from "../../../../ui/base/icons/Icons"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
 import { formatEventTimesAtDate } from "../gui/DateTimeTextFormatterUtils"
+import { calculateRowHeight } from "../../../../ui/base/List"
 
 export type CalendarAgendaViewAttrs = {
 	selectedDate: Date
@@ -317,7 +318,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 
 	private renderEventsForDay(events: readonly EventWrapper[], calendarTimeZone: string, day: Date, attrs: CalendarAgendaViewAttrs) {
 		const { groupColors: colors, onEventClicked, onEventKeyDown: keyDown, eventPreviewModel: modelPromise } = attrs
-		const agendaItemHeight = 62
+		const agendaItemHeight = calculateRowHeight()
 		const agendaGap = 3
 		const currentTime = attrs.selectedTime?.toDate()
 		let newScrollPosition = 0

@@ -17,7 +17,7 @@ type HTMLElementWithAttrs = Partial<Pick<m.Attributes, "class"> & Omit<HTMLEleme
  *     rootElementType: "section", // Changing the default root element
  *     classes: ["mt-16"], // Adding new styles
  *     style: {
- *         "font-size": px(font_size.base * 1.25) // Overriding the component style
+ *         "font-size": em(1.25) // Overriding the component style
  *     }
  * }, m("span", "Child span text")),
  */
