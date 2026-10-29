@@ -408,6 +408,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 		assertNonNull(this.iframeRoot, "shadow dom root is null!")
 
+		const iframe = this.iframeRoot
 		const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
 		iframeDocument.body.replaceChildren()
 
@@ -449,7 +450,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = createResizeObserver(() => {
-				this.createPinchZoom(wrapNode, iframeDocument.body) // recreate for example if images are loaded slowly
+				this.createPinchZoom(wrapNode, iframe) // recreate for example if images are loaded slowly
 			})
 			this.resizeObserverZoomable.observe(wrapNode)
 		} else {
