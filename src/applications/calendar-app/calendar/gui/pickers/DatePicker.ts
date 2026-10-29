@@ -176,18 +176,24 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
 						// using ClientDetector.get().isIos() in case they add support soon.
 						if ("showPicker" in HTMLInputElement.prototype) {
-							this.inputDateEl!.showPicker()
-						} else {
-							this.inputDateEl!.focus()
-							// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
-							this.inputDateEl!.addEventListener(
-								"blur",
-								() => {
-									this.inputTextEl!.focus()
-								},
-								{ once: true },
-							)
+							try {
+								this.inputDateEl!.showPicker()
+							} catch (e) {
+								// https://developer.chrome.com/blog/show-picker/#how-to
+								if (e.name !== "NotAllowedError") throw e
+							}
 						}
+						// this.inputTextEl!.blur() // Needed?
+						this.inputDateEl!.focus()
+						// TODO: Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
+						// prettier-ignore
+						this.inputDateEl!.addEventListener("blur", () => {
+							this.inputTextEl!.focus()
+						}, { once: true })
+						// iOS hates me...
+						// this.inputDateEl!.addEventListener("focusout", () => {
+						// 	this.inputTextEl!.focus()
+						// }, { once: true })
 					} else {
 						// Show the non-native VisualDatePicker instead
 						this.showingDropdown = true
