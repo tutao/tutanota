@@ -388,6 +388,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			quoteIndicator.style.display = showQuote ? "none" : ""
 		}
 
+		this.updateIframeDimensions()
+
 		if (this.pinchZoomable) {
 			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport())
 		}
@@ -446,6 +448,8 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		iframeDocument.body.style.overflow = "auto"
 		iframeDocument.body.appendChild(wrapNode)
 
+		this.updateIframeDimensions()
+
 		if (ClientDetector.get().isMobileDevice()) {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
@@ -459,6 +463,14 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			})
 		}
 		this.currentlyRenderedMailBody = sanitizedMailBody
+	}
+
+	private updateIframeDimensions() {
+		if (this.iframeRoot == null) {
+			return
+		}
+
+		const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
 
 		// The iframe's dimensions do not take into account the iframe's contents.
 		this.iframeRoot.width = "100%" // FIXME: use css for this
