@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Abonnemang",
 		"subscriptionCancelledMessage_msg": "Ditt abonnemang har avslutats. Kontakta support för att återaktivera ditt abonnemang.",
 		"subscriptionChange_msg": "Ditt abonnemang ändras efter slutet av den aktuella abonnemangsperioden.",
-		"subscriptionChangeInterval_msg": "Vid nästa förnyelsedatum för ditt abonnemang kommer ditt betalningsintervall att ändras till: {period}. Är det okej?",
+		"subscriptionChangeInterval_msg": "Vid nästa förnyelsedatum för ditt abonnemang kommer ditt betalningsintervall att ändras till: {period}.",
 		"subscriptionChangePeriod_msg": "Din plan ändras efter slutet av den aktuella abonnemangsperioden ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Extra mejladresser",
 		"subscriptionSettingAliasPaidFeature_msg": "Om du har angett flera mejladresser bör du inaktivera dem under Inställningar > E-post > E-postadresser",

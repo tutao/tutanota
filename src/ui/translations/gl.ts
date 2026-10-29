@@ -2154,7 +2154,7 @@ export default {
 		"subscription_label": "Subscrición",
 		"subscriptionCancelledMessage_msg": "A túa subscrición foi cancelada. Por favor, contacta co equipo de soporte para reactivar a túa subscrición.",
 		"subscriptionChange_msg": "A túa subscrición cambiarase tras o fin do actual período de subscrición.",
-		"subscriptionChangeInterval_msg": "Na seguinte data de anovación da subscrición o período de pago vai pasar a: {period}. É isto correcto?",
+		"subscriptionChangeInterval_msg": "Na seguinte data de anovación da subscrición o período de pago vai pasar a: {period}.",
 		"subscriptionChangePeriod_msg": "A túa subscrición vai cambiar tras o fin do actual período de subscrición ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Enderezos extra de correo",
 		"subscriptionSettingAliasPaidFeature_msg": "Se tes enderezos de correo extra desactívaos en Axustes > Correo > Enderezos de correo",

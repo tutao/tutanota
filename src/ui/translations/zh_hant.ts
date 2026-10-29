@@ -2166,7 +2166,7 @@ export default {
 		"subscription_label": "計劃",
 		"subscriptionCancelledMessage_msg": "您的訂購計劃已被取消。如果須重啟訂購計劃，請聯絡支援。",
 		"subscriptionChange_msg": "您的計劃將在目前訂購期結束後更改。",
-		"subscriptionChangeInterval_msg": "在您的訂購計劃下一次續訂日期，您的付款週期將更改為：{period}。這樣可以嗎？",
+		"subscriptionChangeInterval_msg": "在您的訂購計劃下一次續訂日期，您的付款週期將更改為：{period}。",
 		"subscriptionChangePeriod_msg": "您的計劃將在目前訂購期結束 ({1}) 後更改。",
 		"subscriptionSettingAliasPaidFeature_label": "額外電郵地址",
 		"subscriptionSettingAliasPaidFeature_msg": "如果您已設定額外電郵地址，請在設定 > 電郵 > 電郵地址中將其停用",

@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Plano",
 		"subscriptionCancelledMessage_msg": "Sua conta foi cancelada. Por favor entre em contato com o suporte para reativar sua conta.",
 		"subscriptionChange_msg": "Sua assinatura será mudada após o fim do atual período de assinatura.",
-		"subscriptionChangeInterval_msg": "Na próxima data de renovação de sua assinatura seu intervalo de pagamento será alterado para:{period}. Isto está OK?",
+		"subscriptionChangeInterval_msg": "Na próxima data de renovação de sua assinatura seu intervalo de pagamento será alterado para:{period}.",
 		"subscriptionChangePeriod_msg": "Sua assinatura será mudada após o fim do atual período de assinatura ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Endereços de email extras",
 		"subscriptionSettingAliasPaidFeature_msg": "Se você tiver definido quaisquer endereços extras de email, por favor desative-os em Configurações > Email > endereços de Email\n",

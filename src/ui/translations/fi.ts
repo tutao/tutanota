@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Tilaustyyppi",
 		"subscriptionCancelledMessage_msg": "Tilauksesi on lopetettu. Ota yhteyttä tukeen aloittaaksesi tilauksesi uudelleen.",
 		"subscriptionChange_msg": "Tilaustyyppisi muutetaan nykyisen tilausjakson loputtua.",
-		"subscriptionChangeInterval_msg": "Kun tilauksesi uusitaan seuraavan kerran, tilausjaksoksesi asetetaan '{period}'. Sopiiko tämä?",
+		"subscriptionChangeInterval_msg": "Kun tilauksesi uusitaan seuraavan kerran, tilausjaksoksesi asetetaan '{period}'.",
 		"subscriptionChangePeriod_msg": "Tilaustyyppisi muutetaan nykyisen tilausjakson ({1}) loputtua.",
 		"subscriptionSettingAliasPaidFeature_label": "Lisäsähköpostiosoitteet",
 		"subscriptionSettingAliasPaidFeature_msg": "Jos käytät lisäosoitteita, poista ne käytöstä asetuksista > Sähköposti > Sähköpostiosoitteet",
