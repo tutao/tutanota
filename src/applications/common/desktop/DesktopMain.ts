@@ -76,7 +76,7 @@ import { DelayedImpls, exposeLocalDelayed } from "../api/common/WorkerProxy.js"
 import { DefaultDateProvider } from "../calendar/date/CalendarUtils.js"
 import { AlarmScheduler } from "../calendar/date/AlarmScheduler.js"
 import { DesktopExternalCalendarFacade } from "./ipc/DesktopExternalCalendarFacade.js"
-import { customFetch } from "./net/NetAgent"
+import { customFetch, netAgent } from "./net/NetAgent"
 import { DesktopMailImportFacade } from "./mailimport/DesktopMailImportFacade.js"
 import { MailboxExportPersistence } from "./export/MailboxExportPersistence.js"
 import { DesktopExportLock } from "./export/DesktopExportLock"
@@ -501,6 +501,11 @@ async function startupInstance(components: Components) {
 }
 
 async function onAppReady(components: Components) {
+	// This listener is fired off only sometimes, presumably when the OS is not too busy?
+	electron.powerMonitor.on("resume", () => {
+		log.debug("resume from suspend, resetting net agent")
+		netAgent.reset()
+	})
 	const { wm, keyStoreFacade, conf } = components
 	err.init(wm)
 	// We await for it to not open any windows on top of keychain dialogs
