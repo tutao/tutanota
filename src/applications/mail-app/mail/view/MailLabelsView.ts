@@ -27,6 +27,7 @@ export interface MailLabelViewAttrs {
 	mailLabelElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onLabelClick: (label: MailSet) => unknown
 	onLabelDrop: (dropData: DropData, folder: MailSet) => unknown
+	onLabelRefresh: (label: MailSet) => unknown
 	expandedLabels: ReadonlySet<Id>
 	onLabelExpanded: (label: MailSet, state: boolean) => unknown
 	onExpandLabelWithDelay: (label: MailSet) => unknown
@@ -61,6 +62,7 @@ export class MailLabelsView implements Component<MailLabelViewAttrs> {
 			mailFolderElementIdToSelectedMailId: attrs.mailLabelElementIdToSelectedMailId,
 			onFolderClick: attrs.onLabelClick,
 			onFolderDrop: attrs.onLabelDrop,
+			onFolderRefresh: attrs.onLabelRefresh,
 			expandedFolders: attrs.expandedLabels,
 			onFolderExpanded: attrs.onLabelExpanded,
 			onExpandFolderWithDelay: attrs.onExpandLabelWithDelay,

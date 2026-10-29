@@ -1,11 +1,11 @@
 import { FolderSubtree, FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { MailSet } from "@tutao/entities/tutanota"
 import m, { Children } from "mithril"
-import { getElementId } from "@tutao/meta"
+import { getElementId, isSameId } from "@tutao/meta"
 import { MAIL_PREFIX } from "../../../../ui/utils/RouteChange"
-import { NavButtonAttrs, NavButtonColor } from "../../../../ui/base/NavButton"
+import { isSelectedPrefix, NavButtonAttrs, NavButtonColor } from "../../../../ui/base/NavButton"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { canHaveDescendents, isEditableMailSet, isNestableMailSet } from "../MailUtils"
+import { canHaveDescendents, isEditableMailSet, isNestableMailSet, isVisibleSystemMailSet } from "../MailUtils"
 import { theme } from "../../../../ui/theme"
 import { DropData, DropType, renderDragElement } from "../../../../ui/base/GuiUtils"
 import { MailSetRow } from "./MailSetRow"
@@ -57,6 +57,7 @@ export interface MailSetTreeAttrs {
 	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailSet) => unknown
 	onFolderDrop: (dropData: DropData, folder: MailSet) => unknown
+	onFolderRefresh: (folder: MailSet) => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailSet, state: boolean) => unknown
 	onExpandFolderWithDelay: (folder: MailSet) => unknown
@@ -213,6 +214,29 @@ export function renderFolderTree(
 						folderSystemKind,
 					)
 				: null
+		const currentlySelectedFolder = folders
+			?.getIndentedList()
+			.map((f) => f.mailSet)
+			.find((f) => isSelectedPrefix(MAIL_PREFIX + "/" + getElementId(f)))
+		const isSelectedFolder = (currentlySelectedFolder && isSameId(currentlySelectedFolder._id, system.folder._id)) ?? false
+		const refreshButton: IconButtonAttrs | undefined =
+			isSelectedFolder && (isVisibleSystemMailSet(system.folder) || isNestableMailSet(system.folder)) && isRightButtonVisible
+				? {
+						icon: Icons.Refresh,
+						label: "refresh_action",
+						click: (_, dom) => {
+							const icon = dom.closest("button")?.querySelector("svg")
+							if (icon) {
+								icon.animate([{ transform: "rotate(0deg)" }, { transform: "rotate(360deg)" }], {
+									duration: 500,
+									easing: "ease-in-out",
+								})
+							}
+							attrs.onFolderRefresh(system.folder)
+						},
+					}
+				: undefined
+
 		const render = m.fragment(
 			{
 				key: id,
@@ -223,6 +247,7 @@ export function renderFolderTree(
 					button,
 					mailSet: system.folder,
 					rightButton,
+					refreshButton,
 					expanded: hasChildren ? currentExpansionState : null,
 					indentationLevel: Math.min(indentationLevel, MAX_FOLDER_INDENT_LEVEL),
 					onExpanderClick: hasChildren
