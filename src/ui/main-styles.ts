@@ -188,6 +188,11 @@ export class MainStyles {
 					margin: 0,
 					width: "100%",
 				},
+				"@supports (font: -apple-system-body)": {
+					body: {
+						font: "-apple-system-body !important",
+					},
+				},
 				html: {
 					"-webkit-font-smoothing": "subpixel-antialiased",
 				},
