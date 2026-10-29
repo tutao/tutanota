@@ -36,6 +36,7 @@ export interface MailIndexer {
 	rebuildIndex(user: User): Promise<void>
 	extendMailIndex(user: User): Promise<void>
 	cancelMailIndexing(): void
+	remainingDataInBytes(): Promise<number>
 }
 
 /**

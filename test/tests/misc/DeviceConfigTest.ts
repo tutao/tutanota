@@ -2,6 +2,7 @@ import o, { verify } from "@tutao/otest"
 import {
 	DeviceConfig,
 	DeviceConfigCredentials,
+	DownloadArchivesOnMeteredConnection,
 	ListAutoSelectBehavior,
 	MailListDisplayMode,
 	migrateConfigV2to3,
@@ -226,6 +227,7 @@ o.spec("DeviceConfig", function () {
 				isUndoSendEnabled: true,
 				collapsedMailGroups: {},
 				folderListSize: {},
+				downloadArchivesOnMeteredConnection: DownloadArchivesOnMeteredConnection.NOT_APPLICABLE,
 			}
 
 			// We can't just call verify on localStorageMock.setItem because the JSON string may not match perfectly

@@ -1,4 +1,4 @@
-import { AppType, Const, EnvProvider, FeatureType, ProgrammingError } from "@tutao/app-env"
+import { AppType, Const, EnvProvider, FeatureType, FULL_INDEXED_TIMESTAMP, METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES, ProgrammingError } from "@tutao/app-env"
 import { EventController } from "../common/api/main/EventController.js"
 import { MailSearchModel } from "./search/model/MailSearchModel.js"
 import { type MailboxDetail, MailboxModel } from "../common/mailFunctionality/MailboxModel.js"
@@ -57,13 +57,13 @@ import { WebsocketConnectivityModel } from "../common/misc/WebsocketConnectivity
 import { OperationProgressTracker } from "../common/api/main/OperationProgressTracker.js"
 import { InfoMessageHandler } from "../common/gui/InfoMessageHandler.js"
 import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade.js"
-import { assert, assertNotNull, defer, DeferredObject, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
+import { assert, assertNotNull, defer, DeferredObject, isNotNull, lazy, lazyAsync, LazyLoaded, lazyMemoized, noOp } from "@tutao/utils"
 import { RecipientsModel } from "../common/api/main/RecipientsModel.js"
 import { NoZoneDateProvider } from "../../platform-kit/utils/NoZoneDateProvider.js"
 import { SendMailModel } from "../common/mailFunctionality/SendMailModel.js"
 import { OfflineIndicatorViewModel } from "../common/gui/base/OfflineIndicatorViewModel.js"
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter.js"
-import { DeviceConfig, deviceConfig } from "../common/misc/DeviceConfig.js"
+import { DeviceConfig, deviceConfig, DownloadArchivesOnMeteredConnection } from "../common/misc/DeviceConfig.js"
 import { ExpandedInboxRuleHandler } from "./mail/model/ExpandedInboxRuleHandler.js"
 import { SearchRouter } from "../common/search/view/SearchRouter.js"
 import { MailOpenedListener, MailViewModel } from "./mail/view/MailViewModel.js"
@@ -176,6 +176,7 @@ import { PluginConfigurationProvider } from "../common/plugin/PluginConfiguratio
 import { MailPluginIntegrationAdapter } from "./plugin/MailPluginIntegrationAdapter"
 import { InboxRuleModel } from "./mail/model/InboxRuleModel"
 import { LegacyInboxRuleHandler } from "./mail/model/LegacyInboxRuleHandler"
+import { showMeteredConnectionWarningDialog } from "../common/gui/dialogs/MeteredConnectionWarningDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -1004,7 +1005,63 @@ class MailLocator implements CommonLocator {
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
-			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX)
+
+			let isHandlingConnectionTypeUpdated = false
+			const askContinueDownload = async (expectedDataInBytes: number) => {
+				indexerFacade.cancelMailIndexing()
+
+				const choice = await showMeteredConnectionWarningDialog(expectedDataInBytes)
+				if (choice === "continueIndexing") {
+					deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.ACCEPTED)
+					void indexerFacade
+						.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+						.then(() => deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE))
+				} else {
+					deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.DECLINED)
+				}
+			}
+			const handleConnectionTypeUpdated = async (isMetered: boolean) => {
+				// do not show two popups etc.
+				if (isHandlingConnectionTypeUpdated) {
+					return
+				} else {
+					isHandlingConnectionTypeUpdated = true
+				}
+
+				const expectedDataInBytes = await indexerFacade.remainingDataInBytes()
+				const state = deviceConfig.getContinueDownloadArchivesOnMeteredConnection()
+				const limitedDownloadApplicable = isMetered && expectedDataInBytes > METERED_CONNECTION_DOWNLOAD_LIMIT_IN_BYTES
+				const mailSearchModel = await this.mailSearchModel()
+
+				// accepted? just do nothing!
+				if (state !== DownloadArchivesOnMeteredConnection.ACCEPTED) {
+					if (limitedDownloadApplicable) {
+						switch (state) {
+							case DownloadArchivesOnMeteredConnection.DECLINED:
+								// cancel indexing
+								indexerFacade.cancelMailIndexing()
+								break
+							case DownloadArchivesOnMeteredConnection.NOT_APPLICABLE:
+								// set undecided and ask
+								deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
+								await askContinueDownload(expectedDataInBytes)
+								break
+							case DownloadArchivesOnMeteredConnection.UNDECIDED:
+								// ask
+								await askContinueDownload(expectedDataInBytes)
+						}
+					} else if (state !== DownloadArchivesOnMeteredConnection.NOT_APPLICABLE && isNotNull(mailSearchModel.indexState().error)) {
+						// resume when in unmetered connection again & we didn't manually cancel
+						// when cancelling, error is set to null
+						void indexerFacade
+							.extendMailIndex(FULL_INDEXED_TIMESTAMP)
+							.then(() => deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE))
+					}
+				}
+
+				isHandlingConnectionTypeUpdated = false
+			}
+			this.webMobileFacade = new WebMobileFacade(this.connectivityModel, MAIL_PREFIX, handleConnectionTypeUpdated)
 
 			this.nativeInterfaces = createNativeInterfaces(
 				this.webMobileFacade,

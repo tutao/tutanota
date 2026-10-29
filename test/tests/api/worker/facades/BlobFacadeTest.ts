@@ -1506,7 +1506,7 @@ o.spec("BlobFacade", function () {
 				}),
 			)
 
-			o.check(await blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).deepEquals(["archive 1", "archive 2", "archive 3"])
+			o.check(await blobFacade.enumerateArchivesForGroup("a group", ArchiveDataType.MailDetails)).deepEquals(archiveMetadata)
 		})
 
 		o.test("not found", async () => {

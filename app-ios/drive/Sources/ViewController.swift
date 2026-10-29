@@ -58,7 +58,12 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 		let commonSystemFacade = IosCommonSystemFacade(viewController: self, urlSession: urlSession)
 		let userAgent = "\(self.webView.value(forKey: "userAgent") ?? "")"
 		let globalDispatcher = IosGlobalDispatcher(
-			archiveDownloaderFacade: IosArchiveDownloaderFacade(sqlCipherFacade: sqlCipherFacade, schemeHandler: apiSchemeHandler, urlSession: urlSession),
+			archiveDownloaderFacade: IosArchiveDownloaderFacade(
+				sqlCipherFacade: sqlCipherFacade,
+				schemeHandler: apiSchemeHandler,
+				urlSession: urlSession,
+				networkMonitor: NetworkMonitor()
+			),
 			commonSystemFacade: commonSystemFacade,
 			externalCalendarFacade: ExternalCalendarFacadeImpl(urlSession: urlSession, userAgent: userAgent),
 			fileFacade: IosFileFacade(
@@ -133,7 +138,7 @@ class ViewController: UIViewController, WKNavigationDelegate, UIScrollViewDelega
 
 	}
 
-	var appDelegate: AppDelegate { get { UIApplication.shared.delegate as! AppDelegate } }
+	var appDelegate: AppDelegate { UIApplication.shared.delegate as! AppDelegate }
 
 	func loadMainPage(params: [String: String]) { DispatchQueue.main.async { self._loadMainPage(params: params) } }
 

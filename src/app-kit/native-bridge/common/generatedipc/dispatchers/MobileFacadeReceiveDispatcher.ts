@@ -21,6 +21,10 @@ export class MobileFacadeReceiveDispatcher {
 				const action: string = arg[0]
 				return this.facade.handleAppleInAppEvents(action)
 			}
+			case "connectionTypeUpdate": {
+				const isMetered: boolean = arg[0]
+				return this.facade.connectionTypeUpdate(isMetered)
+			}
 		}
 	}
 }

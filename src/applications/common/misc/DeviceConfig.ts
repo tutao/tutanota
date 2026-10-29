@@ -21,6 +21,13 @@ export enum ListAutoSelectBehavior {
 	NEWER,
 }
 
+export const enum DownloadArchivesOnMeteredConnection {
+	NOT_APPLICABLE = "DownloadArchivesOnMeteredConnectionNotApplicable",
+	UNDECIDED = "DownloadArchivesOnMeteredConnectionUndecided",
+	ACCEPTED = "DownloadArchivesOnMeteredConnectionAccepted",
+	DECLINED = "DownloadArchivesOnMeteredConnectionDeclined",
+}
+
 export const enum MailListDisplayMode {
 	CONVERSATIONS = "conversations",
 	MAILS = "mails",
@@ -73,6 +80,8 @@ interface ConfigObject {
 	mailListSize: Record<Id, number>
 	folderListSize: Record<Id, number>
 	isUndoSendEnabled: boolean
+	/** continue indexing even though we are on a metered connection */
+	downloadArchivesOnMeteredConnection: DownloadArchivesOnMeteredConnection
 
 	/**
 	 * A list of dates on which a user has sent an e-mail or created a calendar event. Each date is represented as the date's timestamp.
@@ -166,6 +175,7 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 			scrollTime: loadedConfig.scrollTime ?? 8,
 			installationDate: loadedConfig.installationDate ?? getStartOfDay(new Date()).getTime().toString(),
 			isUndoSendEnabled: loadedConfig.isUndoSendEnabled ?? true,
+			downloadArchivesOnMeteredConnection: loadedConfig.downloadArchivesOnMeteredConnection ?? DownloadArchivesOnMeteredConnection.NOT_APPLICABLE,
 			collapsedMailGroups: loadedConfig.collapsedMailGroups ?? {},
 		}
 
@@ -530,6 +540,15 @@ export class DeviceConfig implements UsageTestStorage, NewsItemStorage, ThemeCon
 
 	setIsUndoSendEnabled(status: boolean) {
 		this.config.isUndoSendEnabled = status
+		this.writeToStorage()
+	}
+
+	getContinueDownloadArchivesOnMeteredConnection() {
+		return this.config.downloadArchivesOnMeteredConnection
+	}
+
+	setContinueDownloadArchivesOnMeteredConnection(decision: DownloadArchivesOnMeteredConnection) {
+		this.config.downloadArchivesOnMeteredConnection = decision
 		this.writeToStorage()
 	}
 

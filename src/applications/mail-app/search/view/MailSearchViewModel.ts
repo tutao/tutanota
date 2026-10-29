@@ -38,7 +38,7 @@ import { Indexer } from "../../workerUtils/index/Indexer"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { isMailDeletable } from "../../mail/model/MailChecks"
 import { isPermanentDeleteAllowedForFolder } from "../../mail/MailUtils"
-import { ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
+import { deviceConfig, DownloadArchivesOnMeteredConnection, ListAutoSelectBehavior } from "../../../common/misc/DeviceConfig"
 import { getMailFilterForType, MailFilterType } from "../../mail/view/MailViewerUtils"
 import { MailOpenedListener } from "../../mail/view/MailViewModel"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
@@ -362,10 +362,16 @@ export class MailSearchViewModel {
 	}
 
 	extendMailIndex(time: number): Promise<void> {
-		return this.indexerFacade.extendMailIndex(time)
+		if (deviceConfig.getContinueDownloadArchivesOnMeteredConnection() === DownloadArchivesOnMeteredConnection.NOT_APPLICABLE) {
+			deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
+		}
+		return this.indexerFacade
+			.extendMailIndex(time)
+			.then(() => deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE))
 	}
 
 	cancelMailIndexing() {
+		deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.NOT_APPLICABLE)
 		this.indexerFacade.cancelMailIndexing()
 	}
 
