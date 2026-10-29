@@ -1,6 +1,6 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { PasswordFieldAttrs, PasswordFieldNew } from "./PasswordFieldNew"
-import { font_size, px } from "../../../../ui/size"
+import { rem, font_size, px } from "../../../../ui/size"
 import { EnvProvider } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import Stream from "mithril/stream"
@@ -252,7 +252,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 							status: attrs.model.getOldPasswordStatus(),
 							oninput: (input) => attrs.model.setOldPassword(input),
 							autocompleteAs: Autocomplete.currentPassword,
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 						} satisfies PasswordFieldAttrs)
 					: null,
 				m(PasswordFieldNew, {
@@ -263,7 +263,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 					status: "auto",
 					oninput: (input) => attrs.model.setNewPassword(input),
 					autocompleteAs: Autocomplete.newPassword,
-					fontSize: px(font_size.smaller),
+					fontSize: rem(font_size.smaller_em),
 				}),
 				attrs.model.config.hideConfirmation
 					? null
@@ -273,7 +273,7 @@ export class PasswordFormNew implements Component<PasswordFormAttrs> {
 							autocompleteAs: Autocomplete.newPassword,
 							status: attrs.model.getRepeatedPasswordStatus(),
 							oninput: (input) => attrs.model.setRepeatedPassword(input),
-							fontSize: px(font_size.smaller),
+							fontSize: rem(font_size.smaller_em),
 						}),
 				attrs.passwordInfoKey ? m(".small.mt-8", lang.get(attrs.passwordInfoKey)) : null,
 			],

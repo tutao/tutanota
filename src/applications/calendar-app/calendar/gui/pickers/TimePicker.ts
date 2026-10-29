@@ -4,7 +4,7 @@ import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
-import { font_size, px } from "../../../../../ui/size.js"
+import { rem, font_size, px } from "../../../../../ui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
@@ -80,7 +80,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				m(LegacyTextField, {
 					style: {
 						width: "100%",
-						fontSize: px(font_size.smaller),
+						fontSize: rem(font_size.smaller_em),
 					},
 					label: attrs.ariaLabel,
 					disabled: attrs.disabled,
@@ -116,7 +116,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					ariaLabel: attrs.ariaLabel,
 					style: {
 						textAlign: "center",
-						fontSize: px(font_size.smaller),
+						fontSize: rem(font_size.small_em),
 						borderWidth: EnvProvider.get().isApp() ? "2px" : "",
 					},
 					value: this.inputText,

@@ -1,7 +1,7 @@
 import m, { Children, ClassComponent, Component, Vnode, VnodeDOM } from "mithril"
 import { LegacyTextFieldType } from "./LegacyTextField.js"
 import { AllIcons, Icon, IconSize } from "./Icon.js"
-import { px, size } from "../size.js"
+import { font_size, getBaseFontSizePX, px, size } from "../size.js"
 import { filterInt } from "@tutao/utils"
 import { lang, Translation } from "../utils/LanguageViewModel"
 
@@ -85,24 +85,24 @@ export class SingleLineTextField<T extends LegacyTextFieldType> implements Class
 		}
 
 		const fontSizeString = attrs.style?.fontSize
-		const fontSizeNumber = fontSizeString ? filterInt(fontSizeString.replace("px", "")) : 16
+		const fontSizeNumber = fontSizeString ? filterInt(fontSizeString.replace("px", "")) : font_size.base
 
 		const iconLeftPadding = 12
 
 		let iconSize
-		let iconSizeValue
+		let iconSizeEm
 		if (fontSizeNumber > 16 && fontSizeNumber < 32) {
 			iconSize = IconSize.PX20
-			iconSizeValue = size.icon_20
+			iconSizeEm = size.core_20_em
 		} else if (fontSizeNumber > 32) {
 			iconSize = IconSize.PX32
-			iconSizeValue = size.icon_32
+			iconSizeEm = size.core_32_em
 		} else {
 			iconSize = IconSize.PX24
-			iconSizeValue = size.icon_24
+			iconSizeEm = size.core_24_em
 		}
 
-		const iconLeftPaddingAndIconSize = iconLeftPadding + iconSizeValue
+		const iconLeftPaddingAndIconSize = iconLeftPadding + iconSizeEm * getBaseFontSizePX()
 		const spacingBetweenIconAndText = size.spacing_16
 
 		return m(".rel.flex.flex-grow", [

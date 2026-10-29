@@ -3,9 +3,8 @@ import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientD
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
 import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
-import { px } from "../../../../../ui/size.js"
+import { rem, font_size, px } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
-
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP, Nullable } from "../../../../../platform-kit/utils"
 import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
@@ -13,7 +12,7 @@ import { LegacyTextField, LegacyTextFieldType } from "../../../../../ui/base/Leg
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
-import { getCalendarMonth } from "../CalendarGuiUtils.js"
+import { getCalendarMonth, getElementWidth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
 import { EnvProvider, TabIndex } from "../../../../../platform-kit/app-env"
 import { AriaPopupType } from "../../../../../ui/AriaUtils.js"
@@ -403,8 +402,8 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 					".flex.flex-column.flex-space-around",
 					{
 						style: {
-							fontSize: px(14),
-							lineHeight: px(this.getElementWidth(vnode.attrs)),
+							fontSize: rem(font_size.smaller_em),
+							lineHeight: px(getElementWidth(vnode.attrs.wide)),
 						},
 					},
 					weeks.map((w) => this.renderWeek(w, vnode.attrs)),
@@ -414,14 +413,14 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderPickerHeader(vnode: Vnode<VisualDatePickerAttrs>, date: Date): Children {
-		const size = this.getElementWidth(vnode.attrs)
+		const size = getElementWidth(vnode.attrs.wide)
 		return m(".flex.flex-space-between.pt-8.pb-8.items-center", [
 			renderSwitchMonthArrowIcon(false, size, () => this.onPrevMonthSelected()),
 			m(
 				".b",
 				{
 					style: {
-						fontSize: px(14),
+						fontSize: rem(font_size.smaller_em),
 					},
 				},
 				formatMonthWithFullYear(date),
@@ -444,7 +443,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		const isSubstituteDay = attrs.selectedDate?.getMonth() !== date.getMonth() && date.getDate() === 1
 		const isTabbable = !isPaddingDay && (isSelectedDay || isSubstituteDay)
 
-		const size = this.getElementWidth(attrs)
+		const size = getElementWidth(attrs.wide)
 		const selector = isSelectedDay && !isPaddingDay ? ".circle.accent-bg" : ""
 		return m(
 			".rel.flex.items-center.justify-center",
@@ -662,10 +661,6 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		}
 	}
 
-	private getElementWidth(attrs: VisualDatePickerAttrs): number {
-		return attrs.wide ? 40 : 24
-	}
-
 	private renderWeek(week: ReadonlyArray<CalendarDay>, attrs: VisualDatePickerAttrs): Children {
 		return m(
 			".flex.flex-space-between",
@@ -674,8 +669,8 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
-		const size = px(wide ? 40 : 24)
-		const fontSize = px(14)
+		const size = getElementWidth(wide)
+		const fontSize = rem(font_size.smaller_em)
 		return weekdays.map((wd) =>
 			m(
 				".center",

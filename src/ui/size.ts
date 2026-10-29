@@ -1,4 +1,5 @@
 import { EnvProvider } from "../platform-kit/app-env"
+import { filterInt } from "@tutao/utils"
 
 EnvProvider.assertMainOrNodeBoot()
 export const size = {
@@ -23,6 +24,14 @@ export const size = {
 	core_96: 96,
 	core_112: 112,
 	core_128: 128,
+
+	core_8_em: 0.5,
+	core_10_em: 0.625,
+	core_18_em: 1.17,
+	core_20_em: 1.25,
+	core_24_em: 1.5,
+	core_32_em: 2,
+	core_40_em: 2.5,
 
 	// Spacings
 	get spacing_4(): number {
@@ -96,14 +105,21 @@ export const size = {
 
 export const font_size = {
 	base: 16,
+	base_em: 1,
 	smaller: 14,
 	small: 12,
+	smaller_em: 0.875,
+	small_em: 0.75,
 	line_height: 1.428571429,
 	line_height_m: 1.6,
 	line_height_l: 1.8,
 
 	get line_height_input(): number {
 		return this.base + 8
+	},
+
+	get line_height_input_em(): number {
+		return (this.base + 8) / this.base
 	},
 }
 
@@ -118,6 +134,7 @@ export const layout_size = {
 
 	calendar_day_event_padding: 2,
 	calendar_days_header_height: 25,
+	calendar_days_header_height_em: 1.5,
 	calendar_event_border: 1,
 	calendar_event_margin: 6,
 	calendar_event_margin_mobile: 2,
@@ -152,6 +169,7 @@ export const layout_size = {
 
 export const component_size = {
 	button_height: 44,
+	button_height_em: 2.75,
 	button_height_xs: 20,
 	button_height_sm: 32,
 	button_height_md: 48,
@@ -173,6 +191,7 @@ export const component_size = {
 	list_row_height: 68,
 	dot_size: 7,
 	checkbox_size: 14,
+	checkbox_size_em: 0.875,
 	checkbox_border_size: 2,
 	get checkbox_helper_text_margin(): number {
 		return this.checkbox_size + this.checkbox_border_size + size.spacing_4
@@ -181,4 +200,17 @@ export const component_size = {
 
 export function px(value: number): string {
 	return value + "px"
+}
+
+export function rem(value: number): string {
+	return value + "rem"
+}
+
+export function getBaseFontSizePX(): number {
+	const bodyFontSize = Number(window.getComputedStyle(document.body).getPropertyValue("font-size").replace("px", ""))
+	if (isNaN(bodyFontSize)) {
+		// default is base (16px)
+		return font_size.base
+	}
+	return bodyFontSize
 }

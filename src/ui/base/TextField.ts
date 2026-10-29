@@ -1,5 +1,5 @@
 import m, { Children, ClassComponent, CVnode } from "mithril"
-import { font_size, px, size } from "../size"
+import { rem, font_size, px, size } from "../size"
 import { DefaultAnimationTime } from "../animation/Animations"
 import { theme } from "../theme"
 import type { MaybeTranslation } from "../utils/LanguageViewModel"
@@ -124,7 +124,7 @@ export class TextField implements ClassComponent<TextFieldAttrs> {
 										this._domLabel = vnode.dom as HTMLElement
 									},
 									style: {
-										fontSize: `${labelBase ? font_size.base : font_size.small}px`,
+										fontSize: rem(labelBase ? font_size.base_em : font_size.small_em),
 										transform: `translateY(${labelBase ? baseLabelPosition : 0})`,
 										"transition-timing-function": "ease-out",
 										"transition-duration": `${labelTransitionSpeed}ms`,

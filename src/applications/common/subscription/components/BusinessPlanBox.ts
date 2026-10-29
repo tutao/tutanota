@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { px, size } from "../../../../ui/size"
+import { rem, font_size, px, size } from "../../../../ui/size"
 import { Theme, theme } from "../../../../ui/theme"
 import { PaymentInterval, PriceAndConfigProvider } from "../utils/PriceUtils"
 import { TranslationKeyType } from "../../../../ui/utils/TranslationKey"
@@ -221,7 +221,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 											(discountDetail?.discountType === "GlobalFirstYear" ||
 												discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
 												isYearly &&
-												m("sup", { style: { "font-size": px(8) } }, "1"),
+												m("sup", { style: { "font-size": rem(size.core_8_em) } }, "1"),
 										),
 									]),
 						),
@@ -289,7 +289,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			{
 				style: {
 					display: isMobileLayout ? "none" : "block",
-					fontSize: px(12),
+					fontSize: rem(font_size.small_em),
 					color: hasCampaign ? localTheme.primary : undefined,
 				},
 			},
@@ -310,7 +310,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				style: {
 					lineHeight: 1,
 					fontWeight: "bold",
-					fontSize: px(isMobileLayout ? 18 : 20),
+					fontSize: rem(isMobileLayout ? size.core_18_em : size.core_20_em),
 					color,
 				},
 			},

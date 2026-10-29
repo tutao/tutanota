@@ -1,6 +1,7 @@
 import { AllIcons, Icon, IconSize } from "./base/Icon"
 import m, { Children, Component, Vnode } from "mithril"
 import { Card } from "./base/Card"
+import { rem } from "./size"
 
 export type TitleSectionAttrs = {
 	icon?: AllIcons
@@ -44,7 +45,7 @@ export class TitleSection implements Component<TitleSectionAttrs> {
 					".center.mb-16",
 					{
 						style: {
-							fontSize: "20px",
+							fontSize: rem(1.25),
 						},
 					},
 					attrs.title,

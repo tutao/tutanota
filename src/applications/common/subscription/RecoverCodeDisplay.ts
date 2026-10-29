@@ -9,7 +9,7 @@ import { lang } from "../../../ui/utils/LanguageViewModel"
 import { copyToClipboard } from "../../../ui/utils/ClipboardUtils"
 import { showSnackBar } from "../../../ui/base/SnackBar"
 import { EnvProvider } from "@tutao/app-env"
-import { px } from "../../../ui/size"
+import { rem, px, size } from "../../../ui/size"
 
 EnvProvider.assertMainOrNode()
 
@@ -33,7 +33,7 @@ export class RecoverCodeDisplay implements Component<RecoverCodeDisplayAttrs> {
 					style: {
 						"background-color": theme.surface_container_highest,
 						color: theme.on_surface_variant,
-						"font-size": monoSpaceFontSize ? px(monoSpaceFontSize) : px(20),
+						"font-size": monoSpaceFontSize ? rem(monoSpaceFontSize) : rem(size.core_20_em),
 					},
 				},
 

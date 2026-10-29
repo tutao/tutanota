@@ -1,6 +1,6 @@
 import m, { Children, ClassComponent, Vnode } from "mithril"
 import { AriaLandmarks, landmarkAttrs } from "../AriaUtils.js"
-import { font_size, px, size } from "../size.js"
+import { rem, font_size, px, size } from "../size.js"
 import { Styles } from "../styles.js"
 import { TabIndex } from "../../platform-kit/app-env"
 import { DefaultAnimationTime } from "../animation/Animations.js"
@@ -134,7 +134,7 @@ export class BaseSearchBar implements ClassComponent<BaseSearchBarAttrs> {
 				attrs.onKeyDown?.(e)
 			},
 			style: {
-				"line-height": px(font_size.line_height_input),
+				"line-height": rem(font_size.line_height_input_em),
 			},
 		})
 	}
