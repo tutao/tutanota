@@ -6701,7 +6701,7 @@ export function createMailboxMigrationImapConfiguration(values: MailboxMigration
 export type MailboxMigrationImapConfigurationParams = {
 	host: string
 	port: NumberString
-	legacyUsername: null | string
+	sharedUsername: null | string
 	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
@@ -6716,7 +6716,7 @@ export type MailboxMigrationImapConfiguration = {
 	_id: Id
 	host: string
 	port: NumberString
-	legacyUsername: null | string
+	sharedUsername: null | string
 	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
@@ -6889,10 +6889,9 @@ export function createMailboxMigrationSyncState(values: MailboxMigrationSyncStat
 
 export type MailboxMigrationSyncStateParams = {
 	postponedUntil: NumberString
-	provider: NumberString
+	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
-	sharedMailboxName: null | string
 
 	mailboxMigrationFolderSyncStates: Id
 	imapConfiguration: null | MailboxMigrationImapConfiguration
@@ -6911,10 +6910,9 @@ export type MailboxMigrationSyncState = {
 	_ownerKeyVersion: null | NumberString
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	postponedUntil: NumberString
-	provider: NumberString
+	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
-	sharedMailboxName: null | string
 
 	// == associations
 
@@ -8029,7 +8027,7 @@ export function createMailboxMigrationImapConfigurationTransferAggregatedType(
 export type MailboxMigrationImapConfigurationTransferAggregatedTypeParams = {
 	host: string
 	port: NumberString
-	legacyUsername: null | string
+	sharedUsername: null | string
 	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
@@ -8044,7 +8042,7 @@ export type MailboxMigrationImapConfigurationTransferAggregatedType = {
 	_id: Id
 	host: string
 	port: NumberString
-	legacyUsername: null | string
+	sharedUsername: null | string
 	sharedPassword: null | string
 	ignoreCertificateErrors: boolean
 	customCertificateData: null | Uint8Array<ArrayBuffer>
@@ -8086,8 +8084,7 @@ export type MailboxMigrationSyncStateTransferAggregatedTypeParams = {
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	postponedUntil: NumberString
-	provider: NumberString
-	sharedMailboxName: null | string
+	legacyProvider: null | NumberString
 
 	imapConfiguration: null | MailboxMigrationImapConfigurationTransferAggregatedType
 	rootImportMailSet: null | IdTuple
@@ -8103,8 +8100,7 @@ export type MailboxMigrationSyncStateTransferAggregatedType = {
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
 	_ownerGroup: null | Id
 	postponedUntil: NumberString
-	provider: NumberString
-	sharedMailboxName: null | string
+	legacyProvider: null | NumberString
 
 	// == associations
 
@@ -8575,7 +8571,7 @@ export type UpdateMailboxMigrationSyncStateTransferAggregatedType = {
 	_original: Nullable<UpdateMailboxMigrationSyncStateTransferAggregatedType>
 	isAdapter: false
 }
-export const MailboxMigrationFolderPostInTypeRef: TypeRef<MailboxMigrationFolderPostIn> = new TypeRef("tutanota", 2226)
+export const MailboxMigrationFolderPostInTypeRef: TypeRef<MailboxMigrationFolderPostIn> = new TypeRef("tutanota", 2224)
 
 export function createMailboxMigrationFolderPostIn(values: MailboxMigrationFolderPostInParams): MailboxMigrationFolderPostIn {
 	return Object.assign(create(typeModels[MailboxMigrationFolderPostInTypeRef.typeId], MailboxMigrationFolderPostInTypeRef), values)
@@ -8618,7 +8614,7 @@ export type MailboxMigrationFolderPostIn = {
 	_original: Nullable<MailboxMigrationFolderPostIn>
 	isAdapter: false
 }
-export const MailboxMigrationFolderPostOutTypeRef: TypeRef<MailboxMigrationFolderPostOut> = new TypeRef("tutanota", 2231)
+export const MailboxMigrationFolderPostOutTypeRef: TypeRef<MailboxMigrationFolderPostOut> = new TypeRef("tutanota", 2229)
 
 export function createMailboxMigrationFolderPostOut(values: MailboxMigrationFolderPostOutParams): MailboxMigrationFolderPostOut {
 	return Object.assign(create(typeModels[MailboxMigrationFolderPostOutTypeRef.typeId], MailboxMigrationFolderPostOutTypeRef), values)
@@ -8655,7 +8651,7 @@ export type MailboxMigrationFolderPostOut = {
 	_original: Nullable<MailboxMigrationFolderPostOut>
 	isAdapter: false
 }
-export const MailboxMigrationFolderDeleteInTypeRef: TypeRef<MailboxMigrationFolderDeleteIn> = new TypeRef("tutanota", 2234)
+export const MailboxMigrationFolderDeleteInTypeRef: TypeRef<MailboxMigrationFolderDeleteIn> = new TypeRef("tutanota", 2232)
 
 export function createMailboxMigrationFolderDeleteIn(values: MailboxMigrationFolderDeleteInParams): MailboxMigrationFolderDeleteIn {
 	return Object.assign(create(typeModels[MailboxMigrationFolderDeleteInTypeRef.typeId], MailboxMigrationFolderDeleteInTypeRef), values)
@@ -8692,7 +8688,7 @@ export type MailboxMigrationFolderDeleteIn = {
 	_original: Nullable<MailboxMigrationFolderDeleteIn>
 	isAdapter: false
 }
-export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 2238)
+export const MailboxMigrationPostInTypeRef: TypeRef<MailboxMigrationPostIn> = new TypeRef("tutanota", 2236)
 
 export function createMailboxMigrationPostIn(values: MailboxMigrationPostInParams): MailboxMigrationPostIn {
 	return Object.assign(create(typeModels[MailboxMigrationPostInTypeRef.typeId], MailboxMigrationPostInTypeRef), values)
@@ -8732,7 +8728,7 @@ export type MailboxMigrationPostIn = {
 	_original: Nullable<MailboxMigrationPostIn>
 	isAdapter: false
 }
-export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2242)
+export const MailboxMigrationPostOutTypeRef: TypeRef<MailboxMigrationPostOut> = new TypeRef("tutanota", 2240)
 
 export function createMailboxMigrationPostOut(values: MailboxMigrationPostOutParams): MailboxMigrationPostOut {
 	return Object.assign(create(typeModels[MailboxMigrationPostOutTypeRef.typeId], MailboxMigrationPostOutTypeRef), values)
@@ -8769,7 +8765,7 @@ export type MailboxMigrationPostOut = {
 	_original: Nullable<MailboxMigrationPostOut>
 	isAdapter: false
 }
-export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2245)
+export const MailboxMigrationDeleteInTypeRef: TypeRef<MailboxMigrationDeleteIn> = new TypeRef("tutanota", 2243)
 
 export function createMailboxMigrationDeleteIn(values: MailboxMigrationDeleteInParams): MailboxMigrationDeleteIn {
 	return Object.assign(create(typeModels[MailboxMigrationDeleteInTypeRef.typeId], MailboxMigrationDeleteInTypeRef), values)
@@ -8806,7 +8802,7 @@ export type MailboxMigrationDeleteIn = {
 	_original: Nullable<MailboxMigrationDeleteIn>
 	isAdapter: false
 }
-export const MailboxMigrationPutInTypeRef: TypeRef<MailboxMigrationPutIn> = new TypeRef("tutanota", 2248)
+export const MailboxMigrationPutInTypeRef: TypeRef<MailboxMigrationPutIn> = new TypeRef("tutanota", 2246)
 
 export function createMailboxMigrationPutIn(values: MailboxMigrationPutInParams): MailboxMigrationPutIn {
 	return Object.assign(create(typeModels[MailboxMigrationPutInTypeRef.typeId], MailboxMigrationPutInTypeRef), values)

@@ -3721,7 +3721,7 @@ pub struct ImportMailData {
 	pub imapModSeq: Option<i64>,
 	#[serde(rename = "1966")]
 	pub imapUid: Option<i64>,
-	#[serde(rename = "2255")]
+	#[serde(rename = "2253")]
 	pub sourceId: Option<String>,
 	#[serde(rename = "1547")]
 	pub references: Vec<ImportMailDataMailReference>,
@@ -4505,7 +4505,7 @@ pub struct MailboxMigrationImapConfiguration {
 	#[serde(rename = "1869")]
 	pub port: i64,
 	#[serde(rename = "1870")]
-	pub legacyUsername: Option<String>,
+	pub sharedUsername: Option<String>,
 	#[serde(rename = "1871")]
 	pub sharedPassword: Option<String>,
 	#[serde(rename = "1987")]
@@ -4671,13 +4671,11 @@ pub struct MailboxMigrationSyncState {
 	#[serde(rename = "1921")]
 	pub postponedUntil: i64,
 	#[serde(rename = "1922")]
-	pub provider: i64,
+	pub legacyProvider: Option<i64>,
 	#[serde(rename = "1923")]
 	pub status: i64,
 	#[serde(rename = "1968")]
 	pub importedMailCount: Option<i64>,
-	#[serde(rename = "2224")]
-	pub sharedMailboxName: Option<String>,
 	#[serde(rename = "1924")]
 	pub mailboxMigrationFolderSyncStates: GeneratedId,
 	#[serde(rename = "1925")]
@@ -5404,7 +5402,7 @@ pub struct MailboxMigrationImapConfigurationTransferAggregatedType {
 	#[serde(rename = "2130")]
 	pub port: i64,
 	#[serde(rename = "2131")]
-	pub legacyUsername: Option<String>,
+	pub sharedUsername: Option<String>,
 	#[serde(rename = "2132")]
 	pub sharedPassword: Option<String>,
 	#[serde(rename = "2133")]
@@ -5448,9 +5446,7 @@ pub struct MailboxMigrationSyncStateTransferAggregatedType {
 	#[serde(rename = "2144")]
 	pub postponedUntil: i64,
 	#[serde(rename = "2145")]
-	pub provider: i64,
-	#[serde(rename = "2225")]
-	pub sharedMailboxName: Option<String>,
+	pub legacyProvider: Option<i64>,
 	#[serde(rename = "2146")]
 	pub imapConfiguration: Option<MailboxMigrationImapConfigurationTransferAggregatedType>,
 	#[serde(rename = "2147")]
@@ -5717,7 +5713,7 @@ pub struct ImportMailData2 {
 	pub messageId: Option<String>,
 	#[serde(rename = "2209")]
 	pub inReplyTo: Option<String>,
-	#[serde(rename = "2256")]
+	#[serde(rename = "2254")]
 	pub imapUid: Option<i64>,
 	#[serde(rename = "2210")]
 	pub labels: Vec<IdTupleGenerated>,
@@ -5774,13 +5770,13 @@ impl Entity for UpdateMailboxMigrationSyncStateTransferAggregatedType {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationFolderPostIn {
-	#[serde(rename = "2227")]
+	#[serde(rename = "2225")]
 	pub _format: i64,
-	#[serde(rename = "2228")]
+	#[serde(rename = "2226")]
 	pub shouldSync: bool,
-	#[serde(rename = "2229")]
+	#[serde(rename = "2227")]
 	pub mailboxMigrationSyncState: IdTupleGenerated,
-	#[serde(rename = "2230")]
+	#[serde(rename = "2228")]
 	pub mailboxMigrationFolderSyncState: MailboxMigrationFolderSyncStateTransferAggregatedType,
 
 	#[serde(default)]
@@ -5791,7 +5787,7 @@ impl Entity for MailboxMigrationFolderPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2226),
+			type_id: TypeId::from(2224),
 		}
 	}
 }
@@ -5799,9 +5795,9 @@ impl Entity for MailboxMigrationFolderPostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationFolderPostOut {
-	#[serde(rename = "2232")]
+	#[serde(rename = "2230")]
 	pub _format: i64,
-	#[serde(rename = "2233")]
+	#[serde(rename = "2231")]
 	pub mailboxMigrationFolderSyncState: IdTupleGenerated,
 }
 
@@ -5809,7 +5805,7 @@ impl Entity for MailboxMigrationFolderPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2231),
+			type_id: TypeId::from(2229),
 		}
 	}
 }
@@ -5817,9 +5813,9 @@ impl Entity for MailboxMigrationFolderPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationFolderDeleteIn {
-	#[serde(rename = "2235")]
+	#[serde(rename = "2233")]
 	pub _format: i64,
-	#[serde(rename = "2236")]
+	#[serde(rename = "2234")]
 	pub mailboxMigrationFolderSyncState: IdTupleGenerated,
 }
 
@@ -5827,7 +5823,7 @@ impl Entity for MailboxMigrationFolderDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2234),
+			type_id: TypeId::from(2232),
 		}
 	}
 }
@@ -5835,11 +5831,11 @@ impl Entity for MailboxMigrationFolderDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationPostIn {
-	#[serde(rename = "2239")]
+	#[serde(rename = "2237")]
 	pub _format: i64,
-	#[serde(rename = "2240")]
+	#[serde(rename = "2238")]
 	pub userMigrationInfo: IdTupleGenerated,
-	#[serde(rename = "2241")]
+	#[serde(rename = "2239")]
 	pub mailboxMigrationSyncState: MailboxMigrationSyncStateTransferAggregatedType,
 
 	#[serde(default)]
@@ -5850,7 +5846,7 @@ impl Entity for MailboxMigrationPostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2238),
+			type_id: TypeId::from(2236),
 		}
 	}
 }
@@ -5858,9 +5854,9 @@ impl Entity for MailboxMigrationPostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationPostOut {
-	#[serde(rename = "2243")]
+	#[serde(rename = "2241")]
 	pub _format: i64,
-	#[serde(rename = "2244")]
+	#[serde(rename = "2242")]
 	pub mailboxMigrationSyncState: IdTupleGenerated,
 }
 
@@ -5868,7 +5864,7 @@ impl Entity for MailboxMigrationPostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2242),
+			type_id: TypeId::from(2240),
 		}
 	}
 }
@@ -5876,9 +5872,9 @@ impl Entity for MailboxMigrationPostOut {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationDeleteIn {
-	#[serde(rename = "2246")]
+	#[serde(rename = "2244")]
 	pub _format: i64,
-	#[serde(rename = "2247")]
+	#[serde(rename = "2245")]
 	pub mailboxMigrationSyncState: IdTupleGenerated,
 }
 
@@ -5886,7 +5882,7 @@ impl Entity for MailboxMigrationDeleteIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2245),
+			type_id: TypeId::from(2243),
 		}
 	}
 }
@@ -5894,15 +5890,15 @@ impl Entity for MailboxMigrationDeleteIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct MailboxMigrationPutIn {
-	#[serde(rename = "2249")]
+	#[serde(rename = "2247")]
 	pub _format: i64,
-	#[serde(rename = "2251")]
+	#[serde(rename = "2249")]
 	pub newMailboxMigrationSyncStatus: i64,
-	#[serde(rename = "2252")]
-	pub newMailboxMigrationFolderSyncStatus: i64,
 	#[serde(rename = "2250")]
+	pub newMailboxMigrationFolderSyncStatus: i64,
+	#[serde(rename = "2248")]
 	pub mailboxMigrationSyncState: IdTupleGenerated,
-	#[serde(rename = "2253")]
+	#[serde(rename = "2251")]
 	pub mailboxMigrationSyncStateWithNewPostponedUntil: Option<UpdateMailboxMigrationSyncStateTransferAggregatedType>,
 
 	#[serde(default)]
@@ -5913,7 +5909,7 @@ impl Entity for MailboxMigrationPutIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Tutanota,
-			type_id: TypeId::from(2248),
+			type_id: TypeId::from(2246),
 		}
 	}
 }

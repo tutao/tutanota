@@ -9727,10 +9727,10 @@ const typeModels = {
 				encrypted: false,
 				transferredAttributeId: null,
 			},
-			2255: {
+			2253: {
 				final: false,
 				name: "sourceId",
-				id: 2255,
+				id: 2253,
 				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
@@ -11725,7 +11725,7 @@ const typeModels = {
 			},
 			1870: {
 				final: true,
-				name: "legacyUsername",
+				name: "sharedUsername",
 				id: 1870,
 				type: "String",
 				cardinality: "ZeroOrOne",
@@ -12222,10 +12222,10 @@ const typeModels = {
 			},
 			1922: {
 				final: true,
-				name: "provider",
+				name: "legacyProvider",
 				id: 1922,
 				type: "Number",
-				cardinality: "One",
+				cardinality: "ZeroOrOne",
 				encrypted: true,
 				transferredAttributeId: null,
 			},
@@ -12245,15 +12245,6 @@ const typeModels = {
 				type: "Number",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
-				transferredAttributeId: null,
-			},
-			2224: {
-				final: true,
-				name: "sharedMailboxName",
-				id: 2224,
-				type: "String",
-				cardinality: "ZeroOrOne",
-				encrypted: true,
 				transferredAttributeId: null,
 			},
 		},
@@ -13996,7 +13987,7 @@ const typeModels = {
 			},
 			2131: {
 				final: true,
-				name: "legacyUsername",
+				name: "sharedUsername",
 				id: 2131,
 				type: "String",
 				cardinality: "ZeroOrOne",
@@ -14122,21 +14113,12 @@ const typeModels = {
 			},
 			2145: {
 				final: true,
-				name: "provider",
+				name: "legacyProvider",
 				id: 2145,
 				type: "Number",
-				cardinality: "One",
-				encrypted: true,
-				transferredAttributeId: 1922,
-			},
-			2225: {
-				final: true,
-				name: "sharedMailboxName",
-				id: 2225,
-				type: "String",
 				cardinality: "ZeroOrOne",
 				encrypted: true,
-				transferredAttributeId: 2224,
+				transferredAttributeId: 1922,
 			},
 		},
 		associations: {
@@ -14775,10 +14757,10 @@ const typeModels = {
 				encrypted: false,
 				transferredAttributeId: null,
 			},
-			2256: {
+			2254: {
 				final: true,
 				name: "imapUid",
-				id: 2256,
+				id: 2254,
 				type: "Number",
 				cardinality: "ZeroOrOne",
 				encrypted: false,
@@ -14909,32 +14891,32 @@ const typeModels = {
 		},
 		associations: {},
 	},
-	2226: {
+	2224: {
 		name: "MailboxMigrationFolderPostIn",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2226,
-		rootId: "CHR1dGFub3RhAAiy",
+		id: 2224,
+		rootId: "CHR1dGFub3RhAAiw",
 		versioned: false,
 		encrypted: true,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2227: {
+			2225: {
 				final: false,
 				name: "_format",
-				id: 2227,
+				id: 2225,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
 				transferredAttributeId: null,
 			},
-			2228: {
+			2226: {
 				final: false,
 				name: "shouldSync",
-				id: 2228,
+				id: 2226,
 				type: "Boolean",
 				cardinality: "One",
 				encrypted: false,
@@ -14942,20 +14924,20 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2229: {
+			2227: {
 				final: true,
 				name: "mailboxMigrationSyncState",
-				id: 2229,
+				id: 2227,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1911,
 				dependency: null,
 				transferredAttributeId: null,
 			},
-			2230: {
+			2228: {
 				final: false,
 				name: "mailboxMigrationFolderSyncState",
-				id: 2230,
+				id: 2228,
 				type: "AGGREGATION",
 				cardinality: "One",
 				refTypeId: 2111,
@@ -14964,23 +14946,23 @@ const typeModels = {
 			},
 		},
 	},
-	2231: {
+	2229: {
 		name: "MailboxMigrationFolderPostOut",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2231,
-		rootId: "CHR1dGFub3RhAAi3",
+		id: 2229,
+		rootId: "CHR1dGFub3RhAAi1",
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2232: {
+			2230: {
 				final: false,
 				name: "_format",
-				id: 2232,
+				id: 2230,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -14988,10 +14970,10 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2233: {
+			2231: {
 				final: false,
 				name: "mailboxMigrationFolderSyncState",
-				id: 2233,
+				id: 2231,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1895,
@@ -15000,23 +14982,23 @@ const typeModels = {
 			},
 		},
 	},
-	2234: {
+	2232: {
 		name: "MailboxMigrationFolderDeleteIn",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2234,
-		rootId: "CHR1dGFub3RhAAi6",
+		id: 2232,
+		rootId: "CHR1dGFub3RhAAi4",
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2235: {
+			2233: {
 				final: false,
 				name: "_format",
-				id: 2235,
+				id: 2233,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -15024,10 +15006,10 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2236: {
+			2234: {
 				final: false,
 				name: "mailboxMigrationFolderSyncState",
-				id: 2236,
+				id: 2234,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1895,
@@ -15036,23 +15018,23 @@ const typeModels = {
 			},
 		},
 	},
-	2238: {
+	2236: {
 		name: "MailboxMigrationPostIn",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2238,
-		rootId: "CHR1dGFub3RhAAi-",
+		id: 2236,
+		rootId: "CHR1dGFub3RhAAi8",
 		versioned: false,
 		encrypted: true,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2239: {
+			2237: {
 				final: false,
 				name: "_format",
-				id: 2239,
+				id: 2237,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -15060,20 +15042,20 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2240: {
+			2238: {
 				final: false,
 				name: "userMigrationInfo",
-				id: 2240,
+				id: 2238,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 2959,
 				dependency: "sys",
 				transferredAttributeId: null,
 			},
-			2241: {
+			2239: {
 				final: false,
 				name: "mailboxMigrationSyncState",
-				id: 2241,
+				id: 2239,
 				type: "AGGREGATION",
 				cardinality: "One",
 				refTypeId: 2137,
@@ -15082,23 +15064,23 @@ const typeModels = {
 			},
 		},
 	},
-	2242: {
+	2240: {
 		name: "MailboxMigrationPostOut",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2242,
-		rootId: "CHR1dGFub3RhAAjC",
+		id: 2240,
+		rootId: "CHR1dGFub3RhAAjA",
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2243: {
+			2241: {
 				final: false,
 				name: "_format",
-				id: 2243,
+				id: 2241,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -15106,10 +15088,10 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2244: {
+			2242: {
 				final: false,
 				name: "mailboxMigrationSyncState",
-				id: 2244,
+				id: 2242,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1911,
@@ -15118,23 +15100,23 @@ const typeModels = {
 			},
 		},
 	},
-	2245: {
+	2243: {
 		name: "MailboxMigrationDeleteIn",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2245,
-		rootId: "CHR1dGFub3RhAAjF",
+		id: 2243,
+		rootId: "CHR1dGFub3RhAAjD",
 		versioned: false,
 		encrypted: false,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2246: {
+			2244: {
 				final: false,
 				name: "_format",
-				id: 2246,
+				id: 2244,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -15142,10 +15124,10 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2247: {
+			2245: {
 				final: false,
 				name: "mailboxMigrationSyncState",
-				id: 2247,
+				id: 2245,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1911,
@@ -15154,41 +15136,41 @@ const typeModels = {
 			},
 		},
 	},
-	2248: {
+	2246: {
 		name: "MailboxMigrationPutIn",
 		app: "tutanota",
 		version: 117,
 		since: 117,
 		type: "DATA_TRANSFER_TYPE",
-		id: 2248,
-		rootId: "CHR1dGFub3RhAAjI",
+		id: 2246,
+		rootId: "CHR1dGFub3RhAAjG",
 		versioned: false,
 		encrypted: true,
 		isPublic: true,
 		targetTypeId: null,
 		values: {
-			2249: {
+			2247: {
 				final: false,
 				name: "_format",
+				id: 2247,
+				type: "Number",
+				cardinality: "One",
+				encrypted: false,
+				transferredAttributeId: null,
+			},
+			2249: {
+				final: false,
+				name: "newMailboxMigrationSyncStatus",
 				id: 2249,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
 				transferredAttributeId: null,
 			},
-			2251: {
-				final: false,
-				name: "newMailboxMigrationSyncStatus",
-				id: 2251,
-				type: "Number",
-				cardinality: "One",
-				encrypted: false,
-				transferredAttributeId: null,
-			},
-			2252: {
+			2250: {
 				final: false,
 				name: "newMailboxMigrationFolderSyncStatus",
-				id: 2252,
+				id: 2250,
 				type: "Number",
 				cardinality: "One",
 				encrypted: false,
@@ -15196,20 +15178,20 @@ const typeModels = {
 			},
 		},
 		associations: {
-			2250: {
+			2248: {
 				final: false,
 				name: "mailboxMigrationSyncState",
-				id: 2250,
+				id: 2248,
 				type: "LIST_ELEMENT_ASSOCIATION_GENERATED",
 				cardinality: "One",
 				refTypeId: 1911,
 				dependency: null,
 				transferredAttributeId: null,
 			},
-			2253: {
+			2251: {
 				final: false,
 				name: "mailboxMigrationSyncStateWithNewPostponedUntil",
-				id: 2253,
+				id: 2251,
 				type: "AGGREGATION",
 				cardinality: "ZeroOrOne",
 				refTypeId: 2217,
