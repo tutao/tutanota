@@ -11,11 +11,10 @@ class IconFactory {
 		]
 		let attributedString = NSAttributedString(string: iconId, attributes: attributes)
 
-		UIGraphicsBeginImageContextWithOptions(size, false, 0)
-		attributedString.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
-		let fontImage = UIGraphicsGetImageFromCurrentImageContext()!
-		UIGraphicsEndImageContext()
-
+		let renderer = UIGraphicsImageRenderer(size: size)
+		let fontImage = renderer.image { (context) in
+		    attributedString.draw(in: CGRect(x: 0, y: 0, width: size.width, height: size.height))
+		}
 		return fontImage
 	}
 }
