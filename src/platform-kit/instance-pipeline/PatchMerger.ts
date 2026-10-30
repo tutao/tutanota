@@ -1,4 +1,14 @@
-import { AssociationReprType, Entity, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, ServerTypeModel, TypeRef } from "@tutao/meta"
+import {
+	AssociationReprType,
+	Entity,
+	getAssociationRepresentationType,
+	isSameId,
+	isSameSingleId,
+	isSameTypeRef,
+	PersistentEntity,
+	ServerTypeModel,
+	TypeRef,
+} from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
 import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, Nullable } from "@tutao/utils"
 import {
