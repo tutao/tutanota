@@ -367,7 +367,11 @@ impl Sdk {
 
 		let randomizer = RandomizerFacade::from_core(rand_core::OsRng);
 		let access_key = Aes256Key::generate(&randomizer);
-		let user_passphrase_key = derive_user_passphrase_key(KdfType::Argon2id, passphrase, salt);
+		let user_passphrase_key = derive_user_passphrase_key(
+			KdfType::try_from(salt_return.kdfVersion)?,
+			passphrase,
+			salt,
+		)?;
 		let auth_verifier = create_auth_verifier(user_passphrase_key.clone());
 		let session_data: CreateSessionData = CreateSessionData {
 			_format: 0,
