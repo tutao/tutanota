@@ -46,10 +46,10 @@ o.spec("MigrationErrorHandler", () => {
 	o.test("handleAuthError - returns false and updates to error if provider is other", async () => {
 		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: MailboxMigrationProvider.Other.toString(),
+			legacyProvider: MailboxMigrationProvider.Other.toString(),
 			status: MailboxMigrationSyncStatus.RUNNING,
 			imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
-				legacyUsername: "required",
+				sharedUsername: "required",
 				legacyOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),
@@ -75,10 +75,10 @@ o.spec("MigrationErrorHandler", () => {
 
 		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: MailboxMigrationProvider.Gmail.toString(),
+			legacyProvider: MailboxMigrationProvider.Gmail.toString(),
 			status: MailboxMigrationSyncStatus.PAUSED,
 			imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
-				legacyUsername: "required",
+				sharedUsername: "required",
 				legacyOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),
@@ -134,10 +134,10 @@ o.spec("MigrationErrorHandler", () => {
 
 		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: MailboxMigrationProvider.Gmail.toString(),
+			legacyProvider: MailboxMigrationProvider.Gmail.toString(),
 			status: MailboxMigrationSyncStatus.RUNNING,
 			imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
-				legacyUsername: "required",
+				sharedUsername: "required",
 				legacyOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),
@@ -159,10 +159,10 @@ o.spec("MigrationErrorHandler", () => {
 
 		const state = createTestEntity(MailboxMigrationSyncStateTypeRef, {
 			_id: ["listId", "elementId"],
-			provider: "999",
+			legacyProvider: "999",
 			status: MailboxMigrationSyncStatus.RUNNING,
 			imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
-				legacyUsername: "required",
+				sharedUsername: "required",
 				legacyOauthToken: createTestEntity(OAuthTokenEndpointResponseLegacyTypeRef, {
 					refreshToken: "expiredToken",
 				}),

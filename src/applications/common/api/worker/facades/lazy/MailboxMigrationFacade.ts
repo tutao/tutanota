@@ -37,7 +37,6 @@ import {
 	UpdateMailboxMigrationSyncStateTransferAggregatedType,
 } from "@tutao/entities/tutanota"
 import {
-	createIdTupleWrapperTransferAggregatedType,
 	createOAuthTokenTransferAggregatedType,
 	createUserMigrationCredentialTransferAggregatedType,
 	createUserMigrationInfoTransferAggregatedType,
@@ -57,7 +56,7 @@ import {
 	DEFAULT_EXTRA_SERVICE_PARAMS,
 	EntityRestClientLoadOptions,
 } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
-import { getElementId, getListId, idToElementId } from "@tutao/meta"
+import { getElementId, idToElementId } from "@tutao/meta"
 import { randomHexColor } from "../../../common/utils/migrationImportUtils/MigrationImportUtils"
 import { MailboxMigrationProvider } from "../../../common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { UserFacade } from "../../../../../../platform-kit/base/facades/UserFacade"
@@ -126,7 +125,6 @@ export class MailboxMigrationFacade {
 				_ownerKeyVersion: userMigrationOwnerEncSessionKey.encryptingKeyVersion.toString(),
 				provider: initializeParams.provider.toString(),
 				credential: userMigrationCredential,
-				mailboxMigrationSyncStates: [],
 			}),
 		})
 		const userMigrationServicePostOut = await this.serviceExecutor.execute(UserMigrationService_POST, userMigrationServicePostIn, {
@@ -143,13 +141,13 @@ export class MailboxMigrationFacade {
 			_ownerKeyVersion: ownerEncSessionKey.encryptingKeyVersion.toString(),
 			_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
 			postponedUntil: Date.now().toString(),
-			provider: initializeParams.provider.toString(),
+			legacyProvider: null,
 			imapConfiguration:
 				initializeParams.imapConfiguration &&
 				createMailboxMigrationImapConfigurationTransferAggregatedType({
 					host: initializeParams.imapConfiguration.host,
 					port: initializeParams.imapConfiguration.port,
-					legacyUsername: initializeParams.imapConfiguration.legacyUsername,
+					sharedUsername: initializeParams.imapConfiguration.sharedUsername,
 					sharedPassword: initializeParams.imapConfiguration.sharedPassword,
 					ignoreCertificateErrors: initializeParams.imapConfiguration.ignoreCertificateErrors,
 					customCertificateData: initializeParams.imapConfiguration.customCertificateData,
@@ -163,7 +161,6 @@ export class MailboxMigrationFacade {
 							expiresIn: initializeParams.imapConfiguration.legacyOauthToken.expiresIn,
 						}),
 				}),
-			sharedMailboxName: initializeParams.sharedMailboxName,
 			rootImportMailSet: rootImportMailSetId,
 			syncLabel: syncLabelId,
 		})
@@ -234,37 +231,6 @@ export class MailboxMigrationFacade {
 			sessionKey,
 			...(await this.keyLoader.assembleServiceEncryptionParamsForPut(ownerGroup, mailboxMigrationSyncState)),
 		})
-	}
-
-	async createUserMigrationInfoForSyncState(mailboxMigrationSyncState: MailboxMigrationSyncState) {
-		const userGroupId = this.userFacade.getUserGroupId()
-		const userGroupKey = this.keyLoader.getCurrentSymUserGroupKey()
-		const userMigrationSessionKey = this.cryptoWrapper.aes256RandomKey()
-		const userMigrationOwnerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(userGroupKey, userMigrationSessionKey)
-		const userMigrationServicePostIn = createUserMigrationServicePostIn({
-			userMigrationInfo: createUserMigrationInfoTransferAggregatedType({
-				_kdfNonce: this.symmetricCipherUtils.generateKdfNonce(),
-				_ownerEncSessionKey: userMigrationOwnerEncSessionKey.key,
-				_ownerKeyVersion: userMigrationOwnerEncSessionKey.encryptingKeyVersion.toString(),
-				provider: mailboxMigrationSyncState.provider,
-				credential: createUserMigrationCredentialTransferAggregatedType({
-					username: mailboxMigrationSyncState.sharedMailboxName ?? "",
-					password: null,
-					oAuthToken: null,
-				}),
-				mailboxMigrationSyncStates: [
-					createIdTupleWrapperTransferAggregatedType({
-						listId: getListId(mailboxMigrationSyncState),
-						listElementId: getElementId(mailboxMigrationSyncState),
-					}),
-				],
-			}),
-		})
-		const userMigrationServicePostOut = await this.serviceExecutor.execute(UserMigrationService_POST, userMigrationServicePostIn, {
-			...DEFAULT_EXTRA_SERVICE_PARAMS,
-			...(await this.keyLoader.assembleServiceEncryptionParamsForPost(userGroupId)),
-		})
-		return this.getUserMigrationInfoById(userMigrationServicePostOut.userMigrationInfo)
 	}
 
 	async deleteMigrationImport(mailboxMigrationSyncStateId: IdTuple): Promise<void> {

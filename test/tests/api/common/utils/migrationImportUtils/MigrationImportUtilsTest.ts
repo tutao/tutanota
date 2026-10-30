@@ -47,11 +47,11 @@ o.spec("MigrationImportUtils", () => {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					legacyUsername: "user@test.com",
+					sharedUsername: "user@test.com",
 					sharedPassword: "secret",
 					legacyOauthToken: null,
 				}),
-				provider: MailboxMigrationProvider.Other.toString(),
+				legacyProvider: MailboxMigrationProvider.Other.toString(),
 			})
 			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
 			o.check(result.host).equals("imap.test.com")
@@ -73,11 +73,11 @@ o.spec("MigrationImportUtils", () => {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					legacyUsername: "user@test.com",
+					sharedUsername: "user@test.com",
 					sharedPassword: null,
 					legacyOauthToken: tokenResponseMock,
 				}),
-				provider: MailboxMigrationProvider.Gmail.toString(),
+				legacyProvider: MailboxMigrationProvider.Gmail.toString(),
 			})
 			const result = migrationSyncStateToMigrationCredentials(migrationSyncStateMock, null)
 			o.check(result.tokenEndpointResponse!.access_token).equals("access123")
@@ -92,11 +92,11 @@ o.spec("MigrationImportUtils", () => {
 				imapConfiguration: createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 					host: "imap.test.com",
 					port: "993",
-					legacyUsername: "fallback@test.com",
+					sharedUsername: "fallback@test.com",
 					sharedPassword: "fallbackSecret",
 					legacyOauthToken: null,
 				}),
-				provider: MailboxMigrationProvider.Outlook.toString(),
+				legacyProvider: MailboxMigrationProvider.Outlook.toString(),
 			})
 			const userMigrationInfoMock = createTestEntity(UserMigrationInfoTypeRef, {
 				provider: MailboxMigrationProvider.Outlook.toString(),

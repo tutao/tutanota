@@ -456,7 +456,7 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 				? createMailboxMigrationImapConfiguration({
 						host: assertNotNull(this.data.imapHost),
 						port: assertNotNull(this.data.imapPort).toString(),
-						legacyUsername: null,
+						sharedUsername: isSharedMailbox ? this.data.username : null,
 						sharedPassword: isSharedMailbox ? (this.data.imapPassword ?? null) : null,
 						legacyOauthToken: null,
 						customCertificateData: this.data.customCertificateData ?? null,
@@ -475,7 +475,6 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 			mailGroupId: elementIdToId(mailboxMigrationController.selectedMailBoxDetail!.mailGroup._id),
 			migrationSyncLabelData: this.data.syncLabelData,
 			provider: this.data.provider,
-			sharedMailboxName: isSharedMailbox ? this.data.username : null,
 			imapConfiguration,
 		}
 		const initializeMigrationParams: InitializeMigrationParams = this.data.matchMigrationMailboxesToTutaMailSets

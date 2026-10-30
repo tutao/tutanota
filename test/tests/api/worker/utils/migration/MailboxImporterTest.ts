@@ -26,7 +26,7 @@ import {
 	MailboxMigrationSyncStateTypeRef,
 	MailBoxTypeRef,
 } from "@tutao/entities/tutanota"
-import { isSameId, OperationType } from "../../../../../../src/platform-kit/meta"
+import { elementIdPart, isSameId, listIdPart, OperationType } from "../../../../../../src/platform-kit/meta"
 import { SuspensionError } from "../../../../../../src/platform-kit/rest-client/error"
 import { EntityUpdateData } from "../../../../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { uint8ArrayToString } from "../../../../../../src/platform-kit/utils"
@@ -37,7 +37,7 @@ import { noPatchesAndInstance } from "../../EventBusClientTest"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../src/platform-kit/instance-pipeline/RestClientOptions"
 import { UserFacade } from "../../../../../../src/platform-kit/base/facades/UserFacade"
 import { MigrationSyncSystemFacade } from "../../../../../../src/app-kit/native-bridge/common/generatedipc/types"
-import { createIdTupleWrapper, UserMigrationInfoTypeRef } from "@tutao/entities/sys"
+import { createIdTupleWrapper, UserMigrationInfo, UserMigrationInfoTypeRef } from "@tutao/entities/sys"
 
 const { anything } = matchers
 
@@ -56,7 +56,7 @@ o.spec("MailboxImporter", () => {
 	const mailboxMigrationImapConfiguration = createTestEntity(MailboxMigrationImapConfigurationTypeRef, {
 		host: "imap.test.com",
 		port: "993",
-		legacyUsername: "user@test.com",
+		sharedUsername: "user@test.com",
 		sharedPassword: "pass",
 		legacyOauthToken: null,
 	})
@@ -108,7 +108,7 @@ o.spec("MailboxImporter", () => {
 			rootImportMailSet: null,
 			mailboxMigrationFolderSyncStates: "folderSyncStateListId",
 			status: MailboxMigrationSyncStatus.RUNNING.toString(),
-			provider: MailboxMigrationProvider.Other.toString(),
+			legacyProvider: MailboxMigrationProvider.Other.toString(),
 		})
 		folderSyncStateMock = createTestEntity(MailboxMigrationFolderSyncStateTypeRef, {
 			_id: folderSyncStateIdMock,
@@ -139,10 +139,9 @@ o.spec("MailboxImporter", () => {
 		})
 	})
 
-	o.test("init - marks sync state permanently deleted when every folder is NO_SYNC or CANCELED", async () => {
+	o.test("init - marks non legacy sync state permanently deleted when every folder is NO_SYNC or CANCELED", async () => {
 		const nonLegacySyncState = {
 			...mailboxMigrationSyncStateMock,
-			sharedProvider: null,
 		}
 		const canceledFolder = {
 			...folderSyncStateMock,
@@ -167,7 +166,7 @@ o.spec("MailboxImporter", () => {
 		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
 		when(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock)).thenResolve([userMigrationInfo])
 		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([canceledFolder, noSyncFolder])
-
+		when(mailboxMigrationFacadeMock.getMailboxMigrationSyncStateById(migrationSyncStateIdMock)).thenResolve(mailboxMigrationSyncStateMock)
 		await importer.init([mailbox])
 
 		verify(
@@ -182,10 +181,40 @@ o.spec("MailboxImporter", () => {
 		o.check(importer.mailboxImportSessions.size).equals(1)
 	})
 
+	o.test("init - marks legacy sync state permanently deleted when every folder is NO_SYNC or CANCELED", async () => {
+		const canceledFolder = {
+			...folderSyncStateMock,
+			status: MailboxMigrationFolderSyncStatus.CANCELED,
+		}
+		const noSyncFolder = {
+			...folderSyncStateMock,
+			status: MailboxMigrationFolderSyncStatus.NO_SYNC,
+		}
+		const mailbox = createTestEntity(MailBoxTypeRef, {
+			mailboxMigrationSyncStates: "syncStatesListId",
+		})
+
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([mailboxMigrationSyncStateMock])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([canceledFolder, noSyncFolder])
+		when(mailboxMigrationFacadeMock.getMailboxMigrationSyncStateById(migrationSyncStateIdMock)).thenResolve(mailboxMigrationSyncStateMock)
+		await importer.init([mailbox])
+
+		verify(
+			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
+				mailboxMigrationSyncStateMock,
+				MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
+				MailboxMigrationFolderSyncStatus.CANCELED,
+				undefined,
+			),
+			{ times: 1 },
+		)
+		o.check(importer.mailboxImportSessions.size).equals(1)
+	})
+
 	o.test("init - does not mark sync state permanently deleted when there are folder(s) still syncing", async () => {
 		const nonLegacySyncState = {
 			...mailboxMigrationSyncStateMock,
-			sharedProvider: null,
+			legacyProvider: null,
 		}
 		const userMigrationInfo = createTestEntity(UserMigrationInfoTypeRef, {
 			mailboxMigrationSyncStates: [
@@ -202,12 +231,13 @@ o.spec("MailboxImporter", () => {
 		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
 		when(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock)).thenResolve([userMigrationInfo])
 		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
+		when(mailboxMigrationFacadeMock.getMailboxMigrationSyncStateById(migrationSyncStateIdMock)).thenResolve(mailboxMigrationSyncStateMock)
 
 		await importer.init([mailbox])
 
 		verify(
 			mailboxMigrationFacadeMock.updateMailboxMigrationSyncStateAndAllFolderSyncStates(
-				nonLegacySyncState,
+				mailboxMigrationSyncStateMock,
 				MailboxMigrationSyncStatus.ALL_FOLDERS_PERMANENTLY_DELETED,
 				MailboxMigrationFolderSyncStatus.CANCELED,
 				undefined,
@@ -217,12 +247,11 @@ o.spec("MailboxImporter", () => {
 		o.check(importer.mailboxImportSessions.size).equals(1)
 	})
 
-	o.test("init - treats non-Other provider with IMAP configuration as legacy", async () => {
+	o.test("init - treats non-null legacyProvider as legacy", async () => {
 		const legacySyncState = {
 			...mailboxMigrationSyncStateMock,
 			provider: MailboxMigrationProvider.Gmail.toString(),
 			imapConfiguration: mailboxMigrationImapConfiguration,
-			sharedMailboxName: null,
 		}
 		const mailbox = createTestEntity(MailBoxTypeRef, {
 			mailboxMigrationSyncStates: "syncStatesListId",
@@ -236,107 +265,64 @@ o.spec("MailboxImporter", () => {
 		const session = importer.mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(migrationSyncStateIdMock))
 
 		o.check(session!.userMigrationInfo).equals(null)
-		verify(mailboxMigrationFacadeMock.getAllUserMigrationInfo(anything()), { times: 0 })
-		verify(mailboxMigrationFacadeMock.createUserMigrationInfoForSyncState(anything()), { times: 0 })
 	})
 
-	o.test("init - treats Other provider with password and no shared mailbox name as legacy", async () => {
+	o.test("init - treats null legacyProvider as non-legacy and does not init for non-legacy non-IMAP syncStates because we cannot authenticate", async () => {
 		const legacySyncState = {
 			...mailboxMigrationSyncStateMock,
-			provider: MailboxMigrationProvider.Other.toString(),
+			provider: MailboxMigrationProvider.Gmail.toString(),
 			imapConfiguration: mailboxMigrationImapConfiguration,
-			sharedMailboxName: null,
 		}
-		const mailbox = createTestEntity(MailBoxTypeRef, {
-			mailboxMigrationSyncStates: "syncStatesListId",
-		})
-
-		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([legacySyncState])
-		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([])
-
-		await importer.init([mailbox])
-
-		const session = importer.mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(migrationSyncStateIdMock))
-
-		o.check(session!.userMigrationInfo).equals(null)
-		verify(mailboxMigrationFacadeMock.getAllUserMigrationInfo(anything()), { times: 0 })
-		verify(mailboxMigrationFacadeMock.createUserMigrationInfoForSyncState(anything()), { times: 0 })
-	})
-
-	o.test("init - treats Other provider with shared mailbox name as non-legacy", async () => {
-		const nonLegacySyncState = {
+		const nonLegacyStateOnSharedMailbox: MailboxMigrationSyncState = {
 			...mailboxMigrationSyncStateMock,
-			provider: MailboxMigrationProvider.Other.toString(),
-			imapConfiguration: mailboxMigrationImapConfiguration,
-			sharedMailboxName: "shared@example.com",
-		}
-		const mailbox = createTestEntity(MailBoxTypeRef, {
-			mailboxMigrationSyncStates: "syncStatesListId",
-		})
-		const userMigrationInfo = createTestEntity(UserMigrationInfoTypeRef, {
-			mailboxMigrationSyncStates: [
-				createIdTupleWrapper({
-					listId: migrationSyncStateIdMock[0],
-					listElementId: migrationSyncStateIdMock[1],
-				}),
-			],
-		})
-
-		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
-		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([])
-		when(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock)).thenResolve([userMigrationInfo])
-		when(
-			mailboxMigrationFacadeMock.getUserMigrationInfoById(userMigrationInfo._id, {
-				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-				cacheMode: CacheMode.WriteOnly,
-			}),
-		).thenResolve(userMigrationInfo)
-
-		await importer.init([mailbox])
-
-		const session = importer.mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(migrationSyncStateIdMock))
-
-		o.check(session!.userMigrationInfo).equals(userMigrationInfo)
-		verify(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock), { times: 1 })
-		verify(
-			mailboxMigrationFacadeMock.getUserMigrationInfoById(userMigrationInfo._id, {
-				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-				cacheMode: CacheMode.WriteOnly,
-			}),
-			{ times: 1 },
-		)
-	})
-
-	o.test("init - creates UserMigrationInfo for non-legacy sync state without a matching info", async () => {
-		const nonLegacySyncState = {
-			...mailboxMigrationSyncStateMock,
-			provider: MailboxMigrationProvider.Outlook.toString(),
 			imapConfiguration: null,
-			sharedMailboxName: null,
+			_id: ["sharedSyncStatesId", elementIdPart(migrationSyncStateIdMock)],
+			legacyProvider: null,
 		}
+		const nonLegacyStateOnSharedMailboxWithIMAP: MailboxMigrationSyncState = {
+			...mailboxMigrationSyncStateMock,
+			_id: ["sharedSyncStatesId", elementIdPart(migrationSyncStateIdMock) + "2"],
+			legacyProvider: null,
+		}
+		const nonLegacySyncStateOnUserMailbox: MailboxMigrationSyncState = {
+			...mailboxMigrationSyncStateMock,
+			imapConfiguration: null,
+			_id: [listIdPart(migrationSyncStateIdMock), elementIdPart(migrationSyncStateIdMock) + "2"],
+			legacyProvider: null,
+		}
+		const userMigrationInfoMock: UserMigrationInfo = createTestEntity(UserMigrationInfoTypeRef, {
+			mailboxMigrationSyncStates: [
+				createIdTupleWrapper({ listId: nonLegacySyncStateOnUserMailbox._id[0], listElementId: nonLegacySyncStateOnUserMailbox._id[1] }),
+			],
+		})
 		const mailbox = createTestEntity(MailBoxTypeRef, {
 			mailboxMigrationSyncStates: "syncStatesListId",
 		})
-		const createdUserMigrationInfo = createTestEntity(UserMigrationInfoTypeRef, {
-			mailboxMigrationSyncStates: [
-				createIdTupleWrapper({
-					listId: migrationSyncStateIdMock[0],
-					listElementId: migrationSyncStateIdMock[1],
-				}),
-			],
+		const sharedMailbox = createTestEntity(MailBoxTypeRef, {
+			mailboxMigrationSyncStates: "sharedSyncStatesId",
 		})
 
-		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([nonLegacySyncState])
+		when(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock)).thenResolve([userMigrationInfoMock])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([folderSyncStateMock])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("syncStatesListId")).thenResolve([legacySyncState, nonLegacySyncStateOnUserMailbox])
+		when(mailboxMigrationFacadeMock.getAllMailboxMigrationSyncStates("sharedSyncStatesId")).thenResolve([
+			nonLegacyStateOnSharedMailbox,
+			nonLegacyStateOnSharedMailboxWithIMAP,
+		])
 		when(mailboxMigrationFacadeMock.getAllMailboxMigrationFolderSyncStates("folderSyncStateListId")).thenResolve([])
-		when(mailboxMigrationFacadeMock.getAllUserMigrationInfo(userMigrationInfosListIdMock)).thenResolve([])
-		when(mailboxMigrationFacadeMock.createUserMigrationInfoForSyncState(nonLegacySyncState)).thenResolve(createdUserMigrationInfo)
 
-		await importer.init([mailbox])
+		await importer.init([mailbox, sharedMailbox])
 
-		const session = importer.mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(migrationSyncStateIdMock))
-
-		o.check(session!.userMigrationInfo).equals(createdUserMigrationInfo)
-		verify(mailboxMigrationFacadeMock.createUserMigrationInfoForSyncState(nonLegacySyncState), { times: 1 })
+		const mailboxImportSessions = importer.mailboxImportSessions
+		o.check(mailboxImportSessions.size).equals(3)
+		o.check(mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(legacySyncState._id))!.userMigrationInfo).equals(null)
+		o.check(mailboxImportSessions.get(importer.getMailboxImportSessionsMapKey(nonLegacySyncStateOnUserMailbox._id))!.userMigrationInfo).equals(
+			userMigrationInfoMock,
+		)
+		o.check(mailboxImportSessions.has(importer.getMailboxImportSessionsMapKey(legacySyncState._id))).equals(true)
+		o.check(mailboxImportSessions.has(importer.getMailboxImportSessionsMapKey(nonLegacyStateOnSharedMailbox._id))).equals(false)
+		o.check(mailboxImportSessions.has(importer.getMailboxImportSessionsMapKey(nonLegacyStateOnSharedMailboxWithIMAP._id))).equals(true)
+		o.check(mailboxImportSessions.has(importer.getMailboxImportSessionsMapKey(nonLegacySyncStateOnUserMailbox._id))).equals(true)
 	})
 
 	o.test("initializeImport - creates new session when no existing sync state", async () => {
@@ -789,7 +775,7 @@ o.spec("MailboxImporter", () => {
 			activeSessions: [
 				{
 					mailGroupId: mailGroupIdMock,
-					username: mailboxMigrationSyncStateMock.imapConfiguration!.legacyUsername,
+					username: mailboxMigrationSyncStateMock.imapConfiguration!.sharedUsername,
 					mailboxMigrationSyncStateId: migrationSyncStateIdMock,
 					mailboxMigrationSyncStatus: mailboxMigrationSyncStateMock.status,
 					postponedUntil: new Date(parseInt(mailboxMigrationSyncStateMock.postponedUntil)),

@@ -49,23 +49,19 @@ export function getMailboxMigrationCredential(
 		const userMigrationCredential = userMigrationInfo.credential
 		return {
 			provider: parseInt(userMigrationInfo.provider) as MailboxMigrationProvider,
-			username: migrationSyncState.sharedMailboxName ?? imapConfiguration?.legacyUsername ?? userMigrationCredential.username,
+			username: imapConfiguration?.sharedUsername ?? userMigrationCredential.username,
 			password: imapConfiguration?.sharedPassword ?? userMigrationCredential?.password ?? null,
 			oAuthToken: imapConfiguration?.legacyOauthToken ?? userMigrationCredential?.oAuthToken ?? null,
 		}
 	} else if (imapConfiguration) {
 		return {
-			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
-			username: migrationSyncState.sharedMailboxName ?? assertNotNull(imapConfiguration.legacyUsername),
+			provider:
+				migrationSyncState.legacyProvider !== null
+					? (parseInt(migrationSyncState.legacyProvider) as MailboxMigrationProvider)
+					: MailboxMigrationProvider.Other,
+			username: assertNotNull(imapConfiguration.sharedUsername),
 			password: imapConfiguration.sharedPassword,
 			oAuthToken: imapConfiguration.legacyOauthToken,
-		}
-	} else if (migrationSyncState.sharedMailboxName !== null) {
-		return {
-			provider: parseInt(migrationSyncState.provider) as MailboxMigrationProvider,
-			username: migrationSyncState.sharedMailboxName,
-			password: null,
-			oAuthToken: null,
 		}
 	} else {
 		throw new ProgrammingError("no mailbox migration credential available")
