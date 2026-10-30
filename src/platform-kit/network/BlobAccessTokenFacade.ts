@@ -10,6 +10,7 @@ import { BlobAccessTokenService_POST } from "../../entities/storage/Services"
 import { BlobReferencingInstance } from "../../entities/storage/BlobUtils"
 import { TypeRef } from "@tutao/meta"
 import { DEFAULT_EXTRA_SERVICE_PARAMS } from "../instance-pipeline/RestClientOptions"
+import { isNull } from "../utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -290,15 +291,15 @@ class BlobAccessTokenCache {
 		loader: () => Promise<BlobServerAccessInfo>,
 	): Promise<BlobServerAccessInfo> {
 		const archiveToken = isNotNull(archiveOrGroupKey) ? (this.archiveMap.get(archiveOrGroupKey) ?? null) : null
-		if (archiveToken != null && canBeUsedForAnotherRequest(archiveToken, this.dateProvider)) {
+		if (isNotNull(archiveToken) && canBeUsedForAnotherRequest(archiveToken, this.dateProvider)) {
 			return archiveToken
 		}
 
 		const tokens = deduplicate(instanceIds.map((id) => this.instanceMap.get(id) ?? null))
 		const firstTokenFound = first(tokens)
-		if (tokens.length !== 1 || firstTokenFound == null || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
+		if (tokens.length !== 1 || isNull(firstTokenFound) || !canBeUsedForAnotherRequest(firstTokenFound, this.dateProvider)) {
 			const newToken = await loader()
-			if (archiveOrGroupKey != null && newToken.tokenKind === BlobAccessTokenKind.Archive) {
+			if (isNotNull(archiveOrGroupKey) && newToken.tokenKind === BlobAccessTokenKind.Archive) {
 				this.archiveMap.set(archiveOrGroupKey, newToken)
 			} else {
 				for (const id of instanceIds) {

@@ -10,7 +10,7 @@ import { ContactSearchFacade } from "../../../src/applications/mail-app/workerUt
 
 import { UserController } from "../../../src/applications/common/api/main/UserController"
 
-import { DbError } from "../../../src/applications/common/api/common/error/DbError"
+import { DbError, GenericDbError } from "../../../src/applications/common/api/common/error/DbError"
 import { idToElementId, timestampToGeneratedId } from "../../../src/platform-kit/meta"
 import { ContactListTypeRef, ContactMailAddressTypeRef, ContactTypeRef } from "@tutao/entities/tutanota"
 import { TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
@@ -142,7 +142,7 @@ o.spec("ContactModel", () => {
 			})
 			entityMock.addListInstances(exactMatch, inexactMatch, newerExactMatch)
 
-			when(contactSearchFacade.findContacts("exact@test.com", "mailAddresses")).thenReject(new DbError("test"))
+			when(contactSearchFacade.findContacts("exact@test.com", "mailAddresses")).thenReject(new GenericDbError("test"))
 
 			o.check(await model.searchForContact("exact@test.com")).deepEquals(exactMatch)
 		})

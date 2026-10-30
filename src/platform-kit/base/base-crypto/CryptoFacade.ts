@@ -122,6 +122,7 @@ export class RecipientKeyData {
 }
 
 export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetworkHelper {
+	private networkDebuggingEnabled: boolean = false
 	constructor(
 		private readonly userFacade: UserFacade,
 		private readonly entityClient: EntityClient,
@@ -147,13 +148,17 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		return this.instanceKeyProviderMaker.makeInstanceKeyProvider(instance)
 	}
 
+	public enableNetworkDebugging(): void {
+		this.networkDebuggingEnabled = true
+	}
+
 	/** Resolve a session key an {@param instance} using an already known {@param ownerKey}. */
 	decryptSessionKeyWithOwnerKey(ownerEncSessionKey: Uint8Array<ArrayBuffer>, ownerKey: AesKey): AesKey {
 		return this.keyEncryption.decryptKey(ownerKey, ownerEncSessionKey)
 	}
 
 	async resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider: OwnerKeyProvider | null, migratedEntity: PersistentEntity): Promise<Nullable<AesKey>> {
-		const ownerKey = ownerKeyProvider != null ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
+		const ownerKey = isNotNull(ownerKeyProvider) ? await ownerKeyProvider(cryptoUtils.parseKeyVersion(migratedEntity._ownerKeyVersion ?? "0")) : null
 		return this.resolveSessionKeyWithOwnerKey(ownerKey, migratedEntity)
 	}
 
@@ -217,13 +222,13 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	/** Helper for the rare cases when we needed it on the client side. */
 	async resolveSessionKeyForInstanceBinary(instance: PersistentEntity): Promise<Uint8Array<ArrayBuffer> | null> {
 		const key = await this.resolveSessionKey(instance)
-		return key == null ? null : keyToUint8Array(key)
+		return isNull(key) ? null : keyToUint8Array(key)
 	}
 
 	/**
 	 * Resolves session keys using the bucket key on the instance.
 	 * @param instance with a set bucketKey
-	 * @throws {Error} if `instance.bucketKey == null`
+	 * @throws {Error} if `isNull(instance.bucketKey)`
 	 */
 	public async resolveWithBucketKey(instance: PersistentEntity): Promise<ResolvedSessionKeys> {
 		const instanceSessionKeysFromCache = this.instanceSessionKeysCache.get(instance)
@@ -551,7 +556,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	private async resolveWithPublicOrExternalPermission(listPermissions: Permission[], instance: PersistentEntity): Promise<AesKey> {
 		const pubOrExtPermission = listPermissions.find((p) => p.type === PermissionType.Public || p.type === PermissionType.External) ?? null
 
-		if (pubOrExtPermission == null) {
+		if (isNull(pubOrExtPermission)) {
 			const typeName = `${instance._type.app}/${instance._type.typeId}`
 			throw new SessionKeyNotFoundError(`could not find permission for instance of type ${typeName} with id ${stringifyId(instance._id)}`)
 		}
@@ -562,7 +567,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		)
 
 		// find the bucket permission with the same group as the permission and public type
-		if (bucketPermission == null) {
+		if (isNull(bucketPermission)) {
 			throw new SessionKeyNotFoundError("no corresponding bucket permission found")
 		}
 
@@ -576,7 +581,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 	private async decryptWithExternalBucket(bucketPermission: BucketPermission, pubOrExtPermission: Permission, instance: Entity): Promise<AesKey> {
 		let bucketKey
 
-		if (bucketPermission.ownerEncBucketKey != null) {
+		if (isNotNull(bucketPermission.ownerEncBucketKey)) {
 			const ownerGroupKey = await this.symGroupKeyLoader.loadSymGroupKey(
 				neverNull(bucketPermission._ownerGroup),
 				cryptoUtils.parseKeyVersion(bucketPermission.ownerKeyVersion ?? "0"),
@@ -605,13 +610,13 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		instance: Entity,
 	): Promise<AesKey> {
 		const pubEncBucketKey = bucketPermission.pubEncBucketKey
-		if (pubEncBucketKey == null) {
+		if (isNull(pubEncBucketKey)) {
 			throw new SessionKeyNotFoundError(
 				`PubEncBucketKey is not defined for BucketPermission ${bucketPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`,
 			)
 		}
 		const bucketEncSessionKey = pubOrExtPermission.bucketEncSessionKey
-		if (bucketEncSessionKey == null) {
+		if (isNull(bucketEncSessionKey)) {
 			throw new SessionKeyNotFoundError(
 				`BucketEncSessionKey is not defined for Permission ${pubOrExtPermission._id.toString()} (Instance: ${JSON.stringify(instance)})`,
 			)
@@ -737,7 +742,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 			recipientKeyVersion: pubEncBucketKey.recipientKeyVersion.toString(),
 			senderIdentifier: senderGroupId,
 			senderIdentifierType: PublicKeyIdentifierType.GROUP_ID,
-			senderKeyVersion: pubEncBucketKey.senderKeyVersion != null ? pubEncBucketKey.senderKeyVersion.toString() : null,
+			senderKeyVersion: isNotNull(pubEncBucketKey.senderKeyVersion) ? pubEncBucketKey.senderKeyVersion.toString() : null,
 			pubEncSymKey: pubEncBucketKey.pubEncSymKeyBytes,
 			symKeyMac: null,
 		})
@@ -891,7 +896,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 		let ownerEncSessionKeyAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerEncSessionKey")).toString()
 		let ownerKeyVersionAttributeIdStr = assertNotNull(AttributeModel.getAttributeId(typeModel, "_ownerKeyVersion")).toString()
-		if (EnvProvider.get().networkDebuggingEnabled()) {
+		if (this.networkDebuggingEnabled) {
 			ownerEncSessionKeyAttributeIdStr += ":_ownerEncSessionKey"
 			ownerKeyVersionAttributeIdStr += ":_ownerKeyVersion"
 		}

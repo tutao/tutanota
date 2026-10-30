@@ -8,7 +8,7 @@ export const log: {
 	error: LogFn
 	info: LogFn
 } =
-	typeof env !== "undefined" && EnvProvider.isTest()
+	typeof env !== "undefined" && EnvProvider.get().isTest()
 		? {
 				debug: noOp,
 				warn: noOp,

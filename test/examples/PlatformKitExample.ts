@@ -8,7 +8,7 @@ import type { LoginListener } from "../../src/platform-kit/base/facades/LoginFac
 import type { MainInterface } from "../../src/applications/common/api/worker/workerInterfaces.js"
 import type { NativeInterface } from "../../src/app-kit/native-bridge/common/NativeInterface.js"
 import type { BrowserData } from "../../src/platform-kit/app-env/boot/ClientConstants.js"
-import { initClientModels, NamedClientModel } from "../../src/platform-kit/instance-pipeline"
+import { NamedClientModel } from "../../src/platform-kit/instance-pipeline"
 import { ClientPlatform } from "../../src/platform-kit/app-env/boot/ClientDetector.js"
 import { SessionType } from "../../src/platform-kit/app-env"
 import { MailboxGroupRootTypeRef, MailBoxTypeRef, MailTypeRef } from "../../src/entities/tutanota/TypeRefs.js"
@@ -35,6 +35,7 @@ import { TutanotaEntityMigrator } from "../../src/applications/common/api/worker
 import { DefaultEntityRestCache } from "../../src/applications/common/api/worker/rest/DefaultEntityRestCache.js"
 import { DomainConfigProvider } from "../../src/applications/common/api/common/DomainConfigProvider.js"
 import { IdentityKeyTrustDatabase } from "../../src/platform-kit/base/base-crypto/persistence/IdentityKeyTrustDatabase"
+import { initClientModels } from "../../src/applications/common/api/common/ClientModelInfoInitializer"
 
 export async function runPlatformKitExample() {
 	// ── argon2 facade (wasm from test/build/) ─────────────────────────────────────
@@ -150,7 +151,7 @@ export async function runPlatformKitExample() {
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
 		argon2idFacade,
 		rsa: new RsaWeb(),
-		fileFacade: { writeToAppDir: async () => {}, readFromAppDir: async () => new Uint8Array(), deleteFromAppDir: async () => {} },
+		fileFacade: null,
 		entityMigratorFactory: ({
 			cryptoWrapper,
 			user,

@@ -52,7 +52,7 @@ import {
 	TypeModelResolver,
 	UpdateAppTypesHashMiddleware,
 } from "../instance-pipeline"
-import { lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
+import { isNotNull, lazy, lazyAsync, lazyMemoized, Nullable } from "../utils"
 import { NoZoneDateProvider } from "../utils/NoZoneDateProvider.js"
 import { NativeCryptoFacade } from "../../app-kit/native-bridge/common/generatedipc/types/NativeCryptoFacade"
 import { ServiceExecutor } from "../network/ServiceExecutor"
@@ -68,7 +68,7 @@ import { CacheManager } from "./base-crypto/persistence/CacheManager.js"
 import { IdentityKeyTrustDatabase } from "./base-crypto/persistence/IdentityKeyTrustDatabase"
 import { KeyCache } from "./base-crypto/persistence/KeyCache"
 import { CryptoFacade } from "./base-crypto/CryptoFacade"
-import { HttpClientJavascript } from "../http-client/HttpClientJavascript"
+import { HttpClientJavascript } from "@tutao/http-client"
 import { InstanceKeyFacade } from "./base-crypto/InstanceKeyFacade"
 import { InstanceKeyProviderMaker } from "./base-crypto/InstanceKeyProviderMaker"
 import { FormerKeyResolver } from "./base-crypto/FormerKeyResolver"
@@ -135,12 +135,14 @@ export type BaseLocator = {
 
 export interface BaseLocatorWorker {
 	sendError(e: Error): Promise<void>
+
 	getMainInterface(): BaseLocatorMainInterface
 }
 
 export type BaseLocatorMainInterface = {
 	infoMessageHandler: OnInfoMessage
 }
+
 export interface OnInfoMessage {
 	onInfoMessage(msg: InfoMessageArgs): void
 }
@@ -162,7 +164,7 @@ export type BaseLocatorConfig = {
 	argon2idFacade: Nullable<Argon2idFacade>
 	domainConfig: DomainConfig
 	rsa: RsaImplementation
-	fileFacade: SimpleFileFacade
+	fileFacade: Nullable<SimpleFileFacade>
 	nativeCryptoFacade: Nullable<NativeCryptoFacade>
 	entityMigratorFactory: (params: EntityMigratorFactoryParams) => EntityMigrator
 	entityRestCache: (
@@ -245,15 +247,19 @@ export async function createBaseLocator({
 		random,
 		keyEncryption,
 	)
-	const restClient = new RestClient(suspensionHandler, domainConfig, String(browserData.clientPlatform), new HttpClientJavascript()).addMiddleware(
-		new UpdateAppTypesHashMiddleware(serverModelInfo),
-	)
+	const restClient = new RestClient(
+		suspensionHandler,
+		domainConfig,
+		String(browserData.clientPlatform),
+		new HttpClientJavascript(EnvProvider.get().getTimeOutValue()),
+	).addMiddleware(new UpdateAppTypesHashMiddleware(serverModelInfo))
 
 	// Declared before serviceExecutor and entityRestClient because it's captured via lazyCrypto
 	let crypto: CryptoFacade
 	const lazyCrypto: lazy<CryptoFacade> = () => crypto
 	const serviceExecutor = new ServiceExecutor(restClient, user, instancePipeline, lazyCrypto, typeModelResolver)
-	applicationTypesFacade = new ApplicationTypesFacade(restClient, fileFacade, serverModelInfo)
+	applicationTypesFacade = new ApplicationTypesFacade(restClient, serverModelInfo, fileFacade)
+
 	const entropyFacade = new EntropyFacade(user, serviceExecutor, random, () => keyLoader, aes)
 	const blobAccessToken = new BlobAccessTokenFacade(serviceExecutor, user, dateProvider, typeModelResolver)
 
@@ -282,7 +288,7 @@ export async function createBaseLocator({
 
 	let kyberFacade: KyberFacade
 	let ed25519Facade: Ed25519Facade
-	if (nativeCryptoFacade != null && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
+	if (isNotNull(nativeCryptoFacade) && (EnvProvider.get().isIOSApp() || EnvProvider.get().isAndroidApp())) {
 		kyberFacade = new NativeKyberFacade(nativeCryptoFacade, random)
 		ed25519Facade = new NativeEd25519Facade(nativeCryptoFacade)
 	} else {
@@ -361,7 +367,6 @@ export async function createBaseLocator({
 		serviceExecutor,
 		symmetricCipherUtils,
 	)
-
 	// Declared before recoverCode because it's captured inside the lazy callback
 	let login: LoginFacade
 	const recoverCode = lazyMemoized(async () => {
@@ -433,16 +438,13 @@ export async function createBaseLocator({
 	})
 
 	let argon2idFacade: Argon2idFacade
-	if (argon2idFacadeOverride != null) {
+	if (isNotNull(argon2idFacadeOverride)) {
 		argon2idFacade = argon2idFacadeOverride
-	} else if (nativeCryptoFacade != null && !EnvProvider.get().isBrowser()) {
+	} else if (isNotNull(nativeCryptoFacade) && !EnvProvider.get().isBrowser()) {
 		argon2idFacade = new NativeArgon2idFacade(nativeCryptoFacade)
 	} else {
 		argon2idFacade = new WASMArgon2idFacade()
 	}
-
-	const deviceEncryptionFacade = new DeviceEncryptionFacade(symmetricCipherUtils, aes)
-	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
 
 	entityMigrator = entityMigratorFactory({
 		cryptoWrapper,
@@ -458,6 +460,11 @@ export async function createBaseLocator({
 		keyEncryption,
 	})
 
+	const deviceEncryptionFacade = new DeviceEncryptionFacade(symmetricCipherUtils, aes)
+	const { DatabaseKeyFactory } = await import("./base-crypto/DatabaseKeyFactory.js")
+	const databaseKeyFactory =
+		EnvProvider.get().isBrowser() || EnvProvider.get().isAdminClient() ? new DatabaseKeyFactory(null) : new DatabaseKeyFactory(deviceEncryptionFacade)
+
 	login = new LoginFacade(
 		restClient,
 		new EntityClient(cache, typeModelResolver),
@@ -471,7 +478,7 @@ export async function createBaseLocator({
 		user,
 		blobAccessToken,
 		entropyFacade,
-		new DatabaseKeyFactory(deviceEncryptionFacade),
+		databaseKeyFactory,
 		argon2idFacade,
 		nonCachingEntityClient,
 		async (error: Error) => {
@@ -488,6 +495,12 @@ export async function createBaseLocator({
 		random,
 		bcrypt,
 	)
+
+	if (EnvProvider.get().networkDebuggingEnabled()) {
+		crypto.enableNetworkDebugging()
+		patchMerger.enableNetworkDebugging()
+		instancePipeline.enableNetworkDebugging()
+	}
 
 	return {
 		random,

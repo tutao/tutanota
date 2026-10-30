@@ -158,6 +158,7 @@ export default defineConfig([
 	},
 	{
 		files: ["src/platform-kit/**/*.ts"],
+		ignores: ["src/platform-kit/lang-api/**/*.ts"],
 		plugins: { local: { rules: { noUnionExceptNullable, noUnnamedTypes } } },
 		extends: [],
 		languageOptions: {

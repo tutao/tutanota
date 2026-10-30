@@ -25,6 +25,7 @@ import { EntityUtils } from "./EntityUtils"
 import { ParsedValue } from "./ParsedValue"
 import { DecryptedParsedInstance, DecryptedParsedValue } from "./CryptoMapper"
 import { TypeChecks } from "../app-env/TsTypeChecks"
+import { isNull } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -166,7 +167,7 @@ export class ModelMapper {
 	): DecryptedParsedValue {
 		let valueToKeep = value
 
-		const isDeletedOnServerAndClientHaveOneCardinality = serverModelValue == null && clientModelValue.cardinality === CardinalityEnum.One
+		const isDeletedOnServerAndClientHaveOneCardinality = isNull(serverModelValue) && clientModelValue.cardinality === CardinalityEnum.One
 		const valueIsNullButServerHaveCardinalityOne =
 			isNotNull(serverModelValue) && valueToKeep.isNull() && serverModelValue.cardinality === CardinalityEnum.One
 
@@ -283,7 +284,7 @@ export class ClientEntity {
 	}
 
 	public setAssociationForTest<T>(associationId: AttributeId, associationList: Array<T>): void {
-		assert(EnvProvider.isTest(), "This method is only meant for testing")
+		assert(EnvProvider.get().isTest(), "This method is only meant for testing")
 		return this.setAssociation(associationId, associationList)
 	}
 }
@@ -303,7 +304,7 @@ export class OutgoingClientEntity {
 	public getValue<NestedObj extends DeepEquals>(modelValue: ModelValue): ParsedValue<NestedObj> {
 		const rawValue = this.entityRecord[modelValue.name]
 		if (modelValue.name === "_id") {
-			if (rawValue == null) {
+			if (isNull(rawValue)) {
 				return ParsedValue.fromNull()
 			}
 
@@ -364,7 +365,7 @@ export class OutgoingClientEntity {
 
 		switch (associationModel.cardinality) {
 			case CardinalityEnum.One: {
-				if (value == null) {
+				if (isNull(value)) {
 					throw new InvalidModelError(`Association "${associationModel.name}"(${associationModel.id}) with cardinality one cannot be null`)
 				} else if (isIdTuple) {
 					return [value as T]

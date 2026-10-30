@@ -9,7 +9,7 @@ export class ParserError extends TutanotaError {
 	filename: string | null
 
 	constructor(message: string, filename?: string) {
-		super("ParserError", message, null)
+		super("ParserError", message)
 		this.filename = filename ?? null
 	}
 }

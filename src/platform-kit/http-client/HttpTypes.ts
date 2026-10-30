@@ -52,6 +52,6 @@ export class XhrError extends TutanotaError {
 		public readonly url: string,
 		public readonly response: HttpResponse,
 	) {
-		super("XhrError", "Xhr.onError", null)
+		super("XhrError", "Xhr.onError")
 	}
 }

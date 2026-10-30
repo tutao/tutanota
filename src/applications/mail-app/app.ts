@@ -3,7 +3,7 @@ import m from "mithril"
 import Mithril, { Children, ClassComponent, Component, RouteDefs, RouteResolver, Vnode, VnodeDOM } from "mithril"
 import { lang, languageCodeToTag, languages } from "../../ui/utils/LanguageViewModel.js"
 import { root } from "../../ui/base/RootView.js"
-import { assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
+import { assertNonNull, assertNotNull, isSessionStorageAvailable } from "../../platform-kit/utils"
 import { windowFacade } from "../common/misc/WindowFacade.js"
 import { Styles } from "../../ui/styles.js"
 import { deviceConfig } from "../common/misc/DeviceConfig.js"
@@ -52,6 +52,8 @@ import { initClientModels } from "../common/api/common/ClientModelInfoInitialize
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../platform-kit/instance-pipeline/RestClientOptions"
 import { RevocationView, RevocationViewAttrs } from "../common/revocation/RevocationView"
 import { RevocationViewModel } from "../common/revocation/RevocationViewModel"
+import { AttachmentDownloader } from "./mail/view/MailGuiUtils"
+import { CheckBrowser } from "../../ui/CheckBrowser"
 import { MailSearchView, MailSearchViewAttrs } from "./search/view/MailSearchView"
 import { MailSearchViewModel } from "./search/view/MailSearchViewModel"
 import { ContactSearchView, ContactSearchViewAttrs } from "./search/view/ContactSearchView"
@@ -90,6 +92,7 @@ if (isSessionStorageAvailable()) {
 		}
 	}
 }
+assertNonNull(env)
 
 assignEnvPlatformId(urlQueryParams)
 assignEnvPaymentSetup(urlQueryParams)
@@ -105,17 +108,9 @@ window.tutao = {
 	locator: null,
 }
 
-ClientDetector.get().init(navigator.userAgent, navigator.platform, AppType.Mail)
-
-if (EnvProvider.get().isBrowser() && !ClientDetector.get().webassembly()) {
-	const webAssemblyError = new Error()
-	webAssemblyError.name = "NoWASMSupport"
-	throw webAssemblyError
-}
-
-if (!ClientDetector.get().isSupported()) {
-	throw new Error("Unsupported")
-}
+const envProvider = EnvProvider.get()
+const checkBrowser = await CheckBrowser.init(envProvider, AppType.Mail)
+checkBrowser.ensureIsSupported()
 
 // Setup exception handling after checking for client support, because in android the Error is caught by the unhandled rejection handler
 // and then the "Update WebView" message will never be show
@@ -150,7 +145,7 @@ import("../../ui/translations/en.js")
 			const htmlContainer = assertNotNull(document.getElementById("nextcloud-tutamail"))
 			const appRoot = assertNotNull(htmlContainer.getAttribute("app-root"))
 			const prefix = new URL(appRoot).pathname.split("/")[1]
-			EnvProvider.get().env.shadowDomAppRoot = `/${prefix}/tutamail/js`
+			EnvProvider.get().setShadowDomAppRoot(`/${prefix}/tutamail/js`)
 			shadowRoot = htmlContainer.attachShadow({ mode: "open" })
 		}
 

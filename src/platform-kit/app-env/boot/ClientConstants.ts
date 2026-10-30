@@ -44,5 +44,3 @@ export type BrowserData = {
 	indexedDbSupported: boolean
 	clientPlatform: ClientPlatform
 }
-
-export const companyTeamLabel = "Tuta Team"

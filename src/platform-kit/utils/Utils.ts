@@ -1,6 +1,7 @@
-import { ProgrammingError } from "../app-env/ProgrammingError.js"
-import { TypeChecks } from "../app-env/TsTypeChecks.js"
-import { isStrictlyUndefined, KeyVersion } from "./TsUtils.js"
+import { KeyVersion } from "./TsUtils.js"
+import { downcast, isNotNull, TypeChecks } from "@tutao/lang-api"
+
+export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "@tutao/lang-api"
 
 export type lazy<T> = () => T
 export type lazyAsync<T> = () => Promise<T>
@@ -67,71 +68,6 @@ export function executeInGroups<T>(array: T[], nbrOfElementsInGroup: number, exe
 	} else {
 		return Promise.resolve()
 	}
-}
-
-export function neverNull<T>(object: T): NonNullable<T> {
-	return object as any
-}
-
-/**
- * returns its argument if it is not null, throws otherwise.
- * @param value the value to check
- * @param message optional error message
- */
-export function assertNotNull<T>(value: T | null, message: string = "null"): NonNullable<T> {
-	if (value == null) {
-		throw new Error("AssertNotNull failed: " + message)
-	}
-
-	return value
-}
-
-export function assertNotNaN(number: number, message: string = "Found NaN when valid number is expected"): number {
-	if (isNaN(number)) {
-		throw new ProgrammingError(message)
-	}
-	return number
-}
-
-/**
- * throws if the value is not null.
- * @param value the value to check
- * @param message optional error message
- */
-export function assertNull<T>(value: T | null, message: string = "not null"): void {
-	if (value != null) {
-		throw new Error("AssertNull failed : " + message)
-	}
-}
-
-/**
- * assertion function that only returns if the argument is non-null
- * (acts as a type guard)
- * @param value the value to check
- * @param message optional error message
- */
-export function assertNonNull<T>(value: T | null, message: string = "null"): asserts value is T {
-	if (value == null) {
-		throw new Error("AssertNonNull failed: " + message)
-	}
-}
-
-export function isNotNull<T>(t: T | null): t is NonNullable<T> {
-	return t != null
-}
-
-export function isNull<T>(t: T | null): t is null {
-	return t === null || isStrictlyUndefined(t)
-}
-
-export function assert(assertion: boolean, message: string): void {
-	if (!assertion) {
-		throw new Error(`Assertion failed: ${message}`)
-	}
-}
-
-export function downcast<R = any>(object: any): R {
-	return object as any
 }
 
 export type Callback<T> = (arg: T) => void
@@ -263,10 +199,10 @@ export function insideRect(point: Positioned, rect: Sized): boolean {
  * If val is non null, returns the result of val passed to action, else null
  */
 export function mapNullable<T, U>(val: T | null, action: (arg0: NonNullable<T>) => U | null): U | null {
-	if (val != null) {
+	if (isNotNull(val)) {
 		const result = action(val)
 
-		if (result != null) {
+		if (isNotNull(result)) {
 			return result
 		}
 	}
@@ -327,7 +263,7 @@ export function createResizeObserver(cb: ResizeObserverCallback): ResizeObserver
 	let afRequestId: number | null = null
 
 	return new ResizeObserver((entries, observer) => {
-		if (afRequestId != null) {
+		if (isNotNull(afRequestId)) {
 			cancelAnimationFrame(afRequestId)
 		}
 		afRequestId = requestAnimationFrame(() => {

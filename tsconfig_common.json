@@ -2,6 +2,7 @@
 	"compilerOptions": {
 		"rootDir": "src",
 		"lib": ["es2023", "webworker", "dom"],
+		"types": ["node"],
 		"allowJs": true,
 		"checkJs": false,
 		"target": "es2022",
@@ -25,9 +26,12 @@
 		"noStrictGenericChecks": false,
 		"strictNullChecks": true,
 		"useUnknownInCatchVariables": false,
-		"types": ["node"],
 		"incremental": true,
 		"paths": {
+			"@tutao/lang-api": ["./src/platform-kit/lang-api/common/index.ts"],
+			"@tutao/lang-api/fingerprintJs": ["./src/platform-kit/lang-api/external-packages/fingerprintJs.ts"],
+
+			"@tutao/app-env": ["./src/platform-kit/app-env"],
 			"@tutao/utils": ["./src/platform-kit/utils"],
 			"@tutao/crypto": ["./src/platform-kit/crypto"],
 			"@tutao/crypto/error": ["./src/platform-kit/crypto/error"],
@@ -39,7 +43,6 @@
 			"@tutao/rest-client": ["./src/platform-kit/rest-client"],
 			"@tutao/rest-client/types": ["./src/platform-kit/rest-client/types.ts"],
 			"@tutao/rest-client/error": ["./src/platform-kit/rest-client/error.ts"],
-			"@tutao/app-env": ["./src/platform-kit/app-env"],
 			"@tutao/meta": ["./src/platform-kit/meta"],
 			"@tutao/entities/accounting": ["./src/entities/accounting"],
 			"@tutao/entities/base": ["./src/entities/base"],

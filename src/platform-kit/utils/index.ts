@@ -8,6 +8,7 @@ export {
 	arrayHashUnsigned,
 	remove,
 	clear,
+	arrayUnzip,
 	findAll,
 	findAndRemove,
 	findAllAndRemove,
@@ -130,6 +131,7 @@ export {
 	neverNull,
 	assertNotNull,
 	assertNonNull,
+	assertNull,
 	assert,
 	isNotNull,
 	downcast,
@@ -171,6 +173,7 @@ export * from "./SyncMetrics.js"
 export * from "./DateProvider.js"
 export * from "./FormatUtils.js"
 export { type DeepEquals } from "./Utils"
+export * from "./memoized.js"
 
 export { secureFree } from "./WebAssemblyArgument"
 export { mutableSecureFree } from "./WebAssemblyArgument"

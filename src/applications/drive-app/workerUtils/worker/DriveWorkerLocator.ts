@@ -1,5 +1,5 @@
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
-import { Const, EnvProvider, Mode, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, Mode, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import type { GiftCardFacade } from "../../../common/api/worker/facades/lazy/GiftCardFacade.js"
 import type { ConfigurationDatabase } from "../../../common/api/worker/facades/lazy/ConfigurationDatabase.js"
 import { SleepDetector } from "../../../common/api/worker/utils/SleepDetector.js"
@@ -186,7 +186,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
 		rsa: await createRsaImplementation(worker, random),
-		fileFacade: new FileFacadeSendDispatcher(worker),
+		fileFacade: EnvProvider.get().isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
@@ -359,7 +359,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
 
-	locator.Const = Const
+	locator.Const = TutanotaConstants.Const
 
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")

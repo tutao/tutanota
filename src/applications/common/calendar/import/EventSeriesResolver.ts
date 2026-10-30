@@ -26,7 +26,7 @@ export class EventSeriesResolver {
 	async updateExistingProgenitorForNewAlteredInstances(alteredInstances: CalendarEvent[], calendarGroupId: Id): Promise<CalendarEventProgenitor[]> {
 		const alteredInstanceByUid = groupBy(alteredInstances, (event) => event.uid)
 		if (alteredInstanceByUid.has(null)) {
-			throw new TutanotaError("EventSeriesResolver", "found altered instance without UID while trying to update progenitor with new excluded dates", null)
+			throw new TutanotaError("EventSeriesResolver", "found altered instance without UID while trying to update progenitor with new excluded dates")
 		}
 		const uids: string[] = Array.from(alteredInstanceByUid.keys()) as string[]
 
@@ -71,7 +71,7 @@ export class EventSeriesResolver {
 
 		for (const [uid, progenitors] of newProgenitorsByUid) {
 			if (progenitors.length > 1) {
-				throw new TutanotaError("EventSeriesResolverError", "Trying to resolve excluded dates but found two progenitors", null)
+				throw new TutanotaError("EventSeriesResolverError", "Trying to resolve excluded dates but found two progenitors")
 			}
 			const progenitor = first(progenitors)!
 			const newAlteredInstancesRecurrenceIds = (newAlteredInstancesByUid.get(uid) ?? []).map((alteredInstance) => alteredInstance.recurrenceId)
@@ -83,7 +83,7 @@ export class EventSeriesResolver {
 		)
 		for (const entry of progenitorUidIndexEntries) {
 			if (isNotNull(entry.progenitor)) {
-				throw new TutanotaError("EventSeriesResolverError", "Tried to resolve a new progenitor but a saved counterpart was found.", null)
+				throw new TutanotaError("EventSeriesResolverError", "Tried to resolve a new progenitor but a saved counterpart was found.")
 			}
 
 			const datesToExclude = entry.alteredInstances.map((alteredInstance) => alteredInstance.recurrenceId)

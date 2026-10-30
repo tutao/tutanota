@@ -17,7 +17,7 @@ import {
 	utf8Uint8ArrayToString,
 } from "@tutao/utils"
 import { elementIdToId, GENERATED_ID_BYTES_LENGTH, idToElementId, isSameId, isSameSingleId, NullEntity } from "../../meta"
-import { CancelledError, Const, DeactivationReason, EnvProvider, ProgrammingError, RolloutType, SessionType } from "@tutao/app-env"
+import { CancelledError, DeactivationReason, EnvProvider, ProgrammingError, RolloutType, SessionType, TutanotaConstants } from "@tutao/app-env"
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType } from "../../rest-client/types"
 import { EntityClient } from "../../network/EntityClient"
@@ -47,7 +47,6 @@ import { IServiceExecutor } from "../../network/ServiceRequest"
 import { UserFacade } from "./UserFacade"
 import { EntropyFacade } from "./EntropyFacade.js"
 import { BlobAccessTokenFacade } from "../../network/BlobAccessTokenFacade.js"
-import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory.js"
 import { ApplicationTypesFacade, InstancePipeline, LoggedInUserProvider } from "@tutao/instance-pipeline"
 import { KeyRotationFacade, KeyRotationRolloutAction } from "../base-crypto/KeyRotationFacade.js"
 import { RolloutFacade } from "./RolloutFacade"
@@ -113,7 +112,8 @@ import {
 } from "../../instance-pipeline/RestClientOptions"
 import { EntityUtils } from "../../instance-pipeline/EntityUtils"
 import { IncomingServerJson } from "../../instance-pipeline/TypeMapper"
-import { isNull } from "../../utils/Utils"
+import { isNull } from "@tutao/lang-api"
+import { DatabaseKeyFactory } from "../base-crypto/DatabaseKeyFactory"
 import { InstanceKeyFacade } from "../base-crypto/InstanceKeyFacade"
 import { InstanceKeySharingRolloutAction } from "../base-crypto/InstanceKeySharingRolloutAction"
 
@@ -312,7 +312,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const createSessionReturn = await this.serviceExecutor.execute(SessionService_POST, createSessionData, null)
 		const sessionData = await this.waitUntilSecondFactorApprovedOrCancelled(createSessionReturn, mailAddress)
 
-		const forceNewDatabase = sessionType === SessionType.Persistent && databaseKey == null
+		const forceNewDatabase = sessionType === SessionType.Persistent && isNull(databaseKey)
 		if (forceNewDatabase) {
 			console.log("generating new database key for persistent session")
 			databaseKey = await this.databaseKeyFactory.generateKey()
@@ -365,7 +365,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @param user the user we are updating
 	 */
 	public async migrateKdfType(targetKdfType: KdfType, passphrase: string, user: User): Promise<void> {
-		if (!Const.EXECUTE_KDF_MIGRATION) {
+		if (!TutanotaConstants.Const.EXECUTE_KDF_MIGRATION) {
 			// Migration is not yet enabled on this version.
 			return
 		}
@@ -531,7 +531,7 @@ export class LoginFacade implements SessionTypeProvider {
 		externalUserKeyDeriver: ExternalUserKeyDeriver | null,
 		databaseKey: Uint8Array<ArrayBuffer> | null,
 	): Promise<ResumeSessionResult> {
-		if (this.userFacade.getUser() != null) {
+		if (isNotNull(this.userFacade.getUser())) {
 			throw new ProgrammingError(
 				`Trying to resume the session for user ${credentials.userId} while already logged in for ${this.userFacade.getUser()?._id}`,
 			)
@@ -586,7 +586,7 @@ export class LoginFacade implements SessionTypeProvider {
 				}
 
 				await this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentials)
-				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.isTest() ? asyncResumeSession : null }
+				return { state: ResumeSessionState.Success, data, asyncResumeCompleted: EnvProvider.get().isTest() ? asyncResumeSession : null }
 			} else {
 				return await this.finishResumeSession(credentials, externalUserKeyDeriver, cacheInfo)
 			}
@@ -624,7 +624,7 @@ export class LoginFacade implements SessionTypeProvider {
 			accessToken: neverNull(accessToken),
 			v: String(sessionTypeModel.version),
 		}
-		const queryParams: Dict = pushIdentifier == null ? {} : { pushIdentifier }
+		const queryParams: Dict = isNull(pushIdentifier) ? {} : { pushIdentifier }
 		return this.restClient
 			.request(path, HttpMethod.DELETE, {
 				...DEFAULT_REST_CLIENT_OPTIONS,
@@ -676,7 +676,7 @@ export class LoginFacade implements SessionTypeProvider {
 		this.userFacade.setUserDistKey(currentUserGroupKey.version, newUserPassphraseKey)
 		const accessToken = assertNotNull(this.userFacade.getAccessToken())
 		const sessionData = await this.loadSessionData(accessToken)
-		if (sessionData.accessKey != null) {
+		if (isNotNull(sessionData.accessKey)) {
 			// if we have an accessKey, this means we are storing the encrypted password locally, in which case we need to store the new one
 			const newEncryptedPassphrase = uint8ArrayToBase64(this.cryptoWrapper.encryptString(sessionData.accessKey, newPasswordKeyDataTemplate.passphrase))
 			const newEncryptedPassphraseKey = this.cryptoWrapper.encryptKey(sessionData.accessKey, newUserPassphraseKey)
@@ -738,12 +738,15 @@ export class LoginFacade implements SessionTypeProvider {
 			createAuthHeaders(): Dict {
 				return {}
 			}
+
 			isFullyLoggedIn(): boolean {
 				return false
 			}
+
 			getLoggedInUser(): User {
 				throw new Error("No LoggedIn User to return")
 			}
+
 			getCurrentUserGroupKey(): VersionedKey {
 				throw new Error("No loggedInUser to get userGroupKey")
 			}
@@ -778,7 +781,7 @@ export class LoginFacade implements SessionTypeProvider {
 				accessToken,
 			},
 		})
-		if (user.auth == null || user.auth.recoverCode == null) {
+		if (isNull(user.auth) || isNull(user.auth.recoverCode)) {
 			throw new Error("missing recover code")
 		}
 		const recoverCodeExtraHeaders = {
@@ -1015,7 +1018,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const sessionData = await this.loadSessionData(credentials.accessToken)
 
 		const accessKey = assertNotNull(sessionData.accessKey, "no access key on session data!")
-		const isExternalUser = externalUserKeyDeriver != null
+		const isExternalUser = isNotNull(externalUserKeyDeriver)
 
 		let userPassphraseKey: AesKey
 		let credentialsWithPassphraseKey: Credentials
@@ -1041,7 +1044,7 @@ export class LoginFacade implements SessionTypeProvider {
 		const { user, userGroupInfo } = await this.initSession(sessionData.userId, credentials.accessToken, userPassphraseKey)
 
 		let partialLoginPromise: Promise<void>
-		if (previousUser == null) {
+		if (isNull(previousUser)) {
 			// user was not set which means partial login could not have been called earlier, call it here
 			partialLoginPromise = this.triggerPartialLoginSuccess(SessionType.Persistent, cacheInfo, credentialsWithPassphraseKey)
 		} else {
@@ -1059,7 +1062,7 @@ export class LoginFacade implements SessionTypeProvider {
 
 		// We only need to migrate the kdf in case an internal user resumes the session.
 		const modernKdfType = this.isModernKdfType(asKdfType(user.kdfVersion))
-		if (!isExternalUser && credentials.encryptedPassword != null && !modernKdfType) {
+		if (!isExternalUser && isNotNull(credentials.encryptedPassword) && !modernKdfType) {
 			const passphrase = utf8Uint8ArrayToString(this.cryptoWrapper.aesDecrypt(accessKey, base64ToUint8Array(credentials.encryptedPassword)))
 			await this.migrateKdfType(KdfType.Argon2id, passphrase, user)
 		}
@@ -1117,7 +1120,7 @@ export class LoginFacade implements SessionTypeProvider {
 	 * @private
 	 */
 	private async initCache({ userId, databaseKey, forceNewDatabase }: InitCacheOptions): Promise<CacheInfo> {
-		if (databaseKey != null) {
+		if (isNotNull(databaseKey)) {
 			const { isPersistent, isNewOfflineDb } = await this.cacheInitializer.initialize(new OfflineStorageArgs(userId, databaseKey, forceNewDatabase))
 			return {
 				isPersistent,

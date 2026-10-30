@@ -1,4 +1,4 @@
-import { AesKey, keyToUint8Array, SymmetricCipherUtils } from "../../../platform-kit/crypto"
+import { AesKey, keyToUint8Array, SymmetricCipherUtils } from "@tutao/crypto"
 import { NativeCryptoFacade } from "../common/generatedipc/types/NativeCryptoFacade.js"
 import { FileUri } from "../common/FileApp.js"
 import { EncryptedFileInfo } from "../common/generatedipc/types/EncryptedFileInfo.js"

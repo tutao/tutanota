@@ -10,6 +10,7 @@ import { DefaultAnimationTime } from "./animation/Animations"
 import { FontIcons } from "./base/icons/FontIcons"
 import type { IWindowFacade } from "./IWindowFacade.js"
 import { ClientDetector } from "../platform-kit/app-env/boot/ClientDetector"
+import { CheckBrowser } from "./CheckBrowser"
 import { downcast } from "@tutao/utils"
 
 EnvProvider.assertMainOrNode()
@@ -43,8 +44,8 @@ async function loadFonts() {
 	if (!EnvProvider.get().isNextCloudPlugin()) return
 
 	const fonts = [
-		new FontFace("Ionicons", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/font.ttf')`),
-		new FontFace("MDIO", `url('${EnvProvider.get().env.shadowDomAppRoot}/images/MDIO-Semibold.woff2')`),
+		new FontFace("Ionicons", `url('${EnvProvider.get().getShadowDomAppRoot()}/images/font.ttf')`),
+		new FontFace("MDIO", `url('${EnvProvider.get().getShadowDomAppRoot()}/images/MDIO-Semibold.woff2')`),
 	]
 	for (const font of fonts) {
 		font.load().then((loadedFont) => downcast(document.fonts).add(loadedFont))
@@ -984,7 +985,7 @@ export class MainStyles {
 					"max-width": px(200),
 				},
 				".scroll": {
-					"overflow-y": ClientDetector.get().overflowAuto,
+					"overflow-y": CheckBrowser.overflowAuto,
 					"-webkit-overflow-scrolling": "touch",
 				},
 				".scroll-no-overlay": {

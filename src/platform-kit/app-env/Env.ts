@@ -1,29 +1,24 @@
-import { ProgrammingError } from "./ProgrammingError"
-import { _isNode, _isWorker } from "./TsPlatformConstants"
-import { TypeChecks } from "./TsTypeChecks"
+import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
+import { ClientType } from "./TutanotaConstants"
 
 // keep in sync with LaunchHtml.js meta tag title
-export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
+export const LOGIN_TITLE: TsString = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
 
-export const IntegrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> = Object.freeze({
-	Nextcloud: "Nextcloud",
-})
+export const NEXTCLOUD_PREFIX: TsString = "/index.php/apps/tutamail"
 
-export const NEXTCLOUD_PREFIX: string = "/index.php/apps/tutamail"
-
-export type DomainConfigMap = Record<string, DomainConfig>
+export type DomainConfigMap = TsRecord<TsString, DomainConfig>
 export type EnvType = {
-	staticUrl: string | null // if null the url from the browser is used
+	staticUrl: Nullable<TsString> // if null the url from the browser is used
 	mode: Mode
 	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
 	dist: boolean
-	versionNumber: string
-	timeout: number
+	versionNumber: TsString
+	timeout: TsInt
 	domainConfigs: DomainConfigMap
 	networkDebugging: boolean
-	clientName: string | null
-	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
+	clientName: TsString | null
+	integrationPlatform: Nullable<IntegrationPlatformName>
 	shadowDomAppRoot: string | null
 }
 
@@ -54,37 +49,37 @@ export type DomainConfig = {
 	/** Whether it is a well-known domain provided by us. */
 	firstPartyDomain: boolean
 	/** the other domain in the domain migration for the current staging level */
-	partneredDomainTransitionUrl: string
+	partneredDomainTransitionUrl: TsString
 	/**
 	 *  What URL should be used for REST requests.
 	 * Important! You probably do not want to use it directly but rather through the accessor function
 	 */
-	apiUrl: string
+	apiUrl: TsString
 	websocketUrl: string
 	/**
 	 * Which URL should be opened for Webauthn flow on desktop for keys associated with our current domain (tuta.com).
 	 */
-	webauthnUrl: string
+	webauthnUrl: TsString
 	/**
 	 * Which URL should b opened for Webauthn flow on desktop for keys associated with our legacy domain (tutanota.com)
 	 */
-	legacyWebauthnUrl: string
+	legacyWebauthnUrl: TsString
 	/** Same as {@link webauthnUrl} but for mobile apps. */
-	webauthnMobileUrl: string
+	webauthnMobileUrl: TsString
 	/** Same as {@link legacyWebauthnUrl} but for mobile apps. */
-	legacyWebauthnMobileUrl: string
+	legacyWebauthnMobileUrl: TsString
 	/** Which URL should be opened for the credit card payment flow. */
-	paymentUrl: string
+	paymentUrl: TsString
 	/** Our current Relying Party ID to register the keys for. Superdomain of our domains. */
-	webauthnRpId: string
+	webauthnRpId: TsString
 	/** URL for the legacy U2F API. */
-	u2fAppId: string
+	u2fAppId: TsString
 	/** Which URL to use to build the gift card sharing URL. */
-	giftCardBaseUrl: string
+	giftCardBaseUrl: TsString
 	/** Which URL to use to build the referral URL. */
-	referralBaseUrl: string
+	referralBaseUrl: TsString
 	/** Base URL for requesting any information from de website */
-	websiteBaseUrl: string
+	websiteBaseUrl: TsString
 }
 
 export const enum Mode {
@@ -101,42 +96,52 @@ export const enum Mode {
  * Rolldown doesn't inline const enums at the moment, so we can't assert the loading order.
  * If not set defaults to true
  */
-const assertionsEnabled = false
+const assertionsEnabled: boolean = false
 
 export class EnvProvider {
-	private static boot: boolean =
-		_isNode && !_isWorker && EnvProvider.tryInitWithGlobalEnv() != null && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private readonly env: EnvType
+	/** @TTranspileIgnore This is all method that uses this field is @TranspileIgnore */
+	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
+	/** @TMutableStaticSafety MainThreadInitialized */
 	private static singleton: EnvProvider | null = null
 
+	/** @TTranspileIgnore This method is only used from locator */
 	public static get(): EnvProvider {
-		EnvProvider.tryInitWithGlobalEnv()
-		if (EnvProvider.singleton == null) {
-			throw new Error("global var env is not defined yet")
+		if (isNull(EnvProvider.singleton)) {
+			EnvProvider.singleton = new EnvProvider()
 		}
 		return EnvProvider.singleton
 	}
 
-	public isMainOrNode(): boolean {
-		return EnvProvider.isMainOrNode()
+	private constructor() {
+		this.env = TsJson.parse(RuntimeInfo.globallyDefinedEnv())
 	}
 
-	private static tryInitWithGlobalEnv(): EnvProvider | null {
-		if (EnvProvider.singleton == null && TypeChecks.hasProperty("env")) {
-			EnvProvider.singleton = new EnvProvider(env)
-		}
-		return EnvProvider.singleton
+	/** @TTranspileIgnore
+	 * shadowDomAppRoot should be passed as argument to the constructor
+	 * since the constructor is supposed to be invoked only once in app.ts,
+	 * we already have that information there and shadowDomAppRoot does not change afterwards
+	 */
+	public setShadowDomAppRoot(shadowDomAppRoot: string): void {
+		this.env.shadowDomAppRoot = shadowDomAppRoot
 	}
 
-	public getVersionNumber(): string {
+	public getShadowDomAppRoot(): string | null {
+		return this.env.shadowDomAppRoot
+	}
+
+	public getEnvAsJson(): string {
+		return TsJson.stringify(this.env)
+	}
+
+	public getVersionNumber(): TsString {
 		return this.env.versionNumber
 	}
 
-	public getTimeOutValue(): number {
+	public getTimeOutValue(): TsInt {
 		return this.env.timeout
 	}
-
-	private constructor(public readonly env: EnvType) {}
 
 	public getPlatformId(): PlatformId | null {
 		return this.env.platformId
@@ -146,23 +151,33 @@ export class EnvProvider {
 		return this.env.networkDebugging
 	}
 
-	public getClientName(): string | null {
+	public getClientName(): TsString | null {
 		return this.env.clientName
 	}
 
 	public isIOSApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
+		if (this.isApp() && isNull(this.env.platformId)) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 		return this.isApp() && this.env.platformId === PlatformId.Ios
 	}
 
 	public isNextCloudPlugin(): boolean {
-		return env.integrationPlatform === IntegrationPlatform.Nextcloud
+		return this.env.integrationPlatform === "Nextcloud"
 	}
 
 	public getPathPrefix(): string {
-		return this.env.shadowDomAppRoot != null ? this.env.shadowDomAppRoot : ""
+		return isNotNull(this.env.shadowDomAppRoot) ? this.env.shadowDomAppRoot : ""
+	}
+
+	public getClientType(): ClientType {
+		if (this.isApp()) {
+			return ClientType.App
+		} else if (this.isDesktop() || this.isAdminClient()) {
+			return ClientType.Desktop
+		} else {
+			return ClientType.Browser
+		}
 	}
 
 	/**
@@ -173,7 +188,7 @@ export class EnvProvider {
 	}
 
 	public isAndroidApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
+		if (this.isApp() && isNull(this.env.platformId)) {
 			throw new ProgrammingError("PlatformId is not set!")
 		}
 
@@ -186,6 +201,10 @@ export class EnvProvider {
 
 	public isApp(): boolean {
 		return this.env.mode === Mode.App
+	}
+
+	public isDesktopOrApp(): boolean {
+		return this.isDesktop() || this.isApp()
 	}
 
 	public isDesktop(): boolean {
@@ -208,25 +227,20 @@ export class EnvProvider {
 		return this.isDesktop() || this.isAdminClient()
 	}
 
-	public static isMainOrNode(): boolean {
-		return !_isWorker || _isNode || EnvProvider.isTest()
+	public isMainOrNode(): boolean {
+		return !RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
 	}
 
-	public static isWorkerOrNode(): boolean {
-		return _isWorker || _isNode || EnvProvider.isTest()
+	public isWorkerOrNode(): boolean {
+		return RuntimeInfo._isWorker || RuntimeInfo._isNode || this.isTest()
 	}
 
-	public static isWorker(): boolean {
-		return _isWorker
+	public isWorker(): boolean {
+		return RuntimeInfo._isWorker
 	}
 
-	public static isMain(): boolean {
-		return !_isWorker && !_isNode
-	}
-
-	public static isTest(): boolean {
-		EnvProvider.tryInitWithGlobalEnv()
-		return EnvProvider.singleton?.env.mode === Mode.Test
+	public isTest(): boolean {
+		return this.env.mode === Mode.Test
 	}
 
 	/**
@@ -240,15 +254,17 @@ export class EnvProvider {
 		return this.isOfflineStorageAvailable() && this.isDesktop()
 	}
 
+	/** @TTranspileIgnore This method is only called from entryPoint of app which is not used from transpiled code */
 	public static bootFinished(): void {
 		this.boot = false
 	}
 
+	/** @TTranspileIgnore This method is only called from entryPoint of app which is not used from transpiled code */
 	public static isBootFinished(): boolean {
-		return this.boot
+		return EnvProvider.boot
 	}
 
-	public getWebsocketBaseUrl(domainConfig: DomainConfig): string {
+	public getWebsocketBaseUrl(domainConfig: DomainConfig): TsString {
 		// replaces http: with ws: and https: with wss:
 		return domainConfig.apiUrl.replace(/^http/, "ws")
 	}
@@ -258,7 +274,7 @@ export class EnvProvider {
 	 * This is done in order to avoid preflight requests with Origin asset://app
 	 * @param url
 	 */
-	public rewriteSchemeForIos(url: string): string {
+	public rewriteSchemeForIos(url: string): TsString {
 		if (this.isIOSApp()) {
 			// http:// -> api:// and https:// -> apis://
 			return url.replace(/^http/, "api")
@@ -266,35 +282,45 @@ export class EnvProvider {
 		return url
 	}
 
-	static assertMainOrNode(): void {
-		if (!assertionsEnabled) return
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
+	public static assertMainOrNode(): void {
+		if (!assertionsEnabled) {
+			return
+		}
 
-		if (!EnvProvider.isMainOrNode()) {
-			throw new Error("this code must not run in the worker thread")
+		if (!EnvProvider.get().isMainOrNode()) {
+			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 
 		if (EnvProvider.isBootFinished()) {
-			throw new Error("this main code must not be loaded at boot time")
+			throw new ProgrammingError("this main code must not be loaded at boot time")
 		}
 	}
 
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertMainOrNodeBoot(): void {
-		if (!assertionsEnabled) return
+		if (!assertionsEnabled) {
+			return
+		}
 
-		if (!EnvProvider.isMainOrNode()) {
-			throw new Error("this code must not run in the worker thread")
+		if (!EnvProvider.get().isMainOrNode()) {
+			throw new ProgrammingError("this code must not run in the worker thread")
 		}
 	}
 
+	/** @TTranspileIgnore by the time we make use of transpiled code, this function would not exists */
 	public static assertWorkerOrNode(): void {
-		if (!assertionsEnabled) return
+		if (!assertionsEnabled) {
+			return
+		}
 
-		if (!EnvProvider.isWorkerOrNode()) {
-			throw new Error("this code must not run in the gui thread")
+		if (!EnvProvider.get().isWorkerOrNode()) {
+			throw new ProgrammingError("this code must not run in the gui thread")
 		}
 	}
 
+	/** @TTranspileIgnore This method is only used from locator */
 	public static overrideEnv(env: EnvType): void {
-		;(EnvProvider.get().env satisfies EnvType) = env
+		;(EnvProvider.get().env as EnvType) = env
 	}
 }

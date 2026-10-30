@@ -6,7 +6,7 @@ import type { MailAddressFacade } from "../../../common/api/worker/facades/lazy/
 import type { CustomerFacade } from "../../../common/api/worker/facades/lazy/CustomerFacade.js"
 import { EventBusClient } from "../../../../app-kit/local-store/event/EventBusClient.js"
 import { ProgressMonitorDelegate } from "../../../common/api/worker/ProgressMonitorDelegate.js"
-import { Const, EnvProvider, ProgrammingError } from "../../../../platform-kit/app-env"
+import { EnvProvider, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
 import { ContactTypeRef, ImapFolderSyncStateTypeRef, ImportFileMailStateTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { UserTypeRef } from "@tutao/entities/sys"
 import type { CalendarFacade } from "../../../common/api/worker/facades/lazy/CalendarFacade.js"
@@ -394,7 +394,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		identityKeyTrustDatabase: locator.identityKeyTrustDatabase,
 		domainConfig: new DomainConfigProvider().getCurrentDomainConfig(),
 		rsa: await createRsaImplementation(worker, random),
-		fileFacade: new FileFacadeSendDispatcher(worker),
+		fileFacade: EnvProvider.get().isDesktopOrApp() ? new FileFacadeSendDispatcher(worker) : null,
 		nativeCryptoFacade: new NativeCryptoFacadeSendDispatcher(worker),
 		argon2idFacade: null,
 		entityMigratorFactory: ({
@@ -738,7 +738,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 		(totalWork) => new ProgressMonitorDelegate(mainInterface.progressTracker, totalWork),
 	)
 
-	locator.Const = Const
+	locator.Const = TutanotaConstants.Const
 
 	locator.giftCards = lazyMemoized(async () => {
 		const { GiftCardFacade } = await import("../../../common/api/worker/facades/lazy/GiftCardFacade.js")
