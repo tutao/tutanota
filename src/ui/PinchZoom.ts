@@ -566,7 +566,6 @@ export class PinchZoom {
 		const sl = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollLeft
 		const st = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollTop
 
-		// FIXME: all PinchZoom instances are HTMLIFrameElement; should we remove the non-HTMLIFrameElement code if we won't use it?
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
 		const borders = {
 			x: viewportRect.left + 1,
@@ -583,13 +582,9 @@ export class PinchZoom {
 			this.initialZoomableSize.height,
 			newTransformOrigin,
 			newPinchSessionTranslation,
+			viewportRect,
 			newScale,
 		)
-
-		targetedOutcome.x += viewportRect.x
-		targetedOutcome.y += viewportRect.y
-		targetedOutcome.x2 += viewportRect.x
-		targetedOutcome.y2 += viewportRect.y
 
 		const targetedHeight = targetedOutcome.y2 - targetedOutcome.y
 		const targetedWidth = targetedOutcome.x2 - targetedOutcome.x
@@ -607,25 +602,18 @@ export class PinchZoom {
 		let targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
 		let targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
 
-		targetX -= sl
-		targetY -= st
-
-		if (targetX !== targetedOutcome.x || targetY !== targetedOutcome.y) {
-			if (this.viewport instanceof HTMLIFrameElement) {
-				targetX -= viewportRect.x - this.viewportViewport.scrollLeft
-				targetY -= viewportRect.y - this.viewportViewport.scrollTop
-			}
-
+		if (!horizontalTransformationAllowed || !verticalTransformationAllowed || sl !== 0 || st !== 0) {
 			newTransformOrigin = this.calculateTransformOriginFromTarget(
 				{
-					x: targetX,
-					y: targetY,
+					x: targetX - sl - viewportRect.x,
+					y: targetY - st - viewportRect.y,
 				},
 				currentZoomablePositionWithoutTransformation,
 				newPinchSessionTranslation,
 				newScale,
 			)
 		}
+
 		if (newScale === 1 && this.zoomBoundaries.min === 1) {
 			// not initially scaled email is back in the original state
 			this.pinchSessionTranslation = { x: 0, y: 0 }
@@ -651,13 +639,14 @@ export class PinchZoom {
 		originalHeight: number,
 		transformOrigin: CoordinatePair,
 		translation: CoordinatePair,
+		viewportOrigin: CoordinatePair,
 		scale: number,
 	): { x: number; y: number; x2: number; y2: number } {
 		return {
-			x: currentOriginalPosition.x + transformOrigin.x - transformOrigin.x * scale + translation.x,
-			y: currentOriginalPosition.y + transformOrigin.y - transformOrigin.y * scale + translation.y,
-			x2: currentOriginalPosition.x + transformOrigin.x + (originalWidth - transformOrigin.x) * scale + translation.x,
-			y2: currentOriginalPosition.y + transformOrigin.y + (originalHeight - transformOrigin.y) * scale + translation.y,
+			x: currentOriginalPosition.x + transformOrigin.x - transformOrigin.x * scale + translation.x + viewportOrigin.x,
+			y: currentOriginalPosition.y + transformOrigin.y - transformOrigin.y * scale + translation.y + viewportOrigin.y,
+			x2: currentOriginalPosition.x + transformOrigin.x + (originalWidth - transformOrigin.x) * scale + translation.x + viewportOrigin.x,
+			y2: currentOriginalPosition.y + transformOrigin.y + (originalHeight - transformOrigin.y) * scale + translation.y + viewportOrigin.y,
 		}
 	}
 }
