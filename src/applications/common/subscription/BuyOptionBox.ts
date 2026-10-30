@@ -1,5 +1,5 @@
 import m, { Child, Children, Component, Vnode, VnodeDOM } from "mithril"
-import { font_size, px, size } from "../../../ui/size"
+import { rem, font_size, px, size } from "../../../ui/size"
 import type { MaybeTranslation } from "../../../ui/utils/LanguageViewModel"
 import { lang } from "../../../ui/utils/LanguageViewModel"
 import type { lazy } from "@tutao/utils"
@@ -219,7 +219,7 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 							".small.flex",
 							{ style: { "justify-content": "center", "column-gap": px(1) } },
 							m("span", attrs.priceHint ? lang.getTranslationText(attrs.priceHint) : lang.get("emptyString_msg")),
-							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": px(8) } }, "1"),
+							vnode.attrs.hasPriceFootnote && m("sup", { style: { "font-size": rem(size.core_8_em) } }, "1"),
 						),
 						m(".small.text-center.pb-24", lang.getTranslationText(attrs.helpLabel)),
 						this.renderPaymentIntervalControl(attrs.selectedPaymentInterval, !!attrs.hasFirstYearDiscount),
@@ -250,14 +250,14 @@ export class BuyOptionBox implements Component<BuyOptionBoxAttr> {
 						{
 							style: {
 								color: theme.on_surface,
-								fontSize: px(font_size.base),
+								fontSize: rem(font_size.base_em),
 								...(!isApplePrice && { "justify-self": "end" }),
 							},
 						},
 						strikethroughPrice,
 					)
 				: m(""),
-			m(".h1", { style: { ...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }) } }, price),
+			m(".h1", { style: { ...(isApplePrice && { "font-size": rem(size.core_20_em), "font-weight": "bold" }) } }, price),
 			m(""),
 		)
 	}

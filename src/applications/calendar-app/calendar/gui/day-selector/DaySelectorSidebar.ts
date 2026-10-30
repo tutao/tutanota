@@ -4,6 +4,7 @@ import { incrementMonth, isSameDay } from "../../../../../platform-kit/utils"
 import { DaySelector } from "./DaySelector.js"
 import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButton.js"
 import { Styles } from "../../../../../ui/styles"
+import { rem, font_size } from "../../../../../ui/size"
 
 export interface DaySelectorSidebarAttrs {
 	selectedDate: Date
@@ -65,7 +66,7 @@ export class DaySelectorSidebar implements Component<DaySelectorSidebarAttrs> {
 				".b.mlr-4",
 				{
 					style: {
-						fontSize: "14px",
+						fontSize: rem(font_size.smaller_em),
 					},
 				},
 				formatMonthWithFullYear(date),

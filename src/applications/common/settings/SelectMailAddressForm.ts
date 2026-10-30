@@ -7,7 +7,7 @@ import { formatMailAddressFromParts } from "../../../ui/utils/Formatter.js"
 import { Icon } from "../../../ui/base/Icon.js"
 import { locator } from "../api/main/CommonLocator.js"
 import { EnvProvider } from "@tutao/app-env"
-import { font_size, px } from "../../../ui/size.js"
+import { rem, font_size, px } from "../../../ui/size.js"
 import { Autocapitalize, Autocomplete, LegacyTextField } from "../../../ui/base/LegacyTextField.js"
 import { attachDropdown, DropdownButtonAttrs } from "../../../ui/base/Dropdown.js"
 import { IconButton, IconButtonAttrs } from "../../../ui/base/IconButton.js"
@@ -85,7 +85,7 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 			autocompleteAs: Autocomplete.newPassword,
 			autocapitalize: Autocapitalize.none,
 			helpLabel: () => this.addressHelpLabel(),
-			fontSize: px(font_size.smaller),
+			fontSize: rem(font_size.smaller_em),
 			oninput: (value) => {
 				this.username = value
 				this.verifyMailAddress(attrs)
@@ -97,8 +97,8 @@ export class SelectMailAddressForm implements Component<SelectMailAddressFormAtt
 						style: {
 							"padding-bottom": "1px",
 							flex: "1 1 auto",
-							fontSize: px(font_size.smaller),
-							lineHeight: px(font_size.line_height_input),
+							fontSize: rem(font_size.smaller_em),
+							lineHeight: rem(font_size.line_height_input_em),
 						},
 					},
 					`@${attrs.selectedDomain.domain}`,

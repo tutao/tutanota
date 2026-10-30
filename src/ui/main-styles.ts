@@ -1,5 +1,5 @@
 import { Styles } from "./styles"
-import { component_size, font_size, layout_size, px, size } from "./size"
+import { component_size, rem, font_size, layout_size, px, size } from "./size"
 import { EnvProvider } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
@@ -70,7 +70,7 @@ export class MainStyles {
 					EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
 						? {
 								"pointer-events": "none",
-								"font-size": px(font_size.small),
+								"font-size": rem(font_size.smaller_em),
 								"padding-left": px(size.spacing_4),
 								"padding-right": px(size.spacing_4),
 								"padding-top": px(size.spacing_4),
@@ -188,6 +188,11 @@ export class MainStyles {
 					margin: 0,
 					width: "100%",
 				},
+				"@supports (font: -apple-system-body)": {
+					body: {
+						font: "-apple-system-body !important",
+					},
+				},
 				html: {
 					"-webkit-font-smoothing": "subpixel-antialiased",
 				},
@@ -213,19 +218,19 @@ export class MainStyles {
 					overflow: "hidden",
 					// see: https://www.smashingmagazine.com/2015/11/using-system-ui-fonts-practical-guide/ and github
 					"font-family": getFonts(),
-					"font-size": px(font_size.base),
+					"font-size": rem(font_size.base_em),
 					"line-height": font_size.line_height,
 					color: theme.on_surface,
 					"-webkit-text-size-adjust": "none", // fix for safari browser
 				},
 				"small, .small": {
-					"font-size": px(font_size.small),
+					"font-size": rem(font_size.small_em),
 				},
 				".smaller": {
-					"font-size": px(font_size.smaller),
+					"font-size": rem(font_size.smaller_em),
 				},
 				".normal-font-size": {
-					"font-size": px(font_size.base),
+					"font-size": rem(font_size.base_em),
 				},
 				".b": {
 					"font-weight": "bold",
@@ -322,25 +327,25 @@ export class MainStyles {
 					"border-left-width": "2px",
 				},
 				".big": {
-					"font-size": px(font_size.base * 2.5),
+					"font-size": rem(2.5),
 				},
 				"h1, .h1": {
-					"font-size": px(font_size.base * 2),
+					"font-size": rem(2),
 				},
 				"h2, .h2": {
-					"font-size": px(font_size.base * 1.8),
+					"font-size": rem(1.8),
 				},
 				"h3, .h3": {
-					"font-size": px(font_size.base * 1.6),
+					"font-size": rem(1.6),
 				},
 				"h4, .h4": {
-					"font-size": px(font_size.base * 1.4),
+					"font-size": rem(1.4),
 				},
 				"h5, .h5": {
-					"font-size": px(font_size.base * 1.2),
+					"font-size": rem(1.2),
 				},
 				"h6, .h6": {
-					"font-size": px(font_size.base * 1.1),
+					"font-size": rem(1.1),
 				},
 				"input, button, select, textarea": {
 					"font-family": "inherit",
@@ -1889,10 +1894,10 @@ export class MainStyles {
 				},
 				".dialog-header": {
 					"border-bottom": `1px solid ${theme.outline_variant}`,
-					height: px(component_size.button_height + 1),
+					height: rem(2.81),
 				},
 				".dialog-header-line-height": {
-					"line-height": px(component_size.button_height),
+					"line-height": rem(component_size.button_height_em),
 				},
 				".dialog-progress": {
 					"text-align": "center",
@@ -1955,8 +1960,8 @@ export class MainStyles {
 					"padding-left": px(4),
 					"padding-right": px(4),
 					"border-radius": px(8),
-					"line-height": px(16),
-					"font-size": px(font_size.small),
+					"line-height": rem(font_size.base_em),
+					"font-size": rem(font_size.small_em),
 					"font-weight": "bold",
 					"min-width": px(16),
 					"min-height": px(16),
@@ -2036,13 +2041,13 @@ export class MainStyles {
 					"-moz-osx-font-smoothing": "grayscale",
 				},
 				".badge-line-height": {
-					"line-height": px(18),
+					"line-height": rem(1.17),
 				},
 				".list-font-icons": {
 					"letter-spacing": "1px",
 					"text-align": "right",
 					"margin-right": "-3px",
-					"font-size": "18px",
+					"font-size": rem(1.17),
 				},
 				".monospace": {
 					"font-family": '"Lucida Console", Monaco, monospace',
@@ -2405,11 +2410,11 @@ export class MainStyles {
 				},
 				".info-badge": {
 					"border-radius": px(8),
-					"line-height": px(16),
-					"font-size": px(12),
+					"line-height": rem(font_size.base_em),
+					"font-size": rem(font_size.small_em),
 					"font-weight": "bold",
-					width: px(16),
-					height: px(16),
+					width: rem(font_size.base_em),
+					height: rem(font_size.base_em),
 					"text-align": "center",
 					color: "white",
 					background: theme.on_surface_variant,
@@ -2529,10 +2534,10 @@ export class MainStyles {
 					// reset browser style
 					margin: "0",
 					display: "block",
-					width: px(component_size.checkbox_size),
-					height: px(component_size.checkbox_size),
-					"min-width": px(component_size.checkbox_size),
-					"min-height": px(component_size.checkbox_size),
+					width: rem(component_size.checkbox_size_em),
+					height: rem(component_size.checkbox_size_em),
+					"min-width": rem(component_size.checkbox_size_em),
+					"min-height": rem(component_size.checkbox_size_em),
 					border: `${px(component_size.checkbox_border_size)} solid ${theme.outline}`,
 					"border-radius": "3px",
 					position: "relative",
@@ -2554,17 +2559,17 @@ export class MainStyles {
 					content: `'${FontIcons.CheckboxCheckmark}'`,
 					position: "absolute",
 					display: "none",
-					"font-size": "12px",
+					"font-size": rem(font_size.small_em),
 					// related to border width
 					top: "-6px",
 					left: "-6px",
 					right: 0,
 					bottom: 0,
-					"line-height": "12px",
+					"line-height": rem(font_size.small_em),
 					color: theme.surface,
 					"align-items": "center",
-					width: "12px",
-					height: "12px",
+					width: rem(font_size.small_em),
+					height: rem(font_size.small_em),
 				},
 				".checkbox:before": {
 					content: "''",
@@ -2617,9 +2622,9 @@ export class MainStyles {
 				},
 				".calendar-day-indicator": {
 					// overridden for mobile
-					"line-height": px(layout_size.calendar_days_header_height),
+					"line-height": rem(layout_size.calendar_days_header_height_em),
 					"text-align": "center",
-					"font-size": "14px",
+					"font-size": rem(font_size.smaller_em),
 				},
 				".calendar-day .calendar-day-indicator:hover": {
 					background: theme.surface_container,
@@ -2627,7 +2632,7 @@ export class MainStyles {
 				},
 				".calendar-day-number": {
 					margin: "3px auto",
-					width: "22px",
+					width: rem(1.375),
 				},
 				".calendar-event": {
 					"border-radius": px(4),
@@ -2765,7 +2770,7 @@ export class MainStyles {
 					"border-bottom": `1px solid ${theme.outline_variant}`,
 				},
 				".calendar-month-week-number": {
-					"font-size": "12px",
+					"font-size": rem(font_size.small_em),
 					opacity: "0.8",
 					top: "8px",
 					left: "6px",
@@ -2869,8 +2874,8 @@ export class MainStyles {
 					"box-shadow": "0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14), 0 4px 5px 2px rgba(0,0,0,0.14)",
 				},
 				".big-input input": {
-					"font-size": px(font_size.base * 1.4),
-					"line-height": `${px(font_size.base * 1.4 + 2)} !important`,
+					"font-size": rem(1.4),
+					"line-height": `${rem(1.52)} !important`,
 				},
 				".hidden-until-focus": {
 					position: "absolute",
@@ -2900,19 +2905,19 @@ export class MainStyles {
 						"padding-top": px(size.spacing_8),
 					},
 					".calendar-day-indicator": {
-						"line-height": "20px",
+						"line-height": rem(1.25),
 						"text-align": "center",
-						"font-size": "14px",
+						"font-size": rem(font_size.smaller_em),
 					},
 					".calendar-day-number": {
 						margin: "2px auto",
-						width: "20px",
+						width: rem(1.25),
 					},
 					".calendar-hour-margin": {
 						"margin-left": px(layout_size.calendar_hour_width_mobile),
 					},
 					".calendar-month-week-number": {
-						"font-size": "10px",
+						"font-size": rem(0.625),
 						opacity: "0.8",
 						top: "3px",
 						left: "3px",
@@ -3370,7 +3375,7 @@ export class MainStyles {
 					background: theme.primary,
 					"border-radius": px(size.radius_12),
 					color: theme.on_primary,
-					"line-height": px(20),
+					"line-height": rem(1.25),
 				},
 				".interactable-cell:hover": {
 					background: theme.surface_container,

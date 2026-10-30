@@ -1,5 +1,5 @@
 import m, { Component, Vnode } from "mithril"
-import { component_size, font_size, px, size } from "../../../../ui/size"
+import { component_size, rem, font_size, px, size } from "../../../../ui/size"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
 import { type Callback } from "@tutao/utils"
 import { PLAN_SELECTOR_SELECTED_BOX_SCALE } from "@tutao/app-env"
@@ -220,7 +220,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 									{
 										style: {
 											color: localTheme.on_surface_variant,
-											fontSize: px(font_size.smaller),
+											fontSize: rem(font_size.smaller_em),
 											justifySelf: "end",
 										},
 									},
@@ -231,7 +231,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 								{
 									style: {
 										"line-height": "100%",
-										...(isApplePrice && { "font-size": px(20), "font-weight": "bold" }),
+										...(isApplePrice && { "font-size": rem(size.core_20_em), "font-weight": "bold" }),
 									},
 								},
 								price,
@@ -243,7 +243,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 							m("span", getPriceHintStr()),
 							(discountDetail?.discountType === "GlobalFirstYear" || discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
 								isYearly &&
-								m("sup", { style: { "font-size": px(8) } }, "1"),
+								m("sup", { style: { "font-size": rem(size.core_8_em) } }, "1"),
 						),
 					),
 				]),
@@ -291,7 +291,7 @@ export class PersonalPaidPlanBox implements Component<PersonalPlanBoxAttrs> {
 			".text-center.flex.col.center-horizontally.m-0.font-mdio",
 			{
 				style: {
-					"font-size": px(Styles.get().isMobileLayout() ? 18 : 20),
+					"font-size": rem(Styles.get().isMobileLayout() ? size.core_18_em : size.core_20_em),
 					color,
 				},
 			},

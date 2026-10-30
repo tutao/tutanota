@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { List, ListAttrs, ListState, MultiselectMode, RenderConfig, ViewHolder } from "../../../../ui/base/List"
 import { FolderItem } from "./DriveUtils"
 import { SelectableRowContainer, SelectableRowSelectedSetter } from "../../../../ui/SelectableRowContainer"
-import { px } from "../../../../ui/size"
+import { rem, px, size } from "../../../../ui/size"
 import { Icon, IconSize } from "../../../../ui/base/Icon"
 import { Icons, IconsSvg } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
@@ -107,7 +107,7 @@ class DriveFolderItemRow implements ViewHolder<FolderItem> {
 							},
 						}),
 						m("", {
-							style: { fontSize: "10px", color: theme.on_surface_variant },
+							style: { fontSize: rem(size.core_10_em), color: theme.on_surface_variant },
 							oncreate: (vnode) => {
 								this.metadataDom = vnode.dom as HTMLElement
 							},

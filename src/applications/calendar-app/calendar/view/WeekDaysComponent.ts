@@ -4,7 +4,7 @@ import m, { Children, ClassComponent, Vnode } from "mithril"
 import { Styles } from "../../../../ui/styles"
 import { getDayCircleClass } from "../gui/CalendarGuiUtils"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { layout_size, px } from "../../../../ui/size"
+import { rem, font_size, layout_size, px } from "../../../../ui/size"
 import { DaySelector, DaySelectorAttrs } from "../gui/day-selector/DaySelector"
 import { getStartOfTheWeekOffset } from "../../../common/misc/weekOffset"
 import { DateTime, DurationLikeObject } from "luxon"
@@ -75,8 +75,8 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 					m(".abs.z1.circle", {
 						class: dayCircleClasses.circle,
 						style: {
-							width: px(layout_size.calendar_days_header_height),
-							height: px(layout_size.calendar_days_header_height),
+							width: rem(layout_size.calendar_days_header_height_em),
+							height: rem(layout_size.calendar_days_header_height_em),
 						},
 					}),
 					m(
@@ -84,8 +84,8 @@ export class WeekDaysComponent implements ClassComponent<WeekDaysComponentAttrs>
 						{
 							class: dayCircleClasses.text,
 							style: {
-								fontSize: px(14),
-								lineHeight: px(layout_size.calendar_days_header_height),
+								fontSize: rem(font_size.smaller_em),
+								lineHeight: rem(layout_size.calendar_days_header_height_em),
 							},
 						},
 						day.getDate(),

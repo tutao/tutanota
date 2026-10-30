@@ -275,13 +275,13 @@ function renderMessage(x: number, y: number, width: number, height: number, colo
 	const lineBreaks = cleanMessage.split(/\r\n|\r|\n/).length
 	const charLength = cleanMessage.length
 
-	const fontSizePx = lineBreaks > 4 || charLength > 80 ? "6px" : "7px"
+	const fontSizeEM = lineBreaks > 4 || charLength > 80 ? "0.375em" : "0.438em"
 
 	return `
 		<foreignObject x="${x}" y="${y}" width="${width}" height="${height}" fill="${color}">
 			<p xmlns="http://www.w3.org/1999/xhtml"
 			   class="text-preline text-break color-adjust-exact monospace"
-			   style="font-size: ${fontSizePx}; color: ${color}; margin: auto 0 0 0">
+			   style="font-size: ${fontSizeEM}; color: ${color}; margin: auto 0 0 0">
 				${cleanMessage}
 			</p>
 		</foreignObject>`

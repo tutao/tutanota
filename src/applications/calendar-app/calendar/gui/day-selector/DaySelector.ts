@@ -2,11 +2,11 @@ import m, { Children, Component, Vnode } from "mithril"
 import { assertNotNull, getStartOfDay, incrementDate, isSameDayOfDate } from "../../../../../platform-kit/utils"
 import { DateTime } from "luxon"
 import { Carousel } from "../../../../../ui/base/Carousel.js"
-import { changePeriodOnWheel, getCalendarMonth, getDayCircleClass } from "../CalendarGuiUtils.js"
+import { changePeriodOnWheel, getCalendarMonth, getDayCircleClass, getElementWidth } from "../CalendarGuiUtils.js"
 import { CalendarDay, CalendarMonth } from "../../../../common/calendar/date/CalendarUtils.js"
 import { DefaultAnimationTime } from "../../../../../ui/animation/Animations.js"
 import { theme } from "../../../../../ui/theme.js"
-import { px, size } from "../../../../../ui/size.js"
+import { rem, font_size, px, size } from "../../../../../ui/size.js"
 import { Styles } from "../../../../../ui/styles.js"
 import { ExpanderPanel } from "../../../../../ui/base/Expander"
 
@@ -81,8 +81,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 			label: "date_label",
 			class: "center-horizontally",
 			style: {
-				fontSize: px(14),
-				lineHeight: px(this.getElementSize(vnode.attrs)),
+				fontSize: rem(font_size.smaller_em),
+				lineHeight: px(this.getElementSize(vnode.attrs.wide)),
 			},
 			slides: [
 				{
@@ -143,7 +143,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		const isSelectedDay = isSameDayOfDate(date, attrs.selectedDate)
 		const classes = getDayCircleClass(date, attrs.selectedDate)
 
-		const size = this.getElementSize(attrs)
+		const size = this.getElementSize(attrs.wide)
 
 		return m(
 			"button.rel.click.flex.items-center.justify-center.rel" + (isPaddingDay && attrs.isDaySelectorExpanded ? ".text-fade" : ""),
@@ -169,7 +169,7 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 					{
 						class: classes.text,
 						style: {
-							fontSize: px(attrs.wide ? 14 : 12),
+							fontSize: rem(attrs.wide ? font_size.smaller_em : font_size.small_em),
 						},
 					},
 					day,
@@ -188,8 +188,8 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 		)
 	}
 
-	private getElementSize(attrs: DaySelectorAttrs): number {
-		return attrs.wide ? 40 : 30
+	private getElementSize(wide: boolean): number {
+		return wide ? 40 : 30
 	}
 
 	private renderExpandableWeek(week: ReadonlyArray<CalendarDay>, attrs: DaySelectorAttrs, highlight: boolean, hidden: boolean): Children {
@@ -216,18 +216,16 @@ export class DaySelector implements Component<DaySelectorAttrs> {
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
-		const size = px(wide ? 40 : 24)
-		const fontSize = px(14)
 		return weekdays.map((wd) =>
 			m(
 				".center",
 				{
 					"aria-hidden": "true",
 					style: {
-						fontSize,
+						fontSize: rem(font_size.smaller_em),
 						fontWeight: "bold",
 						height: "20px",
-						width: size,
+						width: getElementWidth(wide),
 						lineHeight: "20px",
 					},
 				},

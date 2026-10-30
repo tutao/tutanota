@@ -8,7 +8,7 @@ import { isDriveEnabled } from "../../common/misc/DriveUtils"
 import { Icons } from "../../../ui/base/icons/Icons"
 
 type Attrs = void
-const fontSize = font_size.small
+const fontSize = font_size.small_em
 
 function getHrefForSearch(): string {
 	const route = m.route.get()

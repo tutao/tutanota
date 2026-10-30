@@ -1065,3 +1065,8 @@ export const EventDetailsActions = pureComponent(
 		return actions
 	},
 )
+
+export function getElementWidth(wide: boolean): number {
+	return wide ? 40 : 24
+	//return wide ? size.core_40_em : size.core_24_em
+}
