@@ -24,11 +24,11 @@ import { CryptoError } from "@tutao/crypto/error"
 import { SymmetricGroupKeyLoader } from "@tutao/instance-pipeline"
 import { createKeyPair, Group, GroupKey, GroupKeyTypeRef, GroupTypeRef, KeyPair } from "@tutao/entities/sys"
 import { GroupType } from "../../../entities/sys/Utils"
-import { ProgrammingError } from "@tutao/app-env"
 import { CacheManager } from "./persistence/CacheManager"
-import { TypeId } from "../../meta/EntityConstants"
+import { TypeId } from "@tutao/meta"
 import { convertCustomIdToKeyVersion, convertKeyVersionToCustomId, FormerKeyResolver } from "./FormerKeyResolver"
 import { ServiceEncryptionParams } from "../../instance-pipeline/RestClientOptions"
+import { isNull, ProgrammingError } from "@tutao/lang-api"
 
 export type ExternalGroupKeys = { currentExternalUserGroupKey: VersionedKey; currentExternalMailGroupKey: VersionedKey }
 
