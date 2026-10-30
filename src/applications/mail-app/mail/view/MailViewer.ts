@@ -442,8 +442,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
-		this.iframeRoot.style.border = "none"
-		this.iframeRoot.width = "100%" // FIXME: use css for this
 		iframeDocument.body.appendChild(Styles.get().getStyleSheetElement("main"))
 		iframeDocument.body.style.position = "relative"
 		iframeDocument.body.appendChild(wrapNode)
@@ -519,10 +517,21 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			// If the dom element hasn't been created anew in onupdate
 			// then trying to create a new shadow root on the same node will cause an error
 			this.iframeRoot = document.createElement("iframe")
+			this.iframeRoot.classList.add("border-none", "full-width")
+
+			// We need a few features:
+			//
+			// - allow-popups lets links work
+			// - allow-popups-to-escape-sandbox lets the target not be sandboxed
+			// - allow-same-origin lets us put things inside the iframe
+			//
+			// Scripts are banned. Sanitization should have removed scripts anyway, but one can never be too careful.
+			this.iframeRoot.setAttribute("sandbox", "allow-same-origin allow-popups allow-popups-to-escape-sandbox")
+
 			dom.appendChild(this.iframeRoot)
 
 			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
-			this.iframeRoot?.contentDocument?.addEventListener("keydown", (event: Event) => {
+			this.iframeRoot.contentDocument?.addEventListener("keydown", (event: Event) => {
 				const { target } = event
 				if (this.eventTargetWithKeyboardInput(target)) {
 					event.stopPropagation()
@@ -623,6 +632,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		dom.style.lineHeight = String(this.bodyLineHeight)
+		this.updateIframeDimensions()
 	}
 
 	private async createMailAddressContextButtons(args: {
