@@ -148,6 +148,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 
 		const children: Children = [] as ChildArray
 		const viewOnCalendarButton = m(ColoredThickOutlineButton, {
+			class: "fit-content",
 			borderColor: theme.outline,
 			color: theme.on_surface,
 			click: () => this.handleViewOnCalendarAction(existingEventWrapper?.event),
