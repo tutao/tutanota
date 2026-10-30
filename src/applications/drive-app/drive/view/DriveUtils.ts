@@ -370,7 +370,24 @@ function parseBase64UrlParam(param: unknown): Uint8Array | null {
 		return null
 	}
 }
+export interface PasswordShareUrl {
+	shareId: Id
+	authToken: string
+	shareKey: Uint8Array
+	salt: Uint8Array
+}
 
+export interface KeyShareUrl {
+	shareId: Id
+	authToken: string
+	shareKey: Uint8Array
+}
+
+/**
+ * Data from public file share Url
+ * There are two cases, 1. Password-protected file share. 2. Non-password-protected file share
+ */
+export type ParsedShareUrl = { type: "password"; url: PasswordShareUrl } | { type: "key"; url: KeyShareUrl }
 export function parseShareUrl(params: Record<string, unknown>, hash: string): ParsedShareUrl | null {
 	const { shareId, authToken: encodedAuthToken } = params
 
@@ -418,18 +435,3 @@ export function parseShareUrl(params: Record<string, unknown>, hash: string): Pa
 		}
 	}
 }
-
-export interface PasswordShareUrl {
-	shareId: Id
-	authToken: string
-	shareKey: Uint8Array
-	salt: Uint8Array
-}
-
-export interface KeyShareUrl {
-	shareId: Id
-	authToken: string
-	shareKey: Uint8Array
-}
-
-export type ParsedShareUrl = { type: "password"; url: PasswordShareUrl } | { type: "key"; url: KeyShareUrl }
