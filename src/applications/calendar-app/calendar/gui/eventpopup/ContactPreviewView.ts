@@ -5,7 +5,7 @@ import { Icons } from "../../../../../ui/base/icons/Icons.js"
 import { getTimeZone } from "../../../../common/calendar/date/CalendarUtils.js"
 import { noOp } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
-import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
+import { ColoredThickOutlineButton, ColoredThickOutlineButtonAttrs } from "../../../../../ui/base/buttons/ColoredThickOutlineButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
 import { isoDateToBirthday } from "../../../../common/api/common/utils/BirthdayUtils.js"
 import { createDropdown } from "../../../../../ui/base/Dropdown.js"
@@ -90,7 +90,12 @@ const ActionButtons = pureComponent((contact: Contact) => {
 		color: string
 	}
 
-	const makeActionButtonAttrs = (onClick: (e: any, dom: any) => unknown, text: TranslationKey, colors: ButtonColors, icon?: Children): BannerButtonAttrs => ({
+	const makeActionButtonAttrs = (
+		onClick: (e: any, dom: any) => unknown,
+		text: TranslationKey,
+		colors: ButtonColors,
+		icon?: Children,
+	): ColoredThickOutlineButtonAttrs => ({
 		text,
 		class: "width-min-content flex items-center",
 		click: onClick,
@@ -174,7 +179,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 						? `a[href="mailto:${contact.mailAddresses[0].address}"][target=_blank].no-text-decoration`
 						: "",
 					m(
-						BannerButton,
+						ColoredThickOutlineButton,
 						makeActionButtonAttrs(onSendMailClick, "sendMail_label", emailButtonColors, renderIcon(Icons.MailFilled, emailButtonColors.color)),
 					),
 				)
@@ -183,7 +188,7 @@ const ActionButtons = pureComponent((contact: Contact) => {
 			? m(
 					singlePhoneNumber ? `a[href="tel:${contact.phoneNumbers[0].number}"][target=_blank].no-text-decoration` : "",
 					m(
-						BannerButton,
+						ColoredThickOutlineButton,
 						makeActionButtonAttrs(
 							singlePhoneNumber ? noOp : showPhoneDropdown,
 							"callNumber_label",

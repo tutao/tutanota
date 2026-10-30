@@ -26,7 +26,7 @@ import { cleanMailAddress, downcast, isEmpty, memoized } from "@tutao/utils"
 import { lang, TranslationKey } from "../../../../../ui/utils/LanguageViewModel.js"
 import { findAttendeeInAddresses, isAllDayEvent } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import { formatDateWithMonth } from "../../../../../ui/utils/Formatter.js"
-import { BannerButton, BannerButtonAttrs } from "../../../../../ui/base/buttons/BannerButton.js"
+import { ColoredThickOutlineButton, ColoredThickOutlineButtonAttrs } from "../../../../../ui/base/buttons/ColoredThickOutlineButton.js"
 import { pureComponent } from "../../../../../ui/base/PureComponent.js"
 import { CalendarEventPreviewViewModel } from "./CalendarEventPreviewViewModel.js"
 import { UpgradeRequiredError } from "../../../../common/api/main/UpgradeRequiredError.js"
@@ -61,7 +61,7 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 		color: theme.primary,
 	}
 
-	const makeStatusButtonAttrs = (status: CalendarAttendeeStatus, text: TranslationKey): BannerButtonAttrs =>
+	const makeStatusButtonAttrs = (status: CalendarAttendeeStatus, text: TranslationKey): ColoredThickOutlineButtonAttrs =>
 		Object.assign(
 			{
 				text,
@@ -84,9 +84,9 @@ export const ReplyButtons = pureComponent((participation: NonNullable<EventPrevi
 		)
 
 	return m(".flex.items-center.mt-8.gap-8.fit-content", [
-		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
-		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
-		m(BannerButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
+		m(ColoredThickOutlineButton, makeStatusButtonAttrs(CalendarAttendeeStatus.ACCEPTED, "yes_label")),
+		m(ColoredThickOutlineButton, makeStatusButtonAttrs(CalendarAttendeeStatus.TENTATIVE, "maybe_label")),
+		m(ColoredThickOutlineButton, makeStatusButtonAttrs(CalendarAttendeeStatus.DECLINED, "no_label")),
 	])
 })
 

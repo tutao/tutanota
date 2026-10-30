@@ -6,7 +6,7 @@ import { base64ToBase64Url, getStartOfDay, isNotNull, partition, stringToBase64 
 import { theme } from "../../../../ui/theme"
 import { lang, Translation } from "../../../../ui/utils/LanguageViewModel"
 import { collidesWith } from "../../../calendar-app/calendar/gui/CalendarGuiUtils"
-import { BannerButton } from "../../../../ui/base/buttons/BannerButton"
+import { ColoredThickOutlineButton } from "../../../../ui/base/buttons/ColoredThickOutlineButton"
 import { ReplyButtons } from "../../../calendar-app/calendar/gui/eventpopup/EventPreviewView"
 import { isRepliedTo } from "../../mail/model/MailUtils"
 import { EventBannerSkeleton } from "../EventBannerSkeleton"
@@ -147,7 +147,7 @@ export class EventBannerImpl implements ClassComponent<EventBannerImplAttrs> {
 		}
 
 		const children: Children = [] as ChildArray
-		const viewOnCalendarButton = m(BannerButton, {
+		const viewOnCalendarButton = m(ColoredThickOutlineButton, {
 			borderColor: theme.outline,
 			color: theme.on_surface,
 			click: () => this.handleViewOnCalendarAction(existingEventWrapper?.event),

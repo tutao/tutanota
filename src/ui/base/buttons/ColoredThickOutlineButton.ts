@@ -5,7 +5,7 @@ import { BaseButton } from "./BaseButton.js"
 import { theme } from "../../theme.js"
 import { ClickHandler } from "../GuiUtils.js"
 
-export type BannerButtonAttrs = {
+export type ColoredThickOutlineButtonAttrs = {
 	borderColor: string
 	color: string
 	class?: string
@@ -15,8 +15,8 @@ export type BannerButtonAttrs = {
 	icon?: Children
 }
 
-export class BannerButton implements Component<BannerButtonAttrs> {
-	view({ attrs }: Vnode<BannerButtonAttrs>): Children {
+export class ColoredThickOutlineButton implements Component<ColoredThickOutlineButtonAttrs> {
+	view({ attrs }: Vnode<ColoredThickOutlineButtonAttrs>): Children {
 		return m(BaseButton, {
 			label: attrs.text,
 			text: lang.getTranslationText(attrs.text),

@@ -1,12 +1,11 @@
 import { TranslationKey } from "../../../ui/utils/LanguageViewModel.js"
 import { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import m from "mithril"
-import { BannerButton } from "../../../ui/base/buttons/BannerButton.js"
+import { ColoredThickOutlineButton } from "../../../ui/base/buttons/ColoredThickOutlineButton.js"
 import { theme } from "../../../ui/theme.js"
 
-/// Renders a banner button used in the onboarding wizard and notification permission dialog
-export function renderSettingsBannerButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {
-	return m(BannerButton, {
+export function renderSetupWizardButton(text: TranslationKey, onclick: ClickHandler, isDisabled?: boolean, classes?: string) {
+	return m(ColoredThickOutlineButton, {
 		text,
 		borderColor: theme.primary,
 		color: theme.primary,

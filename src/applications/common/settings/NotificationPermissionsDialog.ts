@@ -5,14 +5,14 @@ import { DialogHeaderBarAttrs } from "../../../ui/base/DialogHeaderBar.js"
 import { ButtonType } from "../../../ui/base/Button.js"
 import { ClickHandler } from "../../../ui/base/GuiUtils.js"
 import { PermissionType } from "@tutao/native-bridge/generatedIpc/enums"
-import { renderSettingsBannerButton } from "./SettingsBannerButton.js"
+import { renderSetupWizardButton } from "./SetupWizardButton.js"
 import { EnvProvider } from "@tutao/app-env"
 import { isNotNull } from "@tutao/utils"
 import { NativePushServiceApp } from "../native/NativePushServiceApp"
 import { SystemPermissionHandler } from "../native/SystemPermissionHandler"
 
 function renderPermissionButton(permissionName: TranslationKey, isPermissionGranted: boolean, onclick: ClickHandler) {
-	return renderSettingsBannerButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
+	return renderSetupWizardButton(isPermissionGranted ? "granted_msg" : permissionName, onclick, isPermissionGranted)
 }
 
 /// Shows a dialog that allows the user to set the notification and battery permissions on mobile.
