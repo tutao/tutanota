@@ -1,3 +1,5 @@
+import { assertNotNull } from "@tutao/utils"
+
 type CoordinatePair = {
 	x: number
 	y: number
@@ -84,7 +86,8 @@ export class PinchZoom {
 	 */
 	constructor(
 		private readonly zoomable: HTMLElement,
-		private readonly viewport: HTMLElement,
+		private readonly viewport: HTMLIFrameElement,
+		private readonly viewportViewport: HTMLElement,
 		private readonly initiallyZoomToViewportWidth: boolean,
 		private readonly singleClickAction: (e: Event, target: EventTarget | null) => void,
 	) {
@@ -173,6 +176,10 @@ export class PinchZoom {
 		return this.viewport
 	}
 
+	getViewportViewport() {
+		return this.viewportViewport
+	}
+
 	getZoomable() {
 		return this.zoomable
 	}
@@ -200,7 +207,7 @@ export class PinchZoom {
 		}
 		this.currentScale = this.zoomBoundaries.min
 		this.update({ x: 0, y: 0 })
-		this.viewport.style.height = "auto"
+		// this.viewport.style.height = "auto"
 	}
 
 	private touchmove_handler(ev: TouchEvent) {
@@ -244,8 +251,8 @@ export class PinchZoom {
 		// crossbrowser version
 		let box = elem.getBoundingClientRect()
 
-		let body = document.body
-		let docEl = document.documentElement
+		let body = elem.ownerDocument.body
+		let docEl = elem.ownerDocument.documentElement
 
 		let scrollTop = window.pageYOffset || docEl.scrollTop || body.scrollTop
 		let scrollLeft = window.pageXOffset || docEl.scrollLeft || body.scrollLeft
@@ -311,30 +318,8 @@ export class PinchZoom {
 	 * Scales the zoomable to match the viewport width if the zoomable width is bigger.
 	 */
 	private rescale() {
-		const containerWidth = this.viewport.offsetWidth
-
-		if (containerWidth >= this.zoomable.scrollWidth) {
-			this.zoomable.style.transform = ""
-			this.zoomable.style.marginBottom = ""
-		} else {
-			// zoom out to match the size
-			const width = this.zoomable.scrollWidth
-			const scale = containerWidth / width
-
-			this.viewport.style.height = `${this.viewport.scrollHeight * scale}px`
-
-			this.zoomBoundaries = { min: scale, max: this.zoomBoundaries.max } // allow value <1 for minimum scale
-			const newTransformOrigin = this.setCurrentSafePosition(
-				{ x: 0, y: 0 },
-				{
-					x: 0,
-					y: 0,
-				},
-				this.getCurrentZoomablePositionWithoutTransformation(),
-				scale,
-			).newTransformOrigin
-			this.update(newTransformOrigin)
-		}
+		const newTransformOrigin = this.setCurrentSafePosition({ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 1).newTransformOrigin
+		this.update(newTransformOrigin)
 	}
 
 	/**
@@ -521,6 +506,11 @@ export class PinchZoom {
 			return
 		}
 
+		// If something is selected, don't handle double tap
+		if (!assertNotNull(this.viewport.contentDocument).getSelection()?.isCollapsed) {
+			return
+		}
+
 		event.preventDefault()
 
 		if (
@@ -570,13 +560,18 @@ export class PinchZoom {
 		newScale: number,
 	) {
 		this.getOffsetFromInitialToCurrentViewportPosition()
-		let currentViewport = this.getCoords(this.viewport)
+		const viewportRect = this.viewport.getBoundingClientRect()
+
+		// FIXME: We need to get the actual scrollable object here... (window.scrollY is not enough because the div is scrolled, not the window)
+		const sl = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollLeft
+		const st = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollTop
+
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
-		let borders = {
-			x: currentViewport.x + 1,
-			y: currentViewport.y + 1,
-			x2: currentViewport.x2 - 1,
-			y2: currentViewport.y2 - 1,
+		const borders = {
+			x: viewportRect.left + 1,
+			y: viewportRect.top + 1,
+			x2: viewportRect.right - 1,
+			y2: viewportRect.bottom - 1,
 		}
 
 		// keep the zooming factor within the defined boundaries
@@ -587,8 +582,10 @@ export class PinchZoom {
 			this.initialZoomableSize.height,
 			newTransformOrigin,
 			newPinchSessionTranslation,
+			viewportRect,
 			newScale,
 		)
+
 		const targetedHeight = targetedOutcome.y2 - targetedOutcome.y
 		const targetedWidth = targetedOutcome.x2 - targetedOutcome.x
 
@@ -602,19 +599,21 @@ export class PinchZoom {
 		const verticalTransformationAllowed = vertical1Allowed && vertical2Allowed
 
 		// find out which operation would be illegal and calculate the adjusted transformOrigin
-		const targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
-		const targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
-		if (targetX !== targetedOutcome.x || targetY !== targetedOutcome.y) {
+		let targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
+		let targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
+
+		if (!horizontalTransformationAllowed || !verticalTransformationAllowed || sl !== 0 || st !== 0) {
 			newTransformOrigin = this.calculateTransformOriginFromTarget(
 				{
-					x: targetX,
-					y: targetY,
+					x: targetX - sl - viewportRect.x,
+					y: targetY - st - viewportRect.y,
 				},
 				currentZoomablePositionWithoutTransformation,
 				newPinchSessionTranslation,
 				newScale,
 			)
 		}
+
 		if (newScale === 1 && this.zoomBoundaries.min === 1) {
 			// not initially scaled email is back in the original state
 			this.pinchSessionTranslation = { x: 0, y: 0 }
@@ -640,13 +639,14 @@ export class PinchZoom {
 		originalHeight: number,
 		transformOrigin: CoordinatePair,
 		translation: CoordinatePair,
+		viewportOrigin: CoordinatePair,
 		scale: number,
 	): { x: number; y: number; x2: number; y2: number } {
 		return {
-			x: currentOriginalPosition.x + transformOrigin.x - transformOrigin.x * scale + translation.x,
-			y: currentOriginalPosition.y + transformOrigin.y - transformOrigin.y * scale + translation.y,
-			x2: currentOriginalPosition.x + transformOrigin.x + (originalWidth - transformOrigin.x) * scale + translation.x,
-			y2: currentOriginalPosition.y + transformOrigin.y + (originalHeight - transformOrigin.y) * scale + translation.y,
+			x: currentOriginalPosition.x + transformOrigin.x - transformOrigin.x * scale + translation.x + viewportOrigin.x,
+			y: currentOriginalPosition.y + transformOrigin.y - transformOrigin.y * scale + translation.y + viewportOrigin.y,
+			x2: currentOriginalPosition.x + transformOrigin.x + (originalWidth - transformOrigin.x) * scale + translation.x + viewportOrigin.x,
+			y2: currentOriginalPosition.y + transformOrigin.y + (originalHeight - transformOrigin.y) * scale + translation.y + viewportOrigin.y,
 		}
 	}
 }
