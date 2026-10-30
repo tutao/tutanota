@@ -11649,42 +11649,7 @@ export type UserMigrationInfo = {
 	_original: Nullable<UserMigrationInfo>
 	isAdapter: false
 }
-export const IdTupleWrapperTransferAggregatedTypeTypeRef: TypeRef<IdTupleWrapperTransferAggregatedType> = new TypeRef("sys", 2971)
-
-export function createIdTupleWrapperTransferAggregatedType(values: IdTupleWrapperTransferAggregatedTypeParams): IdTupleWrapperTransferAggregatedType {
-	return Object.assign(create(typeModels[IdTupleWrapperTransferAggregatedTypeTypeRef.typeId], IdTupleWrapperTransferAggregatedTypeTypeRef), values)
-}
-
-export type IdTupleWrapperTransferAggregatedTypeParams = {
-	listId: Id
-	listElementId: Id
-}
-
-export type IdTupleWrapperTransferAggregatedType = {
-	// == values
-
-	_id: Id
-	listId: Id
-	listElementId: Id
-
-	// == associations
-
-	//== some entities have these and some don't
-	_permissions: null
-	bucketKey: null
-	_ownerGroup: null
-	_ownerEncSessionKey: null
-	_ownerKeyVersion: null
-	_kdfNonce: null
-	ownerEncSessionKey: null
-	ownerEncSessionKeyVersion: null
-
-	// === these are not present in metamodel
-	_type: TypeRef<IdTupleWrapperTransferAggregatedType>
-	_original: Nullable<IdTupleWrapperTransferAggregatedType>
-	isAdapter: false
-}
-export const UserMigrationInfoTransferAggregatedTypeTypeRef: TypeRef<UserMigrationInfoTransferAggregatedType> = new TypeRef("sys", 2975)
+export const UserMigrationInfoTransferAggregatedTypeTypeRef: TypeRef<UserMigrationInfoTransferAggregatedType> = new TypeRef("sys", 2971)
 
 export function createUserMigrationInfoTransferAggregatedType(values: UserMigrationInfoTransferAggregatedTypeParams): UserMigrationInfoTransferAggregatedType {
 	return Object.assign(create(typeModels[UserMigrationInfoTransferAggregatedTypeTypeRef.typeId], UserMigrationInfoTransferAggregatedTypeTypeRef), values)
@@ -11697,7 +11662,6 @@ export type UserMigrationInfoTransferAggregatedTypeParams = {
 	provider: NumberString
 
 	credential: UserMigrationCredentialTransferAggregatedType
-	mailboxMigrationSyncStates: IdTupleWrapperTransferAggregatedType[]
 }
 
 export type UserMigrationInfoTransferAggregatedType = {
@@ -11712,7 +11676,6 @@ export type UserMigrationInfoTransferAggregatedType = {
 	// == associations
 
 	credential: UserMigrationCredentialTransferAggregatedType
-	mailboxMigrationSyncStates: IdTupleWrapperTransferAggregatedType[]
 
 	//== some entities have these and some don't
 	_permissions: null
@@ -11727,7 +11690,7 @@ export type UserMigrationInfoTransferAggregatedType = {
 	_original: Nullable<UserMigrationInfoTransferAggregatedType>
 	isAdapter: false
 }
-export const UserMigrationServicePostInTypeRef: TypeRef<UserMigrationServicePostIn> = new TypeRef("sys", 2984)
+export const UserMigrationServicePostInTypeRef: TypeRef<UserMigrationServicePostIn> = new TypeRef("sys", 2979)
 
 export function createUserMigrationServicePostIn(values: UserMigrationServicePostInParams): UserMigrationServicePostIn {
 	return Object.assign(create(typeModels[UserMigrationServicePostInTypeRef.typeId], UserMigrationServicePostInTypeRef), values)
@@ -11765,7 +11728,7 @@ export type UserMigrationServicePostIn = {
 	_original: Nullable<UserMigrationServicePostIn>
 	isAdapter: false
 }
-export const UserMigrationServicePostOutTypeRef: TypeRef<UserMigrationServicePostOut> = new TypeRef("sys", 2987)
+export const UserMigrationServicePostOutTypeRef: TypeRef<UserMigrationServicePostOut> = new TypeRef("sys", 2982)
 
 export function createUserMigrationServicePostOut(values: UserMigrationServicePostOutParams): UserMigrationServicePostOut {
 	return Object.assign(create(typeModels[UserMigrationServicePostOutTypeRef.typeId], UserMigrationServicePostOutTypeRef), values)

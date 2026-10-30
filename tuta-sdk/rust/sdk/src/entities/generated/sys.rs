@@ -441,7 +441,7 @@ pub struct User {
 	pub alarmInfoList: Option<UserAlarmInfoListType>,
 	#[serde(rename = "2811")]
 	pub plugins: Option<UserPlugins>,
-	#[serde(rename = "2983")]
+	#[serde(rename = "2978")]
 	pub userMigrationInfos: Option<GeneratedId>,
 }
 
@@ -7370,16 +7370,27 @@ impl Entity for UserMigrationInfo {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct IdTupleWrapperTransferAggregatedType {
+pub struct UserMigrationInfoTransferAggregatedType {
 	#[serde(rename = "2972")]
 	pub _id: Option<CustomId>,
 	#[serde(rename = "2973")]
-	pub listId: GeneratedId,
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
 	#[serde(rename = "2974")]
-	pub listElementId: GeneratedId,
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2975")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2976")]
+	pub provider: i64,
+	#[serde(rename = "2977")]
+	pub credential: UserMigrationCredentialTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
 }
 
-impl Entity for IdTupleWrapperTransferAggregatedType {
+impl Entity for UserMigrationInfoTransferAggregatedType {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
@@ -7390,43 +7401,10 @@ impl Entity for IdTupleWrapperTransferAggregatedType {
 
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
-pub struct UserMigrationInfoTransferAggregatedType {
-	#[serde(rename = "2976")]
-	pub _id: Option<CustomId>,
-	#[serde(rename = "2977")]
-	#[serde(with = "serde_bytes")]
-	pub _ownerEncSessionKey: Option<Vec<u8>>,
-	#[serde(rename = "2978")]
-	pub _ownerKeyVersion: Option<i64>,
-	#[serde(rename = "2979")]
-	#[serde(with = "serde_bytes")]
-	pub _kdfNonce: Option<Vec<u8>>,
-	#[serde(rename = "2980")]
-	pub provider: i64,
-	#[serde(rename = "2981")]
-	pub credential: UserMigrationCredentialTransferAggregatedType,
-	#[serde(rename = "2982")]
-	pub mailboxMigrationSyncStates: Vec<IdTupleWrapperTransferAggregatedType>,
-
-	#[serde(default)]
-	pub _errors: Errors,
-}
-
-impl Entity for UserMigrationInfoTransferAggregatedType {
-	fn type_ref() -> TypeRef {
-		TypeRef {
-			app: AppName::Sys,
-			type_id: TypeId::from(2975),
-		}
-	}
-}
-
-#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
-#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserMigrationServicePostIn {
-	#[serde(rename = "2985")]
+	#[serde(rename = "2980")]
 	pub _format: i64,
-	#[serde(rename = "2986")]
+	#[serde(rename = "2981")]
 	pub userMigrationInfo: UserMigrationInfoTransferAggregatedType,
 
 	#[serde(default)]
@@ -7437,7 +7415,7 @@ impl Entity for UserMigrationServicePostIn {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2984),
+			type_id: TypeId::from(2979),
 		}
 	}
 }
@@ -7445,9 +7423,9 @@ impl Entity for UserMigrationServicePostIn {
 #[derive(uniffi::Record, Clone, Serialize, Deserialize)]
 #[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
 pub struct UserMigrationServicePostOut {
-	#[serde(rename = "2988")]
+	#[serde(rename = "2983")]
 	pub _format: i64,
-	#[serde(rename = "2989")]
+	#[serde(rename = "2984")]
 	pub userMigrationInfo: IdTupleGenerated,
 }
 
@@ -7455,7 +7433,7 @@ impl Entity for UserMigrationServicePostOut {
 	fn type_ref() -> TypeRef {
 		TypeRef {
 			app: AppName::Sys,
-			type_id: TypeId::from(2987),
+			type_id: TypeId::from(2982),
 		}
 	}
 }
