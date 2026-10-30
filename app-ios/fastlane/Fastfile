@@ -41,6 +41,10 @@ platform :ios do
 		"de.tutao.tutanota.test.TutanotaNotificationExtension"
 	]
 
+    IOS_SIM_VERSION = "26.0"
+    IOS_SIM_DEVICE_NAME = "iphone-15-ios-#{IOS_SIM_VERSION.sub(".", "-")}"
+    IOS_SIM_RUNTIME = "com.apple.CoreSimulator.SimRuntime.iOS-#{IOS_SIM_VERSION.sub(".", "-")}"
+
     #
     # Mail app build lanes
     #
@@ -218,15 +222,15 @@ platform :ios do
 		# Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build-calendar-app"
 
-		sh 'xcodebuild -downloadPlatform iOS -buildVersion 18.2'
-		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
+		sh "xcodebuild -downloadPlatform iOS -buildVersion #{IOS_SIM_VERSION}"
+		sh "if xcrun simctl list | grep #{IOS_SIM_DEVICE_NAME}; then echo 'Using existing simulator'; else xcrun simctl create #{IOS_SIM_DEVICE_NAME} com.apple.CoreSimulator.SimDeviceType.iPhone-15 #{IOS_SIM_RUNTIME}; fi"
 
 		clear_derived_data
 
 		# Test only one app because both link to the same test suite
 		run_tests(
 			scheme: "tuta debug",
-			device: "iphone-15-ios-18-2"
+			device: IOS_SIM_DEVICE_NAME
 		)
 	end
 
@@ -240,14 +244,14 @@ platform :ios do
 		# Create tutanota-3/build-calendar-app if it's not there because we try to copy it during build
 		sh "mkdir -p ../../build-calendar-app"
 
-		sh 'xcodebuild -downloadPlatform iOS -buildVersion 18.2'
-		sh "if xcrun simctl list | grep iphone-15-ios-18-2; then echo 'Using existing simulator'; else xcrun simctl create iphone-15-ios-18-2 com.apple.CoreSimulator.SimDeviceType.iPhone-15 com.apple.CoreSimulator.SimRuntime.iOS-18-2; fi"
+		sh "xcodebuild -downloadPlatform iOS -buildVersion #{IOS_SIM_VERSION}"
+        sh "if xcrun simctl list | grep #{IOS_SIM_DEVICE_NAME}; then echo 'Using existing simulator'; else xcrun simctl create #{IOS_SIM_DEVICE_NAME} com.apple.CoreSimulator.SimDeviceType.iPhone-15 #{IOS_SIM_RUNTIME}; fi"
 
 		clear_derived_data
 
 		 run_tests(
 			 scheme: "TutanotaSharedFramework",
-			 device: "iphone-15-ios-18-2"
+			 device: IOS_SIM_DEVICE_NAME
 		 )
 	  end
 
