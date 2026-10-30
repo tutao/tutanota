@@ -86,7 +86,7 @@ export class PinchZoom {
 	 */
 	constructor(
 		private readonly zoomable: HTMLElement,
-		private readonly viewport: HTMLElement,
+		private readonly viewport: HTMLIFrameElement,
 		private readonly viewportViewport: HTMLElement,
 		private readonly initiallyZoomToViewportWidth: boolean,
 		private readonly singleClickAction: (e: Event, target: EventTarget | null) => void,
@@ -318,35 +318,8 @@ export class PinchZoom {
 	 * Scales the zoomable to match the viewport width if the zoomable width is bigger.
 	 */
 	private rescale() {
-		const containerWidth = this.viewport.offsetWidth
-
-		if (this.viewport instanceof HTMLIFrameElement) {
-			// FIXME: do we need to do anything else? overriding the height of the viewport is very much not a great idea
-			this.zoomBoundaries = { min: 1, max: this.zoomBoundaries.max }
-			const newTransformOrigin = this.setCurrentSafePosition({ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 1).newTransformOrigin
-			this.update(newTransformOrigin)
-		} else if (containerWidth >= this.zoomable.scrollWidth) {
-			this.zoomable.style.transform = ""
-			this.zoomable.style.marginBottom = ""
-		} else {
-			// zoom out to match the size
-			const width = this.zoomable.scrollWidth
-			const scale = containerWidth / width
-
-			this.viewport.style.height = `${this.viewport.scrollHeight * scale}px`
-
-			this.zoomBoundaries = { min: scale, max: this.zoomBoundaries.max } // allow value <1 for minimum scale
-			const newTransformOrigin = this.setCurrentSafePosition(
-				{ x: 0, y: 0 },
-				{
-					x: 0,
-					y: 0,
-				},
-				this.getCurrentZoomablePositionWithoutTransformation(),
-				scale,
-			).newTransformOrigin
-			this.update(newTransformOrigin)
-		}
+		const newTransformOrigin = this.setCurrentSafePosition({ x: 0, y: 0 }, { x: 0, y: 0 }, { x: 0, y: 0 }, 1).newTransformOrigin
+		this.update(newTransformOrigin)
 	}
 
 	/**
@@ -534,7 +507,7 @@ export class PinchZoom {
 		}
 
 		// If something is selected, don't handle double tap
-		if (this.viewport instanceof HTMLIFrameElement && !assertNotNull(this.viewport.contentDocument).getSelection()?.isCollapsed) {
+		if (!assertNotNull(this.viewport.contentDocument).getSelection()?.isCollapsed) {
 			return
 		}
 
@@ -595,23 +568,11 @@ export class PinchZoom {
 
 		// FIXME: all PinchZoom instances are HTMLIFrameElement; should we remove the non-HTMLIFrameElement code if we won't use it?
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
-		let borders
-		if (this.viewport instanceof HTMLIFrameElement) {
-			// FIXME: we need to figure out scrolling (if you scroll down and zoom, the iframe has lots of fun)
-			borders = {
-				x: viewportRect.left + 1,
-				y: viewportRect.top + 1,
-				x2: viewportRect.right - 1,
-				y2: viewportRect.bottom - 1,
-			}
-		} else {
-			const currentViewport = this.getCoords(this.viewport)
-			borders = {
-				x: currentViewport.x + 1,
-				y: currentViewport.y + 1,
-				x2: currentViewport.x2 - 1,
-				y2: currentViewport.y2 - 1,
-			}
+		const borders = {
+			x: viewportRect.left + 1,
+			y: viewportRect.top + 1,
+			x2: viewportRect.right - 1,
+			y2: viewportRect.bottom - 1,
 		}
 
 		// keep the zooming factor within the defined boundaries
@@ -625,12 +586,10 @@ export class PinchZoom {
 			newScale,
 		)
 
-		if (this.viewport instanceof HTMLIFrameElement) {
-			targetedOutcome.x += viewportRect.x
-			targetedOutcome.y += viewportRect.y
-			targetedOutcome.x2 += viewportRect.x
-			targetedOutcome.y2 += viewportRect.y
-		}
+		targetedOutcome.x += viewportRect.x
+		targetedOutcome.y += viewportRect.y
+		targetedOutcome.x2 += viewportRect.x
+		targetedOutcome.y2 += viewportRect.y
 
 		const targetedHeight = targetedOutcome.y2 - targetedOutcome.y
 		const targetedWidth = targetedOutcome.x2 - targetedOutcome.x
@@ -648,10 +607,8 @@ export class PinchZoom {
 		let targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
 		let targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
 
-		if (this.viewport instanceof HTMLIFrameElement) {
-			targetX -= sl
-			targetY -= st
-		}
+		targetX -= sl
+		targetY -= st
 
 		if (targetX !== targetedOutcome.x || targetY !== targetedOutcome.y) {
 			if (this.viewport instanceof HTMLIFrameElement) {

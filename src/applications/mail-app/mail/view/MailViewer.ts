@@ -366,7 +366,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement, viewportViewport: HTMLElement) {
+	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLIFrameElement, viewportViewport: HTMLElement) {
 		// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
 		// of the mail body changes. So we have to create a new PinchZoom object
 		this.pinchZoomable?.remove()
