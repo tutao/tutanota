@@ -1,3 +1,5 @@
+import { assertNotNull } from "@tutao/utils"
+
 type CoordinatePair = {
 	x: number
 	y: number
@@ -85,6 +87,7 @@ export class PinchZoom {
 	constructor(
 		private readonly zoomable: HTMLElement,
 		private readonly viewport: HTMLElement,
+		private readonly viewportViewport: HTMLElement,
 		private readonly initiallyZoomToViewportWidth: boolean,
 		private readonly singleClickAction: (e: Event, target: EventTarget | null) => void,
 	) {
@@ -171,6 +174,10 @@ export class PinchZoom {
 
 	getViewport() {
 		return this.viewport
+	}
+
+	getViewportViewport() {
+		return this.viewportViewport
 	}
 
 	getZoomable() {
@@ -526,6 +533,11 @@ export class PinchZoom {
 			return
 		}
 
+		// If something is selected, don't handle double tap
+		if (this.viewport instanceof HTMLIFrameElement && !assertNotNull(this.viewport.contentDocument).getSelection()?.isCollapsed) {
+			return
+		}
+
 		event.preventDefault()
 
 		if (
@@ -576,6 +588,10 @@ export class PinchZoom {
 	) {
 		this.getOffsetFromInitialToCurrentViewportPosition()
 		const viewportRect = this.viewport.getBoundingClientRect()
+
+		// FIXME: We need to get the actual scrollable object here... (window.scrollY is not enough because the div is scrolled, not the window)
+		const sl = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollLeft
+		const st = this.viewportViewport.parentElement!.parentElement!.parentElement!.parentElement!.parentElement!.scrollTop
 
 		// FIXME: all PinchZoom instances are HTMLIFrameElement; should we remove the non-HTMLIFrameElement code if we won't use it?
 		// Since we don't round the screen coordinates, without adding a small tolerance (+-1) unwanted behavior shows up (e.g. tiny differences in the coordinates)
@@ -631,10 +647,16 @@ export class PinchZoom {
 		// find out which operation would be illegal and calculate the adjusted transformOrigin
 		let targetX = !horizontal1Allowed ? borders.x : !horizontal2Allowed ? borders.x2 - targetedWidth : targetedOutcome.x
 		let targetY = !vertical1Allowed ? borders.y : !vertical2Allowed ? borders.y2 - targetedHeight : targetedOutcome.y
+
+		if (this.viewport instanceof HTMLIFrameElement) {
+			targetX -= sl
+			targetY -= st
+		}
+
 		if (targetX !== targetedOutcome.x || targetY !== targetedOutcome.y) {
 			if (this.viewport instanceof HTMLIFrameElement) {
-				targetX -= viewportRect.x
-				targetY -= viewportRect.y
+				targetX -= viewportRect.x - this.viewportViewport.scrollLeft
+				targetY -= viewportRect.y - this.viewportViewport.scrollTop
 			}
 
 			newTransformOrigin = this.calculateTransformOriginFromTarget(

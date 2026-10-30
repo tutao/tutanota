@@ -320,7 +320,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.resizeObserverViewport = createResizeObserver(() => {
 						if (this.pinchZoomable) {
 							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
-							this.createPinchZoom(this.pinchZoomable.getZoomable(), assertNotNull(this.iframeRoot))
+							this.createPinchZoom(this.pinchZoomable.getZoomable(), assertNotNull(this.iframeRoot), dom)
 						}
 					})
 					this.resizeObserverViewport.observe(vnode.dom as HTMLElement)
@@ -346,7 +346,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
 				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.iframeMailContent) {
-					this.createPinchZoom(this.iframeMailContent, assertNotNull(this.iframeRoot))
+					this.createPinchZoom(this.iframeMailContent, assertNotNull(this.iframeRoot), dom)
 				}
 			},
 			onbeforeremove: () => {
@@ -366,12 +366,12 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement) {
+	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement, viewportViewport: HTMLElement) {
 		// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
 		// of the mail body changes. So we have to create a new PinchZoom object
 		this.pinchZoomable?.remove()
 
-		this.pinchZoomable = new PinchZoom(zoomable, viewport, true, (e, target) => {
+		this.pinchZoomable = new PinchZoom(zoomable, viewport, viewportViewport, true, (e, target) => {
 			if (!this.handleAnchorClick(e, target, true)) {
 				// dispatch a synthetic click event if not already handled as anchor click, so stuff like expanding <details> work on mobile
 				target?.dispatchEvent(new MouseEvent("click"))
@@ -391,7 +391,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		this.updateIframeDimensions()
 
 		if (this.pinchZoomable) {
-			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport())
+			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport(), this.pinchZoomable.getViewportViewport())
 		}
 	}
 
@@ -454,7 +454,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.pinchZoomable = null
 			this.resizeObserverZoomable?.disconnect()
 			this.resizeObserverZoomable = createResizeObserver(() => {
-				this.createPinchZoom(wrapNode, iframe) // recreate for example if images are loaded slowly
+				this.createPinchZoom(wrapNode, iframe, assertNotNull(this.domBody)) // recreate for example if images are loaded slowly
 			})
 			this.resizeObserverZoomable.observe(wrapNode)
 		} else {
