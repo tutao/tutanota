@@ -11,7 +11,19 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
-import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
+import {
+	assertNotNull,
+	DateProvider,
+	delay,
+	identity,
+	isNotEmpty,
+	lazyAsync,
+	lazyMemoized,
+	Nullable,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval,
+} from "@tutao/utils"
 import {
 	DecryptedParsedInstance,
 	EntityAdapter,
@@ -473,13 +485,13 @@ export class EventBusClient {
 						this.instancePipeline.cryptoMapper,
 					),
 				)
-				const sessionKeyProvider = async (): Promise<AesKey> => {
+				const sessionKeyProvider = lazyMemoized(async (): Promise<AesKey> => {
 					const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
 					if (sessionKey == null) {
 						throw new SessionKeyNotFoundError("session key not found")
 					}
 					return sessionKey
-				}
+				})
 
 				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 					encryptedParsedInstance,

@@ -178,7 +178,7 @@ export class EntityRestClient implements EntityRestInterface {
 		)
 		const migratedEntity = await this.entityMigrator().applyMigrations(typeRef, entityAdapter)
 		const sessionKeyResolver = this.sessionKeyResolver()
-		const sessionKey = lazyMemoized(async (): Promise<AesKey> => {
+		const sessionKeyProvider = lazyMemoized(async (): Promise<AesKey> => {
 			const sessionKey = await sessionKeyResolver.resolveSessionKeyWithOwnerKeyProvider(opts.ownerKeyProvider, migratedEntity)
 			if (sessionKey == null) {
 				throw new SessionKeyNotFoundError("session key not found")
@@ -187,7 +187,7 @@ export class EntityRestClient implements EntityRestInterface {
 		})
 		const decrypted = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			migratedEntity.getWrappedEncryptedInstance(),
-			sessionKey,
+			sessionKeyProvider,
 			validateKdfNonceLength(migratedEntity._kdfNonce),
 			opts.ownerKeyProvider ?? this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
 			await sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),
@@ -418,7 +418,7 @@ export class EntityRestClient implements EntityRestInterface {
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		ownerEncSessionKeyProvider: Nullable<OwnerEncSessionKeyProvider> = null,
 	): Promise<DecryptedParsedInstance> {
-		const sessionKey = lazyMemoized(async (): Promise<AesKey> => {
+		const sessionKeyProvider = lazyMemoized(async (): Promise<AesKey> => {
 			if (isNotNull(ownerEncSessionKeyProvider)) {
 				const { elementId } = expandId(entityAdapter._id)
 
@@ -447,7 +447,7 @@ export class EntityRestClient implements EntityRestInterface {
 
 		return await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 			entityAdapter.getWrappedEncryptedInstance(),
-			sessionKey,
+			sessionKeyProvider,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			ownerKeyProvider,
 			instanceKeyProvider,

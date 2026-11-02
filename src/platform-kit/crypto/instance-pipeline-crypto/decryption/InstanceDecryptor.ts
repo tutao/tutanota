@@ -124,4 +124,8 @@ export class InstanceDecryptor {
 			this.symmetricKeyDeriver,
 		)
 	}
+
+	public async forceResolveSessionKeyOrSomething(): Promise<void> {
+		await this.sessionKey?.()
+	}
 }

@@ -135,6 +135,10 @@ export class CryptoMapper {
 			ownerKeyProvider,
 			instanceKeyProvider,
 		)
+		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedInstance, this.modelMapper, this)
+		if (isNotNull(entityAdapter.bucketKey)) {
+			await instanceDecryptor.forceResolveSessionKeyOrSomething()
+		}
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}
 
