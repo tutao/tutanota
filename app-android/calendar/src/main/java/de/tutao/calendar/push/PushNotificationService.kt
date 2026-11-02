@@ -6,7 +6,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
-import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
@@ -195,13 +194,13 @@ class PushNotificationService : LifecycleJobService() {
 		}
 	}
 
-	private inner class NotificationSseListener(
+	inner class NotificationSseListener(
 		notificationsFacade: LocalNotificationsFacade,
 		sseStorage: SseStorage,
 		alarmNotificationsManager: AlarmNotificationsManager,
 		defaultClient: OkHttpClient,
 		suspensionHandler: SuspensionHandler
-	) : SseListener {
+	) {
 
 		private val tutanotaNotificationsHandler =
 			TutanotaNotificationsHandler(
@@ -213,19 +212,19 @@ class PushNotificationService : LifecycleJobService() {
 				suspensionHandler
 			)
 
-		override fun onStartingConnection(): Boolean {
+		fun onStartingConnection(): Boolean {
 			Log.d(TAG, "onStartingConnection")
 			state = State.CONNECTING
 			return tutanotaNotificationsHandler.onConnect()
 		}
 
-		override fun onMessage(data: String, sseInfo: SseInfo?) {
+		fun onMessage(data: String, sseInfo: SseInfo?) {
 			if ("notification" == data) {
 				tutanotaNotificationsHandler.onNewNotificationAvailable(sseInfo)
 			}
 		}
 
-		override fun onConnectionEstablished() {
+		fun onConnectionEstablished() {
 			Log.d(TAG, "onConnectionEstablished")
 			state = State.CONNECTED
 
@@ -233,16 +232,16 @@ class PushNotificationService : LifecycleJobService() {
 			scheduleJobFinish()
 		}
 
-		override fun onConnectionBroken() {
+		fun onConnectionBroken() {
 			Log.d(TAG, "onConnectionBroken")
 			state = State.CONNECTING
 		}
 
-		override fun onNotAuthorized(userId: String) {
+		fun onNotAuthorized(userId: String) {
 			tutanotaNotificationsHandler.onNotAuthorized(userId)
 		}
 
-		override fun onStoppingReconnectionAttempts() {
+		fun onStoppingReconnectionAttempts() {
 			Log.d(TAG, "onStoppingReconnectionAttempts")
 			state = when (state) {
 				State.CONNECTING -> State.STARTED
