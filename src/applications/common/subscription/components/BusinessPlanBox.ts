@@ -162,7 +162,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						borderStyle: "solid",
 						borderWidth: hasCampaign ? `0 ${px(2)} ${px(2)} ${px(2)}` : px(2),
 						borderColor: isSelected ? localTheme.primary : showHover ? localTheme.outline : localTheme.outline_variant,
-						backgroundColor: isSelected ? localTheme.surface_container_high : localTheme.surface,
+						background: isSelected ? localTheme.surface_container_high : localTheme.surface,
 						color: localTheme.on_surface,
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
 						padding: `${px(isMobileLayout ? 12 : size.spacing_24)} ${px(isMobileLayout ? 12 : size.spacing_24)}`,
@@ -194,6 +194,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 										transform: `rotateZ(${attrs.isSelected ? 180 : 0}deg)`,
 										transition: `transform ${DefaultAnimationTime}ms`,
 										color: localTheme.on_surface_variant,
+										fill: hasCampaign ? localTheme.on_surface : "",
 									},
 								}),
 							]),
@@ -209,14 +210,12 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 								? m(PlanBadge, { langKey: isCurrentPlan ? "pricing.currentPlan_label" : "unavailable_label" })
 								: m(`div.no-wrap${isMobileLayout ? ".right" : ".center"}`, [
 										m("div.lh-s", [
-											referencePrice
-												? m("span.strike.mr-8.smaller", { style: { color: localTheme.on_surface_variant } }, referencePrice)
-												: null,
+											referencePrice ? m("span.strike.mr-8.smaller", { style: { color: localTheme.on_surface } }, referencePrice) : null,
 											m("span.h1", price),
 										]),
 										m(
 											"div.small",
-											{ style: { color: localTheme.on_surface_variant } },
+											{ style: { color: localTheme.on_surface } },
 											lang.getTranslationText(priceHintLabel ?? "pricing.perUserMonth_label"),
 											(discountDetail?.discountType === "GlobalFirstYear" ||
 												discountDetail?.discountType === "BonusMonthsAndGlobalFirstYear") &&
@@ -335,7 +334,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 				}),
 				m(
 					".smaller",
-					{ style: { color: hasCampaign ? localTheme.secondary : undefined } },
+					{ style: { color: hasCampaign ? localTheme.on_surface : undefined } },
 					lang.getTranslation(langKey, getFeaturePlaceholderReplacement(replacement, planType, provider)).text,
 				),
 			)
