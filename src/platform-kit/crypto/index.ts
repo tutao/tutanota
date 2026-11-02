@@ -139,7 +139,7 @@ export {
 	UnusedReservedUnauthenticatedSubKeys,
 	deriveInstanceKey,
 } from "./encryption/symmetric/SymmetricKeyDeriver.js"
-export { AssociatedData, type KeyDerivationContext } from "./encryption/symmetric/AssociatedData.js"
+export { type AssociatedData, type KeyDerivationContext } from "./encryption/symmetric/AssociatedData.js"
 export { SymmetricCipherVersion, AeadCipherVersion, getSymmetricCipherVersion } from "./encryption/symmetric/SymmetricCipherVersion.js"
 export { AesCbcFacade } from "./encryption/symmetric/AesCbcFacade.js"
 export * from "./CryptoTypes.js"

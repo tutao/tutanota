@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Oferta",
 		"subscriptionCancelledMessage_msg": "Twoja subskrypcja została anulowana. Skontaktuj się z działem wsparcia, aby ją ponownie aktywować.",
 		"subscriptionChange_msg": "Twoja oferta zostanie zmieniona po zakończeniu bieżącego okresu subskrypcji.",
-		"subscriptionChangeInterval_msg": "W następnym terminie odnowienia subskrypcji częstotliwość płatności zostanie zmieniona na: {okres}. Czy to ci odpowiada?",
+		"subscriptionChangeInterval_msg": "W następnym terminie odnowienia subskrypcji częstotliwość płatności zostanie zmieniona na: {okres}.",
 		"subscriptionChangePeriod_msg": "Twoja oferta zostanie zmieniona po zakończeniu bieżącego okresu subskrypcji ({1}). ",
 		"subscriptionSettingAliasPaidFeature_label": "Dodatkowe adresy e-mail",
 		"subscriptionSettingAliasPaidFeature_msg": "Jeśli ustawiono dodatkowe adresy e-mail, wyłącz tę opcję w sekcji Ustawienia > E-mail > Adresy e-mail",

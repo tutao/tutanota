@@ -342,7 +342,7 @@ export function getChunkName(moduleId, { getModuleInfo }) {
 		moduleId.includes(path.normalize("src/usagetests")) ||
 		moduleId.includes("NotificationContentSelector") ||
 		moduleId.includes("NotificationPermissionsDialog") ||
-		moduleId.includes("SettingsBannerButton")
+		moduleId.includes("SetupWizardButton")
 	) {
 		// Things which we always need for main thread anyway, at least currently
 		return "main"

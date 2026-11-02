@@ -26,7 +26,11 @@ export class RolloutFacade {
 			const result = await this.serviceExecutor.execute(RolloutService_GET, NULL_ENTITY, null)
 			const rolloutActions = new Map<RolloutType, RolloutAction>()
 			for (const rollout of result.rollouts) {
-				const rolloutType = assertNotNull(getAsEnumValue(RolloutType, rollout.rolloutType))
+				const rolloutType = getAsEnumValue(RolloutType, rollout.rolloutType)
+				if (rolloutType == null) {
+					console.log(`Skipping unknown rollout type: ${rollout.rolloutType}`)
+					continue
+				}
 				rolloutActions.set(rolloutType, {
 					execute: () => {
 						throw new ProgrammingError(`tried to execute an action that was not configured, rollout type ${rollout}`)

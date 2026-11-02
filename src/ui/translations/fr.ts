@@ -2165,7 +2165,7 @@ export default {
 		"subscription_label": "Forfait",
 		"subscriptionCancelledMessage_msg": "Votre souscription a été annulée. Veuillez contacter le support pour relancer votre souscription.",
 		"subscriptionChange_msg": "Votre abonnement sera modifié après la fin de la période d’abonnement en cours.",
-		"subscriptionChangeInterval_msg": "À la prochaine date de renouvellement de votre abonnement, votre périodicité de paiement passera à : {period}. Confirmez-vous ?",
+		"subscriptionChangeInterval_msg": "À la prochaine date de renouvellement de votre abonnement, votre périodicité de paiement passera à : {period}.",
 		"subscriptionChangePeriod_msg": "Votre abonnement sera modifié après la fin de la période d’abonnement en cours ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Adresses e-mails supplémentaires",
 		"subscriptionSettingAliasPaidFeature_msg": "Si vous avez configuré des adresses e-mail supplémentaires, désactivez-les dans Paramètres > E-mail > Adresses e-mail.",

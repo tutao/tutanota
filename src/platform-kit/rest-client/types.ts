@@ -1,6 +1,6 @@
 import { HttpMethod, MediaType, ProgressListener, RestBody } from "@tutao/http-client"
 
-export { ProgressListener, MediaType, HttpMethod, validateHttpMethod, RestBodyType, RestBody, RestTextBody, RestBinaryBody } from "@tutao/http-client"
+export { type ProgressListener, MediaType, HttpMethod, validateHttpMethod, RestBodyType, RestBody, RestTextBody, RestBinaryBody } from "@tutao/http-client"
 
 /** A read-only view of a completed response, abstracted over the underlying transport (XMLHttpRequest or fetch's Response). */
 export interface InterceptedResponse {

@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Εγγραφή",
 		"subscriptionCancelledMessage_msg": "Η συνδρομή του πακέτου σας ακυρώθηκε. Επικοινωνήστε με το τμήμα Υποστήριξης για την επανεργοποίησή της.",
 		"subscriptionChange_msg": "Η συνδρομή σας θα αλλάξει μετά τη λήξη της τρέχουσας περιόδου συνδρομής.",
-		"subscriptionChangeInterval_msg": "Στην επόμενη ημερομηνία ανανέωσης της συνδρομής σας, η περίοδος χρέωσής σας θα αλλάξει σε: {period}. Είναι αυτό εντάξει;",
+		"subscriptionChangeInterval_msg": "Στην επόμενη ημερομηνία ανανέωσης της συνδρομής σας, η περίοδος χρέωσής σας θα αλλάξει σε: {period}.",
 		"subscriptionChangePeriod_msg": "Η συνδρομή σας θα αλλάξει μετά τη λήξη της τρέχουσας περιόδου συνδρομής ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Επιπλέον διευθύνσεις email",
 		"subscriptionSettingAliasPaidFeature_msg": "Αν έχετε ορίσει επιπλέον διευθύνσεις email, απενεργοποιήστε τις στις Ρυθμίσεις > Email > Διευθύνσεις email",

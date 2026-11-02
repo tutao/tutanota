@@ -2167,7 +2167,7 @@ export default {
 		"subscription_label": "Plan",
 		"subscriptionCancelledMessage_msg": "Your subscription has been cancelled. Please contact support to reactivate your subscription.",
 		"subscriptionChange_msg": "Your plan will be changed after the end of the current subscription period.",
-		"subscriptionChangeInterval_msg": "At the next renewal date of your subscription your payment interval will be changed to: {period}. Is this ok?",
+		"subscriptionChangeInterval_msg": "At the next renewal date of your subscription your payment interval will be changed to: {period}.",
 		"subscriptionChangePeriod_msg": "Your plan will be changed after the end of the current subscription period ({1}).",
 		"subscriptionSettingAliasPaidFeature_label": "Extra email addresses",
 		"subscriptionSettingAliasPaidFeature_msg": "If you have set any extra email addresses please disable it in Settings > Email > Email addresses",

@@ -6,7 +6,7 @@ import { NativeContactsSyncManager } from "../../../../mail-app/contacts/model/N
 import { ContactImporter } from "../../../../mail-app/contacts/ContactImporter.js"
 import { Dialog } from "../../../../../ui/base/Dialog.js"
 import { MobileSystemFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { renderSettingsBannerButton } from "../../../settings/SettingsBannerButton.js"
+import { renderSetupWizardButton } from "../../../settings/SetupWizardButton.js"
 import { CURRENT_PRIVACY_VERSION, renderTermsAndConditionsButton, TermsSection } from "../../../subscription/TermsAndConditions"
 
 export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
@@ -19,11 +19,11 @@ export class SetupContactsPage implements Component<SetupContactsPageAttrs> {
 
 		return [
 			m("p.mb-8", lang.get("importContacts_msg")),
-			renderSettingsBannerButton("import_action", () => {
+			renderSetupWizardButton("import_action", () => {
 				attrs.contactImporter.importContactsFromDeviceSafely()
 			}),
 			m("p.mb-8", lang.get("allowContactSynchronization")),
-			renderSettingsBannerButton(
+			renderSetupWizardButton(
 				isContactSyncEnabled ? "activated_label" : "activate_action",
 				() => {
 					this.enableSync(attrs)

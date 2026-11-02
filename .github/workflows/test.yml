@@ -27,7 +27,7 @@ permissions:
 
 jobs:
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
       - uses: "./.github/shared/setup"
@@ -45,7 +45,7 @@ jobs:
 
 
   test-node:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
@@ -60,7 +60,7 @@ jobs:
           npm run test-ci
 
   test-browser:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
@@ -84,7 +84,7 @@ jobs:
           npm run test -- --no-run --browser --browser-cmd '${{ steps.setup-chrome.outputs.chrome-path }} --no-sandbox --enable-logging=stderr --headless=new --disable-gpu'
 
   build-webapp:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
@@ -99,7 +99,7 @@ jobs:
           node webapp --disable-minify
 
   build-calendar:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
@@ -114,7 +114,7 @@ jobs:
           node webapp --disable-minify --app calendar
 
   build-desktop: # will check that offline migrations are there
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 #v4.1.1
         with:
