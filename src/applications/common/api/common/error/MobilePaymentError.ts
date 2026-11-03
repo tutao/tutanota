@@ -5,6 +5,6 @@ import { TutanotaError } from "@tutao/app-env"
  */
 export class MobilePaymentError extends TutanotaError {
 	constructor(message: string) {
-		super("MobilePaymentError", message, null)
+		super("MobilePaymentError", message)
 	}
 }

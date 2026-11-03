@@ -1,7 +1,7 @@
 import { arrayEqualsWithPredicate, assert, assertNotNull, base64ToUint8Array, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { ProgrammingError } from "@tutao/app-env"
 import { AnyEntityId, elementIdPart, listIdPart } from "@tutao/meta"
-import { assertNotNaN } from "../utils/Utils"
+import { assertNotNaN, isNull } from "../utils/Utils"
 
 export const enum InstanceDirection {
 	OutgoingToServer,
@@ -37,11 +37,11 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	public isNull(): boolean {
-		return this.stringValue == null && this.arrayValue == null && this.nestedObj == null
+		return isNull(this.stringValue) && isNull(this.arrayValue) && isNull(this.nestedObj)
 	}
 
 	public asString(): string {
-		assert(this.nestedObj == null && this.arrayValue == null, "Expected a string")
+		assert(isNull(this.nestedObj) && isNull(this.arrayValue), "Expected a string")
 		return assertNotNull(this.stringValue, "Expected string")
 	}
 
@@ -61,12 +61,12 @@ export class ParsedValue<NestedObject extends DeepEquals> implements DeepEquals 
 	}
 
 	public asArray(): Array<ParsedValue<NestedObject>> {
-		assert(this.nestedObj == null && this.stringValue == null, "Expected an array")
+		assert(isNull(this.nestedObj) && isNull(this.stringValue), "Expected an array")
 		return assertNotNull(this.arrayValue, "Expected an array")
 	}
 
 	public asNestedObj(): NestedObject {
-		assert(this.arrayValue == null && this.stringValue == null, "Expected an Object")
+		assert(isNull(this.arrayValue) && isNull(this.stringValue), "Expected an Object")
 		return assertNotNull(this.nestedObj, "Expected an Object")
 	}
 

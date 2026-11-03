@@ -2,6 +2,7 @@
 
 import { TutanotaError } from "@tutao/app-env"
 import type { ImportErrorData } from "../../../desktop/mailimport/DesktopMailImportFacade.js"
+import { TutanotaErrorWithData } from "@tutao/lang-api"
 
 export const enum ImportErrorCategories {
 	ImportFeatureDisabled,
@@ -13,8 +14,8 @@ export const enum ImportErrorCategories {
 	ImportTargetFolderDeleted,
 }
 
-export class MailImportError extends TutanotaError<ImportErrorData> {
-	constructor(data: ImportErrorData) {
-		super("MailImportError", "Failed to import mails", data)
+export class MailImportError extends TutanotaError implements TutanotaErrorWithData<ImportErrorData> {
+	constructor(public data: Readonly<ImportErrorData>) {
+		super("MailImportError", "Failed to import mails")
 	}
 }

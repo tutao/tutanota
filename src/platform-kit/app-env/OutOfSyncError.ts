@@ -1,9 +1,9 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "./TutanotaError"
+import { TsString, TutanotaError } from "@tutao/lang-api"
 
 export class OutOfSyncError extends TutanotaError {
-	constructor(message: string) {
-		super("OutOfSyncError", message, null)
+	constructor(message: TsString) {
+		super("OutOfSyncError", message)
 	}
 }

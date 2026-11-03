@@ -48,14 +48,14 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	setUser(user: User): void {
-		if (this.accessToken == null) {
+		if (isNull(this.accessToken)) {
 			throw new ProgrammingError("invalid state: no access token")
 		}
 		this.user = user
 	}
 
 	unlockUserGroupKey(userPassphraseKey: AesKey): void {
-		if (this.user == null) {
+		if (isNull(this.user)) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		const userGroupMembership = this.user.userGroup
@@ -68,7 +68,7 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	setUserDistKey(currentUserGroupKeyVersion: KeyVersion, userPassphraseKey: AesKey): void {
-		if (this.user == null) {
+		if (isNull(this.user)) {
 			throw new ProgrammingError("Invalid state: no user")
 		}
 		// Why this magic + 1? Because we don't have access to the new version number when calling this function so we compute it from the current one
@@ -94,7 +94,7 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	async updateUser(user: User): Promise<void> {
-		if (this.user == null) {
+		if (isNull(this.user)) {
 			throw new ProgrammingError("Update user is called without logging in. This function is not for you.")
 		}
 		this.user = user
@@ -120,7 +120,7 @@ export class UserFacade extends LoggedInUserProvider {
 		// the userGroupKey is always written after the login to this.currentUserGroupKey
 		//if the user has only logged in offline this has not happened
 		const currentUserGroupKey = this.keyCache.getCurrentUserGroupKey()
-		if (currentUserGroupKey == null) {
+		if (isNull(currentUserGroupKey)) {
 			if (this.isPartiallyLoggedIn()) {
 				throw new LoginIncompleteError("userGroupKey not available")
 			} else {
@@ -170,12 +170,12 @@ export class UserFacade extends LoggedInUserProvider {
 	}
 
 	isPartiallyLoggedIn(): boolean {
-		return this.user != null
+		return isNotNull(this.user)
 	}
 
 	isFullyLoggedIn(): boolean {
 		// We have userGroupKey, and we can decrypt any other key - we are good to go
-		return this.keyCache.getCurrentUserGroupKey() != null
+		return isNotNull(this.keyCache.getCurrentUserGroupKey())
 	}
 
 	getLoggedInUser(): User {
@@ -205,7 +205,7 @@ export class UserFacade extends LoggedInUserProvider {
 
 	updateUserGroupKey(userGroupKeyDistribution: UserGroupKeyDistribution): void {
 		const userDistKey = this.keyCache.getUserDistKey()
-		if (userDistKey == null) {
+		if (isNull(userDistKey)) {
 			console.log("could not update userGroupKey because distribution key is not available")
 			return
 		}

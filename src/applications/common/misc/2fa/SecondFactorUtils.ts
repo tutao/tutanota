@@ -1,14 +1,14 @@
 import { DomainConfigProvider } from "../../api/common/DomainConfigProvider.js"
-import { Const } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 
 /**
  * Given appId (from the U2fKey), figure out which url should the user use for the login with that appId.
  */
 export function appIdToLoginUrl(appId: string, domainConfigProvider: DomainConfigProvider): string {
 	// Webauthn keys for our domains are special case because local, test and prod keys are registered for the same superdomain.
-	if (appId === Const.WEBAUTHN_RP_ID) {
+	if (appId === TutanotaConstants.Const.WEBAUTHN_RP_ID) {
 		return webauthnUrlToLoginUrl(domainConfigProvider.getCurrentDomainConfig().webauthnUrl)
-	} else if (appId === Const.LEGACY_WEBAUTHN_RP_ID) {
+	} else if (appId === TutanotaConstants.Const.LEGACY_WEBAUTHN_RP_ID) {
 		return webauthnUrlToLoginUrl(domainConfigProvider.getCurrentDomainConfig().legacyWebauthnUrl)
 	}
 

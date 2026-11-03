@@ -1,8 +1,18 @@
 import { TutanotaError } from "@tutao/app-env"
-import { TsNumber } from "../app-env/TranspileCompatibility"
 import { filterInt } from "@tutao/utils"
+import { Nullable, TsInt, TutanotaErrorWithData } from "@tutao/lang-api"
 
-export class ConnectionError extends TutanotaError {
+export class HttpClientError extends TutanotaError implements TutanotaErrorWithData<Nullable<string>> {
+	public constructor(
+		name: Readonly<string>,
+		msg: Readonly<string>,
+		public readonly data: Readonly<Nullable<string>>,
+	) {
+		super(name, msg)
+	}
+}
+
+export class ConnectionError extends HttpClientError {
 	static CODE: number = 0
 
 	constructor(msg: string) {
@@ -10,7 +20,7 @@ export class ConnectionError extends TutanotaError {
 	}
 }
 
-export class BadRequestError extends TutanotaError {
+export class BadRequestError extends HttpClientError {
 	static CODE: number = 400
 
 	constructor(msg: string) {
@@ -18,7 +28,7 @@ export class BadRequestError extends TutanotaError {
 	}
 }
 
-export class NotAuthenticatedError extends TutanotaError {
+export class NotAuthenticatedError extends HttpClientError {
 	static CODE: number = 401
 
 	constructor(msg: string) {
@@ -26,7 +36,7 @@ export class NotAuthenticatedError extends TutanotaError {
 	}
 }
 
-export class NotAuthorizedError extends TutanotaError {
+export class NotAuthorizedError extends HttpClientError {
 	static CODE: number = 403
 
 	constructor(msg: string) {
@@ -34,7 +44,7 @@ export class NotAuthorizedError extends TutanotaError {
 	}
 }
 
-export class NotFoundError extends TutanotaError {
+export class NotFoundError extends HttpClientError {
 	static CODE: number = 404
 
 	constructor(msg: string) {
@@ -42,7 +52,7 @@ export class NotFoundError extends TutanotaError {
 	}
 }
 
-export class MethodNotAllowedError extends TutanotaError {
+export class MethodNotAllowedError extends HttpClientError {
 	static CODE: number = 405
 
 	constructor(msg: string) {
@@ -50,7 +60,7 @@ export class MethodNotAllowedError extends TutanotaError {
 	}
 }
 
-export class RequestTimeoutError extends TutanotaError {
+export class RequestTimeoutError extends HttpClientError {
 	static CODE: number = 408
 
 	constructor(msg: string) {
@@ -58,7 +68,7 @@ export class RequestTimeoutError extends TutanotaError {
 	}
 }
 
-export class PreconditionFailedError extends TutanotaError<string | null> {
+export class PreconditionFailedError extends HttpClientError {
 	static CODE: number = 412
 
 	constructor(msg: string, reason: string | null) {
@@ -66,7 +76,7 @@ export class PreconditionFailedError extends TutanotaError<string | null> {
 	}
 }
 
-export class TooManyRequestsError extends TutanotaError {
+export class TooManyRequestsError extends HttpClientError {
 	static CODE: number = 429
 
 	constructor(msg: string) {
@@ -74,7 +84,7 @@ export class TooManyRequestsError extends TutanotaError {
 	}
 }
 
-export class LockedError extends TutanotaError {
+export class LockedError extends HttpClientError {
 	static CODE: number = 423
 
 	constructor(msg: string) {
@@ -82,7 +92,7 @@ export class LockedError extends TutanotaError {
 	}
 }
 
-export class SessionExpiredError extends TutanotaError {
+export class SessionExpiredError extends HttpClientError {
 	static CODE: number = 440
 
 	constructor(msg: string) {
@@ -90,7 +100,7 @@ export class SessionExpiredError extends TutanotaError {
 	}
 }
 
-export class AccessDeactivatedError extends TutanotaError {
+export class AccessDeactivatedError extends HttpClientError {
 	static CODE: number = 470
 
 	constructor(msg: string) {
@@ -99,7 +109,7 @@ export class AccessDeactivatedError extends TutanotaError {
 }
 
 /** External users only, related to password changes. */
-export class AccessExpiredError extends TutanotaError {
+export class AccessExpiredError extends HttpClientError {
 	static CODE: number = 471
 
 	constructor(msg: string) {
@@ -107,7 +117,7 @@ export class AccessExpiredError extends TutanotaError {
 	}
 }
 
-export class AccessBlockedError extends TutanotaError {
+export class AccessBlockedError extends HttpClientError {
 	static CODE: number = 472
 
 	constructor(msg: string) {
@@ -115,7 +125,7 @@ export class AccessBlockedError extends TutanotaError {
 	}
 }
 
-export class InvalidDataError extends TutanotaError {
+export class InvalidDataError extends HttpClientError {
 	static CODE: number = 473
 
 	constructor(msg: string) {
@@ -123,7 +133,7 @@ export class InvalidDataError extends TutanotaError {
 	}
 }
 
-export class InvalidSoftwareVersionError extends TutanotaError {
+export class InvalidSoftwareVersionError extends HttpClientError {
 	static CODE: number = 474
 
 	constructor(msg: string) {
@@ -131,7 +141,7 @@ export class InvalidSoftwareVersionError extends TutanotaError {
 	}
 }
 
-export class LimitReachedError extends TutanotaError {
+export class LimitReachedError extends HttpClientError {
 	static CODE: number = 475
 
 	constructor(msg: string) {
@@ -139,7 +149,7 @@ export class LimitReachedError extends TutanotaError {
 	}
 }
 
-export class InternalServerError extends TutanotaError {
+export class InternalServerError extends HttpClientError {
 	static CODE: number = 500
 
 	constructor(msg: string) {
@@ -147,7 +157,7 @@ export class InternalServerError extends TutanotaError {
 	}
 }
 
-export class BadGatewayError extends TutanotaError {
+export class BadGatewayError extends HttpClientError {
 	static CODE: number = 502
 
 	constructor(msg: string) {
@@ -155,7 +165,7 @@ export class BadGatewayError extends TutanotaError {
 	}
 }
 
-export class ServiceUnavailableError extends TutanotaError {
+export class ServiceUnavailableError extends HttpClientError {
 	static CODE: number = 503
 
 	constructor(msg: string) {
@@ -163,7 +173,7 @@ export class ServiceUnavailableError extends TutanotaError {
 	}
 }
 
-export class InsufficientStorageError extends TutanotaError {
+export class InsufficientStorageError extends HttpClientError {
 	static CODE: number = 507
 
 	constructor(msg: string) {
@@ -171,13 +181,13 @@ export class InsufficientStorageError extends TutanotaError {
 	}
 }
 
-export class ResourceError extends TutanotaError {
+export class ResourceError extends HttpClientError {
 	constructor(msg: string) {
 		super("ResourceError", msg, null)
 	}
 }
 
-export class PayloadTooLargeError extends TutanotaError {
+export class PayloadTooLargeError extends HttpClientError {
 	static CODE: number = 413
 
 	constructor(msg: string) {
@@ -185,7 +195,7 @@ export class PayloadTooLargeError extends TutanotaError {
 	}
 }
 
-export class SuspensionError extends TutanotaError<string | null> {
+export class SuspensionError extends HttpClientError {
 	constructor(
 		message: string,
 		// milliseconds to wait
@@ -193,7 +203,7 @@ export class SuspensionError extends TutanotaError<string | null> {
 	) {
 		super("SuspensionError", message, suspensionTime)
 
-		if (suspensionTime != null && TsNumber.isNaN(filterInt(suspensionTime))) {
+		if (suspensionTime != null && TsInt.isNaN(filterInt(suspensionTime))) {
 			throw new Error("invalid suspension time value (NaN)")
 		}
 	}

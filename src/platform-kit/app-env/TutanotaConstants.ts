@@ -1,64 +1,102 @@
 import { TimeConstants } from "./TimeConstants.js"
-import { EnvProvider } from "./Env"
-import { TsMath, TsObject } from "./TranspileCompatibility"
+import { TsDouble, TsInt, TsMath, TsObject, TsString } from "@tutao/lang-api"
 
-export function enumKeyByValue<T extends Record<string, string>>(e: T, value: T[keyof T]): keyof T {
-	const key = Object.keys(e).find((k) => e[k] === value) ?? null
+export class TutanotaConstants {
+	constructor() {}
 
-	if (key == null) {
-		throw new Error(`Unknown enum value: ${value}`)
-	}
+	public static readonly Const: ConstType = TsObject.freeze({
+		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
+		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
+		MEMORY_GB_FACTOR: TsDouble.from(1000000000),
+		MEMORY_WARNING_FACTOR: 0.9,
+		// Sets the current date for testing date dependent services. Only available in test environments.
+		CURRENT_DATE: null,
+		CURRENCY_SYMBOL_EUR: "€",
+		DEFAULT_APP_DOMAIN: "app.tuta.com",
+		LEGACY_WEBAUTHN_RP_ID: "tutanota.com",
+		WEBAUTHN_RP_ID: "tuta.com",
+		U2f_APPID_SUFFIX: "/u2f-appid.json",
+		// this is fetched from the website assets (even though the server has a hardcoded response for this)
+		// we keep it at tutanota.com since we're matching on it in the code and old keys are saved with this
+		// URL as appId.
+		// we'll still get the contents
+		// because it will be redirected to tuta.com after new domain deploy.
+		U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
+		EXECUTE_KDF_MIGRATION: true,
+	} satisfies ConstType)
 
-	return key
+	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
+		"tuta.com",
+		"tutamail.com",
+		"tuta.io",
+		"tutanota.com",
+		"tutanota.de",
+		"keemail.me",
+	])
+
+	public static readonly TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TutanotaConstants.TUTA_MAIL_ADDRESS_DOMAINS
+
+	public static readonly DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = "tuta.com"
+
+	public static readonly DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN: TsString = "tutamail.com"
+
+	public static readonly MAX_LOGO_SIZE: TsInt = 1024 * 100
+	public static readonly MAX_BASE64_IMAGE_SIZE: TsInt = TutanotaConstants.MAX_LOGO_SIZE
+	public static readonly ALLOWED_IMAGE_FORMATS: ReadonlyArray<string> = TsObject.freeze(["png", "jpg", "jpeg", "svg"])
+
+	public static readonly GENERATED_ID_MAX_TIMESTAMP: TsInt = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
+	public static readonly GENERATED_ID_MIN_TIMESTAMP: TsInt = 0
+	public static readonly FULL_INDEXED_TIMESTAMP: TsInt = TutanotaConstants.GENERATED_ID_MIN_TIMESTAMP
+	public static readonly NOTHING_INDEXED_TIMESTAMP: TsInt = TutanotaConstants.GENERATED_ID_MAX_TIMESTAMP
+
+	public static readonly ENTITY_EVENT_BATCH_TTL_DAYS: TsInt = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
+
+	public static readonly FREE_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: TsInt = 31
+
+	public static readonly PAID_OFFLINE_STORAGE_DEFAULT_TIME_RANGE_DAYS: TsInt = 2 * 365
+	public static readonly EXTERNAL_CALENDAR_SYNC_INTERVAL: TsInt = 60 * 30 * 1000 // 30 minutes
+
+	public static readonly DEFAULT_ERROR: TsString = "defaultError"
+
+	public static readonly BIRTHDAY_CALENDAR_BASE_ID: TsString = "birthday_calendar"
+	public static readonly DEFAULT_BIRTHDAY_CALENDAR_COLOR: TsString = "FF9933"
+	public static readonly MAX_LABELS_PER_MAIL: TsInt = 5
+	public static readonly TUTA_MAIL_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
+	public static readonly TUTA_MAIL_APP_STORE_URL: TsString = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
+	public static readonly TUTA_CALENDAR_GOOGLE_PLAY_URL: TsString = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
+	public static readonly TUTA_CALENDAR_APP_STORE_URL: TsString = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
+
+	public static readonly PLAN_SELECTOR_SELECTED_BOX_SCALE: TsString = "1.03"
+	public static readonly DEFAULT_CALENDAR_COLOR: TsString = "2196f3"
+
+	/**
+	 * We pick a max word frequency of 2^5 so that we can compress it together
+	 * with the index (which is 2^11 =2048) into two bytes
+	 */
+	public static readonly MAX_WORD_FREQUENCY: TsInt = 31
+	public static readonly DEFAULT_VECTOR_MAX_LENGTH: TsInt = 2048
+	public static readonly UNDO_SEND_TIMEOUT_SECONDS: TsInt = 10
+
+	public static readonly companyTeamLabel: TsString = "Tuta Team"
+
+	public static readonly FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 28
+	public static readonly PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS: TsInt = 365
 }
 
 export type ConstType = {
-	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: number
-	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: number
-	MEMORY_GB_FACTOR: number
-	MEMORY_WARNING_FACTOR: number
+	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: TsInt
+	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: TsInt
+	MEMORY_GB_FACTOR: TsDouble
+	MEMORY_WARNING_FACTOR: TsDouble
 	CURRENT_DATE: Date | null
-	CURRENCY_SYMBOL_EUR: string
-	DEFAULT_APP_DOMAIN: string
-	LEGACY_WEBAUTHN_RP_ID: string
-	WEBAUTHN_RP_ID: string
-	U2f_APPID_SUFFIX: string
-	U2F_LEGACY_APPID: string
+	CURRENCY_SYMBOL_EUR: TsString
+	DEFAULT_APP_DOMAIN: TsString
+	LEGACY_WEBAUTHN_RP_ID: TsString
+	WEBAUTHN_RP_ID: TsString
+	U2f_APPID_SUFFIX: TsString
+	U2F_LEGACY_APPID: TsString
 	EXECUTE_KDF_MIGRATION: boolean
 }
-
-export const Const: ConstType = {
-	INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
-	REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
-	MEMORY_GB_FACTOR: 1000000000,
-	MEMORY_WARNING_FACTOR: 0.9,
-	// Sets the current date for testing date dependent services. Only available in test environments.
-	CURRENT_DATE: null,
-	CURRENCY_SYMBOL_EUR: "€",
-	DEFAULT_APP_DOMAIN: "app.tuta.com",
-	LEGACY_WEBAUTHN_RP_ID: "tutanota.com",
-	WEBAUTHN_RP_ID: "tuta.com",
-	U2f_APPID_SUFFIX: "/u2f-appid.json",
-	// this is fetched from the website assets (even though the server has a hardcoded response for this)
-	// we keep it at tutanota.com since we're matching on it in the code and old keys are saved with this
-	// URL as appId.
-	// we'll still get the contents
-	// because it will be redirected to tuta.com after new domain deploy.
-	U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
-	EXECUTE_KDF_MIGRATION: true,
-} as const
-
-export const TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
-	"tuta.com",
-	"tutamail.com",
-	"tuta.io",
-	"tutanota.com",
-	"tutanota.de",
-	"keemail.me",
-])
-export const TUTA_MAIL_ADDRESS_SIGNUP_DOMAINS = TUTA_MAIL_ADDRESS_DOMAINS
-export const DEFAULT_PAID_MAIL_ADDRESS_SIGNUP_DOMAIN = "tuta.com"
-export const DEFAULT_FREE_MAIL_ADDRESS_SIGNUP_DOMAIN = "tutamail.com"
 
 // Keep non-const for admin
 export enum ApprovalStatus {
@@ -161,10 +199,6 @@ export enum PresentableKeyVerificationState {
 	ALERT = "2",
 }
 
-export const MAX_LOGO_SIZE = 1024 * 100
-export const MAX_BASE64_IMAGE_SIZE = MAX_LOGO_SIZE
-export const ALLOWED_IMAGE_FORMATS = ["png", "jpg", "jpeg", "svg"]
-
 // Keep non-const for admin
 export enum FeatureType {
 	DisableContacts = "0",
@@ -196,14 +230,6 @@ export enum FeatureType {
 	ImapSyncMigration = "24",
 	RespectMxRecord = "25",
 }
-
-export const GENERATED_ID_MAX_TIMESTAMP: number = TsMath.pow(2, 42) - 1 // maximum Timestamp is 42 bit long (see GeneratedIdData.java)
-export const GENERATED_ID_MIN_TIMESTAMP: number = 0
-
-export const FULL_INDEXED_TIMESTAMP: number = GENERATED_ID_MIN_TIMESTAMP
-export const NOTHING_INDEXED_TIMESTAMP: number = GENERATED_ID_MAX_TIMESTAMP
-
-export const ENTITY_EVENT_BATCH_TTL_DAYS: number = 45 // 45 days (see InstanceDbMapperEventNotifier.java)
 
 export const enum PaymentDataResultType {
 	OK = "0",
@@ -292,8 +318,6 @@ export const enum EndType {
 	Count = "1",
 	UntilDate = "2",
 }
-
-export const DEFAULT_CALENDAR_COLOR = "2196f3"
 
 export const enum EventTextTimeOption {
 	START_TIME = "startTime",
@@ -429,7 +453,7 @@ export const enum ClientType {
 }
 
 export type PayPalData = {
-	account: string
+	account: TsString
 }
 
 export enum UsageTestState {
@@ -446,9 +470,6 @@ export enum UsageTestMetricType {
 	LIKERT = "2",
 	STRING = "3",
 }
-
-export const FREE_MAIL_INDEX_DEFAULT_RANGE_DAYS = 28
-export const PAID_MAIL_INDEX_DEFAULT_RANGE_DAYS = 365
 
 export enum UsageTestParticipationMode {
 	Once = "0",
@@ -478,18 +499,7 @@ export enum GroupKeyRotationType {
 	InstanceKeySharingAfterInternalMailGroupRotation = "8",
 }
 
-export const EXTERNAL_CALENDAR_SYNC_INTERVAL = 60 * 30 * 1000 // 30 minutes
-
-export const DEFAULT_ERROR = "defaultError"
-
-export const BIRTHDAY_CALENDAR_BASE_ID = "birthday_calendar"
-export const DEFAULT_BIRTHDAY_CALENDAR_COLOR = "FF9933"
 export const MAX_LABELS_PER_FREE_USER = 3
-export const MAX_LABELS_PER_MAIL = 5
-export const TUTA_MAIL_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.tutanota"
-export const TUTA_MAIL_APP_STORE_URL = "https://apps.apple.com/app/secure-mail-client-tuta/id922429609"
-export const TUTA_CALENDAR_GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=de.tutao.calendar"
-export const TUTA_CALENDAR_APP_STORE_URL = "https://apps.apple.com/app/tuta-calendar-planner-app/id6657977811"
 
 export enum RolloutType {
 	UserIdentityKeyCreation = "0",
@@ -510,17 +520,6 @@ export enum DeactivationReason {
 	Custom,
 	MassSignup,
 }
-
-export const PLAN_SELECTOR_SELECTED_BOX_SCALE = "1.03"
-
-export const CANCEL_UPLOAD_EVENT = "CANCEL_UPLOAD_EVENT"
-/**
- * We pick a max word frequency of 2^5 so that we can compress it together
- * with the index (which is 2^11 =2048) into two bytes
- */
-export const MAX_WORD_FREQUENCY = 31
-export const DEFAULT_VECTOR_MAX_LENGTH = 2048
-export const UNDO_SEND_TIMEOUT_SECONDS = 10
 
 export const enum OperationStatus {
 	SUCCESS = "0",
@@ -600,12 +599,4 @@ export enum CredentialEncryptionMode {
 	 * keychain.
 	 */
 	APP_PASSWORD = "APP_PASSWORD",
-}
-
-export function getClientType(): ClientType {
-	return EnvProvider.get().isApp()
-		? ClientType.App
-		: EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient()
-			? ClientType.Desktop
-			: ClientType.Browser
 }

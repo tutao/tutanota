@@ -2,7 +2,7 @@ import m, { Children, Vnode, VnodeDOM } from "mithril"
 import { Dialog } from "../../../ui/base/Dialog"
 import { lang, MaybeTranslation, type TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { formatPrice, formatPriceWithInfo, getPaymentMethodName, PaymentInterval } from "./utils/PriceUtils"
-import { Const } from "@tutao/app-env"
+import { TutanotaConstants } from "@tutao/app-env"
 import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 import type { UpgradeSubscriptionData } from "./UpgradeSubscriptionWizard"
 import { BadGatewayError, PreconditionFailedError } from "@tutao/rest-client/error"
@@ -63,7 +63,7 @@ export class UpgradeConfirmSubscriptionPage implements WizardPageN<UpgradeSubscr
 			accountType: AccountType.PAID,
 			customer: null,
 			plan: data.targetPlanType,
-			date: Const.CURRENT_DATE,
+			date: TutanotaConstants.Const.CURRENT_DATE,
 			referralCode: data.referralData?.code ?? null,
 			specialPriceUserSingle: null,
 			surveyData: null,

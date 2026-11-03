@@ -16,7 +16,7 @@ o.spec("EntityFunctionsTest", function () {
 	o.beforeEach(async () => {
 		clientModelInfo = makePopulatedClientModelInfo()
 		serverModelInfo = clientModelAsServerModel(clientModelInfo)
-		applicationTypesFacade = new ApplicationTypesFacade(object(), object(), serverModelInfo)
+		applicationTypesFacade = new ApplicationTypesFacade(object(), serverModelInfo, object())
 	})
 
 	o.spec("parseModelValues", () => {

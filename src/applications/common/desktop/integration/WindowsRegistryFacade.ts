@@ -5,7 +5,7 @@ import { EnvProvider } from "@tutao/app-env"
 //
 // But otherwise, we definitely do not want to create a WindowsRegistryFacade on
 // non-Windows.
-if (!EnvProvider.isTest() && process.platform !== "win32") {
+if (!EnvProvider.get().isTest() && process.platform !== "win32") {
 	throw new Error(`Cannot load WindowsRegistryFacade from ${process.platform}`)
 }
 

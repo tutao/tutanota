@@ -1,5 +1,6 @@
-import { TutanotaError } from "./TutanotaError"
+import { TsString, TutanotaError } from "@tutao/lang-api"
 
+/** @TSwUncheckedSendable TutanotaError is TSUncheckedSendable and CancelledError does not introduce any new fields */
 export class CancelledError extends TutanotaError {
 	/**
 	 * A cancelled error is thrown when a async action is aborted
@@ -7,9 +8,9 @@ export class CancelledError extends TutanotaError {
 	 * @param reason A cancellation reason.
 	 */
 	constructor(
-		message: string,
-		readonly reason: string = "unknown",
+		message: TsString,
+		readonly reason: TsString = "unknown",
 	) {
-		super("CancelledError", message, null)
+		super("CancelledError", message)
 	}
 }

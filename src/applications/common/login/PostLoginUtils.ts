@@ -1,4 +1,4 @@
-import { Const, EnvProvider } from "@tutao/app-env"
+import { EnvProvider, TutanotaConstants } from "@tutao/app-env"
 import { UserController } from "../api/main/UserController.js"
 import { assertNotNull } from "@tutao/utils"
 import { UserManagementFacade } from "../api/worker/facades/lazy/UserManagementFacade.js"
@@ -24,11 +24,12 @@ export async function shouldShowUpgradeReminder(userController: UserController, 
 	if (userController.isFreeAccount()) {
 		// i'm any non-paying user - show repeatedly until upgraded, but only after INITIAL_UPGRADE_REMINDER_INTERVAL_MS
 		const isOldEnoughForInitialReminder =
-			customerProperties.lastUpgradeReminder == null && date.getTime() - customerInfo.creationTime.getTime() > Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS
+			customerProperties.lastUpgradeReminder == null &&
+			date.getTime() - customerInfo.creationTime.getTime() > TutanotaConstants.Const.INITIAL_UPGRADE_REMINDER_INTERVAL_MS
 		// If we've shown the reminder before show it again every REPEATED_UPGRADE_REMINDER_INTERVAL_MS.
 		const wasRemindedLongAgo =
 			customerProperties.lastUpgradeReminder != null &&
-			date.getTime() - customerProperties.lastUpgradeReminder.getTime() > Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS
+			date.getTime() - customerProperties.lastUpgradeReminder.getTime() > TutanotaConstants.Const.REPEATED_UPGRADE_REMINDER_INTERVAL_MS
 		return isOldEnoughForInitialReminder || wasRemindedLongAgo
 	} else if (!(await userController.reloadCustomer()).businessUse) {
 		// i'm a private legacy paid account. show once.
@@ -49,7 +50,7 @@ export async function shouldShowStorageWarning(
 	// New plans have per-user storage limits.
 	if ((await userController.isNewPaidPlan()) || userController.isFreeAccount()) {
 		const usedStorage = await userManagementFacade.readUsedUserStorage(userController.user)
-		return isOverStorageLimit(usedStorage, Number(customerInfo.perUserStorageCapacity) * Const.MEMORY_GB_FACTOR)
+		return isOverStorageLimit(usedStorage, Number(customerInfo.perUserStorageCapacity) * TutanotaConstants.Const.MEMORY_GB_FACTOR)
 	} else {
 		// Legacy plans have per-account storage limits.
 		if (!userController.isGlobalAdmin()) {
@@ -57,7 +58,7 @@ export async function shouldShowStorageWarning(
 		}
 		const customerId = assertNotNull(userController.user.customer)
 		const usedStorage = await customerFacade.readUsedCustomerStorage(customerId)
-		if (Number(usedStorage) > Const.MEMORY_GB_FACTOR * Const.MEMORY_WARNING_FACTOR) {
+		if (Number(usedStorage) > TutanotaConstants.Const.MEMORY_GB_FACTOR * TutanotaConstants.Const.MEMORY_WARNING_FACTOR) {
 			const availableStorage = await customerFacade.readAvailableCustomerStorage(customerId)
 			return isOverStorageLimit(usedStorage, availableStorage)
 		} else {
@@ -67,5 +68,5 @@ export async function shouldShowStorageWarning(
 }
 
 function isOverStorageLimit(usedStorageInBytes: number, availableStorageInBytes: number) {
-	return usedStorageInBytes > availableStorageInBytes * Const.MEMORY_WARNING_FACTOR
+	return usedStorageInBytes > availableStorageInBytes * TutanotaConstants.Const.MEMORY_WARNING_FACTOR
 }

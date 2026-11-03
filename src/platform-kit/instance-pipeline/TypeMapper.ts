@@ -18,12 +18,18 @@ import {
 import { ParsedValue } from "./ParsedValue"
 import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
-import { assertNotNaN } from "../utils/Utils"
+import { assertNotNaN, isNull } from "@tutao/lang-api"
 import { EnvProvider } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks"
 
 export class TypeMapper {
+	private networkDebugging: boolean = false
+
 	constructor(private readonly typeModelResolver: TypeModelResolver) {}
+
+	public enableNetworkDebugging(): void {
+		this.networkDebugging = true
+	}
 
 	async parseServerJson(jsonInstance: IncomingServerJson): Promise<EncryptedParsedInstance> {
 		const typeModel = jsonInstance.typeModel
@@ -158,7 +164,7 @@ export class IncomingServerJson implements DeepEquals {
 					return ParsedValue.fromIdTuple(rawValue)
 			}
 		}
-		if (rawValue == null) {
+		if (isNull(rawValue)) {
 			return ParsedValue.fromNull()
 		} else {
 			return ParsedValue.fromString(rawValue)
@@ -275,7 +281,7 @@ export class OutgoingServerJson implements DeepEquals {
 	}
 
 	public static newFromRecord(json: Record<AttributeName, unknown>, clientModel: Nullable<ClientTypeModel> = null): OutgoingServerJson {
-		assert(EnvProvider.isTest(), "Do not construct with raw record in non-test environment")
+		assert(EnvProvider.get().isTest(), "Do not construct with raw record in non-test environment")
 		return new OutgoingServerJson(clientModel as any, json)
 	}
 

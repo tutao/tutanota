@@ -7,7 +7,7 @@ import { isNull } from "../../../platform-kit/utils/Utils"
 import { CustomerConfigPluginError, GeneralPluginError } from "../../sdk/PluginError"
 import { PluginVersion } from "../../sdk/PluginManifest"
 import { HttpClient, HttpClientJavascript, HttpMethod, HttpResponse, MediaType, RestBinaryBody } from "../../../platform-kit/http-client"
-import { EnvProvider } from "../../../platform-kit/app-env"
+import { EnvProvider, TimeConstants } from "../../../platform-kit/app-env"
 
 export type NextcloudCredentials = {
 	appPassword: string
@@ -16,7 +16,7 @@ export type NextcloudCredentials = {
 }
 
 export class NextcloudApi {
-	private static httpClient: HttpClient = new HttpClientJavascript()
+	private static httpClient: HttpClient = new HttpClientJavascript(TimeConstants.secondsToMillis(5))
 	private nextCloudCredentials: Nullable<NextcloudCredentials>
 
 	public constructor(

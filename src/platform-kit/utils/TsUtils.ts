@@ -1,10 +1,10 @@
 import { assertNotNull, DeepEquals, downcast, isNotNull, isNull, Nullable } from "./Utils.js"
 import { TypeChecks } from "../app-env/TsTypeChecks.js"
 
+export { BrandedType, TsBrand } from "@tutao/lang-api"
+
 // This file is not transpiled
 /* eslint-disable  no-restricted-syntax */
-/* eslint-disable local/noUnnamedTypes */
-/* eslint-disable local/noUnionExceptNullable */
 
 /**
  * Integer constraint from 0 to n (using tail-recursion elimination)
@@ -33,12 +33,6 @@ export type DeferredObjectWithHandler<T, U> = {
 	promise: Promise<U>
 }
 
-export abstract class TsBrand {
-	protected abstract readonly __brand: Nullable<never>
-}
-
-export type BrandedType<T, B extends TsBrand> = T & { __brand: B }
-
 export function defer<T>(): DeferredObject<T> {
 	let ret: DeferredObject<T> = {} as DeferredObject<T>
 	ret.promise = new Promise((resolve, reject) => {
@@ -46,10 +40,6 @@ export function defer<T>(): DeferredObject<T> {
 		ret.reject = reject
 	})
 	return ret
-}
-
-export function isStrictlyUndefined<T>(value: T | undefined): value is undefined {
-	return value === undefined
 }
 
 export function deferWithHandler<T, U>(handler: (arg0: T) => U): DeferredObjectWithHandler<T, U> {
@@ -151,12 +141,12 @@ export function throttleStart<F extends (...args: any[]) => Promise<any>>(period
 	let scheduledTimeout: TimeoutID | null = null
 	let scheduledDefer: DeferredObject<ReturnType<F>> | null = null
 	return ((...args: any[]) => {
-		if (scheduledTimeout == null) {
+		if (isNull(scheduledTimeout)) {
 			const result = toThrottle(...args)
 			scheduledDefer = defer<ReturnType<F>>()
 			scheduledTimeout = setTimeout(() => {
 				scheduledTimeout = null
-				if (lastArgs != null) {
+				if (isNotNull(lastArgs)) {
 					toThrottle(...args).then(
 						(result) => scheduledDefer?.resolve(result),
 						(error) => scheduledDefer?.reject(error),
@@ -178,7 +168,7 @@ export function throttleStart<F extends (...args: any[]) => Promise<any>>(period
 export function singleAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 	let promise: Promise<R> | null = null
 	return async () => {
-		if (promise != null) {
+		if (isNotNull(promise)) {
 			return promise
 		} else {
 			promise = fn().finally(() => (promise = null))
@@ -193,7 +183,7 @@ export function singleAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 export function onceAsync<R>(fn: () => Promise<R>): () => Promise<R> {
 	let promise: Promise<R> | null = null
 	return async () => {
-		if (promise != null) {
+		if (isNotNull(promise)) {
 			return promise
 		} else {
 			promise = fn()

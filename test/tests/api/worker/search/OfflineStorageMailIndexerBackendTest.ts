@@ -2,12 +2,11 @@ import o from "@tutao/otest"
 import { OfflineStorageMailIndexerBackend } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStorageMailIndexerBackend"
 import { OfflineStoragePersistence } from "../../../../../src/applications/mail-app/workerUtils/index/OfflineStoragePersistence"
 import { matchers, object, verify, when } from "testdouble"
-import { FULL_INDEXED_TIMESTAMP } from "../../../../../src/platform-kit/app-env"
 import { MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { createTestEntity } from "../../../TestUtils"
-
 import { FileTypeRef, MailDetailsTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { GroupType } from "../../../../../src/entities/sys/Utils"
+import { TutanotaConstants } from "../../../../../src/platform-kit/app-env"
 
 o.spec("OfflineStorageMailIndexerBackend", function () {
 	let persistence: OfflineStoragePersistence
@@ -32,7 +31,7 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 			{
 				groupId: contactGroupId,
 				type: GroupType.Contact,
-				indexedTimestamp: FULL_INDEXED_TIMESTAMP,
+				indexedTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 				lastIndexedEntityListId: "",
 				lastIndexedEntityElementId: "",
 			},
@@ -41,7 +40,7 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 		o(await backend.getCurrentIndexTimestamps([mailGroupId, contactGroupId])).deepEquals(
 			new Map([
 				[mailGroupId, 123456],
-				[contactGroupId, FULL_INDEXED_TIMESTAMP],
+				[contactGroupId, TutanotaConstants.FULL_INDEXED_TIMESTAMP],
 			]),
 		)
 	})
@@ -53,7 +52,7 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 				{
 					groupId: contactGroupId,
 					type: GroupType.Contact,
-					indexedTimestamp: FULL_INDEXED_TIMESTAMP,
+					indexedTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 					lastIndexedEntityListId: "",
 					lastIndexedEntityElementId: "",
 				},
@@ -114,7 +113,7 @@ o.spec("OfflineStorageMailIndexerBackend", function () {
 				{
 					groupId: "less",
 					type: GroupType.Mail,
-					indexedTimestamp: FULL_INDEXED_TIMESTAMP,
+					indexedTimestamp: TutanotaConstants.FULL_INDEXED_TIMESTAMP,
 					lastIndexedEntityListId: "",
 					lastIndexedEntityElementId: "",
 				},

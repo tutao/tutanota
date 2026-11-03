@@ -25,7 +25,7 @@ import {
 	validateKdfNonceLength,
 	VersionedKey,
 } from "@tutao/crypto"
-import { EnvProvider, ProgrammingError } from "@tutao/app-env"
+import { EnvProvider } from "@tutao/app-env"
 import { EntityAdapter } from "./EntityAdapter"
 import { ClientOnlyTypeModelResolver, TypeModelResolver } from "./EntityFunctions"
 import { Entity, TypeRef } from "@tutao/meta"
@@ -33,6 +33,7 @@ import { IncomingServerJson, OutgoingServerJson, TypeMapper } from "./TypeMapper
 import { InstancePath, RootPath } from "./EncryptionContextPath"
 import { InstanceTypeId } from "./InstanceTypeContext"
 import { CryptoError } from "@tutao/crypto/error"
+import { isNull, ProgrammingError } from "@tutao/lang-api"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -55,6 +56,10 @@ export class InstancePipeline {
 		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper, keyEncryption)
 	}
 
+	public enableNetworkDebugging(): void {
+		this.typeMapper.enableNetworkDebugging()
+	}
+
 	public static newNativeOnly(
 		typeModelResolver: ClientOnlyTypeModelResolver,
 		symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
@@ -73,10 +78,10 @@ export class InstancePipeline {
 		if (aeadCipherVersion === AeadCipherVersion.Unencrypted) {
 			return null
 		}
-		if (this.loggedInUserProvider == null) throw new ProgrammingError("missing loggedInUserProvider")
+		if (isNull(this.loggedInUserProvider)) throw new ProgrammingError("missing loggedInUserProvider")
 		switch (this.loggedInUserProvider.getDefaultSymmetricEncryptionScheme()) {
 			case SymmetricEncryptionScheme.AesCbc: {
-				if (sessionKeyDecryptor == null) return null
+				if (isNull(sessionKeyDecryptor)) return null
 				return new PartialSubKeyInfoAesCbcThenHmac(sessionKeyDecryptor)
 			}
 			case SymmetricEncryptionScheme.Aead:
@@ -84,7 +89,7 @@ export class InstancePipeline {
 					case AeadCipherVersion.WithInstanceKey:
 						return new PartialSubKeyInfoAeadWithInstanceKey()
 					case AeadCipherVersion.WithSessionKey: {
-						if (sessionKeyDecryptor == null) return null
+						if (isNull(sessionKeyDecryptor)) return null
 						return new PartialSubKeyInfoAeadWithSessionKey(sessionKeyDecryptor)
 					}
 					default:

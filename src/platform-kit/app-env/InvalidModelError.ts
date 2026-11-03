@@ -1,7 +1,8 @@
-import { TutanotaError } from "./TutanotaError.js"
+import { TsString, TutanotaError } from "@tutao/lang-api"
 
+/** @TSwUncheckedSendable TutanotaError is TSUncheckedSendable and InvalidModelError does not introduce any new fields */
 export class InvalidModelError extends TutanotaError {
-	constructor(message: string) {
-		super("InvalidModelError", message, null)
+	constructor(message: TsString) {
+		super("InvalidModelError", message)
 	}
 }

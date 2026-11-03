@@ -15,7 +15,7 @@ import { ProgrammingError } from "@tutao/app-env"
 import { InstancePipeline } from "./InstancePipeline"
 import { OutgoingServerJson } from "./TypeMapper"
 import { DecryptedParsedInstance, DecryptedParsedValue, EncryptedParsedInstance } from "./CryptoMapper"
-import { TypeChecks } from "../app-env/TsTypeChecks"
+import { TypeChecks } from "@tutao/lang-api"
 
 export const enum PatchOperationType {
 	ADD_ITEM = "0",

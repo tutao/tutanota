@@ -1,9 +1,9 @@
 //@bundleInto:common-min
 
-import { TutanotaError } from "@tutao/app-env"
 import { filterInt, Nullable } from "@tutao/utils"
+import { HttpClientError } from "@tutao/http-client/error"
 
-export class SuspensionError extends TutanotaError<Nullable<string>> {
+export class SuspensionError extends HttpClientError {
 	constructor(
 		message: string,
 		// milliseconds to wait

@@ -1,6 +1,6 @@
 import { OfflineStorage } from "../OfflineStorage.js"
 import { SqlCipherFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { AppType, NOTHING_INDEXED_TIMESTAMP } from "../../../platform-kit/app-env"
+import { AppType, TutanotaConstants } from "../../../platform-kit/app-env"
 import { sql } from "../Sql"
 import { assertNotNull } from "../../../platform-kit/utils"
 import { untagSqlValue } from "../SqlValue"
@@ -51,7 +51,7 @@ export class offline7 extends OfflineMigration {
 			}
 			if (await tableExists("search_group_data")) {
 				const { query, params } = sql`UPDATE search_group_data
-                                              SET indexedTimestamp = ${NOTHING_INDEXED_TIMESTAMP}`
+                                              SET indexedTimestamp = ${TutanotaConstants.NOTHING_INDEXED_TIMESTAMP}`
 				await this.sqlCipherFacade.run(query, params)
 			}
 		}

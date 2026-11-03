@@ -44,7 +44,7 @@ export class Styles {
 		this.bodyWidth = neverNull(document.body).offsetWidth
 		this.bodyHeight = neverNull(document.body).offsetHeight
 
-		if (EnvProvider.isTest()) {
+		if (EnvProvider.get().isTest()) {
 			this.themeColorMeta = null
 		} else {
 			this.themeColorMeta = document.createElement("meta")
@@ -139,7 +139,7 @@ export class Styles {
 
 	private updateDomStyles() {
 		// This is hacking but we currently import gui stuff from a lot of tested things
-		if (EnvProvider.isTest()) {
+		if (EnvProvider.get().isTest()) {
 			return
 		}
 

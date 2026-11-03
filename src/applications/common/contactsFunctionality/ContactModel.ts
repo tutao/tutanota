@@ -6,7 +6,7 @@ import stream from "mithril/stream"
 import { EntityClient, loadMultipleFromLists } from "../../../platform-kit/network/EntityClient.js"
 import { LoginController } from "../api/main/LoginController.js"
 import { EventController } from "../api/main/EventController.js"
-import { DbError } from "../api/common/error/DbError.js"
+import { DbError, GenericDbError } from "../api/common/error/DbError.js"
 import { LoginIncompleteError, NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 
 import { ContactSearchFacade } from "../../mail-app/workerUtils/index/ContactSearchFacade"
@@ -136,7 +136,7 @@ export class ContactModel {
 	 */
 	async searchForContacts(query: string, field: "mailAddresses" | null, minSuggestionCount: number): Promise<Contact[]> {
 		if (!this.contactSearchFacade) {
-			throw new DbError("Cannot search for contacts through db")
+			throw new GenericDbError("Cannot search for contacts through db")
 		}
 		if (!this.loginController.isFullyLoggedIn()) {
 			throw new LoginIncompleteError("cannot search for contacts as online login is not completed")
