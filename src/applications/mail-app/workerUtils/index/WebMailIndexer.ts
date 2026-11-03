@@ -46,7 +46,6 @@ import {
 	MailboxGroupRootTypeRef,
 	MailboxMigrationFolderSyncStateTypeRef,
 	MailBoxTypeRef,
-	MailDetails,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
@@ -431,25 +430,18 @@ export class WebMailIndexer implements MailIndexer {
 		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
 	}
 
-	private async processIndexMails(
-		mailSetEntries: Array<MailSetEntry>,
-		indexLoader: BulkMailLoader,
-	): Promise<{ mail: Mail; mailDetails: MailDetails; attachments: File[] }[]> {
+	private async processIndexMails(mailSetEntries: Array<MailSetEntry>, indexLoader: BulkMailLoader): Promise<MailWithDetailsAndAttachments[]> {
 		this.assertNotCancelled("processIndexMails")
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries.map((entry) => entry.mail))
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		console.log(TAG, `processIndexMails ${mails.at(0)?._id.at(0)} ${mails.length}`)
-		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
+		const { mailsWithDetails } = await indexLoader.loadMailDetails(mailsWithoutErros)
 		const files = await indexLoader.loadAttachments(mailsWithoutErros)
-		const mailsWithMailDetailsAndFiles = mailsWithMailDetails
-			.map((mailTuples) => {
-				return {
-					mail: mailTuples.mail,
-					mailDetails: mailTuples.mailDetails,
-					attachments: files.filter((file) => mailTuples.mail.attachments.find((a) => isSameId(a, file._id))),
-				}
-			})
-			.filter(isNotNull)
+		const mailsWithMailDetailsAndFiles = mailsWithDetails.map((mailTuples) => ({
+			mail: mailTuples.mail,
+			mailDetails: mailTuples.mailDetails,
+			attachments: files.filter((file) => mailTuples.mail.attachments.find((a) => isSameId(a, file._id))),
+		}))
 		console.log(TAG, `processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		return mailsWithMailDetailsAndFiles
 	}
@@ -502,7 +494,7 @@ export class WebMailIndexer implements MailIndexer {
 	private async preloadMails(mailIds: IdTuple[]): Promise<MailWithDetailsAndAttachments[]> {
 		const indexLoader = await this.bulkLoaderFactory()
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailIds)
-		const mailsWithDetails = await indexLoader.loadMailDetails(mails)
+		const { mailsWithDetails } = await indexLoader.loadMailDetails(mails)
 		const attachments = await indexLoader.loadAttachments(mails)
 		const attachmentsById = new Map(attachments.map((a) => [getElementId(a), a]))
 		return mailsWithDetails.map(({ mail, mailDetails }) => {

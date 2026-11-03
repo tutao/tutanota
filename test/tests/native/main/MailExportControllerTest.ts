@@ -24,7 +24,7 @@ import {
 	RecipientsTypeRef,
 } from "@tutao/entities/tutanota"
 import { BlobServerUrlTypeRef } from "@tutao/entities/storage"
-import { elementIdToId, GENERATED_MAX_ID, getElementId, idToElementId } from "../../../../src/platform-kit/meta"
+import { elementIdToId, GENERATED_MAX_ID, getElementId, getLetId, idToElementId } from "../../../../src/platform-kit/meta"
 import { createDataFile } from "../../../../src/applications/common/api/worker/utils/DataFile.js"
 import { GroupInfoTypeRef, GroupTypeRef } from "@tutao/entities/sys"
 import { MailExportController } from "../../../../src/applications/mail-app/native/main/MailExportController"
@@ -98,7 +98,10 @@ o.spec("MailExportController", function () {
 		const attachmentData = new Uint8Array([1, 2, 3])
 		const dataFile = createDataFile("test", "application/octet-stream", attachmentData)
 		when(mailExportFacade.loadFixedNumberOfMailsWithCache(mailBag.mails, startId, matchers.anything())).thenResolve([mail])
-		when(mailExportFacade.loadMailDetails([mail], matchers.anything())).thenResolve([{ mail, mailDetails }])
+		when(mailExportFacade.loadMailDetails([mail], matchers.anything())).thenResolve({
+			mailsWithDetails: [{ mail, mailDetails }],
+			corruptMailsWithoutDetails: [],
+		})
 		when(mailExportFacade.loadAttachments([mail], matchers.anything())).thenResolve([attachmentInfo])
 		when(mailExportFacade.loadAttachmentData(mail, [attachmentInfo])).thenResolve([dataFile])
 
@@ -346,12 +349,17 @@ o.spec("MailExportController", function () {
 				}),
 			})
 			const mail2 = createTestEntity(MailTypeRef, { _id: ["mailListId", "second"] })
+			const mail3 = createTestEntity(MailTypeRef, { _id: ["mailListId", "third"] })
+			const mail4 = createTestEntity(MailTypeRef, { _id: ["mailListId", "fourth"] })
 			const currentMailBag = assertNotNull(mailboxDetail.mailbox.currentMailBag)
 			when(mailExportFacade.loadFixedNumberOfMailsWithCache(currentMailBag.mails, GENERATED_MAX_ID, matchers.anything())).thenResolve([mail, mail2])
-			when(mailExportFacade.loadMailDetails([mail, mail2], matchers.anything())).thenResolve([
-				{ mail, mailDetails },
-				{ mail: mail2, mailDetails },
-			])
+			when(mailExportFacade.loadMailDetails([mail, mail2], matchers.anything())).thenResolve({
+				mailsWithDetails: [
+					{ mail, mailDetails },
+					{ mail: mail2, mailDetails },
+				],
+				corruptMailsWithoutDetails: [mail3, mail4],
+			})
 			when(mailExportFacade.loadAttachments([mail, mail2], matchers.anything())).thenResolve([])
 			when(mailExportFacade.loadAttachmentData(mail, [])).thenResolve([])
 			when(mailExportFacade.loadAttachmentData(mail2, [])).thenReject(new Error("Oh no"))
@@ -363,9 +371,15 @@ o.spec("MailExportController", function () {
 
 			await controller.startExport(mailboxDetail)
 
+			// call once for current and twice for archived mail bags
 			verify(mailExportFacade.loadFixedNumberOfMailsWithCache(matchers.anything(), GENERATED_MAX_ID, matchers.anything()), { times: 3 })
+
+			// mail1 succeeds
 			verify(exportFacade.saveMailboxExport(matchers.anything(), userId, currentMailBag._id, getElementId(mail)), { times: 1 })
-			verify(exportFacade.saveMailboxExportFailure(userId, currentMailBag._id, mail2._id), { times: 1 })
+			// mail2 fails (throws, see above)
+			verify(exportFacade.saveMailboxExportFailure(userId, currentMailBag._id, [getLetId(mail2)]), { times: 1 })
+			// mail3 & mail4 get marked as failed together (because they have no details for some reason)
+			verify(exportFacade.saveMailboxExportFailure(userId, currentMailBag._id, [getLetId(mail3), getLetId(mail4)]), { times: 1 })
 		})
 	})
 })
