@@ -250,7 +250,7 @@ o.spec("DesktopExportFacade", function () {
 		o.test("when there's no previous state it throws an error", async function () {
 			when(persistence.getStateForUser(userId)).thenResolve(null)
 
-			await o(() => facade.saveMailboxExportFailure(userId, mailBagId, ["elementId", mailId])).asyncThrows(ProgrammingError)
+			await o(() => facade.saveMailboxExportFailure(userId, mailBagId, [["elementId", mailId]])).asyncThrows(ProgrammingError)
 		})
 
 		o.test("saves the state with failure data", async function () {
@@ -268,7 +268,7 @@ o.spec("DesktopExportFacade", function () {
 			when(persistence.getStateForUser(userId)).thenResolve(runningState)
 
 			const mailIdTuple: IdTuple = ["listId", mailId]
-			await facade.saveMailboxExportFailure(userId, mailBagId, mailIdTuple)
+			await facade.saveMailboxExportFailure(userId, mailBagId, [mailIdTuple])
 
 			verify(
 				persistence.setStateForUser({

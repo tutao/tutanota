@@ -6,7 +6,7 @@ import { EntityRestClient } from "../../../../platform-kit/network/EntityRestCli
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailDetails, MailDetailsBlobTypeRef, MailDetailsDraftTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import { assertNotNull, first, newPromise } from "@tutao/utils"
-import { isDraft } from "../../mail/model/MailChecks"
+import { isDraft, isMailWithoutDetails } from "../../mail/model/MailChecks"
 import { elementIdPart, listIdPart } from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
@@ -56,6 +56,11 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 	return async (mailId: IdTuple) => {
 		try {
 			const mail = await entityClient.load(MailTypeRef, mailId)
+			if (isMailWithoutDetails(mail)) {
+				// The mail is corrupted
+				return null
+			}
+
 			// Will be always there, if it was not updated yet, it will still be set by CryptoFacade
 			const mailOwnerEncSessionKey = assertNotNull(mail._ownerEncSessionKey)
 			let mailDetails: MailDetails

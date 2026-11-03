@@ -35,7 +35,7 @@ export interface ExportFacade {
 	/**
 	 * Save a current mail as a failed export
 	 */
-	saveMailboxExportFailure(userId: string, mailBagId: string, mailId: IdTuple): Promise<void>
+	saveMailboxExportFailure(userId: string, mailBagId: string, mailId: ReadonlyArray<IdTuple>): Promise<void>
 
 	clearExportState(userId: string): Promise<void>
 

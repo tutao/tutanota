@@ -12,6 +12,13 @@ export function isSubfolderOfType(system: FolderSystem, folder: MailSet, type: S
 }
 
 /**
+ * Returns true for corrupted mails that have no details for some reason
+ */
+export function isMailWithoutDetails(mail: Mail): boolean {
+	return mail.mailDetailsDraft == null && mail.mailDetails == null
+}
+
+/**
  * A mail is considered a draft as long as its mail details haven't yet been stored as a blob.
  *
  * Draft mails that are queued to be sent have a state of SENDING _before_ mail details is stored as a blob, so it's
