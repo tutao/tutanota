@@ -1,7 +1,7 @@
 import o from "@tutao/otest"
 import { MAIL_EXPORT_TOKEN_HEADER, MailExportFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailExportFacade.js"
 import { MailExportTokenFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailExportTokenFacade.js"
-import { BulkMailLoader } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
+import { BulkMailLoader, MailsMaybeWithDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { CryptoFacade } from "../../../../../src/platform-kit/base/base-crypto/CryptoFacade.js"
 import { instance, object, when } from "testdouble"
@@ -55,10 +55,14 @@ o.spec("MailExportFacade", () => {
 	})
 
 	o.test("loadMailDetails", async () => {
-		const expected = [
-			{ mail: mail1, mailDetails: details1 },
-			{ mail: mail2, mailDetails: details2 },
-		]
+		const expected: MailsMaybeWithDetails = {
+			mailsWithDetails: [
+				{ mail: mail1, mailDetails: details1 },
+				{ mail: mail2, mailDetails: details2 },
+			],
+			corruptMailsWithoutDetails: [],
+		}
+
 		when(
 			bulkMailLoader.loadMailDetails([mail1, mail2], {
 				...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,

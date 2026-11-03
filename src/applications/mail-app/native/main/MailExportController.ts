@@ -1,8 +1,8 @@
 import { MailboxDetail, MailboxModel } from "../../../common/mailFunctionality/MailboxModel.js"
 import Stream from "mithril/stream"
 import stream from "mithril/stream"
-import { elementIdToId, GENERATED_MAX_ID, getElementId, isSameId } from "../../../../platform-kit/meta"
-import { assertNotNull, delay, filterInt, isNotNull, lastThrow } from "../../../../platform-kit/utils"
+import { elementIdPart, elementIdToId, GENERATED_MAX_ID, getElementId, isSameId } from "../../../../platform-kit/meta"
+import { assertNotNull, delay, filterInt, isNotEmpty, isNotNull, lastThrow } from "../../../../platform-kit/utils"
 import { HtmlSanitizer } from "../../../common/misc/HtmlSanitizer.js"
 import { ExportFacade } from "@tutao/native-bridge/generatedIpc/types"
 import { LoginController } from "../../../common/api/main/LoginController.js"
@@ -210,10 +210,27 @@ export class MailExportController {
 					break
 				}
 
-				const downloadedMailDetails = await this.mailExportFacade.loadMailDetails(downloadedMails, this.getServerUrl())
+				const { mailsWithDetails, corruptMailsWithoutDetails } = await this.mailExportFacade.loadMailDetails(downloadedMails, this.getServerUrl())
 				const attachmentInfo = await this.mailExportFacade.loadAttachments(downloadedMails, this.getServerUrl())
 				let exportedWithoutFailureCount = 0
-				for (const { mail, mailDetails } of downloadedMailDetails) {
+
+				if (isNotEmpty(corruptMailsWithoutDetails)) {
+					const currentState = this._state()
+					if (currentState.type === "exporting") {
+						const corruptedMailsIds = corruptMailsWithoutDetails.map((m) => m._id)
+						console.error(
+							`Failed to export corrupted mails without details. listId: ${mailBag._id}, mailIds: `,
+							corruptedMailsIds.map(elementIdPart).join(" , "),
+						)
+						this._state({
+							...currentState,
+							failures: currentState.failures + corruptMailsWithoutDetails.length,
+						})
+						await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, corruptedMailsIds)
+					}
+				}
+
+				for (const { mail, mailDetails } of mailsWithDetails) {
 					if (this._state().type !== "exporting") {
 						return
 					}
@@ -223,7 +240,7 @@ export class MailExportController {
 						.filter(isNotNull)
 					try {
 						const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
-						const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)
+						const mailBundle = makeMailBundle(this.sanitizer, mail, assertNotNull(mailDetails, "Corrupted mail without a body"), attachments)
 
 						// can't write export if it was canceled
 						if (this._state().type !== "exporting") {
@@ -250,7 +267,7 @@ export class MailExportController {
 								})
 							}
 							console.error(`Failure while exporting mail: ${mail._id.join("/")}`, e)
-							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, mail._id)
+							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, [mail._id])
 						}
 					}
 				}
@@ -285,7 +302,7 @@ export class MailExportController {
 						if (currentMailId !== null) {
 							// It has crashed after downloadMails, we can at least advance the exports to the current id
 							// which will fetch the range from it and thus can possibly work.
-							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, currentMailId)
+							await this.exportFacade.saveMailboxExportFailure(this.userId, mailBag._id, [currentMailId])
 						} else {
 							//it Has crashed on download mails. We can't realistically recover because we have no way to
 							//figure out the range to try next and retrying would loop forever if errors happen

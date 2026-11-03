@@ -112,8 +112,9 @@ export class SpamClassifierDataDealer {
 					splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailElementIds),
 					async (mailChunk) => {
 						const mails = await this.entityClient.loadMultiple(MailTypeRef, listId, mailChunk)
-						const mailChunkWithDetails = await bulkMailLoader.loadMailDetails(mails)
-						await this.uploadTrainingDataForMails(mailChunkWithDetails, mailbox, mailSets)
+						const { mailsWithDetails } = await bulkMailLoader.loadMailDetails(mails)
+
+						await this.uploadTrainingDataForMails(mailsWithDetails, mailbox, mailSets)
 					},
 					{ concurrency: 5 },
 				)

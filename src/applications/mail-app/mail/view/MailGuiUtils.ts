@@ -221,9 +221,9 @@ export async function showUndoMailSnackbar(
 
 async function warnUsersIfMovingContactMailToSpam(contactModel: ContactModel, mailModel: MailModel, mailIds: ReadonlyArray<IdTuple>) {
 	const { showContactSelectionDialog } = await import("../../contacts/view/ContactSelectionDialog")
-	const mailWithDetails = await mailModel.loadAllMailsWithDetails(mailIds)
-	const senderAddresses = mailWithDetails
-		.filter((mailWithMailDetails) => mailWithMailDetails.mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED)
+	const { mailsWithDetails } = await mailModel.loadAllMailsWithDetails(mailIds)
+	const senderAddresses = mailsWithDetails
+		.filter((mailWithDetails) => mailWithDetails.mailDetails.authStatus === MailAuthenticationStatus.AUTHENTICATED)
 		.map((mailWithMailDetails) => mailWithMailDetails.mail.sender.address)
 
 	const loadedContacts = await contactModel.loadAllContacts()

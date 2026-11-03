@@ -132,6 +132,7 @@ export {
 	assertNonNull,
 	assert,
 	isNotNull,
+	isNull,
 	downcast,
 	makeSingleUse,
 	identity,
