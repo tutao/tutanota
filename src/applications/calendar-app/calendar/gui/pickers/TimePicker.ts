@@ -101,7 +101,10 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				if ("showPicker" in HTMLInputElement.prototype) {
 					try {
 						this.inputTimeEl!.showPicker()
-					} catch (e) {}
+					} catch (e) {
+						// https://developer.chrome.com/blog/show-picker/#how-to
+						if (e.name !== "NotAllowedError") throw e
+					}
 				}
 				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790
 				this.inputTimeEl!.focus()

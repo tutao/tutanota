@@ -185,7 +185,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						if ("showPicker" in HTMLInputElement.prototype) {
 							try {
 								this.inputDateEl!.showPicker()
-							} catch (e) {}
+							} catch (e) {
+								// https://developer.chrome.com/blog/show-picker/#how-to
+								if (e.name !== "NotAllowedError") throw e
+							}
 						}
 						// this.inputTextEl!.blur() // Needed?
 						this.inputDateEl!.focus()
