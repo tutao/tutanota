@@ -1,5 +1,5 @@
 import { EntityClient } from "../../../../platform-kit/network/EntityClient"
-import { assertNotNull, groupByAndMap, isEmpty, isNotNull, last, lazyAsync, promiseMap, splitInChunks } from "../../../../platform-kit/utils"
+import { assertNotNull, groupByAndMap, isEmpty, last, lazyAsync, promiseMap, splitInChunks } from "../../../../platform-kit/utils"
 import {
 	compareNewestFirst,
 	constructMailSetEntryId,
@@ -112,11 +112,9 @@ export class SpamClassifierDataDealer {
 					splitInChunks(MAX_NBR_OF_MAILS_SYNC_OPERATION, mailElementIds),
 					async (mailChunk) => {
 						const mails = await this.entityClient.loadMultiple(MailTypeRef, listId, mailChunk)
-						const mailChunkWithDetails = (await bulkMailLoader.loadMailDetails(mails)).filter((m) =>
-							isNotNull(m.mailDetails),
-						) as MailWithMailDetails[]
+						const { mailsWithDetails } = await bulkMailLoader.loadMailDetails(mails)
 
-						await this.uploadTrainingDataForMails(mailChunkWithDetails, mailbox, mailSets)
+						await this.uploadTrainingDataForMails(mailsWithDetails, mailbox, mailSets)
 					},
 					{ concurrency: 5 },
 				)

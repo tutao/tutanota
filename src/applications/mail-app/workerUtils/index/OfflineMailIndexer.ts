@@ -60,11 +60,10 @@ import { ConnectionError, NotAuthorizedError, NotFoundError } from "@tutao/rest-
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
 import { CommonImportedMail } from "./WebMailIndexer"
 import { MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
-import { isDraft } from "../../mail/model/MailChecks"
+import { isDraft, isMailWithoutDetails } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
-import { isNull } from "../../../../platform-kit/utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -516,11 +515,11 @@ export class OfflineMailIndexer implements MailIndexer {
 		mailDetailsBlobTypeModel: ServerTypeModel,
 		cachedMailDetailsBlobs: Map<Id, MailDetailsBlob>,
 	): Promise<MailWithDetailsAndAttachmentsBlob | null> {
-		if (isDraft(mail)) {
-			return await this.newMailDownloader(mail._id)
-		} else if (isNull(mail.mailDetails)) {
+		if (isMailWithoutDetails(mail)) {
 			// do not index corrupted mail
 			return null
+		} else if (isDraft(mail)) {
+			return await this.newMailDownloader(mail._id)
 		}
 
 		const mailDetailsBlobId = assertNotNull(mail.mailDetails)

@@ -103,7 +103,7 @@
 					"mailBagId": "string"
 				},
 				{
-					"mailId": "IdTuple"
+					"mailId": "List<IdTuple>"
 				}
 			],
 			"ret": "void"

@@ -31,7 +31,7 @@ import { LoginController } from "../../../common/api/main/LoginController.js"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade.js"
 import { assertSystemFolderOfType } from "./MailUtils.js"
 import { ProcessInboxHandler } from "./ProcessInboxHandler"
-import { BulkMailLoader, MailMaybeMailDetails } from "../../workerUtils/index/BulkMailLoader"
+import { BulkMailLoader, MailsMaybeWithDetails } from "../../workerUtils/index/BulkMailLoader"
 import { Mail, MailboxGroupRoot, MailboxProperties, MailSet, MailSetEntryTypeRef, MailSetTypeRef, MailTypeRef, MovedMails } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, MAX_NBR_OF_MAILS_SYNC_OPERATION, ReportMovedMailsType, SystemFolderType } from "../../../../entities/tutanota/Utils"
 import { isLabel, SimpleMoveMailTarget } from "../MailUtils"
@@ -685,11 +685,11 @@ export class MailModel {
 	async loadMailDetails(
 		mails: readonly Mail[],
 		options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	): Promise<MailMaybeMailDetails[]> {
+	): Promise<MailsMaybeWithDetails> {
 		return this.bulkMailLoader.loadMailDetails(mails, options)
 	}
 
-	async loadAllMailsWithDetails(mailIds: readonly IdTuple[]): Promise<MailMaybeMailDetails[]> {
+	async loadAllMailsWithDetails(mailIds: readonly IdTuple[]): Promise<MailsMaybeWithDetails> {
 		const mails = await this.loadAllMails(mailIds)
 		return this.loadMailDetails(mails)
 	}

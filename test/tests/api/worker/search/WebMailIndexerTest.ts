@@ -24,7 +24,12 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
-import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
+import {
+	BulkMailLoader,
+	MAIL_INDEXER_CHUNK,
+	MailsMaybeWithDetails,
+	MailWithDetails,
+} from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
@@ -441,11 +446,11 @@ o.spec("WebMailIndexer", () => {
 				expectedNewestTimestampForIndexMailListCall: number | null
 			}) {
 				const mailsChunk: Mail[] = []
-				const mailDetailsAndMailsChunk: MailWithDetails[] = []
+				const mailDetailsAndMailsChunk: MailsMaybeWithDetails = { mailsWithDetails: [], corruptMailsWithoutDetails: [] }
 				for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
 					const mail: Mail = createTestEntity(MailTypeRef)
 					mailsChunk.push(mail)
-					mailDetailsAndMailsChunk.push({
+					mailDetailsAndMailsChunk.mailsWithDetails.push({
 						mail,
 						mailDetails: createTestEntity(MailDetailsTypeRef),
 					})
@@ -979,14 +984,14 @@ o.spec("WebMailIndexer", () => {
 			const rangeEnd = 0
 
 			const lotsOfMails: Mail[] = []
-			const lotsOfMailDetailsAndMails: MailWithDetails[] = []
+			const lotsOfMailDetailsAndMails: MailsMaybeWithDetails = { mailsWithDetails: [], corruptMailsWithoutDetails: [] }
 			for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
 				const _id: IdTuple = ["helloooo", "I'm a mail!"]
 				const mail: Mail = createTestEntity(MailTypeRef, {
 					_id,
 				})
 				lotsOfMails.push(mail)
-				lotsOfMailDetailsAndMails.push({
+				lotsOfMailDetailsAndMails.mailsWithDetails.push({
 					mail,
 					mailDetails: createTestEntity(MailDetailsTypeRef, {
 						recipients: createTestEntity(RecipientsTypeRef, {

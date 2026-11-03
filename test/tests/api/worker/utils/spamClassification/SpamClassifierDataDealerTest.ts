@@ -271,11 +271,11 @@ o.spec("SpamClassifierDataDealer", () => {
 				modifiedIndicesSinceStart,
 			)
 
-			when(bulkMailLoaderMock.loadMailDetails(mails)).thenResolve(
-				mails.map((mail) => {
+			when(bulkMailLoaderMock.loadMailDetails(mails)).thenResolve({
+				mailsWithDetails: mails.map((mail) => {
 					return { mail, mailDetails }
 				}),
-			)
+			})
 
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
@@ -376,11 +376,11 @@ o.spec("SpamClassifierDataDealer", () => {
 			const expectUploadMailsTotal = expectedUploadMailsHam.concat(expectedUploadMailsSpam)
 
 			when(entityClientMock.loadMultiple(MailTypeRef, "mailListId", anything())).thenResolve(expectUploadMailsTotal)
-			when(bulkMailLoaderMock.loadMailDetails(expectUploadMailsTotal)).thenResolve(
-				expectUploadMailsTotal.map((mail) => {
+			when(bulkMailLoaderMock.loadMailDetails(expectUploadMailsTotal)).thenResolve({
+				mailsWithDetails: expectUploadMailsTotal.map((mail) => {
 					return { mail, mailDetails }
 				}),
-			)
+			})
 
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 
@@ -485,16 +485,16 @@ o.spec("SpamClassifierDataDealer", () => {
 			const expectedFirstChunk = expectUploadMailsTotal.slice(0, MAX_NBR_OF_MAILS_SYNC_OPERATION)
 			const expectedSecondChunk = expectUploadMailsTotal.slice(MAX_NBR_OF_MAILS_SYNC_OPERATION, expectUploadMailsTotal.length)
 			when(entityClientMock.loadMultiple(MailTypeRef, "mailListId", anything())).thenResolve(expectedFirstChunk, expectedSecondChunk)
-			when(bulkMailLoaderMock.loadMailDetails(expectedFirstChunk)).thenResolve(
-				expectedFirstChunk.map((mail) => {
+			when(bulkMailLoaderMock.loadMailDetails(expectedFirstChunk)).thenResolve({
+				mailsWithDetails: expectedFirstChunk.map((mail) => {
 					return { mail, mailDetails }
 				}),
-			)
-			when(bulkMailLoaderMock.loadMailDetails(expectedSecondChunk)).thenResolve(
-				expectedSecondChunk.map((mail) => {
+			})
+			when(bulkMailLoaderMock.loadMailDetails(expectedSecondChunk)).thenResolve({
+				mailsWithDetails: expectedSecondChunk.map((mail) => {
 					return { mail, mailDetails }
 				}),
-			)
+			})
 
 			const trainingDataset = await spamClassificationDataDealer.fetchAllTrainingData("owner")
 

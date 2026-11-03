@@ -5,8 +5,8 @@ import { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EntityRestClient } from "../../../../platform-kit/network/EntityRestClient"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { MailDetails, MailDetailsBlobTypeRef, MailDetailsDraftTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
-import { assertNotNull, first, isNull, newPromise } from "@tutao/utils"
-import { isDraft } from "../../mail/model/MailChecks"
+import { assertNotNull, first, newPromise } from "@tutao/utils"
+import { isDraft, isMailWithoutDetails } from "../../mail/model/MailChecks"
 import { elementIdPart, listIdPart } from "@tutao/meta"
 import { cryptoUtils } from "@tutao/crypto"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
@@ -56,7 +56,7 @@ export function defaultMailIndexerNewMailDownloader(entityClient: EntityClient |
 	return async (mailId: IdTuple) => {
 		try {
 			const mail = await entityClient.load(MailTypeRef, mailId)
-			if (!isDraft(mail) && isNull(mail.mailDetails)) {
+			if (isMailWithoutDetails(mail)) {
 				// The mail is corrupted
 				return null
 			}
