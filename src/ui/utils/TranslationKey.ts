@@ -2594,3 +2594,4 @@ export type TranslationKeyType =
 	| "switchPlanMobile_msg"
 	| "keepCurrentPlan_action"
 	| "switchPlanImmediately_msg"
+	| "migrationProtonStartTLSError_msg"

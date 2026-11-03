@@ -77,6 +77,11 @@ function migrationErrorToReadableMigrationError(migrationError: MigrationError):
 				cause: cause,
 				errorMessage: lang.getTranslationText("migrationGmailAllMailsDisabledImapError_msg"),
 			}
+		case MigrationErrorCause.ERR_SSL_WRONG_VERSION_NUMBER:
+			return {
+				cause: cause,
+				errorMessage: lang.getTranslationText("migrationProtonStartTLSError_msg"),
+			}
 		case MigrationErrorCause.UNKNOWN:
 		case MigrationErrorCause.POSTPONE:
 		default:

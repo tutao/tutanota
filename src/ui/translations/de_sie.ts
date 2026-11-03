@@ -2593,5 +2593,6 @@ export default {
 		"noPaymentMethodError_msg": "Sie können Ihren Plan nicht wechseln, da keine Zahlungsmethode hinterlegt ist",
 		"ratingTrustpilot_msg":"Wenn Ihnen die App gefällt und Sie ein Trustpilot-Konto haben, würden wir uns über eine ehrliche Bewertung freuen.",
 		"deactivatedAccessLogin_msg": "Ihr Konto wurde im Rahmen unserer Maßnahmen gegen Spam deaktiviert, um die Privatsphäre und Sicherheit unserer Nutzer zu schützen.\n\nWenn das ein Versehen war, kontaktieren Sie uns bitte unter appeals@tutao.de.",
+		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn Sie mit Proton Mail Bridge von Proton migrieren, stellen Sie bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies können Sie in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
 	}
 }

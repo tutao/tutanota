@@ -130,6 +130,9 @@ export class ImapSyncSession extends MigrationSyncSession {
 			case "GREETING_TIMEOUT":
 				cause = MigrationErrorCause.GREETING_TIMEOUT
 				break
+			case "ERR_SSL_WRONG_VERSION_NUMBER":
+				cause = MigrationErrorCause.ERR_SSL_WRONG_VERSION_NUMBER
+				break
 			default:
 				if (e.authenticationFailed) {
 					cause = MigrationErrorCause.AUTH_FAILED
