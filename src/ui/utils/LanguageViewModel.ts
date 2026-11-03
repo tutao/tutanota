@@ -33,12 +33,21 @@ export type Translation = {
 	oninit?: object
 }
 
+export type TranslationsData = {
+	code: string
+	keys: Record<string, string>
+}
+
 export type TranslationReplacements = Record<string, string | number>
 
-EnvProvider.assertMainOrNodeBoot()
 export type DateTimeFormatOptions = {
 	hourCycle?: "h11" | "h12" | "h23" | "h24"
 }
+
+const EMPTY_TRANSLATION_DATA: TranslationsData = { code: "", keys: {} }
+
+EnvProvider.assertMainOrNodeBoot()
+
 const translationImportMap: Record<LanguageCode, () => Promise<any>> = {
 	ar: () => import("../translations/ar.js"),
 	be: () => import("../translations/be.js"),
@@ -267,8 +276,8 @@ export const enum InfoLink {
  * @constructor
  */
 export class LanguageViewModel {
-	translations: Record<string, any>
-	fallback: Record<string, any>
+	translations: TranslationsData
+	fallback: TranslationsData
 	code!: LanguageCode
 	languageTag!: string
 	staticTranslations: Record<string, any>
@@ -303,12 +312,12 @@ export class LanguageViewModel {
 	}
 
 	constructor() {
-		this.translations = {}
-		this.fallback = {}
+		this.translations = EMPTY_TRANSLATION_DATA
+		this.fallback = EMPTY_TRANSLATION_DATA
 		this.staticTranslations = {}
 	}
 
-	init(en: object): Promise<void> {
+	init(en: TranslationsData): Promise<void> {
 		this.translations = en
 		this.fallback = en // always load english as fallback
 
@@ -326,7 +335,7 @@ export class LanguageViewModel {
 		this.staticTranslations[key] = text
 	}
 
-	initWithTranslations(code: LanguageCode, languageTag: string, fallBackTranslations: Record<string, any>, translations: Record<string, any>) {
+	initWithTranslations(code: LanguageCode, languageTag: string, fallBackTranslations: TranslationsData, translations: TranslationsData) {
 		this.translations = translations
 		this.fallback = fallBackTranslations
 		this.code = code

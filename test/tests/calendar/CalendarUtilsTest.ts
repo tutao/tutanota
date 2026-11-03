@@ -303,7 +303,7 @@ o.spec("CalendarUtilsTest", function () {
 
 	o.spec("getCalendarMonth", function () {
 		o.before(function () {
-			lang.init({})
+			lang.init({ code: "", keys: {} })
 			lang.setLanguage({
 				code: "en",
 				languageTag: "en",
