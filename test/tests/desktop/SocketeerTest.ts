@@ -15,6 +15,13 @@ o.spec("Socketeer Test", function () {
 				setMenu: () => {},
 				isVisible: () => false,
 			},
+			getPath: function (type) {
+				if (type === "home") {
+					return "/home/juliuscaesar/"
+				} else {
+					throw new Error("wrong type " + type)
+				}
+			},
 		},
 	}
 	let serverMock
@@ -91,7 +98,7 @@ o.spec("Socketeer Test", function () {
 		// @ts-ignore
 		electronMock.app.callbacks["will-quit"]()
 		o(serverMock.listen.callCount).equals(1)
-		o(serverMock.listen.args[0]).equals("/tmp/tutadb.sock")
+		o(serverMock.listen.args[0]).equals("/home/juliuscaesar/.cache/tutadb.sock")
 		o(serverMock.listen.args.length).equals(1)
 		o(serverMock.close.callCount).equals(1)
 		o(serverMock.close.args.length).equals(0)

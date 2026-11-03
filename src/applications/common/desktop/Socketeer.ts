@@ -5,8 +5,7 @@ import { isMailAddress } from "../../../platform-kit/utils"
 import { log } from "./DesktopLog"
 import { NetExports } from "./ElectronExportTypes"
 import { Server, Socket } from "node:net"
-
-const SOCKET_PATH = "/tmp/tutadb.sock"
+import path from "node:path"
 
 /**
  * this is used to control our administration tool
@@ -16,10 +15,12 @@ export class Socketeer {
 	private _connection: Socket | null = null
 	private readonly _delayHandler: TimeoutSetter
 	private readonly _net: NetExports
+	private readonly SOCKET_PATH: string
 
 	constructor(net: NetExports, app: App, delayHandler: TimeoutSetter = setTimeout) {
 		this._net = net
 		this._delayHandler = delayHandler
+		this.SOCKET_PATH = path.join(app.getPath("home"), ".cache", "tutadb.sock")
 		app.on("will-quit", () => {
 			if (this._server || this._connection) {
 				if (this._connection) {
@@ -73,7 +74,7 @@ export class Socketeer {
 					this._delayHandler(() => {
 						try {
 							server.close()
-							server.listen(SOCKET_PATH)
+							server.listen(this.SOCKET_PATH)
 						} catch (e) {
 							log.error("Socketeer: restart error: ", e)
 						}
@@ -85,7 +86,7 @@ export class Socketeer {
 				this._server = null
 			}))
 
-		this._server.listen(SOCKET_PATH)
+		this._server.listen(this.SOCKET_PATH)
 	}
 
 	sendSocketMessage(msg: any) {
@@ -100,7 +101,7 @@ export class Socketeer {
 		}
 
 		this._connection = this._net
-			.createConnection(SOCKET_PATH)
+			.createConnection(this.SOCKET_PATH)
 			.on("connect", () => {
 				log.debug("socket connected")
 			})
