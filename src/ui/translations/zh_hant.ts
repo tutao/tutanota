@@ -2308,6 +2308,8 @@ export default {
 		"switchInbox_action": "切換至收件匣資料夾",
 		"switchMonthView_action": "切換至月份檢視模式",
 		"switchPlan_msg": "您的計劃將轉換為：{plan} {interval}",
+		"switchPlanImmediately_msg": "從今天起，您的計劃將轉換為：{plan}{interval}。\n\n您將立即被收取費用，而您剩餘的訂購時間將計入帳戶。",
+		"switchPlanMobile_msg": "所有新的訂購詳情將由您的訂購服務提供商（App Store或Google Play）在隨後的彈出視窗中顯示。\n\n請在確認前仔細審閱。",
 		"switchScheduledFolder_action": "切換至已編排時間資料夾",
 		"switchSearchInMenu_label": "您可以在選單中轉換搜尋類型",
 		"switchSentFolder_action": "切換至寄件資料夾",

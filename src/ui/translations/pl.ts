@@ -2309,6 +2309,8 @@ export default {
 		"switchInbox_action": "Przejdź do Odebranych",
 		"switchMonthView_action": "Przełącz na widok miesiąca",
 		"switchPlan_msg": "Twoja oferta zostanie zmieniona na: {plan} {interval}",
+		"switchPlanImmediately_msg": "Od dzisiaj twoja subskrypcja zostanie zmieniona na: {plan} {interval}.\n\nOpłata zostanie naliczona natychmiast, a pozostały czas subskrypcji zostanie uwzględniony.",
+		"switchPlanMobile_msg": "Wszystkie szczegóły dotyczące nowej subskrypcji zostaną wyświetlone przez dostawcę subskrypcji (App Store lub Google Play) w kolejnych wyskakujących oknach.\n\nPrzed potwierdzeniem prosimy o dokładne zapoznanie się z nimi.",
 		"switchScheduledFolder_action": "Przejdź do katalogu zaplanowane",
 		"switchSearchInMenu_label": "Możesz zmienić sposób wyszukiwania w menu",
 		"switchSentFolder_action": "Przejdź do Wysłanych",

@@ -2573,4 +2573,6 @@ export type TranslationKeyType =
 	| "adminSubscription_label"
 	| "adminUserList_label"
 	| "notificationSettings_label"
+	| "switchPlanMobile_msg"
+	| "switchPlanImmediately_msg"
 	| "emptyString_msg"

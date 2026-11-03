@@ -2309,6 +2309,8 @@ export default {
 		"switchInbox_action": "Switch to inbox folder",
 		"switchMonthView_action": "Switch to month view",
 		"switchPlan_msg": "Your plan will be switched to: {plan} {interval}",
+		"switchPlanImmediately_msg": "Starting today, your plan will be switched to: {plan} {interval}.\n\nYou will be billed immediately and your remaining subscription time will be credited.",
+		"switchPlanMobile_msg": "All new subscription details will be displayed by your subscription provider (App Store or Google Play) in the pop-up windows that follow.\n\nPlease review them carefully before confirming.",
 		"switchScheduledFolder_action": "Switch to scheduled folder",
 		"switchSearchInMenu_label": "You can switch search type in the menu",
 		"switchSentFolder_action": "Switch to sent folder",

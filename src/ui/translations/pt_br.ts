@@ -2309,6 +2309,8 @@ export default {
 		"switchInbox_action": "Ir para caixa de entrada",
 		"switchMonthView_action": "Ver mês",
 		"switchPlan_msg": "Seu plano será alterado para: {plan} {interval}",
+		"switchPlanImmediately_msg": "A partir de hoje, seu plano será alterado para: {plan} {interval}.\n\nVocê será cobrado imediatamente e o tempo de assinatura restante será creditado.",
+		"switchPlanMobile_msg": "Todos os detalhes da nova assinatura serão exibidos pelo seu provedor de assinatura (App Store ou Google Play) nas janelas pop-up a seguir.\n\nPor favor, revise-os cuidadosamente antes de confirmar.",
 		"switchScheduledFolder_action": "Mude para a pasta programada",
 		"switchSearchInMenu_label": "Você pode alterar o tipo de pesquisa no menu",
 		"switchSentFolder_action": "Ir para Enviados",

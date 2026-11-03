@@ -2309,6 +2309,8 @@ export default {
 		"switchInbox_action": "Siirry Saapuneet-kansioon",
 		"switchMonthView_action": "Näytä kuukausinäkymä",
 		"switchPlan_msg": "Valitsemasi uusi tilausvaihtoehto on: {plan} {interval}",
+		"switchPlanImmediately_msg": "Tänään voimaan tuleva uusi tilausvaihtoehto on: {plan} {interval}.\n\nTilausmaksu veloitetaan välittömästi, ja jäljellä oleva tilauskausi muunnetaan saldoksi.",
+		"switchPlanMobile_msg": "Kaikki uudet tilaustiedot näytetään tilauspalveluntarjoajan (App Store tai Google Play) ponnahdusikkunoissa, jotka näytetään pian.\n\nTarkista ne huolellisesti ennen vahvistamista.",
 		"switchScheduledFolder_action": "Siirry Ajastetut-kansioon",
 		"switchSearchInMenu_label": "Voit vaihtaa hakutyyppiä valikosta",
 		"switchSentFolder_action": "Siirry Lähetetyt-kansioon",

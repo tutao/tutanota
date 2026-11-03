@@ -2309,6 +2309,8 @@ export default {
 		"switchInbox_action": "Zum Inbox-Ordner wechseln",
 		"switchMonthView_action": "Zur Monats-Ansicht wechseln",
 		"switchPlan_msg": "Ihr Abonnement wird umgestellt auf: {plan} {interval}",
+		"switchPlanImmediately_msg": "Ihr Abonnement ändert sich ab heute zu: {plan} {interval}.\n\nSie erhalten sofort eine Rechnung und die verleibende Zeit Ihres aktuellen Abonnements wird Ihnen angerechnet.",
+		"switchPlanMobile_msg": "Alle neuen Abo-Details werden Ihnen von Ihrem Abo-Anbieter (App Store oder Google Play) in einem im Anschluss folgenden Pop-Up Fenster angezeigt.\n\nBitte lesen Sie diese sorgfältig durch, bevor Sie bestätigen.",
 		"switchScheduledFolder_action": "Zum Planungs-Ordner wechseln",
 		"switchSearchInMenu_label": "Sie können die Suche im Menü anpassen",
 		"switchSentFolder_action": "Zum Gesendet-Ordner wechseln",
