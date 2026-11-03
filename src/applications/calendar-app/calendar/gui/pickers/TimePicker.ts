@@ -51,12 +51,10 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private inputTextIsValid = true
 	private inputTextEl?: HTMLInputElement = undefined
 	private inputTimeEl?: HTMLInputElement = undefined
-	private shouldUseNativePicker = false
 
 	constructor({ attrs }: Vnode<TimePickerAttrs>) {
 		this.selectedTime = attrs.time
 		this.setValidInputTextFromTime(this.selectedTime, attrs)
-		this.shouldUseNativePicker = ClientDetector.get().isMobileDevice()
 
 		for (let hour = 0; hour < 24; hour++) {
 			for (let minute = 0; minute < 60; minute += 30) {
@@ -93,7 +91,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private renderInputFields(attrs: TimePickerAttrs) {
 		// We're choosing between two components so factor out the click listener
 		const onclick = (event: Event) => {
-			if (this.shouldUseNativePicker) {
+			if (ClientDetector.get().isMobileDevice()) {
 				// Don't open the dropdown list
 				event.preventDefault()
 				// In some browsers this isn't correctly implemented and there's no way to know if a showPicker() was a
@@ -117,54 +115,17 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			// Note m(Select) will continue opening the dropdown of TimeOption options, so we show both time pickers
 		}
 		return m.fragment({}, [
-			attrs.forMailSendTime
-				? m(LegacyTextField, {
-						style: { width: "100%" },
-						label: attrs.ariaLabel,
-						disabled: attrs.disabled,
-						value: this.inputText,
-						keyHandler: (key) => {
-							this.handleKeyPress(key.key, attrs)
-							return true
-						},
-						// TODO(gg): Why is this not `oncreate`? What? I guess there's ambiguity about what vnode is
-						// being returned?
-						onDomInputCreated: (dom) => {
-							this.inputTextEl = dom
-						},
-						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
-						onclick,
-						onblur: () => this.onConfirmInput(attrs),
-					} satisfies LegacyTextFieldAttrs)
-				: m(SingleLineTextField, {
-						type: TextFieldType.Text,
-						disabled: attrs.disabled,
-						value: this.inputText,
-						classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
-						valid: attrs.valid && this.inputTextIsValid,
-						ariaLabel: attrs.ariaLabel,
-						style: {
-							textAlign: "center",
-							borderWidth: EnvProvider.get().isApp() ? "2px" : "",
-						},
-						// TODO(gg): This is some madness, the type is necessary else `vnode` is "NoLifecycle" and
-						// SingleLineTextField fails type checking.
-						oncreate: (vnode: VnodeDOM<InputAttrs<LegacyTextFieldType.Text>>) => {
-							this.inputTextEl = vnode.dom as HTMLInputElement
-						},
-						onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
-						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
-						onclick,
-						onblur: () => this.onConfirmInput(attrs),
-					} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
 			m("input", {
 				type: TextFieldType.Time,
 				tabindex: "-1",
 				style: {
+					// m(Select) is position relative
+					position: "absolute",
+					left: 0,
 					// Must have exactly the same height at the input[type=text] below, so the picker doesn't overlap
 					// the input field when it appears (for non-fullscreen native pickers i.e. desktop/tablets). We
 					// don't set a height manually, so we just match the font/line-height/border/padding instead :)
-					"border-width": "1px 0 1px",
+					"border-width": "1px 0",
 					"border-color": "transparent",
 					width: 0,
 					padding: "8px 0",
@@ -213,6 +174,46 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					event.stopPropagation()
 				},
 			}),
+			attrs.forMailSendTime
+				? m(LegacyTextField, {
+						style: { width: "100%" },
+						label: attrs.ariaLabel,
+						disabled: attrs.disabled,
+						value: this.inputText,
+						keyHandler: (key) => {
+							this.handleKeyPress(key.key, attrs)
+							return true
+						},
+						// TODO(gg): Why is this not `oncreate`? What? I guess there's ambiguity about what vnode is
+						// being returned?
+						onDomInputCreated: (dom) => {
+							this.inputTextEl = dom
+						},
+						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
+						onclick,
+						onblur: () => this.onConfirmInput(attrs),
+					} satisfies LegacyTextFieldAttrs)
+				: m(SingleLineTextField, {
+						type: TextFieldType.Text,
+						disabled: attrs.disabled,
+						value: this.inputText,
+						classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
+						valid: attrs.valid && this.inputTextIsValid,
+						ariaLabel: attrs.ariaLabel,
+						style: {
+							textAlign: "center",
+							borderWidth: EnvProvider.get().isApp() ? "2px" : "",
+						},
+						// TODO(gg): This is some madness, the type is necessary else `vnode` is "NoLifecycle" and
+						// SingleLineTextField fails type checking.
+						oncreate: (vnode: VnodeDOM<InputAttrs<LegacyTextFieldType.Text>>) => {
+							this.inputTextEl = vnode.dom as HTMLInputElement
+						},
+						onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
+						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
+						onclick,
+						onblur: () => this.onConfirmInput(attrs),
+					} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
 		])
 	}
 
