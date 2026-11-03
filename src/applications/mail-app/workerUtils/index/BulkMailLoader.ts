@@ -4,6 +4,8 @@ import {
 	groupBy,
 	groupByAndMap,
 	isEmpty,
+	isNotNull,
+	isNull,
 	last,
 	lastThrow,
 	neverNull,
@@ -54,6 +56,11 @@ export interface MailWithDetails {
 	mailDetails: MailDetails
 }
 
+export interface MailMaybeMailDetails {
+	mail: Mail
+	mailDetails: MailDetails | null
+}
+
 export class BulkMailLoader {
 	constructor(
 		private readonly mailEntityClient: EntityClient,
@@ -72,10 +79,13 @@ export class BulkMailLoader {
 		})
 	}
 
-	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS): Promise<MailWithDetails[]> {
-		const result: Array<MailWithDetails> = []
+	async loadMailDetails(
+		mails: readonly Mail[],
+		options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<MailMaybeMailDetails[]> {
+		const result: Array<MailMaybeMailDetails> = []
 		// mailDetails stored as blob
-		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
+		let mailDetailsBlobMails = mails.filter((m) => isNull(m.mailDetailsDraft) && isNotNull(m.mailDetails))
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
 			mailDetailsBlobMails,
 			(m) => listIdPart(assertNotNull(m.mailDetails)),
@@ -97,6 +107,7 @@ export class BulkMailLoader {
 				}),
 			)
 		}
+
 		// mailDetails stored in db (draft)
 		let mailDetailsDraftMails = mails.filter((m) => m.mailDetailsDraft)
 		const listIdToMailDetailsDraftIds: Map<Id, Array<Id>> = groupByAndMap(
@@ -122,6 +133,10 @@ export class BulkMailLoader {
 				}),
 			)
 		}
+
+		const corruptedMails = mails.filter((m) => isNull(m.mailDetails) && isNull(m.mailDetailsDraft)).map((mail) => ({ mail, mailDetails: null }))
+		result.push(...corruptedMails)
+
 		return result
 	}
 

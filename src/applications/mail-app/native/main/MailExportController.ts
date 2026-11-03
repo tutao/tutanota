@@ -223,7 +223,7 @@ export class MailExportController {
 						.filter(isNotNull)
 					try {
 						const attachments = await this.mailExportFacade.loadAttachmentData(mail, mailAttachmentInfo)
-						const mailBundle = makeMailBundle(this.sanitizer, mail, mailDetails, attachments)
+						const mailBundle = makeMailBundle(this.sanitizer, mail, assertNotNull(mailDetails, "Corrupted mail without a body"), attachments)
 
 						// can't write export if it was canceled
 						if (this._state().type !== "exporting") {

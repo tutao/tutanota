@@ -64,6 +64,7 @@ import { isDraft } from "../../mail/model/MailChecks"
 import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import type { CacheStorage } from "../../../../app-kit/local-store/CacheStorage"
 import { ArchiveDownloaderFacade } from "@tutao/native-bridge/generatedIpc/types"
+import { isNull } from "../../../../platform-kit/utils/Utils"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -517,6 +518,9 @@ export class OfflineMailIndexer implements MailIndexer {
 	): Promise<MailWithDetailsAndAttachmentsBlob | null> {
 		if (isDraft(mail)) {
 			return await this.newMailDownloader(mail._id)
+		} else if (isNull(mail.mailDetails)) {
+			// do not index corrupted mail
+			return null
 		}
 
 		const mailDetailsBlobId = assertNotNull(mail.mailDetails)

@@ -30,14 +30,13 @@ import type { DateProvider } from "../../../common/api/worker/DateProvider.js"
 import { EntityClient } from "../../../../platform-kit/network/EntityClient.js"
 import { InfoMessageHandler } from "../../../common/gui/InfoMessageHandler.js"
 import { isDraft } from "../../mail/model/MailChecks.js"
-import { BulkMailLoader, MAIL_INDEXER_CHUNK } from "./BulkMailLoader.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "./BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "./MailIndexerBackend"
 import { ProgressMonitor } from "../../../../platform-kit/network/ProgressMonitorInterface"
 import { FileImportStatus, ImapFolderSyncStatus, MailImportType, MailSetKind } from "../../../../entities/tutanota/Utils"
 import { isFolder } from "../../mail/MailUtils"
 import { User } from "@tutao/entities/sys"
 import {
-	File,
 	ImapFolderSyncStateTypeRef,
 	ImportedFileMailTypeRef,
 	ImportedImapMailTypeRef,
@@ -46,7 +45,6 @@ import {
 	MailBox,
 	MailboxGroupRootTypeRef,
 	MailBoxTypeRef,
-	MailDetails,
 	MailSetEntry,
 	MailSetEntryTypeRef,
 	MailSetTypeRef,
@@ -431,25 +429,18 @@ export class WebMailIndexer implements MailIndexer {
 		return data.mailSetListDatas.every((data) => data.loadedCompletely && isEmpty(data.loadedButUnusedEntries))
 	}
 
-	private async processIndexMails(
-		mailSetEntries: Array<MailSetEntry>,
-		indexLoader: BulkMailLoader,
-	): Promise<{ mail: Mail; mailDetails: MailDetails; attachments: File[] }[]> {
+	private async processIndexMails(mailSetEntries: Array<MailSetEntry>, indexLoader: BulkMailLoader): Promise<MailWithDetailsAndAttachments[]> {
 		this.assertNotCancelled("processIndexMails")
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailSetEntries.map((entry) => entry.mail))
 		let mailsWithoutErros = mails.filter((m) => !hasError(m))
 		console.log(TAG, `processIndexMails ${mails.at(0)?._id.at(0)} ${mails.length}`)
-		const mailsWithMailDetails = await indexLoader.loadMailDetails(mailsWithoutErros)
+		const mailsWithMailDetails = (await indexLoader.loadMailDetails(mailsWithoutErros)).filter((m) => isNotNull(m.mailDetails)) as MailWithMailDetails[]
 		const files = await indexLoader.loadAttachments(mailsWithoutErros)
-		const mailsWithMailDetailsAndFiles = mailsWithMailDetails
-			.map((mailTuples) => {
-				return {
-					mail: mailTuples.mail,
-					mailDetails: mailTuples.mailDetails,
-					attachments: files.filter((file) => mailTuples.mail.attachments.find((a) => isSameId(a, file._id))),
-				}
-			})
-			.filter(isNotNull)
+		const mailsWithMailDetailsAndFiles = mailsWithMailDetails.map((mailTuples) => ({
+			mail: mailTuples.mail,
+			mailDetails: mailTuples.mailDetails,
+			attachments: files.filter((file) => mailTuples.mail.attachments.find((a) => isSameId(a, file._id))),
+		}))
 		console.log(TAG, `processIndexMails done ${mails.at(0)?._id.at(0)} ${mails.length}`)
 		return mailsWithMailDetailsAndFiles
 	}
@@ -502,7 +493,7 @@ export class WebMailIndexer implements MailIndexer {
 	private async preloadMails(mailIds: IdTuple[]): Promise<MailWithDetailsAndAttachments[]> {
 		const indexLoader = await this.bulkLoaderFactory()
 		const mails = await indexLoader.loadMailsFromMultipleLists(mailIds)
-		const mailsWithDetails = await indexLoader.loadMailDetails(mails)
+		const mailsWithDetails = (await indexLoader.loadMailDetails(mails)).filter((m) => isNotNull(m.mailDetails)) as MailWithMailDetails[]
 		const attachments = await indexLoader.loadAttachments(mails)
 		const attachmentsById = new Map(attachments.map((a) => [getElementId(a), a]))
 		return mailsWithDetails.map(({ mail, mailDetails }) => {
