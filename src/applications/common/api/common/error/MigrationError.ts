@@ -16,6 +16,8 @@ export enum MigrationErrorCause {
 	HOST_NOT_REACHABLE,
 	GMAIL_ALL_MAILS_IMAP_DISABLED,
 	GREETING_TIMEOUT,
+	// When attempting to migrate from proton with STARTTLS
+	ERR_SSL_WRONG_VERSION_NUMBER,
 }
 
 export type MigrationErrorData = {
