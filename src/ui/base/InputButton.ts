@@ -1,13 +1,11 @@
 import m, { ClassComponent, Component, Vnode } from "mithril"
 import { theme } from "../theme.js"
-import { SingleLineTextField } from "./SingleLineTextField.js"
+import { SingleLineTextField, SingleLineTextFieldAttrs } from "./SingleLineTextField.js"
 import { rem, font_size, px, size } from "../size.js"
 import { LegacyTextFieldType } from "./LegacyTextField.js"
-import { TabIndex } from "@tutao/app-env"
 import { Translation } from "../utils/LanguageViewModel"
 
-// TODO(gg): "Attributes" vs "Attrs" and drop `extends Pick<...>` it causes `VnodeDOM<{}, _NoLifecycle<Component, {}>>`
-export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
+export interface InputButtonAttrs {
 	inputValue: string
 	display: string
 	ariaLabel: Translation
@@ -15,12 +13,24 @@ export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
 	classes?: Array<string>
 	containerStyle?: Partial<CSSStyleDeclaration>
 	displayStyle?: Partial<CSSStyleDeclaration>
-	onclick?: (event: MouseEvent) => unknown
-	// TODO: Misleading. Looks like Mithril's oninput but does not call with arguments fn(ev.target, ev)
-	oninput: (newValue: string) => unknown
-	onblur?: (...args: unknown[]) => unknown
-	onfocus?: (...args: unknown[]) => unknown
-	onkeydown?: (...args: unknown[]) => unknown
+
+	// onActivate
+	// activate
+	// onDeactivate
+	// deactivate
+	// inputEvents: { onblur, onfocus, onkeydown } ? Unnecessary if events bubble then we can listen to button?
+	// Only called once ALL elements are valid and correct? TODO: What about Mithril reconciliation? Update ref?
+	// UGH. DUDE. querySelector(`[ref=${name}]`) is easier? Fresh search every time. Easy.
+	// innerDOM?: (elements: { buttonEl: HTMLButtonElement, inputEl: HTMLInputElement, spanEl: HTMLSpanElement }) => void,
+
+	oncreateButton?: (vnode: { dom: HTMLButtonElement }) => void
+	oncreateInput?: (vnode: { dom: HTMLInputElement }) => void
+
+	onclick?: (e: MouseEvent) => void
+	oninput: (e: InputEvent) => void
+	onblur?: (e: FocusEvent) => void
+	onfocus?: (e: FocusEvent) => void
+	onkeydown?: (e: KeyboardEvent) => void
 	type?: LegacyTextFieldType
 	tabIndex?: number
 }
@@ -41,12 +51,12 @@ export interface InputButtonAttributes extends Pick<Component, "oncreate"> {
  *   }
  * }),
  */
-export class InputButton implements ClassComponent<InputButtonAttributes> {
+export class InputButton implements ClassComponent<InputButtonAttrs> {
 	private isFocused: boolean = false
 	private inputDOM?: HTMLInputElement
 	private buttonDOM?: HTMLButtonElement
 
-	view({ attrs }: Vnode<InputButtonAttributes, this>) {
+	view({ attrs }: Vnode<InputButtonAttrs, this>) {
 		return m(
 			"button",
 			{
@@ -61,21 +71,22 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 				},
 				oncreate: (vnode) => {
 					this.buttonDOM = vnode.dom as HTMLButtonElement
+					attrs.oncreateButton?.(vnode as typeof vnode & { dom: HTMLButtonElement })
 				},
-				onclick: (event: MouseEvent) => {
+				onclick: (e: MouseEvent) => {
 					this.isFocused = true
 					if (this.inputDOM) {
 						this.inputDOM.style.display = "block"
 						this.inputDOM.click()
 					}
-					attrs.onclick?.(event)
+					attrs.onclick?.(e)
 				},
-				onfocus: () => {
+				onfocus: (e: FocusEvent) => {
 					this.isFocused = true
 					if (this.inputDOM) {
 						this.inputDOM.style.display = "block"
 						if (this.buttonDOM) {
-							this.buttonDOM.tabIndex = Number(TabIndex.Programmatic)
+							this.buttonDOM.tabIndex = -1
 						}
 						this.inputDOM.focus()
 					}
@@ -83,21 +94,24 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 				disabled: attrs.disabled ? true : undefined,
 			},
 			[
+				// @ts-ignore We use `onxyz: (...args: unknown[]) => unknown` thru our app which TS doesn't like
 				m(SingleLineTextField, {
 					ariaLabel: attrs.ariaLabel,
-					onblur: () => {
+					onblur: (e: FocusEvent) => {
 						this.isFocused = false
 						this.inputDOM!.style.display = "none"
 						if (this.buttonDOM) {
-							this.buttonDOM.tabIndex = Number(attrs.tabIndex ?? TabIndex.Default)
+							this.buttonDOM.tabIndex = Number(attrs.tabIndex ?? 0)
 						}
-						attrs.onblur?.()
+						attrs.onblur?.(e)
 					},
 					oncreate: (vnode) => {
 						this.inputDOM = vnode.dom as HTMLInputElement
 						this.inputDOM.style.display = "none"
 
-						attrs.oncreate?.(vnode)
+						// TODO(gg): I don't like this but I need to focus on the button (parent) to trigger their
+						// onfocus call, and I don't want to do previousElementSibling hacks...? What's a girl to do.
+						attrs.oncreateInput?.(vnode as typeof vnode & { dom: HTMLInputElement })
 					},
 					disabled: attrs.disabled ? true : undefined,
 					value: attrs.inputValue,
@@ -126,12 +140,14 @@ export class InputButton implements ClassComponent<InputButtonAttributes> {
 	}
 
 	private resolveInputClasses() {
+		// prettier-ignore Disrespectful.
 		return ["text-center", "noselect", this.isFocused && "tutaui-button-outline", this.isFocused && "border-content-message-bg"].filter(
 			<T>(x: T | false): x is T => !!x,
 		)
 	}
 
 	private resolveContainerClasses(classes: string[] = [], disabled = false) {
+		// prettier-ignore Disrespectful.
 		return [...classes, "full-width", disabled && "disabled", disabled && "click-disabled", !this.isFocused && "tutaui-button-outline"].filter(
 			<T>(x: T | false): x is T => !!x,
 		)
