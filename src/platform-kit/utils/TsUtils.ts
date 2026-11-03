@@ -157,7 +157,9 @@ export function throttleStart<F extends (...args: any[]) => Promise<any>>(period
 			scheduledTimeout = setTimeout(() => {
 				scheduledTimeout = null
 				if (lastArgs != null) {
-					toThrottle(...args).then(
+					const argsToUse = lastArgs
+					lastArgs = null
+					toThrottle(...argsToUse).then(
 						(result) => scheduledDefer?.resolve(result),
 						(error) => scheduledDefer?.reject(error),
 					)
