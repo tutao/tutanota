@@ -41,11 +41,11 @@ import {
 	InstanceDecryptor,
 	InstanceKeyProvider,
 	KdfNonce,
-	MaybeSessionKeySomeday,
 	OwnerKeyProvider,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
 	PartialSubKeyInfoWithSessionKey,
+	SessionKeyProvider,
 	SubKeyFactory,
 	SubKeyInfo,
 	SubKeyInfoAeadWithInstanceKeyFromGroupKey,
@@ -120,7 +120,7 @@ export class CryptoMapper {
 
 	public async decryptParsedInstance(
 		encryptedInstance: EncryptedParsedInstance,
-		sessionKey: MaybeSessionKeySomeday,
+		sessionKeyProvider: SessionKeyProvider,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,
@@ -130,7 +130,7 @@ export class CryptoMapper {
 		const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 		const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
 			keyDerivationContext,
-			sessionKey,
+			sessionKeyProvider,
 			kdfNonce,
 			ownerKeyProvider,
 			instanceKeyProvider,

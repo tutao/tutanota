@@ -58,8 +58,8 @@ export function assert256BitKey(key: AesKey): Aes256Key {
 export function assert256BitVersionedKey(key: VersionedKey): VersionedAes256Key {
 	return { version: key.version, object: assert256BitKey(key.object) }
 }
-export type MaybeSessionKeySomeday = Nullable<lazyAsync<AesKey>>
+export type SessionKeyProvider = Nullable<lazyAsync<AesKey>>
 
-export function lazify(key: Nullable<AesKey>): MaybeSessionKeySomeday {
+export function lazify(key: Nullable<AesKey>): SessionKeyProvider {
 	return key == null ? null : async (): Promise<AesKey> => key
 }

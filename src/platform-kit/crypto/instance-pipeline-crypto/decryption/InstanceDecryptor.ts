@@ -19,7 +19,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
 import { InstanceSubKeyCache } from "./SubKeyCache"
-import { AesKey, MaybeSessionKeySomeday } from "../../encryption/symmetric/AesKey"
+import { AesKey, SessionKeyProvider } from "../../encryption/symmetric/AesKey"
 import { AssociatedData, KeyDerivationContext } from "../../encryption/symmetric/AssociatedData"
 
 export interface OwnerKeyProvider {
@@ -35,7 +35,7 @@ export class InstanceDecryptor {
 	private readonly instanceAeadSubKeyCache = new InstanceSubKeyCache<AeadSubKeys>()
 
 	constructor(
-		private readonly sessionKey: MaybeSessionKeySomeday,
+		private readonly sessionKeyProvider: SessionKeyProvider,
 		private readonly kdfNonce: Nullable<KdfNonce>,
 		private readonly instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		private readonly ownerKeyProvider: Nullable<OwnerKeyProvider>,
@@ -48,10 +48,10 @@ export class InstanceDecryptor {
 	async getValueDecryptor(versionedCiphertext: Uint8Array<ArrayBuffer>, associatedData: AssociatedData): Promise<ValueDecryptor> {
 		const parsedCiphertext = parseVersionedCiphertext(versionedCiphertext)
 		if (parsedCiphertext instanceof ParsedCiphertextAesCbc) {
-			if (this.sessionKey == null) {
+			if (this.sessionKeyProvider == null) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
-			return new AesCbcDecryptor(parsedCiphertext, this.symmetricKeyDeriver, this.instanceAesSubKeyCache, this.aesCbcFacade, this.sessionKey)
+			return new AesCbcDecryptor(parsedCiphertext, this.symmetricKeyDeriver, this.instanceAesSubKeyCache, this.aesCbcFacade, this.sessionKeyProvider)
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithInstanceKey) {
 			if (this.instanceKeyProvider != null) {
 				const instanceKey = await this.getInstanceKey(parsedCiphertext.groupKeyVersion, this.instanceKeyProvider)
@@ -80,7 +80,7 @@ export class InstanceDecryptor {
 				throw new CryptoError("no kdf nonce or instance key for Aead with instance key encrypted value")
 			}
 		} else if (parsedCiphertext instanceof ParsedCiphertextAeadWithSessionKey) {
-			if (this.sessionKey == null) {
+			if (this.sessionKeyProvider == null) {
 				throw new SessionKeyNotFoundError("Missing session key")
 			}
 			return new AeadWithSessionKeyDecryptor(
@@ -90,14 +90,14 @@ export class InstanceDecryptor {
 				this.aeadFacade,
 				this.keyDerivationContext,
 				associatedData,
-				this.sessionKey,
+				this.sessionKeyProvider,
 			)
 		}
 		throw new CryptoError(`Unsupported cipher version ${parsedCiphertext.cipherVersion.constructor.name}`)
 	}
 
 	canAttemptDecryption(): boolean {
-		return this.sessionKey != null || (this.kdfNonce != null && this.ownerKeyProvider != null) || this.instanceKeyProvider != null
+		return this.sessionKeyProvider != null || (this.kdfNonce != null && this.ownerKeyProvider != null) || this.instanceKeyProvider != null
 	}
 
 	private async getOwnerKey(requiredOwnerKeyVersion: KeyVersion, ownerKeyProvider: Nullable<OwnerKeyProvider>): Promise<VersionedKey> {
@@ -114,7 +114,7 @@ export class InstanceDecryptor {
 
 	public async updateForTransferAggregatedType(keyDerivationContext: KeyDerivationContext): Promise<InstanceDecryptor> {
 		return new InstanceDecryptor(
-			this.sessionKey,
+			this.sessionKeyProvider,
 			this.kdfNonce,
 			this.instanceKeyProvider,
 			this.ownerKeyProvider,
@@ -126,6 +126,6 @@ export class InstanceDecryptor {
 	}
 
 	public async forceResolveSessionKeyOrSomething(): Promise<void> {
-		await this.sessionKey?.()
+		await this.sessionKeyProvider?.()
 	}
 }

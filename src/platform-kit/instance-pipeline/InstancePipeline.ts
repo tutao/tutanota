@@ -12,13 +12,13 @@ import {
 	AeadCipherVersion,
 	AesKey,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
-	MaybeSessionKeySomeday,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
 	PartialSubKeyInfoAeadWithSessionKey,
 	PartialSubKeyInfoAesCbcThenHmac,
 	Randomizer,
 	SessionKeyDecryptor,
+	SessionKeyProvider,
 	SubKeyInfo,
 	SymmetricCipherFacade,
 	SymmetricEncryptionScheme,
@@ -136,32 +136,32 @@ export class InstancePipeline {
 	/**
 	 * Decrypts an object literal as received from the server and maps it to an entity instance (e.g. Mail)
 	 * @param instance The object literal as received from the DB
-	 * @param sk The session key, must be provided for encrypted instances
+	 * @param sessionKeyProvider The session key provider, must be provided for encrypted instances
 	 * @returns The decrypted and mapped instance
 	 */
-	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sk: MaybeSessionKeySomeday): Promise<T> {
-		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sk)
+	async decryptAndMap<T extends Entity>(instance: IncomingServerJson, sessionKeyProvider: SessionKeyProvider): Promise<T> {
+		return this.decryptAndMapEncryptedInstance(await this.typeMapper.parseServerJson(instance), sessionKeyProvider)
 	}
 
 	async decryptAndMapEncryptedInstance<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sessionKey: MaybeSessionKeySomeday,
+		sessionKeyProvider: SessionKeyProvider,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<T> {
-		return (await this.decryptAndMapEncryptedInstanceParsed<T>(encryptedParsedInstance, sessionKey, instanceTypeId, instancePath)).instance
+		return (await this.decryptAndMapEncryptedInstanceParsed<T>(encryptedParsedInstance, sessionKeyProvider, instanceTypeId, instancePath)).instance
 	}
 
 	async decryptAndMapEncryptedInstanceParsed<T extends Entity>(
 		encryptedParsedInstance: EncryptedParsedInstance,
-		sessionKey: MaybeSessionKeySomeday,
+		sessionKeyProvider: SessionKeyProvider,
 		instanceTypeId: InstanceTypeId = encryptedParsedInstance.getInstanceTypeId(),
 		instancePath: InstancePath = new RootPath(instanceTypeId.app),
 	): Promise<MappedDecryptedInstance<T>> {
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedParsedInstance, this.modelMapper, this.cryptoMapper)
 		const decryptedInstance = await this.cryptoMapper.decryptParsedInstance(
 			encryptedParsedInstance,
-			sessionKey,
+			sessionKeyProvider,
 			validateKdfNonceLength(entityAdapter._kdfNonce),
 			this.cryptoMapper.makeOwnerKeyProvider(entityAdapter._ownerGroup),
 			await this.instanceKeyProviderMaker().makeInstanceKeyProvider(entityAdapter),
