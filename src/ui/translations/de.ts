@@ -2592,6 +2592,7 @@ export default {
 		"yourFolders_action": "DEINE ORDNER",
 		"yourMessage_label": "Deine Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn du von Proton durch Proton Mail Bridge migrierst, stelle bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies kannst du in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
 	}
 }
