@@ -53,6 +53,28 @@ targets:
       - target: "TutanotaSharedFramework"
       - framework: tutasdk.framework
         embed: false
+  TutanotaContactProviderExtension:
+    templates: [ "formatAndLint" ]
+    type: "app-extension"
+    sources: "TutanotaContactProviderExtension"
+    settings:
+      base:
+        PRODUCT_NAME: "TutanotaContactProviderExtension"
+        PRODUCT_BUNDLE_IDENTIFIER: "$(inherited).TutanotaContactProviderExtension"
+        IPHONEOS_DEPLOYMENT_TARGET: "16.0" # Github might be running on slightly lower iOS version
+        INFOPLIST_FILE: "TutanotaContactProviderExtension/Info.plist"
+        HEADER_SEARCH_PATHS: '"${PROJECT_DIR}/tutanota/include"/**'
+        MARKETING_VERSION: "3.104.5"
+        CLANG_CXX_LANGUAGE_STANDARD: "gnu++17"
+        SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD: "NO"
+        SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD: "NO"
+      groups:
+        - "codeSigning"
+        - "extension"
+    dependencies:
+      - target: "TutanotaSharedFramework"
+      - framework: tutasdk.framework
+        embed: false
   Sqlcipher:
     type: "framework.static"
     platform: "iOS"
