@@ -2,7 +2,7 @@
 //  TutanotaContactProviderExtension.swift
 //  TutanotaContactProviderExtension
 //
-//  Created by Tutao GmbH on 03.11.26.
+//  Created by Tutao GmbH on 04.11.26.
 //
 
 import ContactProvider
