@@ -177,7 +177,7 @@ export default {
 		"birthday_alt": "Γενέθλια",
 		"birthdayCalendar_label": "Γενέθλια",
 		"birthdayEvent_title": "Γενέθλια του/της {όνομα}",
-		"birthdayEventAge_title": "{ηλικία} χρονών",
+		"birthdayEventAge_title": "{age} χρονών",
 		"blockExternalContentSender_action": "Φραγή εικόνων πάντα",
 		"blockNewsletterBanner_action": "Απόκρυψη banner για τον αποστολέα",
 		"blue_label": "Μπλε",

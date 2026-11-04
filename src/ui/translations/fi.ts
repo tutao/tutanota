@@ -312,7 +312,7 @@ export default {
 		"clearFileSelection_action": "Tyhjennä valitut tiedostot ja kansiot",
 		"clearFolder_action": "Tyhjennä kansio",
 		"clearLocalData_action": "Tyhjennä paikalliset tiedot",
-		"clickToUpdate_msg": "Paina tästä asentaaksesi päivityksen.",
+		"clickToUpdate_msg": "Asenna päivitys napsauttamalla.",
 		"client_label": "Selain",
 		"clientSuspensionWait_label": "Palvelin käsittelee pyyntöäsi. Pyydämme odottamaan.",
 		"close_alt": "Sulje",

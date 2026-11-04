@@ -21,6 +21,6 @@
     <string name="widgetDescription_msg">Προβολή σημερινών συμβάντων</string>
     <string name="birthdayCalendar_label">Γενέθλια</string>
     <string name="birthdayEvent_title">Γενέθλια του/της {όνομα}</string>
-    <string name="birthdayEventAge_title">{ηλικία} χρονών</string>
+    <string name="birthdayEventAge_title">{age} χρονών</string>
     <string name="noTitle_label">&lt;Χωρίς τίτλο&gt;</string>
 </resources>
