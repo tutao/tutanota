@@ -3006,7 +3006,7 @@ export class MainStyles {
 						color: `${lightTheme.on_surface} !important`,
 						"background-color": `${lightTheme.surface}`,
 					},
-					"#mail-body": {
+					".mail-body": {
 						overflow: "visible !important",
 					},
 					"#login-view": {
