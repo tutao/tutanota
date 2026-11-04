@@ -23,8 +23,13 @@ import { CustomDomainData, CustomDomainDataTypeRef } from "./TypeRefs.js"
 import { CustomDomainReturn, CustomDomainReturnTypeRef } from "./TypeRefs.js"
 import { CustomerAccountTerminationPostIn, CustomerAccountTerminationPostInTypeRef } from "./TypeRefs.js"
 import { CustomerAccountTerminationPostOut, CustomerAccountTerminationPostOutTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationPostIn, CustomerMigrationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationPostOut, CustomerMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { CustomerMigrationDeleteIn, CustomerMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { PublicKeyGetOut, PublicKeyGetOutTypeRef } from "./TypeRefs.js"
 import { DeleteCustomerData, DeleteCustomerDataTypeRef } from "./TypeRefs.js"
+import { CustomerUserMigrationPostIn, CustomerUserMigrationPostInTypeRef } from "./TypeRefs.js"
+import { CustomerUserMigrationPostOut, CustomerUserMigrationPostOutTypeRef } from "./TypeRefs.js"
 import { DebitServicePutData, DebitServicePutDataTypeRef } from "./TypeRefs.js"
 import { DomainMailAddressAvailabilityData, DomainMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
 import { DomainMailAddressAvailabilityReturn, DomainMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
@@ -55,6 +60,8 @@ import { MembershipPutIn, MembershipPutInTypeRef } from "./TypeRefs.js"
 import { MembershipRemoveData, MembershipRemoveDataTypeRef } from "./TypeRefs.js"
 import { MultipleMailAddressAvailabilityData, MultipleMailAddressAvailabilityDataTypeRef } from "./TypeRefs.js"
 import { MultipleMailAddressAvailabilityReturn, MultipleMailAddressAvailabilityReturnTypeRef } from "./TypeRefs.js"
+import { MultiuserUserMigrationPostIn, MultiuserUserMigrationPostInTypeRef } from "./TypeRefs.js"
+import { MultiuserUserMigrationPostOut, MultiuserUserMigrationPostOutTypeRef } from "./TypeRefs.js"
 import { PaymentDataServiceGetData, PaymentDataServiceGetDataTypeRef } from "./TypeRefs.js"
 import { PaymentDataServiceGetReturn, PaymentDataServiceGetReturnTypeRef } from "./TypeRefs.js"
 import { PaymentDataServicePostData, PaymentDataServicePostDataTypeRef } from "./TypeRefs.js"
@@ -240,6 +247,19 @@ export const CustomerAccountTerminationService_POST = new PostService<CustomerAc
 	CustomerAccountTerminationPostOutTypeRef,
 )
 
+export const CustomerMigrationService_POST = new PostService<CustomerMigrationPostIn, CustomerMigrationPostOut>(
+	"sys",
+	"CustomerMigrationService",
+	CustomerMigrationPostInTypeRef,
+	CustomerMigrationPostOutTypeRef,
+)
+export const CustomerMigrationService_DELETE = new DeleteService<CustomerMigrationDeleteIn, NullEntity>(
+	"sys",
+	"CustomerMigrationService",
+	CustomerMigrationDeleteInTypeRef,
+	NullEntityTypeRef,
+)
+
 export const CustomerPublicKeyService_GET = new GetService<NullEntity, PublicKeyGetOut>(
 	"sys",
 	"CustomerPublicKeyService",
@@ -248,6 +268,13 @@ export const CustomerPublicKeyService_GET = new GetService<NullEntity, PublicKey
 )
 
 export const CustomerService_DELETE = new DeleteService<DeleteCustomerData, NullEntity>("sys", "CustomerService", DeleteCustomerDataTypeRef, NullEntityTypeRef)
+
+export const CustomerUserMigrationService_POST = new PostService<CustomerUserMigrationPostIn, CustomerUserMigrationPostOut>(
+	"sys",
+	"CustomerUserMigrationService",
+	CustomerUserMigrationPostInTypeRef,
+	CustomerUserMigrationPostOutTypeRef,
+)
 
 export const DebitService_PUT = new PutService<DebitServicePutData, NullEntity>("sys", "DebitService", DebitServicePutDataTypeRef, NullEntityTypeRef)
 
@@ -369,6 +396,13 @@ export const MultipleMailAddressAvailabilityService_GET = new GetService<Multipl
 	"MultipleMailAddressAvailabilityService",
 	MultipleMailAddressAvailabilityDataTypeRef,
 	MultipleMailAddressAvailabilityReturnTypeRef,
+)
+
+export const MultiuserUserMigrationService_POST = new PostService<MultiuserUserMigrationPostIn, MultiuserUserMigrationPostOut>(
+	"sys",
+	"MultiuserUserMigrationService",
+	MultiuserUserMigrationPostInTypeRef,
+	MultiuserUserMigrationPostOutTypeRef,
 )
 
 export const PaymentDataService_GET = new GetService<PaymentDataServiceGetData, PaymentDataServiceGetReturn>(
