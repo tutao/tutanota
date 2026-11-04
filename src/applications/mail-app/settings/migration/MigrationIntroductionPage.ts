@@ -5,7 +5,7 @@ import { MigrationData } from "./AddMigrationWizard"
 import { mailLocator } from "../../mailLocator"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
-import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo, ProtonLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -52,6 +52,13 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 				this.titleSectionParams.iconOptions = undefined
 				this.titleSectionParams.customIcon = m.trust(ExchangeLogo)
 				break
+			case MailboxMigrationProviderUI.Proton:
+				this.titleSectionParams.icon = undefined
+				this.titleSectionParams.icon = undefined
+				migrationData.matchMigrationMailboxesToTutaMailSets = false
+				migrationData.addLabelToImportedMails = false
+				this.titleSectionParams.customIcon = m.trust(ProtonLogo)
+				break
 			case MailboxMigrationProviderUI.Other:
 				this.titleSectionParams.customIcon = undefined
 				this.titleSectionParams.icon = Icons.MailFilled
@@ -83,7 +90,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 					oninput: (value) => {
 						vnode.attrs.data.username = value
 						vnode.attrs.data.rootImportMailSetName = value
-						if (mailboxMigrationProvider !== MailboxMigrationProvider.Gmail) {
+						if (!(mailboxMigrationProvider === MailboxMigrationProvider.Gmail || mailboxMigrationProvider === MailboxMigrationProvider.Proton)) {
 							vnode.attrs.data.syncLabelData = createManageLabelServiceLabelData({
 								name: value,
 								color: theme.primary,

@@ -3,7 +3,7 @@ import { MigrationData } from "./AddMigrationWizard.js"
 import { EnvProvider } from "@tutao/app-env"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import { TitleSection, TitleSectionAttrs } from "../../../../ui/TitleSection.js"
-import { Icons } from "../../../../ui/base/icons/Icons.js"
+import { Icons, ProtonMailBridgeLogo } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { px, size } from "../../../../ui/size"
@@ -13,7 +13,7 @@ import { PrimaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { ToggleButton } from "../../../../ui/base/buttons/ToggleButton"
 import { ButtonSize } from "../../../../ui/base/ButtonSize"
 import { isMailAddress } from "@tutao/utils"
-import { IMAP_SSL_PORT, IMAP_UNSAFE_PORT } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
+import { IMAP_SSL_PORT, IMAP_UNSAFE_PORT, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { Checkbox } from "../../../../ui/base/Checkbox"
 
 EnvProvider.assertMainOrNode()
@@ -27,11 +27,13 @@ export class MigrationCredentialsPage implements WizardPageN<MigrationData> {
 	}
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
+		const isProton = vnode.attrs.data.provider === MailboxMigrationProvider.Proton
 		return m(".mt-24", [
 			m(TitleSection, {
-				icon: Icons.MailFilled,
+				customIcon: isProton ? m.trust(ProtonMailBridgeLogo) : undefined,
+				icon: !isProton ? Icons.MailFilled : undefined,
 				iconOptions: { color: theme.on_surface_variant },
-				subTitle: lang.getTranslationText("migrationImapCredentials_title"),
+				subTitle: lang.getTranslationText(isProton ? "migrationProtonCredentials_title" : "migrationImapCredentials_title"),
 				title: "",
 				style: {
 					marginTop: px(size.spacing_16),

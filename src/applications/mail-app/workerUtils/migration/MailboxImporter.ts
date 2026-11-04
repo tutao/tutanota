@@ -230,11 +230,12 @@ export class MailboxImporter implements MigrationSyncFacade {
 
 		const migrationCredentials = migrationSyncStateToMigrationCredentials(session.mailboxMigrationSyncState, session.userMigrationInfo)
 		const migrationMailboxStates = await this.getAllMigrationMailboxStates(session)
-		const isGmail = migrationCredentials.provider === MailboxMigrationProvider.Gmail
+		const isProviderWithLabels =
+			migrationCredentials.provider === MailboxMigrationProvider.Gmail || migrationCredentials.provider === MailboxMigrationProvider.Proton
 		const migrationSyncContext: MigrationSyncContext = {
 			migrationCredentials: migrationCredentials,
 			migrationMailboxStates: migrationMailboxStates,
-			isGmail,
+			isProviderWithLabels,
 		}
 
 		const mailGroupId = assertNotNull(session.mailboxMigrationSyncState._ownerGroup)
@@ -419,11 +420,11 @@ export class MailboxImporter implements MigrationSyncFacade {
 		}
 		const isALLSystemFolder = migrationMailbox.specialUse !== undefined && migrationMailbox.specialUse === MigrationMailboxSpecialUse.ALL
 		const provider = getMailboxMigrationCredential(session.mailboxMigrationSyncState, session.userMigrationInfo).provider
-		const isGmail = provider === MailboxMigrationProvider.Gmail
+		const isProviderWithLabels = provider === MailboxMigrationProvider.Gmail || provider === MailboxMigrationProvider.Proton
 
 		switch (eventType) {
 			case MigrationSyncEventType.CREATE: {
-				let parentImportFolderId = isGmail && isALLSystemFolder ? null : session.mailboxMigrationSyncState.rootImportMailSet
+				let parentImportFolderId = isProviderWithLabels && isALLSystemFolder ? null : session.mailboxMigrationSyncState.rootImportMailSet
 				let parentFolderSyncState: MailboxMigrationFolderSyncState | null = null
 				if (migrationMailbox.parentFolder) {
 					parentFolderSyncState = getFolderSyncStateForMailboxPath(migrationMailbox.parentFolder.sourceId, session.mailboxMigrationFolderSyncStates)
@@ -432,7 +433,7 @@ export class MailboxImporter implements MigrationSyncFacade {
 
 				if (!session.mailboxMigrationFolderSyncStates.some((folder) => folder.sourceId === migrationMailbox.sourceId)) {
 					const shouldSync = parentFolderSyncState === null || parentFolderSyncState.status !== MailboxMigrationFolderSyncStatus.NO_SYNC
-					const shouldCreateLabels = isGmail && !isALLSystemFolder
+					const shouldCreateLabels = isProviderWithLabels && !isALLSystemFolder
 					const folderSyncState = await this.mailboxMigrationFacade.initializeMigrationMailSet(
 						migrationMailbox,
 						session.mailboxMigrationSyncState,

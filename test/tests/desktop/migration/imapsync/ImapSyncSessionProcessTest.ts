@@ -9,7 +9,8 @@ import {
 import { ImapFlow } from "imapflow"
 import { MigrationSyncEventListener } from "../../../../../src/applications/common/desktop/migration/MigrationSyncEventListener"
 import { MigrationCredentials } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationSyncContext"
-import { DifferentialUidLoader } from "../../../../../src/applications/common/desktop/migration/imapsync/DifferentialUidLoader"
+import { MigrationMail } from "../../../../../src/applications/common/api/common/utils/migrationImportUtils/MigrationMail"
+import { DifferentialUidLoader, UidFetchRequestType } from "../../../../../src/applications/common/desktop/migration/imapsync/DifferentialUidLoader"
 import { MigrationSyncEventType } from "../../../../../src/entities/tutanota/Utils"
 import { MigrationSessionMailbox } from "../../../../../src/applications/common/desktop/migration/MigrationSessionMailbox"
 import { MigrationError } from "../../../../../src/applications/common/api/common/error/MigrationError"
@@ -118,6 +119,48 @@ o.spec("ImapSyncSessionProcess", () => {
 		})
 		const result = await sessionProcess.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
 		o.check(result).equals(SyncSessionProcessState.STOPPED)
+	})
+
+	o.test("runSyncSessionProcess - labels are looked up in the label folders if the server does not provide them", async () => {
+		const allMail = "All Mail"
+		const labelFolder = "Labels/Work"
+		const emptyFolder = "Labels/Empty"
+		const labeledMail = { uid: 1, envelope: { messageId: "<1@x>" }, internalDate: new Date(1000), size: 10 }
+		const unlabeledMail = { uid: 2, envelope: { messageId: "<2@x>" }, internalDate: new Date(2000), size: 20 }
+		const source = Buffer.from("From: a@b.c\r\nSubject: test\r\n\r\nbody")
+		const allMailMailboxState = new MigrationSessionMailbox({ sourceId: allMail, importedSourceIdToMailIdsMap: new Map(), noSync: false })
+		const process = new ImapSyncSessionProcess(
+			allMailMailboxState,
+			imapSyncSessionMock,
+			imapSyncConfigMock,
+			imapFlowFactoryMock,
+			(e) => new MigrationError("error"),
+			[labelFolder, emptyFolder],
+			differentialUidLoaderFactoryMock,
+		)
+		when(imapClientMock.connect()).thenResolve()
+		when(imapClientMock.mailboxOpen(labelFolder, anything())).thenResolve({ path: labelFolder, exists: 1 })
+		when(imapClientMock.mailboxOpen(emptyFolder, anything())).thenResolve({ path: emptyFolder, exists: 0 })
+		when(imapClientMock.mailboxOpen(allMail, anything())).thenResolve({ path: allMail, uidValidity: 1n, uidNext: 3, exists: 2 })
+		when(imapClientMock.fetch("1:*", anything())).thenReturn(
+			(async function* () {
+				yield labeledMail
+			})() as any,
+		)
+		when(uidLoaderMock.getNextUidFetchRequest()).thenResolve({ uidFetchSequenceString: "1:2", fetchRequestType: UidFetchRequestType.CREATE }, null)
+		when(imapClientMock.fetch("1:2", anything(), anything())).thenReturn(
+			(async function* () {
+				yield { ...labeledMail, seq: 1, source }
+				yield { ...unlabeledMail, seq: 2, source }
+			})() as any,
+		)
+
+		await process.startSyncSessionProcess(imapCredentialsMock, eventListenerMock)
+
+		const captor = matchers.captor()
+		verify(eventListenerMock.onMultipleMails(captor.capture(), MigrationSyncEventType.CREATE))
+		const mails: MigrationMail[] = captor.value
+		o.check(mails.map((mail) => mail.labels)).deepEquals([new Set([labelFolder]), new Set()])
 	})
 
 	o.test("handleDeletedUids - emits DELETE events", async () => {

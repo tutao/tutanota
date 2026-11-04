@@ -86,7 +86,9 @@ export class MailboxMigrationFacade {
 
 		let rootImportMailSetId: IdTuple | null = null
 		if (initializeParams.rootImportMailSetName) {
-			if (initializeParams.provider === MailboxMigrationProvider.Gmail) {
+			const isProviderWithLabels =
+				initializeParams.provider === MailboxMigrationProvider.Gmail || initializeParams.provider === MailboxMigrationProvider.Proton
+			if (isProviderWithLabels) {
 				rootImportMailSetId = await this.mailFacade.createLabel(mailGroupId, {
 					name: initializeParams.rootImportMailSetName,
 					color: randomHexColor(),
@@ -286,10 +288,10 @@ export class MailboxMigrationFacade {
 		shouldSync: boolean,
 		shouldCreateLabels: boolean,
 	): Promise<MailboxMigrationFolderSyncState | undefined> {
-		const isGmail = provider === MailboxMigrationProvider.Gmail
-		const isGmailAllMailsFolder = isGmail && shouldSync && !shouldCreateLabels
+		const isProviderWithLabels = provider === MailboxMigrationProvider.Gmail || provider === MailboxMigrationProvider.Proton
+		const isAllMailsFolderForProviderWithLabels = isProviderWithLabels && shouldSync && !shouldCreateLabels
 		let name: string | undefined
-		if (isGmailAllMailsFolder) {
+		if (isAllMailsFolderForProviderWithLabels) {
 			const rootMailSet = await this.entityClient.load(MailSetTypeRef, assertNotNull(mailboxMigrationSyncState.rootImportMailSet))
 			name = rootMailSet.name
 		} else {

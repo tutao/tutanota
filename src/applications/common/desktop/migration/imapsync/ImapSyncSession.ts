@@ -28,6 +28,8 @@ export class ImapSyncSession extends MigrationSyncSession {
 	protected readonly mailboxFailurePostponeTime = 60 * 60 * 1000 // 1 hour
 	// Visible for testing
 	runningSyncSessionProcess: ImapSyncSessionProcess | null = null
+	// Visible for testing
+	labelFolderPaths: string[] = []
 	constructor(
 		migrationSyncEventListener: MigrationSyncEventListener,
 		private certificateProvider: CertificateProvider,
@@ -76,7 +78,7 @@ export class ImapSyncSession extends MigrationSyncSession {
 	}
 
 	protected selectSyncSessionMailboxes(syncSessionMailboxes: MigrationSessionMailbox[]): MigrationSessionMailbox[] {
-		if (this.migrationSyncContext?.isGmail) {
+		if (this.migrationSyncContext?.isProviderWithLabels) {
 			const allMailMailboxes = syncSessionMailboxes.filter((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.ALL)
 			if (isEmpty(allMailMailboxes)) {
 				throw new MigrationError("All mails Gmail mailbox is not enabled for IMAP", MigrationErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
@@ -88,7 +90,30 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 	protected async fetchSyncMailboxes(migrationCredentials: MigrationCredentials): Promise<MigrationMailbox[]> {
 		const imapClient = await this.imapFlowFactory(migrationCredentials, this.imapSyncConfig)
-		return await this.getMailboxesFromServer(imapClient)
+		const mailboxes = await this.getMailboxesFromServer(imapClient)
+		this.labelFolderPaths = migrationCredentials.provider === MailboxMigrationProvider.Proton ? this.getLabelFolderPaths(mailboxes) : []
+		return mailboxes
+	}
+
+	/**
+	 * Proton Mail Bridge does not support X-GM-LABELS, it exposes the labels and folders as separate IMAP folders instead and the mails are duplicated.
+	 * We sync only the "All Mail" folder and find the labels of each mail by looking it up in the other folders.
+	 * Trash and Spam are not part of "All Mail", so they are not needed.
+	 */
+	private getLabelFolderPaths(mailboxes: MigrationMailbox[]): string[] {
+		const excludedSpecialUses = new Set([MigrationMailboxSpecialUse.ALL, MigrationMailboxSpecialUse.TRASH, MigrationMailboxSpecialUse.JUNK])
+		const paths: string[] = []
+		const collect = (mailbox: MigrationMailbox) => {
+			if (!mailbox.specialUse || !excludedSpecialUses.has(mailbox.specialUse)) {
+				paths.push(mailbox.sourceId)
+			}
+			mailbox.subFolders?.map(collect)
+		}
+		// getMailboxesFromServer may flatten the tree, but then the subfolders are also on the top level
+		for (const mailbox of mailboxes) {
+			collect(mailbox)
+		}
+		return Array.from(new Set(paths))
 	}
 
 	protected toMigrationError(e: any): MigrationError {
@@ -170,8 +195,9 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 			const migrationMailboxes = await this.getMailboxesFromServer(imapClient)
 
-			const isGmail = migrationCredentials.provider === MailboxMigrationProvider.Gmail
-			if (isGmail && !migrationMailboxes.some((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.ALL)) {
+			const isProviderWithLabels =
+				migrationCredentials.provider === MailboxMigrationProvider.Gmail || migrationCredentials.provider === MailboxMigrationProvider.Proton
+			if (isProviderWithLabels && !migrationMailboxes.some((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.ALL)) {
 				throw new MigrationError("All mails Gmail mailbox is not enabled for IMAP", MigrationErrorCause.GMAIL_ALL_MAILS_IMAP_DISABLED)
 			}
 			return migrationMailboxes
@@ -241,7 +267,9 @@ export class ImapSyncSession extends MigrationSyncSession {
 			// the Gmail \Important special use is on the flags
 			specialUse: listTreeResponse.flags?.has(MigrationMailboxSpecialUse.IMPORTANT)
 				? MigrationMailboxSpecialUse.IMPORTANT
-				: (listTreeResponse.specialUse as MigrationMailboxSpecialUse),
+				: listTreeResponse.flags?.has(MigrationMailboxSpecialUse.ALL)
+					? MigrationMailboxSpecialUse.ALL
+					: (listTreeResponse.specialUse as MigrationMailboxSpecialUse),
 			disabled: listTreeResponse.disabled ?? false,
 			parentFolder: parentFolder,
 		}
@@ -314,7 +342,14 @@ export class ImapSyncSession extends MigrationSyncSession {
 
 			this.runningSyncSessionProcess?.stopSyncSessionProcess()
 
-			const syncSessionProcess = new ImapSyncSessionProcess(syncSessionMailbox, this, this.imapSyncConfig, this.imapFlowFactory, this.toMigrationError)
+			const syncSessionProcess = new ImapSyncSessionProcess(
+				syncSessionMailbox,
+				this,
+				this.imapSyncConfig,
+				this.imapFlowFactory,
+				this.toMigrationError,
+				this.labelFolderPaths,
+			)
 			this.runningSyncSessionProcess = syncSessionProcess
 
 			syncSessionProcess.startSyncSessionProcess(this.migrationSyncContext.migrationCredentials, this.migrationSyncEventListener).then((state) => {

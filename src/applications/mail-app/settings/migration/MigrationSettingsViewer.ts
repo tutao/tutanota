@@ -177,7 +177,9 @@ class MigrationSettingsViewer implements UpdatableSettingsViewer {
 			)
 
 			let syncMessage = lang.getTranslation(
-				session.provider === MailboxMigrationProvider.Gmail ? "migrationInProgressInfoGmail_msg" : "migrationInProgressInfo_msg",
+				session.provider === MailboxMigrationProvider.Gmail || session.provider === MailboxMigrationProvider.Proton
+					? "migrationInProgressInfoGmail_msg"
+					: "migrationInProgressInfo_msg",
 				{
 					"{completed}": session.syncProgress?.completed.toString() ?? "-",
 					"{total}": session.syncProgress?.total.toString() ?? "-",

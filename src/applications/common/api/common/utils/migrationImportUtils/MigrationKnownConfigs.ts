@@ -8,6 +8,7 @@ export const enum MailboxMigrationProvider {
 	"Other",
 	"Outlook",
 	"Gmail",
+	"Proton",
 }
 
 export type OauthConfigParams = {
@@ -270,6 +271,8 @@ export function getTranslationForMigrationProvider(provider: MailboxMigrationPro
 			return "migrationProviderGmail_label"
 		case MailboxMigrationProvider.Outlook:
 			return businessUse ? "migrationProviderMicrosoft365_label" : "migrationProviderOutlook_label"
+		case MailboxMigrationProvider.Proton:
+			return "migrationProviderProton_label"
 		default:
 			return (isExchange ?? false) ? "migrationProviderExchange_label" : "migrationImapProvider_label"
 	}

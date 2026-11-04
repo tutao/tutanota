@@ -3,7 +3,7 @@ import {
 	getFolderSyncStateForMailboxPath,
 	guessServerMigrationParamsFromEmail,
 	migrationMailToImportMailParams,
-	labelsFromMigrationLabelsLegacy,
+	labelsFromMigrationLabelsUsingLabelNames,
 	migrationSyncStateToMigrationCredentials,
 	oAuthTokenToTokenEndpointResponse,
 	tokenEndpointResponseToOAuthTokenEndpointResponseLegacy,
@@ -433,7 +433,7 @@ o.spec("MigrationImportUtils", () => {
 
 		o.test("labelsFromMigrationLabels works correctly", () => {
 			const labels = new Set(["\\Inbox", "\\Important", "\\Draft", "Custom", "RandomLabelShouldNotBeImported"])
-			const result = labelsFromMigrationLabelsLegacy(labels, folderSyncStatesMock)
+			const result = labelsFromMigrationLabelsUsingLabelNames(labels, folderSyncStatesMock)
 			o.check(result[0]).equals(folderSyncStatesMock[0].mailSet)
 			o.check(result[1]).equals(folderSyncStatesMock[1].mailSet)
 			o.check(result[2]).equals(folderSyncStatesMock[2].mailSet)

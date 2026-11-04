@@ -1,5 +1,5 @@
 import { MigrationCredentials, MigrationSyncContext } from "../../api/common/utils/migrationImportUtils/MigrationSyncContext.js"
-import { MigrationMailbox } from "../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
+import { MigrationMailbox, MigrationMailboxSpecialUse } from "../../api/common/utils/migrationImportUtils/MigrationMailbox.js"
 import { MigrationError } from "../../api/common/error/MigrationError.js"
 import { MigrationSyncEventType } from "../../../../entities/tutanota/Utils.js"
 import type { MigrationSyncEventListener } from "./MigrationSyncEventListener.js"
@@ -190,28 +190,35 @@ export abstract class MigrationSyncSession implements SyncSessionEventListener {
 		const result: MigrationSessionMailbox[] = []
 
 		let syncSessionMailbox = knownMailboxes.find((value) => value.mailboxState.sourceId === migrationMailbox.sourceId)
-		if (syncSessionMailbox === undefined) {
-			await this.migrationSyncEventListener.onMailbox(migrationMailbox, MigrationSyncEventType.CREATE)
-			const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.sourceId === migrationMailbox.parentFolder?.sourceId)
-			const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
-			syncSessionMailbox = new MigrationSessionMailbox({
-				sourceId: migrationMailbox.sourceId,
-				importedSourceIdToMailIdsMap: new Map(),
-				noSync,
-			})
-		}
-		if (migrationMailbox.specialUse) {
-			syncSessionMailbox.specialUse = migrationMailbox.specialUse
-		}
+		if (
+			!this.migrationSyncContext?.isProviderWithLabels ||
+			(migrationMailbox.specialUse !== MigrationMailboxSpecialUse.TRASH && migrationMailbox.specialUse !== MigrationMailboxSpecialUse.JUNK)
+		) {
+			if (syncSessionMailbox === undefined) {
+				await this.migrationSyncEventListener.onMailbox(migrationMailbox, MigrationSyncEventType.CREATE)
+				const parentMailbox = knownMailboxes.find((mailbox) => mailbox.mailboxState.sourceId === migrationMailbox.parentFolder?.sourceId)
+				const noSync = parentMailbox?.importance === SyncSessionMailboxImportance.NO_SYNC
+				syncSessionMailbox = new MigrationSessionMailbox({
+					sourceId: migrationMailbox.sourceId,
+					importedSourceIdToMailIdsMap: new Map(),
+					noSync,
+				})
+			}
+			if (migrationMailbox.specialUse) {
+				syncSessionMailbox.specialUse = migrationMailbox.flags?.includes(MigrationMailboxSpecialUse.ALL)
+					? MigrationMailboxSpecialUse.ALL
+					: migrationMailbox.specialUse
+			}
 
-		// some settings lead to importance "NO_SYNC" which means that the mailbox should not be imported / migrated
-		if (syncSessionMailbox.importance !== SyncSessionMailboxImportance.NO_SYNC) {
-			result.push(syncSessionMailbox)
-		}
+			// some settings lead to importance "NO_SYNC" which means that the mailbox should not be imported / migrated
+			if (syncSessionMailbox.importance !== SyncSessionMailboxImportance.NO_SYNC) {
+				result.push(syncSessionMailbox)
+			}
 
-		if (migrationMailbox.subFolders) {
-			for (const subFolder of migrationMailbox.subFolders) {
-				result.push(...(await this.traverseMigrationMailboxes(knownMailboxes, subFolder)))
+			if (migrationMailbox.subFolders) {
+				for (const subFolder of migrationMailbox.subFolders) {
+					result.push(...(await this.traverseMigrationMailboxes(knownMailboxes, subFolder)))
+				}
 			}
 		}
 		return result

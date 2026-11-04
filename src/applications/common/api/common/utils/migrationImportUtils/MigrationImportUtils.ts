@@ -154,7 +154,7 @@ export function migrationMailToImportMailParams(
 
 	const bodyText = migrationMail.body?.html.trim() || (migrationMail.body?.plaintext.trim() ? plainTextToHtml(migrationMail.body.plaintext) : "")
 
-	const isLegacyGmail = migrationMail.imapUid !== undefined && migrationMail.labels !== undefined
+	const isProviderWithLabelsUsingIMAP = migrationMail.imapUid !== undefined && migrationMail.labels !== undefined
 	return {
 		subject: migrationMail.envelope?.subject ?? "",
 		bodyText: bodyText,
@@ -181,14 +181,17 @@ export function migrationMailToImportMailParams(
 		imapModSeq: migrationMail.modSeq ?? null,
 		mailboxMigrationFolderSyncState: folderSyncStateId,
 		labels: migrationMail.labels
-			? isLegacyGmail
-				? labelsFromMigrationLabelsLegacy(migrationMail.labels, migrationFolderSyncStates)
-				: labelsFromMigrationLabels(migrationMail.labels, migrationFolderSyncStates)
+			? isProviderWithLabelsUsingIMAP
+				? labelsFromMigrationLabelsUsingLabelNames(migrationMail.labels, migrationFolderSyncStates)
+				: labelsFromMigrationLabelsUsingSourceIds(migrationMail.labels, migrationFolderSyncStates)
 			: [],
 	}
 }
 
-export function labelsFromMigrationLabels(migrationLabelIds: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
+export function labelsFromMigrationLabelsUsingSourceIds(
+	migrationLabelIds: Set<string>,
+	mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[],
+): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
 	for (const migrationLabelId of migrationLabelIds) {
@@ -201,7 +204,10 @@ export function labelsFromMigrationLabels(migrationLabelIds: Set<string>, mailbo
 	return Array.from(result)
 }
 
-export function labelsFromMigrationLabelsLegacy(migrationLabels: Set<string>, mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[]): IdTuple[] {
+export function labelsFromMigrationLabelsUsingLabelNames(
+	migrationLabels: Set<string>,
+	mailboxMigrationFolderSyncStates: MailboxMigrationFolderSyncState[],
+): IdTuple[] {
 	let result: Set<IdTuple> = new Set()
 
 	for (const migrationLabel of migrationLabels) {

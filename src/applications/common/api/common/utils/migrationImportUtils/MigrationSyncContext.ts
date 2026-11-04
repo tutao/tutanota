@@ -31,5 +31,5 @@ export type MigrationCredentials = {
 export type MigrationSyncContext = {
 	migrationCredentials: MigrationCredentials
 	migrationMailboxStates: MigrationMailboxState[]
-	isGmail: boolean
+	isProviderWithLabels: boolean
 }

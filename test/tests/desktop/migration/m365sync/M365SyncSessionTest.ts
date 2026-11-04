@@ -95,7 +95,7 @@ o.spec("M365SyncSession", () => {
 		return {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [{ sourceId: "id-inbox", importedSourceIdToMailIdsMap: new Map(), noSync: false }],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 	}
 
@@ -176,7 +176,7 @@ o.spec("M365SyncSession", () => {
 		const imapSyncContext: MigrationSyncContext = {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [mailboxState],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 
 		await session.startSync(imapSyncContext)
@@ -235,7 +235,7 @@ o.spec("M365SyncSession", () => {
 			noSync: false,
 		}
 
-		await session.startSync({ migrationCredentials: imapCredentialsWithToken, migrationMailboxStates: [mailboxState], isGmail: false })
+		await session.startSync({ migrationCredentials: imapCredentialsWithToken, migrationMailboxStates: [mailboxState], isProviderWithLabels: false })
 		await flushBackgroundSync()
 
 		o.check(downloadedMessageIds).deepEquals(["new-1", "new-2"])
@@ -277,7 +277,7 @@ o.spec("M365SyncSession", () => {
 		await new M365SyncSession(listenerMock, () => client).startSync({
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [mailboxState],
-			isGmail: false,
+			isProviderWithLabels: false,
 		})
 		await flushBackgroundSync()
 
@@ -300,7 +300,7 @@ o.spec("M365SyncSession", () => {
 			noSync: false,
 		}
 
-		await session.startSync({ migrationCredentials: imapCredentialsWithToken, migrationMailboxStates: [mailboxState], isGmail: false })
+		await session.startSync({ migrationCredentials: imapCredentialsWithToken, migrationMailboxStates: [mailboxState], isProviderWithLabels: false })
 		await flushBackgroundSync()
 
 		o.check(downloadedMessageIds.length).equals(0)
@@ -318,7 +318,7 @@ o.spec("M365SyncSession", () => {
 		const imapSyncContext: MigrationSyncContext = {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 
 		await session.startSync(imapSyncContext)
@@ -361,7 +361,7 @@ o.spec("M365SyncSession", () => {
 		const imapSyncContext: MigrationSyncContext = {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [excludedParentState],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 
 		await session.startSync(imapSyncContext)
@@ -398,7 +398,7 @@ o.spec("M365SyncSession", () => {
 		const imapSyncContext: MigrationSyncContext = {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [draftsState, inboxState],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 
 		await session.startSync(imapSyncContext)
@@ -493,7 +493,7 @@ o.spec("M365SyncSession", () => {
 		const imapSyncContext: MigrationSyncContext = {
 			migrationCredentials: imapCredentialsWithToken,
 			migrationMailboxStates: [inboxState, archiveState],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 
 		await session.startSync(imapSyncContext)
@@ -538,7 +538,11 @@ o.spec("M365SyncSession", () => {
 		const inboxState: MigrationMailboxState = { sourceId: "id-inbox", importedSourceIdToMailIdsMap: new Map(), noSync: false }
 		const archiveState: MigrationMailboxState = { sourceId: "id-archive", importedSourceIdToMailIdsMap: new Map(), noSync: false }
 
-		await session.startSync({ migrationCredentials: imapCredentialsWithToken, migrationMailboxStates: [inboxState, archiveState], isGmail: false })
+		await session.startSync({
+			migrationCredentials: imapCredentialsWithToken,
+			migrationMailboxStates: [inboxState, archiveState],
+			isProviderWithLabels: false,
+		})
 		await flushBackgroundSync()
 
 		verify(listenerMock.onError(argThat((e: MigrationError) => e.data.cause === MigrationErrorCause.POSTPONE)), { times: 1 })

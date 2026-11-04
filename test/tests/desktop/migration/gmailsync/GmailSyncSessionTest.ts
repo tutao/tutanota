@@ -91,7 +91,7 @@ o.spec("GmailSyncSession", () => {
 			migrationMailboxStates: [
 				{ sourceId: "[Gmail]/All Mail", noSync: false, importedSourceIdToMailIdsMap: state.importedSourceIdToMailIdsMap ?? new Map() },
 			],
-			isGmail: true,
+			isProviderWithLabels: true,
 		}
 	}
 

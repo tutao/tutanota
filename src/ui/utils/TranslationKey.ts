@@ -2592,3 +2592,6 @@ export type TranslationKeyType =
 	| "deactivatedAccessLogin_msg"
 	| "emptyString_msg"
 	| "migrationProtonStartTLSError_msg"
+	| "migrationProviderProton_label"
+	| "migrationProtonCredentials_title"
+	| "migrationConfigInfoProton_msg"

@@ -37,7 +37,7 @@ import { locator } from "../../../common/api/main/CommonLocator"
 EnvProvider.assertMainOrNode()
 
 class MigrationConfigurePage implements WizardPageN<MigrationData> {
-	private isGmail: boolean = false
+	private isProviderWithLabels: boolean = false
 
 	private shouldDisplayRootImportMailSetTextField: boolean = false
 	private shouldDisplayLabelField: boolean = false
@@ -55,7 +55,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 	async oninit(vnode: Vnode<WizardPageAttrs<MigrationData>>) {
 		const migrationData = vnode.attrs.data
 		const businessUse = locator.logins.getUserController().getCustomer()?.businessUse ?? false
-		this.isGmail = migrationData.provider === MailboxMigrationProvider.Gmail
+		this.isProviderWithLabels = migrationData.provider === MailboxMigrationProvider.Gmail || migrationData.provider === MailboxMigrationProvider.Proton
 		this.titleSectionParams.subTitle = lang.getTranslation("migrationConfigLoading_msg", {
 			"{provider}": lang.getTranslationText(getTranslationForMigrationProvider(vnode.attrs.data.provider, businessUse, migrationData.isExchange)),
 		}).text
@@ -71,11 +71,17 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 		if (migrationUiGetMailboxResult.result) {
 			this.successfullyLoadedMailboxes = true
 			this.titleSectionParams.iconOptions.class = ""
-			this.titleSectionParams.subTitle = lang.getTranslationText(this.isGmail ? "migrationConfigInfoGmail_msg" : "migrationConfigInfo_msg")
+			this.titleSectionParams.subTitle = lang.getTranslationText(
+				this.isProviderWithLabels
+					? migrationData.provider === MailboxMigrationProvider.Gmail
+						? "migrationConfigInfoGmail_msg"
+						: "migrationConfigInfoProton_msg"
+					: "migrationConfigInfo_msg",
+			)
 
 			const migrationMailboxes = migrationUiGetMailboxResult.result.migrationMailboxes
 			migrationData.migrationMailboxes = migrationMailboxes
-			if (!this.isGmail) {
+			if (!this.isProviderWithLabels) {
 				migrationData.migrationMailboxesToTutaMailSets =
 					await mailboxMigrationController.constructMigrationMailboxesToTutaFoldersMap(migrationMailboxes)
 			}
@@ -133,7 +139,9 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 					},
 				}),
 			),
-			this.isGmail ? this.renderGmailConfigureContent(migrationData) : this.renderNonGmailConfigureContent(migrationData),
+			this.isProviderWithLabels
+				? this.renderConfigureContentWithoutFolderMapping(migrationData)
+				: this.renderConfigureContentWithFolderMapping(migrationData),
 			this.renderContinueButton(migrationData),
 		])
 	}
@@ -172,10 +180,10 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 	}
 
 	private shouldAllowContinuing(data: MigrationData) {
-		return (this.isGmail || (this.isFolderMappingCompleted(data) && this.isLabelCorrectlySet(data))) && this.successfullyLoadedMailboxes
+		return (this.isProviderWithLabels || (this.isFolderMappingCompleted(data) && this.isLabelCorrectlySet(data))) && this.successfullyLoadedMailboxes
 	}
 
-	private renderGmailConfigureContent(data: MigrationData) {
+	private renderConfigureContentWithoutFolderMapping(data: MigrationData) {
 		return m(TextField, {
 			label: "migrationRootMailFolderName_label",
 			value: data.rootImportMailSetName,
@@ -188,7 +196,7 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 		})
 	}
 
-	private renderNonGmailConfigureContent(data: MigrationData) {
+	private renderConfigureContentWithFolderMapping(data: MigrationData) {
 		const obj = this
 		return [
 			m(".tutaui-switch.mt-16", [
@@ -218,7 +226,11 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 							if (data.syncLabelData) {
 								data.syncLabelData.name = value
 							} else {
-								data.syncLabelData = createManageLabelServiceLabelData({ name: value, color: theme.primary, parentLabel: null })
+								data.syncLabelData = createManageLabelServiceLabelData({
+									name: value,
+									color: theme.primary,
+									parentLabel: null,
+								})
 								m.redraw() //possibly doing nothing
 							}
 						},
@@ -231,7 +243,11 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 								color: data.syncLabelData?.color ?? "",
 								onClick: () => {
 									if (!data.syncLabelData) {
-										data.syncLabelData = createManageLabelServiceLabelData({ name: "", color: "", parentLabel: null })
+										data.syncLabelData = createManageLabelServiceLabelData({
+											name: "",
+											color: "",
+											parentLabel: null,
+										})
 									}
 									const labelData = data.syncLabelData
 									showMigrationEditLabelDialog(
@@ -390,9 +406,10 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 								? getMailSetName(mailboxToRow.tutaMailSet)
 								: lang.getTranslationText("migrationChooseFolder_msg")
 							: lang.getTranslationText("migrationNotImportedFolderName_msg"),
-						items: data.folderSystem
-							.getIndentedList(null)
-							.map((indentedFolder) => ({ name: getMailSetName(indentedFolder.mailSet), value: indentedFolder.mailSet })),
+						items: data.folderSystem.getIndentedList(null).map((indentedFolder) => ({
+							name: getMailSetName(indentedFolder.mailSet),
+							value: indentedFolder.mailSet,
+						})),
 						style:
 							mailboxToRow.tutaMailSet || !mailboxToRow.shouldSync
 								? {}

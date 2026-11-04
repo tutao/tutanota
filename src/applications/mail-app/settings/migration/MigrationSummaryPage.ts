@@ -44,12 +44,12 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 
 	view(vnode: Vnode<WizardPageAttrs<MigrationData>>): Children {
 		const data = vnode.attrs.data
-		const isGmail = data.provider === MailboxMigrationProvider.Gmail
+		const isProviderWithLabels = data.provider === MailboxMigrationProvider.Gmail || data.provider === MailboxMigrationProvider.Proton
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
 			this.renderExportInformation(data),
 			this.renderImportInformation(data),
-			!isGmail && data.matchMigrationMailboxesToTutaMailSets ? this.renderFolderMapping(data) : null,
+			!isProviderWithLabels && data.matchMigrationMailboxesToTutaMailSets ? this.renderFolderMapping(data) : null,
 			this.renderContinueButton(data),
 		])
 	}
@@ -59,8 +59,8 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 			!data.addLabelToImportedMails || (data.syncLabelData !== null && data.syncLabelData.name !== "" && isValidCSSHexColor(data.syncLabelData.color))
 		const isParentFolderCorrectlySet = data.rootImportMailSetName !== "" || data.matchMigrationMailboxesToTutaMailSets
 		const isInEditMode = this.enableParentFolderEdit || this.enableFolderMappingEdit
-		const isGmail = data.provider === MailboxMigrationProvider.Gmail
-		const shouldAllowContinuing = (isGmail || isLabelCorrectlySet) && isParentFolderCorrectlySet && !isInEditMode
+		const isProviderWithLabels = data.provider === MailboxMigrationProvider.Gmail || data.provider === MailboxMigrationProvider.Proton
+		const shouldAllowContinuing = (isProviderWithLabels || isLabelCorrectlySet) && isParentFolderCorrectlySet && !isInEditMode
 
 		return m(
 			".flex-end.full-width.pt-32.mb-32",
@@ -368,7 +368,7 @@ class MigrationSummaryPage implements WizardPageN<MigrationData> {
 	}
 
 	private renderLabel(data: MigrationData) {
-		return data.provider !== MailboxMigrationProvider.Gmail
+		return !(data.provider === MailboxMigrationProvider.Gmail || data.provider === MailboxMigrationProvider.Proton)
 			? m(TextField, {
 					label: "label_label",
 					value: data.syncLabelData?.name ?? "-",
@@ -452,7 +452,7 @@ export class MigrationSummaryPageAttrs implements WizardPageAttrs<MigrationData>
 		const mailboxMigrationController = mailLocator.getMailboxMigrationController()
 		const isSharedMailbox = mailboxMigrationController.selectedMailBoxDetail?.mailGroup.adminGroupEncGKey !== null
 		const imapConfiguration =
-			this.data.provider === MailboxMigrationProvider.Other
+			this.data.provider === MailboxMigrationProvider.Other || this.data.provider === MailboxMigrationProvider.Proton
 				? createMailboxMigrationImapConfiguration({
 						host: assertNotNull(this.data.imapHost),
 						port: assertNotNull(this.data.imapPort).toString(),

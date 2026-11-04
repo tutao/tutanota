@@ -2594,5 +2594,8 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn du von Proton durch Proton Mail Bridge migrierst, stelle bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies kannst du in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
+		"migrationProviderProton_label": "Proton",
+		"migrationProtonCredentials_title": "Migration from Proton is only possible using Proton Mail Bridge at the moment. Please enter the Proton Mail Bridge IMAP credentials for the Proton account you want to migrate from.",
+		"migrationConfigInfoProton_msg": "Connection successful!\nWe're now ready to import your Proton mails. Your Proton label structure will be preserved and mapped to new Tuta labels. The Trash and Spam folder will not be imported.",
 	}
 }

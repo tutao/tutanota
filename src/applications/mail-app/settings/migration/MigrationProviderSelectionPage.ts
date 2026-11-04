@@ -1,14 +1,14 @@
 import m, { Children, Vnode } from "mithril"
 import { MigrationData } from "./AddMigrationWizard.js"
 import { EnvProvider } from "@tutao/app-env"
-import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo } from "../../../../ui/base/icons/Icons"
+import { ExchangeLogo, GmailLogo, Icons, MicrosoftLogo, OutlookLogo, ProtonLogo } from "../../../../ui/base/icons/Icons"
 import { theme } from "../../../../ui/theme"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
 import { emitWizardEvent, WizardEventType, WizardPageAttrs, WizardPageN } from "../../../../ui/base/WizardDialog.js"
 import {
 	getServerMigrationConfigForProvider,
-	MigrationAuthMethod,
 	MailboxMigrationProvider,
+	MigrationAuthMethod,
 } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { px, size } from "../../../../ui/size"
@@ -25,6 +25,7 @@ export const enum MailboxMigrationProviderUI {
 	Outlook,
 	Gmail,
 	Exchange,
+	Proton,
 }
 
 function toMigrationProvider(provider: MailboxMigrationProviderUI): MailboxMigrationProvider {
@@ -33,6 +34,8 @@ function toMigrationProvider(provider: MailboxMigrationProviderUI): MailboxMigra
 			return MailboxMigrationProvider.Gmail
 		case MailboxMigrationProviderUI.Outlook:
 			return MailboxMigrationProvider.Outlook
+		case MailboxMigrationProviderUI.Proton:
+			return MailboxMigrationProvider.Proton
 		case MailboxMigrationProviderUI.Exchange:
 		case MailboxMigrationProviderUI.Other:
 			return MailboxMigrationProvider.Other
@@ -45,6 +48,8 @@ export function toMigrationProviderUI(provider: MailboxMigrationProvider, isExch
 			return MailboxMigrationProviderUI.Gmail
 		case MailboxMigrationProvider.Outlook:
 			return MailboxMigrationProviderUI.Outlook
+		case MailboxMigrationProvider.Proton:
+			return MailboxMigrationProviderUI.Proton
 		case MailboxMigrationProvider.Other:
 			return isExchange ? MailboxMigrationProviderUI.Exchange : MailboxMigrationProviderUI.Other
 	}
@@ -136,12 +141,21 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 				value: MailboxMigrationProviderUI.Outlook,
 				icon: m(".flex.ml-4", m.trust(businessUse ? MicrosoftLogo : OutlookLogo)),
 			},
+			// ...(businessUse
+			// 	? [
+			// 			{
+			// 				name: "migrationProviderExchange_label",
+			// 				value: MailboxMigrationProviderUI.Exchange,
+			// 				icon: m(".flex.ml-4", m.trust(ExchangeLogo)),
+			// 			} satisfies ProviderOption,
+			// 		]
+			// 	: []),
 			...(businessUse
 				? [
 						{
-							name: "migrationProviderExchange_label",
-							value: MailboxMigrationProviderUI.Exchange,
-							icon: m(".flex.ml-4", m.trust(ExchangeLogo)),
+							name: "migrationProviderProton_label",
+							value: MailboxMigrationProviderUI.Proton,
+							icon: m(".flex.ml-4", m.trust(ProtonLogo)),
 						} satisfies ProviderOption,
 					]
 				: []),
@@ -173,6 +187,9 @@ export class MigrationProviderSelectionPage implements WizardPageN<MigrationData
 						const { host, port } = serverMigrationConfig.imapConfig
 						data.imapHost = host
 						data.imapPort = port
+					} else if (migrationProvider === MailboxMigrationProvider.Proton) {
+						data.imapHost = "127.0.0.1"
+						data.imapPort = 1143
 					} else {
 						data.imapHost = ""
 						data.imapPort = 993

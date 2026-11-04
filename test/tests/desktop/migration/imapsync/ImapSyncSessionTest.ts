@@ -38,7 +38,7 @@ o.spec("ImapSyncSession", () => {
 	const imapSyncContext: MigrationSyncContext = {
 		migrationCredentials: imapCredentials,
 		migrationMailboxStates: [],
-		isGmail: false,
+		isProviderWithLabels: false,
 	}
 
 	o.beforeEach(() => {
@@ -128,7 +128,7 @@ o.spec("ImapSyncSession", () => {
 		const imapSyncContextWithStates: MigrationSyncContext = {
 			migrationCredentials: imapCredentials,
 			migrationMailboxStates: [],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 		await session.startSync(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -162,7 +162,7 @@ o.spec("ImapSyncSession", () => {
 		const imapSyncContextWithStates: MigrationSyncContext = {
 			migrationCredentials: imapCredentials,
 			migrationMailboxStates: [],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 		await session.startSync(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -198,7 +198,7 @@ o.spec("ImapSyncSession", () => {
 		const imapSyncContextWithStates: MigrationSyncContext = {
 			migrationCredentials: imapCredentials,
 			migrationMailboxStates: [],
-			isGmail: false,
+			isProviderWithLabels: false,
 		}
 		await session.startSync(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING
@@ -229,7 +229,7 @@ o.spec("ImapSyncSession", () => {
 		const imapSyncContextWithStates: MigrationSyncContext = {
 			migrationCredentials: imapCredentials,
 			migrationMailboxStates: [],
-			isGmail: true,
+			isProviderWithLabels: true,
 		}
 		await session.startSync(imapSyncContextWithStates)
 		session.state = SyncSessionState.RUNNING

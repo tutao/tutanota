@@ -12,6 +12,7 @@ import { ImapFlowFactory, ImapSyncConfig } from "./ImapSyncSession"
 import { MAIL_DOWNLOAD_BATCH_SIZE, SyncSessionEventListener } from "../MigrationSyncSession"
 import { MailboxMigrationFolderSyncStatus, MigrationSyncEventType } from "../../../../../entities/tutanota/Utils"
 import { MigrationError } from "../../../api/common/error/MigrationError"
+import { computeLabelIndexKey, ImapLabelIndex } from "./ImapLabelIndex"
 
 export enum SyncSessionProcessState {
 	NOT_STARTED,
@@ -43,6 +44,11 @@ export class ImapSyncSessionProcess {
 		private imapSyncConfig: ImapSyncConfig,
 		private readonly imapFlowFactory: ImapFlowFactory,
 		private readonly toMigrationError: (e: any) => MigrationError,
+		/**
+		 * Paths of the folders that represent labels of the mails in the synced mailbox, for servers without X-GM-LABELS support (e.g. Proton Mail Bridge).
+		 * If not empty, the labels of the synced mails are determined by looking them up in these folders.
+		 */
+		private readonly labelFolderPaths: readonly string[] = [],
 		private readonly differentialUidLoaderFactory: DifferentialUidLoaderFactory = (client, map, qresync, eventTypes) =>
 			new DifferentialUidLoader(client, map, qresync, eventTypes),
 	) {}
@@ -87,6 +93,12 @@ export class ImapSyncSessionProcess {
 		}
 
 		try {
+			const labelIndex = isNotEmpty(this.labelFolderPaths) ? await this.buildLabelIndex(this.imapClient) : null
+			if (this.isStopped()) {
+				await this.logout(isMailboxFinished)
+				return
+			}
+
 			// open mailbox readonly
 			const mailboxObject = await this.imapClient.mailboxOpen(this.syncSessionProcessMailbox.mailboxState.sourceId, { readOnly: true })
 
@@ -145,7 +157,9 @@ export class ImapSyncSessionProcess {
 					{
 						uid: true,
 						source: true,
-						labels: true,
+						// the label index replaces the labels of the server, if there is one
+						labels: labelIndex == null,
+						envelope: labelIndex != null,
 						size: true,
 						flags: true,
 						internalDate: true,
@@ -163,6 +177,9 @@ export class ImapSyncSessionProcess {
 
 					if (mail.source) {
 						const migrationMail = await migrationMailFromImapFlowFetchMessageObject(mail, openedMigrationMailbox)
+						if (labelIndex) {
+							migrationMail.labels = labelIndex.labelsFor(computeLabelIndexKey(mail))
+						}
 
 						switch (nextUidFetchRequest.fetchRequestType) {
 							case UidFetchRequestType.CREATE:
@@ -215,6 +232,33 @@ export class ImapSyncSessionProcess {
 		} finally {
 			await this.logout(isMailboxFinished)
 		}
+	}
+
+	// the state can be changed from the outside by stopSyncSessionProcess() while we are awaiting
+	private isStopped(): boolean {
+		return this.state === SyncSessionProcessState.STOPPED
+	}
+
+	/**
+	 * Fetches only the envelopes of all mails in the label folders (no bodies) to find out which mails belong to which label.
+	 */
+	private async buildLabelIndex(imapClient: ImapFlow): Promise<ImapLabelIndex> {
+		const labelIndex = new ImapLabelIndex()
+		for (const labelFolderPath of this.labelFolderPaths) {
+			if (this.isStopped()) {
+				break
+			}
+			const labelMailbox = await imapClient.mailboxOpen(labelFolderPath, { readOnly: true })
+			if (!labelMailbox.exists) {
+				continue
+			}
+			labelIndex.reserve(labelFolderPath, labelMailbox.exists)
+			for await (const mail of imapClient.fetch("1:*", { envelope: true, internalDate: true, size: true })) {
+				labelIndex.add(labelFolderPath, computeLabelIndexKey(mail))
+			}
+		}
+		labelIndex.finish()
+		return labelIndex
 	}
 
 	// Visible for testing
