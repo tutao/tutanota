@@ -100,6 +100,7 @@ type EncryptedChunk = Uint8Array<ArrayBuffer> & { readonly __brand: unique symbo
 interface NativeChunk {
 	chunkUri: string
 	chunkId: string
+	unencryptedChunkSize: number
 }
 
 type EncryptedNativeChunk = NativeChunk & { readonly __brand: unique symbol }
@@ -342,9 +343,12 @@ export class BlobFacade {
 
 		const doBlobRequest = async (chunk: EncryptedChunk) => {
 			const blobServerAccessInfo = await this.blobAccessTokenFacade.requestWriteToken(archiveDataType, ownerGroupId)
-			return await this.uploadEncryptedChunk(chunk, blobServerAccessInfo, abortController.signal, (bytes) => {
+			const refTokenWrapper = await this.uploadEncryptedChunk(chunk, blobServerAccessInfo, abortController.signal, (bytes) => {
 				this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: bytesUploadedSoFar + bytes, totalBytes: file.size })
 			})
+			// notify upload listeners that the chunk is fully uploaded in case upload progress event comes too late
+			this.progressDispatcher.onChunkUploaded({ transferId, uploadedBytes: file.size, totalBytes: file.size })
+			return refTokenWrapper
 		}
 		const doEvictToken = () => this.blobAccessTokenFacade.evictWriteToken(archiveDataType, ownerGroupId)
 
@@ -420,8 +424,10 @@ export class BlobFacade {
 				if (chunkUri != null) {
 					uploadState.bytesUploadedPerBlob.set(chunkUri, 0)
 					const chunkId = generateFileChunkId()
+					const unencryptedChunkSize = await this.fileApp.getSize(chunkUri)
+
 					this.nativeUploadProgressState.set(chunkId, uploadState)
-					return { chunkUri, chunkId }
+					return { chunkUri, chunkId, unencryptedChunkSize }
 				} else {
 					return null
 				}
@@ -429,7 +435,12 @@ export class BlobFacade {
 
 			const encryptChunk = async (chunk: NativeChunk) => {
 				const encryptedChunkUri = await this.encryptChunkNative(sessionKey, chunk.chunkUri)
-				return { chunkUri: encryptedChunkUri, chunkId: chunk.chunkId } as EncryptedNativeChunk
+				const encryptedChunk: EncryptedNativeChunk = {
+					chunkUri: encryptedChunkUri,
+					chunkId: chunk.chunkId,
+					unencryptedChunkSize: chunk.unencryptedChunkSize,
+				} as EncryptedNativeChunk
+				return encryptedChunk
 			}
 
 			const uploadEncryptedChunk = (encryptedChunk: EncryptedNativeChunk) => {
@@ -444,6 +455,8 @@ export class BlobFacade {
 					abortController.signal,
 					(unencryptedChunk) => this.fileApp.deleteFile(unencryptedChunk.chunkUri),
 					async (encryptedChunk) => {
+						// notify upload listeners that the chunk is fully uploaded in case upload progress event comes too late
+						this.nativeUploadProgress(encryptedChunk.chunkId, encryptedChunk.unencryptedChunkSize)
 						this.nativeUploadProgressState.delete(encryptedChunk.chunkId)
 						await this.fileApp.deleteFile(encryptedChunk.chunkUri)
 					},
