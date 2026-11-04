@@ -119,7 +119,7 @@ export class ImapFacade {
 				password: initializeParams.imapAccount.password,
 				ignoreCertificateErrors: initializeParams.imapAccount.ignoreCertificateErrors,
 				customCertificateData: initializeParams.imapAccount.customCertificateData,
-				useSSL: null,
+				useSSL: initializeParams.imapAccount.useSSL,
 				oAuthTokenEndpointResponse,
 			}),
 		})
