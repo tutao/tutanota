@@ -6894,11 +6894,14 @@ export type MailboxMigrationSyncStateParams = {
 	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	errorCause: null | NumberString
+	sharedMailboxName: null | string
 
 	mailboxMigrationFolderSyncStates: Id
 	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	mailboxMigrationInfo: null | IdTuple
 }
 
 export type MailboxMigrationSyncState = {
@@ -6915,6 +6918,8 @@ export type MailboxMigrationSyncState = {
 	legacyProvider: null | NumberString
 	status: NumberString
 	importedMailCount: null | NumberString
+	errorCause: null | NumberString
+	sharedMailboxName: null | string
 
 	// == associations
 
@@ -6922,6 +6927,7 @@ export type MailboxMigrationSyncState = {
 	imapConfiguration: null | MailboxMigrationImapConfiguration
 	rootImportMailSet: null | IdTuple
 	syncLabel: null | IdTuple
+	mailboxMigrationInfo: null | IdTuple
 
 	//== some entities have these and some don't
 
@@ -8087,6 +8093,7 @@ export type MailboxMigrationSyncStateTransferAggregatedTypeParams = {
 	_ownerGroup: null | Id
 	postponedUntil: NumberString
 	legacyProvider: null | NumberString
+	sharedMailboxName: null | string
 
 	imapConfiguration: null | MailboxMigrationImapConfigurationTransferAggregatedType
 	rootImportMailSet: null | IdTuple
@@ -8103,6 +8110,7 @@ export type MailboxMigrationSyncStateTransferAggregatedType = {
 	_ownerGroup: null | Id
 	postponedUntil: NumberString
 	legacyProvider: null | NumberString
+	sharedMailboxName: null | string
 
 	// == associations
 
@@ -8813,6 +8821,7 @@ export function createMailboxMigrationPutIn(values: MailboxMigrationPutInParams)
 export type MailboxMigrationPutInParams = {
 	newMailboxMigrationSyncStatus: NumberString
 	newMailboxMigrationFolderSyncStatus: NumberString
+	errorCause: null | NumberString
 
 	mailboxMigrationSyncState: IdTuple
 	mailboxMigrationSyncStateWithNewPostponedUntil: null | UpdateMailboxMigrationSyncStateTransferAggregatedType
@@ -8824,6 +8833,7 @@ export type MailboxMigrationPutIn = {
 	_format: NumberString
 	newMailboxMigrationSyncStatus: NumberString
 	newMailboxMigrationFolderSyncStatus: NumberString
+	errorCause: null | NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
 	_id: DataTransferId
@@ -8847,5 +8857,162 @@ export type MailboxMigrationPutIn = {
 	_type: TypeRef<MailboxMigrationPutIn>
 	_errors: Object
 	_original: Nullable<MailboxMigrationPutIn>
+	isAdapter: false
+}
+export const MultiuserMailboxMigrationUserDataTypeRef: TypeRef<MultiuserMailboxMigrationUserData> = new TypeRef("tutanota", 2261)
+
+export function createMultiuserMailboxMigrationUserData(values: MultiuserMailboxMigrationUserDataParams): MultiuserMailboxMigrationUserData {
+	return Object.assign(create(typeModels[MultiuserMailboxMigrationUserDataTypeRef.typeId], MultiuserMailboxMigrationUserDataTypeRef), values)
+}
+
+export type MultiuserMailboxMigrationUserDataParams = {
+	customerUserMigrationInfo: IdTuple
+	userMigrationInfo: IdTuple
+}
+
+export type MultiuserMailboxMigrationUserData = {
+	// == values
+
+	_id: Id
+
+	// == associations
+
+	customerUserMigrationInfo: IdTuple
+	userMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MultiuserMailboxMigrationUserData>
+	_original: Nullable<MultiuserMailboxMigrationUserData>
+	isAdapter: false
+}
+export const MultiuserMailboxMigrationPostInTypeRef: TypeRef<MultiuserMailboxMigrationPostIn> = new TypeRef("tutanota", 2265)
+
+export function createMultiuserMailboxMigrationPostIn(values: MultiuserMailboxMigrationPostInParams): MultiuserMailboxMigrationPostIn {
+	return Object.assign(create(typeModels[MultiuserMailboxMigrationPostInTypeRef.typeId], MultiuserMailboxMigrationPostInTypeRef), values)
+}
+
+export type MultiuserMailboxMigrationPostInParams = {
+	isShared: boolean
+
+	customerMigrationInfo: IdTuple
+	mailboxMigrationSyncState: MailboxMigrationSyncStateTransferAggregatedType
+	multiuserMailboxMigrationUserData: MultiuserMailboxMigrationUserData[]
+}
+
+export type MultiuserMailboxMigrationPostIn = {
+	// == values
+
+	_format: NumberString
+	isShared: boolean
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	customerMigrationInfo: IdTuple
+	mailboxMigrationSyncState: MailboxMigrationSyncStateTransferAggregatedType
+	multiuserMailboxMigrationUserData: MultiuserMailboxMigrationUserData[]
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MultiuserMailboxMigrationPostIn>
+	_errors: Object
+	_original: Nullable<MultiuserMailboxMigrationPostIn>
+	isAdapter: false
+}
+export const MultiuserMailboxMigrationPostOutTypeRef: TypeRef<MultiuserMailboxMigrationPostOut> = new TypeRef("tutanota", 2271)
+
+export function createMultiuserMailboxMigrationPostOut(values: MultiuserMailboxMigrationPostOutParams): MultiuserMailboxMigrationPostOut {
+	return Object.assign(create(typeModels[MultiuserMailboxMigrationPostOutTypeRef.typeId], MultiuserMailboxMigrationPostOutTypeRef), values)
+}
+
+export type MultiuserMailboxMigrationPostOutParams = {
+	mailboxMigrationInfo: IdTuple
+}
+
+export type MultiuserMailboxMigrationPostOut = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	mailboxMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MultiuserMailboxMigrationPostOut>
+	_original: Nullable<MultiuserMailboxMigrationPostOut>
+	isAdapter: false
+}
+export const MultiuserMailboxMigrationDeleteInTypeRef: TypeRef<MultiuserMailboxMigrationDeleteIn> = new TypeRef("tutanota", 2274)
+
+export function createMultiuserMailboxMigrationDeleteIn(values: MultiuserMailboxMigrationDeleteInParams): MultiuserMailboxMigrationDeleteIn {
+	return Object.assign(create(typeModels[MultiuserMailboxMigrationDeleteInTypeRef.typeId], MultiuserMailboxMigrationDeleteInTypeRef), values)
+}
+
+export type MultiuserMailboxMigrationDeleteInParams = {
+	user: null | Id
+	mailboxMigrationInfo: IdTuple
+}
+
+export type MultiuserMailboxMigrationDeleteIn = {
+	// == values
+
+	_format: NumberString
+
+	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface
+	_id: DataTransferId
+
+	// == associations
+
+	user: null | Id
+	mailboxMigrationInfo: IdTuple
+
+	//== some entities have these and some don't
+	_permissions: null
+	bucketKey: null
+	_ownerGroup: null
+	_ownerEncSessionKey: null
+	_ownerKeyVersion: null
+	_kdfNonce: null
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<MultiuserMailboxMigrationDeleteIn>
+	_original: Nullable<MultiuserMailboxMigrationDeleteIn>
 	isAdapter: false
 }

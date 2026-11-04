@@ -60,6 +60,9 @@ use crate::entities::generated::tutanota::ManageLabelServicePutIn;
 use crate::entities::generated::tutanota::ManageLabelServiceDeleteIn;
 use crate::entities::generated::tutanota::MoveMailData;
 use crate::entities::generated::tutanota::MoveMailPostOut;
+use crate::entities::generated::tutanota::MultiuserMailboxMigrationPostIn;
+use crate::entities::generated::tutanota::MultiuserMailboxMigrationPostOut;
+use crate::entities::generated::tutanota::MultiuserMailboxMigrationDeleteIn;
 use crate::entities::generated::tutanota::NewsIn;
 use crate::entities::generated::tutanota::NewsOut;
 use crate::entities::generated::tutanota::PopulateClientSpamTrainingDataPostIn;
@@ -80,70 +83,70 @@ use crate::entities::generated::tutanota::UserAccountCreateData;
 use crate::entities::generated::tutanota::UserAccountPostOut;
 pub struct ApplyLabelService;
 
-crate::service_impl!(declare, ApplyLabelService, "tutanota/applylabelservice", 118);
+crate::service_impl!(declare, ApplyLabelService, "tutanota/applylabelservice", 119);
 crate::service_impl!(POST, ApplyLabelService, ApplyLabelServicePostIn, ());
 
 
 pub struct CalendarService;
 
-crate::service_impl!(declare, CalendarService, "tutanota/calendarservice", 118);
+crate::service_impl!(declare, CalendarService, "tutanota/calendarservice", 119);
 crate::service_impl!(POST, CalendarService, UserAreaGroupPostData, CreateGroupPostReturn);
 crate::service_impl!(DELETE, CalendarService, CalendarDeleteIn, ());
 
 
 pub struct ChangePrimaryAddressService;
 
-crate::service_impl!(declare, ChangePrimaryAddressService, "tutanota/changeprimaryaddressservice", 118);
+crate::service_impl!(declare, ChangePrimaryAddressService, "tutanota/changeprimaryaddressservice", 119);
 crate::service_impl!(PUT, ChangePrimaryAddressService, ChangePrimaryAddressServicePutIn, ());
 
 
 pub struct ClientClassifierResultService;
 
-crate::service_impl!(declare, ClientClassifierResultService, "tutanota/clientclassifierresultservice", 118);
+crate::service_impl!(declare, ClientClassifierResultService, "tutanota/clientclassifierresultservice", 119);
 crate::service_impl!(POST, ClientClassifierResultService, ClientClassifierResultPostIn, ());
 
 
 pub struct ContactListGroupService;
 
-crate::service_impl!(declare, ContactListGroupService, "tutanota/contactlistgroupservice", 118);
+crate::service_impl!(declare, ContactListGroupService, "tutanota/contactlistgroupservice", 119);
 crate::service_impl!(POST, ContactListGroupService, UserAreaGroupPostData, CreateGroupPostReturn);
 crate::service_impl!(DELETE, ContactListGroupService, UserAreaGroupDeleteData, ());
 
 
 pub struct CustomerAccountService;
 
-crate::service_impl!(declare, CustomerAccountService, "tutanota/customeraccountservice", 118);
+crate::service_impl!(declare, CustomerAccountService, "tutanota/customeraccountservice", 119);
 crate::service_impl!(POST, CustomerAccountService, CustomerAccountCreateData, ());
 
 
 pub struct DraftService;
 
-crate::service_impl!(declare, DraftService, "tutanota/draftservice", 118);
+crate::service_impl!(declare, DraftService, "tutanota/draftservice", 119);
 crate::service_impl!(POST, DraftService, DraftCreateData, DraftCreateReturn);
 crate::service_impl!(PUT, DraftService, DraftUpdateData, DraftUpdateReturn);
 
 
 pub struct EncryptTutanotaPropertiesService;
 
-crate::service_impl!(declare, EncryptTutanotaPropertiesService, "tutanota/encrypttutanotapropertiesservice", 118);
+crate::service_impl!(declare, EncryptTutanotaPropertiesService, "tutanota/encrypttutanotapropertiesservice", 119);
 crate::service_impl!(POST, EncryptTutanotaPropertiesService, EncryptTutanotaPropertiesData, ());
 
 
 pub struct EntropyService;
 
-crate::service_impl!(declare, EntropyService, "tutanota/entropyservice", 118);
+crate::service_impl!(declare, EntropyService, "tutanota/entropyservice", 119);
 crate::service_impl!(PUT, EntropyService, EntropyData, ());
 
 
 pub struct ExternalUserService;
 
-crate::service_impl!(declare, ExternalUserService, "tutanota/externaluserservice", 118);
+crate::service_impl!(declare, ExternalUserService, "tutanota/externaluserservice", 119);
 crate::service_impl!(POST, ExternalUserService, ExternalUserData, ());
 
 
 pub struct GroupInvitationService;
 
-crate::service_impl!(declare, GroupInvitationService, "tutanota/groupinvitationservice", 118);
+crate::service_impl!(declare, GroupInvitationService, "tutanota/groupinvitationservice", 119);
 crate::service_impl!(POST, GroupInvitationService, GroupInvitationPostData, GroupInvitationPostReturn);
 crate::service_impl!(PUT, GroupInvitationService, GroupInvitationPutData, ());
 crate::service_impl!(DELETE, GroupInvitationService, GroupInvitationDeleteData, ());
@@ -151,14 +154,14 @@ crate::service_impl!(DELETE, GroupInvitationService, GroupInvitationDeleteData, 
 
 pub struct ImapFolderService;
 
-crate::service_impl!(declare, ImapFolderService, "tutanota/imapfolderservice", 118);
+crate::service_impl!(declare, ImapFolderService, "tutanota/imapfolderservice", 119);
 crate::service_impl!(POST, ImapFolderService, ImapFolderPostIn, ImapFolderPostOut);
 crate::service_impl!(DELETE, ImapFolderService, ImapFolderDeleteIn, ());
 
 
 pub struct ImapService;
 
-crate::service_impl!(declare, ImapService, "tutanota/imapservice", 118);
+crate::service_impl!(declare, ImapService, "tutanota/imapservice", 119);
 crate::service_impl!(POST, ImapService, ImapPostIn, ImapPostOut);
 crate::service_impl!(PUT, ImapService, ImapPutIn, ());
 crate::service_impl!(DELETE, ImapService, ImapDeleteIn, ());
@@ -166,26 +169,26 @@ crate::service_impl!(DELETE, ImapService, ImapDeleteIn, ());
 
 pub struct ImportMailService;
 
-crate::service_impl!(declare, ImportMailService, "tutanota/importmailservice", 118);
+crate::service_impl!(declare, ImportMailService, "tutanota/importmailservice", 119);
 crate::service_impl!(POST, ImportMailService, ImportMailPostIn, ImportMailPostOut);
 crate::service_impl!(GET, ImportMailService, ImportMailGetIn, ImportMailGetOut);
 
 
 pub struct ListUnsubscribeService;
 
-crate::service_impl!(declare, ListUnsubscribeService, "tutanota/listunsubscribeservice", 118);
+crate::service_impl!(declare, ListUnsubscribeService, "tutanota/listunsubscribeservice", 119);
 crate::service_impl!(POST, ListUnsubscribeService, ListUnsubscribeData, ());
 
 
 pub struct MailExportTokenService;
 
-crate::service_impl!(declare, MailExportTokenService, "tutanota/mailexporttokenservice", 118);
+crate::service_impl!(declare, MailExportTokenService, "tutanota/mailexporttokenservice", 119);
 crate::service_impl!(POST, MailExportTokenService, (), MailExportTokenServicePostOut);
 
 
 pub struct MailFolderService;
 
-crate::service_impl!(declare, MailFolderService, "tutanota/mailfolderservice", 118);
+crate::service_impl!(declare, MailFolderService, "tutanota/mailfolderservice", 119);
 crate::service_impl!(POST, MailFolderService, CreateMailFolderData, CreateMailFolderReturn);
 crate::service_impl!(PUT, MailFolderService, UpdateMailFolderData, ());
 crate::service_impl!(DELETE, MailFolderService, DeleteMailFolderData, ());
@@ -193,33 +196,33 @@ crate::service_impl!(DELETE, MailFolderService, DeleteMailFolderData, ());
 
 pub struct MailGroupService;
 
-crate::service_impl!(declare, MailGroupService, "tutanota/mailgroupservice", 118);
+crate::service_impl!(declare, MailGroupService, "tutanota/mailgroupservice", 119);
 crate::service_impl!(POST, MailGroupService, CreateMailGroupData, MailGroupPostOut);
 crate::service_impl!(DELETE, MailGroupService, DeleteGroupData, ());
 
 
 pub struct MailService;
 
-crate::service_impl!(declare, MailService, "tutanota/mailservice", 118);
+crate::service_impl!(declare, MailService, "tutanota/mailservice", 119);
 crate::service_impl!(DELETE, MailService, DeleteMailData, ());
 
 
 pub struct MailboxMigrationFolderService;
 
-crate::service_impl!(declare, MailboxMigrationFolderService, "tutanota/mailboxmigrationfolderservice", 118);
+crate::service_impl!(declare, MailboxMigrationFolderService, "tutanota/mailboxmigrationfolderservice", 119);
 crate::service_impl!(POST, MailboxMigrationFolderService, MailboxMigrationFolderPostIn, MailboxMigrationFolderPostOut);
 crate::service_impl!(DELETE, MailboxMigrationFolderService, MailboxMigrationFolderDeleteIn, ());
 
 
 pub struct MailboxMigrationOauthConfigService;
 
-crate::service_impl!(declare, MailboxMigrationOauthConfigService, "tutanota/mailboxmigrationoauthconfigservice", 118);
+crate::service_impl!(declare, MailboxMigrationOauthConfigService, "tutanota/mailboxmigrationoauthconfigservice", 119);
 crate::service_impl!(GET, MailboxMigrationOauthConfigService, MailboxMigrationOauthConfigGetIn, MailboxMigrationOauthConfigGetOut);
 
 
 pub struct MailboxMigrationService;
 
-crate::service_impl!(declare, MailboxMigrationService, "tutanota/mailboxmigrationservice", 118);
+crate::service_impl!(declare, MailboxMigrationService, "tutanota/mailboxmigrationservice", 119);
 crate::service_impl!(POST, MailboxMigrationService, MailboxMigrationPostIn, MailboxMigrationPostOut);
 crate::service_impl!(PUT, MailboxMigrationService, MailboxMigrationPutIn, ());
 crate::service_impl!(DELETE, MailboxMigrationService, MailboxMigrationDeleteIn, ());
@@ -227,7 +230,7 @@ crate::service_impl!(DELETE, MailboxMigrationService, MailboxMigrationDeleteIn, 
 
 pub struct ManageLabelService;
 
-crate::service_impl!(declare, ManageLabelService, "tutanota/managelabelservice", 118);
+crate::service_impl!(declare, ManageLabelService, "tutanota/managelabelservice", 119);
 crate::service_impl!(POST, ManageLabelService, ManageLabelServicePostIn, ManageLabelServicePostOut);
 crate::service_impl!(PUT, ManageLabelService, ManageLabelServicePutIn, ());
 crate::service_impl!(DELETE, ManageLabelService, ManageLabelServiceDeleteIn, ());
@@ -235,80 +238,87 @@ crate::service_impl!(DELETE, ManageLabelService, ManageLabelServiceDeleteIn, ())
 
 pub struct MoveMailService;
 
-crate::service_impl!(declare, MoveMailService, "tutanota/movemailservice", 118);
+crate::service_impl!(declare, MoveMailService, "tutanota/movemailservice", 119);
 crate::service_impl!(POST, MoveMailService, MoveMailData, MoveMailPostOut);
+
+
+pub struct MultiuserMailboxMigrationService;
+
+crate::service_impl!(declare, MultiuserMailboxMigrationService, "tutanota/multiusermailboxmigrationservice", 119);
+crate::service_impl!(POST, MultiuserMailboxMigrationService, MultiuserMailboxMigrationPostIn, MultiuserMailboxMigrationPostOut);
+crate::service_impl!(DELETE, MultiuserMailboxMigrationService, MultiuserMailboxMigrationDeleteIn, ());
 
 
 pub struct NewsService;
 
-crate::service_impl!(declare, NewsService, "tutanota/newsservice", 118);
+crate::service_impl!(declare, NewsService, "tutanota/newsservice", 119);
 crate::service_impl!(POST, NewsService, NewsIn, ());
 crate::service_impl!(GET, NewsService, (), NewsOut);
 
 
 pub struct PopulateClientSpamTrainingDataService;
 
-crate::service_impl!(declare, PopulateClientSpamTrainingDataService, "tutanota/populateclientspamtrainingdataservice", 118);
+crate::service_impl!(declare, PopulateClientSpamTrainingDataService, "tutanota/populateclientspamtrainingdataservice", 119);
 crate::service_impl!(POST, PopulateClientSpamTrainingDataService, PopulateClientSpamTrainingDataPostIn, ());
 
 
 pub struct ProcessInboxService;
 
-crate::service_impl!(declare, ProcessInboxService, "tutanota/processinboxservice", 118);
+crate::service_impl!(declare, ProcessInboxService, "tutanota/processinboxservice", 119);
 crate::service_impl!(POST, ProcessInboxService, ProcessInboxPostIn, ());
 
 
 pub struct ReceiveInfoService;
 
-crate::service_impl!(declare, ReceiveInfoService, "tutanota/receiveinfoservice", 118);
+crate::service_impl!(declare, ReceiveInfoService, "tutanota/receiveinfoservice", 119);
 crate::service_impl!(POST, ReceiveInfoService, ReceiveInfoServiceData, ReceiveInfoServicePostOut);
 
 
 pub struct ReportMailService;
 
-crate::service_impl!(declare, ReportMailService, "tutanota/reportmailservice", 118);
+crate::service_impl!(declare, ReportMailService, "tutanota/reportmailservice", 119);
 crate::service_impl!(POST, ReportMailService, ReportMailPostData, ());
 
 
 pub struct ResolveConversationsService;
 
-crate::service_impl!(declare, ResolveConversationsService, "tutanota/resolveconversationsservice", 118);
+crate::service_impl!(declare, ResolveConversationsService, "tutanota/resolveconversationsservice", 119);
 crate::service_impl!(GET, ResolveConversationsService, ResolveConversationsServiceGetIn, ResolveConversationsServiceGetOut);
 
 
 pub struct SendDraftService;
 
-crate::service_impl!(declare, SendDraftService, "tutanota/senddraftservice", 118);
+crate::service_impl!(declare, SendDraftService, "tutanota/senddraftservice", 119);
 crate::service_impl!(POST, SendDraftService, SendDraftData, SendDraftReturn);
 crate::service_impl!(DELETE, SendDraftService, SendDraftDeleteIn, ());
 
 
 pub struct SimpleMoveMailService;
 
-crate::service_impl!(declare, SimpleMoveMailService, "tutanota/simplemovemailservice", 118);
+crate::service_impl!(declare, SimpleMoveMailService, "tutanota/simplemovemailservice", 119);
 crate::service_impl!(POST, SimpleMoveMailService, SimpleMoveMailPostIn, MoveMailPostOut);
 
 
 pub struct TemplateGroupService;
 
-crate::service_impl!(declare, TemplateGroupService, "tutanota/templategroupservice", 118);
+crate::service_impl!(declare, TemplateGroupService, "tutanota/templategroupservice", 119);
 crate::service_impl!(POST, TemplateGroupService, UserAreaGroupPostData, CreateGroupPostReturn);
 crate::service_impl!(DELETE, TemplateGroupService, UserAreaGroupDeleteData, ());
 
 
 pub struct TranslationService;
 
-crate::service_impl!(declare, TranslationService, "tutanota/translationservice", 118);
+crate::service_impl!(declare, TranslationService, "tutanota/translationservice", 119);
 crate::service_impl!(GET, TranslationService, TranslationGetIn, TranslationGetOut);
 
 
 pub struct UnreadMailStateService;
 
-crate::service_impl!(declare, UnreadMailStateService, "tutanota/unreadmailstateservice", 118);
+crate::service_impl!(declare, UnreadMailStateService, "tutanota/unreadmailstateservice", 119);
 crate::service_impl!(POST, UnreadMailStateService, UnreadMailStatePostIn, ());
 
 
 pub struct UserAccountService;
 
-crate::service_impl!(declare, UserAccountService, "tutanota/useraccountservice", 118);
+crate::service_impl!(declare, UserAccountService, "tutanota/useraccountservice", 119);
 crate::service_impl!(POST, UserAccountService, UserAccountCreateData, UserAccountPostOut);
