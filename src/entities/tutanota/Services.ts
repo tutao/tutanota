@@ -53,6 +53,9 @@ import { ManageLabelServicePutIn, ManageLabelServicePutInTypeRef } from "./TypeR
 import { ManageLabelServiceDeleteIn, ManageLabelServiceDeleteInTypeRef } from "./TypeRefs.js"
 import { MoveMailData, MoveMailDataTypeRef } from "./TypeRefs.js"
 import { MoveMailPostOut, MoveMailPostOutTypeRef } from "./TypeRefs.js"
+import { MultiuserMailboxMigrationPostIn, MultiuserMailboxMigrationPostInTypeRef } from "./TypeRefs.js"
+import { MultiuserMailboxMigrationPostOut, MultiuserMailboxMigrationPostOutTypeRef } from "./TypeRefs.js"
+import { MultiuserMailboxMigrationDeleteIn, MultiuserMailboxMigrationDeleteInTypeRef } from "./TypeRefs.js"
 import { NewsOut, NewsOutTypeRef } from "./TypeRefs.js"
 import { NewsIn, NewsInTypeRef } from "./TypeRefs.js"
 import { PopulateClientSpamTrainingDataPostIn, PopulateClientSpamTrainingDataPostInTypeRef } from "./TypeRefs.js"
@@ -297,6 +300,19 @@ export const ManageLabelService_DELETE = new DeleteService<ManageLabelServiceDel
 )
 
 export const MoveMailService_POST = new PostService<MoveMailData, MoveMailPostOut>("tutanota", "MoveMailService", MoveMailDataTypeRef, MoveMailPostOutTypeRef)
+
+export const MultiuserMailboxMigrationService_POST = new PostService<MultiuserMailboxMigrationPostIn, MultiuserMailboxMigrationPostOut>(
+	"tutanota",
+	"MultiuserMailboxMigrationService",
+	MultiuserMailboxMigrationPostInTypeRef,
+	MultiuserMailboxMigrationPostOutTypeRef,
+)
+export const MultiuserMailboxMigrationService_DELETE = new DeleteService<MultiuserMailboxMigrationDeleteIn, NullEntity>(
+	"tutanota",
+	"MultiuserMailboxMigrationService",
+	MultiuserMailboxMigrationDeleteInTypeRef,
+	NullEntityTypeRef,
+)
 
 export const NewsService_GET = new GetService<NullEntity, NewsOut>("tutanota", "NewsService", NullEntityTypeRef, NewsOutTypeRef)
 export const NewsService_POST = new PostService<NewsIn, NullEntity>("tutanota", "NewsService", NewsInTypeRef, NullEntityTypeRef)
