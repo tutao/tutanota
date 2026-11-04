@@ -421,7 +421,7 @@ export class EntityRestClient implements EntityRestInterface {
 			sessionKey = await this._crypto.decryptSessionKey(ownerGroup, ownerEncSessionKey)
 		} else {
 			try {
-				sessionKey = await this.sessionKeyResolver().resolveSessionKey(entityAdapter)
+				sessionKey = await this.sessionKeyResolver().resolveSessionKeyWithOwnerKeyProvider(ownerKeyProvider, entityAdapter)
 			} catch (e) {
 				if (e instanceof SessionKeyNotFoundError) {
 					console.log("could not resolve session key", e, e.message, e.stack)
