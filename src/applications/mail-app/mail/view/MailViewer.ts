@@ -307,7 +307,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	private renderMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs): Children {
-		return m("#mail-body", {
+		return m(".mail-body", {
 			// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
 			key: "mailBody",
 			oncreate: (vnode) => {
