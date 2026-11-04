@@ -11,7 +11,7 @@ import { getFeaturePlaceholderReplacement, PlanTypeToName } from "../utils/Subsc
 import { PlanConfig } from "./BusinessPlanContainer"
 import { DefaultAnimationTime } from "../../../../ui/animation/Animations"
 import { Styles } from "../../../../ui/styles"
-import { boxShadowHigh, boxShadowLow } from "../../../../ui/main-styles"
+import { boxShadowHigh, boxShadowInline, boxShadowLow } from "../../../../ui/main-styles"
 import { PlanBadge } from "./PlanBadge"
 import { DiscountDetail, getCampaignTheme, getHasCampaign } from "../utils/PlanSelectorUtils"
 import { PromotionRibbon } from "./PromotionRibbon"
@@ -122,6 +122,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 					transform: isSelected && !isMobileLayout ? `translateY(${px(-size.core_16)})` : "initial",
 					transition: `transform ${DefaultAnimationTime}ms, box-shadow ${DefaultAnimationTime}ms, background-color ${DefaultAnimationTime}ms`,
 					"margin-top": hasCampaign ? px(size.spacing_24) : "initial",
+					scale: isMobileLayout && isSelected ? "1.04" : "",
 				},
 				onmouseenter: () => {
 					if (!canHover) return
@@ -167,7 +168,7 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 						borderRadius: hasCampaign ? `0 0 ${px(12)} ${px(12)}` : px(12),
 						padding: `${px(isMobileLayout ? 12 : size.spacing_24)} ${px(isMobileLayout ? 12 : size.spacing_24)}`,
 						opacity: isDisabled ? 0.6 : 1,
-						"box-shadow": isSelected ? boxShadowHigh : showHover ? boxShadowLow : "initial",
+						"box-shadow": this.getBoxShadow(isSelected, showHover, hasCampaign),
 						transition: `border-color ${DefaultAnimationTime}ms ease-out, box-shadow ${DefaultAnimationTime}ms ease-out`,
 						height: "100%",
 					},
@@ -282,6 +283,20 @@ export class BusinessPlanBox implements Component<BusinessPlanBoxAttrs> {
 			),
 		)
 	}
+	private getBoxShadow = (isSelected: boolean, showHover: boolean, hasCampaign: boolean) => {
+		if (isSelected) {
+			if (hasCampaign) {
+				return boxShadowInline
+			} else {
+				return boxShadowHigh
+			}
+		} else if (showHover) {
+			return boxShadowLow
+		} else {
+			return "initial"
+		}
+	}
+
 	private renderTagLine(isMobileLayout: boolean, hasCampaign: boolean, localTheme: Theme, planConfig: PlanConfig) {
 		return m(
 			"div",

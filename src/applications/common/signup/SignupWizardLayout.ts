@@ -168,7 +168,6 @@ export class SignupWizardLayout implements Component<WizardLayoutAttrs<SignupVie
 			opacity: showPlanSelector ? 1 : 0,
 			transform: showPlanSelector ? "translateX(0)" : `translateX(${px(size.spacing_32)})`,
 			"max-height": showPlanSelector ? px(1400) : "0",
-			overflow: "hidden",
 			transition: panelTransition,
 			"will-change": "opacity, transform",
 			"pointer-events": showPlanSelector ? "auto" : "none",

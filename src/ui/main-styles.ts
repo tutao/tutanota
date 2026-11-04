@@ -33,6 +33,7 @@ export function getFonts(): string {
 	return fonts.join(", ")
 }
 
+export const boxShadowInline = `0 0 20px rgba(0,0,0,0.20), 0 0 6px rgba(0,0,0,0.20)`
 export const boxShadowHigh = `0 10px 20px rgba(0,0,0,0.10), 0 6px 6px rgba(0,0,0,0.10)`
 export const boxShadowMedium = "0px 0px 4px 2px rgba(0, 0, 0, 0.12)"
 export const boxShadowLow = "0px 2px 4px rgb(0, 0, 0, 0.08)"
