@@ -64,7 +64,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	view({ attrs }: Vnode<TimePickerAttrs>): Children {
-		if (document.activeElement !== this.inputTextEl) {
+		if (document.activeElement !== this.inputTextEl && document.activeElement !== this.inputTimeEl) {
 			this.setValidInputTextFromTime(attrs.time, attrs)
 		}
 
@@ -82,7 +82,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			options: stream(this.timeDropdownOptions),
 			noIcon: true,
 			expanded: true,
-			tabIndex: Number(TabIndex.Programmatic),
+			tabIndex: -1,
 			renderDisplay: () => this.renderInputFields(attrs),
 			renderOption: (option) => this.renderTimeOption(option),
 		} satisfies SelectAttributes<TimeOption, Time>)
@@ -91,7 +91,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private renderInputFields(attrs: TimePickerAttrs) {
 		// We're choosing between two components so factor out the click listener
 		const onclick = (event: Event) => {
-			if (ClientDetector.get().isMobileDevice()) {
+			if (ClientDetector.get().isMobileDevice() && this.inputTimeEl) {
 				// Don't open the dropdown list
 				event.preventDefault()
 				// In some browsers this isn't correctly implemented and there's no way to know if a showPicker() was a
@@ -104,40 +104,36 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						if (e.name !== "NotAllowedError") throw e
 					}
 				}
-				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790
-				this.inputTimeEl!.focus()
-				// TODO(gg): Is this necessary? What's the behaviour like on iOS? Does it open the keyboard?
-				// prettier-ignore
-				this.inputTimeEl!.addEventListener("blur", () => {
-					this.inputTextEl?.focus()
-				}, { once: true })
+				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
+				if (ClientDetector.get().isIos()) {
+					this.inputTimeEl.tabIndex = 0
+					this.inputTimeEl.focus()
+				}
 			}
 			// Note m(Select) will continue opening the dropdown of TimeOption options, so we show both time pickers
 		}
 		return m.fragment({}, [
-			m("input", {
-				type: TextFieldType.Time,
-				tabindex: "-1",
+			m("input[type=time]", {
+				tabindex: -1,
+				disabled: attrs.disabled,
 				style: {
+					width: 0,
+					// This helps browsers decide where to place their native picker under/over the input field. Note
 					// m(Select) is position relative
 					position: "absolute",
 					left: 0,
-					// Must have exactly the same height at the input[type=text] below, so the picker doesn't overlap
-					// the input field when it appears (for non-fullscreen native pickers i.e. desktop/tablets). We
-					// don't set a height manually, so we just match the font/line-height/border/padding instead :)
+					// We want exactly the same height at the input[type=text] above so the native picker doesn't
+					// block any words in the input field. Chose to match the border/padding instead of setting a height
 					"border-width": "1px 0",
 					"border-color": "transparent",
-					width: 0,
 					padding: "8px 0",
 					appearance: "none",
 				},
-				disabled: attrs.disabled,
 				value: this.selectedTime.to24HourString(),
 				oncreate: (vnode: VnodeDOM) => {
 					this.inputTimeEl = vnode.dom as HTMLInputElement
 				},
 				oninput: (event: EventRedraw<InputEvent>) => {
-					// Do nothing if disabled
 					if (attrs.disabled) {
 						event.preventDefault()
 						event.stopPropagation()
@@ -145,33 +141,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						return
 					}
 					const inputElement = event.target! as HTMLInputElement
-					this.handleTextInput(inputElement.value, attrs)
-				},
-				onchange: (event: EventRedraw<InputEvent>) => {
-					// Do nothing if disabled
-					if (attrs.disabled) {
-						event.preventDefault()
-						event.stopPropagation()
-						event.redraw = false
-						return
-					}
-					const inputElement = event.target! as HTMLInputElement
+					console.log("time oninput", inputElement.value)
 					const parsedTime = Time.parseFromString(inputElement.value)
 					if (parsedTime) {
 						this.selectedTime = parsedTime
 						this.setValidInputTextFromTime(this.selectedTime, attrs)
-						m.redraw()
+						attrs.onTimeSelected(this.selectedTime)
 					}
-				},
-				onclick: (event: EventRedraw<MouseEvent>) => {
-					// Do nothing if disabled
-					if (attrs.disabled) {
-						event.preventDefault()
-						event.stopPropagation()
-						event.redraw = false
-						return
-					}
-					event.stopPropagation()
 				},
 			}),
 			attrs.forMailSendTime
