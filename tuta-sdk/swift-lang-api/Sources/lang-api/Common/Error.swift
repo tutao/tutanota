@@ -1,6 +1,6 @@
 public protocol TutanotaErrorWithData<Data> {
-    associatedtype Data
-    var data: Data { get }
+  associatedtype Data
+  var data: Data { get }
 }
 
 open class TutanotaError: Error, @unchecked Sendable {

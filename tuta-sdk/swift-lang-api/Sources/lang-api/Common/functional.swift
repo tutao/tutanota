@@ -8,7 +8,8 @@ public func neverNull<T>(_ obj: Nullable<T>) -> T {
 /// returns its argument if it is not null, throws otherwise.
 /// @param value the value to check
 /// @param message optional error message
-public func assertNotNull<T>(_ value: Nullable<T>, _ message: SwString = SwString("null")) throws -> T
+public func assertNotNull<T>(_ value: Nullable<T>, _ message: SwString = SwString("null")) throws
+  -> T
 {
   if let value {
     return value
@@ -52,9 +53,8 @@ public func downcast<R>(_ object: Any) -> R {
   return object as! R
 }
 
-
-public func thisFunctionDoesNothing() throws -> Void {
-    if ( false ) {
-        throw try ProgrammingError(SwString("This error should never be visible"))
-    }
+public func thisFunctionDoesNothing() throws {
+  if false {
+    throw try ProgrammingError(SwString("This error should never be visible"))
+  }
 }

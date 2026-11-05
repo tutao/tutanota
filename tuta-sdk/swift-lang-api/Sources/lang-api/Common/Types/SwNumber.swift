@@ -1,24 +1,28 @@
 public typealias TsInt = SwInt
 public final class SwInt: Sendable, EquitableIsStructural, Hashable, Comparable {
-  private let inner: Int32
+  private let inner: Int
 
-  public init(_ value: Int32) {
+  public init(_ value: Int) {
     self.inner = value
   }
 
   public static func fromFloat(_ value: Float) -> SwInt {
-    return SwInt(Int32(value))
+    return SwInt(Int(value))
   }
 
   public static func parseInt(_ str: SwString) -> SwInt {
-    return SwInt(Int32(str.asPrimitiveString()) ?? 0)
+    return SwInt(Int(str.asPrimitiveString()) ?? 0)
+  }
+
+  public static func toString(_ value: TsInt) -> SwString {
+    return SwString(String(value.inner))
   }
 
   public static func isNaN(_ num: SwInt) -> Bool {
     return false
   }
 
-  public func asPrimitive() -> Int32 {
+  public func asPrimitive() -> Int {
     return self.inner
   }
 
@@ -32,6 +36,10 @@ public final class SwInt: Sendable, EquitableIsStructural, Hashable, Comparable 
 
   public static func * (lhs: SwInt, rhs: SwInt) -> SwInt {
     return SwInt(lhs.inner * rhs.inner)
+  }
+
+  public static func * (lhs: SwInt, rhs: SwDouble) -> SwDouble {
+    return rhs * lhs
   }
 
   public static prefix func - (value: SwInt) -> SwInt {
@@ -99,6 +107,14 @@ public final class SwDouble: Sendable, EquitableIsStructural, Hashable, Comparab
 
   public static func <= (lhs: SwDouble, rhs: SwInt) -> Bool {
     return lhs.inner <= Double(rhs.asPrimitive())
+  }
+
+  public static func * (lhs: SwDouble, rhs: SwDouble) -> SwDouble {
+    return SwDouble(lhs.inner * rhs.inner)
+  }
+
+  public static func * (lhs: SwDouble, rhs: SwInt) -> SwDouble {
+    return lhs * SwDouble(Double(rhs.asPrimitive()))
   }
 
   public func hash(into hasher: inout Hasher) {
