@@ -396,12 +396,6 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 	override suspend fun startWebauthn(uri: Uri): String {
 		val customIntent = CustomTabsIntent.Builder()
 			.build()
-		val intent = customIntent.intent.apply {
-			data = uri
-			// close custom tabs activity as soon as user navigates away from it, otherwise it will linger as a separate
-			// task
-			addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-		}
 
 		return suspendCoroutine { cont ->
 			// if there was already a handler, finish it
@@ -416,7 +410,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 					cont.resumeWithException(CancelledError())
 				}
 			}
-			startActivity(intent)
+			customIntent.launchUrl(this, uri)
 		}
 	}
 
