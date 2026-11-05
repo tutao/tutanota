@@ -24,7 +24,7 @@ import { func, matchers, object, verify, when } from "testdouble"
 import { InfoMessageHandler } from "../../../../../src/applications/common/gui/InfoMessageHandler.js"
 import { MailFacade } from "../../../../../src/applications/common/api/worker/facades/lazy/MailFacade.js"
 import { EntityClient } from "../../../../../src/platform-kit/network/EntityClient.js"
-import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithMailDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
+import { BulkMailLoader, MAIL_INDEXER_CHUNK, MailWithDetails } from "../../../../../src/applications/mail-app/workerUtils/index/BulkMailLoader.js"
 import { MailIndexerBackend, MailWithDetailsAndAttachments } from "../../../../../src/applications/mail-app/workerUtils/index/MailIndexerBackend"
 import { SearchIndexStateInfo } from "../../../../../src/applications/common/api/worker/search/SearchTypes"
 import * as restError from "../../../../../src/platform-kit/rest-client/error"
@@ -299,7 +299,7 @@ o.spec("WebMailIndexer", () => {
 				const mailsCaptor = matchers.captor()
 				verify(backend.indexMails(timestampsCaptor.capture(), mailsCaptor.capture()))
 				o.check(timestampsCaptor.value).deepEquals(timestamps)
-				const indexedMailData: MailWithMailDetails[] = mailsCaptor.value
+				const indexedMailData: MailWithDetails[] = mailsCaptor.value
 				o.check(indexedMailData.length).equals(mailsWithData.length)(
 					`All mails are indexed. Actually indexed: ${indexedMailData.map((data) => data.mail.subject)}`,
 				)
@@ -441,7 +441,7 @@ o.spec("WebMailIndexer", () => {
 				expectedNewestTimestampForIndexMailListCall: number | null
 			}) {
 				const mailsChunk: Mail[] = []
-				const mailDetailsAndMailsChunk: MailWithMailDetails[] = []
+				const mailDetailsAndMailsChunk: MailWithDetails[] = []
 				for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
 					const mail: Mail = createTestEntity(MailTypeRef)
 					mailsChunk.push(mail)
@@ -979,7 +979,7 @@ o.spec("WebMailIndexer", () => {
 			const rangeEnd = 0
 
 			const lotsOfMails: Mail[] = []
-			const lotsOfMailDetailsAndMails: MailWithMailDetails[] = []
+			const lotsOfMailDetailsAndMails: MailWithDetails[] = []
 			for (let i = 0; i < MAIL_INDEXER_CHUNK; i++) {
 				const _id: IdTuple = ["helloooo", "I'm a mail!"]
 				const mail: Mail = createTestEntity(MailTypeRef, {

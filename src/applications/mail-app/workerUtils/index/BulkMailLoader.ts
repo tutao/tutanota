@@ -49,7 +49,7 @@ export const MAIL_INDEXER_CHUNK = 100
  */
 export type TimeRange = [number, number]
 
-export interface MailWithMailDetails {
+export interface MailWithDetails {
 	mail: Mail
 	mailDetails: MailDetails
 }
@@ -72,11 +72,8 @@ export class BulkMailLoader {
 		})
 	}
 
-	async loadMailDetails(
-		mails: readonly Mail[],
-		options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	): Promise<MailWithMailDetails[]> {
-		const result: Array<MailWithMailDetails> = []
+	async loadMailDetails(mails: readonly Mail[], options: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS): Promise<MailWithDetails[]> {
+		const result: Array<MailWithDetails> = []
 		// mailDetails stored as blob
 		let mailDetailsBlobMails = mails.filter((m) => !m.mailDetailsDraft)
 		const listIdToMailDetailsBlobIds: Map<Id, Array<Id>> = groupByAndMap(
