@@ -1,4 +1,5 @@
 import { Nullable, TypeChecks } from "./types/utility"
+import { TsString } from "./types/primitives"
 
 /*
  * Base class for all errors in Tutanota. Provides the handling of error stacks for chrome (captureStackTrace) and others.
@@ -13,8 +14,8 @@ import { Nullable, TypeChecks } from "./types/utility"
 /** @TSwUncheckedSendable All fields in TutanotaError are readonly and we dont mutate anything once an error is created */
 export class TutanotaError extends Error {
 	constructor(
-		public readonly name: Readonly<string>,
-		public readonly message: Readonly<string>,
+		public readonly name: Readonly<TsString>,
+		public readonly message: Readonly<TsString>,
 	) {
 		super(message)
 
