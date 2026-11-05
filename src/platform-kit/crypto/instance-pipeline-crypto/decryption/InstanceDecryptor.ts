@@ -35,7 +35,7 @@ export class InstanceDecryptor {
 	private readonly instanceAeadSubKeyCache = new InstanceSubKeyCache<AeadSubKeys>()
 
 	constructor(
-		private readonly sessionKeyProvider: SessionKeyProvider,
+		private readonly sessionKeyProvider: Nullable<SessionKeyProvider>,
 		private readonly kdfNonce: Nullable<KdfNonce>,
 		private readonly instanceKeyProvider: Nullable<InstanceKeyProvider>,
 		private readonly ownerKeyProvider: Nullable<OwnerKeyProvider>,

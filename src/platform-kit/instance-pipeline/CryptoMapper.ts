@@ -120,7 +120,7 @@ export class CryptoMapper {
 
 	public async decryptParsedInstance(
 		encryptedInstance: EncryptedParsedInstance,
-		sessionKeyProvider: SessionKeyProvider,
+		sessionKeyProvider: Nullable<SessionKeyProvider>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,

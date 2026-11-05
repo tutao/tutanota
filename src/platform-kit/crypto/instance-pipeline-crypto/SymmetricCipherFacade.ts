@@ -58,7 +58,7 @@ export class SymmetricCipherFacade {
 	 */
 	getInstanceDecryptor(
 		keyDerivationContext: KeyDerivationContext,
-		sessionKeyProvider: SessionKeyProvider,
+		sessionKeyProvider: Nullable<SessionKeyProvider>,
 		kdfNonce: Nullable<KdfNonce>,
 		ownerKeyProvider: Nullable<OwnerKeyProvider>,
 		instanceKeyProvider: Nullable<InstanceKeyProvider>,

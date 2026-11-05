@@ -14,6 +14,7 @@ import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCiph
 import { AesKey, KeyDerivationContext, SessionKeyProvider, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { ProgrammingError } from "@tutao/app-env"
 import { AssociatedData } from "../../encryption/symmetric/AssociatedData"
+import { Nullable } from "@tutao/utils"
 
 /**`
  * Decrypts one attribute of one given instance.
@@ -47,7 +48,7 @@ export class AesCbcDecryptor extends ValueDecryptor {
 		symmetricKeyDeriver: SymmetricKeyDeriver,
 		instanceSubKeyCache: InstanceSubKeyCache<AesCbcSubKeys>,
 		private readonly aesCbcFacade: AesCbcFacade,
-		private readonly sessionKeyProvider: SessionKeyProvider,
+		private readonly sessionKeyProvider: Nullable<SessionKeyProvider>,
 	) {
 		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache)
 	}
@@ -145,7 +146,7 @@ export class AeadWithSessionKeyDecryptor extends AeadValueDecryptor {
 		aeadFacade: AeadFacade,
 		keyDerivationContext: KeyDerivationContext,
 		associatedData: AssociatedData,
-		private readonly sessionKeyProvider: SessionKeyProvider,
+		private readonly sessionKeyProvider: Nullable<SessionKeyProvider>,
 	) {
 		super(parsedCiphertext, symmetricKeyDeriver, instanceSubKeyCache, aeadFacade, keyDerivationContext, associatedData)
 	}

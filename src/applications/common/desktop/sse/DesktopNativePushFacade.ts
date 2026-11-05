@@ -9,7 +9,7 @@ import { base64ToKey } from "../../../../platform-kit/crypto"
 import { log } from "../DesktopLog"
 import { AlarmNotificationTypeRef } from "@tutao/entities/sys"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
-import { lazify } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
+import { sessionKeyProviderFromAvailableSessionKey } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
 
 export class DesktopNativePushFacade implements NativePushFacade {
 	constructor(
@@ -56,7 +56,10 @@ export class DesktopNativePushFacade implements NativePushFacade {
 		const alarms = IncomingServerJson.expectMultipleInstance(alarmNotificationWireFormat, typeModel)
 		for (const alarm of alarms) {
 			const sk = base64ToKey(newDeviceSessionKey)
-			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap<AlarmNotification>(alarm, lazify(sk))
+			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap<AlarmNotification>(
+				alarm,
+				sessionKeyProviderFromAvailableSessionKey(sk),
+			)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 		}
 	}

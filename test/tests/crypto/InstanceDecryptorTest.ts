@@ -16,10 +16,10 @@ import {
 	Aes256Key,
 	AssociatedData,
 	InstanceKeyProvider,
-	lazify,
 	MacTag,
 	OwnerKeyProvider,
 	random,
+	sessionKeyProviderFromAvailableSessionKey,
 	SymmetricCipherVersion,
 } from "../../../src/platform-kit/crypto"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -101,7 +101,7 @@ o.spec("InstanceDecryptorTest", function () {
 		when(symmetricKeyDeriver.deriveSubKeysAesCbc(differentAes256Key, cipherVersion)).thenReturn(aes256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
 			makeKeyDerivationContext(instanceTypeId),
-			lazify(differentAes256Key),
+			sessionKeyProviderFromAvailableSessionKey(differentAes256Key),
 			null,
 			null,
 			null,
@@ -192,7 +192,7 @@ o.spec("InstanceDecryptorTest", function () {
 		when(symmetricKeyDeriver.deriveSubKeysAeadWithSessionKey(differentAes256Key, matchers.anything())).thenReturn(aeadSessionKey256SubKeys)
 		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
 			makeKeyDerivationContext(instanceTypeId),
-			lazify(differentAes256Key),
+			sessionKeyProviderFromAvailableSessionKey(differentAes256Key),
 			null,
 			null,
 			null,

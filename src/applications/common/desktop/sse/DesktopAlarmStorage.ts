@@ -11,7 +11,7 @@ import { EncryptedAlarmNotification } from "../../../../app-kit/native-bridge/co
 import { AlarmNotification, AlarmNotificationTypeRef, NotificationSessionKey } from "@tutao/entities/sys"
 import { elementIdPart, hasError } from "@tutao/meta"
 import { IncomingServerJson } from "../../../../platform-kit/instance-pipeline/TypeMapper"
-import { lazify } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
+import { sessionKeyProviderFromAvailableSessionKey } from "../../../../platform-kit/crypto/encryption/symmetric/AesKey"
 
 /**
  * manages session keys used for decrypting alarm notifications, encrypting & persisting them to disk
@@ -194,7 +194,7 @@ export class DesktopAlarmStorage {
 			const sessionKey = this.keyEncryption.decryptKey(pushIdentifierSessionKey, currentNotificationSessionKey.pushIdentifierSessionEncSessionKey)
 			const decryptedAlarmNotification = await this.alarmStorageInstancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
 				encryptedAlarmNotification.encryptedInstance,
-				lazify(sessionKey),
+				sessionKeyProviderFromAvailableSessionKey(sessionKey),
 			)
 
 			if (hasError(decryptedAlarmNotification)) {

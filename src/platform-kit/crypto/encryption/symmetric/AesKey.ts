@@ -58,8 +58,12 @@ export function assert256BitKey(key: AesKey): Aes256Key {
 export function assert256BitVersionedKey(key: VersionedKey): VersionedAes256Key {
 	return { version: key.version, object: assert256BitKey(key.object) }
 }
-export type SessionKeyProvider = Nullable<lazyAsync<AesKey>>
+export type SessionKeyProvider = lazyAsync<AesKey>
 
-export function lazify(key: Nullable<AesKey>): SessionKeyProvider {
-	return key == null ? null : async (): Promise<AesKey> => key
+/**
+ * Only use this if the session key is already available anyway. Do not resolve a session key just to put it inside here, create an actual lazy session key resolver instead.
+ * @param sessionKey a session key that you already had lying around for whatever reason
+ */
+export function sessionKeyProviderFromAvailableSessionKey(sessionKey: Nullable<AesKey>): Nullable<SessionKeyProvider> {
+	return sessionKey == null ? null : async (): Promise<AesKey> => sessionKey
 }

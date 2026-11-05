@@ -13,8 +13,8 @@ import {
 	AesCbcFacade,
 	KeyEncryption,
 	keyToUint8Array,
-	lazify,
 	random,
+	sessionKeyProviderFromAvailableSessionKey,
 	SymmetricCipherFacade,
 	SymmetricCipherUtils,
 	uint8ArrayToKey,
@@ -130,7 +130,10 @@ o.spec("DesktopAlarmStorageTest", function () {
 		const expectedAlarmsCaptor = matchers.captor()
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, expectedAlarmsCaptor.capture()))
 		const savedAlarm = IncomingServerJson.expectMultipleDesktopAlarms(expectedAlarmsCaptor.values![0], alarmNotificationModel)
-		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(savedAlarm[0], lazify(notificationSessionKey))
+		let decryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
+			savedAlarm[0],
+			sessionKeyProviderFromAvailableSessionKey(notificationSessionKey),
+		)
 		o(alarmNotification._id).deepEquals(decryptedSavedAlarmNotification._id)
 		o(hasError(decryptedSavedAlarmNotification)).equals(false)
 
@@ -165,9 +168,15 @@ o.spec("DesktopAlarmStorageTest", function () {
 		verify(confMock.setVar(DesktopConfigKey.scheduledAlarms, newExpectedAlarmsCaptor.capture()))
 		// assert that we can decrypt correctly and data alarm notifications match the previously stored ones
 		let firstAlarmJson = IncomingServerJson.expectMultipleDesktopAlarms(newExpectedAlarmsCaptor.values![0], alarmNotificationModel)[0]
-		const oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(firstAlarmJson, lazify(notificationSessionKey))
+		const oldDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
+			firstAlarmJson,
+			sessionKeyProviderFromAvailableSessionKey(notificationSessionKey),
+		)
 		const secondAlarmJson = IncomingServerJson.expectMultipleDesktopAlarms(newExpectedAlarmsCaptor.values![1], alarmNotificationModel)[0]
-		const newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(secondAlarmJson, lazify(newNotificationSessionKey))
+		const newDecryptedSavedAlarmNotification = await instancePipeline.decryptAndMap<AlarmNotification>(
+			secondAlarmJson,
+			sessionKeyProviderFromAvailableSessionKey(newNotificationSessionKey),
+		)
 
 		o(alarmNotification._id).deepEquals(oldDecryptedSavedAlarmNotification._id)
 		o(newAlarmNotification._id).deepEquals(newDecryptedSavedAlarmNotification._id)

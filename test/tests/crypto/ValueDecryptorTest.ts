@@ -21,10 +21,10 @@ import {
 	AssociatedData,
 	InstanceKeyProvider,
 	KeyDerivationContext,
-	lazify,
 	MacTag,
 	OwnerKeyProvider,
 	random,
+	sessionKeyProviderFromAvailableSessionKey,
 	VersionedAes256Key,
 	VersionedKey,
 } from "../../../src/platform-kit/crypto"
@@ -71,7 +71,13 @@ o.spec("ValueDecryptorTest", function () {
 	})
 
 	o.test("UnusedReservedUnauthenticated, unauthenticated with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
+			keyDerivationContext,
+			sessionKeyProviderFromAvailableSessionKey(aes256Key),
+			null,
+			null,
+			null,
+		)
 		const parsedCiphertext = new ParsedCiphertextUnusedReservedUnauthenticated(initializationVector, new Uint8Array([1, 2]))
 		const ciphertext = concat(symmetricCipherVersionToUint8Array(parsedCiphertext.cipherVersion), initializationVector.bytes, parsedCiphertext.ciphertext)
 		const valueDecryptor = await instanceDecryptor.getValueDecryptor(ciphertext, emptyAssociatedData)
@@ -83,7 +89,13 @@ o.spec("ValueDecryptorTest", function () {
 	})
 
 	o.test("AesCbcThenHmac, with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
+			keyDerivationContext,
+			sessionKeyProviderFromAvailableSessionKey(aes256Key),
+			null,
+			null,
+			null,
+		)
 		const ciphertextRaw = new Uint8Array([1, 2])
 		const parsedCiphertext = new ParsedCiphertextAesCbcThenHmac(initializationVector, ciphertextRaw, macTag)
 
@@ -191,7 +203,13 @@ o.spec("ValueDecryptorTest", function () {
 	})
 
 	o.test("AeadWithSessionKey with session key present", async function () {
-		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(keyDerivationContext, lazify(aes256Key), null, null, null)
+		const instanceDecryptor = symmetricCipherFacade.getInstanceDecryptor(
+			keyDerivationContext,
+			sessionKeyProviderFromAvailableSessionKey(aes256Key),
+			null,
+			null,
+			null,
+		)
 		const cipherVersion = SymmetricCipherVersion.AeadWithSessionKey
 		const ciphertext = new Uint8Array()
 		const versionedCiphertext = concat(Uint8Array.of(cipherVersion), initializationVector.bytes, ciphertext, macTag)

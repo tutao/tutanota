@@ -23,7 +23,15 @@ import {
 	NotificationSessionKeyTypeRef,
 	RepeatRuleTypeRef,
 } from "@tutao/entities/sys"
-import { Aes, AesCbcFacade, KeyEncryption, lazify, random, SymmetricCipherFacade, SymmetricCipherUtils } from "../../../../src/platform-kit/crypto"
+import {
+	Aes,
+	AesCbcFacade,
+	KeyEncryption,
+	random,
+	sessionKeyProviderFromAvailableSessionKey,
+	SymmetricCipherFacade,
+	SymmetricCipherUtils,
+} from "../../../../src/platform-kit/crypto"
 import { changeInstanceDirection } from "../../instance-pipeline/InstancePipelineTestUtils"
 import { InstanceDirection } from "../../../../src/platform-kit/instance-pipeline/ParsedValue"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
@@ -89,7 +97,10 @@ o.spec("DesktopAlarmSchedulerTest", function () {
 		alarmStorageMockBuilder._mock.removePushIdentifierKey = () => Promise.resolve()
 		alarmStorageMockBuilder._mock.encryptAlarmNotification = (an) => instancePipeline.mapAndEncryptToParsedInstance(AlarmNotificationTypeRef, an, sk)
 		alarmStorageMockBuilder._mock.decryptAlarmNotification = async (an) => {
-			const notif = await instancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(an.encryptedInstance, lazify(sk))
+			const notif = await instancePipeline.decryptAndMapEncryptedInstance<AlarmNotification>(
+				an.encryptedInstance,
+				sessionKeyProviderFromAvailableSessionKey(sk),
+			)
 			removeOriginals(notif)
 			return notif
 		}
