@@ -1,4 +1,3 @@
-import { TsArray } from "./array"
 import { TsInt, TsString } from "./primitives"
 
 export const TsMath = {
@@ -13,8 +12,8 @@ export type TsRecord<K extends string | number, V> = Record<K, V>
 export const TsDate = Date
 
 export const TsObject = {
-	keys(obj: any): TsArray<TsString> {
-		return TsArray.from(...Object.keys(obj))
+	keys(obj: any): Array<TsString> {
+		return Object.keys(obj)
 	},
 
 	freeze<T>(obj: T): Readonly<T> {

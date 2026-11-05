@@ -4,7 +4,6 @@ import Stream from "mithril/stream"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { Autocomplete } from "../../../../ui/base/LegacyTextField.js"
 import { TutanotaConstants } from "@tutao/app-env"
-
 import { Checkbox, CheckboxAttrs } from "../../../../ui/base/Checkbox.js"
 import { defer, DeferredObject, getFirstOrThrow, lazy } from "@tutao/utils"
 import type { TranslationKey } from "../../../../ui/utils/LanguageViewModel"
@@ -23,11 +22,8 @@ import { PasswordFormNew, PasswordModel } from "./PasswordFormNew.js"
 import { Styles } from "../../../../ui/styles"
 import { SignupViewModel } from "../models/SignupViewModel"
 import { getWhitelabelRegistrationDomains } from "../../../../ui/utils/WhitelabelUtils"
-
 import { PlanType } from "../../../../entities/sys/Utils"
-
 import { isFreeSignupOnly } from "../../misc/LoginUtils"
-import { TsArray } from "@tutao/lang-api"
 
 export type SignupFormAttrs = {
 	// will return an error message that needs to be displayed in case of recoverable errors.
