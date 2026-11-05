@@ -5,7 +5,6 @@ import {
 	addDaysForRecurringEvent,
 	CalendarTimeRange,
 	createRepeatRuleWithValues,
-	extractYearFromBirthday,
 	generateUid,
 	getAllDayDatesFromBirthdayIso,
 	getEventEnd,
@@ -41,6 +40,7 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { filterInPlace } from "../../../../platform-kit/utils/ArrayUtils"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
@@ -266,7 +266,7 @@ export class CalendarEventsRepository {
 		this.daysToEvents(filtered_events)
 	}
 
-	private removeBirthdayEventsForContact(contactId: string, month: number | null) {
+	private removeBirthdayEventsForContact(contactId: string) {
 		const encodedContactId = stringToBase64(contactId)
 		const isValidEvent = (ev: CalendarEvent) => {
 			return !(isBirthdayEvent(ev.uid) && elementIdPart(ev._id)?.includes(encodedContactId))
@@ -279,21 +279,9 @@ export class CalendarEventsRepository {
 		let filtered_events = new Map(Array.from(this.daysToEvents().entries()).map(mapExistingEvents))
 		this.daysToEvents(filtered_events)
 
-		let monthToSearch = month ?? 0
-		while (monthToSearch < 12) {
-			let found = false
-
-			this.monthsToBirthdayEvents[monthToSearch] = this.monthsToBirthdayEvents[monthToSearch].filter((ev) => {
-				const isContactEvent = elementIdPart(ev._id).includes(encodedContactId)
-				if (isContactEvent) {
-					found = true
-				}
-
-				return !isContactEvent
-			})
-
-			if (found) break
-			monthToSearch += 1
+		const notBirthdayEventForContact = (ev: CalendarEvent) => !elementIdPart(ev._id).includes(encodedContactId)
+		for (let monthIndex = 0; monthIndex < 12; ++monthIndex) {
+			filterInPlace(this.monthsToBirthdayEvents[monthIndex], notBirthdayEventForContact)
 		}
 	}
 
@@ -431,15 +419,16 @@ export class CalendarEventsRepository {
 		}
 	}
 
-	private pushBirthdayEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
-		let birthdayEventsThisMonth = this.monthsToBirthdayEvents[month]
-		const index = birthdayEventsThisMonth.findIndex((ev) => getElementId(ev) === getElementId(newEvent))
-		if (index === -1) {
-			birthdayEventsThisMonth.push(newEvent)
-		} else {
-			birthdayEventsThisMonth[index] = newEvent
+	private pushBirthdayEvent(month: number, newBirthdayEvent: CalendarEvent) {
+		const newBirthdayEventElementId = getElementId(newBirthdayEvent)
+		const birthdaysInMonth = this.monthsToBirthdayEvents[month]
+		for (let i = 0; i < birthdaysInMonth.length; ++i) {
+			if (getElementId(birthdaysInMonth[i]) === newBirthdayEventElementId) {
+				birthdaysInMonth[i] = newBirthdayEvent
+				return
+			}
 		}
-		this.monthsToBirthdayEvents[month] = birthdayEventsThisMonth
+		birthdaysInMonth.push(newBirthdayEvent)
 	}
 
 	private createClientOnlyBirthdayEvent(contact: Contact, userId: Id) {
@@ -513,7 +502,7 @@ export class CalendarEventsRepository {
 		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
 			if (newEvent) {
-				this.pushBirthdayEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+				this.pushBirthdayEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent)
 			}
 		}
 
@@ -527,7 +516,7 @@ export class CalendarEventsRepository {
 		} else if (operation === OperationType.UPDATE) {
 			await this.loadContactAndUpdateBirthday(id, true)
 		} else if (operation === OperationType.DELETE) {
-			this.removeBirthdayEventsForContact(id.join("/"), null)
+			this.removeBirthdayEventsForContact(id.join("/"))
 		}
 
 		console.info("Processed contact entity event, operation type", operation, "for contact id", id)
@@ -546,10 +535,10 @@ export class CalendarEventsRepository {
 		currentBirthdayDate.setFullYear(new Date().getFullYear())
 
 		if (removeIfExists) {
-			this.removeBirthdayEventsForContact(contactId.join("/"), currentBirthdayDate.getMonth())
+			this.removeBirthdayEventsForContact(contactId.join("/"))
 		}
 
-		this.pushBirthdayEvent(currentBirthdayDate.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+		this.pushBirthdayEvent(currentBirthdayDate.getMonth(), newEvent)
 
 		const monthRange = getMonthRange(currentBirthdayDate, this.zone)
 		this.addBirthdaysEventsIfNeeded(currentBirthdayDate, monthRange, true)

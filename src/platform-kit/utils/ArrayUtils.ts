@@ -190,6 +190,25 @@ export function mapAndFilterNull<T, R>(array: ReadonlyArray<T>, mapper: (arg0: T
 	return resultList
 }
 
+/**
+ * Mutate `array`, removing all item for which `predicate` returns false.
+ *
+ * Same as JS's built-in `Array.filter`, just in-place.
+ *
+ * The implementation is a single-pass array-compaction without unexpected inefficiencies.
+ */
+export function filterInPlace<T>(array: T[], predicate: (item: T) => boolean): void {
+	let newIndex = 0
+	for (let oldIndex = 0; oldIndex < array.length; ++oldIndex) {
+		const item = array[oldIndex]
+		if (predicate(item)) {
+			array[newIndex] = item
+			++newIndex
+		} // else drop the filtered-out item
+	}
+	array.length = newIndex
+}
+
 export function filterNull<T>(array: ReadonlyArray<T | null>): Array<NonNullable<T>> {
 	return downcast(array.filter((item) => item != null))
 }
