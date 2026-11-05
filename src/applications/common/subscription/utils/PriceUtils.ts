@@ -165,6 +165,7 @@ export class PriceAndConfigProvider {
 		})
 		this.upgradePriceData = await serviceExecutor.execute(UpgradePriceService_GET, data, null)
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
+			this.turnOffGlobalCampaign(this.upgradePriceData)
 			this.mobilePrices = new Map()
 			let allPrices: ReadonlyArray<MobilePlanPrice>
 			try {
@@ -284,6 +285,37 @@ export class PriceAndConfigProvider {
 			if (price.isEligibleForIntroOffer) return true
 		}
 		return false
+	}
+
+	/**
+	 * turns off global campaign visuals for app store / play store.
+	 * needs to be removed if we run a campaign on all platforms!
+	 *
+	 * also removes any other discounts, but those can't be used in these apps anyway.
+	 */
+	private turnOffGlobalCampaign(upgradePriceData: UpgradePriceServiceReturn) {
+		upgradePriceData.globalCampaignName = null
+		for (const plan of upgradePriceData.plans) {
+			plan.firstYearDiscount = "0"
+			plan.bonusMonthsForYearlyPlan = "0"
+			plan.monthlyPrice = plan.monthlyReferencePrice
+		}
+
+		upgradePriceData.bonusMonthsForYearlyPlan = "0"
+		upgradePriceData.hasGlobalFirstYearDiscount = false
+		const prices = [
+			upgradePriceData.advancedPrices,
+			upgradePriceData.essentialPrices,
+			upgradePriceData.revolutionaryPrices,
+			upgradePriceData.legendaryPrices,
+			upgradePriceData.unlimitedPrices,
+		]
+
+		for (const price of prices) {
+			price.monthlyPrice = price.monthlyReferencePrice
+			price.firstYearDiscount = "0"
+			price.bonusMonthsForYearlyPlan = "0"
+		}
 	}
 }
 
