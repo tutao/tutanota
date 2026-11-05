@@ -65,6 +65,7 @@ import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { AssociationPath, InstancePath, RootPath, ValuePath } from "./EncryptionContextPath"
 import { ValueAssociatedData } from "./ValueAssociatedData"
 import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
+import { isNull } from "../utils/Utils.js"
 
 export interface SymmetricGroupKeyLoader {
 	loadSymGroupKey(groupId: Id, requestedVersion: KeyVersion, currentGroupKey: Nullable<VersionedKey>): Promise<AesKey>
@@ -136,8 +137,8 @@ export class CryptoMapper {
 			instanceKeyProvider,
 		)
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedInstance, this.modelMapper, this)
-		if (isNotNull(entityAdapter.bucketKey)) {
-			await instanceDecryptor.forceResolveSessionKeyOrSomething()
+		if (isNull(entityAdapter._ownerEncSessionKey) && isNotNull(entityAdapter.bucketKey)) {
+			await instanceDecryptor.forceResolveSessionKey()
 		}
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}

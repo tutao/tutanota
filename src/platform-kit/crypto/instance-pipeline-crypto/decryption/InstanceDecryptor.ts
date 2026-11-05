@@ -125,7 +125,7 @@ export class InstanceDecryptor {
 		)
 	}
 
-	public async forceResolveSessionKeyOrSomething(): Promise<void> {
+	public async forceResolveSessionKey(): Promise<void> {
 		await this.sessionKeyProvider?.()
 	}
 }

@@ -5,7 +5,7 @@
 
 import { AssociationReprType, Entity, getAssociationRepresentationType, isSameId, isSameSingleId, isSameTypeRef, PersistentEntity, TypeRef } from "../meta"
 import { ParsedValue } from "./ParsedValue"
-import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, Nullable } from "@tutao/utils"
+import { assertNotNull, deepEqual, isEmpty, isNotNull, lazy, lazyMemoized, Nullable } from "@tutao/utils"
 import {
 	DecryptedParsedInstance,
 	DecryptedParsedValue,
@@ -19,12 +19,12 @@ import {
 	InstanceDecryptor,
 	InstanceKeyProvider,
 	OwnerKeyProvider,
-	sessionKeyProviderFromAvailableSessionKey,
+	SessionKeyProvider,
 	SymmetricCipherFacade,
 	validateKdfNonceLength,
 	VersionedEncryptedKey,
 } from "@tutao/crypto"
-import { CryptoError } from "@tutao/crypto/error"
+import { CryptoError, SessionKeyNotFoundError } from "@tutao/crypto/error"
 import { ServerTypeModel } from "@tutao/meta"
 import { PatchOperationType } from "./PatchGenerator.js"
 import { TypeModelResolver } from "./EntityFunctions"
@@ -112,7 +112,13 @@ export class PatchMerger {
 			const typeModel = await this.typeModelResolver.resolveServerTypeReference(instanceType)
 
 			const instance = await this.instancePipeline.modelMapper.mapToInstance(parsedInstance)
-			const sk = await this.sessionKeyResolver().resolveSessionKey(instance)
+			const sessionKeyProvider: SessionKeyProvider = lazyMemoized(async (): Promise<AesKey> => {
+				const sessionKey = await this.sessionKeyResolver().resolveSessionKey(instance)
+				if (isNull(sessionKey)) {
+					throw new SessionKeyNotFoundError("session key not found")
+				}
+				return sessionKey
+			})
 			const ownerGroup = instance._ownerGroup ?? null
 			const kdfNonce = validateKdfNonceLength(instance._kdfNonce ?? null)
 			const instanceTypeId: InstanceTypeId = {
@@ -125,7 +131,7 @@ export class PatchMerger {
 			const keyDerivationContext = makeKeyDerivationContext(instanceTypeId)
 			const instanceDecryptor = this.symmetricCipherFacade.getInstanceDecryptor(
 				keyDerivationContext,
-				sessionKeyProviderFromAvailableSessionKey(sk),
+				sessionKeyProvider,
 				kdfNonce,
 				ownerKeyProvider,
 				null,

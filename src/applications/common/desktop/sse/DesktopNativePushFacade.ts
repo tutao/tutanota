@@ -54,11 +54,11 @@ export class DesktopNativePushFacade implements NativePushFacade {
 	async scheduleAlarms(alarmNotificationWireFormat: string, newDeviceSessionKey: Base64): Promise<void> {
 		const typeModel = await this.alarmStorageInstancePipeline.typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
 		const alarms = IncomingServerJson.expectMultipleInstance(alarmNotificationWireFormat, typeModel)
+		const sessionKey = base64ToKey(newDeviceSessionKey)
 		for (const alarm of alarms) {
-			const sk = base64ToKey(newDeviceSessionKey)
 			const alarmNotification = await this.alarmStorageInstancePipeline.decryptAndMap<AlarmNotification>(
 				alarm,
-				sessionKeyProviderFromAvailableSessionKey(sk),
+				sessionKeyProviderFromAvailableSessionKey(sessionKey),
 			)
 			await this.alarmScheduler.handleCreateAlarm(alarmNotification)
 		}

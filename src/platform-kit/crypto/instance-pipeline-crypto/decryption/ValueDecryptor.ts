@@ -11,7 +11,7 @@ import {
 } from "../../encryption/symmetric/ParsedCiphertext"
 import { InstanceSubKeyCache } from "./SubKeyCache"
 import { SymmetricCipherVersion } from "../../encryption/symmetric/SymmetricCipherVersion"
-import { AesKey, KeyDerivationContext, SessionKeyProvider, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
+import { KeyDerivationContext, SessionKeyProvider, VersionedAes256Key, VersionedKey } from "@tutao/crypto"
 import { ProgrammingError } from "@tutao/app-env"
 import { AssociatedData } from "../../encryption/symmetric/AssociatedData"
 import { Nullable } from "@tutao/utils"
@@ -56,17 +56,9 @@ export class AesCbcDecryptor extends ValueDecryptor {
 	async getValue(): Promise<Uint8Array<ArrayBuffer>> {
 		const cipherVersion = this.parsedCiphertext.cipherVersion
 		if (this.sessionKeyProvider == null) {
-			throw new ProgrammingError("needed a session key, but one was not provided")
+			throw new ProgrammingError("needed a session key, but there is no session key provider")
 		}
-		let sessionKey: AesKey
-		try {
-			sessionKey = await this.sessionKeyProvider()
-		} catch (e) {
-			if (e instanceof TypeError) {
-				console.log(`this.sessionKey: ${this.sessionKeyProvider}`, e)
-			}
-			throw e
-		}
+		const sessionKey = await this.sessionKeyProvider()
 		const instanceAesSubKeyCacheKey = {
 			cipherVersion,
 			aesKey: sessionKey,
@@ -152,7 +144,7 @@ export class AeadWithSessionKeyDecryptor extends AeadValueDecryptor {
 	}
 	async getValue(): Promise<Uint8Array<ArrayBuffer>> {
 		if (this.sessionKeyProvider == null) {
-			throw new ProgrammingError("needed a session key, but one was not provided")
+			throw new ProgrammingError("needed a session key, but there is no session key provider")
 		}
 		const sessionKey = await this.sessionKeyProvider()
 		const instanceAeadSubKeyCacheKey = {

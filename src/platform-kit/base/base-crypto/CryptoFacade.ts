@@ -44,6 +44,7 @@ import {
 	PublicKey,
 	PublicKeyIdentifier,
 	PublicKeyIdentifierType,
+	SessionKeyProvider,
 	sha256Hash,
 	SymmetricCipherUtils,
 	validateKdfNonceLength,
@@ -439,7 +440,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		pqMessageSenderKey: Uint8Array<ArrayBuffer> | null,
 		pqMessageSenderKeyVersion: KeyVersion | null,
 		instance: PersistentEntity,
-		resolvedSessionKeyForInstance: lazy<Promise<AesKey>>,
+		resolvedSessionKeyForInstance: SessionKeyProvider,
 		instanceSessionKeyWithOwnerEncSessionKey: InstanceSessionKey,
 		decryptedSessionKey: AesKey,
 		keyGroup: Id | null,
@@ -488,7 +489,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 		}
 	}
 
-	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: lazy<Promise<AesKey>>): Promise<Mail> {
+	private async getDecryptedMailFromAdapter(instance: PersistentEntity, resolvedSessionKeyForInstance: SessionKeyProvider): Promise<Mail> {
 		if (isNotNull(instance.isAdapter) && instance.isAdapter) {
 			const entityAdapter = downcast<EntityAdapter>(instance)
 			const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(

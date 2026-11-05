@@ -2,15 +2,16 @@ import { DataTransferEntity, Entity, isSameTypeRef, NULL_ENTITY, ServiceDefiniti
 import { RestClient } from "@tutao/rest-client"
 import { HttpMethod, MediaType, RestTextBody, validateHttpMethod } from "@tutao/rest-client/types"
 import { IServiceExecutor } from "./ServiceRequest.js"
-import { assert, assertNotNull, downcast, isNotNull, lazy, Nullable } from "@tutao/utils"
+import { assert, assertNotNull, downcast, isNotNull, lazy, lazyMemoized, Nullable } from "@tutao/utils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { EntityAdapter, InstancePipeline, LoggedInUserProvider, SessionAndInstanceKeyResolver, TypeModelResolver } from "@tutao/instance-pipeline"
 import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
-import { AeadCipherVersion, sessionKeyProviderFromAvailableSessionKey, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
+import { AeadCipherVersion, SessionKeyProvider, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
 import { PaymentDataService_PUT } from "@tutao/entities/sys"
+import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 
 EnvProvider.assertWorkerOrNode()
 
@@ -142,8 +143,14 @@ export class ServiceExecutor implements IServiceExecutor {
 			this.instancePipeline.modelMapper,
 			this.instancePipeline.cryptoMapper,
 		)
-		const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+		const sessionKeyProvider: SessionKeyProvider = lazyMemoized(async () => {
+			const sessionKey = (await this.sessionKeyResolver().resolveServiceSessionKey(entityAdapter)) ?? params?.sessionKey ?? null
+			if (isNull(sessionKey)) {
+				throw new SessionKeyNotFoundError("session key not found")
+			}
+			return sessionKey
+		})
 
-		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKeyProviderFromAvailableSessionKey(sessionKey))
+		return await this.instancePipeline.decryptAndMap(incomingJson, sessionKeyProvider)
 	}
 }
