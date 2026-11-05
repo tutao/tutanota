@@ -102,7 +102,6 @@ o.spec("ServiceExecutor", function () {
 			authDataProvider,
 			() => object(),
 			random,
-			keyEncryption,
 		)
 		sessionKey = symmetricCipherUtils.aes256RandomKey()
 		ownerKey = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
