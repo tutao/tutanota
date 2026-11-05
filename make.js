@@ -3,6 +3,8 @@ import { runDevBuild } from "./buildSrc/DevBuild.js"
 import { spawn } from "node:child_process"
 import { chalk } from "zx"
 
+const { passThroughArgs, buildArgs } = splitPassthroughAndBuildArgs()
+
 await program
 	.usage("[options] [test|prod|local|host <url>]")
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "localSecure", "host"]).default("local").argOptional())
@@ -54,7 +56,7 @@ await program
 				const buildDir = app === "calendar" ? "build-calendar-app" : "build"
 				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE", ELECTRON_START_WITH_DEV_TOOLS: devTools })
 				// we don't want to quit here because we want to keep piping output to our stdout.
-				spawn("node_modules/.bin/electron", ["--inspect=5858", `./${buildDir}/`], {
+				spawn("node_modules/.bin/electron", ["--inspect=5858", `./${buildDir}/`, ...passThroughArgs], {
 					stdio: "inherit",
 					env: options.verbose ? Object.assign({}, env, { ELECTRON_ENABLE_LOGGING: 1 }) : env,
 				})
@@ -67,7 +69,7 @@ await program
 			process.exit(1)
 		}
 	})
-	.parseAsync(process.argv)
+	.parseAsync(buildArgs)
 
 // temp fix to remove dist dirs that were created in the src tree. Can be removed 2027.
 async function removeDistDirs(dir, depth = 0) {
@@ -87,5 +89,18 @@ async function removeDistDirs(dir, depth = 0) {
 		}
 
 		await removeDistDirs(fullPath, depth + 1)
+	}
+}
+
+/**
+ * Split arguments before '--' (for this build script) and after (for the desktop app)
+ * @return {{passThroughArgs: string[], buildArgs: string[]}}
+ */
+function splitPassthroughAndBuildArgs() {
+	const passThroughArgSeparator = process.argv.indexOf("--")
+	if (passThroughArgSeparator === -1) {
+		return { buildArgs: process.args, passThroughArgs: [] }
+	} else {
+		return { buildArgs: process.argv.slice(0, passThroughArgSeparator), passThroughArgs: process.argv.slice(passThroughArgSeparator + 1) }
 	}
 }
