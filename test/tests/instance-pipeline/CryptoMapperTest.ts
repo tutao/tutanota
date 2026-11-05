@@ -71,7 +71,7 @@ o.spec("CryptoMapperTest", () => {
 	const keyEncryption = new KeyEncryption(symmetricCipherFacade, aes)
 	const keyLoader: SymmetricGroupKeyLoader = object()
 	const modelMapper: ModelMapper = object()
-	const cryptoMapper: CryptoMapper = new CryptoMapper(symmetricCipherFacade, () => keyLoader, modelMapper, keyEncryption)
+	const cryptoMapper: CryptoMapper = new CryptoMapper(symmetricCipherFacade, () => keyLoader, modelMapper)
 	const app = AppNameEnum.Tutanota
 	const instanceTypeId: InstanceTypeId = {
 		app,
@@ -395,7 +395,7 @@ o.spec("CryptoMapperTest", () => {
 			const valueType = createEncryptedValueType(ValueTypeEnum.Bytes, CardinalityEnum.One)
 			const value = random.generateRandomData(5)
 			const instanceKey: VersionedAes256Key = { object: symmetricCipherUtils.aes256RandomKey(), version: 0 }
-			const instanceKeyProvider: InstanceKeyProvider = async (groupKeyVersion) => {
+			const instanceKeyProvider: InstanceKeyProvider = async (_groupKeyVersion: KeyVersion) => {
 				return instanceKey
 			}
 			const subKeyInfo = new SubKeyInfoAeadWithInstanceKeyFromInstanceKey(instanceKey)
