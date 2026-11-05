@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 object ResponseCodes {
 	const val NOT_AUTHENTICATED = 401

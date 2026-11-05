@@ -57,6 +57,7 @@ import de.tutao.tutanota.alarms.MailAlarmIntentFactory
 import de.tutao.tutanota.push.AndroidNativePushFacade
 import de.tutao.tutanota.push.LocalNotificationsFacade
 import de.tutao.tutanota.push.PushNotificationService
+import de.tutao.tutanota.push.getMainActivityClass
 import de.tutao.tutanota.push.notificationDismissedIntent
 import de.tutao.tutashared.ActivityResult
 import de.tutao.tutashared.ActivityUtils
@@ -147,6 +148,9 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
+		// TODO: Remove me: just for testing
+		getMainActivityClass(applicationContext)
+
 		Log.d(TAG, "App started")
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
@@ -943,7 +947,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 			}
 		}
 	}
-
+	// TODO: Consider moving these constants elsewhere so they are accessible everywhere.
 	companion object {
 		// don't remove the trailing slash because otherwise longer domains might match our asset check
 		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"

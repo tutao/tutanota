@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.Manifest
 import android.annotation.TargetApi
@@ -24,14 +24,16 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
-import de.tutao.calendar.BuildConfig
-import de.tutao.calendar.MainActivity
-import de.tutao.calendar.R
+import de.tutao.tutashared.BuildConfig
+import de.tutao.tutashared.R
+import de.tutao.tutashared.alarms.getMainActivityClass
 import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
+import de.tutao.tutashared.push.PushNotificationService
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
+import kotlin.collections.iterator
 import kotlin.math.abs
 
 const val NOTIFICATION_DISMISSED_ADDR_EXTRA = "notificationDismissed"
@@ -40,6 +42,18 @@ private const val PERSISTENT_NOTIFICATION_CHANNEL_ID = "service_intent"
 private const val ALARM_NOTIFICATION_CHANNEL_ID = "alarms"
 private const val DOWNLOAD_NOTIFICATION_CHANNEL_ID = "downloads"
 private const val EMAIL_ADDRESS_EXTRA = "email_address"
+
+//  TODO: Decide where these actually belong
+// don't remove the trailing slash because otherwise longer domains might match our asset check
+const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"
+const val OPEN_CALENDAR_ACTION = "de.tutao.calendar.OPEN_CALENDAR_ACTION"
+const val OPEN_LOGS_ACTION = "de.tutao.calendar.OPEN_CALENDAR_LOGS"
+const val OPEN_LOGS_DATA_KEY = "logs"
+const val OPEN_USER_MAILBOX_USERID_KEY = "userId"
+const val ALREADY_HANDLED_INTENT = "alreadyHandledIntent"
+const val OPEN_CALENDAR_IN_APP_ACTION_KEY = "inAppAction"
+const val OPEN_CALENDAR_DATE_KEY = "targetDate"
+const val OPEN_CALENDAR_EVENT_KEY = "eventId"
 
 
 class LocalNotificationsFacade(private val context: Context, private val sseStorage: SseStorage) :
@@ -113,10 +127,10 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	}
 
 	override fun showErrorNotification(@StringRes message: Int, exception: Throwable?) {
-		val intent = Intent(context, MainActivity::class.java)
+		val intent = Intent(context, getMainActivityClass(this.context))
 			.setAction(Intent.ACTION_SEND)
 			.setType("text/plain")
-			.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + BuildConfig.VERSION_NAME)
+			.putExtra(Intent.EXTRA_SUBJECT, "Alarm error v" + "365.261030.0") // TODO: give valid VERSION_NAME env variable
 
 		if (exception != null) {
 			val stackTrace = Log.getStackTraceString(exception)
@@ -192,7 +206,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 	 */
 	override fun showDownloadNotification(file: File) {
 		val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-		val uri = FileProvider.getUriForFile(context, BuildConfig.FILE_PROVIDER_AUTHORITY, file)
+		val uri = FileProvider.getUriForFile(context, "de.tutao.fileprovider.debug", file) // TODO: Fix provide file providerauthority in build.gradle.kts (:tutashared) script
 		val mimeType = getMimeType(file.toUri(), context)
 		val intent = Intent(Intent.ACTION_VIEW).apply {
 			flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_GRANT_READ_URI_PERMISSION
@@ -210,6 +224,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 				.build()
 		)
 	}
+
 }
 
 fun notificationDismissedIntent(
@@ -224,10 +239,10 @@ fun notificationDismissedIntent(
 }
 
 fun makeOpenCalendarIntent(context: Context, alarmIntent: Intent): PendingIntent {
-	val userId = alarmIntent.getStringExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY)
-	val openCalendarEventIntent = Intent(context, MainActivity::class.java)
-	openCalendarEventIntent.action = MainActivity.OPEN_CALENDAR_ACTION
-	openCalendarEventIntent.putExtra(MainActivity.OPEN_USER_MAILBOX_USERID_KEY, userId)
+	val userId = alarmIntent.getStringExtra(OPEN_USER_MAILBOX_USERID_KEY)
+	val openCalendarEventIntent = Intent(context, getMainActivityClass(context))
+	openCalendarEventIntent.action = OPEN_CALENDAR_ACTION
+	openCalendarEventIntent.putExtra(OPEN_USER_MAILBOX_USERID_KEY, userId)
 	return PendingIntent.getActivity(
 		context,
 		alarmIntent.data.toString().hashCode(),

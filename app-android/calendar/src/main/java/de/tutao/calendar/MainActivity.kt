@@ -48,10 +48,9 @@ import androidx.core.view.doOnLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.flowWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
 import de.tutao.calendar.push.AndroidNativePushFacade
-import de.tutao.calendar.push.LocalNotificationsFacade
-import de.tutao.calendar.push.PushNotificationService
+import de.tutao.tutashared.push.LocalNotificationsFacade
+import de.tutao.tutashared.push.PushNotificationService
 import de.tutao.calendar.webauthn.AndroidWebauthnFacade
 import de.tutao.calendar.widget.WidgetRefresher
 import de.tutao.tutashared.ActivityResult
@@ -66,6 +65,7 @@ import de.tutao.tutashared.CancelledError
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.TempDir
+import de.tutao.tutashared.alarms.AlarmIntentFactory
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
@@ -184,7 +184,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			cryptoFacade,
-			SystemAlarmFacade(this, CalendarAlarmIntentFactory()),
+			SystemAlarmFacade(this, AlarmIntentFactory(this::class.java)),
 			localNotificationsFacade,
 			DateProviderImpl(),
 			TimeZone.getDefault()

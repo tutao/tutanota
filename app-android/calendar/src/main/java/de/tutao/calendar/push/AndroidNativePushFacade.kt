@@ -8,6 +8,7 @@ import de.tutao.tutashared.base64ToBytes
 import de.tutao.tutashared.ipc.DataWrapper
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.ipc.NativePushFacade
+import de.tutao.tutashared.push.LocalNotificationsFacade
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -37,9 +38,9 @@ class AndroidNativePushFacade(
 	}
 
 	override suspend fun initPushNotifications() {
-		withContext(Dispatchers.Main) {
-			activity.setupPushNotifications()
-		}
+        withContext(Dispatchers.Main) {
+            activity.setupPushNotifications()
+        }
 	}
 
 	override suspend fun closePushNotifications(addressesArray: List<String>) {
