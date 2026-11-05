@@ -91,7 +91,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				// no-op. We can't tell if it's being displayed on-screen. It's unimplemented in iOS Safari+Webview.
 				if ("showPicker" in HTMLInputElement.prototype) {
 					try {
-						this.inputTimeEl!.showPicker()
+						this.inputTimeEl.showPicker()
 					} catch (e) {
 						// https://developer.chrome.com/blog/show-picker/#how-to
 						if (e.name !== "NotAllowedError") throw e
@@ -213,7 +213,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	private handleTextInput(textInputValue: string, attrs: TimePickerAttrs) {
 		this.inputText = textInputValue
 		const parsedTime = Time.parseFromString(this.inputText)
-		if (parsedTime !== null && (!this.selectedTime || !parsedTime!.isEqual(this.selectedTime))) {
+		if (parsedTime !== null && (!this.selectedTime || !parsedTime.isEqual(this.selectedTime))) {
 			// Update the time if we were able to parse a new time from the text input
 			this.inputTextIsValid = true
 			this.selectedTime = parsedTime

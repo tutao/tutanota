@@ -124,7 +124,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 				value: inputContent,
 				oninput: (ev: InputEvent & { redraw?: false }) => {
-					const parsedDate = this.parseDate(this.inputTextEl!.value)
+					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 					if (parsedDate) attrs.onDateSelected(parsedDate)
 					// else ev.redraw = false
 				},
@@ -162,13 +162,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				},
 				onblur: (ev: FocusEvent) => {
 					// Closing the dropdown does NOT happen here since they may have tabbed into the picker
-					const parsedDate = this.parseDate(this.inputTextEl!.value)
+					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 					if (parsedDate) attrs.onDateSelected(parsedDate)
 				},
 				onkeydown: (ev: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(ev)
 					if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
-						const parsedDate = this.parseDate(this.inputTextEl!.value)
+						const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 						if (parsedDate) attrs.onDateSelected(parsedDate)
 						// Toggle
 						this.showingDropdown = !this.showingDropdown
@@ -249,7 +249,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 									// Two #root events so this listener runs twice. Only need to do the work once.
 									if (this.showingDropdown) {
 										this.showingDropdown = false
-										const parsedDate = this.parseDate(this.inputDateEl!.value)
+										const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 										if (parsedDate) attrs.onDateSelected(parsedDate)
 									}
 								}
