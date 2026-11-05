@@ -116,15 +116,22 @@ export class CalendarSearchModel {
 		// restriction.end is the end of the last day of the last month we want to search
 		const startDate = new Date(assertNotNull(restriction.start))
 		const endDate = new Date(assertNotNull(restriction.end))
-		const daysInMonths: Date[] = []
+		const yearMonthPairs: [number, number][] = []
 
-		let currentDate = startDate
-		while (currentDate.getTime() <= endDate.getTime()) {
-			daysInMonths.push(currentDate)
-			currentDate = incrementMonth(currentDate, 1)
+		let year = startDate.getFullYear()
+		let month = startDate.getMonth() + 1
+		const endYear = endDate.getFullYear()
+		const endMonth = endDate.getMonth() + 1
+		while (year < endYear || month <= endMonth) {
+			yearMonthPairs.push([year, month])
+			++month
+			if (month > 12) {
+				month = 1
+				++year
+			}
 		}
 
-		const monitorHandle = this.progressTracker.registerMonitorSync(daysInMonths.length)
+		const monitorHandle = this.progressTracker.registerMonitorSync(yearMonthPairs.length)
 		const monitor: ProgressMonitorInterface = assertNotNull(this.progressTracker.getMonitor(monitorHandle))
 
 		if (abortSignal.aborted) {
@@ -136,10 +143,10 @@ export class CalendarSearchModel {
 
 		const canLoadBirthdaysCalendar = await calendarEventsRepository.canLoadBirthdaysCalendar()
 		if (canLoadBirthdaysCalendar) {
-			await calendarEventsRepository.loadContactsBirthdays()
+			await calendarEventsRepository.loadBirthdaysFromContacts()
 		}
 
-		await calendarEventsRepository.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)
+		await calendarEventsRepository.loadMonthsIfNeeded(yearMonthPairs, abortSignal, monitor)
 		monitor.completed()
 
 		const daysToEvents = calendarEventsRepository.getDaysToEvents()()

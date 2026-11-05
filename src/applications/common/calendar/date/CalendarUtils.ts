@@ -92,30 +92,6 @@ export function isBirthdayEvent(uid?: string | null) {
 	return uid?.includes(BIRTHDAY_CALENDAR_BASE_ID) ?? false
 }
 
-/** get the timestamps of the start date and end date of the month the given date is in. */
-export function getMonthRange(date: Date, zone: string): CalendarTimeRange {
-	const startDateTime = DateTime.fromJSDate(date, {
-		zone,
-	}).set({
-		day: 1,
-		hour: 0,
-		minute: 0,
-		second: 0,
-		millisecond: 0,
-	})
-	const start = startDateTime.toJSDate().getTime()
-	const end = startDateTime
-		.plus({
-			month: 1,
-		})
-		.toJSDate()
-		.getTime()
-	return {
-		start,
-		end,
-	}
-}
-
 /**
  * @param date a date object representing a calendar date (like 1st of May 2023 15:15) in {@param zone}
  * @param zone the time zone to calculate which calendar date {@param date} represents.
@@ -1741,23 +1717,6 @@ export function hasSourceUrl(groupSettings: GroupSettings | null | undefined) {
 	return isNotNull(groupSettings?.sourceUrl) && groupSettings?.sourceUrl !== ""
 }
 
-export function extractYearFromBirthday(birthday: string | null): number | null {
-	if (!birthday) {
-		return null
-	}
-
-	const dateParts = birthday.split("-")
-	const partsLength = dateParts.length
-
-	// A valid ISO date should contain 3 parts:
-	// YYYY-mm-dd => [yyyy, mm, dd]
-	if (partsLength !== 3) {
-		return null
-	}
-
-	return Number.parseInt(dateParts[0])
-}
-
 /**
  * Get contact id that was used to derive {@param calendarEventId}.
  * For birthdays, we create "virtual" (client-only) calendar events. Their id is derived from the contact id. This
@@ -1781,13 +1740,12 @@ export function birthdayCalendarEventContactId(calendarEventId: IdTuple): IdTupl
 }
 
 /**
- * Converts a birthday ISO string into UTC start and end dates
- * representing a full-day event in the given time zone.
+ * Converts a birthday ISO string into UTC start and end dates representing a full-day event in the given time zone.
  *
- * This is useful for recurring dates like birthdays where you want the
- * "all-day" event range in UTC that corresponds to the local calendar day.
+ * The year is set to 0 if the birthday ISO does not contain a year. E.g. --01-01 can be used to specify a birthday
+ * on the first of January where the year that the person was born in is unknown.
  *
- * @param {string} isoDateString - The desired date as an ISO date string (e.g., "1999-05-12").
+ * @param {string} birthdayIso - The desired date as an ISO date string (e.g., "1999-05-12").
  * @param {string} zone - The IANA time zone identifier (e.g., "Europe/Berlin", "America/New_York").
  * @returns {{ startDate: Date; endDate: Date }} An object containing:
  * - `startDate`: The UTC `Date` representing the start of the day (00:00 UTC converted to local time).
@@ -1799,24 +1757,21 @@ export function birthdayCalendarEventContactId(calendarEventId: IdTuple): IdTupl
  * console.log(startDate); // 1999-05-11T22:00:00.000Z (depending on DST)
  * console.log(endDate);   // 1999-05-12T22:00:00.000Z (depending on DST)
  */
-export function getAllDayDatesUTCFromIso(isoDateString: string, zone: string): { startDate: Date; endDate: Date } {
-	const birthday = isoDateToBirthday(isoDateString)
-	// We use Luxon to create a JsDate in the same day as the ISO string but in the specified timezone
-	const birthdayDateInTimezone = DateTime.fromObject(
-		{
-			year: parseInt(birthday.year ?? "1970"),
-			month: parseInt(birthday.month),
-			day: parseInt(birthday.day),
-		},
-		{ zone },
-	).toJSDate()
+export function getAllDayDatesFromBirthdayIso(birthdayIso: string, zone: string): { startDate: Date; endDate: Date } {
+	const birthday = isoDateToBirthday(birthdayIso)
 
-	const startDateUtc = getAllDayDateUTCFromZone(birthdayDateInTimezone, zone)
-	const endDateUtc = getAllDayDateUTCFromZone(getStartOfNextDayWithZone(birthdayDateInTimezone, zone), zone)
-	return {
-		startDate: startDateUtc,
-		endDate: endDateUtc,
-	}
+	// If the year is missing from the ISO string, e.g. "--01-01", we set it to 0, to indicate that it is missing
+	const year = birthday.year ? parseInt(birthday.year) : 0
+	const month = parseInt(birthday.month)
+	const day = parseInt(birthday.day)
+
+	const startDate = new Date(0)
+	startDate.setUTCFullYear(year, month - 1, day)
+
+	const endDate = new Date(0)
+	endDate.setUTCFullYear(year, month - 1, day + 1)
+
+	return { startDate, endDate }
 }
 
 export enum ByRule {
