@@ -136,7 +136,7 @@ export class CalendarSearchModel {
 
 		const canLoadBirthdaysCalendar = await calendarEventsRepository.canLoadBirthdaysCalendar()
 		if (canLoadBirthdaysCalendar) {
-			await calendarEventsRepository.loadContactsBirthdays()
+			await calendarEventsRepository.loadBirthdaysFromContacts()
 		}
 
 		await calendarEventsRepository.loadMonthsIfNeeded(daysInMonths, abortSignal, monitor)

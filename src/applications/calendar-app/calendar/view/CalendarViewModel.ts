@@ -434,7 +434,7 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		try {
 			const hasNewPaidPlan = await this.eventsRepository.canLoadBirthdaysCalendar()
 			if (hasNewPaidPlan) {
-				await this.eventsRepository.loadContactsBirthdays()
+				await this.eventsRepository.loadBirthdaysFromContacts()
 			}
 			await this.loadMonthsIfNeeded(
 				[new Date(thisMonthStart), nextMonthDate, previousMonthDate],

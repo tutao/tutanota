@@ -7,7 +7,7 @@ import {
 	createRepeatRuleWithValues,
 	extractYearFromBirthday,
 	generateUid,
-	getAllDayDatesUTCFromIso,
+	getAllDayDatesFromBirthdayIso,
 	getEventEnd,
 	getEventStart,
 	getMonthRange,
@@ -49,12 +49,6 @@ const TAG = "[CalendarEventRepository]"
 /** Map from timestamp of beginnings of days to events that occur on those days. */
 export type DaysToEvents = ReadonlyMap<number, ReadonlyArray<EventWrapper>>
 
-/** Object holding the year of birth if available and the corresponding event */
-export type BirthdayEventRegistry = {
-	baseYear: number | null
-	event: CalendarEvent
-}
-
 interface ContactWrapper {
 	contact: Contact
 	birthday: Birthday
@@ -71,7 +65,24 @@ export class CalendarEventsRepository {
 	private daysToEvents: Stream<DaysToEvents> = stream(new Map())
 	private pendingLoadRequest: Promise<void> = Promise.resolve()
 	/** number of the month (zero indexed) to birthday data */
-	private monthsToBirthdayEvents: Map<number, BirthdayEventRegistry[]> = new Map()
+	private monthsToBirthdayEvents: [
+		CalendarEvent[],
+		CalendarEvent[],
+		CalendarEvent[],
+
+		CalendarEvent[],
+		CalendarEvent[],
+		CalendarEvent[],
+
+		CalendarEvent[],
+		CalendarEvent[],
+		CalendarEvent[],
+
+		CalendarEvent[],
+		CalendarEvent[],
+		CalendarEvent[],
+	] = [[], [], [], [], [], [], [], [], [], [], [], []]
+	private birthdaysLoadedFromContacts = false
 	private calendarMemberships: string[]
 
 	constructor(
@@ -105,10 +116,6 @@ export class CalendarEventsRepository {
 
 	getDaysToEvents(): Stream<DaysToEvents> {
 		return this.daysToEvents
-	}
-
-	getBirthdayEvents(): Map<number, BirthdayEventRegistry[]> {
-		return this.monthsToBirthdayEvents
 	}
 
 	async canLoadBirthdaysCalendar(): Promise<boolean> {
@@ -275,16 +282,15 @@ export class CalendarEventsRepository {
 		let monthToSearch = month ?? 0
 		while (monthToSearch < 12) {
 			let found = false
-			let clientOnlyEventsOfThisMonth = (this.monthsToBirthdayEvents.get(monthToSearch) ?? []).filter((ev) => {
-				const isContactEvent = elementIdPart(ev.event._id).includes(encodedContactId)
+
+			this.monthsToBirthdayEvents[monthToSearch] = this.monthsToBirthdayEvents[monthToSearch].filter((ev) => {
+				const isContactEvent = elementIdPart(ev._id).includes(encodedContactId)
 				if (isContactEvent) {
 					found = true
 				}
 
 				return !isContactEvent
 			})
-
-			this.monthsToBirthdayEvents.set(monthToSearch, clientOnlyEventsOfThisMonth)
 
 			if (found) break
 			monthToSearch += 1
@@ -425,15 +431,15 @@ export class CalendarEventsRepository {
 		}
 	}
 
-	public pushClientOnlyEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
-		let clientOnlyEventsOfThisMonth = this.monthsToBirthdayEvents.get(month) ?? []
-		const index = clientOnlyEventsOfThisMonth.findIndex((ev) => getElementId(ev.event) === getElementId(newEvent))
+	private pushBirthdayEvent(month: number, newEvent: CalendarEvent, baseYear: number | null) {
+		let birthdayEventsThisMonth = this.monthsToBirthdayEvents[month]
+		const index = birthdayEventsThisMonth.findIndex((ev) => getElementId(ev) === getElementId(newEvent))
 		if (index === -1) {
-			clientOnlyEventsOfThisMonth.push({ baseYear, event: newEvent })
+			birthdayEventsThisMonth.push(newEvent)
 		} else {
-			clientOnlyEventsOfThisMonth[index] = { baseYear, event: newEvent }
+			birthdayEventsThisMonth[index] = newEvent
 		}
-		this.monthsToBirthdayEvents.set(month, clientOnlyEventsOfThisMonth)
+		this.monthsToBirthdayEvents[month] = birthdayEventsThisMonth
 	}
 
 	private createClientOnlyBirthdayEvent(contact: Contact, userId: Id) {
@@ -447,7 +453,7 @@ export class CalendarEventsRepository {
 		const uid = generateUid(calendarId, Date.now())
 
 		const eventTitle = this.calendarModel.getBirthdayEventTitle(contact.firstName)
-		const { startDate, endDate } = getAllDayDatesUTCFromIso(contact.birthdayIso!, this.zone)
+		const { startDate, endDate } = getAllDayDatesFromBirthdayIso(contact.birthdayIso!, this.zone)
 
 		const newEvent = createCalendarEvent({
 			sequence: "0",
@@ -475,8 +481,8 @@ export class CalendarEventsRepository {
 		return newEvent
 	}
 
-	async loadContactsBirthdays(): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
-		if (this.monthsToBirthdayEvents.size) {
+	async loadBirthdaysFromContacts(): Promise<{ valid: ContactWrapper[]; invalid: Contact[] } | undefined> {
+		if (this.birthdaysLoadedFromContacts) {
 			// After a first load we don't need to load it again because we handle contact entity events in the CalendarViewModel
 			console.info("Birthdays already loaded, skipping new load attempt.")
 			return
@@ -507,12 +513,12 @@ export class CalendarEventsRepository {
 		for (const { contact } of filteredContacts) {
 			const newEvent = this.createClientOnlyBirthdayEvent(contact, this.logins.getUserController().userId)
 			if (newEvent) {
-				this.pushClientOnlyEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+				this.pushBirthdayEvent(getEventStart(newEvent, this.zone).getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 			}
 		}
 
 		console.info(`Birthday events loaded - ${filteredContacts.length} Valid contacts / ${invalidContacts.length} Invalid contacts`)
-		return { valid: filteredContacts, invalid: invalidContacts }
+		this.birthdaysLoadedFromContacts = true
 	}
 
 	async handleContactEvent(operation: OperationType, id: IdTuple) {
@@ -543,7 +549,7 @@ export class CalendarEventsRepository {
 			this.removeBirthdayEventsForContact(contactId.join("/"), currentBirthdayDate.getMonth())
 		}
 
-		this.pushClientOnlyEvent(currentBirthdayDate.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
+		this.pushBirthdayEvent(currentBirthdayDate.getMonth(), newEvent, extractYearFromBirthday(contact.birthdayIso))
 
 		const monthRange = getMonthRange(currentBirthdayDate, this.zone)
 		this.addBirthdaysEventsIfNeeded(currentBirthdayDate, monthRange, true)
@@ -562,37 +568,36 @@ export class CalendarEventsRepository {
 	}
 
 	addBirthdaysEventsIfNeeded(selectedDate: Date, monthRangeForRecurrence: CalendarTimeRange, removeEventOccurrences = false) {
-		const clientOnlyEventsThisMonth: Array<BirthdayEventRegistry> | undefined = this.monthsToBirthdayEvents.get(selectedDate.getMonth())
-		const birthdaysOfThisMonth = clientOnlyEventsThisMonth?.filter((birthdayEvent) => isBirthdayEvent(birthdayEvent.event.uid))
-		if (birthdaysOfThisMonth) {
-			for (const calendarEvent of birthdaysOfThisMonth) {
-				let summary = calendarEvent.event.summary
-				if (calendarEvent.baseYear != null) {
-					const age = selectedDate.getFullYear() - calendarEvent.baseYear
-					if (age > 0) {
-						summary += ` (${this.calendarModel.getAgeString(age)})`
-					}
-				}
+		const birthdayEventsThisMonth: CalendarEvent[] = this.monthsToBirthdayEvents[selectedDate.getMonth()]
+		if (!birthdayEventsThisMonth) {
+			return
+		}
+		for (const calendarEvent of birthdayEventsThisMonth) {
+			const birthYearElse0 = calendarEvent.startTime.getUTCFullYear()
 
-				if (removeEventOccurrences) {
-					this.removeDaysForEvent(calendarEvent.event._id)
+			let summary = calendarEvent.summary
+			if (birthYearElse0) {
+				const age = selectedDate.getFullYear() - birthYearElse0
+				if (age > 0) {
+					summary += ` (${this.calendarModel.getAgeString(age)})`
 				}
-				this.addDaysForRecurringEvent(
-					{
-						event: {
-							...calendarEvent.event,
-							summary,
-						},
-						color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
-						flags: {
-							isBirthdayEvent: true,
-							isAlteredInstance: false,
-							hasAlarms: false,
-						},
-					},
-					monthRangeForRecurrence,
-				)
 			}
+
+			if (removeEventOccurrences) {
+				this.removeDaysForEvent(calendarEvent._id)
+			}
+			this.addDaysForRecurringEvent(
+				{
+					event: { ...calendarEvent, summary },
+					color: this.logins.getUserController().userSettingsGroupRoot.birthdayCalendarColor ?? DEFAULT_BIRTHDAY_CALENDAR_COLOR,
+					flags: {
+						isBirthdayEvent: true,
+						isAlteredInstance: false,
+						hasAlarms: false,
+					},
+				},
+				monthRangeForRecurrence,
+			)
 		}
 	}
 }

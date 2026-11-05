@@ -247,7 +247,7 @@ export async function loadEventsAroundInvite(
 	const datesToLoad = iCalContents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
 	const hasNewPaidPlan = await eventsRepository.canLoadBirthdaysCalendar()
 	if (hasNewPaidPlan) {
-		await eventsRepository.loadContactsBirthdays()
+		await eventsRepository.loadBirthdaysFromContacts()
 	}
 	if (forceReload) {
 		await eventsRepository.forceLoadEventsAt(datesToLoad)

@@ -15,7 +15,7 @@ import {
 	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
-	getAllDayDatesUTCFromIso,
+	getAllDayDatesFromBirthdayIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
@@ -275,29 +275,46 @@ o.spec("CalendarUtilsTest", function () {
 		})
 	})
 
-	o.spec("getAllDayDatesUTCFromIso", function () {
+	o.spec("getAllDayDatesFromBirthdayIso", function () {
 		o("get all day in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "Europe/Berlin")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "Europe/Berlin")
 			o(startDate.getTime()).equals(1759104000000)
 			o(endDate.getTime()).equals(1759190400000)
 		})
 
 		o("get all day at 1985-09-29 in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "Europe/Berlin")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "Europe/Berlin")
 			o(startDate.getTime()).equals(496800000000)
 			o(endDate.getTime()).equals(496886400000)
 		})
 
 		o("get all day in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "America/Los_Angeles")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "America/Los_Angeles")
 			o(startDate.getTime()).equals(1759104000000)
 			o(endDate.getTime()).equals(1759190400000)
 		})
 
 		o("get all day at 1985-09-29 in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "America/Los_Angeles")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "America/Los_Angeles")
 			o(startDate.getTime()).equals(496800000000)
 			o(endDate.getTime()).equals(496886400000)
+		})
+
+		o("sets year to 0, if the year is not specified in the input, e.g. --01-01", function () {
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("--01-01", "Europe/Berlin")
+
+			const expectedStartDate = new Date(0)
+			expectedStartDate.setUTCFullYear(0)
+			expectedStartDate.setUTCMonth(0)
+			expectedStartDate.setUTCDate(1)
+
+			const expectedEndDate = new Date(0)
+			expectedEndDate.setUTCFullYear(0)
+			expectedEndDate.setUTCMonth(0)
+			expectedEndDate.setUTCDate(2)
+
+			o(startDate.getTime()).equals(expectedStartDate.getTime())
+			o(endDate.getTime()).equals(expectedEndDate.getTime())
 		})
 	})
 
