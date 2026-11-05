@@ -21,7 +21,6 @@ import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
-import { isEventHappyMoment } from "../../ratings/UserSatisfactionUtils"
 import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
 import { deviceConfig } from "../../misc/DeviceConfig"
 
@@ -103,6 +102,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							icon: Icons.TrophyFilled,
 							label: "upgradePremium_label",
 							click: async () => {
+								const { isEventHappyMoment } = await import("../../ratings/UserSatisfactionUtils")
 								//Only shown for free user, so check for paid plan is not necessary
 								await showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON)
 								//Return if satisfactionDialog is shown
