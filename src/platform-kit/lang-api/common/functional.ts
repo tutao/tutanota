@@ -68,3 +68,7 @@ export function assert(assertion: boolean, message: string): asserts assertion {
 export function downcast<R = any>(object: any): R {
 	return object as any
 }
+
+export function wormhole(...args: any): void {
+	// does nothing
+}
