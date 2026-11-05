@@ -52,14 +52,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 		subject: null,
 		body: null,
 	}
-	// @ts-ignore Missing definition
-	if (!url.searchParams || typeof url.searchParams.entries !== "function") return result
-
-	// @ts-ignore
-	for (let pair of url.searchParams.entries()) {
-		let paramName = pair[0].toLowerCase()
-		let paramValue = pair[1]
-
+	for (const [paramName, paramValue] of url.searchParams.entries()) {
 		switch (paramName) {
 			case "subject":
 				result.subject = paramValue
