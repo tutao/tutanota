@@ -25,7 +25,6 @@ import { getFolderIconByType } from "../../mail/view/MailGuiUtils"
 import { MailSetKind } from "../../../../entities/tutanota/Utils"
 import { elementIdPart, elementIdToId, GENERATED_MIN_ID, getElementId } from "@tutao/meta"
 import { showEditFolderDialog } from "../../mail/view/EditFolderDialog"
-import { Card } from "../../../../ui/base/Card"
 import { Dialog } from "../../../../ui/base/Dialog"
 import { getTranslationForMigrationProvider, MailboxMigrationProvider } from "../../../common/api/common/utils/migrationImportUtils/MigrationKnownConfigs"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
@@ -33,6 +32,7 @@ import { Checkbox } from "../../../../ui/base/Checkbox"
 import { MigrationCredentials } from "../../../common/api/common/utils/migrationImportUtils/MigrationSyncContext"
 import { FolderSystem } from "../../../common/api/common/mail/FolderSystem"
 import { locator } from "../../../common/api/main/CommonLocator"
+import { HoverInfo } from "../../../../ui/base/HoverInfo"
 
 EnvProvider.assertMainOrNode()
 
@@ -41,9 +41,6 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 
 	private shouldDisplayRootImportMailSetTextField: boolean = false
 	private shouldDisplayLabelField: boolean = false
-	private shouldDisplayInfoHover: boolean = false
-	private hoverPosition: { left: number; top: number } = { left: 0, top: 0 }
-	private hoverInfo: TranslationKey = "migrationConfigurationLinkFoldersInfo_msg"
 
 	private titleSectionParams = {
 		icon: Icons.GearWheelFilled,
@@ -120,9 +117,6 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 		const migrationData = vnode.attrs.data
 
 		return m(".mt-24", { style: { maxHeight: "65vh" } }, [
-			this.shouldDisplayInfoHover
-				? this.renderHoverInfo(this.hoverPosition.left, this.hoverPosition.top, lang.getTranslation(this.hoverInfo).text)
-				: null,
 			m(
 				".mt-16",
 				m(TitleSection, {
@@ -204,10 +198,9 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 					},
 				}),
 				m("", lang.getTranslationText("migrationAddLabelToImportedMails_label")),
-				m(IconButton, {
+				m(HoverInfo, {
 					icon: Icons.QuestionmarkFilled,
-					label: "migrationAddLabelToImportedMails_label",
-					click: this.updateHoverMessage("migrationConfigurationAddLabelInfo_msg"),
+					message: "migrationConfigurationAddLabelInfo_msg",
 				}),
 			]),
 			this.shouldDisplayLabelField
@@ -271,10 +264,9 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 					},
 				}),
 				m("", lang.getTranslationText("matchMigrationFoldersToTutaMailSets_label")),
-				m(IconButton, {
+				m(HoverInfo, {
 					icon: Icons.QuestionmarkFilled,
-					label: "migrationFolderMapping_title",
-					click: this.updateHoverMessage("migrationConfigurationLinkFoldersInfo_msg"),
+					message: "migrationConfigurationLinkFoldersInfo_msg",
 				}),
 				!this.shouldDisplayRootImportMailSetTextField && this.successfullyLoadedMailboxes && !this.isFolderMappingCompleted(data)
 					? m(
@@ -313,10 +305,9 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 									spamMailbox: data.migrationMailboxes.find((mailbox) => mailbox.specialUse === MigrationMailboxSpecialUse.JUNK) ?? null,
 								}),
 						}),
-						m(IconButton, {
+						m(HoverInfo, {
 							icon: Icons.InfoFilled,
-							label: "migrationCannotMapSpamFolder_label",
-							click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
+							message: "migrationCannotMapSpamFolder_msg",
 						}),
 					])
 				: null,
@@ -450,71 +441,12 @@ class MigrationConfigurePage implements WizardPageN<MigrationData> {
 								},
 								disabled: !mailboxToRow.shouldSync,
 							})
-						: m(IconButton, {
+						: m(HoverInfo, {
 								icon: Icons.InfoFilled,
-								label: "migrationCannotMapSpamFolder_label",
-								click: this.updateHoverMessage("migrationCannotMapSpamFolder_msg"),
+								message: "migrationCannotMapSpamFolder_msg",
 							}),
 				])
 			}),
-		)
-	}
-
-	private updateHoverMessage(textMessage: TranslationKey) {
-		return (event: MouseEvent) => {
-			const isDisplayingHoverForPressedButton = this.shouldDisplayInfoHover && this.hoverInfo === textMessage
-			if (isDisplayingHoverForPressedButton) {
-				this.shouldDisplayInfoHover = false
-				return
-			}
-			const target = event.target as Element
-			const button = target.closest(".icon-button")
-			const dialogWindow = target.closest('[role="dialog"]')
-
-			if (button && dialogWindow) {
-				const targetRect = button.getBoundingClientRect()
-				const dialogRect = dialogWindow.getBoundingClientRect()
-
-				const shiftDistance = 45
-				// When calculating the left distance, it is being considered against the actual left side of screen
-				const hoverWindowLeft = targetRect.left + shiftDistance
-				//This top, however, is considering the dialog rect as it's start, then we need to do the calculation
-				const hoverWindowTop = targetRect.top - dialogRect.top - shiftDistance
-				this.hoverInfo = textMessage
-				this.hoverPosition = {
-					left: hoverWindowLeft,
-					top: hoverWindowTop,
-				}
-
-				this.shouldDisplayInfoHover = true
-			}
-		}
-	}
-
-	private renderHoverInfo(left: number, top: number, message: string): Children {
-		return m(
-			".hover-panel.border.border-radius",
-			{
-				style: {
-					left: px(left),
-					top: px(top),
-				},
-			},
-			[
-				m(Card, {}, [
-					m(
-						".flex.items-center.justify-center",
-						m(Icon, {
-							icon: Icons.InfoFilled,
-							size: IconSize.PX32,
-							style: {
-								fill: theme.on_surface_variant,
-							},
-						}),
-					),
-					m("", message),
-				]),
-			],
 		)
 	}
 
