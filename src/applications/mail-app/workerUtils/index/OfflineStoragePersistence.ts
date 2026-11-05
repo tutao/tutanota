@@ -80,7 +80,23 @@ tokenize='signal_tokenizer'
 		definition: `CREATE VIRTUAL TABLE IF NOT EXISTS contact_index USING fts5(
 firstName,
 lastName,
-mailAddresses
+company,
+role,
+comment,
+nickname,
+title,
+middleName,
+nameSuffix,
+phoneticFirst,
+phoneticMiddle,
+phoneticLast,
+department,
+mailAddresses,
+phoneNumbers,
+addresses,
+socialIds,
+websites,
+messengerHandles
 )`,
 		purgedWithCache: true,
 	},
@@ -273,12 +289,28 @@ export class OfflineStoragePersistence {
 
 			const { query, params } = sql`
 				INSERT
-				OR REPLACE INTO contact_index(rowid, firstName, lastName, mailAddresses)
+				OR REPLACE INTO contact_index(rowid, firstName, lastName, company, role, comment, nickname, title, middleName, nameSuffix, phoneticFirst, phoneticMiddle, phoneticLast, department, mailAddresses, phoneNumbers, addresses, socialIds, websites, messengerHandles)
 VALUES (
 				${rowid},
 				${contact.firstName},
 				${contact.lastName},
-				${contact.mailAddresses.map((a) => a.address).join(" ")}
+				${contact.company},
+				${contact.role},
+				${contact.comment},
+				${contact.nickname},
+				${contact.title},
+				${contact.middleName},
+				${contact.nameSuffix},
+				${contact.phoneticFirst},
+				${contact.phoneticMiddle},
+				${contact.phoneticLast},
+				${contact.department},
+				${contact.mailAddresses.map((a) => a.address).join(" ")},
+				${contact.phoneNumbers.map((p) => p.number).join(" ")},
+				${contact.addresses.map((a) => a.address).join(" ")},
+				${contact.socialIds.map((s) => s.socialId).join(" ")},
+				${contact.websites.map((w) => w.url).join(" ")},
+				${contact.messengerHandles.map((m) => m.handle).join(" ")}
 				)`
 
 			await this.sqlCipherFacade.run(query, params)

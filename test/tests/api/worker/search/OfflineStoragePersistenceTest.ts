@@ -16,8 +16,15 @@ import { object } from "testdouble"
 import { CacheStorage } from "../../../../../src/app-kit/local-store/CacheStorage"
 import {
 	BodyTypeRef,
+	ContactAddressTypeRef,
 	ContactMailAddressTypeRef,
+	ContactMessengerHandleTypeRef,
+	ContactPhoneNumberTypeRef,
+	ContactPronounsTypeRef,
+	ContactRelationshipTypeRef,
+	ContactSocialIdTypeRef,
 	ContactTypeRef,
+	ContactWebsiteTypeRef,
 	FileTypeRef,
 	MailAddressTypeRef,
 	MailDetailsBlobTypeRef,
@@ -505,12 +512,74 @@ o.spec("OfflineStoragePersistence", () => {
 			_ownerGroup: "I am a group",
 			firstName: "first name",
 			lastName: "last name",
+			company: "Tutao GmbH",
+			role: "QA engineer",
+			comment: "comment",
+			nickname: "nickname",
+			title: "Dr",
+			middleName: "middle name",
+			nameSuffix: "suffix",
+			phoneticFirst: "forst",
+			phoneticMiddle: "muddl",
+			phoneticLast: "lasst",
+			department: "testing floor",
 			mailAddresses: [
 				createTestEntity(ContactMailAddressTypeRef, {
 					address: "address1@domain1.tld1",
 				}),
 				createTestEntity(ContactMailAddressTypeRef, {
 					address: "address2@domain2.tld2",
+				}),
+			],
+			phoneNumbers: [
+				createTestEntity(ContactPhoneNumberTypeRef, {
+					number: "12345",
+				}),
+				createTestEntity(ContactPhoneNumberTypeRef, {
+					number: "06789",
+				}),
+			],
+			addresses: [
+				createTestEntity(ContactAddressTypeRef, {
+					address: "Long Street 26",
+				}),
+				createTestEntity(ContactAddressTypeRef, {
+					address: "Lange Straße 62",
+				}),
+			],
+			socialIds: [
+				createTestEntity(ContactSocialIdTypeRef, {
+					socialId: "gamertag",
+				}),
+				createTestEntity(ContactSocialIdTypeRef, {
+					socialId: "username",
+				}),
+			],
+			websites: [
+				createTestEntity(ContactWebsiteTypeRef, {
+					url: "example.org",
+				}),
+				createTestEntity(ContactWebsiteTypeRef, {
+					url: "tuta.com",
+				}),
+			],
+			messengerHandles: [
+				createTestEntity(ContactMessengerHandleTypeRef, {
+					handle: "signal",
+				}),
+				createTestEntity(ContactMessengerHandleTypeRef, {
+					handle: "matrix",
+				}),
+			],
+			pronouns: [
+				createTestEntity(ContactPronounsTypeRef, {
+					pronouns: "they/them",
+				}),
+			],
+			relationships: [
+				createTestEntity(ContactRelationshipTypeRef, {
+					type: "friend",
+					person: "friend",
 				}),
 			],
 		})
@@ -545,6 +614,25 @@ o.spec("OfflineStoragePersistence", () => {
 		await assertFound('"address1@domain1.tld1"')
 		await assertFound('"address2@domain2.tld2"')
 		await assertFound('"address2@domain2"')
+		await assertFound("Tutao")
+		await assertFound("engineer")
+		await assertFound("comment")
+		await assertFound("nickname")
+		await assertFound("Dr")
+		await assertFound("forst")
+		await assertFound("muddl")
+		await assertFound("lasst")
+		await assertFound("testing floor")
+		await assertFound("12345")
+		await assertFound("06789")
+		await assertFound("long street 26")
+		await assertFound("LANGE STRAẞE 62")
+		await assertFound("gamertag")
+		await assertFound("username")
+		await assertFound('"example.org"')
+		await assertFound('"tuta.com"')
+		await assertFound("signal")
+		await assertFound("matrix")
 
 		await assertNotFound("firt")
 		await assertNotFound("firstlast")
@@ -553,6 +641,10 @@ o.spec("OfflineStoragePersistence", () => {
 		await assertNotFound("address1 tld3")
 		await assertNotFound('"address1@domain1.tld"')
 		await assertNotFound('"address1@domain2"')
+		await assertNotFound('"long street 32"')
+		await assertNotFound("they")
+		await assertNotFound('"they/them"')
+		await assertNotFound("friend")
 	})
 
 	o.test("deleteContactData", async () => {
