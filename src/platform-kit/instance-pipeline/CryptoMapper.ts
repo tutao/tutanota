@@ -136,10 +136,13 @@ export class CryptoMapper {
 			ownerKeyProvider,
 			instanceKeyProvider,
 		)
+
+		// Ensure the _ownerEncSessionKey is written for bucket key encrypted instances before copying it over into the decrypted instance
 		const entityAdapter = await EntityAdapter.fromEncryptedParsedInstance(encryptedInstance, this.modelMapper, this)
 		if (isNull(entityAdapter._ownerEncSessionKey) && isNotNull(entityAdapter.bucketKey)) {
 			await instanceDecryptor.forceResolveSessionKey()
 		}
+
 		return this.decryptParsedInstanceInternal(encryptedInstance, instanceDecryptor, instancePath)
 	}
 
