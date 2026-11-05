@@ -18,7 +18,7 @@ import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSett
 import { OperationType } from "../../../src/platform-kit/meta"
 
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
-import { EntityUpdatesListener, EntityUpdateData } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 
 o.spec("CalendarEventRepositoryTest", function () {
 	o.spec("onEntityUpdatesReceived", function () {
@@ -105,7 +105,11 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([dateFarFromEvent], abortController.signal, null)
+				await calendarEventsRepository.loadMonthsIfNeeded(
+					[[dateFarFromEvent.getFullYear(), dateFarFromEvent.getMonth() + 1]],
+					abortController.signal,
+					null,
+				)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -127,7 +131,9 @@ o.spec("CalendarEventRepositoryTest", function () {
 				// Arrange
 				o.check(entityUpdatesListener != null).equals(true)
 
-				const eventStartDate = new Date(2025, 7, 26, 10, 0, 0)
+				const eventStartYear = 2025
+				const eventStartMonth = 8
+				const eventStartDate = new Date(eventStartYear, eventStartMonth - 1, 26, 10, 0, 0)
 				const event = createTestEntity(CalendarEventTypeRef, {
 					_ownerGroup: initialCalendarGroupId,
 					_id: [shotEventsListId, "event"],
@@ -142,7 +148,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], abortController.signal, null)
+				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartYear, eventStartMonth]], abortController.signal, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -169,7 +175,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock, // Provide a initialized Map with an empty day
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([eventStartDate], abortController.signal, null)
+				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartDate.getFullYear(), eventStartDate.getMonth() + 1]], abortController.signal, null)
 
 				const newCalendarGroupId = "newCalendarGroupId"
 				const newCalendarInfo: CalendarInfo = object()
@@ -251,8 +257,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 			o.test("update event - default calendar color", async function () {
 				mockGroupSettings.color = ""
 				// test case for calendar with one simple event
-				const eventWrapperArray: ReadonlyArray<EventWrapper> = [wrappedEvent]
-				const daysToEventsMap: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = new Map([[1, eventWrapperArray]])
+				const daysToEventsMap = new Map([[1, [wrappedEvent]]])
 				calendarEventsRepository.getDaysToEvents()(daysToEventsMap)
 
 				// act
@@ -270,8 +275,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 
 			o.test("update event - apply color from settings", async function () {
 				// test case for calendar with one simple event
-				const eventWrapperArray: ReadonlyArray<EventWrapper> = [wrappedEvent]
-				const daysToEventsMap: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = new Map([[1, eventWrapperArray]])
+				const daysToEventsMap = new Map([[1, [wrappedEvent]]])
 				calendarEventsRepository.getDaysToEvents()(daysToEventsMap)
 
 				const SETTINGS_COLOR = "FFFFFF"
@@ -300,8 +304,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 				when(calendarModelMock.getBirthdayCalendarInfo()).thenReturn(birthdayCalendarInfoMock)
 
 				wrappedEvent.flags.isBirthdayEvent = true
-				const eventWrapperArray: ReadonlyArray<EventWrapper> = [wrappedEvent]
-				const daysToEventsMap: ReadonlyMap<number, ReadonlyArray<EventWrapper>> = new Map([[1, eventWrapperArray]])
+				const daysToEventsMap = new Map([[1, [wrappedEvent]]])
 				calendarEventsRepository.getDaysToEvents()(daysToEventsMap)
 
 				// act

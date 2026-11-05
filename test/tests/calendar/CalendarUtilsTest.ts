@@ -15,11 +15,10 @@ import {
 	eventStartsAfter,
 	findNextAlarmOccurrence,
 	getAllDayDateForTimezone,
-	getAllDayDatesUTCFromIso,
+	getAllDayDatesFromBirthdayIso,
 	getAllDayDateUTCFromZone,
 	getDiffIn24hIntervals,
 	getDiffIn60mIntervals,
-	getMonthRange,
 	getStartOfDayWithZone,
 	getStartOfWeek,
 	getTimeZone,
@@ -275,29 +274,46 @@ o.spec("CalendarUtilsTest", function () {
 		})
 	})
 
-	o.spec("getAllDayDatesUTCFromIso", function () {
+	o.spec("getAllDayDatesFromBirthdayIso", function () {
 		o("get all day in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "Europe/Berlin")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "Europe/Berlin")
 			o(startDate.getTime()).equals(1759104000000)
 			o(endDate.getTime()).equals(1759190400000)
 		})
 
 		o("get all day at 1985-09-29 in a positive timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "Europe/Berlin")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "Europe/Berlin")
 			o(startDate.getTime()).equals(496800000000)
 			o(endDate.getTime()).equals(496886400000)
 		})
 
 		o("get all day in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("2025-09-29", "America/Los_Angeles")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("2025-09-29", "America/Los_Angeles")
 			o(startDate.getTime()).equals(1759104000000)
 			o(endDate.getTime()).equals(1759190400000)
 		})
 
 		o("get all day at 1985-09-29 in a negative timezone", function () {
-			const { startDate, endDate } = getAllDayDatesUTCFromIso("1985-09-29", "America/Los_Angeles")
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("1985-09-29", "America/Los_Angeles")
 			o(startDate.getTime()).equals(496800000000)
 			o(endDate.getTime()).equals(496886400000)
+		})
+
+		o("sets year to 0, if the year is not specified in the input, e.g. --01-01", function () {
+			const { startDate, endDate } = getAllDayDatesFromBirthdayIso("--01-01", "Europe/Berlin")
+
+			const expectedStartDate = new Date(0)
+			expectedStartDate.setUTCFullYear(0)
+			expectedStartDate.setUTCMonth(0)
+			expectedStartDate.setUTCDate(1)
+
+			const expectedEndDate = new Date(0)
+			expectedEndDate.setUTCFullYear(0)
+			expectedEndDate.setUTCMonth(0)
+			expectedEndDate.setUTCDate(2)
+
+			o(startDate.getTime()).equals(expectedStartDate.getTime())
+			o(endDate.getTime()).equals(expectedEndDate.getTime())
 		})
 	})
 
@@ -1156,14 +1172,14 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("short event same month", function () {
 			const event = createEvent(getDateInZone("2019-05-01T08:00"), getDateInZone("2019-05-01T10:00"))
-			const month = getMonthRange(getDateInZone("2019-05-01"), zone)
+			const month = getMonthRange(2019, 5, zone)
 			addDaysForEventInstance(eventsForDays, event, month, zone)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).deepEquals([event])
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 		})
 		o("short event prev month", function () {
 			const eventWrapper = createEvent(getDateInZone("2019-05-01T08:00"), getDateInZone("2019-05-01T10:00"))
-			const prevMonth = getMonthRange(getDateInZone("2019-04-01"), zone)
+			const prevMonth = getMonthRange(2019, 4, zone)
 			addDaysForEventInstance(eventsForDays, eventWrapper, prevMonth, zone)
 			const eventsForDay = neverNull(eventsForDays.get(getStartOfDay(eventWrapper.event.startTime).getTime()))
 			// @ts-ignore
@@ -1172,7 +1188,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("short event next month", function () {
 			const krsk = "Asia/Krasnoyarsk"
 			const eventWrapper = createEvent(getDateInZone("2019-05-01T08:00", krsk), getDateInZone("2019-05-01T10:00", krsk))
-			const nextMonth = getMonthRange(getDateInZone("2019-06-01"), krsk)
+			const nextMonth = getMonthRange(2019, 6, krsk)
 			addDaysForEventInstance(eventsForDays, eventWrapper, nextMonth, zone)
 			const eventsForDay = neverNull(eventsForDays.get(getStartOfDay(eventWrapper.event.startTime).getTime()))
 			// @ts-ignore
@@ -1180,8 +1196,8 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("short event multiple days", function () {
 			const event = createEvent(getDateInZone("2019-05-01T08:00"), getDateInZone("2019-05-04T10:00"))
-			const thisMonth = getMonthRange(getDateInZone("2019-05-01"), zone)
-			const nextMonth = getMonthRange(getDateInZone("2019-06-01"), zone)
+			const thisMonth = getMonthRange(2019, 5, zone)
+			const nextMonth = getMonthRange(2019, 6, zone)
 			// the event is not in june, duh
 			addDaysForEventInstance(eventsForDays, event, nextMonth, zone)
 			o(countDaysWithEvents(eventsForDays)).equals(0)
@@ -1195,8 +1211,8 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("short event multiple days spans next month", function () {
 			const event = createEvent(getDateInZone("2019-05-29T08:00"), getDateInZone("2019-06-02T10:00"))
-			const thisMonth = getMonthRange(getDateInZone("2019-05-01"), zone)
-			const nextMonth = getMonthRange(getDateInZone("2019-06-01"), zone)
+			const thisMonth = getMonthRange(2019, 5, zone)
+			const nextMonth = getMonthRange(2019, 6, zone)
 
 			addDaysForEventInstance(eventsForDays, event, nextMonth, zone)
 			o(countDaysWithEvents(eventsForDays)).equals(2)
@@ -1212,23 +1228,23 @@ o.spec("CalendarUtilsTest", function () {
 		o("all day event", function () {
 			// all day event of one day
 			const event = createEvent(getDateInUTC("2019-05-01"), getDateInUTC("2019-05-02"))
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).deepEquals([event])
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 		})
 		o("all day event two days", function () {
 			const event = createEvent(getDateInUTC("2019-04-30"), getDateInUTC("2019-05-02"))
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).deepEquals([event])
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-04-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 4, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(2)
 			o(eventsForDays.get(getDateInZone("2019-04-30").getTime())).deepEquals([event])
 		})
 		o("add same event", function () {
 			const event = createEvent(getDateInZone("2019-05-01T08:00"), getDateInZone("2019-05-01T10:00"))
-			const month = getMonthRange(getDateInZone("2019-05-01"), zone)
+			const month = getMonthRange(2019, 5, zone)
 			addDaysForEventInstance(eventsForDays, event, month, zone)
 			const secondEvent = clone(event)
 			addDaysForEventInstance(eventsForDays, secondEvent, month, zone)
@@ -1237,7 +1253,7 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("event became shorter", function () {
 			const eventWrapper = createEvent(getDateInZone("2019-05-01T08:00"), getDateInZone("2019-05-05T12:00"))
-			const month = getMonthRange(getDateInZone("2019-05-01"), zone)
+			const month = getMonthRange(2019, 5, zone)
 
 			// add for may
 			addDaysForEventInstance(eventsForDays, eventWrapper, month, zone)
@@ -1260,7 +1276,7 @@ o.spec("CalendarUtilsTest", function () {
 			// event that goes on for 2 hours and repeats weekly
 			const eventWrapper = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-05-02T12:00"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1, zone)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(4)
 			o(eventsForDays.get(getDateInZone("2019-06-06").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-06T10:00"), getDateInZone("2019-06-06T12:00")),
@@ -1275,7 +1291,7 @@ o.spec("CalendarUtilsTest", function () {
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-27T10:00"), getDateInZone("2019-06-27T12:00")),
 			])
 
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 5, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(4 + 5)
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-05-02T10:00"), getDateInZone("2019-05-02T12:00")),
@@ -1297,7 +1313,7 @@ o.spec("CalendarUtilsTest", function () {
 			// two hour event that happens every fourth day
 			const eventWrapper = createEvent(getDateInZone("2019-05-30T10:00"), getDateInZone("2019-05-30T12:00"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.DAILY, 4, zone)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-03T10:00"), getDateInZone("2019-06-03T12:00")),
 			])
@@ -1330,25 +1346,25 @@ o.spec("CalendarUtilsTest", function () {
 			const expectedForFebruary = [cloneEventWithNewTime(eventWrapper, getDateInZone("2020-02-29T10:00"), getDateInZone("2020-02-29T12:00"))]
 
 			// add for may
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals(expectedForMay)
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 
 			// add for june
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals(expectedForMay)
 			o(eventsForDays.get(getDateInZone("2019-06-30").getTime())).deepEquals(expectedForJune)
 			o(countDaysWithEvents(eventsForDays)).equals(2)
 
 			// add for july
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-07-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 7, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals(expectedForMay)
 			o(eventsForDays.get(getDateInZone("2019-06-30").getTime())).deepEquals(expectedForJune)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals(expectedForJuly)
 			o(countDaysWithEvents(eventsForDays)).equals(3)
 
 			// add for february 2020
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2020-02-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2020, 2, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals(expectedForMay)
 			o(eventsForDays.get(getDateInZone("2019-06-30").getTime())).deepEquals(expectedForJune)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals(expectedForJuly)
@@ -1359,25 +1375,25 @@ o.spec("CalendarUtilsTest", function () {
 			const eventWrapper = createEvent(getDateInZone("2019-05-31T10:00"), getDateInZone("2019-05-31T12:00"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.MONTHLY, 2, zone)
 			// add for june
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(0)("does not occur in june")
 
 			// add for july
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-07-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 7, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-07-31T10:00"), getDateInZone("2019-07-31T12:00")),
 			])("event instance in july is added")
 			o(countDaysWithEvents(eventsForDays)).equals(1)
 
 			// add for august
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-08-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 8, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-07-31T10:00"), getDateInZone("2019-07-31T12:00")),
 			])("event instance in july is still there")
 			o(countDaysWithEvents(eventsForDays)).equals(1)("nothing added for august")
 
 			// add for september
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-09-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 9, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-07-31T10:00"), getDateInZone("2019-07-31T12:00")),
 			])("event instance in july is still still there")
@@ -1387,7 +1403,7 @@ o.spec("CalendarUtilsTest", function () {
 			o(countDaysWithEvents(eventsForDays)).equals(2)("only september was added")
 
 			// add for november
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-11-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 11, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-07-31").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-07-31T10:00"), getDateInZone("2019-07-31T12:00")),
 			])("event instance in july is still still still there")
@@ -1399,7 +1415,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("recurring event - short multiple days ", function () {
 			const eventWrapper = createEvent(getDateInZone("2019-05-03T10:00"), getDateInZone("2019-05-05T12:00"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1, zone)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			/**
 			 *       May 2019
 			 * So Mo Di Mi Do Fr Sa
@@ -1449,7 +1465,7 @@ o.spec("CalendarUtilsTest", function () {
 			o(countDaysWithEvents(eventsForDays)).equals(14)
 
 			const firstMayOccurrence = eventWrapper
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-03").getTime())).deepEquals([firstMayOccurrence])
 			o(eventsForDays.get(getDateInZone("2019-05-04").getTime())).deepEquals([firstMayOccurrence])
 			o(eventsForDays.get(getDateInZone("2019-05-05").getTime())).deepEquals([firstMayOccurrence])
@@ -1477,7 +1493,7 @@ o.spec("CalendarUtilsTest", function () {
 			const eventWrapper = createEvent(getDateInUTC("2020-02-12"), getDateInUTC("2020-02-13"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1, zone)
 			eventWrapper.event.repeatRule.timeZone = "America/Los_angeles"
-			const month = getMonthRange(getDateInZone("2020-03-01", krsk), krsk)
+			const month = getMonthRange(2020, 3, krsk)
 			addDaysForRecurringEvent(eventsForDays, eventWrapper, month, krsk)
 			o(eventsForDays.get(getDateInZone("2020-03-04", krsk).getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInUTC("2020-03-04"), getDateInUTC("2020-03-05")),
@@ -1499,7 +1515,7 @@ o.spec("CalendarUtilsTest", function () {
 			repeatRule.endType = EndType.Count
 			repeatRule.endValue = "2"
 			eventWrapper.event.repeatRule = repeatRule
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-02T10:00"), getDateInZone("2019-06-02T12:00")),
 			])
@@ -1507,7 +1523,7 @@ o.spec("CalendarUtilsTest", function () {
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-09T10:00"), getDateInZone("2019-06-09T12:00")),
 			])
 			o(countDaysWithEvents(eventsForDays)).equals(2)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-07-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 7, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(2)
 		})
 		o("end on date", function () {
@@ -1516,7 +1532,7 @@ o.spec("CalendarUtilsTest", function () {
 			repeatRule.endType = EndType.UntilDate
 			repeatRule.endValue = String(getDateInZone("2019-06-29").getTime())
 			eventWrapper.event.repeatRule = repeatRule
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-02T10:00"), getDateInZone("2019-06-02T12:00")),
 			])
@@ -1530,7 +1546,7 @@ o.spec("CalendarUtilsTest", function () {
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-23T10:00"), getDateInZone("2019-06-23T12:00")),
 			])
 			o(countDaysWithEvents(eventsForDays)).equals(4)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-07-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 7, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(4)
 		})
 		o("end on date - all day", function () {
@@ -1542,7 +1558,7 @@ o.spec("CalendarUtilsTest", function () {
 			eventWrapper.event.repeatRule = repeatRule
 			eventWrapper.event.repeatRule.timeZone = "Asia/Anadyr" // +12
 
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInUTC("2019-06-02"), getDateInUTC("2019-06-03")),
 			])
@@ -1555,8 +1571,7 @@ o.spec("CalendarUtilsTest", function () {
 		o("add same recurring event", function () {
 			const eventWrapper = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-05-02T12:00"))
 			eventWrapper.event.repeatRule = createRepeatRuleWithValues(RepeatPeriod.WEEKLY, 1, zone)
-			const monthDate = getDateInZone("2019-06-01")
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(monthDate, zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-06").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-06T10:00"), getDateInZone("2019-06-06T12:00")),
 			])
@@ -1570,9 +1585,9 @@ o.spec("CalendarUtilsTest", function () {
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-06-27T10:00"), getDateInZone("2019-06-27T12:00")),
 			])
 			o(countDaysWithEvents(eventsForDays)).equals(4)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 5, zone), zone)
 			const eventClone = clone(eventWrapper)
-			addDaysForRecurringEvent(eventsForDays, eventClone, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventClone, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([eventWrapper])
 			o(eventsForDays.get(getDateInZone("2019-05-09").getTime())).deepEquals([
 				cloneEventWithNewTime(eventWrapper, getDateInZone("2019-05-09T10:00"), getDateInZone("2019-05-09T12:00")),
@@ -1600,14 +1615,14 @@ o.spec("CalendarUtilsTest", function () {
 			// 2nd occurrence happens on april 29th, 30th, may 1st
 			const occurrence = cloneEventWithNewTime(eventWrapper, getDateInUTC("2020-04-29"), getDateInUTC("2020-05-02"))
 
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2020-03-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2020, 3, zone), zone)
 			o(eventsForDays.get(getDateInZone("2020-03-29").getTime())).deepEquals([eventWrapper])
 			o(eventsForDays.get(getDateInZone("2020-03-30").getTime())).deepEquals([eventWrapper])
 			o(eventsForDays.get(getDateInZone("2020-03-31").getTime())).deepEquals([eventWrapper])
 			o(eventsForDays.get(getDateInZone("2020-04-01").getTime())).deepEquals(undefined)
 			o(countDaysWithEvents(eventsForDays)).equals(3)
 
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2020-04-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2020, 4, zone), zone)
 			o(eventsForDays.get(getDateInZone("2020-04-29").getTime())).deepEquals([occurrence])("29th is 1st day of the occurrence")
 			o(eventsForDays.get(getDateInZone("2020-04-30").getTime())).deepEquals([occurrence])("30. is 2. day of 2nd occurrence")
 			o(eventsForDays.get(getDateInZone("2020-05-01").getTime())).deepEquals(undefined)("outside range")
@@ -1622,10 +1637,10 @@ o.spec("CalendarUtilsTest", function () {
 			repeatRule.endValue = "2"
 			repeatRule.endType = EndType.Count
 			eventWrapper.event.repeatRule = repeatRule
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2020-02-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2020, 2, zone), zone)
 			o(eventsForDays.get(getDateInZone("2020-02-29").getTime())).deepEquals([eventWrapper])("the 29th of feb is in the map")
 			o(countDaysWithEvents(eventsForDays)).equals(1)("only the last day of february is in the map")
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2020-03-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2020, 3, zone), zone)
 			const occurrence = cloneEventWithNewTime(eventWrapper, getDateInZone("2020-03-29", "utc"), getDateInZone("2020-03-30", "utc"))
 			o(eventsForDays.get(getDateInZone("2020-03-29").getTime())).deepEquals([occurrence])("the 29th of march is in the map")
 		})
@@ -1643,8 +1658,8 @@ o.spec("CalendarUtilsTest", function () {
 			alteredEvent.event.recurrenceId = alteredEvent.event.startTime
 			alteredEvent.event.summary = "another summary"
 
-			addDaysForEventInstance(eventsForDays, alteredEvent, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2023-07-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, alteredEvent, getMonthRange(2023, 7, zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2023, 7, zone), zone)
 			o(eventsForDays.get(getDateInZone("2023-07-13").getTime())).deepEquals([alteredEvent])(
 				"altered instance is on the day it occurs, but event is excluded",
 			)
@@ -1660,12 +1675,12 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("longer than a month", function () {
 			const event = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-06-02T12:00"))
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.size).equals(2)
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined)
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.size).equals(2 + 30)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).equals(undefined)
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([event])
@@ -1675,14 +1690,14 @@ o.spec("CalendarUtilsTest", function () {
 			// all-day event that has a last day on 2019-06-03
 			const event = createEvent(getDateInUTC("2019-05-02"), getDateInUTC("2019-06-04"))
 			// add for june
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), "Europe/Berlin")
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 6, zone), "Europe/Berlin")
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])("there on the first")
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])("there on the 2nd")
 			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals([event])("also there on the 3rd")
 			o(countDaysWithEvents(eventsForDays)).equals(3)("no more days added")
 
 			// also add for may
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), "Europe/Berlin")
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), "Europe/Berlin")
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-05-03").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals([event])
@@ -1694,21 +1709,21 @@ o.spec("CalendarUtilsTest", function () {
 			// event goes from april to june
 			const event = createEvent(getDateInZone("2019-04-02T10:00"), getDateInZone("2019-06-02T12:00"))
 			// first, only add for june
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])("there on the 1st")
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])("there on the 2nd")
 			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined)("not there on the 3rd")
 			o(eventsForDays.size).equals(2)("no more days added for this call")
 
 			// now also add for may
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime())).deepEquals([event])("there on the 1st")
 			o(eventsForDays.get(getDateInZone("2019-05-02").getTime())).deepEquals([event])("there on the 2nd")
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals([event])("there on the 31st")
 			o(eventsForDays.size).equals(2 + 31)("added for each day of may but no more")
 
 			// also add for april
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-04-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 4, zone), zone)
 			o(eventsForDays.size).equals(2 + 31 + 29)("now it's there for june, may, april")
 			o(eventsForDays.get(getDateInZone("2019-04-01").getTime())).deepEquals(undefined)("1st of april is not touched")
 			o(eventsForDays.get(getDateInZone("2019-04-02").getTime())).deepEquals([event])("2nd it's there")
@@ -1723,7 +1738,7 @@ o.spec("CalendarUtilsTest", function () {
 			const startingInJuly = cloneEventWithNewTime(eventWrapper, getDateInZone("2019-07-02T10:00"), getDateInZone("2019-08-02T12:00"))
 
 			// invoke for june only
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 6, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-05-31").getTime())).deepEquals(undefined)("nothing added for the 31st of may")
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([startingInMay])("but may instance is still going on at start of june")
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([startingInMay, startingInJune])
@@ -1732,7 +1747,7 @@ o.spec("CalendarUtilsTest", function () {
 			o(eventsForDays.size).equals(30)
 
 			// now also invoke for july
-			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(getDateInZone("2019-07-01"), zone), zone)
+			addDaysForRecurringEvent(eventsForDays, eventWrapper, getMonthRange(2019, 7, zone), zone)
 			o(eventsForDays.get(getDateInZone("2019-07-01").getTime())).deepEquals([startingInJune])("june instance still going on")
 			o(eventsForDays.get(getDateInZone("2019-07-03").getTime())).deepEquals([startingInJune, startingInJuly])("july instance added as well")
 			o(eventsForDays.get(getDateInZone("2019-07-04").getTime())).deepEquals([startingInJuly])("june instance now ended.")
@@ -1742,14 +1757,14 @@ o.spec("CalendarUtilsTest", function () {
 		})
 		o("add same event does not increase number of days with events", function () {
 			const event = createEvent(getDateInZone("2019-05-02T10:00"), getDateInZone("2019-06-02T12:00"))
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-06-01"), zone), zone)
-			addDaysForEventInstance(eventsForDays, clone(event), getMonthRange(getDateInZone("2019-06-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 6, zone), zone)
+			addDaysForEventInstance(eventsForDays, clone(event), getMonthRange(2019, 6, zone), zone)
 			o(countDaysWithEvents(eventsForDays)).equals(2)("days with events after adding june twice")
 			o(eventsForDays.get(getDateInZone("2019-06-01").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-02").getTime())).deepEquals([event])
 			o(eventsForDays.get(getDateInZone("2019-06-03").getTime())).deepEquals(undefined) // We do not add empty days anymore
-			addDaysForEventInstance(eventsForDays, event, getMonthRange(getDateInZone("2019-05-01"), zone), zone)
-			addDaysForEventInstance(eventsForDays, clone(event), getMonthRange(getDateInZone("2019-05-01"), zone), zone)
+			addDaysForEventInstance(eventsForDays, event, getMonthRange(2019, 5, zone), zone)
+			addDaysForEventInstance(eventsForDays, clone(event), getMonthRange(2019, 5, zone), zone)
 			// 2 in june plus everything in may except for the first (event starts on the 2nd)
 			o(countDaysWithEvents(eventsForDays)).equals(32)("days with events after adding may twice")
 			o(eventsForDays.get(getDateInZone("2019-05-01").getTime()) == null).equals(true)
@@ -2387,4 +2402,11 @@ function cloneEventWithNewTime(event: EventWrapper, startTime: Date, endTime: Da
 	clonedEventWrapper.event.startTime = startTime
 	clonedEventWrapper.event.endTime = endTime
 	return clonedEventWrapper
+}
+
+function getMonthRange(year: number, month: number, zone: string): { start: number; end: number } {
+	return {
+		start: DateTime.fromObject({ year, month, day: 1 }, { zone }).toMillis(),
+		end: DateTime.fromObject({ year, month: month + 1, day: 1 }, { zone }).toMillis(),
+	}
 }

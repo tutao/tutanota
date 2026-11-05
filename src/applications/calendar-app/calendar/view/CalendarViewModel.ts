@@ -58,7 +58,6 @@ import {
 	DefaultDateProvider,
 	eventComparator,
 	getDiffIn60mIntervals,
-	getMonthRange,
 	getStartOfDayWithZone,
 	getWeekStart,
 	hasAlarmsForTheUser,
@@ -424,20 +423,36 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		const monitorHandle = this.progressTracker.registerMonitorSync(totalWork)
 		const progressMonitor: ProgressMonitorInterface = assertNotNull(this.progressTracker.getMonitor(monitorHandle))
 
-		const newSelectedDate = this.selectedDate()
-		const thisMonthStart = getMonthRange(newSelectedDate, this.timeZone).start
-		const previousMonthDate = new Date(thisMonthStart)
-		previousMonthDate.setMonth(new Date(thisMonthStart).getMonth() - 1)
-		const nextMonthDate = new Date(thisMonthStart)
-		nextMonthDate.setMonth(new Date(thisMonthStart).getMonth() + 1)
+		const selectedDate = this.selectedDate()
+		const selectedYear = selectedDate.getFullYear()
+		const selectedMonth = selectedDate.getMonth() + 1
+
+		let nextYear = selectedYear
+		let nextMonth = selectedMonth + 1
+		if (nextMonth > 12) {
+			++nextYear
+			nextMonth = 1
+		}
+
+		let previousYear = selectedYear
+		let previousMonth = selectedMonth - 1
+		if (previousMonth < 1) {
+			--previousYear
+			previousMonth = 12
+		}
 
 		try {
 			const hasNewPaidPlan = await this.eventsRepository.canLoadBirthdaysCalendar()
 			if (hasNewPaidPlan) {
-				await this.eventsRepository.loadContactsBirthdays()
+				await this.eventsRepository.loadBirthdaysFromContacts()
 			}
 			await this.loadMonthsIfNeeded(
-				[new Date(thisMonthStart), nextMonthDate, previousMonthDate],
+				// Year-month pairs provided in order of priority: the selected month should be loaded first
+				[
+					[selectedYear, selectedMonth],
+					[nextYear, nextMonth],
+					[previousYear, previousMonth],
+				],
 				progressMonitor,
 				this.abortController.signal,
 				isForceReload,
@@ -883,8 +898,13 @@ export class CalendarViewModel implements EventDragHandlerCallbacks {
 		return this.calendarModel.getCalendarInfosCreateIfNeeded()
 	}
 
-	loadMonthsIfNeeded(daysInMonths: Array<Date>, progressMonitor: ProgressMonitorInterface, canceled: AbortSignal, isForceReload: boolean): Promise<void> {
-		return this.eventsRepository.loadMonthsIfNeeded(daysInMonths, canceled, progressMonitor, undefined, isForceReload)
+	loadMonthsIfNeeded(
+		yearMonthPairs: [number, number][],
+		progressMonitor: ProgressMonitorInterface,
+		canceled: AbortSignal,
+		isForceReload: boolean,
+	): Promise<void> {
+		return this.eventsRepository.loadMonthsIfNeeded(yearMonthPairs, canceled, progressMonitor, undefined, isForceReload)
 	}
 
 	private doRedraw() {

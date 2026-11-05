@@ -22,7 +22,7 @@ import {
 import { CalendarInfo, CalendarModel } from "../../../src/applications/calendar-app/calendar/model/CalendarModel.js"
 import { CalendarEventsRepository, DaysToEvents } from "../../../src/applications/common/calendar/date/CalendarEventsRepository.js"
 import { MailboxModel } from "../../../src/applications/common/mailFunctionality/MailboxModel.js"
-import { addDaysForEventInstance, getMonthRange } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
+import { addDaysForEventInstance } from "../../../src/applications/common/calendar/date/CalendarUtils.js"
 import {
 	CalendarEventModel,
 	CalendarOperation,
@@ -39,6 +39,7 @@ import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-k
 import { GroupType } from "../../../src/entities/sys/Utils"
 import { SearchRouter } from "../../../src/applications/common/search/view/SearchRouter"
 import { CalendarSearchModel } from "../../../src/applications/calendar-app/search/model/CalendarSearchModel"
+import { DateTime } from "luxon"
 
 let saveAndSendMock
 let rescheduleEventMock
@@ -117,7 +118,10 @@ o.spec("CalendarViewModel", function () {
 	}
 
 	function init(events) {
-		const month = getMonthRange(getDateInZone("2021-01-01"), zone)
+		const month = {
+			start: DateTime.fromObject({ year: 2021, month: 1, day: 1 }, { zone }).toMillis(),
+			end: DateTime.fromObject({ year: 2021, month: 2, day: 1 }, { zone }).toMillis(),
+		}
 		const eventsForDays = new Map()
 
 		for (let event of events) {

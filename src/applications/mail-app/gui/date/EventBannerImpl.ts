@@ -1,4 +1,10 @@
-import { findAttendeeInAddresses, formatJSDate, isAllDayEvent, isSameExternalEvent } from "../../../common/api/common/utils/CommonCalendarUtils"
+import {
+	findAttendeeInAddresses,
+	formatJSDate,
+	isAllDayEvent,
+	isAllDayEventByTimes,
+	isSameExternalEvent,
+} from "../../../common/api/common/utils/CommonCalendarUtils"
 import { ParsedIcalFileContentData } from "../../../calendar-app/calendar/view/CalendarInvites"
 import { CalendarEventsRepository } from "../../../common/calendar/date/CalendarEventsRepository"
 import m, { ChildArray, Children, ClassComponent, Vnode, VnodeDOM } from "mithril"
@@ -244,15 +250,43 @@ export async function loadEventsAroundInvite(
 	 * - Build an object that should contain the event before and after, these can be null, meaning that there's no event at the time
 	 */
 	const eventToAgenda: Map<string, InviteAgenda> = new Map()
-	const datesToLoad = iCalContents.events.map((ev) => [getStartOfDay(ev.startTime), getStartOfDay(ev.endTime)]).flat()
+	const yearMonthPairsToLoad: [number, number][] = []
+	for (const event of iCalContents.events) {
+		let startYear: number
+		let startMonth: number
+		let endYear: number
+		let endMonth: number
+		if (isAllDayEventByTimes(event.startTime, event.endTime)) {
+			startYear = event.startTime.getUTCFullYear()
+			startMonth = event.startTime.getUTCMonth() + 1
+
+			const endJSDate = event.endTime
+			endJSDate.setUTCDate(endJSDate.getUTCDate() - 1)
+			endYear = endJSDate.getUTCFullYear()
+			endMonth = endJSDate.getUTCMonth() + 1
+		} else {
+			startYear = event.startTime.getFullYear()
+			startMonth = event.startTime.getMonth() + 1
+			endYear = event.endTime.getFullYear()
+			endMonth = event.endTime.getMonth() + 1
+		}
+
+		if (!yearMonthPairsToLoad.some((yearMonth) => yearMonth[0] === startYear && yearMonth[1] === startMonth)) {
+			yearMonthPairsToLoad.push([startYear, startMonth])
+		}
+
+		if (!yearMonthPairsToLoad.some((yearMonth) => yearMonth[0] === endYear && yearMonth[1] === endMonth)) {
+			yearMonthPairsToLoad.push([endYear, endMonth])
+		}
+	}
 	const hasNewPaidPlan = await eventsRepository.canLoadBirthdaysCalendar()
 	if (hasNewPaidPlan) {
-		await eventsRepository.loadContactsBirthdays()
+		await eventsRepository.loadBirthdaysFromContacts()
 	}
 	if (forceReload) {
-		await eventsRepository.forceLoadEventsAt(datesToLoad)
+		await eventsRepository.forceLoadEventsAt(yearMonthPairsToLoad)
 	} else {
-		await eventsRepository.loadMonthsIfNeeded(datesToLoad, new AbortController().signal, null)
+		await eventsRepository.loadMonthsIfNeeded(yearMonthPairsToLoad, new AbortController().signal, null)
 	}
 	const events = eventsRepository.getDaysToEvents()() // Short and long events
 
