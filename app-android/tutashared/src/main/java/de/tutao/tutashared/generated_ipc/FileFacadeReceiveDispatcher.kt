@@ -211,6 +211,13 @@ class FileFacadeReceiveDispatcher(
 				)
 				return json.encodeToString(result)
 			}
+			"fileUrlToDisplayPath" -> {
+				val fileUrl: String = json.decodeFromString(arg[0])
+				val result: String? = this.facade.fileUrlToDisplayPath(
+					fileUrl,
+				)
+				return json.encodeToString(result)
+			}
 			else -> throw Error("unknown method for FileFacade: $method")
 		}
 	}

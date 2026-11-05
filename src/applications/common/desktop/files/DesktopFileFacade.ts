@@ -438,6 +438,14 @@ export class DesktopFileFacade implements FileFacade {
 		return this.tfs.createInMemoryFile(buffer)
 	}
 
+	async fileUrlToDisplayPath(fileUrl: string): Promise<string | null> {
+		try {
+			return nodeFileURLToPath(fileUrl)
+		} catch (e) {
+			return null
+		}
+	}
+
 	/**
 	 * Select a non-colliding name in the configured downloadPath, preferably with the given file name
 	 * public for testing

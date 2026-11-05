@@ -182,6 +182,12 @@ public final class FileFacadeReceiveDispatcher: Sendable {
 				directoryUrl
 			)
 			return toJson(result)
+		case "fileUrlToDisplayPath":
+			let fileUrl = try! JSONDecoder().decode(String.self, from: arg[0].data(using: .utf8)!)
+			let result = try await self.facade.fileUrlToDisplayPath(
+				fileUrl
+			)
+			return toJson(result)
 		default:
 			fatalError("licc messed up! \(method)")
 		}

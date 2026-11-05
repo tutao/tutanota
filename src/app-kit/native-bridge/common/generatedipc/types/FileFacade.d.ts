@@ -115,4 +115,9 @@ export interface FileFacade {
 	readDataFile(fileUrl: string): Promise<DataFile | null>
 
 	readDirectory(directoryUrl: string): Promise<DirectoryContents>
+
+	/**
+	 * Convert fileUrl to a display path, according to the current OS. Returns null on invalid paths
+	 */
+	fileUrlToDisplayPath(fileUrl: string): Promise<string | null>
 }

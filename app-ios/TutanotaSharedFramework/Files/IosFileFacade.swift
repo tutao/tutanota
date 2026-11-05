@@ -306,6 +306,9 @@ public final class IosFileFacade: FileFacade {
 		let buf = try stream.read(upToBytes: maxChunkSize)
 		if let buf { return await self.tempFs.createInMemoryFile(data: buf) } else { return nil }
 	}
+	public func fileUrlToDisplayPath(_ fileUrl: String) async throws -> String? {
+		throw GenericTutanotaError(message: "Not implemented")
+	}
 }
 
 extension UploadTaskResponse {

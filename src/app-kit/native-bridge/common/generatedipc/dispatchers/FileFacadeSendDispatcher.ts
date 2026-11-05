@@ -82,4 +82,7 @@ export class FileFacadeSendDispatcher implements FileFacade {
 	async readDirectory(...args: Parameters<FileFacade["readDirectory"]>) {
 		return this.transport.invokeNative("ipc", ["FileFacade", "readDirectory", ...args])
 	}
+	async fileUrlToDisplayPath(...args: Parameters<FileFacade["fileUrlToDisplayPath"]>) {
+		return this.transport.invokeNative("ipc", ["FileFacade", "fileUrlToDisplayPath", ...args])
+	}
 }

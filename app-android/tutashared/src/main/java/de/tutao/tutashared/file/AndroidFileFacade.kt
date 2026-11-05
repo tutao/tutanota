@@ -579,6 +579,10 @@ class AndroidFileFacade(
 		return hash.copyOf(6).toBase64()
 	}
 
+	override suspend fun fileUrlToDisplayPath(fileUrl: String): String? {
+		error("Not implemented")
+	}
+
 	private companion object {
 		const val TAG = "FileUtil"
 		const val HTTP_TIMEOUT = 15L

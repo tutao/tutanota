@@ -249,6 +249,15 @@
 				}
 			],
 			"ret": "DirectoryContents"
+		},
+		"fileUrlToDisplayPath": {
+			"doc": "Convert fileUrl to a display path, according to the current OS. Returns null on invalid paths",
+			"arg": [
+				{
+					"fileUrl": "string"
+				}
+			],
+			"ret": "string?"
 		}
 	}
 }

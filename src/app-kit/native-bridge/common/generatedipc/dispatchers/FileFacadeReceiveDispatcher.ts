@@ -119,6 +119,10 @@ export class FileFacadeReceiveDispatcher {
 				const directoryUrl: string = arg[0]
 				return this.facade.readDirectory(directoryUrl)
 			}
+			case "fileUrlToDisplayPath": {
+				const fileUrl: string = arg[0]
+				return this.facade.fileUrlToDisplayPath(fileUrl)
+			}
 		}
 	}
 }

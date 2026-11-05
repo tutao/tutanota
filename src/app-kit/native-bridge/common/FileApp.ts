@@ -232,4 +232,8 @@ export class NativeFileApp {
 	async readChunk(streamUri: string, maxChunkSize: number): Promise<string | null> {
 		return await this.fileFacade.readChunk(streamUri, maxChunkSize)
 	}
+
+	async fileUrlToDisplayPath(fileUrl: string): Promise<string | null> {
+		return await this.fileFacade.fileUrlToDisplayPath(fileUrl)
+	}
 }

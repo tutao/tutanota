@@ -1,4 +1,4 @@
-import { convertTextToHtml, isMailAddress } from "@tutao/utils"
+import { convertTextToHtml, isMailAddress, isNotNull } from "@tutao/utils"
 import { PartialRecipient } from "../../../../entities/tutanota/Utils"
 
 export type ParsedMailto = {
@@ -41,8 +41,8 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 			if (!decodedAddress) return null
 			return createMailAddressFromString(decodedAddress)
 		})
-		.filter(Boolean)
-	const result: any = {
+		.filter(isNotNull)
+	const result: ParsedMailto = {
 		recipients: {
 			to: addresses.length > 0 ? addresses : undefined,
 			cc: undefined,
@@ -52,7 +52,8 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 		subject: null,
 		body: null,
 	}
-	for (const [paramName, paramValue] of url.searchParams.entries()) {
+	for (const [rawParamName, paramValue] of url.searchParams.entries()) {
+		const paramName = rawParamName.toLowerCase()
 		switch (paramName) {
 			case "subject":
 				result.subject = paramValue
@@ -69,7 +70,7 @@ export function parseMailtoUrl(mailtoUrl: string): ParsedMailto {
 				const nextAddresses = paramValue
 					.split(",")
 					.map((address: string) => createMailAddressFromString(address))
-					.filter(Boolean)
+					.filter(isNotNull)
 				result.recipients[paramName].push(...nextAddresses)
 				break
 			}

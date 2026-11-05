@@ -150,4 +150,10 @@ public protocol FileFacade : Sendable {
 	func readDirectory(
 		_ directoryUrl: String
 	) async throws -> DirectoryContents
+	/**
+	 * Convert fileUrl to a display path, according to the current OS. Returns null on invalid paths
+	 */
+	func fileUrlToDisplayPath(
+		_ fileUrl: String
+	) async throws -> String?
 }
