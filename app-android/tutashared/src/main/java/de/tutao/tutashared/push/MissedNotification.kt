@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import de.tutao.tutashared.alarms.EncryptedAlarmNotification
 import kotlinx.serialization.SerialName

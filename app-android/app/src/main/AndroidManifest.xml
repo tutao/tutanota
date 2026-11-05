@@ -60,6 +60,7 @@
 			<!--Main intent for launching from home screen-->
 			<intent-filter>
 				<action android:name="android.intent.action.MAIN"/>
+			<!--	TODO: MAKE SOMETHING TO ENSURE category.LAUNCHER THIS NEVER GETS REMOVED, BECAUSE OUR NOTIFICATIONS DEPEND ON IT	-->
 				<category android:name="android.intent.category.LAUNCHER"/>
 			</intent-filter>
 			<!--Handler for "share" event or when another app wants to send an email-->

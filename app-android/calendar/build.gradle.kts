@@ -23,7 +23,7 @@ android {
 		minSdk = 26
 		targetSdk = 36
 		versionCode = 381
-		versionName = "368.261110.0"
+		versionName = project.properties["de.tutao.versionName"] as String
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -121,14 +121,10 @@ android {
 		}
 	}
 
-	buildTypes.map {
+	buildTypes.forEach {
 		it.buildConfigField(
 			"String", "FILE_PROVIDER_AUTHORITY", "\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
-		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"126\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"86\"")
-		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
 
 	compileOptions {

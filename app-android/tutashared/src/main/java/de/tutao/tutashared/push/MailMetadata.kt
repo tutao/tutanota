@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 data class MailMetadata(
 	val firstRecipient: SenderRecipient,

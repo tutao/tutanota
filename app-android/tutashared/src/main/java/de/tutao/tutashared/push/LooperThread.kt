@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.os.Handler
 import android.os.Looper

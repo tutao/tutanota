@@ -1,9 +1,8 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.IntentFilter
 import android.net.ConnectivityManager
 import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network

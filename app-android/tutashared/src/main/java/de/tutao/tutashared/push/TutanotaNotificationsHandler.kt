@@ -1,14 +1,13 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.util.Log
 import androidx.lifecycle.LifecycleCoroutineScope
-import de.tutao.calendar.R
+import de.tutao.tutashared.R
 import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.await
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
-import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

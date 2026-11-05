@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import androidx.room.Embedded
 import de.tutao.tutashared.IdTupleWrapper

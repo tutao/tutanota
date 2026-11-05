@@ -147,6 +147,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 
 	@SuppressLint("SetJavaScriptEnabled", "StaticFieldLeak")
 	override fun onCreate(savedInstanceState: Bundle?) {
+
 		Log.d(TAG, "App started")
 		// App is handling a redelivered intent, ignoring as we probably already handled it
 		if (savedInstanceState != null && (intent.action == OPEN_USER_MAILBOX_ACTION || intent.action == OPEN_CALENDAR_ACTION)) {
@@ -943,7 +944,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils, WebViewReloader, Webaut
 			}
 		}
 	}
-
+	// TODO: Consider moving these constants elsewhere so they are accessible everywhere.
 	companion object {
 		// don't remove the trailing slash because otherwise longer domains might match our asset check
 		const val BASE_WEB_VIEW_URL = "https://assets.tutanota.com/"

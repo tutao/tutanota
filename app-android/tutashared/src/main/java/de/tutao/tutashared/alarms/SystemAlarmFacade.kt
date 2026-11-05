@@ -51,6 +51,11 @@ class SystemAlarmFacade(private val context: Context, private val alarmIntentFac
 				isAllDayEvent,
 				user
 			)
+		Log.d(TAG, "INTENT = $intent")
+		intent.setAction("de.tutao.tutanota.ALARM")
+		Log.d(TAG, "INTENT ACTION = ${intent.action}")
+		Log.d(TAG, "intent component = ${intent.component}")
+		Log.d(TAG, "intent is mismatching filters = ${intent.isMismatchingFilter}")
 		return PendingIntent.getBroadcast(context, 1, intent, PendingIntent.FLAG_IMMUTABLE)
 	}
 

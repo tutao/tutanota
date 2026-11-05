@@ -1,25 +1,23 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.app.job.JobParameters
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
-import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
-import de.tutao.calendar.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.DateProviderImpl
 import de.tutao.tutashared.LifecycleJobService
 import de.tutao.tutashared.NetworkUtils
 import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.TempDir
+import de.tutao.tutashared.alarms.AlarmIntentFactory
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
-import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -55,7 +53,7 @@ private enum class State {
  * it (after delay). This does not mean that the system will immediately kill the service (and in practice it does not).
  * 2. We also start the service from MainActivity, mostly to make sure that we still receive notifications.
  * 3. We start it on boot (see [BootBroadcastReceiver]
- * 4. We start it when a notification is dismissed (with [NOTIFICATION_DISMISSED_ADDR_EXTRA].
+ * 4. We start it when a notification is dismissed (with [de.tutao.calendar.push.NOTIFICATION_DISMISSED_ADDR_EXTRA].
  *
  * SSE has its own event loop, we are just listening for events here and mediating between it and SSE storage.
  */
@@ -86,10 +84,12 @@ class PushNotificationService : LifecycleJobService() {
 		val suspensionHandler = SuspensionHandler(dateProvider)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val mainActivityClass = getMainActivityClass(this) // TODO: DO WE ACTUALLY NEED TO GET THE MAIN ACTIVITY CLASS HERE? IT IS UNUSED IN ALARMINTENTFACTORY
+		Log.d(TAG, "in got main activity class: ${mainActivityClass.simpleName}")
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
-			SystemAlarmFacade(this, CalendarAlarmIntentFactory()),
+			SystemAlarmFacade(this, AlarmIntentFactory(mainActivityClass)),
 			localNotificationsFacade,
 			dateProvider,
 			TimeZone.getDefault()
@@ -201,7 +201,7 @@ class PushNotificationService : LifecycleJobService() {
 		alarmNotificationsManager: AlarmNotificationsManager,
 		defaultClient: OkHttpClient,
 		suspensionHandler: SuspensionHandler
-	) : SseListener {
+	) : SseClient.SseListener {
 
 		private val tutanotaNotificationsHandler =
 			TutanotaNotificationsHandler(
@@ -251,4 +251,12 @@ class PushNotificationService : LifecycleJobService() {
 			finishJobIfNeeded()
 		}
 	}
+}
+
+fun getMainActivityClass(context: Context): Class<*> {
+	val launchIntent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+	val className = launchIntent!!.component!!.className // TODO: add error handling
+	val loadedClass = context.classLoader.loadClass(className) // THIS WORKS!!
+
+	return loadedClass
 }

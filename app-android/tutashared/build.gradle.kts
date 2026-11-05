@@ -72,6 +72,16 @@ android {
 		}
 	}
 
+	buildTypes.forEach {
+		it.buildConfigField(
+			"String", "FILE_PROVIDER_AUTHORITY", "\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
+		)
+		// keep in sync with src/native/main/NativePushServiceApp.ts
+		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"${project.properties["de.tutao.sysModelVersion"]}\"")
+		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
+		it.buildConfigField("String", "VERSION_NAME", "\"${project.properties["de.tutao.versionName"]}\"")
+	}
+
 	compileOptions {
 		sourceCompatibility = JavaVersion.VERSION_17
 		targetCompatibility = JavaVersion.VERSION_17
