@@ -449,12 +449,6 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 	suspend fun startWebauthn(uri: Uri): String {
 		val customIntent = CustomTabsIntent.Builder()
 			.build()
-		val intent = customIntent.intent.apply {
-			data = uri
-			// close custom tabs activity as soon as user navigates away from it, otherwise it will linger as a separate
-			// task
-			addFlags(Intent.FLAG_ACTIVITY_NO_HISTORY)
-		}
 
 		return suspendCoroutine { cont ->
 			// if there was already a handler, finish it
@@ -469,7 +463,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 					cont.resumeWithException(CancelledError())
 				}
 			}
-			startActivity(intent)
+			customIntent.launchUrl(this, uri)
 		}
 	}
 
@@ -864,7 +858,7 @@ class MainActivity : AppCompatActivity(), ActivityUtils {
 	}
 
 	fun reload(parameters: Map<String, String>) {
-		runOnUiThread { lifecycleScope.launch{ startWebApp(parameters.toMutableMap()) } }
+		runOnUiThread { lifecycleScope.launch { startWebApp(parameters.toMutableMap()) } }
 	}
 
 	override fun onCreateContextMenu(menu: ContextMenu, v: View, menuInfo: ContextMenuInfo?) {
