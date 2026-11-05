@@ -1,5 +1,5 @@
 import { EnvProvider } from "@tutao/app-env"
-import { BulkMailLoader, MailWithMailDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
+import { BulkMailLoader, MailWithDetails } from "../../../../../mail-app/workerUtils/index/BulkMailLoader.js"
 import { BlobFacade } from "./BlobFacade.js"
 import { CryptoFacade } from "../../../../../../platform-kit/base/base-crypto/CryptoFacade.js"
 import { MailExportTokenFacade } from "./MailExportTokenFacade.js"
@@ -56,7 +56,7 @@ export class MailExportFacade {
 		)
 	}
 
-	async loadMailDetails(mails: readonly Mail[], baseUrl: string): Promise<MailWithMailDetails[]> {
+	async loadMailDetails(mails: readonly Mail[], baseUrl: string): Promise<MailWithDetails[]> {
 		return this.mailExportTokenFacade.loadWithToken((token) =>
 			this.bulkMailLoader.loadMailDetails(mails, { ...DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS, baseUrl, ...this.options(token) }),
 		)
