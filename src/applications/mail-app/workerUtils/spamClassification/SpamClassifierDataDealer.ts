@@ -12,7 +12,7 @@ import {
 	isSameSingleId,
 	listIdPart,
 } from "../../../../platform-kit/meta"
-import { BulkMailLoader, MailWithMailDetails } from "../index/BulkMailLoader"
+import { BulkMailLoader, MailWithDetails } from "../index/BulkMailLoader"
 import { MailFacade } from "../../../common/api/worker/facades/lazy/MailFacade"
 import { getSpamConfidence } from "../../../common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
 import { EnvProvider } from "../../../../platform-kit/app-env"
@@ -267,7 +267,7 @@ export class SpamClassifierDataDealer {
 		return mailIdsForClassificationData
 	}
 
-	private async uploadTrainingDataForMails(mails: MailWithMailDetails[], mailBox: MailBox, mailSets: MailSet[]): Promise<void> {
+	private async uploadTrainingDataForMails(mails: MailWithDetails[], mailBox: MailBox, mailSets: MailSet[]): Promise<void> {
 		const mailFacade = await this.mailFacade()
 		const unencryptedPopulateClientSpamTrainingData: UnencryptedPopulateClientSpamTrainingDatum[] = await promiseMap(
 			mails,
