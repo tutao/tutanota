@@ -4,7 +4,7 @@ import java.util.function.Predicate
 import java.util.stream.Collectors
 import java.util.stream.Stream
 
-class KtArray<T>(private val inner: MutableList<T>) {
+class KtArray<T>(private val inner: MutableList<T>) : Iterable<T> {
 	constructor(vararg items: T) : this(mutableListOf(*items))
 
 	val length: KtInt get() = KtInt(inner.size)
@@ -49,6 +49,10 @@ class KtArray<T>(private val inner: MutableList<T>) {
 
 	fun <R> map(transform: (T) -> R): KtArray<R> {
 		return KtArray(this.inner.map { transform(it) }.toMutableList())
+	}
+
+	override fun iterator(): Iterator<T> {
+		return inner.iterator()
 	}
 }
 

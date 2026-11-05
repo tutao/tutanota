@@ -4,6 +4,10 @@ import de.tutao.langApi.TutanotaError
 
 class Promise<T> {
 	companion object {
+		fun resolve(): Promise<Unit> {
+			return null!!
+		}
+
 		fun <T> resolve(value: T): Promise<T> {
 			return null!!
 		}

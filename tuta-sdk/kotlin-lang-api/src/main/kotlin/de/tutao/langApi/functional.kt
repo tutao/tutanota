@@ -51,3 +51,8 @@ fun getNumericEnumValue(anyEnum: Enum<*>): KtInt {
 		)
 	}
 }
+
+
+fun wormhole(vararg params: Any) {
+	// do-nothing
+}
