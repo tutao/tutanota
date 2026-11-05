@@ -11,7 +11,6 @@ import { lazy, Nullable } from "@tutao/utils"
 import {
 	AeadCipherVersion,
 	AesKey,
-	KeyEncryption,
 	makeNullableSubKeyInfoWithSessionKeyCbcThenHmac,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
@@ -48,11 +47,10 @@ export class InstancePipeline {
 		private readonly loggedInUserProvider: Nullable<LoggedInUserProvider>,
 		private readonly instanceKeyProviderMaker: lazy<InstanceKeyProviderMakerInterface>,
 		private readonly random: Randomizer,
-		keyEncryption: KeyEncryption,
 	) {
 		this.modelMapper = new ModelMapper(typeModelResolver, this.random)
 		this.typeMapper = new TypeMapper(typeModelResolver)
-		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper, keyEncryption)
+		this.cryptoMapper = new CryptoMapper(symmetricCipherFacade, symGroupKeyLoader, this.modelMapper)
 	}
 
 	public static newNativeOnly(
@@ -61,9 +59,8 @@ export class InstancePipeline {
 		symmetricCipherFacade: SymmetricCipherFacade,
 		instanceKeyProviderMaker: lazy<InstanceKeyProviderMakerInterface>,
 		random: Randomizer,
-		keyEncryption: KeyEncryption,
 	): InstancePipeline {
-		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null, instanceKeyProviderMaker, random, keyEncryption)
+		return new InstancePipeline(typeModelResolver, symGroupKeyLoader, symmetricCipherFacade, null, instanceKeyProviderMaker, random)
 	}
 
 	private getSubKeyInfoForDataTransferType(

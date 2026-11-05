@@ -267,7 +267,6 @@ async function createComponents(): Promise<Components> {
 			}
 		},
 		random,
-		keyEncryption,
 	)
 	const sseStorage = new SseStorage(conf)
 	const shortcutManager = new LocalShortcutManager()

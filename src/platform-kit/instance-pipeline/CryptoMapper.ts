@@ -41,7 +41,6 @@ import {
 	InstanceDecryptor,
 	InstanceKeyProvider,
 	KdfNonce,
-	KeyEncryption,
 	OwnerKeyProvider,
 	PartialSubKeyInfo,
 	PartialSubKeyInfoAeadWithInstanceKey,
@@ -109,7 +108,6 @@ export class CryptoMapper {
 		private readonly symmetricCipherFacade: SymmetricCipherFacade,
 		private readonly symGroupKeyLoader: lazy<SymmetricGroupKeyLoader>,
 		private readonly modelMapper: ModelMapper,
-		private readonly keyEncryption: KeyEncryption,
 	) {}
 
 	makeOwnerKeyProvider(groupId: Nullable<Id>): Nullable<OwnerKeyProvider> {
