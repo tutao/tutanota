@@ -19,8 +19,8 @@ android {
 		applicationId = "de.tutao.tutanota"
 		minSdk = 26
 		targetSdk = 36
-		versionCode = 396738
-		versionName = "368.261106.0"
+		versionCode = 396739
+		versionName = "368.261106.1"
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
