@@ -17,7 +17,7 @@ import { theme } from "../../../../ui/theme"
 import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Switch } from "../../../../ui/base/Switch"
 import { PasswordFieldNew } from "../../../common/misc/passwords/PasswordFieldNew"
-import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { DriveFile } from "@tutao/entities/drive"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isNull } from "../../../../platform-kit/utils/Utils"
@@ -25,6 +25,7 @@ import { DriveFileSharingFacade, DriveShareInfo } from "../../../common/api/work
 import { Styles } from "../../../../ui/styles"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { LoginController } from "../../../common/api/main/LoginController"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
 
 type ShareDialogState = "busy" | "done"
 
@@ -154,17 +155,20 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 									},
 									lang.getTranslationText("setExpirationDate_label"),
 								),
-								m(DatePicker, {
-									classes: this.resolveInputFieldClasses(this.doExpiry),
-									date: this.expirationDate,
-									label: lang.getTranslation("selectExpiryDate_label"),
-									onDateSelected: (selectedDate) => {
-										this.expirationDate = normalizeShareExpirationDate(selectedDate)
+								m(LazyComponent<DatePickerAttrs, DatePicker>, {
+									loader: async () => (await import("../../../calendar-app/calendar/gui/pickers/DatePicker")).DatePicker,
+									attrs: {
+										classes: this.resolveInputFieldClasses(this.doExpiry),
+										date: this.expirationDate,
+										label: lang.getTranslation("selectExpiryDate_label"),
+										onDateSelected: (selectedDate) => {
+											this.expirationDate = normalizeShareExpirationDate(selectedDate)
+										},
+										startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
+										noPadding: true,
+										useNewTextField: true,
+										disabled: !this.doExpiry,
 									},
-									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
-									noPadding: true,
-									useNewTextField: true,
-									disabled: !this.doExpiry,
 								}),
 							),
 							m(".flex.row.gap-16.justify-between.flex-grow", [
