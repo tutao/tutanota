@@ -2383,6 +2383,7 @@ export default {
 		"transferTimeRemaining_msg": "{time} залишилося",
 		"transferWaiting_msg": "Очікування…",
 		"trash_action": "Кошик",
+		"trash_label": "Кошик",
 		"trashIsEmpty_msg": "Кошик порожній",
 		"trashItemsSuccess_msg": "{count} елемент(ів) перенесено до Кошика",
 		"tryAudioCaptcha_action": "Спробуйте натомість аудіоголоволомку",
