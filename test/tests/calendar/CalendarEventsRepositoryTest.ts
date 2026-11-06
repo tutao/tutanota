@@ -14,7 +14,15 @@ import { CalendarFacade } from "../../../src/applications/common/api/worker/faca
 import { getFirstOrThrow, getStartOfDay } from "../../../src/platform-kit/utils"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 
-import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
+import {
+	CalendarEventTypeRef,
+	ContactTypeRef,
+	CalendarGroupRootTypeRef,
+	GroupSettings,
+	UserSettingsGroupRoot,
+	UserSettingsGroupRootTypeRef,
+} from "@tutao/entities/tutanota"
 import { OperationType } from "../../../src/platform-kit/meta"
 
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
@@ -38,6 +46,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 		let loginControllerMock: LoginController
 		let calendarModelMock: CalendarModel
 		let entityClientMock: EntityClient
+		let contactModelMock: ContactModel
 		let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
 		let calendarEventsRepository: CalendarEventsRepository
 		let initialCalendarInfos: Map<string, CalendarInfo>
@@ -50,6 +59,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 			loginControllerMock = object()
 			calendarModelMock = object()
 			entityClientMock = object<EntityClient>()
+			contactModelMock = object<ContactModel>()
 
 			abortController = new AbortController()
 
@@ -79,9 +89,41 @@ o.spec("CalendarEventRepositoryTest", function () {
 				timezone,
 				entityClientMock,
 				eventControllerMock,
-				object(),
+				contactModelMock,
 				loginControllerMock,
 			)
+		})
+
+		o.spec("handleContactEvent", function () {
+			o.test("new contact birthday is added to an already loaded month of a subsequent year", async function () {
+				const contactId: IdTuple = ["contactListId", "contactId"]
+				const contact = createTestEntity(ContactTypeRef, { _id: contactId, firstName: "Jane", birthdayIso: "2000-03-15" })
+				when(contactModelMock.loadContactFromId(contactId)).thenResolve(contact)
+				const otherContactId: IdTuple = ["contactListId", "otherContactId"]
+				const otherContact = createTestEntity(ContactTypeRef, { _id: otherContactId, firstName: "Jane", birthdayIso: "2001-03-20" })
+				when(contactModelMock.loadContactFromId(otherContactId)).thenResolve(otherContact)
+				when(userControllerMock.userId).thenReturn("userId")
+				userControllerMock.userSettingsGroupRoot = createTestEntity(UserSettingsGroupRootTypeRef, { birthdayCalendarColor: null })
+				when(calendarModelMock.getBirthdayEventTitle("Jane")).thenReturn("Jane's birthday")
+				when(calendarModelMock.getAgeString(matchers.anything())).thenReturn("age")
+
+				const nextYear = new Date().getFullYear() + 1
+				const march15NextYear = new Date(nextYear, 2, 15)
+				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(new Map())
+				// view is on a month in the next year
+				await calendarEventsRepository.loadMonthsIfNeeded([march15NextYear], abortController.signal, null)
+
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, contactId)
+				// a second birthday in the same month must not make the first one disappear from the other year
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, otherContactId)
+
+				const daysToEvents = calendarEventsRepository.getDaysToEvents()()
+				const events = daysToEvents.get(getStartOfDay(march15NextYear).getTime())
+				o.check(events?.length).equals(1)
+				o.check(events?.[0].flags.isBirthdayEvent).equals(true)
+				const otherEvents = daysToEvents.get(getStartOfDay(new Date(nextYear, 2, 20)).getTime())
+				o.check(otherEvents?.length).equals(1)
+			})
 		})
 
 		o.spec("createOrUpdateCalendarEvent", function () {

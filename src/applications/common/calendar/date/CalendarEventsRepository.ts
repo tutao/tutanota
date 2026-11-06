@@ -547,6 +547,14 @@ export class CalendarEventsRepository {
 
 		const monthRange = getMonthRange(currentBirthdayDate, this.zone)
 		this.addBirthdaysEventsIfNeeded(currentBirthdayDate, monthRange, true)
+
+		// the birthday recurs every year, so also (re-)add the birthdays of this month to the other already loaded months (e.g. in subsequent years) that the user may be viewing
+		for (const loadedMonthStart of this.loadedMonths.keys()) {
+			const loadedMonth = new Date(loadedMonthStart)
+			if (loadedMonth.getMonth() === currentBirthdayDate.getMonth() && loadedMonthStart !== monthRange.start) {
+				this.addBirthdaysEventsIfNeeded(loadedMonth, getMonthRange(loadedMonth, this.zone), false)
+			}
+		}
 	}
 
 	private validateContactBirthday(contact: Contact): ContactWrapper | null {
