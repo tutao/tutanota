@@ -105,7 +105,6 @@ export async function showSupportDialog(logins: LoginController) {
 				title: lang.get("supportMenu_label"),
 				content: m(SupportLandingPage, {
 					data,
-					dialog,
 					toCategoryDetail: () => {
 						const selectedCategory = data.selectedCategory()
 

@@ -455,12 +455,81 @@ export const generateThemes = (): Themes => {
 		drive_video: "#F0B3E8",
 		drive_audio: "#F3BD6E",
 	})
+	// OLED Dark: pure black surfaces for maximum contrast and OLED power savings
+	const oledDark = Object.freeze<Theme>({
+		...semanticColorsDark,
+		themeId: "oled_dark",
+		logo: getAppLogo("#FFFFFFAA"),
+		// Basic color tokens – keep accent colors from the primary dark theme
+		primary: isCalendarApp ? "#ACC7FF" : isDriveApp ? "#8AD6B7" : "#FFB3B5",
+		on_primary: isCalendarApp ? "#0E2F60" : isDriveApp ? "#003828" : "#561D22",
+		primary_container: isCalendarApp ? "#244173" : isDriveApp ? "#00513C" : "#733337",
+		on_primary_container: isCalendarApp ? "#D7E2FF" : isDriveApp ? "#A6F2D2" : "#FFDADA",
+		primary_fixed: isCalendarApp ? "#D7E2FF" : isDriveApp ? "#A6F2D2" : "#FFDADA",
+		on_primary_fixed: isCalendarApp ? "#001A40" : isDriveApp ? "#002409" : "#3B080F",
+		primary_fixed_dim: isCalendarApp ? "#ACC7FF" : isDriveApp ? "#8AD6B7" : "#FFB3B5",
+		on_primary_fixed_variant: isCalendarApp ? "#2A4678" : isDriveApp ? "#00513C" : "#733337",
+		secondary: isCalendarApp ? "#F0B3E8" : isDriveApp ? "#B0D18B" : "#F3BD6E",
+		on_secondary: isCalendarApp ? "#4B1F4A" : isDriveApp ? "#1E3702" : "#442B00",
+		secondary_container: isCalendarApp ? "#643662" : isDriveApp ? "#344E17" : "#624000",
+		on_secondary_container: isCalendarApp ? "#FFD6F7" : isDriveApp ? "#CCEDA5" : "#FFDDB2",
+		secondary_fixed: isCalendarApp ? "#FFD6F7" : isDriveApp ? "#CCEDA5" : "#FFDDB2",
+		on_secondary_fixed: isCalendarApp ? "#330833" : isDriveApp ? "#192300" : "#291800",
+		secondary_fixed_dim: isCalendarApp ? "#F0B3E8" : isDriveApp ? "#B0D18B" : "#F3BD6E",
+		on_secondary_fixed_variant: isCalendarApp ? "#653662" : isDriveApp ? "#344E17" : "#624000",
+		tertiary: isCalendarApp ? "#81D5CE" : isDriveApp ? "#CCBEFF" : "#CDBDFF",
+		on_tertiary: isCalendarApp ? "#003734" : isDriveApp ? "#34275E" : "#34275E",
+		tertiary_container: isCalendarApp ? "#00504C" : isDriveApp ? "#4A3E76" : "#4B3E76",
+		on_tertiary_container: isCalendarApp ? "#9DF2EA" : isDriveApp ? "#E7DEFF" : "#E7DEFF",
+		tertiary_fixed: isCalendarApp ? "#9DF2EA" : isDriveApp ? "#E7DEFF" : "#E7DEFF",
+		on_tertiary_fixed: isCalendarApp ? "#00201E" : isDriveApp ? "#1F1048" : "#1F1048",
+		tertiary_fixed_dim: isCalendarApp ? "#81D5CE" : isDriveApp ? "#CCBEFF" : "#CDBDFF",
+		on_tertiary_fixed_variant: isCalendarApp ? "#00504C" : isDriveApp ? "#4A3E76" : "#4B3E76",
+		// Pure black surfaces
+		surface: "#000000",
+		surface_container: "#000000",
+		surface_container_high: "#0A0A0A",
+		surface_container_highest: "#121212",
+		on_surface: "#FFFFFF",
+		on_surface_variant: "#E0E0E0",
+		outline: "#666666",
+		outline_variant: "#333333",
+		scrim: "#000000",
+		experimental_primary_container: "#C9C6C5",
+		experimental_on_primary_container: "#232323",
+		experimental_tertiary: isCalendarApp ? "#0040FF" : isDriveApp ? "#0040FF" : "#D93951",
+		// state colors; subtle on pure black
+		state_bg_hover: "#FFFFFF22",
+		state_bg_focus: "#FFFFFF33",
+		state_bg_active: "#FFFFFF44",
+		// Campaign colors
+		tuta_color_nota: "#D93951",
+		content_accent_tuta_bday: "#FCBFDE",
+		content_accent_secondary_tuta_bday: "#AC3E80",
+		content_bg_tuta_bday: "#FFFFFF",
+		go_european: goEuropeanLightBlue,
+		on_go_european: "#111111",
+		// SVG illust colors
+		il_outline: "#000000",
+		il_ne_outline: "#FFFFFF",
+		il_highlight: "#FFFFFF",
+		il_sign_up_flow_switch: "#333333",
+		il_sign_up_flow_switch_2: "#000000",
+		il_sign_up_flow_switch_4: "#000000",
+		// Drive icon colors
+		drive_folder: "#B0D18B",
+		drive_document: "#FFB3B5",
+		drive_image: "#81D5CE",
+		drive_video: "#F0B3E8",
+		drive_audio: "#F3BD6E",
+	})
 
 	return {
 		light: isCalendarApp ? lightBlue : isDriveApp ? lightGreen : lightRed,
 		dark: isCalendarApp ? darkBlue : isDriveApp ? darkGreen : darkRed,
 		light_secondary: isCalendarApp ? lightRed : isDriveApp ? lightGreen : lightBlue,
 		dark_secondary: isCalendarApp ? darkRed : isDriveApp ? darkGreen : darkBlue,
+		oled_dark: oledDark,
 	}
 }
 

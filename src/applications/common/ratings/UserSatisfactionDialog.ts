@@ -119,7 +119,6 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 				},
 			},
 			suggestion: {
-				title: "Feedback",
 				content: m(SuggestionPage, { dialog, triggerType }),
 				leftAction:
 					triggerType !== "ManualFeedback"

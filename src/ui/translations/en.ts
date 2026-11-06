@@ -513,6 +513,7 @@ export default {
 		"dark_green_label": "Dark Green",
 		"dark_label": "Dark",
 		"dark_red_label": "Dark Red",
+		"oled_dark_label": "OLED Dark",
 		"dataExpired_label": "Data expired",
 		"dataExpired_msg": "Your loaded data is expired and out of sync with the data on the Tuta servers. Please logout and login again to refresh your data.",
 		"dataExpiredOfflineDb_msg": "Your local data is out of sync with the data on the Tuta servers. You will be logged out and your locally stored data will be cleared and re-downloaded as needed.",

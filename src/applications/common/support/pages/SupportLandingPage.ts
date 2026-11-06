@@ -10,13 +10,11 @@ import { TitleSection } from "../../../../ui/TitleSection"
 import { windowFacade } from "../../misc/WindowFacade"
 import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
 import { locator } from "../../api/main/CommonLocator"
-import { Dialog } from "../../../../ui/base/Dialog"
 
 type Props = {
 	data: SupportDialogState
 	toCategoryDetail: Thunk
 	countFaqLinkTrigger: Thunk
-	dialog: Dialog
 }
 
 export class SupportLandingPage implements Component<Props> {
@@ -25,7 +23,6 @@ export class SupportLandingPage implements Component<Props> {
 			data: { categories, selectedCategory },
 			toCategoryDetail,
 			countFaqLinkTrigger,
-			dialog,
 		},
 	}: Vnode<Props>): Children {
 		const visibleCategorySections: Array<SectionButtonAttrs> = categories.map((category) => ({
@@ -44,7 +41,6 @@ export class SupportLandingPage implements Component<Props> {
 				text: { text: "Have some feedback?", testId: "" },
 				onclick: () => {
 					void showUserSatisfactionDialog("ManualFeedback")
-					dialog.close()
 				},
 			})
 		}

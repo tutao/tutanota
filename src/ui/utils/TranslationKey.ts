@@ -1686,6 +1686,7 @@ export type TranslationKeyType =
 	| "dark_red_label"
 	| "dark_label"
 	| "dark_blue_label"
+	| "oled_dark_label"
 	| "cut_action"
 	| "customerUsageDataOptOut_label"
 	| "customerUsageDataGloballyPossible_label"
