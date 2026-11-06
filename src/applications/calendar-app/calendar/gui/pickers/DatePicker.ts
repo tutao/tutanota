@@ -226,7 +226,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 								if (parsedDate) attrs.onDateSelected(parsedDate)
 							}
 						},
-					} satisfies DropdownWithRootCaptureListenerAttrs,
+					},
 					m(VisualDatePicker, {
 						// Base the date on the typed value not attrs.date
 						selectedDate: this.inputTextEl ? this.parseDate(this.inputTextEl.value) : null,
@@ -262,7 +262,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	 * ISO string is 2026-11-05T17:37:28.558Z, so substring is 2026-11-05
 	 */
 	private dateToInputDateValue(date: Date) {
-		return date.toISOString().substring(0, 10)
+		return `${date.getFullYear()}-${("0" + (date.getMonth() + 1)).slice(-2)}-${("0" + date.getDate()).slice(-2)}`
 	}
 
 	// TODO(gg): Factor into another file to be shared by TimePicker.ts
