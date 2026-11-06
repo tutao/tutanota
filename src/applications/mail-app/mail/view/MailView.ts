@@ -83,9 +83,9 @@ import { MailViewerViewModel } from "./MailViewerViewModel"
 import { MoveMode } from "../model/MailModel"
 import { UndoModel } from "../../UndoModel"
 import { PosRect } from "../../../../ui/utils/PosRect"
-import { Mail, MailSet } from "@tutao/entities/tutanota"
+import { Contact, ContactTypeRef, createContact, Mail, MailSet } from "@tutao/entities/tutanota"
 import { MailReportType, MailSetKind, SystemFolderType } from "../../../../entities/tutanota/Utils"
-import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId } from "../../../../platform-kit/meta"
+import { elementIdPart, elementIdToId, getElementId, isSameId, isSameSingleId, ReadonlyEntity } from "../../../../platform-kit/meta"
 import { getMailFolderType, isFolder, isFolderReadOnly, isPermanentDeleteAllowedForFolder } from "../MailUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { renderHeaderButtons } from "../../../calendar-app/gui/HeaderButtons"
@@ -881,8 +881,66 @@ export class MailView extends BaseTopLevelView implements TopLevelView<MailViewA
 						click: () => this.showNewMailDialog().catch(ofClass(PermissionError, noOp)),
 						icon: Icons.Write,
 					}),
+					// Demo of readonly entities, see ReadonlyEntity
+					m(IconButton, {
+						label: "contacts_label",
+						click: () => this.loadContactsReadonlyDemo(),
+						icon: Icons.PeopleFilled,
+					}),
+					m(IconButton, {
+						label: "edit_action",
+						click: () => this.updateReadonlyContactDemo(),
+						icon: Icons.PersonGearFilled,
+					}),
 				]
 			: null
+	}
+
+	/** Example without _original, still lets reading properties without problem. */
+	private async loadContactsReadonlyDemo() {
+		const contactListId = assertNotNull(await locator.contactModel.getContactListId())
+		const contacts = await locator.entityClient.loadAllReadonly(ContactTypeRef, contactListId)
+		for (const contact of contacts) {
+			console.log(`${contact.firstName} ${contact.lastName}`.trim())
+		}
+	}
+
+	/** Example error */
+	private async updateReadonlyContactDemo() {
+		const readonlyContact = createContact({
+			firstName: "Readonly",
+			lastName: "Contact",
+			mailAddresses: [],
+			title: null,
+			socialIds: [],
+			role: "",
+			presharedPassword: null,
+			photo: null,
+			phoneNumbers: [],
+			oldBirthdayDate: null,
+			nickname: null,
+			company: "",
+			comment: "",
+			birthdayIso: null,
+			addresses: [],
+			oldBirthdayAggregate: null,
+			department: null,
+			middleName: null,
+			nameSuffix: null,
+			phoneticFirst: null,
+			phoneticLast: null,
+			phoneticMiddle: null,
+			customDate: [],
+			messengerHandles: [],
+			pronouns: [],
+			relationships: [],
+			websites: [],
+		}) as ReadonlyEntity<Contact>
+		// Does not allow assigning to the base type, errors with TS2741
+		const another: Contact = readonlyContact
+
+		// Does not allow a readonlyEntity to be passed to update, errs with TS2345:
+		await locator.entityClient.update(readonlyContact)
 	}
 
 	private getShortcuts(): Array<Shortcut> {

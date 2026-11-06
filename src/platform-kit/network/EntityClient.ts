@@ -18,7 +18,7 @@ import {
 import { assertNotNull, groupByAndMap, last, Nullable, promiseMap } from "@tutao/utils"
 import { NotAuthorizedError, NotFoundError } from "@tutao/rest-client/error"
 import { ClientTypeModelResolver, OwnerEncSessionKeyProvider } from "@tutao/instance-pipeline"
-import { ElementEntity, ListElementEntity, PersistentEntity } from "@tutao/meta"
+import { ElementEntity, ListElementEntity, PersistentEntity, ReadonlyEntity } from "@tutao/meta"
 import { RootInstance, RootInstanceTypeRef } from "@tutao/entities/sys"
 import { EntityRestInterface } from "./EntityRestCacheInterface"
 import {
@@ -52,6 +52,40 @@ export class EntityClient {
 		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
 	): Promise<T> {
 		return this._target.load(typeRef, id, opts)
+	}
+
+	loadReadonly<T extends PersistentEntity>(
+		typeRef: TypeRef<T>,
+		id: T["_id"],
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>> {
+		return this._target.loadReadonly(typeRef, id, opts)
+	}
+
+	async loadAllReadonly<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Nullable<Id> = null,
+		opts: EntityRestClientLoadOptions = DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
+	): Promise<ReadonlyEntity<T>[]> {
+		const typeModel = await this.typeModelResolver.resolveClientTypeReference(typeRef)
+
+		if (isNull(start)) {
+			const attributeIdFor_id = assertNotNull(
+				AttributeModel.getAttributeId(typeModel, "_id"),
+				`_id attribute not defined in ${typeModel.app}/${typeModel.name}`,
+			)
+			start = typeModel.values[attributeIdFor_id].type === ValueTypeEnum.GeneratedId ? GENERATED_MIN_ID : CUSTOM_MIN_ID
+		}
+
+		const elements = await this._target.loadRangeReadonly<T>(typeRef, listId, start, RANGE_ITEM_LIMIT, false, opts)
+		if (elements.length === RANGE_ITEM_LIMIT) {
+			const lastElementId = getLetId(elements[elements.length - 1])[1]
+			const nextElements = await this.loadAllReadonly<T>(typeRef, listId, lastElementId, opts)
+			return elements.concat(nextElements)
+		} else {
+			return elements
+		}
 	}
 
 	async loadAll<T extends ListElementEntity>(

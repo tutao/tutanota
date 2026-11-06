@@ -1,4 +1,4 @@
-import { ListElementEntity, PersistentEntity, TypeRef } from "@tutao/meta"
+import { ListElementEntity, PersistentEntity, ReadonlyEntity, TypeRef } from "@tutao/meta"
 import { CacheSyncStatus, EntityUpdateData } from "../instance-pipeline/utils/EntityUpdateUtils"
 import { Nullable } from "@tutao/utils"
 import {
@@ -22,6 +22,23 @@ export interface EntityRestInterface {
 	 * @param loadOptions
 	 */
 	load<T extends PersistentEntity>(typeRef: TypeRef<T>, id: T["_id"], loadOptions: EntityRestClientLoadOptions): Promise<T>
+
+	/**
+	 * Use this when it's guaranteed you will not update the entity, this does create _original.
+	 */
+	loadReadonly<T extends PersistentEntity>(typeRef: TypeRef<T>, id: T["_id"], loadOptions: EntityRestClientLoadOptions): Promise<ReadonlyEntity<T>>
+
+	/**
+	 * Like {@link loadReadonly} but for ranges.
+	 */
+	loadRangeReadonly<T extends ListElementEntity>(
+		typeRef: TypeRef<T>,
+		listId: Id,
+		start: Id,
+		count: number,
+		reverse: boolean,
+		loadOptions: EntityRestClientLoadOptions,
+	): Promise<ReadonlyEntity<T>[]>
 
 	/**
 	 * Reads a range of elements from the server (or cache). Entities are decrypted before they are returned.
