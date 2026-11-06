@@ -63,8 +63,12 @@ export class AggregatePath extends InstancePath {
 }
 
 export class AssociationPath extends Path {
+	private constructor(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeString: string) {
+		super(app, parent, hasBeenCutOff, `${attributeString}/`)
+	}
+
 	static construct(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): AssociationPath {
-		return new AssociationPath(app, parent, hasBeenCutOff, `${attributeId}/`)
+		return new AssociationPath(app, parent, hasBeenCutOff, attributeId.toString())
 	}
 
 	static fromPatchPath(app: AppName, pathString: string): AssociationPath {
@@ -84,6 +88,7 @@ export class ValuePath extends Path {
 	static fromPatchPath(app: AppName, pathString: string): ValuePath {
 		return new ValuePath(app, null, false, pathString)
 	}
+
 	getPath(): string {
 		return this.path
 	}

@@ -92,7 +92,7 @@ o.spec("EncryptionContextPath", () => {
 	})
 
 	o.test("Simple values print path for patch", () => {
-		const valuePath = AssociationPath.fromPatchPath(app, "5/something/7/").addAggregateId("someOtherThing").addValueId(modelValue)
+		const valuePath = AssociationPath.fromPatchPath(app, "5/something/7").addAggregateId("someOtherThing").addValueId(modelValue)
 		o.check(valuePath.getPath()).equals("5/something/7/someOtherThing/1")
 		o.check(valuePath.hasBeenCutOff).equals(false)
 	})
