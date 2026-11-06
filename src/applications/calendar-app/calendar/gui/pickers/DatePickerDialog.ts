@@ -55,7 +55,7 @@ export function showDateRangeSelectionDialog({
 						m(
 							".flex-grow.flex-space-between.flex-column",
 							m(DatePicker, {
-								date: startDate as Date | undefined, // TODO(gg): SMH MY HEAD.
+								date: startDate,
 								onDateSelected: (date) => {
 									warning = null
 									startDate = date
