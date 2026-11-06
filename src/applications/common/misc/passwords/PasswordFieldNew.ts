@@ -7,7 +7,7 @@ import { Status, StatusField } from "../../../../ui/base/StatusField.js"
 import type { lazy } from "@tutao/utils"
 import { TextField, TextFieldAttrs } from "../../../../ui/base/TextField"
 import { MaybeTranslation } from "../../../../ui/utils/LanguageViewModel"
-import { isMediumInsecurePassword, isSecurePassword, passwordStrengthToColor } from "../../misc/passwords/PasswordUtils"
+import { isMediumInsecurePassword, isSecurePassword, passwordStrengthToColor } from "./PasswordUtils"
 import { theme } from "../../../../ui/theme"
 
 type StatusSetting = Status | "auto"

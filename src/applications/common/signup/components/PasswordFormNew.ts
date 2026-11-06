@@ -1,5 +1,5 @@
 import m, { Children, Component, Vnode } from "mithril"
-import { PasswordFieldAttrs, PasswordFieldNew } from "./PasswordFieldNew"
+import { PasswordFieldAttrs, PasswordFieldNew } from "../../misc/passwords/PasswordFieldNew"
 import { font_size, px } from "../../../../ui/size"
 import { EnvProvider } from "@tutao/app-env"
 import { lang, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
