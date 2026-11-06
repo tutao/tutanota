@@ -1193,8 +1193,8 @@ export class AttachmentDownloader {
 
 	canOpenAttachment(attachment: Attachment): boolean {
 		// Can Open: Desktop, Android, iOS
-		// Data files can only be downloaded
-		return (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) && !isDataFile(attachment)
+		// Data files are written to a temporary file and opened(on desktop & app, erroring on browser)
+		return EnvProvider.get().isApp() || EnvProvider.get().isDesktop()
 	}
 
 	canDownloadAttachment(attachment: Attachment): boolean {
@@ -1250,11 +1250,11 @@ export class AttachmentDownloader {
 					throw new ProgrammingError("File Reference cannot be downloaded")
 				}
 			} else if (isDataFile(attachment)) {
+				// the bytes are already in memory, no need to download anything
 				if (postDownload === DownloadPostProcessing.Write) {
-					// When it is a data file, only support downloading
 					await this.fileController.saveDataFile(attachment)
 				} else {
-					throw new ProgrammingError("Data File cannot be opened")
+					await this.fileController.openDataFile(attachment)
 				}
 			} else if (isTutanotaFile(attachment)) {
 				if (postDownload === DownloadPostProcessing.Open) {
