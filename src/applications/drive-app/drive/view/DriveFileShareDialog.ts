@@ -17,7 +17,7 @@ import { theme } from "../../../../ui/theme"
 import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/VariantButtons"
 import { Switch } from "../../../../ui/base/Switch"
 import { PasswordFieldNew } from "../../../common/misc/passwords/PasswordFieldNew"
-import { DatePicker } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
+import { DatePicker, DatePickerAttrs } from "../../../calendar-app/calendar/gui/pickers/DatePicker"
 import { DriveFile } from "@tutao/entities/drive"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { isNull } from "../../../../platform-kit/utils/Utils"
@@ -26,6 +26,7 @@ import { Styles } from "../../../../ui/styles"
 import { getStartOfTheWeekOffsetForUser } from "../../../common/misc/weekOffset"
 import { LoginController } from "../../../common/api/main/LoginController"
 import { keyboardEventFrom } from "../../../../ui/base/GuiUtils"
+import { LazyComponent } from "../../../common/gui/LazyComponent"
 
 type ShareDialogState = "busy" | "done"
 
@@ -155,42 +156,45 @@ async function showFileShareDialog(driveFileSharingFacade: DriveFileSharingFacad
 									},
 									lang.getTranslationText("setExpirationDate_label"),
 								),
-								m(DatePicker, {
-									classes: this.resolveInputFieldClasses(this.doExpiry),
-									date: this.expirationDate,
-									label: lang.getTranslation("selectExpiryDate_label"),
-									onDateSelected: (selectedDate) => {
-										this.expirationDate = normalizeShareExpirationDate(selectedDate)
+								m(LazyComponent<DatePickerAttrs, DatePicker>, {
+									loader: async () => (await import("../../../calendar-app/calendar/gui/pickers/DatePicker")).DatePicker,
+									attrs: {
+										classes: this.resolveInputFieldClasses(this.doExpiry),
+										date: this.expirationDate,
+										label: lang.getTranslation("selectExpiryDate_label"),
+										onDateSelected: (selectedDate) => {
+											this.expirationDate = normalizeShareExpirationDate(selectedDate)
+										},
+										startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
+										disabled: !this.doExpiry,
+										// so that we don't get NBSP with floating label above if there's no date
+										nullSelectionText: lang.makeTranslation("", ""),
+										renderCustomTextField: ({ disabled, focused, onblur, oncreateTextField, onfocus, oninput, onkeydown, value, label }) =>
+											m(TextField, {
+												class: "",
+												disabled,
+												onblur,
+												oninput() {
+													oninput({} as InputEvent)
+												},
+												onfocus() {
+													onfocus({} as FocusEvent)
+												},
+												keyHandler: (key) => {
+													onkeydown(keyboardEventFrom(key))
+													return true
+												},
+												value,
+												label,
+												onDomInputCreated: (_, vnode) => {
+													oncreateTextField(vnode)
+												},
+												leadingIcon: {
+													icon: Icons.CalendarFilled,
+													color: theme.on_surface_variant,
+												},
+											}),
 									},
-									startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(logins.getUserController().userSettingsGroupRoot),
-									disabled: !this.doExpiry,
-									// so that we don't get NBSP with floating label above if there's no date
-									nullSelectionText: lang.makeTranslation("", ""),
-									renderCustomTextField: ({ disabled, focused, onblur, oncreateTextField, onfocus, oninput, onkeydown, value, label }) =>
-										m(TextField, {
-											class: "",
-											disabled,
-											onblur,
-											oninput() {
-												oninput({} as InputEvent)
-											},
-											onfocus() {
-												onfocus({} as FocusEvent)
-											},
-											keyHandler: (key) => {
-												onkeydown(keyboardEventFrom(key))
-												return true
-											},
-											value,
-											label,
-											onDomInputCreated: (_, vnode) => {
-												oncreateTextField(vnode)
-											},
-											leadingIcon: {
-												icon: Icons.CalendarFilled,
-												color: theme.on_surface_variant,
-											},
-										}),
 								}),
 							),
 							m(".flex.row.gap-16.justify-between.flex-grow", [
