@@ -1310,6 +1310,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "It appears the login window was closed without success, please try again.",
 		"migrationPausedProgressInfo_msg": "Imported {mailCount} mails ⋅ Synchronization paused",
 		"migrationPostponed_msg": "Download limit for {provider} reached, will continue on {postponedUntil}.",
+		"migrationProtonStartTLSError_msg": "We could not establish a connection to the IMAP server.\nIf you are migrating from Proton using Proton Mail Bridge, please make sure to set the IMAP connection mode to SSL.\nYou can do this under Advanced Settings -> Connection Mode in Proton Mail Bridge.",
 		"migrationProviderExchange_label": "Exchange",
 		"migrationProviderGmail_label": "Gmail",
 		"migrationProviderMicrosoft365_label": "Microsoft 365",
