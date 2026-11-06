@@ -36,6 +36,7 @@ import { InboxRuleConditionType, MailSetKind, SpamRuleFieldType, SpamRuleType } 
 import { createEmailSenderListElement } from "@tutao/entities/sys"
 import { DownloadPostProcessing } from "../../../common/file/FileController"
 import { Keys } from "../../../../ui/utils/KeyboardKeys"
+import { getElementId } from "@tutao/meta"
 
 EnvProvider.assertMainOrNode()
 
@@ -309,7 +310,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private renderMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs): Children {
 		return m(".mail-body", {
 			// key to avoid mithril reusing the dom element when it should switch the rendering the loading spinner
-			key: "mailBody",
+			key: `mailBody-${getElementId(attrs.mailViewerViewModel.mail)}`,
 			oncreate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
