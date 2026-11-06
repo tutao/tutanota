@@ -7,7 +7,6 @@ import { rem, font_size, px } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
 
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "../../../../../platform-kit/utils"
-import { DateTime } from "luxon"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
 import { parseDate } from "../../../../common/misc/DateParser.js"
@@ -15,6 +14,7 @@ import renderSwitchMonthArrowIcon from "../../../../../ui/base/buttons/ArrowButt
 import { getCalendarMonth, getElementWidth } from "../CalendarGuiUtils.js"
 import { isKeyPressed, keyboardEventToKeyPress, keyHandler, KeyPress, useKeyHandler } from "../../../../../ui/utils/KeyManager.js"
 import { Keys } from "../../../../../ui/utils/KeyboardKeys"
+import { TabIndex } from "@tutao/app-env"
 
 // TODO(gg): Remove this option. Auto-detect available space and flip above/below position automatically. Write it as a
 // general Popover/Modal component. IntersectionObserver/ResizeObserver are overkill, viewport and getClientBoundingRect
@@ -97,12 +97,10 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	 * will get out of date.
 	 */
 
-	constructor({ attrs }: Vnode<DatePickerAttrs>) {}
-
 	view({ attrs }: Vnode<DatePickerAttrs>): Children {
 		if (attrs.date) {
-			const preferredDate = attrs.date.toISOString().substring(0, 10)
-			if (this.inputDateEl && this.inputDateEl.value !== preferredDate) this.inputDateEl.value = preferredDate
+			const isoTrimmed = this.dateToInputDateValue(attrs.date)
+			if (this.inputDateEl && this.inputDateEl.value !== isoTrimmed) this.inputDateEl.value = isoTrimmed
 		}
 		const inputContent =
 			this.inputTextEl && document.activeElement === this.inputTextEl
@@ -138,23 +136,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						this.inputTextEl.value = formatDate(attrs.date ?? new Date())
 					}
 					if (attrs.disabled) return
-					if (ClientDetector.get().isMobileDevice() && this.inputDateEl) {
-						// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
-						// using ClientDetector.get().isIos() in case they add support soon.
-						if ("showPicker" in HTMLInputElement.prototype) {
-							try {
-								this.inputDateEl.showPicker()
-							} catch (e) {
-								// https://developer.chrome.com/blog/show-picker/#how-to
-								if (e.name !== "NotAllowedError") throw e
-							}
-						}
-						// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
-						// Only way to open a native picker on iOS is <input type="date"> focus(). Not even click().
-						if (ClientDetector.get().isIos()) {
-							this.inputDateEl.tabIndex = 0
-							this.inputDateEl.focus()
-						}
+					if (ClientDetector.get().isMobileDevice()) {
+						this.showNativeDatePicker()
 					} else {
 						// Show the non-native VisualDatePicker instead
 						this.showingDropdown = true
@@ -183,8 +166,8 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			// Zero-width <input type="date"> (TODO(gg): Zero-height 100% width might be better?)
 			// Note: It cannot be display:none else browsers (esp iOS) won't render the native picker at all
 			m("input[type=date]", {
-				// We don't want users to enter via tab; if they do, they have to hit tab like 3-4 tabs to get out
-				tabindex: -1,
+				// We don't want users to enter via tab; if they do, they have to hit tab like 3-4 times to get out
+				tabindex: TabIndex.Programmatic,
 				disabled: attrs.disabled,
 				style: {
 					width: 0,
@@ -199,13 +182,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					padding: "8px 0",
 					appearance: "none",
 				},
-				value: attrs.date ? DateTime.fromJSDate(attrs.date).toISODate() : "",
+				value: attrs.date ? this.dateToInputDateValue(attrs.date) : "",
 				oncreate: (input) => {
 					this.inputDateEl = input.dom as HTMLInputElement
 				},
 				// When the native picker closes on iOS, it doesn't always call oninput() and never calls onblur()
 				onfocusout: () => {
-					if (this.inputDateEl) this.inputDateEl.tabIndex = -1
+					if (this.inputDateEl) this.inputDateEl.tabIndex = Number(TabIndex.Programmatic)
 					const htmlDate = this.inputDateEl?.valueAsDate // Explained in comment below
 					if (htmlDate) attrs.onDateSelected(getAllDayDateLocal(htmlDate))
 				},
@@ -300,6 +283,35 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					],
 				),
 		])
+	}
+
+	/**
+	 * An `<input type="date">`'s `'.value =` must be of the form `YYYY-MM-DD` with zero-padded digits.
+	 * ISO string is 2026-11-05T17:37:28.558Z, so substring is 2026-11-05
+	 */
+	private dateToInputDateValue(date: Date) {
+		return date.toISOString().substring(0, 10)
+	}
+
+	// TODO(gg): Factor into another file to be shared by TimePicker.ts
+	private showNativeDatePicker() {
+		if (!this.inputDateEl) return
+		// It's only unimplemented in iOS Safari+Webview (macOS is fine) but check directly rather than
+		// using ClientDetector.get().isIos() in case they add support soon.
+		if ("showPicker" in HTMLInputElement.prototype) {
+			try {
+				this.inputDateEl.showPicker()
+			} catch (e) {
+				// https://developer.chrome.com/blog/show-picker/#how-to
+				if (e.name !== "NotAllowedError") throw e
+			}
+		}
+		// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
+		// Only way to open a native picker on iOS is <input type="date"> focus(). Not even click().
+		if (ClientDetector.get().isIos()) {
+			this.inputDateEl.tabIndex = Number(TabIndex.Default)
+			this.inputDateEl.focus()
+		}
 	}
 
 	private parseDate = memoized((text: string): Date | null => {
@@ -410,7 +422,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 				"aria-label": date.toLocaleDateString(),
 				"aria-selected": `${isSelectedDay}`,
 				role: "option",
-				tabindex: isTabbable ? 0 : -1,
+				tabindex: Number(isTabbable ? TabIndex.Default : TabIndex.Programmatic),
 				onclick: isPaddingDay ? undefined : () => attrs.onDateSelected?.(date, true),
 				onkeydown: (event: KeyboardEvent) => {
 					const key = keyboardEventToKeyPress(event)
@@ -539,8 +551,8 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 		if (element != null && element.ariaHidden === "false") {
 			element.focus()
 			// Put the currently focused element into the tab index so the next tab press follows the tab index
-			element.tabIndex = 0
-			previousElement.tabIndex = -1
+			element.tabIndex = Number(TabIndex.Default)
+			previousElement.tabIndex = Number(TabIndex.Programmatic)
 			return true
 		}
 		return false
