@@ -1,19 +1,17 @@
 import m, { Children, Component, Vnode } from "mithril"
 import { Icon, IconSize } from "./Icon"
-import { IconButton, IconButtonAttrs } from "./IconButton"
 import { lang, TranslationKey } from "../utils/LanguageViewModel"
 import { Card } from "./Card"
 import { px } from "../size"
 import { theme } from "../theme"
 import { Icons } from "./icons/Icons"
-import { noOp } from "@tutao/utils"
+import { ButtonColor, getColors } from "./Button"
 
 export interface HoverInfoAttrs {
 	message: TranslationKey
 	icon?: Icons
 	label?: TranslationKey
 	shiftDistance?: number
-	buttonAttrs?: Partial<Omit<IconButtonAttrs, "icon" | "label" | "click">>
 }
 
 const HIDE_DELAY_MS = 150
@@ -33,37 +31,27 @@ export class HoverInfo implements Component<HoverInfoAttrs> {
 				onmouseleave: this.scheduleHide,
 				onfocusin: (e: FocusEvent) => this.show(e.currentTarget as Element, attrs),
 				onfocusout: this.scheduleHide,
-				// Strip the native `title` that BaseButton sets, otherwise the browser renders its own tooltip on top of our panel.
-				oncreate: (vnode) => this.suppressNativeTitle(vnode.dom as Element),
-				onupdate: (vnode) => this.suppressNativeTitle(vnode.dom as Element),
 			},
 			[
-				m(IconButton, {
-					icon: attrs.icon ?? Icons.QuestionmarkFilled,
-					label: attrs.label ?? attrs.message,
-					click: noOp,
-					...attrs.buttonAttrs,
-				}),
+				m(
+					"button",
+					{ class: "icon-button  state-bg " },
+					m(Icon, {
+						icon: attrs.icon ?? Icons.QuestionmarkFilled,
+						container: "div",
+						class: "center-h",
+						size: IconSize.PX24,
+						style: {
+							fill: getColors(ButtonColor.Content).button,
+						},
+					}),
+				),
 				this.visible ? this.renderPanel(attrs) : null,
 			],
 		)
 	}
 
-	private suppressNativeTitle(host: Element) {
-		const button = host.querySelector("button")
-		if (!button) return
-		const title = button.getAttribute("title")
-		if (title) {
-			if (!button.hasAttribute("aria-label")) {
-				button.setAttribute("aria-label", title)
-			}
-			button.removeAttribute("title")
-		}
-	}
-
 	private show(trigger: Element, attrs: HoverInfoAttrs) {
-		this.suppressNativeTitle(trigger)
-
 		const rect = trigger.getBoundingClientRect()
 		const shift = attrs.shiftDistance ?? DEFAULT_SHIFT_PX
 		this.position = {
