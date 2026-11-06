@@ -1,4 +1,4 @@
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, ProgrammingError } from "@tutao/app-env"
 import { downloadAndDecryptFromArchive, FileController, openDataFileInBrowser, zipDataFiles } from "./FileController.js"
 import { sortableTimestamp } from "@tutao/utils"
 import { BlobFacade } from "../api/worker/facades/lazy/BlobFacade.js"
@@ -16,6 +16,11 @@ export class FileControllerBrowser extends FileController {
 
 	async saveDataFile(file: DataFile): Promise<void> {
 		return openDataFileInBrowser(file)
+	}
+
+	async openDataFile(file: DataFile): Promise<void> {
+		// Unused because in the browser we only support download
+		throw new ProgrammingError("Opening files within browser is not supported.")
 	}
 
 	async downloadAndDecrypt(file: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<DataFile | FileReference> {

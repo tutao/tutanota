@@ -63,6 +63,14 @@ export class FileControllerNative extends FileController {
 		}
 	}
 
+	/**
+	 * Writes to a temp file and opens it.
+	 */
+	async openDataFile(file: DataFile): Promise<void> {
+		const fileReference = await this.fileApp.writeDataFile(file)
+		await this.openFiles([fileReference])
+	}
+
 	/** Public for testing */
 	async downloadAndDecrypt(tutanotaFile: DownloadableFileEntity, transferId: TransferId, archiveType: ArchiveDataType): Promise<FileReference> {
 		return await this.blobFacade.downloadAndDecryptNative(

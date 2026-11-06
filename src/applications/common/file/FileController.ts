@@ -111,6 +111,11 @@ export abstract class FileController {
 	abstract saveDataFile(file: DataFile): Promise<void>
 
 	/**
+	 * Open in memory DataFile
+	 */
+	abstract openDataFile(file: DataFile): Promise<void>
+
+	/**
 	 * Download a file from the server to the Downloads folder.
 	 */
 	async download(file: DownloadableFileEntity, archiveType: ArchiveDataType = ArchiveDataType.Attachments, transferId?: TransferId): Promise<DownloadReturn> {
