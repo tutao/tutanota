@@ -76,7 +76,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 			options: stream(this.timeDropdownOptions),
 			noIcon: true,
 			expanded: true,
-			tabIndex: -1,
+			tabIndex: Number(TabIndex.Programmatic),
 			renderDisplay: () => this.renderInputFields(attrs),
 			renderOption: (option) => this.renderTimeOption(option),
 		} satisfies SelectAttributes<TimeOption, Time>)
@@ -100,7 +100,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				}
 				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
 				if (ClientDetector.get().isIos()) {
-					this.inputTimeEl.tabIndex = 0
+					this.inputTimeEl.tabIndex = Number(TabIndex.Default)
 					this.inputTimeEl.focus()
 				}
 			}
@@ -108,7 +108,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 		}
 		return m.fragment({}, [
 			m("input[type=time]", {
-				tabindex: -1,
+				tabindex: Number(TabIndex.Programmatic),
 				disabled: attrs.disabled,
 				style: {
 					width: 0,
