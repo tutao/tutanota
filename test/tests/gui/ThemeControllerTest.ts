@@ -46,7 +46,7 @@ o.spec("ThemeController", () => {
 
 		const captor = matchers.captor()
 		verify(themeFacadeMock.setThemes(captor.capture()))
-		const savedTheme = captor.values![0][4]
+		const savedTheme = captor.values![0][5]
 		o.check(savedTheme.themeId).equals("HelloFancyId")
 		o.check(savedTheme.surface).equals("#fffeee")
 		o.check(savedTheme.logo).equals("sanitized")

@@ -512,6 +512,7 @@ export default {
 		"dark_green_label": "Dunkelgrün",
 		"dark_label": "Dunkel",
 		"dark_red_label": "Dunkelrot",
+		"true_dark_label": "Echtes Dunkel",
 		"dataExpired_label": "Daten abgelaufen",
 		"dataExpired_msg": "Ihre geladenen Daten sind nicht mehr aktuell und können nicht mehr mit dem Server synchronisiert werden. Bitte loggen Sie sich aus und wieder ein, um Ihre Daten zu aktualisieren.",
 		"dataExpiredOfflineDb_msg": "Ihre lokalen Daten können nicht mehr mit dem Server synchronisiert werden. Sie werden jetzt automatisch ausgeloggt. Ihre lokalen Daten werden gelöscht und bei Bedarf erneut heruntergeladen.",
