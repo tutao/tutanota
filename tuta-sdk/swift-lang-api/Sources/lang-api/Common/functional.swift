@@ -58,3 +58,7 @@ public func thisFunctionDoesNothing() throws {
     throw try ProgrammingError(SwString("This error should never be visible"))
   }
 }
+
+public func wormhole() -> Void {
+
+}

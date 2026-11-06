@@ -117,6 +117,10 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     fatalError("not yet implemented")
   }
 
+  public func join(_ s: SwString) throws -> SwString {
+    fatalError("not yet implemented")
+  }
+
   public func concat(_ other: SwArray<T>) -> SwArray<T> {
     fatalError("not yet implemented!")
   }
@@ -129,7 +133,7 @@ public final class SwArray<T>: @unchecked Sendable, Sequence {
     fatalError("not yet implemented!")
   }
 
-  public func sort(_ sortingFn: (T, T) throws -> SwInt) rethrows -> Nullable<T> {
+  public func sort(_ sortingFn: (T, T) throws -> SwInt) rethrows -> SwArray<T> {
     fatalError("not yet implemented!")
   }
 
