@@ -26,7 +26,7 @@ export enum PickerPosition {
 }
 
 export interface DatePickerAttrs {
-	date?: Date
+	date: Date | null
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: Translation
