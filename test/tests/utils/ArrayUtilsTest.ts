@@ -23,7 +23,6 @@ import {
 	splitInChunks,
 	symmetricDifference,
 } from "../../../src/platform-kit/utils"
-import { filterInPlace } from "../../../src/platform-kit/utils/ArrayUtils"
 
 type ObjectWithId = {
 	v: number
@@ -147,32 +146,6 @@ o.spec("array utils", function () {
 				predicate,
 			),
 		).equals(false)
-	})
-	o.spec("filterInPlace", function () {
-		o.test("filters-out a single item that does not match the predicate", function () {
-			const array = [0, 1, 2]
-
-			filterInPlace(array, (x) => x !== 1)
-			o.check(array).deepEquals([0, 2])
-
-			filterInPlace(array, (x) => x === 0)
-			o.check(array).deepEquals([0])
-
-			filterInPlace(array, (x) => x === 2)
-			o.check(array).deepEquals([])
-		})
-		o.test("filters-out multiple items that do not match the predicate", function () {
-			const array = [0, 1, 2, 2, 1, 0]
-
-			filterInPlace(array, (x) => x !== 2)
-			o.check(array).deepEquals([0, 1, 1, 0])
-
-			filterInPlace(array, (x) => x === 0)
-			o.check(array).deepEquals([0, 0])
-
-			filterInPlace(array, (x) => x !== 0)
-			o.check(array).deepEquals([])
-		})
 	})
 	o("splitInChunks", function () {
 		o(splitInChunks(3, [1, 2, 3, 4, 5])).deepEquals([
