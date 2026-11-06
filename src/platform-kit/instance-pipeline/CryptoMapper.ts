@@ -62,7 +62,7 @@ import { ModelMapper } from "./ModelMapper"
 import { InstanceDirection, ParsedValue } from "./ParsedValue"
 import { EntityUtils } from "./EntityUtils"
 import { EnvProvider, ProgrammingError } from "@tutao/app-env"
-import { AssociationPath, InstancePath, RootPath, ValuePath } from "./EncryptionContextPath"
+import { AggregatePath, AssociationPath, InstancePath, RootPath, ValuePath } from "./EncryptionContextPath"
 import { ValueAssociatedData } from "./ValueAssociatedData"
 import { InstanceTypeId, makeKeyDerivationContext } from "./InstanceTypeContext"
 import { isNull } from "../utils/Utils.js"
@@ -173,7 +173,7 @@ export class CryptoMapper {
 			}
 
 			try {
-				const valuePath = instancePath.addValueId(valueModel)
+				const valuePath = ValuePath.fromInstancePath(instancePath, valueModel)
 				let decryptedValue = await this.decryptValue(valueModel, encryptedValue, instanceDecryptor, valuePath)
 				decryptedValue = CryptoMapper.rewriteEmptyEndValueInRepeatRuleToNull(decrypted.getTypeRef(), decryptedValue, valueModel)
 				decrypted.addAttributeById(valueId, decryptedValue)
@@ -204,7 +204,7 @@ export class CryptoMapper {
 					const decryptedAggregates = await this.decryptAggregateAssociation(
 						encryptedAggregates,
 						instanceDecryptor,
-						instancePath.addAssociationId(associationModel),
+						AssociationPath.fromInstancePath(instancePath, associationModel),
 					)
 					decrypted.addAttributeById(associationId, ParsedValue.fromNestedItems(decryptedAggregates))
 
@@ -257,7 +257,7 @@ export class CryptoMapper {
 			const decryptedAggregate = await this.decryptParsedInstanceInternal(
 				encryptedAggregate,
 				instanceDecryptor,
-				associationPath.addAggregateId(elementIdToId(entityAdapter._id)),
+				AggregatePath.fromAssociationPath(associationPath, elementIdToId(entityAdapter._id)),
 			)
 			decryptedAggregates.push(decryptedAggregate)
 		}
@@ -282,7 +282,7 @@ export class CryptoMapper {
 			if (valueModel.name === "_id") {
 				encryptedInstance.addId(unencryptedValue)
 			} else if (valueModel.encrypted) {
-				const valuePath = instancePath.addValueId(valueModel)
+				const valuePath = ValuePath.fromInstancePath(instancePath, valueModel)
 				const decryptedValue = this.encryptValue(valueModel, unencryptedValue, subKeyProvider, valuePath)
 				encryptedInstance.addAttributeById(valueId, decryptedValue)
 			} else {
@@ -297,7 +297,7 @@ export class CryptoMapper {
 			const associationId = associationModel.id
 			switch (getAssociationRepresentationType(associationModel.type)) {
 				case AssociationReprType.Aggregation: {
-					const associationPath = instancePath.addAssociationId(associationModel)
+					const associationPath = AssociationPath.fromInstancePath(instancePath, associationModel)
 					const unencryptedAggregates = parsedInstance.getAttributeById(associationId).asNestedObjList()
 					const encryptedAggregates = await this.encryptAggregateAssociation(unencryptedAggregates, subKeyProvider, associationPath, ownerKey)
 					encryptedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(encryptedAggregates))
@@ -420,7 +420,9 @@ export class CryptoMapper {
 		let encryptedAggregates = new Array<EncryptedParsedInstance>()
 		for (const aggregate of aggregateValues) {
 			const aggregateId = aggregate.getAttributeByName("_id").asId()
-			encryptedAggregates.push(await this.encryptParsedInstance(aggregate, subKeyProvider, associationPath.addAggregateId(aggregateId), ownerKey))
+			encryptedAggregates.push(
+				await this.encryptParsedInstance(aggregate, subKeyProvider, AggregatePath.fromAssociationPath(associationPath, aggregateId), ownerKey),
+			)
 		}
 
 		return encryptedAggregates
