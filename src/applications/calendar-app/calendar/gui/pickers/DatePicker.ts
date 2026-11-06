@@ -1,4 +1,4 @@
-import m, { Children, Component, Vnode } from "mithril"
+import m, { Children, ClassComponent, CommonAttributes, Component, Vnode } from "mithril"
 import { ClientDetector } from "../../../../../platform-kit/app-env/boot/ClientDetector.js"
 import { formatDate, formatDateWithWeekdayAndYear, formatMonthWithFullYear } from "../../../../../ui/utils/Formatter.js"
 import type { MaybeTranslation, Translation } from "../../../../../ui/utils/LanguageViewModel.js"
@@ -18,7 +18,8 @@ import { TabIndex } from "@tutao/app-env"
 
 // TODO(gg): Remove this option. Auto-detect available space and flip above/below position automatically. Write it as a
 // general Popover/Modal component. IntersectionObserver/ResizeObserver are overkill, viewport and getClientBoundingRect
-// are enough if we prevent page scrolling while the popover is open. See Adobe's React Aria from Adobe.
+// are enough if we prevent page scrolling while the popover is open. See Adobe's React Aria from Adobe. Consider adding
+// right/left alignment too since must component-libraries do that.
 export enum PickerPosition {
 	TOP,
 	BOTTOM, // Default. Never explicitly used.
@@ -31,7 +32,6 @@ export interface DatePickerAttrs {
 	label: Translation
 	nullSelectionText?: MaybeTranslation
 	disabled?: boolean
-	rightAlignDropdown?: boolean
 	position?: PickerPosition
 	classes?: Array<string>
 }
@@ -74,9 +74,9 @@ export interface DatePickerAttrs {
  */
 export class DatePicker implements Component<DatePickerAttrs> {
 	private showingDropdown = false
-	private inputDateEl?: HTMLInputElement = undefined
-	private inputTextEl?: HTMLInputElement = undefined
-	private clickCaptureListener?: (e: MouseEvent) => unknown = undefined
+	private inputDateEl?: HTMLInputElement
+	private inputTextEl?: HTMLInputElement
+	private dropdownEl?: HTMLDivElement
 
 	/**
 	 * Please note we don't store a date in component state. Only `attrs.date` (passed by our parent) is passed into
@@ -124,7 +124,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				oninput: (ev: InputEvent & { redraw?: false }) => {
 					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
 					if (parsedDate) attrs.onDateSelected(parsedDate)
-					// else ev.redraw = false
+					else ev.redraw = false
 				},
 				oncreate: (vnode) => {
 					this.inputTextEl = vnode.dom as HTMLInputElement
@@ -206,81 +206,53 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			}),
 			this.showingDropdown &&
 				m(
-					".abs.content-bg.z3.menu-shadow.plr-12.pb-8",
+					DropdownWithRootCaptureListener,
 					{
-						"aria-modal": "true",
-						"aria-label": lang.getTranslationText(attrs.label),
-						style: {
-							width: "240px",
-							right: attrs.rightAlignDropdown ? "0" : null,
-						},
 						oncreate: (vnode) => {
-							// TODO(gg): PickerPosition.TOP is used in RepeatRuleEditor.ts where the picker can hit the
-							// modal bottom. This was `position: fixed` but we also use `transform: translateX(0px)` too
-							// which meant fixed wasn't fixed - it'd create a stacking context, yes, but would still
-							// scroll with the page. Confusing, so I removed it.
-							if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
-								const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
-								;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
-							}
-							// TODO(gg): Switch to `onfocusout` similar to our Select.ts (Ctrl+Shift+F for focusout)
-							const listener = ({ target }: MouseEvent) => {
-								if (
-									!vnode.dom.contains(target as Node) && // Click anywhere inside calendar
-									target !== this.inputTextEl &&
-									target !== this.inputDateEl
-								) {
-									// Two #root events so this listener runs twice. Only need to do the work once.
-									if (this.showingDropdown) {
-										this.showingDropdown = false
-										const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
-										if (parsedDate) attrs.onDateSelected(parsedDate)
-									}
-								}
-							}
-							this.clickCaptureListener = listener
-							const rootEl = window.tutao.root.getDom() as HTMLElement
-							setTimeout(() => {
-								rootEl.addEventListener("click", listener, true)
-								rootEl.addEventListener("focus", listener, true)
-							}, 100)
+							this.dropdownEl = vnode.dom as HTMLDivElement
 						},
-						onremove: () => {
-							if (this.clickCaptureListener) {
-								const rootEl = window.tutao.root.getDom()
-								rootEl.removeEventListener("click", this.clickCaptureListener, true)
-								rootEl.removeEventListener("focus", this.clickCaptureListener, true)
+						label: lang.getTranslationText(attrs.label),
+						position: attrs.position,
+						rootCaptureListener: ({ target }) => {
+							if (
+								this.showingDropdown &&
+								this.dropdownEl &&
+								!this.dropdownEl.contains(target as Node) && // wClick in VisualDatePicker
+								target !== this.inputTextEl &&
+								target !== this.inputDateEl
+							) {
+								this.showingDropdown = false
+								const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
+								if (parsedDate) attrs.onDateSelected(parsedDate)
 							}
 						},
-					},
-					[
-						m(VisualDatePicker, {
-							// Base the date on the typed value not attrs.date
-							selectedDate: this.inputTextEl ? this.parseDate(this.inputTextEl.value) : null,
-							onDateSelected: (newDate, dayClick) => {
-								// Differentiate between keyboard vs click/enter selections to keep the dropdown open.
-								// If they've selected a day, they aren't typing right now, so it's safe to update
-								if (this.inputTextEl) this.inputTextEl.value = formatDate(newDate)
-								if (!dayClick) return
-								attrs.onDateSelected(newDate)
-								// Order of these two lines is important: onfocus() checks this.showingDropdown value
+					} satisfies DropdownWithRootCaptureListenerAttrs,
+					m(VisualDatePicker, {
+						// Base the date on the typed value not attrs.date
+						selectedDate: this.inputTextEl ? this.parseDate(this.inputTextEl.value) : null,
+						onDateSelected: (newDate, dayClick) => {
+							// Differentiate between keyboard vs click/enter selections to keep the dropdown open.
+							// If they've selected a day, they aren't typing right now, so it's safe to update
+							if (this.inputTextEl) this.inputTextEl.value = formatDate(newDate)
+							if (!dayClick) return
+							attrs.onDateSelected(newDate)
+							// Order of these two lines is important: onfocus() checks this.showingDropdown value
+							if (this.inputTextEl) this.inputTextEl.focus()
+							this.showingDropdown = false
+						},
+						keyHandler: (key: KeyPress) => {
+							if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+								// Order of these two lines is important: onfocus() check this.showingDropdown value
 								if (this.inputTextEl) this.inputTextEl.focus()
 								this.showingDropdown = false
-							},
-							keyHandler: (key: KeyPress) => {
-								if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-									// Order of these two lines is important: onfocus() check this.showingDropdown value
-									if (this.inputTextEl) this.inputTextEl.focus()
-									this.showingDropdown = false
-									return false
-								}
-								// TODO(gg): Unintuitive boolean semantics here. It's a Mithril thing.
-								return true
-							},
-							wide: false,
-							startOfTheWeekOffset: attrs.startOfTheWeekOffset,
-						}),
-					],
+								// TODO(gg): Unintuitive boolean semantics. Use stopPropagation please.
+								return false // event.stopPropagation()
+							}
+							return true
+						},
+						wide: false,
+						startOfTheWeekOffset: attrs.startOfTheWeekOffset,
+					}),
 				),
 		])
 	}
@@ -324,6 +296,52 @@ export class DatePicker implements Component<DatePickerAttrs> {
 	})
 }
 
+// TODO(gg): Discuss w Willow about these type tradeoffs
+type DropdownWithRootCaptureListenerAttrs = CommonAttributes<DropdownWithRootCaptureListenerAttrs, unknown> & {
+	label: string
+	position?: PickerPosition
+	rootCaptureListener: (event: MouseEvent | FocusEvent) => void
+}
+class DropdownWithRootCaptureListener implements ClassComponent<DropdownWithRootCaptureListenerAttrs> {
+	private captureListener?: (e: MouseEvent) => unknown
+
+	view({ attrs, children }: Vnode<DropdownWithRootCaptureListenerAttrs>) {
+		// prettier-ignore
+		return m(".abs.content-bg.z3.menu-shadow.plr-12.pb-8", {
+			"aria-modal": "true",
+			"aria-label": attrs.label,
+			style: {
+				width: "240px",
+			},
+			oncreate: (vnode) => {
+				// TODO(gg): PickerPosition.TOP is used in RepeatRuleEditor.ts where the picker can hit the modal
+				// bottom. This was `position: fixed` but we also use `transform: translateX(0px)` too which meant
+				// fixed wasn't fixed - it'd create a stacking context, yes, but would still scroll with the page.
+				// Confusing, so I removed it.
+				if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
+					const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
+					;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
+				}
+				// TODO(gg): Switch to `onfocusout` similar to our Select.ts (Ctrl+Shift+F for focusout)
+				this.captureListener = attrs.rootCaptureListener
+				const rootEl = window.tutao.root.getDom()
+				setTimeout(() => {
+					rootEl.addEventListener("click", this.captureListener, true)
+					rootEl.addEventListener("focus", this.captureListener, true)
+				}, 100)
+			},
+			onremove: () => {
+				if (this.captureListener) {
+					const rootEl = window.tutao.root.getDom()
+					rootEl.removeEventListener("click", this.captureListener, true)
+					rootEl.removeEventListener("focus", this.captureListener, true)
+				}
+			},
+		},
+		children)
+	}
+}
+
 type VisualDatePickerAttrs = {
 	selectedDate: Date | null
 	onDateSelected?: (date: Date, dayClick: boolean) => unknown
@@ -356,8 +374,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 			".flex.flex-column",
 			{
 				// https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener#the_event_listener_callback
-				// ???
-				// Ahh it's a Mithril thing. It's in the EventDict Mithril source. Yikes.
+				// Ahh it's a Mithril thing. It's in the EventDict Mithril source.
 				onkeydown: (event: KeyboardEvent) => useKeyHandler(event, vnode.attrs.keyHandler),
 			},
 			[
