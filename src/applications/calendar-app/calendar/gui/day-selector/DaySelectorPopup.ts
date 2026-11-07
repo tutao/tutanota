@@ -138,6 +138,8 @@ export class DaySelectorPopup implements ModalComponent {
 		modal.remove(this)
 	}
 
+	allowContextMenu = false
+
 	hideAnimation(): Promise<void> {
 		return Promise.resolve()
 	}

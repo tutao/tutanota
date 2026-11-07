@@ -366,6 +366,8 @@ export class Dialog implements ModalComponent {
 
 	backgroundClick(e: MouseEvent) {}
 
+	allowContextMenu = true
+
 	/**
 	 * show a dialog with only a "ok" button
 	 *

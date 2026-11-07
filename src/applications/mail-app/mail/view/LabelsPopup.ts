@@ -51,6 +51,8 @@ export class LabelsPopup implements ModalComponent {
 		modal.remove(this)
 	}
 
+	allowContextMenu = false
+
 	popState(e: Event): boolean {
 		return true
 	}
