@@ -75,9 +75,9 @@ export class CalendarSearchModel {
 						const updateId: IdTuple = [assertNotNull(update.instanceListId), update.instanceId]
 						const isItemInList = resultItems.some((item) => isSameId(updateId, item._id))
 						if (isItemInList) {
-							resultItems.splice(0, resultItems.length)
-							const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)
-							resultItems.push(...newItems)
+							const newItems = await this.rerunSearchUnlessCancelled(searchQuery, abortSignal)
+							if (newItems == null) return
+							resultItems.splice(0, resultItems.length, ...newItems)
 							searchResult.results = resultItems.map((item) => item._id)
 							liveResult.updates({ type: "reset" })
 						}
@@ -85,9 +85,9 @@ export class CalendarSearchModel {
 						const calendarModel = await this.calendarEventsRepository()
 						await calendarModel.handleContactEvent(update.operation, [assertNotNull(update.instanceListId), update.instanceId])
 
-						resultItems.splice(0, resultItems.length)
-						const { resultItems: newItems } = await this.runCalendarSearch(searchQuery, abortSignal)
-						resultItems.push(...newItems)
+						const newItems = await this.rerunSearchUnlessCancelled(searchQuery, abortSignal)
+						if (newItems == null) return
+						resultItems.splice(0, resultItems.length, ...newItems)
 						searchResult.results = resultItems.map((item) => item._id)
 						liveResult.updates({ type: "reset" })
 					}
@@ -97,6 +97,22 @@ export class CalendarSearchModel {
 		}
 		this.eventController.addEntityUpdatesListener(entityUpdatesListener)
 		return liveResult
+	}
+
+	/**
+	 * Re-run the search for a live update. Returns null if the search was cancelled in the meantime: nobody is waiting for
+	 * this result anymore, so the cancellation must not escape from the entity update listener.
+	 */
+	private async rerunSearchUnlessCancelled(searchQuery: SearchQuery, abortSignal: AbortSignal): Promise<CalendarEvent[] | null> {
+		try {
+			const { resultItems } = await this.runCalendarSearch(searchQuery, abortSignal)
+			return resultItems
+		} catch (e) {
+			if (e instanceof CancelledError) {
+				return null
+			}
+			throw e
+		}
 	}
 
 	private isPossibleBirthdayContactUpdate(items: readonly CalendarEvent[], update: EntityUpdateData<Contact>): boolean {

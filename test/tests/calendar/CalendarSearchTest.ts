@@ -1,7 +1,7 @@
 import o, { assertThrows } from "@tutao/otest"
 import { createTestEntity } from "../TestUtils"
 import { CalendarEvent, CalendarEventTypeRef } from "@tutao/entities/tutanota"
-import { matchers, object, when } from "testdouble"
+import { matchers, object, verify, when } from "testdouble"
 import { CalendarEventsRepository, DaysToEvents } from "../../../src/applications/common/calendar/date/CalendarEventsRepository"
 import { SearchFacade } from "../../../src/applications/mail-app/workerUtils/index/SearchFacade"
 import { EventController } from "../../../src/applications/common/api/main/EventController"
@@ -16,6 +16,8 @@ import stream from "mithril/stream"
 import { CancelledError } from "../../../src/platform-kit/app-env"
 import { CalendarSearchModel } from "../../../src/applications/calendar-app/search/model/CalendarSearchModel"
 
+import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { OperationType } from "../../../src/platform-kit/meta"
 import { SearchQuery } from "../../../src/applications/common/search/SearchUtils"
 
 o.spec("CalendarSearch", function () {
@@ -291,6 +293,33 @@ o.spec("CalendarSearch", function () {
 			when(calendarEventsRepository.getDaysToEvents()).thenReturn(makeDaysToEvents(event1, event2))
 			abort.abort()
 			assertThrows(CancelledError, async () => await search.runCalendarSearch(query, abort.signal))
+		})
+		o.test("a live update after the search was aborted does not throw a CancelledError", async function () {
+			const eventDate = new Date(2026, 7, 27)
+			const event1 = createTestEntity(CalendarEventTypeRef, { summary: "test event", description: "", startTime: eventDate, endTime: eventDate })
+			event1._id = ["ListID", "Event1ID"]
+			const restriction: SearchRestriction = {
+				start: new Date(2026, 7, 20).getTime(),
+				end: new Date(2026, 8, 1).getTime(),
+				folderIds: [],
+				attributeIds: null,
+				eventSeries: null,
+				field: null,
+				type: SearchCategoryType.calendar,
+			}
+			const query: SearchQuery = { query: "event", restriction, maxResults: null }
+			when(calendarEventsRepository.getDaysToEvents()).thenReturn(makeDaysToEvents(event1))
+
+			const captor = matchers.captor()
+			await search.searchCalendar(query, abort.signal)
+			verify(eventController.addEntityUpdatesListener(captor.capture()))
+			abort.abort()
+
+			const listener: EntityUpdatesListener = captor.value
+			await listener.onEntityUpdatesReceived(
+				[{ typeRef: CalendarEventTypeRef, instanceListId: "ListID", instanceId: "Event1ID", operation: OperationType.UPDATE } as EntityUpdateData],
+				"groupId",
+			)
 		})
 		o.test("if end date range is before start date range, an empty array is returned", async function () {
 			const eventStartDate = new Date(2026, 7, 27)
