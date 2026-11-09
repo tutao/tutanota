@@ -210,9 +210,9 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, mode)
 		await fs.promises.writeFile(
 			`${buildDir}/worker-bootstrap-${mode}.js`,
-			`globalThis.env = ${JSON.stringify(env)}
-	import "./polyfill.js"
-	import "./worker.js"
+			`globalThis.env = ${JSON.stringify(env)};
+await import ("./polyfill.js");
+await import ("./worker.js");
 	`,
 		)
 	})

@@ -41,7 +41,13 @@ export class WorkerClient {
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
 			}
-			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker", objToError)
+
+			this._dispatcher = new MessageDispatcher(
+				await new WebWorkerTransport<WorkerRequestType, MainRequestType>(worker).waitForReadyMessage(),
+				this.queueCommands(locator),
+				"main-worker",
+				objToError,
+			)
 			await this._dispatcher.postRequest(
 				new Request("setup", [this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
 			)
