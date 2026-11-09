@@ -59,6 +59,21 @@ public func thisFunctionDoesNothing() throws {
   }
 }
 
-public func wormhole() -> Void {
+public func wormhole() {
 
+}
+
+/**
+ * Initialize of static value might be a call to some throwing function
+ * in that case, we cannot propagate the error up,
+ * so use this function to just panic
+*/
+public func panicOnThrow<T>(_ expression: @autoclosure @escaping () throws -> T) -> () -> T {
+  {
+    do {
+      return try expression()
+    } catch {
+      fatalError("Error thrown when not expected: \(error)")
+    }
+  }
 }

@@ -16,6 +16,10 @@ public final class Promise<T> {
     fatalError("not implemented")
   }
 
+  public static func resolve() -> Promise<Void> {
+      return Promise<Void>(value: ())
+  }
+
   public static func resolve(_ value: Promise<T>) -> Promise<T> {
     return value
   }
@@ -24,7 +28,7 @@ public final class Promise<T> {
     return Promise(value: value)
   }
 
-  public func finally(_ action: () throws -> Void) rethrows -> Promise<T>{
+  public func finally(_ action: () throws -> Void) rethrows -> Promise<T> {
     fatalError("not implemented")
   }
 }
