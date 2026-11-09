@@ -36,12 +36,18 @@ export class WorkerClient {
 
 	async init(locator: CommonLocator): Promise<void> {
 		if (!EnvProvider.isTest()) {
-			const workerUrl = `${this.envProvider.getPathPrefix()}/worker-bootstrap-${this.envProvider.getMode()}`
+			const workerUrl = `${this.envProvider.getPathPrefix()}/worker-bootstrap-${this.envProvider.getMode()}.js`
 			const worker = new Worker(workerUrl, { type: "module" })
 			worker.onerror = (e: any) => {
 				throw new Error(`could not setup worker: ${e.name} ${e.stack} ${e.message} ${e}`)
 			}
-			this._dispatcher = new MessageDispatcher(new WebWorkerTransport(worker), this.queueCommands(locator), "main-worker", objToError)
+
+			this._dispatcher = new MessageDispatcher(
+				await new WebWorkerTransport<WorkerRequestType, MainRequestType>(worker).waitForReadyMessage(),
+				this.queueCommands(locator),
+				"main-worker",
+				objToError,
+			)
 			await this._dispatcher.postRequest(
 				new Request("setup", [this.getInitialEntropy(), ClientDetector.get().browserData(), locator.clientModelInfo.getApps()]),
 			)

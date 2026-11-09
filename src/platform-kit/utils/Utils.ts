@@ -1,10 +1,8 @@
-import { ProgrammingError } from "../app-env/ProgrammingError.js"
+import { ProgrammingError } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks.js"
 import { isStrictlyUndefined, KeyVersion } from "./TsUtils.js"
 
-export type lazy<T> = () => T
-export type lazyAsync<T> = () => Promise<T>
-export type Thunk = () => unknown
+export { lazy, lazyAsync, Thunk } from "@tutao/app-env"
 
 export function isKeyVersion(version: number): version is KeyVersion {
 	// we do not check the upper boundary (100) because this is just a limitation of the type system not a real one

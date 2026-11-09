@@ -1,5 +1,6 @@
 import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./TsPlatformConstants"
+import { lazy } from "./TranspileCompatibility"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -102,11 +103,11 @@ export const enum Mode {
 const assertionsEnabled = false
 
 export class EnvProvider {
-	private static singleton: EnvProvider = new EnvProvider(env)
+	private static singleton: lazy<EnvProvider> = () => new EnvProvider(env)
 	private static boot: boolean = _isNode && !_isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
 
 	public static get(): EnvProvider {
-		return EnvProvider.singleton
+		return EnvProvider.singleton()
 	}
 
 	public isMainOrNode(): boolean {
