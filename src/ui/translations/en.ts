@@ -2624,7 +2624,7 @@ export default {
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
-		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply.",
-		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules."
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. These are applied top-to-bottom and only one rule can apply per email. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>.",
+		"inboxRuleExplainer_msg": "An email matches this rule if all conditions are met and it didn't match any previous rule. When an email matches a rule, the actions are applied to the email. You may add multiple conditions and actions. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>."
 	}
 }

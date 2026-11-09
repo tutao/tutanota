@@ -110,7 +110,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 						m(TitleSection, {
 							icon: Icons.FunnelOutline,
 							title: lang.getTranslationText("inboxRuleManagement_label"),
-							subTitle: lang.getTranslationText("inboxRuleManagement_text"),
+							subTitle: m.trust(lang.getTranslationText("inboxRuleManagement_text")),
 						}),
 						m(".mt-24", m(MenuTitle, { content: lang.get("inboxRulesSettings_action") })),
 						tableLines.length > 0

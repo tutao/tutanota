@@ -413,7 +413,7 @@ export async function show(
 							fill: theme.on_surface_variant,
 						},
 					}),
-					m(".smaller.mt-16", lang.getTranslationText("inboxRuleExplainer_msg")),
+					m(".smaller.mt-16", m.trust(lang.getTranslationText("inboxRuleExplainer_msg"))),
 				]),
 				renderName(),
 				m(".uppercase.b.mt-32.content-fg", lang.getTranslationText("inboxRuleConditions_label")),

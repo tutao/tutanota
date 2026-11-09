@@ -2624,7 +2624,7 @@ export default {
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
-		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply.",
-		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules."
+		"inboxRuleManagement_text": "Posteingangsregeln werden im Posteingang auf eingehende E-Mails angewandt. Die Regeln werden in der Reihenfolge von oben nach unten ausgewertet, es kann nur eine Regel pro E-Mail angewendet werden. Weitere Informationen gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">hier</a>.",
+		"inboxRuleExplainer_msg": "Eine E-Mail wird dieser Regel zugeordnet, wenn alle Bedingungen erfüllt wurden und sie keiner vorherigen Regel zugeordnet wurde. Wenn eine E-Mail einer Regel zugeordnet wird, werden ihre Aktionen auf die E-Mail angewandt. Es können mehrere Bedingungen und Aktionen zu einer Regel hinzugefügt werden. Weitere Informationen gibt es <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/de/support/howto#inbox-rules\">hier</a>."
 	}
 }
