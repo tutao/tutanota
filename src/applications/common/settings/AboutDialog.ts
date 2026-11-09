@@ -2,7 +2,7 @@ import m, { Children, Component, Vnode } from "mithril"
 import { Button, ButtonType } from "../../../ui/base/Button.js"
 import { showUserError } from "../misc/ErrorHandlerImpl.js"
 import { locator } from "../api/main/CommonLocator.js"
-import { InfoLink } from "../../../ui/utils/LanguageViewModel.js"
+import { InfoLink, lang } from "../../../ui/utils/LanguageViewModel.js"
 import { newMailEditorFromTemplate } from "../../mail-app/mail/editor/MailEditor.js"
 import { UserError } from "../api/main/UserError.js"
 import { clientInfoString, getLogAttachments } from "../misc/ErrorReporter.js"
@@ -10,9 +10,11 @@ import { ExternalLink } from "../../../ui/base/ExternalLink.js"
 import { px, size } from "../../../ui/size.js"
 import { prepareLogContent, showLogsDialog } from "../gui/LogDialogUtils"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, TabIndex } from "@tutao/app-env"
 import { getTutaLogoSvg } from "../../../ui/base/Logo"
 import { theme } from "../../../ui/theme"
+import { isKeyPressed } from "../../../ui/utils/KeyManager"
+import { Keys } from "../../../ui/utils/KeyboardKeys"
 
 interface AboutDialogAttrs {
 	onShowSetupWizard: () => unknown
@@ -47,6 +49,22 @@ export class AboutDialog implements Component<AboutDialogAttrs> {
 					isCompanySite: false,
 					class: "mlr-12 mt-16",
 				}),
+				m(
+					"a.underline",
+					{
+						href: "#",
+						class: "mlr-12 mt-16",
+						// Allow keyboard usage in modals etc.
+						tabindex: TabIndex.Default,
+						onkeydown: (e: KeyboardEvent) => {
+							if (isKeyPressed(e.key, Keys.RETURN)) {
+								e.stopPropagation()
+							}
+						},
+						onclick: async () => (await import("../ratings/UserSatisfactionUtils")).scheduleSatisfactionDialog(),
+					},
+					lang.getTranslation("rateUs_action").text,
+				),
 			]),
 			m(".flex.justify-center.selectable.flex-wrap", [
 				m("p.center.mt-16.mlr-12", `v${env.versionNumber}`),

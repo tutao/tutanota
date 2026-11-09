@@ -377,7 +377,7 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					width: "flex",
 					onclick: async () => {
 						this.handleUpgradeSubscription().then(async (upgradeSuccessful: boolean) => {
-							if (await shouldShowSatisfactionDialog()) {
+							if (await shouldShowSatisfactionDialog(false)) {
 								return
 							}
 							//Check if the customer upgraded in the upgrade dialog

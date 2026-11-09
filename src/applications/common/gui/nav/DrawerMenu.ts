@@ -103,7 +103,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 								const upgradeSuccessful = await showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON)
 								const { shouldShowSatisfactionDialog } = await import("../../ratings/UserSatisfactionUtils")
 								//Check if the customer upgraded in the upgrade dialog
-								if (await shouldShowSatisfactionDialog()) {
+								if (await shouldShowSatisfactionDialog(false)) {
 									return
 								}
 								const { showPostUpgradeFeedbackDialog } = await import("../../ratings/UserUpgradedDeclinedDialog")

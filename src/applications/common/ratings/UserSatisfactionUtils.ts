@@ -7,6 +7,8 @@ import { showUserSatisfactionDialog } from "./UserSatisfactionDialog.js"
 import { EnvProvider } from "@tutao/app-env"
 import { AvailablePlanType, LegacyBusinessPlans, NewBusinessPlans, PlanType } from "../../../entities/sys/Utils"
 import { PlanTypeToName } from "../subscription/utils/SubscriptionUtils"
+import { showSnackBar } from "../../../ui/base/SnackBar"
+import { getCurrentDate } from "../../mail-app/mail/MailUtils"
 
 export function createEvent(deviceConfig: DeviceConfig): void {
 	const retentionPeriod: number = 30
@@ -121,11 +123,21 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 	}
 }
 
-export async function shouldShowSatisfactionDialog() {
-	const now = new Date()
-	const disallowReasons = await evaluateRatingEligibility(now, deviceConfig, false)
+let isSatisfactionDialogScheduled = false
+
+export async function shouldShowSatisfactionDialog(isApp: boolean, now = getCurrentDate()): Promise<boolean> {
+	if (isSatisfactionDialogScheduled) {
+		isSatisfactionDialogScheduled = false
+		return true
+	}
+	const disallowReasons = await evaluateRatingEligibility(now, deviceConfig, isApp)
 	const isHappyMoment = isEventHappyMoment(now, deviceConfig)
 	return isEmpty(disallowReasons) && isHappyMoment
+}
+
+export function scheduleSatisfactionDialog() {
+	isSatisfactionDialogScheduled = true
+	showSnackBar({ message: "scheduled_label", button: { label: "rateUs_action", click: () => showUserSatisfactionDialog("ManualFeedback") } })
 }
 
 /*
