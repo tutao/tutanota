@@ -2590,5 +2590,5 @@ export type TranslationKeyType =
 	| "noPaymentMethodError_msg"
 	| "ratingTrustpilot_msg"
 	| "deactivatedAccessLogin_msg"
-	| "emptyString_msg"
 	| "migrationProtonStartTLSError_msg"
+	| "emptyString_msg"

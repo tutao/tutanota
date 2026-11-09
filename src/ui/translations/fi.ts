@@ -1310,6 +1310,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "Kirjautumisikkuna suljettiin epäonnistuneesti, yritä uudelleen.",
 		"migrationPausedProgressInfo_msg": "Tuodaan {mailCount} viesti(ä) ⋅ synkronointi keskeytetty",
 		"migrationPostponed_msg": "{provider}-palvelun latausraja on saavutettu, joten siirto jatkuu {postponedUntil}.",
+		"migrationProtonStartTLSError_msg": "IMAP-palvelimelle ei voitu yhdistää. Jos siirrät tietoja Protonista Proton Mail Bridgen avulla, tarkista, että IMAP-yhteys käyttää SSL:ää. Tämän voi tarkistaa Proton Mail Bridgen asetuksista kohdasta Lisäasetukset -> Yhteystila.",
 		"migrationProviderExchange_label": "Exchange",
 		"migrationProviderGmail_label": "Gmail",
 		"migrationProviderMicrosoft365_label": "Microsoft 365",
