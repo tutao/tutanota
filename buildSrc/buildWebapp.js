@@ -162,8 +162,8 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	await fs.promises.writeFile(
 		`${buildDir}/worker-bootstrap-${mode}.js`,
 		`globalThis.env = ${JSON.stringify(env)}
-		import "./polyfill.js"
-		import "./worker.js"`,
+		await import("./polyfill.js")
+		await import("./worker.js")`,
 	)
 
 	await createHtml(env, app)

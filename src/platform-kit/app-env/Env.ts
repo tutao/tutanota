@@ -1,5 +1,6 @@
 import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
 import { ClientType } from "./TutanotaConstants"
+import { lazy } from "./TranspileCompatibility"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE: TsString = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -102,10 +103,10 @@ const assertionsEnabled: boolean = false
 
 export class EnvProvider {
 	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
+	private static singleton: lazy<EnvProvider> = () => new EnvProvider(env)
 
-	private static singleton: EnvProvider = new EnvProvider(TsJson.parse(RuntimeInfo.globallyDefinedEnv()))
 	public static get(): EnvProvider {
-		return EnvProvider.singleton
+		return EnvProvider.singleton()
 	}
 
 	public getVersionNumber(): TsString {
