@@ -28,7 +28,7 @@ export class OAuthHandler {
 		private readonly client: OAuthClient = openidClient,
 	) {}
 
-	async setupOauthLoginParams(extraParams?: Record<any, string>): Promise<void> {
+	async setupOauthLoginParams(isLegacy: boolean, extraParams?: Record<any, string>): Promise<void> {
 		const { server, clientId } = this.OauthConfig
 		const requiresClientSecret = this.OauthConfig.requiresClientSecret ?? false
 		if (requiresClientSecret) {
@@ -52,7 +52,7 @@ export class OAuthHandler {
 			code_challenge,
 			code_challenge_method: CODE_CHALLENGE_METHOD,
 			redirect_uri: this.OauthConfig.redirectUri,
-			scope: this.OauthConfig.scope,
+			scope: isLegacy ? (this.OauthConfig.legacyScope ?? this.OauthConfig.scope) : this.OauthConfig.scope,
 			state: this.state,
 			...this.OauthConfig.providerSpecificParams,
 			...extraParams,

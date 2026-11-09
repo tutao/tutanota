@@ -49,7 +49,7 @@ o.spec("OAuthHandler", () => {
 		when(clientMock.calculatePKCECodeChallenge(codeVerifierMock)).thenResolve(codeChallengeMock)
 		when(clientMock.randomState()).thenReturn(stateMock)
 
-		await handler.setupOauthLoginParams()
+		await handler.setupOauthLoginParams(false)
 
 		verify(
 			clientMock.discovery(
@@ -95,7 +95,7 @@ o.spec("OAuthHandler", () => {
 		when(clientMock.calculatePKCECodeChallenge(codeVerifierMock)).thenResolve(codeChallengeMock)
 		when(clientMock.randomState()).thenReturn(stateMock)
 
-		await handler.setupOauthLoginParams()
+		await handler.setupOauthLoginParams(false)
 
 		verify(
 			clientMock.discovery(
@@ -118,6 +118,40 @@ o.spec("OAuthHandler", () => {
 		)
 	})
 
+	o.test("setupOauthLoginParams - when isLegacy is true uses legacyScope as scope if it is present", async () => {
+		oauthConfigMock.legacyScope = oauthConfigMock.scope + "-legacy"
+		when(
+			clientMock.discovery(
+				matchers.argThat((url: URL) => url.href === oauthConfigMock.server),
+				oauthConfigMock.clientId,
+			),
+		).thenResolve(configMock)
+		when(clientMock.randomPKCECodeVerifier()).thenReturn(codeVerifierMock)
+		when(clientMock.calculatePKCECodeChallenge(codeVerifierMock)).thenResolve(codeChallengeMock)
+		when(clientMock.randomState()).thenReturn(stateMock)
+
+		await handler.setupOauthLoginParams(true)
+
+		verify(
+			clientMock.discovery(
+				matchers.argThat((url: URL) => url.href === oauthConfigMock.server),
+				oauthConfigMock.clientId,
+			),
+			{ times: 1 },
+		)
+		o.check(handler.codeVerifier).equals(codeVerifierMock)
+		o.check(handler.state).equals(stateMock)
+		o.check(handler.parameters).deepEquals({
+			code_challenge: codeChallengeMock,
+			code_challenge_method: "S256",
+			redirect_uri: oauthConfigMock.redirectUri,
+			scope: oauthConfigMock.legacyScope,
+			state: stateMock,
+			...oauthConfigMock.providerSpecificParams,
+		})
+		verify(serviceExecutorMock.execute(matchers.anything(), matchers.anything(), matchers.anything()), { times: 0 })
+	})
+
 	o.test("buildAuthorizationUrl - returns URL when config is set", async () => {
 		when(
 			clientMock.discovery(
@@ -125,7 +159,7 @@ o.spec("OAuthHandler", () => {
 				oauthConfigMock.clientId,
 			),
 		).thenResolve(configMock)
-		await handler.setupOauthLoginParams()
+		await handler.setupOauthLoginParams(false)
 		when(clientMock.buildAuthorizationUrl(configMock, handler.parameters)).thenReturn(urlMock)
 
 		const result = handler.buildAuthorizationUrl()
@@ -147,7 +181,7 @@ o.spec("OAuthHandler", () => {
 		).thenResolve(configMock)
 		when(clientMock.randomPKCECodeVerifier()).thenReturn(codeVerifierMock)
 		when(clientMock.randomState()).thenReturn(stateMock)
-		await handler.setupOauthLoginParams()
+		await handler.setupOauthLoginParams(false)
 		const responseUrl = "https://myapp.com/callback?code=abc"
 
 		when(
@@ -188,7 +222,7 @@ o.spec("OAuthHandler", () => {
 				oauthConfigMock.clientId,
 			),
 		).thenResolve(configMock)
-		await handler.setupOauthLoginParams()
+		await handler.setupOauthLoginParams(false)
 		const refreshToken = "refresh123"
 		when(clientMock.refreshTokenGrant(configMock, refreshToken)).thenResolve(tokensMock)
 

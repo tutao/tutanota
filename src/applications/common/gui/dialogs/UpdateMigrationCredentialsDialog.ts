@@ -93,7 +93,8 @@ export function showUpdateMigrationCredentialsDialog(
 										if (oauthConfig) {
 											const oauthHandler = await attrs.oauthHandlerFactory(oauthConfig, mailLocator.serviceExecutor)
 											const extraParams = { login_hint: viewModel.username }
-											await oauthHandler.setupOauthLoginParams(extraParams)
+											const isLegacy = viewModel.syncState.legacyProvider !== null
+											await oauthHandler.setupOauthLoginParams(isLegacy, extraParams)
 											const responseUrl = await mailLocator
 												.getMailboxMigrationController()
 												.openOauthAuthenticationWindow(oauthHandler.buildAuthorizationUrl(), oauthConfig.redirectUri)

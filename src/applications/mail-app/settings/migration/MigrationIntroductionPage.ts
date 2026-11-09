@@ -124,7 +124,7 @@ export class MigrationIntroductionPage implements WizardPageN<MigrationData> {
 									login_hint: vnode.attrs.data.username,
 								}
 								try {
-									await oauthHandler.setupOauthLoginParams(extraParams)
+									await oauthHandler.setupOauthLoginParams(false, extraParams)
 								} catch (e) {
 									const errorMessage = lang.getTranslation("migrationOAuthNetworkDiscoveryFailure_msg", {
 										"{url}": config.server,

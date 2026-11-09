@@ -170,7 +170,8 @@ export class MigrationErrorHandler {
 				if (mailboxMigrationCredential.oAuthToken?.refreshToken) {
 					// we need get a new token using refresh token
 					const oauthHandler = await this.oauthHandlerFactory(oAuthConfig, this.serviceExecutor)
-					await oauthHandler.setupOauthLoginParams()
+					const isLegacy = mailboxMigrationSyncState.legacyProvider !== null
+					await oauthHandler.setupOauthLoginParams(isLegacy)
 					try {
 						const previousRefreshToken = mailboxMigrationCredential.oAuthToken.refreshToken
 						const tokenEndpointResponse = await oauthHandler.refreshTokens(previousRefreshToken)

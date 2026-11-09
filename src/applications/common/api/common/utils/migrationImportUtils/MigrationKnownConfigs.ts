@@ -17,6 +17,7 @@ export type OauthConfigParams = {
 	server: string
 	providerSpecificParams: Record<string, string>
 	requiresClientSecret?: boolean
+	legacyScope?: string
 }
 
 export type ImapConfigParams = {
@@ -170,6 +171,7 @@ const migrationKnownConfigs = {
 			clientId: "5e304219-20c3-4627-a9e9-ae884703bf62",
 			redirectUri: "https://login.microsoftonline.com/common/oauth2/nativeclient",
 			scope: "offline_access Mail.Read Mail.Read.Shared",
+			legacyScope: "offline_access https://outlook.office.com/IMAP.AccessAsUser.All",
 			providerSpecificParams: {
 				response_mode: "query",
 				tenant: "common",
