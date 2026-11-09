@@ -165,7 +165,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 				return await this.resolveSessionKey(migratedEntity)
 			}
 		} catch (e) {
-			if (e instanceof SessionKeyNotFoundError) {
+			if (e instanceof SessionKeyNotFoundError || e instanceof CryptoError) {
 				console.log(`could not resolve session key for instance of type ${migratedEntity._type.app}/${migratedEntity._type.typeId}`, e)
 				return null
 			} else {
