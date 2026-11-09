@@ -2600,7 +2600,7 @@ export default {
 		"inboxRuleActions_label": "Folgen",
 		"inboxRuleRecipientEquals_action": "Eine Empfangsadresse ist",
 		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
-		"addCondition_label": "Bedingung hinzufügen",
+		"addCondition_action": "Bedingung hinzufügen",
 		"addAction_action": "Folge hinzufügen",
 		"inboxRulesAppliedSuccessfully_msg": "Posteingangsregeln erfolgreich angewandt",
 		"noMatchingInboxRulesFound_msg": "Keine E-Mails betroffen",

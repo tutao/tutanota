@@ -2598,7 +2598,7 @@ export default {
 		"saveAndApply_action": "Save & Apply",
 		"applyingInboxRules_label": "Applying Inbox Rule(s)",
 		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules.",
-		"addCondition_label": "Add condition",
+		"addCondition_action": "Add condition",
 		"addAction_action": "Add action",
 		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
 		"noMatchingInboxRulesFound_msg": "No emails were affected",

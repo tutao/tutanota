@@ -2599,7 +2599,7 @@ export type TranslationKeyType =
 	| "saveAndApply_action"
 	| "applyingInboxRules_label"
 	| "inboxRuleExplainer_msg"
-	| "addCondition_label"
+	| "addCondition_action"
 	| "addAction_action"
 	| "inboxRulesAppliedSuccessfully_msg"
 	| "noMatchingInboxRulesFound_msg"

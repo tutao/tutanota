@@ -272,7 +272,7 @@ export async function show(
 					m(SecondaryButton, {
 						width: "flex",
 						icon: Icons.Plus,
-						label: "addCondition_label",
+						label: "addCondition_action",
 						onclick: () => {
 							inboxRuleConditions.push({
 								type: stream(InboxRuleConditionType.FROM_EQUALS),
