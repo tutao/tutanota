@@ -1310,6 +1310,7 @@ export default {
 		"migrationOAuthWindowClosedFailure_msg": "登入視窗似乎已關閉，但登入未成功，請再試。",
 		"migrationPausedProgressInfo_msg": "已匯入{mailCount}封郵件 ⋅ 同步暫停",
 		"migrationPostponed_msg": "已達到{provider}的下載限額，將於{postponedUntil}繼續。",
+		"migrationProtonStartTLSError_msg": "我們無法與IMAP伺服器建立連線。\n如果您是從Proton遷移過來並使用Proton Mail Bridge，請確保將IMAP連線模式設定為SSL。\n您可以在Proton Mail Bridge的進階設定 -> 連線模式中設定。",
 		"migrationProviderExchange_label": "Exchange",
 		"migrationProviderGmail_label": "Gmail",
 		"migrationProviderMicrosoft365_label": "Microsoft 365",

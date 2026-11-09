@@ -2383,6 +2383,7 @@ export default {
 		"transferTimeRemaining_msg": "{time} осталось",
 		"transferWaiting_msg": "Ожидание…",
 		"trash_action": "Корзина",
+		"trash_label": "Корзина",
 		"trashIsEmpty_msg": "Корзина пуста",
 		"trashItemsSuccess_msg": "{count} элемента(ов) перемещено в Корзину",
 		"tryAudioCaptcha_action": "Попробовать вместо этого аудио-головоломку",
