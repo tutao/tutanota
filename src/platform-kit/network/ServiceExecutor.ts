@@ -9,7 +9,7 @@ import { LoginIncompleteError } from "@tutao/rest-client/error"
 import { DEFAULT_REST_CLIENT_OPTIONS, ExtraServiceParams } from "../instance-pipeline/RestClientOptions"
 import { IncomingServerJson, OutgoingServerJson } from "../instance-pipeline/TypeMapper"
 import { isNull } from "../utils/Utils"
-import { AeadCipherVersion, SessionKeyProvider, SubKeyInfoWithSessionKeyCbcThenHmac } from "@tutao/crypto"
+import { AeadCipherVersion, SessionKeyProvider } from "@tutao/crypto"
 import { PaymentDataService_PUT } from "@tutao/entities/sys"
 import { SessionKeyNotFoundError } from "@tutao/crypto/error"
 
@@ -92,23 +92,13 @@ export class ServiceExecutor implements IServiceExecutor {
 
 			const ownerKey = params?.ownerKey ?? null
 
-			// TODO: remove this when AccountingInfo has been dealt with
-			if (service === PaymentDataService_PUT) {
-				const sessionKey = params?.sessionKey ?? null
-				if (sessionKey == null) {
-					throw new ProgrammingError(`Must provide a session key for encrypting values for AccountingInfo in: ${service.fullServiceName}`)
-				}
-				return await this.instancePipeline.mapAndEncryptWithSubKeyInfo(
-					requestEntity._type,
-					requestEntity,
-					new SubKeyInfoWithSessionKeyCbcThenHmac(sessionKey),
-					ownerKey,
-				)
-			}
-
 			const requestTypeModel = await this.typeModelResolver.resolveClientTypeReference(requestTypeRef)
 			if (requestTypeModel.encrypted && params?.sessionKeyDecryptor == null) {
-				throw new ProgrammingError(`Must provide a session key decryptor for an encrypted data transfer type: ${service.fullServiceName}`)
+				// make an exception for this type which does not encrypt any data anymore but still has some unused encrpypted values
+				// TODO remove the exception once PaymentDataService is marked as unencrypted
+				if (service !== PaymentDataService_PUT) {
+					throw new ProgrammingError(`Must provide a session key decryptor for an encrypted data transfer type: ${service.fullServiceName}`)
+				}
 			}
 
 			let aeadCipherVersion: AeadCipherVersion

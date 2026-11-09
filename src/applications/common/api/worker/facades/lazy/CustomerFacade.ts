@@ -39,6 +39,7 @@ import {
 	createEmailSenderListElement,
 	createInvoiceDataGetIn,
 	createPaymentDataServicePutData,
+	createUnencrypted,
 	CustomDomainReturn,
 	CustomDomainService_DELETE,
 	CustomDomainService_POST,
@@ -56,11 +57,7 @@ import {
 } from "@tutao/entities/sys"
 import { AccountType, BookingItemFeatureType, GroupType } from "../../../../../../entities/sys/Utils"
 import type { RsaImplementation } from "../../../../../../platform-kit/crypto/encryption/RsaImplementation"
-import {
-	CacheMode,
-	DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS,
-	DEFAULT_EXTRA_SERVICE_PARAMS,
-} from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
+import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { Country, CountryType, getByAbbreviation } from "../../../../gui/CountryList"
 import { idToElementId, NULL_ENTITY } from "@tutao/meta"
 import { InvoiceData } from "../../../../subscription/utils/PaymentUtils"
@@ -374,20 +371,31 @@ export class CustomerFacade {
 		let customer = await this.entityClient.load(CustomerTypeRef, idToElementId(assertNotNull(this.userFacade.getLoggedInUser().customer)))
 		let customerInfo = await this.entityClient.load(CustomerInfoTypeRef, customer.customerInfo)
 		let accountingInfo = await this.entityClient.load(AccountingInfoTypeRef, idToElementId(customerInfo.accountingInfo))
-		let accountingInfoSessionKey = await this.cryptoFacade.resolveSessionKey(accountingInfo)
 		const service = createPaymentDataServicePutData({
-			paymentInterval: paymentInterval.toString(),
-			invoiceName: "",
-			invoiceAddress: invoiceData.invoiceAddress,
-			invoiceCountry: invoiceData.country != null ? invoiceData.country.a : null,
-			invoiceVatIdNo: invoiceData.vatNumber ? invoiceData.vatNumber : "",
-			paymentMethod: paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "",
+			paymentInterval: null,
+			invoiceName: null,
+			invoiceAddress: null,
+			invoiceCountry: null,
+			invoiceVatIdNo: null,
+			paymentMethod: null,
 			paymentMethodInfo: null,
 			paymentToken: null,
-			creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
-			confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
+			creditCard: null,
+			confirmedCountry: null,
+			unencrypted: createUnencrypted({
+				paymentInterval: paymentInterval.toString(),
+				invoiceName: "",
+				invoiceAddress: invoiceData.invoiceAddress,
+				invoiceCountry: invoiceData.country != null ? invoiceData.country.a : null,
+				invoiceVatIdNo: invoiceData.vatNumber ? invoiceData.vatNumber : "",
+				paymentMethod: paymentData ? paymentData.paymentMethod : accountingInfo.paymentMethod ? accountingInfo.paymentMethod : "",
+				paymentMethodInfo: null,
+				paymentToken: null,
+				creditCard: paymentData && paymentData.creditCardData ? paymentData.creditCardData : null,
+				confirmedCountry: confirmedInvoiceCountry ? confirmedInvoiceCountry.a : null,
+			}),
 		})
-		return this.serviceExecutor.execute(PaymentDataService_PUT, service, { ...DEFAULT_EXTRA_SERVICE_PARAMS, sessionKey: accountingInfoSessionKey })
+		return this.serviceExecutor.execute(PaymentDataService_PUT, service, null)
 	}
 
 	/**
