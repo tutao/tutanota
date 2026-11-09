@@ -50,7 +50,7 @@ const migrationKnownConfigs = {
 		authMethod: MigrationAuthMethod.Oauth2,
 		oauthConfig: {
 			server: "https://accounts.google.com",
-			clientId: "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com", // webapp id
+			clientId: "397205111573-me3bs8q166tgsrpjb7jg5k89ghb3jlm7.apps.googleusercontent.com",
 			redirectUri: "http://localhost/",
 			scope: "https://www.googleapis.com/auth/gmail.readonly",
 			providerSpecificParams: {
@@ -277,9 +277,12 @@ export function getTranslationForMigrationProvider(provider: MailboxMigrationPro
 	}
 }
 
+const GMAIL_TEST_APP_CLIENT_ID = "519651146463-m678auj2tuup41i6ihibcdrq5qblhq42.apps.googleusercontent.com"
+
 export function getServerMigrationConfigForProvider(provider: MailboxMigrationProvider): ServerMigrationConfig | null {
 	switch (provider) {
 		case MailboxMigrationProvider.Gmail:
+			if (!env.dist) migrationKnownConfigs.gmail.oauthConfig.clientId = GMAIL_TEST_APP_CLIENT_ID
 			return migrationKnownConfigs.gmail
 		case MailboxMigrationProvider.Outlook:
 			return migrationKnownConfigs.outlook
@@ -290,6 +293,7 @@ export function getServerMigrationConfigForProvider(provider: MailboxMigrationPr
 
 export function getServerMigrationConfigForDomain(domain: string): ServerMigrationConfig | null {
 	if (migrationKnownConfigs.gmail.domains.includes(domain)) {
+		if (!env.dist) migrationKnownConfigs.gmail.oauthConfig.clientId = GMAIL_TEST_APP_CLIENT_ID
 		return migrationKnownConfigs.gmail
 	}
 
