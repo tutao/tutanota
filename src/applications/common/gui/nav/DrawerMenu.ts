@@ -21,7 +21,6 @@ import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
 import { PaymentMethodType } from "../../../../entities/sys/Utils"
-import { shouldShowSatisfactionDialog } from "../../ratings/UserSatisfactionUtils"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -102,6 +101,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 							label: "upgradePremium_label",
 							click: async () => {
 								const upgradeSuccessful = await showUpgradeDialog(UpgradePromptType.DRAWER_MENU_UPGRADE_BUTTON)
+								const { shouldShowSatisfactionDialog } = await import("../../ratings/UserSatisfactionUtils")
 								//Check if the customer upgraded in the upgrade dialog
 								if (await shouldShowSatisfactionDialog()) {
 									return
