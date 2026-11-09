@@ -23,7 +23,7 @@ export interface UserUpgradedDeclinedDialogState {
 	feedbackInputText: string
 }
 
-export async function showUserUpgradedDeclinedDialog(triggerType: TriggerType): Promise<void> {
+export async function showPostUpgradeFeedbackDialog(triggerType: TriggerType): Promise<void> {
 	completeTriggerStage(triggerType)
 
 	const data: UserUpgradedDeclinedDialogState = {

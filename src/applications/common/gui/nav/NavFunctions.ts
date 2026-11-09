@@ -6,8 +6,8 @@ import { LoginController } from "../../api/main/LoginController.js"
  * Opens the upgrade dialog.
  * The promise resolves, as soon as the dialog is closed. This can be caused either due to a successful upgrade or when the user just dismissed the dialog.
  */
-export async function showUpgradeDialog(upgradePromptType: UpgradePromptType, isCalledBySatisfactionDialog = false): Promise<void> {
-	await (
+export async function showUpgradeDialog(upgradePromptType: UpgradePromptType, isCalledBySatisfactionDialog = false): Promise<boolean> {
+	return await (
 		await import("../../subscription/UpgradeSubscriptionWizard.js")
 	).showUpgradeWizard({
 		upgradePromptType,

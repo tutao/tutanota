@@ -121,6 +121,13 @@ export async function showUserSatisfactionDialogAfterUpgrade(currentPlan: PlanTy
 	}
 }
 
+export async function shouldShowSatisfactionDialog() {
+	const now = new Date()
+	const disallowReasons = await evaluateRatingEligibility(now, deviceConfig, false)
+	const isHappyMoment = isEventHappyMoment(now, deviceConfig)
+	return isEmpty(disallowReasons) && isHappyMoment
+}
+
 /*
 ## Stages:
 

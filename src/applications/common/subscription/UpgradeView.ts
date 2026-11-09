@@ -1,7 +1,7 @@
 import m, { ClassComponent, ComponentTypes, Vnode } from "mithril"
 import { createWizard, WizardLayoutAttrs } from "../../../ui/base/wizard/Wizard"
 import type { WizardStepComponentAttrs } from "../../../ui/base/wizard/WizardStep"
-import { PlanSelectorPage, PlanSelectorPageAttrs } from "../signup/PlanSelectorPage"
+import { PlanSelectorPage } from "../signup/PlanSelectorPage"
 import InvoiceAndPaymentDataPage from "../signup/InvoiceAndPaymentDataPage"
 import { Dialog, DialogType } from "../../../ui/base/Dialog"
 import { UpgradeViewModel } from "./UpgradeViewModel"
@@ -22,12 +22,12 @@ export interface UpgradeViewAttrs {
 	layout?: ComponentTypes<WizardLayoutAttrs<UpgradeViewModel>>
 }
 
-export function showUpgradeDialog(viewModel: UpgradeViewModel, onComplete?: () => void): Promise<void> {
+export function showUpgradeDialog(viewModel: UpgradeViewModel, onComplete?: () => void): Promise<boolean> {
 	const isMobile = Styles.get().isMobileLayout()
-	return new Promise<void>((resolve) => {
+	return new Promise<boolean>((resolve) => {
 		const close = () => {
 			dialog.close()
-			resolve()
+			resolve(viewModel.upgradeSuccessful)
 		}
 		let previousHeight = 0
 		let heightAnimation: Animation | undefined
@@ -116,7 +116,7 @@ export class UpgradeView implements ClassComponent<UpgradeViewAttrs> {
 					ctx.goPrev()
 				},
 				onPaymentIntervalChanged: () => ctx.viewModel.updatePrice(),
-				onConfirm: () => upgrade(ctx.viewModel),
+				onConfirm: async () => (ctx.viewModel.upgradeSuccessful = await upgrade(ctx.viewModel)),
 			}),
 	}
 

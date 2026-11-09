@@ -77,7 +77,7 @@ import { PrimaryButton, SecondaryButton } from "../../../../ui/base/buttons/Vari
 import { showSubscriptionCancellationDialog } from "./SubscriptionCancellationDialog"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog"
 import { MobilePaymentError } from "../../api/common/error/MobilePaymentError"
-import { isEventHappyMoment, showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
+import { shouldShowSatisfactionDialog, showUserSatisfactionDialogAfterUpgrade } from "../../ratings/UserSatisfactionUtils"
 import { EntityUpdateData, isUpdateForTypeRef } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { SubscriptionStateCellAttrs } from "../../subscription/components/SubscriptionStateCell"
 import { MessageBanner } from "../../../../ui/base/MessageBanner"
@@ -86,9 +86,7 @@ import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDete
 import { UpdatableSettingsViewer } from "../Interfaces"
 import { openExternalSubscriptionPage, showDowngradeOrResubscribeDialog } from "../../misc/SubscriptionDialogs"
 import { InfoIconAttrs } from "../../../../ui/base/InfoIcon"
-import { showUserUpgradedDeclinedDialog } from "../../ratings/UserUpgradedDeclinedDialog"
-import { deviceConfig } from "../../misc/DeviceConfig"
-import { getCurrentDate } from "../../../mail-app/mail/MailUtils"
+import { showPostUpgradeFeedbackDialog } from "../../ratings/UserUpgradedDeclinedDialog"
 
 EnvProvider.assertMainOrNode()
 export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
@@ -378,18 +376,17 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 					label: "subscriptionSettingsMoreFeatures_action",
 					width: "flex",
 					onclick: async () => {
-						this.handleUpgradeSubscription().then(() => {
-							//Don't show if no plan set and if satisfactionDialog is triggered
-							if (!this._customerInfo?.plan || isEventHappyMoment(getCurrentDate(), deviceConfig)) {
+						this.handleUpgradeSubscription().then(async (upgradeSuccessful: boolean) => {
+							if (await shouldShowSatisfactionDialog()) {
 								return
 							}
 							//Check if the customer upgraded in the upgrade dialog
-							if (locator.logins.getUserController().isFreeAccount()) {
-								//Not upgraded
-								void showUserUpgradedDeclinedDialog("DeclineUpgrade")
-							} else {
+							if (upgradeSuccessful) {
 								//Upgraded
-								void showUserUpgradedDeclinedDialog("DidUpgrade")
+								void showPostUpgradeFeedbackDialog("DidUpgrade")
+							} else {
+								//Not upgraded
+								void showPostUpgradeFeedbackDialog("DeclineUpgrade")
 							}
 						})
 					},
@@ -572,21 +569,22 @@ export class SubscriptionSettingsViewer implements UpdatableSettingsViewer {
 		}
 	}
 
-	private async handleUpgradeSubscription() {
+	private async handleUpgradeSubscription(): Promise<boolean> {
 		if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 			const term = await getExternalSubscriptionError()
 			if (term) {
-				return Dialog.message(term)
+				await Dialog.message(term)
+				return false
 			}
 		}
 
 		const viewModel = await showProgressDialog("pleaseWait_msg", UpgradeViewModel.create(locator.logins))
-		await new Promise<void>((resolve) => {
+		return await new Promise<boolean>((resolve) => {
 			this.upgradeView = {
 				viewModel,
 				onClose: () => {
 					this.upgradeView = null
-					resolve()
+					resolve(viewModel.upgradeSuccessful)
 					m.redraw()
 				},
 			}

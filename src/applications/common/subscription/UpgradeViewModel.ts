@@ -31,6 +31,7 @@ export class UpgradeViewModel implements PlanSelectionModel, PaymentDetailsModel
 	price: OfferPrice | null = null
 	nextYearPrice: OfferPrice | null = null
 	targetPlanType = SignupFlowUsageTestController.getUsageTestVariant() === 1 ? PlanType.Revolutionary : PlanType.Legend
+	upgradeSuccessful: boolean = false
 
 	static async create(logins: LoginController, acceptedPlans: readonly AvailablePlanType[] = NewPaidPlans, msg?: Translation): Promise<UpgradeViewModel> {
 		SignupFlowUsageTestController.invalidateUsageTest()
