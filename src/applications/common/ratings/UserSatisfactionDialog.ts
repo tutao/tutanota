@@ -4,7 +4,7 @@ import {
 	completeTriggerStage,
 	createEvent,
 	evaluateRatingEligibility,
-	isEventHappyMoment,
+	shouldShowSatisfactionDialog,
 	TriggerType,
 } from "./UserSatisfactionUtils.js"
 import { MultiPageDialog } from "../../../ui/dialogs/MultiPageDialog.js"
@@ -23,7 +23,7 @@ import { showSnackBar } from "../../../ui/base/SnackBar.js"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector.js"
 import { windowFacade } from "../misc/WindowFacade.js"
 import { EnvProvider, TUTA_MAIL_APP_STORE_URL, TUTA_MAIL_GOOGLE_PLAY_URL } from "@tutao/app-env"
-import { isEmpty, noOp } from "@tutao/utils"
+import { noOp } from "@tutao/utils"
 import { Dialog } from "../../../ui/base/Dialog.js"
 import { createUserSettingsGroupRoot, SupportCategory, SupportTopic } from "@tutao/entities/tutanota"
 import { getCurrentDate } from "../../mail-app/mail/MailUtils"
@@ -169,13 +169,7 @@ export async function showUserSatisfactionDialog(triggerType: TriggerType): Prom
 export async function handleRatingByEvent(triggerType: TriggerType) {
 	createEvent(deviceConfig)
 
-	const disallowReasons = await evaluateRatingEligibility(getCurrentDate(), deviceConfig, EnvProvider.get().isApp())
-
-	if (!isEmpty(disallowReasons)) {
-		return
-	}
-
-	if (isEventHappyMoment(getCurrentDate(), deviceConfig)) {
+	if (await shouldShowSatisfactionDialog(EnvProvider.get().isApp())) {
 		void showUserSatisfactionDialog(triggerType)
 	}
 }
