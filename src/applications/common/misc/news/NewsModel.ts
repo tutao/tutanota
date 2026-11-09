@@ -1,7 +1,6 @@
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
 import { NotFoundError } from "@tutao/rest-client/error"
 import { NewsListItem } from "./NewsListItem.js"
-import { EnvProvider } from "@tutao/app-env"
 import { createNewsIn, NewsId, NewsOut, NewsService_GET, NewsService_POST } from "@tutao/entities/tutanota"
 import { NULL_ENTITY } from "@tutao/meta"
 
@@ -41,12 +40,8 @@ export class NewsModel {
 			const newsListItem = await this.newsListItemFactory(newsItemName)
 
 			if (!!newsListItem && (await newsListItem.isShown(newsItemId))) {
-				// we can't display those news items unless we allow apple payments
-				const unsupportedIosNewsItem = EnvProvider.get().isIOSApp() && ["newPlans", "newPlansOfferEnding"].includes(newsItemId.newsItemName)
-				if (!unsupportedIosNewsItem) {
-					this.liveNewsIds.push(newsItemId)
-					this.liveNewsListItems[newsItemName] = newsListItem
-				}
+				this.liveNewsIds.push(newsItemId)
+				this.liveNewsListItems[newsItemName] = newsListItem
 			}
 		}
 

@@ -790,14 +790,6 @@ class CalendarLocator implements CommonLocator {
 					const dateProvider = await this.noZoneDateProvider()
 					return new ReferralLinkNews(this.newsModel, dateProvider, this.logins.getUserController())
 				}
-				case "newPlans": {
-					const { NewPlansNews } = await import("../common/misc/news/items/NewPlansNews.js")
-					return new NewPlansNews(this.newsModel, this.logins.getUserController())
-				}
-				case "newPlansOfferEnding": {
-					const { NewPlansOfferEndingNews } = await import("../common/misc/news/items/NewPlansOfferEndingNews.js")
-					return new NewPlansOfferEndingNews(this.newsModel, this.logins.getUserController())
-				}
 				default:
 					console.log(`No implementation for news named '${name}'`)
 					return null
