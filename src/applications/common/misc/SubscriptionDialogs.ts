@@ -7,7 +7,7 @@ import type { UserController } from "../api/main/UserController.js"
 import { GENERATED_MAX_ID } from "@tutao/meta"
 import { Const, EnvProvider, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { BookingTypeRef } from "@tutao/entities/sys"
-import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PaymentMethodType, PlanType } from "../../../entities/sys/Utils"
+import { AvailablePlanType, NewBusinessPlans, NewPaidPlans, NewPersonalPlans, PaymentMethodType } from "../../../entities/sys/Utils"
 import { windowFacade } from "./WindowFacade"
 
 let upgradeDialogShowing = false
@@ -70,7 +70,7 @@ export async function checkPaidSubscription(upgradePromptType: UpgradePromptType
 	return true
 }
 
-export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<PlanType | void> {
+export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunction: TranslationKey): Promise<void> {
 	const userController = locator.logins.getUserController()
 	if (!userController.isGlobalAdmin()) {
 		return Dialog.message("insufficientStorageWarning_msg")
@@ -79,7 +79,8 @@ export async function showMoreStorageNeededOrderDialog(messageIdOrMessageFunctio
 	if (confirmed) {
 		if (userController.isFreeAccount()) {
 			const wizard = await import("../subscription/UpgradeSubscriptionWizard")
-			return wizard.showUpgradeWizard({ upgradePromptType: UpgradePromptType.MORE_STORAGE_NEEDED, logins: locator.logins })
+			await wizard.showUpgradeWizard({ upgradePromptType: UpgradePromptType.MORE_STORAGE_NEEDED, logins: locator.logins })
+			return
 		} else {
 			const usedStorage = Number(await locator.userManagementFacade.readUsedUserStorage(userController.user))
 			const { getAvailableMatchingPlans } = await import("../subscription/utils/SubscriptionUtils.js")

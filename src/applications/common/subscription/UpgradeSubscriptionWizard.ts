@@ -76,14 +76,16 @@ export async function showUpgradeWizard({
 	isCalledBySatisfactionDialog?: boolean
 	acceptedPlans?: readonly AvailablePlanType[]
 	msg?: Translation
-}): Promise<void> {
+}): Promise<boolean> {
 	if (EnvProvider.get().getPaymentSetup() === PaymentSetup.None) {
-		return Dialog.message("appStoreSubscriptionError_msg")
+		await Dialog.message("appStoreSubscriptionError_msg")
+		return false
 	}
 	if (EnvProvider.get().getPaymentSetup() !== PaymentSetup.Default) {
 		const term = await getExternalSubscriptionError()
 		if (term) {
-			return Dialog.message(term)
+			await Dialog.message(term)
+			return false
 		}
 	}
 	let upgradeUsageTest: UsageTest | null = null
