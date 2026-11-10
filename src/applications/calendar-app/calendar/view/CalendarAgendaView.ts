@@ -16,7 +16,7 @@ import { DaySelector } from "../gui/day-selector/DaySelector.js"
 import { CalendarEventPreviewViewModel } from "../gui/eventpopup/CalendarEventPreviewViewModel.js"
 import { EventDetailsView } from "./EventDetailsView.js"
 import { getElementId, getListId } from "@tutao/meta"
-import { isAllDayEvent, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import { isAllDayEvent, getDateWithSameDayButTimeAtNearestNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { Time } from "../../../common/calendar/Time.js"
 import { DaysToEvents } from "../../../common/calendar/date/CalendarEventsRepository.js"
 
@@ -200,7 +200,7 @@ export class CalendarAgendaView implements Component<CalendarAgendaViewAttrs> {
 							label: "newEvent_action",
 							click: (e: MouseEvent) => {
 								let newDate = new Date(attrs.selectedDate)
-								attrs.onNewEvent(setNextHalfHour(newDate))
+								attrs.onNewEvent(getDateWithSameDayButTimeAtNearestNextHalfHour(newDate))
 
 								e.preventDefault()
 							},

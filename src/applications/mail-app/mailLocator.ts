@@ -121,7 +121,7 @@ import { MailExportFacade } from "../common/api/worker/facades/lazy/MailExportFa
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { Indexer } from "./workerUtils/index/Indexer"
 import { SearchFacade } from "./workerUtils/index/SearchFacade"
-import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, getDateWithSameDayButTimeAtNearestNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
 import type { ContactSearchFacade } from "./workerUtils/index/ContactSearchFacade"
 import PublicEncryptionKeyProvider from "../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
@@ -976,7 +976,13 @@ class MailLocator implements CommonLocator {
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {
 				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
+				return await this.calendarEventModel(
+					mode,
+					getEventWithDefaultTimes(getDateWithSameDayButTimeAtNearestNextHalfHour(date)),
+					mailboxDetail,
+					mailboxProperties,
+					null,
+				)
 			})
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 

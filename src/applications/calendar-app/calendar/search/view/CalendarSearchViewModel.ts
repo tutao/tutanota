@@ -45,7 +45,7 @@ import {
 	SearchQuery,
 } from "../../../../common/search/SearchUtils"
 import { CalendarSearchModel } from "../../../search/model/CalendarSearchModel"
-import { getEventWithDefaultTimes, setNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils"
+import { getEventWithDefaultTimes, getDateWithSameDayButTimeAtNearestNextHalfHour } from "../../../../common/api/common/utils/CommonCalendarUtils"
 import { CalendarEventModel, CalendarEventModelFactory, CalendarOperation } from "../../gui/eventeditor-model/CalendarEventModel"
 import { MailboxModel } from "../../../../common/mailFunctionality/MailboxModel"
 import { ListState } from "../../../../../ui/base/List"
@@ -511,7 +511,7 @@ export class CalendarSearchViewModel {
 	}
 
 	async newEventModel(): Promise<CalendarEventModel | null> {
-		const dateToUse = this.startDate ? setNextHalfHour(new Date(this.startDate)) : setNextHalfHour(new Date())
+		const dateToUse = getDateWithSameDayButTimeAtNearestNextHalfHour(this.startDate ?? new Date())
 		const mailboxDetails = await this.mailboxModel.getUserMailboxDetails()
 		const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetails.mailboxGroupRoot)
 		return await this.createCalendarEventModel(CalendarOperation.Create, getEventWithDefaultTimes(dateToUse), mailboxDetails, mailboxProperties, null)

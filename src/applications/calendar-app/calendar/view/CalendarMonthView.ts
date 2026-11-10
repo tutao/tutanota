@@ -14,7 +14,13 @@ import {
 } from "../../../common/calendar/date/CalendarUtils"
 import { deepEqual, incrementDate, incrementMonth, isToday, lastThrow, neverNull, ofClass } from "../../../../platform-kit/utils"
 import { Styles } from "../../../../ui/styles"
-import { CalendarViewType, isAllDayEvent, isAllDayEventByTimes, isBefore, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils"
+import {
+	CalendarViewType,
+	isAllDayEvent,
+	isAllDayEventByTimes,
+	isBefore,
+	getDateWithSameDayButTimeAtNearestNextHalfHour,
+} from "../../../common/api/common/utils/CommonCalendarUtils"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import type { GroupColors } from "./CalendarView"
 import type { EventDragHandlerCallbacks, MousePos } from "./EventDragHandler"
@@ -317,7 +323,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 
 						// Open the event editor to add a new event on the day we clicked
-						const newDate = setNextHalfHour(new Date(day.date))
+						const newDate = getDateWithSameDayButTimeAtNearestNextHalfHour(day.date)
 						attrs.onNewEvent(newDate)
 					} else {
 						const eventsOnDay = attrs.eventsForDays.get(day.date.getTime())
@@ -326,7 +332,7 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 							attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
 
 							// Open the event editor to add a new event on the day we clicked
-							const newDate = setNextHalfHour(new Date(day.date))
+							const newDate = getDateWithSameDayButTimeAtNearestNextHalfHour(day.date)
 							attrs.onNewEvent(newDate)
 						} else {
 							// If there are already one or more events on the day that was clicked, then we go to the

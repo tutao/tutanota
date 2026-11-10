@@ -69,7 +69,12 @@ import { ButtonSize } from "../../../../ui/base/ButtonSize.js"
 import { DrawerMenuAttrs } from "../../../common/gui/nav/DrawerMenu.js"
 import { BaseTopLevelView } from "../../../../ui/BaseTopLevelView.js"
 import { TopLevelAttrs, TopLevelView } from "../../../../ui/base/TopLevelView.js"
-import { CalendarViewType, getEventWithDefaultTimes, serializeAlarmInterval, setNextHalfHour } from "../../../common/api/common/utils/CommonCalendarUtils.js"
+import {
+	CalendarViewType,
+	getEventWithDefaultTimes,
+	serializeAlarmInterval,
+	getDateWithSameDayButTimeAtNearestNextHalfHour,
+} from "../../../common/api/common/utils/CommonCalendarUtils.js"
 import { BackgroundColumnLayout } from "../../../../ui/BackgroundColumnLayout.js"
 import { theme } from "../../../../ui/theme.js"
 import { CalendarMobileHeader } from "./CalendarMobileHeader.js"
@@ -832,7 +837,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 	}
 
 	private async createNewEventDialog(date: Date | null = null): Promise<void> {
-		const dateToUse = date ?? setNextHalfHour(new Date(this.viewModel.selectedDate()))
+		const dateToUse = date ?? getDateWithSameDayButTimeAtNearestNextHalfHour(this.viewModel.selectedDate())
 
 		// Disallow creation of events when there is no existing calendar
 		let calendarInfos = this.viewModel.getCalendarInfosCreateIfNeeded()

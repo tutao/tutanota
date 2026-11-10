@@ -132,24 +132,20 @@ export function findRecipientWithAddress<
  * get a date with the time set to the start of the next full half hour from the time this is called at
  * */
 export function getNextHalfHour(): Date {
-	let date: Date = new Date()
-
-	return setNextHalfHour(date)
+	const date: Date = new Date()
+	date.setMinutes(date.getMinutes() > 30 ? 60 : 30, 0, 0)
+	return date
 }
 
-/**
- * set the given date to the start of the next full half hour from the time this is called at
- * */
-export function setNextHalfHour(date: Date): Date {
-	const timeNow = new Date()
-
-	if (timeNow.getMinutes() > 30) {
-		date.setHours(timeNow.getHours() + 1, 0)
+export function getDateWithSameDayButTimeAtNearestNextHalfHour(date: Date): Date {
+	const now = new Date()
+	const newDate = new Date(date)
+	if (now.getMinutes() > 30) {
+		newDate.setHours(now.getHours() + 1, 0, 0, 0)
 	} else {
-		date.setHours(timeNow.getHours(), 30)
+		newDate.setHours(now.getHours(), 30, 0, 0)
 	}
-
-	return date
+	return newDate
 }
 
 /**

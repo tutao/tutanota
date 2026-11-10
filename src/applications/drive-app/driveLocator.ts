@@ -112,7 +112,7 @@ import { EntropyFacade } from "../../platform-kit/base/facades/EntropyFacade"
 import { ClientModelInfo } from "@tutao/instance-pipeline"
 import { Router, ScopedThrottledRouter, ThrottledRouter } from "../../ui/ScopedThrottledRouter"
 import { CalendarEvent, CalendarEventAttendee, Contact, Mail, MailboxProperties } from "@tutao/entities/tutanota"
-import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
+import { getEventWithDefaultTimes, getDateWithSameDayButTimeAtNearestNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils"
 import { CALENDAR_PREFIX } from "../../ui/utils/RouteChange"
 import { HtmlSanitizer } from "../common/misc/HtmlSanitizer"
 import { theme } from "../../ui/theme"
@@ -657,7 +657,13 @@ class DriveLocator implements CommonLocator {
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {
 				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
+				return await this.calendarEventModel(
+					mode,
+					getEventWithDefaultTimes(getDateWithSameDayButTimeAtNearestNextHalfHour(date)),
+					mailboxDetail,
+					mailboxProperties,
+					null,
+				)
 			})
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)

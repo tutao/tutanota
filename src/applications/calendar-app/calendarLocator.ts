@@ -101,7 +101,7 @@ import { WorkerRandomizer } from "../common/api/worker/workerInterfaces.js"
 import type { CalendarContactPreviewViewModel } from "./calendar/gui/eventpopup/CalendarContactPreviewViewModel.js"
 import { SyncTracker } from "../common/api/main/SyncTracker.js"
 import { KeyVerificationFacade } from "../../platform-kit/base/facades/lazy/KeyVerificationFacade"
-import { getEventWithDefaultTimes, setNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
+import { getEventWithDefaultTimes, getDateWithSameDayButTimeAtNearestNextHalfHour } from "../common/api/common/utils/CommonCalendarUtils.js"
 import PublicEncryptionKeyProvider from "../../platform-kit/base/base-crypto/PublicEncryptionKeyProvider"
 import { CommonLocator, DialogProvider } from "../common/api/main/CommonLocator"
 import { SearchToken } from "../../ui/utils/QueryTokenUtils"
@@ -695,7 +695,13 @@ class CalendarLocator implements CommonLocator {
 			const openCalendarHandler = new OpenCalendarHandler(this.logins, async (mode: CalendarOperation, date: Date) => {
 				const mailboxDetail = await this.mailboxModel.getUserMailboxDetails()
 				const mailboxProperties = await this.mailboxModel.getMailboxProperties(mailboxDetail.mailboxGroupRoot)
-				return await this.calendarEventModel(mode, getEventWithDefaultTimes(setNextHalfHour(new Date(date))), mailboxDetail, mailboxProperties, null)
+				return await this.calendarEventModel(
+					mode,
+					getEventWithDefaultTimes(getDateWithSameDayButTimeAtNearestNextHalfHour(date)),
+					mailboxDetail,
+					mailboxProperties,
+					null,
+				)
 			})
 			const { OpenSettingsHandler } = await import("../common/native/OpenSettingsHandler.js")
 			const openSettingsHandler = new OpenSettingsHandler(this.logins)
