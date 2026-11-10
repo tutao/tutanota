@@ -4,7 +4,7 @@ import stream from "mithril/stream"
 import { windowFacade } from "../../../common/misc/WindowFacade"
 import { CancelledError, EnvProvider, FeatureType } from "../../../../platform-kit/app-env"
 import { lang } from "../../../../ui/utils/LanguageViewModel"
-import { assertNonNull, assertNotNull, createResizeObserver, defer, DeferredObject, memoized, noOp, ofClass } from "../../../../platform-kit/utils"
+import { assertNonNull, assertNotNull, defer, DeferredObject, memoized, noOp, ofClass, throttle } from "../../../../platform-kit/utils"
 import { IconMessageBox } from "../../../../ui/base/ColumnEmptyMessageBox"
 import { KeyManager, Shortcut } from "../../../../ui/utils/KeyManager"
 import { Icon, progressIcon } from "../../../../ui/base/Icon"
@@ -75,8 +75,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private delayProgressSpinner = true
 
 	private readonly resizeListener: WindowSizeListener
-	private resizeObserverViewport: ResizeObserver | null = null // needed to detect orientation change to recreate pinchzoom at the right time
-	private resizeObserverZoomable: ResizeObserver | null = null // needed to recreate pinchzoom e.g. when loading images
 
 	private viewModel!: MailViewerViewModel
 	private pinchZoomable: PinchZoom | null = null
@@ -87,8 +85,17 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private domBodyDeferred: DeferredObject<HTMLElement> = defer()
 	private domBody: HTMLElement | null = null
 
-	private shadowDomRoot: ShadowRoot | null = null
-	private shadowDomMailContent: HTMLElement | null = null
+	#iframeRoot: HTMLIFrameElement | null = null
+
+	private set iframeRoot(newElement: HTMLIFrameElement | null) {
+		this.unsetPinchZoomable()
+		this.#iframeRoot = newElement
+	}
+
+	private get iframeRoot(): HTMLIFrameElement | null {
+		return this.#iframeRoot
+	}
+
 	private currentlyRenderedMailBody: DocumentFragment | null = null
 	private lastContentBlockingStatus: ContentBlockingStatus | null = null
 
@@ -117,13 +124,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	onremove({ attrs }: Vnode<MailViewerAttrs>) {
 		this.loadAllListener.end(true)
 		windowFacade.removeResizeListener(this.resizeListener)
-		if (this.resizeObserverZoomable) {
-			this.resizeObserverZoomable.disconnect()
-		}
-		if (this.resizeObserverViewport) {
-			this.resizeObserverViewport.disconnect()
-		}
-		this.pinchZoomable?.remove() // remove the listeners
 		this.clearDomBody()
 		if (attrs.isPrimary) {
 			KeyManager.get().unregisterShortcuts(this.shortcuts)
@@ -226,7 +226,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					toggled: this.shouldDisplayCollapsedQuotes(),
 					onToggled: () => {
 						this.quoteState = this.shouldDisplayCollapsedQuotes() ? "collapsed" : "expanded"
-						if (this.shadowDomRoot) this.updateCollapsedQuotes(this.shadowDomRoot, this.shouldDisplayCollapsedQuotes())
+						if (this.iframeRoot) this.updateCollapsedQuotes(this.iframeRoot, this.shouldDisplayCollapsedQuotes())
 					},
 					style: {
 						height: px(component_size.button_height_sm),
@@ -315,21 +315,13 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
 				this.updateLineHeight(dom)
-				this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
-				if (ClientDetector.get().isMobileDevice()) {
-					this.resizeObserverViewport?.disconnect()
-					this.resizeObserverViewport = createResizeObserver(() => {
-						if (this.pinchZoomable) {
-							// recreate if the orientation of the device changes -> size of the viewport / mail-body changes
-							this.createPinchZoom(this.pinchZoomable.getZoomable(), vnode.dom as HTMLElement)
-						}
-					})
-					this.resizeObserverViewport.observe(vnode.dom as HTMLElement)
-				}
+				this.renderIFrameMailBody(sanitizedMailBody, attrs)
 			},
 			onupdate: (vnode) => {
 				const dom = vnode.dom as HTMLElement
 				this.setDomBody(dom)
+
+				const iframe = assertNotNull(this.iframeRoot)
 
 				// Only measure and update line height once.
 				// BUT we need to do in from onupdate too if we swap mailViewer but mithril does not realize
@@ -338,17 +330,30 @@ export class MailViewer implements Component<MailViewerAttrs> {
 					this.updateLineHeight(vnode.dom as HTMLElement)
 				}
 
-				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderShadowMailBody(sanitizedMailBody, attrs, vnode.dom as HTMLElement)
+				if (this.currentlyRenderedMailBody !== sanitizedMailBody) this.renderIFrameMailBody(sanitizedMailBody, attrs)
 				// If the quote behavior changes (e.g. after loading is finished) we should update the quotes.
-				// If we already rendered it correctly it will already be set in renderShadowMailBody() so we will avoid doing it twice.
+				// If we already rendered it correctly it will already be set in renderIFrameMailBody() so we will avoid doing it twice.
 				if (this.currentQuoteBehavior !== attrs.defaultQuoteBehavior) {
-					this.updateCollapsedQuotes(assertNotNull(this.shadowDomRoot), attrs.defaultQuoteBehavior === "expand")
+					this.updateCollapsedQuotes(iframe, attrs.defaultQuoteBehavior === "expand")
 				}
 				this.currentQuoteBehavior = attrs.defaultQuoteBehavior
 
-				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable && this.shadowDomMailContent) {
-					this.createPinchZoom(this.shadowDomMailContent, vnode.dom as HTMLElement)
+				if (ClientDetector.get().isMobileDevice() && !this.pinchZoomable) {
+					// we need to find the scrollable
+					let scrollable: HTMLElement | null = null
+					while ((scrollable = (scrollable ?? iframe).parentElement) != null) {
+						if (scrollable.classList.contains("overflow-y-scroll")) {
+							break
+						}
+					}
+					this.pinchZoomable = new PinchZoom(iframe, scrollable ?? document.body, (e, target) => {
+						if (!this.handleAnchorClick(e, target, true)) {
+							// dispatch a synthetic click event if not already handled as anchor click, so stuff like expanding <details> work on mobile
+							target?.dispatchEvent(new MouseEvent("click"))
+						}
+					})
 				}
+				this.updateIframeDimensions()
 			},
 			onbeforeremove: () => {
 				// Clear dom body in case there will be a new one, we want promise to be up-to-date
@@ -367,19 +372,6 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		})
 	}
 
-	private createPinchZoom(zoomable: HTMLElement, viewport: HTMLElement) {
-		// the PinchZoom class does not allow a changing zoomable rect size (mail body content). When we show previously unloaded images the size
-		// of the mail body changes. So we have to create a new PinchZoom object
-		this.pinchZoomable?.remove()
-
-		this.pinchZoomable = new PinchZoom(zoomable, viewport, true, (e, target) => {
-			if (!this.handleAnchorClick(e, target, true)) {
-				// dispatch a synthetic click event if not already handled as anchor click, so stuff like expanding <details> work on mobile
-				target?.dispatchEvent(new MouseEvent("click"))
-			}
-		})
-	}
-
 	private updateCollapsedQuotes(dom: ParentNode, showQuote: boolean) {
 		const quotes: NodeListOf<HTMLElement> = dom.querySelectorAll("[tuta-collapsed-quote]")
 		for (const quoteWrap of Array.from(quotes)) {
@@ -388,10 +380,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			const quoteIndicator = quoteWrap.children[1] as HTMLElement
 			quoteIndicator.style.display = showQuote ? "none" : ""
 		}
-
-		if (this.pinchZoomable) {
-			this.createPinchZoom(this.pinchZoomable.getZoomable(), this.pinchZoomable.getViewport())
-		}
+		this.updateIframeDimensions()
 	}
 
 	private shouldDisplayCollapsedQuotes(): boolean {
@@ -400,24 +389,21 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	}
 
 	/**
-	 * manually wrap and style a mail body to display correctly inside a shadow root
+	 * manually wrap and style a mail body to display correctly inside an iframe
 	 * @param sanitizedMailBody the mail body to display
 	 * @param attrs
-	 * @param parent the parent element that contains the shadowMailBody
 	 * @private
 	 */
-	private renderShadowMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs, parent: HTMLElement) {
+	private renderIFrameMailBody(sanitizedMailBody: DocumentFragment, attrs: MailViewerAttrs) {
+		this.unsetPinchZoomable()
 		this.currentQuoteBehavior = attrs.defaultQuoteBehavior
-		assertNonNull(this.shadowDomRoot, "shadow dom root is null!")
-		while (this.shadowDomRoot.firstChild) {
-			this.shadowDomRoot.firstChild.remove()
-		}
-		const wrapNode = document.createElement("div")
-		wrapNode.id = "shadow-mail-body"
-		wrapNode.className = "drag selectable touch-callout break-word-links" + (ClientDetector.get().isMobileDevice() ? " break-pre" : "")
-		wrapNode.setAttribute("data-testid", "mailBody_label")
-		wrapNode.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
-		wrapNode.style.transformOrigin = "0px 0px"
+		assertNonNull(this.iframeRoot, "iframe root is null!")
+
+		const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
+		const iframeBody = iframeDocument.body
+		const isMobile = ClientDetector.get().isMobileDevice()
+		iframeBody.replaceChildren()
+		iframeBody.appendChild(Styles.get().getStyleSheetElement("main"))
 
 		// Remove "align" property from the top-level content as it causes overflow.
 		// Note: this is not CSS align, this is a deprecated align attribute.
@@ -427,12 +413,25 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			child.removeAttribute("align")
 		}
 
-		wrapNode.appendChild(contentRoot)
+		// If something loads, we need to update the iframe dimensions as these won't magically update on their own
+		for (const o of contentRoot.querySelectorAll("img,video,source")) {
+			o.addEventListener("load", () => this.updateIframeDimensions())
+			o.addEventListener("error", () => this.updateIframeDimensions())
+		}
 
-		this.shadowDomMailContent = wrapNode
+		const container = iframeDocument.createElement("div")
+		container.id = "iframe-mail-body"
+		container.classList.add("drag", "selectable", "touch-callout")
+		if (isMobile) {
+			container.classList.add("break-pre")
+		}
+		container.setAttribute("data-testid", "mailBody_label")
+		container.style.lineHeight = String(this.bodyLineHeight ? this.bodyLineHeight.toString() : font_size.line_height)
+		container.appendChild(contentRoot)
+		iframeBody.appendChild(container)
 
 		// query all top level block quotes
-		const quoteElements = Array.from(wrapNode.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]
+		const quoteElements = Array.from(iframeBody.querySelectorAll("blockquote:not(blockquote blockquote)")) as HTMLElement[]
 		if (quoteElements.length === 0) {
 			this.quoteState = "noquotes"
 		}
@@ -440,23 +439,36 @@ export class MailViewer implements Component<MailViewerAttrs> {
 			this.createCollapsedBlockQuote(quote, this.shouldDisplayCollapsedQuotes())
 		}
 
-		this.shadowDomRoot.appendChild(Styles.get().getStyleSheetElement("main"))
-		this.shadowDomRoot.appendChild(wrapNode)
-
-		if (ClientDetector.get().isMobileDevice()) {
-			this.pinchZoomable = null
-			this.resizeObserverZoomable?.disconnect()
-			this.resizeObserverZoomable = createResizeObserver(() => {
-				this.createPinchZoom(wrapNode, parent) // recreate for example if images are loaded slowly
-			})
-			this.resizeObserverZoomable.observe(wrapNode)
-		} else {
-			wrapNode.addEventListener("click", (event) => {
-				this.handleAnchorClick(event, event.target, false)
-			})
-		}
+		this.updateIframeDimensions()
 		this.currentlyRenderedMailBody = sanitizedMailBody
 	}
+
+	// throttle 0 forces it to wait until the next task
+	private updateIframeDimensions = throttle(0, () => {
+		if (this.iframeRoot == null) {
+			return
+		}
+
+		const iframeContentWindow = assertNotNull(this.iframeRoot.contentWindow)
+		const iframeBody = assertNotNull(this.iframeRoot.contentDocument).body
+
+		// Height at 1x (if zoomed in, we could end up throwing the calculation off)
+		const oldTransformation = iframeBody.style.transform
+		const oldTransformationOrigin = iframeBody.style.transformOrigin
+		iframeBody.style.transform = ""
+		iframeBody.style.transformOrigin = ""
+
+		// The iframe's dimensions do not take into account the iframe's contents. We need to compute scroll height
+		// (which will require re-enabling scroll).
+		this.iframeRoot.style.height = px(0) // force it to be smaller
+		this.iframeRoot.style.overflow = "auto"
+		this.iframeRoot.style.height = px(iframeContentWindow.document.body.scrollHeight)
+		this.iframeRoot.style.overflow = "hidden"
+
+		// Restore!
+		this.iframeRoot.style.transform = oldTransformation
+		this.iframeRoot.style.transformOrigin = oldTransformationOrigin
+	})
 
 	private createCollapsedBlockQuote(quote: HTMLElement, expanded: boolean) {
 		const quoteWrap = document.createElement("div")
@@ -490,17 +502,29 @@ export class MailViewer implements Component<MailViewerAttrs> {
 	private clearDomBody() {
 		this.domBodyDeferred = defer()
 		this.domBody = null
-		this.shadowDomRoot = null
+		this.iframeRoot = null
 	}
 
 	private setDomBody(dom: HTMLElement) {
-		if (dom !== this.domBody || this.shadowDomRoot == null) {
-			// If the dom element hasn't been created anew in onupdate
-			// then trying to create a new shadow root on the same node will cause an error
-			this.shadowDomRoot = dom.attachShadow({ mode: "open" })
+		if (dom !== this.domBody || this.iframeRoot == null) {
+			// Different dom body; create a new iframe
+			this.iframeRoot = document.createElement("iframe")
+			this.iframeRoot.classList.add("border-none", "full-width")
+
+			dom.appendChild(this.iframeRoot)
+
+			const iframeDocument = assertNotNull(this.iframeRoot.contentDocument)
+			const iframeBody = iframeDocument.body
+			iframeBody.style.position = "relative"
+
+			if (ClientDetector.get().isDesktopDevice()) {
+				iframeBody.addEventListener("click", (event) => {
+					this.handleAnchorClick(event, event.target, false)
+				})
+			}
 
 			// Allow forms inside of mail bodies to be filled out without resulting in keystrokes being interpreted as shortcuts
-			this.shadowDomRoot.getRootNode().addEventListener("keydown", (event: Event) => {
+			iframeDocument.addEventListener("keydown", (event: Event) => {
 				const { target } = event
 				if (this.eventTargetWithKeyboardInput(target)) {
 					event.stopPropagation()
@@ -548,6 +572,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 				showDropdownAtPosition(dropdownOptions, coords.x, coords.y)
 			}
 		})
+		this.updateIframeDimensions()
 	}
 
 	private setupShortcuts(): Array<Shortcut> {
@@ -601,6 +626,7 @@ export class MailViewer implements Component<MailViewerAttrs> {
 		}
 
 		dom.style.lineHeight = String(this.bodyLineHeight)
+		this.updateIframeDimensions()
 	}
 
 	private async createMailAddressContextButtons(args: {
@@ -802,6 +828,11 @@ export class MailViewer implements Component<MailViewerAttrs> {
 
 			await Dialog.message("unknownError_msg")
 		}
+	}
+
+	private unsetPinchZoomable() {
+		this.pinchZoomable?.remove()
+		this.pinchZoomable = null
 	}
 }
 
