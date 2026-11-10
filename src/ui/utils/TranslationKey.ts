@@ -2584,6 +2584,7 @@ export type TranslationKeyType =
 	| "noPaymentMethodError_msg"
 	| "ratingTrustpilot_msg"
 	| "deactivatedAccessLogin_msg"
+	| "accessGone_msg"
 	| "migrationProtonStartTLSError_msg"
 	| "confirmClearFolder_msg"
 	| "inboxRuleManagement_label"
