@@ -313,12 +313,26 @@ export class CalendarMonthView implements Component<CalendarMonthAttrs>, ClassCo
 				key: day.date.getTime(),
 				onclick: (e: MouseEvent) => {
 					if (ClientDetector.get().isDesktopDevice()) {
-						const newDate = setNextHalfHour(new Date(day.date))
-
+						// Change the URL to contain the ISO string for the day we clicked
 						attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
+
+						// Open the event editor to add a new event on the day we clicked
+						const newDate = setNextHalfHour(new Date(day.date))
 						attrs.onNewEvent(newDate)
 					} else {
-						attrs.onDateSelected(new Date(day.date), Styles.get().isDesktopLayout() ? CalendarViewType.DAY : CalendarViewType.AGENDA)
+						const eventsOnDay = attrs.eventsForDays.get(day.date.getTime())
+						if (eventsOnDay == undefined || eventsOnDay.length === 0) {
+							// Change the URL to contain the ISO string for the day we clicked
+							attrs.onDateSelected(new Date(day.date), CalendarViewType.MONTH)
+
+							// Open the event editor to add a new event on the day we clicked
+							const newDate = setNextHalfHour(new Date(day.date))
+							attrs.onNewEvent(newDate)
+						} else {
+							// If there are already one or more events on the day that was clicked, then we go to the
+							// agenda view on mobile so the user can choose which event they want to view or edit
+							attrs.onDateSelected(new Date(day.date), CalendarViewType.AGENDA)
+						}
 					}
 
 					e.preventDefault()
