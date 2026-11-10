@@ -1782,7 +1782,6 @@ async function processMailtoAttachmentsOnDesktop(fileApp: NativeFileApp, rawAtta
  */
 export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: boolean, mailboxDetails?: MailboxDetail): Promise<Dialog | null> {
 	// mailto URL is completely untrusted at this point, treat it as toxic
-	const fileApp = locator.fileApp
 	const logins = locator.logins
 
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
@@ -1791,7 +1790,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 	let attachments: readonly Attachment[]
 
 	if (EnvProvider.get().isDesktop() && mailTo.attach) {
-		attachments = await processMailtoAttachmentsOnDesktop(fileApp, mailTo.attach)
+		attachments = await processMailtoAttachmentsOnDesktop(locator.fileApp, mailTo.attach)
 	} else {
 		attachments = []
 	}
