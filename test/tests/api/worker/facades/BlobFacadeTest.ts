@@ -127,31 +127,31 @@ o.spec("BlobFacade", function () {
 
 	o.spec("upload", function () {
 		o.test("parseBlobPostOutResponse should remove network debugging info", async function () {
-			env.networkDebugging = true
+			await withOverriddenEnv({ networkDebugging: true }, async () => {
+				const newBlobFacade = new BlobFacade(
+					restClientMock,
+					suspensionHandlerMock,
+					fileAppMock,
+					aesAppMock,
+					realInstancePipeline,
+					cryptoFacadeMock,
+					blobAccessTokenFacade,
+					object(),
+					typeModelResolver,
+					serviceExecutor,
+					aes,
+				)
 
-			const newBlobFacade = new BlobFacade(
-				restClientMock,
-				suspensionHandlerMock,
-				fileAppMock,
-				aesAppMock,
-				realInstancePipeline,
-				cryptoFacadeMock,
-				blobAccessTokenFacade,
-				object(),
-				typeModelResolver,
-				serviceExecutor,
-				aes,
-			)
+				const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
+				const blobServiceResponse = createBlobPostOut({
+					blobReferenceToken: expectedReferenceToken.blobReferenceToken,
+					blobReferenceTokens: [],
+				})
+				const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
 
-			const expectedReferenceToken = createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })
-			const blobServiceResponse = createBlobPostOut({
-				blobReferenceToken: expectedReferenceToken.blobReferenceToken,
-				blobReferenceTokens: [],
+				const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
+				o.check(referenceTokens).deepEquals(expectedReferenceToken)
 			})
-			const blobServiceResponseWithDebug = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, null)
-
-			const referenceTokens = await newBlobFacade.parseBlobPostOutResponse(blobServiceResponseWithDebug.getJsonRepresentation())
-			o.check(referenceTokens).deepEquals(expectedReferenceToken)
 		})
 
 		o.test("encryptAndUpload single blob", async function () {
@@ -358,63 +358,64 @@ o.spec("BlobFacade", function () {
 		})
 
 		o.test("encryptAndUploadNative", async function () {
-			env.networkDebugging = false
-			const ownerGroup = "ownerId"
-			const sessionKey = symmetricCipherUtils.aes256RandomKey()
-			const transferId = "abcde" as TransferId
+			await withOverriddenEnv({ networkDebugging: false }, async () => {
+				const ownerGroup = "ownerId"
+				const sessionKey = symmetricCipherUtils.aes256RandomKey()
+				const transferId = "abcde" as TransferId
 
-			const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
-			const uploadedFileUri = "rawFileUri"
-			const chunkUri = "tuta-tmp:chunky"
+				const expectedReferenceTokens = [createBlobReferenceTokenWrapper({ blobReferenceToken: "blobRefToken" })]
+				const uploadedFileUri = "rawFileUri"
+				const chunkUri = "tuta-tmp:chunky"
 
-			let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
-				blobAccessToken: "123",
-				servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				let blobAccessInfo = createTestEntity(BlobServerAccessInfoTypeRef, {
+					blobAccessToken: "123",
+					servers: [createTestEntity(BlobServerUrlTypeRef, { url: "http://w1.api.tuta.com" })],
+				})
+				when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
+
+				let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, {
+					blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
+				})
+
+				const blobServiceServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, sessionKey)
+				when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
+
+				const streamUri = "tuta-stream:whatever"
+				when(fileAppMock.openFileForReading(uploadedFileUri)).thenResolve(streamUri)
+				when(fileAppMock.readChunk(streamUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUri, null)
+				let encryptedFileInfo = {
+					uri: "encryptedChunkUri",
+					unencSize: 3,
+				}
+				when(aesAppMock.aesEncryptFile(sessionKey, chunkUri)).thenResolve(encryptedFileInfo)
+				const blobHash = "blobHash"
+				when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
+				when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
+					statusCode: 201,
+					responseBody: stringToUtf8Uint8Array(blobServiceServerResponse.getJsonRepresentation()),
+				})
+				when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
+					{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
+				])
+
+				const referenceTokens = await withOverriddenEnv({ mode: Mode.Linux }, () =>
+					blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
+				)
+
+				o.check(referenceTokens).deepEquals(expectedReferenceTokens)
+				verify(
+					fileAppMock.upload(
+						encryptedFileInfo.uri,
+						`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
+						HttpMethod.POST,
+						{
+							v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
+							cv: env.versionNumber,
+						},
+						anything(),
+					),
+				)
 			})
-			when(blobAccessTokenFacade.requestWriteToken(anything(), anything())).thenResolve(blobAccessInfo)
-
-			let blobServiceResponse = createTestEntity(BlobPostOutTypeRef, {
-				blobReferenceToken: expectedReferenceTokens[0].blobReferenceToken,
-			})
-
-			const blobServiceServerResponse = await realInstancePipeline.mapAndEncrypt(BlobPostOutTypeRef, blobServiceResponse, sessionKey)
-			when(blobAccessTokenFacade.createQueryParams(blobAccessInfo, anything(), anything())).thenResolve({ test: "theseAreTheParamsIPromise" })
-
-			const streamUri = "tuta-stream:whatever"
-			when(fileAppMock.openFileForReading(uploadedFileUri)).thenResolve(streamUri)
-			when(fileAppMock.readChunk(streamUri, MAX_BLOB_SIZE_BYTES)).thenResolve(chunkUri, null)
-			let encryptedFileInfo = {
-				uri: "encryptedChunkUri",
-				unencSize: 3,
-			}
-			when(aesAppMock.aesEncryptFile(sessionKey, chunkUri)).thenResolve(encryptedFileInfo)
-			const blobHash = "blobHash"
-			when(fileAppMock.hashFile(encryptedFileInfo.uri)).thenResolve(blobHash)
-			when(fileAppMock.upload(anything(), anything(), anything(), anything(), anything())).thenResolve({
-				statusCode: 201,
-				responseBody: stringToUtf8Uint8Array(blobServiceServerResponse.getJsonRepresentation()),
-			})
-			when(fileAppMock.getFilesMetaData([uploadedFileUri])).thenResolve([
-				{ size: 1024, location: uploadedFileUri, name: "file1", cid: "abc", _type: "FileReference", mimeType: "" },
-			])
-
-			const referenceTokens = await withOverriddenEnv({ mode: Mode.Desktop }, () =>
-				blobFacade.encryptAndUploadNative(archiveDataType, uploadedFileUri, ownerGroup, sessionKey, transferId),
-			)
-
-			o.check(referenceTokens).deepEquals(expectedReferenceTokens)
-			verify(
-				fileAppMock.upload(
-					encryptedFileInfo.uri,
-					`http://w1.api.tuta.com${BlobService_GET.serviceRestPath}?test=theseAreTheParamsIPromise`,
-					HttpMethod.POST,
-					{
-						v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
-						cv: env.versionNumber,
-					},
-					anything(),
-				),
-			)
 		})
 	})
 
@@ -593,7 +594,6 @@ o.spec("BlobFacade", function () {
 		})
 
 		o.test("downloadAndDecryptNative", async function () {
-			env.networkDebugging = false
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
@@ -621,7 +621,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Linux }, () => {
 				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId)
 			})
 
@@ -648,7 +648,6 @@ o.spec("BlobFacade", function () {
 		})
 
 		o.test("downloadAndDecryptNative multiple from different archives", async function () {
-			env.networkDebugging = false
 			const sessionKey = symmetricCipherUtils.aes256RandomKey()
 			const transferId = "abcd" as TransferId
 
@@ -696,7 +695,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri2, decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Desktop }, () => {
+			const decryptedFileReference: FileReference = await withOverriddenEnv({ mode: Mode.Linux }, () => {
 				return blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId)
 			})
 
@@ -761,7 +760,7 @@ o.spec("BlobFacade", function () {
 			when(fileAppMock.joinFiles(file.name, [decryptedChunkUri])).thenResolve(decryptedUri)
 			when(fileAppMock.getSize(decryptedUri)).thenResolve(size)
 
-			await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+			await withOverriddenEnv({ mode: Mode.Linux }, async () => {
 				await assertThrows(ProgrammingError, () =>
 					blobFacade.downloadAndDecryptNative(archiveDataType, wrapTutanotaFile(file), file.name, neverNull(file.mimeType), transferId),
 				)

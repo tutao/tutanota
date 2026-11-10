@@ -37,7 +37,7 @@ export async function renderHtml(scripts, env) {
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 	${scripts.map(renderScriptImport).join("\n\t")}
 	<!-- TutanotaTags -->
-	<title>${env.mode === "App" || env.mode === "Desktop" ? "Tuta" : "Tuta: Login &amp; Sign up for free"}</title>
+	<title>${isAppOrDesktop(env) ? "Tuta" : "Tuta: Login &amp; Sign up for free"}</title>
 	<meta name="description" content="Sign-up for Tuta: Get a free email account with quantum-safe encryption and best privacy for all your emails, calendars and contacts.">
 	<meta name="application-name" content="Tuta">
 	<link rel="icon" type="image/svg+xml" href="/images/logo-favicon.svg">
@@ -68,9 +68,13 @@ export async function renderHtml(scripts, env) {
 </html>`
 }
 
+function isAppOrDesktop(env) {
+	return ["Android", "Ios", "Win32", "Linux", "Darwin"].includes(env.mode)
+}
+
 function csp(env) {
 	if (env.dist) {
-		if (env.mode === "App" || env.mode === "Desktop") {
+		if (isAppOrDesktop(env)) {
 			// differences in comparison to web csp:
 			// * Content Security Policies delivered via a <meta> element may not contain the frame-ancestors directive.
 			const cspContent =

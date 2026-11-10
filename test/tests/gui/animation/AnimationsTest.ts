@@ -6,8 +6,6 @@ import { ClientDetector } from "../../../../src/platform-kit/app-env/boot/Client
 import { DeviceType } from "../../../../src/platform-kit/app-env/boot/ClientConstants.js"
 import { assertNotNull, downcast } from "../../../../src/platform-kit/utils"
 
-ClientDetector.get().overrideDeviceForTest(DeviceType.DESKTOP)
-
 globalThis.HTMLElement =
 	window.HTMLElement ||
 	class HTMLElement {

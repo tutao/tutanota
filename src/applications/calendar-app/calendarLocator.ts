@@ -128,7 +128,6 @@ import { CalendarSearchViewModel } from "./calendar/search/view/CalendarSearchVi
 import { CalendarSearchModel } from "./search/model/CalendarSearchModel"
 import { PluginManager } from "../../plugin-kit/plugin-manager/PluginManager"
 import { PluginConfigurationProvider } from "../common/plugin/PluginConfigurationProvider"
-import { HttpClientJavascript } from "@tutao/http-client"
 
 EnvProvider.assertMainOrNode()
 
@@ -837,7 +836,7 @@ class CalendarLocator implements CommonLocator {
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => calendarLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
 		const lazySanitizer =
-			env.mode === Mode.Test
+			EnvProvider.get().getMode() === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 				: () => import("../common/misc/HtmlSanitizer").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 

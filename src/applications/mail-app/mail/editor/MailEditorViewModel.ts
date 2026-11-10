@@ -48,23 +48,22 @@ export async function chooseAndAttachFile(
 	try {
 		const files = await showFileChooserForAttachments(boundingRect, fileTypes)
 		if (!files || files.length === 0) return
-		switch (env.mode) {
-			case Mode.App:
-				// we have file refs and want to keep them
-				model.attachFiles(files)
-				return files
-			case Mode.Desktop: {
-				// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
-				const dataFiles: Array<DataFile> = (
-					await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
-				).filter(isNotNull)
-				model.attachFiles(dataFiles)
-				return dataFiles
-			}
-			default:
-				// we have data files and want to keep them
-				model.attachFiles(files)
-				return files
+
+		if (EnvProvider.get().isApp()) {
+			// we have file refs and want to keep them
+			model.attachFiles(files)
+			return files
+		} else if (EnvProvider.get().isDesktop()) {
+			// this is important for the desktop client so it can attach them as inline images. // we have file refs and want to read them.
+			const dataFiles: Array<DataFile> = (
+				await Promise.all((files as Array<FileReference>).map(async (f) => locator.fileApp.readDataFile(f.location)))
+			).filter(isNotNull)
+			model.attachFiles(dataFiles)
+			return dataFiles
+		} else {
+			// we have data files and want to keep them
+			model.attachFiles(files)
+			return files
 		}
 	} catch (e) {
 		if (e instanceof UserError) {

@@ -1,5 +1,5 @@
 import o from "@tutao/otest"
-import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver } from "../../../TestUtils"
+import { clientInitializedTypeModelResolver, createTestEntity, instancePipelineFromTypeModelResolver, withOverriddenEnv } from "../../../TestUtils"
 import { matchers, object, verify, when } from "testdouble"
 import {
 	Aes,
@@ -180,46 +180,37 @@ o.spec("AlarmFacadeTest", function () {
 	})
 
 	o.spec("NetworkDebugging", () => {
-		let previousNetworkDebugging: boolean
-
-		o.beforeEach(async function () {
-			previousNetworkDebugging = env.networkDebugging
-		})
-
-		o.afterEach(() => {
-			env.networkDebugging = previousNetworkDebugging
-		})
-
 		o("scheduleAlarms should receive instance without network debugging info", async () => {
-			env.networkDebugging = true
-			const calendarRef = createTestEntity(CalendarEventRefTypeRef, { elementId: "elementId", listId: "listId" })
-			const allAlarmEvents: Array<EventWithUserAlarmInfos> = [
-				{
-					event: createTestEntity(CalendarEventTypeRef),
-					userAlarmInfos: [createTestEntity(UserAlarmInfoTypeRef, { alarmInfo: createTestEntity(AlarmInfoTypeRef, { calendarRef }) })],
-				},
-			]
+			await withOverriddenEnv({ networkDebugging: true }, async () => {
+				const calendarRef = createTestEntity(CalendarEventRefTypeRef, { elementId: "elementId", listId: "listId" })
+				const allAlarmEvents: Array<EventWithUserAlarmInfos> = [
+					{
+						event: createTestEntity(CalendarEventTypeRef),
+						userAlarmInfos: [createTestEntity(UserAlarmInfoTypeRef, { alarmInfo: createTestEntity(AlarmInfoTypeRef, { calendarRef }) })],
+					},
+				]
 
-			const pushIdentifier = createTestEntity(PushIdentifierTypeRef, { _id: ["listId", "pushId"] })
-			const pushIdentifierSessionKey: AesKey = object()
-			when(cryptoFacadeMock.resolveSessionKey(pushIdentifier)).thenResolve(pushIdentifierSessionKey)
+				const pushIdentifier = createTestEntity(PushIdentifierTypeRef, { _id: ["listId", "pushId"] })
+				const pushIdentifierSessionKey: AesKey = object()
+				when(cryptoFacadeMock.resolveSessionKey(pushIdentifier)).thenResolve(pushIdentifierSessionKey)
 
-			const pushIdentifierEncNotificationSessionKey: Uint8Array<ArrayBuffer> = new Uint8Array(0x01)
-			when(cryptoWrapperMock.encryptKey(pushIdentifierSessionKey, matchers.anything())).thenReturn(pushIdentifierEncNotificationSessionKey)
+				const pushIdentifierEncNotificationSessionKey: Uint8Array<ArrayBuffer> = new Uint8Array(0x01)
+				when(cryptoWrapperMock.encryptKey(pushIdentifierSessionKey, matchers.anything())).thenReturn(pushIdentifierEncNotificationSessionKey)
 
-			const instanceCaptor = matchers.captor()
-			const sessionKeyCaptor = matchers.captor()
-			when(nativePushFacadeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyCaptor.capture())).thenResolve()
+				const instanceCaptor = matchers.captor()
+				const sessionKeyCaptor = matchers.captor()
+				when(nativePushFacadeMock.scheduleAlarms(instanceCaptor.capture(), sessionKeyCaptor.capture())).thenResolve()
 
-			await alarmFacade.scheduleAlarmsForNewDevice(pushIdentifier, allAlarmEvents)
+				await alarmFacade.scheduleAlarmsForNewDevice(pushIdentifier, allAlarmEvents)
 
-			const sessionKey = base64ToKey(sessionKeyCaptor.value)
-			const allInstanceSentToFacade = instanceCaptor.value
-			const typeModel = await typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
-			const incoming = IncomingServerJson.expectMultipleInstance(allInstanceSentToFacade, typeModel)
-			// if we were able to decryptAndMap, it already verifies that no field has network debug info,
-			const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(incoming[0], sessionKey)
-			o(instanceSentToFacade.operation).equals(OperationType.CREATE)
+				const sessionKey = base64ToKey(sessionKeyCaptor.value)
+				const allInstanceSentToFacade = instanceCaptor.value
+				const typeModel = await typeModelResolver.resolveServerTypeReference(AlarmNotificationTypeRef)
+				const incoming = IncomingServerJson.expectMultipleInstance(allInstanceSentToFacade, typeModel)
+				// if we were able to decryptAndMap, it already verifies that no field has network debug info,
+				const instanceSentToFacade = await instancePipeline.decryptAndMap<AlarmNotification>(incoming[0], sessionKey)
+				o(instanceSentToFacade.operation).equals(OperationType.CREATE)
+			})
 		})
 	})
 })

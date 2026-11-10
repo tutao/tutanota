@@ -1145,7 +1145,7 @@ export class BlobFacade {
 			v: String(storageTypeModels[BlobGetInTypeRef.typeId].version),
 			cv: env.versionNumber,
 		}
-		if (env.networkDebugging) {
+		if (EnvProvider.get().networkDebuggingEnabled()) {
 			headers["Network-Debugging"] = "enable-network-debugging"
 		}
 		return headers

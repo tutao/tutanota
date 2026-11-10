@@ -126,4 +126,4 @@ jobs:
           emscripten-version: ${{ env.emscripten_version }}
       - name: build desktop
         run: |
-          node desktop --disable-minify
+          node desktop --disable-minify --platform linux

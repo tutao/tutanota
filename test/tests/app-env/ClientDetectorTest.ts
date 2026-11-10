@@ -5,7 +5,7 @@ import { withOverriddenEnv } from "../TestUtils"
 import { AppType, EnvProvider, Mode } from "../../../src/platform-kit/app-env"
 import { CheckBrowser } from "../../../src/ui/CheckBrowser"
 
-o.spec("ClientDetector test", async () => {
+o.spec("ClientDetector test", () => {
 	o("ClientDetector detect chrome windows", async () => {
 		// Even though TouchEvent is defined for Chrome, it should not be consider mobile verson
 		//@ts-ignore
@@ -181,7 +181,7 @@ o.spec("ClientDetector test", async () => {
 			"Mozilla/5.0 (X11; Linux x86_64; rv:68.0) Gecko/20100101 Goanna/5.1 Firefox/68.0 PaleMoon/31.1.0",
 			"Linux",
 		)
-		o(client.browserVersion).equals(0)
+		o(client.browserVersion).equals(null)
 		o(client.browser).equals(BrowserType.OTHER)
 	})
 	o("palemoon gets classified as other, windows", async () => {
@@ -190,7 +190,7 @@ o.spec("ClientDetector test", async () => {
 			"Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:68.0) Gecko/20100101 Goanna/5.1 Firefox/68.0 PaleMoon/31.1.1",
 			"Win32",
 		)
-		o(client.browserVersion).equals(0)
+		o(client.browserVersion).equals(null)
 		o(client.browser).equals(BrowserType.OTHER)
 	})
 
@@ -294,7 +294,7 @@ o.spec("ClientDetector test", async () => {
 			o(client.isMobileDevice()).equals(false)
 		})
 		o("ClientDetector firefox os is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, async () => {
+			await withOverriddenEnv({ mode: Mode.Android }, async () => {
 				const client = await ClientDetector.init(EnvProvider.get(), "Mozilla/5.0 (Mobile rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
 				o(client.browser).equals(BrowserType.FIREFOX)
 				o(client.browserVersion).equals(26)
@@ -303,7 +303,7 @@ o.spec("ClientDetector test", async () => {
 			})
 		})
 		o("ClientDetector firefox os tablet is supported", async () => {
-			await withOverriddenEnv({ mode: Mode.App }, async () => {
+			await withOverriddenEnv({ mode: Mode.Android }, async () => {
 				const client = await ClientDetector.init(EnvProvider.get(), "Mozilla/5.0 (Tablet rv:26.0) Gecko/26.0 Firefox/26.0", "Linux")
 				o(client.browser).equals(BrowserType.FIREFOX)
 				o(client.browserVersion).equals(26)
@@ -352,9 +352,9 @@ o.spec("ClientDetector test", async () => {
 	})
 })
 
-o.spec("ClientDetector AppType test", async () => {
+o.spec("ClientDetector AppType test", () => {
 	o("ClientDetector detect calendar app on Android", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, async () => {
+		await withOverriddenEnv({ mode: Mode.Android }, async () => {
 			const client = await ClientDetector.init(
 				EnvProvider.get(),
 				"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
@@ -368,7 +368,7 @@ o.spec("ClientDetector AppType test", async () => {
 	})
 
 	o("ClientDetector detect calendar app on iPhone", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, async () => {
+		await withOverriddenEnv({ mode: Mode.Ios }, async () => {
 			const client = await ClientDetector.init(
 				EnvProvider.get(),
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
@@ -382,7 +382,7 @@ o.spec("ClientDetector AppType test", async () => {
 	})
 
 	o("ClientDetector detect mail app on Android", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, async () => {
+		await withOverriddenEnv({ mode: Mode.Android }, async () => {
 			const client = await ClientDetector.init(
 				EnvProvider.get(),
 				"Mozilla/5.0 (Linux Android 4.1.1 HTC Desire X Build/JRO03C) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/32.0.1700.99 Mobile Safari/537.36",
@@ -396,7 +396,7 @@ o.spec("ClientDetector AppType test", async () => {
 	})
 
 	o("ClientDetector detect mail app on iPhone", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, async () => {
+		await withOverriddenEnv({ mode: Mode.Ios }, async () => {
 			const client = await ClientDetector.init(
 				EnvProvider.get(),
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
@@ -410,7 +410,7 @@ o.spec("ClientDetector AppType test", async () => {
 	})
 
 	o("ClientDetector throws on wrong configuration", async () => {
-		await withOverriddenEnv({ mode: Mode.App }, async () => {
+		await withOverriddenEnv({ mode: Mode.Android }, async () => {
 			const client = await ClientDetector.init(
 				EnvProvider.get(),
 				"Mozilla/5.0 (iPhone CPU iPhone OS 7_0_2 like Mac OS X) AppleWebKit/537.51.1 (KHTML, like Gecko) Version/7.0 Mobile/11A501 Safari/9537.53",
