@@ -34,6 +34,7 @@ export default {
 		"actor_label": "Akteur",
 		"add_action": "Hinzufügen",
 		"addAccount_action": "Account hinzufügen",
+		"addAction_action": "Aktion hinzufügen",
 		"addAliasUserDisabled_msg": "Die E-Mail-Adresse konnte dem Benutzer bzw. der Gruppe nicht hinzugefügt werden, weil der Benutzer deaktiviert ist.",
 		"addCalendar_action": "Kalender hinzufügen",
 		"addCalendarFromURL_action": "per URL",
@@ -375,6 +376,7 @@ export default {
 		"confirmPrivateUse_msg": "Ich werde diesen Account nicht geschäftlich nutzen.",
 		"confirmSpamAction_label": "Spam bestätigen",
 		"confirmSpamCustomFolder_msg": "Möchten Sie wirklich den Ordner '{1}' mit seinem gesamten Inhalt (z.B. E-Mails, Unterordner) in Spam verschieben? \n\nAlle enthaltenen E-Mails werden als Spam gemeldet. \n\nLeere Ordner werden dauerhaft gelöscht.",
+		"confirmTrashAction_label": "Aktion im Papierkorb bestätigen",
 		"conflict_label": "Ein Konflikt",
 		"conflictDetected_label": "Konflikt entdeckt",
 		"conflicts_label": "{count} Konflikte",
@@ -939,6 +941,7 @@ export default {
 		"imprint_label": "Impressum",
 		"imprintUrl_label": "Link zum Impressum",
 		"inactiveAccount_msg": "Leider wurde Ihr Account gelöscht, da Sie sich in den letzten sechs Monaten nicht eingeloggt haben.",
+		"inboxRuleActions_label": "Aktionen",
 		"inboxRuleAlreadyExists_msg": "Diese Regel ist bereits vorhanden.",
 		"inboxRuleBCCRecipientEquals_action": "Bcc-Empfangsadresse ist",
 		"inboxRuleCCRecipientEquals_action": "Cc-Empfangsadresse ist",
@@ -2620,6 +2623,8 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply.",
+		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules."
 	}
 }

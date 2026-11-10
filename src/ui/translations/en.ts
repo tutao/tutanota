@@ -34,6 +34,7 @@ export default {
 		"actor_label": "Actor",
 		"add_action": "Add",
 		"addAccount_action": "Add account",
+		"addAction_action": "Add action",
 		"addAliasUserDisabled_msg": "The email address could not be added to the user or group because the user is currently deactivated.",
 		"addCalendar_action": "Add calendar",
 		"addCalendarFromURL_action": "From URL",
@@ -375,6 +376,7 @@ export default {
 		"confirmPrivateUse_msg": "I will not use this account for business.",
 		"confirmSpamAction_label": "Confirm spam",
 		"confirmSpamCustomFolder_msg": "Do you really want to move the folder '{1}' with all of its content (e.g. emails, subfolders) to spam?\n\nAll contained emails will be reported as spam.\n\nFolders containing no emails will be permanently deleted.",
+		"confirmTrashAction_label": "Confirm trash action",
 		"conflict_label": "One conflict",
 		"conflictDetected_label": "Conflict detected",
 		"conflicts_label": "{count} conflicts",
@@ -939,6 +941,7 @@ export default {
 		"imprint_label": "Legal notice",
 		"imprintUrl_label": "Link to legal notice",
 		"inactiveAccount_msg": "Sorry, your account has been deleted because you have not logged in within the last six months.",
+		"inboxRuleActions_label": "Actions",
 		"inboxRuleAlreadyExists_msg": "This rule already exists.",
 		"inboxRuleBCCRecipientEquals_action": "\"Bcc\" recipient is",
 		"inboxRuleCCRecipientEquals_action": "\"Cc\" recipient is",
@@ -2620,6 +2623,8 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. Only the first matching rule will apply.",
+		"inboxRuleExplainer_msg": "This would be a short sentence that explains the configuration of Inbox Rules."
 	}
 }
