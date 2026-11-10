@@ -9,12 +9,8 @@ import { buildDirForApp } from "./DevBuild.js"
 
 /**
  *
- * @param env Object with the following keys:
- * 	mode: String of value "App" or "Desktop" or "Browser"
- * 	dist: Boolean
- * 	staticUrl: String defining app base url for non-production environments and the native clients.
- * 	versionNumber: String containing the app's version number
- * @param app App to be built, defaults to mail app {String}
+ * @param env {import("../src/platform-kit/app-env/Env.ts").EnvType}
+ * @param app {"mail"|"calendar"|"drive"} App to be built, defaults to mail app {String}
  * @returns {Promise<Awaited<void>[]>}
  */
 export async function createHtml(env, app = "mail") {
@@ -22,7 +18,8 @@ export async function createHtml(env, app = "mail") {
 	let htmlFileName
 	const buildDir = buildDirForApp(app)
 	switch (env.mode) {
-		case "App":
+		case "Ios":
+		case "Android":
 			jsFileName = "index-app.js"
 			htmlFileName = "index-app.html"
 			break
@@ -30,7 +27,9 @@ export async function createHtml(env, app = "mail") {
 			jsFileName = "index.js"
 			htmlFileName = "index.html"
 			break
-		case "Desktop":
+		case "Linux":
+		case "Win32":
+		case "Darwin":
 			jsFileName = "index-desktop.js"
 			htmlFileName = "index-desktop.html"
 	}
@@ -38,8 +37,8 @@ export async function createHtml(env, app = "mail") {
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 	let indexTemplate = await fs.readFile("./buildSrc/index.template.js", "utf8")
 
-	const index = `window.whitelabelCustomizations = null
-window.env = ${JSON.stringify(env, null, 2)}
+	const index = `globalThis.whitelabelCustomizations = null
+globalThis.env = ${JSON.stringify(env, null, 2)}
 ${indexTemplate}`
 	return Promise.all([
 		_writeFile(`./${buildDir}/${jsFileName}`, index),

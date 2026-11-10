@@ -1,6 +1,5 @@
-import { isNotNull, isNull, Nullable, ProgrammingError, RuntimeInfo, TsInt, TsJson, TsRecord, TsString } from "@tutao/lang-api"
+import { isNotNull, Nullable, ProgrammingError, RuntimeInfo, structuredClone, TsInt, TsRecord, TsString } from "@tutao/lang-api"
 import { ClientType } from "./TutanotaConstants"
-import { lazy } from "./TranspileCompatibility"
 
 // keep in sync with LaunchHtml.js meta tag title
 export const LOGIN_TITLE: TsString = "Mail. Done. Right. Tuta Mail Login & Sign up for an Ad-free Mailbox"
@@ -14,7 +13,6 @@ export type DomainConfigMap = TsRecord<TsString, DomainConfig>
 export type EnvType = {
 	staticUrl: Nullable<TsString> // if null the url from the browser is used
 	mode: Mode
-	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: TsString
@@ -24,14 +22,6 @@ export type EnvType = {
 	clientName: TsString | null
 	integrationPlatform: Nullable<IntegrationPlatformName>
 	shadowDomAppRoot: string | null
-}
-
-export const enum PlatformId {
-	Ios = "ios",
-	Android = "android",
-	Darwin = "darwin",
-	Linux = "linux",
-	Win32 = "win32",
 }
 
 export const enum PaymentSetup {
@@ -86,11 +76,14 @@ export type DomainConfig = {
 	websiteBaseUrl: TsString
 }
 
-export const enum Mode {
+export enum Mode {
 	Browser = "Browser",
-	App = "App",
+	Android = "Android",
+	Ios = "Ios",
 	Test = "Test",
-	Desktop = "Desktop",
+	Linux = "Linux",
+	Win32 = "Win32",
+	Darwin = "Darwin",
 	Admin = "Admin",
 }
 
@@ -102,11 +95,13 @@ export const enum Mode {
 const assertionsEnabled: boolean = false
 
 export class EnvProvider {
+	private static singleton: EnvProvider = new EnvProvider(env)
 	private static boot: boolean = RuntimeInfo._isNode && !RuntimeInfo._isWorker && (EnvProvider.get().isDesktop() || EnvProvider.get().isAdminClient())
-	private static singleton: lazy<EnvProvider> = () => new EnvProvider(env)
+
+	private constructor(private readonly env: EnvType) {}
 
 	public static get(): EnvProvider {
-		return EnvProvider.singleton()
+		return EnvProvider.singleton
 	}
 
 	public getVersionNumber(): TsString {
@@ -115,12 +110,6 @@ export class EnvProvider {
 
 	public getTimeOutValue(): TsInt {
 		return this.env.timeout
-	}
-
-	private constructor(private readonly env: EnvType) {}
-
-	public getPlatformId(): PlatformId | null {
-		return this.env.platformId
 	}
 
 	public networkDebuggingEnabled(): boolean {
@@ -132,10 +121,10 @@ export class EnvProvider {
 	}
 
 	public isIOSApp(): boolean {
-		if (this.isApp() && isNull(this.env.platformId)) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-		return this.isApp() && this.env.platformId === PlatformId.Ios
+		return this.env.mode === Mode.Ios
+	}
+	public isAndroidApp(): boolean {
+		return this.env.mode === Mode.Android
 	}
 
 	public isNextCloudPlugin(): boolean {
@@ -164,15 +153,7 @@ export class EnvProvider {
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
 	public isAppleDevice(): boolean {
-		return this.env.platformId === PlatformId.Darwin || this.isIOSApp()
-	}
-
-	public isAndroidApp(): boolean {
-		if (this.isApp() && isNull(this.env.platformId)) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-
-		return this.isApp() && this.env.platformId === PlatformId.Android
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Darwin
 	}
 
 	public getPaymentSetup(): PaymentSetup {
@@ -180,7 +161,7 @@ export class EnvProvider {
 	}
 
 	public isApp(): boolean {
-		return this.env.mode === Mode.App
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Android
 	}
 
 	public isDesktopOrApp(): boolean {
@@ -188,7 +169,7 @@ export class EnvProvider {
 	}
 
 	public isDesktop(): boolean {
-		return this.env.mode === Mode.Desktop
+		return this.env.mode === Mode.Darwin || this.env.mode === Mode.Win32 || this.env.mode === Mode.Linux
 	}
 
 	public isBrowser(): boolean {
@@ -303,8 +284,17 @@ export class EnvProvider {
 		}
 	}
 
-	/** @TTranspileIgnore This method is only used from locator */
-	public static overrideEnv(env: EnvType): void {
-		;(EnvProvider.get().env as EnvType) = env
+	public static async withOverriddenEnvForTest<R>(override: Partial<EnvType>, action: () => R): Promise<R> {
+		if (!EnvProvider.get().isTest()) {
+			throw new Error("This method is only meant for testing")
+		}
+
+		const previousEnv = structuredClone(EnvProvider.get().env)
+		;(EnvProvider.get().env satisfies EnvType) = Object.assign(EnvProvider.get().env, override)
+		try {
+			return await action()
+		} finally {
+			;(EnvProvider.get().env satisfies EnvType) = previousEnv
+		}
 	}
 }

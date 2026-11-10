@@ -50,7 +50,6 @@ EnvProvider.bootFinished()
 
 const urlQueryParams = m.parseQueryString(location.search)
 
-assignEnvPlatformId(urlQueryParams)
 assignEnvPaymentSetup(urlQueryParams)
 replaceNativeLogger(window, new Logger())
 
@@ -634,22 +633,6 @@ function makeOldViewResolver(
 		render: (vnode) => {
 			return m(root, vnode)
 		},
-	}
-}
-
-// PlatformId is passed by the native part in the URL
-function assignEnvPlatformId(urlQueryParams: Mithril.Params) {
-	const platformId = urlQueryParams["platformId"]
-
-	if (EnvProvider.get().isApp() || EnvProvider.get().isDesktop()) {
-		if (
-			(EnvProvider.get().isApp() && (platformId === "android" || platformId === "ios")) ||
-			(EnvProvider.get().isDesktop() && (platformId === "linux" || platformId === "win32" || platformId === "darwin"))
-		) {
-			env.platformId = platformId
-		} else {
-			throw new ProgrammingError(`Invalid platform id: ${String(platformId)}`)
-		}
 	}
 }
 

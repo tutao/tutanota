@@ -11,10 +11,8 @@ o.spec("TypeMapperTest", function () {
 	let jsonInstanceNetDebugged: string
 	let jsonInstance: string
 	let encryptedParsedInstance: EncryptedParsedInstance
-	let previousNetworkDebugging: boolean
 
 	o.beforeEach(() => {
-		previousNetworkDebugging = env.networkDebugging
 		typeMapper = new TypeMapper(new DummyTypeModelResolver() as TypeModelResolver)
 
 		jsonInstanceNetDebugged = `{
@@ -91,10 +89,6 @@ o.spec("TypeMapperTest", function () {
 			.addAttributeById(21, ParsedValue.fromNull())
 	})
 
-	o.afterEach(() => {
-		env.networkDebugging = previousNetworkDebugging
-	})
-
 	o("read incoming instances", async function () {
 		const resultingParsedInstance = await typeMapper.parseServerJson(
 			IncomingServerJson.expectSingleInstance(jsonInstance, testTypeModel as ServerTypeModel),
@@ -126,8 +120,8 @@ o.spec("TypeMapperTest", function () {
 
 				const instanceAsRecord = outgoingJsonNetDebugged.getInnerJson()
 				o(instanceAsRecord["1:testValue"]).equals("test string")
-				o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
 				o(instanceAsRecord["5:testDate"]).equals("1735736415000")
+				o(instanceAsRecord["3:testAssociation"]![0]["2:testNumber"]).equals("123")
 
 				o(JSON.parse(outgoingJsonNetDebugged.getJsonRepresentation())).deepEquals(JSON.parse(jsonInstanceNetDebugged))
 			})

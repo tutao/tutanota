@@ -4,7 +4,7 @@ import { TsDouble, TsInt, TsMath, TsObject, TsString } from "@tutao/lang-api"
 export class TutanotaConstants {
 	constructor() {}
 
-	public static readonly Const: ConstType = TsObject.freeze({
+	public static readonly Const: Readonly<ConstType> = {
 		INITIAL_UPGRADE_REMINDER_INTERVAL_MS: 14 * TimeConstants.DAY_IN_MILLIS,
 		REPEATED_UPGRADE_REMINDER_INTERVAL_MS: 90 * TimeConstants.DAY_IN_MILLIS,
 		MEMORY_GB_FACTOR: TsDouble.from(1000000000),
@@ -23,7 +23,7 @@ export class TutanotaConstants {
 		// because it will be redirected to tuta.com after new domain deploy.
 		U2F_LEGACY_APPID: "https://tutanota.com/u2f-appid.json",
 		EXECUTE_KDF_MIGRATION: true,
-	} satisfies ConstType)
+	}
 
 	public static readonly TUTA_MAIL_ADDRESS_DOMAINS: ReadonlyArray<string> = TsObject.freeze([
 		"tuta.com",

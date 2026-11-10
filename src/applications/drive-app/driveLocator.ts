@@ -706,7 +706,7 @@ class DriveLocator implements CommonLocator {
 				AppType.Calendar,
 			)
 
-			if (EnvProvider.get().isDesktop() || env.mode === Mode.Admin) {
+			if (EnvProvider.get().isDesktop() || EnvProvider.get().getMode() === Mode.Admin) {
 				const desktopInterfaces = createDesktopInterfaces(this.native)
 				this.searchTextFacade = desktopInterfaces.searchTextFacade
 				this.interWindowEventSender = desktopInterfaces.interWindowEventSender
@@ -804,7 +804,7 @@ class DriveLocator implements CommonLocator {
 				? new NativeThemeFacade(new LazyLoaded<ThemeFacade>(async () => driveLocator.themeFacade))
 				: new WebThemeFacade(deviceConfig)
 		const lazySanitizer =
-			env.mode === Mode.Test
+			EnvProvider.get().getMode() === Mode.Test
 				? () => Promise.resolve(sanitizerStub as HtmlSanitizer)
 				: () => import("../common/misc/HtmlSanitizer.js").then(({ getHtmlSanitizer }) => getHtmlSanitizer())
 

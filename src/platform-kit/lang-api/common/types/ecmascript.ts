@@ -35,3 +35,9 @@ export const TsJson = {
 		return JSON.parse(jsonString)
 	},
 }
+
+function tsStructuredClone<T>(arg: T): T {
+	return structuredClone(arg)
+}
+
+export { tsStructuredClone as structuredClone }

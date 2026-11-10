@@ -8,6 +8,7 @@ import { Theme } from "../../../src/ui/theme.js"
 import { WhitelabelThemeGenerator } from "../../../src/ui/WhitelabelThemeGenerator"
 import { AppType } from "../../../src/platform-kit/app-env"
 import { ThemeCustomizations, WHITELABEL_CUSTOMIZATION_VERSION } from "../../../src/ui/WhitelabelCustomizations"
+import { ClientDetector } from "../../../src/platform-kit/app-env/boot/ClientDetector"
 
 o.spec("ThemeController", () => {
 	let themeManager: ThemeController
@@ -30,6 +31,7 @@ o.spec("ThemeController", () => {
 			links: [],
 		})
 		whitelabelGenerator = object()
+		ClientDetector.createSingletonForTest()
 		themeManager = new ThemeController(theme, themeFacadeMock, () => Promise.resolve(htmlSanitizerMock), AppType.Integrated, whitelabelGenerator)
 		await themeManager.initialized
 	})

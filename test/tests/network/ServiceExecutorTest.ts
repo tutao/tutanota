@@ -6,7 +6,7 @@ import { matchers, object, when } from "testdouble"
 import { DeleteService, GetService, NULL_ENTITY, NullEntityTypeRef, PostService, PutService, ServerTypeModel } from "../../../src/platform-kit/meta"
 import { assert, deepEqual, downcast } from "../../../src/platform-kit/utils"
 import { ProgrammingError } from "../../../src/platform-kit/app-env"
-import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals } from "../TestUtils.js"
+import { clientInitializedTypeModelResolver, createTestEntity, removeOriginals, withOverriddenEnv } from "../TestUtils.js"
 import { InstancePipeline, LoggedInUserProvider, TypeModelResolver } from "../../../src/platform-kit/instance-pipeline"
 import {
 	Aes,
@@ -165,19 +165,19 @@ o.spec("ServiceExecutor", function () {
 		const testService_PUT = new PutService(service.app, service.name, NullEntityTypeRef, SaltDataTypeRef)
 		const testService_DELETE = new DeleteService(service.app, service.name, NullEntityTypeRef, SaltDataTypeRef)
 
-		env.networkDebugging = true
+		await withOverriddenEnv({ networkDebugging: true }, async () => {
+			const dataWithDebug = await instancePipeline.mapAndEncrypt(saltData._type, saltData, sessionKey)
+			respondWith(dataWithDebug.getJsonRepresentation())
 
-		const dataWithDebug = await instancePipeline.mapAndEncrypt(saltData._type, saltData, sessionKey)
-		respondWith(dataWithDebug.getJsonRepresentation())
-
-		const getResponse = await executor.execute(testService_GET, NULL_ENTITY, null)
-		const postResponse = await executor.execute(testService_POST, NULL_ENTITY, null)
-		const putResponse = await executor.execute(testService_PUT, NULL_ENTITY, null)
-		const deleteResponse = await executor.execute(testService_DELETE, NULL_ENTITY, null)
-		o(getResponse).deepEquals(saltData)
-		o(postResponse).deepEquals(saltData)
-		o(putResponse).deepEquals(saltData)
-		o(deleteResponse).deepEquals(saltData)
+			const getResponse = await executor.execute(testService_GET, NULL_ENTITY, null)
+			const postResponse = await executor.execute(testService_POST, NULL_ENTITY, null)
+			const putResponse = await executor.execute(testService_PUT, NULL_ENTITY, null)
+			const deleteResponse = await executor.execute(testService_DELETE, NULL_ENTITY, null)
+			o(getResponse).deepEquals(saltData)
+			o(postResponse).deepEquals(saltData)
+			o(putResponse).deepEquals(saltData)
+			o(deleteResponse).deepEquals(saltData)
+		})
 	})
 
 	o.spec("GET", function () {

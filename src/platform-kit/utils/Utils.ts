@@ -1,5 +1,7 @@
-export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "@tutao/lang-api"
+import { downcast, isNotNull, TypeChecks } from "@tutao/lang-api"
 import { KeyVersion } from "./TsUtils"
+
+export { TypeChecks, isNotNull, isNull, assert, assertNotNull, assertNull, assertNotNaN, assertNonNull, neverNull, downcast } from "@tutao/lang-api"
 
 export { lazy, lazyAsync, Thunk } from "@tutao/lang-api"
 

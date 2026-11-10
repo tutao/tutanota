@@ -27,7 +27,7 @@ export class WebFilePicker implements DriveFilePicker {
 export class AppFilePicker implements DriveFilePicker {
 	constructor(private readonly fileApp: NativeFileApp) {
 		if (!EnvProvider.get().isApp() && !EnvProvider.get().isDesktop()) {
-			throw new ProgrammingError("Trying to use AppFilePicker in browser")
+			throw new ProgrammingError(`Trying to use AppFilePicker in browser. Mode: ${EnvProvider.get().getMode()}`)
 		}
 	}
 

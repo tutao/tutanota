@@ -67,7 +67,7 @@ import type {
 	SearchIndexMetadataEntry,
 	SearchIndexMetaDataRow,
 } from "../../../common/api/worker/search/SearchTypes.js"
-import { CancelledError, ProgrammingError, TutanotaConstants } from "../../../../platform-kit/app-env"
+import { CancelledError, ProgrammingError, TutanotaConstants, EnvProvider } from "../../../../platform-kit/app-env"
 import { InvalidDatabaseStateError } from "../../../common/api/common/error/InvalidDatabaseStateError.js"
 import {
 	appendBinaryBlocks,
@@ -354,7 +354,7 @@ export class IndexerCore {
 					if (operation.isAbortedForBackgroundMode) {
 						console.log("transaction has been aborted because of background mode")
 					} else {
-						if (env.mode !== "Test") {
+						if (!EnvProvider.get().isTest()) {
 							console.log("rejecting operation with error", e)
 						}
 

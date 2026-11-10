@@ -140,7 +140,7 @@ o.spec("KeyVerificationModelTest", function () {
 	})
 
 	o.spec("test requestCameraPermission() on mobile", function () {
-		const androidEnv: Partial<typeof env> = { mode: Mode.App, platformId: "android" }
+		const androidEnv: Partial<EnvType> = { mode: Mode.Android }
 
 		o("permission already given", async function () {
 			when(mobileSystemFacade.hasPermission(PermissionType.Camera)).thenResolve(true)
@@ -170,7 +170,7 @@ o.spec("KeyVerificationModelTest", function () {
 	})
 
 	o.spec("test requestCameraPermission() on desktop macOS", function () {
-		const desktopEnv: EnvType = { ...env, mode: Mode.Desktop, platformId: "darwin" }
+		const desktopEnv: EnvType = { ...env, mode: Mode.Darwin }
 
 		o("permission already given", async function () {
 			when(desktopSystemFacade.requestVideoPermission()).thenResolve(true)

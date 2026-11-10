@@ -113,13 +113,13 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 		return new PdfWriter(new TextEncoder(), undefined)
 	}
 
-	if (!EnvProvider.get().isBrowser() && !(env.mode === Mode.Admin)) {
+	if (!EnvProvider.get().isBrowser() && !(EnvProvider.get().getMode() === Mode.Admin)) {
 		locator.sqlCipherFacade = new SqlCipherFacadeSendDispatcher(locator.native)
 	}
 
 	// offlineStorageProvider and ephemeralStorageProvider reference locator.base.* lazily — only called during login init
 	let offlineStorageProvider: () => Promise<CachingOfflineStorage | null>
-	if (!EnvProvider.get().isBrowser() && !(env.mode === Mode.Admin)) {
+	if (!EnvProvider.get().isBrowser() && !(EnvProvider.get().getMode() === Mode.Admin)) {
 		offlineStorageProvider = async () => {
 			const customCacheHandler = new CustomCacheHandlerMap({
 				ref: UserTypeRef,
