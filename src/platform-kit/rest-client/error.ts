@@ -6,6 +6,7 @@ import {
 	AccessBlockedError,
 	AccessDeactivatedError,
 	AccessExpiredError,
+	AccessGoneError,
 	BadGatewayError,
 	BadRequestError,
 	ConnectionError,
@@ -31,6 +32,7 @@ import {
 export {
 	AccessBlockedError,
 	AccessDeactivatedError,
+	AccessGoneError,
 	AccessExpiredError,
 	BadGatewayError,
 	BadRequestError,
@@ -99,6 +101,9 @@ export function handleRestError(
 
 		case AccessDeactivatedError.CODE:
 			return new AccessDeactivatedError(message)
+
+		case AccessGoneError.CODE:
+			return new AccessGoneError(message)
 
 		case AccessExpiredError.CODE:
 			return new AccessExpiredError(message)
