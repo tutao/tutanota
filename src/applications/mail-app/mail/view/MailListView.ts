@@ -468,7 +468,7 @@ export class MailListView implements Component<MailListViewAttrs> {
 	private async onSwipeDown(): Promise<void> {
 		const mailSet = this.mailViewModel.getMailSet()
 		if (mailSet) {
-			await this.mailViewModel.refreshMailSet(mailSet)
+			await this.mailViewModel.refreshMailList()
 		}
 	}
 

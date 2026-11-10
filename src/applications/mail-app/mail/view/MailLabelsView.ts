@@ -27,7 +27,7 @@ export interface MailLabelViewAttrs {
 	mailLabelElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onLabelClick: (label: MailSet) => unknown
 	onLabelDrop: (dropData: DropData, folder: MailSet) => unknown
-	onLabelRefresh: (label: MailSet) => unknown
+	onLabelRefresh: () => unknown
 	expandedLabels: ReadonlySet<Id>
 	onLabelExpanded: (label: MailSet, state: boolean) => unknown
 	onExpandLabelWithDelay: (label: MailSet) => unknown

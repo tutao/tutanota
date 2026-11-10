@@ -42,8 +42,8 @@ export class LateInitializedCacheStorageImpl implements CacheStorageLateInitiali
 		return this._inner?.isInitialized() ?? false
 	}
 
-	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
-		return this._inner?.setCacheSyncStatus(cacheSyncStatus)
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<CacheSyncStatus> {
+		return this._inner?.setCacheSyncStatus(cacheSyncStatus) ?? CacheSyncStatus.OnlineSyncDone
 	}
 
 	async getParsed(typeRef: TypeRef<Entity>, listId: string | null, id: string): Promise<DecryptedParsedInstance | null> {

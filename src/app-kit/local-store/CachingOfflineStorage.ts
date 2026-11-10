@@ -25,13 +25,15 @@ export class CachingOfflineStorage implements CacheStorage {
 		return this.cacheSyncStatus !== CacheSyncStatus.Offline
 	}
 
-	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<CacheSyncStatus> {
+		const oldCacheSyncStatus = this.cacheSyncStatus
 		this.cacheSyncStatus = cacheSyncStatus
 		if (cacheSyncStatus === CacheSyncStatus.OnlineSyncDone) {
 			await this.fastCache.deleteAllRanges()
 		} else if (cacheSyncStatus === CacheSyncStatus.Offline) {
 			await this.fastCache.purgeStorage()
 		}
+		return oldCacheSyncStatus
 	}
 
 	async init(args: OfflineStorageArgs): Promise<boolean> {

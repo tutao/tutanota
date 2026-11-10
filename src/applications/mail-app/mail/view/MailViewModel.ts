@@ -809,10 +809,14 @@ export class MailViewModel {
 		}
 	}
 
-	refreshMailSet: (mailSet: MailSet) => Promise<void> = throttleStart(REFRESH_THROTTLE_MS, (mailSet: MailSet) =>
-		// this.listModel?.reload()
-		this.deleteMailSetEntryRangeFolder(mailSet, true),
-	)
+	refreshMailList: () => Promise<void> = throttleStart(REFRESH_THROTTLE_MS, async () => {
+		// We swith the cacheSyncStatus to OnlineSyncOngoing temporarily, so that we use the EphemeralCache,
+		// and retrieve any missing mails if there was a cache inconsistency.
+		const oldCacheSyncStatus = await this.cacheStorage.setCacheSyncStatus(CacheSyncStatus.OnlineSyncOngoing)
+		await this.listModel?.reload()
+		// We set the CacheSyncStatus to whatever it was after reloading the list.
+		await this.cacheStorage.setCacheSyncStatus(oldCacheSyncStatus)
+	})
 
 	async deleteMailSetEntryRangeFolder(targetFolder: MailSet, shouldReload: boolean = false) {
 		// This deletes the range of MailSetEntries for a targetFolder entries list,
