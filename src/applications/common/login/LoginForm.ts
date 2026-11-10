@@ -22,6 +22,7 @@ export type LoginFormAttrs = {
 	showRecoveryOption?: boolean
 	accessExpired?: boolean
 	accessDeactivated?: boolean
+	accessGone?: boolean
 }
 
 export class LoginForm implements Component<LoginFormAttrs> {
@@ -149,7 +150,7 @@ export class LoginForm implements Component<LoginFormAttrs> {
 					m("small", liveDataAttrs(), [
 						a.helpText ? a.helpText : null,
 						" ",
-						a.invalidCredentials && a.showRecoveryOption && !a.accessDeactivated
+						a.invalidCredentials && a.showRecoveryOption && !(a.accessDeactivated || a.accessGone)
 							? m(
 									"a",
 									{

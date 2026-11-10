@@ -275,6 +275,7 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 				showRecoveryOption: this._recoverLoginVisible(),
 				accessExpired: this.viewModel.state === LoginState.AccessExpired,
 				accessDeactivated: this.viewModel.state === LoginState.AccessDeactivated,
+				accessGone: this.viewModel.state === LoginState.AccessGone,
 			}),
 		])
 	}
@@ -286,8 +287,16 @@ export class LoginView extends BaseTopLevelView implements TopLevelView<LoginVie
 
 		if (this.viewModel.state === LoginState.LoggedIn) {
 			m.route.set(this.selectedRedirect)
-		} else if (this.viewModel.state === LoginState.AccessDeactivated) {
-			await Dialog.message("deactivatedAccessLogin_msg")
+		} else {
+			let term: TranslationKey
+			if (this.viewModel.state === LoginState.AccessDeactivated) {
+				term = "deactivatedAccessLogin_msg"
+			} else if (this.viewModel.state === LoginState.AccessGone) {
+				term = "accessGone_msg"
+			} else {
+				return
+			}
+			await Dialog.message(term)
 		}
 	}
 

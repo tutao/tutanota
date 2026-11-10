@@ -20,6 +20,7 @@ import { AppLock } from "./AppLock.js"
 import { AppLockAuthenticationError } from "../api/common/error/AppLockAuthenticationError"
 import { getWhitelabelRegistrationDomains } from "../../../ui/utils/WhitelabelUtils"
 import { ResumeSessionState } from "../../../platform-kit/base/facades/LoginFacade"
+import { AccessGoneError } from "@tutao/http-client/error"
 
 EnvProvider.assertMainOrNode()
 
@@ -61,6 +62,9 @@ export const enum LoginState {
 
 	/* The user was deactivated by us */
 	AccessDeactivated = "AccessDeactivated",
+
+	/*The user requested their account deletion*/
+	AccessGone = "AccessGone",
 }
 
 /**
@@ -469,6 +473,8 @@ export class LoginViewModel implements ILoginViewModel {
 			this.state = LoginState.AccessExpired
 		} else if (error instanceof AccessDeactivatedError) {
 			this.state = LoginState.AccessDeactivated
+		} else if (error instanceof AccessGoneError) {
+			this.state = LoginState.AccessGone
 		} else {
 			this.state = LoginState.UnknownError
 		}

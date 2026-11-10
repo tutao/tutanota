@@ -28,6 +28,7 @@ import { Customer } from "@tutao/entities/sys"
 import { AvailablePlans, AvailablePlanType, NewBusinessPlans, PlanType, SubscriptionType } from "../../../entities/sys/Utils"
 
 import { CacheMode } from "../../../platform-kit/instance-pipeline/RestClientOptions"
+import { AccessGoneError } from "@tutao/http-client/error"
 
 function getAccountAgeInMs(customer: Customer) {
 	return new Date().getTime() - generatedIdToTimestamp(elementIdToId(customer._id))
@@ -119,6 +120,9 @@ export function getLoginErrorMessage(error: Error, isExternalLogin: boolean): Ma
 		case AccessDeactivatedError:
 			return "accessDeactivated_msg"
 
+		case AccessGoneError:
+			return "accessDeactivated_msg"
+
 		case AccessBlockedError:
 			return "loginFailedOften_msg"
 
@@ -155,6 +159,7 @@ export function handleExpectedLoginError<E extends Error>(error: E, handler: (er
 		error instanceof AccessExpiredError ||
 		error instanceof AccessBlockedError ||
 		error instanceof AccessDeactivatedError ||
+		error instanceof AccessGoneError ||
 		error instanceof TooManyRequestsError ||
 		error instanceof CancelledError ||
 		error instanceof CredentialAuthenticationError ||
@@ -175,6 +180,8 @@ export function getLoginErrorStateAndMessage(error: Error): { errorMessage: Mayb
 		state = LoginState.AccessExpired
 	} else if (error instanceof AccessDeactivatedError) {
 		state = LoginState.AccessDeactivated
+	} else if (error instanceof AccessGoneError) {
+		state = LoginState.AccessGone
 	} else {
 		state = LoginState.UnknownError
 	}

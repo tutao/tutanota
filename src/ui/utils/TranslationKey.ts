@@ -2585,4 +2585,5 @@ export type TranslationKeyType =
 	| "ratingTrustpilot_msg"
 	| "deactivatedAccessLogin_msg"
 	| "emptyString_msg"
+	| "accessGone_msg"
 	| "migrationProtonStartTLSError_msg"
