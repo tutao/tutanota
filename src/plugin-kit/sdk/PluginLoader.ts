@@ -57,7 +57,6 @@ class PluginWorkerImpl {
 
 		return new Proxy(downcast<PluginApi>({}), {
 			get: (_: PluginApi, property: string) => {
-				console.log(property)
 				return (messageArgs: Request<keyof PluginApi>): Promise<any> => {
 					assert(property === messageArgs.requestType, `For request type: ${messageArgs.requestType}. Calling ${property} might be a mistake`)
 					if (property === "setupEnv") {

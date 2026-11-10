@@ -78,7 +78,7 @@ export async function fileExists(filePath) {
 		.catch(() => false)
 }
 
-/** @typedef {"darwin"|"win32"|"linux"} CanonicalPlatformName */
+/** @typedef {"Darwin"|"Win32"|"Linux"} CanonicalPlatformName */
 
 /**
  * There are various possibilities for how a given platform could be identified
@@ -90,12 +90,12 @@ export function getCanonicalPlatformName(platformName) {
 	switch (platformName) {
 		case "mac":
 		case "darwin":
-			return "darwin"
+			return "Darwin"
 		case "win":
 		case "win32":
-			return "win32"
+			return "Win32"
 		case "linux":
-			return "linux"
+			return "Linux"
 		default:
 			throw new Error(`Unknown platform name ${platformName}`)
 	}
@@ -103,7 +103,7 @@ export function getCanonicalPlatformName(platformName) {
 
 /**
  * Checks whether the combination of OS & architecture is supported by the build system
- * @param platformName {NodeJS.Platform}
+ * @param platformName {CanonicalPlatformName}
  * @param architecture {NodeJS.Architecture|"universal"}
  * @returns {architecture is "x64"|"arm64"|"universal"}
  */
@@ -113,7 +113,7 @@ export function checkArchitectureIsSupported(platformName, architecture) {
 			return true
 		case "arm64":
 		case "universal":
-			return platformName === "darwin"
+			return platformName === "Darwin"
 		default:
 			return false
 	}
@@ -121,7 +121,7 @@ export function checkArchitectureIsSupported(platformName, architecture) {
 
 /**
  *
- * @param platformName {NodeJS.Platform}
+ * @param platformName {CanonicalPlatformName}
  * @param architecture {NodeJS.Architecture|"universal"}
  * @return {"x64"|"arm64"|"universal"}
  */

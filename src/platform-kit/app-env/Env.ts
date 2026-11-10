@@ -1,4 +1,3 @@
-import { ProgrammingError } from "./ProgrammingError"
 import { _isNode, _isWorker } from "./TsPlatformConstants"
 import { lazy } from "./TranspileCompatibility"
 
@@ -15,7 +14,6 @@ export type DomainConfigMap = Record<string, DomainConfig>
 export type EnvType = {
 	staticUrl: string | null // if null the url from the browser is used
 	mode: Mode
-	platformId: PlatformId | null
 	paymentSetup: PaymentSetup
 	dist: boolean
 	versionNumber: string
@@ -25,14 +23,6 @@ export type EnvType = {
 	clientName: string | null
 	integrationPlatform: Record<IntegrationPlatformName, IntegrationPlatformName> | null
 	shadowDomAppRoot: string | null
-}
-
-export const enum PlatformId {
-	Ios = "ios",
-	Android = "android",
-	Darwin = "darwin",
-	Linux = "linux",
-	Win32 = "win32",
 }
 
 export const enum PaymentSetup {
@@ -87,11 +77,14 @@ export type DomainConfig = {
 	websiteBaseUrl: string
 }
 
-export const enum Mode {
+export enum Mode {
 	Browser = "Browser",
-	App = "App",
+	Android = "Android",
+	Ios = "Ios",
 	Test = "Test",
-	Desktop = "Desktop",
+	Linux = "Linux",
+	Win32 = "Win32",
+	Darwin = "Darwin",
 	Admin = "Admin",
 }
 
@@ -128,10 +121,6 @@ export class EnvProvider {
 		return JSON.stringify(this.env)
 	}
 
-	public getPlatformId(): PlatformId | null {
-		return this.env.platformId
-	}
-
 	public networkDebuggingEnabled(): boolean {
 		return this.env.networkDebugging
 	}
@@ -141,10 +130,10 @@ export class EnvProvider {
 	}
 
 	public isIOSApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-		return this.isApp() && this.env.platformId === PlatformId.Ios
+		return this.env.mode === Mode.Ios
+	}
+	public isAndroidApp(): boolean {
+		return this.env.mode === Mode.Android
 	}
 
 	public isNextCloudPlugin(): boolean {
@@ -163,15 +152,7 @@ export class EnvProvider {
 	 * Return true if an Apple device; used for checking if CTRL or CMD/Meta should be used as the primary modifier
 	 */
 	public isAppleDevice(): boolean {
-		return this.env.platformId === PlatformId.Darwin || this.isIOSApp()
-	}
-
-	public isAndroidApp(): boolean {
-		if (this.isApp() && this.env.platformId == null) {
-			throw new ProgrammingError("PlatformId is not set!")
-		}
-
-		return this.isApp() && this.env.platformId === PlatformId.Android
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Darwin
 	}
 
 	public getPaymentSetup(): PaymentSetup {
@@ -179,11 +160,11 @@ export class EnvProvider {
 	}
 
 	public isApp(): boolean {
-		return this.env.mode === Mode.App
+		return this.env.mode === Mode.Ios || this.env.mode === Mode.Android
 	}
 
 	public isDesktop(): boolean {
-		return this.env.mode === Mode.Desktop
+		return this.env.mode === Mode.Darwin || this.env.mode === Mode.Win32 || this.env.mode === Mode.Linux
 	}
 
 	public isBrowser(): boolean {

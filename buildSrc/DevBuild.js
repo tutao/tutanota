@@ -21,7 +21,6 @@ const projectRoot = path.resolve(path.join(buildSrc, ".."))
  * @param p {object}
  * @param p.stage {string}
  * @param p.host {string | null}
- * @param p.desktop { boolean }
  * @param p.clean {boolean}
  * @param p.networkDebugging {boolean}
  * @param p.debuggable {boolean}
@@ -103,20 +102,29 @@ export async function runDevBuild({ stage, host, clean, networkDebugging, debugg
 
 	const extendedDomainConfigs = updateDomainConfigForHostname(host)
 
+	const isBuildForDesktop = ["Linux", "Win32", "Darwin"].includes(mode)
 	await runStep("Build Webpart", async () => {
-		if (mode === "Desktop") {
+		if (isBuildForDesktop) {
 			// When building for desktop, also make the web part ready,
 			// helpful when testing locally with desktop client & dev wants to check something on browser
-			await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode: "Browser", networkDebugging })
+			await prepareAssetsAndWriteWorkerBootstrap({
+				stage,
+				host,
+				version,
+				domainConfigs: extendedDomainConfigs,
+				mode: "Browser",
+				networkDebugging,
+				buildDir,
+			})
 		}
-		await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode, networkDebugging })
+		await buildWebPart({ stage, host, version, domainConfigs: extendedDomainConfigs, app, mode, networkDebugging, debuggable })
 	})
 
 	await runStep("Build bundled plugins", async () => {
 		await buildPlugins(buildDir, debuggable)
 	})
 
-	if (mode === "Desktop") {
+	if (isBuildForDesktop) {
 		await runStep("Run desktop build", async () => {
 			const desktopEnv = createEnv({
 				staticUrl: null,
@@ -147,14 +155,6 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	const buildDir = buildDirForApp(app)
 	const { entry, worker } = entryPointsForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
-	const env = createEnv({
-		staticUrl: getStaticUrl(stage, mode, host),
-		version,
-		mode,
-		dist: false,
-		domainConfigs,
-		networkDebugging,
-	})
 
 	await runStep("Web: Rolldown", async () => {
 		// In devBuild this aliases are resolved by rolldown itself,
@@ -206,6 +206,19 @@ export async function buildWebPart({ stage, host, version, domainConfigs, networ
 	})
 
 	// Do assets last so that server that listens to index.html changes does not reload too early
+	await prepareAssetsAndWriteWorkerBootstrap({ stage, mode, host, version, domainConfigs, networkDebugging, buildDir })
+}
+
+async function prepareAssetsAndWriteWorkerBootstrap({ stage, mode, host, version, domainConfigs, networkDebugging, buildDir }) {
+	const env = createEnv({
+		staticUrl: getStaticUrl(stage, mode, host),
+		version,
+		mode,
+		dist: false,
+		domainConfigs,
+		networkDebugging,
+	})
+
 	await runStep("Web: Assets", async () => {
 		await prepareAssets(stage, host, version, domainConfigs, buildDir, networkDebugging, mode)
 		await fs.promises.writeFile(
@@ -249,8 +262,9 @@ async function buildDesktopPart({ version, desktopEnv, debuggable }) {
 	const buildDir = buildDirForApp("mail")
 
 	await runStep("Desktop: Rolldown", async () => {
-		const platform = getCanonicalPlatformName(process.platform)
-		const architecture = getValidArchitecture(process.platform, process.arch)
+		const canonicalPlatform = getCanonicalPlatformName(process.platform)
+		const architecture = getValidArchitecture(canonicalPlatform, process.arch)
+		const platform = canonicalPlatform.toLowerCase()
 
 		const inputOptions = {
 			input: ["src/applications/common/desktop/DesktopMain.ts", "src/applications/common/desktop/sqlworker.ts"],
@@ -345,7 +359,8 @@ async function createBootstrap(env, buildDir) {
 	let jsFileName
 	let htmlFileName
 	switch (env.mode) {
-		case "App":
+		case "Android":
+		case "Ios":
 			jsFileName = "index-app.js"
 			htmlFileName = "index-app.html"
 			break
@@ -353,21 +368,23 @@ async function createBootstrap(env, buildDir) {
 			jsFileName = "index.js"
 			htmlFileName = "index.html"
 			break
-		case "Desktop":
+		case "Linux":
+		case "Darwin":
+		case "Win32":
 			jsFileName = "index-desktop.js"
 			htmlFileName = "index-desktop.html"
 	}
 	const imports = [{ src: "polyfill.js" }, { src: jsFileName }]
 
 	const template = `window.whitelabelCustomizations = null
-window.env = ${JSON.stringify(env, null, 2)}
+globalThis.env = ${JSON.stringify(env, null, 2)}
 if (env.staticUrl == null && window.tutaoDefaultApiUrl) {
     // overriden by js dev server
-    window.env.staticUrl = window.tutaoDefaultApiUrl
+    globalThis.env.staticUrl = window.tutaoDefaultApiUrl
 }
 if (document.getElementById("nextcloud-tutamail")) {
     // present only when this page is served embedded in the Nextcloud tutamail app
-    window.env.integrationPlatform = "Nextcloud"
+    globalThis.env.integrationPlatform = "Nextcloud"
 }
 import('./app.js')`
 	await writeFile(`./${buildDir}/${jsFileName}`, template)

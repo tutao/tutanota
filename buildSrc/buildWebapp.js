@@ -22,14 +22,14 @@ import { createHtml } from "./createHtml.js"
 
 /**
  * Builds the web app for production.
- * @param version Version of the app. Will be used for html generation and service worker versioning.
- * @param stage Deployment for which to build: 'prod' will build for the production system, 'test' for the test system, 'local' will use localhost.
- * @param host If stage is left undefined, the value provided here will be used to construct the app URL for HTML creation.
- * @param measure Function that returns the current elapsed build time.
- * @param minify Boolean. Set to true to perform minification.
- * @param projectDir Path to the tutanota root directory.
- * @param app App to build, 'mail' for mail app and 'calendar' for calendar app
- * @param mobileBuild Whether the current build is for the mobile app.
+ * @param o {object}
+ * @param o.version {string} Version of the app. Will be used for html generation and service worker versioning.
+ * @param o.stage {string} Deployment for which to build: 'prod' will build for the production system, 'test' for the test system, 'local' will use localhost.
+ * @param o.host{string} If stage is left undefined, the value provided here will be used to construct the app URL for HTML creation.
+ * @param o.measure {boolean} Function that returns the current elapsed build time.
+ * @param o.minify {boolean}. Set to true to perform minification.
+ * @param o.projectDir {string} Path to the tutanota root directory.
+ * @param o.app {"mail" | "calendar" | "drive"} App to build
  * @returns Nothing meaningful.
  */
 
