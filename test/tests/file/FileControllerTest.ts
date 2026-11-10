@@ -1,5 +1,5 @@
 import o, { assertThrows } from "@tutao/otest"
-import { Mode } from "../../../src/platform-kit/app-env"
+import { EnvType, Mode } from "../../../src/platform-kit/app-env"
 import { BlobFacade } from "../../../src/applications/common/api/worker/facades/lazy/BlobFacade.js"
 import { NativeFileApp } from "../../../src/app-kit/native-bridge/common/FileApp.js"
 import { matchers, object, verify, when } from "testdouble"
@@ -25,7 +25,7 @@ o.spec("FileControllerTest", function () {
 	})
 
 	o.spec("native", function () {
-		const androidEnv: Partial<typeof env> = { mode: Mode.App, platformId: "android" }
+		const androidEnv: Partial<EnvType> = { mode: Mode.Android }
 		let fileAppMock: NativeFileApp
 		let fileController: FileControllerNative
 

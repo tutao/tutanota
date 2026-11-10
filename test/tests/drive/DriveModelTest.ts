@@ -501,7 +501,7 @@ o.spec("DriveModel", function () {
 
 				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()), { ignoreExtraArgs: true })
 
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
 					await windowCloseRequest!()
 
 					verify(deleteListenerFunction())
@@ -567,7 +567,7 @@ o.spec("DriveModel", function () {
 				await driveModel.uploadFiles(webFiles, rootIds.root, () => Promise.reject(new Error()))
 
 				verify(transferController.upload(matchers.anything(), matchers.anything(), matchers.anything()))
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await withOverriddenEnv({ mode: Mode.Linux }, async () => {
 					o.check(windowCloseListenerRan).equals(true)
 					verify(deleteListenerFunction(), { times: 0 })
 				})
@@ -588,7 +588,7 @@ o.spec("DriveModel", function () {
 				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
 				verify(transferController.download(fileToDownload, "download"))
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await withOverriddenEnv({ mode: Mode.Darwin }, async () => {
 					await windowCloseRequest!()
 
 					verify(deleteListenerFunction())
@@ -625,7 +625,7 @@ o.spec("DriveModel", function () {
 				await driveModel.downloadFile(createTestEntity(DriveFileTypeRef))
 
 				verify(transferController.download(fileToDownload, "download"))
-				await withOverriddenEnv({ mode: Mode.Desktop }, async () => {
+				await withOverriddenEnv({ mode: Mode.Win32 }, async () => {
 					o.check(windowCloseListenerRan).equals(true)
 					verify(deleteListenerFunction(), { times: 0 })
 				})

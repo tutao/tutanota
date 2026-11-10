@@ -1,5 +1,5 @@
 /**
- * @param {{staticUrl: string | null, version: string, mode: EnvMode | null, dist: boolean, domainConfigs: DomainConfigMap, networkDebugging: boolean, clientName?: string, }} params
+ * @param {{staticUrl: string | null, version: string, mode: EnvMode, dist: boolean, domainConfigs: DomainConfigMap, networkDebugging: boolean, clientName?: string }} params
  *  @return {import("../src/platform-kit/app-env/Env.ts").EnvType}
  */
 export function create(params) {
@@ -12,11 +12,10 @@ export function create(params) {
 		staticUrl: staticUrl?.toString() ?? null,
 		versionNumber: version,
 		dist,
-		mode: mode ?? "Browser",
+		mode: mode,
 		paymentSetup: "default",
 		timeout: 20000,
 		domainConfigs,
-		platformId: null,
 		networkDebugging,
 		clientName: clientName ?? null,
 		integrationPlatform: null,

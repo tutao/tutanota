@@ -16,7 +16,7 @@ import {
 	TypeRef,
 } from "@tutao/meta"
 import { ParsedValue } from "./ParsedValue"
-import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, uint8ArrayToBase64 } from "@tutao/utils"
+import { assert, assertNotNull, deepEqual, DeepEquals, isNotNull, Nullable, promiseMap, uint8ArrayToBase64 } from "@tutao/utils"
 import { EncryptedParsedInstance, EncryptedParsedValue } from "./CryptoMapper"
 import { assertNotNaN } from "../utils/Utils"
 import { EnvProvider } from "@tutao/app-env"
@@ -40,9 +40,10 @@ export class TypeMapper {
 				case AssociationReprType.Aggregation: {
 					const aggregationTypeRef = new TypeRef(associationModel.dependency ?? typeModel.app, associationModel.refTypeId)
 					const aggregatedTypeModel = await this.typeModelResolver.resolveServerTypeReference(aggregationTypeRef)
-					const associationValue = jsonInstance.getAggregationList(associationId, aggregatedTypeModel)
-					const mappedAggregates = associationValue.map(async (assoc) => await this.parseServerJson(assoc))
-					clientParsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(await Promise.all(mappedAggregates)))
+					const mappedAggregates = await promiseMap(jsonInstance.getAggregationList(associationId, aggregatedTypeModel), (assoc) =>
+						this.parseServerJson(assoc),
+					)
+					clientParsedInstance.addAttributeById(associationId, ParsedValue.fromNestedItems(mappedAggregates))
 					break
 				}
 				case AssociationReprType.IdTuple: {
@@ -76,8 +77,8 @@ export class TypeMapper {
 
 			switch (getAssociationRepresentationType(modelAssociation.type)) {
 				case AssociationReprType.Aggregation: {
-					const mappedAggregations = associationValue.asNestedObjList().map((agg) => this.makeServerJson(agg))
-					serverJson.addAggregationList(attrId, await Promise.all(mappedAggregations))
+					const mappedAggregations = promiseMap(associationValue.asNestedObjList(), async (agg) => await this.makeServerJson(agg))
+					serverJson.addAggregationList(attrId, await mappedAggregations)
 					break
 				}
 				case AssociationReprType.IdTuple:

@@ -1,8 +1,8 @@
-import { ProgrammingError } from "@tutao/app-env"
+import { downcast, ProgrammingError } from "@tutao/app-env"
 import { TypeChecks } from "../app-env/TsTypeChecks.js"
 import { isStrictlyUndefined, KeyVersion } from "./TsUtils.js"
 
-export { lazy, lazyAsync, Thunk } from "@tutao/app-env"
+export { lazy, lazyAsync, Thunk, downcast } from "@tutao/app-env"
 
 export function isKeyVersion(version: number): version is KeyVersion {
 	// we do not check the upper boundary (100) because this is just a limitation of the type system not a real one
@@ -126,10 +126,6 @@ export function assert(assertion: boolean, message: string): void {
 	if (!assertion) {
 		throw new Error(`Assertion failed: ${message}`)
 	}
-}
-
-export function downcast<R = any>(object: any): R {
-	return object as any
 }
 
 export type Callback<T> = (arg: T) => void

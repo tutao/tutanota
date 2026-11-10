@@ -384,7 +384,11 @@ export class List<T, VH extends ViewHolder<T>> implements ClassComponent<ListAtt
 		// shift click selects a lot of things and enabled multiselect
 		// (there are also key press handlers but they are invoked from another place)
 		let changeType: Parameters<typeof this.changeSelection>[1]
-		if ((ClientDetector.get().isMobileDevice() && this.lastAttrs.state.inMultiselect) || event.ctrlKey || (ClientDetector.get().isMacOS && event.metaKey)) {
+		if (
+			(ClientDetector.get().isMobileDevice() && this.lastAttrs.state.inMultiselect) ||
+			event.ctrlKey ||
+			(ClientDetector.get().isMacOS() && event.metaKey)
+		) {
 			changeType = "togglingIncludingSingle"
 		} else if (event.shiftKey) {
 			changeType = "range"

@@ -1,8 +1,7 @@
 ## Building and running your own Tuta Mail web client
 
 You can build your own Tuta Mail client and run it locally. Remember that you have to update your Tuta Mail client on
-your
-own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
+your own. If you prefer the auto-update feature, you can use the official [mail](https://app.tuta.com) client.
 
 Instructions here will produce a *release* version of the client. For *debug* version see [HACKING.md](./HACKING.md).
 
@@ -41,10 +40,9 @@ Instructions here will produce a *release* version of the client. For *debug* ve
 ## Building and running your own Tuta Mail Android app
 
 If you build and install the Tuta Mail Android app by yourself, keep in mind that you will not get updates
-automatically.
-If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid.
-The APK is also published on the GitHub releases page https://github.com/tutao/tutanota/releases.
-You can add https://github.com/tutao/tutanota/releases.atom to your feed reader to get notified about available updates.
+automatically. If you prefer the auto-update feature, download the app from the Google Play Store or F-Droid. The APK is
+also published on the GitHub releases page https://github.com/tutao/tutanota/releases. You can
+add https://github.com/tutao/tutanota/releases.atom to your feed reader to get notified about available updates.
 
 #### Pre-requisites:
 
@@ -90,11 +88,11 @@ Keep in mind that your own build of Tuta Mail Desktop will not update automatica
 
 ### Build:
 
-1. Run `node desktop --custom-desktop-release`.
+1. Run `node desktop --custom-desktop-release --platform linux|win|mac`.
 
 The client for your platform will be in `artifacts/desktop/`. Note that you can add `--unpacked` to the build command to
-skip the packaging of the installer. This will yield a directory in `build/desktop/` containing the client that can be run without
-installation.
+skip the packaging of the installer. This will yield a directory in `build/desktop/` containing the client that can be
+run without installation.
 
 ### Extra Notes:
 

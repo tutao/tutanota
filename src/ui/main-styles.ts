@@ -1,6 +1,6 @@
 import { Styles } from "./styles"
 import { component_size, font_size, layout_size, px, rem, size } from "./size"
-import { EnvProvider } from "@tutao/app-env"
+import { EnvProvider, Mode } from "@tutao/app-env"
 import { lang } from "./utils/LanguageViewModel"
 import { noselect, position_absolute } from "./mixins"
 import { BaseThemeProvider, getElevatedBackground, getNavigationMenuBg, isLightTheme, theme } from "./theme"
@@ -28,7 +28,7 @@ export function getFonts(): string {
 		"sans-serif",
 	]
 	// workaround for incorrect Japanese font see https://github.com/tutao/tutanota/issues/1909
-	if (env.platformId === "win32" && lang.code === "ja") fonts.push("SimHei", "黑体")
+	if (EnvProvider.get().getMode() === Mode.Darwin && lang.code === "ja") fonts.push("SimHei", "黑体")
 	fonts.push("Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol")
 	return fonts.join(", ")
 }

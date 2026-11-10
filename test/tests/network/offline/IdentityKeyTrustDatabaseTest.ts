@@ -53,16 +53,11 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 			value: IdentityKeySourceOfTrust.Manual,
 		},
 	}
-	let backupEnv
 
 	o.beforeEach(function () {
 		sqlCipherFacade = object()
 		loginFacade = object()
 		identityKeyTrustDatabase = new LocalIdentityKeyTrustDatabase(sqlCipherFacade, () => loginFacade)
-		backupEnv = globalThis.env
-	})
-	o.afterEach(function () {
-		globalThis.env = backupEnv
 	})
 
 	o.spec("trust", function () {
@@ -221,7 +216,7 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 
 	o("feature should be supported when on desktop", async function () {
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Persistent)
-		const isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		const isSupported = await withOverriddenEnv({ mode: Mode.Win32 }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(true)
 	})
 
@@ -235,11 +230,11 @@ o.spec("IdentityKeyTrustDatabaseTest", function () {
 		let isSupported: boolean
 
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Login)
-		isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		isSupported = await withOverriddenEnv({ mode: Mode.Win32 }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 
 		when(loginFacade.getSessionType()).thenResolve(SessionType.Temporary)
-		isSupported = await withOverriddenEnv({ mode: Mode.Desktop }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
+		isSupported = await withOverriddenEnv({ mode: Mode.Linux }, () => identityKeyTrustDatabase.isIdentityKeyTrustDatabaseSupported())
 		o(isSupported).equals(false)
 	})
 })

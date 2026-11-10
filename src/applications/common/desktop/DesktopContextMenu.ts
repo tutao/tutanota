@@ -22,7 +22,7 @@ export class DesktopContextMenu {
 		})
 		const pasteWithoutFormattingItem = new this.electron.MenuItem({
 			label: lang.get("pasteWithoutFormatting_action"),
-			accelerator: ClientDetector.get().isMacOS ? "Cmd+Option+Shift+V" : "Ctrl+Shift+V",
+			accelerator: ClientDetector.get().isMacOS() ? "Cmd+Option+Shift+V" : "Ctrl+Shift+V",
 			click: (_, bw) => this.getWebContents(bw)?.pasteAndMatchStyle(),
 			enabled: editFlags.canPaste,
 		})

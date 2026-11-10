@@ -1,4 +1,4 @@
-import { EnvProvider, PlatformId } from "../Env"
+import { EnvProvider, Mode } from "../Env"
 import { BrowserData, BrowserType, DeviceType } from "./ClientConstants"
 import { BotKind, load } from "@fingerprintjs/botd"
 import { AppType } from "../AppType"
@@ -16,8 +16,8 @@ EnvProvider.assertMainOrNodeBoot()
 export class ClientDetector {
 	private userAgent: string | null = null
 	overflowAuto: string | null = null
-	isMacOS: boolean | null = null
-	appType: AppType | null = null
+	private isMacOs: boolean = false
+	appType: AppType = AppType.Integrated
 	isAutomatedBrowser: boolean = false
 	browserVersion: number = 0
 	browser: BrowserType = BrowserType.OTHER
@@ -44,7 +44,11 @@ export class ClientDetector {
 			.catch((error) => console.error(error))
 
 		this.overflowAuto = this.cssPropertyValueSupported("overflow", "overlay") ? "overlay" : "auto"
-		this.isMacOS = platform.indexOf("Mac") !== -1
+		this.isMacOs = platform.indexOf("Mac") !== -1
+	}
+
+	public isMacOS(): boolean {
+		return this.isMacOs
 	}
 
 	getUserAgent(): NonNullable<string> {
@@ -292,25 +296,31 @@ export class ClientDetector {
 	}
 
 	getIdentifier(): string {
-		const platformId = this.envProvider.getPlatformId()
+		const mode = this.envProvider.getMode()
 
-		if (this.envProvider.isApp()) {
-			if (this.appType === AppType.Integrated) {
-				throw new Error("AppType.Integrated is not allowed for mobile apps")
+		switch (mode) {
+			case Mode.Android:
+			case Mode.Ios: {
+				if (this.appType === AppType.Integrated) {
+					throw new Error("AppType.Integrated is not allowed for mobile apps")
+				}
+				const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
+				return `${ClientDetector.get().device} ${appType} App`
 			}
-			const appType: string = this.appType === AppType.Mail ? "Mail" : "Calendar"
-			return `${ClientDetector.get().device} ${appType} App`
-		} else if (this.envProvider.isBrowser()) {
-			return ClientDetector.get().browser + " Browser"
-		} else if (platformId === PlatformId.Linux) {
-			return "Linux Desktop"
-		} else if (platformId === PlatformId.Darwin) {
-			return "Mac Desktop"
-		} else if (platformId === PlatformId.Win32) {
-			return "Windows Desktop"
-		}
+			case Mode.Browser:
+				return ClientDetector.get().browser + " Browser"
+			case Mode.Linux:
+				return "Linux Desktop"
+			case Mode.Darwin:
+				return "Mac Desktop"
+			case Mode.Win32:
+				return "Windows Desktop"
 
-		return "Unknown"
+			case Mode.Test:
+				return "Unknown"
+			case Mode.Admin:
+				return "Unknown"
+		}
 	}
 
 	needsMicrotaskHack(): boolean {
@@ -351,33 +361,40 @@ export class ClientDetector {
 		return this.envProvider.isApp() && this.appType === AppType.Drive
 	}
 
-	getClientPlatform(): ClientPlatform {
-		if (this.envProvider.isDesktop()) {
-			const platformId = this.envProvider.getPlatformId()
-			if (platformId === PlatformId.Darwin) return ClientPlatform.DESKTOP_MAC
-			else if (platformId === PlatformId.Linux) return ClientPlatform.DESKTOP_LINUX
-			else if (platformId === PlatformId.Win32) return ClientPlatform.DESKTOP_WINDOWS
-			else return ClientPlatform.DESKTOP_UNKNOWN
-		} else if (!this.envProvider.isApp()) return ClientPlatform.WEB
-		else if (this.envProvider.isAndroidApp()) {
-			if (this.appType === AppType.Calendar) {
-				return ClientPlatform.ANDROID_CALENDAR_APP
-			} else if (this.appType === AppType.Mail) {
-				return ClientPlatform.ANDROID_MAIL_APP
-			} else {
-				return ClientPlatform.ANDROID_DRIVE_APP
+	public getClientPlatform(): ClientPlatform {
+		switch (this.envProvider.getMode()) {
+			case Mode.Darwin:
+				return ClientPlatform.DESKTOP_MAC
+			case Mode.Linux:
+				return ClientPlatform.DESKTOP_LINUX
+			case Mode.Win32:
+				return ClientPlatform.DESKTOP_WINDOWS
+			case Mode.Browser:
+				return ClientPlatform.WEB
+			case Mode.Android: {
+				switch (this.appType) {
+					case AppType.Mail:
+						return ClientPlatform.ANDROID_MAIL_APP
+					case AppType.Calendar:
+						return ClientPlatform.ANDROID_CALENDAR_APP
+					default:
+						return ClientPlatform.ANDROID_DRIVE_APP
+				}
 			}
-		} else if (this.envProvider.isIOSApp()) {
-			if (this.appType === AppType.Calendar) {
-				return ClientPlatform.IOS_CALENDAR_APP
-			} else if (this.appType === AppType.Mail) {
-				return ClientPlatform.IOS_MAIL_APP
-			} else {
-				return ClientPlatform.IOS_DRIVE_APP
+			case Mode.Ios: {
+				switch (this.appType) {
+					case AppType.Mail:
+						return ClientPlatform.IOS_MAIL_APP
+					case AppType.Calendar:
+						return ClientPlatform.IOS_CALENDAR_APP
+					default:
+						return ClientPlatform.IOS_DRIVE_APP
+				}
 			}
-		} else {
-			// Fallback
-			return ClientPlatform.UNKNOWN
+
+			case Mode.Admin:
+			case Mode.Test:
+				return ClientPlatform.UNKNOWN
 		}
 	}
 }

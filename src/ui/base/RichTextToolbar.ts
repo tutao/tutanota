@@ -50,7 +50,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 					top: "0px",
 					position:
 						ClientDetector.get().browser === BrowserType.SAFARI
-							? ClientDetector.get().isMacOS
+							? ClientDetector.get().isMacOS()
 								? "-webkit-sticky" // safari on macos
 								: "inherit" // sticky changes the rendering order on iOS
 							: "sticky", // normal browsers
