@@ -98,6 +98,14 @@ export class AccessDeactivatedError extends TutanotaError {
 	}
 }
 
+export class AccessGoneError extends TutanotaError {
+	static CODE: number = 410
+
+	constructor(msg: string) {
+		super("AccessGoneError", msg, null)
+	}
+}
+
 /** External users only, related to password changes. */
 export class AccessExpiredError extends TutanotaError {
 	static CODE: number = 471
