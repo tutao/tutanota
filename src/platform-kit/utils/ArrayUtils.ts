@@ -16,7 +16,7 @@ export function concat(...arrays: Uint8Array[]): Uint8Array<ArrayBuffer> {
  * Create an array filled with the numbers min..max (inclusive)
  */
 export function numberRange(min: number, max: number): Array<number> {
-	return [...Array(max + 1).keys()].slice(min)
+	return Array.from(Array(max + 1).keys()).slice(min)
 }
 
 /**
@@ -389,10 +389,10 @@ function _chunkUint8Array(chunkSize: number, array: Uint8Array<ArrayBuffer>): Ar
  * @returns {T|*[]}
  */
 export function flatMap<T, U>(array: ReadonlyArray<T>, mapper: (arg0: T) => Array<U>): Array<U> {
-	const result: U[] = []
+	let result: U[] = []
 	for (const item of array) {
 		const mapped = mapper(item)
-		result.push(...mapped)
+		result = result.concat(mapped)
 	}
 	return result
 }
@@ -501,7 +501,7 @@ export function lastIndex<T>(array: ReadonlyArray<T>): number {
  * All of the elements in all of the arguments combined, and deduplicated
  */
 export function union<T>(...iterables: Array<Iterable<T>>): Set<T> {
-	return new Set(...iterables.map((iterable) => Array.from(iterable)))
+	return new Set(iterables.flatMap((iterable) => Array.from(iterable)))
 }
 
 /**
