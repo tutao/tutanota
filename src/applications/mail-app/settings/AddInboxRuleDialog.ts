@@ -44,6 +44,7 @@ import { Label } from "../../../ui/base/Label"
 import { prependParentLabelNamesToLabel } from "../mail/view/MailSetTreeUtils"
 import { ExpandedInboxRuleHandler } from "../mail/model/ExpandedInboxRuleHandler"
 import { isNull } from "../../../platform-kit/utils/Utils"
+import { showProgressDialog } from "../../../ui/dialogs/ProgressDialog"
 
 EnvProvider.assertMainOrNode()
 
@@ -428,11 +429,13 @@ export async function show(
 						width: "flex",
 						label: "saveAndApply_action",
 						onclick: () => inboxRuleOkAction(dialog, true),
+						disabled: isAlreadySaving, // prevent duplicating rule if saving is already in progress
 					}),
 					m(PrimaryButton, {
 						width: "flex",
 						label: "save_action",
 						onclick: () => inboxRuleOkAction(dialog, false),
+						disabled: isAlreadySaving, // prevent duplicating rule if saving is already in progress
 					}),
 				),
 			]
@@ -455,6 +458,8 @@ export async function show(
 			}
 		}
 
+		// are we already saving a valid inbox rule?
+		let isAlreadySaving = false
 		const inboxRuleOkAction = (dialog: Dialog, applyRule: boolean) => {
 			// did we already send a dialogue about an invalid field?
 			let alreadyMessaged = false
@@ -510,10 +515,11 @@ export async function show(
 				return
 			}
 
+			isAlreadySaving = true
 			const rule = prepareRule(validatedName, ruleConditions, ruleActions)
 			const savePromise = isNewInboxRule ? inboxRuleModel.createInboxRule(rule) : inboxRuleModel.updateInboxRule(rule)
 
-			savePromise
+			showProgressDialog("pleaseWait_msg", savePromise, { delayDisplayMillis: 200, minDialogVisibilityMillis: 0 })
 				.then(async () => {
 					if (applyRule) {
 						return applyRuleWithProgress([rule], <ExpandedInboxRuleHandler>await mailLocator.inboxRuleHandler())
@@ -532,6 +538,9 @@ export async function show(
 						dialog.close()
 						throw error
 					}
+				})
+				.finally(() => {
+					isAlreadySaving = false
 				})
 		}
 
