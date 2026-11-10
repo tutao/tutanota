@@ -962,8 +962,8 @@ export class OfflineStorage implements CacheStorage {
 		await this.deleteMultiple(typeRef, fullIds)
 	}
 
-	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
-		// no-op
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<CacheSyncStatus> {
+		return CacheSyncStatus.OnlineSyncDone
 	}
 
 	async updateRangeForList<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: Id, rawCutoffId: Id): Promise<void> {

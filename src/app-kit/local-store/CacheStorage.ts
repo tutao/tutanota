@@ -69,6 +69,8 @@ export interface ExposedCacheStorage extends GetOrPutInstance {
 	 *
 	 */
 	deleteRange<T extends ListElementEntity>(typeRef: TypeRef<T>, listId: string): Promise<void>
+
+	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<CacheSyncStatus>
 }
 
 export interface CacheStorage extends ExposedCacheStorage {
@@ -150,6 +152,4 @@ export interface CacheStorage extends ExposedCacheStorage {
 	deleteAllOwnedBy(owner: Id): Promise<void>
 
 	isInitialized(): boolean
-
-	setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void>
 }

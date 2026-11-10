@@ -267,8 +267,8 @@ export class EphemeralCacheStorage implements CacheStorage {
 		})
 	}
 
-	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<void> {
-		// no-op
+	async setCacheSyncStatus(cacheSyncStatus: CacheSyncStatus): Promise<CacheSyncStatus> {
+		return CacheSyncStatus.OnlineSyncDone
 	}
 
 	private putElementEntity(typeRef: TypeRef<PersistentEntity>, id: Id, entity: DecryptedParsedInstance) {

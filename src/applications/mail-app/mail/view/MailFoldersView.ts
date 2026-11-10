@@ -29,7 +29,7 @@ export interface MailFolderViewAttrs {
 	mailFolderElementIdToSelectedMailId: ReadonlyMap<Id, Id>
 	onFolderClick: (folder: MailSet) => unknown
 	onFolderDrop: (dropData: DropData, folder: MailSet) => unknown
-	onFolderRefresh: (folder: MailSet) => unknown
+	onFolderRefresh: () => unknown
 	expandedFolders: ReadonlySet<Id>
 	onFolderExpanded: (folder: MailSet, state: boolean) => unknown
 	onExpandFolderWithDelay: (folder: MailSet) => unknown
