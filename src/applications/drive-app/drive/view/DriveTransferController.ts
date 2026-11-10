@@ -79,6 +79,10 @@ export class DriveTransferController {
 	}
 
 	private remainingTime(): number | null {
+		if (this.queue.length === 0) {
+			return null
+		}
+
 		let numberOfActiveTransfers: number = 0
 		let totalTransferSpeed: number = 0
 		for (const queuedTransfer of this.queue) {
@@ -90,8 +94,9 @@ export class DriveTransferController {
 				}
 			}
 		}
-		if (this.queue.length === 0) {
-			return null
+		// If nothing is actively transferred, we still want to show a sensible estimate.
+		if (numberOfActiveTransfers === 0) {
+			return this.lastRemainingTime
 		}
 		const speed = totalTransferSpeed / numberOfActiveTransfers
 		const currentBatchTotalSize = this.queue.reduce((acc, curr) => BigInt(transferSize(curr)) + acc, 0n)
