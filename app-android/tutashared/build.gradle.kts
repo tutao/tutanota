@@ -17,7 +17,7 @@ group = "de.tutao"
 
 android {
 	namespace = "de.tutao.tutashared"
-	compileSdk = 36
+	compileSdk = 37
 
 	defaultConfig {
 		minSdk = 26

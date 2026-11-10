@@ -14,12 +14,12 @@ group = "de.tutao"
 
 android {
 	namespace = "de.tutao.drive"
-	compileSdk = 36
+	compileSdk = 37
 
 	defaultConfig {
 		applicationId = "de.tutao.drive"
 		minSdk = 26
-		targetSdk = 36
+		targetSdk = 37
 		versionCode = 81
 		versionName = "366.261105.0"
 
