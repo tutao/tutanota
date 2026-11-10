@@ -305,6 +305,7 @@ export class InboxRuleSettingsViewer implements UpdatableSettingsViewer {
 									rule.enabled = checked
 									await this.model.saveInboxRule(rule)
 								},
+								key: "inbox-rule-switch-" + rule._id,
 							}),
 						),
 						// actions button
