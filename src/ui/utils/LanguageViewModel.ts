@@ -516,6 +516,7 @@ export class LanguageViewModel {
 					? new DurationFormatStub()
 					: new Intl.DurationFormat(tag, {
 							style: "narrow",
+							secondsDisplay: "always",
 						}),
 		}
 	}

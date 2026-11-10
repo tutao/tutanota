@@ -143,7 +143,7 @@ export class DriveTransferStack implements Component<DriveTransferStackAttrs> {
 							),
 							stackStatus.infoText ? m(".small", { "data-testid": lang.getTestId(stackStatus.infoText) }, stackStatus.infoText.text) : null,
 							m(".flex.row.gap-8", [
-								!this.expanded && stackStatus.timeRemainingSec
+								!this.expanded && stackStatus.timeRemainingSec != null
 									? m(
 											".small",
 											lang.getTranslation("transferTimeRemaining_msg", { "{time}": formatDurationNarrow(stackStatus.timeRemainingSec) })

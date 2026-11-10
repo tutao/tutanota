@@ -67,6 +67,7 @@ export class DriveTransferController {
 	private finishedTransfers: QueuedTransfer[] = []
 	private allTransfersDoneListener: (() => unknown) | null = null
 	private completionListeners: Map<WebFile | FileReference | DataFile, () => unknown> = new Map()
+	private lastRemainingTime: number = 0
 
 	get state(): DriveTransfers {
 		const currentTransfers = this.queue.map(queuedTransferToState)
@@ -78,6 +79,10 @@ export class DriveTransferController {
 	}
 
 	private remainingTime(): number | null {
+		if (this.queue.length === 0) {
+			return null
+		}
+
 		let numberOfActiveTransfers: number = 0
 		let totalTransferSpeed: number = 0
 		for (const queuedTransfer of this.queue) {
@@ -89,14 +94,19 @@ export class DriveTransferController {
 				}
 			}
 		}
+		// If nothing is actively transferred, we still want to show a sensible estimate.
 		if (numberOfActiveTransfers === 0) {
-			return null
+			return this.lastRemainingTime
 		}
 		const speed = totalTransferSpeed / numberOfActiveTransfers
 		const currentBatchTotalSize = this.queue.reduce((acc, curr) => BigInt(transferSize(curr)) + acc, 0n)
 		const currentBatchTransferredSize = this.queue.reduce((acc, curr) => BigInt(curr.transferredBytes) + acc, 0n)
-
-		return speed !== 0 ? Number((currentBatchTotalSize - currentBatchTransferredSize) / BigInt(Math.round(speed))) : null
+		if (speed !== 0) {
+			this.lastRemainingTime = Number((currentBatchTotalSize - currentBatchTransferredSize) / BigInt(Math.round(speed)))
+			return this.lastRemainingTime
+		} else {
+			return this.lastRemainingTime
+		}
 	}
 
 	constructor(

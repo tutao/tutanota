@@ -172,7 +172,7 @@ export class DurationFormatStub implements Intl.DurationFormat {
 		if (minutes != null && minutes > 0) {
 			result += `${minutes}m `
 		}
-		if (seconds != null && seconds > 0) {
+		if (seconds != null) {
 			result += `${seconds}s`
 		}
 
