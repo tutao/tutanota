@@ -15,10 +15,10 @@ android {
 	namespace = "de.tutao.tutanota"
 
 	defaultConfig {
-		compileSdk = 36
+		compileSdk = 37
 		applicationId = "de.tutao.tutanota"
 		minSdk = 26
-		targetSdk = 36
+		targetSdk = 37
 		versionCode = 396750
 		versionName = "371.261123.0"
 

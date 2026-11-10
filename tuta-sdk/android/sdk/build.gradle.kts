@@ -77,7 +77,7 @@ fun jniTargetToRustTargetName(jniTargetName: String): String {
 
 android {
 	namespace = "de.tutao.tutasdk"
-	compileSdk = 36
+	compileSdk = 37
 
 	defaultConfig {
 		minSdk = 26

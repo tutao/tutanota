@@ -18,10 +18,10 @@ android {
 	namespace = "de.tutao.calendar"
 
 	defaultConfig {
-		compileSdk = 36
+		compileSdk = 37
 		applicationId = "de.tutao.calendar"
 		minSdk = 26
-		targetSdk = 36
+		targetSdk = 37
 		versionCode = 390
 		versionName = "371.261123.0"
 
