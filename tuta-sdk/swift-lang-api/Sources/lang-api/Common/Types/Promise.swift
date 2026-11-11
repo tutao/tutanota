@@ -8,27 +8,27 @@ public final class Promise<T> {
     fatalError("not implemented")
   }
 
-  public func then<R>(_ action: (T) throws -> R) rethrows -> Promise<R> {
+  public func then<R>(_ action: (T) throws -> R) async rethrows -> Promise<R> {
     fatalError("not implemented")
   }
 
-  public func `catch`<R>(_ action: (TutanotaError) throws -> R) rethrows -> Promise<R> {
+  public func `catch`<R>(_ action: (TutanotaError) throws -> R) async rethrows -> Promise<R> {
     fatalError("not implemented")
   }
 
-  public static func resolve() -> Promise<Void> {
+  public static func resolve() async -> Promise<Void> {
       return Promise<Void>(value: ())
   }
 
-  public static func resolve(_ value: Promise<T>) -> Promise<T> {
+  public static func resolve(_ value: Promise<T>) async -> Promise<T> {
     return value
   }
 
-  public static func resolve(_ value: T) -> Promise<T> {
+  public static func resolve(_ value: T) async -> Promise<T> {
     return Promise(value: value)
   }
 
-  public func finally(_ action: () throws -> Void) rethrows -> Promise<T> {
+  public func finally(_ action: () throws -> Void) async rethrows -> Promise<T> {
     fatalError("not implemented")
   }
 }
