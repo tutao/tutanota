@@ -22,6 +22,8 @@ import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
+import de.tutao.tutashared.push.IPushNotificationJobState
+import de.tutao.tutashared.push.NetworkObserver
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -269,6 +271,6 @@ class PushNotificationService : LifecycleJobService() {
 
 	internal class PushNotificationJobState(
 		/** Whether jobParameters is not null; should be true when a job is currently running. */
-		var active: Boolean
-	)
+		override var active: Boolean
+	) : IPushNotificationJobState
 }
