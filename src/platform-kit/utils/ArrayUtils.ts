@@ -152,12 +152,17 @@ export function findAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolea
 export function findAllAndRemove<T>(theArray: Array<T>, finder: (arg0: T) => boolean, startIndex: number = 0): boolean {
 	let removedElement = false
 
-	for (let i = theArray.length - 1; i >= startIndex; i--) {
-		if (finder(theArray[i])) {
-			theArray.splice(i, 1)
+	let newIndex = startIndex
+	for (let oldIndex = startIndex; oldIndex < theArray.length; ++oldIndex) {
+		const item = theArray[oldIndex]
+		if (finder(item)) {
 			removedElement = true
+		} else {
+			theArray[newIndex] = item
+			++newIndex
 		}
 	}
+	theArray.length = newIndex
 
 	return removedElement
 }
