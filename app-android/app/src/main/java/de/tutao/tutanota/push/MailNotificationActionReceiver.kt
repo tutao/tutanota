@@ -16,6 +16,7 @@ import de.tutao.tutashared.createAndroidKeyStoreFacade
 import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.file.TempFs
+import de.tutao.tutashared.push.NotificationInfo
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toSdkIdTupleGenerated

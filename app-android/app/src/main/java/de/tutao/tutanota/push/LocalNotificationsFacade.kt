@@ -34,6 +34,7 @@ import de.tutao.tutashared.file.FileNotificationSender
 import de.tutao.tutashared.file.getMimeType
 import de.tutao.tutashared.ipc.ExtendedNotificationMode
 import de.tutao.tutashared.push.LocalErrorNotificationsFacade
+import de.tutao.tutashared.push.NotificationInfo
 import de.tutao.tutashared.push.SseStorage
 import java.io.File
 import kotlin.math.abs
@@ -355,7 +356,7 @@ class LocalNotificationsFacade(private val context: Context, private val sseStor
 		if (notificationInfo.mailId != null) {
 			openMailboxIntent.putExtra(
 				MainActivity.OPEN_USER_MAILBOX_MAILID_KEY,
-				"${notificationInfo.mailId.listId}/${notificationInfo.mailId.listElementId}"
+				"${notificationInfo.mailId!!.listId}/${notificationInfo.mailId!!.listElementId}"
 			)
 		}
 		return PendingIntent.getActivity(

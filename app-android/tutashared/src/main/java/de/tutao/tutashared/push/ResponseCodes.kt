@@ -1,4 +1,4 @@
-package de.tutao.tutanota.push
+package de.tutao.tutashared.push
 
 object ResponseCodes {
 	const val NOT_AUTHENTICATED = 401
