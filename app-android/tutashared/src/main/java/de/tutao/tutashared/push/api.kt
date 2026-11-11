@@ -1,6 +1,6 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
-import de.tutao.calendar.BuildConfig
+import de.tutao.tutashared.BuildConfig
 import okhttp3.Request
 
 fun Request.Builder.addSysVersionHeaders() = apply {

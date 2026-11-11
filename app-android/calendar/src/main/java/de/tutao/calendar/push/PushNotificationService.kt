@@ -6,7 +6,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.lifecycle.lifecycleScope
 import de.tutao.calendar.alarms.CalendarAlarmIntentFactory
-import de.tutao.calendar.push.SseClient.SseListener
+import de.tutao.tutashared.push.SseClient.SseListener
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.push.NetworkObserver
 import de.tutao.tutashared.DateProviderImpl
@@ -24,6 +24,8 @@ import de.tutao.tutashared.file.TempFs
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.IPushNotificationJobState
+import de.tutao.tutashared.push.LooperThread
+import de.tutao.tutashared.push.SseClient
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
