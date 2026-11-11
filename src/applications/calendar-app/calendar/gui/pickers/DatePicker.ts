@@ -669,7 +669,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
-		const size = getElementWidth(wide)
+		const size = px(getElementWidth(wide))
 		const fontSize = rem(font_size.smaller_em)
 		return weekdays.map((wd) =>
 			m(
