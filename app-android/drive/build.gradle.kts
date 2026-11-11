@@ -119,7 +119,7 @@ android {
 			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
 		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"126\"")
+		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"${project.properties["de.tutao.sysModelVersion"]}\"")
 		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"86\"")
 		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
