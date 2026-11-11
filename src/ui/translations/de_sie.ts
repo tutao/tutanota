@@ -2595,5 +2595,11 @@ export default {
 		"zoomOut_action": "Herauszoomen",
 		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
 		"migrationProtonStartTLSError_msg": "Leider konnte keine Verbindung zum IMAP-Server aufgebaut werden.\nWenn Sie von Proton durch Proton Mail Bridge migrieren, stellen Sie bitte sicher, dass der IMAP-Verbindungsmodus auf SSL eingestellt ist.\nDies können Sie in Proton Mail Bridge unter „Erweiterte Einstellungen“ -> „Verbindungsmodus“ vornehmen.",
+		"feedbackForUs_label": "Haben Sie Feedback?",
+		"feedbackNoReply_msg": "Wir antworten Ihnen nicht auf Ihre Nachricht, aber sie wird geprüft und mit dem Team geteilt.",
+		"googlePaymentMethod_msg": "Sie können beim Bezahlen den Google Play Store als Zahlungsmethode verwenden",
+		"switchToGooglePayment_msg": "Wenn Sie Google Play Store als Zahlungsmethode auswählen, ändern sich die Preise für Ihr Abonnement. Außerdem können Sie danach nicht mehr zu einer anderen Zahlungsmethode wechseln.\n\nMöchten Sie fortfahren?",
+		"switchToApplePayment_msg": "Wenn Sie den App Store als Zahlungsmethode auswählen, ändern sich die Preise für Ihr Abonnement. Außerdem können Sie du danach nicht mehr zu einer anderen Zahlungsmethode wechseln.\n\nMöchten Sie fortfahren?",
+		"applePaymentMethod_msg": "Sie können beim Bezahlen den App Store als Zahlungsmethode verwenden."
 	}
 }

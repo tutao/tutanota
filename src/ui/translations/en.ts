@@ -2595,5 +2595,7 @@ export default {
 		"zoomOut_action": "Zoom Out",
 		"accessGone_msg": "This account has been deactivated at the account owner's request.",
 		"migrationProtonStartTLSError_msg": "We could not establish connection to the IMAP server.\nIf you are migrating from Proton using Proton Mail Bridge, please make sure to set the IMAP connection mode to SSL.\nYou can do this under Advanced Settings -> Connection Mode in Proton Mail Bridge.",
+		"feedbackForUs_label": "Have some feedback?",
+		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and share with the team"
 	}
 }

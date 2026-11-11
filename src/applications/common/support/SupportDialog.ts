@@ -89,7 +89,7 @@ export async function showSupportDialog(logins: LoginController) {
 	)
 	data.categories = filterCategories(supportData)
 	const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
-	const STATIC_CONTENT_LENGTH = isFreeAccount ? 1 : 2
+	const STATIC_CONTENT_LENGTH = 1
 	const SECTION_BUTTON_PIXEL_HEIGHT = size.core_56 + size.spacing_8
 	const STATIC_CONTENT_PIXEL_HEIGHT = 232
 	// this height allows the static content + all categories to fit on the dialog without scrolling and with perfect
@@ -105,7 +105,6 @@ export async function showSupportDialog(logins: LoginController) {
 				title: lang.get("supportMenu_label"),
 				content: m(SupportLandingPage, {
 					data,
-					dialog,
 					toCategoryDetail: () => {
 						const selectedCategory = data.selectedCategory()
 

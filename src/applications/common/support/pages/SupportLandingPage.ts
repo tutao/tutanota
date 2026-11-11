@@ -8,15 +8,11 @@ import { Icons } from "../../../../ui/base/icons/Icons.js"
 import { theme } from "../../../../ui/theme.js"
 import { TitleSection } from "../../../../ui/TitleSection"
 import { windowFacade } from "../../misc/WindowFacade"
-import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
-import { locator } from "../../api/main/CommonLocator"
-import { Dialog } from "../../../../ui/base/Dialog"
 
 type Props = {
 	data: SupportDialogState
 	toCategoryDetail: Thunk
 	countFaqLinkTrigger: Thunk
-	dialog: Dialog
 }
 
 export class SupportLandingPage implements Component<Props> {
@@ -25,7 +21,6 @@ export class SupportLandingPage implements Component<Props> {
 			data: { categories, selectedCategory },
 			toCategoryDetail,
 			countFaqLinkTrigger,
-			dialog,
 		},
 	}: Vnode<Props>): Children {
 		const visibleCategorySections: Array<SectionButtonAttrs> = categories.map((category) => ({
@@ -36,18 +31,6 @@ export class SupportLandingPage implements Component<Props> {
 				toCategoryDetail()
 			},
 		}))
-		const isFreeAccount = !locator.logins.getUserController().isPaidAccount()
-
-		if (!isFreeAccount) {
-			visibleCategorySections.push({
-				leftIcon: { icon: Icons.LightbulbOutline, title: "emptyString_msg", fill: theme.primary },
-				text: { text: "Have some feedback?", testId: "" },
-				onclick: () => {
-					void showUserSatisfactionDialog("ManualFeedback")
-					dialog.close()
-				},
-			})
-		}
 
 		visibleCategorySections.push({
 			leftIcon: { icon: Icons.QuestionmarkFilled, title: "emptyString_msg", fill: theme.primary },

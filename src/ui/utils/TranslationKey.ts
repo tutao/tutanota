@@ -2587,3 +2587,5 @@ export type TranslationKeyType =
 	| "emptyString_msg"
 	| "accessGone_msg"
 	| "migrationProtonStartTLSError_msg"
+	| "feedbackForUs_label"
+	| "feedbackNoReply_msg"

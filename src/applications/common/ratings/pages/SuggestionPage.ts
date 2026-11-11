@@ -46,7 +46,8 @@ export class SuggestionPage implements Component<SuggestionPageAttrs> {
 						path: `${EnvProvider.get().getPathPrefix()}/images/dynamic-color-svg/on-your-mind.svg`,
 					}),
 				),
-				m(".h3.text-center.pb-8.pt-8", lang.get("ratingSuggestionPage_title")),
+				m(".h3.text-center.pt-8.pb-8", lang.get("ratingSuggestionPage_title")),
+				m(".text-center.pb-8", lang.getTranslationText("feedbackNoReply_msg")),
 			]),
 			m(
 				Card,
@@ -122,7 +123,7 @@ interface SimpleTextEditorAttrs {
 class SimpleTextEditor implements Component<SimpleTextEditorAttrs> {
 	view(vnode: Vnode<SimpleTextEditorAttrs>) {
 		return m("textarea.tutaui-text-field", {
-			style: { "field-sizing": "content", resize: "none", "min-height": px(250) },
+			style: { "field-sizing": "content", resize: "none", "min-height": px(200) },
 			placeholder: lang.get("ratingSuggestion_placeholder"),
 			oninput: (event: InputEvent) => {
 				const target = event.target
