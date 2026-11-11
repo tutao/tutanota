@@ -1,7 +1,7 @@
 import { EnvProvider, PaymentSetup, UpgradePromptType } from "@tutao/app-env"
 import { Translation, TranslationKey } from "../../../ui/utils/LanguageViewModel"
 import { locator } from "../api/main/CommonLocator"
-import { FeatureListProvider, SelectedSubscriptionOptions } from "./FeatureListProvider"
+import { SelectedSubscriptionOptions } from "./FeatureListProvider"
 import { getExternalSubscriptionError, PaymentData, UpgradePromptTypeByName, UpgradeType } from "./utils/SubscriptionUtils"
 import { OfferPrice, PriceAndConfigProvider } from "./utils/PriceUtils"
 import { LoginController } from "../api/main/LoginController.js"
@@ -49,7 +49,6 @@ export type UpgradeSubscriptionData = {
 	planPrices: PriceAndConfigProvider
 	currentPlan: PlanType | null
 	subscriptionParameters: SubscriptionParameters | null
-	featureListProvider: FeatureListProvider
 	referralData: null | ReferralData
 	multipleUsersAllowed: boolean
 	acceptedPlans: readonly AvailablePlanType[]
