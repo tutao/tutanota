@@ -20,6 +20,7 @@ import de.tutao.tutashared.ipc.wrap
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.offline.sqlTagged
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.push.addSysVersionHeaders
 import de.tutao.tutashared.push.toSdkCredentials
 import de.tutao.tutashared.toBase64
 import de.tutao.tutashared.toSdkIdTupleGenerated

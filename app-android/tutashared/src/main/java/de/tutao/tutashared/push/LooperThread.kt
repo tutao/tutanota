@@ -1,10 +1,10 @@
-package de.tutao.tutanota.push
+package de.tutao.tutashared.push
 
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
 
-internal class LooperThread(private val initRunnable: Runnable) : Thread() {
+class LooperThread(private val initRunnable: Runnable) : Thread() {
 	val handler: Handler
 		get() = _handler ?: error("LooperThread has not been started yet!")
 

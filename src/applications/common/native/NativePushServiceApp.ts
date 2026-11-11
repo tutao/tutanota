@@ -15,8 +15,7 @@ import { elementIdToId, getElementId } from "@tutao/meta"
 import { AlarmFacade } from "../api/worker/facades/lazy/AlarmFacade"
 import { ClientDetector } from "../../../platform-kit/app-env/boot/ClientDetector"
 
-// keep in sync with SYS_MODEL_VERSION in app-android/app/build.gradle
-// keep in sync with SYS_MODEL_VERSION in app-android/calendar/build.gradle.kts
+// keep in sync with SYS_MODEL_VERSION in app-android/gradle.properties
 // keep in sync with app-ios/TutanotaSharedFramework/Utils/Utils.swift
 const MOBILE_SYS_MODEL_VERSION = 126
 

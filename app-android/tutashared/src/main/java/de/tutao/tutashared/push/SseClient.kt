@@ -1,31 +1,34 @@
-package de.tutao.tutanota.push
+package de.tutao.tutashared.push
 
 import android.util.Log
-import de.tutao.tutanota.*
 import de.tutao.tutashared.AndroidNativeCryptoFacade
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
-import de.tutao.tutashared.push.NetworkObserver
-import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
-import okhttp3.*
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
-import java.io.*
+import java.io.BufferedReader
+import java.io.IOException
+import java.io.InputStreamReader
+import java.io.UnsupportedEncodingException
 import java.net.URL
 import java.net.URLEncoder
-import java.util.*
+import java.util.Random
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicReference
 import kotlin.math.abs
 
-class SseClient internal constructor(
-	private val crypto: AndroidNativeCryptoFacade,
-	private val sseStorage: SseStorage,
-	private val networkObserver: NetworkObserver,
-	private val sseListener: SseListener,
-	private val defaultClient: OkHttpClient
+// TODO: investigate why this constructor was internal
+class SseClient (
+    private val crypto: AndroidNativeCryptoFacade,
+    private val sseStorage: SseStorage,
+    private val networkObserver: NetworkObserver,
+    private val sseListener: SseListener,
+    private val defaultClient: OkHttpClient
 ) {
 	@Volatile
 	private var connectedSseInfo: SseInfo? = null

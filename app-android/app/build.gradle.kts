@@ -20,7 +20,7 @@ android {
 		minSdk = 26
 		targetSdk = 36
 		versionCode = 396742
-		versionName = "369.261111.0"
+		versionName = project.properties["de.tutao.versionName"] as String
 
 		testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
@@ -102,9 +102,8 @@ android {
 			"FILE_PROVIDER_AUTHORITY",
 			"\"" + it.manifestPlaceholders["contentProviderAuthority"] + "\""
 		)
-		// keep in sync with src/native/main/NativePushServiceApp.ts
-		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"126\"")
-		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"86\"")
+		it.buildConfigField("String", "SYS_MODEL_VERSION", "\"${project.properties["de.tutao.sysModelVersion"]}\"")
+		it.buildConfigField("String", "TUTANOTA_MODEL_VERSION", "\"86\"") // TODO: Apply changes from calendarApp GradleBuild to Mail App gradle build
 		it.buildConfigField("String", "RES_ADDRESS", "\"tutanota\"")
 	}
 

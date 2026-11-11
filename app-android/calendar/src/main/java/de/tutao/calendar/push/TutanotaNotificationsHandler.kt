@@ -11,6 +11,7 @@ import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
+import de.tutao.tutashared.push.addSysVersionHeaders
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
