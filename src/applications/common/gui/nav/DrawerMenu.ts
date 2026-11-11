@@ -20,7 +20,8 @@ import { EnvProvider, FeatureType, UpgradePromptType } from "@tutao/app-env"
 import { locator } from "../../api/main/CommonLocator"
 import { AccountingInfo, AccountingInfoTypeRef } from "@tutao/entities/sys"
 import { idToElementId } from "@tutao/meta"
-import { PaymentMethodType } from "../../../../entities/sys/Utils"
+import { AccountType, PaymentMethodType } from "../../../../entities/sys/Utils"
+import { showUserSatisfactionDialog } from "../../ratings/UserSatisfactionDialog"
 
 export interface DrawerMenuAttrs {
 	logins: LoginController
@@ -135,6 +136,13 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 									label: "keyboardShortcuts_title",
 									click: () => KeyManager.get().openF1Help(true),
 								},
+								customer && customer.type === AccountType.PAID
+									? {
+											icon: Icons.LightbulbFilled,
+											label: "feedbackForUs_label",
+											click: () => void showUserSatisfactionDialog("ManualFeedback"),
+										}
+									: null,
 							],
 						})(e, dom),
 					colors: ButtonColor.DrawerNav,
