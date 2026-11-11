@@ -1,10 +1,9 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.net.ConnectivityManager
-import android.net.ConnectivityManager.NetworkCallback
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
@@ -17,14 +16,15 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import kotlinx.coroutines.launch
 
-class NetworkObserver internal constructor(
-	context: Context,
-	lifecycleOwner: LifecycleOwner,
-	private val pushNotificationJobState: PushNotificationService.PushNotificationJobState
+// TODO: investigate why this was originally designated as an internal constructor
+class NetworkObserver (
+    context: Context,
+    lifecycleOwner: LifecycleOwner,
+    private val pushNotificationJobState: IPushNotificationJobState
 ) : BroadcastReceiver(), DefaultLifecycleObserver {
 	private val connectivityManager: ConnectivityManager = context.getSystemService<ConnectivityManager>()!!
 	private var networkConnectivityListener: NetworkConnectivityListener? = null
-	private val networkObserverCallback = object : NetworkCallback() {
+	private val networkObserverCallback = object : ConnectivityManager.NetworkCallback() {
 		override fun onAvailable(network: Network) {
 			Log.d(TAG, "onAvailable")
 			networkConnectivityListener?.onNetworkConnectivityChange(true, pushNotificationJobState.active)
@@ -72,7 +72,8 @@ class NetworkObserver internal constructor(
 		// NetworkCapabilities.NET_CAPABILITY_INTERNET is present for Wi-Fi without internet access, that's why we need to check both
 		return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
 				&& capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-				&& if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) true else capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
+				&& if(Build.VERSION.SDK_INT < Build.VERSION_CODES.P) true else capabilities.hasCapability(
+            NetworkCapabilities.NET_CAPABILITY_NOT_SUSPENDED)
 	}
 
 	fun setNetworkConnectivityListener(networkConnectivityListener: NetworkConnectivityListener) {
