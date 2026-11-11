@@ -253,6 +253,13 @@ export function createRowActions<T>(
 					},
 				}
 			: null,
+		{
+			label: "delete_action",
+			click: () => {
+				elements.splice(indexOfElement, 1)
+				instance.updateInstance()
+			},
+		},
 	]
 	return {
 		label: "edit_action",

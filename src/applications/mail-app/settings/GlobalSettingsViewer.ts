@@ -203,13 +203,6 @@ export class GlobalSettingsViewer implements UpdatableSettingsViewer {
 								label: "edit_action",
 								click: () => showAddSpamRuleDialog(rule),
 							},
-							{
-								label: "delete_action",
-								click: () => {
-									props.emailSenderList.splice(index, 1)
-									void updateInstance()
-								},
-							},
 						],
 					),
 				}
