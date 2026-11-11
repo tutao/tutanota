@@ -1204,6 +1204,9 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					}
 				} else if (!eventIdParam && this.viewSlider.focusedColumn === this.eventDetails) {
 					console.warn("Focusing event column without eventId")
+					// If the URL does not contain an event ID but we are displaying the event details column, then
+					// we're in an invalid state. We recover from this invalid state by switching back to the
+					// agenda column, to make the application state match the URL.
 					this.viewSlider.focus(this.viewSlider.getMainColumn())
 				}
 			}
@@ -1366,6 +1369,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 
 	private exitEventDetails() {
 		this.viewModel.setPreviewedEventId(null) // Make sure there is no event to show
+		this.viewSlider.focus(this.viewSlider.getMainColumn())
 		this.setUrl(this.currentViewType, this.viewModel.selectedDate())
 	}
 
