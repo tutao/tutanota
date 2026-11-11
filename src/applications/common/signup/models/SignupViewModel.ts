@@ -22,7 +22,7 @@ import {
 	getWebsiteLangFromParams,
 	stringToSubscriptionType,
 } from "../../misc/LoginUtils"
-import { FeatureListProvider, SelectedSubscriptionOptions, UpgradePriceType } from "../../subscription/FeatureListProvider"
+import { SelectedSubscriptionOptions, UpgradePriceType } from "../../subscription/FeatureListProvider"
 import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
 import { PowSolution } from "../../api/common/pow-worker"
 import { SimplifiedCreditCardViewModel } from "../../subscription/SimplifiedCreditCardInputModel"
@@ -55,7 +55,6 @@ export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel,
 	public upgradeType: UpgradeType
 	public planPrices?: PriceAndConfigProvider
 	public currentPlan: PlanType | null
-	public featureListProvider?: FeatureListProvider
 	public referralData: null | ReferralData
 	public multipleUsersAllowed: boolean
 	public acceptedPlans: AvailablePlanType[] = []
@@ -163,12 +162,10 @@ export class SignupViewModel implements PlanSelectionModel, PaymentDetailsModel,
 		const prices = priceDataProvider.getRawPricingData()
 		this.globalCampaignName = prices.globalCampaignName
 		const domainConfig = locator.domainConfigProvider().getCurrentDomainConfig()
-		const featureListProvider = await FeatureListProvider.getInitializedInstance(domainConfig)
 		this.options.businessUse(prices.business)
 
 		this.priceInfoTextId = priceDataProvider.getPriceInfoMessage()
 		this.planPrices = priceDataProvider
-		this.featureListProvider = featureListProvider
 		this.messageBoxMessage = await this.resolveMessageBox()
 		this.firstMonthForFreeOfferActive = prices.firstMonthForFreeForYearlyPlan
 		const bonusMonths = filterInt(prices.bonusMonthsForYearlyPlan)
