@@ -354,7 +354,7 @@ export class MailSearchViewModel {
 			// for non-blocking search, the current search result will be extended as the range extends.
 			// for full-archive-download search, once indexing is done, the list will reload automatically if empty and
 			// by user action if not.
-			void this.indexerFacade.extendMailIndex(targetStartDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
+			void this.extendMailIndex(targetStartDate?.getTime() ?? FULL_INDEXED_TIMESTAMP)
 		} else if (!isSameDay) {
 			this.searchAgain()
 		}
@@ -363,6 +363,11 @@ export class MailSearchViewModel {
 	}
 
 	extendMailIndex(time: number): Promise<void> {
+		if (deviceConfig.getContinueDownloadArchivesOnMeteredConnection() === DownloadArchivesOnMeteredConnection.DECLINED) {
+			// allow user to change their decision by explicit extend of mail index
+			deviceConfig.setContinueDownloadArchivesOnMeteredConnection(DownloadArchivesOnMeteredConnection.UNDECIDED)
+		}
+
 		return this.indexerFacade.extendMailIndex(time)
 	}
 
