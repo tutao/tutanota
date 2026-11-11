@@ -3,7 +3,7 @@ public protocol TutanotaErrorWithData<Data> {
   var data: Data { get }
 }
 
-open class TutanotaError: Error, @unchecked Sendable {
+open class TutanotaError: Error, @unchecked Sendable, EquitableIsIdentity {
   private let _name: String
   private let _message: String
 
