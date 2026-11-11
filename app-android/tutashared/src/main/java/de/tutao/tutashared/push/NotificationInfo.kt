@@ -1,4 +1,4 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import androidx.room.Embedded
 import de.tutao.tutashared.IdTupleWrapper
@@ -8,11 +8,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NotificationInfo(
-	@SerialName("1366")
+    @SerialName("1366")
 	val mailAddress: String,
-	@SerialName("1368")
+    @SerialName("1368")
 	val userId: String,
-	@SerialName("2319")
+    @SerialName("2319")
 	@Serializable(with = IdTupleWrapperZeroOrOneAssociationSerializer::class)
 	@field:Embedded val mailId: IdTupleWrapper?,
 )
