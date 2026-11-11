@@ -4,7 +4,7 @@ import { EnvProvider, TabIndex, TimeFormat } from "@tutao/app-env"
 import { Time } from "../../../../common/calendar/Time.js"
 import { Select, SelectAttributes } from "../../../../../ui/base/Select.js"
 import { InputAttrs, SingleLineTextField, SingleLineTextFieldAttrs } from "../../../../../ui/base/SingleLineTextField.js"
-import { rem, font_size, px } from "../../../../../ui/size.js"
+import { rem, font_size } from "../../../../../ui/size.js"
 import stream from "mithril/stream"
 import { isKeyPressed } from "../../../../../ui/utils/KeyManager.js"
 import { lang, Translation } from "../../../../../ui/utils/LanguageViewModel"
@@ -118,6 +118,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
+					fontSize: rem(font_size.smaller_em),
 					"border-width": "1px 0",
 					"border-color": "transparent",
 					padding: "8px 0",

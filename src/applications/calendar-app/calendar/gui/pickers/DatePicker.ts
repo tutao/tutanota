@@ -118,6 +118,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				ariaLabel: attrs.label.text,
 				style: {
 					"border-color": theme.outline,
+					fontSize: rem(font_size.smaller_em),
 					opacity: attrs.disabled ? 0.7 : 1.0,
 				},
 				value: inputContent,
@@ -176,9 +177,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
+					fontSize: rem(font_size.smaller_em),
 					"border-width": "1px 0",
 					"border-color": "transparent",
-					fontSize: rem(font_size.smaller_em),
 					padding: "8px 0",
 					appearance: "none",
 				},
@@ -657,7 +658,7 @@ export class VisualDatePicker implements Component<VisualDatePickerAttrs> {
 	}
 
 	private renderWeekDays(wide: boolean, weekdays: readonly string[]): Children {
-		const size = getElementWidth(wide)
+		const size = px(getElementWidth(wide))
 		const fontSize = rem(font_size.smaller_em)
 		return weekdays.map((wd) =>
 			m(
