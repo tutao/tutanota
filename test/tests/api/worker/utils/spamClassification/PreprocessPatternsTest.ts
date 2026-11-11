@@ -10,6 +10,8 @@ import {
 	ML_EMAIL_ADDR_TOKEN,
 	ML_NUMBER_SEQUENCE_REGEX,
 	ML_NUMBER_SEQUENCE_TOKEN,
+	ML_SPACE_BEFORE_NEW_LINE_REGEX,
+	ML_SPACE_BEFORE_NEW_LINE_TOKEN,
 	ML_SPECIAL_CHARACTER_REGEX,
 	ML_SPECIAL_CHARACTER_TOKEN,
 	ML_URL_REGEX,
@@ -177,6 +179,47 @@ o.spec("PreprocessPatterns", () => {
 				}
 				o.check(replaced).equals(ML_EMAIL_ADDR_TOKEN)
 			}
+		})
+
+		o.test("Text without an @ is left unchanged", async () => {
+			const text = "Hello there, this is a plain text. Meet at 5 or @ 6"
+			o.check(text.replace(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)).equals(text)
+		})
+
+		o.test("Email addresses inside text are replaced", async () => {
+			const replaced = "write to test@example.com or other@sub.example.org now".replace(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
+			o.check(replaced).equals(`write to ${ML_EMAIL_ADDR_TOKEN} or ${ML_EMAIL_ADDR_TOKEN} now`)
+		})
+	})
+
+	o.test("possible bad regexes finish in acceptable time", () => {
+		const size = 100_000
+		const maxMs = 500
+		const badInputs = [
+			// long run without @
+			"a".repeat(size),
+			// @ after long dotted run
+			"a.".repeat(size) + "@",
+			// long dotted domain ending in dash
+			"a@" + "a.".repeat(size) + "-",
+			// many @
+			"a@a".repeat(size),
+			// long whitespace run without newline
+			" ".repeat(size) + "x",
+		]
+		for (const regex of [ML_EMAIL_ADDR_REGEX, ML_SPACE_BEFORE_NEW_LINE_REGEX]) {
+			for (const input of badInputs) {
+				const start = Date.now()
+				input.replaceAll(regex, " T ")
+				const duration = Date.now() - start
+				o.check(duration < maxMs).equals(true)
+			}
+		}
+	})
+
+	o.spec("Space before new line patterns", () => {
+		o.test("removes whitespace before newlines", async () => {
+			o.check("a  \n\n  b \n c".replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)).equals("a\n  b\n c")
 		})
 	})
 

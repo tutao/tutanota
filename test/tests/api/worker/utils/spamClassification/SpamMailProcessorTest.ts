@@ -2,6 +2,8 @@ import o from "@tutao/otest"
 import {
 	BYTES_COMPRESSED_MAIL_VECTOR_LENGTH,
 	BYTES_FOR_SERVER_CLASSIFICATION_DATA,
+	MAX_PREPROCESS_BODY_LENGTH,
+	MAX_PREPROCESS_TIME_MS,
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -88,6 +90,43 @@ o.spec("SpamMailProcessor Tests", () => {
 		o(serverClassificationDataFromModelInput).deepEquals(expectedOneHotEncodedServerClassificationData)
 		o([4, 6]).deepEquals(classifiersUsed)
 		o([1, 0]).deepEquals(serverDecisions)
+	})
+
+	o("preprocessMail - pathological body is processed quickly", async () => {
+		datum.body = "a.".repeat(20_000) + "@" + " ".repeat(20_000) + "a@" + "a.".repeat(10_000) + "-"
+		const start = Date.now()
+		const result = spamMailProcessor.preprocessMail(datum)
+		o(Date.now() - start < 1000).equals(true)
+		o(result.includes("TEMAIL")).equals(true)
+	})
+
+	o("preprocessMail - truncates very long bodies", async () => {
+		datum.subject = ""
+		datum.body = "x".repeat(MAX_PREPROCESS_BODY_LENGTH) + " TAILMARKER"
+		o(spamMailProcessor.preprocessMail(datum).includes("TAILMARKER")).equals(false)
+	})
+
+	o("preprocessMail - truncates based on text, not html", async () => {
+		datum.subject = ""
+		datum.body = `<img src="data:image/png;base64,${"A".repeat(MAX_PREPROCESS_BODY_LENGTH * 2)}"> VISIBLETEXT`
+		o(spamMailProcessor.preprocessMail(datum).includes("VISIBLETEXT")).equals(true)
+	})
+
+	o("preprocessMail - skips remaining steps when out of time budget", async () => {
+		datum.body = "mail me at test@example.com 12"
+		const realNow = Date.now
+		let calls = 0
+		Date.now = () => (calls++ === 0 ? 0 : MAX_PREPROCESS_TIME_MS + 1)
+		let result: string
+		try {
+			result = spamMailProcessor.preprocessMail(datum)
+		} finally {
+			Date.now = realNow
+		}
+		// html removal runs, following steps should not.
+		o(result.includes("TEMAIL")).equals(false)
+		o(result.includes("TNUMBER")).equals(false)
+		o(result.includes("test@example.com")).equals(true)
 	})
 
 	async function createModelInputAndUploadableVectors(datum: SpamMailDatum) {

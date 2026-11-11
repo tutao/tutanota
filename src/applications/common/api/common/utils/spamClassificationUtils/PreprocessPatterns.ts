@@ -15,7 +15,8 @@ export const ML_URL_REGEX = /(?:https?|ftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
 
 export const ML_URL_TOKEN = " TURL$1 "
 
-export const ML_EMAIL_ADDR_REGEX = /(?:mailto:)?[A-Za-z0-9_+\-.]+@(?:[A-Za-z0-9-]+\.)+[A-Za-z]{2,}(?![\w.-])/g
+// Uses a simpler matcher to avoid regex running for far too long under specific mail circumstances.
+export const ML_EMAIL_ADDR_REGEX = /(?<!\S)\S+@\S+/g
 export const ML_EMAIL_ADDR_TOKEN = " TEMAIL "
 
 export const ML_BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g
@@ -34,6 +35,6 @@ export const ML_SPECIAL_CHARACTER_REGEX = /([!@#$%^&*()[\]<>+`_=\\{}"':;?/,-.~]+
 
 export const ML_SPECIAL_CHARACTER_TOKEN = " TSPECIALCHAR "
 
-export const ML_SPACE_BEFORE_NEW_LINE_REGEX = /\s+\n/g
+export const ML_SPACE_BEFORE_NEW_LINE_REGEX = /(?<!\s)\s+\n/g
 
 export const ML_SPACE_BEFORE_NEW_LINE_TOKEN = "\n"

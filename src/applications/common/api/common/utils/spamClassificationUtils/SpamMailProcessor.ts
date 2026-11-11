@@ -37,6 +37,9 @@ export type PreprocessConfiguration = {
 	isRemoveSpaceBeforeNewLine: boolean
 }
 
+export const MAX_PREPROCESS_TIME_MS = 5_000
+export const MAX_PREPROCESS_BODY_LENGTH = 100_000
+
 export const spamClassifierTokenizer = (text: PreprocessedMailContent): string[] => tokenize(text)
 
 export const DEFAULT_PREPROCESS_CONFIGURATION: PreprocessConfiguration = {
@@ -96,6 +99,14 @@ export class SpamMailProcessor {
 		}
 
 		let preprocessedMail = mailText
+		const maximumProcessingTime = Date.now() + MAX_PREPROCESS_TIME_MS
+		const isOutOfTime = () => {
+			const outOfTime = Date.now() > maximumProcessingTime
+			if (outOfTime) {
+				console.warn("Spam preprocessing exceeded maximum time, skipping remaining steps")
+			}
+			return outOfTime
+		}
 
 		try {
 			// 1. Remove HTML code
@@ -103,45 +114,49 @@ export class SpamMailProcessor {
 				preprocessedMail = htmlToText(preprocessedMail)
 			}
 
+			// Limit preprocessing size after transforming html to text.
+			preprocessedMail = preprocessedMail.slice(0, MAX_PREPROCESS_BODY_LENGTH)
+
 			// 2. Replace dates
 			if (this.preprocessConfiguration.isReplaceDates) {
 				for (const datePattern of ML_DATE_REGEX) {
+					if (isOutOfTime()) break
 					preprocessedMail = preprocessedMail.replaceAll(datePattern, ML_DATE_TOKEN)
 				}
 			}
 
 			// 3. Replace urls
-			if (this.preprocessConfiguration.isReplaceUrls) {
+			if (this.preprocessConfiguration.isReplaceUrls && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
 			}
 
 			// 4. Replace email addresses
-			if (this.preprocessConfiguration.isReplaceMailAddresses) {
+			if (this.preprocessConfiguration.isReplaceMailAddresses && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
 			}
 
 			// 5. Replace Bitcoin addresses
-			if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
+			if (this.preprocessConfiguration.isReplaceBitcoinAddress && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
 			}
 
 			// 6. Replace credit card numbers
-			if (this.preprocessConfiguration.isReplaceCreditCards) {
+			if (this.preprocessConfiguration.isReplaceCreditCards && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
 			}
 
 			// 7. Replace remaining numbers
-			if (this.preprocessConfiguration.isReplaceNumbers) {
+			if (this.preprocessConfiguration.isReplaceNumbers && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
 			}
 
 			// 8. Remove special characters
-			if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
+			if (this.preprocessConfiguration.isReplaceSpecialCharacters && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
 			}
 
 			// 9. Remove spaces at end of lines
-			if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine) {
+			if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine && !isOutOfTime()) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 			}
 		} catch (e) {
