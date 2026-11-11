@@ -16,14 +16,18 @@ import de.tutao.tutashared.TempDir
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.alarms.SystemAlarmFacade
 import de.tutao.tutashared.createAndroidKeyStoreFacade
+import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.io.File
 import java.security.SecureRandom
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
@@ -62,6 +66,7 @@ private enum class State {
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
+	private val jobState = PushNotificationJobState(false)
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
 	private var state = State.STOPPED
@@ -77,15 +82,14 @@ class PushNotificationService : LifecycleJobService() {
 		state = State.CREATED
 
 		finishJobThread.start()
-		val tempDir = TempDir(applicationContext, SecureRandom())
-		val tempFs = TempFs(applicationContext, SecureRandom(), tempDir)
+
 		val appDatabase: AppDatabase = AppDatabase.getDatabase(this, allowMainThreadAccess = true)
-		val crypto = AndroidNativeCryptoFacade(this, tempFs)
+		val crypto = AndroidNativeCryptoFacade(this, TempFs(this, SecureRandom(), TempDir(this)))
 		val keyStoreFacade = createAndroidKeyStoreFacade()
-		val dateProvider = DateProviderImpl()
-		val suspensionHandler = SuspensionHandler(dateProvider)
+		val nativeCredentialsFacade = CredentialsEncryptionFactory.create(this, crypto, appDatabase)
 		val sseStorage = SseStorage(appDatabase, keyStoreFacade)
 		localNotificationsFacade = LocalNotificationsFacade(this, sseStorage)
+		val dateProvider = DateProviderImpl()
 		val alarmNotificationsManager = AlarmNotificationsManager(
 			sseStorage,
 			crypto,
@@ -95,15 +99,18 @@ class PushNotificationService : LifecycleJobService() {
 			TimeZone.getDefault()
 		)
 		alarmNotificationsManager.reScheduleAlarms()
+		val suspensionHandler = SuspensionHandler(dateProvider)
 		sseClient = SseClient(
 			crypto,
 			sseStorage,
-			NetworkObserver(this, this),
+			NetworkObserver(this, this, jobState),
 			NotificationSseListener(
 				localNotificationsFacade,
 				sseStorage,
+				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				NetworkUtils.defaultClient,
+				this.filesDir,
 				suspensionHandler
 			),
 			NetworkUtils.defaultClient
@@ -151,6 +158,7 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onStartJob(params: JobParameters): Boolean {
 		Log.d(TAG, "onStartJob")
 		jobParameters = params
+		jobState.active = true
 		return true
 	}
 
@@ -175,6 +183,7 @@ class PushNotificationService : LifecycleJobService() {
 			// mind so we can run a bit more.
 			jobFinished(jobParameters, true)
 			jobParameters = null
+			jobState.active = false
 		}
 	}
 
@@ -198,8 +207,10 @@ class PushNotificationService : LifecycleJobService() {
 	private inner class NotificationSseListener(
 		notificationsFacade: LocalNotificationsFacade,
 		sseStorage: SseStorage,
+		nativeCredentialsFacade: NativeCredentialsFacade,
 		alarmNotificationsManager: AlarmNotificationsManager,
 		defaultClient: OkHttpClient,
+		appDir: File,
 		suspensionHandler: SuspensionHandler
 	) : SseListener {
 
@@ -207,9 +218,12 @@ class PushNotificationService : LifecycleJobService() {
 			TutanotaNotificationsHandler(
 				notificationsFacade,
 				sseStorage,
+				nativeCredentialsFacade,
 				alarmNotificationsManager,
 				defaultClient,
 				lifecycleScope,
+				{ AndroidSqlCipherFacade(this@PushNotificationService) },
+				appDir,
 				suspensionHandler
 			)
 
@@ -251,4 +265,10 @@ class PushNotificationService : LifecycleJobService() {
 			finishJobIfNeeded()
 		}
 	}
+
+
+	internal class PushNotificationJobState(
+		/** Whether jobParameters is not null; should be true when a job is currently running. */
+		var active: Boolean
+	)
 }
