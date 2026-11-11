@@ -313,12 +313,13 @@ class DropdownWithRootCaptureListener implements ClassComponent<DropdownWithRoot
 			"aria-label": attrs.label,
 			style: {
 				width: "240px",
+				// Note: We use `position: fixed` to create a new stacking context so the picker doesn't influence
+				// overflow/scroll of modals (open the search page and change the date range to see this). However,
+				// we combine `transform: translateX(0px)` to break fixed positioning so it'll scroll with the page
+				position: attrs.position === PickerPosition.TOP ? "absolute" : "fixed",
 			},
 			oncreate: (vnode) => {
-				// TODO(gg): PickerPosition.TOP is used in RepeatRuleEditor.ts where the picker can hit the modal
-				// bottom. This was `position: fixed` but we also use `transform: translateX(0px)` too which meant
-				// fixed wasn't fixed - it'd create a stacking context, yes, but would still scroll with the page.
-				// Confusing, so I removed it.
+				// TODO(gg): PickerPosition.TOP is used in RepeatRuleEditor.ts where the picker can overflow the modal
 				if (attrs.position === PickerPosition.TOP && vnode.dom.parentElement) {
 					const bottomMargin = vnode.dom.parentElement.getBoundingClientRect().height
 					;(vnode.dom as HTMLElement).style.bottom = px(bottomMargin)
