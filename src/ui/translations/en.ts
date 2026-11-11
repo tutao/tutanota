@@ -2643,5 +2643,7 @@ export default {
 		"zoomIn_action": "Zoom In",
 		"zoomOut_action": "Zoom Out",
 		"accessGone_msg": "This account has been deactivated at the account owner's request.",
+		"feedbackForUs_label": "Have some feedback?",
+		"feedbackNoReply_msg": "We will not reply to your message, but it will be reviewed and shared with the team"
 	}
 }

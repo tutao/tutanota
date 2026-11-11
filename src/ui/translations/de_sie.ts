@@ -2643,5 +2643,7 @@ export default {
 		"zoomIn_action": "Hereinzoomen",
 		"zoomOut_action": "Herauszoomen",
 		"accessGone_msg": "Dieses Konto wurde auf Veranlassung des Kontoinhabers deaktiviert.",
+		"feedbackForUs_label": "Haben Sie Feedback für uns?",
+		"feedbackNoReply_msg": "Wir werden nicht auf Ihre Nachricht antworten, sie aber an das Team weiterleiten."
 	}
 }

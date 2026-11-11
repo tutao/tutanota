@@ -2586,6 +2586,8 @@ export type TranslationKeyType =
 	| "deactivatedAccessLogin_msg"
 	| "accessGone_msg"
 	| "migrationProtonStartTLSError_msg"
+	| "feedbackForUs_label"
+	| "feedbackNoReply_msg"
 	| "confirmClearFolder_msg"
 	| "inboxRuleManagement_label"
 	| "inboxRuleConditions_label"
