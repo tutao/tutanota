@@ -743,9 +743,9 @@ pub struct TutanotaProperties {
 	#[serde(rename = "470")]
 	pub defaultUnconfidential: bool,
 	#[serde(rename = "471")]
-	pub customEmailSignature: String,
+	pub customEmailSignatureLegacy: String,
 	#[serde(rename = "472")]
-	pub emailSignatureType: i64,
+	pub emailSignatureTypeForNewMails: i64,
 	#[serde(rename = "568")]
 	pub noAutomaticContacts: bool,
 	#[serde(rename = "597")]
@@ -766,12 +766,20 @@ pub struct TutanotaProperties {
 	#[serde(rename = "1851")]
 	#[serde(with = "serde_bytes")]
 	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2267")]
+	pub emailSignatureTypeForRepliesAndForwards: Option<i64>,
+	#[serde(rename = "2268")]
+	pub defaultSignatureNameForNewMessages: Option<String>,
+	#[serde(rename = "2269")]
+	pub defaultSignatureNameForRepliesAndForwards: Option<String>,
 	#[serde(rename = "221")]
 	pub lastPushedMail: Option<IdTupleGenerated>,
 	#[serde(rename = "222")]
 	pub imapSyncConfig: Vec<ImapSyncConfiguration>,
 	#[serde(rename = "578")]
 	pub inboxRules: Vec<InboxRule>,
+	#[serde(rename = "2270")]
+	pub customEmailSignatures: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5912,6 +5920,43 @@ impl Entity for MailboxMigrationPutIn {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2247),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CustomEmailSignature {
+	#[serde(rename = "2258")]
+	pub _id: Option<IdTupleGenerated>,
+	#[serde(rename = "2259")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2260")]
+	pub _format: i64,
+	#[serde(rename = "2261")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2262")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2263")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2264")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2265")]
+	pub name: String,
+	#[serde(rename = "2266")]
+	pub value: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CustomEmailSignature {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2256),
 		}
 	}
 }

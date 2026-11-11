@@ -2625,6 +2625,14 @@ export default {
 		"yourFolders_action": "Ihre ORDNER",
 		"yourMessage_label": "Ihre Nachricht",
 		"zoomIn_action": "Hereinzoomen",
-		"zoomOut_action": "Herauszoomen"
+		"zoomOut_action": "Herauszoomen",
+		"customSignatures_label": "Eigene Signaturen",
+		"defaultSignatureNewMails_label": "Standardsignatur für neue Nachrichten",
+		"defaultSignatureRepliesAndForwards_label": "Standardsignatur für Antworten und Weiterleitungen",
+		"signatureNameExists_msg": "Eine Signatur mit diesem Namen bereits existiert.",
+		"signatureName_label": "Name der Signatur",
+		"previewForSignatureForNewMails_label": "Preview for Signature for New Mails",
+		"previewForSignatureForRepliesAndForwards_label": "Preview for Signature for Replies and Forwards",
+		"signatureDeleteConfirm_msg": "Are you sure you want to delete this signature?",
 	}
 }

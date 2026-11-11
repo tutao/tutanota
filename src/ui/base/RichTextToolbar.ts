@@ -19,6 +19,7 @@ export interface RichTextToolbarAttrs {
 	alignmentEnabled?: boolean
 	fontSizeEnabled?: boolean
 	customButtonAttrs?: Array<IconButtonAttrs>
+	isNonelevatedBackground?: boolean
 }
 
 export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
@@ -44,7 +45,7 @@ export class RichTextToolbar implements Component<RichTextToolbarAttrs> {
 
 	view({ attrs }: Vnode<RichTextToolbarAttrs>): Children {
 		return m(
-			".elevated-bg.overflow-hidden",
+			`${attrs.isNonelevatedBackground ? "" : ".elevated-bg"}.overflow-hidden`,
 			{
 				style: {
 					top: "0px",

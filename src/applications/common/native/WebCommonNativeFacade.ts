@@ -147,11 +147,13 @@ export class WebCommonNativeFacade implements CommonNativeFacade {
 								],
 							}
 						: {}
+					const props = this.logins.getUserController().props
+					const customEmailSignatures = await signatureModule.loadCustomEmailSignatures(locator.entityClient, props)
 					const editor = await newMailEditorFromTemplate(
 						mailboxDetails,
 						recipients,
 						subject || (files.length > 0 ? files[0].name : ""),
-						signatureModule.appendEmailSignature(text || "", this.logins.getUserController().props),
+						signatureModule.appendEmailSignature(text || "", props, customEmailSignatures, signatureModule.SignatureContext.NewMail),
 						files,
 						undefined,
 						undefined,

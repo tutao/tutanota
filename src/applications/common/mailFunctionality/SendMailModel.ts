@@ -1,10 +1,13 @@
-import { ApprovalStatus, EnvProvider, ProgrammingError, TimeConstants } from "@tutao/app-env"
+import { ApprovalStatus, EnvProvider, FeatureType, ProgrammingError, TimeConstants } from "@tutao/app-env"
 import { elementIdPart, elementIdToId, getElementId, idToElementId, isSameId, isSameSingleId, OperationType } from "@tutao/meta"
 import { EntityUpdateData, EntityUpdatesListener, isUpdateForTypeRef, ListenerPriority } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import {
 	ContactTypeRef,
 	ConversationEntry,
 	ConversationEntryTypeRef,
+	createCustomEmailSignature,
+	CustomEmailSignature,
+	CustomEmailSignatureTypeRef,
 	File,
 	FileTypeRef,
 	Mail,
@@ -18,6 +21,7 @@ import {
 	Attachment,
 	CalendarAttendeeStatus,
 	ConversationType,
+	EmailSignatureType,
 	MailMethod,
 	MAX_ATTACHMENT_SIZE,
 	PartialRecipient,
@@ -109,6 +113,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 import { isDriveEnabled } from "../misc/DriveUtils"
+import { getDefaultSignature } from "../../mail-app/mail/signature/Signature"
 
 EnvProvider.assertMainOrNode()
 
@@ -171,7 +176,13 @@ export class SendMailModel {
 	private senderAddress: string
 	private confidential: boolean
 	private sendAt: Date | null = null
-
+	private customEmailSignatures: LazyLoaded<CustomEmailSignature[]> = new LazyLoaded(async () => {
+		const props = this.user().props
+		if (props.customEmailSignatures === null) {
+			return []
+		}
+		return await this.entity.loadAll(CustomEmailSignatureTypeRef, props.customEmailSignatures)
+	})
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
 	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
@@ -632,7 +643,6 @@ export class SendMailModel {
 		})
 		// noinspection ES6MissingAwait
 		this.recipientsResolved.getAsync()
-
 		// .toLowerCase because all our aliases and accounts are lowercased on creation
 		this.senderAddress =
 			senderMailAddress != null && isAliasEnabledWithUser(this.mailboxDetails, this.user().userGroupInfo, senderMailAddress)
@@ -640,6 +650,7 @@ export class SendMailModel {
 				: this.getDefaultSender()
 		this.confidential = confidential ?? !this.user().props.defaultUnconfidential
 		this.attachments = []
+		await this.customEmailSignatures.reload()
 
 		if (attachments) {
 			this.nonInlineAttachmentsCids = new Set(
@@ -917,6 +928,16 @@ export class SendMailModel {
 
 	getSendAtDate(): Date | null {
 		return this.sendAt
+	}
+
+	getAvailableSignatures() {
+		const standardSignature = !this.logins.isEnabled(FeatureType.DisableDefaultSignature)
+			? createCustomEmailSignature({
+					name: lang.getTranslation("emailSignatureTypeDefault_msg").text,
+					value: getDefaultSignature(),
+				})
+			: null
+		return (standardSignature ? [standardSignature] : []).concat(this.customEmailSignatures.isLoaded() ? this.customEmailSignatures.getLoaded() : [])
 	}
 
 	setDefaultSendAtDate(): void {
@@ -1443,6 +1464,9 @@ export class SendMailModel {
 						this.senderAddress = this.getDefaultSender()
 					}
 				}
+			}
+			if (isUpdateForTypeRef(CustomEmailSignatureTypeRef, update)) {
+				await this.customEmailSignatures.reload()
 			}
 			this.markAsChangedIfNecessary(changed)
 		}

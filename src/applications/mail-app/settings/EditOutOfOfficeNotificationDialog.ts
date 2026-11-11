@@ -23,15 +23,18 @@ import { getStartOfTheWeekOffsetForUser } from "../../common/misc/weekOffset"
 import { OutOfOfficeNotification } from "@tutao/entities/tutanota"
 import { OUT_OF_OFFICE_SUBJECT_PREFIX } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
+import { loadCustomEmailSignatures } from "../mail/signature/Signature"
 import { Keys } from "../../../ui/utils/KeyboardKeys"
 
-export function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
+export async function showEditOutOfOfficeNotificationDialog(outOfOfficeNotification: OutOfOfficeNotification | null) {
+	const customEmailSignatures = await loadCustomEmailSignatures(locator.entityClient, locator.logins.getUserController().props)
 	const dialogModel = new EditOutOfOfficeNotificationDialogModel(
 		outOfOfficeNotification,
 		locator.entityClient,
 		locator.logins.getUserController(),
 		lang,
 		locator.serviceExecutor,
+		customEmailSignatures,
 	)
 	const organizationMessageEditor = new HtmlEditor(getHtmlSanitizer(), "message_label")
 		.setMinHeight(100)

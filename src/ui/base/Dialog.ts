@@ -40,6 +40,7 @@ export const enum DialogType {
 	EditLarger = "EditLarger",
 	EditLarge = "EditLarge",
 	SetupWizard = "SetupWizard",
+	Signature = "Signature",
 }
 
 type Validator = () => Promise<TranslationKey | null>
@@ -282,6 +283,8 @@ export class Dialog implements ModalComponent {
 			dialogStyle += ".dialog-width-m.border-radius-bottom-8"
 		} else if (dialogType === DialogType.EditLarge || dialogType === DialogType.EditLarger) {
 			dialogStyle += ".dialog-width-l.border-radius-bottom-8"
+		} else if (dialogType === DialogType.Signature) {
+			dialogStyle = ".dialog.nav-bg.flex-grow.border-radius-top-8.dialog-width-l.border-radius-bottom-8"
 		} else if (dialogType === DialogType.SetupWizard) {
 			dialogStyle = ".dialog.flex-grow.border-radius-top-8.dialog-width-xl.border-radius-bottom-8.nav-bg"
 		}

@@ -2625,6 +2625,14 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out"
+		"zoomOut_action": "Zoom Out",
+		"customSignatures_label": "Custom signatures",
+		"defaultSignatureNewMails_label": "Default signature for new messages",
+		"defaultSignatureRepliesAndForwards_label": "Default signature for replies and forwards",
+		"signatureNameExists_msg": "A signature with this name already exists.",
+		"signatureName_label": "Signature name",
+		"previewForSignatureForNewMails_label": "Preview for Signature for New Mails",
+		"previewForSignatureForRepliesAndForwards_label": "Preview for Signature for Replies and Forwards",
+		"signatureDeleteConfirm_msg": "Are you sure you want to delete this signature?",
 	}
 }

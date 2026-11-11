@@ -5,7 +5,8 @@ import { InvalidDataError, PreconditionFailedError } from "../../../platform-kit
 import type { EntityClient } from "../../../platform-kit/network/EntityClient"
 import { lang, LanguageViewModel } from "../../../ui/utils/LanguageViewModel"
 import type { UserController } from "../../common/api/main/UserController"
-import { appendEmailSignature } from "../mail/signature/Signature"
+import { CustomEmailSignature } from "@tutao/entities/tutanota"
+import { appendEmailSignature, SignatureContext } from "../mail/signature/Signature"
 import { UserError } from "../../common/api/main/UserError"
 import { UpgradeRequiredError } from "../../common/api/main/UpgradeRequiredError.js"
 import { IServiceExecutor } from "../../../platform-kit/network/ServiceRequest.js"
@@ -50,6 +51,7 @@ export class EditOutOfOfficeNotificationDialogModel {
 		userController: UserController,
 		languageViewModel: LanguageViewModel,
 		readonly serviceExecutor: IServiceExecutor,
+		private readonly customEmailSignatures: readonly CustomEmailSignature[],
 	) {
 		this._entityClient = entityClient
 		this._userController = userController
@@ -109,7 +111,12 @@ export class EditOutOfOfficeNotificationDialogModel {
 	_setDefaultMessages() {
 		const templateSubject = this._languageViewModel.get("outOfOfficeDefaultSubject_msg")
 
-		const templateMessage = appendEmailSignature(this._languageViewModel.get("outOfOfficeDefault_msg"), this._userController.props)
+		const templateMessage = appendEmailSignature(
+			this._languageViewModel.get("outOfOfficeDefault_msg"),
+			this._userController.props,
+			this.customEmailSignatures,
+			SignatureContext.NewMail,
+		)
 		this.organizationSubject(templateSubject)
 		this.defaultSubject(templateSubject)
 		this.defaultMessage(templateMessage)

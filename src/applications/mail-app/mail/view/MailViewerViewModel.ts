@@ -1209,7 +1209,8 @@ export class MailViewerViewModel {
 		const mailSubject = this.getSubject() || ""
 		infoLine += lang.get("subject_label") + ": " + urlEncodeHtmlTags(mailSubject)
 		const body = infoLine + '<br><br><blockquote class="tutanota_quote">' + this.getMailBody() + "</blockquote>"
-		const { prependEmailSignature } = await import("../signature/Signature")
+		const { prependEmailSignature, loadCustomEmailSignatures, SignatureContext } = await import("../signature/Signature")
+		const customEmailSignatures = await loadCustomEmailSignatures(this.entityClient, this.logins.getUserController().props)
 		const senderMailAddress = await this.getSenderOfResponseMail()
 		return {
 			previousMail: this.mail,
@@ -1218,7 +1219,7 @@ export class MailViewerViewModel {
 			recipients,
 			attachments: this.attachments.slice(),
 			subject: "FWD: " + mailSubject,
-			bodyText: addSignature ? prependEmailSignature(body, this.logins) : body,
+			bodyText: addSignature ? prependEmailSignature(body, this.logins, customEmailSignatures, SignatureContext.ReplyOrForward) : body,
 			replyTos,
 		}
 	}
@@ -1283,7 +1284,8 @@ export class MailViewerViewModel {
 				}
 			}
 
-			const { prependEmailSignature } = await import("../signature/Signature.js")
+			const { prependEmailSignature, loadCustomEmailSignatures, SignatureContext } = await import("../signature/Signature.js")
+			const customEmailSignatures = await loadCustomEmailSignatures(this.entityClient, this.logins.getUserController().props)
 			const { newMailEditorAsResponse } = await import("../editor/MailEditor")
 
 			const isReloadNeeded = !this.sanitizeResult || this.mail.attachments.length !== this.attachments.length
@@ -1309,7 +1311,7 @@ export class MailViewerViewModel {
 						},
 						attachments: attachmentsForReply,
 						subject,
-						bodyText: prependEmailSignature(body, this.logins),
+						bodyText: prependEmailSignature(body, this.logins, customEmailSignatures, SignatureContext.ReplyOrForward),
 						replyTos: [],
 					},
 					this.isBlockingExternalImages() || !this.isShowingExternalContent(),

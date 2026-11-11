@@ -936,17 +936,21 @@ export type TutanotaPropertiesParams = {
 	notificationMailLanguage: null | string
 	defaultSender: null | string
 	defaultUnconfidential: boolean
-	customEmailSignature: string
-	emailSignatureType: NumberString
+	customEmailSignatureLegacy: string
+	emailSignatureTypeForNewMails: NumberString
 	noAutomaticContacts: boolean
 	sendPlaintextOnly: boolean
 	lastSeenAnnouncement: NumberString
 	userKeyVersion: null | NumberString
 	defaultLabelCreated: boolean
+	emailSignatureTypeForRepliesAndForwards: null | NumberString
+	defaultSignatureNameForNewMessages: null | string
+	defaultSignatureNameForRepliesAndForwards: null | string
 
 	lastPushedMail: null | IdTuple
 	imapSyncConfig: ImapSyncConfiguration[]
 	inboxRules: InboxRule[]
+	customEmailSignatures: null | Id
 }
 
 export type TutanotaProperties = {
@@ -959,8 +963,8 @@ export type TutanotaProperties = {
 	notificationMailLanguage: null | string
 	defaultSender: null | string
 	defaultUnconfidential: boolean
-	customEmailSignature: string
-	emailSignatureType: NumberString
+	customEmailSignatureLegacy: string
+	emailSignatureTypeForNewMails: NumberString
 	noAutomaticContacts: boolean
 	_ownerGroup: null | Id
 	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
@@ -970,12 +974,16 @@ export type TutanotaProperties = {
 	userKeyVersion: null | NumberString
 	defaultLabelCreated: boolean
 	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	emailSignatureTypeForRepliesAndForwards: null | NumberString
+	defaultSignatureNameForNewMessages: null | string
+	defaultSignatureNameForRepliesAndForwards: null | string
 
 	// == associations
 
 	lastPushedMail: null | IdTuple
 	imapSyncConfig: ImapSyncConfiguration[]
 	inboxRules: InboxRule[]
+	customEmailSignatures: null | Id
 
 	//== some entities have these and some don't
 
@@ -8847,5 +8855,44 @@ export type MailboxMigrationPutIn = {
 	_type: TypeRef<MailboxMigrationPutIn>
 	_errors: Object
 	_original: Nullable<MailboxMigrationPutIn>
+	isAdapter: false
+}
+export const CustomEmailSignatureTypeRef: TypeRef<CustomEmailSignature> = new TypeRef("tutanota", 2256)
+
+export function createCustomEmailSignature(values: CustomEmailSignatureParams): CustomEmailSignature {
+	return Object.assign(create(typeModels[CustomEmailSignatureTypeRef.typeId], CustomEmailSignatureTypeRef), values)
+}
+
+export type CustomEmailSignatureParams = {
+	name: string
+	value: string
+}
+
+export type CustomEmailSignature = {
+	// == values
+
+	_id: ListElementId
+	_permissions: Id
+	_format: NumberString
+	_ownerGroup: null | Id
+	_ownerEncSessionKey: null | Uint8Array<ArrayBuffer>
+	_ownerKeyVersion: null | NumberString
+	_kdfNonce: null | Uint8Array<ArrayBuffer>
+	name: string
+	value: string
+
+	// == associations
+
+	//== some entities have these and some don't
+
+	bucketKey: null
+
+	ownerEncSessionKey: null
+	ownerEncSessionKeyVersion: null
+
+	// === these are not present in metamodel
+	_type: TypeRef<CustomEmailSignature>
+	_errors: Object
+	_original: Nullable<CustomEmailSignature>
 	isAdapter: false
 }

@@ -7,6 +7,7 @@ import {
 	ConversationEntry,
 	ConversationEntryTypeRef,
 	createTranslationGetIn,
+	CustomEmailSignature,
 	Mail,
 	MailboxProperties,
 	MailDetails,
@@ -68,6 +69,7 @@ import {
 	debounce,
 	downcast,
 	isEmpty,
+	isNotEmpty,
 	isNotNull,
 	last,
 	lazy,
@@ -87,7 +89,14 @@ import {
 	showUndoMailSnackbar,
 	UndoSnackbarResult,
 } from "../view/MailGuiUtils"
-import { appendEmailSignature } from "../signature/Signature"
+import {
+	appendEmailSignature,
+	getAppliedSignatureElement,
+	getSelectedEmailSignatureName,
+	loadCustomEmailSignatures,
+	replaceEmailSignature,
+	SignatureContext,
+} from "../signature/Signature"
 import { showTemplatePopupInEditor } from "../../templates/view/TemplatePopup"
 import { registerTemplateShortcutListener } from "../../templates/view/TemplateShortcutListener"
 import { TemplatePopupModel } from "../../templates/model/TemplatePopupModel"
@@ -224,6 +233,8 @@ export class MailEditor implements Component<MailEditorAttrs> {
 	// we don't want to show the banner.
 	private blockedExternalContent: number = 0
 	private shouldCollapseQuotedReply: boolean = true
+	// html of the applied signature right after it was inserted, used to detect edits made by the user
+	private appliedSignatureHtml: string | null = null
 	private collapsedReply: HTMLElement | null = null
 	private forceLightMode: boolean = false
 
@@ -305,6 +316,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		// call this async because the editor is not initialized before this mail editor dialog is shown
 		this.editor.initialized.promise.then(() => {
 			this.editor.setHTML(model.getBody())
+			this.rememberAppliedSignatureHtml()
 
 			const editorDom = this.editor.getDOM()
 
@@ -511,6 +523,10 @@ export class MailEditor implements Component<MailEditorAttrs> {
 		})
 	}
 
+	private rememberAppliedSignatureHtml() {
+		this.appliedSignatureHtml = getAppliedSignatureElement(this.editor.getDOM())?.innerHTML ?? null
+	}
+
 	private getBodyHtml(editorDom: HTMLElement): string {
 		const modifiedDom = replaceInlineImagesWithCids(editorDom)
 		const collapsedQuote = modifiedDom.querySelector("[tuta-collapsed-quote=true]")
@@ -608,6 +624,42 @@ export class MailEditor implements Component<MailEditorAttrs> {
 						},
 					})
 				: null
+
+		const availableSignatures = this.sendMailModel.getAvailableSignatures()
+		const appliedSignatureName = getSelectedEmailSignatureName(this.sendMailModel.getBody())
+		const signatureSelectButton = isNotEmpty(availableSignatures)
+			? m(
+					IconButton,
+					attachDropdown({
+						mainButtonAttrs: {
+							label: "edit_action",
+							icon: Icons.PenFilled,
+							size: ButtonSize.Compact,
+						},
+						childAttrs: async () => {
+							const applySignature = (signature: CustomEmailSignature | null) => {
+								const applied = getAppliedSignatureElement(this.editor.getDOM())
+								// the user changed the signature that is currently applied, so we must not throw their changes away
+								const isModified = applied != null && applied.innerHTML !== this.appliedSignatureHtml
+								this.editor.setHTML(replaceEmailSignature(this.sendMailModel.getBody(), signature, isModified))
+								this.rememberAppliedSignatureHtml()
+								this.sendMailModel.setBody(this.getBodyHtml(this.editor.getDOM()))
+							}
+							return availableSignatures
+								.map((signature) => ({
+									label: lang.makeTranslation("signature", signature.name),
+									click: () => applySignature(signature),
+									icon: appliedSignatureName === signature.name ? Icons.Checkmark : Icons.PenFilled,
+								}))
+								.concat({
+									label: lang.getTranslation("comboBoxSelectionNone_msg"),
+									click: () => applySignature(null),
+									icon: Icons.X,
+								})
+						},
+					}),
+				)
+			: null
 
 		const subjectFieldAttrs: LegacyTextFieldAttrs = {
 			label: "subject_label",
@@ -820,6 +872,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 				// Toolbar icons, ordered: confidential, light theme toggle, knowledgebase, schedule, text toolbar, attach
 				// schedule, text toolbar, attach are always there and should not move around when the others appear
 				m(".row.flex-end.mb-4.mt-8.ml-between-4.items-center", [
+					signatureSelectButton,
 					showConfidentialButton ? m(ToggleButton, confidentialButtonAttrs) : null,
 					isDarkTheme()
 						? m(IconButton, {
@@ -1564,8 +1617,8 @@ export async function newMailEditor(mailboxDetails: MailboxDetail): Promise<Dial
 	// We check approval status so as to get a dialog informing the user that they cannot send mails
 	// but we still want to open the mail editor because they should still be able to contact invoice@tutao.de
 	await checkApprovalStatus(locator.logins, false)
-	const { appendEmailSignature } = await import("../signature/Signature")
-	const signature = appendEmailSignature("", locator.logins.getUserController().props)
+	const props = locator.logins.getUserController().props
+	const signature = appendEmailSignature("", props, await loadCustomEmailSignatures(locator.entityClient, props), SignatureContext.NewMail)
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 	return newMailEditorFromTemplate(detailsProperties.mailboxDetails, {}, "", signature)
 }
@@ -1761,6 +1814,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 
 	const detailsProperties = await getMailboxDetailsAndProperties(mailboxDetails)
 
+	const props = logins.getUserController().props
 	const mailTo = parseMailtoUrl(mailtoUrl)
 	let attachments: readonly Attachment[]
 
@@ -1774,7 +1828,7 @@ export async function newMailtoUrlMailEditor(mailtoUrl: string, confidential: bo
 		detailsProperties.mailboxDetails,
 		mailTo.recipients,
 		mailTo.subject || "",
-		/** bodyText= */ appendEmailSignature(mailTo.body || "", logins.getUserController().props),
+		/** bodyText= */ appendEmailSignature(mailTo.body || "", props, await loadCustomEmailSignatures(locator.entityClient, props), SignatureContext.NewMail),
 		attachments,
 		confidential,
 		/** senderMailAddress= */ undefined,
@@ -1875,7 +1929,11 @@ export async function writeGiftCardMail(link: string, mailboxDetails?: MailboxDe
 	const driveModel = await mailLocator.driveModel()
 	locator
 		.sendMailModel(detailsProperties.mailboxDetails, detailsProperties.mailboxProperties)
-		.then((model) => model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, locator.logins.getUserController().props), [], false))
+		.then(async (model) => {
+			const props = locator.logins.getUserController().props
+			const signatures = await loadCustomEmailSignatures(locator.entityClient, props)
+			return model.initWithTemplate({}, giftCardSubject, appendEmailSignature(bodyText, props, signatures, SignatureContext.NewMail), [], false)
+		})
 		.then((model) =>
 			createMailEditorDialog(
 				model,
