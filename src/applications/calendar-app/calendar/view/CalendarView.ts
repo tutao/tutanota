@@ -553,11 +553,18 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
-		// TODO: revisit this and make it work again maybe?
-		/*	if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone) {
-			this.exitEventDetails()
-			return null
-		}*/
+		if (!this.viewModel.eventPreviewModel) {
+			if (calendarLocator.syncTracker) {
+				if (calendarLocator.syncTracker.isSyncDone) {
+					this.exitEventDetails()
+					return null
+				}
+			} else {
+				// Yes, the syncTracker CAN be undefined... at least in the development environment...
+				// the types are a lie :(
+				console.warn("syncTracker is undefined")
+			}
+		}
 
 		if (!this.viewModel.eventPreviewModel) {
 			return m(".flex-center.items-center.full-height", progressIcon())
