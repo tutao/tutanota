@@ -8,6 +8,8 @@ import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.await
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
+import de.tutao.tutashared.ipc.NativeCredentialsFacade
+import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.SseStorage
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
@@ -18,6 +20,7 @@ import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.MalformedURLException
@@ -31,11 +34,15 @@ const val MISSED_NOTIFICATION_RESOURCE = "missed notification"
 class TutanotaNotificationsHandler(
 	private val localNotificationsFacade: LocalNotificationsFacade,
 	private val sseStorage: SseStorage,
+	private val credentialsEncryption: NativeCredentialsFacade,
 	private val alarmNotificationsManager: AlarmNotificationsManager,
 	private val defaultClient: OkHttpClient,
 	private val lifecycleScope: LifecycleCoroutineScope,
+	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
+	private val appDir: File,
 	private val suspensionHandler: SuspensionHandler
 ) {
+
 
 	private val json = Json { ignoreUnknownKeys = true }
 
