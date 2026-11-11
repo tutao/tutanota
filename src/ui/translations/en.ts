@@ -948,6 +948,7 @@ export default {
 		"inboxRuleConditions_label": "Conditions",
 		"inboxRuleEnterValue_msg": "Please enter a value.",
 		"inboxRuleExcludedFromSpamFilter_msg": "Never send it to Spam",
+		"inboxRuleExplainer_msg": "An email matches this rule if all conditions are met and it didn't match any previous rule. When an email matches a rule, the actions are applied to the email. You may add multiple conditions and actions. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>.",
 		"inboxRuleField_label": "Field",
 		"inboxRuleHasAttachment_label": "Has attachment",
 		"inboxRuleHasNoAttachment_label": "Has no attachment",
@@ -955,6 +956,7 @@ export default {
 		"inboxRuleInvalidEmailAddress_msg": "Email address or domain is not valid.",
 		"inboxRuleMailHeaderContains_action": "Header contains",
 		"inboxRuleManagement_label": "Inbox Rule Management",
+		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. These are applied top-to-bottom and only one rule can apply per email. More information can be found <a target=\\\"_blank\\\" rel=\\\"noopener noreferrer\\\" href=\\\"https://tuta.com/support/howto#inbox-rules\\\">here</a>.",
 		"inboxRuleRecipientEquals_action": "Recipient is",
 		"inboxRulesAppliedSuccessfully_msg": "Inbox Rules applied successfully",
 		"inboxRuleSenderEquals_action": "Sender is",
@@ -2623,8 +2625,6 @@ export default {
 		"yourFolders_action": "YOUR FOLDERS",
 		"yourMessage_label": "Your message",
 		"zoomIn_action": "Zoom In",
-		"zoomOut_action": "Zoom Out",
-		"inboxRuleManagement_text": "Inbox Rules are applied to incoming emails in your inbox. These are applied top-to-bottom and only one rule can apply per email. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>.",
-		"inboxRuleExplainer_msg": "An email matches this rule if all conditions are met and it didn't match any previous rule. When an email matches a rule, the actions are applied to the email. You may add multiple conditions and actions. More information can be found <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://tuta.com/support/howto#inbox-rules\">here</a>."
+		"zoomOut_action": "Zoom Out"
 	}
 }

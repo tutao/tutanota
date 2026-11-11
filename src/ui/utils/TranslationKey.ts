@@ -2621,6 +2621,6 @@ export type TranslationKeyType =
 	| "inboxRuleActions_label"
 	| "addAction_action"
 	| "confirmTrashAction_label"
-	| "emptyString_msg"
 	| "inboxRuleManagement_text"
 	| "inboxRuleExplainer_msg"
+	| "emptyString_msg"
