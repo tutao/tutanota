@@ -414,13 +414,11 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 									onEventClicked: (event, domEvent) => {
 										if (Styles.get().isDesktopLayout()) {
 											this.viewModel.updatePreviewedEvent(event)
-										} else if (EnvProvider.get().isApp()) {
+										} else {
 											this.viewModel.updatePreviewedEvent(event).then(() => {
 												const eventId = base64ToBase64Url(stringToBase64(event._id.join("/")))
 												this.setUrl(this.currentViewType, this.viewModel.selectedDate(), false, false, eventId)
 											})
-										} else {
-											this.onEventSelected(event, domEvent, this.htmlSanitizer)
 										}
 									},
 									onEventKeyDown: (event, domEvent) => {
@@ -478,7 +476,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 		const columns = [this.sidebarColumn, this.contentColumn]
 
 		// Adds eventDetails column to show events at agenda view as full page instead of a popover
-		if (EnvProvider.get().isApp()) {
+		if (!Styles.get().isDesktopLayout()) {
 			this.eventDetails = new ViewColumn(
 				{
 					view: () => this.renderEventDetailsColumn(attrs),
@@ -550,15 +548,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			return null
 		}
 
-		if (!EnvProvider.get().isApp()) {
+		if (Styles.get().isDesktopLayout()) {
 			this.viewSlider.focus(this.viewSlider.getMainColumn())
 			return null
 		}
 
-		if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone) {
+		// TODO: revisit this and make it work again maybe?
+		/*	if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone) {
 			this.exitEventDetails()
 			return null
-		}
+		}*/
 
 		if (!this.viewModel.eventPreviewModel) {
 			return m(".flex-center.items-center.full-height", progressIcon())
@@ -1182,21 +1181,16 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 					m.redraw()
 				}
 
-				if (eventIdParam && (!EnvProvider.get().isApp() || this.eventDetails)) {
+				if (eventIdParam && (Styles.get().isDesktopLayout() || this.eventDetails)) {
 					try {
 						const decodedEventId = decodeBase64("utf-8", base64UrlToBase64(eventIdParam)).split("/")
 						locator.logins.waitForPartialLogin().then(() => {
 							this.viewModel.setPreviewedEventId([decodedEventId[0], decodedEventId[1]]).then(() => {
-								if (EnvProvider.get().isApp() && this.viewSlider.focusedColumn !== this.eventDetails && this.eventDetails) {
-									this.viewSlider.focus(this.eventDetails)
-								} else if (!EnvProvider.get().isApp() && !Styles.get().isDesktopLayout()) {
-									const eventElement = document.getElementById(eventIdParam)
-									if (eventElement && this.viewModel.previewedEventTuple()?.event) {
-										this.showCalendarEventPopup(
-											this.viewModel.previewedEventTuple()?.event!,
-											eventElement.getBoundingClientRect(),
-											this.htmlSanitizer,
-										)
+								if (!Styles.get().isDesktopLayout() && this.viewSlider.focusedColumn !== this.eventDetails) {
+									if (this.eventDetails) {
+										this.viewSlider.focus(this.eventDetails)
+									} else {
+										console.log("NO EVENT DETAILS!!!")
 									}
 								}
 							})
