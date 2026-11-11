@@ -1,6 +1,10 @@
 import Foundation
 
-public final class SwString: Sendable, Equatable {
+public final class SwString: Sendable, Equatable, Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(self.inner)
+    }
+
   private let inner: String
 
   public required init(_ val: String) {
