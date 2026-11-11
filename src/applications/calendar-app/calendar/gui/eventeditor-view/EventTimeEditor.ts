@@ -69,10 +69,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 			m(".time-selection-grid", [
 				m("", lang.get("dateFrom_label")),
 				m(DatePicker, {
+					classes: [EnvProvider.get().isApp() ? "" : "pl-32"],
 					date: attrs.editModel.startDate,
 					onDateSelected: (date) => date && attrs.dateSelectionChanged(date),
 					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 					label: lang.getTranslation("dateFrom_label"),
+					useInputButton: true,
 					disabled: attrs.disabled,
 				}),
 				m(TimePicker, {
@@ -89,10 +91,12 @@ export class EventTimeEditor implements Component<EventTimeEditorAttrs> {
 			m(".time-selection-grid", [
 				m("", lang.get("dateTo_label")),
 				m(DatePicker, {
+					classes: [EnvProvider.get().isApp() ? "" : "pl-32"],
 					date: attrs.editModel.endDate,
 					onDateSelected: (date) => date && (attrs.editModel.endDate = date),
 					startOfTheWeekOffset: attrs.startOfTheWeekOffset,
 					label: lang.getTranslation("dateTo_label"),
+					useInputButton: true,
 					disabled: attrs.disabled,
 				}),
 				m(TimePicker, {
