@@ -345,7 +345,8 @@ export class OfflineMailIndexer implements MailIndexer {
 			.sort((a, b) => compareOldestFirst(a.archiveId, b.archiveId, EntityIdEncoding.Base64Ext))
 
 		const lastLoadedArchive = await this.offlineStoragePersistence.getLastLoadedArchiveForType(MailDetailsBlobTypeRef)
-		if (lastLoadedArchive == null) {
+		// in case we either have not yet started loading any archive, or the archive belongs to a different mailbox
+		if (lastLoadedArchive == null || !archiveIds.includes(lastLoadedArchive.archiveId)) {
 			return mappedAndSorted
 		}
 
