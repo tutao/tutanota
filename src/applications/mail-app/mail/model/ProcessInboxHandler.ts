@@ -159,8 +159,12 @@ export class ProcessInboxHandler {
 				// We only apply actions if: excludedFromSpam, marked as HAM, or marked as SPAM but inbox rule also moves to Spam
 				applyInboxRuleActions = excludeFromSpam || targetFolder.folderType === MailSetKind.INBOX || ruleMoveTarget.folderType === MailSetKind.SPAM
 				if (applyInboxRuleActions) {
-					targetFolder = ruleMoveTarget
-					processInboxDatum.classifierType = ClientClassifierType.CUSTOMER_INBOX_RULES
+					if (!isSameId(targetFolder._id, ruleMoveTarget._id)) {
+						// only set classifierType to CUSTOMER_INBOX_RULES when mail is moved by inbox rule
+						processInboxDatum.classifierType = ClientClassifierType.CUSTOMER_INBOX_RULES
+						targetFolder = ruleMoveTarget
+					}
+
 					if (!this.usingLegacyInboxRules) {
 						const id = getElementId(mailboxDetail.mailGroupInfo)
 						if (this.processedMailsAndInboxRules.has(id)) {
