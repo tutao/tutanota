@@ -48,6 +48,7 @@ import {
 	PlanTypeToName,
 	shouldShowExternalStorePrices,
 	SubscriptionApp,
+	waitForExternalStorePurchaseConfirmation,
 } from "./utils/SubscriptionUtils.js"
 import { MobilePaymentError } from "../api/common/error/MobilePaymentError.js"
 import { completeUpgradeStage } from "../ratings/UserSatisfactionUtils"
@@ -217,15 +218,24 @@ async function doSwitchToPaidPlan(
 	dialog: Dialog,
 	currentPlanInfo: CurrentPlanInfo,
 ) {
-	if (hasMatchingExternalPaymentSetup(getPaymentMethodType(accountingInfo))) {
+	const paymentMethod = getPaymentMethodType(accountingInfo)
+	if (hasMatchingExternalPaymentSetup(paymentMethod)) {
 		const customerIdBytes = base64ToUint8Array(base64ExtToBase64(assertNotNull(locator.logins.getUserController().user.customer)))
 		try {
-			await locator.mobilePaymentsFacade.requestSubscriptionToPlan(
-				externalStorePlanName(targetSubscription),
-				newPaymentInterval,
-				customerIdBytes,
-				currentPlanInfo.subscriptionForeignKey,
+			const confirmed = await showProgressDialog(
+				paymentMethod === PaymentMethodType.AppStore ? "waitingForAppStoreConfirmation_msg" : "waitingForGooglePlayConfirmation_msg",
+				waitForExternalStorePurchaseConfirmation(() =>
+					locator.mobilePaymentsFacade.requestSubscriptionToPlan(
+						externalStorePlanName(targetSubscription),
+						newPaymentInterval,
+						customerIdBytes,
+						currentPlanInfo.subscriptionForeignKey,
+					),
+				),
 			)
+			if (confirmed === false) {
+				await Dialog.message(paymentMethod === PaymentMethodType.AppStore ? "appStoreConfirmationTimeout_msg" : "googlePlayConfirmationTimeout_msg")
+			}
 		} catch (e) {
 			if (e instanceof MobilePaymentError) {
 				console.error("external subscription failed", e)
