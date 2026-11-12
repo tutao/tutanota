@@ -549,8 +549,7 @@ export class CalendarView extends BaseTopLevelView implements TopLevelView<Calen
 			this.viewSlider.focus(this.viewSlider.getMainColumn())
 			return null
 		}
-
-		if (!this.viewModel.eventPreviewModel && calendarLocator.syncTracker.isSyncDone) {
+		if (!this.viewModel.eventPreviewModel && (!calendarLocator.syncTracker || calendarLocator.syncTracker.isSyncDone)) {
 			this.exitEventDetails()
 			return null
 		}
