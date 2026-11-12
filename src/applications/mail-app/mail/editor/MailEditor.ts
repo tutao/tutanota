@@ -792,6 +792,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 												},
 												startOfTheWeekOffset: getStartOfTheWeekOffsetForUser(model.logins.getUserController().userSettingsGroupRoot),
 												label: lang.getTranslation("sendDate_label"),
+												forMailSendTime: true,
 											}),
 										),
 										m(

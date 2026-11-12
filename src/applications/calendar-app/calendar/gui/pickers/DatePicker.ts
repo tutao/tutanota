@@ -6,6 +6,8 @@ import { lang } from "../../../../../ui/utils/LanguageViewModel.js"
 import { rem, font_size, px } from "../../../../../ui/size.js"
 import { theme } from "../../../../../ui/theme.js"
 
+import { LegacyTextField } from "../../../../../ui/base/LegacyTextField"
+import { AriaPopupType } from "../../../../../ui/AriaUtils"
 import { getStartOfDay, isSameDayOfDate, memoized, NBSP } from "../../../../../platform-kit/utils"
 import { getAllDayDateLocal } from "../../../../common/api/common/utils/CommonCalendarUtils.js"
 import type { CalendarDay } from "../../../../common/calendar/date/CalendarUtils.js"
@@ -34,6 +36,7 @@ export interface DatePickerAttrs {
 	disabled?: boolean
 	position?: PickerPosition
 	classes?: Array<string>
+	forMailSendTime?: boolean
 }
 
 /**
@@ -102,68 +105,107 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			const isoTrimmed = this.dateToInputDateValue(attrs.date)
 			if (this.inputDateEl && this.inputDateEl.value !== isoTrimmed) this.inputDateEl.value = isoTrimmed
 		}
+		const prettyText = attrs.date
+			? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
+			: attrs.nullSelectionText
+				? lang.getTranslationText(attrs.nullSelectionText)
+				: NBSP
 		const inputContent =
 			this.inputTextEl && document.activeElement === this.inputTextEl
 				? this.inputTextEl.value // Don't interrupt the user as they're typing, keep the state as is
-				: this.showingDropdown || document.activeElement === this.inputDateEl
+				: this.showingDropdown || document.activeElement === this.inputDateEl || attrs.forMailSendTime
 					? formatDate(attrs.date ?? new Date()) // If null, show today in their locale format (DD/MM/YYYY)
-					: attrs.date
-						? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
-						: attrs.nullSelectionText
-							? lang.getTranslationText(attrs.nullSelectionText)
-							: NBSP
+					: prettyText
+		const sharedAttrs = {
+			value: inputContent,
+			disabled: attrs.disabled,
+			oninput: (ev: InputEvent & { redraw?: false }) => {
+				const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
+				if (parsedDate) attrs.onDateSelected(parsedDate)
+				else ev.redraw = false
+			},
+			onfocus: (ev: FocusEvent) => {
+				// Ignore if they're _leaving_ the date picker popup/dropdown (either native or VisualDatePicker)
+				if (this.showingDropdown || ev.relatedTarget === this.inputDateEl) return
+				if (this.inputTextEl) {
+					this.inputTextEl.value = formatDate(attrs.date ?? new Date())
+				}
+				if (attrs.disabled) return
+				if (ClientDetector.get().isMobileDevice()) {
+					this.showNativeDatePicker()
+				} else {
+					// Show the non-native VisualDatePicker instead
+					this.showingDropdown = true
+				}
+			},
+			onblur: (ev: FocusEvent) => {
+				// Closing the dropdown does NOT happen here since they may have tabbed into the picker
+				const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
+				if (parsedDate) attrs.onDateSelected(parsedDate)
+			},
+			onkeydown: (ev: KeyboardEvent) => {
+				const key = keyboardEventToKeyPress(ev)
+				if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
+					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
+					if (parsedDate) attrs.onDateSelected(parsedDate)
+					// Toggle
+					this.showingDropdown = !this.showingDropdown
+				}
+				if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
+					this.showingDropdown = false
+					// Don't close any parent dialogs like CalendarEventEditDialog
+					ev.stopPropagation()
+				}
+			},
+		}
+		// TODO(gg): Normalize/Fix attribute abuse across codebase, then remove this shim and use `...sharedAttrs`
+		const { onkeydown, oninput, onfocus, ...sharedAttrsLegacyTextField } = sharedAttrs
 		return m(".rel", { class: attrs.classes?.join(" ") }, [
-			m("input[type=text].tutaui-button-outline.full-width", {
-				disabled: attrs.disabled,
-				ariaLabel: attrs.label.text,
-				style: {
-					"border-color": theme.outline,
-					fontSize: rem(font_size.smaller_em),
-					opacity: attrs.disabled ? 0.7 : 1.0,
-				},
-				value: inputContent,
-				oninput: (ev: InputEvent & { redraw?: false }) => {
-					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
-					if (parsedDate) attrs.onDateSelected(parsedDate)
-					else ev.redraw = false
-				},
-				oncreate: (vnode) => {
-					this.inputTextEl = vnode.dom as HTMLInputElement
-				},
-				onfocus: (ev: FocusEvent) => {
-					// Ignore if they're _leaving_ the date picker popup/dropdown (either native or VisualDatePicker)
-					if (this.showingDropdown || ev.relatedTarget === this.inputDateEl) return
-					if (this.inputTextEl) {
-						this.inputTextEl.value = formatDate(attrs.date ?? new Date())
-					}
-					if (attrs.disabled) return
-					if (ClientDetector.get().isMobileDevice()) {
-						this.showNativeDatePicker()
-					} else {
-						// Show the non-native VisualDatePicker instead
-						this.showingDropdown = true
-					}
-				},
-				onblur: (ev: FocusEvent) => {
-					// Closing the dropdown does NOT happen here since they may have tabbed into the picker
-					const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
-					if (parsedDate) attrs.onDateSelected(parsedDate)
-				},
-				onkeydown: (ev: KeyboardEvent) => {
-					const key = keyboardEventToKeyPress(ev)
-					if (isKeyPressed(key.key, Keys.RETURN) && !attrs.disabled && !key.shift && !key.ctrl && !key.meta) {
-						const parsedDate = this.inputTextEl && this.parseDate(this.inputTextEl.value)
-						if (parsedDate) attrs.onDateSelected(parsedDate)
-						// Toggle
-						this.showingDropdown = !this.showingDropdown
-					}
-					if (isKeyPressed(key.key, Keys.ESC) && this.showingDropdown) {
-						this.showingDropdown = false
-						// Don't close any parent dialogs like CalendarEventEditDialog
-						ev.stopPropagation()
-					}
-				},
-			}),
+			attrs.forMailSendTime
+				? m(LegacyTextField, {
+						label: attrs.label,
+						helpLabel: () => m("", prettyText),
+						hasPopup: AriaPopupType.Dialog,
+						onDomInputCreated: (input) => {
+							this.inputTextEl = input as HTMLInputElement
+						},
+						// HACK: Need to fix codebase to use real standard web APIs. Bad component design is hiding
+						// real event objects, including `relatedTarget` info and Mithril's `redraw` boolean. Lost. Sad.
+						keyHandler: (key) => {
+							onkeydown(
+								new KeyboardEvent("keydown", {
+									key: key.key,
+									shiftKey: key.shift,
+									ctrlKey: key.ctrl,
+									altKey: key.alt,
+									metaKey: key.meta,
+								}),
+							)
+							return true // HACK for TS
+						},
+						// HACK: Ditto
+						oninput: (inputElValue, inputEl) => {
+							oninput({} as InputEvent)
+						},
+						// HACK: Ditto
+						onfocus: (wrapperEl, inputEl) => {
+							onfocus({ relatedTarget: null } as FocusEvent)
+						},
+						// HACK: Switch to `...sharedAttrs` soon
+						...sharedAttrsLegacyTextField,
+					})
+				: m("input[type=text].tutaui-button-outline.full-width", {
+						ariaLabel: attrs.label.text,
+						style: {
+							"border-color": theme.outline,
+							fontSize: rem(font_size.smaller_em),
+							opacity: attrs.disabled ? 0.7 : 1.0,
+						},
+						oncreate: (vnode) => {
+							this.inputTextEl = vnode.dom as HTMLInputElement
+						},
+						...sharedAttrs,
+					}),
 			// Zero-width <input type="date"> (TODO(gg): Zero-height 100% width might be better?)
 			// Note: It cannot be display:none else browsers (esp iOS) won't render the native picker at all
 			m("input[type=date]", {

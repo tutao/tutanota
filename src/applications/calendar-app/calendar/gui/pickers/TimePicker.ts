@@ -83,28 +83,34 @@ export class TimePicker implements Component<TimePickerAttrs> {
 	}
 
 	private renderInputFields(attrs: TimePickerAttrs) {
-		// We're choosing between two components so factor out the click listener
-		const onclick = (event: Event) => {
-			if (ClientDetector.get().isMobileDevice() && this.inputTimeEl) {
-				// Don't open the dropdown list
-				event.preventDefault()
-				// In some browsers this isn't correctly implemented and there's no way to know if a showPicker() was a
-				// no-op. We can't tell if it's being displayed on-screen. It's unimplemented in iOS Safari+Webview.
-				if ("showPicker" in HTMLInputElement.prototype) {
-					try {
-						this.inputTimeEl.showPicker()
-					} catch (e) {
-						// https://developer.chrome.com/blog/show-picker/#how-to
-						if (e.name !== "NotAllowedError") throw e
+		// We're choosing between two components so factor this out
+		const sharedAttrs = {
+			disabled: attrs.disabled,
+			value: this.inputText,
+			onblur: () => this.onConfirmInput(attrs),
+			oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
+			onclick: (event: Event) => {
+				if (ClientDetector.get().isMobileDevice() && this.inputTimeEl) {
+					// Don't open the dropdown list. This is tricky since non-mobile Firefox doesn't implement a picker
+					event.preventDefault()
+					event.stopPropagation()
+					// There's no way to know if a showPicker() was a no-op. We can't tell if it's being displayed
+					// on-screen. It's unimplemented in iOS Safari+Webview and broken in other browsers. Brutal.
+					if ("showPicker" in HTMLInputElement.prototype) {
+						try {
+							this.inputTimeEl.showPicker()
+						} catch (e) {
+							// https://developer.chrome.com/blog/show-picker/#how-to
+							if (e.name !== "NotAllowedError") throw e
+						}
+					}
+					// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
+					if (ClientDetector.get().isIos()) {
+						this.inputTimeEl.tabIndex = Number(TabIndex.Default)
+						this.inputTimeEl.focus()
 					}
 				}
-				// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
-				if (ClientDetector.get().isIos()) {
-					this.inputTimeEl.tabIndex = Number(TabIndex.Default)
-					this.inputTimeEl.focus()
-				}
-			}
-			// Note m(Select) will continue opening the dropdown of TimeOption options, so we show both time pickers
+			},
 		}
 		return m.fragment({}, [
 			m("input[type=time]", {
@@ -148,25 +154,18 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				? m(LegacyTextField, {
 						style: { width: "100%" },
 						label: attrs.ariaLabel,
-						disabled: attrs.disabled,
-						value: this.inputText,
 						keyHandler: (key) => {
 							this.handleKeyPress(key.key, attrs)
 							return true
 						},
-						// TODO(gg): Why is this not `oncreate`? What? I guess there's ambiguity about what vnode is
-						// being returned?
+						// TODO(gg): Environmental storytelling; see PR discussions w Willow in #11689 & #11780
 						onDomInputCreated: (dom) => {
 							this.inputTextEl = dom
 						},
-						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
-						onclick,
-						onblur: () => this.onConfirmInput(attrs),
-					} satisfies LegacyTextFieldAttrs)
+						...sharedAttrs,
+					})
 				: m(SingleLineTextField, {
 						type: TextFieldType.Text,
-						disabled: attrs.disabled,
-						value: this.inputText,
 						classes: [...(attrs.classes ?? []), "tutaui-button-outline", "text-center", "border-content-message-bg"],
 						valid: attrs.valid && this.inputTextIsValid,
 						ariaLabel: attrs.ariaLabel,
@@ -175,16 +174,13 @@ export class TimePicker implements Component<TimePickerAttrs> {
 							fontSize: rem(font_size.smaller_em),
 							borderWidth: EnvProvider.get().isApp() ? "2px" : "",
 						},
-						// TODO(gg): This is some madness, the type is necessary else `vnode` is "NoLifecycle" and
-						// SingleLineTextField fails type checking.
-						oncreate: (vnode: VnodeDOM<InputAttrs<LegacyTextFieldType.Text>>) => {
+						// TODO(gg): Sensitive typing here, `vnode` is `NoLifecycle` but `satisfies XYZAttrs` breaks
+						oncreate: (vnode) => {
 							this.inputTextEl = vnode.dom as HTMLInputElement
 						},
 						onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
-						oninput: (textInputValue: string) => this.handleTextInput(textInputValue, attrs),
-						onclick,
-						onblur: () => this.onConfirmInput(attrs),
-					} satisfies SingleLineTextFieldAttrs<TextFieldType.Text>),
+						...sharedAttrs,
+					}),
 		])
 	}
 
