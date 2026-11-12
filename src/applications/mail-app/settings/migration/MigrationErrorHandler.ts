@@ -234,7 +234,7 @@ export class MigrationErrorHandler {
 	}
 
 	isMigrationError(e: any) {
-		return !Number.isNaN(e.data?.cause)
+		return Number.isFinite(e.data?.cause)
 	}
 
 	isAuthError(e: MigrationError) {
