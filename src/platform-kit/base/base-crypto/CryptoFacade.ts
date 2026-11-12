@@ -63,7 +63,6 @@ import { KeyVerificationMismatchError } from "../../network/error/KeyVerificatio
 import { isOfflineError, LockedError, NotFoundError, PayloadTooLargeError, TooManyRequestsError } from "@tutao/rest-client/error"
 import { EntityClient } from "../../network/EntityClient"
 import {
-	AccountingInfoTypeRef,
 	BucketPermission,
 	BucketPermissionTypeRef,
 	createInstanceSessionKey,
@@ -76,7 +75,6 @@ import {
 	GroupTypeRef,
 	InstanceKdfNonce,
 	InstanceSessionKey,
-	OrderProcessingAgreementTypeRef,
 	PatchListTypeRef,
 	Permission,
 	PermissionTypeRef,
@@ -179,12 +177,7 @@ export class CryptoFacade implements SessionAndInstanceKeyResolver, CryptoNetwor
 
 	async resolveSessionKey(instance: PersistentEntity): Promise<Nullable<AesKey>> {
 		const serverTypeModel = await this.typeModelResolver.resolveServerTypeReference(instance._type)
-		if (
-			!serverTypeModel.encrypted &&
-			//the following exceptions are required as we are making the types unencrypted and can be removed once the client model types are also unencrypted
-			(isNull(instance._ownerEncSessionKey) ||
-				(!isSameTypeRef(AccountingInfoTypeRef, instance._type) && !isSameTypeRef(OrderProcessingAgreementTypeRef, instance._type)))
-		) {
+		if (!serverTypeModel.encrypted) {
 			return null
 		}
 

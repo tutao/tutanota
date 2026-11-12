@@ -56,7 +56,6 @@ import { KeyVerificationMismatchError } from "../../../../src/platform-kit/netwo
 import { loadLibOQSWASM } from "../../crypto/WebAssemblyTestUtils"
 import { createMailAddress, FileTypeRef, Mail, MailAddressTypeRef, MailDetailsBlobTypeRef, MailTypeRef } from "@tutao/entities/tutanota"
 import {
-	AccountingInfoTypeRef,
 	BucketKey,
 	BucketKeyTypeRef,
 	BucketPermissionTypeRef,
@@ -116,10 +115,8 @@ type TestUser = {
 	name: string
 	userGroup: Group
 	mailGroup: Group
-	adminGroup: Group
 	userGroupKey: AesKey
 	mailGroupKey: AesKey
-	adminGroupKey: AesKey
 }
 
 const senderAddress = "hello@tutao.de"
@@ -241,61 +238,6 @@ o.spec("CryptoFacadeTest", function () {
 			aes,
 			keyEncryption,
 		)
-	})
-
-	o.spec("instance was made unencrypted", function () {
-		o.beforeEach(function () {
-			typeModelResolver = object()
-
-			when(typeModelResolver.resolveServerTypeReference(AccountingInfoTypeRef)).thenResolve({
-				associations: {},
-				encrypted: false,
-				values: {},
-			})
-			instancePipeline = instancePipelineFromTypeModelResolver(random, symmetricCipherFacade, typeModelResolver)
-
-			crypto = new CryptoFacade(
-				userFacade,
-				entityClient,
-				restClient,
-				serviceExecutor,
-				instancePipeline,
-				async () => cache as unknown as CacheManager,
-				keyLoaderFacade,
-				asymmetricCryptoFacade,
-				publicEncryptionKeyProvider,
-				instanceSessionKeysCache,
-				cryptoWrapper,
-				() => keyRotationFacade,
-				typeModelResolver,
-				async () => {
-					noOp()
-				},
-				instanceKeyProviderMaker,
-				symmetricCipherUtils,
-				aes,
-				keyEncryption,
-			)
-		})
-		o("resolve session key: AccountingInfo no _ownerEncSessionKey", async function () {
-			const accountingInfo = createTestEntity(AccountingInfoTypeRef)
-
-			o(await crypto.resolveSessionKey(accountingInfo)).equals(null)
-		})
-
-		o("resolve session key: AccountingInfo", async function () {
-			const user = createTestUser("Bob", entityClient)
-			configureLoggedInUser(user, userFacade, keyLoaderFacade)
-			const sk = symmetricCipherUtils.aes256RandomKey()
-			const accountingInfo = createTestEntity(AccountingInfoTypeRef, {
-				_ownerEncSessionKey: keyEncryption.encryptKey(user.adminGroupKey, sk),
-				_ownerGroup: elementIdToId(user.adminGroup._id),
-				_ownerKeyVersion: user.adminGroup.groupKeyVersion,
-				bucketKey: null,
-			})
-
-			o(await crypto.resolveSessionKey(accountingInfo)).deepEquals(sk)
-		})
 	})
 
 	o("resolve session key: unencrypted instance", async function () {
@@ -2228,7 +2170,6 @@ o.spec("CryptoFacadeTest", function () {
 export function createTestUser(name: string, entityClient: EntityClient): TestUser {
 	const userGroupKey = symmetricCipherUtils.aes256RandomKey()
 	const mailGroupKey = symmetricCipherUtils.aes256RandomKey()
-	const adminGroupKey = symmetricCipherUtils.aes256RandomKey()
 
 	const userGroup = createTestEntity(GroupTypeRef, {
 		_id: idToElementId("userGroup" + name),
@@ -2244,39 +2185,26 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
 		groupKeyVersion: "0",
 	})
 
-	const adminGroup = createTestEntity(GroupTypeRef, {
-		_id: idToElementId("adminGroup" + name),
-		type: GroupType.Admin,
-		currentKeys: null,
-		groupKeyVersion: "0",
-	})
-
 	const userGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 		group: elementIdToId(userGroup._id),
 	})
 	const mailGroupMembership = createTestEntity(GroupMembershipTypeRef, {
 		group: elementIdToId(mailGroup._id),
 	})
-	const adminGroupMembership = createTestEntity(GroupMembershipTypeRef, {
-		group: elementIdToId(adminGroup._id),
-	})
 
 	const user = createTestEntity(UserTypeRef, {
 		userGroup: userGroupMembership,
-		memberships: [mailGroupMembership, adminGroupMembership],
+		memberships: [mailGroupMembership],
 	})
 
 	when(entityClient.load(GroupTypeRef, userGroup._id)).thenResolve(userGroup)
 	when(entityClient.load(GroupTypeRef, mailGroup._id)).thenResolve(mailGroup)
-	when(entityClient.load(GroupTypeRef, adminGroup._id)).thenResolve(adminGroup)
 	return {
 		user,
 		userGroup,
 		mailGroup,
-		adminGroup,
 		userGroupKey,
 		mailGroupKey,
-		adminGroupKey,
 		name,
 	}
 }
@@ -2287,7 +2215,6 @@ export function createTestUser(name: string, entityClient: EntityClient): TestUs
 export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade, keyLoaderFacade: KeyLoaderFacade) {
 	const userGroupId = elementIdToId(testUser.userGroup._id)
 	const mailGroupId = elementIdToId(testUser.mailGroup._id)
-	const adminGroupId: string = elementIdToId(testUser.adminGroup._id)
 
 	when(userFacade.getLoggedInUser()).thenReturn(testUser.user)
 	when(keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)).thenResolve({
@@ -2298,17 +2225,11 @@ export function configureLoggedInUser(testUser: TestUser, userFacade: UserFacade
 		object: testUser.userGroupKey,
 		version: 0,
 	})
-	when(keyLoaderFacade.getCurrentSymGroupKey(adminGroupId)).thenResolve({
-		object: testUser.adminGroupKey,
-		version: 0,
-	})
 	when(userFacade.hasGroup(userGroupId)).thenReturn(true)
 	when(userFacade.hasGroup(mailGroupId)).thenReturn(true)
-	when(userFacade.hasGroup(adminGroupId)).thenReturn(true)
 	when(userFacade.getCurrentUserGroupKey()).thenReturn({ object: testUser.userGroupKey, version: 0 })
 	when(userFacade.isLeader()).thenReturn(true)
 	when(userFacade.isFullyLoggedIn()).thenReturn(true)
 	when(keyLoaderFacade.loadSymGroupKey(mailGroupId, 0, null)).thenResolve(testUser.mailGroupKey)
 	when(keyLoaderFacade.loadSymGroupKey(userGroupId, 0, null)).thenResolve(testUser.userGroupKey)
-	when(keyLoaderFacade.loadSymGroupKey(adminGroupId, 0, null)).thenResolve(testUser.adminGroupKey)
 }
