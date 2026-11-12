@@ -160,10 +160,13 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		// TODO(gg): Normalize/Fix attribute abuse across codebase, then remove this shim and use `...sharedAttrs`
 		const { onkeydown, oninput, onfocus, ...sharedAttrsLegacyTextField } = sharedAttrs
-		return m(".rel", { class: attrs.classes?.join(" ") }, [
+		attrs.classes ??= []
+		if (attrs.forMailSendTime) attrs.classes.push("pt-16")
+		return m(".rel", { class: attrs.classes.join(" ") }, [
 			attrs.forMailSendTime
 				? m(LegacyTextField, {
 						label: attrs.label,
+						class: attrs.disabled ? "disabled" : "", // Hack to avoid pt-16 to align <input type="date">
 						helpLabel: () => m("", prettyText),
 						hasPopup: AriaPopupType.Dialog,
 						onDomInputCreated: (input) => {
@@ -216,6 +219,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 					width: 0,
 					// This helps browsers decide where to place their native picker under/over the input field
 					position: "absolute",
+					top: 0,
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
