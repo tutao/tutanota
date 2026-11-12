@@ -20,7 +20,7 @@ export class NewsList implements Component<NewsListAttrs> {
 		if (vnode.attrs.liveNewsIds.length === 0) {
 			return m(ColumnEmptyMessageBox, {
 				message: "noNews_msg",
-				icon: Icons.LightbulbFilled,
+				icon: Icons.NewspaperFilled,
 				color: theme.on_surface_variant,
 			})
 		}

@@ -54,7 +54,7 @@ export class DrawerMenu implements Component<DrawerMenuAttrs> {
 				isInternalUser && isLoggedIn
 					? m(".news-button", [
 							m(IconButton, {
-								icon: Icons.LightbulbFilled,
+								icon: Icons.NewspaperFilled,
 								label: "news_label",
 								click: () => showNewsDialog(newsModel),
 								colors: ButtonColor.DrawerNav,
