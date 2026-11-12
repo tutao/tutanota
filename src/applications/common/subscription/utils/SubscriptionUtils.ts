@@ -1,15 +1,17 @@
 import { InfoLink, lang, Translation, TranslationKey } from "../../../../ui/utils/LanguageViewModel"
-import { downcast, isEmpty, LazyLoaded } from "@tutao/utils"
+import { defer, downcast, isEmpty, LazyLoaded } from "@tutao/utils"
 import { locator } from "../../api/main/CommonLocator"
 import { ApprovalStatus, CertificateType, EnvProvider, getClientType, PaymentSetup, ProgrammingError, UpgradePromptType } from "@tutao/app-env"
 import { IServiceExecutor } from "../../../../platform-kit/network/ServiceRequest.js"
-import { MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
+import { MobilePaymentResultType, MobilePaymentSubscriptionOwnership } from "@tutao/native-bridge/generatedIpc/enums"
+import type { MobilePaymentResult } from "@tutao/native-bridge/generatedIpc/types"
 import { ClientDetector } from "../../../../platform-kit/app-env/boot/ClientDetector"
 import { formatMonthlyPrice, PaymentInterval, PriceAndConfigProvider } from "./PriceUtils.js"
 import { ReplacementKey, UpgradePriceType } from "../FeatureListProvider.js"
 import {
 	AccountingInfo,
 	Booking,
+	BookingTypeRef,
 	CertificateInfo,
 	createPaymentDataServiceGetData,
 	CreditCard,
@@ -36,10 +38,16 @@ import {
 	PlanType,
 	SubscriptionProvider,
 } from "../../../../entities/sys/Utils"
-import { EntityUpdateData, EntityUpdatesListener, isUpdateFor, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import {
+	EntityUpdateData,
+	EntityUpdatesListener,
+	isUpdateFor,
+	isUpdateForTypeRef,
+	ListenerPriority,
+} from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { CacheMode, DEFAULT_ENTITY_RESTCLIENT_LOAD_OPTIONS } from "../../../../platform-kit/instance-pipeline/RestClientOptions"
 import { reverse } from "../../misc/EnumUtils"
-import { idToElementId } from "@tutao/meta"
+import { idToElementId, OperationType } from "@tutao/meta"
 
 export const enum UpgradeType {
 	/**
@@ -429,6 +437,39 @@ export async function waitUntilCustomerInfoPlanTypeIsCorrect(expectedPlan: PlanT
 				resolve(false)
 			}
 		})
+	}
+}
+
+export async function waitForExternalStorePurchaseConfirmation(requestPurchase: () => Promise<MobilePaymentResult>): Promise<boolean | null> {
+	const customerInfo = await locator.logins.getUserController().loadCustomerInfo()
+	const bookingsList = customerInfo.bookings?.items
+	if (bookingsList == null) return false
+
+	const confirmation = defer<boolean>()
+	const listener: EntityUpdatesListener = {
+		id: "ExternalStorePurchaseConfirmation",
+		priority: ListenerPriority.NORMAL,
+		onEntityUpdatesReceived: async (updates) => {
+			if (
+				updates.some(
+					(update) =>
+						isUpdateForTypeRef(BookingTypeRef, update) && update.instanceListId === bookingsList && update.operation !== OperationType.DELETE,
+				)
+			) {
+				confirmation.resolve(true)
+			}
+		},
+	}
+	let timeout: ReturnType<typeof setTimeout> | undefined
+	try {
+		locator.eventController.addEntityUpdatesListener(listener)
+		const result = await requestPurchase()
+		if (result.result !== MobilePaymentResultType.Success) return null
+		timeout = setTimeout(() => confirmation.resolve(false), 60_000)
+		return await confirmation.promise
+	} finally {
+		clearTimeout(timeout)
+		locator.eventController.removeEntityUpdatesListener(listener)
 	}
 }
 
