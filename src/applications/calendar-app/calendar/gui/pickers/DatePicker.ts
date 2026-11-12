@@ -28,7 +28,7 @@ export enum PickerPosition {
 }
 
 export interface DatePickerAttrs {
-	date: Date | null
+	date: Date | null // Force explicit null passing; using `?:` aka undefined might be an accident
 	onDateSelected: (date: Date) => unknown
 	startOfTheWeekOffset: number
 	label: Translation
@@ -105,17 +105,16 @@ export class DatePicker implements Component<DatePickerAttrs> {
 			const isoTrimmed = this.dateToInputDateValue(attrs.date)
 			if (this.inputDateEl && this.inputDateEl.value !== isoTrimmed) this.inputDateEl.value = isoTrimmed
 		}
-		const prettyText = attrs.date
-			? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
-			: attrs.nullSelectionText
-				? lang.getTranslationText(attrs.nullSelectionText)
-				: NBSP
 		const inputContent =
 			this.inputTextEl && document.activeElement === this.inputTextEl
 				? this.inputTextEl.value // Don't interrupt the user as they're typing, keep the state as is
 				: this.showingDropdown || document.activeElement === this.inputDateEl || attrs.forMailSendTime
 					? formatDate(attrs.date ?? new Date()) // If null, show today in their locale format (DD/MM/YYYY)
-					: prettyText
+					: attrs.date
+						? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
+						: attrs.nullSelectionText
+							? lang.getTranslationText(attrs.nullSelectionText)
+							: NBSP
 		const sharedAttrs = {
 			value: inputContent,
 			disabled: attrs.disabled,
@@ -160,14 +159,16 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		// TODO(gg): Normalize/Fix attribute abuse across codebase, then remove this shim and use `...sharedAttrs`
 		const { onkeydown, oninput, onfocus, ...sharedAttrsLegacyTextField } = sharedAttrs
-		attrs.classes ??= []
-		if (attrs.forMailSendTime) attrs.classes.push("pt-16")
-		return m(".rel", { class: attrs.classes.join(" ") }, [
+		return m(".rel", { class: attrs.classes?.join(" ") }, [
 			attrs.forMailSendTime
 				? m(LegacyTextField, {
 						label: attrs.label,
-						class: attrs.disabled ? "disabled" : "", // Hack to avoid pt-16 to align <input type="date">
-						helpLabel: () => m("", prettyText),
+						helpLabel: () =>
+							attrs.date
+								? formatDateWithWeekdayAndYear(attrs.date) // Long locale format (Fri, Jun 5, 2026)
+								: attrs.nullSelectionText
+									? lang.getTranslationText(attrs.nullSelectionText)
+									: NBSP,
 						hasPopup: AriaPopupType.Dialog,
 						onDomInputCreated: (input) => {
 							this.inputTextEl = input as HTMLInputElement
@@ -209,23 +210,23 @@ export class DatePicker implements Component<DatePickerAttrs> {
 						},
 						...sharedAttrs,
 					}),
-			// Zero-width <input type="date"> (TODO(gg): Zero-height 100% width might be better?)
-			// Note: It cannot be display:none else browsers (esp iOS) won't render the native picker at all
+			// Zero-width <input type="date">
+			// Note: This cannot be `display:none` else browsers (esp iOS) won't render the native picker at all
 			m("input[type=date]", {
 				// We don't want users to enter via tab; if they do, they have to hit tab like 3-4 times to get out
 				tabindex: TabIndex.Programmatic,
 				disabled: attrs.disabled,
 				style: {
 					width: 0,
-					// This helps browsers decide where to place their native picker under/over the input field
+					// Help the browser decide where to put the native picker (under/over the input) see `.rel` above
 					position: "absolute",
-					top: 0,
+					top: attrs.forMailSendTime ? "16px" : 0,
 					left: 0,
 					// We want exactly the same height at the input[type=text] above so the native picker doesn't
 					// block any words in the input field. Chose to match the border/padding instead of setting a height
 					fontSize: rem(font_size.smaller_em),
-					"border-width": "1px 0",
-					"border-color": "transparent",
+					borderWidth: "1px 0",
+					borderColor: "transparent",
 					padding: "8px 0",
 					appearance: "none",
 				},
@@ -233,7 +234,7 @@ export class DatePicker implements Component<DatePickerAttrs> {
 				oncreate: (input) => {
 					this.inputDateEl = input.dom as HTMLInputElement
 				},
-				// When the native picker closes on iOS, it doesn't always call oninput() and never calls onblur()
+				// iOS: Called on native picker close on iOS, it doesn't always call oninput() and never calls onblur()
 				onfocusout: () => {
 					if (this.inputDateEl) this.inputDateEl.tabIndex = Number(TabIndex.Programmatic)
 					const htmlDate = this.inputDateEl?.valueAsDate // Explained in comment below
@@ -327,9 +328,9 @@ export class DatePicker implements Component<DatePickerAttrs> {
 		}
 		// There's no way to detect if showPicker() is no-op https://github.com/whatwg/html/issues/7790.
 		// Only way to open a native picker on iOS is <input type="date"> focus(). Not even click().
-		if (ClientDetector.get().isIos()) {
+		if (ClientDetector.get().isMobileDevice()) {
 			this.inputDateEl.tabIndex = Number(TabIndex.Default)
-			this.inputDateEl.focus()
+			this.inputDateEl.focus() // Important for our `inputContent` `document.activeElement` check condition
 		}
 	}
 

@@ -112,44 +112,7 @@ export class TimePicker implements Component<TimePickerAttrs> {
 				}
 			},
 		}
-		return m.fragment({}, [
-			m("input[type=time]", {
-				tabindex: Number(TabIndex.Programmatic),
-				disabled: attrs.disabled,
-				style: {
-					width: 0,
-					// This helps browsers decide where to place their native picker under/over the input field. Note
-					// m(Select) is position relative
-					position: "absolute",
-					left: 0,
-					// We want exactly the same height at the input[type=text] above so the native picker doesn't
-					// block any words in the input field. Chose to match the border/padding instead of setting a height
-					fontSize: rem(font_size.smaller_em),
-					"border-width": "1px 0",
-					"border-color": "transparent",
-					padding: "8px 0",
-					appearance: "none",
-				},
-				value: this.selectedTime.to24HourString(),
-				oncreate: (vnode: VnodeDOM) => {
-					this.inputTimeEl = vnode.dom as HTMLInputElement
-				},
-				oninput: (event: EventRedraw<InputEvent>) => {
-					if (attrs.disabled) {
-						event.preventDefault()
-						event.stopPropagation()
-						event.redraw = false
-						return
-					}
-					const inputElement = event.target! as HTMLInputElement
-					const parsedTime = Time.parseFromString(inputElement.value)
-					if (parsedTime) {
-						this.selectedTime = parsedTime
-						this.setValidInputTextFromTime(this.selectedTime, attrs)
-						attrs.onTimeSelected(this.selectedTime)
-					}
-				},
-			}),
+		return m(".rel", [
 			attrs.forMailSendTime
 				? m(LegacyTextField, {
 						style: { width: "100%" },
@@ -181,6 +144,43 @@ export class TimePicker implements Component<TimePickerAttrs> {
 						onkeydown: (event: KeyboardEvent) => this.handleKeyPress(event.key, attrs),
 						...sharedAttrs,
 					}),
+			m("input[type=time]", {
+				tabindex: Number(TabIndex.Programmatic),
+				disabled: attrs.disabled,
+				style: {
+					width: 0,
+					// Help the browser decide where to put the native picker (under/over the input) see `.rel` above
+					position: "absolute",
+					top: attrs.forMailSendTime ? "16px" : 0,
+					left: 0,
+					// We want exactly the same height at the input[type=text] above so the native picker doesn't
+					// block any words in the input field. Chose to match the border/padding instead of setting a height
+					fontSize: rem(font_size.smaller_em),
+					borderWidth: "1px 0",
+					borderColor: "transparent",
+					padding: "8px 0",
+					appearance: "none",
+				},
+				value: this.selectedTime.to24HourString(),
+				oncreate: (vnode: VnodeDOM) => {
+					this.inputTimeEl = vnode.dom as HTMLInputElement
+				},
+				oninput: (event: EventRedraw<InputEvent>) => {
+					if (attrs.disabled) {
+						event.preventDefault()
+						event.stopPropagation()
+						event.redraw = false
+						return
+					}
+					const inputElement = event.target! as HTMLInputElement
+					const parsedTime = Time.parseFromString(inputElement.value)
+					if (parsedTime) {
+						this.selectedTime = parsedTime
+						this.setValidInputTextFromTime(this.selectedTime, attrs)
+						attrs.onTimeSelected(this.selectedTime)
+					}
+				},
+			}),
 		])
 	}
 
