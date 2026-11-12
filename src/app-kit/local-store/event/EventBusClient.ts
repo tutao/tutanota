@@ -11,7 +11,19 @@ import {
 	TooManyRequestsError,
 } from "@tutao/rest-client/error"
 import { type AppName, elementIdToId, isSameTypeRef, timestampToGeneratedId, TypeRef } from "@tutao/meta"
-import { assertNotNull, DateProvider, delay, identity, isNotEmpty, lazyAsync, Nullable, ofClass, promiseMap, randomIntFromInterval } from "@tutao/utils"
+import {
+	assertNotNull,
+	DateProvider,
+	delay,
+	identity,
+	isNotEmpty,
+	lazyAsync,
+	lazyMemoized,
+	Nullable,
+	ofClass,
+	promiseMap,
+	randomIntFromInterval,
+} from "@tutao/utils"
 import {
 	DecryptedParsedInstance,
 	EntityAdapter,
@@ -53,7 +65,7 @@ import {
 import { EventQueue, QueuedBatch } from "./EventQueue.js"
 import { CacheSyncStatus, EntityUpdateData, entityUpdateToUpdateData } from "../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
 import { EntityMigrator } from "../../../platform-kit/network/EntityRestClient"
-import { validateKdfNonceLength } from "@tutao/crypto"
+import { AesKey, validateKdfNonceLength } from "@tutao/crypto"
 import { IncomingServerJson } from "../../../platform-kit/instance-pipeline/TypeMapper"
 
 EnvProvider.assertWorkerOrNode()
@@ -473,10 +485,17 @@ export class EventBusClient {
 						this.instancePipeline.cryptoMapper,
 					),
 				)
-				const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
+				const sessionKeyProvider = lazyMemoized(async (): Promise<AesKey> => {
+					const sessionKey = await this.sessionKeyResolver.resolveSessionKey(migratedEntity)
+					if (sessionKey == null) {
+						throw new SessionKeyNotFoundError("session key not found")
+					}
+					return sessionKey
+				})
+
 				const parsedInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 					encryptedParsedInstance,
-					sessionKey,
+					sessionKeyProvider,
 					validateKdfNonceLength(migratedEntity._kdfNonce),
 					this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
 					await this.sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),
@@ -492,7 +511,7 @@ export class EventBusClient {
 						)
 						const parsedBlobInstance = await this.instancePipeline.cryptoMapper.decryptParsedInstance(
 							mailDetailsBlobEncryptedParsedInstance,
-							sessionKey,
+							sessionKeyProvider,
 							validateKdfNonceLength(migratedEntity._kdfNonce),
 							this.instancePipeline.cryptoMapper.makeOwnerKeyProvider(migratedEntity._ownerGroup),
 							await this.sessionKeyResolver.makeInstanceKeyProvider(migratedEntity),

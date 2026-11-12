@@ -7,7 +7,6 @@ import {
 	CardinalityEnum,
 	ClientTypeModel,
 	EntityTypeEnum,
-	isSameTypeRef,
 	ModelAssociation,
 	ModelValue,
 	ServerTypeModel,
@@ -17,7 +16,6 @@ import {
 import { EnvProvider, InvalidModelError, ProgrammingError } from "@tutao/app-env"
 import { ApplicationTypesGetOut } from "./ApplicationTypesFacade"
 import { TypeChecks } from "../app-env/TsTypeChecks"
-import { AccountingInfoTypeRef, OrderProcessingAgreementTypeRef } from "@tutao/entities/sys"
 
 export type ApplicationTypesHash = string
 export type ApplicationVersionSum = number
@@ -253,13 +251,9 @@ export class ServerModelInfo {
 			if (isNotNull(clientModelValue) && isNotNull(clientModelType)) {
 				const isEncrypted = this.asBoolean(clientModelValue.encrypted)
 				if (isEncrypted && !serverEncrypted) {
-					//the following exceptions are required as we are making the types unencrypted and can be removed once the client model types are also unencrypted
-					const typeRef = new TypeRef(clientModelType.app, clientModelType.id)
-					if (!isSameTypeRef(AccountingInfoTypeRef, typeRef) && !isSameTypeRef(OrderProcessingAgreementTypeRef, typeRef)) {
-						throw new InvalidModelError(
-							`Trying to parse encrypted value as unencrypted for: ${clientModelType?.app}:${clientModelType.id}:${clientModelValue.id}`,
-						)
-					}
+					throw new InvalidModelError(
+						`Trying to parse encrypted value as unencrypted for: ${clientModelType?.app}:${clientModelType.id}:${clientModelValue.id}`,
+					)
 				}
 
 				const clientValueType = clientModelValue.type

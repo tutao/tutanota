@@ -292,7 +292,7 @@ o.spec("ElectronUpdater", function () {
 		})
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
 		const deletePromise = new Promise((resolve) => {
-			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(resolve)
+			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(async (value: unknown) => resolve(value))
 		})
 		await upd.start()
 		await deletePromise
@@ -315,7 +315,7 @@ o.spec("ElectronUpdater", function () {
 			autoUpdater.emit("update-downloaded", { ...DOWNLOAD_INFO, signature: "bogus!" })
 		})
 		const deletePromise = new Promise((resolve) => {
-			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(resolve)
+			when(fs.promises.unlink("downloadedFile.AppImage")).thenDo(async (value: unknown) => resolve(value))
 		})
 
 		await upd.manualUpdate()
@@ -337,7 +337,7 @@ o.spec("ElectronUpdater", function () {
 		})
 		when(fs.promises.readFile(DOWNLOAD_INFO.downloadedFile)).thenReject(new Error("too big"))
 		const upd = new ElectronUpdater(conf, wm, notifier, crypto, electron.app, object(), updaterImpl, fs, scheduler)
-		const deletePromise = new Promise((resolve) => when(fs.promises.unlink(DOWNLOAD_INFO.downloadedFile)).thenDo(resolve))
+		const deletePromise = new Promise((resolve) => when(fs.promises.unlink(DOWNLOAD_INFO.downloadedFile)).thenDo(async (value: unknown) => resolve(value)))
 
 		await upd.start()
 		await deletePromise

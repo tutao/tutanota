@@ -2199,13 +2199,13 @@ export type CustomerAccountCreateDataParams = {
 	lang: string
 	userEncAdminGroupKey: Uint8Array<ArrayBuffer>
 	userEncAccountGroupKey: Uint8Array<ArrayBuffer>
-	adminEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>
-	systemAdminPubEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>
+	adminEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
+	systemAdminPubEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>
 	code: string
-	systemAdminPublicProtocolVersion: NumberString
+	systemAdminPublicProtocolVersion: null | NumberString
 	accountGroupKeyVersion: NumberString
-	systemAdminPubKeyVersion: NumberString
+	systemAdminPubKeyVersion: null | NumberString
 	app: NumberString
 
 	userData: UserAccountUserData
@@ -2223,13 +2223,13 @@ export type CustomerAccountCreateData = {
 	lang: string
 	userEncAdminGroupKey: Uint8Array<ArrayBuffer>
 	userEncAccountGroupKey: Uint8Array<ArrayBuffer>
-	adminEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>
-	systemAdminPubEncAccountingInfoSessionKey: Uint8Array<ArrayBuffer>
+	adminEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
+	systemAdminPubEncAccountingInfoSessionKey: null | Uint8Array<ArrayBuffer>
 	adminEncCustomerServerPropertiesSessionKey: Uint8Array<ArrayBuffer>
 	code: string
-	systemAdminPublicProtocolVersion: NumberString
+	systemAdminPublicProtocolVersion: null | NumberString
 	accountGroupKeyVersion: NumberString
-	systemAdminPubKeyVersion: NumberString
+	systemAdminPubKeyVersion: null | NumberString
 	app: NumberString
 
 	// == _id does not exist in metamodel, this is just to satisfy the DataTransferEntity interface

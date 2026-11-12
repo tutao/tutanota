@@ -1,5 +1,6 @@
 import { CryptoError } from "@tutao/crypto/error"
 import { VersionedAes256Key, VersionedKey } from "../../CryptoTypes"
+import { lazyAsync, Nullable } from "@tutao/utils"
 
 export type BitArray = number[]
 
@@ -56,4 +57,13 @@ export function assert256BitKey(key: AesKey): Aes256Key {
 
 export function assert256BitVersionedKey(key: VersionedKey): VersionedAes256Key {
 	return { version: key.version, object: assert256BitKey(key.object) }
+}
+export type SessionKeyProvider = lazyAsync<AesKey>
+
+/**
+ * Only use this if the session key is already available anyway. Do not resolve a session key just to put it inside here, create an actual lazy session key resolver instead.
+ * @param sessionKey a session key that you already had lying around for whatever reason
+ */
+export function sessionKeyProviderFromAvailableSessionKey(sessionKey: Nullable<AesKey>): Nullable<SessionKeyProvider> {
+	return sessionKey == null ? null : async (): Promise<AesKey> => sessionKey
 }

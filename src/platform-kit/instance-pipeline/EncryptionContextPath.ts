@@ -34,21 +34,7 @@ abstract class Path {
 	}
 }
 
-export abstract class InstancePath extends Path {
-	addAssociationId(modelAssociation: ModelAssociation): AssociationPath {
-		const isInDataTransferAggregation = modelAssociation.transferredAttributeId != null
-		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
-		const parent: Nullable<InstancePath> = needsToGetCutOff ? null : this
-		return AssociationPath.construct(this.app, parent, isInDataTransferAggregation, getId(modelAssociation))
-	}
-
-	addValueId(modelValue: ModelValue): ValuePath {
-		const isInDataTransferAggregation = modelValue.transferredAttributeId != null
-		const needsToGetCutOff = isInDataTransferAggregation && !this.hasBeenCutOff
-		const parent: Nullable<InstancePath> = needsToGetCutOff ? null : this
-		return ValuePath.fromAttributeId(this.app, parent, isInDataTransferAggregation, getId(modelValue))
-	}
-}
+export abstract class InstancePath extends Path {}
 
 export class RootPath extends InstancePath {
 	constructor(app: AppName) {
@@ -57,33 +43,42 @@ export class RootPath extends InstancePath {
 }
 
 export class AggregatePath extends InstancePath {
-	constructor(parent: AssociationPath, hasBeenCutOff: boolean, aggregateId: Id) {
+	protected constructor(parent: AssociationPath, hasBeenCutOff: boolean, aggregateId: Id) {
 		super(parent.app, parent, hasBeenCutOff, `${aggregateId}/`)
+	}
+
+	static fromAssociationPath(parent: AssociationPath, aggregateId: Id): AggregatePath {
+		return new AggregatePath(parent, parent.hasBeenCutOff, aggregateId)
 	}
 }
 
 export class AssociationPath extends Path {
-	static construct(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): AssociationPath {
-		return new AssociationPath(app, parent, hasBeenCutOff, `${attributeId}/`)
+	protected constructor(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeString: string) {
+		super(app, parent, hasBeenCutOff, `${attributeString}/`)
+	}
+
+	static fromInstancePath(parent: InstancePath, modelAssociation: ModelAssociation): AssociationPath {
+		const isInDataTransferAggregation = modelAssociation.transferredAttributeId != null
+		const needsToGetCutOff = isInDataTransferAggregation && !parent.hasBeenCutOff
+		return new AssociationPath(parent.app, needsToGetCutOff ? null : parent, isInDataTransferAggregation, getId(modelAssociation).toString())
 	}
 
 	static fromPatchPath(app: AppName, pathString: string): AssociationPath {
 		return new AssociationPath(app, null, false, pathString)
 	}
-
-	addAggregateId(aggregateId: Id): AggregatePath {
-		return new AggregatePath(this, this.hasBeenCutOff, aggregateId)
-	}
 }
 
 export class ValuePath extends Path {
-	static fromAttributeId(app: AppName, parent: Nullable<InstancePath>, hasBeenCutOff: boolean, attributeId: AttributeId): ValuePath {
-		return new ValuePath(app, parent, hasBeenCutOff, `${attributeId}`)
+	static fromInstancePath(parent: InstancePath, modelValue: ModelValue): ValuePath {
+		const isInDataTransferAggregation = modelValue.transferredAttributeId != null
+		const needsToGetCutOff = isInDataTransferAggregation && !parent.hasBeenCutOff
+		return new ValuePath(parent.app, needsToGetCutOff ? null : parent, isInDataTransferAggregation, getId(modelValue).toString())
 	}
 
 	static fromPatchPath(app: AppName, pathString: string): ValuePath {
 		return new ValuePath(app, null, false, pathString)
 	}
+
 	getPath(): string {
 		return this.path
 	}
