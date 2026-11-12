@@ -87,7 +87,11 @@ export class InboxRuleHandler {
 			const targetFolder = folders.getFolderById(elementIdPart(inboxRule.targetFolder))
 
 			if (targetFolder) {
-				const { uploadableVectorLegacy, uploadableVector } = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
+				const uploadableVectorOrnull = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
+				if (uploadableVectorOrnull == null) {
+					return null
+				}
+				const { uploadableVectorLegacy, uploadableVector } = uploadableVectorOrnull
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
 					mailId: mail._id,
 					targetMoveFolder: targetFolder._id,

@@ -2,8 +2,6 @@ import o from "@tutao/otest"
 import {
 	BYTES_COMPRESSED_MAIL_VECTOR_LENGTH,
 	BYTES_FOR_SERVER_CLASSIFICATION_DATA,
-	MAX_PREPROCESS_BODY_LENGTH,
-	MAX_PREPROCESS_TIME_MS,
 	SpamMailDatum,
 	SpamMailProcessor,
 } from "../../../../../../src/applications/common/api/common/utils/spamClassificationUtils/SpamMailProcessor"
@@ -76,7 +74,8 @@ o.spec("SpamMailProcessor Tests", () => {
 			BYTES_FOR_SERVER_CLASSIFICATION_DATA,
 		)
 
-		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(expectedModelInput, DEFAULT_VECTOR_MAX_LENGTH)
+		o.check(expectedModelInput).notEquals(null)
+		const [vectorizedMailFromModelInput, serverClassificationDataFromModelInput] = splitArrayAt(expectedModelInput!, DEFAULT_VECTOR_MAX_LENGTH)
 
 		const classifiers = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 1)
 		const decisions = serverClassificationDataFromModelInput.filter((_, index) => index % 2 === 0)
@@ -84,7 +83,7 @@ o.spec("SpamMailProcessor Tests", () => {
 		const classifiersUsed = findIndexes(classifiers, (v) => v === 1)
 		const serverDecisions = classifiersUsed.map((classifierIndex) => decisions[classifierIndex])
 
-		o(modelInputFromDownloadedData).deepEquals(expectedModelInput)
+		o(modelInputFromDownloadedData).deepEquals(expectedModelInput!)
 		o(vectorizedMailFromDatum).deepEquals(vectorizedMailFromModelInput)
 		o(serverClassificationDataFromUploadedVector).deepEquals(expectedOneHotEncodedServerClassificationData)
 		o(serverClassificationDataFromModelInput).deepEquals(expectedOneHotEncodedServerClassificationData)
@@ -100,38 +99,40 @@ o.spec("SpamMailProcessor Tests", () => {
 		o(result.includes("TEMAIL")).equals(true)
 	})
 
-	o("preprocessMail - truncates very long bodies", async () => {
-		datum.subject = ""
-		datum.body = "x".repeat(MAX_PREPROCESS_BODY_LENGTH) + " TAILMARKER"
-		o(spamMailProcessor.preprocessMail(datum).includes("TAILMARKER")).equals(false)
-	})
-
-	o("preprocessMail - truncates based on text, not html", async () => {
-		datum.subject = ""
-		datum.body = `<img src="data:image/png;base64,${"A".repeat(MAX_PREPROCESS_BODY_LENGTH * 2)}"> VISIBLETEXT`
-		o(spamMailProcessor.preprocessMail(datum).includes("VISIBLETEXT")).equals(true)
-	})
-
-	o("preprocessMail - skips remaining steps when out of time budget", async () => {
-		datum.body = "mail me at test@example.com 12"
-		const realNow = Date.now
-		let calls = 0
-		Date.now = () => (calls++ === 0 ? 0 : MAX_PREPROCESS_TIME_MS + 1)
-		let result: string
-		try {
-			result = spamMailProcessor.preprocessMail(datum)
-		} finally {
-			Date.now = realNow
-		}
-		// html removal runs, following steps should not.
-		o(result.includes("TEMAIL")).equals(false)
-		o(result.includes("TNUMBER")).equals(false)
-		o(result.includes("test@example.com")).equals(true)
-	})
+	// o("preprocessMail - truncates very long bodies", async () => {
+	// 	datum.subject = ""
+	// 	datum.body = "x".repeat(MAX_PREPROCESS_BODY_LENGTH) + " TAILMARKER"
+	// 	o(spamMailProcessor.preprocessMail(datum).includes("TAILMARKER")).equals(false)
+	// })
+	//
+	// o("preprocessMail - truncates based on text, not html", async () => {
+	// 	datum.subject = ""
+	// 	datum.body = `<img src="data:image/png;base64,${"A".repeat(MAX_PREPROCESS_BODY_LENGTH * 2)}"> VISIBLETEXT`
+	// 	o(spamMailProcessor.preprocessMail(datum).includes("VISIBLETEXT")).equals(true)
+	// })
+	//
+	// o("preprocessMail - skips remaining steps when out of time budget", async () => {
+	// 	datum.body = "mail me at test@example.com 12"
+	// 	const realNow = Date.now
+	// 	let calls = 0
+	// 	Date.now = () => (calls++ === 0 ? 0 : MAX_PREPROCESS_TIME_MS + 1)
+	// 	let result: string
+	// 	try {
+	// 		result = spamMailProcessor.preprocessMail(datum)
+	// 	} finally {
+	// 		Date.now = realNow
+	// 	}
+	// 	// html removal runs, following steps should not.
+	// 	o(result.includes("TEMAIL")).equals(false)
+	// 	o(result.includes("TNUMBER")).equals(false)
+	// 	o(result.includes("test@example.com")).equals(true)
+	// })
 
 	async function createModelInputAndUploadableVectors(datum: SpamMailDatum) {
 		const modelInput = await spamMailProcessor.processSpamMailDatum(datum)
-		const { uploadableVectorLegacy, uploadableVector } = await spamMailProcessor.makeUploadableVectors(datum)
+		const maybeVectors = await spamMailProcessor.makeUploadableVectors(datum)
+		o.check(maybeVectors).notEquals(null)
+		const { uploadableVectorLegacy, uploadableVector } = maybeVectors!
 
 		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}

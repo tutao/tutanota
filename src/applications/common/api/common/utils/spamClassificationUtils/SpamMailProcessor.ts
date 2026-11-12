@@ -37,9 +37,6 @@ export type PreprocessConfiguration = {
 	isRemoveSpaceBeforeNewLine: boolean
 }
 
-export const MAX_PREPROCESS_TIME_MS = 5_000
-export const MAX_PREPROCESS_BODY_LENGTH = 100_000
-
 export const spamClassifierTokenizer = (text: PreprocessedMailContent): string[] => tokenize(text)
 
 export const DEFAULT_PREPROCESS_CONFIGURATION: PreprocessConfiguration = {
@@ -68,6 +65,8 @@ export type SpamMailDatum = {
 }
 
 export type PreprocessedMailContent = string
+
+const VECTORIZE_MAIL_TIMEOUT = 5_00
 
 /**
  * # Format stored in server:
@@ -99,14 +98,6 @@ export class SpamMailProcessor {
 		}
 
 		let preprocessedMail = mailText
-		const maximumProcessingTime = Date.now() + MAX_PREPROCESS_TIME_MS
-		const isOutOfTime = () => {
-			const outOfTime = Date.now() > maximumProcessingTime
-			if (outOfTime) {
-				console.warn("Spam preprocessing exceeded maximum time, skipping remaining steps")
-			}
-			return outOfTime
-		}
 
 		try {
 			// 1. Remove HTML code
@@ -114,49 +105,45 @@ export class SpamMailProcessor {
 				preprocessedMail = htmlToText(preprocessedMail)
 			}
 
-			// Limit preprocessing size after transforming html to text.
-			preprocessedMail = preprocessedMail.slice(0, MAX_PREPROCESS_BODY_LENGTH)
-
 			// 2. Replace dates
 			if (this.preprocessConfiguration.isReplaceDates) {
 				for (const datePattern of ML_DATE_REGEX) {
-					if (isOutOfTime()) break
 					preprocessedMail = preprocessedMail.replaceAll(datePattern, ML_DATE_TOKEN)
 				}
 			}
 
 			// 3. Replace urls
-			if (this.preprocessConfiguration.isReplaceUrls && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceUrls) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_URL_REGEX, ML_URL_TOKEN)
 			}
 
 			// 4. Replace email addresses
-			if (this.preprocessConfiguration.isReplaceMailAddresses && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceMailAddresses) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_EMAIL_ADDR_REGEX, ML_EMAIL_ADDR_TOKEN)
 			}
 
 			// 5. Replace Bitcoin addresses
-			if (this.preprocessConfiguration.isReplaceBitcoinAddress && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceBitcoinAddress) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_BITCOIN_REGEX, ML_BITCOIN_TOKEN)
 			}
 
 			// 6. Replace credit card numbers
-			if (this.preprocessConfiguration.isReplaceCreditCards && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceCreditCards) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_CREDIT_CARD_REGEX, ML_CREDIT_CARD_TOKEN)
 			}
 
 			// 7. Replace remaining numbers
-			if (this.preprocessConfiguration.isReplaceNumbers && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceNumbers) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_NUMBER_SEQUENCE_REGEX, ML_NUMBER_SEQUENCE_TOKEN)
 			}
 
 			// 8. Remove special characters
-			if (this.preprocessConfiguration.isReplaceSpecialCharacters && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isReplaceSpecialCharacters) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_SPECIAL_CHARACTER_REGEX, ML_SPECIAL_CHARACTER_TOKEN)
 			}
 
 			// 9. Remove spaces at end of lines
-			if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine && !isOutOfTime()) {
+			if (this.preprocessConfiguration.isRemoveSpaceBeforeNewLine) {
 				preprocessedMail = preprocessedMail.replaceAll(ML_SPACE_BEFORE_NEW_LINE_REGEX, ML_SPACE_BEFORE_NEW_LINE_TOKEN)
 			}
 		} catch (e) {
@@ -214,10 +201,33 @@ export class SpamMailProcessor {
 		}
 	}
 
-	public async makeVectorizedMail(datum: SpamMailDatum) {
+	//VisibleForTesting
+	public async tryMakeVectorizedMail(datum: SpamMailDatum) {
+		let vectorizeMailTimeoutId
+		const vectorizeMailTimeout = new Promise<null>((resolve) => {
+			vectorizeMailTimeoutId = setTimeout(() => {
+				console.log("the timeout resolved.")
+				resolve(null)
+			}, VECTORIZE_MAIL_TIMEOUT)
+		})
+
+		const now = Date.now()
+		console.log("The date at start of pre-vec:", now)
+		const vectorizedMail = await Promise.race([this.makeVectorizedMailUnsafe(datum), vectorizeMailTimeout])
+		console.log("The diff of end-vec:", Date.now() - now, (Date.now() - now) / 1000)
+		console.log("THE MAIL HAD A TIMEOUT?", vectorizedMail === null)
+		clearTimeout(vectorizeMailTimeoutId)
+
+		return vectorizedMail
+	}
+
+	private async makeVectorizedMailUnsafe(datum: SpamMailDatum) {
 		const vectorizer = await this.vectorizer()
+		console.log("preprocess")
 		const preprocessedMail = this.preprocessMail(datum)
+		console.log("Tokenizing")
 		const tokenizedMail = spamClassifierTokenizer(preprocessedMail)
+		console.log("vectorizing")
 		return await vectorizer.vectorize(tokenizedMail)
 	}
 
@@ -226,8 +236,12 @@ export class SpamMailProcessor {
 	 * @param datum
 	 * @param serverVectorSize
 	 */
-	public async processSpamMailDatum(datum: SpamMailDatum, serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA): Promise<number[]> {
-		const vectorizedMail = await this.makeVectorizedMail(datum)
+	public async processSpamMailDatum(datum: SpamMailDatum, serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA): Promise<number[] | null> {
+		const vectorizedMail = await this.tryMakeVectorizedMail(datum)
+		if (vectorizedMail == null) {
+			return null
+		}
+
 		if (datum.serverClassificationData) {
 			return vectorizedMail.concat(this.oneHotEncodeServerClassifiers(datum.serverClassificationData, serverVectorSize))
 		} else {
@@ -241,8 +255,11 @@ export class SpamMailProcessor {
 	): Promise<{
 		uploadableVectorLegacy: Uint8Array<ArrayBuffer>
 		uploadableVector: Uint8Array<ArrayBuffer>
-	}> {
-		const vectorizedMail = await this.makeVectorizedMail(datum)
+	} | null> {
+		const vectorizedMail = await this.tryMakeVectorizedMail(datum)
+		if (vectorizedMail == null) {
+			return null
+		}
 		const uploadableVectorLegacy = this.sparseVectorCompressor.compress(vectorizedMail)
 		const compressedVectorSize = uploadableVectorLegacy.length
 		// this will be a zero array if we pass an empty string to one-hot encode
@@ -256,6 +273,8 @@ export class SpamMailProcessor {
 		])
 		return { uploadableVectorLegacy, uploadableVector }
 	}
+
+	private async extracted(datum: SpamMailDatum) {}
 
 	public oneHotEncodeServerClassifiers(serverClassificationData: string, serverVectorSize: number = BYTES_FOR_SERVER_CLASSIFICATION_DATA): number[] {
 		let result = new Array<number>(serverVectorSize).fill(0)

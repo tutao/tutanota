@@ -37,9 +37,13 @@ export class SpamClassificationHandler {
 		mailDetails: MailDetails,
 		sourceFolder: MailSet,
 		folderSystem: FolderSystem,
-	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum }> {
+	): Promise<{ targetFolder: MailSet; processInboxDatum: UnencryptedProcessInboxDatum | null }> {
 		const ownerGroup = assertNotNull(mail._ownerGroup)
-		const { modelInput, uploadableVectorLegacy, uploadableVector } = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
+		const modelResult = await this.spamClassifier.createModelInputAndUploadVector(mail, mailDetails)
+		if (modelResult == null) {
+			return { targetFolder: assertNotNull(folderSystem.getSystemFolderByType(MailSetKind.SPAM)), processInboxDatum: null }
+		}
+		const { modelInput, uploadableVectorLegacy, uploadableVector } = modelResult
 		const isMailMarkedAsPhishing = mail.phishingStatus === MailPhishingStatus.SUSPICIOUS
 
 		const serverClassifiers = mail.serverClassificationData ? extractServerClassifiers(mail.serverClassificationData) : []

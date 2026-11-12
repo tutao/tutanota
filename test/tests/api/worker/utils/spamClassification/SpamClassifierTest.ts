@@ -76,7 +76,11 @@ export async function readMailDataFromCSV(filePath: string): Promise<{
 async function convertToClientTrainingDatum(spamData: SpamMailDatum[], spamProcessor: SpamMailProcessor, isSpam: boolean): Promise<ClientSpamTrainingDatum[]> {
 	let result: ClientSpamTrainingDatum[] = []
 	for (const spamDatum of spamData) {
-		const { uploadableVectorLegacy, uploadableVector } = await spamProcessor.makeUploadableVectors(spamDatum, TEST_SERVER_VECTOR_SIZE)
+		const uploadableVectors = await spamProcessor.makeUploadableVectors(spamDatum, TEST_SERVER_VECTOR_SIZE)
+		if (uploadableVectors == null) {
+			continue
+		}
+		const { uploadableVectorLegacy, uploadableVector } = uploadableVectors
 		const clientSpamTrainingDatum = createTestEntity(ClientSpamTrainingDatumTypeRef, {
 			confidence: DEFAULT_IS_SPAM_CONFIDENCE.toString(),
 			spamDecision: isSpam ? SpamDecision.BLACKLIST : SpamDecision.WHITELIST,
@@ -159,7 +163,8 @@ o.spec("SpamClassifierTest", () => {
 		spamClassifier.classifierByMailGroup.set(spamMailDatum.ownerGroup, { layersModel, threshold: 0.9, metaData })
 
 		const modelInput = await makeModelInput(spamMailDatum)
-		const predictedSpam = await spamClassifier.predict(modelInput, spamMailDatum.ownerGroup)
+		o.check(modelInput).notEquals(null)
+		const predictedSpam = await spamClassifier.predict(modelInput!, spamMailDatum.ownerGroup)
 		o(predictedSpam).equals(false)
 	})
 
@@ -439,12 +444,14 @@ authStatus`
 			ownerGroup: "firstGroup",
 			...commonSpamFields,
 		})
-		const isSpamFirstMail = await spamClassifier.predict(firstMailVector, "firstGroup")
+		o.check(firstMailVector).notEquals(null)
+		const isSpamFirstMail = await spamClassifier.predict(firstMailVector!, "firstGroup")
 		const secondMailVector = await makeModelInput({
 			ownerGroup: "secondGroup",
 			...commonSpamFields,
 		})
-		const isSpamSecondMail = await spamClassifier.predict(secondMailVector, "secondGroup")
+		o.check(secondMailVector).notEquals(null)
+		const isSpamSecondMail = await spamClassifier.predict(secondMailVector!, "secondGroup")
 
 		o(isSpamFirstMail).equals(true)
 		o(isSpamSecondMail).equals(false)
@@ -455,7 +462,10 @@ authStatus`
 	})
 
 	async function makeModelInput(spamDatum: SpamMailDatum) {
-		const vectorizedMail = await spamProcessor.makeVectorizedMail(spamDatum)
+		const vectorizedMail = await spamProcessor.tryMakeVectorizedMail(spamDatum)
+		if (vectorizedMail == null) {
+			return null
+		}
 		return await spamProcessor.processSpamMailDatum(spamDatum, TEST_SERVER_VECTOR_SIZE)
 	}
 })

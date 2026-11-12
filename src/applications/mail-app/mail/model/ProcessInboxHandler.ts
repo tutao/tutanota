@@ -113,14 +113,20 @@ export class ProcessInboxHandler {
 
 		// set processInboxDatum if the spam classification is disabled and no inbox rule applies to the mail
 		if (finalProcessInboxDatum === null) {
-			const { uploadableVector, uploadableVectorLegacy } = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
-			finalProcessInboxDatum = {
-				mailId: mail._id,
-				targetMoveFolder: moveToFolder._id,
-				classifierType: null,
-				vectorLegacy: uploadableVectorLegacy,
-				vectorWithServerClassifiers: uploadableVector,
-				ownerEncMailSessionKeys: [],
+			const maybeUploadableVectors = await this.mailFacade.createModelInputAndUploadableVectors(mail, mailDetails)
+			if (maybeUploadableVectors !== null) {
+				const { uploadableVector, uploadableVectorLegacy } = maybeUploadableVectors
+				finalProcessInboxDatum = {
+					mailId: mail._id,
+					targetMoveFolder: moveToFolder._id,
+					classifierType: null,
+					vectorLegacy: uploadableVectorLegacy,
+					vectorWithServerClassifiers: uploadableVector,
+					ownerEncMailSessionKeys: [],
+				}
+			} else {
+				// early return?
+				return moveToFolder
 			}
 		}
 

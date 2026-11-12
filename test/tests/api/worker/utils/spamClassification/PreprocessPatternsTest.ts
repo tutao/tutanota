@@ -192,7 +192,7 @@ o.spec("PreprocessPatterns", () => {
 		})
 	})
 
-	o.test("possible bad regexes finish in acceptable time", () => {
+	o.test("debug me", () => {
 		const size = 100_000
 		const maxMs = 500
 		const badInputs = [
@@ -210,6 +210,7 @@ o.spec("PreprocessPatterns", () => {
 		for (const regex of [ML_EMAIL_ADDR_REGEX, ML_SPACE_BEFORE_NEW_LINE_REGEX]) {
 			for (const input of badInputs) {
 				const start = Date.now()
+				console.log("Testingg", regex)
 				input.replaceAll(regex, " T ")
 				const duration = Date.now() - start
 				o.check(duration < maxMs).equals(true)

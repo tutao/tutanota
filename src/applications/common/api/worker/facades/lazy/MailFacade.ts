@@ -68,7 +68,7 @@ import PublicEncryptionKeyProvider from "../../../../../../platform-kit/base/bas
 import { KeyVerificationMismatchError } from "../../../../../../platform-kit/network/error/KeyVerificationMismatchError"
 import { VerifiedPublicEncryptionKey } from "../../../../../../platform-kit/base/facades/lazy/KeyVerificationFacade"
 import { UnencryptedProcessInboxDatum } from "../../../../../mail-app/mail/model/ProcessInboxHandler"
-import { UnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
+import { MaybeUnencryptedPopulateClientSpamTrainingDatum } from "../../../../../mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import { createSpamMailDatum, SpamMailProcessor } from "../../../common/utils/spamClassificationUtils/SpamMailProcessor"
 import {
 	BlobReferenceTokenWrapper,
@@ -1501,10 +1501,13 @@ export class MailFacade {
 
 	private async encryptUnencryptedPopulateClientSpamTrainingDatum(
 		mailGroupId: Id,
-		unencryptedPopulateClientSpamTrainingData: ReadonlyArray<UnencryptedPopulateClientSpamTrainingDatum>,
+		unencryptedPopulateClientSpamTrainingData: ReadonlyArray<MaybeUnencryptedPopulateClientSpamTrainingDatum>,
 	): Promise<Array<PopulateClientSpamTrainingDatum>> {
 		const populateClientSpamTrainingData: PopulateClientSpamTrainingDatum[] = []
 		for (const unencryptedProcessInboxDatum of unencryptedPopulateClientSpamTrainingData) {
+			if (unencryptedProcessInboxDatum == null) {
+				continue
+			}
 			const mailGroupKey = await this.keyLoaderFacade.getCurrentSymGroupKey(mailGroupId)
 			const sk = this.symmetricCipherUtils.aes256RandomKey()
 			const ownerEncSessionKey = this.cryptoWrapper.encryptKeyWithVersionedKey(mailGroupKey, sk)
@@ -1525,7 +1528,7 @@ export class MailFacade {
 
 	async populateClientSpamTrainingData(
 		mailGroupId: Id,
-		unencryptedPopulateClientSpamTrainingData: ReadonlyArray<UnencryptedPopulateClientSpamTrainingDatum>,
+		unencryptedPopulateClientSpamTrainingData: ReadonlyArray<MaybeUnencryptedPopulateClientSpamTrainingDatum>,
 	) {
 		const populateClientSpamTrainingData = await this.encryptUnencryptedPopulateClientSpamTrainingDatum(
 			mailGroupId,
@@ -1553,10 +1556,17 @@ export class MailFacade {
 		modelInput: number[]
 		uploadableVectorLegacy: Uint8Array<ArrayBuffer>
 		uploadableVector: Uint8Array<ArrayBuffer>
-	}> {
+	} | null> {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
-		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
+		if (modelInput == null) {
+			return null
+		}
+		const uploadableVectors = await this.spamMailProcessor.makeUploadableVectors(datum)
+		if (uploadableVectors == null) {
+			return null
+		}
+		const { uploadableVectorLegacy, uploadableVector } = uploadableVectors
 		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
 

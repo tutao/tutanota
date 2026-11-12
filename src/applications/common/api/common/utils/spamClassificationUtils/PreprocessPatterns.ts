@@ -15,8 +15,8 @@ export const ML_URL_REGEX = /(?:https?|ftp):\/\/([\w.-]+)(?:\/[^\s]*)?/g
 
 export const ML_URL_TOKEN = " TURL$1 "
 
-// Uses a simpler matcher to avoid regex running for far too long under specific mail circumstances.
-export const ML_EMAIL_ADDR_REGEX = /(?<!\S)\S+@\S+/g
+export const ML_EMAIL_ADDR_REGEX = /(?<!\S)\S+@\S+\.\S\S+/g
+
 export const ML_EMAIL_ADDR_TOKEN = " TEMAIL "
 
 export const ML_BITCOIN_REGEX = /\b[13][a-km-zA-HJ-NP-Z1-9]{25,34}\b/g

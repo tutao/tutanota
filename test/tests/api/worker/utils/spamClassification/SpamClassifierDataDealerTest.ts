@@ -2,7 +2,7 @@ import o from "@tutao/otest"
 import {
 	SINGLE_TRAIN_INTERVAL_TRAINING_DATA_LIMIT,
 	SpamClassifierDataDealer,
-	UnencryptedPopulateClientSpamTrainingDatum,
+	MaybeUnencryptedPopulateClientSpamTrainingDatum,
 } from "../../../../../../src/applications/mail-app/workerUtils/spamClassification/SpamClassifierDataDealer"
 import {
 	compareNewestFirst,
@@ -292,7 +292,7 @@ o.spec("SpamClassifierDataDealer", () => {
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
 					vectorNewFormat: new Uint8Array(1),
-				} satisfies UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies MaybeUnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -398,7 +398,7 @@ o.spec("SpamClassifierDataDealer", () => {
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
 					vectorNewFormat: new Uint8Array(1),
-				} satisfies UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies MaybeUnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", unencryptedPayload), { times: 1 })
 
@@ -512,7 +512,7 @@ o.spec("SpamClassifierDataDealer", () => {
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
 					vectorNewFormat: new Uint8Array(1),
-				} satisfies UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies MaybeUnencryptedPopulateClientSpamTrainingDatum
 			})
 			const secondUnencryptedPayload = expectedSecondChunk.map((mail) => {
 				const isSpam = isSameId(mail.sets[0], spamFolder._id)
@@ -522,7 +522,7 @@ o.spec("SpamClassifierDataDealer", () => {
 					confidence: DEFAULT_IS_SPAM_CONFIDENCE,
 					vector: new Uint8Array(1),
 					vectorNewFormat: new Uint8Array(1),
-				} satisfies UnencryptedPopulateClientSpamTrainingDatum
+				} satisfies MaybeUnencryptedPopulateClientSpamTrainingDatum
 			})
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", firstUnencryptedPayload), { times: 1 })
 			verify(mailFacadeMock.populateClientSpamTrainingData("owner", secondUnencryptedPayload), { times: 1 })

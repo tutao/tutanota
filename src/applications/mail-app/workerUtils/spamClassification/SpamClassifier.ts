@@ -404,7 +404,11 @@ export class SpamClassifier {
 	public async createModelInputAndUploadVector(mail: Mail, mailDetails: MailDetails) {
 		const datum = createSpamMailDatum(mail, mailDetails)
 		const modelInput = await this.spamMailProcessor.processSpamMailDatum(datum)
-		const { uploadableVectorLegacy, uploadableVector } = await this.spamMailProcessor.makeUploadableVectors(datum)
+		const maybeUploadableVector = await this.spamMailProcessor.makeUploadableVectors(datum)
+		if (maybeUploadableVector == null) {
+			return null
+		}
+		const { uploadableVectorLegacy, uploadableVector } = maybeUploadableVector
 
 		return { modelInput, uploadableVectorLegacy, uploadableVector }
 	}
