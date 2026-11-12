@@ -464,7 +464,7 @@ o.spec("ProcessInboxHandler", function () {
 				verify(inboxRuleHandler.getMoveActionValue(matchingInboxRule, mailboxDetail), { times: 1 })
 
 				const processInboxDatum: UnencryptedProcessInboxDatum = {
-					classifierType: ClientClassifierType.CUSTOMER_INBOX_RULES,
+					classifierType: ClientClassifierType.CLIENT_CLASSIFICATION,
 					mailId: mail._id,
 					targetMoveFolder: spamFolder._id,
 					vectorLegacy: uploadableVectorLegacy,
