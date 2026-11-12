@@ -12,7 +12,8 @@ export enum CategoryType {
 	Account = "1",
 	Feature = "2",
 	Problem = "3",
-	Other = "4",
+	Design = "4",
+	Other = "5",
 }
 
 /**
@@ -34,7 +35,8 @@ export const CATEGORY_TO_IMAGE: Map<CategoryType, CategoryImageInfo> = new Map([
 	[CategoryType.Price, { image: "price", translationKey: "surveyPrice_label" }],
 	[CategoryType.Account, { image: "account", translationKey: "surveyAccountProblems_label" }],
 	[CategoryType.Feature, { image: "feature", translationKey: "surveyMissingFeature_label" }],
-	[CategoryType.Problem, { image: "problem", translationKey: "surveyFeatureDesignProblems_label" }],
+	[CategoryType.Problem, { image: "account", translationKey: "surveySomethingNotWorking_label" }],
+	[CategoryType.Design, { image: "problem", translationKey: "surveyFeatureDesignProblems_label" }],
 	[CategoryType.Other, { image: "other", translationKey: "surveyOtherReason_label" }],
 ])
 
