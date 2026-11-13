@@ -465,6 +465,7 @@ export async function initLocator(worker: WorkerImpl, browserData: BrowserData, 
 			locator.base.keyEncryption,
 			locator.base.cryptoWrapper,
 			locator.base.bcrypt,
+			locator.base.cachingEntityClient,
 		)
 	})
 

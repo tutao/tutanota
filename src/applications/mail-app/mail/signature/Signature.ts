@@ -4,6 +4,7 @@ import type { LoginController } from "../../../common/api/main/LoginController"
 import { EnvProvider } from "../../../../platform-kit/app-env"
 import { LINE_BREAK } from "../../../common/mailFunctionality/SharedMailUtils.js"
 import { createCustomEmailSignature, CustomEmailSignature, CustomEmailSignatureTypeRef, TutanotaProperties } from "@tutao/entities/tutanota"
+import { loadCompanySignatureHtml } from "./CompanySignature"
 import type { EntityClient } from "../../../../platform-kit/network/EntityClient"
 import { EmailSignatureType } from "../../../../entities/tutanota/Utils"
 
@@ -35,11 +36,25 @@ export function getDefaultSignature(): string {
 	)
 }
 
+export function createCompanyEmailSignature(html: string): CustomEmailSignature {
+	return createCustomEmailSignature({ name: lang.getTranslationText("companySignature_label"), value: html })
+}
+
+export function isCompanyEmailSignature(signature: CustomEmailSignature): boolean {
+	return signature.name === lang.getTranslationText("companySignature_label")
+}
+
 export async function loadCustomEmailSignatures(entityClient: EntityClient, properties: TutanotaProperties): Promise<CustomEmailSignature[]> {
+	const companySignatureHtml = await loadCompanySignatureHtml(entityClient, properties).catch((e) => {
+		console.warn("could not load company signature", e)
+		return null
+	})
+	const companySignature = companySignatureHtml != null ? [createCompanyEmailSignature(companySignatureHtml)] : []
 	if (properties.customEmailSignatures == null) {
-		return []
+		return companySignature
 	}
-	return await entityClient.loadAll(CustomEmailSignatureTypeRef, properties.customEmailSignatures)
+	const customEmailSignatures = await entityClient.loadAll(CustomEmailSignatureTypeRef, properties.customEmailSignatures)
+	return customEmailSignatures.concat(companySignature)
 }
 
 function getEmailSignature(
@@ -47,6 +62,12 @@ function getEmailSignature(
 	customEmailSignatures: readonly CustomEmailSignature[],
 	context: SignatureContext,
 ): CustomEmailSignature | null {
+	// the company signature overrides the default signature chosen by the user
+	const companySignature = customEmailSignatures.find(isCompanyEmailSignature)
+	if (companySignature) {
+		return companySignature
+	}
+
 	const { type, name } = getSignatureSetting(tutanotaProperties, context)
 
 	if (type === EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT) {

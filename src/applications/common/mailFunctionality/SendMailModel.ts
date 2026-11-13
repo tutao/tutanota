@@ -21,7 +21,6 @@ import {
 	Attachment,
 	CalendarAttendeeStatus,
 	ConversationType,
-	EmailSignatureType,
 	MailMethod,
 	MAX_ATTACHMENT_SIZE,
 	PartialRecipient,
@@ -113,7 +112,7 @@ import { UndoModel } from "../../mail-app/UndoModel"
 import { isAliasEnabledForGroupInfo } from "../../../platform-kit/network/GroupUtils"
 import { createApprovalMail } from "@tutao/entities/monitor"
 import { isDriveEnabled } from "../misc/DriveUtils"
-import { getDefaultSignature } from "../../mail-app/mail/signature/Signature"
+import { getDefaultSignature, isCompanyEmailSignature, loadCustomEmailSignatures } from "../../mail-app/mail/signature/Signature"
 
 EnvProvider.assertMainOrNode()
 
@@ -176,13 +175,7 @@ export class SendMailModel {
 	private senderAddress: string
 	private confidential: boolean
 	private sendAt: Date | null = null
-	private customEmailSignatures: LazyLoaded<CustomEmailSignature[]> = new LazyLoaded(async () => {
-		const props = this.user().props
-		if (props.customEmailSignatures === null) {
-			return []
-		}
-		return await this.entity.loadAll(CustomEmailSignatureTypeRef, props.customEmailSignatures)
-	})
+	private customEmailSignatures: LazyLoaded<CustomEmailSignature[]> = new LazyLoaded(async () => loadCustomEmailSignatures(this.entity, this.user().props))
 	// contains either Files from Tutanota or DataFiles of locally loaded files. these map 1:1 to the _attachmentButtons
 	private attachments: Array<Attachment> = []
 	// We want to keep track of these for use in the mail editor, to allowing undo of deleting images
@@ -930,14 +923,19 @@ export class SendMailModel {
 		return this.sendAt
 	}
 
-	getAvailableSignatures() {
+	getAvailableEmailSignatures() {
 		const standardSignature = !this.logins.isEnabled(FeatureType.DisableDefaultSignature)
 			? createCustomEmailSignature({
 					name: lang.getTranslation("emailSignatureTypeDefault_msg").text,
 					value: getDefaultSignature(),
 				})
 			: null
-		return (standardSignature ? [standardSignature] : []).concat(this.customEmailSignatures.isLoaded() ? this.customEmailSignatures.getLoaded() : [])
+		const loaded = this.customEmailSignatures.isLoaded() ? this.customEmailSignatures.getLoaded() : []
+
+		return loaded
+			.filter(isCompanyEmailSignature)
+			.concat(standardSignature ? [standardSignature] : [])
+			.concat(loaded.filter((signature) => !isCompanyEmailSignature(signature)))
 	}
 
 	setDefaultSendAtDate(): void {

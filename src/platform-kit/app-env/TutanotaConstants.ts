@@ -575,6 +575,7 @@ export enum UpgradePromptType {
 	SUBSCRIPTION_VIEWER,
 	APPLE_IN_APP_EVENT,
 	DRIVE,
+	COMPANY_SIGNATURE,
 }
 
 /**

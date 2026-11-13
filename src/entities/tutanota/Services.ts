@@ -4,6 +4,9 @@ import { CreateGroupPostReturn, CreateGroupPostReturnTypeRef } from "./TypeRefs.
 import { CalendarDeleteIn, CalendarDeleteInTypeRef } from "./TypeRefs.js"
 import { ChangePrimaryAddressServicePutIn, ChangePrimaryAddressServicePutInTypeRef } from "./TypeRefs.js"
 import { ClientClassifierResultPostIn, ClientClassifierResultPostInTypeRef } from "./TypeRefs.js"
+import { CompanySignaturePostIn, CompanySignaturePostInTypeRef } from "./TypeRefs.js"
+import { CompanySignaturePostOut, CompanySignaturePostOutTypeRef } from "./TypeRefs.js"
+import { CompanySignaturePutIn, CompanySignaturePutInTypeRef } from "./TypeRefs.js"
 import { UserAreaGroupDeleteData, UserAreaGroupDeleteDataTypeRef } from "./TypeRefs.js"
 import { CustomerAccountCreateData, CustomerAccountCreateDataTypeRef } from "./TypeRefs.js"
 import { DraftCreateData, DraftCreateDataTypeRef } from "./TypeRefs.js"
@@ -99,6 +102,19 @@ export const ClientClassifierResultService_POST = new PostService<ClientClassifi
 	"tutanota",
 	"ClientClassifierResultService",
 	ClientClassifierResultPostInTypeRef,
+	NullEntityTypeRef,
+)
+
+export const CompanySignatureService_POST = new PostService<CompanySignaturePostIn, CompanySignaturePostOut>(
+	"tutanota",
+	"CompanySignatureService",
+	CompanySignaturePostInTypeRef,
+	CompanySignaturePostOutTypeRef,
+)
+export const CompanySignatureService_PUT = new PutService<CompanySignaturePutIn, NullEntity>(
+	"tutanota",
+	"CompanySignatureService",
+	CompanySignaturePutInTypeRef,
 	NullEntityTypeRef,
 )
 

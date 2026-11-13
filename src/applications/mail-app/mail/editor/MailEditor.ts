@@ -625,9 +625,9 @@ export class MailEditor implements Component<MailEditorAttrs> {
 					})
 				: null
 
-		const availableSignatures = this.sendMailModel.getAvailableSignatures()
+		const availableEmailSignatures = this.sendMailModel.getAvailableEmailSignatures()
 		const appliedSignatureName = getSelectedEmailSignatureName(this.sendMailModel.getBody())
-		const signatureSelectButton = isNotEmpty(availableSignatures)
+		const signatureSelectButton = isNotEmpty(availableEmailSignatures)
 			? m(
 					IconButton,
 					attachDropdown({
@@ -645,7 +645,7 @@ export class MailEditor implements Component<MailEditorAttrs> {
 								this.rememberAppliedSignatureHtml()
 								this.sendMailModel.setBody(this.getBodyHtml(this.editor.getDOM()))
 							}
-							return availableSignatures
+							return availableEmailSignatures
 								.map((signature) => ({
 									label: lang.makeTranslation("signature", signature.name),
 									click: () => applySignature(signature),

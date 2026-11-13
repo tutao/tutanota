@@ -5,6 +5,7 @@ import { getHtmlSanitizer } from "../../../src/applications/common/misc/HtmlSani
 import type { LoginController } from "../../../src/applications/common/api/main/LoginController.js"
 import {
 	appendEmailSignature,
+	createCompanyEmailSignature,
 	markSignature,
 	prependEmailSignature,
 	replaceEmailSignature,
@@ -34,6 +35,9 @@ o.spec("MailUtilsSignatureTest", function () {
 					return TEST_DEFAULT_SIGNATURE
 				}
 
+				if (key === "companySignature_label") {
+					return "Company Signature"
+				}
 				if (key === "emailSignatureTypeDefault_msg") {
 					return "Default"
 				}
@@ -85,10 +89,11 @@ o.spec("MailUtilsSignatureTest", function () {
 	o("append - custom signature", function () {
 		const properties = downcast({
 			emailSignatureTypeForNewMails: EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM,
-			customEmailSignature: "abc",
+			defaultSignatureNameForNewMessages: "Custom",
 		})
-		o(appendEmailSignature("", properties, [], SignatureContext.NewMail)).equals(LINE_BREAK + markedSignature("abc"))
-		o(appendEmailSignature("123", properties, [], SignatureContext.NewMail)).equals("123" + LINE_BREAK + markedSignature("abc"))
+		const signatures = downcast([{ name: "Custom", value: "abc" }])
+		o(appendEmailSignature("", properties, signatures, SignatureContext.NewMail)).equals(LINE_BREAK + markedSignature("abc"))
+		o(appendEmailSignature("123", properties, signatures, SignatureContext.NewMail)).equals("123" + LINE_BREAK + markedSignature("abc"))
 	})
 	o("append - custom signature from list", function () {
 		const properties = downcast({
@@ -118,6 +123,20 @@ o.spec("MailUtilsSignatureTest", function () {
 		o(appendEmailSignature("", properties, signatures, SignatureContext.NewMail)).equals(LINE_BREAK + markedSignature("abc", "first"))
 		o(appendEmailSignature("", properties, signatures, SignatureContext.ReplyOrForward)).equals(LINE_BREAK + markedSignature("def", "second"))
 		o(prependEmailSignature("", loginController, signatures, SignatureContext.ReplyOrForward)).equals(LINE_BREAK + markedSignature("def", "second"))
+	})
+	o("company signature overrides the default signature in every context", function () {
+		const properties = downcast({
+			emailSignatureTypeForNewMails: EmailSignatureType.EMAIL_SIGNATURE_TYPE_NONE,
+			emailSignatureTypeForRepliesAndForwards: EmailSignatureType.EMAIL_SIGNATURE_TYPE_DEFAULT,
+		})
+		const loginController = downcast({ getUserController: () => ({ isInternalUser: () => true, props: properties }) })
+		const companySignature = createCompanyEmailSignature("company")
+		o(appendEmailSignature("", properties, [companySignature], SignatureContext.NewMail)).equals(
+			LINE_BREAK + markedSignature("company", "Company Signature"),
+		)
+		o(prependEmailSignature("", loginController, [companySignature], SignatureContext.ReplyOrForward)).equals(
+			LINE_BREAK + markedSignature("company", "Company Signature"),
+		)
 	})
 	o("replace - existing signature", function () {
 		const body = "123" + LINE_BREAK + markedSignature("abc")
@@ -162,8 +181,9 @@ o.spec("MailUtilsSignatureTest", function () {
 	})
 	o("prepend - custom signature", function () {
 		const loginController = createLoginController(EmailSignatureType.EMAIL_SIGNATURE_TYPE_CUSTOM, "abc", true)
-		o(prependEmailSignature("", loginController, [], SignatureContext.ReplyOrForward)).equals(LINE_BREAK + markedSignature("abc"))
-		o(prependEmailSignature("123", loginController, [], SignatureContext.ReplyOrForward)).equals(
+		const signatures = downcast([{ name: "Custom", value: "abc" }])
+		o(prependEmailSignature("", loginController, signatures, SignatureContext.ReplyOrForward)).equals(LINE_BREAK + markedSignature("abc"))
+		o(prependEmailSignature("123", loginController, signatures, SignatureContext.ReplyOrForward)).equals(
 			LINE_BREAK + markedSignature("abc") + LINE_BREAK + LINE_BREAK + LINE_BREAK + "123",
 		)
 	})
@@ -178,6 +198,8 @@ function createLoginController(signatureType: EmailSignatureType, signature: str
 	const properties = downcast({
 		emailSignatureTypeForNewMails: signatureType,
 		emailSignatureTypeForRepliesAndForwards: signatureType,
+		defaultSignatureNameForNewMessages: "Custom",
+		defaultSignatureNameForRepliesAndForwards: "Custom",
 		customEmailSignature: signature,
 	})
 	const loginController = downcast({

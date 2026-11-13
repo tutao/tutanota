@@ -29,6 +29,7 @@ dom.reconfigure({ url: "http://tutanota.com" })
 globalThis.window.getElementsByTagName = function () {} // for styles.js
 globalThis.window.document.addEventListener = function () {}
 globalThis.document = globalThis.window.document
+globalThis.InputEvent = globalThis.window.InputEvent // used by HtmlEditor at module level
 // globalThis.navigator = globalThis.window.navigator
 const local = {}
 globalThis.localStorage = {

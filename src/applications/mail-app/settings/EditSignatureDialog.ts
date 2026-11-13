@@ -9,7 +9,16 @@ import { newPromise, ofClass } from "../../../platform-kit/utils"
 import { locator } from "../../common/api/main/CommonLocator"
 import { DropDownSelectorNew } from "../../../ui/base/DropDownSelectorNew"
 import { insertInlineImageB64ClickHandler } from "../../common/mailFunctionality/SharedMailUtils.js"
-import { createCustomEmailSignature, CustomEmailSignature, CustomEmailSignatureTypeRef, TutanotaProperties } from "@tutao/entities/tutanota"
+import {
+	CompanySignatureTemplate,
+	CompanySignatureTemplateTypeRef,
+	createCustomEmailSignature,
+	CustomEmailSignature,
+	CustomEmailSignatureTypeRef,
+	TutanotaProperties,
+} from "@tutao/entities/tutanota"
+import { idToElementId } from "@tutao/meta"
+import { showEditCompanySignatureTemplateDialog } from "./EditCompanySignatureTemplateDialog"
 import { EmailSignatureType } from "../../../entities/tutanota/Utils"
 import { getHtmlSanitizer } from "../../common/misc/HtmlSanitizer"
 import { TableNew, TableNewRowAttrs } from "../../../ui/base/TableNew"
@@ -18,6 +27,7 @@ import { ButtonSize } from "../../../ui/base/ButtonSize"
 import { TextField } from "../../../ui/base/TextField"
 import { assertNotNull } from "../../../platform-kit/utils/Utils"
 import { getDefaultSignature, SignatureContext, SignatureSetting } from "../mail/signature/Signature"
+import { IconButton } from "../../../ui/base/IconButton"
 
 EnvProvider.assertMainOrNode()
 // signatures can become large, for example if they include a base64 embedded image. we ask for confirmation in such cases
@@ -120,6 +130,11 @@ export async function showEditSignatureDialog(props: TutanotaProperties) {
 	let selectedForNewMails = selectionFromProps(props, SignatureContext.NewMail, customSignatures)
 	let selectedForRepliesAndForwards = selectionFromProps(props, SignatureContext.ReplyOrForward, customSignatures)
 
+	const companySignatureTemplate: CompanySignatureTemplate | null =
+		props.companySignatureTemplate != null
+			? await locator.entityClient.load(CompanySignatureTemplateTypeRef, idToElementId(props.companySignatureTemplate)).catch(() => null)
+			: null
+
 	const previewForNewMails = createPreview("previewForSignatureForNewMails_label")
 	const previewForRepliesAndForwards = createPreview("previewForSignatureForRepliesAndForwards_label")
 	const updatePreviews = () => {
@@ -207,6 +222,24 @@ export async function showEditSignatureDialog(props: TutanotaProperties) {
 		return items
 	}
 
+	const renderCompanySignature = (template: CompanySignatureTemplate) => [
+		m(TextField, {
+			class: "mt-24",
+			label: "companySignature_label",
+			value: [template.name, template.role].filter((value) => value != null && value !== "").join(", "),
+			isReadOnly: true,
+			injectionsRight: () => [
+				m(IconButton, {
+					label: "edit_action",
+					icon: Icons.PenFilled,
+					size: ButtonSize.Compact,
+					click: () => showEditCompanySignatureTemplateDialog(template),
+				}),
+			],
+		}),
+		m(".small.mt-8", lang.get("companySignatureDisclaimer_msg")),
+	]
+
 	const form = {
 		view: () => [
 			m(DropDownSelectorNew, {
@@ -231,6 +264,7 @@ export async function showEditSignatureDialog(props: TutanotaProperties) {
 				class: "mt-16",
 			}),
 			m(previewForRepliesAndForwards),
+			companySignatureTemplate != null ? renderCompanySignature(companySignatureTemplate) : null,
 			listId != null
 				? m(TableNew, {
 						class: "mt-24",

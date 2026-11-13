@@ -780,6 +780,8 @@ pub struct TutanotaProperties {
 	pub inboxRules: Vec<InboxRule>,
 	#[serde(rename = "2270")]
 	pub customEmailSignatures: Option<GeneratedId>,
+	#[serde(rename = "2286")]
+	pub companySignatureTemplate: Option<GeneratedId>,
 
 	#[serde(default)]
 	pub _errors: Errors,
@@ -5957,6 +5959,179 @@ impl Entity for CustomEmailSignature {
 		TypeRef {
 			app: AppName::Tutanota,
 			type_id: TypeId::from(2256),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureTemplate {
+	#[serde(rename = "2273")]
+	pub _id: Option<GeneratedId>,
+	#[serde(rename = "2274")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2275")]
+	pub _format: i64,
+	#[serde(rename = "2276")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2277")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2278")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2279")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2280")]
+	pub name: Option<String>,
+	#[serde(rename = "2281")]
+	pub email: Option<String>,
+	#[serde(rename = "2282")]
+	pub phoneNumber: Option<String>,
+	#[serde(rename = "2283")]
+	pub role: Option<String>,
+	#[serde(rename = "2284")]
+	pub department: Option<String>,
+	#[serde(rename = "2285")]
+	pub signatureTemplate: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignatureTemplate {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2271),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureTemplateTransferAggregatedType {
+	#[serde(rename = "2288")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2289")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2290")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2291")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2292")]
+	pub name: Option<String>,
+	#[serde(rename = "2293")]
+	pub email: Option<String>,
+	#[serde(rename = "2294")]
+	pub signatureTemplate: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignatureTemplateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2287),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct UpdateCompanySignatureTemplateTransferAggregatedType {
+	#[serde(rename = "2296")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2297")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2298")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2299")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2300")]
+	pub signatureTemplate: Option<String>,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for UpdateCompanySignatureTemplateTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2295),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignaturePostIn {
+	#[serde(rename = "2302")]
+	pub _format: i64,
+	#[serde(rename = "2303")]
+	pub user: GeneratedId,
+	#[serde(rename = "2304")]
+	pub companySignatureTemplate: CompanySignatureTemplateTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignaturePostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2301),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignaturePostOut {
+	#[serde(rename = "2306")]
+	pub _format: i64,
+	#[serde(rename = "2307")]
+	pub companySignatureTemplate: GeneratedId,
+}
+
+impl Entity for CompanySignaturePostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2305),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignaturePutIn {
+	#[serde(rename = "2309")]
+	pub _format: i64,
+	#[serde(rename = "2310")]
+	pub companySignatureTemplate: GeneratedId,
+	#[serde(rename = "2311")]
+	pub user: GeneratedId,
+	#[serde(rename = "2312")]
+	pub companySignatureWithNewTemplate: UpdateCompanySignatureTemplateTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignaturePutIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Tutanota,
+			type_id: TypeId::from(2308),
 		}
 	}
 }

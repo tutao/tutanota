@@ -11,6 +11,9 @@ use crate::entities::generated::tutanota::CreateGroupPostReturn;
 use crate::entities::generated::tutanota::CalendarDeleteIn;
 use crate::entities::generated::tutanota::ChangePrimaryAddressServicePutIn;
 use crate::entities::generated::tutanota::ClientClassifierResultPostIn;
+use crate::entities::generated::tutanota::CompanySignaturePostIn;
+use crate::entities::generated::tutanota::CompanySignaturePostOut;
+use crate::entities::generated::tutanota::CompanySignaturePutIn;
 use crate::entities::generated::tutanota::UserAreaGroupDeleteData;
 use crate::entities::generated::tutanota::CustomerAccountCreateData;
 use crate::entities::generated::tutanota::DraftCreateData;
@@ -101,6 +104,13 @@ pub struct ClientClassifierResultService;
 
 crate::service_impl!(declare, ClientClassifierResultService, "tutanota/clientclassifierresultservice", 119);
 crate::service_impl!(POST, ClientClassifierResultService, ClientClassifierResultPostIn, ());
+
+
+pub struct CompanySignatureService;
+
+crate::service_impl!(declare, CompanySignatureService, "tutanota/companysignatureservice", 119);
+crate::service_impl!(POST, CompanySignatureService, CompanySignaturePostIn, CompanySignaturePostOut);
+crate::service_impl!(PUT, CompanySignatureService, CompanySignaturePutIn, ());
 
 
 pub struct ContactListGroupService;

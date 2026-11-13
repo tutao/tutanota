@@ -1,6 +1,6 @@
 import m, { Children } from "mithril"
 import { EnvProvider, FeatureType } from "@tutao/app-env"
-import { clear, downcast, LazyLoaded, neverNull, noOp, promiseMap } from "@tutao/utils"
+import { clear, downcast, LazyLoaded, neverNull, noOp, ofClass, promiseMap } from "@tutao/utils"
 import { InfoLink, lang } from "../../../../ui/utils/LanguageViewModel.js"
 import { progressIcon } from "../../../../ui/base/Icon.js"
 import { showProgressDialog } from "../../../../ui/dialogs/ProgressDialog.js"
@@ -11,6 +11,8 @@ import {
 	BookingTypeRef,
 	BrandingDomainService_GET,
 	CertificateInfo,
+	CompanySignature,
+	CompanySignatureTypeRef,
 	createStringWrapper,
 	Customer,
 	CustomerInfo,
@@ -33,6 +35,8 @@ import { WhitelabelRegistrationSettings, WhitelabelRegistrationSettingsAttrs } f
 import { WhitelabelCustomMetaTagsSettings, WhitelabelCustomMetaTagsSettingsAttrs } from "./WhitelabelCustomMetaTagsSettings"
 import { WhitelabelStatusSettings } from "./WhitelabelStatusSettings"
 import { WhitelabelNotificationEmailSettings } from "./WhitelabelNotificationEmailSettings"
+import { CompanySignatureSettings } from "./CompanySignatureSettings"
+import { removeCompanySignature, showBuyOrSetCompanySignatureDialog, showCompanySignatureDialog } from "../EditCompanySignatureDialog.js"
 import type { GermanLanguageCode } from "./WhitelabelGermanLanguageFileSettings"
 import { WhitelabelGermanLanguageFileSettings } from "./WhitelabelGermanLanguageFileSettings"
 import type { UpdatableSettingsViewer } from "../Interfaces.js"
@@ -46,6 +50,7 @@ import { showBuyOrSetNotificationEmailDialog } from "../EditNotificationEmailDia
 import type { WhitelabelThemeGenerator } from "../../../../ui/WhitelabelThemeGenerator"
 import type { ThemeController } from "../../../../ui/ThemeController"
 import { ThemeCustomizations } from "../../../../ui/WhitelabelCustomizations"
+import { NotFoundError } from "@tutao/http-client/error"
 
 EnvProvider.assertMainOrNode()
 
@@ -58,6 +63,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 	private _customerInfo: LazyLoaded<CustomerInfo>
 	private _planConfig: LazyLoaded<PlanConfiguration>
 	private _customerProperties: LazyLoaded<CustomerProperties>
+	private _companySignature: LazyLoaded<CompanySignature | null>
 	private _lastBooking: Booking | null
 	private _entityClient: EntityClient
 	private _logins: LoginController
@@ -77,6 +83,12 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		this._customerProperties = new LazyLoaded(() =>
 			this._customer.getAsync().then((customer) => locator.entityClient.load(CustomerPropertiesTypeRef, idToElementId(neverNull(customer.properties)))),
 		)
+		this._companySignature = new LazyLoaded(async () => {
+			const customerInfo = await this._customerInfo.getAsync()
+			return customerInfo.companySignature
+				? locator.entityClient.load(CompanySignatureTypeRef, idToElementId(customerInfo.companySignature)).catch(ofClass(NotFoundError, (_) => null))
+				: null
+		})
 		this._lastBooking = null
 
 		this._updateFields()
@@ -94,6 +106,7 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 						m("small.text-break", [m(`a[href=${InfoLink.Whitelabel}][target=_blank]`, InfoLink.Whitelabel)]),
 						this._renderWhitelabelStatusSettings(),
 						this._renderNotificationEmailSettings(),
+						this._renderCompanySignatureSettings(),
 						m(".h4.mt-32", lang.get("whitelabelDomain_label")),
 						brandingDomainConfig,
 						this._renderThemeSettings(),
@@ -335,6 +348,8 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				this._customJsonTheme = themeCustomizations
 				m.redraw()
 				this._customerProperties.getAsync().then(m.redraw)
+				this._companySignature.reset()
+				this._companySignature.getAsync().then(m.redraw)
 			})
 	}
 
@@ -365,6 +380,18 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 		return m(WhitelabelNotificationEmailSettings, whitelabelNotificationEmailSettingsAttrs)
 	}
 
+	_renderCompanySignatureSettings(): Children {
+		const companySignature = this._companySignature.getSync()
+		if (!this._companySignature.isLoaded()) return null
+
+		return m(CompanySignatureSettings, {
+			companySignature,
+			onAddCompanySignature: () => showBuyOrSetCompanySignatureDialog(this._lastBooking),
+			onEditCompanySignature: async (signature) => await showCompanySignatureDialog(signature),
+			onRemoveCompanySignature: async () => await removeCompanySignature(),
+		})
+	}
+
 	_removeNotificationMailTemplate(template: NotificationMailTemplate) {
 		showProgressDialog(
 			"pleaseWait_msg",
@@ -390,6 +417,10 @@ export class WhitelabelSettingsViewer implements UpdatableSettingsViewer {
 				this._customerInfo.reset()
 
 				return this._updateFields()
+			} else if (isUpdateForTypeRef(CompanySignatureTypeRef, update)) {
+				this._companySignature.reset()
+
+				return this._companySignature.getAsync().then(() => m.redraw())
 			} else if (isUpdateForTypeRef(WhitelabelConfigTypeRef, update) && update.operation === OperationType.UPDATE) {
 				return this._updateFields()
 			} else if (isUpdateForTypeRef(CustomerPropertiesTypeRef, update) && update.operation === OperationType.UPDATE) {

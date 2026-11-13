@@ -246,6 +246,7 @@ export async function initLocator(worker: DriveWorkerImpl, browserData: BrowserD
 			locator.base.keyEncryption,
 			locator.base.cryptoWrapper,
 			locator.base.bcrypt,
+			locator.base.cachingEntityClient,
 		)
 	})
 

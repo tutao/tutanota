@@ -776,6 +776,8 @@ pub struct CustomerInfo {
 	pub revocationRequest: Option<IdTupleGenerated>,
 	#[serde(rename = "2797")]
 	pub storeNotificationLog: Option<GeneratedId>,
+	#[serde(rename = "3011")]
+	pub companySignature: Option<GeneratedId>,
 }
 
 impl Entity for CustomerInfo {
@@ -7434,6 +7436,122 @@ impl Entity for UserMigrationServicePostOut {
 		TypeRef {
 			app: AppName::Sys,
 			type_id: TypeId::from(2982),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignature {
+	#[serde(rename = "2988")]
+	pub _id: Option<GeneratedId>,
+	#[serde(rename = "2989")]
+	pub _permissions: GeneratedId,
+	#[serde(rename = "2990")]
+	pub _format: i64,
+	#[serde(rename = "2991")]
+	pub _ownerGroup: Option<GeneratedId>,
+	#[serde(rename = "2992")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2993")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "2994")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "2995")]
+	pub companySignature: String,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignature {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2986),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureTransferAggregatedType {
+	#[serde(rename = "2997")]
+	pub _id: Option<CustomId>,
+	#[serde(rename = "2998")]
+	#[serde(with = "serde_bytes")]
+	pub _ownerEncSessionKey: Option<Vec<u8>>,
+	#[serde(rename = "2999")]
+	pub _ownerKeyVersion: Option<i64>,
+	#[serde(rename = "3000")]
+	#[serde(with = "serde_bytes")]
+	pub _kdfNonce: Option<Vec<u8>>,
+	#[serde(rename = "3001")]
+	pub companySignature: String,
+}
+
+impl Entity for CompanySignatureTransferAggregatedType {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(2996),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureManagementPostIn {
+	#[serde(rename = "3003")]
+	pub _format: i64,
+	#[serde(rename = "3004")]
+	pub companySignature: CompanySignatureTransferAggregatedType,
+
+	#[serde(default)]
+	pub _errors: Errors,
+}
+
+impl Entity for CompanySignatureManagementPostIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3002),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureManagementPostOut {
+	#[serde(rename = "3006")]
+	pub _format: i64,
+	#[serde(rename = "3007")]
+	pub companySignature: GeneratedId,
+}
+
+impl Entity for CompanySignatureManagementPostOut {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3005),
+		}
+	}
+}
+
+#[derive(uniffi::Record, Clone, Serialize, Deserialize)]
+#[cfg_attr(any(test, feature = "testing"), derive(PartialEq, Debug))]
+pub struct CompanySignatureManagementDeleteIn {
+	#[serde(rename = "3009")]
+	pub _format: i64,
+}
+
+impl Entity for CompanySignatureManagementDeleteIn {
+	fn type_ref() -> TypeRef {
+		TypeRef {
+			app: AppName::Sys,
+			type_id: TypeId::from(3008),
 		}
 	}
 }
