@@ -19,38 +19,21 @@ import de.tutao.tutashared.credentials.CredentialsEncryptionFactory
 import de.tutao.tutashared.data.AppDatabase
 import de.tutao.tutashared.data.SseInfo
 import de.tutao.tutashared.file.TempFs
-import de.tutao.tutashared.ipc.NativeCredentialsFacade
 import de.tutao.tutashared.offline.AndroidSqlCipherFacade
 import de.tutao.tutashared.push.IPushNotificationJobState
 import de.tutao.tutashared.push.LooperThread
 import de.tutao.tutashared.push.NetworkObserver
+import de.tutao.tutashared.push.PushNotificationServiceStateIndicator
+import de.tutao.tutashared.push.PushNotificationServiceStates
 import de.tutao.tutashared.push.SseClient
+import de.tutao.tutashared.push.SseListener
 import de.tutao.tutashared.push.SseStorage
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import java.io.File
 import java.security.SecureRandom
 import java.util.TimeZone
 import java.util.concurrent.TimeUnit
-
-private enum class State {
-	/** onCreate was called but onStartCommand hasn't been yet. */
-	CREATED,
-
-	/** onStartCommand has been called. We start holding wakeLock via job. */
-	STARTED,
-
-	/** onStartingConnection has been called. */
-	CONNECTING,
-
-	/** we received an initial message from the server, we release wakeLock by finished the job. */
-	CONNECTED,
-
-	/** The system forcibly stopped us. */
-	STOPPED
-}
 
 /**
  * Main entry point for the background service that listens for notifications via SSE.
@@ -69,10 +52,10 @@ private enum class State {
 class PushNotificationService : LifecycleJobService() {
 	@Volatile
 	private var jobParameters: JobParameters? = null
-	private val jobState = PushNotificationJobState(false)
+	private val jobState: IPushNotificationJobState = PushNotificationJobState(false)
 	private lateinit var localNotificationsFacade: LocalNotificationsFacade
 	private lateinit var sseClient: SseClient
-	private var state = State.STOPPED
+	private var serviceState = PushNotificationServiceStateIndicator(PushNotificationServiceStates.STOPPED)
 		set(value) {
 			Log.d(TAG, "State $field -> $value")
 			field = value
@@ -82,7 +65,7 @@ class PushNotificationService : LifecycleJobService() {
 	override fun onCreate() {
 		super.onCreate()
 		Log.d(TAG, "onCreate")
-		state = State.CREATED
+		serviceState.state = PushNotificationServiceStates.CREATED
 
 		finishJobThread.start()
 
@@ -102,19 +85,18 @@ class PushNotificationService : LifecycleJobService() {
 			TimeZone.getDefault()
 		)
 		alarmNotificationsManager.reScheduleAlarms()
+
 		val suspensionHandler = SuspensionHandler(dateProvider)
+		val notificationsHandler = TutanotaNotificationsHandler(localNotificationsFacade, sseStorage, nativeCredentialsFacade, alarmNotificationsManager, NetworkUtils.defaultClient, lifecycleScope, { AndroidSqlCipherFacade(this@PushNotificationService) }, this.filesDir, suspensionHandler)
 		sseClient = SseClient(
 			crypto,
 			sseStorage,
 			NetworkObserver(this, this, jobState),
-			NotificationSseListener(
-				localNotificationsFacade,
-				sseStorage,
-				nativeCredentialsFacade,
-				alarmNotificationsManager,
-				NetworkUtils.defaultClient,
-				this.filesDir,
-				suspensionHandler
+			SseListener(
+				serviceState,
+				notificationsHandler,
+				::finishJobIfNeeded,
+				::scheduleJobFinish,
 			),
 			NetworkUtils.defaultClient
 		)
@@ -150,9 +132,9 @@ class PushNotificationService : LifecycleJobService() {
 		val maybeSender = intent?.getStringExtra("sender")
 		Log.d(TAG, "onStartCommand, sender: $maybeSender")
 
-		this.state = when (this.state) {
-			State.STOPPED, State.CREATED, State.STARTED -> State.STARTED
-			State.CONNECTING, State.CONNECTED -> this.state
+		this.serviceState.state = when (this.serviceState.state) {
+			PushNotificationServiceStates.STOPPED, PushNotificationServiceStates.CREATED, PushNotificationServiceStates.STARTED -> PushNotificationServiceStates.STARTED
+			PushNotificationServiceStates.CONNECTING, PushNotificationServiceStates.CONNECTED -> this.serviceState.state
 		}
 
 		return START_STICKY
@@ -192,7 +174,7 @@ class PushNotificationService : LifecycleJobService() {
 
 	override fun onDestroy() {
 		Log.d(TAG, "onDestroy")
-		this.state = State.STOPPED
+		this.serviceState.state = PushNotificationServiceStates.STOPPED
 		super.onDestroy()
 	}
 
@@ -207,71 +189,10 @@ class PushNotificationService : LifecycleJobService() {
 		}
 	}
 
-	private inner class NotificationSseListener(
-		notificationsFacade: LocalNotificationsFacade,
-		sseStorage: SseStorage,
-		nativeCredentialsFacade: NativeCredentialsFacade,
-		alarmNotificationsManager: AlarmNotificationsManager,
-		defaultClient: OkHttpClient,
-		appDir: File,
-		suspensionHandler: SuspensionHandler
-	) : SseClient.SseListener {
-
-		private val tutanotaNotificationsHandler =
-			TutanotaNotificationsHandler(
-				notificationsFacade,
-				sseStorage,
-				nativeCredentialsFacade,
-				alarmNotificationsManager,
-				defaultClient,
-				lifecycleScope,
-				{ AndroidSqlCipherFacade(this@PushNotificationService) },
-				appDir,
-				suspensionHandler
-			)
-
-		override fun onStartingConnection(): Boolean {
-			Log.d(TAG, "onStartingConnection")
-			state = State.CONNECTING
-			return tutanotaNotificationsHandler.onConnect()
-		}
-
-		override fun onMessage(data: String, sseInfo: SseInfo?) {
-			if ("notification" == data) {
-				tutanotaNotificationsHandler.onNewNotificationAvailable(sseInfo)
-			}
-		}
-
-		override fun onConnectionEstablished() {
-			Log.d(TAG, "onConnectionEstablished")
-			state = State.CONNECTED
-
-			// After establishing connection we finish in some time.
-			scheduleJobFinish()
-		}
-
-		override fun onConnectionBroken() {
-			Log.d(TAG, "onConnectionBroken")
-			state = State.CONNECTING
-		}
-
-		override fun onNotAuthorized(userId: String) {
-			tutanotaNotificationsHandler.onNotAuthorized(userId)
-		}
-
-		override fun onStoppingReconnectionAttempts() {
-			Log.d(TAG, "onStoppingReconnectionAttempts")
-			state = when (state) {
-				State.CONNECTING -> State.STARTED
-				else -> state
-			}
-			finishJobIfNeeded()
-		}
-	}
-
 
 	internal class PushNotificationJobState(
 		/** Whether jobParameters is not null; should be true when a job is currently running. */
 		override var active: Boolean
 	) : IPushNotificationJobState
+
 }
