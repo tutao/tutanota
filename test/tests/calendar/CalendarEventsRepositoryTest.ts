@@ -14,76 +14,86 @@ import { CalendarFacade } from "../../../src/applications/common/api/worker/faca
 import { getFirstOrThrow, getStartOfDay } from "../../../src/platform-kit/utils"
 import { EventWrapper } from "../../../src/applications/calendar-app/calendar/view/CalendarViewModel"
 
-import { CalendarEventTypeRef, CalendarGroupRootTypeRef, GroupSettings, UserSettingsGroupRoot, UserSettingsGroupRootTypeRef } from "@tutao/entities/tutanota"
+import {
+	CalendarEventTypeRef,
+	CalendarGroupRootTypeRef,
+	Contact,
+	GroupSettings,
+	UserSettingsGroupRoot,
+	UserSettingsGroupRootTypeRef,
+} from "@tutao/entities/tutanota"
 import { OperationType } from "../../../src/platform-kit/meta"
 
 import { GroupMembership, UserTypeRef } from "@tutao/entities/sys"
 import { EntityUpdateData, EntityUpdatesListener } from "../../../src/platform-kit/instance-pipeline/utils/EntityUpdateUtils"
+import { ContactModel } from "../../../src/applications/common/contactsFunctionality/ContactModel"
 
 o.spec("CalendarEventRepositoryTest", function () {
-	o.spec("onEntityUpdatesReceived", function () {
-		const initialCalendarGroupId = "initialCalendarGroupId"
-		const userGroupId = "userGroupId"
-		const shotEventsListId = "shotEventsListId"
-		const timezone = getTimeZone()
+	const initialCalendarGroupId = "initialCalendarGroupId"
+	const userGroupId = "userGroupId"
+	const shotEventsListId = "shotEventsListId"
+	const timezone = getTimeZone()
 
-		const eventControllerMock: EventController = object()
-		/**
-		 * Holds the captured callback for handling entityUpdates
-		 */
-		let entityUpdatesListener: EntityUpdatesListener | null = null
+	const eventControllerMock: EventController = object()
+	/**
+	 * Holds the captured callback for handling entityUpdates
+	 */
+	let entityUpdatesListener: EntityUpdatesListener | null = null
 
-		let userControllerMock: UserController
-		let calendarFacade: CalendarFacade
-		let loginControllerMock: LoginController
-		let calendarModelMock: CalendarModel
-		let entityClientMock: EntityClient
-		let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
-		let calendarEventsRepository: CalendarEventsRepository
-		let initialCalendarInfos: Map<string, CalendarInfo>
-		let initialCalendarMembership: GroupMembership
-		let abortController: AbortController
+	let userControllerMock: UserController
+	let calendarFacade: CalendarFacade
+	let loginControllerMock: LoginController
+	let calendarModelMock: CalendarModel
+	let contactModelMock: ContactModel
+	let entityClientMock: EntityClient
+	let calendarInfosStreamMock: Stream<ReadonlyMap<Id, CalendarInfo>>
+	let calendarEventsRepository: CalendarEventsRepository
+	let initialCalendarInfos: Map<string, CalendarInfo>
+	let initialCalendarMembership: GroupMembership
+	let abortSignal: AbortSignal
 
-		o.beforeEach(function () {
-			userControllerMock = object<UserController>()
-			calendarFacade = object<CalendarFacade>()
-			loginControllerMock = object()
-			calendarModelMock = object()
-			entityClientMock = object<EntityClient>()
+	o.beforeEach(function () {
+		userControllerMock = object<UserController>()
+		calendarFacade = object<CalendarFacade>()
+		loginControllerMock = object()
+		calendarModelMock = object()
+		contactModelMock = object<ContactModel>()
+		entityClientMock = object<EntityClient>()
 
-			abortController = new AbortController()
+		abortSignal = new AbortController().signal
 
-			calendarInfosStreamMock = object()
+		calendarInfosStreamMock = object()
 
-			// Capturing the callback function passed as argument to addEntityListener at CalendarEventsRepository constructor
-			when(eventControllerMock.addEntityUpdatesListener(matchers.anything())).thenDo((listener) => {
-				entityUpdatesListener = listener
-			})
-
-			initialCalendarMembership = object()
-			initialCalendarMembership.group = initialCalendarGroupId
-			when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership])
-			when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
-
-			when(calendarModelMock.getCalendarInfosStream()).thenReturn(calendarInfosStreamMock)
-			when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
-
-			const calendarInfo: CalendarInfo = object()
-			calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
-			initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
-			when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
-
-			calendarEventsRepository = new CalendarEventsRepository(
-				calendarModelMock,
-				calendarFacade,
-				timezone,
-				entityClientMock,
-				eventControllerMock,
-				object(),
-				loginControllerMock,
-			)
+		// Capturing the callback function passed as argument to addEntityListener at CalendarEventsRepository constructor
+		when(eventControllerMock.addEntityUpdatesListener(matchers.anything())).thenDo((listener) => {
+			entityUpdatesListener = listener
 		})
 
+		initialCalendarMembership = object()
+		initialCalendarMembership.group = initialCalendarGroupId
+		when(userControllerMock.getCalendarMemberships()).thenReturn([initialCalendarMembership])
+		when(loginControllerMock.getUserController()).thenReturn(userControllerMock)
+
+		when(calendarModelMock.getCalendarInfosStream()).thenReturn(calendarInfosStreamMock)
+		when(calendarInfosStreamMock.map(matchers.anything())).thenDo(() => {})
+
+		const calendarInfo: CalendarInfo = object()
+		calendarInfo.groupRoot = createTestEntity(CalendarGroupRootTypeRef, { shortEvents: shotEventsListId })
+		initialCalendarInfos = new Map([[initialCalendarGroupId, calendarInfo]])
+		when(calendarModelMock.getCalendarInfos()).thenResolve(initialCalendarInfos)
+
+		calendarEventsRepository = new CalendarEventsRepository(
+			calendarModelMock,
+			calendarFacade,
+			timezone,
+			entityClientMock,
+			eventControllerMock,
+			contactModelMock,
+			loginControllerMock,
+		)
+	})
+
+	o.spec("onEntityUpdatesReceived", function () {
 		o.spec("createOrUpdateCalendarEvent", function () {
 			o.test("new event happens on a not loaded month", async function () {
 				// Arrange
@@ -105,11 +115,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded(
-					[[dateFarFromEvent.getFullYear(), dateFarFromEvent.getMonth() + 1]],
-					abortController.signal,
-					null,
-				)
+				await calendarEventsRepository.loadMonthsIfNeeded([[dateFarFromEvent.getFullYear(), dateFarFromEvent.getMonth() + 1]], abortSignal, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -148,7 +154,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock,
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartYear, eventStartMonth]], abortController.signal, null)
+				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartYear, eventStartMonth]], abortSignal, null)
 
 				// Act
 				const calendarEventUpdate: EntityUpdateData = object()
@@ -175,7 +181,7 @@ o.spec("CalendarEventRepositoryTest", function () {
 					daysToEventsMock, // Provide a initialized Map with an empty day
 				)
 				// Making sure EventRepository.daysToEvents and EventRepository.loadedMonths is initialized
-				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartDate.getFullYear(), eventStartDate.getMonth() + 1]], abortController.signal, null)
+				await calendarEventsRepository.loadMonthsIfNeeded([[eventStartDate.getFullYear(), eventStartDate.getMonth() + 1]], abortSignal, null)
 
 				const newCalendarGroupId = "newCalendarGroupId"
 				const newCalendarInfo: CalendarInfo = object()
@@ -323,6 +329,268 @@ o.spec("CalendarEventRepositoryTest", function () {
 			// test case for calendar with multiple events
 			// test case for calendar with all day event
 			// test case for calendar open in multiday
+		})
+	})
+	o.spec("Birthdays", function () {
+		o.test("A birthday event will be created if the contact's birth year and month are loaded", async function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+			const eventMap: DaysToEvents = new Map()
+			when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+
+			await calendarEventsRepository.loadMonthsIfNeeded([[birthdayYear, birthdayMonth]], abortSignal, null)
+
+			await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+			const eventMapKey = new Date(birthdayYear, birthdayMonth - 1, birthdayDay).getTime()
+			const eventsOnDay = eventMap.get(eventMapKey)
+			o.check(eventsOnDay?.length).equals(1)
+			o.check(eventsOnDay?.[0].event.summary).equals("Alice's birthday")
+		})
+		o.test("A birthday event will be created when loading a new year+month where the month matches a birthday's month", async function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+			const eventMap: DaysToEvents = new Map()
+			when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+
+			await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+			const expectedAge = 30
+			const loadedYear = birthdayYear + expectedAge
+			await calendarEventsRepository.loadMonthsIfNeeded([[loadedYear, birthdayMonth]], abortSignal, null)
+
+			const eventsOnDay = eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())
+			o.check(eventsOnDay?.length).equals(1)
+			o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday (${expectedAge} years old)`)
+		})
+		o.test("A birthday event will NOT be created when loading a new year+month year is before the birth year", async function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+			const eventMap: DaysToEvents = new Map()
+			when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+
+			await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+			const loadedYear = birthdayYear - 1
+			await calendarEventsRepository.loadMonthsIfNeeded([[loadedYear, birthdayMonth]], abortSignal, null)
+
+			o.check(eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())).equals(undefined)
+		})
+		o.spec("Birthday events will be created on loaded year+months where the month matches the birthday month", function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			const maxLoadedYear = 2100
+
+			const eventMap: DaysToEvents = new Map()
+
+			o.beforeEach(function () {
+				when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+				eventMap.clear()
+				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+			})
+
+			o.test("Test with months loaded before the contact creation", async function () {
+				for (let yearToLoad = birthdayYear + 1; yearToLoad <= maxLoadedYear; ++yearToLoad) {
+					await calendarEventsRepository.loadMonthsIfNeeded([[yearToLoad, birthdayMonth]], abortSignal, null)
+				}
+
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+				for (let loadedYear = birthdayYear + 1; loadedYear <= maxLoadedYear; ++loadedYear) {
+					const eventsOnDay = eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())
+					o.check(eventsOnDay?.length).equals(1)
+					o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday (${loadedYear - birthdayYear} years old)`)
+				}
+			})
+			o.test("Test with contact creation before loading months", async function () {
+				const eventMap: DaysToEvents = new Map()
+				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+				for (let year = birthdayYear + 1; year <= maxLoadedYear; ++year) {
+					await calendarEventsRepository.loadMonthsIfNeeded([[year, birthdayMonth]], abortSignal, null)
+
+					const eventsOnDay = eventMap.get(new Date(year, birthdayMonth - 1, birthdayDay).getTime())
+					o.check(eventsOnDay?.length).equals(1)
+					o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday (${year - birthdayYear} years old)`)
+				}
+			})
+		})
+		o.spec(
+			"Birthday events, for birthdays where no year is specified, will be created for all loaded year+months where the month matches the birthday month",
+			function () {
+				const birthdayMonth = 11
+				const birthdayDay = 22
+
+				const newContact = {
+					firstName: "Alice",
+					// --MM-DD specifies a birthday without a provided year
+					birthdayIso: `--${birthdayMonth}-${birthdayDay}`,
+					_id: ["something", "something"],
+				} as unknown as Contact
+
+				const minLoadedYear = 1900
+				const maxLoadedYear = 2100
+
+				const eventMap: DaysToEvents = new Map()
+
+				o.beforeEach(function () {
+					when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+					eventMap.clear()
+					when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(
+						eventMap,
+					)
+				})
+
+				o.test("Test with months loaded before the contact creation", async function () {
+					for (let yearToLoad = minLoadedYear; yearToLoad <= maxLoadedYear; ++yearToLoad) {
+						await calendarEventsRepository.loadMonthsIfNeeded([[yearToLoad, birthdayMonth]], abortSignal, null)
+					}
+
+					await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+					for (let loadedYear = minLoadedYear; loadedYear <= maxLoadedYear; ++loadedYear) {
+						const eventsOnDay = eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())
+						o.check(eventsOnDay?.length).equals(1)
+						o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday`)
+					}
+				})
+				o.test("Test with contact creation before loading months", async function () {
+					await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+					for (let year = minLoadedYear; year <= maxLoadedYear; ++year) {
+						await calendarEventsRepository.loadMonthsIfNeeded([[year, birthdayMonth]], abortSignal, null)
+
+						const eventsOnDay = eventMap.get(new Date(year, birthdayMonth - 1, birthdayDay).getTime())
+						o.check(eventsOnDay?.length).equals(1)
+						o.check(eventsOnDay?.[0].event.summary).equals(`Alice's birthday`)
+					}
+				})
+			},
+		)
+		o.test("Deleting a contact removes the birthday event on the day of birth", async function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+			const eventMap: DaysToEvents = new Map()
+			when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+
+			await calendarEventsRepository.loadMonthsIfNeeded([[birthdayYear, birthdayMonth]], abortSignal, null)
+
+			await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+			// Sanity check that the event was actually added
+			const eventsOnDay = eventMap.get(new Date(birthdayYear, birthdayMonth - 1, birthdayDay).getTime())
+			o.check(eventsOnDay?.[0].event.summary).equals("Alice's birthday")
+
+			await calendarEventsRepository.handleContactEvent(OperationType.DELETE, newContact._id)
+
+			o.check(eventMap.get(new Date(birthdayYear, birthdayMonth - 1, birthdayDay).getTime())).equals(undefined)
+		})
+		o.spec("Deleting a contact removes the birthday events in loaded years after the event", function () {
+			const birthdayYear = 2000
+			const birthdayMonth = 11
+			const birthdayDay = 22
+
+			const newContact = {
+				firstName: "Alice",
+				birthdayIso: `${birthdayYear}-${birthdayMonth}-${birthdayDay}`,
+				_id: ["something", "something"],
+			} as unknown as Contact
+
+			const minLoadedYear = 1900
+			const maxLoadedYear = 2100
+
+			const eventMap: DaysToEvents = new Map()
+
+			o.beforeEach(function () {
+				when(contactModelMock.loadContactFromId(matchers.anything())).thenResolve(newContact)
+
+				eventMap.clear()
+				when(calendarFacade.updateEventMap(matchers.anything(), matchers.anything(), matchers.anything(), matchers.anything())).thenResolve(eventMap)
+			})
+			o.test("for a birthday with a specified year", async function () {
+				for (let yearToLoad = birthdayYear; yearToLoad <= maxLoadedYear; ++yearToLoad) {
+					await calendarEventsRepository.loadMonthsIfNeeded([[yearToLoad, birthdayMonth]], abortSignal, null)
+				}
+
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+				// Sanity check that the event was actually added
+				o.check(eventMap.get(new Date(maxLoadedYear, birthdayMonth - 1, birthdayDay).getTime())?.length).equals(1)
+
+				await calendarEventsRepository.handleContactEvent(OperationType.DELETE, newContact._id)
+
+				for (let loadedYear = birthdayYear; loadedYear <= maxLoadedYear; ++loadedYear) {
+					o.check(eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())).equals(undefined)
+				}
+			})
+			o.test("for a birthday with an unspecified year", async function () {
+				for (let yearToLoad = minLoadedYear; yearToLoad <= maxLoadedYear; ++yearToLoad) {
+					await calendarEventsRepository.loadMonthsIfNeeded([[yearToLoad, birthdayMonth]], abortSignal, null)
+				}
+
+				await calendarEventsRepository.handleContactEvent(OperationType.CREATE, newContact._id)
+
+				// Sanity check that the event was actually added
+				o.check(eventMap.get(new Date(maxLoadedYear, birthdayMonth - 1, birthdayDay).getTime())?.length).equals(1)
+
+				await calendarEventsRepository.handleContactEvent(OperationType.DELETE, newContact._id)
+
+				for (let loadedYear = minLoadedYear; loadedYear <= maxLoadedYear; ++loadedYear) {
+					o.check(eventMap.get(new Date(loadedYear, birthdayMonth - 1, birthdayDay).getTime())).equals(undefined)
+				}
+			})
 		})
 	})
 })

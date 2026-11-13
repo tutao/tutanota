@@ -34,7 +34,6 @@ import {
 	UserSettingsGroupRootTypeRef,
 } from "@tutao/entities/tutanota"
 import { EntityUpdateData, isUpdateForTypeRef, ListenerPriority } from "../../../../platform-kit/instance-pipeline/utils/EntityUpdateUtils"
-import { lang } from "../../../../ui/utils/LanguageViewModel"
 
 const LIMIT_PAST_EVENTS_YEARS = 100
 
