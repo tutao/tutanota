@@ -11,6 +11,7 @@ export type PluginFactoryParams = {
 }
 export type PluginFactory = (pluginHost: PluginFactoryParams) => PluginApi
 ;(globalThis as any).tutaPluginWorkerImpl = null
+
 export function initTutaPluginWorker(pluginId: PluginId, pluginFactory: PluginFactory) {
 	if ((globalThis as any).tutaPluginWorkerImpl != null) {
 		const errMessage = "Tried to initialize plugin twice?"

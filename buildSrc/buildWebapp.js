@@ -9,8 +9,7 @@ import commonjs from "@rollup/plugin-commonjs"
 import fs from "fs-extra"
 import { bundleDependencyCheckPlugin, getChunkName, resolveLibs } from "./RollupConfig.js"
 import os from "node:os"
-import * as env from "./env.js"
-import { createHtml } from "./createHtml.js"
+import { create as createEnv } from "./env.js"
 import { domainConfigs } from "./DomainConfigs.js"
 import { visualizer } from "rollup-plugin-visualizer"
 import replace from "@rollup/plugin-replace"
@@ -19,21 +18,22 @@ import { execSync } from "node:child_process"
 import typescript from "@rollup/plugin-typescript"
 import { buildArgon2, buildLibOqs } from "./buildWasm.js"
 import { appTypeForApp, buildDirForApp, buildPlugins, entryPointsForApp } from "./DevBuild.js"
+import { createHtml } from "./createHtml.js"
 
 /**
  * Builds the web app for production.
- * @param version Version of the app. Will be used for html generation and service worker versioning.
- * @param stage Deployment for which to build: 'prod' will build for the production system, 'test' for the test system, 'local' will use localhost.
- * @param host If stage is left undefined, the value provided here will be used to construct the app URL for HTML creation.
- * @param measure Function that returns the current elapsed build time.
- * @param minify Boolean. Set to true to perform minification.
- * @param projectDir Path to the tutanota root directory.
- * @param app App to build, 'mail' for mail app and 'calendar' for calendar app
- * @param mobileBuild Whether the current build is for the mobile app.
+ * @param o {object}
+ * @param o.version {string} Version of the app. Will be used for html generation and service worker versioning.
+ * @param o.stage {string} Deployment for which to build: 'prod' will build for the production system, 'test' for the test system, 'local' will use localhost.
+ * @param o.host{string} If stage is left undefined, the value provided here will be used to construct the app URL for HTML creation.
+ * @param o.measure {boolean} Function that returns the current elapsed build time.
+ * @param o.minify {boolean}. Set to true to perform minification.
+ * @param o.projectDir {string} Path to the tutanota root directory.
+ * @param o.app {"mail" | "calendar" | "drive"} App to build
  * @returns Nothing meaningful.
  */
 
-export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mobileBuild = false }) {
+export async function buildWebapp({ version, stage, host, measure, minify, projectDir, app, mode }) {
 	const buildDir = buildDirForApp(app)
 	const resolvedBuildDir = path.resolve(buildDir)
 	const { entry: entryFile, worker: workerFile } = entryPointsForApp(app)
@@ -148,38 +148,25 @@ export async function buildWebapp({ version, stage, host, measure, minify, proje
 	})
 	const chunks = output.output.map((c) => c.fileName)
 
+	const env = createEnv({
+		staticUrl: stage === "release" || stage === "local" ? null : restUrl,
+		version,
+		mode,
+		dist: true,
+		domainConfigs,
+		networkDebugging,
+	})
+
 	// we have to use System.import here because bootstrap is not executed until we actually import()
 	// unlike nollup+es format where it just runs on being loaded like you expect
 	await fs.promises.writeFile(
-		`${buildDir}/worker-bootstrap.js`,
-		`import "./polyfill.js"
-import "./worker.js"`,
+		`${buildDir}/worker-bootstrap-${mode}.js`,
+		`globalThis.env = ${JSON.stringify(env)}
+		import "./polyfill.js"
+		import "./worker.js"`,
 	)
 
-	await createHtml(
-		env.create({
-			staticUrl: stage === "release" || stage === "local" ? null : restUrl,
-			version,
-			mode: "Browser",
-			dist: true,
-			domainConfigs,
-			networkDebugging,
-		}),
-		app,
-	)
-	if (stage !== "release") {
-		await createHtml(
-			env.create({
-				staticUrl: restUrl,
-				version,
-				mode: "App",
-				dist: true,
-				domainConfigs,
-				networkDebugging,
-			}),
-			app,
-		)
-	}
+	await createHtml(env, app)
 
 	await bundleServiceWorker(chunks, version, minify, buildDir)
 	await buildPlugins(buildDir, false)

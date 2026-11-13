@@ -84,12 +84,12 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 			await runDevBuild({
 				stage,
 				host,
-				desktop: false,
 				clean: false,
 				watch: false,
 				serve: false,
 				networkDebugging: false,
 				app,
+				mode: "Android",
 				shadowDomAppRoot: null,
 			})
 		} else {
@@ -98,6 +98,7 @@ async function buildAndroid({ stage, host, buildType, existing, webClient, app }
 				version,
 				stage,
 				host,
+				mode: "Android",
 				minify: true,
 				projectDir: path.resolve("."),
 				measure,
@@ -148,7 +149,7 @@ async function buildBundle({ baseBundleName, gradleModule, buildType }) {
 
 	await fs.rm(outAabPath, { force: true })
 
-	const $inAppDir = $({ cwd: "app-android" })
+	const $inAppDir = $({ cwd: "app-android", stdio: "inherit" })
 	await $inAppDir`./gradlew :${gradleModule}:bundleTutao${buildType}`
 
 	await fs.mkdir(outDirPath, { recursive: true })
@@ -186,7 +187,7 @@ async function buildApk({ baseBundleName, gradleModule, buildType }) {
 
 	await fs.rm(outApkPath, { force: true })
 
-	const $inAppDir = $({ cwd: "app-android" })
+	const $inAppDir = $({ cwd: "app-android", stdio: "inherit" })
 	await $inAppDir`./gradlew :${gradleModule}:assembleTutao${buildType}`
 
 	await fs.mkdir(outDirPath, { recursive: true })

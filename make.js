@@ -2,6 +2,7 @@ import { Argument, Option, program } from "commander"
 import { runDevBuild } from "./buildSrc/DevBuild.js"
 import { spawn } from "node:child_process"
 import { chalk } from "zx"
+import { getCanonicalPlatformName } from "./buildSrc/buildUtils.js"
 
 const { passThroughArgs, buildArgs } = splitPassthroughAndBuildArgs()
 
@@ -10,9 +11,8 @@ await program
 	.addArgument(new Argument("stage").choices(["test", "prod", "local", "localSecure", "host"]).default("local").argOptional())
 	.addArgument(new Argument("host").argOptional())
 	.addOption(new Option("-a, --app <type>", "app to build").choices(["mail", "calendar", "drive"]).default("mail"))
-	.option("-c, --clean", "Clean build directory")
 	.option("-d, --start-desktop", "Assemble & start desktop client")
-	.option("--desktop-build-only", "Assemble desktop client without starting")
+	.option("-c, --clean", "Clean build directory")
 	.option("-v, --verbose", "activate verbose logging in desktop client")
 	.option("-s, --serve", "Start a local server to serve the website")
 	.option("--network-debugging", "activate network debugging, sending attributeNames and attributeIds in the json request/response payloads", false)
@@ -32,7 +32,8 @@ await program
 			host = "https://app.local.tuta.com:9000"
 		}
 
-		const { clean, watch, serve, startDesktop, desktopBuildOnly, app, networkDebugging, devTools, debuggable } = options
+		const { clean, watch, serve, app, networkDebugging, devTools, debuggable, startDesktop } = options
+		const mode = startDesktop ? getCanonicalPlatformName(process.platform) : "Browser"
 
 		if (serve) {
 			console.error("--serve is currently disabled, point any server to ./build directory instead or build desktop")
@@ -45,20 +46,21 @@ await program
 				clean,
 				watch,
 				serve,
-				desktop: startDesktop || desktopBuildOnly,
 				networkDebugging,
 				debuggable,
 				app,
 				shadowDomAppRoot: null,
+				mode,
 			})
 
 			if (startDesktop) {
+				// TODO() drive?
 				const buildDir = app === "calendar" ? "build-calendar-app" : "build"
-				const env = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE", ELECTRON_START_WITH_DEV_TOOLS: devTools })
+				const processEnv = Object.assign({}, process.env, { ELECTRON_ENABLE_SECURITY_WARNINGS: "TRUE", ELECTRON_START_WITH_DEV_TOOLS: devTools })
 				// we don't want to quit here because we want to keep piping output to our stdout.
 				spawn("node_modules/.bin/electron", ["--inspect=5858", `./${buildDir}/`, ...passThroughArgs], {
 					stdio: "inherit",
-					env: options.verbose ? Object.assign({}, env, { ELECTRON_ENABLE_LOGGING: 1 }) : env,
+					env: options.verbose ? Object.assign({}, processEnv, { ELECTRON_ENABLE_LOGGING: 1 }) : processEnv,
 				})
 			} else if (!watch) {
 				// Don't wait for spawned child processes to exit (because they never will)

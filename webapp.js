@@ -32,7 +32,6 @@ await program
 	.addOption(new Option("--app <app>", "app to build").choices(["mail", "calendar", "drive"]).default("mail"))
 	.option("--disable-minify", "disable minification")
 	.option("--out-dir <outDir>", "where to copy the client")
-	.option("--mobile-build", "Whether the current build is for the mobile app")
 	.action(async (stage, host, options) => {
 		if (process.env.DEBUG_SIGN && !fs.existsSync(path.join(process.env.DEBUG_SIGN, "test.p12"))) {
 			console.error("ERROR:\nPlease make sure your DEBUG_SIGN test certificate authority is set up properly!\n\n")
@@ -69,7 +68,7 @@ async function doBuild(options) {
 			minify,
 			projectDir: __dirname,
 			app: options.app,
-			mobileBuild: options.mobileBuild,
+			mode: "Browser",
 		})
 
 		const now = new Date(Date.now()).toTimeString().substring(0, 5)
