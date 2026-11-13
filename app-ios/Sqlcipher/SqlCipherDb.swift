@@ -13,6 +13,10 @@ public final class SqlCipherDb: SqliteDb, @unchecked Sendable {
 			let errmsg = self.getLastErrorMessage()
 			fatalError("Error setting key: \(errmsg)")
 		}
+
+		// Attempt to resist DB corruption if the process crashes mid-write by doing full syncing.
+		self.enableFullSynchronous()
+
 		let errors = try! self.prepare(query: "PRAGMA cipher_integrity_check").all()
 		if !errors.isEmpty { throw SqlcipherError.intergrityCheck }
 		// have to initialize signal tokenizer late because we need to setup sqlite3_key before we can do any queries

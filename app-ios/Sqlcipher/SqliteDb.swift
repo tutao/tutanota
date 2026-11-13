@@ -89,4 +89,6 @@ public class SqliteDb:
 			print("Error closing database: \(errmsg): \(self.getLastErrorMessage())")  // ignore
 		}
 	}
+
+	public func enableFullSynchronous() { try! self.prepare(query: "PRAGMA synchronous = FULL").run() }
 }
