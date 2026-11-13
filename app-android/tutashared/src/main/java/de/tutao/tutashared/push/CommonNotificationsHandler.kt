@@ -1,68 +1,38 @@
-package de.tutao.calendar.push
+package de.tutao.tutashared.push
 
 import android.util.Log
-import androidx.lifecycle.LifecycleCoroutineScope
-import de.tutao.calendar.R
+import de.tutao.tutashared.R
 import de.tutao.tutashared.SuspensionHandler
 import de.tutao.tutashared.alarms.AlarmNotificationsManager
 import de.tutao.tutashared.await
 import de.tutao.tutashared.base64ToBase64Url
 import de.tutao.tutashared.data.SseInfo
-import de.tutao.tutashared.ipc.NativeCredentialsFacade
-import de.tutao.tutashared.offline.AndroidSqlCipherFacade
-import de.tutao.tutashared.push.MissedNotification
-import de.tutao.tutashared.push.ResponseCodes
-import de.tutao.tutashared.push.SseStorage
-import de.tutao.tutashared.push.addSysVersionHeaders
 import de.tutao.tutashared.toBase64
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import java.io.File
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.MalformedURLException
 import java.net.URL
 import java.nio.charset.StandardCharsets
-import java.util.*
+import java.util.Date
 import java.util.concurrent.TimeUnit
 
-const val MISSED_NOTIFICATION_RESOURCE = "missed notification"
+abstract class CommonNotificationsHandler(private val localNotificationsFacade: LocalErrorNotificationsFacade,
+										  private val sseStorage: SseStorage,
+										  private val alarmNotificationsManager: AlarmNotificationsManager,
+										  private val defaultClient: OkHttpClient,
+										  private val suspensionHandler: SuspensionHandler) {
 
-class TutanotaNotificationsHandler(
-	private val localNotificationsFacade: LocalNotificationsFacade,
-	private val sseStorage: SseStorage,
-	private val credentialsEncryption: NativeCredentialsFacade,
-	private val alarmNotificationsManager: AlarmNotificationsManager,
-	private val defaultClient: OkHttpClient,
-	private val lifecycleScope: LifecycleCoroutineScope,
-	private val getSqlCipherFacade: () -> AndroidSqlCipherFacade,
-	private val appDir: File,
-	private val suspensionHandler: SuspensionHandler
-) {
+	protected val json = Json { ignoreUnknownKeys = true }
 
-
-	private val json = Json { ignoreUnknownKeys = true }
-
-	fun onNewNotificationAvailable(sseInfo: SseInfo?) = lifecycleScope.launch {
-		Log.d(TAG, "onNewNotificationAvailable")
-		if (sseInfo == null) {
-			Log.d(TAG, "No stored SSE info")
-			return@launch
-		}
-		val missedNotificationSerialized: String? = downloadMissedNotification(sseInfo)
-		if (missedNotificationSerialized != null) {
-			val missedNotification = json.decodeFromString<MissedNotification>(missedNotificationSerialized)
-			alarmNotificationsManager.scheduleNewAlarms(missedNotification.alarmNotifications, null)
-			sseStorage.setLastProcessedNotificationId(missedNotification.lastProcessedNotificationId)
-			sseStorage.setLastMissedNotificationCheckTime(Date())
-		}
-	}
+	abstract fun onNewNotificationAvailable(sseInfo: SseInfo?): Job
 
 	fun onConnect(): Boolean {
 		if (hasNotificationTTLExpired()) {
@@ -77,7 +47,7 @@ class TutanotaNotificationsHandler(
 		return true
 	}
 
-	private suspend fun downloadMissedNotification(sseInfo: SseInfo): String? {
+	protected suspend fun downloadMissedNotification(sseInfo: SseInfo): String? {
 		var triesLeft = 3
 		// We try to download limited number of times. If it fails then  we are probably offline
 		var userId: String?
@@ -278,5 +248,6 @@ class TutanotaNotificationsHandler(
 	companion object {
 		private const val TAG = "TutanotaNotifications"
 		private val MISSED_NOTIFICATION_TTL = TimeUnit.DAYS.toMillis(30)
+		const val MISSED_NOTIFICATION_RESOURCE = "missed notification"
 	}
 }
