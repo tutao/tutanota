@@ -10,6 +10,7 @@ import {
 	Aes256Key,
 	AesKey,
 	cryptoUtils,
+	KeyEncryption,
 	MacTag,
 	PQKeyPairs,
 	PublicKeyIdentifierType,
@@ -31,6 +32,7 @@ import {
 import { GroupType } from "../../../../../src/entities/sys/Utils"
 import { CryptoWrapper } from "../../../../../src/platform-kit/crypto/instance-pipeline-crypto/CryptoWrapper"
 import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/meta"
+import { ServiceEncryptionParamProvider } from "../../../../../src/platform-kit/base/base-crypto/ServiceEncryptionParamProvider"
 
 const { anything, captor } = matchers
 
@@ -42,6 +44,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 	let asymmetricCryptoFacade: AsymmetricCryptoFacade
 	let cryptoWrapper: CryptoWrapper
 	let keyAuthenticationFacade: KeyAuthenticationFacade
+	let serviceEncryptionParamProvider: ServiceEncryptionParamProvider
 
 	let adminKeyLoaderFacade: AdminKeyLoaderFacade
 
@@ -57,6 +60,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 		asymmetricCryptoFacade = object()
 		cryptoWrapper = object()
 		keyAuthenticationFacade = object()
+		serviceEncryptionParamProvider = object()
 
 		adminKeyLoaderFacade = new AdminKeyLoaderFacade(
 			userFacade,
@@ -66,6 +70,7 @@ o.spec("AdminKeyLoaderFacadeTest", function () {
 			asymmetricCryptoFacade,
 			cryptoWrapper,
 			keyAuthenticationFacade,
+			serviceEncryptionParamProvider,
 		)
 	})
 

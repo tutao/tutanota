@@ -49,6 +49,7 @@ import { elementIdToId, idToElementId } from "../../../../../src/platform-kit/me
 import { FormerKeyResolver } from "../../../../../src/platform-kit/base/base-crypto/FormerKeyResolver"
 import { AeadFacade } from "@tutao/crypto/aead-facade"
 import { SymmetricKeyDeriver } from "@tutao/crypto/symmetric-key-deriver"
+import { ServiceEncryptionParamProvider } from "../../../../../src/platform-kit/base/base-crypto/ServiceEncryptionParamProvider"
 
 o.spec("KeyLoaderFacadeTest", function () {
 	let symmetricCipherUtils: SymmetricCipherUtils
@@ -106,7 +107,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 			async () => cacheManagementFacade,
 			cryptoWrapper,
 			realFormerKeyResolver,
-			keyEncryption,
+			new ServiceEncryptionParamProvider(keyEncryption),
 		)
 
 		formerKeys = []
@@ -287,7 +288,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				async () => cacheManagementFacade,
 				cryptoWrapper,
 				realFormerKeyResolver,
-				keyEncryption,
+				new ServiceEncryptionParamProvider(keyEncryption),
 			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
@@ -315,7 +316,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				async () => cacheManagementFacade,
 				cryptoWrapper,
 				realFormerKeyResolver,
-				keyEncryption,
+				new ServiceEncryptionParamProvider(keyEncryption),
 			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
@@ -353,7 +354,7 @@ o.spec("KeyLoaderFacadeTest", function () {
 				async () => cacheManagementFacade,
 				cryptoWrapper,
 				realFormerKeyResolver,
-				keyEncryption,
+				new ServiceEncryptionParamProvider(keyEncryption),
 			)
 			when(entityClient.load(GroupTypeRef, group._id)).thenResolve(group)
 			when(keyCache.getCurrentGroupKey(elementIdToId(group._id), matchers.anything())).thenResolve(currentGroupKey)
